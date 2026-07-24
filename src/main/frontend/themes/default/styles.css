@@ -1,0 +1,22 @@
+/* Vaadin default theme */
+
+.workspace {
+  overflow: hidden;
+}
+
+.workspace-title {
+  background: var(--lumo-base-color);
+  border-bottom: 2px solid var(--lumo-primary-color);
+  color: var(--lumo-primary-text-color);
+  padding-left: var(--lumo-space-l);
+}
+
+.workspace-content {
+  background: var(--lumo-base-color);
+  overflow: auto;
+}
+
+.workspace-tabs .tab-selected {
+  background: var(--lumo-primary-color-10pct) !important;
+  border-color: var(--lumo-primary-color-50pct) !important;
+}
