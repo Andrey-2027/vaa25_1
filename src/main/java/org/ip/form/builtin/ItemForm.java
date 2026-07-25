@@ -15,6 +15,7 @@ import org.ip.form.FieldFactory;
 import org.ip.form.FormBindingRegistry;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FieldMetadataInfo;
+import org.ipro.crud.IdentifiableEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ import java.util.function.Supplier;
  * Табличные части подключаются автоматически через TableSectionFactory (см.
  * FormResolver/ItemFormWrapperView) — вызывающему коду вручную создавать ItemTable не нужно.
  */
-public class ItemForm<T> extends VerticalLayout
+public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         implements org.ip.views.workspace.Dirtyable,
                    org.ip.views.workspace.Savable {
 
