@@ -1,6 +1,7 @@
 package org.ip.form;
 
 import org.ip.metadata.FieldMetadataInfo;
+import org.ip.metadata.annotation.FieldType;
 import org.ip.model.HasDisplayName;
 
 import java.math.BigDecimal;
@@ -118,6 +119,23 @@ public interface FieldRenderer extends BiFunction<Object, FieldMetadataInfo, Str
             if (value == null) return "";
             if (value instanceof HasDisplayName h) return h.getDisplayName();
             return value.toString();
+        };
+    }
+
+    /**
+     * Единая точка выбора рендера по FieldType. Используется и ListForm (колонки грида
+     * сущностей), и ItemTable (колонки грида строк табличной части) — чтобы оба места
+     * рендерили значения одинаково и не расходились при развитии типов полей.
+     */
+    static FieldRenderer forType(FieldType type) {
+        return switch (type) {
+            case DATE -> date();
+            case DATETIME -> dateTime();
+            case DECIMAL -> decimal();
+            case BOOLEAN -> boolYesNo();
+            case ENUM -> enumValue();
+            case ENTITY_REFERENCE -> entityReference();
+            default -> text();
         };
     }
 }

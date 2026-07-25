@@ -57,9 +57,3 @@ import './app-shell-imports.js';
 import './theme-default.global.generated.js';
 import { applyTheme } from './theme.js';
 applyTheme(document);
-
-import { Outlet } from 'react-router';
-(window as any).Vaadin ??= {};
-(window as any).Vaadin.copilot ??= {};
-(window as any).Vaadin.copilot._ref ??= {};
-(window as any).Vaadin.copilot._ref.Outlet = Outlet;

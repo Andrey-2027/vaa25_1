@@ -5,37 +5,81 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.envers.Audited;
+import org.ip.metadata.annotation.EntityMetadata;
+import org.ip.metadata.annotation.FieldMetadata;
+import org.ip.metadata.annotation.GridColumn;
+import org.ip.metadata.annotation.Lookup;
+import org.ip.metadata.annotation.TableSections;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * Приёмно-сдаточная накладная. Metadata-driven сущность с одной табличной частью
+ * (ReceivingDocumentItem — см. @TableSections).
+ *
+ * Строки табличной части НЕ хранятся здесь как @OneToMany EAGER-коллекция — это
+ * отдельные сущности со своим репозиторием и сервисом (ReceivingDocumentItemService).
+ * ItemTable (UI) и TableSectionService (сервисный слой) сами заботятся о загрузке,
+ * синхронизации и удалении строк — см. ReceivingDocumentService.delete() для каскада.
+ */
 @Entity
 @Table(name = "receiving_document")
 @Audited
+@EntityMetadata(
+    listFormTitle = "Приёмно-сдаточные накладные",
+    itemFormTitle = "Накладная",
+    selectionFormTitle = "Выбор накладной",
+    order = 200,
+    icon = "FILE_TEXT",
+    serviceClass = org.ip.service.ReceivingDocumentService.class
+)
+@TableSections({ReceivingDocumentItem.class})
 public class ReceivingDocument extends BaseEntity {
 
     @NotBlank
     @Size(max = 20)
     @Column(nullable = false, unique = true)
+    @FieldMetadata(
+        label = "Номер", required = true, order = 1,
+        grid = @GridColumn(order = 1, width = "150px")
+    )
     private String number;
 
     @NotNull
     @Column(nullable = false)
+    @FieldMetadata(
+        label = "Дата", required = true, order = 2,
+        grid = @GridColumn(order = 2, width = "150px")
+    )
     private LocalDate date;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "receiving_workshop_id", nullable = false)
     @NotNull
+    @FieldMetadata(
+        label = "Цех приёмщик", required = true, order = 3,
+        grid = @GridColumn(order = 3, flexGrow = 1),
+        lookup = @Lookup(
+            entity = Workshop.class,
+            columns = {"code", "name"},
+            searchFields = {"code", "name"}
+        )
+    )
     private Workshop receivingWorkshop;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "transferring_workshop_id", nullable = false)
     @NotNull
+    @FieldMetadata(
+        label = "Цех сдатчик", required = true, order = 4,
+        grid = @GridColumn(order = 4, flexGrow = 1),
+        lookup = @Lookup(
+            entity = Workshop.class,
+            columns = {"code", "name"},
+            searchFields = {"code", "name"}
+        )
+    )
     private Workshop transferringWorkshop;
-
-    @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<ReceivingDocumentItem> items = new ArrayList<>();
 
     public ReceivingDocument() {
     }
@@ -78,24 +122,6 @@ public class ReceivingDocument extends BaseEntity {
 
     public void setTransferringWorkshop(Workshop transferringWorkshop) {
         this.transferringWorkshop = transferringWorkshop;
-    }
-
-    public List<ReceivingDocumentItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<ReceivingDocumentItem> items) {
-        this.items = items;
-    }
-
-    public void addItem(ReceivingDocumentItem item) {
-        items.add(item);
-        item.setDocument(this);
-    }
-
-    public void removeItem(ReceivingDocumentItem item) {
-        items.remove(item);
-        item.setDocument(null);
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import org.springframework.context.annotation.Scope;
 import org.ip.form.FieldFactory;
+import org.ip.form.TableSectionFactory;
 import org.ip.form.builtin.ItemForm;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.MetadataResolver;
@@ -39,6 +40,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     private final MetadataResolver metadataResolver;
     private final FieldFactory fieldFactory;
     private final ApplicationContext applicationContext;
+    private final TableSectionFactory tableSectionFactory;
 
     private ItemForm<?> itemForm;
     private Consumer<?> onSavedCallback;
@@ -46,10 +48,12 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     public ItemFormWrapperView(
             @Autowired MetadataResolver metadataResolver,
             @Autowired FieldFactory fieldFactory,
-            @Autowired ApplicationContext applicationContext) {
+            @Autowired ApplicationContext applicationContext,
+            @Autowired TableSectionFactory tableSectionFactory) {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
+        this.tableSectionFactory = tableSectionFactory;
         setSizeFull();
         setPadding(false);
         setSpacing(false);
@@ -76,6 +80,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
         BaseService<T, ID> service = findService(entityClass);
 
         ItemForm<T> form = new ItemForm<>(meta, fieldFactory);
+        tableSectionFactory.attachTableSections(form, entityClass);
 
         // Загружаем существующую запись или оставляем пустой для новой
         if (id != null) {
@@ -99,10 +104,18 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }
+            java.util.List<String> sectionErrors = form.validateTableSections();
+            if (!sectionErrors.isEmpty()) {
+                Notification.show(String.join("\n", sectionErrors),
+                    5000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+            }
 
             try {
                 T entity = form.getEntity();
                 T saved = service.save(entity);
+                form.commitTableSections(saved);
                 form.commitSnapshot();
 
                 if (onSaved != null) {

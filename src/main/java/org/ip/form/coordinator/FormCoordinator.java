@@ -4,6 +4,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import org.ip.form.FieldFactory;
+import org.ip.form.TableSectionFactory;
 import org.ip.form.builtin.ItemForm;
 import org.ip.form.builtin.ListForm;
 import org.ip.form.coordinator.FormOpenMode;
@@ -65,11 +66,13 @@ public class FormCoordinator {
     public FormCoordinator(MetadataResolver metadataResolver,
                            FieldFactory fieldFactory,
                            ApplicationContext applicationContext,
-                           FormRegistry formRegistry) {
+                           FormRegistry formRegistry,
+                           TableSectionFactory tableSectionFactory) {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
-        this.formResolver = new FormResolver(formRegistry, metadataResolver, fieldFactory, applicationContext);
+        this.formResolver = new FormResolver(
+            formRegistry, metadataResolver, fieldFactory, applicationContext, tableSectionFactory);
     }
 
     /**
@@ -296,9 +299,15 @@ public class FormCoordinator {
                 showError("Заполните обязательные поля:\n" + String.join("\n", form.validate()));
                 return;
             }
+            java.util.List<String> sectionErrors = form.validateTableSections();
+            if (!sectionErrors.isEmpty()) {
+                showError(String.join("\n", sectionErrors));
+                return;
+            }
             try {
                 T entity = form.getEntity();
                 T saved = service.save(entity);
+                form.commitTableSections(saved);
                 dialog.close();
                 if (onSaved != null) onSaved.accept(saved);
                 showSuccess("Сохранено");

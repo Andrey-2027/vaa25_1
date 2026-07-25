@@ -1,66 +1,28 @@
 package org.ip.views.document;
 
-import com.vaadin.flow.component.grid.GridSortOrder;
-import com.vaadin.flow.data.provider.SortDirection;
-import org.ipro.crud.AbstractCrudView;
-import org.ipro.crud.EditMode;
-import org.ipro.filtergrid.ComboBoxFilter;
-import org.ipro.filtergrid.DateRangeFilter;
-import org.ipro.filtergrid.TextFilter;
-import org.ipro.filtergrid.jpa.JpaFilterGrid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import org.ip.form.builtin.ListForm;
+import org.ip.form.coordinator.FormCoordinator;
 import org.ip.model.ReceivingDocument;
-import org.ip.model.Workshop;
-import org.ip.service.NomenclatureService;
-import org.ip.service.ReceivingDocumentService;
-import org.ip.service.WorkshopService;
-import org.ip.views.forms.ReceivingDocumentForm;
 
-import java.util.List;
+/**
+ * Представление списка приёмно-сдаточных накладных.
+ *
+ * Metadata-driven подход: шапка (число, дата, цеха) и табличная часть "Позиции"
+ * (ReceivingDocumentItem) генерируются из @EntityMetadata/@TableSections —
+ * см. ReceivingDocument.java. Ручной ReceivingDocumentForm с руками написанным
+ * диалогом добавления позиции (EntityField + BigDecimalField) больше не нужен —
+ * этот функционал теперь берёт на себя generic ItemTable.
+ */
+public class ReceivingDocumentView extends VerticalLayout {
 
-public class ReceivingDocumentView extends AbstractCrudView<ReceivingDocument> {
+    public ReceivingDocumentView(FormCoordinator coordinator) {
+        setSizeFull();
+        setPadding(false);
+        setSpacing(false);
 
-    private final ReceivingDocumentService documentService;
-    private final WorkshopService workshopService;
-    private final NomenclatureService nomenclatureService;
+        ListForm<ReceivingDocument, Long> listForm = coordinator.createListForm(ReceivingDocument.class);
 
-    public ReceivingDocumentView(ReceivingDocumentService documentService,
-                                 WorkshopService workshopService,
-                                 NomenclatureService nomenclatureService) {
-        this(documentService, workshopService, nomenclatureService,
-            new JpaFilterGrid<>(ReceivingDocument.class, documentService::findAll));
-    }
-
-    private ReceivingDocumentView(ReceivingDocumentService documentService,
-                                  WorkshopService workshopService,
-                                  NomenclatureService nomenclatureService,
-                                  JpaFilterGrid<ReceivingDocument> fg) {
-        super(ReceivingDocument.class, documentService, fg.getGrid(), fg, EditMode.DIALOG);
-        this.documentService = documentService;
-        this.workshopService = workshopService;
-        this.nomenclatureService = nomenclatureService;
-    }
-
-    @Override
-    protected void configureGrid() {
-        JpaFilterGrid<ReceivingDocument> fg = getGridComponent();
-
-        fg.addColumnFilter("id", "id", ReceivingDocument::getId, new TextFilter<>());
-        fg.addColumnFilter("number", "Номер", ReceivingDocument::getNumber, new TextFilter<>());
-        fg.addColumnFilter("date", "Дата", ReceivingDocument::getDate, new DateRangeFilter<>());
-        fg.addColumnFilter("receivingWorkshop", "Цех приемщик",
-            d -> d.getReceivingWorkshop() != null ? d.getReceivingWorkshop().getName() : "",
-            new TextFilter<>());
-        fg.addColumnFilter("transferringWorkshop", "Цех сдатчик",
-            d -> d.getTransferringWorkshop() != null ? d.getTransferringWorkshop().getName() : "",
-            new TextFilter<>());
-
-        fg.build();
-        fg.getGrid().sort(List.of(
-                new GridSortOrder<>(fg.getGrid().getColumnByKey("id"), SortDirection.ASCENDING)));
-    }
-
-    @Override
-    protected ReceivingDocumentForm createForm() {
-        return new ReceivingDocumentForm(workshopService, nomenclatureService);
+        add(listForm);
     }
 }

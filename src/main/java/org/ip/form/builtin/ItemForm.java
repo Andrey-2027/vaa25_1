@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -15,16 +16,18 @@ import org.ip.form.FormBindingRegistry;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FieldMetadataInfo;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * Универсальная форма элемента. Генерируется из EntityMetadataInfo.
+ * Универсальная форма элемента. Генерируется из EntityMetadataInfo (или, для строк
+ * табличных частей, напрямую из списка FieldMetadataInfo — см. конструктор без метаданных).
  *
  * Содержит:
  *   - FormLayout с полями, автоматически созданными FieldFactory
  *   - FormBindingRegistry с биндингами для каждого поля
+ *   - 0..1 табличную часть (ItemTable) — см. addTableSection()
  *   - Footer для кнопок "Сохранить"/"Отмена" (добавляются через withDefaultButtons или вручную)
  *
  * Использование:
@@ -36,16 +39,21 @@ import java.util.function.Supplier;
  * form.setEntityFactory(() -&gt; new Nomenclature());  // для нового
  * form.withDefaultButtons();
  * </pre>
+ *
+ * Табличные части подключаются автоматически через TableSectionFactory (см.
+ * FormResolver/ItemFormWrapperView) — вызывающему коду вручную создавать ItemTable не нужно.
  */
 public class ItemForm<T> extends VerticalLayout
         implements org.ip.views.workspace.Dirtyable,
                    org.ip.views.workspace.Savable {
 
-    private final EntityMetadataInfo metadata;
+    private final EntityMetadataInfo metadata; // null для форм строк табличных частей
+    private final Class<T> entityClass;
     private final FieldFactory fieldFactory;
     private final FormBindingRegistry registry = new FormBindingRegistry();
     private final FormLayout formLayout = new FormLayout();
     private final HorizontalLayout footer = new HorizontalLayout();
+    private final List<ItemTable<?, T>> tableSections = new ArrayList<>();
 
     private T entity;
     private T snapshot;
@@ -77,7 +85,34 @@ public class ItemForm<T> extends VerticalLayout
      * );
      * </pre>
      */
+    @SuppressWarnings("unchecked")
     public ItemForm(EntityMetadataInfo metadata, FieldFactory fieldFactory, List<String> fieldNames) {
+        this(
+            (Class<T>) metadata.getEntityClass(),
+            filterFields(metadata.getFormFields(), fieldNames),
+            fieldFactory,
+            metadata
+        );
+    }
+
+    /**
+     * Создать форму без EntityMetadataInfo — напрямую из класса и списка полей.
+     * Используется ItemTable для диалога добавления/редактирования строки табличной части,
+     * у которой нет @EntityMetadata (только @TableSectionMetadata + @FieldMetadata на полях).
+     *
+     * getMetadata() для формы, созданной этим конструктором, возвращает null —
+     * вызывающий код не должен на него полагаться (это не generic ItemForm сущности,
+     * а форма строки).
+     */
+    public ItemForm(Class<T> entityClass, List<FieldMetadataInfo> formFields, FieldFactory fieldFactory) {
+        this(entityClass, formFields, fieldFactory, null);
+    }
+
+    private ItemForm(Class<T> entityClass,
+                      List<FieldMetadataInfo> formFields,
+                      FieldFactory fieldFactory,
+                      EntityMetadataInfo metadata) {
+        this.entityClass = entityClass;
         this.metadata = metadata;
         this.fieldFactory = fieldFactory;
 
@@ -91,14 +126,7 @@ public class ItemForm<T> extends VerticalLayout
             new FormLayout.ResponsiveStep("500px", 2)
         );
 
-        // Создаём компоненты для указанных полей (или всех, если fieldNames == null)
-        List<FieldMetadataInfo> fieldsToShow = fieldNames == null || fieldNames.isEmpty()
-            ? metadata.getFormFields()
-            : metadata.getFormFields().stream()
-                .filter(field -> fieldNames.contains(field.getName()))
-                .toList();
-
-        for (FieldMetadataInfo field : fieldsToShow) {
+        for (FieldMetadataInfo field : formFields) {
             Component component = fieldFactory.createField(field, registry);
             formLayout.add(component);
         }
@@ -112,12 +140,73 @@ public class ItemForm<T> extends VerticalLayout
         setFlexGrow(1, formLayout);
     }
 
+    private static List<FieldMetadataInfo> filterFields(List<FieldMetadataInfo> allFields, List<String> fieldNames) {
+        if (fieldNames == null || fieldNames.isEmpty()) {
+            return allFields;
+        }
+        return allFields.stream()
+            .filter(field -> fieldNames.contains(field.getName()))
+            .toList();
+    }
+
+    // === Табличные части ===
+
+    /**
+     * Подключает табличную часть к форме. Секция размещается между полями шапки и footer.
+     * Вызывается TableSectionFactory сразу после конструктора — вручную вызывать не нужно.
+     *
+     * Ограничение первой версии: одна секция на форму (см. MetadataResolver.resolveTableSections).
+     */
+    public void addTableSection(String title, ItemTable<?, T> table) {
+        tableSections.add(table);
+        int footerIndex = indexOf(footer);
+        if (title != null && !title.isBlank()) {
+            H4 heading = new H4(title);
+            heading.getStyle().set("margin-top", "0.5em").set("margin-bottom", "0.25em");
+            addComponentAtIndex(footerIndex, heading);
+            footerIndex++;
+        }
+        addComponentAtIndex(footerIndex, table);
+        setFlexGrow(1, table);
+        if (entity != null) {
+            table.setParent(entity);
+        }
+    }
+
+    public List<ItemTable<?, T>> getTableSections() {
+        return List.copyOf(tableSections);
+    }
+
+    /**
+     * Кросс-валидация всех табличных частей (см. TableSectionService.validateRows()).
+     * Вызывается координатором формы ДО сохранения шапки — чтобы не оставить документ
+     * в частично сохранённом состоянии при ошибке в строках.
+     */
+    public List<String> validateTableSections() {
+        List<String> errors = new ArrayList<>();
+        for (ItemTable<?, T> table : tableSections) {
+            errors.addAll(table.validateRows(entity));
+        }
+        return errors;
+    }
+
+    /**
+     * Синхронизирует строки всех табличных частей с БД для уже сохранённого родителя.
+     * Вызывается координатором формы ПОСЛЕ успешного service.save(entity).
+     */
+    public void commitTableSections(T savedEntity) {
+        for (ItemTable<?, T> table : tableSections) {
+            table.commit(savedEntity);
+        }
+    }
+
     // === Entity lifecycle ===
 
     /**
      * Установить сущность для редактирования. Поля заполняются значениями.
      * Если entity == null — поля очищаются (для режима "новая запись").
-     * Также сбрасывает snapshot для отслеживания изменений.
+     * Также сбрасывает snapshot для отслеживания изменений и перезагружает строки
+     * табличных частей для этого родителя.
      */
     public void setEntity(T entity) {
         this.entity = entity;
@@ -126,6 +215,9 @@ public class ItemForm<T> extends VerticalLayout
             registry.readAllFromEntity(entity);
         } else {
             registry.readAllFromEntity(newInstance());
+        }
+        for (ItemTable<?, T> table : tableSections) {
+            table.setParent(entity);
         }
     }
 
@@ -170,10 +262,10 @@ public class ItemForm<T> extends VerticalLayout
             return entityFactory.get();
         }
         try {
-            return (T) metadata.getEntityClass().getDeclaredConstructor().newInstance();
+            return (T) entityClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new IllegalStateException(
-                "Cannot create instance of " + metadata.getEntityClass().getName() +
+                "Cannot create instance of " + entityClass.getName() +
                 ". Provide entityFactory via setEntityFactory().", e);
         }
     }
@@ -181,6 +273,11 @@ public class ItemForm<T> extends VerticalLayout
     /**
      * Простой deep clone через сериализацию (или identity для неполных сущностей).
      * Если сущность не клонируется — сравниваем по equals().
+     *
+     * ВНИМАНИЕ: если сущность не implements Serializable, клонирование падает и
+     * возвращается тот же объект — тогда isDirty() ниже не сможет обнаружить изменения
+     * этим способом. Это известное ограничение текущей реализации (не табличных частей),
+     * см. обсуждение отдельно от табличных частей.
      */
     @SuppressWarnings("unchecked")
     private T deepClone(T src) {
@@ -201,6 +298,9 @@ public class ItemForm<T> extends VerticalLayout
 
     @Override
     public boolean isDirty() {
+        boolean tableSectionsDirty = tableSections.stream().anyMatch(ItemTable::isDirty);
+        if (tableSectionsDirty) return true;
+
         if (snapshot == null && entity == null) return false;
         if (snapshot == null || entity == null) return true;
         // Применяем текущие значения UI к entity перед сравнением
@@ -261,6 +361,10 @@ public class ItemForm<T> extends VerticalLayout
             .map(component -> (Button) component)
             .filter(button -> "Сохранить".equals(button.getText()))
             .forEach(button -> button.setVisible(!readOnly));
+
+        for (ItemTable<?, T> table : tableSections) {
+            table.setReadOnly(readOnly);
+        }
     }
 
     /**
@@ -276,8 +380,17 @@ public class ItemForm<T> extends VerticalLayout
         return registry;
     }
 
+    /**
+     * Метаданные сущности. Возвращает null для форм строк табличных частей
+     * (созданных через конструктор ItemForm(Class, List, FieldFactory)) — такие формы
+     * не привязаны к @EntityMetadata, только к @TableSectionMetadata.
+     */
     public EntityMetadataInfo getMetadata() {
         return metadata;
+    }
+
+    public Class<T> getEntityClass() {
+        return entityClass;
     }
 
     public FormLayout getFormLayout() {

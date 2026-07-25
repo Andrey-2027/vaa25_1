@@ -2,6 +2,7 @@ package org.ip.form.registry;
 
 import com.vaadin.flow.component.Component;
 import org.ip.form.FieldFactory;
+import org.ip.form.TableSectionFactory;
 import org.ip.form.builtin.ItemForm;
 import org.ip.form.builtin.ListForm;
 import org.ip.form.builtin.SelectionForm;
@@ -38,15 +39,18 @@ public class FormResolver {
     private final MetadataResolver metadataResolver;
     private final FieldFactory fieldFactory;
     private final ApplicationContext applicationContext;
+    private final TableSectionFactory tableSectionFactory;
 
     public FormResolver(FormRegistry formRegistry,
                         MetadataResolver metadataResolver,
                         FieldFactory fieldFactory,
-                        ApplicationContext applicationContext) {
+                        ApplicationContext applicationContext,
+                        TableSectionFactory tableSectionFactory) {
         this.formRegistry = formRegistry;
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
+        this.tableSectionFactory = tableSectionFactory;
     }
 
     /**
@@ -127,7 +131,9 @@ public class FormResolver {
                     .build();
                 Component component = factory.create(context);
                 if (component instanceof ItemForm) {
-                    return (ItemForm<T>) component;
+                    ItemForm<T> form = (ItemForm<T>) component;
+                    tableSectionFactory.attachTableSections(form, entityClass);
+                    return form;
                 }
                 throw new IllegalStateException(
                     "FormFactory for " + entityClass.getSimpleName() + " ITEM variant '" + variant +
@@ -144,7 +150,9 @@ public class FormResolver {
                 .build();
             Component component = factory.create(context);
             if (component instanceof ItemForm) {
-                return (ItemForm<T>) component;
+                ItemForm<T> form = (ItemForm<T>) component;
+                tableSectionFactory.attachTableSections(form, entityClass);
+                return form;
             }
             throw new IllegalStateException(
                 "FormFactory for " + entityClass.getSimpleName() + " ITEM default variant " +
@@ -152,7 +160,9 @@ public class FormResolver {
         }
 
         // 3. Создать generic форму из метаданных
-        return createGenericItemForm(entityClass, parameters);
+        ItemForm<T> genericForm = createGenericItemForm(entityClass, parameters);
+        tableSectionFactory.attachTableSections(genericForm, entityClass);
+        return genericForm;
     }
 
     /**

@@ -185,15 +185,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
      * Выбирает FieldRenderer по типу поля для отображения в колонке.
      */
     private FieldRenderer chooseRenderer(FieldMetadataInfo field) {
-        return switch (field.getResolvedType()) {
-            case DATE -> FieldRenderer.date();
-            case DATETIME -> FieldRenderer.dateTime();
-            case DECIMAL -> FieldRenderer.decimal();
-            case BOOLEAN -> FieldRenderer.boolYesNo();
-            case ENUM -> FieldRenderer.enumValue();
-            case ENTITY_REFERENCE -> FieldRenderer.entityReference();
-            default -> FieldRenderer.text();
-        };
+        return FieldRenderer.forType(field.getResolvedType());
     }
 
     // === Toolbar ===
