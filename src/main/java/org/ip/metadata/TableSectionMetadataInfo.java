@@ -74,8 +74,11 @@ public final class TableSectionMetadataInfo {
         if (lineNumberField == null) return;
         try {
             Class<?> type = lineNumberField.getType();
-            Object value = (type == Long.class || type == long.class) ? (long) number : number;
-            lineNumberField.set(row, value);
+            if (type == Long.class || type == long.class) {
+                lineNumberField.set(row, (long) number);
+            } else {
+                lineNumberField.set(row, number);
+            }
         } catch (IllegalAccessException e) {
             throw new IllegalStateException(
                 "Cannot write lineNumber field '" + lineNumberField.getName() +
