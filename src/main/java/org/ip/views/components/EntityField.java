@@ -16,7 +16,6 @@ import com.vaadin.flow.dom.DomEvent;
 import com.vaadin.flow.function.ValueProvider;
 import org.ip.form.builtin.SelectionForm;
 import org.ip.model.HasDisplayName;
-import org.ipro.filtergrid.FilterGrid;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
 
@@ -41,19 +40,7 @@ public class EntityField<T extends HasDisplayName> extends Div {
     private boolean suppressValueChange = false;
     private int focusedRowIndex = -1;
 
-    public EntityField(String label,
-                       SearchFunction<T> searchFunction,
-                       Class<T> entityClass, String[] columnHeaders,
-                       ValueProvider<T, ?>... valueProviders) {
-        this.searchFunction = searchFunction;
-        this.valueProviders = valueProviders;
-        this.columnHeaders = columnHeaders;
-        this.entityClass = entityClass;
-        this.preloadedItems = null;
-        this.lazySearch = null;
-        init();
-    }
-
+    @SafeVarargs
     public EntityField(String label,
                        SearchFunction<T> searchFunction,
                        Class<T> entityClass, Collection<T> allItems,
@@ -63,10 +50,8 @@ public class EntityField<T extends HasDisplayName> extends Div {
         this.valueProviders = valueProviders;
         this.columnHeaders = columnHeaders;
         this.entityClass = entityClass;
-        this.preloadedItems = allItems;
-        this.lazySearch = null;
-        init();
-    }
+        this.allItems = allItems;
+        getStyle().set("position", "relative");
 
         Span fieldLabel = new Span(label);
         fieldLabel.getElement().getStyle()
@@ -285,9 +270,6 @@ public class EntityField<T extends HasDisplayName> extends Div {
         form.open();
     }
 
-    /**
-     * Callback из SelectionForm — обновляет состояние EntityField при выборе.
-     */
     private void onSelectedInDialog(T selected) {
         if (selected == null) return;
         this.selectedValue = selected;
@@ -324,11 +306,6 @@ public class EntityField<T extends HasDisplayName> extends Div {
         textField.getElement().getThemeList().remove("error");
     }
 
-    /**
-     * Переводит поле в режим только-для-чтения (или обратно).
-     * При readOnly=true: текстовое поле и кнопка выбора блокируются.
-     * При readOnly=false: возврат к нормальному режиму.
-     */
     public void setReadOnly(boolean readOnly) {
         textField.setReadOnly(readOnly);
         browseButton.setEnabled(!readOnly);

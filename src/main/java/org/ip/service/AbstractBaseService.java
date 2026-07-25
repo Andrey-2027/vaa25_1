@@ -25,6 +25,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.ipro.crud.IdentifiableEntity;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -74,6 +75,12 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public Optional<T> findById(ID id) {
+        Class<T> domainClass = getDomainClass();
+        EntityGraph<T> graph = buildFetchGraph(domainClass);
+        if (graph != null) {
+            var hints = Map.of("jakarta.persistence.fetchgraph", (Object) graph);
+            return Optional.ofNullable(entityManager.find(domainClass, id, hints));
+        }
         return repository.findById(id);
     }
 
