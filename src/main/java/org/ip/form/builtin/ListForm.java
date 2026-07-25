@@ -5,6 +5,8 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -260,7 +262,9 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                     refresh();
                     if (onDelete != null) onDelete.accept(entity);
                 } catch (Exception ex) {
-                    throw new RuntimeException("Ошибка удаления: " + ex.getMessage(), ex);
+                    String message = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    Notification.show(message, 5000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             } else if (onDelete != null) {
                 onDelete.accept(entity);
