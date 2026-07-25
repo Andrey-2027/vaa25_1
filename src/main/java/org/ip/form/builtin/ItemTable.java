@@ -10,7 +10,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.data.provider.ValueProvider;
+import com.vaadin.flow.function.ValueProvider;
 import org.ip.form.FieldFactory;
 import org.ip.form.FieldRenderer;
 import org.ip.metadata.FieldMetadataInfo;
