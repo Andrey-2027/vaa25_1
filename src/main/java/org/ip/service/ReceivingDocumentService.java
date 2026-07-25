@@ -74,7 +74,7 @@ public class ReceivingDocumentService extends AbstractBaseService<ReceivingDocum
 
     @Override
     public Page<ReceivingDocument> findAll(Specification<ReceivingDocument> spec, Pageable pageable) {
-        return documentRepository.findAll(spec, pageable);
+        return findAllWithFetchGraph(spec, pageable);
     }
 
     /**

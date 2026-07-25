@@ -54,7 +54,7 @@ public class ReceivingDocument extends BaseEntity {
     )
     private LocalDate date;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiving_workshop_id", nullable = false)
     @NotNull
     @FieldMetadata(
@@ -68,7 +68,7 @@ public class ReceivingDocument extends BaseEntity {
     )
     private Workshop receivingWorkshop;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transferring_workshop_id", nullable = false)
     @NotNull
     @FieldMetadata(

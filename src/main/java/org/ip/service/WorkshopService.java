@@ -31,6 +31,6 @@ public class WorkshopService extends AbstractBaseService<Workshop, Long> {
 
     @Override
     public Page<Workshop> findAll(Specification<Workshop> spec, Pageable pageable) {
-        return workshopRepository.findAll(spec, pageable);
+        return findAllWithFetchGraph(spec, pageable);
     }
 }

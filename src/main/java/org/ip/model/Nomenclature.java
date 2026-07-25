@@ -43,7 +43,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     )
     private String name;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "unit_id", nullable = false)
     @NotNull
     @FieldMetadata(

@@ -28,7 +28,8 @@ import java.util.function.Supplier;
  * Содержит:
  *   - FormLayout с полями, автоматически созданными FieldFactory
  *   - FormBindingRegistry с биндингами для каждого поля
- *   - 0..1 табличную часть (ItemTable) — см. addTableSection()
+ *   - 0..N табличных частей (ItemTable) — см. addTableSection(). Одна секция — без
+ *     закладок; 2 и более — автоматически переключается на TabSheet
  *   - Footer для кнопок "Сохранить"/"Отмена" (добавляются через withDefaultButtons или вручную)
  *
  * Использование:
@@ -54,7 +55,10 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     private final FormBindingRegistry registry = new FormBindingRegistry();
     private final FormLayout formLayout = new FormLayout();
     private final HorizontalLayout footer = new HorizontalLayout();
+    private final VerticalLayout sectionsContainer = new VerticalLayout();
     private final List<ItemTable<?, T>> tableSections = new ArrayList<>();
+    private final List<String> tableSectionTitles = new ArrayList<>();
+    private com.vaadin.flow.component.tabs.TabSheet tabSheet;
 
     private T entity;
     private T snapshot;
@@ -123,8 +127,8 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
 
         formLayout.setWidthFull();
         formLayout.setResponsiveSteps(
-            new FormLayout.ResponsiveStep("0", 1),
-            new FormLayout.ResponsiveStep("500px", 2)
+            new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE),
+            new FormLayout.ResponsiveStep("600px", 2, FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
         );
 
         for (FieldMetadataInfo field : formFields) {
@@ -137,8 +141,13 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         footer.setPadding(false);
         footer.setSpacing(true);
 
-        add(formLayout, footer);
+        sectionsContainer.setWidthFull();
+        sectionsContainer.setPadding(false);
+        sectionsContainer.setSpacing(true);
+
+        add(formLayout, sectionsContainer, footer);
         setFlexGrow(1, formLayout);
+        setFlexGrow(1, sectionsContainer);
     }
 
     private static List<FieldMetadataInfo> filterFields(List<FieldMetadataInfo> allFields, List<String> fieldNames) {
@@ -153,25 +162,53 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     // === Табличные части ===
 
     /**
-     * Подключает табличную часть к форме. Секция размещается между полями шапки и footer.
-     * Вызывается TableSectionFactory сразу после конструктора — вручную вызывать не нужно.
+     * Подключает табличную часть к форме. Вызывается TableSectionFactory сразу после
+     * конструктора, один раз на каждую секцию сущности, в порядке TableSectionMetadataInfo.getOrder() —
+     * вручную вызывать не нужно.
      *
-     * Ограничение первой версии: одна секция на форму (см. MetadataResolver.resolveTableSections).
+     * Режим отображения зависит от количества уже подключённых секций:
+     *   - 1 секция — как раньше: заголовок (H4) + грид прямо под полями шапки, без закладок.
+     *   - 2+ секции — переключение на TabSheet: при добавлении второй секции первая
+     *     (уже показанная без закладок) переносится в первую вкладку, и дальше каждая
+     *     новая секция — новая вкладка.
      */
     public void addTableSection(String title, ItemTable<?, T> table) {
         tableSections.add(table);
-        int footerIndex = indexOf(footer);
-        if (title != null && !title.isBlank()) {
-            H4 heading = new H4(title);
-            heading.getStyle().set("margin-top", "0.5em").set("margin-bottom", "0.25em");
-            addComponentAtIndex(footerIndex, heading);
-            footerIndex++;
+        tableSectionTitles.add(title);
+
+        if (tableSections.size() == 1) {
+            renderSingleSection(title, table);
+        } else if (tableSections.size() == 2) {
+            switchToTabbedSections();
+        } else {
+            tabSheet.add(title, table);
         }
-        addComponentAtIndex(footerIndex, table);
-        setFlexGrow(1, table);
+
         if (entity != null) {
             table.setParent(entity);
         }
+    }
+
+    private void renderSingleSection(String title, ItemTable<?, T> table) {
+        sectionsContainer.removeAll();
+        if (title != null && !title.isBlank()) {
+            H4 heading = new H4(title);
+            heading.getStyle().set("margin-top", "0.5em").set("margin-bottom", "0.25em");
+            sectionsContainer.add(heading);
+        }
+        sectionsContainer.add(table);
+        sectionsContainer.setFlexGrow(1, table);
+    }
+
+    private void switchToTabbedSections() {
+        sectionsContainer.removeAll();
+        tabSheet = new com.vaadin.flow.component.tabs.TabSheet();
+        tabSheet.setSizeFull();
+        for (int i = 0; i < tableSections.size(); i++) {
+            tabSheet.add(tableSectionTitles.get(i), tableSections.get(i));
+        }
+        sectionsContainer.add(tabSheet);
+        sectionsContainer.setFlexGrow(1, tabSheet);
     }
 
     public List<ItemTable<?, T>> getTableSections() {

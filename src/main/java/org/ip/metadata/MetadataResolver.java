@@ -125,18 +125,12 @@ public class MetadataResolver {
         if (sections == null) {
             return List.of();
         }
-        if (sections.value().length > 1) {
-            throw new IllegalStateException(
-                "Class " + parentClass.getName() + " declares " + sections.value().length +
-                " table sections via @TableSections, but only ONE section per document is " +
-                "currently supported. Multiple sections require a TabSheet in ItemForm " +
-                "that is not implemented yet — this is a deliberate scope limit, not a bug.");
-        }
 
         List<TableSectionMetadataInfo> result = new ArrayList<>();
         for (Class<?> rowClass : sections.value()) {
             result.add(buildTableSection(parentClass, rowClass));
         }
+        result.sort(Comparator.comparingInt(TableSectionMetadataInfo::getOrder));
         return result;
     }
 

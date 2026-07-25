@@ -31,6 +31,6 @@ public class UnitOfMeasurementService extends AbstractBaseService<UnitOfMeasurem
 
     @Override
     public Page<UnitOfMeasurement> findAll(Specification<UnitOfMeasurement> spec, Pageable pageable) {
-        return unitRepository.findAll(spec, pageable);
+        return findAllWithFetchGraph(spec, pageable);
     }
 }

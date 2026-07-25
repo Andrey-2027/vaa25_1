@@ -33,7 +33,7 @@ import java.math.BigDecimal;
 )
 public class ReceivingDocumentItem extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)
     @NotNull
     private ReceivingDocument document;
@@ -45,7 +45,7 @@ public class ReceivingDocumentItem extends BaseEntity {
     @Column(name = "line_number")
     private Integer lineNumber;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @NotNull
     @FieldMetadata(

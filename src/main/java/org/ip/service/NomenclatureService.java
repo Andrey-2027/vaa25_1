@@ -39,6 +39,6 @@ public class NomenclatureService extends AbstractBaseService<Nomenclature, Long>
 
     @Override
     public Page<Nomenclature> findAll(Specification<Nomenclature> spec, Pageable pageable) {
-        return nomenclatureRepository.findAll(spec, pageable);
+        return findAllWithFetchGraph(spec, pageable);
     }
 }
