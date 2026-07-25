@@ -73,6 +73,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         repository.deleteById(id);
     }
 
+
     @Override
     public Optional<T> findById(ID id) {
         Class<T> domainClass = getDomainClass();
