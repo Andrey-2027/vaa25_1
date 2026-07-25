@@ -8,6 +8,7 @@ import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,6 +28,9 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private ReferenceCheckService referenceCheckService;
 
     protected AbstractBaseService(JpaRepository<T, ID> repository, Validator validator) {
         this.repository = repository;
@@ -53,6 +57,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public void delete(ID id) {
+        referenceCheckService.checkNoReferences(getDomainClass(), id);
         repository.deleteById(id);
     }
 
