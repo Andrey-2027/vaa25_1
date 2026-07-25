@@ -20,7 +20,8 @@ import org.ip.metadata.annotation.Lookup;
     selectionFormTitle = "Выбор номенклатуры",
     order = 100,
     icon = "PACKAGE",
-    serviceClass = org.ip.service.NomenclatureService.class
+    serviceClass = org.ip.service.NomenclatureService.class,
+    subsystem = org.ip.subsystem.Subsystems.Directories.class
 )
 public class Nomenclature extends BaseEntity implements HasDisplayName {
 

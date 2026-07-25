@@ -57,4 +57,6 @@ public @interface EntityMetadata {
      * </pre>
      */
     Class<?> serviceClass() default void.class;
+
+    Class<?> subsystem() default Subsystem.NoSubsystem.class;
 }

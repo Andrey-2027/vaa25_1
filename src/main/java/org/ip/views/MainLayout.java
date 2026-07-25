@@ -13,11 +13,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinServletRequest;
 import jakarta.annotation.security.PermitAll;
-import org.ip.views.directory.NomenclatureView;
-import org.ip.views.directory.UnitView;
+import org.ip.form.coordinator.FormCoordinator;
+import org.ip.metadata.SubsystemNode;
+import org.ip.metadata.SubsystemRegistry;
 import org.ip.views.directory.WorkshopListView;
 import org.ip.views.forms.WorkshopForm;
-import org.ip.views.document.ReceivingDocumentView;
+import org.ip.views.workspace.SubsystemHomeView;
 import org.ip.views.workspace.Workspace;
 import org.ip.views.workspace.WorkspaceManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +30,15 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 public class MainLayout extends AppLayout {
 
     private final Workspace workspace;
+    private final SubsystemRegistry subsystemRegistry;
+    private final FormCoordinator coordinator;
 
     @Autowired
-    public MainLayout(WorkspaceManager workspaceManager) {
+    public MainLayout(WorkspaceManager workspaceManager,
+                      SubsystemRegistry subsystemRegistry,
+                      FormCoordinator coordinator) {
+        this.subsystemRegistry = subsystemRegistry;
+        this.coordinator = coordinator;
         workspace = new Workspace(workspaceManager);
         setContent(workspace);
         createHeader();
@@ -73,13 +80,12 @@ public class MainLayout extends AppLayout {
         homeItem.getElement().addEventListener("click", e -> workspace.open(MainView.class, "home", "Главная", v -> {}));
         nav.addItem(homeItem);
 
-        SideNavItem directoryItem = new SideNavItem("Справочники");
-        directoryItem.setPrefixComponent(new Icon(VaadinIcon.BOOK));
+        for (SubsystemNode root : subsystemRegistry.getRoots()) {
+            nav.addItem(buildNavItem(root));
+        }
 
-        SideNavItem unitsItem = new SideNavItem("Единицы Измерения");
-        unitsItem.getElement().addEventListener("click", e -> workspace.open(UnitView.class, "units", "Единицы Измерения", v -> {}));
-        directoryItem.addItem(unitsItem);
-
+        SideNavItem legacyItem = new SideNavItem("Справочники (legacy)");
+        legacyItem.setPrefixComponent(new Icon(VaadinIcon.BOOK));
         SideNavItem workshopsItem = new SideNavItem("Цеха");
         workshopsItem.getElement().addEventListener("click", e ->
                 workspace.open(WorkshopListView.class, "workshops", "Цеха", v -> {
@@ -93,23 +99,31 @@ public class MainLayout extends AppLayout {
                                 });
                     });
                 }));
-        directoryItem.addItem(workshopsItem);
-
-        SideNavItem nomenItem = new SideNavItem("Номенклатура");
-        nomenItem.getElement().addEventListener("click", e -> workspace.open(NomenclatureView.class, "nomenclature", "Номенклатура", v -> {}));
-        directoryItem.addItem(nomenItem);
-
-        nav.addItem(directoryItem);
-
-        SideNavItem documentItem = new SideNavItem("Документы");
-        documentItem.setPrefixComponent(new Icon(VaadinIcon.FILE_TEXT));
-
-        SideNavItem docsItem = new SideNavItem("Приемно-сдаточные накладные");
-        docsItem.getElement().addEventListener("click", e -> workspace.open(ReceivingDocumentView.class, "receiving-docs", "Приемно-сдаточные накладные", v -> {}));
-        documentItem.addItem(docsItem);
-
-        nav.addItem(documentItem);
+        legacyItem.addItem(workshopsItem);
+        nav.addItem(legacyItem);
 
         addToDrawer(nav);
+    }
+
+    private SideNavItem buildNavItem(SubsystemNode node) {
+        SideNavItem item = new SideNavItem(node.getTitle());
+        if (!node.getIcon().isEmpty()) {
+            try {
+                item.setPrefixComponent(new Icon(VaadinIcon.valueOf(node.getIcon())));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        item.getElement().addEventListener("click", e -> openSubsystem(node));
+
+        for (SubsystemNode child : node.getChildren()) {
+            item.addItem(buildNavItem(child));
+        }
+        return item;
+    }
+
+    private void openSubsystem(SubsystemNode node) {
+        String tabId = "subsystem-" + node.getMarkerClass().getSimpleName();
+        workspace.open(SubsystemHomeView.class, tabId, node.getTitle(),
+            (SubsystemHomeView v) -> v.init(node, workspace));
     }
 }

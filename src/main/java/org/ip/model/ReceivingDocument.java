@@ -31,7 +31,8 @@ import java.time.LocalDate;
     selectionFormTitle = "Выбор накладной",
     order = 200,
     icon = "FILE_TEXT",
-    serviceClass = org.ip.service.ReceivingDocumentService.class
+    serviceClass = org.ip.service.ReceivingDocumentService.class,
+    subsystem = org.ip.subsystem.Subsystems.ProductionDocuments.class
 )
 @TableSections({ReceivingDocumentItem.class})
 public class ReceivingDocument extends BaseEntity {

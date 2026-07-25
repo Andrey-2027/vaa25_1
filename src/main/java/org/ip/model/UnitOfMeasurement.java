@@ -16,7 +16,8 @@ import org.ip.metadata.annotation.GridColumn;
     itemFormTitle = "Единица измерения",
     selectionFormTitle = "Выбор единицы измерения",
     order = 200,
-    icon = "COG"
+    icon = "COG",
+    subsystem = org.ip.subsystem.Subsystems.Directories.class
 )
 public class UnitOfMeasurement extends BaseEntity implements HasDisplayName {
 
