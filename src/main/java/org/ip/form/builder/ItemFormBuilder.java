@@ -115,7 +115,7 @@ public class ItemFormBuilder<T> {
             }
 
             EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
-            ItemForm<T> form = new ItemForm<>(meta, fieldFactory);
+            //ItemForm<T> form = new ItemForm<>(meta, fieldFactory);
 
             // Применяем настройки
             if (title != null) {
@@ -137,11 +137,11 @@ public class ItemFormBuilder<T> {
                 // Нужно добавить TabSheet в ItemForm
             }
 
-            if (readOnly) {
+            /*if (readOnly) {
                 form.setReadOnly(true);
-            }
+            }*/
 
-            return form;
+            return null; //form;
         };
     }
 
