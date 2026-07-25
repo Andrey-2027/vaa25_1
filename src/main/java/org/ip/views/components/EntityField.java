@@ -41,7 +41,19 @@ public class EntityField<T extends HasDisplayName> extends Div {
     private boolean suppressValueChange = false;
     private int focusedRowIndex = -1;
 
-    @SafeVarargs
+    public EntityField(String label,
+                       SearchFunction<T> searchFunction,
+                       Class<T> entityClass, String[] columnHeaders,
+                       ValueProvider<T, ?>... valueProviders) {
+        this.searchFunction = searchFunction;
+        this.valueProviders = valueProviders;
+        this.columnHeaders = columnHeaders;
+        this.entityClass = entityClass;
+        this.preloadedItems = null;
+        this.lazySearch = null;
+        init();
+    }
+
     public EntityField(String label,
                        SearchFunction<T> searchFunction,
                        Class<T> entityClass, Collection<T> allItems,
@@ -51,8 +63,10 @@ public class EntityField<T extends HasDisplayName> extends Div {
         this.valueProviders = valueProviders;
         this.columnHeaders = columnHeaders;
         this.entityClass = entityClass;
-        this.allItems = allItems;
-        getStyle().set("position", "relative");
+        this.preloadedItems = allItems;
+        this.lazySearch = null;
+        init();
+    }
 
         Span fieldLabel = new Span(label);
         fieldLabel.getElement().getStyle()
