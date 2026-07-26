@@ -73,6 +73,21 @@ public class FormBindingRegistry {
     }
 
     /**
+     * true, если хотя бы один биндинг изменился с момента последнего
+     * {@code readAllFromEntity(...)}/{@link #markClean()} — см. {@link FormBinding#isDirty()}.
+     */
+    public boolean isDirty() {
+        return bindings.stream().anyMatch(FormBinding::isDirty);
+    }
+
+    /**
+     * Считать текущие значения всех компонентов новой "чистой" точкой отсчёта.
+     */
+    public void markClean() {
+        bindings.forEach(FormBinding::markClean);
+    }
+
+    /**
      * Установить read-only для всех компонентов.
      */
     public void setReadOnly(boolean readOnly) {

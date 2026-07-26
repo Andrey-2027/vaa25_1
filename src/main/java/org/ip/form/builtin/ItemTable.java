@@ -3,6 +3,7 @@ package org.ip.form.builtin;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -222,7 +223,19 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
             dialog.close();
             onConfirm.run();
         });
-        rowForm.setOnCancel(dialog::close);
+        rowForm.setOnCancel(() -> {
+            if (rowForm.isDirty()) {
+                ConfirmDialog confirm = new ConfirmDialog();
+                confirm.setHeader("Несохранённые изменения");
+                confirm.setText(rowForm.getCloseConfirmMessage());
+                confirm.setConfirmButton("Сохранить и закрыть", e -> rowForm.doSave());
+                confirm.setCancelButton("Закрыть", e -> dialog.close());
+                confirm.setRejectButton("Отмена", e -> {});
+                confirm.open();
+            } else {
+                dialog.close();
+            }
+        });
         rowForm.withDefaultButtons();
 
         dialog.open();

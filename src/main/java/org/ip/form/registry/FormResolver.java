@@ -134,10 +134,7 @@ public class FormResolver {
         if (variant != null) {
             FormFactory factory = formRegistry.findItemForm(entityClass, variant);
             if (factory != null) {
-                FormContext context = FormContext.builder(entityClass)
-                    .id(id)
-                    .parameters(parameters)
-                    .build();
+                FormContext context = buildItemFormContext(entityClass, id, parameters);
                 Component component = factory.create(context);
                 if (component instanceof ItemForm) {
                     ItemForm<T> form = (ItemForm<T>) component;
@@ -153,10 +150,7 @@ public class FormResolver {
         // 2. Попробовать найти default кастомную форму
         FormFactory factory = formRegistry.findItemForm(entityClass, null);
         if (factory != null) {
-            FormContext context = FormContext.builder(entityClass)
-                .id(id)
-                .parameters(parameters)
-                .build();
+            FormContext context = buildItemFormContext(entityClass, id, parameters);
             Component component = factory.create(context);
             if (component instanceof ItemForm) {
                 ItemForm<T> form = (ItemForm<T>) component;
@@ -187,6 +181,22 @@ public class FormResolver {
     public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionForm(
             Class<T> entityClass, Consumer<T> onSelect) {
         return selectionFormAssembler.<T, ID>assemble(entityClass, onSelect);
+    }
+
+    /**
+     * Строит FormContext для кастомных ITEM-фабрик (см. {@code ItemFormBuilder.build()}) —
+     * всегда кладёт {@code metadataResolver}/{@code fieldFactory}, которые фабрике нужны, чтобы
+     * самой резолвить EntityMetadataInfo и создавать поля. Раньше этого не делалось вообще —
+     * любая кастомная ITEM-форма, зарегистрированная через FormRegistry, падала бы с
+     * IllegalStateException при первом же обращении.
+     */
+    private <ID> FormContext buildItemFormContext(Class<?> entityClass, ID id, Map<String, Object> parameters) {
+        return FormContext.builder(entityClass)
+            .id(id)
+            .parameters(parameters)
+            .parameter("metadataResolver", metadataResolver)
+            .parameter("fieldFactory", fieldFactory)
+            .build();
     }
 
     // === Создание generic форм из метаданных ===

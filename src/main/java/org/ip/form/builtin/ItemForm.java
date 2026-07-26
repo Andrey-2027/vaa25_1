@@ -1,6 +1,7 @@
 package org.ip.form.builtin;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasLabel;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -11,14 +12,25 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import org.ip.form.FieldFactory;
+import org.ip.form.FieldRenderer;
 import org.ip.form.FormBindingRegistry;
+import org.ip.form.builder.layout.CustomNode;
+import org.ip.form.builder.layout.FieldNode;
+import org.ip.form.builder.layout.ItemFormLayout;
+import org.ip.form.builder.layout.LayoutNode;
+import org.ip.form.builder.layout.PanelNode;
+import org.ip.form.builder.layout.TabDefinition;
+import org.ip.form.builder.layout.TabSheetNode;
+import org.ip.metadata.ColumnPath;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FieldMetadataInfo;
 import org.ipro.crud.IdentifiableEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -53,15 +65,19 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     private final Class<T> entityClass;
     private final FieldFactory fieldFactory;
     private final FormBindingRegistry registry = new FormBindingRegistry();
-    private final FormLayout formLayout = new FormLayout();
+    private final FormLayout formLayout; // null, если форма построена по кастомному ItemFormLayout
     private final HorizontalLayout footer = new HorizontalLayout();
     private final VerticalLayout sectionsContainer = new VerticalLayout();
     private final List<ItemTable<?, T>> tableSections = new ArrayList<>();
     private final List<String> tableSectionTitles = new ArrayList<>();
     private com.vaadin.flow.component.tabs.TabSheet tabSheet;
 
+    // Read-only поля по пути через точку (см. renderDisplayField) — обновляются при setEntity(),
+    // отдельно от FormBindingRegistry, т.к. FormBinding требует реального FieldMetadataInfo
+    // сущности, а путь через точку на него не ложится.
+    private final List<Consumer<T>> displayRefreshers = new ArrayList<>();
+
     private T entity;
-    private T snapshot;
     private Supplier<T> entityFactory;
     private Runnable onSave;
     private Runnable onCancel;
@@ -70,7 +86,7 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      * Создать форму со всеми полями из метаданных.
      */
     public ItemForm(EntityMetadataInfo metadata, FieldFactory fieldFactory) {
-        this(metadata, fieldFactory, null);
+        this(metadata, fieldFactory, (List<String>) null);
     }
 
     /**
@@ -101,6 +117,49 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     }
 
     /**
+     * Создать форму с произвольным layout'ом (панели/вкладки/кастомные компоненты) вместо
+     * плоского списка полей — см. {@code ItemFormBuilder.addField/addPanel/addTabSheet/
+     * addCustom}. Табличные части подключаются как обычно, после layout'а
+     * (см. {@link #addTableSection}/TableSectionFactory) — дерево layout'а ими не управляет.
+     *
+     * Пример:
+     * <pre>
+     * ItemFormLayout layout = List.of(
+     *     new FieldNode("code"),
+     *     new PanelNode(List.of(new FieldNode("date"), new FieldNode("numReg"))),
+     *     new FieldNode("comment")
+     * );
+     * // обычно строится через ItemFormBuilder, а не вручную
+     * </pre>
+     */
+    @SuppressWarnings("unchecked")
+    public ItemForm(EntityMetadataInfo metadata, FieldFactory fieldFactory, ItemFormLayout layout) {
+        this.entityClass = (Class<T>) metadata.getEntityClass();
+        this.metadata = metadata;
+        this.fieldFactory = fieldFactory;
+        this.formLayout = null;
+
+        initCommon();
+
+        // FormLayout в 1 колонку с ASIDE — "заголовок слева, поле справа" в одну строку
+        // (через FormLayout.addFormItem, см. addAsFormItem). Каждый узел верхнего уровня
+        // занимает свою строку целиком; группировка нескольких полей в одну строку — только
+        // явно, через addPanel().
+        FormLayout customLayout = new FormLayout();
+        customLayout.setWidthFull();
+        customLayout.setResponsiveSteps(
+            new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
+        );
+        for (LayoutNode node : layout.nodes()) {
+            renderNode(node, customLayout);
+        }
+
+        add(customLayout, sectionsContainer, footer);
+        setFlexGrow(1, customLayout);
+        setFlexGrow(1, sectionsContainer);
+    }
+
+    /**
      * Создать форму без EntityMetadataInfo — напрямую из класса и списка полей.
      * Используется ItemTable для диалога добавления/редактирования строки табличной части,
      * у которой нет @EntityMetadata (только @TableSectionMetadata + @FieldMetadata на полях).
@@ -121,20 +180,29 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         this.metadata = metadata;
         this.fieldFactory = fieldFactory;
 
-        setSizeFull();
-        setPadding(true);
-        setSpacing(true);
+        initCommon();
 
+        this.formLayout = new FormLayout();
         formLayout.setWidthFull();
         formLayout.setResponsiveSteps(
-            new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE),
-            new FormLayout.ResponsiveStep("600px", 2, FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
+            new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
         );
 
         for (FieldMetadataInfo field : formFields) {
             Component component = fieldFactory.createField(field, registry);
-            formLayout.add(component);
+            addAsFormItem(formLayout, component, field.getLabel());
         }
+
+        add(formLayout, sectionsContainer, footer);
+        setFlexGrow(1, formLayout);
+        setFlexGrow(1, sectionsContainer);
+    }
+
+    /** Общая инициализация, одинаковая для плоского и кастомного (ItemFormLayout) режимов. */
+    private void initCommon() {
+        setSizeFull();
+        setPadding(true);
+        setSpacing(true);
 
         footer.setWidthFull();
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
@@ -144,10 +212,6 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         sectionsContainer.setWidthFull();
         sectionsContainer.setPadding(false);
         sectionsContainer.setSpacing(true);
-
-        add(formLayout, sectionsContainer, footer);
-        setFlexGrow(1, formLayout);
-        setFlexGrow(1, sectionsContainer);
     }
 
     private static List<FieldMetadataInfo> filterFields(List<FieldMetadataInfo> allFields, List<String> fieldNames) {
@@ -157,6 +221,114 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         return allFields.stream()
             .filter(field -> fieldNames.contains(field.getName()))
             .toList();
+    }
+
+    // === Рендер произвольного layout'а (ItemFormLayout / LayoutNode) ===
+    //
+    // Каждый узел добавляется НЕПОСРЕДСТВЕННО в целевой FormLayout (а не возвращается как
+    // отдельный Component), потому что для "заголовок слева, поле справа" в одну строку нужен
+    // FormLayout.addFormItem(component, label) — а не component.setLabel(...) сам по себе:
+    // FormLayout.ResponsiveStep(..., ASIDE) управляет позицией заголовка только у обёртки
+    // FormItem, не у "родного" label компонента (проверено на реальной странице через
+    // getBoundingClientRect — без addFormItem высота поля ~73px = заголовок сверху + поле
+    // снизу, с addFormItem — одна строка).
+
+    private void renderNode(LayoutNode node, FormLayout target) {
+        switch (node) {
+            case FieldNode(String fieldName) -> renderField(fieldName, target);
+            case PanelNode(List<LayoutNode> children) -> target.add(renderPanel(children));
+            case TabSheetNode(List<TabDefinition> tabs) -> target.add(renderTabSheet(tabs));
+            case CustomNode(Component component) -> target.add(component);
+        }
+    }
+
+    private void renderField(String fieldName, FormLayout target) {
+        if (metadata == null) {
+            throw new IllegalStateException(
+                "Кастомный layout требует EntityMetadataInfo — недоступно для форм строк " +
+                "табличных частей.");
+        }
+        if (fieldName.contains(".")) {
+            renderDisplayField(fieldName, target);
+            return;
+        }
+        FieldMetadataInfo field = metadata.getFieldByName(fieldName);
+        if (field == null) {
+            throw new IllegalArgumentException(
+                "Поле '" + fieldName + "' не найдено в метаданных " + entityClass.getSimpleName() +
+                " — проверьте, что на поле есть @FieldMetadata и имя указано верно.");
+        }
+        Component component = fieldFactory.createField(field, registry);
+        addAsFormItem(target, component, field.getLabel());
+    }
+
+    /**
+     * Read-only поле для пути через точку (например, "receivingWorkshop.name") — вывод
+     * реквизита связанной сущности, без редактирования. Использует тот же {@link ColumnPath},
+     * что и колонки Списка/Выбора, и тот же {@link FieldRenderer} для форматирования значения.
+     * Не проходит через {@link org.ip.form.FormBindingRegistry} (нет реального
+     * {@code FieldMetadataInfo}, к которому можно было бы что-то записать обратно) — обновляется
+     * отдельно, из {@link #setEntity}, см. {@link #displayRefreshers}.
+     */
+    private void renderDisplayField(String path, FormLayout target) {
+        ColumnPath columnPath = ColumnPath.resolve(entityClass, path);
+        FieldRenderer renderer = FieldRenderer.forType(columnPath.getResolvedType());
+
+        TextField display = new TextField();
+        display.setReadOnly(true);
+        displayRefreshers.add(entity -> display.setValue(renderer.apply(columnPath.getValue(entity))));
+
+        target.addFormItem(display, columnPath.getLabel());
+    }
+
+    /**
+     * Добавляет компонент как FormItem (заголовок слева, поле справа), если компонент
+     * поддерживает {@link HasLabel} — очищая его собственный label, чтобы не было дублирования
+     * ({@code EntityField} тоже реализует HasLabel, специально ради этого — см. его
+     * setLabel()). Остальные компоненты добавляются как есть, без FormItem. Используется и
+     * плоским (generic из метаданных), и кастомным (ItemFormLayout) режимом.
+     */
+    private void addAsFormItem(FormLayout target, Component component, String label) {
+        if (component instanceof HasLabel hasLabel) {
+            hasLabel.setLabel(null);
+            target.addFormItem(component, label);
+        } else {
+            target.add(component);
+        }
+    }
+
+    /**
+     * Панель — несколько полей в одну строку. Ниже 500px схлопывается в 1 колонку (мобильная
+     * ширина), выше — все дочерние узлы в ряд, каждое со своим "заголовок слева, поле справа".
+     */
+    private Component renderPanel(List<LayoutNode> children) {
+        FormLayout panel = new FormLayout();
+        panel.setWidthFull();
+        panel.setResponsiveSteps(
+            new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE),
+            new FormLayout.ResponsiveStep("500px", children.size(), FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
+        );
+        for (LayoutNode child : children) {
+            renderNode(child, panel);
+        }
+        return panel;
+    }
+
+    private Component renderTabSheet(List<TabDefinition> tabs) {
+        com.vaadin.flow.component.tabs.TabSheet layoutTabSheet = new com.vaadin.flow.component.tabs.TabSheet();
+        layoutTabSheet.setWidthFull();
+        for (TabDefinition tab : tabs) {
+            FormLayout tabContent = new FormLayout();
+            tabContent.setWidthFull();
+            tabContent.setResponsiveSteps(
+                new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
+            );
+            for (LayoutNode child : tab.children()) {
+                renderNode(child, tabContent);
+            }
+            layoutTabSheet.add(tab.title(), tabContent);
+        }
+        return layoutTabSheet;
     }
 
     // === Табличные части ===
@@ -243,16 +415,15 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     /**
      * Установить сущность для редактирования. Поля заполняются значениями.
      * Если entity == null — поля очищаются (для режима "новая запись").
-     * Также сбрасывает snapshot для отслеживания изменений и перезагружает строки
-     * табличных частей для этого родителя.
+     * Также сбрасывает базовую точку отсчёта для isDirty() (см. FormBindingRegistry.isDirty())
+     * и перезагружает строки табличных частей для этого родителя.
      */
     public void setEntity(T entity) {
         this.entity = entity;
-        this.snapshot = deepClone(entity);
-        if (entity != null) {
-            registry.readAllFromEntity(entity);
-        } else {
-            registry.readAllFromEntity(newInstance());
+        T populatingEntity = entity != null ? entity : newInstance();
+        registry.readAllFromEntity(populatingEntity);
+        for (Consumer<T> refresher : displayRefreshers) {
+            refresher.accept(populatingEntity);
         }
         for (ItemTable<?, T> table : tableSections) {
             table.setParent(entity);
@@ -280,10 +451,11 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     }
 
     /**
-     * Обновить snapshot до текущего состояния. Вызывать после успешного сохранения.
+     * Обновить точку отсчёта для isDirty() до текущего состояния UI. Вызывать после успешного
+     * сохранения (когда форма остаётся открытой — например, вкладка Workspace, а не диалог).
      */
     public void commitSnapshot() {
-        this.snapshot = deepClone(entity);
+        registry.markClean();
     }
 
     /**
@@ -308,42 +480,21 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         }
     }
 
-    /**
-     * Простой deep clone через сериализацию (или identity для неполных сущностей).
-     * Если сущность не клонируется — сравниваем по equals().
-     *
-     * ВНИМАНИЕ: если сущность не implements Serializable, клонирование падает и
-     * возвращается тот же объект — тогда isDirty() ниже не сможет обнаружить изменения
-     * этим способом. Это известное ограничение текущей реализации (не табличных частей),
-     * см. обсуждение отдельно от табличных частей.
-     */
-    @SuppressWarnings("unchecked")
-    private T deepClone(T src) {
-        if (src == null) return null;
-        try {
-            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-            new java.io.ObjectOutputStream(baos).writeObject(src);
-            byte[] bytes = baos.toByteArray();
-            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(bytes);
-            return (T) new java.io.ObjectInputStream(bais).readObject();
-        } catch (Exception e) {
-            // Fallback: возвращаем сам объект (менее точно, но работает)
-            return src;
-        }
-    }
-
     // === Dirtyable / Savable ===
 
+    /**
+     * Раньше сравнивался deep clone сущности (через сериализацию) с текущим состоянием — но это
+     * молча не работало ни для одной сущности проекта, потому что {@code IdentifiableEntity} не
+     * наследует {@code Serializable}: клонирование падало, снимок оказывался тем же объектом, и
+     * сравнение всегда было "не изменилось". Теперь isDirty() сравнивает текущие значения
+     * UI-компонентов с тем, что было загружено — через {@link FormBindingRegistry#isDirty()} —
+     * не зависит от сериализуемости/equals() сущности.
+     */
     @Override
     public boolean isDirty() {
         boolean tableSectionsDirty = tableSections.stream().anyMatch(ItemTable::isDirty);
         if (tableSectionsDirty) return true;
-
-        if (snapshot == null && entity == null) return false;
-        if (snapshot == null || entity == null) return true;
-        // Применяем текущие значения UI к entity перед сравнением
-        registry.applyAllToEntity(entity);
-        return !snapshot.equals(entity);
+        return registry.isDirty();
     }
 
     @Override
@@ -431,6 +582,11 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         return entityClass;
     }
 
+    /**
+     * @return {@code FormLayout} с полями, если форма построена в плоском режиме;
+     * {@code null}, если форма построена по кастомному {@code ItemFormLayout}
+     * (тогда корневой контейнер — обычный {@code VerticalLayout}, доступа к нему нет).
+     */
     public FormLayout getFormLayout() {
         return formLayout;
     }

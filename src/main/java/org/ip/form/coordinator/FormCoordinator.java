@@ -1,5 +1,6 @@
 package org.ip.form.coordinator;
 
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -324,7 +325,19 @@ public class FormCoordinator {
             }
         });
 
-        form.setOnCancel(dialog::close);
+        form.setOnCancel(() -> {
+            if (form.isDirty()) {
+                ConfirmDialog confirm = new ConfirmDialog();
+                confirm.setHeader("Несохранённые изменения");
+                confirm.setText(form.getCloseConfirmMessage());
+                confirm.setConfirmButton("Сохранить и закрыть", e -> form.doSave());
+                confirm.setCancelButton("Закрыть", e -> dialog.close());
+                confirm.setRejectButton("Отмена", e -> {});
+                confirm.open();
+            } else {
+                dialog.close();
+            }
+        });
         form.withDefaultButtons();
 
         String sessionId = UUID.randomUUID().toString();

@@ -34,6 +34,7 @@ public class FormBinding {
     private final Predicate<Object> isEmpty;
     private final Consumer<Boolean> setReadOnly;
     private boolean readOnly = false;
+    private Object lastLoadedValue;
 
     public FormBinding(FieldMetadataInfo fieldInfo,
                        Component component,
@@ -64,17 +65,35 @@ public class FormBinding {
     /**
      * Прочитать значение из поля сущности и записать в Vaadin-компонент.
      * Если значение null — пытаемся очистить компонент (если поддерживает).
+     * Заодно фиксирует то, что реально осело в компоненте, как точку отсчёта для
+     * {@link #isDirty()} — вызывается для каждого биндинга из
+     * {@code FormBindingRegistry.readAllFromEntity(...)}, т.е. при каждом {@code setEntity(...)}.
      */
     public void readFromEntity(Object entity) {
         Object value = readFromEntity.apply(entity);
-        if (value == null) {
-            // Попытка очистить компонент, если он HasValue
-            if (component instanceof HasValue<?, ?> hv) {
-                hv.clear();
-                return;
-            }
+        if (value == null && component instanceof HasValue<?, ?> hv) {
+            hv.clear();
+        } else {
+            writeToComponent.accept(value);
         }
-        writeToComponent.accept(value);
+        lastLoadedValue = readFromComponent.get();
+    }
+
+    /**
+     * Изменилось ли значение в компоненте с момента последнего {@link #readFromEntity} (или
+     * {@link #markClean()}) — сравнение по значению, не зависит от {@code equals()}/
+     * сериализуемости самой сущности (в отличие от старого подхода через deep clone).
+     */
+    public boolean isDirty() {
+        return !java.util.Objects.equals(readFromComponent.get(), lastLoadedValue);
+    }
+
+    /**
+     * Считать текущее значение компонента новой "чистой" точкой отсчёта — вызывается после
+     * успешного сохранения, когда форма остаётся открытой (см. {@code ItemForm.commitSnapshot()}).
+     */
+    public void markClean() {
+        lastLoadedValue = readFromComponent.get();
     }
 
     /**

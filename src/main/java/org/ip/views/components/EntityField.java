@@ -1,5 +1,6 @@
 package org.ip.views.components;
 
+import com.vaadin.flow.component.HasLabel;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -21,11 +22,12 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class EntityField<T extends HasDisplayName> extends Div {
+public class EntityField<T extends HasDisplayName> extends Div implements HasLabel {
 
     private final TextField textField;
     private final Icon statusIcon;
     private final Button browseButton;
+    private final Span fieldLabel;
     private T selectedValue;
     private final SearchFunction<T> searchFunction;
     private Function<Consumer<T>, SelectionForm<T>> selectionFormFactory;
@@ -39,12 +41,13 @@ public class EntityField<T extends HasDisplayName> extends Div {
         this.searchFunction = searchFunction;
         getStyle().set("position", "relative");
 
-        Span fieldLabel = new Span(label);
+        fieldLabel = new Span();
         fieldLabel.getElement().getStyle()
                 .set("font-size", "var(--lumo-font-size-s)")
                 .set("color", "var(--lumo-secondary-text-color)")
                 .set("display", "block")
                 .set("margin-bottom", "2px");
+        setLabel(label);
 
         textField = new TextField();
         textField.setWidth("350px");
@@ -243,6 +246,25 @@ public class EntityField<T extends HasDisplayName> extends Div {
         statusIcon.getStyle().set("color", "gray");
         statusIcon.setVisible(true);
         textField.getElement().getThemeList().remove("error");
+    }
+
+    /**
+     * Переопределяет дефолтную реализацию {@link HasLabel} (которая просто ставит DOM-атрибут
+     * "label", не влияющий на рендер обычного {@code Div}) — реально показывает/скрывает
+     * внутренний {@code Span}. {@code null}/пустая строка скрывают его полностью (без
+     * зарезервированного пустого места) — нужно, когда подпись вместо этого рисует
+     * {@code FormLayout.addFormItem(...)} снаружи (см. {@code ItemForm.addAsFormItem}).
+     */
+    @Override
+    public void setLabel(String label) {
+        boolean hasLabel = label != null && !label.isEmpty();
+        fieldLabel.setText(hasLabel ? label : "");
+        fieldLabel.setVisible(hasLabel);
+    }
+
+    @Override
+    public String getLabel() {
+        return fieldLabel.getText();
     }
 
     /**
