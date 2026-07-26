@@ -21,7 +21,8 @@ import org.ip.metadata.annotation.Lookup;
     order = 100,
     icon = "PACKAGE",
     serviceClass = org.ip.service.NomenclatureService.class,
-    subsystem = org.ip.subsystem.Subsystems.Directories.class
+    subsystem = org.ip.subsystem.Subsystems.Directories.class,
+    selectColumns = {"code", "name"}
 )
 public class Nomenclature extends BaseEntity implements HasDisplayName {
 
@@ -49,11 +50,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @FieldMetadata(
         label = "Единица измерения", required = true, order = 3,
         grid = @GridColumn(order = 3, width = "200px"),
-        lookup = @Lookup(
-            entity = UnitOfMeasurement.class,
-            columns = {"code", "name", "shortCode"},
-            searchFields = {"code", "name"}
-        )
+        lookup = @Lookup(entity = UnitOfMeasurement.class)
     )
     private UnitOfMeasurement unitOfMeasurement;
 

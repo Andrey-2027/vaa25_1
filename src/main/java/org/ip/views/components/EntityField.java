@@ -13,15 +13,13 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.dom.DomEvent;
-import com.vaadin.flow.function.ValueProvider;
 import org.ip.form.builtin.SelectionForm;
 import org.ip.model.HasDisplayName;
-import org.ipro.filtergrid.TextFilter;
-import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class EntityField<T extends HasDisplayName> extends Div {
 
@@ -30,27 +28,15 @@ public class EntityField<T extends HasDisplayName> extends Div {
     private final Button browseButton;
     private T selectedValue;
     private final SearchFunction<T> searchFunction;
-    private final ValueProvider<T, ?>[] valueProviders;
-    private final String[] columnHeaders;
-    private final Class<T> entityClass;
-    private final Collection<T> allItems;
+    private Function<Consumer<T>, SelectionForm<T>> selectionFormFactory;
     private final Div suggestionPopup;
     private Grid<T> suggestionGrid;
     private boolean userEdited = false;
     private boolean suppressValueChange = false;
     private int focusedRowIndex = -1;
 
-    @SafeVarargs
-    public EntityField(String label,
-                       SearchFunction<T> searchFunction,
-                       Class<T> entityClass, Collection<T> allItems,
-                       String[] columnHeaders,
-                       ValueProvider<T, ?>... valueProviders) {
+    public EntityField(String label, SearchFunction<T> searchFunction) {
         this.searchFunction = searchFunction;
-        this.valueProviders = valueProviders;
-        this.columnHeaders = columnHeaders;
-        this.entityClass = entityClass;
-        this.allItems = allItems;
         getStyle().set("position", "relative");
 
         Span fieldLabel = new Span(label);
@@ -259,15 +245,21 @@ public class EntityField<T extends HasDisplayName> extends Div {
         textField.getElement().getThemeList().remove("error");
     }
 
+    /**
+     * Фабрика модального диалога выбора — резолвит колонки/заголовок из
+     * {@code @EntityMetadata.selectColumns()} целевой сущности. Устанавливается вызывающим кодом
+     * (см. {@code FieldFactory.createEntityField}) сразу после конструктора.
+     */
+    public void setSelectionFormFactory(Function<Consumer<T>, SelectionForm<T>> selectionFormFactory) {
+        this.selectionFormFactory = selectionFormFactory;
+    }
+
     private void openSelectionDialog() {
-        InMemoryFilterGrid<T> filterGrid = new InMemoryFilterGrid<>(entityClass, allItems);
-        for (int i = 0; i < valueProviders.length; i++) {
-            String key = "col" + i;
-            String header = columnHeaders != null && i < columnHeaders.length ? columnHeaders[i] : key;
-            filterGrid.addColumnFilter(key, key, header, valueProviders[i], new TextFilter<>());
+        if (selectionFormFactory == null) {
+            throw new IllegalStateException(
+                "selectionFormFactory не задан — вызовите setSelectionFormFactory() перед использованием");
         }
-        SelectionForm<T> form = new SelectionForm<>("Выбор", filterGrid, this::onSelectedInDialog);
-        form.open();
+        selectionFormFactory.apply(this::onSelectedInDialog).open();
     }
 
     private void onSelectedInDialog(T selected) {

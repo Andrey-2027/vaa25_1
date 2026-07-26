@@ -32,7 +32,8 @@ import java.time.LocalDate;
     order = 200,
     icon = "FILE_TEXT",
     serviceClass = org.ip.service.ReceivingDocumentService.class,
-    subsystem = org.ip.subsystem.Subsystems.ProductionDocuments.class
+    subsystem = org.ip.subsystem.Subsystems.ProductionDocuments.class,
+        listColumns = {"id","number","date","receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name"}
 )
 @TableSections({ReceivingDocumentItem.class})
 public class ReceivingDocument extends BaseEntity {
@@ -60,11 +61,7 @@ public class ReceivingDocument extends BaseEntity {
     @FieldMetadata(
         label = "Цех приёмщик", required = true, order = 3,
         grid = @GridColumn(order = 3, flexGrow = 1),
-        lookup = @Lookup(
-            entity = Workshop.class,
-            columns = {"code", "name"},
-            searchFields = {"code", "name"}
-        )
+        lookup = @Lookup(entity = Workshop.class)
     )
     private Workshop receivingWorkshop;
 
@@ -74,11 +71,7 @@ public class ReceivingDocument extends BaseEntity {
     @FieldMetadata(
         label = "Цех сдатчик", required = true, order = 4,
         grid = @GridColumn(order = 4, flexGrow = 1),
-        lookup = @Lookup(
-            entity = Workshop.class,
-            columns = {"code", "name"},
-            searchFields = {"code", "name"}
-        )
+        lookup = @Lookup(entity = Workshop.class)
     )
     private Workshop transferringWorkshop;
 

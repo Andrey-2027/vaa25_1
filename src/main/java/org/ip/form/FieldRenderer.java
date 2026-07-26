@@ -1,13 +1,12 @@
 package org.ip.form;
 
-import org.ip.metadata.FieldMetadataInfo;
 import org.ip.metadata.annotation.FieldType;
 import org.ip.model.HasDisplayName;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Рендер значения поля сущности в строку для отображения в гриде.
@@ -20,23 +19,22 @@ import java.util.function.BiFunction;
  *   - @ManyToOne → displayName связанной сущности
  *
  * Реализации по умолчанию (static factory methods) покрывают стандартные случаи.
- * FieldFactory выбирает подходящий рендер по FieldType.
+ * Принимает уже извлечённое значение (не сущность+поле) — это позволяет применять один и тот же
+ * рендер и к обычному полю (FieldMetadataInfo.getValue(entity)), и к значению, полученному по
+ * пути через точку (ColumnPath.getValue(entity)), не зная деталей извлечения.
  */
 @FunctionalInterface
-public interface FieldRenderer extends BiFunction<Object, FieldMetadataInfo, String> {
+public interface FieldRenderer extends Function<Object, String> {
 
     @Override
-    String apply(Object entity, FieldMetadataInfo field);
+    String apply(Object value);
 
     /**
      * Текстовый рендер: toString() или пустая строка для null.
      * Подходит для String, Integer, Long и других типов, у которых адекватный toString.
      */
     static FieldRenderer text() {
-        return (entity, field) -> {
-            Object value = field.getValue(entity);
-            return value == null ? "" : value.toString();
-        };
+        return value -> value == null ? "" : value.toString();
     }
 
     /**
@@ -44,8 +42,7 @@ public interface FieldRenderer extends BiFunction<Object, FieldMetadataInfo, Str
      */
     static FieldRenderer date() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        return (entity, field) -> {
-            Object value = field.getValue(entity);
+        return value -> {
             if (value == null) return "";
             if (value instanceof LocalDate date) return date.format(formatter);
             return value.toString();
@@ -57,8 +54,7 @@ public interface FieldRenderer extends BiFunction<Object, FieldMetadataInfo, Str
      */
     static FieldRenderer dateTime() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-        return (entity, field) -> {
-            Object value = field.getValue(entity);
+        return value -> {
             if (value == null) return "";
             if (value instanceof java.time.LocalDateTime dt) return dt.format(formatter);
             return value.toString();
@@ -69,8 +65,7 @@ public interface FieldRenderer extends BiFunction<Object, FieldMetadataInfo, Str
      * Рендер BigDecimal/Double/Float как plain string (без экспоненты).
      */
     static FieldRenderer decimal() {
-        return (entity, field) -> {
-            Object value = field.getValue(entity);
+        return value -> {
             if (value == null) return "";
             if (value instanceof BigDecimal bd) return bd.toPlainString();
             if (value instanceof Double d) {
@@ -89,8 +84,7 @@ public interface FieldRenderer extends BiFunction<Object, FieldMetadataInfo, Str
      * Рендер Boolean как "Да" / "Нет".
      */
     static FieldRenderer boolYesNo() {
-        return (entity, field) -> {
-            Object value = field.getValue(entity);
+        return value -> {
             if (value == null) return "";
             return Boolean.TRUE.equals(value) ? "Да" : "Нет";
         };
@@ -100,8 +94,7 @@ public interface FieldRenderer extends BiFunction<Object, FieldMetadataInfo, Str
      * Рендер Enum: использует name() значения.
      */
     static FieldRenderer enumValue() {
-        return (entity, field) -> {
-            Object value = field.getValue(entity);
+        return value -> {
             if (value == null) return "";
             if (value instanceof Enum<?> e) return e.name();
             return value.toString();
@@ -114,8 +107,7 @@ public interface FieldRenderer extends BiFunction<Object, FieldMetadataInfo, Str
      * Иначе — toString().
      */
     static FieldRenderer entityReference() {
-        return (entity, field) -> {
-            Object value = field.getValue(entity);
+        return value -> {
             if (value == null) return "";
             if (value instanceof HasDisplayName h) return h.getDisplayName();
             return value.toString();

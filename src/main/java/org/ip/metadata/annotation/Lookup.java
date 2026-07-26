@@ -6,8 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Настройки EntityField для поля @ManyToOne.
- * Описывает, как строить SelectionForm для выбора связанной сущности.
+ * Настройки EntityField для поля @ManyToOne. Ссылка на связанную сущность, для которой
+ * строится Форма Выбора.
  *
  * Пример:
  * <pre>
@@ -16,15 +16,17 @@ import java.lang.annotation.Target;
  * @FieldMetadata(
  *     label = "Единица измерения",
  *     type = FieldType.ENTITY_REFERENCE,
- *     lookup = @Lookup(
- *         entity = UnitOfMeasurement.class,
- *         columns = {"code", "name"},
- *         searchFields = {"code", "name"}
- *     )
+ *     lookup = @Lookup(entity = UnitOfMeasurement.class)
  * )
  * private UnitOfMeasurement unit;
  * }
  * </pre>
+ *
+ * Список колонок/полей поиска для Формы Выбора здесь не задаётся — он принадлежит целевой
+ * сущности ({@code UnitOfMeasurement.class}) через её собственный
+ * {@code @EntityMetadata(selectColumns = {...})}, а не полю, которое на неё ссылается.
+ * Это исключает дублирование, когда несколько полей (в разных сущностях) ссылаются на один
+ * и тот же lookup-target.
  *
  * Замечание: все элементы имеют дефолты для того, чтобы аннотацию можно было
  * использовать в @FieldMetadata без явного указания. Если entity = Void.class
@@ -37,12 +39,11 @@ public @interface Lookup {
     /** Класс связанной сущности. Void.class = lookup не настроен (дефолт). */
     Class<?> entity() default Void.class;
 
-    /** Какие поля показать в SelectionForm (имена Java-полей). Пусто = не настроено. */
-    String[] columns() default {};
-
-    /** По каким полям искать (по подстроке, case-insensitive). Пусто = не настроено. */
-    String[] searchFields() default {};
-
-    /** Опциональный JPA-фильтр для ограничения выборки (пока не парсится, для будущего) */
-    String filter() default "";
+    /**
+     * Зарезервировано на будущее: имя варианта Формы Выбора, если для одной сущности
+     * когда-нибудь понадобится несколько именованных наборов колонок. Сейчас резолвером
+     * не используется — на сущность приходится ровно один набор колонок
+     * ({@code @EntityMetadata.selectColumns}), выбирать не между чем.
+     */
+    String variant() default "";
 }

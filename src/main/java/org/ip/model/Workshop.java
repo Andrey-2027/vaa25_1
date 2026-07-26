@@ -4,20 +4,39 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.hibernate.envers.Audited;
+import org.ip.metadata.annotation.EntityMetadata;
+import org.ip.metadata.annotation.FieldMetadata;
+import org.ip.metadata.annotation.GridColumn;
 
 @Entity
 @Table(name = "workshop")
 @Audited
+@EntityMetadata(
+    listFormTitle = "Цеха",
+    itemFormTitle = "Цех",
+    selectionFormTitle = "Выбор цеха",
+    order = 300,
+    icon = "COGS",
+    subsystem = org.ip.subsystem.Subsystems.Directories.class
+)
 public class Workshop extends BaseEntity implements HasDisplayName {
 
     @NotBlank
     @Size(max = 20)
     @Column(nullable = false, unique = true)
+    @FieldMetadata(
+        label = "Код", required = true, order = 1,
+        grid = @GridColumn(order = 1, width = "150px")
+    )
     private String code;
 
     @NotBlank
     @Size(max = 100)
     @Column(nullable = false)
+    @FieldMetadata(
+        label = "Наименование", required = true, order = 2,
+        grid = @GridColumn(order = 2, flexGrow = 1)
+    )
     private String name;
 
     public Workshop() {

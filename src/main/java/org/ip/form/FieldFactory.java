@@ -11,7 +11,7 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.function.ValueProvider;
+import org.ip.metadata.ColumnPath;
 import org.ip.metadata.FieldMetadataInfo;
 import org.ip.metadata.annotation.FieldType;
 import org.ip.model.HasDisplayName;
@@ -21,7 +21,6 @@ import org.ip.views.components.SearchFunction;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 /**
  * Главный создатель Vaadin-компонентов на основе FieldMetadataInfo.
@@ -42,9 +41,11 @@ import java.util.List;
 public class FieldFactory {
 
     private final LookupService lookupService;
+    private final SelectionFormAssembler selectionFormAssembler;
 
-    public FieldFactory(LookupService lookupService) {
+    public FieldFactory(LookupService lookupService, SelectionFormAssembler selectionFormAssembler) {
         this.lookupService = lookupService;
+        this.selectionFormAssembler = selectionFormAssembler;
     }
 
     /**
@@ -191,17 +192,21 @@ public class FieldFactory {
         }
 
         Class<?> lookupEntity = info.getLookupEntity();
-        String[] searchFields = info.getLookupSearchFields();
 
-        // SearchFunction через LookupService
+        // Колонки/поля поиска резолвятся из @EntityMetadata.selectColumns() целевой сущности
+        // (или её грида, если selectColumns не задан) — один и тот же источник, что и для
+        // модального диалога выбора, чтобы автокомплит и диалог не расходились.
+        SelectionFormAssembler.ResolvedSelection resolved = selectionFormAssembler.resolveColumns(lookupEntity);
+        String[] searchFields = resolved.columns().stream()
+            .filter(path -> path.getResolvedType() == FieldType.TEXT)
+            .map(ColumnPath::getKey)
+            .toArray(String[]::new);
+
         SearchFunction search = term -> lookupService.search(lookupEntity, searchFields, term, 20);
 
-        // ValueProvider[] для отображения колонок в popup
-        String[] lookupColumns = info.getLookupColumns();
-        ValueProvider[] providers = createValueProviders(lookupEntity, lookupColumns);
-
-        List<?> allItems = lookupService.findAll(lookupEntity);
-        EntityField entityField = new EntityField(info.getLabel(), search, lookupEntity, allItems, lookupColumns, providers);
+        EntityField entityField = new EntityField(info.getLabel(), search);
+        entityField.setSelectionFormFactory(onSelect ->
+            selectionFormAssembler.assemble((Class) lookupEntity, (java.util.function.Consumer) onSelect));
 
         // Биндинг через публичный API EntityField
         registry.add(new FormBinding(
@@ -288,42 +293,4 @@ public class FieldFactory {
         ));
     }
 
-    // === EntityField helpers ===
-
-    /**
-     * Создаёт массив ValueProvider для отображения колонок в popup EntityField.
-     * Использует рефлексию для getter'ов (getXxx / isXxx).
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private ValueProvider[] createValueProviders(Class<?> entityClass, String[] columns) {
-        ValueProvider[] result = new ValueProvider[columns.length];
-        for (int i = 0; i < columns.length; i++) {
-            String col = columns[i];
-            Method getter = findGetter(entityClass, col);
-            final Method g = getter;
-            result[i] = entity -> {
-                if (entity == null || g == null) return "";
-                try {
-                    Object value = g.invoke(entity);
-                    return value == null ? "" : value.toString();
-                } catch (Exception e) {
-                    return "";
-                }
-            };
-        }
-        return result;
-    }
-
-    private Method findGetter(Class<?> clazz, String property) {
-        String cap = Character.toUpperCase(property.charAt(0)) + property.substring(1);
-        try {
-            return clazz.getMethod("get" + cap);
-        } catch (NoSuchMethodException e) {
-            try {
-                return clazz.getMethod("is" + cap);
-            } catch (NoSuchMethodException ex) {
-                return null;
-            }
-        }
-    }
 }

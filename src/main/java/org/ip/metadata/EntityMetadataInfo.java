@@ -18,15 +18,21 @@ public final class EntityMetadataInfo {
     private final EntityMetadata annotation;
     private final List<FieldMetadataInfo> formFields;
     private final List<FieldMetadataInfo> gridFields;
+    private final List<ColumnPath> listColumnPaths;
+    private final List<ColumnPath> selectColumnPaths;
 
     public EntityMetadataInfo(Class<?> entityClass,
                               EntityMetadata annotation,
                               List<FieldMetadataInfo> formFields,
-                              List<FieldMetadataInfo> gridFields) {
+                              List<FieldMetadataInfo> gridFields,
+                              List<ColumnPath> listColumnPaths,
+                              List<ColumnPath> selectColumnPaths) {
         this.entityClass = entityClass;
         this.annotation = annotation;
         this.formFields = List.copyOf(formFields);
         this.gridFields = List.copyOf(gridFields);
+        this.listColumnPaths = List.copyOf(listColumnPaths);
+        this.selectColumnPaths = List.copyOf(selectColumnPaths);
     }
 
     public Class<?> getEntityClass() {
@@ -75,6 +81,23 @@ public final class EntityMetadataInfo {
      */
     public List<FieldMetadataInfo> getGridFields() {
         return gridFields;
+    }
+
+    /**
+     * Колонки Формы Списка. Если {@code @EntityMetadata.listColumns()} не задан — это
+     * {@link #getGridFields()}, обёрнутые в {@link ColumnPath} (то же поведение, что и раньше).
+     * Если задан — явный список, с поддержкой пути через точку.
+     */
+    public List<ColumnPath> getListColumnPaths() {
+        return listColumnPaths;
+    }
+
+    /**
+     * Колонки Формы Выбора. Если {@code @EntityMetadata.selectColumns()} не задан — совпадает с
+     * {@link #getListColumnPaths()}.
+     */
+    public List<ColumnPath> getSelectColumnPaths() {
+        return selectColumnPaths;
     }
 
     /**

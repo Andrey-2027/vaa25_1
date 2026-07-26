@@ -12,9 +12,9 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.function.ValueProvider;
 import org.ip.form.FieldRenderer;
+import org.ip.metadata.ColumnPath;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FieldMetadataInfo;
-import org.ip.metadata.annotation.FieldType;
 import org.ip.model.HasDisplayName;
 import org.ip.service.BaseService;
 import org.ip.service.LookupService;
@@ -127,67 +127,70 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void configureColumnsAndFilters() {
-        for (FieldMetadataInfo field : metadata.getGridFields()) {
-            FieldRenderer renderer = chooseRenderer(field);
-            ValueProvider<T, ?> valueProvider = entity -> renderer.apply(entity, field);
+        for (ColumnPath path : metadata.getListColumnPaths()) {
+            FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());
+            ValueProvider<T, ?> valueProvider = entity -> renderer.apply(path.getValue(entity));
 
-            if (field.isFilterEnabled()) {
-                FieldFilter<?> filter = createFilterForField(field);
+            // Путь через точку без backingField (не простое поле) — фильтр включён по умолчанию,
+            // как и общий дефолт @FieldMetadata(filter=true).
+            boolean filterEnabled = path.asFieldMetadata()
+                .map(FieldMetadataInfo::isFilterEnabled)
+                .orElse(true);
+
+            if (filterEnabled) {
+                FieldFilter<?> filter = createFilterForPath(path);
                 if (filter != null) {
-                    addColumnWithFilter(field, valueProvider, filter);
+                    addColumnWithFilter(path, valueProvider, filter);
                     continue;
                 }
             }
 
             // Без фильтра — простая колонка
             filterGrid.addColumn(
-                field.getName(), field.getLabel(), valueProvider);
+                path.getKey(), path.getLabel(), valueProvider);
         }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private void addColumnWithFilter(FieldMetadataInfo field, ValueProvider<T, ?> valueProvider, FieldFilter<?> filter) {
+    private void addColumnWithFilter(ColumnPath path, ValueProvider<T, ?> valueProvider, FieldFilter<?> filter) {
         filterGrid.addColumnFilter(
-            field.getName(), field.getName(),
-            field.getLabel(), valueProvider, (FieldFilter) filter);
+            path.getKey(), path.getKey(),
+            path.getLabel(), valueProvider, (FieldFilter) filter);
     }
 
     /**
-     * Создаёт подходящий FieldFilter по типу поля.
+     * Создаёт подходящий FieldFilter по типу колонки.
      * Возвращает null если фильтр для этого типа не предусмотрен.
+     *
+     * ENTITY_REFERENCE ComboBoxFilter через LookupService доступен только для простого поля
+     * (path.asFieldMetadata() присутствует) — для настоящего пути через точку нет контекста
+     * lookup-сущности на промежуточном хопе, поэтому фильтр в этом случае не строится.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private FieldFilter<?> createFilterForField(FieldMetadataInfo field) {
-        return switch (field.getResolvedType()) {
-            case TEXT, INTEGER, DECIMAL, PASSWORD, EMAIL -> new TextFilter<>(field.getLabel());
+    private FieldFilter<?> createFilterForPath(ColumnPath path) {
+        return switch (path.getResolvedType()) {
+            case TEXT, INTEGER, DECIMAL, PASSWORD, EMAIL -> new TextFilter<>(path.getLabel());
             case DATE -> new DateRangeFilter<>();
             case ENUM -> {
-                ComboBoxFilter filter = new ComboBoxFilter<>(field.getLabel());
-                if (field.getJavaType().isEnum()) {
-                    filter.setItems(field.getJavaType().getEnumConstants());
+                ComboBoxFilter filter = new ComboBoxFilter<>(path.getLabel());
+                if (path.getJavaType().isEnum()) {
+                    filter.setItems(path.getJavaType().getEnumConstants());
                 }
                 yield filter;
             }
-            case ENTITY_REFERENCE -> {
-                if (field.hasLookup() && lookupService != null) {
-                    ComboBoxFilter filter = new ComboBoxFilter<>(field.getLabel());
+            case ENTITY_REFERENCE -> path.asFieldMetadata()
+                .filter(field -> field.hasLookup() && lookupService != null)
+                .<FieldFilter<?>>map(field -> {
+                    ComboBoxFilter filter = new ComboBoxFilter<>(path.getLabel());
                     List items = lookupService.findAll(field.getLookupEntity());
                     filter.setItems(items);
                     filter.setItemLabelGenerator((com.vaadin.flow.function.SerializableFunction)
                         (item -> ((HasDisplayName) item).getDisplayName()));
-                    yield filter;
-                }
-                yield null;
-            }
+                    return filter;
+                })
+                .orElse(null);
             default -> null;
         };
-    }
-
-    /**
-     * Выбирает FieldRenderer по типу поля для отображения в колонке.
-     */
-    private FieldRenderer chooseRenderer(FieldMetadataInfo field) {
-        return FieldRenderer.forType(field.getResolvedType());
     }
 
     // === Toolbar ===

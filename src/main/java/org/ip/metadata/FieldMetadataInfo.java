@@ -23,9 +23,7 @@ public final class FieldMetadataInfo {
     private final FieldType resolvedType;
     private final boolean hasLookup;
     private final Class<?> lookupEntity;
-    private final String[] lookupColumns;
-    private final String[] lookupSearchFields;
-    private final String lookupFilter;
+    private final String lookupVariant;
 
     public FieldMetadataInfo(Field field, FieldMetadata annotation) {
         this.field = field;
@@ -35,17 +33,17 @@ public final class FieldMetadataInfo {
         Lookup lookup = annotation.lookup();
         this.hasLookup = lookup.entity() != Void.class;
         this.lookupEntity = hasLookup ? lookup.entity() : null;
-        this.lookupColumns = hasLookup ? lookup.columns().clone() : new String[0];
-        this.lookupSearchFields = hasLookup ? lookup.searchFields().clone() : new String[0];
-        this.lookupFilter = hasLookup ? lookup.filter() : "";
+        this.lookupVariant = hasLookup ? lookup.variant() : "";
 
         field.setAccessible(true);
     }
 
     /**
      * Резолвит FieldType.AUTO в конкретный тип на основе Java-типа поля и JPA-аннотаций.
+     * Package-visible: переиспользуется в {@link ColumnPath} для того же авто-резолва типа
+     * на последнем сегменте пути через точку.
      */
-    private static FieldType resolveType(FieldType declared, Field field) {
+    static FieldType resolveType(FieldType declared, Field field) {
         if (declared != FieldType.AUTO) {
             return declared;
         }
@@ -178,16 +176,12 @@ public final class FieldMetadataInfo {
         return lookupEntity;
     }
 
-    public String[] getLookupColumns() {
-        return lookupColumns.clone();
-    }
-
-    public String[] getLookupSearchFields() {
-        return lookupSearchFields.clone();
-    }
-
-    public String getLookupFilter() {
-        return lookupFilter;
+    /**
+     * Зарезервировано на будущее — см. {@link Lookup#variant()}. Сейчас не используется
+     * резолвером Формы Выбора.
+     */
+    public String getLookupVariant() {
+        return lookupVariant;
     }
 
     @Override

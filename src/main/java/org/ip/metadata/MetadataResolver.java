@@ -115,7 +115,34 @@ public class MetadataResolver {
         List<FieldMetadataInfo> formFields = toFormFields(allFields);
         List<FieldMetadataInfo> gridFields = toGridFields(allFields);
 
-        return new EntityMetadataInfo(entityClass, annotation, formFields, gridFields);
+        List<ColumnPath> listColumnPaths = resolveColumnPaths(entityClass, annotation.listColumns(), gridFields);
+        List<ColumnPath> selectColumnPaths = annotation.selectColumns().length > 0
+            ? resolveColumnPaths(entityClass, annotation.selectColumns(), null)
+            : listColumnPaths;
+
+        return new EntityMetadataInfo(
+            entityClass, annotation, formFields, gridFields, listColumnPaths, selectColumnPaths);
+    }
+
+    /**
+     * Резолвит колонки Списка/Выбора: явный список путей (если задан) через
+     * {@link ColumnPath#resolve}, иначе — оборачивает уже посчитанные grid-поля через
+     * {@link ColumnPath#fromField} (без повторной рефлексии, то же поведение, что и раньше).
+     */
+    private List<ColumnPath> resolveColumnPaths(
+            Class<?> entityClass, String[] explicitPaths, List<FieldMetadataInfo> fallbackGridFields) {
+        if (explicitPaths.length > 0) {
+            List<ColumnPath> result = new ArrayList<>(explicitPaths.length);
+            for (String path : explicitPaths) {
+                result.add(ColumnPath.resolve(entityClass, path));
+            }
+            return result;
+        }
+        List<ColumnPath> result = new ArrayList<>(fallbackGridFields.size());
+        for (FieldMetadataInfo field : fallbackGridFields) {
+            result.add(ColumnPath.fromField(field));
+        }
+        return result;
     }
 
     // === Внутренние методы: TableSectionMetadataInfo ===
@@ -176,7 +203,8 @@ public class MetadataResolver {
             rowClass, annotation, parentField, lineNumberField, formFields, gridFields);
     }
 
-    private Field findDeclaredFieldInHierarchy(Class<?> clazz, String fieldName) {
+    /** Package-visible: переиспользуется в {@link ColumnPath} для резолва пути через точку. */
+    static Field findDeclaredFieldInHierarchy(Class<?> clazz, String fieldName) {
         Class<?> current = clazz;
         while (current != null && current != Object.class) {
             try {

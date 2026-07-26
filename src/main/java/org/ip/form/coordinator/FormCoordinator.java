@@ -4,15 +4,18 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import org.ip.form.FieldFactory;
+import org.ip.form.SelectionFormAssembler;
 import org.ip.form.TableSectionFactory;
 import org.ip.form.builtin.ItemForm;
 import org.ip.form.builtin.ListForm;
+import org.ip.form.builtin.SelectionForm;
 import org.ip.form.coordinator.FormOpenMode;
 import org.ip.form.registry.FormRegistry;
 import org.ip.form.registry.FormResolver;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.MetadataResolver;
 import org.ip.service.BaseService;
+import org.ip.service.ServiceLocator;
 import org.ip.views.workspace.Workspace;
 import org.ipro.crud.IdentifiableEntity;
 import org.springframework.context.ApplicationContext;
@@ -55,6 +58,7 @@ public class FormCoordinator {
     private final FieldFactory fieldFactory;
     private final ApplicationContext applicationContext;
     private final FormResolver formResolver;
+    private final ServiceLocator serviceLocator;
     private final Map<String, FormSession> sessions = new ConcurrentHashMap<>();
 
     // Опциональная ссылка на Workspace для открытия форм в Tab (1С-стиль)
@@ -67,12 +71,16 @@ public class FormCoordinator {
                            FieldFactory fieldFactory,
                            ApplicationContext applicationContext,
                            FormRegistry formRegistry,
-                           TableSectionFactory tableSectionFactory) {
+                           TableSectionFactory tableSectionFactory,
+                           SelectionFormAssembler selectionFormAssembler,
+                           ServiceLocator serviceLocator) {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
+        this.serviceLocator = serviceLocator;
         this.formResolver = new FormResolver(
-            formRegistry, metadataResolver, fieldFactory, applicationContext, tableSectionFactory);
+            formRegistry, metadataResolver, fieldFactory, applicationContext, tableSectionFactory,
+            selectionFormAssembler, serviceLocator);
     }
 
     /**
@@ -368,8 +376,10 @@ public class FormCoordinator {
     }
 
     /**
-     * Открывает форму выбора (SelectionForm) в диалоге.
-     * Используется EntityField для выбора связанной записи.
+     * Открывает форму выбора (SelectionForm) в диалоге — точка входа для программных вызовов
+     * "открыть выбор из произвольного места". {@code EntityField} не использует этот метод —
+     * он обращается к {@code SelectionFormAssembler} напрямую (короче путь, не тянет
+     * Workspace-специфичную логику координатора).
      *
      * @param entityClass класс сущности для выбора
      * @param onSelected  callback при выборе записи
@@ -378,18 +388,13 @@ public class FormCoordinator {
     public <T extends IdentifiableEntity> void openSelectionForm(Class<T> entityClass,
                                                                    Consumer<T> onSelected,
                                                                    FormSession owner) {
-        EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
+        SelectionForm<T> form = formResolver.resolveSelectionForm(entityClass, onSelected);
 
-        // SelectionForm уже реализована и используется из EntityField
-        // Этот метод — точка расширения для будущих фич (фильтры, контекст от owner)
-
-        // Регистрируем сессию
         String sessionId = UUID.randomUUID().toString();
         FormSession session = new FormSession(sessionId, entityClass, SessionMode.SELECTION, owner);
         sessions.put(sessionId, session);
 
-        // TODO: Реализовать, если понадобится открывать SelectionForm программно
-        // Сейчас SelectionForm открывается из EntityField напрямую
+        form.open();
     }
 
     // === Управление сессиями ===
@@ -427,47 +432,8 @@ public class FormCoordinator {
      * {@code @EntityMetadata(...)} // ищет бин "nomenclatureService"
      * </pre>
      */
-    @SuppressWarnings("unchecked")
     private <T extends IdentifiableEntity, ID> BaseService<T, ID> findService(Class<T> entityClass) {
-        EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
-        Class<?> serviceClass = meta.getAnnotation().serviceClass();
-
-        // 1. Явное указание serviceClass в @EntityMetadata
-        if (serviceClass != null && serviceClass != void.class) {
-            try {
-                return (BaseService<T, ID>) applicationContext.getBean(serviceClass);
-            } catch (Exception e) {
-                throw new IllegalStateException(
-                    "Service class specified in @EntityMetadata not found: " + serviceClass.getName() + ". " +
-                    "Make sure " + serviceClass.getSimpleName() + " is a Spring @Service bean.", e);
-            }
-        }
-
-        // 2. Fallback: поиск по имени
-        String serviceName = uncapitalize(entityClass.getSimpleName()) + "Service";
-        try {
-            return (BaseService<T, ID>) applicationContext.getBean(serviceName);
-        } catch (Exception e) {
-            throw new IllegalStateException(
-                "No service found for " + entityClass.getSimpleName() + ". " +
-                "Expected bean name: '" + serviceName + "'. " +
-                "Solutions:\n" +
-                "  1. Add serviceClass to @EntityMetadata: serviceClass = YourService.class\n" +
-                "  2. Create a @Service class named " + capitalize(serviceName) + "\n" +
-                "  3. Rename your service bean to '" + serviceName + "'", e);
-        }
-    }
-
-    // === Утилиты ===
-
-    private String uncapitalize(String str) {
-        if (str == null || str.isEmpty()) return str;
-        return Character.toLowerCase(str.charAt(0)) + str.substring(1);
-    }
-
-    private String capitalize(String str) {
-        if (str == null || str.isEmpty()) return str;
-        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+        return serviceLocator.findService(entityClass);
     }
 
     private void showError(String message) {

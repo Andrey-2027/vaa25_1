@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "spring-boot-vaadin",
+      "runtimeExecutable": "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.3\\plugins\\maven\\lib\\maven3\\bin\\mvn.cmd",
+      "runtimeArgs": ["-o", "spring-boot:run"],
+      "port": 8080
+    }
+  ]
+}

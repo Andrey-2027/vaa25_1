@@ -98,7 +98,7 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
     private void buildColumns() {
         for (FieldMetadataInfo field : sectionMeta.getGridFields()) {
             FieldRenderer renderer = FieldRenderer.forType(field.getResolvedType());
-            ValueProvider<T, String> valueProvider = entity -> renderer.apply(entity, field);
+            ValueProvider<T, String> valueProvider = entity -> renderer.apply(field.getValue(entity));
 
             Grid.Column<T> column = grid.addColumn(valueProvider).setHeader(field.getLabel())
                 .setSortable(field.isGridSortable())

@@ -51,11 +51,7 @@ public class ReceivingDocumentItem extends BaseEntity {
     @FieldMetadata(
         label = "Номенклатура", required = true, order = 1,
         grid = @GridColumn(order = 1, flexGrow = 1),
-        lookup = @Lookup(
-            entity = Nomenclature.class,
-            columns = {"code", "name"},
-            searchFields = {"code", "name"}
-        )
+        lookup = @Lookup(entity = Nomenclature.class)
     )
     private Nomenclature nomenclature;
 

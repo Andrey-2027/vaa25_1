@@ -62,13 +62,6 @@ public class FormRegistry {
     }
 
     /**
-     * Зарегистрировать форму выбора.
-     */
-    public void registerSelectionForm(Class<?> entityClass, String variant, FormFactory factory) {
-        register(entityClass, FormType.SELECTION, variant, factory);
-    }
-
-    /**
      * Найти зарегистрированную форму.
      *
      * @param entityClass класс сущности
@@ -93,13 +86,6 @@ public class FormRegistry {
      */
     public FormFactory findItemForm(Class<?> entityClass, String variant) {
         return find(entityClass, FormType.ITEM, variant);
-    }
-
-    /**
-     * Найти форму выбора.
-     */
-    public FormFactory findSelectionForm(Class<?> entityClass, String variant) {
-        return find(entityClass, FormType.SELECTION, variant);
     }
 
     /**
