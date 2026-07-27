@@ -1,6 +1,10 @@
 package org.ip.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import org.ip.metadata.EntityMetadataInfo;
+import org.ip.metadata.FieldMetadataInfo;
 import org.ip.metadata.MetadataResolver;
 import org.ip.metadata.TableSectionMetadataInfo;
 import org.ipro.crud.IdentifiableEntity;
@@ -50,11 +54,18 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
 
     protected final JpaRepository<T, ID> repository;
     protected final TableSectionMetadataInfo sectionMeta;
+    protected final MetadataResolver metadataResolver;
+    protected final Class<T> rowClass;
+
+    @PersistenceContext
+    protected EntityManager entityManager;
 
     protected AbstractTableSectionService(JpaRepository<T, ID> repository,
                                           MetadataResolver metadataResolver,
                                           Class<T> rowClass) {
         this.repository = repository;
+        this.metadataResolver = metadataResolver;
+        this.rowClass = rowClass;
         this.sectionMeta = resolveOwnMetadata(metadataResolver, rowClass);
     }
 
@@ -109,5 +120,91 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
         if (!existing.isEmpty()) {
             repository.deleteAll(existing.values());
         }
+    }
+
+    /**
+     * Автоматически определяет fetch-пути для всех ENTITY_REFERENCE полей строки табличной части.
+     * Переопределите этот метод, если нужна кастомная логика fetch-графа.
+     *
+     * @return список имён полей для eager-загрузки
+     */
+    protected List<String> getDefaultFetchPaths() {
+        EntityMetadataInfo meta;
+        try {
+            meta = metadataResolver.resolve(rowClass);
+        } catch (IllegalArgumentException notMetadataDriven) {
+            return List.of();
+        }
+        return meta.getGridFields().stream()
+            .filter(f -> f.getResolvedType() == org.ip.metadata.annotation.FieldType.ENTITY_REFERENCE)
+            .map(FieldMetadataInfo::getName)
+            .toList();
+    }
+
+    /**
+     * Создаёт EntityGraph для строк табличной части, используя {@link #getDefaultFetchPaths()}.
+     */
+    private jakarta.persistence.EntityGraph<T> buildFetchGraph() {
+        List<String> paths = getDefaultFetchPaths();
+        if (paths.isEmpty()) {
+            return null;
+        }
+        jakarta.persistence.EntityGraph<T> graph = entityManager.createEntityGraph(rowClass);
+        paths.forEach(graph::addAttributeNodes);
+        return graph;
+    }
+
+    /**
+     * Инициализирует LAZY-поля в строках табличной части после загрузки из БД.
+     * Вызывайте этот метод в конце {@link #findByParent(IdentifiableEntity)} если используете
+     * обычный repository-метод без EntityGraph.
+     *
+     * Пример:
+     * <pre>
+     * {@code
+     * @Override
+     * public List<PrdSpecMtr> findByParent(PrdSpec parent) {
+     *     List<PrdSpecMtr> rows = repository.findByPrdSpecOrderByOrder(parent);
+     *     return initializeLazyFields(rows);
+     * }
+     * }
+     * </pre>
+     */
+    protected List<T> initializeLazyFields(List<T> rows) {
+        if (rows.isEmpty()) {
+            return rows;
+        }
+
+        jakarta.persistence.EntityGraph<T> graph = buildFetchGraph();
+        if (graph == null) {
+            return rows;
+        }
+
+        // Принудительно инициализируем LAZY-ассоциации через EntityManager
+        // (альтернатива: перезагрузить с EntityGraph, но это дороже)
+        List<String> paths = getDefaultFetchPaths();
+        for (T row : rows) {
+            for (String path : paths) {
+                try {
+                    EntityMetadataInfo meta = metadataResolver.resolve(rowClass);
+                    FieldMetadataInfo field = meta.getGridFields().stream()
+                        .filter(f -> f.getName().equals(path))
+                        .findFirst()
+                        .orElse(null);
+
+                    if (field != null) {
+                        Object value = field.getValue(row);
+                        // Обращение к ID инициализирует Hibernate proxy
+                        if (value != null && value instanceof IdentifiableEntity) {
+                            ((IdentifiableEntity) value).getId();
+                        }
+                    }
+                } catch (Exception ignored) {
+                    // Игнорируем ошибки инициализации
+                }
+            }
+        }
+
+        return rows;
     }
 }

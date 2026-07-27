@@ -85,7 +85,18 @@ public class SubsystemHomeView extends VerticalLayout {
     private void openEntityList(EntityMetadataInfo entity, Workspace workspace) {
         Class entityClass = entity.getEntityClass();
         String tabId = "entity-list-" + entityClass.getSimpleName();
-        workspace.open(ListFormWrapper.class, tabId, entity.getListFormTitle(),
-            (ListFormWrapper wrapper) -> wrapper.setContent(coordinator.createListForm(entityClass)));
+
+        // Проверяем, есть ли кастомный View для default-варианта
+        Class<? extends com.vaadin.flow.component.Component> customViewClass =
+            coordinator.getFormRegistry().getListFormViewClass(entityClass, null);
+
+        if (customViewClass != null) {
+            // Открываем кастомный View
+            workspace.open(customViewClass, tabId, entity.getListFormTitle(), v -> {});
+        } else {
+            // Fallback: автоматический ListForm
+            workspace.open(ListFormWrapper.class, tabId, entity.getListFormTitle(),
+                (ListFormWrapper wrapper) -> wrapper.setContent(coordinator.createListForm(entityClass)));
+        }
     }
 }

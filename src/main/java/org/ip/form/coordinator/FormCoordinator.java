@@ -112,6 +112,13 @@ public class FormCoordinator {
         return itemFormOpenMode;
     }
 
+    /**
+     * Получить FormRegistry для доступа к кастомным View.
+     */
+    public FormRegistry getFormRegistry() {
+        return formResolver.getFormRegistry();
+    }
+
     // === Открытие форм ===
 
     /**

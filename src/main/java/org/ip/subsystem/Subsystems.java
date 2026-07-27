@@ -15,4 +15,7 @@ public final class Subsystems {
 
     @Subsystem(title = "Производство", parent = Documents.class, icon = "COGS", order = 10)
     public interface ProductionDocuments {}
+
+    @Subsystem(title = "Производство", icon = "FACTORY", order = 150)
+    public interface Production {}
 }

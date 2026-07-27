@@ -63,6 +63,13 @@ public class FormResolver {
     }
 
     /**
+     * Получить FormRegistry (для доступа к кастомным View).
+     */
+    public FormRegistry getFormRegistry() {
+        return formRegistry;
+    }
+
+    /**
      * Найти и создать форму списка (ListForm).
      *
      * @param entityClass класс сущности

@@ -1,5 +1,7 @@
 package org.ip.form.registry;
 
+import com.vaadin.flow.component.Component;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FormRegistry {
 
     private final Map<FormKey, FormFactory> forms = new ConcurrentHashMap<>();
+    private final Map<FormKey, Class<? extends Component>> listFormViews = new ConcurrentHashMap<>();
 
     /**
      * Зарегистрировать кастомную форму.
@@ -115,5 +118,32 @@ public class FormRegistry {
      */
     public int size() {
         return forms.size();
+    }
+
+    /**
+     * Зарегистрировать кастомный View для формы списка.
+     * Используется когда вариант формы требует не автоматическую генерацию, а полностью
+     * кастомный View (например, с параметризацией через UI-фильтры).
+     *
+     * @param entityClass класс сущности
+     * @param variant имя варианта (null = default)
+     * @param viewClass класс View-компонента
+     */
+    public void registerListFormView(Class<?> entityClass, String variant, Class<? extends Component> viewClass) {
+        FormKey key = new FormKey(entityClass, FormType.LIST, variant);
+        listFormViews.put(key, viewClass);
+    }
+
+    /**
+     * Получить кастомный View-класс для формы списка.
+     * Возвращает null если вариант использует автоматическую генерацию формы.
+     *
+     * @param entityClass класс сущности
+     * @param variant имя варианта (null = default)
+     * @return класс View или null
+     */
+    public Class<? extends Component> getListFormViewClass(Class<?> entityClass, String variant) {
+        FormKey key = new FormKey(entityClass, FormType.LIST, variant);
+        return listFormViews.get(key);
     }
 }

@@ -31,9 +31,9 @@ public class FormBuilder {
      * @param entityClass класс сущности
      * @return ListFormBuilder
      */
-    /*public static <T> ListFormBuilder<T> listForm(Class<T> entityClass) {
+    public static <T extends IdentifiableEntity> ListFormBuilder<T> listForm(Class<T> entityClass) {
         return new ListFormBuilder<>(entityClass);
-    }*/
+    }
 
     /**
      * Создать builder для формы элемента (ItemForm) с произвольным layout'ом.

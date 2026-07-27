@@ -1,5 +1,6 @@
 package org.ip.form.builder;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.data.provider.Query;
 import org.ip.form.builtin.ListForm;
 import org.ip.form.registry.FormContext;
@@ -45,6 +46,7 @@ public class ListFormBuilder<T extends IdentifiableEntity> {
     private DataProvider<T> dataProvider;
     private List<String> columns;
     private boolean readOnly = false;
+    private Class<? extends Component> customViewClass;
 
     public ListFormBuilder(Class<T> entityClass) {
         this.entityClass = entityClass;
@@ -83,6 +85,29 @@ public class ListFormBuilder<T extends IdentifiableEntity> {
     public ListFormBuilder<T> readOnly(boolean readOnly) {
         this.readOnly = readOnly;
         return this;
+    }
+
+    /**
+     * Указать кастомный View-класс вместо автоматической генерации формы.
+     * View должен самостоятельно создавать и настраивать форму (например, добавлять
+     * фильтры по параметрам, недоступные через декларативную конфигурацию).
+     *
+     * Пример:
+     * <pre>
+     * FormBuilder.listForm(PrdSpec.class)
+     *     .customView(PrdSpecByJournalView.class)
+     * </pre>
+     */
+    public ListFormBuilder<T> customView(Class<? extends Component> viewClass) {
+        this.customViewClass = viewClass;
+        return this;
+    }
+
+    /**
+     * Получить кастомный View-класс (package-visible для ListFormVariants).
+     */
+    Class<? extends Component> getCustomViewClass() {
+        return customViewClass;
     }
 
     /**
