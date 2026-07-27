@@ -61,6 +61,7 @@ public class FormCoordinator {
     private final FormResolver formResolver;
     private final ServiceLocator serviceLocator;
     private final org.ip.service.FormSettingsService formSettingsService;
+    private final org.ip.service.GridFormViewService gridFormViewService;
     private final Map<String, FormSession> sessions = new ConcurrentHashMap<>();
 
     // Опциональная ссылка на Workspace для открытия форм в Tab (1С-стиль)
@@ -76,12 +77,14 @@ public class FormCoordinator {
                            TableSectionFactory tableSectionFactory,
                            SelectionFormAssembler selectionFormAssembler,
                            ServiceLocator serviceLocator,
-                           org.ip.service.FormSettingsService formSettingsService) {
+                           org.ip.service.FormSettingsService formSettingsService,
+                           org.ip.service.GridFormViewService gridFormViewService) {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
         this.serviceLocator = serviceLocator;
         this.formSettingsService = formSettingsService;
+        this.gridFormViewService = gridFormViewService;
         this.formResolver = new FormResolver(
             formRegistry, metadataResolver, fieldFactory, applicationContext, tableSectionFactory,
             selectionFormAssembler, serviceLocator);
@@ -226,11 +229,10 @@ public class FormCoordinator {
         // Включаем диалог "Настройка колонок" (нужен резолвер для полей связанных сущностей)
         form.setMetadataResolver(metadataResolver);
 
-        // Персистентность состава колонок за текущим пользователем (1С-стиль).
-        // Ключ различает варианты формы: у "archived"-варианта своя настройка.
-        form.setColumnSettings(formSettingsService,
-            "listform.columns." + entityClass.getSimpleName()
-                + (variant != null ? "." + variant : ""));
+        // Поддержка сохранённых видов (GridFormView) + вид по умолчанию за пользователем.
+        // Ключ различает варианты формы: у "archived"-варианта своя настройка/свои виды.
+        form.setViewSupport(gridFormViewService, formSettingsService,
+            entityClass.getSimpleName() + (variant != null ? "." + variant : ""));
 
         // Настройка callback'ов для кнопок
         form.setOnAdd(entity -> openItemForm(entityClass, null, null, saved -> form.refresh()));

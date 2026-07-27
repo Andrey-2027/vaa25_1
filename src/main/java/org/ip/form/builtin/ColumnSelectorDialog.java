@@ -45,6 +45,7 @@ public class ColumnSelectorDialog extends Dialog {
     private final List<ColumnPath> currentColumns;
     private final Consumer<List<ColumnPath>> onApply;
     private final Runnable onReset;
+    private final Runnable onSaveAs;
     private final TreeGrid<ColumnNode> tree = new TreeGrid<>();
 
     /** Все узлы в порядке дерева — для стабильного порядка добавленных колонок. */
@@ -52,18 +53,23 @@ public class ColumnSelectorDialog extends Dialog {
 
     /**
      * @param onApply получает выбранный состав колонок при "Применить"
-     * @param onReset вызывается при "Стандартные" (возврат к метаданным + сброс сохранённой
-     *                настройки); null — кнопка применит состав из метаданных через onApply
+     * @param onReset вызывается при "Стандартные" (возврат к метаданным); null — кнопка
+     *                применит состав из метаданных через onApply
+     * @param onSaveAs вызывается при "Сохранить как..." — открывает диалог имени/shared
+     *                 поверх ТЕКУЩЕГО состава колонок формы (не обязательно применённого
+     *                 здесь только что); null — кнопка не показывается
      */
     public ColumnSelectorDialog(EntityMetadataInfo metadata,
                                 MetadataResolver metadataResolver,
                                 List<ColumnPath> currentColumns,
                                 Consumer<List<ColumnPath>> onApply,
-                                Runnable onReset) {
+                                Runnable onReset,
+                                Runnable onSaveAs) {
         this.metadata = metadata;
         this.currentColumns = List.copyOf(currentColumns);
         this.onApply = onApply;
         this.onReset = onReset;
+        this.onSaveAs = onSaveAs;
 
         setHeaderTitle("Настройка колонок: " + metadata.getListFormTitle());
         setWidth("560px");
@@ -139,6 +145,15 @@ public class ColumnSelectorDialog extends Dialog {
         Button cancel = new Button("Отмена", e -> close());
 
         getFooter().add(reset, cancel, apply);
+
+        if (onSaveAs != null) {
+            Button saveAs = new Button("Сохранить как...", e -> {
+                onSaveAs.run();
+                close();
+            });
+            saveAs.setTooltipText("Сохранить текущий состав колонок как новый вид");
+            getFooter().add(saveAs);
+        }
     }
 
     private void applySelection() {

@@ -62,6 +62,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private final Button deleteButton = new Button("Удалить", VaadinIcon.TRASH.create());
     private final Button refreshButton = new Button(VaadinIcon.REFRESH.create());
     private final Button columnsButton = new Button(VaadinIcon.COG.create());
+    private final Button viewsButton = new Button(VaadinIcon.LIST.create());
 
     // Текущий состав колонок; изначально — из метаданных, может меняться через
     // диалог "Настройка колонок" (setActiveColumns).
@@ -72,8 +73,13 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private Consumer<T> onDelete;
     private LookupService lookupService;  // опционально, для ComboBoxFilter-ов ENTITY_REFERENCE
     private MetadataResolver metadataResolver;  // опционально, включает диалог "Настройка колонок"
-    private org.ip.service.FormSettingsService columnSettings;  // опционально, персистентность состава колонок
-    private String columnSettingsKey;
+
+    // Поддержка сохранённых видов (GridFormView) — см. setViewSupport().
+    // Персистентность больше НЕ происходит на каждое applyColumns(): состояние сохраняется
+    // только явным действием пользователя ("Сохранить как" / "Сделать видом по умолчанию").
+    private org.ip.service.GridFormViewService gridFormViewService;
+    private org.ip.service.FormSettingsService formSettingsService;
+    private String formKey;
 
     // Hook для кастомизации ПОСЛЕ автогенерации колонок
     private Runnable afterColumnsConfigured;
@@ -254,14 +260,69 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         columnsButton.setVisible(false); // включается через setMetadataResolver()
         columnsButton.addClickListener(e -> openColumnSelector());
 
-        toolbar.add(addButton, editButton, deleteButton, refreshButton, columnsButton);
+        viewsButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        viewsButton.getElement().setAttribute("aria-label", "Виды");
+        viewsButton.setTooltipText("Виды");
+        viewsButton.setVisible(false); // включается через setViewSupport()
+        viewsButton.addClickListener(e -> openViewSelector());
+
+        toolbar.add(addButton, editButton, deleteButton, refreshButton, columnsButton, viewsButton);
     }
 
     private void openColumnSelector() {
         if (metadataResolver == null) return;
         new ColumnSelectorDialog(metadata, metadataResolver, activeColumns,
-            this::setActiveColumns, this::resetActiveColumns)
+            this::setActiveColumns, this::resetActiveColumns, this::openSaveViewPrompt)
             .open();
+    }
+
+    /** Диалог "Сохранить как" — имя + признак "Общий", вызывается из ColumnSelectorDialog. */
+    private void openSaveViewPrompt() {
+        if (gridFormViewService == null || formKey == null) {
+            Notification.show("Сохранение видов недоступно для этой формы", 3000,
+                Notification.Position.MIDDLE);
+            return;
+        }
+        new SaveViewDialog((name, shared) -> {
+            String columnsValue = activeColumns.stream().map(ColumnPath::getKey)
+                .reduce((a, b) -> a + ";" + b).orElse("");
+            gridFormViewService.createView(formKey, name, columnsValue, shared);
+            Notification.show("Вид сохранён", 2000, Notification.Position.BOTTOM_START);
+        }).open();
+    }
+
+    /** Список видов, доступных пользователю для этой формы — выбор/умолчание. */
+    private void openViewSelector() {
+        if (gridFormViewService == null || formKey == null) return;
+        List<org.ip.model.GridFormView> views = gridFormViewService.findVisibleViews(formKey);
+        String defaultViewId = formSettingsService != null
+            ? formSettingsService.get(defaultViewSettingKey()).orElse(null)
+            : null;
+
+        new ViewSelectorDialog(views, defaultViewId,
+            this::applyView,
+            view -> {
+                if (formSettingsService != null) {
+                    formSettingsService.put(defaultViewSettingKey(), view.getId().toString());
+                }
+            },
+            () -> {
+                if (formSettingsService != null) {
+                    formSettingsService.remove(defaultViewSettingKey());
+                }
+            }
+        ).open();
+    }
+
+    private void applyView(org.ip.model.GridFormView view) {
+        List<ColumnPath> restored = parseColumns(view.getColumns());
+        if (!restored.isEmpty()) {
+            applyColumns(restored);
+        }
+    }
+
+    private String defaultViewSettingKey() {
+        return "listform.defaultview." + formKey;
     }
 
     // === Selection ===
@@ -341,25 +402,23 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     /**
      * Заменить состав колонок и перестроить грид на лету (колонки + полоса фильтров),
      * затем перезапросить данные (fetch-граф зависит от состава колонок).
-     * Пустой/null список игнорируется. Если подключено хранилище настроек
-     * (setColumnSettings) — состав сохраняется за текущим пользователем.
+     * Пустой/null список игнорируется.
+     *
+     * ВАЖНО: больше НЕ сохраняет ничего автоматически — персистентность теперь только
+     * через явные действия пользователя: "Сохранить как" (создаёт GridFormView) и
+     * "Сделать видом по умолчанию" (см. openViewSelector()). Раньше здесь было тихое
+     * автосохранение при каждом изменении — от этого отказались (см. обсуждение).
      */
     public void setActiveColumns(List<ColumnPath> columns) {
-        applyColumns(columns, true);
+        applyColumns(columns);
     }
 
-    /**
-     * Вернуть состав колонок из метаданных и удалить сохранённую пользовательскую
-     * настройку (кнопка "Стандартные" диалога).
-     */
+    /** Вернуть состав колонок из метаданных (сброс на время текущей сессии, ничего не пишет). */
     public void resetActiveColumns() {
-        applyColumns(metadata.getListColumnPaths(), false);
-        if (columnSettings != null && columnSettingsKey != null) {
-            columnSettings.remove(columnSettingsKey);
-        }
+        applyColumns(metadata.getListColumnPaths());
     }
 
-    private void applyColumns(List<ColumnPath> columns, boolean persist) {
+    private void applyColumns(List<ColumnPath> columns) {
         if (columns == null || columns.isEmpty()) return;
         this.activeColumns = new ArrayList<>(columns);
         filterGrid.rebuildColumns(this::configureColumnsAndFilters);
@@ -367,11 +426,6 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             afterColumnsConfigured.run();
         }
         refresh();
-        if (persist && columnSettings != null && columnSettingsKey != null) {
-            columnSettings.put(columnSettingsKey,
-                activeColumns.stream().map(ColumnPath::getKey)
-                    .reduce((a, b) -> a + ";" + b).orElse(""));
-        }
     }
 
     /** Текущий состав колонок (немодифицируемая копия). */
@@ -380,30 +434,46 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     }
 
     /**
-     * Подключить персистентность состава колонок: хранилище настроек (за текущим
-     * пользователем) и ключ настройки. Если у пользователя есть сохранённый состав —
-     * он применяется сразу (невалидные пути — например, после переименования поля —
-     * молча отбрасываются; если валидных не осталось, остаётся состав из метаданных).
+     * Подключить поддержку видов (GridFormView) для этой формы: включает кнопку "Виды"
+     * в toolbar и, если у пользователя есть вид по умолчанию (UserFormSettings,
+     * "listform.defaultview.&lt;formKey&gt;" -&gt; id GridFormView), сразу его применяет.
+     * Если вид по умолчанию не задан или запись не найдена — остаётся состав из метаданных.
+     *
+     * formKey — тот же ключ, что раньше использовался в setColumnSettings()
+     * ("&lt;EntityClass&gt;[.&lt;variant&gt;]") — различает варианты формы.
      */
-    public void setColumnSettings(org.ip.service.FormSettingsService settings, String settingKey) {
-        this.columnSettings = settings;
-        this.columnSettingsKey = settingKey;
-        if (settings == null || settingKey == null) return;
+    public void setViewSupport(org.ip.service.GridFormViewService gridFormViewService,
+                               org.ip.service.FormSettingsService formSettingsService,
+                               String formKey) {
+        this.gridFormViewService = gridFormViewService;
+        this.formSettingsService = formSettingsService;
+        this.formKey = formKey;
+        viewsButton.setVisible(gridFormViewService != null);
+        if (gridFormViewService == null || formSettingsService == null) return;
 
-        settings.get(settingKey).ifPresent(saved -> {
-            List<ColumnPath> restored = new ArrayList<>();
-            for (String key : saved.split(";")) {
-                if (key.isBlank()) continue;
-                try {
-                    restored.add(ColumnPath.resolve(metadata.getEntityClass(), key));
-                } catch (IllegalArgumentException staleColumnKey) {
-                    // поле переименовали/удалили после сохранения настройки — пропускаем
-                }
-            }
-            if (!restored.isEmpty()) {
-                applyColumns(restored, false);
+        formSettingsService.get(defaultViewSettingKey()).ifPresent(idStr -> {
+            try {
+                Long id = Long.parseLong(idStr);
+                gridFormViewService.findById(id).ifPresent(view ->
+                    applyColumns(parseColumns(view.getColumns())));
+            } catch (NumberFormatException invalidId) {
+                // настройка повреждена/устарела — просто остаёмся на составе из метаданных
             }
         });
+    }
+
+    private List<ColumnPath> parseColumns(String columnsValue) {
+        List<ColumnPath> restored = new ArrayList<>();
+        if (columnsValue == null) return restored;
+        for (String key : columnsValue.split(";")) {
+            if (key.isBlank()) continue;
+            try {
+                restored.add(ColumnPath.resolve(metadata.getEntityClass(), key));
+            } catch (IllegalArgumentException staleColumnKey) {
+                // поле переименовали/удалили после сохранения вида — пропускаем
+            }
+        }
+        return restored;
     }
 
     /**
