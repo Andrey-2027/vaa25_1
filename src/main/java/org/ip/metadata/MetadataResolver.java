@@ -120,6 +120,15 @@ public class MetadataResolver {
             ? resolveColumnPaths(entityClass, annotation.selectColumns(), null)
             : listColumnPaths;
 
+        // Опечатка в displaySortFields должна падать при первом резолве метаданных,
+        // а не глубоко в Criteria API при первом клике по заголовку колонки.
+        for (String sortField : annotation.displaySortFields()) {
+            if (findDeclaredFieldInHierarchy(entityClass, sortField) == null) {
+                throw new IllegalArgumentException(
+                    "displaySortFields: field '" + sortField + "' not found on " + entityClass.getName());
+            }
+        }
+
         return new EntityMetadataInfo(
             entityClass, annotation, formFields, gridFields, listColumnPaths, selectColumnPaths);
     }

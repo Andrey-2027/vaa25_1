@@ -22,7 +22,8 @@ import org.ip.metadata.annotation.Lookup;
     icon = "PACKAGE",
     serviceClass = org.ip.service.NomenclatureService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"code", "name"}
+    selectColumns = {"code", "name"},
+    displaySortFields = {"code", "name"}  // = getDisplayName(): code + " " + name
 )
 public class Nomenclature extends BaseEntity implements HasDisplayName {
 

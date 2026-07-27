@@ -68,8 +68,15 @@ public class SelectionFormAssembler {
         ResolvedSelection resolved = resolveColumns(entityClass);
         BaseService<T, ID> service = serviceLocator.findService(entityClass);
 
+        // Fetch-пути колонок (в т.ч. через точку из selectColumns) — иначе колонка по реквизиту
+        // связанной сущности читалась бы рефлексией из неинициализированного lazy-прокси.
+        java.util.LinkedHashSet<String> fetchPaths = new java.util.LinkedHashSet<>();
+        for (ColumnPath path : resolved.columns()) {
+            fetchPaths.addAll(path.getFetchPaths());
+        }
+
         JpaFilterGrid<T> filterGrid = new JpaFilterGrid<>(
-            entityClass, (spec, pageable) -> service.findAll(spec, pageable));
+            entityClass, (spec, pageable) -> service.findAll(spec, pageable, fetchPaths));
 
         for (ColumnPath path : resolved.columns()) {
             FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());

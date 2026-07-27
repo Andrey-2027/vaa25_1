@@ -129,6 +129,22 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      * вместо repository.findAll(spec, pageable) напрямую.
      */
     protected Page<T> findAllWithFetchGraph(Specification<T> spec, Pageable pageable) {
+        return findAllWithFetchGraph(spec, pageable, null);
+    }
+
+    /**
+     * Вариант с явными путями fetch-графа — для ListForm с динамическим составом колонок.
+     * fetchPaths == null → граф строится из статических метаданных (как раньше);
+     * непустая коллекция → граф строится ровно из переданных путей (с поддержкой вложенных
+     * путей через subgraph, например "unitOfMeasurement.parentUnit").
+     */
+    @Override
+    public Page<T> findAll(Specification<T> spec, Pageable pageable, java.util.Collection<String> fetchPaths) {
+        return findAllWithFetchGraph(spec, pageable, fetchPaths);
+    }
+
+    protected Page<T> findAllWithFetchGraph(Specification<T> spec, Pageable pageable,
+                                            java.util.Collection<String> fetchPaths) {
         Class<T> domainClass = getDomainClass();
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
@@ -139,7 +155,9 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         applySort(pageable, dataRoot, dataQuery, cb);
 
         TypedQuery<T> typedQuery = entityManager.createQuery(dataQuery);
-        EntityGraph<T> graph = buildFetchGraph(domainClass);
+        EntityGraph<T> graph = (fetchPaths != null)
+            ? buildFetchGraph(domainClass, fetchPaths)
+            : buildFetchGraph(domainClass);
         if (graph != null) {
             typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
         }
@@ -168,12 +186,60 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     private void applySort(Pageable pageable, Root<T> root, CriteriaQuery<T> query, CriteriaBuilder cb) {
         if (pageable.getSort().isUnsorted()) return;
-        List<jakarta.persistence.criteria.Order> orders = pageable.getSort().stream()
-            .map(order -> order.isAscending()
-                ? cb.asc(root.get(order.getProperty()))
-                : cb.desc(root.get(order.getProperty())))
-            .toList();
+        List<jakarta.persistence.criteria.Order> orders = new java.util.ArrayList<>();
+        for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
+            for (jakarta.persistence.criteria.Path<?> path : sortPaths(root, order.getProperty())) {
+                orders.add(order.isAscending() ? cb.asc(path) : cb.desc(path));
+            }
+        }
         query.orderBy(orders);
+    }
+
+    /**
+     * Path'ы для ORDER BY по свойству сортировки (ключу колонки грида):
+     *   - обычное поле — root.get;
+     *   - путь через точку ("unitOfMeasurement.name") — через LEFT JOIN, а не неявный
+     *     INNER JOIN: сортировка не должна выкидывать из списка строки с незаполненной ссылкой;
+     *   - ссылочная колонка (сама или конечный сегмент пути — ENTITY_REFERENCE) — разворачивается
+     *     в displaySortFields целевой сущности (SQL-эквивалент её displayName), т.е. одна колонка
+     *     грида может дать несколько ORDER BY-выражений; без displaySortFields — по самой ссылке
+     *     (Hibernate сортирует по её PK), как раньше.
+     */
+    private List<jakarta.persistence.criteria.Path<?>> sortPaths(Root<T> root, String property) {
+        String[] segments = property.split("\\.");
+        jakarta.persistence.criteria.From<?, ?> from = root;
+        for (int i = 0; i < segments.length - 1; i++) {
+            from = from.join(segments[i], jakarta.persistence.criteria.JoinType.LEFT);
+        }
+        String last = segments[segments.length - 1];
+
+        List<String> displayFields = displaySortFieldsFor(property);
+        if (!displayFields.isEmpty()) {
+            jakarta.persistence.criteria.From<?, ?> target =
+                from.join(last, jakarta.persistence.criteria.JoinType.LEFT);
+            return displayFields.stream()
+                .<jakarta.persistence.criteria.Path<?>>map(target::get)
+                .toList();
+        }
+        return List.of(from.get(last));
+    }
+
+    /**
+     * displaySortFields целевой сущности, если конечный сегмент пути — ссылка на
+     * metadata-сущность с непустым displaySortFields; иначе пустой список (fallback
+     * на сортировку по самой ссылке).
+     */
+    private List<String> displaySortFieldsFor(String property) {
+        try {
+            org.ip.metadata.ColumnPath columnPath =
+                org.ip.metadata.ColumnPath.resolve(getDomainClass(), property);
+            if (columnPath.getResolvedType() != FieldType.ENTITY_REFERENCE) {
+                return List.of();
+            }
+            return metadataResolver.resolve(columnPath.getJavaType()).getDisplaySortFields();
+        } catch (IllegalArgumentException invalidPathOrNoMetadata) {
+            return List.of();
+        }
     }
 
     /**
@@ -197,6 +263,30 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         }
         EntityGraph<T> graph = entityManager.createEntityGraph(domainClass);
         refFields.forEach(graph::addAttributeNodes);
+        return graph;
+    }
+
+    /**
+     * EntityGraph из явного списка JPA-путей (в т.ч. вложенных через точку). Вложенный путь
+     * "a.b" превращается в subgraph(a).addAttributeNodes(b). null — если список пуст.
+     */
+    private EntityGraph<T> buildFetchGraph(Class<T> domainClass, java.util.Collection<String> paths) {
+        if (paths.isEmpty()) {
+            return null;
+        }
+        EntityGraph<T> graph = entityManager.createEntityGraph(domainClass);
+        for (String path : paths) {
+            String[] segments = path.split("\\.");
+            if (segments.length == 1) {
+                graph.addAttributeNodes(segments[0]);
+            } else {
+                jakarta.persistence.Subgraph<?> subgraph = graph.addSubgraph(segments[0]);
+                for (int i = 1; i < segments.length - 1; i++) {
+                    subgraph = subgraph.addSubgraph(segments[i]);
+                }
+                subgraph.addAttributeNodes(segments[segments.length - 1]);
+            }
+        }
         return graph;
     }
 

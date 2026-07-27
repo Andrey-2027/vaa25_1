@@ -53,6 +53,15 @@ public @interface EntityMetadata {
      */
     String[] selectColumns() default {};
 
+    /**
+     * SQL-эквивалент {@code getDisplayName()}: имена полей ЭТОЙ сущности, по которым сортируются
+     * ссылочные колонки на неё в чужих гридах (и обычные, и через точку — "ЕИ.Родитель").
+     * Вычисляемый displayName ("code + ' ' + name") декларируется списком полей —
+     * {@code {"code", "name"}} даёт ORDER BY code, name — тот же порядок, что и конкатенация.
+     * Пусто (по умолчанию) — ссылочная колонка сортируется по первичному ключу, как раньше.
+     */
+    String[] displaySortFields() default {};
+
     /** Порядок в SideNav (меньше = выше) */
     int order() default 999;
 

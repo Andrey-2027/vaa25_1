@@ -70,8 +70,12 @@ public final class ColumnPath {
         }
 
         FieldMetadata lastAnnotation = last.getAnnotation(FieldMetadata.class);
-        String label = (lastAnnotation != null && !lastAnnotation.label().isEmpty())
-            ? lastAnnotation.label() : last.getName();
+        // Для пути через точку заголовок составной ("Ед. измерения.Наименование", 1С-стиль) —
+        // иначе в гриде окажутся неотличимые "Наименование" у самой сущности и у связанной.
+        String label = chain.stream()
+            .map(ColumnPath::segmentLabel)
+            .reduce((a, b) -> a + "." + b)
+            .orElse(last.getName());
         FieldType resolvedType = FieldMetadataInfo.resolveType(
             lastAnnotation != null ? lastAnnotation.type() : FieldType.AUTO, last);
 
@@ -80,6 +84,12 @@ public final class ColumnPath {
             : null;
 
         return new ColumnPath(path, List.copyOf(chain), label, resolvedType, backingField);
+    }
+
+    /** Подпись одного сегмента: label из @FieldMetadata, если есть, иначе имя поля. */
+    private static String segmentLabel(Field field) {
+        FieldMetadata ann = field.getAnnotation(FieldMetadata.class);
+        return (ann != null && !ann.label().isEmpty()) ? ann.label() : field.getName();
     }
 
     /**
@@ -102,6 +112,32 @@ public final class ColumnPath {
     /** Ключ колонки (совпадает с исходной строкой пути, точки не экранируются). */
     public String getKey() {
         return path;
+    }
+
+    /** true — путь через точку (цепочка длиной больше одного поля). */
+    public boolean isNested() {
+        return chain.size() > 1;
+    }
+
+    /**
+     * JPA-пути ассоциаций, которые должны попасть в fetch-EntityGraph запроса, чтобы значение
+     * этой колонки читалось из уже загруженных объектов (а не из неинициализированного
+     * lazy-прокси, где рефлексивное чтение поля вернёт null):
+     *   - для пути через точку — префикс до последнего сегмента ("unitOfMeasurement.name" →
+     *     "unitOfMeasurement");
+     *   - если сама колонка типа ENTITY_REFERENCE — полный путь (ссылку тоже нужно загрузить,
+     *     чтобы отрендерить её displayName).
+     * Для простого не-ссылочного поля — пусто.
+     */
+    public List<String> getFetchPaths() {
+        List<String> result = new ArrayList<>(2);
+        if (chain.size() > 1) {
+            result.add(path.substring(0, path.lastIndexOf('.')));
+        }
+        if (resolvedType == FieldType.ENTITY_REFERENCE) {
+            result.add(path);
+        }
+        return result;
     }
 
     public String getLabel() {

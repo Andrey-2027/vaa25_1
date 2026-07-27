@@ -60,6 +60,7 @@ public class FormCoordinator {
     private final ApplicationContext applicationContext;
     private final FormResolver formResolver;
     private final ServiceLocator serviceLocator;
+    private final org.ip.service.FormSettingsService formSettingsService;
     private final Map<String, FormSession> sessions = new ConcurrentHashMap<>();
 
     // Опциональная ссылка на Workspace для открытия форм в Tab (1С-стиль)
@@ -74,11 +75,13 @@ public class FormCoordinator {
                            FormRegistry formRegistry,
                            TableSectionFactory tableSectionFactory,
                            SelectionFormAssembler selectionFormAssembler,
-                           ServiceLocator serviceLocator) {
+                           ServiceLocator serviceLocator,
+                           org.ip.service.FormSettingsService formSettingsService) {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
         this.serviceLocator = serviceLocator;
+        this.formSettingsService = formSettingsService;
         this.formResolver = new FormResolver(
             formRegistry, metadataResolver, fieldFactory, applicationContext, tableSectionFactory,
             selectionFormAssembler, serviceLocator);
@@ -212,6 +215,15 @@ public class FormCoordinator {
 
         // Используем FormResolver для поиска формы (кастомная или generic)
         ListForm<T, ID> form = formResolver.resolveListForm(entityClass, variant, parameters);
+
+        // Включаем диалог "Настройка колонок" (нужен резолвер для полей связанных сущностей)
+        form.setMetadataResolver(metadataResolver);
+
+        // Персистентность состава колонок за текущим пользователем (1С-стиль).
+        // Ключ различает варианты формы: у "archived"-варианта своя настройка.
+        form.setColumnSettings(formSettingsService,
+            "listform.columns." + entityClass.getSimpleName()
+                + (variant != null ? "." + variant : ""));
 
         // Настройка callback'ов для кнопок
         form.setOnAdd(entity -> openItemForm(entityClass, null, null, saved -> form.refresh()));

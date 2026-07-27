@@ -17,7 +17,8 @@ import org.ip.metadata.annotation.GridColumn;
     selectionFormTitle = "Выбор цеха",
     order = 300,
     icon = "COGS",
-    subsystem = org.ip.subsystem.Subsystems.Directories.class
+    subsystem = org.ip.subsystem.Subsystems.Directories.class,
+    displaySortFields = {"code"}  // = getDisplayName()
 )
 public class Workshop extends BaseEntity implements HasDisplayName {
 

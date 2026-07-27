@@ -15,6 +15,7 @@ import org.ip.form.FieldRenderer;
 import org.ip.metadata.ColumnPath;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FieldMetadataInfo;
+import org.ip.metadata.MetadataResolver;
 import org.ip.model.HasDisplayName;
 import org.ip.service.BaseService;
 import org.ip.service.LookupService;
@@ -25,6 +26,9 @@ import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.ipro.crud.IdentifiableEntity;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -57,11 +61,19 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private final Button editButton = new Button("Изменить", VaadinIcon.EDIT.create());
     private final Button deleteButton = new Button("Удалить", VaadinIcon.TRASH.create());
     private final Button refreshButton = new Button(VaadinIcon.REFRESH.create());
+    private final Button columnsButton = new Button(VaadinIcon.COG.create());
+
+    // Текущий состав колонок; изначально — из метаданных, может меняться через
+    // диалог "Настройка колонок" (setActiveColumns).
+    private List<ColumnPath> activeColumns;
 
     private Consumer<T> onAdd;
     private Consumer<T> onEdit;
     private Consumer<T> onDelete;
     private LookupService lookupService;  // опционально, для ComboBoxFilter-ов ENTITY_REFERENCE
+    private MetadataResolver metadataResolver;  // опционально, включает диалог "Настройка колонок"
+    private org.ip.service.FormSettingsService columnSettings;  // опционально, персистентность состава колонок
+    private String columnSettingsKey;
 
     // Hook для кастомизации ПОСЛЕ автогенерации колонок
     private Runnable afterColumnsConfigured;
@@ -74,20 +86,30 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     // === Конструктор 2: автосоздание JpaFilterGrid из BaseService ===
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public ListForm(EntityMetadataInfo metadata, BaseService<T, ID> service) {
-        this(metadata,
-             createJpaFilterGrid(metadata, service),
-             service);
+        this(metadata, null, service);
     }
 
+    /**
+     * JpaFilterGrid, чья fetch-функция при каждом запросе передаёт в сервис актуальные
+     * fetch-пути текущего состава колонок (collectFetchPaths) — чтобы динамически добавленные
+     * колонки (в т.ч. через точку) читались из загруженных ассоциаций, а не из lazy-прокси.
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <T extends IdentifiableEntity, ID> org.ipro.filtergrid.FilterGrid<T> createJpaFilterGrid(
+    private org.ipro.filtergrid.FilterGrid<T> createJpaFilterGrid(
             EntityMetadataInfo metadata, BaseService<T, ID> service) {
-        JpaFilterGrid<T> grid = new JpaFilterGrid<>(
+        return new JpaFilterGrid<>(
             (Class<T>) metadata.getEntityClass(),
-            (spec, pageable) -> service.findAll(spec, pageable));
-        return grid;
+            (spec, pageable) -> service.findAll(spec, pageable, collectFetchPaths()));
+    }
+
+    /** JPA-пути ассоциаций, которые нужно fetch-нуть для рендера текущих колонок. */
+    private Collection<String> collectFetchPaths() {
+        LinkedHashSet<String> paths = new LinkedHashSet<>();
+        for (ColumnPath column : activeColumns) {
+            paths.addAll(column.getFetchPaths());
+        }
+        return paths;
     }
 
     // === Главный конструктор ===
@@ -97,7 +119,8 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                      org.ipro.filtergrid.FilterGrid<T> filterGrid,
                      BaseService<T, ID> service) {
         this.metadata = metadata;
-        this.filterGrid = filterGrid;
+        this.activeColumns = new ArrayList<>(metadata.getListColumnPaths());
+        this.filterGrid = filterGrid != null ? filterGrid : createJpaFilterGrid(metadata, service);
 
         setSizeFull();
         setPadding(true);
@@ -112,12 +135,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             afterColumnsConfigured.run();
         }
 
-        add(toolbar, filterGrid);
+        add(toolbar, this.filterGrid);
         setFlexGrow(0, toolbar);
-        setFlexGrow(1, filterGrid);
+        setFlexGrow(1, this.filterGrid);
 
         try {
-            filterGrid.build();
+            this.filterGrid.build();
         } catch (Exception e) {
             // build() мог быть уже вызван — игнорируем
         }
@@ -127,12 +150,13 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void configureColumnsAndFilters() {
-        for (ColumnPath path : metadata.getListColumnPaths()) {
+        for (ColumnPath path : activeColumns) {
             FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());
             ValueProvider<T, ?> valueProvider = entity -> renderer.apply(path.getValue(entity));
 
-            // Путь через точку без backingField (не простое поле) — фильтр включён по умолчанию,
-            // как и общий дефолт @FieldMetadata(filter=true).
+            // Для пути через точку фильтр включён по умолчанию (как и общий дефолт
+            // @FieldMetadata(filter=true)): JPA-фильтры разрешают вложенный путь через
+            // JpaPathUtil, сортировка — через LEFT JOIN в applySort сервиса.
             boolean filterEnabled = path.asFieldMetadata()
                 .map(FieldMetadataInfo::isFilterEnabled)
                 .orElse(true);
@@ -224,7 +248,20 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         refreshButton.getElement().setAttribute("aria-label", "Обновить");
         refreshButton.addClickListener(e -> refresh());
 
-        toolbar.add(addButton, editButton, deleteButton, refreshButton);
+        columnsButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        columnsButton.getElement().setAttribute("aria-label", "Настройка колонок");
+        columnsButton.setTooltipText("Настройка колонок");
+        columnsButton.setVisible(false); // включается через setMetadataResolver()
+        columnsButton.addClickListener(e -> openColumnSelector());
+
+        toolbar.add(addButton, editButton, deleteButton, refreshButton, columnsButton);
+    }
+
+    private void openColumnSelector() {
+        if (metadataResolver == null) return;
+        new ColumnSelectorDialog(metadata, metadataResolver, activeColumns,
+            this::setActiveColumns, this::resetActiveColumns)
+            .open();
     }
 
     // === Selection ===
@@ -288,6 +325,85 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
      */
     public void setLookupService(LookupService lookupService) {
         this.lookupService = lookupService;
+    }
+
+    /**
+     * Установить MetadataResolver — включает кнопку "Настройка колонок" (шестерёнка в toolbar),
+     * через которую пользователь добавляет/убирает колонки, в т.ч. реквизиты связанных
+     * сущностей через точку (1С-стиль "Изменить форму"). Резолвер нужен диалогу, чтобы
+     * перечислить поля связанных сущностей.
+     */
+    public void setMetadataResolver(MetadataResolver metadataResolver) {
+        this.metadataResolver = metadataResolver;
+        columnsButton.setVisible(metadataResolver != null);
+    }
+
+    /**
+     * Заменить состав колонок и перестроить грид на лету (колонки + полоса фильтров),
+     * затем перезапросить данные (fetch-граф зависит от состава колонок).
+     * Пустой/null список игнорируется. Если подключено хранилище настроек
+     * (setColumnSettings) — состав сохраняется за текущим пользователем.
+     */
+    public void setActiveColumns(List<ColumnPath> columns) {
+        applyColumns(columns, true);
+    }
+
+    /**
+     * Вернуть состав колонок из метаданных и удалить сохранённую пользовательскую
+     * настройку (кнопка "Стандартные" диалога).
+     */
+    public void resetActiveColumns() {
+        applyColumns(metadata.getListColumnPaths(), false);
+        if (columnSettings != null && columnSettingsKey != null) {
+            columnSettings.remove(columnSettingsKey);
+        }
+    }
+
+    private void applyColumns(List<ColumnPath> columns, boolean persist) {
+        if (columns == null || columns.isEmpty()) return;
+        this.activeColumns = new ArrayList<>(columns);
+        filterGrid.rebuildColumns(this::configureColumnsAndFilters);
+        if (afterColumnsConfigured != null) {
+            afterColumnsConfigured.run();
+        }
+        refresh();
+        if (persist && columnSettings != null && columnSettingsKey != null) {
+            columnSettings.put(columnSettingsKey,
+                activeColumns.stream().map(ColumnPath::getKey)
+                    .reduce((a, b) -> a + ";" + b).orElse(""));
+        }
+    }
+
+    /** Текущий состав колонок (немодифицируемая копия). */
+    public List<ColumnPath> getActiveColumns() {
+        return List.copyOf(activeColumns);
+    }
+
+    /**
+     * Подключить персистентность состава колонок: хранилище настроек (за текущим
+     * пользователем) и ключ настройки. Если у пользователя есть сохранённый состав —
+     * он применяется сразу (невалидные пути — например, после переименования поля —
+     * молча отбрасываются; если валидных не осталось, остаётся состав из метаданных).
+     */
+    public void setColumnSettings(org.ip.service.FormSettingsService settings, String settingKey) {
+        this.columnSettings = settings;
+        this.columnSettingsKey = settingKey;
+        if (settings == null || settingKey == null) return;
+
+        settings.get(settingKey).ifPresent(saved -> {
+            List<ColumnPath> restored = new ArrayList<>();
+            for (String key : saved.split(";")) {
+                if (key.isBlank()) continue;
+                try {
+                    restored.add(ColumnPath.resolve(metadata.getEntityClass(), key));
+                } catch (IllegalArgumentException staleColumnKey) {
+                    // поле переименовали/удалили после сохранения настройки — пропускаем
+                }
+            }
+            if (!restored.isEmpty()) {
+                applyColumns(restored, false);
+            }
+        });
     }
 
     /**

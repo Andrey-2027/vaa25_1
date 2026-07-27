@@ -18,7 +18,8 @@ import org.ip.metadata.annotation.GridColumn;
     order = 200,
     icon = "COG",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"code", "name", "shortCode"}
+    selectColumns = {"code", "name", "shortCode"},
+    displaySortFields = {"shortCode"}  // = getDisplayName()
 )
 public class UnitOfMeasurement extends BaseEntity implements HasDisplayName {
 

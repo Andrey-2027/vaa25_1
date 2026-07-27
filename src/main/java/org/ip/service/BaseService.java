@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,5 +23,17 @@ public interface BaseService<T extends IdentifiableEntity, ID> extends CrudServi
 
     default Page<T> findAll(Specification<T> spec, Pageable pageable) {
         throw new UnsupportedOperationException("findAll(Specification, Pageable) not implemented in " + getClass().getSimpleName());
+    }
+
+    /**
+     * То же, что {@link #findAll(Specification, Pageable)}, но с явным списком JPA-путей
+     * ассоциаций для fetch-EntityGraph (нужен ListForm с динамическим составом колонок,
+     * в т.ч. колонок через точку — см. ColumnPath.getFetchPaths()).
+     *
+     * Дефолтная реализация игнорирует пути — реализации без EntityGraph (или без метаданных)
+     * продолжают работать как раньше; AbstractBaseService переопределяет полноценно.
+     */
+    default Page<T> findAll(Specification<T> spec, Pageable pageable, Collection<String> fetchPaths) {
+        return findAll(spec, pageable);
     }
 }

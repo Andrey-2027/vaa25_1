@@ -68,6 +68,14 @@ public final class EntityMetadataInfo {
     }
 
     /**
+     * SQL-эквивалент displayName для сортировки ссылочных колонок на эту сущность —
+     * см. {@link EntityMetadata#displaySortFields()}. Пустой список — сортировка по PK.
+     */
+    public List<String> getDisplaySortFields() {
+        return List.of(annotation.displaySortFields());
+    }
+
+    /**
      * Поля для отображения в форме элемента и форме выбора.
      * Включают все НЕ-hidden поля, отсортированы по order.
      */
