@@ -45,3 +45,8 @@ node_modules/
 *.md
 *.txt
 *.zip
+
+### Vaadin generated ###
+src/main/frontend/generated/
+vite.generated.ts
+src/main/bundles/
