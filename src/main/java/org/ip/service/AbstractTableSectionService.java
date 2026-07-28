@@ -10,7 +10,6 @@ import org.ip.metadata.TableSectionMetadataInfo;
 import org.ipro.crud.IdentifiableEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,33 +19,11 @@ import java.util.Map;
  *   - связывание строки с родителем (через @TableSectionMetadata.parentField)
  *   - автоматическую нумерацию строк 1..N по их порядку в списке (если задан lineNumberField)
  *   - diff между текущим состоянием в БД и переданным списком (insert/update/delete)
- *   - базовую проверку minRows (переопределяемые доменные правила — через validateRows())
+ *   - универсальную загрузку строк с EntityGraph (findByParent)
+ *   - создание новой строки (createNew)
  *
- * Конкретный сервис должен реализовать только findByParent() (свой репозиторный метод)
- * и, при необходимости, переопределить validateRows() для доменных проверок
- * (например, "нельзя дублировать номенклатуру в одной накладной").
- *
- * Пример:
- * <pre>
- * {@code
- * @Service
- * public class ReceivingDocumentItemService
- *         extends AbstractTableSectionService<ReceivingDocumentItem, Long, ReceivingDocument> {
- *
- *     private final ReceivingDocumentItemRepository repo;
- *
- *     public ReceivingDocumentItemService(ReceivingDocumentItemRepository repo, MetadataResolver resolver) {
- *         super(repo, resolver, ReceivingDocumentItem.class);
- *         this.repo = repo;
- *     }
- *
- *     @Override
- *     public List<ReceivingDocumentItem> findByParent(ReceivingDocument doc) {
- *         return repo.findByDocumentOrderByLineNumber(doc);
- *     }
- * }
- * }
- * </pre>
+ * Конкретный сервис переопределяет validateRows() только для доменных проверок
+ * (например, "нельзя дублировать номенклатуру").
  */
 @Transactional
 public abstract class AbstractTableSectionService<T extends IdentifiableEntity, ID, P extends IdentifiableEntity>
@@ -88,14 +65,25 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
                 " in its @TableSections — check the annotation on the parent class."));
     }
 
+    /**
+     * Создаёт новую пустую строку и привязывает к parent через反射
+     * (аннотация @TableSectionMetadata.parentField).
+     */
+    @Override
+    public T createNew(P parent) {
+        try {
+            T row = rowClass.getDeclaredConstructor().newInstance();
+            sectionMeta.linkToParent(row, parent);
+            return row;
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                "Cannot create new " + rowClass.getSimpleName() + " via no-arg constructor", e);
+        }
+    }
+
     @Override
     public List<String> validateRows(P parent, List<T> rows) {
-        List<String> errors = new ArrayList<>();
-        if (rows.size() < sectionMeta.getMinRows()) {
-            errors.add(sectionMeta.getTitle() + ": должна содержать не менее " +
-                sectionMeta.getMinRows() + " строк(и)");
-        }
-        return errors;
+        return List.of();
     }
 
     @Override
@@ -124,18 +112,10 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
 
     /**
      * Автоматически определяет fetch-пути для всех ENTITY_REFERENCE полей строки табличной части.
-     * Переопределите этот метод, если нужна кастомная логика fetch-графа.
-     *
-     * @return список имён полей для eager-загрузки
+     * Использует sectionMeta.getGridFields() — работает даже без @EntityMetadata на rowClass.
      */
     protected List<String> getDefaultFetchPaths() {
-        EntityMetadataInfo meta;
-        try {
-            meta = metadataResolver.resolve(rowClass);
-        } catch (IllegalArgumentException notMetadataDriven) {
-            return List.of();
-        }
-        return meta.getGridFields().stream()
+        return sectionMeta.getGridFields().stream()
             .filter(f -> f.getResolvedType() == org.ip.metadata.annotation.FieldType.ENTITY_REFERENCE)
             .map(FieldMetadataInfo::getName)
             .toList();
@@ -155,56 +135,31 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
     }
 
     /**
-     * Инициализирует LAZY-поля в строках табличной части после загрузки из БД.
-     * Вызывайте этот метод в конце {@link #findByParent(IdentifiableEntity)} если используете
-     * обычный repository-метод без EntityGraph.
+     * Универсальная загрузка строк табличной части по родителю с EntityGraph.
+     * CriteriaBuilder строит запрос WHERE parentField = parent, с сортировкой
+     * по lineNumber (если задан). EntityGraph автоматически подгружает все
+     * ENTITY_REFERENCE поля — никаких LazyInitializationException.
      *
-     * Пример:
-     * <pre>
-     * {@code
-     * @Override
-     * public List<PrdSpecMtr> findByParent(PrdSpec parent) {
-     *     List<PrdSpecMtr> rows = repository.findByPrdSpecOrderByOrder(parent);
-     *     return initializeLazyFields(rows);
-     * }
-     * }
-     * </pre>
+     * Конкретные сервисы НЕ должны переопределять этот метод.
      */
-    protected List<T> initializeLazyFields(List<T> rows) {
-        if (rows.isEmpty()) {
-            return rows;
+    @Override
+    public List<T> findByParent(P parent) {
+        jakarta.persistence.criteria.CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        jakarta.persistence.criteria.CriteriaQuery<T> query = cb.createQuery(rowClass);
+        jakarta.persistence.criteria.Root<T> root = query.from(rowClass);
+
+        String parentFieldName = sectionMeta.getParentFieldName();
+        query.where(cb.equal(root.get(parentFieldName), parent));
+
+        if (sectionMeta.hasLineNumberField()) {
+            query.orderBy(cb.asc(root.get(sectionMeta.getLineNumberFieldName())));
         }
 
+        jakarta.persistence.TypedQuery<T> typedQuery = entityManager.createQuery(query);
         jakarta.persistence.EntityGraph<T> graph = buildFetchGraph();
-        if (graph == null) {
-            return rows;
+        if (graph != null) {
+            typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
         }
-
-        // Принудительно инициализируем LAZY-ассоциации через EntityManager
-        // (альтернатива: перезагрузить с EntityGraph, но это дороже)
-        List<String> paths = getDefaultFetchPaths();
-        for (T row : rows) {
-            for (String path : paths) {
-                try {
-                    EntityMetadataInfo meta = metadataResolver.resolve(rowClass);
-                    FieldMetadataInfo field = meta.getGridFields().stream()
-                        .filter(f -> f.getName().equals(path))
-                        .findFirst()
-                        .orElse(null);
-
-                    if (field != null) {
-                        Object value = field.getValue(row);
-                        // Обращение к ID инициализирует Hibernate proxy
-                        if (value != null && value instanceof IdentifiableEntity) {
-                            ((IdentifiableEntity) value).getId();
-                        }
-                    }
-                } catch (Exception ignored) {
-                    // Игнорируем ошибки инициализации
-                }
-            }
-        }
-
-        return rows;
+        return typedQuery.getResultList();
     }
 }

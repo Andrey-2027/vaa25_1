@@ -5,6 +5,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import org.ip.form.builtin.ListForm;
 import org.ip.form.coordinator.FormCoordinator;
+import org.ip.metadata.ColumnPath;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.MetadataResolver;
 import org.ip.model.Journal;
@@ -15,6 +16,10 @@ import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;
+
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.stream.Collectors;
 
 /**
  * Кастомный View для списка спецификаций с фильтром по журналу.
@@ -30,7 +35,7 @@ import org.springframework.data.domain.Page;
 public class PrdSpecByJournalView extends VerticalLayout {
 
     private final ComboBox<Journal> journalComboBox;
-    private final ListForm<PrdSpec, Long> listForm;
+    private ListForm<PrdSpec, Long> listForm;
     private final PrdSpecService prdSpecService;
 
     // Текущий выбранный журнал (используется в data provider через замыкание)
@@ -39,7 +44,9 @@ public class PrdSpecByJournalView extends VerticalLayout {
     public PrdSpecByJournalView(@Autowired FormCoordinator coordinator,
                                 @Autowired JournalService journalService,
                                 @Autowired PrdSpecService prdSpecService,
-                                @Autowired MetadataResolver metadataResolver) {
+                                @Autowired MetadataResolver metadataResolver,
+                                @Autowired org.ip.service.GridFormViewService gridFormViewService,
+                                @Autowired org.ip.service.FormSettingsService formSettingsService) {
         this.prdSpecService = prdSpecService;
 
         setSizeFull();
@@ -60,14 +67,18 @@ public class PrdSpecByJournalView extends VerticalLayout {
             PrdSpec.class,
             (spec, pageable) -> {
                 if (currentJournal == null) {
-                    return Page.empty(); // Журнал не выбран — пустой грид
+                    return Page.empty();
                 }
-                // Вызываем метод сервиса с текущим журналом
-                return prdSpecService.findByJournal(currentJournal, spec, pageable);
+                Collection<String> fp = listForm.getActiveColumns().stream()
+                    .flatMap(cp -> cp.getFetchPaths().stream())
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+                return prdSpecService.findByJournal(currentJournal, spec, pageable, fp);
             }
         );
 
         listForm = new ListForm<>(meta, grid);
+        listForm.setMetadataResolver(metadataResolver);
+        listForm.setViewSupport(gridFormViewService, formSettingsService, "PrdSpec");
 
         // Настраиваем callback'ы для CRUD-операций
         listForm.setOnAdd(entity -> coordinator.openItemForm(PrdSpec.class, null, null, saved -> listForm.refresh()));

@@ -35,8 +35,8 @@ public class PrdSpecService extends AbstractBaseService<PrdSpec, Long> {
      * Поиск спецификаций по журналу с поддержкой фильтров (Specification) и пагинации.
      * Используется в кастомном View с ComboBox для выбора журнала.
      */
-    public Page<PrdSpec> findByJournal(Journal journal, Specification<PrdSpec> spec, Pageable pageable) {
-        // Комбинируем условие journal с переданной спецификацией (фильтры из FilterGrid)
+    public Page<PrdSpec> findByJournal(Journal journal, Specification<PrdSpec> spec,
+                                       Pageable pageable, Collection<String> fetchPaths) {
         Specification<PrdSpec> journalSpec = (root, query, cb) ->
             cb.equal(root.get("journal"), journal);
 
@@ -44,7 +44,7 @@ public class PrdSpecService extends AbstractBaseService<PrdSpec, Long> {
             ? journalSpec.and(spec)
             : journalSpec;
 
-        return prdSpecRepository.findAll(combined, pageable);
+        return this.findAll(combined, pageable, fetchPaths);
     }
 
     /**

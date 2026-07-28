@@ -66,6 +66,14 @@ public final class TableSectionMetadataInfo {
         return lineNumberField != null;
     }
 
+    public String getParentFieldName() {
+        return parentField.getName();
+    }
+
+    public String getLineNumberFieldName() {
+        return lineNumberField != null ? lineNumberField.getName() : null;
+    }
+
     /**
      * Проставляет порядковый номер строки (1-based) через рефлексию.
      * Не действует, если lineNumberField не задан в аннотации.

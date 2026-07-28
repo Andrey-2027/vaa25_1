@@ -394,12 +394,23 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     private void applyColumns(List<ColumnPath> columns) {
         if (columns == null || columns.isEmpty()) return;
-        this.activeColumns = new ArrayList<>(columns);
+        this.activeColumns = deduplicate(columns);
         filterGrid.rebuildColumns(this::configureColumnsAndFilters);
         if (afterColumnsConfigured != null) {
             afterColumnsConfigured.run();
         }
         refresh();
+    }
+
+    private static List<ColumnPath> deduplicate(List<ColumnPath> columns) {
+        List<ColumnPath> result = new ArrayList<>();
+        var seen = new java.util.HashSet<String>();
+        for (ColumnPath col : columns) {
+            if (seen.add(col.getKey())) {
+                result.add(col);
+            }
+        }
+        return result;
     }
 
     /** Текущий состав колонок (немодифицируемая копия). */

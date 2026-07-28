@@ -160,7 +160,7 @@ public class ViewSelectorDialog extends Dialog {
             editingView, initialColumns, initialName,
             savedView -> {
                 onApply.accept(savedView);
-                close();
+                grid.setItems(gridFormViewService.findVisibleViews(formKey));
             }
         ).open();
     }

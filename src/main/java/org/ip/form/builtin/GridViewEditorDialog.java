@@ -12,6 +12,10 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.hierarchy.TreeData;
+import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import org.ip.metadata.ColumnPath;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FieldMetadataInfo;
@@ -22,14 +26,16 @@ import org.ip.service.GridFormViewService;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
  * Редактор вида грида: название, "Общий", и состав/порядок колонок через два списка
- * (1С-стиль) — слева доступные поля, справа выбранные (их порядок = порядок колонок
+ * (1С-стиль) — слева доступные поля (дерево), справа выбранные (их порядок = порядок колонок
  * в гриде).
  *
  * "Применить" — пишет GridFormView в БД (создаёт при первом применении, дальше обновляет
@@ -47,7 +53,7 @@ import java.util.function.Consumer;
  */
 public class GridViewEditorDialog extends Dialog {
 
-    /** Доступное (ещё не выбранное) поле в левом списке. */
+    /** Узел дерева доступных полей. */
     private record AvailableField(String path, String label, String groupLabel) {
         String displayLabel() {
             return groupLabel == null ? label : groupLabel + " → " + label;
@@ -78,9 +84,13 @@ public class GridViewEditorDialog extends Dialog {
     private final Checkbox sharedBox = new Checkbox("Общий (виден и редактируем всеми пользователями)");
 
     private final Map<String, AvailableField> availableByPath = new LinkedHashMap<>();
-    private final Grid<AvailableField> availableGrid = new Grid<>(AvailableField.class, false);
-    private final Grid<SelectedColumn> selectedGrid = new Grid<>(SelectedColumn.class, false);
+    private final TreeData<AvailableField> treeData = new TreeData<>();
+    private TreeDataProvider<AvailableField> treeDataProvider;
+    private final TreeGrid<AvailableField> availableGrid = new TreeGrid<>();
+    private ListDataProvider<SelectedColumn> selectedDataProvider;
+    private final Grid<SelectedColumn> selectedGrid = new Grid<>();
     private final List<SelectedColumn> selected = new ArrayList<>();
+    private final Set<String> selectedPaths = new HashSet<>();
 
     public GridViewEditorDialog(EntityMetadataInfo metadata,
                                 MetadataResolver metadataResolver,
@@ -99,7 +109,7 @@ public class GridViewEditorDialog extends Dialog {
         setHeaderTitle("Вид: " + metadata.getListFormTitle());
         setWidth("820px");
         setHeight("620px");
-        setModal(true);
+        //setModal(true);
         setResizable(true);
         setDraggable(true);
 
@@ -128,24 +138,31 @@ public class GridViewEditorDialog extends Dialog {
         configureButtons();
     }
 
-    // === Сбор доступных полей (та же логика источника, что была в дереве) ===
+    // === Сбор доступных полей (рекурсивно, многоуровневое дерево) ===
 
-    private void collectAvailableFields(MetadataResolver metadataResolver) {
+    private void collectAvailableFields(MetadataResolver resolver) {
         for (FieldMetadataInfo field : metadata.getFormFields()) {
-            availableByPath.put(field.getName(), new AvailableField(field.getName(), field.getLabel(), null));
+            collectField(null, field, resolver);
+        }
+    }
 
-            if (field.getResolvedType() == FieldType.ENTITY_REFERENCE) {
-                EntityMetadataInfo targetMeta;
-                try {
-                    targetMeta = metadataResolver.resolve(field.getJavaType());
-                } catch (IllegalArgumentException notMetadataDriven) {
-                    continue;
+    private void collectField(AvailableField parent, FieldMetadataInfo field, MetadataResolver resolver) {
+        AvailableField node = new AvailableField(
+            parent == null ? field.getName() : parent.path() + "." + field.getName(),
+            field.getLabel(),
+            parent == null ? null : parent.label()
+        );
+        treeData.addItem(parent, node);
+        availableByPath.put(node.path(), node);
+
+        if (field.getResolvedType() == FieldType.ENTITY_REFERENCE) {
+            try {
+                EntityMetadataInfo target = resolver.resolve(field.getJavaType());
+                for (FieldMetadataInfo child : target.getFormFields()) {
+                    collectField(node, child, resolver);
                 }
-                for (FieldMetadataInfo targetField : targetMeta.getFormFields()) {
-                    String path = field.getName() + "." + targetField.getName();
-                    availableByPath.put(path,
-                        new AvailableField(path, targetField.getLabel(), field.getLabel()));
-                }
+            } catch (IllegalArgumentException notMetadataDriven) {
+                // сущность без @EntityMetadata — узел остаётся без детей
             }
         }
     }
@@ -153,18 +170,25 @@ public class GridViewEditorDialog extends Dialog {
     // === Два грида ===
 
     private void configureGrids() {
-        availableGrid.addColumn(AvailableField::displayLabel).setHeader("Поле");
+        availableGrid.addHierarchyColumn(this::fieldLabel).setHeader("Поле");
         availableGrid.setSizeFull();
-        availableGrid.addItemDoubleClickListener(e -> moveToSelected(e.getItem()));
+        availableGrid.addItemDoubleClickListener(e -> {
+            if (e.getItem() != null) moveToSelected(e.getItem());
+        });
+        availableGrid.setDataProvider(treeDataProvider = new TreeDataProvider<>(treeData));
 
         selectedGrid.addColumn(c -> c.defaultLabel).setHeader("Поле").setFlexGrow(1);
         selectedGrid.addComponentColumn(this::labelFieldFor).setHeader("Заголовок (если не стандартный)").setFlexGrow(1);
         selectedGrid.addComponentColumn(this::moveButtonsFor).setHeader("").setWidth("110px").setFlexGrow(0);
         selectedGrid.setSizeFull();
-        selectedGrid.setItems(selected);
-        selectedGrid.addItemDoubleClickListener(e -> moveToAvailable(e.getItem()));
+        selectedGrid.setDataProvider(selectedDataProvider = new ListDataProvider<>(selected));
+        selectedGrid.addItemDoubleClickListener(e -> {
+            if (e.getItem() != null) moveToAvailable(e.getItem());
+        });
+    }
 
-        refreshAvailableGrid();
+    private String fieldLabel(AvailableField field) {
+        return selectedPaths.contains(field.path()) ? "✓ " + field.displayLabel() : field.displayLabel();
     }
 
     private TextField labelFieldFor(SelectedColumn column) {
@@ -212,47 +236,45 @@ public class GridViewEditorDialog extends Dialog {
     // === Перенос между списками / порядок ===
 
     private void moveToSelected(AvailableField field) {
-        availableByPath.remove(field.path());
-        selected.add(new SelectedColumn(field.path(), field.label(), null));
-        refreshAvailableGrid();
-        selectedGrid.getDataProvider().refreshAll();
+        if (selectedPaths.contains(field.path())) return;
+        selectedPaths.add(field.path());
+        selected.add(new SelectedColumn(field.path(), field.displayLabel().replace(" → ", "."), null));
+        treeDataProvider.refreshAll();
+        selectedDataProvider.refreshAll();
     }
 
     private void moveToAvailable(SelectedColumn column) {
         selected.remove(column);
-        // groupLabel теряется при возврате (не критично — доступные поля пересобираются
-        // из исходного порядка при следующем открытии диалога, не в рамках одной сессии)
-        availableByPath.put(column.path, new AvailableField(column.path, column.defaultLabel, null));
-        refreshAvailableGrid();
-        selectedGrid.getDataProvider().refreshAll();
+        selectedPaths.remove(column.path);
+        treeDataProvider.refreshAll();
+        selectedDataProvider.refreshAll();
     }
 
     private void moveUp(SelectedColumn column) {
         int index = selected.indexOf(column);
         if (index <= 0) return;
         Collections.swap(selected, index, index - 1);
-        selectedGrid.getDataProvider().refreshAll();
+        selectedDataProvider.refreshAll();
     }
 
     private void moveDown(SelectedColumn column) {
         int index = selected.indexOf(column);
         if (index < 0 || index >= selected.size() - 1) return;
         Collections.swap(selected, index, index + 1);
-        selectedGrid.getDataProvider().refreshAll();
-    }
-
-    private void refreshAvailableGrid() {
-        availableGrid.setItems(new ArrayList<>(availableByPath.values()));
+        selectedDataProvider.refreshAll();
     }
 
     private void preselect(List<ColumnPath> initialColumns) {
         for (ColumnPath column : initialColumns) {
             AvailableField field = availableByPath.get(column.getKey());
-            String defaultLabel = field != null ? field.label() : column.getLabel();
+            String defaultLabel = field != null
+                ? field.displayLabel().replace(" → ", ".")
+                : column.getKey();
             String customLabel = column.getLabel().equals(defaultLabel) ? null : column.getLabel();
+            selectedPaths.add(column.getKey());
             selected.add(new SelectedColumn(column.getKey(), defaultLabel, customLabel));
-            availableByPath.remove(column.getKey());
         }
+        treeDataProvider.refreshAll();
     }
 
     // === Кнопки / сохранение ===
