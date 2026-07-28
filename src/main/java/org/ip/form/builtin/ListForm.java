@@ -61,7 +61,6 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private final Button editButton = new Button("Изменить", VaadinIcon.EDIT.create());
     private final Button deleteButton = new Button("Удалить", VaadinIcon.TRASH.create());
     private final Button refreshButton = new Button(VaadinIcon.REFRESH.create());
-    private final Button columnsButton = new Button(VaadinIcon.COG.create());
     private final Button viewsButton = new Button(VaadinIcon.LIST.create());
 
     // Текущий состав колонок; изначально — из метаданных, может меняться через
@@ -254,52 +253,29 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         refreshButton.getElement().setAttribute("aria-label", "Обновить");
         refreshButton.addClickListener(e -> refresh());
 
-        columnsButton.addThemeVariants(ButtonVariant.LUMO_ICON);
-        columnsButton.getElement().setAttribute("aria-label", "Настройка колонок");
-        columnsButton.setTooltipText("Настройка колонок");
-        columnsButton.setVisible(false); // включается через setMetadataResolver()
-        columnsButton.addClickListener(e -> openColumnSelector());
-
         viewsButton.addThemeVariants(ButtonVariant.LUMO_ICON);
         viewsButton.getElement().setAttribute("aria-label", "Виды");
         viewsButton.setTooltipText("Виды");
         viewsButton.setVisible(false); // включается через setViewSupport()
         viewsButton.addClickListener(e -> openViewSelector());
 
-        toolbar.add(addButton, editButton, deleteButton, refreshButton, columnsButton, viewsButton);
+        toolbar.add(addButton, editButton, deleteButton, refreshButton, viewsButton);
     }
 
-    private void openColumnSelector() {
-        if (metadataResolver == null) return;
-        new ColumnSelectorDialog(metadata, metadataResolver, activeColumns,
-            this::setActiveColumns, this::resetActiveColumns, this::openSaveViewPrompt)
-            .open();
-    }
-
-    /** Диалог "Сохранить как" — имя + признак "Общий", вызывается из ColumnSelectorDialog. */
-    private void openSaveViewPrompt() {
-        if (gridFormViewService == null || formKey == null) {
-            Notification.show("Сохранение видов недоступно для этой формы", 3000,
-                Notification.Position.MIDDLE);
-            return;
-        }
-        new SaveViewDialog((name, shared) -> {
-            String columnsValue = activeColumns.stream().map(ColumnPath::getKey)
-                .reduce((a, b) -> a + ";" + b).orElse("");
-            gridFormViewService.createView(formKey, name, columnsValue, shared);
-            Notification.show("Вид сохранён", 2000, Notification.Position.BOTTOM_START);
-        }).open();
-    }
-
-    /** Список видов, доступных пользователю для этой формы — выбор/умолчание. */
+    /** Список видов, доступных пользователю для этой формы — выбор/создание/копирование/
+     * редактирование/умолчание. Отдельного диалога "Настройка колонок" больше нет — это
+     * единственная точка входа в редактирование состава колонок (через "Создать"/
+     * "Копировать"/"Изменить" внутри ViewSelectorDialog, см. GridViewEditorDialog).
+     */
     private void openViewSelector() {
-        if (gridFormViewService == null || formKey == null) return;
+        if (gridFormViewService == null || formKey == null || metadataResolver == null) return;
         List<org.ip.model.GridFormView> views = gridFormViewService.findVisibleViews(formKey);
         String defaultViewId = formSettingsService != null
             ? formSettingsService.get(defaultViewSettingKey()).orElse(null)
             : null;
 
-        new ViewSelectorDialog(views, defaultViewId,
+        new ViewSelectorDialog(metadata, metadataResolver, gridFormViewService, formKey,
+            views, defaultViewId,
             this::applyView,
             view -> {
                 if (formSettingsService != null) {
@@ -310,12 +286,13 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                 if (formSettingsService != null) {
                     formSettingsService.remove(defaultViewSettingKey());
                 }
-            }
+            },
+            this::resetActiveColumns
         ).open();
     }
 
     private void applyView(org.ip.model.GridFormView view) {
-        List<ColumnPath> restored = parseColumns(view.getColumns());
+        List<ColumnPath> restored = ColumnPath.fromJson(view.getColumns(), metadata.getEntityClass());
         if (!restored.isEmpty()) {
             applyColumns(restored);
         }
@@ -389,14 +366,11 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     }
 
     /**
-     * Установить MetadataResolver — включает кнопку "Настройка колонок" (шестерёнка в toolbar),
-     * через которую пользователь добавляет/убирает колонки, в т.ч. реквизиты связанных
-     * сущностей через точку (1С-стиль "Изменить форму"). Резолвер нужен диалогу, чтобы
-     * перечислить поля связанных сущностей.
+     * Установить MetadataResolver — нужен для диалога "Виды" (GridViewEditorDialog),
+     * чтобы перечислить поля связанных сущностей через точку.
      */
     public void setMetadataResolver(MetadataResolver metadataResolver) {
         this.metadataResolver = metadataResolver;
-        columnsButton.setVisible(metadataResolver != null);
     }
 
     /**
@@ -455,25 +429,11 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             try {
                 Long id = Long.parseLong(idStr);
                 gridFormViewService.findById(id).ifPresent(view ->
-                    applyColumns(parseColumns(view.getColumns())));
+                    applyColumns(ColumnPath.fromJson(view.getColumns(), metadata.getEntityClass())));
             } catch (NumberFormatException invalidId) {
                 // настройка повреждена/устарела — просто остаёмся на составе из метаданных
             }
         });
-    }
-
-    private List<ColumnPath> parseColumns(String columnsValue) {
-        List<ColumnPath> restored = new ArrayList<>();
-        if (columnsValue == null) return restored;
-        for (String key : columnsValue.split(";")) {
-            if (key.isBlank()) continue;
-            try {
-                restored.add(ColumnPath.resolve(metadata.getEntityClass(), key));
-            } catch (IllegalArgumentException staleColumnKey) {
-                // поле переименовали/удалили после сохранения вида — пропускаем
-            }
-        }
-        return restored;
     }
 
     /**

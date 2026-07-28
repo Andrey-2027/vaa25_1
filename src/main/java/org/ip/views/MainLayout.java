@@ -17,6 +17,8 @@ import org.ip.form.coordinator.FormCoordinator;
 import org.ip.metadata.SubsystemNode;
 import org.ip.metadata.SubsystemRegistry;
 import org.ip.views.directory.WorkshopListView;
+import org.ip.views.preferences.DensityToggle;
+import org.ip.views.preferences.UserPreferencesStore;
 import org.ip.views.forms.WorkshopForm;
 import org.ip.views.workspace.SubsystemHomeView;
 import org.ip.views.workspace.Workspace;
@@ -32,13 +34,16 @@ public class MainLayout extends AppLayout {
     private final Workspace workspace;
     private final SubsystemRegistry subsystemRegistry;
     private final FormCoordinator coordinator;
+    private final UserPreferencesStore preferencesStore;
 
     @Autowired
     public MainLayout(WorkspaceManager workspaceManager,
                       SubsystemRegistry subsystemRegistry,
-                      FormCoordinator coordinator) {
+                      FormCoordinator coordinator,
+                      UserPreferencesStore preferencesStore) {
         this.subsystemRegistry = subsystemRegistry;
         this.coordinator = coordinator;
+        this.preferencesStore = preferencesStore;
         workspace = new Workspace(workspaceManager);
         setContent(workspace);
         createHeader();
@@ -62,6 +67,7 @@ public class MainLayout extends AppLayout {
         HorizontalLayout header = new HorizontalLayout(
                 new DrawerToggle(),
                 logo,
+                new DensityToggle(preferencesStore),
                 logoutButton
         );
         header.setWidth("100%");

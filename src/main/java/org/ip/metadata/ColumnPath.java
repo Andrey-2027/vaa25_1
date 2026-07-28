@@ -1,5 +1,7 @@
 package org.ip.metadata;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.FieldType;
 
@@ -18,6 +20,20 @@ import java.util.Optional;
  * поле чужой (связанной) сущности через цепочку геттеров.
  */
 public final class ColumnPath {
+
+    private static final ObjectMapper JSON = new ObjectMapper();
+
+    /**
+     * Одна запись сериализованного состава колонок вида (GridFormView.columns, JSON-массив).
+     * label = null означает "заголовок из метаданных, без переопределения" — не путать
+     * с пустой строкой, которая была бы "пустой заголовок" (валидный, хоть и странный, выбор).
+     *
+     * Пришло на смену самодельному формату "path;path=Заголовок" — тот не масштабировался
+     * на дальнейшие настройки колонки (ширина, sortable и т.п. — см. обсуждение). Следующее
+     * свойство колонки добавляется просто новым nullable-полем в этом record, без придумывания
+     * нового текстового формата и его парсера.
+     */
+    public record Spec(String path, String label) {}
 
     private final String path;
     private final List<Field> chain;
@@ -162,5 +178,90 @@ public final class ColumnPath {
      */
     public Optional<FieldMetadataInfo> asFieldMetadata() {
         return Optional.ofNullable(backingField);
+    }
+
+    /**
+     * Возвращает копию этого ColumnPath с переопределённым заголовком колонки
+     * (пользовательская настройка через GridViewEditorDialog — "изменить заголовок поля").
+     * Пустая/null customLabel — просто возвращает this без изменений (используем label
+     * из метаданных как раньше).
+     */
+    public ColumnPath withLabel(String customLabel) {
+        if (customLabel == null || customLabel.isBlank() || customLabel.equals(label)) {
+            return this;
+        }
+        return new ColumnPath(path, chain, customLabel, resolvedType, backingField);
+    }
+
+    // === JSON-сериализация состава колонок вида (GridFormView.columns) ===
+
+    /**
+     * Сериализует состав колонок в JSON-массив Spec. Заголовок пишется, только если он
+     * отличается от стандартного (из метаданных этого пути) — экономит место и, главное,
+     * не "замораживает" колонку как якобы кастомную только потому, что она была активна.
+     */
+    public static String toJson(List<ColumnPath> columns, Class<?> entityClass) {
+        List<Spec> specs = new ArrayList<>(columns.size());
+        for (ColumnPath column : columns) {
+            String defaultLabel = resolve(entityClass, column.getKey()).getLabel();
+            boolean customLabel = !column.getLabel().equals(defaultLabel);
+            specs.add(new Spec(column.getKey(), customLabel ? column.getLabel() : null));
+        }
+        try {
+            return JSON.writeValueAsString(specs);
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot serialize column list to JSON", e);
+        }
+    }
+
+    /**
+     * Восстанавливает состав колонок из JSON. Путь, который больше не существует в текущей
+     * версии сущности (поле переименовали/удалили после сохранения вида), молча пропускается —
+     * тот же принцип устойчивости, что был у старого текстового формата.
+     *
+     * Понимает и старый формат ("path;path=Заголовок", через ";") для обратной совместимости
+     * с видами, сохранёнными до перехода на JSON — определяется по первому символу
+     * (JSON-массив начинается с '['), при необходимости мигрирует на лету при следующем
+     * toJson(), никакой миграции в БД делать отдельно не нужно.
+     */
+    public static List<ColumnPath> fromJson(String value, Class<?> entityClass) {
+        List<ColumnPath> result = new ArrayList<>();
+        if (value == null || value.isBlank()) {
+            return result;
+        }
+        List<Spec> specs = value.trim().startsWith("[")
+            ? parseJson(value)
+            : parseLegacyFormat(value);
+
+        for (Spec spec : specs) {
+            try {
+                ColumnPath resolved = resolve(entityClass, spec.path());
+                result.add(resolved.withLabel(spec.label()));
+            } catch (IllegalArgumentException staleColumnKey) {
+                // поле переименовали/удалили после сохранения вида — пропускаем
+            }
+        }
+        return result;
+    }
+
+    private static List<Spec> parseJson(String value) {
+        try {
+            return JSON.readValue(value, new TypeReference<List<Spec>>() {});
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot parse column list JSON: " + value, e);
+        }
+    }
+
+    /** Совместимость со старым форматом "path;path=Заголовок" (до перехода на JSON). */
+    private static List<Spec> parseLegacyFormat(String value) {
+        List<Spec> specs = new ArrayList<>();
+        for (String token : value.split(";")) {
+            if (token.isBlank()) continue;
+            int eq = token.indexOf('=');
+            String path = eq >= 0 ? token.substring(0, eq) : token;
+            String label = eq >= 0 ? token.substring(eq + 1) : null;
+            specs.add(new Spec(path, label));
+        }
+        return specs;
     }
 }
