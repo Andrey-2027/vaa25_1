@@ -12,7 +12,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.ip.metadata.EntityMetadataInfo;
-import org.ip.metadata.FieldMetadataInfo;
+import org.ip.metadata.FetchGraphs;
 import org.ip.metadata.MetadataResolver;
 import org.ip.metadata.annotation.FieldType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -254,16 +254,8 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         } catch (IllegalArgumentException notMetadataDriven) {
             return null;
         }
-        List<String> refFields = meta.getGridFields().stream()
-            .filter(f -> f.getResolvedType() == FieldType.ENTITY_REFERENCE)
-            .map(FieldMetadataInfo::getName)
-            .toList();
-        if (refFields.isEmpty()) {
-            return null;
-        }
-        EntityGraph<T> graph = entityManager.createEntityGraph(domainClass);
-        refFields.forEach(graph::addAttributeNodes);
-        return graph;
+        return FetchGraphs.fromPaths(entityManager, domainClass,
+            FetchGraphs.entityReferencePaths(meta.getGridFields()));
     }
 
     /**
@@ -271,23 +263,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      * "a.b" превращается в subgraph(a).addAttributeNodes(b). null — если список пуст.
      */
     private EntityGraph<T> buildFetchGraph(Class<T> domainClass, java.util.Collection<String> paths) {
-        if (paths.isEmpty()) {
-            return null;
-        }
-        EntityGraph<T> graph = entityManager.createEntityGraph(domainClass);
-        for (String path : paths) {
-            String[] segments = path.split("\\.");
-            if (segments.length == 1) {
-                graph.addAttributeNodes(segments[0]);
-            } else {
-                jakarta.persistence.Subgraph<?> subgraph = graph.addSubgraph(segments[0]);
-                for (int i = 1; i < segments.length - 1; i++) {
-                    subgraph = subgraph.addSubgraph(segments[i]);
-                }
-                subgraph.addAttributeNodes(segments[segments.length - 1]);
-            }
-        }
-        return graph;
+        return FetchGraphs.fromPaths(entityManager, domainClass, paths);
     }
 
     public Number sum(String fieldName, Specification<T> spec) {

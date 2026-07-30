@@ -22,6 +22,16 @@ public interface TableSectionService<T extends IdentifiableEntity, P extends Ide
     List<T> findByParent(P parent);
 
     /**
+     * Та же загрузка, но с явным набором fetch-путей вместо тех, что сервис использует
+     * по умолчанию — нужно, например, когда ItemTable применил сохранённый вид с другим
+     * составом колонок. Дефолтная реализация просто игнорирует fetchPaths и делегирует
+     * в findByParent(parent) — для реализаций, которые ещё не умеют в явные пути.
+     */
+    default List<T> findByParent(P parent, java.util.Collection<String> fetchPaths) {
+        return findByParent(parent);
+    }
+
+    /**
      * Создать новую пустую строку, уже привязанную к parent (для диалога добавления).
      * Родитель может быть ещё не сохранён (id == null) — строка сохранится позже,
      * при вызове replaceAll().

@@ -587,6 +587,20 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      * {@code null}, если форма построена по кастомному {@code ItemFormLayout}
      * (тогда корневой контейнер — обычный {@code VerticalLayout}, доступа к нему нет).
      */
+    /**
+     * Получить Vaadin-компонент поля по имени.
+     *
+     * @param fieldName имя поля
+     * @return Component поля
+     * @throws IllegalStateException если поле не найдено
+     */
+    public Component getField(String fieldName) {
+        return registry.getBinding(fieldName)
+            .orElseThrow(() -> new IllegalStateException(
+                "Field '" + fieldName + "' not found in " + entityClass.getSimpleName()))
+            .getComponent();
+    }
+
     public FormLayout getFormLayout() {
         return formLayout;
     }

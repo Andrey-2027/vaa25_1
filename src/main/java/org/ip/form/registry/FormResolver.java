@@ -87,10 +87,7 @@ public class FormResolver {
         if (variant != null) {
             FormFactory factory = formRegistry.findListForm(entityClass, variant);
             if (factory != null) {
-                FormContext context = FormContext.builder(entityClass)
-                    .parameters(parameters)
-                    .build();
-                Component component = factory.create(context);
+                Component component = factory.create(buildListFormContext(entityClass, parameters));
                 if (component instanceof ListForm) {
                     return (ListForm<T, ID>) component;
                 }
@@ -103,10 +100,7 @@ public class FormResolver {
         // 2. Попробовать найти default кастомную форму
         FormFactory factory = formRegistry.findListForm(entityClass, null);
         if (factory != null) {
-            FormContext context = FormContext.builder(entityClass)
-                .parameters(parameters)
-                .build();
-            Component component = factory.create(context);
+            Component component = factory.create(buildListFormContext(entityClass, parameters));
             if (component instanceof ListForm) {
                 return (ListForm<T, ID>) component;
             }
@@ -197,6 +191,17 @@ public class FormResolver {
      * любая кастомная ITEM-форма, зарегистрированная через FormRegistry, падала бы с
      * IllegalStateException при первом же обращении.
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T extends IdentifiableEntity> FormContext buildListFormContext(Class<T> entityClass, Map<String, Object> parameters) {
+        BaseService<T, ?> service = findService(entityClass);
+        return FormContext.builder(entityClass)
+            .parameters(parameters)
+            .parameter("applicationContext", applicationContext)
+            .parameter("metadataResolver", metadataResolver)
+            .parameter("service", service)
+            .build();
+    }
+
     private <ID> FormContext buildItemFormContext(Class<?> entityClass, ID id, Map<String, Object> parameters) {
         return FormContext.builder(entityClass)
             .id(id)

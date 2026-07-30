@@ -9,10 +9,12 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import org.ip.metadata.ColumnPath;
-import org.ip.metadata.EntityMetadataInfo;
+import org.ip.metadata.FilterSpec;
+import org.ip.metadata.GridViewState;
 import org.ip.metadata.MetadataResolver;
 import org.ip.model.GridFormView;
 import org.ip.service.GridFormViewService;
+import org.ip.service.LookupService;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -34,10 +36,12 @@ import java.util.function.Consumer;
  */
 public class ViewSelectorDialog extends Dialog {
 
-    private final EntityMetadataInfo metadata;
+    private final org.ip.metadata.GridMetadata metadata;
     private final MetadataResolver metadataResolver;
     private final GridFormViewService gridFormViewService;
+    private final LookupService lookupService;
     private final String formKey;
+    private final boolean supportsFilters;
     private final Consumer<GridFormView> onApply;
     private final Consumer<GridFormView> onSetDefault;
     private final Runnable onClearDefault;
@@ -46,10 +50,12 @@ public class ViewSelectorDialog extends Dialog {
     private final Grid<GridFormView> grid = new Grid<>(GridFormView.class, false);
     private String currentDefaultViewId;
 
-    public ViewSelectorDialog(EntityMetadataInfo metadata,
+    public ViewSelectorDialog(org.ip.metadata.GridMetadata metadata,
                               MetadataResolver metadataResolver,
                               GridFormViewService gridFormViewService,
+                              LookupService lookupService,
                               String formKey,
+                              boolean supportsFilters,
                               List<GridFormView> views,
                               String currentDefaultViewId,
                               Consumer<GridFormView> onApply,
@@ -59,7 +65,9 @@ public class ViewSelectorDialog extends Dialog {
         this.metadata = metadata;
         this.metadataResolver = metadataResolver;
         this.gridFormViewService = gridFormViewService;
+        this.lookupService = lookupService;
         this.formKey = formKey;
+        this.supportsFilters = supportsFilters;
         this.currentDefaultViewId = currentDefaultViewId;
         this.onApply = onApply;
         this.onSetDefault = onSetDefault;
@@ -119,19 +127,21 @@ public class ViewSelectorDialog extends Dialog {
         standard.setTooltipText("Состав колонок из метаданных, без сохранённого вида");
 
         Button create = new Button("Создать", e -> openEditor(null,
-            metadata.getListColumnPaths(), ""));
+            metadata.getListColumnPaths(), List.of(), ""));
 
         Button copy = new Button("Копировать", e -> {
             GridFormView selected = requireSelection();
             if (selected == null) return;
-            openEditor(null, ColumnPath.fromJson(selected.getColumns(), metadata.getEntityClass()),
+            GridViewState state = GridViewState.fromJson(selected.getColumns());
+            openEditor(null, toColumnPaths(state), state.filters(),
                 selected.getName() + " (копия)");
         });
 
         Button edit = new Button("Изменить", e -> {
             GridFormView selected = requireSelection();
             if (selected == null) return;
-            openEditor(selected, ColumnPath.fromJson(selected.getColumns(), metadata.getEntityClass()),
+            GridViewState state = GridViewState.fromJson(selected.getColumns());
+            openEditor(selected, toColumnPaths(state), state.filters(),
                 selected.getName());
         });
 
@@ -155,14 +165,26 @@ public class ViewSelectorDialog extends Dialog {
         getFooter().add(standard, create, copy, edit, delete, closeBtn, apply);
     }
 
-    private void openEditor(GridFormView editingView, List<ColumnPath> initialColumns, String initialName) {
-        new GridViewEditorDialog(metadata, metadataResolver, gridFormViewService, formKey,
-            editingView, initialColumns, initialName,
+    private void openEditor(GridFormView editingView, List<ColumnPath> initialColumns,
+                            List<FilterSpec> initialFilters, String initialName) {
+        new GridViewEditorDialog(metadata, metadataResolver, gridFormViewService, lookupService, formKey,
+            editingView, initialColumns, initialFilters, initialName, supportsFilters,
             savedView -> {
                 onApply.accept(savedView);
                 grid.setItems(gridFormViewService.findVisibleViews(formKey));
             }
         ).open();
+    }
+
+    private List<ColumnPath> toColumnPaths(GridViewState state) {
+        List<ColumnPath> result = new java.util.ArrayList<>();
+        for (ColumnPath.Spec spec : state.columns()) {
+            try {
+                result.add(ColumnPath.resolve(metadata.getEntityClass(), spec.path()).withLabel(spec.label()));
+            } catch (IllegalArgumentException staleColumnKey) {
+            }
+        }
+        return result;
     }
 
     private GridFormView requireSelection() {

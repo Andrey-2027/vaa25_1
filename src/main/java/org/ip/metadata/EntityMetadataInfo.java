@@ -12,7 +12,7 @@ import java.util.List;
  *
  * Создаётся в MetadataResolver при первом обращении к классу и кэшируется.
  */
-public final class EntityMetadataInfo {
+public final class EntityMetadataInfo implements GridMetadata {
 
     private final Class<?> entityClass;
     private final EntityMetadata annotation;

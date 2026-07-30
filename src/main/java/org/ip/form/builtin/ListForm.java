@@ -15,6 +15,9 @@ import org.ip.form.FieldRenderer;
 import org.ip.metadata.ColumnPath;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FieldMetadataInfo;
+import org.ip.metadata.FilterSpec;
+import org.ip.metadata.GridViewState;
+import org.ip.metadata.annotation.FieldType;
 import org.ip.metadata.MetadataResolver;
 import org.ip.model.HasDisplayName;
 import org.ip.service.BaseService;
@@ -24,33 +27,20 @@ import org.ipro.filtergrid.DateRangeFilter;
 import org.ipro.filtergrid.FieldFilter;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
+import org.ipro.filtergrid.util.JpaPathUtil;
 import org.ipro.crud.IdentifiableEntity;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
  * Универсальная форма списка. Генерируется из EntityMetadataInfo и использует FilterGrid.
- *
- * Содержит:
- *   - Toolbar (Создать/Изменить/Удалить/Обновить)
- *   - FilterGrid (Grid + полоса фильтров + чипы активных фильтров)
- *   - Счётчик записей
- *
- * Колонки и фильтры автогенерируются из metadata:
- *   - Каждое gridField становится колонкой с FieldRenderer по типу
- *   - Если field.filter() == true (default) — авто-добавляется фильтр:
- *       TEXT → TextFilter, DATE → DateRangeFilter, ENUM → ComboBoxFilter
- *       ENTITY_REFERENCE → ComboBoxFilter (через LookupService)
- *
- * Два конструктора:
- *   1. ListForm(meta, filterGrid)        — внешний FilterGrid (Jpa/InMemory/Custom)
- *   2. ListForm(meta, service)           — сам создаёт JpaFilterGrid внутри
- *
- * CRUD-операции — через callback'и (setOnAdd / setOnEdit / setOnDelete).
  */
 public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
@@ -63,24 +53,22 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private final Button refreshButton = new Button(VaadinIcon.REFRESH.create());
     private final Button viewsButton = new Button(VaadinIcon.LIST.create());
 
-    // Текущий состав колонок; изначально — из метаданных, может меняться через
-    // диалог "Настройка колонок" (setActiveColumns).
     private List<ColumnPath> activeColumns;
 
     private Consumer<T> onAdd;
     private Consumer<T> onEdit;
     private Consumer<T> onDelete;
-    private LookupService lookupService;  // опционально, для ComboBoxFilter-ов ENTITY_REFERENCE
-    private MetadataResolver metadataResolver;  // опционально, включает диалог "Настройка колонок"
+    private LookupService lookupService;
+    private MetadataResolver metadataResolver;
 
-    // Поддержка сохранённых видов (GridFormView) — см. setViewSupport().
-    // Персистентность больше НЕ происходит на каждое applyColumns(): состояние сохраняется
-    // только явным действием пользователя ("Сохранить как" / "Сделать видом по умолчанию").
+    private final Map<String, FieldFilter<?>> activeFilters = new LinkedHashMap<>();
+
+    private Specification<T> contextFilter;
+
     private org.ip.service.GridFormViewService gridFormViewService;
     private org.ip.service.FormSettingsService formSettingsService;
     private String formKey;
 
-    // Hook для кастомизации ПОСЛЕ автогенерации колонок
     private Runnable afterColumnsConfigured;
 
     // === Конструктор 1: внешний FilterGrid ===
@@ -95,20 +83,33 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         this(metadata, null, service);
     }
 
-    /**
-     * JpaFilterGrid, чья fetch-функция при каждом запросе передаёт в сервис актуальные
-     * fetch-пути текущего состава колонок (collectFetchPaths) — чтобы динамически добавленные
-     * колонки (в т.ч. через точку) читались из загруженных ассоциаций, а не из lazy-прокси.
-     */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private org.ipro.filtergrid.FilterGrid<T> createJpaFilterGrid(
             EntityMetadataInfo metadata, BaseService<T, ID> service) {
         return new JpaFilterGrid<>(
             (Class<T>) metadata.getEntityClass(),
-            (spec, pageable) -> service.findAll(spec, pageable, collectFetchPaths()));
+            (spec, pageable) -> service.findAll(combineWithContext(spec), pageable, collectFetchPaths()));
     }
 
-    /** JPA-пути ассоциаций, которые нужно fetch-нуть для рендера текущих колонок. */
+    private Specification<T> combineWithContext(Specification<T> gridSpec) {
+        if (contextFilter == null) return gridSpec;
+        return gridSpec == null ? contextFilter : Specification.where(gridSpec).and(contextFilter);
+    }
+
+    public void setContextFilter(Specification<T> contextFilter) {
+        this.contextFilter = contextFilter;
+        refresh();
+    }
+
+    public void setContextFilter(String path, Object value) {
+        setContextFilter(value == null ? null :
+            (Specification<T>) (root, query, cb) -> cb.equal(JpaPathUtil.resolve(root, path), value));
+    }
+
+    public void clearContextFilter() {
+        setContextFilter((Specification<T>) null);
+    }
+
     private Collection<String> collectFetchPaths() {
         LinkedHashSet<String> paths = new LinkedHashSet<>();
         for (ColumnPath column : activeColumns) {
@@ -135,7 +136,6 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         configureToolbar(service);
         configureGridSelection();
 
-        // Вызываем hook для кастомизации ПОСЛЕ автогенерации
         if (afterColumnsConfigured != null) {
             afterColumnsConfigured.run();
         }
@@ -147,7 +147,6 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         try {
             this.filterGrid.build();
         } catch (Exception e) {
-            // build() мог быть уже вызван — игнорируем
         }
     }
 
@@ -155,13 +154,11 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void configureColumnsAndFilters() {
+        activeFilters.clear();
         for (ColumnPath path : activeColumns) {
             FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());
             ValueProvider<T, ?> valueProvider = entity -> renderer.apply(path.getValue(entity));
 
-            // Для пути через точку фильтр включён по умолчанию (как и общий дефолт
-            // @FieldMetadata(filter=true)): JPA-фильтры разрешают вложенный путь через
-            // JpaPathUtil, сортировка — через LEFT JOIN в applySort сервиса.
             boolean filterEnabled = path.asFieldMetadata()
                 .map(FieldMetadataInfo::isFilterEnabled)
                 .orElse(true);
@@ -174,7 +171,6 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                 }
             }
 
-            // Без фильтра — простая колонка
             filterGrid.addColumn(
                 path.getKey(), path.getLabel(), valueProvider);
         }
@@ -182,19 +178,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void addColumnWithFilter(ColumnPath path, ValueProvider<T, ?> valueProvider, FieldFilter<?> filter) {
+        activeFilters.put(path.getKey(), filter);
         filterGrid.addColumnFilter(
             path.getKey(), path.getKey(),
             path.getLabel(), valueProvider, (FieldFilter) filter);
     }
 
-    /**
-     * Создаёт подходящий FieldFilter по типу колонки.
-     * Возвращает null если фильтр для этого типа не предусмотрен.
-     *
-     * ENTITY_REFERENCE ComboBoxFilter через LookupService доступен только для простого поля
-     * (path.asFieldMetadata() присутствует) — для настоящего пути через точку нет контекста
-     * lookup-сущности на промежуточном хопе, поэтому фильтр в этом случае не строится.
-     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     private FieldFilter<?> createFilterForPath(ColumnPath path) {
         return switch (path.getResolvedType()) {
@@ -256,17 +245,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         viewsButton.addThemeVariants(ButtonVariant.LUMO_ICON);
         viewsButton.getElement().setAttribute("aria-label", "Виды");
         viewsButton.setTooltipText("Виды");
-        viewsButton.setVisible(false); // включается через setViewSupport()
+        viewsButton.setVisible(false);
         viewsButton.addClickListener(e -> openViewSelector());
 
         toolbar.add(addButton, editButton, deleteButton, refreshButton, viewsButton);
     }
 
-    /** Список видов, доступных пользователю для этой формы — выбор/создание/копирование/
-     * редактирование/умолчание. Отдельного диалога "Настройка колонок" больше нет — это
-     * единственная точка входа в редактирование состава колонок (через "Создать"/
-     * "Копировать"/"Изменить" внутри ViewSelectorDialog, см. GridViewEditorDialog).
-     */
     private void openViewSelector() {
         if (gridFormViewService == null || formKey == null || metadataResolver == null) return;
         List<org.ip.model.GridFormView> views = gridFormViewService.findVisibleViews(formKey);
@@ -274,7 +258,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             ? formSettingsService.get(defaultViewSettingKey()).orElse(null)
             : null;
 
-        new ViewSelectorDialog(metadata, metadataResolver, gridFormViewService, formKey,
+        new ViewSelectorDialog(metadata, metadataResolver, gridFormViewService, lookupService, formKey, true,
             views, defaultViewId,
             this::applyView,
             view -> {
@@ -292,9 +276,68 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     }
 
     private void applyView(org.ip.model.GridFormView view) {
-        List<ColumnPath> restored = ColumnPath.fromJson(view.getColumns(), metadata.getEntityClass());
+        GridViewState state = GridViewState.fromJson(view.getColumns());
+        List<ColumnPath> restored = toColumnPaths(state);
         if (!restored.isEmpty()) {
             applyColumns(restored);
+        }
+        applyFilters(state.filters());
+    }
+
+    private List<ColumnPath> toColumnPaths(GridViewState state) {
+        List<ColumnPath> result = new ArrayList<>();
+        for (ColumnPath.Spec spec : state.columns()) {
+            try {
+                result.add(ColumnPath.resolve(metadata.getEntityClass(), spec.path()).withLabel(spec.label()));
+            } catch (IllegalArgumentException staleColumnKey) {
+            }
+        }
+        return result;
+    }
+
+    private void applyFilters(List<FilterSpec> filters) {
+        for (FilterSpec spec : filters) {
+            FieldFilter<?> filter = activeFilters.get(spec.path());
+            if (filter == null) continue;
+
+            if (filter instanceof TextFilter<?> textFilter) {
+                if (spec.mode() != null) {
+                    try {
+                        textFilter.getModeSelect().setValue(TextFilter.FilterMode.valueOf(spec.mode()));
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                }
+                textFilter.getTextField().setValue(spec.value() != null ? spec.value() : "");
+            } else if (filter instanceof DateRangeFilter<?> dateFilter) {
+                dateFilter.getDateFrom().setValue(spec.value() != null
+                    ? java.time.LocalDate.parse(spec.value()) : null);
+                dateFilter.getDateTo().setValue(spec.valueTo() != null
+                    ? java.time.LocalDate.parse(spec.valueTo()) : null);
+            } else if (filter instanceof ComboBoxFilter comboFilter) {
+                activeColumns.stream()
+                    .filter(c -> c.getKey().equals(spec.path()))
+                    .findFirst()
+                    .ifPresent(col -> applyComboBoxFilter(comboFilter, col, spec));
+            }
+        }
+        refresh();
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void applyComboBoxFilter(ComboBoxFilter comboFilter, ColumnPath column, FilterSpec spec) {
+        if (spec.value() == null) {
+            comboFilter.getComponent().clear();
+            return;
+        }
+        if (column.getResolvedType() == FieldType.ENUM) {
+            try {
+                comboFilter.getComponent().setValue(Enum.valueOf((Class<Enum>) column.getJavaType(), spec.value()));
+            } catch (IllegalArgumentException ignored) {
+            }
+        } else if (column.getResolvedType() == FieldType.ENTITY_REFERENCE && lookupService != null) {
+            column.asFieldMetadata().filter(FieldMetadataInfo::hasLookup).ifPresent(field ->
+                lookupService.findById(field.getLookupEntity(), Long.parseLong(spec.value()))
+                    .ifPresent(entity -> comboFilter.getComponent().setValue(entity)));
         }
     }
 
@@ -357,37 +400,18 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     public void setOnEdit(Consumer<T> onEdit) { this.onEdit = onEdit; }
     public void setOnDelete(Consumer<T> onDelete) { this.onDelete = onDelete; }
 
-    /**
-     * Установить LookupService для ComboBoxFilter-ов на ENTITY_REFERENCE полях.
-     * Если не задан — ENTITY_REFERENCE поля получают TextFilter как fallback.
-     */
     public void setLookupService(LookupService lookupService) {
         this.lookupService = lookupService;
     }
 
-    /**
-     * Установить MetadataResolver — нужен для диалога "Виды" (GridViewEditorDialog),
-     * чтобы перечислить поля связанных сущностей через точку.
-     */
     public void setMetadataResolver(MetadataResolver metadataResolver) {
         this.metadataResolver = metadataResolver;
     }
 
-    /**
-     * Заменить состав колонок и перестроить грид на лету (колонки + полоса фильтров),
-     * затем перезапросить данные (fetch-граф зависит от состава колонок).
-     * Пустой/null список игнорируется.
-     *
-     * ВАЖНО: больше НЕ сохраняет ничего автоматически — персистентность теперь только
-     * через явные действия пользователя: "Сохранить как" (создаёт GridFormView) и
-     * "Сделать видом по умолчанию" (см. openViewSelector()). Раньше здесь было тихое
-     * автосохранение при каждом изменении — от этого отказались (см. обсуждение).
-     */
     public void setActiveColumns(List<ColumnPath> columns) {
         applyColumns(columns);
     }
 
-    /** Вернуть состав колонок из метаданных (сброс на время текущей сессии, ничего не пишет). */
     public void resetActiveColumns() {
         applyColumns(metadata.getListColumnPaths());
     }
@@ -413,20 +437,10 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         return result;
     }
 
-    /** Текущий состав колонок (немодифицируемая копия). */
     public List<ColumnPath> getActiveColumns() {
         return List.copyOf(activeColumns);
     }
 
-    /**
-     * Подключить поддержку видов (GridFormView) для этой формы: включает кнопку "Виды"
-     * в toolbar и, если у пользователя есть вид по умолчанию (UserFormSettings,
-     * "listform.defaultview.&lt;formKey&gt;" -&gt; id GridFormView), сразу его применяет.
-     * Если вид по умолчанию не задан или запись не найдена — остаётся состав из метаданных.
-     *
-     * formKey — тот же ключ, что раньше использовался в setColumnSettings()
-     * ("&lt;EntityClass&gt;[.&lt;variant&gt;]") — различает варианты формы.
-     */
     public void setViewSupport(org.ip.service.GridFormViewService gridFormViewService,
                                org.ip.service.FormSettingsService formSettingsService,
                                String formKey) {
@@ -439,34 +453,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         formSettingsService.get(defaultViewSettingKey()).ifPresent(idStr -> {
             try {
                 Long id = Long.parseLong(idStr);
-                gridFormViewService.findById(id).ifPresent(view ->
-                    applyColumns(ColumnPath.fromJson(view.getColumns(), metadata.getEntityClass())));
+                gridFormViewService.findById(id).ifPresent(this::applyView);
             } catch (NumberFormatException invalidId) {
-                // настройка повреждена/устарела — просто остаёмся на составе из метаданных
             }
         });
     }
 
-    /**
-     * Установить hook для кастомизации после автогенерации колонок.
-     * Вызывается ПОСЛЕ configureColumnsAndFilters(), но ДО build().
-     *
-     * Используйте для:
-     *   - Добавления вычисляемых колонок
-     *   - Изменения порядка колонок
-     *   - Скрытия автоколонок
-     *   - Настройки рендереров
-     *
-     * Пример:
-     * <pre>
-     * listForm.setAfterColumnsConfigured(() -> {
-     *     Grid&lt;Nomenclature&gt; grid = listForm.getGrid();
-     *     grid.addColumn(n -> n.getCode() + " (" + n.getUnitOfMeasurement().getShortCode() + ")")
-     *         .setHeader("Код + ЕИ")
-     *         .setKey("codeWithUnit");
-     * });
-     * </pre>
-     */
     public void setAfterColumnsConfigured(Runnable afterColumnsConfigured) {
         this.afterColumnsConfigured = afterColumnsConfigured;
     }
@@ -489,53 +481,21 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         return metadata;
     }
 
-    /**
-     * Доступ к toolbar для добавления кастомных кнопок.
-     *
-     * Пример:
-     * <pre>
-     * Button exportBtn = new Button("Экспорт", VaadinIcon.DOWNLOAD.create());
-     * exportBtn.addClickListener(e -> exportToExcel());
-     * listForm.getToolbar().add(exportBtn);
-     * </pre>
-     */
     public HorizontalLayout getToolbar() {
         return toolbar;
     }
 
-    /**
-     * Доступ к кнопкам toolbar для изменения видимости/поведения.
-     */
     public Button getAddButton() { return addButton; }
     public Button getEditButton() { return editButton; }
     public Button getDeleteButton() { return deleteButton; }
     public Button getRefreshButton() { return refreshButton; }
 
-    /**
-     * Переключает форму в режим только для чтения (read-only).
-     *
-     * В режиме read-only:
-     *   - Кнопки "Создать", "Изменить", "Удалить" скрыты
-     *   - Двойной клик по строке не открывает форму редактирования
-     *   - Кнопка "Обновить" остаётся видимой
-     *
-     * Пример использования:
-     * <pre>
-     * ListForm&lt;Nomenclature, Long&gt; form = coordinator.createListForm(Nomenclature.class);
-     * form.setReadOnly(true);  // только просмотр
-     * </pre>
-     *
-     * @param readOnly true = только просмотр, false = полный доступ
-     */
     public void setReadOnly(boolean readOnly) {
         addButton.setVisible(!readOnly);
         editButton.setVisible(!readOnly);
         deleteButton.setVisible(!readOnly);
     }
 
-    /**
-     * Проверить, находится ли форма в режиме read-only.
-     */
     public boolean isReadOnly() {
         return !addButton.isVisible();
     }

@@ -3,7 +3,7 @@ package org.ip.service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import org.ip.metadata.EntityMetadataInfo;
+import org.ip.metadata.FetchGraphs;
 import org.ip.metadata.FieldMetadataInfo;
 import org.ip.metadata.MetadataResolver;
 import org.ip.metadata.TableSectionMetadataInfo;
@@ -66,7 +66,7 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
     }
 
     /**
-     * Создаёт новую пустую строку и привязывает к parent через反射
+     * Создаёт новую пустую строку и привязывает к parent через рефлексию
      * (аннотация @TableSectionMetadata.parentField).
      */
     @Override
@@ -104,46 +104,37 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
             existing.remove((ID) row.getId());
         }
 
-        // всё, что осталось в existing, отсутствует в переданном списке — удалено пользователем в UI
         if (!existing.isEmpty()) {
             repository.deleteAll(existing.values());
         }
     }
 
     /**
-     * Автоматически определяет fetch-пути для всех ENTITY_REFERENCE полей строки табличной части.
-     * Использует sectionMeta.getGridFields() — работает даже без @EntityMetadata на rowClass.
+     * Дефолтные fetch-пути: ENTITY_REFERENCE-поля из sectionMeta.getGridFields() —
+     * тот же FetchGraphs.entityReferencePaths(), что и в AbstractBaseService.
      */
     protected List<String> getDefaultFetchPaths() {
-        return sectionMeta.getGridFields().stream()
-            .filter(f -> f.getResolvedType() == org.ip.metadata.annotation.FieldType.ENTITY_REFERENCE)
-            .map(FieldMetadataInfo::getName)
-            .toList();
+        return FetchGraphs.entityReferencePaths(sectionMeta.getGridFields());
     }
 
     /**
-     * Создаёт EntityGraph для строк табличной части, используя {@link #getDefaultFetchPaths()}.
-     */
-    private jakarta.persistence.EntityGraph<T> buildFetchGraph() {
-        List<String> paths = getDefaultFetchPaths();
-        if (paths.isEmpty()) {
-            return null;
-        }
-        jakarta.persistence.EntityGraph<T> graph = entityManager.createEntityGraph(rowClass);
-        paths.forEach(graph::addAttributeNodes);
-        return graph;
-    }
-
-    /**
-     * Универсальная загрузка строк табличной части по родителю с EntityGraph.
-     * CriteriaBuilder строит запрос WHERE parentField = parent, с сортировкой
-     * по lineNumber (если задан). EntityGraph автоматически подгружает все
-     * ENTITY_REFERENCE поля — никаких LazyInitializationException.
-     *
-     * Конкретные сервисы НЕ должны переопределять этот метод.
+     * Универсальная загрузка строк табличной части по родителю, с EntityGraph по
+     * дефолтным fetch-путям (см. getDefaultFetchPaths()). Конкретные сервисы НЕ должны
+     * переопределять этот метод — для явного набора путей (например, из активных колонок
+     * ItemTable при применённом сохранённом виде) есть перегрузка ниже.
      */
     @Override
     public List<T> findByParent(P parent) {
+        return findByParent(parent, getDefaultFetchPaths());
+    }
+
+    /**
+     * Та же загрузка, но с явным набором fetch-путей вместо дефолтных (например, когда
+     * ItemTable применил сохранённый вид с другим составом колонок, чем те, что заданы
+     * в @FieldMetadata.grid по умолчанию).
+     */
+    @Override
+    public List<T> findByParent(P parent, java.util.Collection<String> fetchPaths) {
         jakarta.persistence.criteria.CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         jakarta.persistence.criteria.CriteriaQuery<T> query = cb.createQuery(rowClass);
         jakarta.persistence.criteria.Root<T> root = query.from(rowClass);
@@ -156,7 +147,7 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
         }
 
         jakarta.persistence.TypedQuery<T> typedQuery = entityManager.createQuery(query);
-        jakarta.persistence.EntityGraph<T> graph = buildFetchGraph();
+        jakarta.persistence.EntityGraph<T> graph = FetchGraphs.fromPaths(entityManager, rowClass, fetchPaths);
         if (graph != null) {
             typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
         }

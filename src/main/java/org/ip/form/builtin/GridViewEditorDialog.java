@@ -3,6 +3,8 @@ package org.ip.form.builtin;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H4;
@@ -11,6 +13,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
@@ -19,10 +22,15 @@ import com.vaadin.flow.data.provider.ListDataProvider;
 import org.ip.metadata.ColumnPath;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FieldMetadataInfo;
+import org.ip.metadata.FilterSpec;
+import org.ip.metadata.GridViewState;
 import org.ip.metadata.MetadataResolver;
 import org.ip.metadata.annotation.FieldType;
 import org.ip.model.GridFormView;
 import org.ip.service.GridFormViewService;
+import org.ip.service.LookupService;
+import org.ipro.crud.IdentifiableEntity;
+import org.ipro.filtergrid.TextFilter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,7 +72,7 @@ public class GridViewEditorDialog extends Dialog {
     private static final class SelectedColumn {
         final String path;
         final String defaultLabel;
-        String customLabel; // null/blank = используем defaultLabel
+        String customLabel;
 
         SelectedColumn(String path, String defaultLabel, String customLabel) {
             this.path = path;
@@ -73,12 +81,25 @@ public class GridViewEditorDialog extends Dialog {
         }
     }
 
-    private final EntityMetadataInfo metadata;
+    private static final class FilterCondition {
+        final FieldMetadataInfo field;
+        TextFilter.FilterMode mode = TextFilter.FilterMode.CONTAINS;
+        String value;
+        String valueTo;
+
+        FilterCondition(FieldMetadataInfo field) {
+            this.field = field;
+        }
+    }
+
+    private final org.ip.metadata.GridMetadata metadata;
     private final GridFormViewService gridFormViewService;
+    private final LookupService lookupService;
     private final String formKey;
     private final Consumer<GridFormView> onSaved;
 
-    private GridFormView editingView; // null, пока не создан первым "Применить"
+    private GridFormView editingView;
+    private boolean supportsFilters;
 
     private final TextField nameField = new TextField("Название вида");
     private final Checkbox sharedBox = new Checkbox("Общий (виден и редактируем всеми пользователями)");
@@ -92,24 +113,31 @@ public class GridViewEditorDialog extends Dialog {
     private final List<SelectedColumn> selected = new ArrayList<>();
     private final Set<String> selectedPaths = new HashSet<>();
 
-    public GridViewEditorDialog(EntityMetadataInfo metadata,
+    private final Grid<FilterCondition> filterGrid = new Grid<>();
+    private final List<FilterCondition> filterConditions = new ArrayList<>();
+    private final ComboBox<FieldMetadataInfo> addFilterField = new ComboBox<>("Поле для отбора");
+
+    public GridViewEditorDialog(org.ip.metadata.GridMetadata metadata,
                                 MetadataResolver metadataResolver,
                                 GridFormViewService gridFormViewService,
+                                LookupService lookupService,
                                 String formKey,
                                 GridFormView editingView,
                                 List<ColumnPath> initialColumns,
+                                List<FilterSpec> initialFilters,
                                 String initialName,
+                                boolean supportsFilters,
                                 Consumer<GridFormView> onSaved) {
         this.metadata = metadata;
         this.gridFormViewService = gridFormViewService;
+        this.lookupService = lookupService;
         this.formKey = formKey;
         this.editingView = editingView;
         this.onSaved = onSaved;
 
         setHeaderTitle("Вид: " + metadata.getListFormTitle());
-        setWidth("820px");
-        setHeight("620px");
-        //setModal(true);
+        setWidth("880px");
+        setHeight("680px");
         setResizable(true);
         setDraggable(true);
 
@@ -129,7 +157,24 @@ public class GridViewEditorDialog extends Dialog {
         configureGrids();
         preselect(initialColumns);
 
-        VerticalLayout content = new VerticalLayout(header, buildTwoListLayout());
+        this.supportsFilters = supportsFilters;
+        if (supportsFilters) {
+            configureFilterSection();
+            preselectFilters(initialFilters);
+        }
+
+        com.vaadin.flow.component.Component columnsAndMaybeFilters;
+        if (supportsFilters) {
+            TabSheet tabs = new TabSheet();
+            tabs.setSizeFull();
+            tabs.add("Колонки", buildTwoListLayout());
+            tabs.add("Отбор", buildFilterLayout());
+            columnsAndMaybeFilters = tabs;
+        } else {
+            columnsAndMaybeFilters = buildTwoListLayout();
+        }
+
+        VerticalLayout content = new VerticalLayout(header, columnsAndMaybeFilters);
         content.setPadding(false);
         content.setSpacing(true);
         content.setSizeFull();
@@ -162,7 +207,6 @@ public class GridViewEditorDialog extends Dialog {
                     collectField(node, child, resolver);
                 }
             } catch (IllegalArgumentException notMetadataDriven) {
-                // сущность без @EntityMetadata — узел остаётся без детей
             }
         }
     }
@@ -277,6 +321,162 @@ public class GridViewEditorDialog extends Dialog {
         treeDataProvider.refreshAll();
     }
 
+    // === Секция "Отбор" ===
+
+    private boolean isFilterable(FieldMetadataInfo field) {
+        return switch (field.getResolvedType()) {
+            case TEXT, INTEGER, DECIMAL, PASSWORD, EMAIL, DATE, ENUM -> true;
+            case ENTITY_REFERENCE -> field.hasLookup() && lookupService != null;
+            default -> false;
+        };
+    }
+
+    private void configureFilterSection() {
+        filterGrid.addColumn(c -> c.field.getLabel()).setHeader("Поле").setWidth("200px").setFlexGrow(0);
+        filterGrid.addComponentColumn(this::valueWidgetFor).setHeader("Условие").setFlexGrow(1);
+        filterGrid.addComponentColumn(this::removeFilterButtonFor).setHeader("").setWidth("60px").setFlexGrow(0);
+        filterGrid.setItems(filterConditions);
+        filterGrid.setSizeFull();
+
+        addFilterField.setItems(metadata.getFormFields().stream().filter(this::isFilterable).toList());
+        addFilterField.setItemLabelGenerator(FieldMetadataInfo::getLabel);
+        addFilterField.setWidthFull();
+
+        Button add = new Button("Добавить условие", VaadinIcon.PLUS.create(), e -> {
+            FieldMetadataInfo field = addFilterField.getValue();
+            if (field == null) return;
+            if (filterConditions.stream().anyMatch(c -> c.field.getName().equals(field.getName()))) {
+                Notification.show("Условие по этому полю уже добавлено", 3000, Notification.Position.MIDDLE);
+                return;
+            }
+            filterConditions.add(new FilterCondition(field));
+            filterGrid.getDataProvider().refreshAll();
+            addFilterField.clear();
+            refreshAddFilterOptions();
+        });
+    }
+
+    private void refreshAddFilterOptions() {
+        Set<String> used = filterConditions.stream().map(c -> c.field.getName())
+            .collect(java.util.stream.Collectors.toSet());
+        addFilterField.setItems(metadata.getFormFields().stream()
+            .filter(this::isFilterable)
+            .filter(f -> !used.contains(f.getName()))
+            .toList());
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private com.vaadin.flow.component.Component valueWidgetFor(FilterCondition condition) {
+        return switch (condition.field.getResolvedType()) {
+            case TEXT, INTEGER, DECIMAL, PASSWORD, EMAIL -> {
+                ComboBox<TextFilter.FilterMode> mode = new ComboBox<>();
+                mode.setItems(TextFilter.FilterMode.values());
+                mode.setItemLabelGenerator(TextFilter.FilterMode::getLabel);
+                mode.setValue(condition.mode);
+                mode.setWidth("70px");
+                mode.addValueChangeListener(e -> condition.mode = e.getValue());
+
+                TextField value = new TextField();
+                value.setValue(condition.value != null ? condition.value : "");
+                value.setWidthFull();
+                value.addValueChangeListener(e -> condition.value = e.getValue());
+
+                HorizontalLayout layout = new HorizontalLayout(mode, value);
+                layout.setWidthFull();
+                layout.setFlexGrow(1, value);
+                yield layout;
+            }
+            case DATE -> {
+                DatePicker from = new DatePicker();
+                from.setPlaceholder("От");
+                if (condition.value != null) from.setValue(java.time.LocalDate.parse(condition.value));
+                from.addValueChangeListener(e ->
+                    condition.value = e.getValue() != null ? e.getValue().toString() : null);
+
+                DatePicker to = new DatePicker();
+                to.setPlaceholder("До");
+                if (condition.valueTo != null) to.setValue(java.time.LocalDate.parse(condition.valueTo));
+                to.addValueChangeListener(e ->
+                    condition.valueTo = e.getValue() != null ? e.getValue().toString() : null);
+
+                HorizontalLayout layout = new HorizontalLayout(from, to);
+                layout.setWidthFull();
+                yield layout;
+            }
+            case ENUM -> {
+                ComboBox combo = new ComboBox();
+                combo.setItems((Object[]) condition.field.getJavaType().getEnumConstants());
+                if (condition.value != null) {
+                    combo.setValue(Enum.valueOf((Class<Enum>) condition.field.getJavaType(), condition.value));
+                }
+                combo.addValueChangeListener(e ->
+                    condition.value = e.getValue() != null ? ((Enum) e.getValue()).name() : null);
+                combo.setWidthFull();
+                yield combo;
+            }
+            case ENTITY_REFERENCE -> {
+                ComboBox combo = new ComboBox();
+                List items = lookupService.findAll(condition.field.getLookupEntity());
+                combo.setItems(items);
+                combo.setItemLabelGenerator(
+                    item -> ((org.ip.model.HasDisplayName) item).getDisplayName());
+                if (condition.value != null) {
+                    items.stream()
+                        .filter(item -> condition.value.equals(String.valueOf(((IdentifiableEntity) item).getId())))
+                        .findFirst()
+                        .ifPresent(combo::setValue);
+                }
+                combo.addValueChangeListener(e -> condition.value = e.getValue() != null
+                    ? String.valueOf(((IdentifiableEntity) e.getValue()).getId()) : null);
+                combo.setWidthFull();
+                yield combo;
+            }
+            default -> new com.vaadin.flow.component.html.Span("\u2014");
+        };
+    }
+
+    private Button removeFilterButtonFor(FilterCondition condition) {
+        Button remove = new Button(VaadinIcon.CLOSE_SMALL.create(), e -> {
+            filterConditions.remove(condition);
+            filterGrid.getDataProvider().refreshAll();
+            refreshAddFilterOptions();
+        });
+        remove.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+        return remove;
+    }
+
+    private VerticalLayout buildFilterLayout() {
+        HorizontalLayout addRow = new HorizontalLayout(addFilterField);
+        addRow.setWidthFull();
+        addRow.expand(addFilterField);
+
+        VerticalLayout layout = new VerticalLayout(
+            new H4("Условия отбора (применяются независимо от текущих фильтров грида)"),
+            addRow, filterGrid);
+        layout.setPadding(false);
+        layout.setSpacing(true);
+        layout.setSizeFull();
+        return layout;
+    }
+
+    private void preselectFilters(List<FilterSpec> initialFilters) {
+        for (FilterSpec spec : initialFilters) {
+            FieldMetadataInfo field = metadata.getFieldByName(spec.path());
+            if (field == null || !isFilterable(field)) continue;
+            FilterCondition condition = new FilterCondition(field);
+            if (spec.mode() != null) {
+                try {
+                    condition.mode = TextFilter.FilterMode.valueOf(spec.mode());
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+            condition.value = spec.value();
+            condition.valueTo = spec.valueTo();
+            filterConditions.add(condition);
+        }
+        refreshAddFilterOptions();
+    }
+
     // === Кнопки / сохранение ===
 
     private void configureButtons() {
@@ -299,7 +499,6 @@ public class GridViewEditorDialog extends Dialog {
         getFooter().add(cancel, apply, save);
     }
 
-    /** Пишет GridFormView в БД (создаёт при первом вызове, дальше — обновляет). true = успех. */
     private boolean persist() {
         String name = nameField.getValue();
         if (name == null || name.isBlank()) {
@@ -317,15 +516,28 @@ public class GridViewEditorDialog extends Dialog {
         for (SelectedColumn s : selected) {
             columns.add(ColumnPath.resolve(metadata.getEntityClass(), s.path).withLabel(s.customLabel));
         }
-        String columnsJson = ColumnPath.toJson(columns, metadata.getEntityClass());
+
+        List<FilterSpec> filters = new ArrayList<>(filterConditions.size());
+        for (FilterCondition c : filterConditions) {
+            if (c.field.getResolvedType() == FieldType.DATE) {
+                if (c.value == null && c.valueTo == null) continue;
+                filters.add(new FilterSpec(c.field.getName(), null, c.value, c.valueTo));
+            } else {
+                if (c.value == null || c.value.isBlank()) continue;
+                String mode = c.mode != null ? c.mode.name() : null;
+                filters.add(new FilterSpec(c.field.getName(), mode, c.value, null));
+            }
+        }
+
+        String stateJson = GridViewState.of(columns, metadata.getEntityClass(), filters).toJson();
 
         try {
             if (editingView == null) {
-                editingView = gridFormViewService.createView(formKey, name.trim(), columnsJson, sharedBox.getValue());
+                editingView = gridFormViewService.createView(formKey, name.trim(), stateJson, sharedBox.getValue());
             } else {
                 editingView.setName(name.trim());
                 editingView.setShared(sharedBox.getValue());
-                editingView.setColumns(columnsJson);
+                editingView.setColumns(stateJson);
                 editingView = gridFormViewService.update(editingView);
             }
             return true;

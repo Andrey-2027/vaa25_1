@@ -86,6 +86,27 @@ public class MetadataResolver {
     }
 
     /**
+     * Получить метаданные строки табличной части для использования в кастомных формах
+     * (например, в {@link org.ip.form.builder.ItemFormCustomization}).
+     *
+     * Сканирует поля класса строки через тот же механизм, что и обычные сущности, но
+     * возвращает упрощённую обёртку {@link RowMetadataInfo} вместо полной
+     * {@link TableSectionMetadataInfo} — для построения ItemForm нужны только списки полей,
+     * а не информация о родителе и сервисе.
+     *
+     * @param rowClass класс строки табличной части (например, PrdSpecMtr.class)
+     * @return метаданные строки с formFields и gridFields
+     */
+    public RowMetadataInfo resolveRowMetadata(Class<?> rowClass) {
+        // Используем тот же scanFields(), что и для обычных сущностей
+        List<FieldMetadataInfo> allFields = scanFields(rowClass);
+        List<FieldMetadataInfo> formFields = toFormFields(allFields);
+        List<FieldMetadataInfo> gridFields = toGridFields(allFields);
+
+        return new RowMetadataInfo(rowClass, formFields, gridFields);
+    }
+
+    /**
      * Сбросить кэш для одного класса. Полезно при горячей перезагрузке в dev-режиме.
      */
     public void invalidate(Class<?> entityClass) {

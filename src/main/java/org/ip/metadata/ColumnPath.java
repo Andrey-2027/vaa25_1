@@ -229,9 +229,16 @@ public final class ColumnPath {
         if (value == null || value.isBlank()) {
             return result;
         }
-        List<Spec> specs = value.trim().startsWith("[")
-            ? parseJson(value)
-            : parseLegacyFormat(value);
+        List<Spec> specs;
+        String trimmed = value.trim();
+        if (trimmed.startsWith("{")) {
+            // Новый формат GridViewState ({"columns":[...],"filters":[...]}) — берём только колонки.
+            specs = GridViewState.fromJson(value).columns();
+        } else if (trimmed.startsWith("[")) {
+            specs = parseJson(value);
+        } else {
+            specs = parseLegacyFormat(value);
+        }
 
         for (Spec spec : specs) {
             try {

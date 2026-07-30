@@ -36,6 +36,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     private boolean userEdited = false;
     private boolean suppressValueChange = false;
     private int focusedRowIndex = -1;
+    private final List<Consumer<T>> valueChangeListeners = new ArrayList<>();
 
     public EntityField(String label, SearchFunction<T> searchFunction) {
         this.searchFunction = searchFunction;
@@ -98,6 +99,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
 
         suggestionGrid.addSelectionListener(e -> {
             if (e.getFirstSelectedItem().isPresent()) {
+                T oldValue = selectedValue;
                 selectedValue = e.getFirstSelectedItem().get();
                 userEdited = true;
                 suppressValueChange = true;
@@ -105,6 +107,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
                 suppressValueChange = false;
                 setStatusValid();
                 hideSuggestion();
+                fireValueChangeEvent(oldValue, selectedValue);
             }
         });
 
@@ -163,24 +166,36 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
             userEdited = true;
             String value = e.getValue();
             if (value == null || value.isEmpty()) {
+                T oldValue = selectedValue;
                 selectedValue = null;
                 setStatusInvalid();
                 hideSuggestion();
+                fireValueChangeEvent(oldValue, null);
                 return;
             }
             List<T> matches = searchFunction.search(value);
             if (matches.size() == 1 && matches.get(0).getDisplayName().equalsIgnoreCase(value)) {
+                T oldValue = selectedValue;
                 selectedValue = matches.get(0);
                 setStatusValid();
                 hideSuggestion();
+                fireValueChangeEvent(oldValue, selectedValue);
             } else if (!matches.isEmpty()) {
+                T oldValue = selectedValue;
                 selectedValue = null;
                 setStatusSearching();
                 showSuggestionPopup(matches);
+                if (oldValue != null) {
+                    fireValueChangeEvent(oldValue, null);
+                }
             } else {
+                T oldValue = selectedValue;
                 selectedValue = null;
                 setStatusNotFound();
                 hideSuggestion();
+                if (oldValue != null) {
+                    fireValueChangeEvent(oldValue, null);
+                }
             }
         });
 
@@ -286,12 +301,14 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
 
     private void onSelectedInDialog(T selected) {
         if (selected == null) return;
+        T oldValue = this.selectedValue;
         this.selectedValue = selected;
         this.userEdited = true;
         this.suppressValueChange = true;
         this.textField.setValue(selected.getDisplayName());
         this.suppressValueChange = false;
         setStatusValid();
+        fireValueChangeEvent(oldValue, selected);
     }
 
     public T getValue() {
@@ -327,5 +344,40 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
 
     public boolean isReadOnly() {
         return textField.isReadOnly();
+    }
+
+    /**
+     * Добавить слушателя изменения значения. Вызывается при любом изменении selectedValue:
+     * - выбор из автокомплита (dropdown)
+     * - выбор из SelectionForm (модальный диалог)
+     * - успешный ручной ввод (когда найдено ровно одно совпадение)
+     * - очистка поля
+     *
+     * НЕ вызывается при программной установке значения через setValue() — чтобы избежать
+     * циклических вызовов при инициализации формы.
+     *
+     * @param listener Consumer, принимающий новое значение (может быть null)
+     */
+    public void addValueChangeListener(Consumer<T> listener) {
+        valueChangeListeners.add(listener);
+    }
+
+    /**
+     * Удалить слушателя изменения значения.
+     */
+    public void removeValueChangeListener(Consumer<T> listener) {
+        valueChangeListeners.remove(listener);
+    }
+
+    /**
+     * Уведомить всех слушателей об изменении значения. Вызывается только при изменении
+     * пользователем (userEdited), не при программной установке через setValue().
+     */
+    private void fireValueChangeEvent(T oldValue, T newValue) {
+        if (!userEdited) return;
+        if (java.util.Objects.equals(oldValue, newValue)) return;
+        for (Consumer<T> listener : valueChangeListeners) {
+            listener.accept(newValue);
+        }
     }
 }
