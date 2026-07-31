@@ -130,21 +130,18 @@ public class ListFormBuilder<T extends IdentifiableEntity> {
             EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
 
             // Создаём JpaFilterGrid с кастомным data provider (если указан)
-            JpaFilterGrid<T> grid;
+            ListForm<T, ?> form;
             if (dataProvider != null) {
-                grid = new JpaFilterGrid<>(
+                JpaFilterGrid<T> grid = new JpaFilterGrid<>(
                     entityClass,
                     (spec, pageable) -> dataProvider.fetch(service, spec, pageable)
                 );
+                form = new ListForm<>(meta, grid);
             } else {
-                // Используем стандартный data provider
-                grid = new JpaFilterGrid<>(
-                    entityClass,
-                    (spec, pageable) -> service.findAll(spec, pageable)
-                );
+                // Автосоздание грида в ListForm: провайдер использует collectFetchPaths() —
+                // fetch-пути из применённого вида (в т.ч. вложенные колонки) доходят до запроса.
+                form = new ListForm<>(meta, service);
             }
-
-            ListForm<T, ?> form = new ListForm<>(meta, grid);
 
             // Применяем настройки
             if (title != null) {

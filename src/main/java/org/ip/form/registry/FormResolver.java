@@ -8,7 +8,9 @@ import org.ip.form.builtin.ItemForm;
 import org.ip.form.builtin.ListForm;
 import org.ip.form.builtin.SelectionForm;
 import org.ip.metadata.EntityMetadataInfo;
+import org.ip.metadata.FieldMetadataInfo;
 import org.ip.metadata.MetadataResolver;
+import org.ip.metadata.RowMetadataInfo;
 import org.ip.service.BaseService;
 import org.ip.service.ServiceLocator;
 import org.ipro.crud.IdentifiableEntity;
@@ -224,6 +226,15 @@ public class FormResolver {
     private <T extends IdentifiableEntity> ItemForm<T> createGenericItemForm(
             Class<T> entityClass,
             Map<String, Object> parameters) {
+
+        if (!entityClass.isAnnotationPresent(org.ip.metadata.annotation.EntityMetadata.class)) {
+            RowMetadataInfo rowMeta = metadataResolver.resolveRowMetadata(entityClass);
+            List<String> rowFields = parameters != null ? (List<String>) parameters.get("fields") : null;
+            List<FieldMetadataInfo> formFields = rowFields == null ? rowMeta.getFormFields()
+                : rowMeta.getFormFields().stream().filter(f -> rowFields.contains(f.getName())).toList();
+            return new ItemForm<>(entityClass, formFields, fieldFactory);
+        }
+
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
 
         // Проверяем параметр "fields" для фильтрации полей

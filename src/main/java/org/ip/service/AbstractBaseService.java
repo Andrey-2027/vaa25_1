@@ -254,16 +254,18 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         } catch (IllegalArgumentException notMetadataDriven) {
             return null;
         }
-        return FetchGraphs.fromPaths(entityManager, domainClass,
-            FetchGraphs.entityReferencePaths(meta.getGridFields()));
+        return buildFetchGraph(domainClass, FetchGraphs.entityReferencePaths(meta.getGridFields()));
     }
 
     /**
      * EntityGraph из явного списка JPA-путей (в т.ч. вложенных через точку). Вложенный путь
-     * "a.b" превращается в subgraph(a).addAttributeNodes(b). null — если список пуст.
+     * "a.b" превращается в subgraph(a).addAttributeNodes(b). Пути дополнительно углубляются
+     * через {@link FetchGraphs#deepen} — чтобы getDisplayName() ссылочных целей не падал на
+     * неинициализированных прокси после закрытия сессии. null — если список пуст.
      */
     private EntityGraph<T> buildFetchGraph(Class<T> domainClass, java.util.Collection<String> paths) {
-        return FetchGraphs.fromPaths(entityManager, domainClass, paths);
+        return FetchGraphs.fromPaths(entityManager, domainClass,
+            FetchGraphs.deepen(domainClass, paths, metadataResolver));
     }
 
     public Number sum(String fieldName, Specification<T> spec) {

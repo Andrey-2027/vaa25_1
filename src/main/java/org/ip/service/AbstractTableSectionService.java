@@ -112,6 +112,7 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
     /**
      * Дефолтные fetch-пути: ENTITY_REFERENCE-поля из sectionMeta.getGridFields() —
      * тот же FetchGraphs.entityReferencePaths(), что и в AbstractBaseService.
+     * Углубление через display-состав целей делает findByParent (FetchGraphs.deepen).
      */
     protected List<String> getDefaultFetchPaths() {
         return FetchGraphs.entityReferencePaths(sectionMeta.getGridFields());
@@ -131,7 +132,9 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
     /**
      * Та же загрузка, но с явным набором fetch-путей вместо дефолтных (например, когда
      * ItemTable применил сохранённый вид с другим составом колонок, чем те, что заданы
-     * в @FieldMetadata.grid по умолчанию).
+     * в @FieldMetadata.grid по умолчанию). Пути дополнительно углубляются через
+     * FetchGraphs.deepen — чтобы getDisplayName() ссылочных целей не падал на
+     * неинициализированных прокси после закрытия сессии.
      */
     @Override
     public List<T> findByParent(P parent, java.util.Collection<String> fetchPaths) {
@@ -147,7 +150,9 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
         }
 
         jakarta.persistence.TypedQuery<T> typedQuery = entityManager.createQuery(query);
-        jakarta.persistence.EntityGraph<T> graph = FetchGraphs.fromPaths(entityManager, rowClass, fetchPaths);
+        jakarta.persistence.EntityGraph<T> graph =
+            FetchGraphs.fromPaths(entityManager, rowClass,
+                FetchGraphs.deepen(rowClass, fetchPaths, metadataResolver));
         if (graph != null) {
             typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
         }

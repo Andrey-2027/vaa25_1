@@ -24,13 +24,16 @@ public class TableSectionFactory {
     private final MetadataResolver metadataResolver;
     private final FieldFactory fieldFactory;
     private final ApplicationContext applicationContext;
+    private final List<TableSectionCustomization<?>> customizations;
 
     public TableSectionFactory(MetadataResolver metadataResolver,
                                 FieldFactory fieldFactory,
-                                ApplicationContext applicationContext) {
+                                ApplicationContext applicationContext,
+                                List<TableSectionCustomization<?>> customizations) {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
+        this.customizations = customizations;
     }
 
     /**
@@ -48,7 +51,21 @@ public class TableSectionFactory {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T extends IdentifiableEntity> ItemTable<?, T> createItemTable(TableSectionMetadataInfo section) {
         TableSectionService rawService = findTableSectionService(section);
-        return new ItemTable(section, fieldFactory, rawService);
+        java.util.function.Supplier<org.ip.form.registry.FormResolver> formResolverSupplier =
+            () -> applicationContext.getBean(org.ip.form.coordinator.FormCoordinator.class).getFormResolver();
+        ItemTable table = new ItemTable(section, fieldFactory, rawService, metadataResolver,
+            applicationContext.getBean(org.ip.service.GridFormViewService.class),
+            applicationContext.getBean(org.ip.service.FormSettingsService.class),
+            applicationContext.getBean(org.ip.service.LookupService.class),
+            formResolverSupplier);
+
+        for (TableSectionCustomization<?> customization : customizations) {
+            if (customization.rowClass() == section.getRowClass()) {
+                ((TableSectionCustomization) customization).configure(table);
+                break;
+            }
+        }
+        return table;
     }
 
     /**
