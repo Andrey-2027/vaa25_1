@@ -116,6 +116,7 @@ public class GridViewEditorDialog extends Dialog {
     private final Grid<FilterCondition> filterGrid = new Grid<>();
     private final List<FilterCondition> filterConditions = new ArrayList<>();
     private final ComboBox<FieldMetadataInfo> addFilterField = new ComboBox<>("Поле для отбора");
+    Button add = new Button();
 
     public GridViewEditorDialog(org.ip.metadata.GridMetadata metadata,
                                 MetadataResolver metadataResolver,
@@ -342,7 +343,7 @@ public class GridViewEditorDialog extends Dialog {
         addFilterField.setItemLabelGenerator(FieldMetadataInfo::getLabel);
         addFilterField.setWidthFull();
 
-        Button add = new Button("Добавить условие", VaadinIcon.PLUS.create(), e -> {
+        add = new Button("Добавить условие", VaadinIcon.PLUS.create(), e -> {
             FieldMetadataInfo field = addFilterField.getValue();
             if (field == null) return;
             if (filterConditions.stream().anyMatch(c -> c.field.getName().equals(field.getName()))) {
@@ -452,7 +453,7 @@ public class GridViewEditorDialog extends Dialog {
 
         VerticalLayout layout = new VerticalLayout(
             new H4("Условия отбора (применяются независимо от текущих фильтров грида)"),
-            addRow, filterGrid);
+            addRow, add, filterGrid);
         layout.setPadding(false);
         layout.setSpacing(true);
         layout.setSizeFull();
