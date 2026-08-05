@@ -19,15 +19,10 @@ package org.ip.form.builder;
  *     }
  *
  *     public void configure(ItemFormVariants variants) {
- *         variants.addDefault(
- *             FormBuilder.itemForm(ReceivingDocument.class)
- *                 .addPanel("number", "date")
- *                 .addField("receivingWorkshop")
- *         );
- *         variants.add("Var2",
- *             FormBuilder.itemForm(ReceivingDocument.class)
- *                 .addField("number")
- *         );
+ *         variants.addDefault(ctx -> {
+ *             RowMetadataInfo meta = ctx.metadataResolver().resolveRowMetadata(ReceivingDocument.class);
+ *             return new ItemForm&lt;&gt;(ReceivingDocument.class, meta.getFormFields(), ctx.fieldFactory());
+ *         });
  *     }
  * }
  * </pre>

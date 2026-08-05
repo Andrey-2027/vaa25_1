@@ -1,23 +1,24 @@
 package org.ip.views.forms;
 
-import org.ip.form.builder.FormBuilder;
 import org.ip.form.builder.ItemFormCustomization;
 import org.ip.form.builder.ItemFormVariants;
+import org.ip.form.builtin.ItemForm;
+import org.ip.metadata.FieldMetadataInfo;
+import org.ip.metadata.RowMetadataInfo;
 import org.ip.model.ReceivingDocument;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
- * Кастомный layout Формы Элемента для {@link ReceivingDocument} — см.
- * {@link org.ip.form.builder.ItemFormBuilder}.
+ * Кастомизация Формы Элемента для {@link ReceivingDocument} — обычный Java-код напрямую
+ * через FieldFactory/ItemForm (без layout-DSL, см. обсуждение упрощения builder-слоя).
+ *
+ * Табличная часть "Позиции" по-прежнему подключается автоматически после сборки формы
+ * (TableSectionFactory.attachTableSections) — этот класс её никак не трогает.
  *
  * Реализует {@link ItemFormCustomization}, а не сам занимается регистрацией в
- * {@code FormRegistry} — этим занимается общий {@code ItemFormCustomizationRegistrar}. Класс
- * ничего не знает про Spring-жизненный цикл, только описывает layout(ы).
- *
- * Один класс на сущность — рядом с остальным view-кодом (`org.ip.views.forms`), а не в
- * инфраструктурном {@code org.ip.config}: это прикладная настройка конкретного документа, а не
- * конфигурация фреймворка. Новый вариант — ещё один вызов {@code variants.add(...)} в
- * {@link #configure}, не новый класс.
+ * {@code FormRegistry} — этим занимается общий {@code ItemFormCustomizationRegistrar}.
  */
 @Component
 public class ReceivingDocumentFormConfig implements ItemFormCustomization {
@@ -27,20 +28,15 @@ public class ReceivingDocumentFormConfig implements ItemFormCustomization {
         return ReceivingDocument.class;
     }
 
-    /**
-     * Default-вариант: номер и дата — в одной строке, оба цеха — в другой (плюс read-only
-     * наименование цеха приёмщика), вместо генерации по одному полю в ряд. Табличная часть
-     * "Позиции" по-прежнему подключается автоматически после layout'а (TableSectionFactory), в
-     * дерево не входит.
-     */
     @Override
     public void configure(ItemFormVariants variants) {
-        variants.addDefault(
-            FormBuilder.itemForm(ReceivingDocument.class)
-                .addPanel("number", "date")
-                .addField("receivingWorkshop")
-                .addField("receivingWorkshop.name")
-                .addField("transferringWorkshop")
-        );
+        variants.addDefault(ctx -> {
+            RowMetadataInfo meta = ctx.metadataResolver().resolveRowMetadata(ReceivingDocument.class);
+            List<FieldMetadataInfo> fields = meta.getFormFields().stream()
+                .filter(f -> List.of("number", "date", "receivingWorkshop", "transferringWorkshop")
+                    .contains(f.getName()))
+                .toList();
+            return new ItemForm<>(ReceivingDocument.class, fields, ctx.fieldFactory());
+        });
     }
 }

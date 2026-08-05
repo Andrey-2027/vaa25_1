@@ -1,6 +1,5 @@
 package org.ip.views.forms;
 
-import org.ip.form.builder.FormBuilder;
 import org.ip.form.builder.ListFormCustomization;
 import org.ip.form.builder.ListFormVariants;
 import org.ip.model.PrdSpec;
@@ -8,7 +7,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * Кастомизация формы списка спецификаций.
- * Default-вариант открывает кастомный View с фильтром по журналу.
+ * Default-вариант открывает кастомный View с фильтром по журналу (композиция —
+ * PrdSpecByJournalView сам строит ListForm внутри себя через coordinator.createListForm()
+ * и добавляет ComboBox для выбора журнала через ListForm.setContextFilter(), см. класс).
  */
 @Component
 public class PrdSpecListFormConfig implements ListFormCustomization {
@@ -20,10 +21,6 @@ public class PrdSpecListFormConfig implements ListFormCustomization {
 
     @Override
     public void configure(ListFormVariants variants) {
-        // Default-вариант — кастомный View с ComboBox для выбора журнала
-        variants.addDefault(
-            FormBuilder.listForm(PrdSpec.class)
-                .customView(PrdSpecByJournalView.class)
-        );
+        variants.addDefaultView(PrdSpecByJournalView.class);
     }
 }

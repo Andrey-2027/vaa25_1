@@ -11,10 +11,9 @@ import org.ip.model.Workshop;
 import java.util.List;
 
 /**
- * Полностью написанная вручную Форма Элемента для {@link Workshop} — пример escape hatch
- * {@code ItemFormVariants.addDefaultCustom(...)} для случая, когда дерева
- * {@code ItemFormBuilder} (addField/addPanel/addTabSheet/addCustom) недостаточно, и нужен
- * произвольный Java-код внутри формы.
+ * Полностью написанная вручную Форма Элемента для {@link Workshop} — пример прямого кода
+ * (composition, не наследование от общего DSL) для случая, когда декларативных полей/панелей
+ * недостаточно и нужен произвольный Java-код внутри формы.
  *
  * Два примера "мимо" стандартного механизма:
  *   - {@code hint} — просто текст, узла для этого в дереве нет вообще.

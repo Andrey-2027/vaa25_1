@@ -1,5 +1,6 @@
 package org.ip.service;
 
+import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -7,11 +8,14 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import org.ip.metadata.FetchGraphs;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -93,6 +97,26 @@ public class LookupService {
     public <T> Optional<T> findById(Class<T> entityClass, Object id) {
         if (id == null) return Optional.empty();
         return Optional.ofNullable(entityManager.find(entityClass, id));
+    }
+
+    /**
+     * Получить запись по ID с eager-загрузкой указанных связей через fetch-граф
+     * (в т.ч. вложенных через точку: "nomenclature.unitOfMeasurement" → subgraph).
+     * Нужно, когда сущность после выбора в UI-компоненте читается вне сессии
+     * (например, EntityField.setValue() вызывает getDisplayName() уже после закрытия
+     * транзакции запроса) — см. PrdSpecMtrFormCustomization.
+     */
+    public <T> Optional<T> findById(Class<T> entityClass, Object id, Collection<String> fetchPaths) {
+        if (id == null) return Optional.empty();
+        if (fetchPaths == null || fetchPaths.isEmpty()) {
+            return findById(entityClass, id);
+        }
+        EntityGraph<T> graph = FetchGraphs.fromPaths(entityManager, entityClass, fetchPaths);
+        if (graph == null) {
+            return findById(entityClass, id);
+        }
+        return Optional.ofNullable(entityManager.find(entityClass, id,
+            Map.of("jakarta.persistence.fetchgraph", graph)));
     }
 
     /**

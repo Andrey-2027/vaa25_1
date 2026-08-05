@@ -8,6 +8,7 @@ import org.ip.metadata.annotation.FieldType;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -137,6 +138,57 @@ public final class FetchGraphs {
         } catch (IllegalArgumentException invalidPath) {
             return null;
         }
+    }
+
+    /**
+     * Все пути ассоциаций сущности, которые нужно инициализировать, чтобы выбранная из
+     * lookup-поиска сущность была "живой" для UI-кода: прямые ENTITY_REFERENCE-поля +
+     * их ссылки до заданной глубины (BFS).
+     *
+     * Это не то же самое, что {@link #deepen}: deepen углубляет через display-состав целей
+     * (selectColumns/displaySortFields) — например, для Nomenclature display-состав {code, name},
+     * и unitOfMeasurement туда не попадёт. Этот метод идёт по структуре ассоциаций самой
+     * сущности: для PrdSpec {nomenclature} → у Nomenclature есть ссылка unitOfMeasurement →
+     * при глубине 2 результат ровно ["nomenclature", "nomenclature.unitOfMeasurement"].
+     *
+     * Защиты: BFS с лимитом глубины (против циклов A→B→A), visited по классу, dedupe.
+     */
+    public static List<String> associationPaths(Class<?> rootClass, MetadataResolver metadataResolver,
+                                                int maxDepth) {
+        if (rootClass == null || metadataResolver == null || maxDepth < 1) {
+            return List.of();
+        }
+
+        Set<String> result = new LinkedHashSet<>();
+        Set<Class<?>> visited = new HashSet<>();
+        Deque<DeepenTask> queue = new ArrayDeque<>();
+
+        for (FieldMetadataInfo field : entityReferenceFields(rootClass, metadataResolver)) {
+            result.add(field.getName());
+            queue.add(new DeepenTask(field.getName(), field.getJavaType(), 1));
+        }
+
+        while (!queue.isEmpty()) {
+            DeepenTask task = queue.poll();
+            if (task.depth() >= maxDepth || !visited.add(task.targetClass())) {
+                continue;
+            }
+            for (FieldMetadataInfo nestedField : entityReferenceFields(task.targetClass(), metadataResolver)) {
+                String extended = task.prefix() + "." + nestedField.getName();
+                if (result.add(extended)) {
+                    queue.add(new DeepenTask(extended, nestedField.getJavaType(), task.depth() + 1));
+                }
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    /** ENTITY_REFERENCE-поля класса (resolveRowMetadata работает для любого класса). */
+    private static List<FieldMetadataInfo> entityReferenceFields(Class<?> entityClass,
+                                                                 MetadataResolver metadataResolver) {
+        return metadataResolver.resolveRowMetadata(entityClass).getFormFields().stream()
+            .filter(f -> f.getResolvedType() == FieldType.ENTITY_REFERENCE)
+            .toList();
     }
 
     /** Один шаг BFS-обхода: путь + класс цели + глубина. */

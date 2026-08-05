@@ -1,6 +1,5 @@
 package org.ip.form.builder;
 
-import org.ip.form.registry.FormFactory;
 import org.ip.form.registry.FormRegistry;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
@@ -11,7 +10,7 @@ import java.util.List;
  * Находит все бины {@link ItemFormCustomization} и регистрирует их варианты в
  * {@link FormRegistry}. Один общий класс на весь проект — конкретные классы-конфиги (по одному
  * на сущность, см. {@code org.ip.views.forms}) ничего не знают про {@code FormRegistry} или
- * жизненный цикл Spring-бинов, только описывают layout через {@link ItemFormBuilder}.
+ * жизненный цикл Spring-бинов, только описывают FormFactory через {@link ItemFormVariants}.
  */
 @Component
 public class ItemFormCustomizationRegistrar implements InitializingBean {
@@ -32,11 +31,7 @@ public class ItemFormCustomizationRegistrar implements InitializingBean {
             ItemFormVariants variants = new ItemFormVariants();
             customization.configure(variants);
 
-            variants.getBuilders().forEach((variant, builder) -> {
-                FormFactory factory = builder.build();
-                formRegistry.registerItemForm(entityClass, variant, factory);
-            });
-            variants.getCustomFactories().forEach((variant, factory) ->
+            variants.getFactories().forEach((variant, factory) ->
                 formRegistry.registerItemForm(entityClass, variant, factory));
         }
     }

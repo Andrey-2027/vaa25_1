@@ -1,30 +1,50 @@
 package org.ip.form.registry;
 
+import org.ip.form.FieldFactory;
 import org.ip.form.coordinator.FormSession;
+import org.ip.metadata.MetadataResolver;
+import org.ip.service.LookupService;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Контекст создания формы.
+ * Контекст создания формы, передаётся в {@link FormFactory}.
  *
- * Содержит:
- *   - entityClass — класс сущности
- *   - id — ID записи (для ItemForm, может быть null при создании новой)
- *   - parameters — произвольные параметры (например, workshop, filters)
- *   - parentSession — родительская сессия (для цепочек форм)
+ * metadataResolver/fieldFactory — обычные типизированные поля (не строковые ключи в карте):
+ * это единственные две зависимости, которые нужны практически любой FormFactory для сборки
+ * ItemForm/ListForm, и опечатка в имени поля тут ловится компилятором, а не молчаливым
+ * NullPointerException в рантайме (см. обсуждение — раньше это были context.getParameter(
+ * "metadataResolver")/("fieldFactory"), и как минимум ListFormBuilder держал точно такой же
+ * код на "applicationContext"/"service", которые FormResolver никогда не клал в контекст —
+ * то есть тот путь был мёртв и просто не был замечен).
  *
- * Используется FormFactory при создании кастомных форм.
+ * lookupService — типизированный доступ к {@link LookupService} для фабрик, которым после
+ * выбора сущности в UI-компоненте нужно перечитать её с нужным fetch-графом (вне сессии
+ * ленивые прокси недоступны — см. PrdSpecMtrFormCustomization).
+ *
+ * parameters — произвольные бизнес-параметры конкретного открытия формы (например,
+ * "workshop" — для какого цеха открываем), задаются вызывающим кодом через
+ * FormCoordinator.openXxxForm(..., parameters) и не имеют отношения к инфраструктуре формы.
  */
 public class FormContext {
     private final Class<?> entityClass;
     private final Object id;
+    private final MetadataResolver metadataResolver;
+    private final FieldFactory fieldFactory;
+    private final LookupService lookupService;
     private final Map<String, Object> parameters;
     private final FormSession parentSession;
 
-    public FormContext(Class<?> entityClass, Object id, Map<String, Object> parameters, FormSession parentSession) {
+    public FormContext(Class<?> entityClass, Object id,
+                       MetadataResolver metadataResolver, FieldFactory fieldFactory,
+                       LookupService lookupService,
+                       Map<String, Object> parameters, FormSession parentSession) {
         this.entityClass = entityClass;
         this.id = id;
+        this.metadataResolver = metadataResolver;
+        this.fieldFactory = fieldFactory;
+        this.lookupService = lookupService;
         this.parameters = parameters != null ? new HashMap<>(parameters) : new HashMap<>();
         this.parentSession = parentSession;
     }
@@ -37,10 +57,23 @@ public class FormContext {
         return id;
     }
 
+    public MetadataResolver metadataResolver() {
+        return metadataResolver;
+    }
+
+    public FieldFactory fieldFactory() {
+        return fieldFactory;
+    }
+
+    public LookupService lookupService() {
+        return lookupService;
+    }
+
     public Map<String, Object> getParameters() {
         return parameters;
     }
 
+    /** Произвольный бизнес-параметр открытия формы (не инфраструктура) — например, "workshop". */
     @SuppressWarnings("unchecked")
     public <T> T getParameter(String key) {
         return (T) parameters.get(key);
@@ -68,6 +101,9 @@ public class FormContext {
     public static class Builder {
         private final Class<?> entityClass;
         private Object id;
+        private MetadataResolver metadataResolver;
+        private FieldFactory fieldFactory;
+        private LookupService lookupService;
         private Map<String, Object> parameters = new HashMap<>();
         private FormSession parentSession;
 
@@ -77,6 +113,21 @@ public class FormContext {
 
         public Builder id(Object id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder metadataResolver(MetadataResolver metadataResolver) {
+            this.metadataResolver = metadataResolver;
+            return this;
+        }
+
+        public Builder fieldFactory(FieldFactory fieldFactory) {
+            this.fieldFactory = fieldFactory;
+            return this;
+        }
+
+        public Builder lookupService(LookupService lookupService) {
+            this.lookupService = lookupService;
             return this;
         }
 
@@ -98,7 +149,8 @@ public class FormContext {
         }
 
         public FormContext build() {
-            return new FormContext(entityClass, id, parameters, parentSession);
+            return new FormContext(entityClass, id, metadataResolver, fieldFactory, lookupService,
+                parameters, parentSession);
         }
     }
 }

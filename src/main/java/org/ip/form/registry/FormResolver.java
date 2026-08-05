@@ -47,6 +47,7 @@ public class FormResolver {
     private final TableSectionFactory tableSectionFactory;
     private final SelectionFormAssembler selectionFormAssembler;
     private final ServiceLocator serviceLocator;
+    private final org.ip.service.LookupService lookupService;
 
     public FormResolver(FormRegistry formRegistry,
                         MetadataResolver metadataResolver,
@@ -62,6 +63,7 @@ public class FormResolver {
         this.tableSectionFactory = tableSectionFactory;
         this.selectionFormAssembler = selectionFormAssembler;
         this.serviceLocator = serviceLocator;
+        this.lookupService = applicationContext.getBean(org.ip.service.LookupService.class);
     }
 
     /**
@@ -187,19 +189,19 @@ public class FormResolver {
     }
 
     /**
-     * Строит FormContext для кастомных ITEM-фабрик (см. {@code ItemFormBuilder.build()}) —
-     * всегда кладёт {@code metadataResolver}/{@code fieldFactory}, которые фабрике нужны, чтобы
-     * самой резолвить EntityMetadataInfo и создавать поля. Раньше этого не делалось вообще —
-     * любая кастомная ITEM-форма, зарегистрированная через FormRegistry, падала бы с
-     * IllegalStateException при первом же обращении.
+     * Строит FormContext для кастомных ITEM-фабрик, зарегистрированных через
+     * {@code ItemFormCustomization}/{@code ItemFormVariants} — всегда кладёт типизированные
+     * metadataResolver/fieldFactory, которые фабрике нужны, чтобы самой резолвить метаданные
+     * и создавать поля.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T extends IdentifiableEntity> FormContext buildListFormContext(Class<T> entityClass, Map<String, Object> parameters) {
         BaseService<T, ?> service = findService(entityClass);
         return FormContext.builder(entityClass)
             .parameters(parameters)
+            .metadataResolver(metadataResolver)
+            .lookupService(lookupService)
             .parameter("applicationContext", applicationContext)
-            .parameter("metadataResolver", metadataResolver)
             .parameter("service", service)
             .build();
     }
@@ -208,8 +210,9 @@ public class FormResolver {
         return FormContext.builder(entityClass)
             .id(id)
             .parameters(parameters)
-            .parameter("metadataResolver", metadataResolver)
-            .parameter("fieldFactory", fieldFactory)
+            .metadataResolver(metadataResolver)
+            .fieldFactory(fieldFactory)
+            .lookupService(lookupService)
             .build();
     }
 

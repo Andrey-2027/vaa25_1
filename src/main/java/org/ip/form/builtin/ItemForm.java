@@ -26,6 +26,8 @@ import org.ip.form.builder.layout.TabSheetNode;
 import org.ip.metadata.ColumnPath;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FieldMetadataInfo;
+import org.ip.model.HasDisplayName;
+import org.ip.views.components.EntityField;
 import org.ipro.crud.IdentifiableEntity;
 
 import java.util.ArrayList;
@@ -118,18 +120,18 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
 
     /**
      * Создать форму с произвольным layout'ом (панели/вкладки/кастомные компоненты) вместо
-     * плоского списка полей — см. {@code ItemFormBuilder.addField/addPanel/addTabSheet/
-     * addCustom}. Табличные части подключаются как обычно, после layout'а
+     * плоского списка полей — конструируется напрямую из record'ов {@code FieldNode}/
+     * {@code PanelNode}/{@code TabSheetNode}/{@code CustomNode}, без отдельного builder'а.
+     * Табличные части подключаются как обычно, после layout'а
      * (см. {@link #addTableSection}/TableSectionFactory) — дерево layout'а ими не управляет.
      *
      * Пример:
      * <pre>
-     * ItemFormLayout layout = List.of(
+     * ItemFormLayout layout = new ItemFormLayout(List.of(
      *     new FieldNode("code"),
      *     new PanelNode(List.of(new FieldNode("date"), new FieldNode("numReg"))),
      *     new FieldNode("comment")
-     * );
-     * // обычно строится через ItemFormBuilder, а не вручную
+     * ));
      * </pre>
      */
     @SuppressWarnings("unchecked")
@@ -599,6 +601,48 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
             .orElseThrow(() -> new IllegalStateException(
                 "Field '" + fieldName + "' not found in " + entityClass.getSimpleName()))
             .getComponent();
+    }
+
+    /**
+     * То же самое, что {@link #getField(String)}, но возвращает типизированный
+     * {@link EntityField} — компонент, который FieldFactory создаёт для полей
+     * ENTITY_REFERENCE (с @Lookup). EntityField — кастомный компонент (Div) со своим
+     * value-API (addValueChangeListener(Consumer)/setValue), он НЕ реализует Vaadin
+     * {@code HasValue}, поэтому {@link #getEntityField(String, Class)} для него не подходит.
+     * Бросает IllegalStateException сразу с понятным сообщением, если поле не EntityField.
+     * E — тип значения поля, должен реализовывать {@code HasDisplayName} (граница
+     * {@link EntityField}).
+     */
+    @SuppressWarnings("unchecked")
+    public <E extends HasDisplayName> EntityField<E> entityField(String fieldName) {
+        Component component = getField(fieldName);
+        if (!(component instanceof EntityField)) {
+            throw new IllegalStateException(
+                "Field '" + fieldName + "' (" + component.getClass().getSimpleName() +
+                ") is not an EntityField");
+        }
+        return (EntityField<E>) component;
+    }
+
+    /**
+     * То же самое, что {@link #getField(String)}, но с явным типом значения поля — чтобы в
+     * вызывающем коде (кастомизации форм) не нужен был сырой каст
+     * {@code (HasValue<?, ?>) form.getField(name)} на каждый cross-field listener.
+     * Подходит для "простых" полей (текст/число/дата/enum — настоящие HasValue). Для полей
+     * ENTITY_REFERENCE используйте {@link #entityField(String)}: создаваемый FieldFactory
+     * {@link EntityField} интерфейс HasValue не реализует.
+     * Бросает IllegalStateException сразу с понятным сообщением, если поле не HasValue —
+     * лучше явная ошибка при разработке, чем непонятный ClassCastException где-то внутри.
+     */
+    @SuppressWarnings("unchecked")
+    public <V> com.vaadin.flow.component.HasValue<?, V> getEntityField(String fieldName, Class<V> valueType) {
+        Component component = getField(fieldName);
+        if (!(component instanceof com.vaadin.flow.component.HasValue)) {
+            throw new IllegalStateException(
+                "Field '" + fieldName + "' (" + component.getClass().getSimpleName() +
+                ") is not a HasValue component");
+        }
+        return (com.vaadin.flow.component.HasValue<?, V>) component;
     }
 
     public FormLayout getFormLayout() {

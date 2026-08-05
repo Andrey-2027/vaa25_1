@@ -16,10 +16,12 @@ import org.ip.form.FieldRenderer;
 import org.ip.form.registry.FormResolver;
 import org.ip.metadata.ColumnPath;
 import org.ip.metadata.FetchGraphs;
+import org.ip.metadata.FieldMetadataInfo;
 import org.ip.metadata.GridViewState;
 import org.ip.metadata.MetadataResolver;
 import org.ip.metadata.TableSectionGridMetadata;
 import org.ip.metadata.TableSectionMetadataInfo;
+import org.ip.metadata.annotation.FieldType;
 import org.ip.model.GridFormView;
 import org.ip.service.FormSettingsService;
 import org.ip.service.GridFormViewService;
@@ -28,7 +30,11 @@ import org.ip.service.TableSectionService;
 import org.ipro.crud.IdentifiableEntity;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -220,6 +226,67 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
             activeColumns.stream().map(ColumnPath::getKey).toList(), metadataResolver);
     }
 
+    /**
+     * Перечитывает ссылочные поля строки по ID с fetch-графом, собранным из колонок
+     * применённого вида. Строки грида живут в памяти (rows), а выбранные в форме строки
+     * lookup-сущности приходят с ленивыми прокси (сессия закрыта) — колонка вида,
+     * обращающаяся к вложенным полям такой ссылки (например, nomenclature.unitOfMeasurement.code),
+     * рендерила бы прокси вне сессии → LazyInitializationException → пустая ячейка.
+     * Поэтому перед вставкой/обновлением строки в гриде каждая ссылка, до которой из
+     * активных колонок есть вложенные пути, заменяется сущностью, перечитанной по ID
+     * с нужным подграфом (LookupService.findById(Class, Object, Collection)).
+     *
+     * Вызывается из save-обработчика диалога строки (гидратация после добавления/
+     * изменения) и из {@link #hydrateAllRows()} при смене вида.
+     */
+    @SuppressWarnings("unchecked")
+    private void hydrateRow(T row) {
+        Map<String, Set<String>> pathsByRootField = new LinkedHashMap<>();
+        for (ColumnPath column : activeColumns) {
+            ColumnPath resolved;
+            try {
+                resolved = ColumnPath.resolve(sectionMeta.getRowClass(), column.getKey());
+            } catch (IllegalArgumentException stale) {
+                continue; // колонку из сохранённого вида переименовали/удалили
+            }
+            for (String path : resolved.getFetchPaths()) {
+                int dot = path.indexOf('.');
+                if (dot < 0) continue; // путь до самого поля — значение уже на строке
+                pathsByRootField.computeIfAbsent(path.substring(0, dot),
+                    k -> new LinkedHashSet<>()).add(path.substring(dot + 1));
+            }
+        }
+        if (pathsByRootField.isEmpty()) return;
+
+        List<FieldMetadataInfo> rowFields = sectionMeta.getFormFields();
+        for (Map.Entry<String, Set<String>> entry : pathsByRootField.entrySet()) {
+            FieldMetadataInfo fieldInfo = rowFields.stream()
+                .filter(f -> f.getName().equals(entry.getKey()))
+                .findFirst().orElse(null);
+            if (fieldInfo == null || fieldInfo.getResolvedType() != FieldType.ENTITY_REFERENCE) continue;
+            Object value = fieldInfo.getValue(row);
+            if (!(value instanceof IdentifiableEntity ref) || ref.getId() == null) continue;
+            lookupService.findById(ref.getClass(), ref.getId(), new ArrayList<>(entry.getValue()))
+                .ifPresent(full -> fieldInfo.setValue(row, full));
+        }
+    }
+
+    /**
+     * Гидратация всех in-memory строк под текущий {@link #activeColumns} — вызывается после
+     * смены/сброса вида. Строки загружаются из БД один раз (при открытии документа, через
+     * {@link #setParent}) и после этого в память не перечитываются: повторный запрос к БД
+     * потерял бы несохранённые правки (изменённые и добавленные строки). Смена вида — только
+     * операция отображения: перестраиваются колонки и перечитываются ссылки строк под новый
+     * состав колонок.
+     */
+    private void hydrateAllRows() {
+        if (parent == null) return;
+        for (T row : rows) {
+            hydrateRow(row);
+        }
+        grid.getDataProvider().refreshAll();
+    }
+
     // === Загрузка/сохранение ===
 
     /**
@@ -303,9 +370,7 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
         if (restored.isEmpty()) return;
         activeColumns = restored;
         buildColumns();
-        if (parent != null) {
-            setParent(parent);
-        }
+        hydrateAllRows();
     }
 
     private void openViewSelector() {
@@ -333,7 +398,7 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
             () -> {
                 activeColumns = defaultColumns();
                 buildColumns();
-                if (parent != null) setParent(parent);
+                hydrateAllRows();
             }
         ).open();
     }
@@ -432,6 +497,7 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
                 return;
             }
             rowForm.getEntity();
+            hydrateRow(row);
             dialog.close();
             onConfirm.run();
         });
