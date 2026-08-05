@@ -70,7 +70,7 @@ public final class OperationContext {
         }
 
         Operation operation = currentOperation.get();
-        if (operation.nodeCount() >= frameLimit) {
+        if (operation.getNodeCount() >= frameLimit) {
             operation.incrementDroppedFrames();
             return null;
         }
@@ -78,6 +78,7 @@ public final class OperationContext {
         Frame frame = new Frame(name);
         frames.push(frame);
         operation.addChild(frame);
+        operation.incrementNodeCount();
         return frame;
     }
 
@@ -156,6 +157,7 @@ public final class OperationContext {
     private static final class OperationScopeImpl implements OperationScope {
         private final OperationContext ctx;
         private final Frame frame;
+        private boolean closed;
 
         private OperationScopeImpl(OperationContext ctx, Frame frame) {
             this.ctx = ctx;
@@ -164,8 +166,22 @@ public final class OperationContext {
 
         @Override
         public void close() {
+            if (closed) {
+                return;
+            }
+            closed = true;
             if (frame != null) {
                 ctx.endFrame(frame, frame.elapsedNanos(), null);
+            }
+        }
+
+        @Override
+        public void fail(Throwable t) {
+            if (frame != null) {
+                frame.setFailed(true);
+                if (frame instanceof Operation operation) {
+                    operation.setErrorMessage(t.toString());
+                }
             }
         }
 

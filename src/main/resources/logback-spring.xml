@@ -49,7 +49,6 @@
 
         <appender name="ASYNC_APP_FILE" class="ch.qos.logback.classic.AsyncAppender">
             <queueSize>10000</queueSize>
-            <discardingThreshold>0</discardingThreshold>
             <neverBlock>true</neverBlock>
             <appender-ref ref="APP_FILE"/>
         </appender>

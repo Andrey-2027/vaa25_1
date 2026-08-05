@@ -1,6 +1,7 @@
 package org.ipro.telemetry.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @ConfigurationProperties(prefix = "ipro.telemetry")
 public class TelemetryProperties {
@@ -15,11 +16,12 @@ public class TelemetryProperties {
     private int queueSize = 10_000;
     private int frameLimit = 500;
     private String fileDir = "logs";
-    private String redactFields = "password,token,secret";
-    private int retentionEventsDays = 90;
-    private int retentionSecurityDays = 365;
-    private int retentionStatsDays = 365;
-    private int retentionTraceHours = 72;
+
+    @NestedConfigurationProperty
+    private Sql sql = new Sql();
+
+    @NestedConfigurationProperty
+    private Retention retention = new Retention();
 
     public boolean isEnabled() {
         return enabled;
@@ -101,43 +103,70 @@ public class TelemetryProperties {
         this.fileDir = fileDir;
     }
 
-    public String getRedactFields() {
-        return redactFields;
+    public Sql getSql() {
+        return sql;
     }
 
-    public void setRedactFields(String redactFields) {
-        this.redactFields = redactFields;
+    public void setSql(Sql sql) {
+        this.sql = sql;
     }
 
-    public int getRetentionEventsDays() {
-        return retentionEventsDays;
+    public Retention getRetention() {
+        return retention;
     }
 
-    public void setRetentionEventsDays(int retentionEventsDays) {
-        this.retentionEventsDays = retentionEventsDays;
+    public void setRetention(Retention retention) {
+        this.retention = retention;
     }
 
-    public int getRetentionSecurityDays() {
-        return retentionSecurityDays;
+    public static class Sql {
+        private String redactFields = "password,token,secret";
+
+        public String getRedactFields() {
+            return redactFields;
+        }
+
+        public void setRedactFields(String redactFields) {
+            this.redactFields = redactFields;
+        }
     }
 
-    public void setRetentionSecurityDays(int retentionSecurityDays) {
-        this.retentionSecurityDays = retentionSecurityDays;
-    }
+    public static class Retention {
+        private int eventsDays = 90;
+        private int securityDays = 365;
+        private int statsDays = 365;
+        private int traceHours = 72;
 
-    public int getRetentionStatsDays() {
-        return retentionStatsDays;
-    }
+        public int getEventsDays() {
+            return eventsDays;
+        }
 
-    public void setRetentionStatsDays(int retentionStatsDays) {
-        this.retentionStatsDays = retentionStatsDays;
-    }
+        public void setEventsDays(int eventsDays) {
+            this.eventsDays = eventsDays;
+        }
 
-    public int getRetentionTraceHours() {
-        return retentionTraceHours;
-    }
+        public int getSecurityDays() {
+            return securityDays;
+        }
 
-    public void setRetentionTraceHours(int retentionTraceHours) {
-        this.retentionTraceHours = retentionTraceHours;
+        public void setSecurityDays(int securityDays) {
+            this.securityDays = securityDays;
+        }
+
+        public int getStatsDays() {
+            return statsDays;
+        }
+
+        public void setStatsDays(int statsDays) {
+            this.statsDays = statsDays;
+        }
+
+        public int getTraceHours() {
+            return traceHours;
+        }
+
+        public void setTraceHours(int traceHours) {
+            this.traceHours = traceHours;
+        }
     }
 }

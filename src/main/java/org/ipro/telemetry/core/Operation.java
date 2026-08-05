@@ -18,6 +18,7 @@ public final class Operation extends Frame {
     private final List<String> mdcKeysAdded = new ArrayList<>();
     private String errorMessage;
     private int droppedFrames;
+    private int nodeCount = 1;
 
     public Operation(String name, String traceId, String user, String sessionId) {
         super(name);
@@ -25,6 +26,14 @@ public final class Operation extends Frame {
         this.user = user;
         this.sessionId = sessionId;
         this.startedAt = Instant.now();
+    }
+
+    public int getNodeCount() {
+        return nodeCount;
+    }
+
+    public void incrementNodeCount() {
+        nodeCount++;
     }
 
     public String getTraceId() {

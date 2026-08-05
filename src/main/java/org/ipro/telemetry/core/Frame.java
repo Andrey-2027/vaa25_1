@@ -66,12 +66,4 @@ public class Frame {
     public long getSqlTotalNanos() {
         return sqlTotalNanos;
     }
-
-    public int nodeCount() {
-        int count = 1;
-        for (Frame child : children) {
-            count += child.nodeCount();
-        }
-        return count;
-    }
 }
