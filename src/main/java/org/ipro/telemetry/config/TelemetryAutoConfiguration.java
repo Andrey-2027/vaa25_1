@@ -62,12 +62,16 @@ public class TelemetryAutoConfiguration {
             havingValue = "true", matchIfMissing = true)
     public EventSink telemetryEventSink(JdbcTemplate jdbcTemplate,
                                         PlatformTransactionManager transactionManager) {
-        return new AsyncEventSink(jdbcTemplate, transactionManager, properties.getQueueSize());
+        AsyncEventSink asyncEventSink = new AsyncEventSink(jdbcTemplate, transactionManager,
+                properties.getQueueSize());
+        TelemetryBridge.setSink(asyncEventSink);
+        return asyncEventSink;
     }
 
     @Bean
     @ConditionalOnMissingBean(EventSink.class)
     public EventSink noopTelemetryEventSink() {
+        TelemetryBridge.setSink(NoopEventSink.INSTANCE);
         return NoopEventSink.INSTANCE;
     }
 

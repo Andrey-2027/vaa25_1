@@ -3,7 +3,6 @@ package org.ipro.telemetry.core;
 import java.io.Serializable;
 import java.time.Instant;
 
-import org.ipro.telemetry.api.EventSink;
 import org.ipro.telemetry.api.EventType;
 import org.ipro.telemetry.api.TelemetryEvent;
 import org.slf4j.MDC;
@@ -14,8 +13,13 @@ import com.vaadin.flow.server.VaadinSession;
 
 /**
  * Vaadin {@link ErrorHandler}: необработанные ошибки UI сессий пишутся в
- * журнал как EventType.ERROR («ui:error», payload — стек). Собственные
- * исключения не бросает — стандартная обработка Vaadin сохраняется.
+ * журнал как EventType.ERROR («ui:error», payload — стек) через
+ * durable-путь (ошибки — самые ценные события, теряться не должны).
+ * <p>
+ * Ссылка на EventSink не хранится в поле: класс сериализуется вместе с
+ * {@link VaadinSession} (failover/кластер), поэтому sink берётся из
+ * {@link TelemetryBridge} в момент вызова. Собственные исключения не
+ * бросает — стандартная обработка Vaadin сохраняется.
  */
 public final class TelemetryErrorHandler implements ErrorHandler, Serializable {
 
@@ -23,15 +27,12 @@ public final class TelemetryErrorHandler implements ErrorHandler, Serializable {
     private static final int MAX_STACK_FRAMES = 150;
     private static final int MAX_PAYLOAD = 20_000;
 
-    private final transient EventSink sink;
-
-    public TelemetryErrorHandler(EventSink sink) {
-        this.sink = sink;
+    public TelemetryErrorHandler() {
     }
 
     @Override
     public void error(ErrorEvent errorEvent) {
-        if (sink == null) {
+        if (TelemetryBridge.getSink() == null) {
             return;
         }
         Throwable t = errorEvent.getThrowable();
@@ -51,7 +52,7 @@ public final class TelemetryErrorHandler implements ErrorHandler, Serializable {
         if (user == null) {
             user = "system";
         }
-        sink.accept(new TelemetryEvent(
+        TelemetryBridge.getSink().acceptDurable(new TelemetryEvent(
                 EventType.ERROR,
                 "ERROR",
                 Instant.now(),

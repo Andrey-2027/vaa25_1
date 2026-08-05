@@ -17,30 +17,35 @@ import org.hibernate.BaseSessionEventListener;
  */
 public final class SqlStatementListener extends BaseSessionEventListener {
 
-    private final ThreadLocal<Deque<Long>> executeStarts = ThreadLocal.withInitial(ArrayDeque::new);
+    /**
+     * Hibernate инстанцирует этот слушатель per-сессии ({@code hibernate.session
+     * .events.auto}), а одна Session не используется из разных потоков
+     * одновременно — обычного Deque-поля достаточно, ThreadLocal не нужен.
+     */
+    private final Deque<Long> executeStarts = new ArrayDeque<>();
 
     @Override
     public void jdbcExecuteStatementStart() {
         if (guardPasses()) {
-            executeStarts.get().push(System.nanoTime());
+            executeStarts.push(System.nanoTime());
         }
     }
 
     @Override
     public void jdbcExecuteStatementEnd() {
-        accountExecution(executeStarts.get());
+        accountExecution(executeStarts);
     }
 
     @Override
     public void jdbcExecuteBatchStart() {
         if (guardPasses()) {
-            executeStarts.get().push(System.nanoTime());
+            executeStarts.push(System.nanoTime());
         }
     }
 
     @Override
     public void jdbcExecuteBatchEnd() {
-        accountExecution(executeStarts.get());
+        accountExecution(executeStarts);
     }
 
     private void accountExecution(Deque<Long> starts) {

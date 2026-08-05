@@ -1,6 +1,8 @@
 package org.ipro.telemetry.core;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.ipro.telemetry.api.EventSink;
 import org.ipro.telemetry.api.EventType;
@@ -51,7 +53,7 @@ public final class SecurityEventLogger {
 
     private void emit(String level, String operation, String user, String errorMessage) {
         String ip = clientIp();
-        String payload = "{\"ip\":\"" + ip + "\"}";
+        String payload = PayloadJson.json(Map.of("ip", ip));
         sink.acceptDurable(new TelemetryEvent(
                 EventType.SECURITY,
                 level,

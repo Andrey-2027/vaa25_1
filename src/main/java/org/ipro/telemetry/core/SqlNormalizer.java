@@ -92,7 +92,7 @@ public final class SqlNormalizer {
                 i++;
                 continue;
             }
-            if (c == '?' || (c == ':' && next == ':')) {
+            if (c == '?') {
                 appendPlaceholder(sb);
                 inNumber = false;
                 ws = false;

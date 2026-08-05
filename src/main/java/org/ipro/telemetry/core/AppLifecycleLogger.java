@@ -1,6 +1,8 @@
 package org.ipro.telemetry.core;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.ipro.telemetry.api.EventSink;
 import org.ipro.telemetry.api.EventType;
@@ -37,10 +39,12 @@ public final class AppLifecycleLogger {
     }
 
     private void emit(String level, String operation) {
-        String payload = "{\"app\":\"" + appName
-                + "\",\"java\":\"" + System.getProperty("java.version", "?")
-                + "\",\"spring\":\"" + SpringVersion.getVersion()
-                + "\",\"vaadin\":\"" + vaadinVersion() + "\"}";
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("app", appName);
+        values.put("java", System.getProperty("java.version", "?"));
+        values.put("spring", SpringVersion.getVersion());
+        values.put("vaadin", vaadinVersion());
+        String payload = PayloadJson.json(values);
         sink.accept(new TelemetryEvent(
                 EventType.APP,
                 level,

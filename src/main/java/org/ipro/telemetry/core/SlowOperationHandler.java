@@ -49,7 +49,7 @@ public final class SlowOperationHandler implements OperationCompletionHandler {
 
         String level = error != null ? "ERROR" : (anomaly ? "WARN" : "INFO");
         String treeJson = TreeJsonRenderer.render(operation);
-        sink.accept(new TelemetryEvent(
+        TelemetryEvent event = new TelemetryEvent(
                 operation.getEventType(),
                 level,
                 operation.getStartedAt(),
@@ -64,7 +64,12 @@ public final class SlowOperationHandler implements OperationCompletionHandler {
                 operation.getSqlTotalNanos() == 0 ? null : operation.getSqlTotalNanos() / 1_000_000L,
                 n1,
                 error,
-                treeJson));
+                treeJson);
+        if ("ERROR".equals(level)) {
+            sink.acceptDurable(event);
+        } else {
+            sink.accept(event);
+        }
 
         if (sink.isNoop() || anomaly) {
             logLine(operation, durationMs, n1, error,

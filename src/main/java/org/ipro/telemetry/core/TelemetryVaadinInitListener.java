@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import org.ipro.telemetry.api.EventSink;
 
+import com.vaadin.flow.server.DefaultErrorHandler;
+import com.vaadin.flow.server.ErrorEvent;
 import com.vaadin.flow.server.ErrorHandler;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.SessionInitEvent;
@@ -22,10 +24,8 @@ public final class TelemetryVaadinInitListener implements VaadinServiceInitListe
 
     private static final long serialVersionUID = 1L;
 
-    private final transient EventSink sink;
-
     public TelemetryVaadinInitListener(EventSink sink) {
-        this.sink = sink;
+        TelemetryBridge.setSink(sink);
     }
 
     @Override
@@ -39,7 +39,7 @@ public final class TelemetryVaadinInitListener implements VaadinServiceInitListe
 
     private void onSessionInit(SessionInitEvent event) {
         VaadinSession session = event.getSession();
-        ErrorHandler telemetry = new TelemetryErrorHandler(sink);
+        ErrorHandler telemetry = new TelemetryErrorHandler();
         ErrorHandler existing = session.getErrorHandler();
         if (existing == null) {
             session.setErrorHandler(telemetry);
@@ -50,12 +50,19 @@ public final class TelemetryVaadinInitListener implements VaadinServiceInitListe
         }
     }
 
+    /**
+     * Цепочка из двух обработчиков. Поля transient: после десериализации сессии
+     * (failover/кластер) они null — при первом же вызове error() цепочка
+     * пересоздаётся (телеметрия из статического bridge, DefaultErrorHandler
+     * заново), поэтому стандартная обработка ошибок Vaadin после restore
+     * сохраняется.
+     */
     private static final class ChainedErrorHandler implements ErrorHandler, Serializable {
 
         private static final long serialVersionUID = 1L;
 
-        private final transient ErrorHandler first;
-        private final transient ErrorHandler second;
+        private transient ErrorHandler first;
+        private transient ErrorHandler second;
 
         private ChainedErrorHandler(ErrorHandler first, ErrorHandler second) {
             this.first = first;
@@ -63,7 +70,13 @@ public final class TelemetryVaadinInitListener implements VaadinServiceInitListe
         }
 
         @Override
-        public void error(com.vaadin.flow.server.ErrorEvent errorEvent) {
+        public void error(ErrorEvent errorEvent) {
+            if (first == null) {
+                first = new TelemetryErrorHandler();
+            }
+            if (second == null) {
+                second = new DefaultErrorHandler();
+            }
             if (first != null) {
                 first.error(errorEvent);
             }
