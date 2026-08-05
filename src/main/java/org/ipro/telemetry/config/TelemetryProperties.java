@@ -14,6 +14,7 @@ public class TelemetryProperties {
     private long l0WindowSeconds = 60;
     private int traceDefaultMinutes = 10;
     private boolean includeParams = false;
+    private boolean entityDataEnabled = true;
     private int queueSize = 10_000;
     private int frameLimit = 500;
     private String fileDir = "logs";
@@ -88,6 +89,14 @@ public class TelemetryProperties {
 
     public void setIncludeParams(boolean includeParams) {
         this.includeParams = includeParams;
+    }
+
+    public boolean isEntityDataEnabled() {
+        return entityDataEnabled;
+    }
+
+    public void setEntityDataEnabled(boolean entityDataEnabled) {
+        this.entityDataEnabled = entityDataEnabled;
     }
 
     public int getQueueSize() {

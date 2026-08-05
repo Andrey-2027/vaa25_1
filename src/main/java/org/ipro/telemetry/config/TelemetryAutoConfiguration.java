@@ -103,7 +103,7 @@ public class TelemetryAutoConfiguration {
 
     @Bean
     public ExecutionTimeAspect executionTimeAspect(OperationContext operationContext) {
-        return new ExecutionTimeAspect(operationContext);
+        return new ExecutionTimeAspect(operationContext, properties.isEntityDataEnabled());
     }
 
     @Bean

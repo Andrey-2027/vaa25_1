@@ -134,6 +134,17 @@ public final class OperationContext {
         }
     }
 
+    /**
+     * JSON-снимок сущности — кладётся только в контекст операции
+     * (не в MDC, чтобы не раздувать строки журнала).
+     */
+    public void putEntityData(String entityData) {
+        Operation operation = currentOperation.get();
+        if (operation != null && entityData != null) {
+            operation.recordContext(MdcKeys.ENTITY_DATA, entityData);
+        }
+    }
+
     /** Текущая операция потока (null вне операции). */
     public Operation currentOperation() {
         return currentOperation.get();

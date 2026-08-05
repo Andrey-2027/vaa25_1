@@ -48,6 +48,14 @@ public final class TreeJsonRenderer {
             map.put("user", operation.getUser());
             map.put("traceId", operation.getTraceId());
             map.put("droppedFrames", operation.getDroppedFrames());
+            String entityData = operation.getContextValue(MdcKeys.ENTITY_DATA);
+            if (entityData != null) {
+                try {
+                    map.put("entityData", mapper.readTree(entityData));
+                } catch (Exception e) {
+                    map.put("entityData", entityData);
+                }
+            }
         }
         if (includeSql && !frame.getTraceSqls().isEmpty()) {
             List<Map<String, Object>> sqls = new ArrayList<>();

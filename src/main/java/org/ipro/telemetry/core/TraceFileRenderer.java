@@ -37,6 +37,10 @@ public final class TraceFileRenderer {
             sb.append("  ERROR: ").append(operation.getErrorMessage()).append('\n');
         }
         appendFrame(sb, operation, 1);
+        String entityData = operation.getContextValue(MdcKeys.ENTITY_DATA);
+        if (entityData != null) {
+            sb.append("\n  entityData: ").append(entityData).append('\n');
+        }
         return sb.toString();
     }
 

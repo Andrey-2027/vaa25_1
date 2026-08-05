@@ -22,10 +22,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExecutionTimeAspect {
 
-    private final OperationContext operationContext;
+    private static final int MAX_SNAPSHOT_CHARS = 16_384;
 
-    public ExecutionTimeAspect(OperationContext operationContext) {
+    private final OperationContext operationContext;
+    private final boolean entityDataEnabled;
+
+    public ExecutionTimeAspect(OperationContext operationContext, boolean entityDataEnabled) {
         this.operationContext = operationContext;
+        this.entityDataEnabled = entityDataEnabled;
     }
 
     @Pointcut("execution(* org.ip.service..*(..))")
@@ -65,17 +69,26 @@ public class ExecutionTimeAspect {
      */
     private void captureEntityContext(Object[] args) {
         Operation operation = operationContext.currentOperation();
-        if (operation == null || operation.getContextValue(MdcKeys.ENTITY_ID) != null) {
+        if (operation == null) {
             return;
         }
         for (Object arg : args) {
             if (arg == null || !isEntityLike(arg)) {
                 continue;
             }
-            Object id = findId(arg);
-            if (id != null) {
-                operationContext.putContext(MdcKeys.ENTITY, arg.getClass().getSimpleName());
-                operationContext.putContext(MdcKeys.ENTITY_ID, id.toString());
+            if (operation.getContextValue(MdcKeys.ENTITY_ID) == null) {
+                Object id = findId(arg);
+                if (id != null) {
+                    operationContext.putContext(MdcKeys.ENTITY, arg.getClass().getSimpleName());
+                    operationContext.putContext(MdcKeys.ENTITY_ID, id.toString());
+                }
+            }
+            if (entityDataEnabled
+                    && operation.getContextValue(MdcKeys.ENTITY_DATA) == null) {
+                String snapshot = EntitySnapshot.render(arg, MAX_SNAPSHOT_CHARS);
+                if (snapshot != null) {
+                    operationContext.putEntityData(snapshot);
+                }
             }
             break;
         }
