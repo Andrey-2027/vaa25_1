@@ -1,12 +1,16 @@
 package org.ipro.telemetry.config;
 
+import org.ipro.telemetry.api.EventSink;
 import org.ipro.telemetry.api.Telemetry;
 import org.ipro.telemetry.api.UserContext;
+import org.ipro.telemetry.core.AsyncEventSink;
 import org.ipro.telemetry.core.ExecutionTimeAspect;
+import org.ipro.telemetry.core.NoopEventSink;
 import org.ipro.telemetry.core.OperationCompletionHandler;
 import org.ipro.telemetry.core.OperationContext;
 import org.ipro.telemetry.core.PerfCounterStore;
 import org.ipro.telemetry.core.SlowOperationHandler;
+import org.ipro.telemetry.core.SqlTimingBridge;
 import org.ipro.telemetry.core.TelemetryGuard;
 import org.ipro.telemetry.core.TelemetryService;
 import org.ipro.telemetry.core.TraceRequestFilter;
@@ -17,6 +21,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Auto-Configuration подсистемы телеметрии. Пакеты org.ipro.telemetry.*
@@ -47,9 +53,24 @@ public class TelemetryAutoConfiguration {
         return new PerfCounterStore(properties.getL0WindowSeconds());
     }
 
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "ipro.telemetry", name = "db-journal",
+            havingValue = "true", matchIfMissing = true)
+    public EventSink telemetryEventSink(JdbcTemplate jdbcTemplate,
+                                        PlatformTransactionManager transactionManager) {
+        return new AsyncEventSink(jdbcTemplate, transactionManager, properties.getQueueSize());
+    }
+
     @Bean
-    public OperationCompletionHandler operationCompletionHandler() {
-        return new SlowOperationHandler(properties.getMethodThresholdMs());
+    @ConditionalOnMissingBean(EventSink.class)
+    public EventSink noopTelemetryEventSink() {
+        return NoopEventSink.INSTANCE;
+    }
+
+    @Bean
+    public OperationCompletionHandler operationCompletionHandler(EventSink eventSink) {
+        return new SlowOperationHandler(properties.getMethodThresholdMs(),
+                properties.getN1Threshold(), eventSink);
     }
 
     @Bean
@@ -57,8 +78,10 @@ public class TelemetryAutoConfiguration {
                                              UserContext userContext,
                                              OperationCompletionHandler completionHandler) {
         TelemetryGuard.setEnabled(properties.isEnabled());
-        return new OperationContext(perfCounterStore, userContext, completionHandler,
-                properties.getFrameLimit());
+        OperationContext operationContext = new OperationContext(perfCounterStore, userContext,
+                completionHandler, properties.getFrameLimit());
+        SqlTimingBridge.setOperationContext(operationContext);
+        return operationContext;
     }
 
     @Bean
@@ -82,7 +105,8 @@ public class TelemetryAutoConfiguration {
     }
 
     @Bean(destroyMethod = "close")
-    public WindowReporter windowReporter(PerfCounterStore perfCounterStore) {
-        return new WindowReporter(perfCounterStore, properties.getL0WindowSeconds());
+    public WindowReporter windowReporter(PerfCounterStore perfCounterStore,
+                                         EventSink eventSink) {
+        return new WindowReporter(perfCounterStore, properties.getL0WindowSeconds(), eventSink);
     }
 }

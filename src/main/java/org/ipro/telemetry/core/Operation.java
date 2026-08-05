@@ -2,12 +2,15 @@ package org.ipro.telemetry.core;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Корневой фрейм операции: хранит traceId, пользователя, контекстные
  * ключи MDC, добавленные за время операции (для корректной очистки),
- * и сообщение об ошибке при неудачном завершении.
+ * сообщение об ошибке при неудачном завершении и счётчики
+ * нормализованных SQL для N+1-детекции.
  */
 public final class Operation extends Frame {
 
@@ -16,6 +19,7 @@ public final class Operation extends Frame {
     private final String sessionId;
     private final Instant startedAt;
     private final List<String> mdcKeysAdded = new ArrayList<>();
+    private final Map<String, Integer> sqlCounts = new HashMap<>();
     private String errorMessage;
     private int droppedFrames;
     private int nodeCount = 1;
@@ -74,5 +78,19 @@ public final class Operation extends Frame {
 
     public void incrementDroppedFrames() {
         droppedFrames++;
+    }
+
+    public void countSql(String normalizedSql) {
+        sqlCounts.merge(normalizedSql, 1, Integer::sum);
+    }
+
+    /** N+1-эвристика: один и тот же нормализованный SQL >= threshold раз за операцию. */
+    public boolean isN1(int threshold) {
+        for (int count : sqlCounts.values()) {
+            if (count >= threshold) {
+                return true;
+            }
+        }
+        return false;
     }
 }

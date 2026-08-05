@@ -1,5 +1,6 @@
 package org.ipro.telemetry.core;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -12,13 +13,14 @@ import java.util.concurrent.atomic.LongAdder;
  * L0-агрегаты: in-memory счётчики по ключам (метод / нормализованный SQL):
  * count, total, min, max и приближённый p95 по петле записей последних N
  * длительностей. Rolling-окно {@link #rollWindow()} сбрасывает накопленное
- * и передаёт снапшот вызывающему.
+ * и возвращает снапшот окна (начало окна + счётчики).
  */
 public final class PerfCounterStore {
 
     private final ConcurrentHashMap<String, Counter> counters = new ConcurrentHashMap<>();
     private final long windowNanos;
     private volatile long windowStartNanos = System.nanoTime();
+    private volatile long windowStartEpochMs = System.currentTimeMillis();
 
     public PerfCounterStore(long windowSeconds) {
         this.windowNanos = windowSeconds * 1_000_000_000L;
@@ -31,9 +33,9 @@ public final class PerfCounterStore {
 
     /**
      * Если окно истекло — снять снапшоты всех счётчиков, сбросить их
-     * и вернуть список; иначе null.
+     * и вернуть снапшот окна; иначе null.
      */
-    public List<CounterSnapshot> rollWindow() {
+    public WindowSnapshot rollWindow() {
         long now = System.nanoTime();
         if (now - windowStartNanos < windowNanos) {
             return null;
@@ -42,7 +44,9 @@ public final class PerfCounterStore {
             if (now - windowStartNanos < windowNanos) {
                 return null;
             }
+            Instant windowStart = Instant.ofEpochMilli(windowStartEpochMs);
             windowStartNanos = now;
+            windowStartEpochMs = System.currentTimeMillis();
             List<CounterSnapshot> snapshots = new ArrayList<>(counters.size());
             counters.forEach((key, counter) -> {
                 CounterSnapshot snapshot = counter.snapshot();
@@ -51,12 +55,16 @@ public final class PerfCounterStore {
                 }
             });
             counters.clear();
-            return snapshots;
+            return new WindowSnapshot(windowStart, snapshots);
         }
     }
 
     public Map<String, Counter> counters() {
         return counters;
+    }
+
+    /** Снапшот окна: момент начала окна + счётчики, накопленные за окно. */
+    public record WindowSnapshot(Instant windowStart, List<CounterSnapshot> snapshots) {
     }
 
     public record CounterSnapshot(String key, long count, double totalMs, double avgMs,

@@ -15,6 +15,7 @@ public class Frame {
     private boolean failed;
     private int sqlCount;
     private long sqlTotalNanos;
+    private long sqlMaxNanos;
     private final List<Frame> children = new ArrayList<>();
 
     public Frame(String name) {
@@ -57,6 +58,9 @@ public class Frame {
     public void addSql(long executionNanos) {
         sqlCount++;
         sqlTotalNanos += executionNanos;
+        if (executionNanos > sqlMaxNanos) {
+            sqlMaxNanos = executionNanos;
+        }
     }
 
     public int getSqlCount() {
@@ -65,5 +69,9 @@ public class Frame {
 
     public long getSqlTotalNanos() {
         return sqlTotalNanos;
+    }
+
+    public long getSqlMaxNanos() {
+        return sqlMaxNanos;
     }
 }

@@ -10,6 +10,7 @@ public class TelemetryProperties {
     private boolean dbJournal = true;
     private long methodThresholdMs = 200;
     private long sqlThresholdMs = 100;
+    private int n1Threshold = 5;
     private long l0WindowSeconds = 60;
     private int traceDefaultMinutes = 10;
     private boolean includeParams = false;
@@ -53,6 +54,14 @@ public class TelemetryProperties {
 
     public void setSqlThresholdMs(long sqlThresholdMs) {
         this.sqlThresholdMs = sqlThresholdMs;
+    }
+
+    public int getN1Threshold() {
+        return n1Threshold;
+    }
+
+    public void setN1Threshold(int n1Threshold) {
+        this.n1Threshold = n1Threshold;
     }
 
     public long getL0WindowSeconds() {

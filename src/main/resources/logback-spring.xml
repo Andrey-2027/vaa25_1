@@ -61,5 +61,6 @@
     <logger name="org.hibernate.SQL" level="WARN"/>
     <logger name="org.hibernate.orm.jdbc.bind" level="WARN"/>
     <logger name="org.hibernate.orm.jdbc.extract" level="WARN"/>
+    <logger name="org.hibernate.SQL_SLOW" level="INFO"/>
 
 </configuration>

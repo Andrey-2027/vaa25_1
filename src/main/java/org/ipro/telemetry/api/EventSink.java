@@ -15,5 +15,13 @@ public interface EventSink {
 
     void acceptDurable(TelemetryEvent event);
 
+    /** Персист L0-агрегата окна в perf_stats (некритичный путь, fire-and-forget). */
+    void acceptStats(AggregateStats stats);
+
     void flush();
+
+    /** true — sink-заглушка (БД-журнал выключен); события не пишутся никуда. */
+    default boolean isNoop() {
+        return false;
+    }
 }
