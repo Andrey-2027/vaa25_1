@@ -60,6 +60,7 @@ public final class OperationContext {
                     traceId,
                     userContext.currentUsername(),
                     null);
+            operation.setTraceActive("1".equals(MDC.get(MdcKeys.TRACE)));
             MDC.put(MdcKeys.TRACE_ID, operation.getTraceId());
             MDC.put(MdcKeys.USER, operation.getUser());
             MDC.put(MdcKeys.OPERATION, name);

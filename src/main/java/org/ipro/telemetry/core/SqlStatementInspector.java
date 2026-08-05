@@ -24,6 +24,9 @@ public final class SqlStatementInspector implements StatementInspector {
         Operation operation = SqlTimingBridge.currentOperation();
         if (operation != null) {
             operation.countSql(SqlNormalizer.normalize(sql));
+            if (operation.isTraceActive()) {
+                SqlTimingBridge.setLastStatement(sql);
+            }
         }
         return sql;
     }

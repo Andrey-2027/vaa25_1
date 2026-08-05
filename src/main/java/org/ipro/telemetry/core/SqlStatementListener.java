@@ -53,8 +53,12 @@ public final class SqlStatementListener extends BaseSessionEventListener {
             return;
         }
         long duration = System.nanoTime() - starts.pop();
+        String sql = SqlTimingBridge.takeLastStatement();
         Frame frame = SqlTimingBridge.currentFrame();
         if (frame != null) {
+            if (sql != null) {
+                frame.traceSql(sql, duration);
+            }
             frame.addSql(duration);
         }
     }

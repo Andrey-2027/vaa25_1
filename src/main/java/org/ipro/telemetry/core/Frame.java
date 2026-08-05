@@ -17,6 +17,7 @@ public class Frame {
     private long sqlTotalNanos;
     private long sqlMaxNanos;
     private final List<Frame> children = new ArrayList<>();
+    private List<SqlRecord> traceSqls;
 
     public Frame(String name) {
         this.name = name;
@@ -61,6 +62,18 @@ public class Frame {
         if (executionNanos > sqlMaxNanos) {
             sqlMaxNanos = executionNanos;
         }
+    }
+
+    /** Зафиксировать SQL-текст для L2-трассы (только при активной трассе). */
+    public void traceSql(String sql, long executionNanos) {
+        if (traceSqls == null) {
+            traceSqls = new ArrayList<>(4);
+        }
+        traceSqls.add(new SqlRecord(sql, executionNanos));
+    }
+
+    public List<SqlRecord> getTraceSqls() {
+        return traceSqls == null ? List.of() : traceSqls;
     }
 
     public int getSqlCount() {

@@ -14,6 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * {"name":"op","durationMs":..,"sqlCount":..,"sqlTotalMs":..,"sqlMaxMs":..,
  *  "failed":false,"droppedFrames":0,"children":[{"name":"svc.m()",...}]}
  * </pre>
+ * При {@code includeSql=true} (L2-трасса) в каждый фрейм добавляется
+ * список выполненных SQL: {"sql":[{"text":"select ..","ms":..},...]}.
  */
 public final class TreeJsonRenderer {
 
@@ -23,14 +25,18 @@ public final class TreeJsonRenderer {
     }
 
     public static String render(Operation operation) {
+        return render(operation, false);
+    }
+
+    public static String render(Operation operation, boolean includeSql) {
         try {
-            return mapper.writeValueAsString(toMap(operation));
+            return mapper.writeValueAsString(toMap(operation, includeSql));
         } catch (Exception e) {
             return "{\"error\":\"tree json failed\"}";
         }
     }
 
-    private static Map<String, Object> toMap(Frame frame) {
+    private static Map<String, Object> toMap(Frame frame, boolean includeSql) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("name", frame.getName());
         map.put("durationMs", round(frame.getDurationNanos() / 1_000_000.0));
@@ -43,9 +49,19 @@ public final class TreeJsonRenderer {
             map.put("traceId", operation.getTraceId());
             map.put("droppedFrames", operation.getDroppedFrames());
         }
+        if (includeSql && !frame.getTraceSqls().isEmpty()) {
+            List<Map<String, Object>> sqls = new ArrayList<>();
+            for (SqlRecord record : frame.getTraceSqls()) {
+                Map<String, Object> sqlMap = new LinkedHashMap<>();
+                sqlMap.put("text", record.sql());
+                sqlMap.put("ms", round(record.executionNanos() / 1_000_000.0));
+                sqls.add(sqlMap);
+            }
+            map.put("sql", sqls);
+        }
         List<Map<String, Object>> children = new ArrayList<>();
         for (Frame child : frame.getChildren()) {
-            children.add(toMap(child));
+            children.add(toMap(child, includeSql));
         }
         map.put("children", children);
         return map;

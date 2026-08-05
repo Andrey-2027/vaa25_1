@@ -2,9 +2,11 @@ package org.ipro.telemetry.config;
 
 import org.ipro.telemetry.api.EventSink;
 import org.ipro.telemetry.api.Telemetry;
+import org.ipro.telemetry.api.TraceService;
 import org.ipro.telemetry.api.UserContext;
 import org.ipro.telemetry.core.AppLifecycleLogger;
 import org.ipro.telemetry.core.AsyncEventSink;
+import org.ipro.telemetry.core.CompositeOperationHandler;
 import org.ipro.telemetry.core.ExecutionTimeAspect;
 import org.ipro.telemetry.core.NoopEventSink;
 import org.ipro.telemetry.core.OperationCompletionHandler;
@@ -17,7 +19,9 @@ import org.ipro.telemetry.core.TelemetryBridge;
 import org.ipro.telemetry.core.TelemetryGuard;
 import org.ipro.telemetry.core.TelemetryService;
 import org.ipro.telemetry.core.TelemetryVaadinInitListener;
+import org.ipro.telemetry.core.TraceDumpHandler;
 import org.ipro.telemetry.core.TraceRequestFilter;
+import org.ipro.telemetry.core.TraceServiceImpl;
 import org.ipro.telemetry.core.WindowReporter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -27,6 +31,8 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import java.util.List;
 
 /**
  * Auto-Configuration подсистемы телеметрии. Пакеты org.ipro.telemetry.*
@@ -77,8 +83,11 @@ public class TelemetryAutoConfiguration {
 
     @Bean
     public OperationCompletionHandler operationCompletionHandler(EventSink eventSink) {
-        return new SlowOperationHandler(properties.getMethodThresholdMs(),
+        SlowOperationHandler slow = new SlowOperationHandler(properties.getMethodThresholdMs(),
                 properties.getN1Threshold(), eventSink);
+        TraceDumpHandler dump = new TraceDumpHandler(eventSink, properties.getTraceDir(),
+                properties.getN1Threshold());
+        return new CompositeOperationHandler(List.of(slow, dump));
     }
 
     @Bean
@@ -120,13 +129,27 @@ public class TelemetryAutoConfiguration {
     }
 
     @Bean
-    public FilterRegistrationBean<TraceRequestFilter> traceRequestFilter() {
+    public FilterRegistrationBean<TraceRequestFilter> traceRequestFilter(TraceService traceService) {
         FilterRegistrationBean<TraceRequestFilter> registration =
-                new FilterRegistrationBean<>(new TraceRequestFilter());
+                new FilterRegistrationBean<>(new TraceRequestFilter(traceService));
         registration.addUrlPatterns("/*");
         registration.setName("telemetryTraceRequestFilter");
         registration.setOrder(1);
         return registration;
+    }
+
+    @Bean
+    public TraceService traceService(JdbcTemplate jdbcTemplate) {
+        return new TraceServiceImpl(jdbcTemplate);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "ipro.telemetry", name = "trace-self-test",
+            havingValue = "true")
+    public TraceSelfTest traceSelfTest(jakarta.persistence.EntityManagerFactory entityManagerFactory,
+                                       PlatformTransactionManager transactionManager,
+                                       Telemetry telemetry) {
+        return new TraceSelfTest(entityManagerFactory, transactionManager, telemetry);
     }
 
     @Bean(destroyMethod = "close")

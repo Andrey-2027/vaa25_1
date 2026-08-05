@@ -6,5 +6,6 @@ public enum EventType {
     ACTION,
     SECURITY,
     ERROR,
-    APP
+    APP,
+    TRACE
 }

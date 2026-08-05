@@ -27,6 +27,7 @@ public final class Operation extends Frame {
     private final Map<String, Integer> sqlCounts = new HashMap<>();
     private final Map<String, String> context = new HashMap<>();
     private EventType eventType = EventType.PERF_METHOD;
+    private boolean traceActive;
     private String errorMessage;
     private int droppedFrames;
     private int nodeCount = 1;
@@ -93,6 +94,15 @@ public final class Operation extends Frame {
 
     public void setEventType(EventType eventType) {
         this.eventType = eventType;
+    }
+
+    /** true — операция выполняется в окне L2-трассировки (детальный сбор). */
+    public boolean isTraceActive() {
+        return traceActive;
+    }
+
+    public void setTraceActive(boolean traceActive) {
+        this.traceActive = traceActive;
     }
 
     public void recordContext(String key, String value) {

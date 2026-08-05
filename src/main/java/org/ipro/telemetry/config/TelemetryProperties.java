@@ -17,6 +17,7 @@ public class TelemetryProperties {
     private int queueSize = 10_000;
     private int frameLimit = 500;
     private String fileDir = "logs";
+    private String traceDir = "logs/traces";
     private String appName = "app";
 
     @NestedConfigurationProperty
@@ -119,6 +120,14 @@ public class TelemetryProperties {
 
     public void setAppName(String appName) {
         this.appName = appName;
+    }
+
+    public String getTraceDir() {
+        return traceDir;
+    }
+
+    public void setTraceDir(String traceDir) {
+        this.traceDir = traceDir;
     }
 
     public Sql getSql() {
