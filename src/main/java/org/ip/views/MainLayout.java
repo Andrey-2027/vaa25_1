@@ -16,6 +16,7 @@ import jakarta.annotation.security.PermitAll;
 import org.ip.form.coordinator.FormCoordinator;
 import org.ip.metadata.SubsystemNode;
 import org.ip.metadata.SubsystemRegistry;
+import org.ip.views.admin.AdminView;
 import org.ip.views.directory.WorkshopListView;
 import org.ip.views.preferences.DensityToggle;
 import org.ip.views.preferences.UserPreferencesStore;
@@ -24,6 +25,8 @@ import org.ip.views.workspace.SubsystemHomeView;
 import org.ip.views.workspace.Workspace;
 import org.ip.views.workspace.WorkspaceManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 @Route("")
@@ -86,6 +89,15 @@ public class MainLayout extends AppLayout {
         homeItem.getElement().addEventListener("click", e -> workspace.open(MainView.class, "home", "Главная", v -> {}));
         nav.addItem(homeItem);
 
+        if (isAdmin()) {
+            SideNavItem adminItem = new SideNavItem("Администрирование");
+            adminItem.setPrefixComponent(new Icon(VaadinIcon.SHIELD));
+            adminItem.getElement().addEventListener("click", e ->
+                    workspace.open(AdminView.class, "admin-telemetry",
+                            "Администрирование", v -> {}));
+            nav.addItem(adminItem);
+        }
+
         for (SubsystemNode root : subsystemRegistry.getRoots()) {
             nav.addItem(buildNavItem(root));
         }
@@ -131,5 +143,11 @@ public class MainLayout extends AppLayout {
         String tabId = "subsystem-" + node.getMarkerClass().getSimpleName();
         workspace.open(SubsystemHomeView.class, tabId, node.getTitle(),
             (SubsystemHomeView v) -> v.init(node, workspace));
+    }
+
+    private static boolean isAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(g -> "ROLE_ADMIN".equals(g.getAuthority()));
     }
 }

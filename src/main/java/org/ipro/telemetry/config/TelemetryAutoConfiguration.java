@@ -8,6 +8,7 @@ import org.ipro.telemetry.core.AppLifecycleLogger;
 import org.ipro.telemetry.core.AsyncEventSink;
 import org.ipro.telemetry.core.CompositeOperationHandler;
 import org.ipro.telemetry.core.ExecutionTimeAspect;
+import org.ipro.telemetry.core.JournalQueryService;
 import org.ipro.telemetry.core.NoopEventSink;
 import org.ipro.telemetry.core.OperationCompletionHandler;
 import org.ipro.telemetry.core.OperationContext;
@@ -144,6 +145,11 @@ public class TelemetryAutoConfiguration {
     @Bean
     public TraceService traceService(JdbcTemplate jdbcTemplate) {
         return new TraceServiceImpl(jdbcTemplate);
+    }
+
+    @Bean
+    public JournalQueryService journalQueryService(JdbcTemplate jdbcTemplate) {
+        return new JournalQueryService(jdbcTemplate);
     }
 
     @Bean
