@@ -6,11 +6,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ipro.telemetry.api.EventType;
+
 /**
  * Корневой фрейм операции: хранит traceId, пользователя, контекстные
  * ключи MDC, добавленные за время операции (для корректной очистки),
- * сообщение об ошибке при неудачном завершении и счётчики
- * нормализованных SQL для N+1-детекции.
+ * сообщение об ошибке при неудачном завершении, счётчики
+ * нормализованных SQL для N+1-детекции, а также тип события
+ * (ACTION — явная операция, пишется в журнал действий всегда;
+ * PERF_METHOD — AOP-перехват, пишется только при аномалии)
+ * и именованный контекст (entity/entityId) для журнала.
  */
 public final class Operation extends Frame {
 
@@ -20,6 +25,8 @@ public final class Operation extends Frame {
     private final Instant startedAt;
     private final List<String> mdcKeysAdded = new ArrayList<>();
     private final Map<String, Integer> sqlCounts = new HashMap<>();
+    private final Map<String, String> context = new HashMap<>();
+    private EventType eventType = EventType.PERF_METHOD;
     private String errorMessage;
     private int droppedFrames;
     private int nodeCount = 1;
@@ -78,6 +85,24 @@ public final class Operation extends Frame {
 
     public void incrementDroppedFrames() {
         droppedFrames++;
+    }
+
+    public EventType getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(EventType eventType) {
+        this.eventType = eventType;
+    }
+
+    public void recordContext(String key, String value) {
+        if (value != null) {
+            context.put(key, value);
+        }
+    }
+
+    public String getContextValue(String key) {
+        return context.get(key);
     }
 
     public void countSql(String normalizedSql) {

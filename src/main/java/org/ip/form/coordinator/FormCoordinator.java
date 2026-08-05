@@ -19,6 +19,9 @@ import org.ip.service.BaseService;
 import org.ip.service.ServiceLocator;
 import org.ip.views.workspace.Workspace;
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.telemetry.api.OperationScope;
+import org.ipro.telemetry.core.MdcKeys;
+import org.ipro.telemetry.core.TelemetryBridge;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -284,12 +287,18 @@ public class FormCoordinator {
                                                                   String variant,
                                                                   ID id,
                                                                   Consumer<T> onSaved) {
-        EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
+        Map<String, String> context = id != null
+                ? Map.of(MdcKeys.ENTITY_ID, id.toString())
+                : null;
+        try (OperationScope scope = TelemetryBridge.beginOperation(
+                "openItemForm:" + entityClass.getSimpleName(), context)) {
+            EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
 
-        if (itemFormOpenMode == FormOpenMode.WORKSPACE_TAB) {
-            openItemFormInWorkspace(entityClass, variant, id, onSaved, meta);
-        } else {
-            openItemFormAsDialog(entityClass, variant, id, onSaved, meta);
+            if (itemFormOpenMode == FormOpenMode.WORKSPACE_TAB) {
+                openItemFormInWorkspace(entityClass, variant, id, onSaved, meta);
+            } else {
+                openItemFormAsDialog(entityClass, variant, id, onSaved, meta);
+            }
         }
     }
 

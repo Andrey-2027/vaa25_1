@@ -2,8 +2,10 @@ package org.ipro.telemetry.core;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Map;
 import java.util.UUID;
 
+import org.ipro.telemetry.api.EventType;
 import org.ipro.telemetry.api.OperationScope;
 import org.ipro.telemetry.api.UserContext;
 import org.slf4j.MDC;
@@ -127,6 +129,7 @@ public final class OperationContext {
         if (operation != null && value != null) {
             MDC.put(key, value);
             operation.addMdcKey(key);
+            operation.recordContext(key, value);
         }
     }
 
@@ -141,8 +144,28 @@ public final class OperationContext {
         return frames != null && !frames.isEmpty() ? frames.peek() : null;
     }
 
+    /**
+     * Явная операция (журнал действий): если стек пуст, создаёт операцию
+     * типа ACTION и кладёт контекст в MDC; при активной операции — no-op-скоуп.
+     */
     public OperationScope beginOperation(String name) {
+        return beginOperation(name, null);
+    }
+
+    public OperationScope beginOperation(String name, Map<String, String> context) {
         Frame frame = beginFrame(name);
+        if (frame instanceof Operation operation) {
+            operation.setEventType(EventType.ACTION);
+            if (context != null) {
+                context.forEach((key, value) -> {
+                    if (value != null) {
+                        MDC.put(key, value);
+                        operation.addMdcKey(key);
+                        operation.recordContext(key, value);
+                    }
+                });
+            }
+        }
         return new OperationScopeImpl(this, frame);
     }
 

@@ -29,6 +29,8 @@ import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.ipro.filtergrid.util.JpaPathUtil;
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.telemetry.api.OperationScope;
+import org.ipro.telemetry.core.TelemetryBridge;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -364,7 +366,25 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     // === Данные ===
 
     public void refresh() {
-        filterGrid.refreshAll();
+        String entityName = entityName();
+        OperationScope scope = null;
+        try {
+            scope = TelemetryBridge.beginOperation("refresh:" + entityName);
+            filterGrid.refreshAll();
+        } catch (RuntimeException ex) {
+            if (scope != null) {
+                scope.fail(ex);
+            }
+            throw ex;
+        } finally {
+            if (scope != null) {
+                scope.close();
+            }
+        }
+    }
+
+    private String entityName() {
+        return metadata != null ? metadata.getEntityClass().getSimpleName() : "?";
     }
 
     @SuppressWarnings("unchecked")
@@ -377,15 +397,24 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         dialog.setConfirmButtonTheme("error primary");
         dialog.addConfirmListener(e -> {
             if (service != null) {
+                OperationScope scope = null;
                 try {
                     ID id = (ID) entity.getId();
+                    scope = TelemetryBridge.beginOperation("delete:" + entityName());
                     service.delete(id);
                     refresh();
                     if (onDelete != null) onDelete.accept(entity);
                 } catch (Exception ex) {
+                    if (scope != null) {
+                        scope.fail(ex);
+                    }
                     String message = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
                     Notification.show(message, 5000, Notification.Position.MIDDLE)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                } finally {
+                    if (scope != null) {
+                        scope.close();
+                    }
                 }
             } else if (onDelete != null) {
                 onDelete.accept(entity);

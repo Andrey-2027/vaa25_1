@@ -24,4 +24,22 @@ public interface OperationScope extends AutoCloseable {
 
     /** true — операция была реально создана данным вызовом; false — no-op. */
     boolean isActive();
+
+    /** Пустой скоуп (телеметрия выключена/мост не инициализирован). */
+    static OperationScope noop() {
+        return new OperationScope() {
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public void fail(Throwable t) {
+            }
+
+            @Override
+            public boolean isActive() {
+                return false;
+            }
+        };
+    }
 }

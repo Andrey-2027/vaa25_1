@@ -29,6 +29,8 @@ import org.ip.metadata.FieldMetadataInfo;
 import org.ip.model.HasDisplayName;
 import org.ip.views.components.EntityField;
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.telemetry.api.OperationScope;
+import org.ipro.telemetry.core.TelemetryBridge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -506,11 +508,24 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
 
     @Override
     public boolean doSave() {
-        if (onSave != null) {
-            onSave.run();
-            return !isDirty(); // если after-save snapshot обновился — isDirty() вернёт false
+        OperationScope scope = null;
+        try {
+            scope = TelemetryBridge.beginOperation("save:" + entityClass.getSimpleName());
+            if (onSave != null) {
+                onSave.run();
+                return !isDirty(); // если after-save snapshot обновился — isDirty() вернёт false
+            }
+            return false;
+        } catch (RuntimeException ex) {
+            if (scope != null) {
+                scope.fail(ex);
+            }
+            throw ex;
+        } finally {
+            if (scope != null) {
+                scope.close();
+            }
         }
-        return false;
     }
 
     // === Валидация ===

@@ -3,16 +3,20 @@ package org.ipro.telemetry.config;
 import org.ipro.telemetry.api.EventSink;
 import org.ipro.telemetry.api.Telemetry;
 import org.ipro.telemetry.api.UserContext;
+import org.ipro.telemetry.core.AppLifecycleLogger;
 import org.ipro.telemetry.core.AsyncEventSink;
 import org.ipro.telemetry.core.ExecutionTimeAspect;
 import org.ipro.telemetry.core.NoopEventSink;
 import org.ipro.telemetry.core.OperationCompletionHandler;
 import org.ipro.telemetry.core.OperationContext;
 import org.ipro.telemetry.core.PerfCounterStore;
+import org.ipro.telemetry.core.SecurityEventLogger;
 import org.ipro.telemetry.core.SlowOperationHandler;
 import org.ipro.telemetry.core.SqlTimingBridge;
+import org.ipro.telemetry.core.TelemetryBridge;
 import org.ipro.telemetry.core.TelemetryGuard;
 import org.ipro.telemetry.core.TelemetryService;
+import org.ipro.telemetry.core.TelemetryVaadinInitListener;
 import org.ipro.telemetry.core.TraceRequestFilter;
 import org.ipro.telemetry.core.WindowReporter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -91,7 +95,24 @@ public class TelemetryAutoConfiguration {
 
     @Bean
     public Telemetry telemetryService(OperationContext operationContext) {
-        return new TelemetryService(operationContext);
+        TelemetryService telemetryService = new TelemetryService(operationContext);
+        TelemetryBridge.set(telemetryService);
+        return telemetryService;
+    }
+
+    @Bean
+    public SecurityEventLogger securityEventLogger(EventSink eventSink) {
+        return new SecurityEventLogger(eventSink);
+    }
+
+    @Bean
+    public AppLifecycleLogger appLifecycleLogger(EventSink eventSink) {
+        return new AppLifecycleLogger(eventSink, properties.getAppName());
+    }
+
+    @Bean
+    public TelemetryVaadinInitListener telemetryVaadinInitListener(EventSink eventSink) {
+        return new TelemetryVaadinInitListener(eventSink);
     }
 
     @Bean

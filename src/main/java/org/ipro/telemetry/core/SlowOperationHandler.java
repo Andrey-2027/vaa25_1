@@ -7,10 +7,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Обработчик завершения операций (L1): при аномалии (медленно/ошибка/
- * dropped-фреймы/N+1) формирует событие с деревом фреймов в payload_json
- * и отправляет в {@link EventSink} (БД-журнал). Синхронная запись в файл —
- * только если БД-журнал выключен (noop-sink).
+ * Обработчик завершения операций (L1).
+ * <ul>
+ *   <li>ACTION-операции (явные: формы, security не тут) пишутся в журнал
+ *       ВСЕГДА — это журнал действий пользователя (1С-стиль); уровень
+ *       INFO (успех) / WARN (аномалия) / ERROR (ошибка).</li>
+ *   <li>PERF_METHOD-операции (AOP-перехват) — только при аномалии
+ *       (медленно/ошибка/dropped-фреймы/N+1), уровень WARN/ERROR.</li>
+ * </ul>
+ * В payload_json — дерево фреймов; entity/entityId берутся из контекста
+ * операции.
  */
 public final class SlowOperationHandler implements OperationCompletionHandler {
 
@@ -31,19 +37,20 @@ public final class SlowOperationHandler implements OperationCompletionHandler {
         double durationMs = operation.getDurationNanos() / 1_000_000.0;
         boolean n1 = operation.isN1(n1Threshold);
         String error = operation.getErrorMessage();
+        boolean isAction = operation.getEventType() == EventType.ACTION;
 
         boolean anomaly = error != null
                 || operation.getDroppedFrames() > 0
                 || durationMs >= methodThresholdMs
                 || n1;
-        if (!anomaly) {
+        if (!isAction && !anomaly) {
             return;
         }
 
-        String level = error != null ? "ERROR" : "WARN";
+        String level = error != null ? "ERROR" : (anomaly ? "WARN" : "INFO");
         String treeJson = TreeJsonRenderer.render(operation);
         sink.accept(new TelemetryEvent(
-                EventType.PERF_METHOD,
+                operation.getEventType(),
                 level,
                 operation.getStartedAt(),
                 Math.round(durationMs),
@@ -51,18 +58,17 @@ public final class SlowOperationHandler implements OperationCompletionHandler {
                 operation.getUser(),
                 operation.getSessionId(),
                 operation.getName(),
-                null,
-                null,
+                operation.getContextValue(MdcKeys.ENTITY),
+                operation.getContextValue(MdcKeys.ENTITY_ID),
                 operation.getSqlCount(),
                 operation.getSqlTotalNanos() == 0 ? null : operation.getSqlTotalNanos() / 1_000_000L,
                 n1,
                 error,
                 treeJson));
 
-        if (sink.isNoop()) {
-            logLine(operation, durationMs, n1, error, "\n" + TreeRenderer.render(operation));
-        } else {
-            logLine(operation, durationMs, n1, error, "");
+        if (sink.isNoop() || anomaly) {
+            logLine(operation, durationMs, n1, error,
+                    sink.isNoop() ? "\n" + TreeRenderer.render(operation) : "");
         }
     }
 
@@ -76,6 +82,9 @@ public final class SlowOperationHandler implements OperationCompletionHandler {
         }
         if (error != null) {
             log.error("{} error={}{}", suffix, error, tree);
+        } else if (operation.getEventType() == EventType.ACTION && durationMs < methodThresholdMs
+                && operation.getDroppedFrames() == 0 && !n1) {
+            log.info("{}{}", suffix, tree);
         } else {
             log.warn("{} droppedFrames={}{}", suffix, operation.getDroppedFrames(), tree);
         }
