@@ -12,6 +12,7 @@ import org.ipro.telemetry.core.NoopEventSink;
 import org.ipro.telemetry.core.OperationCompletionHandler;
 import org.ipro.telemetry.core.OperationContext;
 import org.ipro.telemetry.core.PerfCounterStore;
+import org.ipro.telemetry.core.RetentionPurgeJob;
 import org.ipro.telemetry.core.SecurityEventLogger;
 import org.ipro.telemetry.core.SlowOperationHandler;
 import org.ipro.telemetry.core.SqlTimingBridge;
@@ -30,6 +31,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
@@ -44,6 +46,7 @@ import java.util.List;
 @ConditionalOnProperty(prefix = "ipro.telemetry", name = "enabled",
         havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(TelemetryProperties.class)
+@EnableScheduling
 public class TelemetryAutoConfiguration {
 
     private final TelemetryProperties properties;
@@ -156,5 +159,15 @@ public class TelemetryAutoConfiguration {
     public WindowReporter windowReporter(PerfCounterStore perfCounterStore,
                                          EventSink eventSink) {
         return new WindowReporter(perfCounterStore, properties.getL0WindowSeconds(), eventSink);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "ipro.telemetry.retention", name = "purge-enabled",
+            havingValue = "true", matchIfMissing = true)
+    public RetentionPurgeJob retentionPurgeJob(JdbcTemplate jdbcTemplate) {
+        TelemetryProperties.Retention retention = properties.getRetention();
+        return new RetentionPurgeJob(jdbcTemplate, properties.getTraceDir(),
+                retention.getEventsDays(), retention.getSecurityDays(),
+                retention.getStatsDays(), retention.getTraceHours());
     }
 }
