@@ -53,3 +53,5 @@ src/main/bundles/
 
 ### Local scripts ###
 runcl.bat
+### Runtime logs ###
+logs/
