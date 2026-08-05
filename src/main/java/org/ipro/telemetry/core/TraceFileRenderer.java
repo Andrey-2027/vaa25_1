@@ -23,8 +23,16 @@ public final class TraceFileRenderer {
                 .append("\n  started: ").append(TIME.format(operation.getStartedAt()))
                 .append("\n  operation: ").append(operation.getName())
                 .append("  durationMs=").append(ms(operation.getDurationNanos()))
-                .append("  sqlCount=").append(operation.getSqlCount())
-                .append('\n');
+                .append("  sqlCount=").append(operation.getSqlCount());
+        String entity = operation.getContextValue(MdcKeys.ENTITY);
+        String entityId = operation.getContextValue(MdcKeys.ENTITY_ID);
+        if (entity != null) {
+            sb.append("  entity=").append(entity);
+        }
+        if (entityId != null) {
+            sb.append("  entityId=").append(entityId);
+        }
+        sb.append('\n');
         if (operation.getErrorMessage() != null) {
             sb.append("  ERROR: ").append(operation.getErrorMessage()).append('\n');
         }
