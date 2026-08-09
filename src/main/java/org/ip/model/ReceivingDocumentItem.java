@@ -3,7 +3,6 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import org.hibernate.envers.Audited;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
 import org.ip.metadata.annotation.Lookup;
@@ -21,7 +20,6 @@ import java.math.BigDecimal;
  */
 @Entity
 @Table(name = "receiving_document_item")
-@Audited
 @TableSectionMetadata(
     parentEntity = ReceivingDocument.class,
     parentField = "document",

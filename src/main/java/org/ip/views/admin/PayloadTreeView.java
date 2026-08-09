@@ -5,11 +5,17 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 
 /**
  * Рендер payload_json операции (журнал, этап 9) в дерево Vaadin (TreeGrid):
  * фреймы → длительности → выполненные SQL. Чистая функция, без состояния.
+ * <p>
+ * Под деревом — TextArea с полным текстом выбранного узла (SQL, снимок
+ * сущности): в самом дереве текст обрезан (400/500 символов).
  */
 public final class PayloadTreeView {
 
@@ -18,30 +24,54 @@ public final class PayloadTreeView {
     private PayloadTreeView() {
     }
 
-    /** Узел дерева журнала. */
-    public record PayloadNode(String label, List<PayloadNode> children) {
+    /** Узел дерева журнала: label (обрезанный) + detail (полный текст). */
+    public record PayloadNode(String label, String detail, List<PayloadNode> children) {
     }
 
-    public static TreeGrid<PayloadNode> build(String payloadJson) {
+    public static VerticalLayout build(String payloadJson) {
         TreeGrid<PayloadNode> tree = new TreeGrid<>();
         tree.addHierarchyColumn(PayloadNode::label).setHeader("Дерево операции");
         tree.setWidthFull();
         tree.setHeightFull();
-        if (payloadJson == null || payloadJson.isBlank()) {
-            return tree;
+        tree.setSelectionMode(com.vaadin.flow.component.grid.Grid.SelectionMode.SINGLE);
+
+        TextArea detail = new TextArea("Расшифровка выбранного узла");
+        detail.setWidthFull();
+        detail.setHeight("200px");
+        detail.setReadOnly(true);
+        detail.setHelperText("Клик по узлу — полный текст (SQL, снимок сущности, кадр)");
+        detail.getStyle().set("font-family", "monospace");
+        detail.getStyle().set("font-size", "12px");
+        detail.addAttachListener(e -> detail.getElement().executeJs(
+                "const t = this.shadowRoot && this.shadowRoot.querySelector('textarea');"
+                        + "if (t) { t.style.overflowY = 'auto'; t.style.overflowX = 'hidden';"
+                        + " t.style.whiteSpace = 'pre-wrap'; t.style.wordBreak = 'break-word'; }"));
+
+        tree.asSingleSelect().addValueChangeListener(e -> {
+            PayloadNode selected = e.getValue();
+            detail.setValue(selected == null ? "" : selected.detail());
+        });
+
+        VerticalLayout layout = new VerticalLayout(tree, detail);
+        layout.setSizeFull();
+        layout.setPadding(false);
+        layout.setSpacing(true);
+        layout.setFlexGrow(1, tree);
+
+        if (payloadJson != null && !payloadJson.isBlank()) {
+            JsonNode root;
+            try {
+                root = MAPPER.readTree(payloadJson);
+            } catch (Exception e) {
+                tree.setItems(List.of(new PayloadNode(payloadJson, payloadJson, List.of())),
+                        PayloadNode::children);
+                return layout;
+            }
+            PayloadNode rootNode = toNode(root, "operation");
+            tree.setItems(List.of(rootNode), PayloadNode::children);
+            tree.expand(rootNode);
         }
-        JsonNode root;
-        try {
-            root = MAPPER.readTree(payloadJson);
-        } catch (Exception e) {
-            List<PayloadNode> raw = List.of(new PayloadNode(payloadJson, List.of()));
-            tree.setItems(raw, PayloadNode::children);
-            return tree;
-        }
-        PayloadNode rootNode = toNode(root, "operation");
-        tree.setItems(List.of(rootNode), PayloadNode::children);
-        tree.expand(rootNode);
-        return tree;
+        return layout;
     }
 
     private static PayloadNode toNode(JsonNode node, String fallbackName) {
@@ -72,17 +102,16 @@ public final class PayloadTreeView {
                 String ms = sqlNode.path("ms").isNumber()
                         ? fmt(sqlNode.path("ms").asDouble())
                         : "?";
-                children.add(new PayloadNode(text.length() > 400
-                        ? "SQL (" + ms + " ms): " + text.substring(0, 400) + "…"
-                        : "SQL (" + ms + " ms): " + text, List.of()));
+                String full = "SQL (" + ms + " ms):\n" + text;
+                children.add(new PayloadNode(truncate(full, 400), full, List.of()));
             }
         }
         JsonNode entityData = node.path("entityData");
         if (entityData.isContainerNode()) {
             String data = entityData.toString();
-            children.add(new PayloadNode(data.length() > 500
-                    ? "entityData: " + data.substring(0, 500) + "…"
-                    : "entityData: " + data, List.of()));
+            children.add(new PayloadNode(
+                    truncate("entityData: " + data, 500),
+                    "entityData:\n" + data, List.of()));
         }
         JsonNode childNodes = node.path("children");
         if (childNodes.isArray()) {
@@ -90,7 +119,24 @@ public final class PayloadTreeView {
                 children.add(toNode(child, "frame"));
             }
         }
-        return new PayloadNode(label.toString(), children);
+
+        String detail = nodeWithoutChildren(node);
+        return new PayloadNode(label.toString(), detail, children);
+    }
+
+    /** Полный JSON кадра без ветки children (она уже развёрнута в дереве). */
+    private static String nodeWithoutChildren(JsonNode node) {
+        try {
+            ObjectNode copy = node.deepCopy();
+            copy.remove("children");
+            return copy.toString();
+        } catch (Exception e) {
+            return node.toString();
+        }
+    }
+
+    private static String truncate(String text, int max) {
+        return text.length() <= max ? text : text.substring(0, max) + "…";
     }
 
     private static String fmt(double value) {

@@ -25,6 +25,9 @@ public class TelemetryProperties {
     private Sql sql = new Sql();
 
     @NestedConfigurationProperty
+    private FieldAudit fieldAudit = new FieldAudit();
+
+    @NestedConfigurationProperty
     private Retention retention = new Retention();
 
     public boolean isEnabled() {
@@ -147,6 +150,14 @@ public class TelemetryProperties {
         this.sql = sql;
     }
 
+    public FieldAudit getFieldAudit() {
+        return fieldAudit;
+    }
+
+    public void setFieldAudit(FieldAudit fieldAudit) {
+        this.fieldAudit = fieldAudit;
+    }
+
     public Retention getRetention() {
         return retention;
     }
@@ -167,11 +178,47 @@ public class TelemetryProperties {
         }
     }
 
+    /**
+     * Field-level аудит (этап 10): whitelist сущностей и redaction-список
+     * чувствительных полей (значения пишутся как "***").
+     */
+    public static class FieldAudit {
+        /**
+         * Сущности, для которых ведётся история изменений. По умолчанию — те же,
+         * что были покрыты Hibernate Envers до демонтажа (паритет охвата).
+         */
+        private String entities = "Nomenclature,ReceivingDocument,ReceivingDocumentItem,"
+                + "PrdSpec,PrdSpecMtr,PrdSpecOper,Workshop,UnitOfMeasurement,Journal,"
+                + "GridFormView,Oper";
+        private String redactFields = "password,token,secret";
+
+        public String getEntities() {
+            return entities;
+        }
+
+        public void setEntities(String entities) {
+            this.entities = entities;
+        }
+
+        public String getRedactFields() {
+            return redactFields;
+        }
+
+        public void setRedactFields(String redactFields) {
+            this.redactFields = redactFields;
+        }
+    }
+
     public static class Retention {
         private int eventsDays = 90;
         private int securityDays = 365;
         private int statsDays = 365;
         private int traceHours = 72;
+        /**
+         * Срок хранения журнала изменений полей. Дефолт 0 = не чистить:
+         * комплаенс-параметр, конкретный срок — решение заказчика.
+         */
+        private int fieldAuditDays = 0;
 
         public int getEventsDays() {
             return eventsDays;
@@ -203,6 +250,14 @@ public class TelemetryProperties {
 
         public void setTraceHours(int traceHours) {
             this.traceHours = traceHours;
+        }
+
+        public int getFieldAuditDays() {
+            return fieldAuditDays;
+        }
+
+        public void setFieldAuditDays(int fieldAuditDays) {
+            this.fieldAuditDays = fieldAuditDays;
         }
     }
 }

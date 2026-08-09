@@ -20,7 +20,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 /**
  * Retention (этап 8): ежедневная очистка данных телеметрии по срокам
  * хранения. Удаляет из operation_log события (кроме SECURITY — 90 дней,
- * SECURITY — 1 год), агрегаты perf_stats (1 год) и старые trace-файлы.
+ * SECURITY — 1 год), агрегаты perf_stats (1 год), истёкшие окна
+ * trace_settings и старые trace-файлы.
  * <p>
  * Выполняется на планировщике (не UI/сервисный поток, MDC пуст, попадания в AOP
  * сервисного слоя нет); БД-операции обёрнуты в guard от рекурсии и батчатся
@@ -38,16 +39,19 @@ public class RetentionPurgeJob {
     private final int securityDays;
     private final int statsDays;
     private final int traceHours;
+    private final int fieldAuditDays;
     private final AtomicBoolean running = new AtomicBoolean();
 
     public RetentionPurgeJob(JdbcTemplate jdbc, String traceDir,
-                             int eventsDays, int securityDays, int statsDays, int traceHours) {
+                             int eventsDays, int securityDays, int statsDays, int traceHours,
+                             int fieldAuditDays) {
         this.jdbc = jdbc;
         this.traceDir = traceDir == null || traceDir.isBlank() ? null : Paths.get(traceDir);
         this.eventsDays = eventsDays;
         this.securityDays = securityDays;
         this.statsDays = statsDays;
         this.traceHours = traceHours;
+        this.fieldAuditDays = fieldAuditDays;
     }
 
     @Scheduled(cron = "${ipro.telemetry.retention.cron:0 0 3 * * *}")
@@ -60,6 +64,8 @@ public class RetentionPurgeJob {
             purgeEvents(securityDays, true);
             purgeEvents(eventsDays, false);
             purgeStats(statsDays);
+            purgeFieldAudit(fieldAuditDays);
+            purgeTraceSettings();
             purgeTraceFiles(traceHours);
         } catch (RuntimeException e) {
             log.error("retention job failed: {}", e.toString());
@@ -92,6 +98,33 @@ public class RetentionPurgeJob {
         }
     }
 
+    /**
+     * Журнал изменений полей (entity_change_log). Дефолт 0 = не чистить:
+     * комплаенс-параметр, срок хранения — решение заказчика
+     * (ipro.telemetry.retention.field-audit-days).
+     */
+    private void purgeFieldAudit(int days) {
+        if (days <= 0) {
+            return;
+        }
+        Timestamp before = Timestamp.from(Instant.now().minus(days, ChronoUnit.DAYS));
+        String sql = "DELETE FROM entity_change_log WHERE id IN ("
+                + "SELECT id FROM entity_change_log WHERE changed_at < ? ORDER BY id LIMIT "
+                + EVENT_BATCH + ")";
+        int total = 0;
+        int batch;
+        do {
+            final int[] removed = {0};
+            TelemetryGuard.insideLogging(() -> removed[0] = jdbc.update(sql, before));
+            batch = removed[0];
+            total += batch;
+        } while (batch > 0 && total < MAX_EVENT_ROWS);
+        if (total > 0) {
+            log.info("purge: removed {} entity_change_log rows (older than {} days)",
+                    total, days);
+        }
+    }
+
     private void purgeStats(int days) {
         if (days <= 0) {
             return;
@@ -103,6 +136,17 @@ public class RetentionPurgeJob {
         if (removed[0] > 0) {
             log.info("purge: removed {} perf_stats rows (older than {} days)",
                     removed[0], days);
+        }
+    }
+
+    /** Истёкшие окна трассировки trace_settings (не выключенные вручную). */
+    private void purgeTraceSettings() {
+        final int[] removed = {0};
+        TelemetryGuard.insideLogging(() -> removed[0] = jdbc.update(
+                "DELETE FROM trace_settings WHERE trace_until < ?",
+                Timestamp.from(Instant.now())));
+        if (removed[0] > 0) {
+            log.info("purge: removed {} expired trace_settings rows", removed[0]);
         }
     }
 

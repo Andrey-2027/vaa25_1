@@ -18,6 +18,21 @@ public interface EventSink {
     /** Персист L0-агрегата окна в perf_stats (некритичный путь, fire-and-forget). */
     void acceptStats(AggregateStats stats);
 
+    /**
+     * Запись field-level аудита (entity_change_log). По умолчанию — no-op:
+     * реализует AsyncEventSink. Асинхронный путь (fire-and-forget).
+     */
+    default void acceptFieldChange(FieldChangeRecord change) {
+    }
+
+    /**
+     * Durable-запись field-level аудита: синхронная запись с подтверждением,
+     * при активной транзакции — присоединяется к ней (REQUIRED), т.е. коммитится
+     * атомарно с бизнес-изменением.
+     */
+    default void acceptFieldChangeDurable(FieldChangeRecord change) {
+    }
+
     void flush();
 
     /** true — sink-заглушка (БД-журнал выключен); события не пишутся никуда. */

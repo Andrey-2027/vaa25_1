@@ -23,6 +23,19 @@ public final class OperationContext {
     private final ThreadLocal<Deque<Frame>> stack = new ThreadLocal<>();
     private final ThreadLocal<Operation> currentOperation = new ThreadLocal<>();
 
+    /**
+     * traceId последней завершённой операции потока. Нужен событиям, которые
+     * срабатывают ПОСЛЕ финализации операции: flush сущностей в UI-потоке
+     * происходит при коммите транзакции (после очистки MDC) — поле аудита
+     * обязано сохранить привязку к traceId.
+     */
+    private static final ThreadLocal<String> lastCompletedTraceId = new ThreadLocal<>();
+
+    /** traceId последней завершённой операции потока (null — операции не было). */
+    public static String lastCompletedTraceId() {
+        return lastCompletedTraceId.get();
+    }
+
     private final PerfCounterStore counterStore;
     private final UserContext userContext;
     private final OperationCompletionHandler completionHandler;
@@ -114,6 +127,7 @@ public final class OperationContext {
             }
             currentOperation.remove();
             clearMdc(operation);
+            lastCompletedTraceId.set(operation.getTraceId());
             completionHandler.onOperationComplete(operation);
         }
     }

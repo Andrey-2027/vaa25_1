@@ -15,12 +15,17 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hibernate.Hibernate;
 
 /**
  * Снимок «значения» сущности для записи журнала (например, при save):
  * JSON-объект со всеми скалярными полями, ссылками (id+class) и табличными
  * частями — списками, объявленными в {@code org.ip.metadata.annotation.TableSections}
  * (определяется рефлексией по имени, без зависимости от домена).
+ * <p>
+ * Ленивые состояния не инициализируются: неинициализированная коллекция
+ * (Hibernate-прокси) записывается маркером {@code <lazy: not loaded>} —
+ * снимок никогда не порождает собственных SQL-запросов.
  * <p>
  * Ограничения: глубина вложенности табличных частей (MAX_DEPTH), размер
  * коллекции (MAX_ITEMS), длина строк (MAX_STRING), общий лимит символов
@@ -47,7 +52,7 @@ public final class EntitySnapshot {
         }
         try {
             Budget budget = new Budget(maxChars);
-            Map<String, Object> map = snapshot(entity, 1, tableSections(entity.getClass()), budget);
+            Map<String, Object> map = headerSnapshot(entity, budget);
             if (map == null) {
                 return null;
             }
@@ -58,11 +63,71 @@ public final class EntitySnapshot {
         }
     }
 
+    /**
+     * Снимок сущности + строки табличной части: шапка разворачивается как в
+     * {@link #render}, строки (in-memory список из аргумента метода, например
+     * replaceAll(parent, rows)) кладутся под ключ {@code rows}. Лимиты те же:
+     * MAX_ITEMS строк, общий бюджет узлов/символов.
+     */
+    public static String renderWithRows(Object entity, Collection<?> rows, int maxChars) {
+        if (entity == null || rows == null || maxChars <= 0) {
+            return null;
+        }
+        try {
+            Budget budget = new Budget(maxChars);
+            Map<String, Object> map = headerSnapshot(entity, budget);
+            if (map == null) {
+                return null;
+            }
+            List<Object> rendered = new ArrayList<>();
+            int total = Hibernate.isInitialized(rows) ? rows.size() : -1;
+            int shown = 0;
+            for (Object row : rows) {
+                if (row == null) {
+                    continue;
+                }
+                if (shown >= MAX_ITEMS) {
+                    if (total >= 0) {
+                        rendered.add("...more: " + (total - shown));
+                    }
+                    break;
+                }
+                Map<String, Object> rowMap = Hibernate.isInitialized(row)
+                        ? snapshot(row, 2, tableSections(Hibernate.getClass(row)), budget)
+                        : reference(row);
+                rendered.add(rowMap != null ? rowMap : reference(row));
+                shown++;
+            }
+            if (!rendered.isEmpty()) {
+                map.put("rows", rendered);
+            }
+            String json = MAPPER.writeValueAsString(map);
+            return json.length() <= maxChars ? json : json.substring(0, maxChars) + "\"...\"";
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Снимок шапки: минимальный {class,id} для неинициализированного прокси. */
+    private static Map<String, Object> headerSnapshot(Object entity, Budget budget) {
+        if (!Hibernate.isInitialized(entity)) {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("class", Hibernate.getClass(entity).getSimpleName());
+            Object id = findId(entity);
+            if (id != null) {
+                map.put("id", scalar(id));
+            }
+            map.put("_lazy", "proxy not loaded");
+            return map;
+        }
+        return snapshot(entity, 1, tableSections(Hibernate.getClass(entity)), budget);
+    }
+
     private static Map<String, Object> snapshot(Object entity, int depth,
                                                 Set<String> sections, Budget budget) {
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("class", entity.getClass().getSimpleName());
-        for (Field field : fieldsOf(entity.getClass())) {
+        result.put("class", Hibernate.getClass(entity).getSimpleName());
+        for (Field field : fieldsOf(Hibernate.getClass(entity))) {
             if (!budget.spend()) {
                 result.put("...truncated", true);
                 break;
@@ -73,6 +138,10 @@ public final class EntitySnapshot {
                 continue;
             }
             if (value instanceof Collection<?> collection) {
+                if (!Hibernate.isInitialized(collection)) {
+                    result.put(field.getName(), "<lazy: not loaded>");
+                    continue;
+                }
                 List<Object> items = new ArrayList<>();
                 int shown = 0;
                 for (Object element : collection) {
@@ -84,10 +153,11 @@ public final class EntitySnapshot {
                     shown++;
                 }
                 result.put(field.getName(), items);
-            } else if (sections.contains(value.getClass().getName())) {
+            } else if (sections.contains(Hibernate.getClass(value).getName())) {
                 result.put(field.getName(),
-                        snapshot(value, depth + 1, tableSections(value.getClass()), budget));
-            } else if (isEntityReference(value.getClass())) {
+                        snapshot(value, depth + 1,
+                                tableSections(Hibernate.getClass(value)), budget));
+            } else if (isEntityReference(Hibernate.getClass(value))) {
                 result.put(field.getName(), reference(value));
             } else {
                 result.put(field.getName(), scalar(value));
@@ -100,16 +170,17 @@ public final class EntitySnapshot {
         if (element == null) {
             return null;
         }
-        if (sections.contains(element.getClass().getName())
-                || (isEntityReference(element.getClass()) && depth < MAX_DEPTH)) {
+        Class<?> elementClass = Hibernate.getClass(element);
+        if (sections.contains(elementClass.getName())
+                || (isEntityReference(elementClass) && depth < MAX_DEPTH)) {
             Map<String, Object> child = snapshot(element, depth + 1,
-                    tableSections(element.getClass()), budget);
+                    tableSections(elementClass), budget);
             if (child != null) {
                 return child;
             }
             return reference(element);
         }
-        if (isEntityReference(element.getClass())) {
+        if (isEntityReference(elementClass)) {
             return reference(element);
         }
         return scalar(element);
@@ -125,15 +196,50 @@ public final class EntitySnapshot {
         return text.length() <= MAX_STRING ? text : text.substring(0, MAX_STRING) + "...";
     }
 
-    /** Ссылка на другую сущность: id + класс (без разворота содержимого). */
+    /** Ссылка на другую сущность: id + класс (без разворота содержимого).
+     * getId() на Hibernate-прокси не инициирует загрузку (id хранится
+     * в прокси), поэтому ссылка безопасна даже для lazy-связи.
+     * name — читабельное имя ({@link #displayNameOf}) ТОЛЬКО для уже
+     * инициализированных ссылок: вызов не должен порождать SQL. */
     private static Map<String, Object> reference(Object value) {
         Map<String, Object> ref = new LinkedHashMap<>();
-        ref.put("class", value.getClass().getSimpleName());
+        ref.put("class", Hibernate.getClass(value).getSimpleName());
         Object id = findId(value);
         if (id != null) {
             ref.put("id", scalar(id));
         }
+        String name = displayNameOf(value);
+        if (name != null) {
+            ref.put("name", name);
+        }
         return ref;
+    }
+
+    /**
+     * Читабельное имя ссылки ({@code getDisplayName()}) — рефлексией по имени
+     * метода, без зависимости от домена (паттерн TableSections). Единая точка
+     * для снимков и field-аудита (FieldAuditListener).
+     * <p>
+     * Возвращает null, если: значение null; неинициализированный Hibernate-прокси
+     * (вызов инициировал бы загрузку = нарушение контракта «снимок без SQL»);
+     * у сущности нет getDisplayName(); имя не извлеклось (например, метод сам
+     * обращается к ленивым полям — RuntimeException).
+     */
+    public static String displayNameOf(Object value) {
+        if (value == null || !Hibernate.isInitialized(value)) {
+            return null;
+        }
+        try {
+            Method method = Hibernate.getClass(value).getMethod("getDisplayName");
+            Object name = method.invoke(value);
+            if (name == null) {
+                return null;
+            }
+            String text = String.valueOf(name);
+            return text.length() <= MAX_STRING ? text : text.substring(0, MAX_STRING) + "...";
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return null;
+        }
     }
 
     /** Чтение поля: сначала геттер (для Hibernate-прокси), затем напрямую. */

@@ -3,14 +3,12 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.hibernate.envers.Audited;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
 
 @Entity
 @Table(name = "oper")
-@Audited
 @EntityMetadata(
     listFormTitle = "Операции",
     itemFormTitle = "Операция",

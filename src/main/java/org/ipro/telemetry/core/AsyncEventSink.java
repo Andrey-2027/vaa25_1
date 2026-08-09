@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.LongAdder;
 
 import org.ipro.telemetry.api.AggregateStats;
 import org.ipro.telemetry.api.EventSink;
+import org.ipro.telemetry.api.FieldChangeRecord;
 import org.ipro.telemetry.api.TelemetryEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,13 +49,22 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
-    private sealed interface Entry permits EventEntry, StatsEntry {
+    private static final String CHANGE_SQL = """
+            INSERT INTO entity_change_log
+                (changed_at, change_type, entity, entity_id, user_id, trace_id, field_count, payload)
+            VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS jsonb))
+            """;
+
+    private sealed interface Entry permits EventEntry, StatsEntry, FieldAuditEntry {
     }
 
     private record EventEntry(TelemetryEvent event) implements Entry {
     }
 
     private record StatsEntry(AggregateStats stats) implements Entry {
+    }
+
+    private record FieldAuditEntry(FieldChangeRecord change) implements Entry {
     }
 
     private final BlockingQueue<Entry> queue;
@@ -65,6 +75,7 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
 
     private final LongAdder writtenEvents = new LongAdder();
     private final LongAdder writtenStats = new LongAdder();
+    private final LongAdder writtenFieldChanges = new LongAdder();
     private final LongAdder dropped = new LongAdder();
     private final LongAdder failedBatches = new LongAdder();
     private final AtomicLong lastDropWarnAt = new AtomicLong();
@@ -119,6 +130,34 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
     }
 
     @Override
+    public void acceptFieldChange(FieldChangeRecord change) {
+        if (change == null) {
+            return;
+        }
+        if (!queue.offer(new FieldAuditEntry(change))) {
+            dropped.increment();
+            warnAboutDrops();
+        }
+    }
+
+    @Override
+    public void acceptFieldChangeDurable(FieldChangeRecord change) {
+        if (change == null) {
+            return;
+        }
+        TelemetryGuard.insideLogging(() -> {
+            try {
+                tx.executeWithoutResult(status -> jdbc.update(CHANGE_SQL, changeArgs(change)));
+                writtenFieldChanges.increment();
+            } catch (RuntimeException e) {
+                failedBatches.increment();
+                lastError = e.toString();
+                log.error("durable field audit write failed: {}", e.toString());
+            }
+        });
+    }
+
+    @Override
     public void flush() {
         List<Entry> pending = new ArrayList<>();
         queue.drainTo(pending);
@@ -142,11 +181,12 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
     /** Состояние sink для self-observation (UI журнала, этап 9). */
     public SinkState getState() {
         return new SinkState(queue.size(), writtenEvents.sum(), writtenStats.sum(),
-                dropped.sum(), failedBatches.sum(), lastError);
+                writtenFieldChanges.sum(), dropped.sum(), failedBatches.sum(), lastError);
     }
 
     public record SinkState(int queueSize, long writtenEvents, long writtenStats,
-                            long dropped, long failedBatches, String lastError) {
+                            long writtenFieldChanges, long dropped, long failedBatches,
+                            String lastError) {
     }
 
     private void run() {
@@ -174,10 +214,12 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
                 tx.executeWithoutResult(status -> {
                     List<Object[]> eventRows = new ArrayList<>();
                     List<Object[]> statsRows = new ArrayList<>();
+                    List<Object[]> changeRows = new ArrayList<>();
                     for (Entry entry : batch) {
                         switch (entry) {
                             case EventEntry e -> eventRows.add(eventArgs(e.event()));
                             case StatsEntry s -> statsRows.add(statsArgs(s.stats()));
+                            case FieldAuditEntry c -> changeRows.add(changeArgs(c.change()));
                         }
                     }
                     if (!eventRows.isEmpty()) {
@@ -187,6 +229,10 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
                     if (!statsRows.isEmpty()) {
                         int[] counts = jdbc.batchUpdate(STATS_SQL, statsRows);
                         writtenStats.add(counts.length);
+                    }
+                    if (!changeRows.isEmpty()) {
+                        int[] counts = jdbc.batchUpdate(CHANGE_SQL, changeRows);
+                        writtenFieldChanges.add(counts.length);
                     }
                 });
             } catch (RuntimeException e) {
@@ -228,6 +274,19 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
                 stats.minMs(),
                 stats.maxMs(),
                 stats.p95Ms()
+        };
+    }
+
+    private Object[] changeArgs(FieldChangeRecord change) {
+        return new Object[]{
+                Timestamp.from(change.changedAt()),
+                change.changeType(),
+                change.entity(),
+                change.entityId(),
+                change.userId(),
+                change.traceId(),
+                change.fieldCount(),
+                change.payload()
         };
     }
 

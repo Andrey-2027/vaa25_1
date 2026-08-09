@@ -8,12 +8,20 @@ import java.util.List;
 
 import org.ipro.telemetry.api.EventSink;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Read-only доступ к журналу телеметрии для UI (этап 9): события
  * operation_log с фильтрами, payload по id, агрегаты perf_stats,
  * состояние sink (self-observation). Пакет org.ipro.telemetry — UI
  * не ходит в БД напрямую, только через этот сервис.
+ * <p>
+ * Доступ — только ROLE_ADMIN: проверка на уровне сервиса (а не только
+ * в UI-классе), т.к. payload_json содержит потенциально чувствительные
+ * данные (в т.ч. снимки сущностей). Вызов из не-админского контекста
+ * завершается AccessDeniedException.
  */
 public final class JournalQueryService {
 
@@ -76,12 +84,14 @@ public final class JournalQueryService {
             int queueSize,
             long writtenEvents,
             long writtenStats,
+            long writtenFieldChanges,
             long dropped,
             long failedBatches,
             String lastError) {
     }
 
     public List<EventRow> queryEvents(EventFilter filter) {
+        requireAdmin();
         StringBuilder sql = new StringBuilder("SELECT " + EVENT_COLUMNS
                 + " FROM operation_log WHERE 1=1");
         List<Object> params = new ArrayList<>();
@@ -123,6 +133,7 @@ public final class JournalQueryService {
 
     /** payload_json события (дерево фреймов / SQL) или null. */
     public String payloadById(long id) {
+        requireAdmin();
         List<String> payloads = jdbc.query(
                 "SELECT payload FROM operation_log WHERE id = ?",
                 (rs, rowNum) -> rs.getString(1), id);
@@ -131,6 +142,7 @@ public final class JournalQueryService {
 
     /** Агрегаты perf_stats: scope "method" | "sql" | null (все), по total_ms DESC. */
     public List<AggRow> aggregates(String scope, Instant from, int limit) {
+        requireAdmin();
         StringBuilder sql = new StringBuilder(
                 "SELECT stat_key, window_start, count, total_ms, avg_ms, min_ms, max_ms, p95_ms"
                         + " FROM perf_stats WHERE 1=1");
@@ -158,13 +170,24 @@ public final class JournalQueryService {
 
     /** Состояние async-writer'а (жив ли, дропы, ошибки) — через TelemetryBridge. */
     public SinkHealth sinkHealth() {
+        requireAdmin();
         EventSink sink = TelemetryBridge.getSink();
         if (sink instanceof AsyncEventSink async) {
             AsyncEventSink.SinkState state = async.getState();
             return new SinkHealth(true, state.queueSize(), state.writtenEvents(),
-                    state.writtenStats(), state.dropped(), state.failedBatches(), state.lastError());
+                    state.writtenStats(), state.writtenFieldChanges(), state.dropped(),
+                    state.failedBatches(), state.lastError());
         }
-        return new SinkHealth(sink != null && !sink.isNoop(), 0, 0, 0, 0, 0, null);
+        return new SinkHealth(sink != null && !sink.isNoop(), 0, 0, 0, 0, 0, 0, null);
+    }
+
+    private void requireAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean admin = auth != null && auth.getAuthorities().stream()
+                .anyMatch(g -> "ROLE_ADMIN".equals(g.getAuthority()));
+        if (!admin) {
+            throw new AccessDeniedException("journal access requires ROLE_ADMIN");
+        }
     }
 
     private EventRow mapEvent(ResultSet rs) throws SQLException {

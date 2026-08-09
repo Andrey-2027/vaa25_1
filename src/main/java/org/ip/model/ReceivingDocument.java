@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.envers.Audited;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
@@ -24,7 +23,6 @@ import java.time.LocalDate;
  */
 @Entity
 @Table(name = "receiving_document")
-@Audited
 @EntityMetadata(
     listFormTitle = "Приёмно-сдаточные накладные",
     itemFormTitle = "Накладная",

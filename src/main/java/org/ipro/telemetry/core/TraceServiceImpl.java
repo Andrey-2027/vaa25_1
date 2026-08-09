@@ -62,6 +62,9 @@ public final class TraceServiceImpl implements TraceService {
             throw new IllegalArgumentException("userId is required");
         }
         Instant until = Instant.now().plus(minutes, ChronoUnit.MINUTES);
+        // DELETE+INSERT: повторное включение не копит дубли строк на пользователя
+        // (окно могло истечь само, без stopTrace — старая запись осталась бы в БД).
+        jdbc.update(DELETE_SQL, userId);
         jdbc.update(INSERT_SQL, userId, Timestamp.from(until),
                 Timestamp.from(Instant.now()), UserContext.defaultInstance().currentUsername());
         active.put(userId, until);

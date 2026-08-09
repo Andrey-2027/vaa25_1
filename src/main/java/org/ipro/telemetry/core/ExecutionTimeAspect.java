@@ -1,6 +1,7 @@
 package org.ipro.telemetry.core;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
@@ -8,6 +9,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.hibernate.Hibernate;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,9 +20,15 @@ import org.springframework.stereotype.Component;
  * <p>
  * Известное ограничение Spring AOP: self-invocation (this.b()) минует
  * прокси — фрейм для b не создаётся, итоги ложатся на внешний фрейм.
+ * <p>
+ * Порядок: @Order(1) — транзакционный advice приложения зарегистрирован
+ * с order=0 (см. @EnableTransactionManagement в Application), поэтому этот
+ * аспект гарантированно выполняется ВНУТРИ транзакционной границы:
+ * снимок сущности (EntitySnapshot) делается при открытой Hibernate-сессии.
  */
 @Aspect
 @Component
+@Order(1)
 public class ExecutionTimeAspect {
 
     private static final int MAX_SNAPSHOT_CHARS = 16_384;
@@ -48,7 +57,11 @@ public class ExecutionTimeAspect {
         if (frame == null) {
             return pjp.proceed();
         }
-        captureEntityContext(pjp.getArgs());
+        try {
+            captureEntityContext(pjp.getArgs());
+        } catch (RuntimeException e) {
+            // снимок не должен ломать бизнес-вызов
+        }
         Throwable failure = null;
         try {
             return pjp.proceed();
@@ -61,37 +74,72 @@ public class ExecutionTimeAspect {
     }
 
     /**
-     * Из аргументов метода (например save(entity)) извлекает сущность и её
-     * id (через рефлексию getId) и кладёт в контекст операции — виден в
-     * trace-файле и в entity/entity_id события. Пропускает примитивы,
-     * коллекции и объекты фреймворков; не перезаписывает уже заданный
+     * Из аргументов метода (например save(entity) или replaceAll(parent, rows))
+     * извлекает сущность и её id (через рефлексию getId) и кладёт в контекст
+     * операции — виден в trace-файле и в entity/entity_id события. Пропускает
+     * примитивы, коллекции и объекты фреймворков; не перезаписывает уже заданный
      * контекст (например entityId из openItemForm).
+     * <p>
+     * Строки табличной части (второй аргумент-коллекция, напр. replaceAll):
+     * табличные части живут in-memory в форме и не являются полем шапки —
+     * снимок строится вместе с ними (EntitySnapshot.renderWithRows). Если строки
+     * присутствуют, снимок обновляется даже поверх ранее зафиксированного
+     * (save(шапка) идёт раньше replaceAll в одной операции).
      */
     private void captureEntityContext(Object[] args) {
         Operation operation = operationContext.currentOperation();
         if (operation == null) {
             return;
         }
+        Object entityArg = null;
+        Collection<?> rowsArg = null;
         for (Object arg : args) {
-            if (arg == null || !isEntityLike(arg)) {
+            if (arg == null) {
                 continue;
             }
-            if (operation.getContextValue(MdcKeys.ENTITY_ID) == null) {
-                Object id = findId(arg);
-                if (id != null) {
-                    operationContext.putContext(MdcKeys.ENTITY, arg.getClass().getSimpleName());
-                    operationContext.putContext(MdcKeys.ENTITY_ID, id.toString());
-                }
+            if (entityArg == null && isEntityLike(arg)) {
+                entityArg = arg;
+            } else if (rowsArg == null && arg instanceof Collection<?> collection
+                    && isEntityRows(collection)) {
+                rowsArg = collection;
             }
-            if (entityDataEnabled
-                    && operation.getContextValue(MdcKeys.ENTITY_DATA) == null) {
-                String snapshot = EntitySnapshot.render(arg, MAX_SNAPSHOT_CHARS);
-                if (snapshot != null) {
-                    operationContext.putEntityData(snapshot);
-                }
+            if (entityArg != null && rowsArg != null) {
+                break;
             }
-            break;
         }
+        if (entityArg == null) {
+            return;
+        }
+        if (operation.getContextValue(MdcKeys.ENTITY_ID) == null) {
+            Object id = findId(entityArg);
+            if (id != null) {
+                operationContext.putContext(MdcKeys.ENTITY, entityArg.getClass().getSimpleName());
+                operationContext.putContext(MdcKeys.ENTITY_ID, id.toString());
+            }
+        }
+        if (entityDataEnabled
+                && (operation.getContextValue(MdcKeys.ENTITY_DATA) == null || rowsArg != null)) {
+            String snapshot = rowsArg == null
+                    ? EntitySnapshot.render(entityArg, MAX_SNAPSHOT_CHARS)
+                    : EntitySnapshot.renderWithRows(entityArg, rowsArg, MAX_SNAPSHOT_CHARS);
+            if (snapshot != null) {
+                operationContext.putEntityData(snapshot);
+            }
+        }
+    }
+
+    /** Коллекция — строки табличной части: элементы entity-подобны. */
+    private static boolean isEntityRows(Collection<?> collection) {
+        if (!Hibernate.isInitialized(collection)) {
+            return false;
+        }
+        for (Object element : collection) {
+            if (element == null) {
+                continue;
+            }
+            return isEntityLike(element);
+        }
+        return false;
     }
 
     private static boolean isEntityLike(Object arg) {

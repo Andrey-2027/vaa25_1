@@ -4,16 +4,23 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.ipro.telemetry.api.TraceService;
 import org.ipro.telemetry.api.UserContext;
+import org.ipro.telemetry.core.FieldAuditQueryService;
+import org.ipro.telemetry.core.FieldAuditQueryService.ChangeFilter;
+import org.ipro.telemetry.core.FieldAuditQueryService.ChangeRow;
 import org.ipro.telemetry.core.JournalQueryService;
 import org.ipro.telemetry.core.JournalQueryService.AggRow;
 import org.ipro.telemetry.core.JournalQueryService.EventFilter;
 import org.ipro.telemetry.core.JournalQueryService.EventRow;
 import org.ipro.telemetry.core.JournalQueryService.SinkHealth;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -41,7 +48,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * Подсистема «Администрирование» (этап 9), доступ ADMIN. Вкладки:
  * «Журнал» — события operation_log с фильтрами и drill-down дерева из
  * payload; «Агрегаты» — сводка perf_stats; «Трассировка» — управление
- * L2-окном + состояние async-writer'а (самонаблюдение).
+ * L2-окном + состояние async-writer'а (самонаблюдение);
+ * «История изменений» (этап 10) — field-level аудит entity_change_log
+ * с drill-down «поле | было | стало».
  */
 @SpringComponent
 @Scope("prototype")
@@ -51,14 +60,17 @@ public class AdminView extends VerticalLayout {
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
     private final JournalQueryService journal;
+    private final FieldAuditQueryService fieldAudit;
     private final TraceService traceService;
 
     private final Grid<EventRow> eventGrid = new Grid<>(EventRow.class, false);
     private final Grid<AggRow> aggGrid = new Grid<>(AggRow.class, false);
+    private final Grid<ChangeRow> changeGrid = new Grid<>(ChangeRow.class, false);
 
     private final VerticalLayout journalTab = new VerticalLayout();
     private final VerticalLayout aggregatesTab = new VerticalLayout();
     private final VerticalLayout traceTab = new VerticalLayout();
+    private final VerticalLayout historyTab = new VerticalLayout();
 
     private final DatePicker eventFrom = new DatePicker("Начиная с");
     private final DatePicker eventTo = new DatePicker("По");
@@ -69,14 +81,22 @@ public class AdminView extends VerticalLayout {
     private final TextField minDurationFilter = new TextField("Мин. длительность, мс");
     private final Checkbox n1Only = new Checkbox("Только N+1");
 
+    private final TextField changeEntityFilter = new TextField("Сущность");
+    private final TextField changeEntityIdFilter = new TextField("ID записи");
+    private final TextField changeUserFilter = new TextField("Пользователь");
+    private final DatePicker changeFrom = new DatePicker("Начиная с");
+    private final DatePicker changeTo = new DatePicker("По");
+
     private final ComboBox<String> aggScope = new ComboBox<>("Область");
     private final Button traceButton = new Button();
     private final ComboBox<Integer> traceMinutes = new ComboBox<>();
     private final Span healthLabel = new Span();
 
     public AdminView(@Autowired JournalQueryService journal,
+                     @Autowired FieldAuditQueryService fieldAudit,
                      @Autowired Optional<TraceService> traceServiceOpt) {
         this.journal = journal;
+        this.fieldAudit = fieldAudit;
         this.traceService = traceServiceOpt.orElse(null);
         setSizeFull();
         setPadding(true);
@@ -105,12 +125,14 @@ public class AdminView extends VerticalLayout {
         Tab journalItem = new Tab(new Span("Журнал"), new Icon(VaadinIcon.LIST_SELECT));
         Tab aggregatesItem = new Tab(new Span("Агрегаты"));
         Tab traceItem = new Tab(new Span("Трассировка"), new Icon(VaadinIcon.BUG));
-        Tabs tabs = new Tabs(journalItem, aggregatesItem, traceItem);
+        Tab historyItem = new Tab(new Span("История изменений"), new Icon(VaadinIcon.CLOCK));
+        Tabs tabs = new Tabs(journalItem, aggregatesItem, traceItem, historyItem);
         add(tabs);
 
         buildJournalTab();
         buildAggregatesTab();
         buildTraceTab();
+        buildHistoryTab();
 
         add(journalTab);
 
@@ -120,6 +142,8 @@ public class AdminView extends VerticalLayout {
             } else if (e.getSelectedTab() == traceItem) {
                 show(traceTab);
                 refreshHealth();
+            } else if (e.getSelectedTab() == historyItem) {
+                show(historyTab);
             } else {
                 show(journalTab);
             }
@@ -130,6 +154,7 @@ public class AdminView extends VerticalLayout {
         journalTab.setVisible(false);
         aggregatesTab.setVisible(false);
         traceTab.setVisible(false);
+        historyTab.setVisible(false);
         active.setVisible(true);
     }
 
@@ -330,9 +355,130 @@ public class AdminView extends VerticalLayout {
                 + "\nочередь: " + health.queueSize()
                 + "\nзаписано событий: " + health.writtenEvents()
                 + "\nзаписано агрегатов: " + health.writtenStats()
+                + "\nзаписано изменений полей: " + health.writtenFieldChanges()
                 + "\nпотеряно (drop): " + health.dropped()
                 + "\nупавших батчей: " + health.failedBatches()
                 + (health.lastError() != null ? "\nпоследняя ошибка: " + health.lastError() : ""));
+    }
+
+    // ------------------------------------------------ история изменений (этап 10)
+
+    private void buildHistoryTab() {
+        HorizontalLayout filters = new HorizontalLayout(changeEntityFilter, changeEntityIdFilter,
+                changeUserFilter, changeFrom, changeTo);
+        filters.setAlignItems(Alignment.END);
+        filters.setSpacing(true);
+        filters.setWrap(true);
+
+        Button apply = new Button("Применить", new Icon(VaadinIcon.REFRESH),
+                e -> refreshChanges());
+        Button details = new Button("Подробности", new Icon(VaadinIcon.LIST),
+                e -> openSelectedChange());
+        details.setEnabled(false);
+
+        changeGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
+        changeGrid.addSelectionListener(e ->
+                details.setEnabled(!e.getFirstSelectedItem().isEmpty()));
+        changeGrid.addItemDoubleClickListener(e -> openChangeDialog(e.getItem().id()));
+
+        changeGrid.addColumn(r -> r.changedAt() == null ? "" : TIME.format(
+                r.changedAt().atZone(ZoneId.systemDefault()))).setHeader("Время");
+        changeGrid.addColumn(ChangeRow::changeType).setHeader("Тип");
+        changeGrid.addColumn(r -> r.entity() + " #" + r.entityId()).setHeader("Сущность")
+                .setAutoWidth(true);
+        changeGrid.addColumn(ChangeRow::userId).setHeader("Пользователь");
+        changeGrid.addColumn(ChangeRow::fieldCount).setHeader("Полей");
+        changeGrid.addColumn(r -> trace(r.traceId())).setHeader("Trace ID");
+
+        HorizontalLayout actions = new HorizontalLayout(apply, details);
+
+        historyTab.setSpacing(true);
+        historyTab.setSizeFull();
+        historyTab.add(filters, actions, changeGrid);
+        historyTab.setFlexGrow(1, changeGrid);
+
+        refreshChanges();
+    }
+
+    private void refreshChanges() {
+        ZoneId zone = ZoneId.systemDefault();
+        ChangeFilter filter = new ChangeFilter(
+                blankToNull(changeEntityFilter.getValue()),
+                blankToNull(changeEntityIdFilter.getValue()),
+                blankToNull(changeUserFilter.getValue()),
+                dateToInstant(changeFrom.getValue(), zone, true),
+                dateToInstant(changeTo.getValue(), zone, false),
+                500);
+        try {
+            changeGrid.setItems(fieldAudit.queryChanges(filter));
+        } catch (RuntimeException e) {
+            // Vaadin UI-поток может не иметь SecurityContext: показываем ошибку,
+            // а не молча пустой грид (queryChanges требует ROLE_ADMIN).
+            changeGrid.setItems(java.util.List.of());
+            com.vaadin.flow.component.notification.Notification.show(
+                    "Ошибка загрузки истории: " + e.getMessage(), 5000,
+                    com.vaadin.flow.component.notification.Notification.Position.MIDDLE);
+        }
+    }
+
+    private void openSelectedChange() {
+        changeGrid.getSelectionModel().getFirstSelectedItem()
+                .ifPresent(row -> openChangeDialog(row.id()));
+    }
+
+    private void openChangeDialog(long id) {
+        String payload = fieldAudit.payloadById(id);
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Изменение полей (id=" + id + ")");
+        dialog.setWidth("800px");
+        dialog.setHeight("520px");
+        if (payload == null || payload.isBlank()) {
+            dialog.add(new Span("payload отсутствует"));
+        } else {
+            Grid<FieldDiff> grid = new Grid<>(FieldDiff.class, false);
+            grid.addColumn(FieldDiff::field).setHeader("Поле").setAutoWidth(true);
+            grid.addColumn(FieldDiff::oldValue).setHeader("Было").setWidth("300px");
+            grid.addColumn(FieldDiff::newValue).setHeader("Стало").setWidth("300px");
+            grid.setItems(parseDiff(payload));
+            dialog.add(grid);
+        }
+        dialog.open();
+    }
+
+    /** Один элемент payload: скалярное изменение или сводка табличной части. */
+    private record FieldDiff(String field, String oldValue, String newValue) {
+    }
+
+    private List<FieldDiff> parseDiff(String payload) {
+        try {
+            JsonNode root = new ObjectMapper().readTree(payload);
+            List<FieldDiff> result = new ArrayList<>();
+            if (root.isArray()) {
+                for (JsonNode node : root) {
+                    String field = text(node.get("field"));
+                    if (node.has("added") || node.has("removed") || node.has("changed")) {
+                        String summary = "добавлено: " + num(node, "added")
+                                + ", удалено: " + num(node, "removed")
+                                + ", изменено: " + num(node, "changed");
+                        result.add(new FieldDiff(field, "", summary));
+                    } else {
+                        result.add(new FieldDiff(field, text(node.get("old")), text(node.get("new"))));
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            return List.of(new FieldDiff("payload", e.toString(), ""));
+        }
+    }
+
+    private static String text(JsonNode node) {
+        return node == null || node.isNull() ? "" : node.asText();
+    }
+
+    private static String num(JsonNode node, String name) {
+        JsonNode value = node.get(name);
+        return value == null ? "0" : String.valueOf(value.asInt());
     }
 
     // ----------------------------------------------------------- helpers

@@ -8,6 +8,9 @@ import org.ipro.telemetry.core.AppLifecycleLogger;
 import org.ipro.telemetry.core.AsyncEventSink;
 import org.ipro.telemetry.core.CompositeOperationHandler;
 import org.ipro.telemetry.core.ExecutionTimeAspect;
+import org.ipro.telemetry.core.FieldAuditBridge;
+import org.ipro.telemetry.core.FieldAuditOperationHandler;
+import org.ipro.telemetry.core.FieldAuditQueryService;
 import org.ipro.telemetry.core.JournalQueryService;
 import org.ipro.telemetry.core.NoopEventSink;
 import org.ipro.telemetry.core.OperationCompletionHandler;
@@ -91,7 +94,8 @@ public class TelemetryAutoConfiguration {
                 properties.getN1Threshold(), eventSink);
         TraceDumpHandler dump = new TraceDumpHandler(eventSink, properties.getTraceDir(),
                 properties.getN1Threshold());
-        return new CompositeOperationHandler(List.of(slow, dump));
+        FieldAuditOperationHandler fieldAudit = new FieldAuditOperationHandler(eventSink);
+        return new CompositeOperationHandler(List.of(slow, dump, fieldAudit));
     }
 
     @Bean
@@ -99,6 +103,8 @@ public class TelemetryAutoConfiguration {
                                              UserContext userContext,
                                              OperationCompletionHandler completionHandler) {
         TelemetryGuard.setEnabled(properties.isEnabled());
+        FieldAuditBridge.configure(csvSet(properties.getFieldAudit().getEntities()),
+                csvSet(properties.getFieldAudit().getRedactFields()));
         OperationContext operationContext = new OperationContext(perfCounterStore, userContext,
                 completionHandler, properties.getFrameLimit());
         SqlTimingBridge.setOperationContext(operationContext);
@@ -153,6 +159,13 @@ public class TelemetryAutoConfiguration {
     }
 
     @Bean
+    public FieldAuditQueryService fieldAuditQueryService(JdbcTemplate jdbcTemplate) {
+        FieldAuditQueryService service = new FieldAuditQueryService(jdbcTemplate);
+        FieldAuditBridge.setQueryService(service);
+        return service;
+    }
+
+    @Bean
     @ConditionalOnProperty(prefix = "ipro.telemetry", name = "trace-self-test",
             havingValue = "true")
     public TraceSelfTest traceSelfTest(jakarta.persistence.EntityManagerFactory entityManagerFactory,
@@ -174,6 +187,29 @@ public class TelemetryAutoConfiguration {
         TelemetryProperties.Retention retention = properties.getRetention();
         return new RetentionPurgeJob(jdbcTemplate, properties.getTraceDir(),
                 retention.getEventsDays(), retention.getSecurityDays(),
-                retention.getStatsDays(), retention.getTraceHours());
+                retention.getStatsDays(), retention.getTraceHours(),
+                retention.getFieldAuditDays());
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "ipro.telemetry", name = "field-audit-self-test",
+            havingValue = "true")
+    public FieldAuditSelfTest fieldAuditSelfTest(jakarta.persistence.EntityManagerFactory entityManagerFactory,
+                                                 PlatformTransactionManager transactionManager,
+                                                 Telemetry telemetry,
+                                                 JdbcTemplate jdbcTemplate) {
+        return new FieldAuditSelfTest(entityManagerFactory, transactionManager, telemetry, jdbcTemplate);
+    }
+
+    private static java.util.Set<String> csvSet(String value) {
+        java.util.Set<String> result = new java.util.HashSet<>();
+        if (value != null) {
+            for (String item : value.split(",")) {
+                if (!item.isBlank()) {
+                    result.add(item.trim());
+                }
+            }
+        }
+        return result;
     }
 }

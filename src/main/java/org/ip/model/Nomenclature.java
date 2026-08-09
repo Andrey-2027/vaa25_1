@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.envers.Audited;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.FieldType;
@@ -13,7 +12,6 @@ import org.ip.metadata.annotation.Lookup;
 
 @Entity
 @Table(name = "nomenclature")
-@Audited
 @EntityMetadata(
     listFormTitle = "Номенклатура",
     itemFormTitle = "Элемент номенклатуры",

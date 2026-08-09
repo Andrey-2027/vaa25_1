@@ -31,6 +31,8 @@ public final class Operation extends Frame {
     private String errorMessage;
     private int droppedFrames;
     private int nodeCount = 1;
+    /** Field-level аудит: накопители изменений по ключу entity#id (см. FieldAuditListener). */
+    private final Map<String, FieldAuditAccumulator> fieldAuditChanges = new HashMap<>();
 
     public Operation(String name, String traceId, String user, String sessionId) {
         super(name);
@@ -127,5 +129,24 @@ public final class Operation extends Frame {
             }
         }
         return false;
+    }
+
+    /**
+     * Накопитель field-level аудита для записи (создаётся по требованию,
+     * ключ entity#id — дедупликация событий одного flush в одной записи).
+     */
+    public FieldAuditAccumulator fieldAudit(String entity, String entityId) {
+        return fieldAuditChanges.computeIfAbsent(entity + "#" + entityId,
+                k -> new FieldAuditAccumulator(entity, entityId));
+    }
+
+    /** Забрать накопленные изменения (и очистить) — для FieldAuditOperationHandler. */
+    public Map<String, FieldAuditAccumulator> takeFieldAudit() {
+        if (fieldAuditChanges.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, FieldAuditAccumulator> snapshot = Map.copyOf(fieldAuditChanges);
+        fieldAuditChanges.clear();
+        return snapshot;
     }
 }

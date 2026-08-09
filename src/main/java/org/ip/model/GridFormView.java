@@ -4,7 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import org.hibernate.envers.Audited;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
@@ -32,7 +31,6 @@ import org.ip.metadata.annotation.GridColumn;
  */
 @Entity
 @Table(name = "grid_form_view")
-@Audited
 @EntityMetadata(
     listFormTitle = "Виды форм списка",
     itemFormTitle = "Вид формы списка",

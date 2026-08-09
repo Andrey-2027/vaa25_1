@@ -2,14 +2,12 @@ package org.ip.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import org.hibernate.envers.Audited;
 import org.ip.metadata.annotation.*;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "prd_spec_mtr")
-@Audited
 @EntityMetadata(
     listFormTitle = "Компоненты спецификации",
     itemFormTitle = "Компонент",

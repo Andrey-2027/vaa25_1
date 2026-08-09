@@ -3,12 +3,10 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.envers.Audited;
 import org.ip.metadata.annotation.*;
 
 @Entity
 @Table(name = "prd_spec_oper")
-@Audited
 @TableSectionMetadata(
         parentEntity = PrdSpec.class,
         parentField = "prdSpec",
