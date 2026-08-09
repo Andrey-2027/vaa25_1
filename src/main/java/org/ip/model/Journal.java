@@ -3,14 +3,25 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.hibernate.envers.Audited;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
+import org.ip.metadata.annotation.RlsDimension;
 
+/**
+ * RLS: доступ к журналу — гранты AccessGrant (dimension = "JOURNAL").
+ * @Filter включается через RlsFilterActivator, активируемый на каждой сессии
+ * (один round-trip); UPDATE/DELETE проверяются вручную в JournalService
+ * (см. AccessService.canUpdate/canDelete) — @Filter на них не действует.
+ */
 @Entity
 @Table(name = "journal")
-@Audited
+@RlsDimension("JOURNAL")
+@FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class))
+@Filter(name = "JOURNAL", condition = "id in (:allowedIds)")
 @EntityMetadata(
     listFormTitle = "Журналы",
     itemFormTitle = "Журнал",

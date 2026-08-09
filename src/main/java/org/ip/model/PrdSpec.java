@@ -4,15 +4,24 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.envers.Audited;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 import org.ip.metadata.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * RLS: то же измерение "JOURNAL", что и у Journal, но фильтр по своему полю
+ * journal_id, а не по общему списку id (см. RlsFilterActivator). Фильтр по полю
+ * journal_id, а не по id — PrdSpec не имеет собственного доступа.
+ */
 @Entity
 @Table(name = "prd_spec")
-@Audited
+@RlsDimension("JOURNAL")
+@FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class))
+@Filter(name = "JOURNAL", condition = "journal_id in (:allowedIds)")
 @EntityMetadata(
     listFormTitle = "Спецификации",
     itemFormTitle = "Спецификация",
