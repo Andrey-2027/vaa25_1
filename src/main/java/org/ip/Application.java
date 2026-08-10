@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @Theme(themeClass = Lumo.class)
-@EntityScan({"org.ip.model", "org.ipro.telemetry.model"})
+@EntityScan({"org.ip.model", "org.ipro.telemetry.model", "org.ip.rls"})
 @EnableTransactionManagement(proxyTargetClass = true, order = 0)
 public class Application implements AppShellConfigurator {
 

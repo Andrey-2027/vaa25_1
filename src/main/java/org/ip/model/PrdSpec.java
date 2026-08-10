@@ -8,6 +8,9 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import org.ip.metadata.annotation.*;
+import org.ip.rls.RlsCheckValue;
+import org.ip.rls.RlsDimension;
+import org.ip.rls.RlsDimensionValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +37,7 @@ import java.util.List;
     displaySortFields = {"codeSpec"}
 )
 @TableSections({PrdSpecMtr.class,PrdSpecOper.class})
-public class PrdSpec extends BaseEntity implements HasDisplayName {
+public class PrdSpec extends BaseEntity implements HasDisplayName, RlsDimensionValue {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "journal_id", nullable = false)
@@ -147,5 +150,12 @@ public class PrdSpec extends BaseEntity implements HasDisplayName {
     @Override
     public String getDisplayName() {
         return codeSpec + (nomenclature != null ? " (" + nomenclature.getDisplayName() + ")" : "");
+    }
+
+    /** Доступ к PrdSpec наследуется от доступа к его Journal (см. бизнес-правило RLS) — не от собственного id. */
+    @Override
+    public java.util.Map<String, java.util.List<RlsCheckValue>> getRlsChecks() {
+        Long journalId = journal != null ? journal.getId() : null;
+        return java.util.Map.of("JOURNAL", java.util.List.of(RlsCheckValue.of(journalId)));
     }
 }

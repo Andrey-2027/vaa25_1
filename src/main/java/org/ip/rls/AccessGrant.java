@@ -1,14 +1,17 @@
-package org.ip.model;
+package org.ip.rls;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
+import org.ip.model.BaseEntity;
 
 /**
  * Грант доступа — единственная запись, указывающая на право (пользователь или роль),
@@ -26,6 +29,7 @@ import org.ip.metadata.annotation.GridColumn;
  * ролей) — считать права через AccessService, а не по спискам.
  */
 @Entity
+@EntityListeners(AccessGrantChangeListener.class)
 @Table(name = "access_grant")
 @EntityMetadata(
     listFormTitle = "Гранты доступа",
@@ -37,7 +41,7 @@ public class AccessGrant extends BaseEntity {
 
     public enum SubjectType { USER, ROLE }
 
-    @NotBlank
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "subject_type", nullable = false)
     @FieldMetadata(label = "Тип субъекта", required = true, order = 1,
@@ -51,7 +55,12 @@ public class AccessGrant extends BaseEntity {
         grid = @GridColumn(order = 2, width = "160px"))
     private String subjectKey;
 
-    /** Имя измерения RLS — связано с @RlsDimension/@Filter.name() конкретной модели. */
+    /**
+     * Имя измерения RLS — связано с @RlsDimension/@Filter.name() конкретной модели.
+     * "*" — зарезервированное значение "любое измерение", полный доступ независимо
+     * от того, какие измерения существуют сейчас или появятся в будущем (см.
+     * AccessGrantRepository) — тем же принципом wildcard, что и dimensionValueId = null.
+     */
     @NotBlank
     @Column(nullable = false)
     @FieldMetadata(label = "Измерение", required = true, order = 3,

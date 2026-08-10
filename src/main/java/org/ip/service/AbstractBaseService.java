@@ -15,6 +15,12 @@ import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.FetchGraphs;
 import org.ip.metadata.MetadataResolver;
 import org.ip.metadata.annotation.FieldType;
+import org.ip.security.CurrentUser;
+import org.ip.rls.AccessService;
+import org.ip.rls.RlsCheckValue;
+import org.ip.rls.RlsContext;
+import org.ip.rls.RlsDimensionValue;
+import org.ip.rls.RlsFilterActivator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,6 +50,12 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     @Autowired
     private MetadataResolver metadataResolver;
 
+    @Autowired
+    private RlsFilterActivator rlsFilterActivator;
+
+    @Autowired
+    private AccessService accessService;
+
     protected AbstractBaseService(JpaRepository<T, ID> repository, Validator validator) {
         this.repository = repository;
         this.validator = validator;
@@ -52,30 +64,77 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     @Override
     public T save(T entity) {
         validate(entity);
+        checkRlsWrite(entity);
         return repository.save(entity);
     }
 
     @Override
     public T create(T entity) {
         validate(entity);
+        checkRlsWrite(entity);
         return repository.save(entity);
     }
 
     @Override
     public T update(T entity) {
         validate(entity);
+        checkRlsWrite(entity);
         return repository.save(entity);
     }
 
     @Override
     public void delete(ID id) {
         referenceCheckService.checkNoReferences(getDomainClass(), id);
+        findById(id).ifPresent(this::checkRlsDelete);
         repository.deleteById(id);
     }
 
+    /**
+     * canUpdate по ВСЕМ измерениям и ВСЕМ проверкам внутри каждого измерения сразу (AND) —
+     * не только на редактирование существующей записи, но и на create(): по бизнес-правилу
+     * RLS право "изменение" на измерение governs и создание записей под ним (иначе можно
+     * было бы создать PrdSpec под недоступным Journal, не имея формально прав его
+     * редактировать). @Filter эту проверку не даёт — он действует только на SELECT.
+     *
+     * Сущность, не реализующая RlsDimensionValue, write-guard'ом не проверяется вовсе —
+     * это и есть признак "не защищена RLS на запись" (см. RlsDimensionValue).
+     */
+    protected void checkRlsWrite(T entity) {
+        checkRls(entity, accessService::canUpdate, "изменение");
+    }
+
+    protected void checkRlsDelete(T entity) {
+        checkRls(entity, accessService::canDelete, "удаление");
+    }
+
+    private void checkRls(T entity, RlsPermissionCheck permissionCheck, String actionName) {
+        if (RlsContext.isBypassed() || !(entity instanceof RlsDimensionValue rdv)) {
+            return;
+        }
+        String username = CurrentUser.username();
+        for (Map.Entry<String, List<RlsCheckValue>> entry : rdv.getRlsChecks().entrySet()) {
+            String dimension = entry.getKey();
+            for (RlsCheckValue check : entry.getValue()) {
+                if (check instanceof RlsCheckValue.NotApplicable) {
+                    continue; // сознательно не участвует в этом измерении — пройдено автоматически
+                }
+                Long id = ((RlsCheckValue.Check) check).id();
+                if (!permissionCheck.test(dimension, id, username)) {
+                    throw new ValidationException("Нет прав на " + actionName + " (измерение " + dimension +
+                        (id != null ? ", id=" + id : ", создание новой записи") + ")");
+                }
+            }
+        }
+    }
+
+    @FunctionalInterface
+    private interface RlsPermissionCheck {
+        boolean test(String dimension, Long dimensionValueId, String username);
+    }
 
     @Override
     public Optional<T> findById(ID id) {
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         Class<T> domainClass = getDomainClass();
         EntityGraph<T> graph = buildFetchGraph(domainClass);
         if (graph != null) {
@@ -87,11 +146,13 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public List<T> findAll() {
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         return repository.findAll();
     }
 
     @Override
     public Page<T> findAll(Pageable pageable) {
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         return repository.findAll(pageable);
     }
 
@@ -145,6 +206,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     protected Page<T> findAllWithFetchGraph(Specification<T> spec, Pageable pageable,
                                             java.util.Collection<String> fetchPaths) {
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         Class<T> domainClass = getDomainClass();
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
@@ -269,6 +331,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     }
 
     public Number sum(String fieldName, Specification<T> spec) {
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Object> query = cb.createQuery();
         Root<T> root = query.from(getDomainClass());

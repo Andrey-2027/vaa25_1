@@ -1,7 +1,7 @@
 package org.ip.views.forms;
 
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
-import com.vaadin.flow.component.passwordfield.PasswordField;
+import com.vaadin.flow.component.textfield.PasswordField;
 import org.ip.form.FieldFactory;
 import org.ip.form.builtin.ItemForm;
 import org.ip.metadata.EntityMetadataInfo;

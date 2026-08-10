@@ -13,6 +13,10 @@ import org.ip.form.coordinator.FormCoordinator;
 import org.ip.form.coordinator.ListFormWrapper;
 import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.SubsystemNode;
+import org.ip.rls.AccessService;
+import org.ip.rls.RlsDimensionKind;
+import org.ip.rls.RlsDimensionRegistry;
+import org.ip.security.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 
@@ -21,9 +25,15 @@ import org.springframework.context.annotation.Scope;
 public class SubsystemHomeView extends VerticalLayout {
 
     private final FormCoordinator coordinator;
+    private final RlsDimensionRegistry dimensionRegistry;
+    private final AccessService accessService;
 
-    public SubsystemHomeView(@Autowired FormCoordinator coordinator) {
+    public SubsystemHomeView(@Autowired FormCoordinator coordinator,
+                             @Autowired RlsDimensionRegistry dimensionRegistry,
+                             @Autowired AccessService accessService) {
         this.coordinator = coordinator;
+        this.dimensionRegistry = dimensionRegistry;
+        this.accessService = accessService;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -54,10 +64,34 @@ public class SubsystemHomeView extends VerticalLayout {
             tiles.getStyle().set("gap", "0.75em");
 
             for (EntityMetadataInfo entity : group.entities()) {
-                tiles.add(createTile(entity, workspace));
+                if (isEntityVisible(entity)) {
+                    tiles.add(createTile(entity, workspace));
+                }
             }
             add(tiles);
         }
+    }
+
+    /**
+     * Скрывает плитку, если у сущности зарегистрировано CHECK_ONLY-измерение вида
+     * "ENTITY:<ИмяКласса>" (см. RlsDimensionKind, ReceivingDocument — пример) и у
+     * текущего пользователя нет по нему доступа вообще — "Пользователь может создавать
+     * Накладные, но не имеет доступа к Ордерам" в точности этот случай: список меню
+     * подсистемы общий, но конкретная плитка не показывается.
+     *
+     * Сущности без такого измерения (большинство — Journal, Branch, Workshop, ...) —
+     * показываются как раньше, без единой проверки: dimensionRegistry.dimensions()
+     * просто не содержит "ENTITY:Journal" и т.п., если никто не завёл такое измерение.
+     */
+    private boolean isEntityVisible(EntityMetadataInfo entity) {
+        String dimension = "ENTITY:" + entity.getEntityClass().getSimpleName();
+        if (!dimensionRegistry.dimensions().contains(dimension)) {
+            return true;
+        }
+        if (dimensionRegistry.kindOf(dimension) != RlsDimensionKind.CHECK_ONLY) {
+            return true; // подстраховка: конвенция по именованию не проверяется программно нигде больше
+        }
+        return accessService.hasAnyAccess(dimension, CurrentUser.username());
     }
 
     private Button createTile(EntityMetadataInfo entity, Workspace workspace) {

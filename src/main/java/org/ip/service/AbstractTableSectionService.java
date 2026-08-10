@@ -7,7 +7,9 @@ import org.ip.metadata.FetchGraphs;
 import org.ip.metadata.FieldMetadataInfo;
 import org.ip.metadata.MetadataResolver;
 import org.ip.metadata.TableSectionMetadataInfo;
+import org.ip.rls.RlsFilterActivator;
 import org.ipro.crud.IdentifiableEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.LinkedHashMap;
@@ -36,6 +38,9 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
 
     @PersistenceContext
     protected EntityManager entityManager;
+
+    @Autowired
+    protected RlsFilterActivator rlsFilterActivator;
 
     protected AbstractTableSectionService(JpaRepository<T, ID> repository,
                                           MetadataResolver metadataResolver,
@@ -138,6 +143,11 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
      */
     @Override
     public List<T> findByParent(P parent, java.util.Collection<String> fetchPaths) {
+        // Строки табличной части сами не под RLS (грузятся только через уже
+        // отфильтрованного родителя) — вызов здесь не ради ЭТОГО запроса, а чтобы в
+        // рамках текущей Hibernate Session были включены фильтры для остальных
+        // запросов round-trip'а (см. RlsFilterActivator — самоактивация один раз на сессию).
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         jakarta.persistence.criteria.CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         jakarta.persistence.criteria.CriteriaQuery<T> query = cb.createQuery(rowClass);
         jakarta.persistence.criteria.Root<T> root = query.from(rowClass);

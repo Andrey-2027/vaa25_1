@@ -289,7 +289,7 @@ public class FormCoordinator {
                                                                   Consumer<T> onSaved) {
         Map<String, String> context = id != null
                 ? Map.of(MdcKeys.ENTITY_ID, id.toString())
-                : null;
+                : Map.of();
         try (OperationScope scope = TelemetryBridge.beginOperation(
                 "openItemForm:" + entityClass.getSimpleName(), context)) {
             EntityMetadataInfo meta = metadataResolver.resolve(entityClass);

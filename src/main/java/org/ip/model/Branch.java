@@ -14,28 +14,26 @@ import org.ip.rls.RlsCheckValue;
 import org.ip.rls.RlsDimensionValue;
 
 /**
- * RLS: доступ к журналу — гранты AccessGrant (dimension = "JOURNAL").
- * @Filter включается через RlsFilterActivator, активируемый на каждой сессии
- * (один round-trip); UPDATE/DELETE проверяются вручную в JournalService
- * (см. AccessService.canUpdate/canDelete) — @Filter на них не действует.
+ * RLS: доступ к филиалу — гранты AccessGrant (dimension = "BRANCH"). По устройству —
+ * ровно как Journal/"JOURNAL": сам является измерением, значение проверки = собственный id.
  */
 @Entity
-@Table(name = "journal")
-@RlsDimension("JOURNAL")
-@FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class))
-@Filter(name = "JOURNAL", condition = "id in (:allowedIds)")
+@Table(name = "branch")
+@RlsDimension("BRANCH")
+@FilterDef(name = "BRANCH", parameters = @ParamDef(name = "allowedIds", type = Long.class))
+@Filter(name = "BRANCH", condition = "id in (:allowedIds)")
 @EntityMetadata(
-    listFormTitle = "Журналы",
-    itemFormTitle = "Журнал",
-    selectionFormTitle = "Выбор журнала",
-    order = 10,
-    icon = "BOOK",
-    serviceClass = org.ip.service.JournalService.class,
-    subsystem = org.ip.subsystem.Subsystems.Production.class,
+    listFormTitle = "Филиалы",
+    itemFormTitle = "Филиал",
+    selectionFormTitle = "Выбор филиала",
+    order = 20,
+    icon = "BUILDING",
+    serviceClass = org.ip.service.BranchService.class,
+    subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
 )
-public class Journal extends BaseEntity implements HasDisplayName, RlsDimensionValue {
+public class Branch extends BaseEntity implements HasDisplayName, RlsDimensionValue {
 
     @NotBlank
     @Size(max = 20)
@@ -77,12 +75,12 @@ public class Journal extends BaseEntity implements HasDisplayName, RlsDimensionV
     }
 
     /**
-     * Journal сам является измерением "JOURNAL" — значение проверки = собственный id.
-     * id == null (до insert) — см. RlsCheckValue.Check: пройдёт только у обладателя
-     * wildcard-гранта, это осознанное правило ("новые журналы создаёт только полный доступ").
+     * Branch сам является измерением "BRANCH" — значение проверки = собственный id.
+     * id == null (до insert) — пройдёт только у обладателя wildcard-гранта (см. Journal —
+     * то же осознанное правило "новые справочники измерений создаёт только полный доступ").
      */
     @Override
     public java.util.Map<String, java.util.List<RlsCheckValue>> getRlsChecks() {
-        return java.util.Map.of("JOURNAL", java.util.List.of(RlsCheckValue.of(getId())));
+        return java.util.Map.of("BRANCH", java.util.List.of(RlsCheckValue.of(getId())));
     }
 }

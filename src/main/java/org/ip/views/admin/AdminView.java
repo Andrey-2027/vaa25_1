@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.ipro.telemetry.api.TraceService;
@@ -39,6 +40,9 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.SpringComponent;
+import org.ip.rls.AccessGrant;
+import org.ip.service.AccessGrantAdminService;
+import org.ip.service.AccessGrantAdminService.GrantFlags;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
@@ -62,15 +66,27 @@ public class AdminView extends VerticalLayout {
     private final JournalQueryService journal;
     private final FieldAuditQueryService fieldAudit;
     private final TraceService traceService;
+    private final AccessGrantAdminService accessGrantAdminService;
 
     private final Grid<EventRow> eventGrid = new Grid<>(EventRow.class, false);
     private final Grid<AggRow> aggGrid = new Grid<>(AggRow.class, false);
     private final Grid<ChangeRow> changeGrid = new Grid<>(ChangeRow.class, false);
+    private final Grid<DimensionValueAccessRow> accessGrid = new Grid<>();
 
     private final VerticalLayout journalTab = new VerticalLayout();
     private final VerticalLayout aggregatesTab = new VerticalLayout();
     private final VerticalLayout traceTab = new VerticalLayout();
     private final VerticalLayout historyTab = new VerticalLayout();
+    private final VerticalLayout accessTab = new VerticalLayout();
+
+    private final ComboBox<String> accessDimension = new ComboBox<>("Измерение");
+    private final ComboBox<AccessGrant.SubjectType> accessSubjectType = new ComboBox<>("Тип субъекта");
+    private final ComboBox<String> accessSubjectKey = new ComboBox<>("Пользователь/роль");
+    private final List<DimensionValueAccessRow> accessRows = new ArrayList<>();
+    private final Checkbox singleGrantRead = new Checkbox("");
+    private final Checkbox singleGrantUpdate = new Checkbox("");
+    private final Checkbox singleGrantDelete = new Checkbox("");
+    private HorizontalLayout singleGrantRowLayout;
 
     private final DatePicker eventFrom = new DatePicker("Начиная с");
     private final DatePicker eventTo = new DatePicker("По");
@@ -94,10 +110,12 @@ public class AdminView extends VerticalLayout {
 
     public AdminView(@Autowired JournalQueryService journal,
                      @Autowired FieldAuditQueryService fieldAudit,
-                     @Autowired Optional<TraceService> traceServiceOpt) {
+                     @Autowired Optional<TraceService> traceServiceOpt,
+                     @Autowired AccessGrantAdminService accessGrantAdminService) {
         this.journal = journal;
         this.fieldAudit = fieldAudit;
         this.traceService = traceServiceOpt.orElse(null);
+        this.accessGrantAdminService = accessGrantAdminService;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -126,15 +144,18 @@ public class AdminView extends VerticalLayout {
         Tab aggregatesItem = new Tab(new Span("Агрегаты"));
         Tab traceItem = new Tab(new Span("Трассировка"), new Icon(VaadinIcon.BUG));
         Tab historyItem = new Tab(new Span("История изменений"), new Icon(VaadinIcon.CLOCK));
-        Tabs tabs = new Tabs(journalItem, aggregatesItem, traceItem, historyItem);
+        Tab accessItem = new Tab(new Span("Доступ (RLS)"), new Icon(VaadinIcon.KEY));
+        Tabs tabs = new Tabs(journalItem, aggregatesItem, traceItem, historyItem, accessItem);
         add(tabs);
 
         buildJournalTab();
         buildAggregatesTab();
         buildTraceTab();
         buildHistoryTab();
+        buildAccessTab();
 
-        add(journalTab);
+        add(journalTab, aggregatesTab, traceTab, historyTab, accessTab);
+        show(journalTab);
 
         tabs.addSelectedChangeListener(e -> {
             if (e.getSelectedTab() == aggregatesItem) {
@@ -144,6 +165,8 @@ public class AdminView extends VerticalLayout {
                 refreshHealth();
             } else if (e.getSelectedTab() == historyItem) {
                 show(historyTab);
+            } else if (e.getSelectedTab() == accessItem) {
+                show(accessTab);
             } else {
                 show(journalTab);
             }
@@ -155,6 +178,7 @@ public class AdminView extends VerticalLayout {
         aggregatesTab.setVisible(false);
         traceTab.setVisible(false);
         historyTab.setVisible(false);
+        accessTab.setVisible(false);
         active.setVisible(true);
     }
 
@@ -479,6 +503,185 @@ public class AdminView extends VerticalLayout {
     private static String num(JsonNode node, String name) {
         JsonNode value = node.get(name);
         return value == null ? "0" : String.valueOf(value.asInt());
+    }
+
+    // ------------------------------------------------------ доступ (RLS)
+
+    /** Строка матрицы: запись измерения + текущее (редактируемое) состояние трёх флагов. */
+    private static final class DimensionValueAccessRow {
+        final AccessGrantAdminService.ValueRow value;
+        boolean read;
+        boolean update;
+        boolean delete;
+
+        DimensionValueAccessRow(AccessGrantAdminService.ValueRow value, GrantFlags flags) {
+            this.value = value;
+            this.read = flags.read();
+            this.update = flags.update();
+            this.delete = flags.delete();
+        }
+    }
+
+    private void buildAccessTab() {
+        accessDimension.setItems(accessGrantAdminService.availableDimensions());
+        accessDimension.setAllowCustomValue(false);
+        if (!accessGrantAdminService.availableDimensions().isEmpty()) {
+            accessDimension.setValue(accessGrantAdminService.availableDimensions().get(0));
+        }
+
+        accessSubjectType.setItems(AccessGrant.SubjectType.values());
+        accessSubjectType.setItemLabelGenerator(t ->
+                t == AccessGrant.SubjectType.USER ? "Пользователь" : "Роль");
+        accessSubjectType.setValue(AccessGrant.SubjectType.USER);
+        accessSubjectType.setAllowCustomValue(false);
+
+        accessSubjectKey.setAllowCustomValue(false);
+        refreshSubjectKeyItems();
+
+        accessDimension.addValueChangeListener(e -> loadAccessMatrix());
+        accessSubjectType.addValueChangeListener(e -> {
+            accessSubjectKey.clear();
+            refreshSubjectKeyItems();
+            loadAccessMatrix();
+        });
+        accessSubjectKey.addValueChangeListener(e -> loadAccessMatrix());
+
+        Button saveButton = new Button("Сохранить", new Icon(VaadinIcon.CHECK), e -> saveAccessMatrix());
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        accessGrid.addColumn(r -> r.value.code()).setHeader("Код").setAutoWidth(true);
+        accessGrid.addColumn(r -> r.value.name()).setHeader("Наименование").setFlexGrow(1);
+        accessGrid.addComponentColumn(this::buildReadCheckbox).setHeader("Чтение").setWidth("100px").setFlexGrow(0);
+        accessGrid.addComponentColumn(this::buildUpdateCheckbox).setHeader("Изменение").setWidth("110px").setFlexGrow(0);
+        accessGrid.addComponentColumn(this::buildDeleteCheckbox).setHeader("Удаление").setWidth("100px").setFlexGrow(0);
+
+        // Для CHECK_ONLY-измерений ("доступ к виду документа целиком", без построчного
+        // списка записей) — три обычных чекбокса вместо грида, см. loadAccessMatrix/
+        // saveAccessMatrix и AccessGrantAdminService.kindOf.
+        singleGrantUpdate.setEnabled(false);
+        singleGrantDelete.setEnabled(false);
+        singleGrantRead.addValueChangeListener(e -> {
+            singleGrantUpdate.setEnabled(e.getValue());
+            singleGrantDelete.setEnabled(e.getValue());
+            if (!e.getValue()) {
+                singleGrantUpdate.setValue(false);
+                singleGrantDelete.setValue(false);
+            }
+        });
+        HorizontalLayout singleGrantRow = new HorizontalLayout(
+                new Span("Доступ:"), singleGrantRead,
+                new Span("Изменение:"), singleGrantUpdate,
+                new Span("Удаление:"), singleGrantDelete);
+        singleGrantRow.setAlignItems(Alignment.CENTER);
+        singleGrantRow.setSpacing(true);
+
+        Span hint = new Span("Запись без отмеченного \"Чтение\" для выбранного пользователя/роли — " +
+                "недоступна вообще (запись гранта не создаётся). \"Изменение\"/\"Удаление\" " +
+                "без \"Чтение\" не имеют смысла — отключены, пока не отмечено \"Чтение\".");
+        hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        HorizontalLayout subjectRow = new HorizontalLayout(accessDimension, accessSubjectType, accessSubjectKey, saveButton);
+        subjectRow.setAlignItems(Alignment.END);
+        subjectRow.setSpacing(true);
+
+        accessTab.setSpacing(true);
+        accessTab.setSizeFull();
+        accessTab.add(subjectRow, hint, singleGrantRow, accessGrid);
+        accessTab.setFlexGrow(1, accessGrid);
+        this.singleGrantRowLayout = singleGrantRow;
+
+        loadAccessMatrix();
+    }
+
+    private void refreshSubjectKeyItems() {
+        accessSubjectKey.setItems(accessSubjectType.getValue() == AccessGrant.SubjectType.USER
+                ? accessGrantAdminService.allUsernames()
+                : accessGrantAdminService.allRoleNames());
+    }
+
+    private Checkbox buildReadCheckbox(DimensionValueAccessRow row) {
+        Checkbox checkbox = new Checkbox(row.read);
+        checkbox.addValueChangeListener(e -> {
+            row.read = e.getValue();
+            if (!row.read) {
+                row.update = false;
+                row.delete = false;
+            }
+            accessGrid.getDataProvider().refreshItem(row);
+        });
+        return checkbox;
+    }
+
+    private Checkbox buildUpdateCheckbox(DimensionValueAccessRow row) {
+        Checkbox checkbox = new Checkbox(row.update);
+        checkbox.setEnabled(row.read);
+        checkbox.addValueChangeListener(e -> row.update = e.getValue());
+        return checkbox;
+    }
+
+    private Checkbox buildDeleteCheckbox(DimensionValueAccessRow row) {
+        Checkbox checkbox = new Checkbox(row.delete);
+        checkbox.setEnabled(row.read);
+        checkbox.addValueChangeListener(e -> row.delete = e.getValue());
+        return checkbox;
+    }
+
+    private void loadAccessMatrix() {
+        String dimension = accessDimension.getValue();
+        String subjectKey = accessSubjectKey.getValue();
+
+        boolean checkOnly = dimension != null
+                && accessGrantAdminService.kindOf(dimension) == org.ip.rls.RlsDimensionKind.CHECK_ONLY;
+        accessGrid.setVisible(!checkOnly);
+        singleGrantRowLayout.setVisible(checkOnly);
+
+        if (dimension == null || subjectKey == null) {
+            accessRows.clear();
+            accessGrid.setItems(accessRows);
+            return;
+        }
+
+        if (checkOnly) {
+            GrantFlags flags = accessGrantAdminService.currentSingleGrant(dimension, accessSubjectType.getValue(), subjectKey);
+            singleGrantRead.setValue(flags.read());
+            singleGrantUpdate.setValue(flags.update());
+            singleGrantUpdate.setEnabled(flags.read());
+            singleGrantDelete.setValue(flags.delete());
+            singleGrantDelete.setEnabled(flags.read());
+            return;
+        }
+
+        accessRows.clear();
+        Map<Long, GrantFlags> current = accessGrantAdminService.currentGrantsByDimensionValue(
+                dimension, accessSubjectType.getValue(), subjectKey);
+        for (AccessGrantAdminService.ValueRow value : accessGrantAdminService.allValues(dimension)) {
+            accessRows.add(new DimensionValueAccessRow(value, current.getOrDefault(value.id(), GrantFlags.NONE)));
+        }
+        accessGrid.setItems(accessRows);
+    }
+
+    private void saveAccessMatrix() {
+        String dimension = accessDimension.getValue();
+        String subjectKey = accessSubjectKey.getValue();
+        if (dimension == null || subjectKey == null) {
+            Notification.show("Выберите измерение и пользователя или роль", 3000, Notification.Position.MIDDLE);
+            return;
+        }
+
+        if (accessGrantAdminService.kindOf(dimension) == org.ip.rls.RlsDimensionKind.CHECK_ONLY) {
+            GrantFlags flags = new GrantFlags(
+                    singleGrantRead.getValue(), singleGrantUpdate.getValue(), singleGrantDelete.getValue());
+            accessGrantAdminService.saveSingleGrant(dimension, accessSubjectType.getValue(), subjectKey, flags);
+        } else {
+            Map<Long, GrantFlags> desired = new java.util.HashMap<>();
+            for (DimensionValueAccessRow row : accessRows) {
+                desired.put(row.value.id(), new GrantFlags(row.read, row.update, row.delete));
+            }
+            accessGrantAdminService.saveGrants(dimension, accessSubjectType.getValue(), subjectKey, desired);
+        }
+
+        Notification.show("Права сохранены для " + subjectKey, 2500, Notification.Position.BOTTOM_START)
+                .addThemeVariants(com.vaadin.flow.component.notification.NotificationVariant.LUMO_SUCCESS);
     }
 
     // ----------------------------------------------------------- helpers

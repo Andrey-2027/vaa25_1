@@ -1,9 +1,5 @@
-package org.ip.service;
+package org.ip.rls;
 
-import org.ip.model.AccessGrant;
-import org.ip.model.Role;
-import org.ip.repository.AccessGrantRepository;
-import org.ip.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,6 +16,9 @@ import java.util.function.Predicate;
  * canUpdate()/canDelete() — для проверок в сервисах перед save()/delete() (тем же приёмом,
  * что GridFormViewService.checkEditable() — @Filter на UPDATE/DELETE не действует, это
  * только для SELECT).
+ *
+ * Не знает про конкретную модель User/Role приложения — роли пользователя добывает через
+ * {@link RlsRoleResolver} (единственная точка сцепки с приложением, см. его javadoc).
  */
 @Service
 public class AccessService {
@@ -33,11 +32,11 @@ public class AccessService {
     public static final long NO_ACCESS_SENTINEL = -1L;
 
     private final AccessGrantRepository grantRepository;
-    private final UserRepository userRepository;
+    private final RlsRoleResolver roleResolver;
 
-    public AccessService(AccessGrantRepository grantRepository, UserRepository userRepository) {
+    public AccessService(AccessGrantRepository grantRepository, RlsRoleResolver roleResolver) {
         this.grantRepository = grantRepository;
-        this.userRepository = userRepository;
+        this.roleResolver = roleResolver;
     }
 
     /**
@@ -68,6 +67,21 @@ public class AccessService {
         return ids.isEmpty() ? List.of(NO_ACCESS_SENTINEL) : ids;
     }
 
+    /**
+     * Есть ли у пользователя ХОТЬ КАКОЙ-ТО доступ по измерению — для скрытия
+     * навигации/меню, а НЕ для фильтрации строк списка (для этого — getReadableIds()
+     * напрямую, как обычно). Отдельное имя специально — чтобы у вызывающего кода было
+     * явно видно намерение "показывать/не показывать пункт меню", а не "сузить выборку".
+     *
+     * Типичное применение — CHECK_ONLY-измерения (см. RlsDimensionKind): "доступ к виду
+     * документа целиком", где нет смысла показывать список из нулевых строк — пункт меню
+     * должен просто не отображаться.
+     */
+    public boolean hasAnyAccess(String dimension, String username) {
+        List<Long> ids = getReadableIds(dimension, username);
+        return ids == null || !(ids.size() == 1 && ids.get(0) == NO_ACCESS_SENTINEL);
+    }
+
     public boolean canUpdate(String dimension, Long dimensionValueId, String username) {
         return hasAccess(dimension, dimensionValueId, username, AccessGrant::isCanUpdate);
     }
@@ -87,10 +101,7 @@ public class AccessService {
     private List<AccessGrant> findGrants(String dimension, String username) {
         List<AccessGrant> result = new ArrayList<>(grantRepository.findUserGrants(dimension, username));
 
-        List<String> roleNames = userRepository.findByUsername(username)
-            .map(user -> user.getRoles().stream().map(Role::getName).toList())
-            .orElse(List.of());
-
+        List<String> roleNames = roleResolver.rolesOf(username);
         if (!roleNames.isEmpty()) {
             result.addAll(grantRepository.findRoleGrants(dimension, roleNames));
         }

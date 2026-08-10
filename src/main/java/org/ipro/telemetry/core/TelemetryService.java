@@ -28,12 +28,16 @@ public class TelemetryService implements Telemetry {
     @Override
     public OperationScope beginOperation(String name, Map<String, String> context) {
         OperationScope scope = operationContext.beginOperation(name);
-        context.forEach(operationContext::putContext);
+        if (context != null) {
+            context.forEach(operationContext::putContext);
+        }
         return scope;
     }
 
     @Override
     public void context(Map<String, String> values) {
-        values.forEach(operationContext::putContext);
+        if (values != null) {
+            values.forEach(operationContext::putContext);
+        }
     }
 }

@@ -39,6 +39,7 @@ public class ReceivingDocumentService extends AbstractBaseService<ReceivingDocum
     public ReceivingDocument save(ReceivingDocument entity) {
         validate(entity);
         validateDocument(entity);
+        checkRlsWrite(entity);
         return repository.save(entity);
     }
 
@@ -46,6 +47,7 @@ public class ReceivingDocumentService extends AbstractBaseService<ReceivingDocum
     public ReceivingDocument create(ReceivingDocument entity) {
         validate(entity);
         validateDocument(entity);
+        checkRlsWrite(entity);
         return repository.save(entity);
     }
 
@@ -53,6 +55,7 @@ public class ReceivingDocumentService extends AbstractBaseService<ReceivingDocum
     public ReceivingDocument update(ReceivingDocument entity) {
         validate(entity);
         validateDocument(entity);
+        checkRlsWrite(entity);
         return repository.save(entity);
     }
 

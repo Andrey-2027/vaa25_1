@@ -3,12 +3,29 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
+import org.ip.rls.RlsDimension;
+import org.ip.rls.RlsCheckValue;
+import org.ip.rls.RlsDimensionValue;
 
+/**
+ * RLS: Филиал у Цеха — ОПЦИОНАЛЬНЫЙ (branch может быть null). Цех без Филиала в RLS по
+ * измерению "BRANCH" не участвует вообще — отсюда "branch_id is null or ..." в условии
+ * @Filter, а не просто "branch_id in (:allowedIds)" как у самостоятельных измерений
+ * (Journal/Branch) — и RlsCheckValue.notApplicable() в getRlsChecks(), а не
+ * RlsCheckValue.of(null) (см. обсуждение плана RLS, п.0 — два разных смысла null,
+ * которые нельзя путать).
+ */
 @Entity
 @Table(name = "workshop")
+@RlsDimension("BRANCH")
+@FilterDef(name = "BRANCH", parameters = @ParamDef(name = "allowedIds", type = Long.class))
+@Filter(name = "BRANCH", condition = "branch_id is null or branch_id in (:allowedIds)")
 @EntityMetadata(
     listFormTitle = "Цеха",
     itemFormTitle = "Цех",
@@ -18,7 +35,7 @@ import org.ip.metadata.annotation.GridColumn;
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     displaySortFields = {"code"}  // = getDisplayName()
 )
-public class Workshop extends BaseEntity implements HasDisplayName {
+public class Workshop extends BaseEntity implements HasDisplayName, RlsDimensionValue {
 
     @NotBlank
     @Size(max = 20)
@@ -37,6 +54,14 @@ public class Workshop extends BaseEntity implements HasDisplayName {
         grid = @GridColumn(order = 2, flexGrow = 1)
     )
     private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    @FieldMetadata(
+        label = "Филиал", required = false, order = 3,
+        grid = @GridColumn(order = 3, width = "180px")
+    )
+    private Branch branch;
 
     public Workshop() {
     }
@@ -62,6 +87,14 @@ public class Workshop extends BaseEntity implements HasDisplayName {
         this.name = name;
     }
 
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
+    }
+
     @Override
     public String toString() {
         return code + " - " + name;
@@ -70,5 +103,12 @@ public class Workshop extends BaseEntity implements HasDisplayName {
     @Override
     public String getDisplayName() {
         return code;
+    }
+
+    /** Цех без Филиала (branch == null) в RLS по измерению "BRANCH" не участвует вообще. */
+    @Override
+    public java.util.Map<String, java.util.List<RlsCheckValue>> getRlsChecks() {
+        RlsCheckValue check = branch != null ? RlsCheckValue.of(branch.getId()) : RlsCheckValue.notApplicable();
+        return java.util.Map.of("BRANCH", java.util.List.of(check));
     }
 }

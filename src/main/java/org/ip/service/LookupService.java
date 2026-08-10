@@ -9,6 +9,7 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.ip.metadata.FetchGraphs;
+import org.ip.rls.RlsFilterActivator;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.stereotype.Service;
 
@@ -35,9 +36,12 @@ public class LookupService {
     private EntityManager entityManager;
 
     private final Repositories repositories;
+    private final RlsFilterActivator rlsFilterActivator;
 
-    public LookupService(org.springframework.beans.factory.ListableBeanFactory beanFactory) {
+    public LookupService(org.springframework.beans.factory.ListableBeanFactory beanFactory,
+                         RlsFilterActivator rlsFilterActivator) {
         this.repositories = new Repositories(beanFactory);
+        this.rlsFilterActivator = rlsFilterActivator;
     }
 
     /**
@@ -50,6 +54,7 @@ public class LookupService {
      * @return список найденных сущностей
      */
     public <T> List<T> search(Class<T> entityClass, String[] searchFields, String term, int limit) {
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         if (term == null || term.isBlank() || searchFields == null || searchFields.length == 0) {
             return findAll(entityClass).stream().limit(limit).toList();
         }
@@ -85,6 +90,7 @@ public class LookupService {
      * Получить все записи сущности.
      */
     public <T> List<T> findAll(Class<T> entityClass) {
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> query = cb.createQuery(entityClass);
         query.from(entityClass);
@@ -96,6 +102,7 @@ public class LookupService {
      */
     public <T> Optional<T> findById(Class<T> entityClass, Object id) {
         if (id == null) return Optional.empty();
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         return Optional.ofNullable(entityManager.find(entityClass, id));
     }
 
@@ -108,6 +115,7 @@ public class LookupService {
      */
     public <T> Optional<T> findById(Class<T> entityClass, Object id, Collection<String> fetchPaths) {
         if (id == null) return Optional.empty();
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
         if (fetchPaths == null || fetchPaths.isEmpty()) {
             return findById(entityClass, id);
         }

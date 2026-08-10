@@ -3,6 +3,7 @@ package org.ip.service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.ip.metadata.ReferenceIndex;
+import org.ip.rls.RlsFilterActivator;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,27 +13,39 @@ import java.util.List;
 public class ReferenceCheckService {
 
     private final ReferenceIndex referenceIndex;
+    private final RlsFilterActivator rlsFilterActivator;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public ReferenceCheckService(ReferenceIndex referenceIndex) {
+    public ReferenceCheckService(ReferenceIndex referenceIndex, RlsFilterActivator rlsFilterActivator) {
         this.referenceIndex = referenceIndex;
+        this.rlsFilterActivator = rlsFilterActivator;
     }
 
+    /**
+     * Умышленно без RLS текущего пользователя (см. RlsFilterActivator.withRlsDisabled) —
+     * это проверка ссылочной целостности БД, а не выборка данных для показа пользователю:
+     * она должна видеть ВСЕ ссылающиеся записи, включая те, что под недоступными
+     * пользователю измерениями (например, PrdSpec под чужим Journal), иначе можно
+     * удалить запись, оставив на неё невидимые пользователю "битые" ссылки.
+     */
     public void checkNoReferences(Class<?> targetClass, Object id) {
         List<ReferenceIndex.ReverseReference> refs = referenceIndex.getReverseReferences(targetClass);
         if (refs.isEmpty()) {
             return;
         }
 
-        List<String> blockers = new ArrayList<>();
-        for (ReferenceIndex.ReverseReference ref : refs) {
-            long count = countReferencing(ref, id);
-            if (count > 0) {
-                blockers.add(ref.describe(count));
+        List<String> blockers = rlsFilterActivator.withRlsDisabled(entityManager, () -> {
+            List<String> found = new ArrayList<>();
+            for (ReferenceIndex.ReverseReference ref : refs) {
+                long count = countReferencing(ref, id);
+                if (count > 0) {
+                    found.add(ref.describe(count));
+                }
             }
-        }
+            return found;
+        });
 
         if (!blockers.isEmpty()) {
             throw new ValidationException(
@@ -48,3 +61,4 @@ public class ReferenceCheckService {
             .getSingleResult();
     }
 }
+
