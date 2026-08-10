@@ -6,9 +6,7 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
-import org.ip.metadata.annotation.EntityMetadata;
-import org.ip.metadata.annotation.FieldMetadata;
-import org.ip.metadata.annotation.GridColumn;
+import org.ip.metadata.annotation.*;
 import org.ip.rls.RlsDimension;
 import org.ip.rls.RlsCheckValue;
 import org.ip.rls.RlsDimensionValue;
@@ -25,7 +23,7 @@ import org.ip.rls.RlsDimensionValue;
 @Table(name = "workshop")
 @RlsDimension("BRANCH")
 @FilterDef(name = "BRANCH", parameters = @ParamDef(name = "allowedIds", type = Long.class))
-@Filter(name = "BRANCH", condition = "branch_id is null or branch_id in (:allowedIds)")
+@Filter(name = "BRANCH", condition = "(branch_id is null or branch_id in (:allowedIds))")
 @EntityMetadata(
     listFormTitle = "Цеха",
     itemFormTitle = "Цех",
@@ -59,7 +57,9 @@ public class Workshop extends BaseEntity implements HasDisplayName, RlsDimension
     @JoinColumn(name = "branch_id")
     @FieldMetadata(
         label = "Филиал", required = false, order = 3,
-        grid = @GridColumn(order = 3, width = "180px")
+        type = FieldType.ENTITY_REFERENCE,
+        grid = @GridColumn(order = 3, width = "180px"),
+        lookup = @Lookup(entity = Branch.class)
     )
     private Branch branch;
 

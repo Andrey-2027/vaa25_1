@@ -15,13 +15,18 @@ import org.ip.rls.AccessGrantRepository;
 import org.ip.rls.AccessService;
 import org.ip.rls.RlsFilterActivator;
 import org.ip.rls.RlsReadableIdsCache;
+import org.ip.service.WorkshopService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -52,6 +57,9 @@ class RlsIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private org.ip.repository.WorkshopRepository workshopRepository;
 
     private AccessService accessService;
     private RlsReadableIdsCache cache;
@@ -519,5 +527,45 @@ class RlsIntegrationTest {
     void bootstrapDoesNotApplyToCheckOnlyDimensions() {
         assertThat(accessService.canUpdate("ENTITY:ReceivingDocument", null, "bob")).isFalse();
         assertThat(accessService.canUpdate("ENTITY:ReceivingDocument", null, "alice")).isFalse();
+    }
+
+    // --------------------------- регрессия listForm Workshop: фильтр колонки + RLS @Filter
+
+    /**
+     * Жалоба: ввод значения в фильтр колонки (Код/Наименование) в ListForm Цехов не даёт
+     * реакции, а для Ед.изм./Номенклатуры (не под RLS) фильтрует. Kadidat: Criteria-запрос
+     * findAllWithFetchGraph с активным Hibernate @Filter BRANCH + Specification от TextFilter.
+     * Проверяем ровно путь ListForm: service.findAll(spec, pageable, fetchPaths).
+     */
+    @Test
+    void workshopGridSpecificationStillFiltersWithRlsFilterActive() {
+        Branch branchA = persistBranch("BR-A3", "Филиал А3");
+
+        Workshop w1 = new Workshop("W1", "Цех один");
+        w1.setBranch(branchA);
+        entityManager.persist(w1);
+        Workshop w2 = new Workshop("W2", "Цех два");
+        entityManager.persist(w2);
+        entityManager.flush();
+
+        persistGrant(AccessGrant.SubjectType.USER, "gt", "BRANCH", branchA.getId(), true, true, false);
+        entityManager.flush();
+
+        loginAs("gt");
+        Long branchId = branchA.getId();
+        activator.ensureRlsEnabled(entityManager); // включает BRANCH-фильтр с allowedIds=[branchA]
+
+        WorkshopService service = new WorkshopService(workshopRepository,
+            jakarta.validation.Validation.buildDefaultValidatorFactory().getValidator());
+        ReflectionTestUtils.setField(service, "entityManager", entityManager);
+        ReflectionTestUtils.setField(service, "rlsFilterActivator", activator);
+
+        Specification<Workshop> likeName = (root, query, cb) ->
+            cb.like(cb.lower(root.get("name")), "%один%");
+        Page<Workshop> page = service.findAll(
+            likeName, PageRequest.of(0, 100), List.of("branch"));
+
+        assertThat(branchId).isNotNull();
+        assertThat(page.getContent()).extracting(Workshop::getCode).containsExactly("W1");
     }
 }
