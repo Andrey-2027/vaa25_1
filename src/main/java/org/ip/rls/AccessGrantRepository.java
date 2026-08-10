@@ -36,4 +36,10 @@ public interface AccessGrantRepository
      */
     List<AccessGrant> findBySubjectTypeAndSubjectKeyAndDimension(
         AccessGrant.SubjectType subjectType, String subjectKey, String dimension);
+
+    /**
+     * Сколько грантов вообще существует по измерению (без "*") — для bootstrap-правила
+     * AccessService.isNewDimensionValueAllowed: "разметка измерения ещё не началась".
+     */
+    long countByDimension(String dimension);
 }

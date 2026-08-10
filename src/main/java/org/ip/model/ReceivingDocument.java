@@ -78,8 +78,8 @@ import java.time.LocalDate;
 public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "journal_id", nullable = false)
-    @NotNull
+    @JoinColumn(name = "journal_id", nullable = true)
+    //@NotNull
     @FieldMetadata(
         label = "Журнал", required = true, order = 0,
         type = FieldType.ENTITY_REFERENCE,

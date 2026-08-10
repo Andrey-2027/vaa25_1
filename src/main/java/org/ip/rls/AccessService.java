@@ -33,10 +33,13 @@ public class AccessService {
 
     private final AccessGrantRepository grantRepository;
     private final RlsRoleResolver roleResolver;
+    private final RlsDimensionRegistry dimensionRegistry;
 
-    public AccessService(AccessGrantRepository grantRepository, RlsRoleResolver roleResolver) {
+    public AccessService(AccessGrantRepository grantRepository, RlsRoleResolver roleResolver,
+                         RlsDimensionRegistry dimensionRegistry) {
         this.grantRepository = grantRepository;
         this.roleResolver = roleResolver;
+        this.dimensionRegistry = dimensionRegistry;
     }
 
     /**
@@ -92,9 +95,47 @@ public class AccessService {
 
     private boolean hasAccess(String dimension, Long dimensionValueId, String username,
                               Predicate<AccessGrant> permission) {
-        return findGrants(dimension, username).stream()
+        List<AccessGrant> grants = findGrants(dimension, username);
+        boolean permitted = grants.stream()
             .filter(permission)
-            .anyMatch(g -> g.getDimensionValueId() == null || g.getDimensionValueId().equals(dimensionValueId));
+            .anyMatch(g -> g.getDimensionValueId() == null
+                || g.getDimensionValueId().equals(dimensionValueId)
+                || (dimensionValueId == null && g.getDimensionValueId() != null));
+        return permitted || isNewDimensionValueAllowed(dimension);
+    }
+
+    /**
+     * Создание НОВОГО значения самого измерения (dimensionValueId == null) — отдельное
+     * правило, см. AbstractBaseService.checkRls. Двухступенчатое:
+     *
+     * 1. Bootstrap: если по этому измерению НЕТ НИ ОДНОГО гранта вообще (разметка ещё
+     *    не началась) — создание разрешено. Иначе первую запись (Журнал, Филиал) было
+     *    бы невозможно создать никогда: гранты выдаются в админ-матрице на сущест-
+     *    вующие значения, а значений нет. Проверка по ВСЕМ грантам измерения, а не по
+     *    грантам пользователя — чтобы "никто ничего не ограничивал" было единственным
+     *    условием bootstrap, а не "у пользователя пусто" (это было бы дырой: любой
+     *    новичок мог бы создавать филиалы после того, как доступы уже розданы).
+     *
+     * 2. Управление измерением: у пользователя есть право на КОНКРЕТНОЕ значение
+     *    измерения (любой id) — он уже "внутри" разметки и может создавать новые
+     *    значения. Право read-only на одно значение не даёт создания — нужен тот же
+     *    флаг (update/delete), что и на изменение существующих записей.
+     *
+     * Оба правила действуют только на FILTERABLE-измерения (сущности-справочники:
+     *    Journal, Branch, ...). Для CHECK_ONLY ("доступ к виду документа целиком",
+     *    ENTITY:...) строго требуется грант — см. тест
+     *    entityLevelGrantGatesWriteIndependentlyOfJournalAndBranch: отсутствие гранта
+     *    там обязано давать false, и bootstrap здесь не при чём.
+     */
+    private boolean isNewDimensionValueAllowed(String dimension) {
+        RlsDimensionKind kind;
+        try {
+            kind = dimensionRegistry.kindOf(dimension);
+        } catch (IllegalArgumentException unknownDimension) {
+            return false;
+        }
+        return kind != RlsDimensionKind.CHECK_ONLY
+            && grantRepository.countByDimension(dimension) == 0;
     }
 
     /** Прямые права пользователя + права всех его ролей — по ИЛИ, без дублей. */

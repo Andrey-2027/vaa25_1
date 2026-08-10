@@ -62,10 +62,10 @@ class RlsIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        accessService = new AccessService(accessGrantRepository, new UserRepositoryRlsRoleResolver(userRepository));
-
         var registry = new org.ip.rls.RlsDimensionRegistry("org.ip");
         registry.rebuild();
+        accessService = new AccessService(accessGrantRepository,
+            new UserRepositoryRlsRoleResolver(userRepository), registry);
         cache = new RlsReadableIdsCache(accessService);
         activator = new RlsFilterActivator(registry, cache);
 
@@ -480,5 +480,44 @@ class RlsIntegrationTest {
         entityManager.flush();
 
         assertThat(accessService.hasAnyAccess("ENTITY:ReceivingDocument", "frank")).isTrue();
+    }
+
+    // ------------------------------------------------- bootstrap: первая запись измерения
+
+    /**
+     * Регрессия "нельзя создать первый Филиал/Журнал": гранты выдаются на существующие
+     * значения, а значения появляются только после первой записи. Пока по измерению нет
+     * НИ ОДНОГО гранта, создание нового значения (id == null) разрешено (bootstrap).
+     *
+     * BRANCH в setUp грантов не имеет вообще → создание первого филиала любым
+     * пользователем (даже bob'ом без единого гранта) проходит.
+     */
+    @Test
+    void bootstrapAllowsFirstValueCreationWhenDimensionHasNoGrants() {
+        assertThat(accessService.canUpdate("BRANCH", null, "bob")).isTrue();
+        assertThat(accessService.canUpdate("BRANCH", null, "alice")).isTrue();
+    }
+
+    /**
+     * Bootstrap отключается, как только по измерению появился ХОТЬ ОДИН грант — создание
+     * новых значений дальше только через право на конкретное значение ("управление
+     * измерением") или wildcard. JOURNAL в setUp размечен (alice/admin) — bob без грантов
+     * создать новый журнал уже не может.
+     */
+    @Test
+    void bootstrapTurnsOffOnceDimensionHasAnyGrant() {
+        assertThat(accessService.canUpdate("JOURNAL", null, "bob")).isFalse();
+        // alice имеет update на журнал A (конкретное значение) — "внутри" разметки:
+        assertThat(accessService.canUpdate("JOURNAL", null, "alice")).isTrue();
+    }
+
+    /**
+     * Bootstrap НЕ действует на CHECK_ONLY-измерения: "ENTITY:ReceivingDocument" на
+     * создание документа — жёсткий гейт (доступ к виду целиком), а не справочник.
+     */
+    @Test
+    void bootstrapDoesNotApplyToCheckOnlyDimensions() {
+        assertThat(accessService.canUpdate("ENTITY:ReceivingDocument", null, "bob")).isFalse();
+        assertThat(accessService.canUpdate("ENTITY:ReceivingDocument", null, "alice")).isFalse();
     }
 }
