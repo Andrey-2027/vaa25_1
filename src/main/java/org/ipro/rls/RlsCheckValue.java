@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 /**
  * Одна проверка write-guard по одному измерению (см. {@link RlsDimensionValue}).

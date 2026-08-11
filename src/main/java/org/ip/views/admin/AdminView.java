@@ -40,7 +40,7 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.SpringComponent;
-import org.ip.rls.AccessGrant;
+import org.ipro.rls.AccessGrant;
 import org.ip.service.AccessGrantAdminService;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +87,10 @@ public class AdminView extends VerticalLayout {
     private final Checkbox singleGrantUpdate = new Checkbox("");
     private final Checkbox singleGrantDelete = new Checkbox("");
     private HorizontalLayout singleGrantRowLayout;
+    private final Button saveAccessButton = new Button("Сохранить", new Icon(VaadinIcon.CHECK), e -> saveAccessMatrix());
+    private final Button effectiveRightsButton = new Button("Эффективные права",
+            new Icon(VaadinIcon.EYE), e -> openEffectiveRightsDialog());
+    private boolean accessSaveInProgress;
 
     private final DatePicker eventFrom = new DatePicker("Начиная с");
     private final DatePicker eventTo = new DatePicker("По");
@@ -546,7 +550,7 @@ public class AdminView extends VerticalLayout {
         });
         accessSubjectKey.addValueChangeListener(e -> loadAccessMatrix());
 
-        Button saveButton = new Button("Сохранить", new Icon(VaadinIcon.CHECK), e -> saveAccessMatrix());
+        Button saveButton = saveAccessButton;
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         accessGrid.addColumn(r -> r.value.code()).setHeader("Код").setAutoWidth(true);
@@ -580,7 +584,8 @@ public class AdminView extends VerticalLayout {
                 "без \"Чтение\" не имеют смысла — отключены, пока не отмечено \"Чтение\".");
         hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
 
-        HorizontalLayout subjectRow = new HorizontalLayout(accessDimension, accessSubjectType, accessSubjectKey, saveButton);
+        HorizontalLayout subjectRow = new HorizontalLayout(accessDimension, accessSubjectType, accessSubjectKey,
+                saveButton, effectiveRightsButton);
         subjectRow.setAlignItems(Alignment.END);
         subjectRow.setSpacing(true);
 
@@ -631,7 +636,7 @@ public class AdminView extends VerticalLayout {
         String subjectKey = accessSubjectKey.getValue();
 
         boolean checkOnly = dimension != null
-                && accessGrantAdminService.kindOf(dimension) == org.ip.rls.RlsDimensionKind.CHECK_ONLY;
+                && accessGrantAdminService.kindOf(dimension) == org.ipro.rls.RlsDimensionKind.CHECK_ONLY;
         accessGrid.setVisible(!checkOnly);
         singleGrantRowLayout.setVisible(checkOnly);
 
@@ -668,20 +673,118 @@ public class AdminView extends VerticalLayout {
             return;
         }
 
-        if (accessGrantAdminService.kindOf(dimension) == org.ip.rls.RlsDimensionKind.CHECK_ONLY) {
-            GrantFlags flags = new GrantFlags(
-                    singleGrantRead.getValue(), singleGrantUpdate.getValue(), singleGrantDelete.getValue());
-            accessGrantAdminService.saveSingleGrant(dimension, accessSubjectType.getValue(), subjectKey, flags);
-        } else {
-            Map<Long, GrantFlags> desired = new java.util.HashMap<>();
-            for (DimensionValueAccessRow row : accessRows) {
-                desired.put(row.value.id(), new GrantFlags(row.read, row.update, row.delete));
+        // Межлок: повторный клик по «Сохранить», пока первый запрос в полёте, игнорируется.
+        if (accessSaveInProgress) {
+            return;
+        }
+        accessSaveInProgress = true;
+        saveAccessButton.setEnabled(false);
+        try {
+            if (accessGrantAdminService.kindOf(dimension) == org.ipro.rls.RlsDimensionKind.CHECK_ONLY) {
+                GrantFlags flags = new GrantFlags(
+                        singleGrantRead.getValue(), singleGrantUpdate.getValue(), singleGrantDelete.getValue());
+                accessGrantAdminService.saveSingleGrant(dimension, accessSubjectType.getValue(), subjectKey, flags);
+            } else {
+                Map<Long, GrantFlags> desired = new java.util.HashMap<>();
+                for (DimensionValueAccessRow row : accessRows) {
+                    desired.put(row.value.id(), new GrantFlags(row.read, row.update, row.delete));
+                }
+                accessGrantAdminService.saveGrants(dimension, accessSubjectType.getValue(), subjectKey, desired);
             }
-            accessGrantAdminService.saveGrants(dimension, accessSubjectType.getValue(), subjectKey, desired);
+
+            Notification.show("Права сохранены для " + subjectKey, 2500, Notification.Position.BOTTOM_START)
+                    .addThemeVariants(com.vaadin.flow.component.notification.NotificationVariant.LUMO_SUCCESS);
+        } finally {
+            accessSaveInProgress = false;
+            saveAccessButton.setEnabled(true);
+        }
+    }
+
+    /** Строка диалога «Эффективные права»: измерение + свёрнутое состояние и источник. */
+    private static final class EffectiveRightsRow {
+        final String dimension;
+        final String values;
+        final String read;
+        final String update;
+        final String delete;
+        final String sources;
+
+        EffectiveRightsRow(String dimension, String values, String read, String update,
+                           String delete, String sources) {
+            this.dimension = dimension;
+            this.values = values;
+            this.read = read;
+            this.update = update;
+            this.delete = delete;
+            this.sources = sources;
+        }
+    }
+
+    /**
+     * Диалог «Эффективные права» (Фаза 7 RLS-плана): по выбранному субъекту — свёртка
+     * прямых грантов и всех его ролей (с учётом wildcard "*") по каждому измерению.
+     * Показывает ИТОГОВЫЙ доступ, которого на самом деле придерживается система, —
+     * в отличие от матрицы редактирования, где видны только прямые строки субъекта.
+     */
+    private void openEffectiveRightsDialog() {
+        String subjectKey = accessSubjectKey.getValue();
+        if (subjectKey == null) {
+            Notification.show("Выберите пользователя или роль", 3000, Notification.Position.MIDDLE);
+            return;
+        }
+        AccessGrant.SubjectType subjectType = accessSubjectType.getValue();
+        Map<String, org.ipro.rls.AccessService.EffectiveGrant> effective =
+                accessGrantAdminService.collectEffective(subjectType, subjectKey);
+
+        List<EffectiveRightsRow> rows = new ArrayList<>();
+        for (Map.Entry<String, org.ipro.rls.AccessService.EffectiveGrant> entry : effective.entrySet()) {
+            org.ipro.rls.AccessService.EffectiveGrant grant = entry.getValue();
+            rows.add(new EffectiveRightsRow(
+                    entry.getKey(),
+                    formatEffectiveValues(entry.getKey(), grant),
+                    yesNo(grant.canRead()),
+                    yesNo(grant.canUpdate()),
+                    yesNo(grant.canDelete()),
+                    grant.sources().isEmpty() ? "—" : String.join(", ", grant.sources())));
         }
 
-        Notification.show("Права сохранены для " + subjectKey, 2500, Notification.Position.BOTTOM_START)
-                .addThemeVariants(com.vaadin.flow.component.notification.NotificationVariant.LUMO_SUCCESS);
+        Grid<EffectiveRightsRow> grid = new Grid<>(EffectiveRightsRow.class, false);
+        grid.addColumn(r -> r.dimension).setHeader("Измерение").setAutoWidth(true);
+        grid.addColumn(r -> r.values).setHeader("Записи").setFlexGrow(1);
+        grid.addColumn(r -> r.read).setHeader("Чтение").setWidth("90px").setFlexGrow(0);
+        grid.addColumn(r -> r.update).setHeader("Изменение").setWidth("90px").setFlexGrow(0);
+        grid.addColumn(r -> r.delete).setHeader("Удаление").setWidth("90px").setFlexGrow(0);
+        grid.addColumn(r -> r.sources).setHeader("Источник").setWidth("260px").setFlexGrow(0);
+        grid.setItems(rows);
+
+        Dialog dialog = new Dialog(grid);
+        dialog.setHeaderTitle("Эффективные права: " + subjectKey
+                + (subjectType == AccessGrant.SubjectType.USER ? " (пользователь)" : " (роль)"));
+        dialog.setWidth("820px");
+        dialog.setHeight("480px");
+        dialog.open();
+    }
+
+    /** Колонка «Записи»: "все" — wildcard-грант; "—" — CHECK_ONLY или нет прав на чтение; иначе коды записей. */
+    private String formatEffectiveValues(String dimension, org.ipro.rls.AccessService.EffectiveGrant grant) {
+        if (accessGrantAdminService.kindOf(dimension) == org.ipro.rls.RlsDimensionKind.CHECK_ONLY
+                || !grant.canRead()) {
+            return "—";
+        }
+        if (grant.unlimited()) {
+            return "все";
+        }
+        Map<Long, String> codesById = new java.util.HashMap<>();
+        for (AccessGrantAdminService.ValueRow value : accessGrantAdminService.allValues(dimension)) {
+            codesById.put(value.id(), value.code());
+        }
+        return grant.readableValueIds().stream()
+                .map(id -> codesById.getOrDefault(id, String.valueOf(id)))
+                .collect(java.util.stream.Collectors.joining(", "));
+    }
+
+    private static String yesNo(boolean value) {
+        return value ? "Да" : "—";
     }
 
     // ----------------------------------------------------------- helpers

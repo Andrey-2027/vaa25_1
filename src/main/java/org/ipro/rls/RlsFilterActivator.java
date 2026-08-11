@@ -1,12 +1,13 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
-import org.ip.security.CurrentUser;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -34,14 +35,17 @@ import java.util.function.Supplier;
 @Component
 public class RlsFilterActivator {
 
-    private static final String ACTIVATED_PROPERTY = "org.ip.rls.activated";
+    private static final String ACTIVATED_PROPERTY = "org.ipro.rls.activated";
 
     private final RlsDimensionRegistry dimensionRegistry;
     private final RlsReadableIdsCache readableIdsCache;
+    private final RlsCurrentUser currentUser;
 
-    public RlsFilterActivator(RlsDimensionRegistry dimensionRegistry, RlsReadableIdsCache readableIdsCache) {
+    public RlsFilterActivator(RlsDimensionRegistry dimensionRegistry, RlsReadableIdsCache readableIdsCache,
+                              RlsCurrentUser currentUser) {
         this.dimensionRegistry = dimensionRegistry;
         this.readableIdsCache = readableIdsCache;
+        this.currentUser = currentUser;
     }
 
     /**
@@ -60,7 +64,11 @@ public class RlsFilterActivator {
         }
 
         Session session = entityManager.unwrap(Session.class);
-        String username = CurrentUser.username();
+        String username = currentUser.username();
+
+        // набор измерений, обработанных для ЭТОЙ сессии (включён фильтр ИЛИ сознательно
+        // пропущен из-за wildcard-гранта) — для RLS-канарейки RlsStatementGuard
+        Set<String> processed = new HashSet<>();
 
         for (String dimension : dimensionRegistry.dimensions()) {
             if (dimensionRegistry.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY) {
@@ -74,12 +82,15 @@ public class RlsFilterActivator {
                 // Wildcard-грант (dimensionValueId = null или dimension = "*") — доступ без
                 // ограничений: фильтр сознательно НЕ включаем (см. обсуждение — @Filter не
                 // умеет выразить "включён, но ничего не фильтрует" через null-параметр).
+                processed.add(dimension);
                 continue;
             }
             session.enableFilter(dimension).setParameterList("allowedIds", allowedIds);
+            processed.add(dimension);
         }
 
         entityManager.setProperty(ACTIVATED_PROPERTY, Boolean.TRUE);
+        RlsStatementGuard.markProcessed(processed);
     }
 
     /**
@@ -98,27 +109,33 @@ public class RlsFilterActivator {
      * невидимый удалившему.
      */
     public <T> T withRlsDisabled(EntityManager entityManager, Supplier<T> action) {
-        Session session = entityManager.unwrap(Session.class);
-        List<String> disabled = new ArrayList<>();
-        for (String dimension : dimensionRegistry.dimensions()) {
-            if (dimensionRegistry.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY) {
-                continue; // никогда не был включён — см. ensureRlsEnabled
-            }
-            if (session.getEnabledFilter(dimension) != null) {
-                session.disableFilter(dimension);
-                disabled.add(dimension);
-            }
-        }
+        RlsStatementGuard.beginConsent();
         try {
-            return action.get();
-        } finally {
-            String username = CurrentUser.username();
-            for (String dimension : disabled) {
-                List<Long> allowedIds = readableIdsCache.getReadableIds(dimension, username);
-                if (allowedIds != null) {
-                    session.enableFilter(dimension).setParameterList("allowedIds", allowedIds);
+            Session session = entityManager.unwrap(Session.class);
+            List<String> disabled = new ArrayList<>();
+            for (String dimension : dimensionRegistry.dimensions()) {
+                if (dimensionRegistry.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY) {
+                    continue; // никогда не был включён — см. ensureRlsEnabled
+                }
+                if (session.getEnabledFilter(dimension) != null) {
+                    session.disableFilter(dimension);
+                    disabled.add(dimension);
                 }
             }
+            try {
+                return action.get();
+            } finally {
+                String username = currentUser.username();
+                for (String dimension : disabled) {
+                    List<Long> allowedIds = readableIdsCache.getReadableIds(dimension, username);
+                    if (allowedIds != null) {
+                        session.enableFilter(dimension).setParameterList("allowedIds", allowedIds);
+                    }
+                }
+            }
+        } finally {
+            // после восстановления фильтров — чтобы гейт не поймал ни один SQL из этого окна
+            RlsStatementGuard.endConsent();
         }
     }
 }

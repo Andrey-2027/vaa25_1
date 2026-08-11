@@ -8,6 +8,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -85,6 +86,9 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     private final FormLayout formLayout; // null, если форма построена по кастомному ItemFormLayout
     private final HorizontalLayout footer = new HorizontalLayout();
     private final VerticalLayout sectionsContainer = new VerticalLayout();
+
+    /** Бейдж RLS "Только просмотр" (Фаза 4): причина запрета изменения, если запись открыта без прав. */
+    private final Span rlsReadOnlyNotice = new Span();
     private final List<ItemTable<?, T>> tableSections = new ArrayList<>();
     private final List<String> tableSectionTitles = new ArrayList<>();
     private com.vaadin.flow.component.tabs.TabSheet tabSheet;
@@ -232,6 +236,11 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         sectionsContainer.setWidthFull();
         sectionsContainer.setPadding(false);
         sectionsContainer.setSpacing(true);
+
+        rlsReadOnlyNotice.getStyle().set("color", "var(--lumo-error-text-color)");
+        rlsReadOnlyNotice.getStyle().set("font-size", "var(--lumo-font-size-s)");
+        rlsReadOnlyNotice.setVisible(false);
+        add(rlsReadOnlyNotice);
 
         initHistoryButton();
     }
@@ -746,6 +755,18 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      */
     public boolean isReadOnly() {
         return registry.isReadOnly();
+    }
+
+    /**
+     * Бейдж RLS "Только просмотр" (Фаза 4): показывается вверху формы, когда запись
+     * открыта без права на изменение (read-only по правам, а не по коду). Причина —
+     * текст из {@code RlsUiGate.AccessDecision.reason()}, напр. «Только просмотр: нет
+     * прав на изменение (измерение ENTITY:ReceivingDocument)». null/пусто — бейдж
+     * скрывается.
+     */
+    public void setRlsReadOnlyNotice(String reason) {
+        rlsReadOnlyNotice.setText(reason == null ? "" : reason);
+        rlsReadOnlyNotice.setVisible(reason != null && !reason.isEmpty());
     }
 
     // === Доступ к внутренностям ===

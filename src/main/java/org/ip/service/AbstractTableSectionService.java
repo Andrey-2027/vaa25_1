@@ -7,7 +7,7 @@ import org.ip.metadata.FetchGraphs;
 import org.ip.metadata.FieldMetadataInfo;
 import org.ip.metadata.MetadataResolver;
 import org.ip.metadata.TableSectionMetadataInfo;
-import org.ip.rls.RlsFilterActivator;
+import org.ipro.rls.RlsFilterActivator;
 import org.ipro.crud.IdentifiableEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -35,30 +35,6 @@ public class ReceivingDocumentService extends AbstractBaseService<ReceivingDocum
                 .toList();
     }
 
-    @Override
-    public ReceivingDocument save(ReceivingDocument entity) {
-        validate(entity);
-        validateDocument(entity);
-        checkRlsWrite(entity);
-        return repository.save(entity);
-    }
-
-    @Override
-    public ReceivingDocument create(ReceivingDocument entity) {
-        validate(entity);
-        validateDocument(entity);
-        checkRlsWrite(entity);
-        return repository.save(entity);
-    }
-
-    @Override
-    public ReceivingDocument update(ReceivingDocument entity) {
-        validate(entity);
-        validateDocument(entity);
-        checkRlsWrite(entity);
-        return repository.save(entity);
-    }
-
     /**
      * Каскадное удаление строк табличной части перед удалением шапки.
      *
@@ -81,11 +57,15 @@ public class ReceivingDocumentService extends AbstractBaseService<ReceivingDocum
     }
 
     /**
+     * Доменные бизнес-правила накладной (хук AbstractBaseService.validateBusinessRules —
+     * вызывается между bean-валидацией и RLS write-guard'ом, см. его javadoc).
+     *
      * Проверка "документ должен содержать хотя бы одну позицию" теперь на уровне
      * @TableSectionMetadata(minRows = 1) и выполняется ItemForm.validateTableSections()
-     * ДО вызова save() — сюда, в validateDocument(), она больше не входит.
+     * ДО вызова save() — сюда она не входит.
      */
-    private void validateDocument(ReceivingDocument document) {
+    @Override
+    protected void validateBusinessRules(ReceivingDocument document) {
         if (document.getReceivingWorkshop() != null &&
             document.getTransferringWorkshop() != null &&
             document.getReceivingWorkshop().getId().equals(document.getTransferringWorkshop().getId())) {

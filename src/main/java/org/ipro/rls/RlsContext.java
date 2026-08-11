@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import java.util.function.Supplier;
 
@@ -19,8 +19,9 @@ import java.util.function.Supplier;
  * List<Journal> all = RlsContext.callAsSystem(() -> journalService.findAll());
  * }</pre>
  *
- * {@link RlsFilterActivator}/{@link RlsGuard} проверяют {@link #isBypassed()} и в этом
- * случае не включают фильтр и не требуют, чтобы он был включён.
+ * {@link RlsFilterActivator} проверяет {@link #isBypassed()} и в этом случае не
+ * включает фильтр вовсе; read-гейт "тихого" чтения (RlsGuard, появится в Фазе 6
+ * RLS-плана) — аналогично глушится этим флагом: не требует, чтобы фильтр был включён.
  */
 public final class RlsContext {
 

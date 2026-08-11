@@ -10,11 +10,11 @@ import org.ip.model.ReceivingDocument;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.model.Workshop;
 import org.ip.repository.UserRepository;
-import org.ip.rls.AccessGrant;
-import org.ip.rls.AccessGrantRepository;
-import org.ip.rls.AccessService;
-import org.ip.rls.RlsFilterActivator;
-import org.ip.rls.RlsReadableIdsCache;
+import org.ipro.rls.AccessGrant;
+import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.AccessService;
+import org.ipro.rls.RlsFilterActivator;
+import org.ipro.rls.RlsReadableIdsCache;
 import org.ip.service.WorkshopService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +24,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -47,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * тесте нет, а конструкторы у всех трёх классов простые, без Spring-магии внутри.
  */
 @DataJpaTest
+@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls"})
 class RlsIntegrationTest {
 
     @Autowired
@@ -62,6 +64,7 @@ class RlsIntegrationTest {
     private org.ip.repository.WorkshopRepository workshopRepository;
 
     private AccessService accessService;
+    private org.ipro.rls.RlsDimensionRegistry registry;
     private RlsReadableIdsCache cache;
     private RlsFilterActivator activator;
 
@@ -70,12 +73,13 @@ class RlsIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        var registry = new org.ip.rls.RlsDimensionRegistry("org.ip");
+        var registry = new org.ipro.rls.RlsDimensionRegistry("org.ip");
         registry.rebuild();
+        this.registry = registry;
         accessService = new AccessService(accessGrantRepository,
             new UserRepositoryRlsRoleResolver(userRepository), registry);
         cache = new RlsReadableIdsCache(accessService);
-        activator = new RlsFilterActivator(registry, cache);
+        activator = new RlsFilterActivator(registry, cache, () -> CurrentUser.username());
 
         Journal journalA = new Journal();
         journalA.setCode("A");
@@ -325,7 +329,7 @@ class RlsIntegrationTest {
         Workshop workshop = new Workshop("W4", "Цех без филиала");
         // carol не имеет НИ ОДНОГО гранта на BRANCH вообще
         assertThat(workshop.getRlsChecks().get("BRANCH"))
-            .containsExactly(org.ip.rls.RlsCheckValue.notApplicable());
+            .containsExactly(org.ipro.rls.RlsCheckValue.notApplicable());
     }
 
     // ------------------------------------------- ReceivingDocument: JOURNAL И BRANCH×2 (п.3 плана)
@@ -383,6 +387,11 @@ class RlsIntegrationTest {
         // dave: доступ к Журналу A и только к Филиалу А (не Б)
         persistGrant(AccessGrant.SubjectType.USER, "dave", "JOURNAL", journalAId, true, true, false);
         persistGrant(AccessGrant.SubjectType.USER, "dave", "BRANCH", branchA.getId(), true, true, false);
+        // Фаза 5 RLS-плана: строгий read-гейт CHECK_ONLY — для чтения списка Накладных
+        // пользователю нужен ENTITY-грант ("ENTITY:ReceivingDocument"); этот тест проверяет
+        // построчные фильтры (прямой entityManager-запрос, где гейт не действует), поэтому
+        // dave выдаём грант — сценарий должен отражать новую модель прав, а не обходить её.
+        persistGrant(AccessGrant.SubjectType.USER, "dave", "ENTITY:ReceivingDocument", null, true, false, false);
         entityManager.flush();
 
         loginAs("dave");
@@ -412,11 +421,11 @@ class RlsIntegrationTest {
         ReceivingDocument doc = new ReceivingDocument("RD-X", java.time.LocalDate.now(), workshopA, workshopB);
         doc.setJournal(journalA);
 
-        Map<String, List<org.ip.rls.RlsCheckValue>> checks = doc.getRlsChecks();
-        assertThat(checks.get("JOURNAL")).containsExactly(org.ip.rls.RlsCheckValue.of(journalAId));
+        Map<String, List<org.ipro.rls.RlsCheckValue>> checks = doc.getRlsChecks();
+        assertThat(checks.get("JOURNAL")).containsExactly(org.ipro.rls.RlsCheckValue.of(journalAId));
         assertThat(checks.get("BRANCH")).containsExactly(
-            org.ip.rls.RlsCheckValue.of(branchA.getId()),
-            org.ip.rls.RlsCheckValue.of(branchB.getId()));
+            org.ipro.rls.RlsCheckValue.of(branchA.getId()),
+            org.ipro.rls.RlsCheckValue.of(branchB.getId()));
 
         // dave имеет грант только на branchA, не на branchB — значит хотя бы одна из
         // двух проверок BRANCH не пройдёт, и это должно блокировать запись целиком
@@ -456,7 +465,7 @@ class RlsIntegrationTest {
         doc.setJournal(journalA);
 
         assertThat(doc.getRlsChecks().get("ENTITY:ReceivingDocument"))
-            .containsExactly(org.ip.rls.RlsCheckValue.of(null));
+            .containsExactly(org.ipro.rls.RlsCheckValue.of(null));
     }
 
     /**
@@ -559,6 +568,7 @@ class RlsIntegrationTest {
             jakarta.validation.Validation.buildDefaultValidatorFactory().getValidator());
         ReflectionTestUtils.setField(service, "entityManager", entityManager);
         ReflectionTestUtils.setField(service, "rlsFilterActivator", activator);
+        ReflectionTestUtils.setField(service, "rlsReadGate", new org.ipro.rls.RlsReadGate(accessService, registry));
 
         Specification<Workshop> likeName = (root, query, cb) ->
             cb.like(cb.lower(root.get("name")), "%один%");

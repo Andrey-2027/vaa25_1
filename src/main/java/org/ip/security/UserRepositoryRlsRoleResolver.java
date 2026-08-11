@@ -2,13 +2,13 @@ package org.ip.security;
 
 import org.ip.model.Role;
 import org.ip.repository.UserRepository;
-import org.ip.rls.RlsRoleResolver;
+import org.ipro.rls.RlsRoleResolver;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
- * Мост между org.ip.rls (не знает про User/Role этого приложения) и реальной ролевой
+ * Мост между org.ipro.rls (не знает про User/Role этого приложения) и реальной ролевой
  * моделью — единственное место в приложении, которое реализует RlsRoleResolver.
  */
 @Component

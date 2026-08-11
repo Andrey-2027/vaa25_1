@@ -15,10 +15,11 @@ import org.ip.metadata.annotation.FieldType;
 import org.ip.metadata.annotation.GridColumn;
 import org.ip.metadata.annotation.Lookup;
 import org.ip.metadata.annotation.TableSections;
-import org.ip.rls.RlsDimension;
-import org.ip.rls.RlsCheckValue;
-import org.ip.rls.RlsDimensionKind;
-import org.ip.rls.RlsDimensionValue;
+import org.ipro.rls.RlsDimension;
+import org.ipro.rls.RlsCheckValue;
+import org.ipro.rls.RlsDimensionKind;
+import org.ipro.rls.RlsDimensionValue;
+import org.ipro.crud.BaseEntity;
 
 import java.time.LocalDate;
 

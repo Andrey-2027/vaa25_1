@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -19,12 +19,12 @@ public interface AccessGrantRepository
      * например у ADMIN) — попадает в тот же запрос, без отдельной ветки в AccessService.
      */
     @Query("select g from AccessGrant g where g.dimension in (:dimension, '*') " +
-        "and g.subjectType = org.ip.rls.AccessGrant.SubjectType.USER and g.subjectKey = :username")
+        "and g.subjectType = org.ipro.rls.AccessGrant.SubjectType.USER and g.subjectKey = :username")
     List<AccessGrant> findUserGrants(@Param("dimension") String dimension, @Param("username") String username);
 
     /** Права через роли по измерению (subjectType = ROLE, subjectKey = Role.getName()); см. findUserGrants про "*". */
     @Query("select g from AccessGrant g where g.dimension in (:dimension, '*') " +
-        "and g.subjectType = org.ip.rls.AccessGrant.SubjectType.ROLE and g.subjectKey in :roleNames")
+        "and g.subjectType = org.ipro.rls.AccessGrant.SubjectType.ROLE and g.subjectKey in :roleNames")
     List<AccessGrant> findRoleGrants(@Param("dimension") String dimension, @Param("roleNames") Collection<String> roleNames);
 
     /**

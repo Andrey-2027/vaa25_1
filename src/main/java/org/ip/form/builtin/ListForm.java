@@ -29,6 +29,8 @@ import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.ipro.filtergrid.util.JpaPathUtil;
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.rls.RlsUiGate;
+import org.ipro.rls.RlsUiGate.AccessDecision;
 import org.ipro.telemetry.api.OperationScope;
 import org.ipro.telemetry.core.TelemetryBridge;
 import org.springframework.data.jpa.domain.Specification;
@@ -71,6 +73,9 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private org.ip.service.FormSettingsService formSettingsService;
     private String formKey;
 
+    /** Решения "что разрешено" для кнопок (Фаза 3 RLS-плана); null — старое поведение без проверок. */
+    private RlsUiGate rlsUiGate;
+
     private Runnable afterColumnsConfigured;
 
     // === Конструктор 1: внешний FilterGrid ===
@@ -101,6 +106,22 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     public void setContextFilter(Specification<T> contextFilter) {
         this.contextFilter = contextFilter;
         refresh();
+    }
+
+    /**
+     * Подключение RLS-ui-гейта (Фаза 3): кнопка «Создать» сразу ставится по
+     * canCreate(entityClass) — неактивна с tooltip-причиной, если создание запрещено;
+     * кнопки «Изменить»/«Удалить» пересчитываются на каждое выделение строки в
+     * configureGridSelection. null — обратная совместимость (прежнее поведение).
+     */
+    public void setRlsUiGate(RlsUiGate rlsUiGate) {
+        this.rlsUiGate = rlsUiGate;
+        if (rlsUiGate == null) {
+            return;
+        }
+        AccessDecision create = rlsUiGate.canCreate(metadata.getEntityClass());
+        addButton.setEnabled(create.allowed());
+        addButton.setTooltipText(create.allowed() ? null : create.reason());
     }
 
     public void setContextFilter(String path, Object value) {
@@ -353,9 +374,24 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         Grid<T> grid = filterGrid.getGrid();
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         grid.asSingleSelect().addValueChangeListener(e -> {
-            boolean has = e.getValue() != null;
-            editButton.setEnabled(has);
-            deleteButton.setEnabled(has);
+            T item = e.getValue();
+            boolean has = item != null;
+            boolean editEnabled = has;
+            boolean deleteEnabled = has;
+            String editTooltip = null;
+            String deleteTooltip = null;
+            if (rlsUiGate != null && has) {
+                AccessDecision edit = rlsUiGate.canUpdate(item);
+                editEnabled = edit.allowed();
+                editTooltip = edit.allowed() ? null : edit.reason();
+                AccessDecision delete = rlsUiGate.canDelete(item);
+                deleteEnabled = delete.allowed();
+                deleteTooltip = delete.allowed() ? null : delete.reason();
+            }
+            editButton.setEnabled(editEnabled);
+            deleteButton.setEnabled(deleteEnabled);
+            editButton.setTooltipText(editTooltip);
+            deleteButton.setTooltipText(deleteTooltip);
         });
         grid.addItemDoubleClickListener(e -> {
             T item = e.getItem();

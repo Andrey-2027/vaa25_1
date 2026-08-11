@@ -8,9 +8,10 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import org.ip.metadata.annotation.*;
-import org.ip.rls.RlsCheckValue;
-import org.ip.rls.RlsDimension;
-import org.ip.rls.RlsDimensionValue;
+import org.ipro.rls.RlsCheckValue;
+import org.ipro.rls.RlsDimension;
+import org.ipro.rls.RlsDimensionValue;
+import org.ipro.crud.BaseEntity;
 
 import java.util.ArrayList;
 import java.util.List;

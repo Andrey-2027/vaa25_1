@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import jakarta.persistence.PostPersist;
 import jakarta.persistence.PostRemove;

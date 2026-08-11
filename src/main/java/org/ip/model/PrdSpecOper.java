@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.ip.metadata.annotation.*;
+import org.ipro.crud.BaseEntity;
 
 @Entity
 @Table(name = "prd_spec_oper")

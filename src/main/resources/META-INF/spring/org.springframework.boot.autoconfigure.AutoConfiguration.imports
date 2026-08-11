@@ -1,1 +1,2 @@
 org.ipro.telemetry.config.TelemetryAutoConfiguration
+org.ipro.rls.config.RlsAutoConfiguration

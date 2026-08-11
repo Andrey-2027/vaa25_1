@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
+import org.ipro.crud.BaseEntity;
 
 import java.util.HashSet;
 import java.util.Set;

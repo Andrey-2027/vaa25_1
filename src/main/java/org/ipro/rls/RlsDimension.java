@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * @RlsDimension("JOURNAL")
  * @RlsDimension("BRANCH")
  * @RlsDimension(value = "ENTITY:ReceivingDocument", kind = RlsDimensionKind.CHECK_ONLY)
- * public class ReceivingDocument extends BaseEntity { ... }
+ * public class ReceivingDocument extends org.ipro.crud.BaseEntity { ... }
  * }</pre>
  *
  * Одноизмеренческий случай (Journal/PrdSpec/Branch/Workshop) пишется как раньше, без
@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * @RlsDimension("JOURNAL")
  * @FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class))
  * @Filter(name = "JOURNAL", condition = "journal_id in (:allowedIds)")
- * public class PrdSpec extends BaseEntity { ... }
+ * public class PrdSpec extends org.ipro.crud.BaseEntity { ... }
  * }</pre>
  */
 @Target(ElementType.TYPE)

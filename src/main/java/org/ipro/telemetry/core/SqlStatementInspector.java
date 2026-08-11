@@ -1,6 +1,7 @@
 package org.ipro.telemetry.core;
 
 import org.hibernate.resource.jdbc.spi.StatementInspector;
+import org.ipro.rls.RlsStatementGuard;
 
 /**
  * StatementInspector (свойство {@code hibernate.session_factory.statement_inspector}):
@@ -10,6 +11,10 @@ import org.hibernate.resource.jdbc.spi.StatementInspector;
  * Используется ТОЛЬКО для подсчёта (текст, не время) — тайминг даёт
  * {@link SqlStatementListener}. Регистрируется самим Hibernate, поэтому
  * public no-arg конструктор и доступ к контексту через {@link SqlTimingBridge}.
+ * <p>
+ * Заодно прогоняет каждый SQL через RLS-канарейку {@link RlsStatementGuard} —
+ * композиция, а не второй StatementInspector (Hibernate держит только один).
+ * Guard работает независимо от телеметрии и вызывается ДО её early-return'ов.
  */
 public final class SqlStatementInspector implements StatementInspector {
 
@@ -18,6 +23,7 @@ public final class SqlStatementInspector implements StatementInspector {
         if (sql == null) {
             return null;
         }
+        RlsStatementGuard.inspect(sql);
         if (!TelemetryGuard.isEnabled() || TelemetryGuard.isInsideLogging()) {
             return sql;
         }

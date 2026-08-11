@@ -41,6 +41,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     private final FieldFactory fieldFactory;
     private final ApplicationContext applicationContext;
     private final TableSectionFactory tableSectionFactory;
+    private final ItemFormAccessBinder itemFormAccessBinder;
 
     private ItemForm<?> itemForm;
     private Consumer<?> onSavedCallback;
@@ -49,11 +50,13 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
             @Autowired MetadataResolver metadataResolver,
             @Autowired FieldFactory fieldFactory,
             @Autowired ApplicationContext applicationContext,
-            @Autowired TableSectionFactory tableSectionFactory) {
+            @Autowired TableSectionFactory tableSectionFactory,
+            @Autowired ItemFormAccessBinder itemFormAccessBinder) {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
         this.tableSectionFactory = tableSectionFactory;
+        this.itemFormAccessBinder = itemFormAccessBinder;
         setSizeFull();
         setPadding(false);
         setSpacing(false);
@@ -87,6 +90,8 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
             Optional<T> existing = service.findById(id);
             if (existing.isPresent()) {
                 form.setEntity(existing.get());
+                // Без права на изменение — форма в режиме только просмотра (Фаза 4).
+                itemFormAccessBinder.applyReadOnlyIfCannotUpdate(form);
             }
         }
 

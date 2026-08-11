@@ -2,8 +2,8 @@ package org.ip.security;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.ip.rls.RlsDimensionValueSource;
-import org.ip.rls.RlsFilterActivator;
+import org.ipro.rls.RlsDimensionValueSource;
+import org.ipro.rls.RlsFilterActivator;
 import org.ip.model.Branch;
 import org.ip.repository.BranchRepository;
 import org.springframework.data.domain.Sort;

@@ -2,8 +2,8 @@ package org.ip.security;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.ip.rls.RlsDimensionValueSource;
-import org.ip.rls.RlsFilterActivator;
+import org.ipro.rls.RlsDimensionValueSource;
+import org.ipro.rls.RlsFilterActivator;
 import org.ip.model.Journal;
 import org.ip.repository.JournalRepository;
 import org.springframework.data.domain.Sort;

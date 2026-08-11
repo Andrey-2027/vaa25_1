@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  *     minRows = 1,
  *     serviceClass = ReceivingDocumentItemService.class
  * )
- * public class ReceivingDocumentItem extends BaseEntity { ... }
+ * public class ReceivingDocumentItem extends org.ipro.crud.BaseEntity { ... }
  * }
  * </pre>
  */

@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
+import org.ipro.crud.BaseEntity;
 
 @Entity
 @Table(name = "oper")

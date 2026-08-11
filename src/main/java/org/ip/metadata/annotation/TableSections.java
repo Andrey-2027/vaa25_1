@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * @Entity
  * @EntityMetadata(...)
  * @TableSections({ReceivingDocumentItem.class})
- * public class ReceivingDocument extends BaseEntity { ... }
+ * public class ReceivingDocument extends org.ipro.crud.BaseEntity { ... }
  * }
  * </pre>
  *

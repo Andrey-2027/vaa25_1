@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

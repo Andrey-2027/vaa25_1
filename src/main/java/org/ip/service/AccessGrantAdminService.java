@@ -1,18 +1,20 @@
 package org.ip.service;
 
-import org.ip.rls.AccessGrant;
+import org.ipro.rls.AccessGrant;
 import org.ip.model.Role;
 import org.ip.model.User;
-import org.ip.rls.AccessGrantRepository;
+import org.ipro.rls.AccessGrantRepository;
 import org.ip.repository.RoleRepository;
 import org.ip.repository.UserRepository;
-import org.ip.rls.RlsDimensionKind;
-import org.ip.rls.RlsDimensionRegistry;
-import org.ip.rls.RlsDimensionValueSource;
+import org.ipro.rls.AccessService;
+import org.ipro.rls.RlsDimensionKind;
+import org.ipro.rls.RlsDimensionRegistry;
+import org.ipro.rls.RlsDimensionValueSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -31,7 +33,11 @@ import java.util.TreeSet;
 @Service
 public class AccessGrantAdminService {
 
-    /** Три флага прав; все false = записи гранта нет вообще (нет доступа). */
+    /**
+     * Три флага прав; все false = записи гранта нет вообще (нет доступа). При сохранении
+     * canRead нормализуется до read || update || delete ("изменение"/"удаление" без
+     * "чтения" бессмысленны) — см. saveGrants/saveSingleGrant.
+     */
     public record GrantFlags(boolean read, boolean update, boolean delete) {
         public static final GrantFlags NONE = new GrantFlags(false, false, false);
     }
@@ -44,6 +50,7 @@ public class AccessGrantAdminService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final RlsDimensionRegistry dimensionRegistry;
+    private final AccessService accessService;
     private final Map<String, RlsDimensionValueSource<Object>> sourcesByDimension;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -51,11 +58,13 @@ public class AccessGrantAdminService {
                                    UserRepository userRepository,
                                    RoleRepository roleRepository,
                                    RlsDimensionRegistry dimensionRegistry,
+                                   AccessService accessService,
                                    List<RlsDimensionValueSource> sources) {
         this.accessGrantRepository = accessGrantRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.dimensionRegistry = dimensionRegistry;
+        this.accessService = accessService;
         Map<String, RlsDimensionValueSource<Object>> byDimension = new HashMap<>();
         for (RlsDimensionValueSource source : sources) {
             byDimension.put(source.dimension(), source);
@@ -145,7 +154,7 @@ public class AccessGrantAdminService {
             grant.setSubjectKey(subjectKey);
             grant.setDimension(dimension);
             grant.setDimensionValueId(valueId);
-            grant.setCanRead(flags.read());
+            grant.setCanRead(flags.read() || flags.update() || flags.delete());
             grant.setCanUpdate(flags.update());
             grant.setCanDelete(flags.delete());
             accessGrantRepository.save(grant);
@@ -182,7 +191,7 @@ public class AccessGrantAdminService {
         grant.setSubjectKey(subjectKey);
         grant.setDimension(dimension);
         grant.setDimensionValueId(null);
-        grant.setCanRead(flags.read());
+        grant.setCanRead(flags.read() || flags.update() || flags.delete());
         grant.setCanUpdate(flags.update());
         grant.setCanDelete(flags.delete());
         accessGrantRepository.save(grant);
@@ -194,5 +203,23 @@ public class AccessGrantAdminService {
             throw new IllegalArgumentException("Нет источника значений для измерения RLS: " + dimension);
         }
         return source;
+    }
+
+    /**
+     * Эффективные права субъекта по ВСЕМ настраиваемым измерениям (см.
+     * {@link #availableDimensions()}) — свёртка прямых грантов и ролей (для
+     * пользователя) или собственных грантов (для роли), с учётом wildcard "*".
+     * Источник данных для диалога «Эффективные права» в AdminView.
+     */
+    public Map<String, AccessService.EffectiveGrant> collectEffective(AccessGrant.SubjectType subjectType,
+                                                                      String subjectKey) {
+        Map<String, AccessService.EffectiveGrant> result = new LinkedHashMap<>();
+        for (String dimension : availableDimensions()) {
+            AccessService.EffectiveGrant grant = subjectType == AccessGrant.SubjectType.USER
+                ? accessService.effectiveGrants(dimension, subjectKey)
+                : accessService.effectiveGrantsOfRole(dimension, subjectKey);
+            result.put(dimension, grant);
+        }
+        return result;
     }
 }

@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,10 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.ip.metadata.annotation.EntityMetadata;
-import org.ip.metadata.annotation.FieldMetadata;
-import org.ip.metadata.annotation.GridColumn;
-import org.ip.model.BaseEntity;
+import org.ipro.crud.BaseEntity;
 
 /**
  * Грант доступа — единственная запись, указывающая на право (пользователь или роль),
@@ -31,12 +28,6 @@ import org.ip.model.BaseEntity;
 @Entity
 @EntityListeners(AccessGrantChangeListener.class)
 @Table(name = "access_grant")
-@EntityMetadata(
-    listFormTitle = "Гранты доступа",
-    itemFormTitle = "Грант доступа",
-    order = 900,
-    icon = "LOCK"
-)
 public class AccessGrant extends BaseEntity {
 
     public enum SubjectType { USER, ROLE }
@@ -44,15 +35,11 @@ public class AccessGrant extends BaseEntity {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "subject_type", nullable = false)
-    @FieldMetadata(label = "Тип субъекта", required = true, order = 1,
-        grid = @GridColumn(order = 1, width = "110px"))
     private SubjectType subjectType;
 
     /** username (для USER) или Role.getName() (для ROLE) — текстовое поле, не FK: без жёсткой привязки. */
     @NotBlank
     @Column(name = "subject_key", nullable = false)
-    @FieldMetadata(label = "Пользователь/роль", required = true, order = 2,
-        grid = @GridColumn(order = 2, width = "160px"))
     private String subjectKey;
 
     /**
@@ -63,26 +50,19 @@ public class AccessGrant extends BaseEntity {
      */
     @NotBlank
     @Column(nullable = false)
-    @FieldMetadata(label = "Измерение", required = true, order = 3,
-        grid = @GridColumn(order = 3, width = "120px"))
     private String dimension;
 
     /** id записи измерения (например, Journal.id); null = не указывается, действует на всё. */
     @Column(name = "dimension_value_id")
-    @FieldMetadata(label = "Запись (пусто = всё)", order = 4,
-        grid = @GridColumn(order = 4, width = "140px"))
     private Long dimensionValueId;
 
     @Column(nullable = false)
-    @FieldMetadata(label = "Чтение", order = 5, grid = @GridColumn(order = 5, width = "90px"))
     private boolean canRead = true;
 
     @Column(nullable = false)
-    @FieldMetadata(label = "Изменение", order = 6, grid = @GridColumn(order = 6, width = "100px"))
     private boolean canUpdate;
 
     @Column(nullable = false)
-    @FieldMetadata(label = "Удаление", order = 7, grid = @GridColumn(order = 7, width = "100px"))
     private boolean canDelete;
 
     public AccessGrant() {

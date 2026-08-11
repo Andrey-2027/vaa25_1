@@ -9,7 +9,9 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.ip.metadata.FetchGraphs;
-import org.ip.rls.RlsFilterActivator;
+import org.ip.security.CurrentUser;
+import org.ipro.rls.RlsFilterActivator;
+import org.ipro.rls.RlsReadGate;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +39,23 @@ public class LookupService {
 
     private final Repositories repositories;
     private final RlsFilterActivator rlsFilterActivator;
+    private final RlsReadGate rlsReadGate;
 
     public LookupService(org.springframework.beans.factory.ListableBeanFactory beanFactory,
-                         RlsFilterActivator rlsFilterActivator) {
+                         RlsFilterActivator rlsFilterActivator,
+                         RlsReadGate rlsReadGate) {
         this.repositories = new Repositories(beanFactory);
         this.rlsFilterActivator = rlsFilterActivator;
+        this.rlsReadGate = rlsReadGate;
+    }
+
+    /**
+     * Строгий read-гейт CHECK_ONLY (Фаза 5): LookupService — независимый Criteria-путь
+     * чтения (автокомплит/SelectionForm/EntityField), где гейт раньше не проверялся.
+     * Решение — единый {@link RlsReadGate} поверх AccessService.
+     */
+    private boolean canRead(Class<?> entityClass) {
+        return rlsReadGate.canRead(entityClass, CurrentUser.username());
     }
 
     /**
@@ -54,6 +68,9 @@ public class LookupService {
      * @return список найденных сущностей
      */
     public <T> List<T> search(Class<T> entityClass, String[] searchFields, String term, int limit) {
+        if (!canRead(entityClass)) {
+            return List.of();
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         if (term == null || term.isBlank() || searchFields == null || searchFields.length == 0) {
             return findAll(entityClass).stream().limit(limit).toList();
@@ -90,6 +107,9 @@ public class LookupService {
      * Получить все записи сущности.
      */
     public <T> List<T> findAll(Class<T> entityClass) {
+        if (!canRead(entityClass)) {
+            return List.of();
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> query = cb.createQuery(entityClass);
@@ -102,6 +122,9 @@ public class LookupService {
      */
     public <T> Optional<T> findById(Class<T> entityClass, Object id) {
         if (id == null) return Optional.empty();
+        if (!canRead(entityClass)) {
+            return Optional.empty();
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         return Optional.ofNullable(entityManager.find(entityClass, id));
     }
@@ -115,6 +138,9 @@ public class LookupService {
      */
     public <T> Optional<T> findById(Class<T> entityClass, Object id, Collection<String> fetchPaths) {
         if (id == null) return Optional.empty();
+        if (!canRead(entityClass)) {
+            return Optional.empty();
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         if (fetchPaths == null || fetchPaths.isEmpty()) {
             return findById(entityClass, id);

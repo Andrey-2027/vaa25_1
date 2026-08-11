@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
  *     order = 100,
  *     icon = "PACKAGE"
  * )
- * public class Nomenclature extends BaseEntity { ... }
+ * public class Nomenclature extends org.ipro.crud.BaseEntity { ... }
  * }
  * </pre>
  */

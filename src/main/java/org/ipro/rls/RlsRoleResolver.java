@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import java.util.List;
  *
  * Без этой абстракции AccessService был бы вынужден напрямую знать про UserRepository/
  * User/Role — единственная содержательная зависимость, которая держала весь пакет
- * org.ip.rls внутри приложения, а не в отдельно переносимой библиотеке.
+ * org.ipro.rls внутри приложения, а не в отдельно переносимой библиотеке.
  */
 public interface RlsRoleResolver {
 

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
+import org.ipro.crud.BaseEntity;
 
 /**
  * Сохранённый вид формы списка (аналог "Пользовательских настроек" — конкретно набора

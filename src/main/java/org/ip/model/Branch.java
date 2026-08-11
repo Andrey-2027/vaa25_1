@@ -9,9 +9,10 @@ import org.hibernate.annotations.ParamDef;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
-import org.ip.rls.RlsDimension;
-import org.ip.rls.RlsCheckValue;
-import org.ip.rls.RlsDimensionValue;
+import org.ipro.rls.RlsDimension;
+import org.ipro.rls.RlsCheckValue;
+import org.ipro.rls.RlsDimensionValue;
+import org.ipro.crud.BaseEntity;
 
 /**
  * RLS: доступ к филиалу — гранты AccessGrant (dimension = "BRANCH"). По устройству —

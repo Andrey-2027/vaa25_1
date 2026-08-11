@@ -7,6 +7,7 @@ import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
 import org.ip.metadata.annotation.Lookup;
 import org.ip.metadata.annotation.TableSectionMetadata;
+import org.ipro.crud.BaseEntity;
 
 import java.math.BigDecimal;
 

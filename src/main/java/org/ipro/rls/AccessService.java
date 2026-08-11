@@ -1,4 +1,4 @@
-package org.ip.rls;
+package org.ipro.rls;
 
 import org.springframework.stereotype.Service;
 
@@ -91,6 +91,66 @@ public class AccessService {
 
     public boolean canDelete(String dimension, Long dimensionValueId, String username) {
         return hasAccess(dimension, dimensionValueId, username, AccessGrant::isCanDelete);
+    }
+
+    /**
+     * Эффективные права субъекта (пользователя) по измерению — свёртка прямых грантов
+     * пользователя и грантов всех его ролей (по ИЛИ), с учётом wildcard-гранта
+     * "dimension = '*'" (он попадает в findUserGrants/findRoleGrants автоматически).
+     *
+     * В отличие от {@link #getReadableIds}/{@link #hasAnyAccess} (вопросы для одного
+     * конкретного id / "что разрешено для фильтра"), это ответ на вопрос админ-экрана
+     * "что в итоге получит субъект" — включая источник каждого права
+     * (см. {@link EffectiveGrant#sources}).
+     */
+    public EffectiveGrant effectiveGrants(String dimension, String username) {
+        return fold(findGrants(dimension, username));
+    }
+
+    /**
+     * Эффективные права РОЛИ по измерению (у ролей нет своих ролей — свёртка ровно
+     * её собственных грантов). Для админ-экрана, когда выбран субъект "роль".
+     */
+    public EffectiveGrant effectiveGrantsOfRole(String dimension, String roleName) {
+        return fold(grantRepository.findRoleGrants(dimension, List.of(roleName)));
+    }
+
+    /**
+     * Свёрнутое состояние доступа по измерению. readableValueIds — id записей, доступных
+     * на чтение (без учёта wildcard); unlimited = true при wildcard-гранте на чтение
+     * ("все записи"); sources — кто дал хотя бы один из трёх флагов ("прямой" — грант
+     * пользователя, "роль: X" — грант роли).
+     */
+    public record EffectiveGrant(boolean canRead, boolean canUpdate, boolean canDelete,
+                                 boolean unlimited, List<Long> readableValueIds, List<String> sources) {
+    }
+
+    private EffectiveGrant fold(List<AccessGrant> grants) {
+        boolean read = false;
+        boolean update = false;
+        boolean delete = false;
+        boolean unlimited = false;
+        java.util.Set<Long> ids = new java.util.LinkedHashSet<>();
+        java.util.Set<String> sources = new java.util.LinkedHashSet<>();
+        for (AccessGrant grant : grants) {
+            if (!grant.isCanRead() && !grant.isCanUpdate() && !grant.isCanDelete()) {
+                continue;
+            }
+            sources.add(grant.getSubjectType() == AccessGrant.SubjectType.USER
+                ? "прямой"
+                : "роль: " + grant.getSubjectKey());
+            read |= grant.isCanRead();
+            update |= grant.isCanUpdate();
+            delete |= grant.isCanDelete();
+            if (grant.isCanRead()) {
+                if (grant.getDimensionValueId() == null) {
+                    unlimited = true;
+                } else {
+                    ids.add(grant.getDimensionValueId());
+                }
+            }
+        }
+        return new EffectiveGrant(read, update, delete, unlimited, List.copyOf(ids), List.copyOf(sources));
     }
 
     private boolean hasAccess(String dimension, Long dimensionValueId, String username,

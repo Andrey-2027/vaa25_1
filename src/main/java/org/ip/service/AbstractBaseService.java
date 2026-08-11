@@ -16,11 +16,13 @@ import org.ip.metadata.FetchGraphs;
 import org.ip.metadata.MetadataResolver;
 import org.ip.metadata.annotation.FieldType;
 import org.ip.security.CurrentUser;
-import org.ip.rls.AccessService;
-import org.ip.rls.RlsCheckValue;
-import org.ip.rls.RlsContext;
-import org.ip.rls.RlsDimensionValue;
-import org.ip.rls.RlsFilterActivator;
+import org.ipro.rls.AccessService;
+import org.ipro.rls.RlsCheckValue;
+import org.ipro.rls.RlsContext;
+import org.ipro.rls.RlsDimensionValue;
+import org.ipro.rls.RlsFilterActivator;
+import org.ipro.rls.RlsReadGate;
+import org.ipro.telemetry.core.SecurityEventLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -56,6 +58,12 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     @Autowired
     private AccessService accessService;
 
+    @Autowired
+    private RlsReadGate rlsReadGate;
+
+    @Autowired
+    private Optional<SecurityEventLogger> securityEventLogger;
+
     protected AbstractBaseService(JpaRepository<T, ID> repository, Validator validator) {
         this.repository = repository;
         this.validator = validator;
@@ -64,6 +72,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     @Override
     public T save(T entity) {
         validate(entity);
+        validateBusinessRules(entity);
         checkRlsWrite(entity);
         return repository.save(entity);
     }
@@ -71,6 +80,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     @Override
     public T create(T entity) {
         validate(entity);
+        validateBusinessRules(entity);
         checkRlsWrite(entity);
         return repository.save(entity);
     }
@@ -78,6 +88,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     @Override
     public T update(T entity) {
         validate(entity);
+        validateBusinessRules(entity);
         checkRlsWrite(entity);
         return repository.save(entity);
     }
@@ -120,11 +131,32 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
                 }
                 Long id = ((RlsCheckValue.Check) check).id();
                 if (!permissionCheck.test(dimension, id, username)) {
+                    emitRlsDenied(username, actionName, dimension, id);
                     throw new ValidationException("Нет прав на " + actionName + " (измерение " + dimension +
                         (id != null ? ", id=" + id : ", создание новой записи") + ")");
                 }
             }
         }
+    }
+
+    /**
+     * SECURITY-событие "rls:denied" (Фаза 8 RLS-плана) — durable-путь, видно в журнале
+     * админки (SECURITY хранится 1 год). Payload: действие, измерение, id записи,
+     * класс сущности. Телеметрия может быть выключена — тогда события не пишутся
+     * (Optional), сама проверка прав от этого не зависит.
+     */
+    private void emitRlsDenied(String username, String actionName, String dimension, Long id) {
+        securityEventLogger.ifPresent(logger -> logger.emitSecurityEvent(
+            "WARN",
+            "rls:denied",
+            username,
+            "Нет прав на " + actionName + " (измерение " + dimension
+                + (id != null ? ", id=" + id : ", создание новой записи") + ")",
+            Map.of(
+                "action", actionName,
+                "dimension", dimension,
+                "dimensionValueId", id != null ? String.valueOf(id) : "",
+                "entity", getDomainClass().getName())));
     }
 
     @FunctionalInterface
@@ -134,6 +166,9 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public Optional<T> findById(ID id) {
+        if (!canRead()) {
+            return Optional.empty();
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         Class<T> domainClass = getDomainClass();
         EntityGraph<T> graph = buildFetchGraph(domainClass);
@@ -146,12 +181,18 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public List<T> findAll() {
+        if (!canRead()) {
+            return List.of();
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         return repository.findAll();
     }
 
     @Override
     public Page<T> findAll(Pageable pageable) {
+        if (!canRead()) {
+            return Page.empty(pageable);
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         return repository.findAll(pageable);
     }
@@ -206,6 +247,9 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     protected Page<T> findAllWithFetchGraph(Specification<T> spec, Pageable pageable,
                                             java.util.Collection<String> fetchPaths) {
+        if (!canRead()) {
+            return Page.empty(pageable);
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         Class<T> domainClass = getDomainClass();
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -331,6 +375,9 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     }
 
     public Number sum(String fieldName, Specification<T> spec) {
+        if (!canRead()) {
+            return 0;
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Object> query = cb.createQuery();
@@ -341,6 +388,15 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         }
         Object result = entityManager.createQuery(query).getSingleResult();
         return result != null ? (Number) result : 0;
+    }
+
+    /**
+     * Строгий read-гейт CHECK_ONLY (Фаза 5 RLS-плана): класс с CHECK_ONLY-измерением
+     * без гранта на чтение — пустые findById/findAll, даже если строки проходят по
+     * построчным FILTERABLE-измерениям. Решение — единый {@link RlsReadGate}.
+     */
+    private boolean canRead() {
+        return rlsReadGate.canRead(getDomainClass(), CurrentUser.username());
     }
 
     @SuppressWarnings("unchecked")
@@ -361,5 +417,16 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
             }
             throw new ValidationException(sb.toString());
         }
+    }
+
+    /**
+     * Хук доменных бизнес-правил сервиса: вызывается между {@link #validate(Object)}
+     * (bean-валидация) и {@link #checkRlsWrite(Object)} в save/create/update. По умолчанию
+     * ничего не делает — переопределяется в сервисах с кросс-полевой/кросс-сущностной
+     * логикой, которую bean-валидацией не выразить. Исключение из хука прерывает
+     * сохранение, как и из validate().
+     */
+    protected void validateBusinessRules(T entity) {
+        // no-op по умолчанию — правила есть только у конкретных сервисов
     }
 }

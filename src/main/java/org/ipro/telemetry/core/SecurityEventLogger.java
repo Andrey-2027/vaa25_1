@@ -19,7 +19,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * События безопасности (EventType.SECURITY): вход, неудачный вход, выход.
+ * События безопасности (EventType.SECURITY): вход, неудачный вход, выход, отказ
+ * прав RLS (rls:denied — см. AbstractBaseService.checkRls, Фаза 8 RLS-плана).
  * Записываются через durable-путь {@link EventSink#acceptDurable} —
  * события безопасности не должны теряться при переполнении очереди.
  * IP клиента берётся из текущего HTTP-запроса, если он доступен.
@@ -52,8 +53,20 @@ public final class SecurityEventLogger {
     }
 
     private void emit(String level, String operation, String user, String errorMessage) {
+        emitSecurityEvent(level, operation, user, errorMessage, Map.of());
+    }
+
+    /**
+     * Общий durable-путь SECURITY-событий: прикладной код (например, отказ прав RLS
+     * в write-guard'е сервисов) шлёт событие с дополнительным payload'ом, который
+     * объединяется с автоматическим ip клиента. Уровень "WARN" дополнительно
+     * дублируется в лог "ipro.telemetry.security".
+     */
+    public void emitSecurityEvent(String level, String operation, String user, String errorMessage,
+                                  Map<String, Object> extraPayload) {
         String ip = clientIp();
-        String payload = PayloadJson.json(Map.of("ip", ip));
+        Map<String, Object> payload = new LinkedHashMap<>(extraPayload);
+        payload.put("ip", ip);
         sink.acceptDurable(new TelemetryEvent(
                 EventType.SECURITY,
                 level,
@@ -69,7 +82,7 @@ public final class SecurityEventLogger {
                 null,
                 false,
                 errorMessage,
-                payload));
+                PayloadJson.json(payload)));
         if ("WARN".equals(level)) {
             log.warn("security event: {} user={} ip={} error={}", operation, user, ip, errorMessage);
         }

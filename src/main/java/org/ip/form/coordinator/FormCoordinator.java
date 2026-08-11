@@ -19,6 +19,7 @@ import org.ip.service.BaseService;
 import org.ip.service.ServiceLocator;
 import org.ip.views.workspace.Workspace;
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.rls.RlsUiGate;
 import org.ipro.telemetry.api.OperationScope;
 import org.ipro.telemetry.core.MdcKeys;
 import org.ipro.telemetry.core.TelemetryBridge;
@@ -65,6 +66,8 @@ public class FormCoordinator {
     private final ServiceLocator serviceLocator;
     private final org.ip.service.FormSettingsService formSettingsService;
     private final org.ip.service.GridFormViewService gridFormViewService;
+    private final RlsUiGate rlsUiGate;
+    private final ItemFormAccessBinder itemFormAccessBinder;
     private final Map<String, FormSession> sessions = new ConcurrentHashMap<>();
 
     // Опциональная ссылка на Workspace для открытия форм в Tab (1С-стиль)
@@ -81,13 +84,17 @@ public class FormCoordinator {
                            SelectionFormAssembler selectionFormAssembler,
                            ServiceLocator serviceLocator,
                            org.ip.service.FormSettingsService formSettingsService,
-                           org.ip.service.GridFormViewService gridFormViewService) {
+                           org.ip.service.GridFormViewService gridFormViewService,
+                           RlsUiGate rlsUiGate,
+                           ItemFormAccessBinder itemFormAccessBinder) {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
         this.serviceLocator = serviceLocator;
         this.formSettingsService = formSettingsService;
         this.gridFormViewService = gridFormViewService;
+        this.rlsUiGate = rlsUiGate;
+        this.itemFormAccessBinder = itemFormAccessBinder;
         this.formResolver = new FormResolver(
             formRegistry, metadataResolver, fieldFactory, applicationContext, tableSectionFactory,
             selectionFormAssembler, serviceLocator);
@@ -237,6 +244,9 @@ public class FormCoordinator {
         form.setViewSupport(gridFormViewService, formSettingsService,
             entityClass.getSimpleName() + (variant != null ? "." + variant : ""));
 
+        // RLS-права на кнопки (Фаза 3): «Создать»/«Изменить»/«Удалить» по RlsUiGate.
+        form.setRlsUiGate(rlsUiGate);
+
         // Настройка callback'ов для кнопок
         form.setOnAdd(entity -> openItemForm(entityClass, null, null, saved -> form.refresh()));
         form.setOnEdit(entity -> openItemForm(entityClass, null, (ID) entity.getId(), saved -> form.refresh()));
@@ -312,10 +322,20 @@ public class FormCoordinator {
         BaseService<T, ID> service = findService(entityClass);
         ItemForm<T> form = formResolver.resolveItemForm(entityClass, variant, id, null);
 
+        // Создание без права — форму не открываем вовсе (Фаза 4).
+        if (id == null) {
+            String reason = itemFormAccessBinder.blockReasonIfCannotCreate(entityClass);
+            if (reason != null) {
+                showError(reason);
+                return;
+            }
+        }
+
         if (id != null) {
             Optional<T> existing = service.findById(id);
             if (existing.isPresent()) {
                 form.setEntity(existing.get());
+                itemFormAccessBinder.applyReadOnlyIfCannotUpdate(form);
             } else {
                 showError("Запись не найдена: " + id);
                 return;
@@ -385,6 +405,15 @@ public class FormCoordinator {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T extends IdentifiableEntity, ID> void openItemFormInWorkspace(
             Class<T> entityClass, String variant, ID id, Consumer<T> onSaved, EntityMetadataInfo meta) {
+
+        // Создание без права — вкладку не открываем вовсе (Фаза 4).
+        if (id == null) {
+            String reason = itemFormAccessBinder.blockReasonIfCannotCreate(entityClass);
+            if (reason != null) {
+                showError(reason);
+                return;
+            }
+        }
 
         if (workspace == null) {
             throw new IllegalStateException(

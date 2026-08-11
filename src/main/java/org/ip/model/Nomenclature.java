@@ -9,6 +9,7 @@ import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.FieldType;
 import org.ip.metadata.annotation.GridColumn;
 import org.ip.metadata.annotation.Lookup;
+import org.ipro.crud.BaseEntity;
 
 @Entity
 @Table(name = "nomenclature")
