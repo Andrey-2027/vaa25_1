@@ -36,7 +36,7 @@ import org.springframework.web.context.annotation.SessionScope;
  * на него нельзя.
  */
 @AutoConfiguration
-@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls"})
+@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls", "org.ipro.reportstudio"})
 public class RlsAutoConfiguration {
 
     @Bean
