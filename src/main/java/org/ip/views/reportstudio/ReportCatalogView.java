@@ -2,16 +2,22 @@ package org.ip.views.reportstudio;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
 import org.ip.form.SelectionFormAssembler;
 import org.ip.service.LookupService;
@@ -20,8 +26,11 @@ import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
 
-import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Каталог сохранённых шаблонов в композиции master-detail.
@@ -36,18 +45,21 @@ import java.util.List;
 public class ReportCatalogView extends HorizontalLayout {
 
     private final ReportTemplateService templateService;
+    private final ReportTemplateTransferService transferService;
     private final ReportEditorView editor;
     private final Grid<ReportTemplate> grid = new Grid<>(ReportTemplate.class, false);
     private final TextField search = new TextField();
 
     public ReportCatalogView(
             ReportTemplateService templateService,
+            ReportTemplateTransferService transferService,
             ReportQueryGuard guard,
             ReportPreviewService previewService,
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler) {
         this.templateService = templateService;
+        this.transferService = transferService;
         this.editor = new ReportEditorView(
                 guard, previewService, templateService, executionService, lookupService, selectionFormAssembler);
 
@@ -87,12 +99,20 @@ public class ReportCatalogView extends HorizontalLayout {
         create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button open = new Button("Открыть", event -> openSelected());
         Button copy = new Button("Создать копию", event -> copySelected());
-        HorizontalLayout actions = new HorizontalLayout(create, open, copy);
+        Button export = new Button("Экспорт JSON", event -> exportSelected());
+        HorizontalLayout actions = new HorizontalLayout(create, open, copy, export);
         actions.setWrap(true);
+
+        MemoryBuffer importBuffer = new MemoryBuffer();
+        Upload importUpload = new Upload(importBuffer);
+        importUpload.setAcceptedFileTypes("application/json", ".json");
+        importUpload.setMaxFiles(1);
+        importUpload.setUploadButton(new Button("Импорт JSON"));
+        importUpload.addSucceededListener(event -> importJson(importBuffer));
 
         pane.add(new H2("Каталог отчётов"), new Paragraph(
                 "Шаблоны хранятся в базе данных как декларации JPQL, параметров и layout."),
-                search, grid, actions);
+                search, grid, actions, importUpload);
         pane.setFlexGrow(1, grid);
         return pane;
     }
@@ -139,6 +159,60 @@ public class ReportCatalogView extends HorizontalLayout {
         }
     }
 
+    private void exportSelected() {
+        ReportTemplate selected = grid.asSingleSelect().getValue();
+        if (selected == null) {
+            notifySelectionRequired();
+            return;
+        }
+        try {
+            ReportTemplate template = templateService.loadTemplate(selected.getId());
+            String json = transferService.exportTemplate(template);
+            showExportDialog(template, json);
+        } catch (RuntimeException exception) {
+            showError("Не удалось экспортировать шаблон: " + exception.getMessage());
+        }
+    }
+
+    private void showExportDialog(ReportTemplate template, String json) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Экспорт шаблона: " + template.getName());
+        dialog.setWidth("min(900px, 95vw)");
+
+        TextArea preview = new TextArea("Содержимое переносимого JSON");
+        preview.setValue(json);
+        preview.setReadOnly(true);
+        preview.setWidthFull();
+        preview.setHeight("420px");
+
+        String fileName = safeFileStem(template.getName()) + ".ipro-report.json";
+        StreamResource resource = new StreamResource(fileName,
+                () -> new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+        resource.setContentType("application/json");
+        Anchor download = new Anchor(resource, "Скачать " + fileName);
+        download.getElement().setAttribute("download", true);
+        Button close = new Button("Закрыть", event -> dialog.close());
+
+        dialog.add(new VerticalLayout(preview, new HorizontalLayout(download, close)));
+        dialog.open();
+    }
+
+    private void importJson(MemoryBuffer buffer) {
+        try {
+            String json = new String(buffer.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            ReportTemplate imported = transferService.importTemplate(json);
+            refreshCatalog();
+            grid.select(imported);
+            editor.editTemplate(imported);
+            Notification.show("Импортирован новый шаблон «" + imported.getName() + "»", 4_000,
+                    Notification.Position.MIDDLE);
+        } catch (IOException ioException) {
+            showError("Не удалось прочитать загруженный файл: " + ioException.getMessage());
+        } catch (RuntimeException exception) {
+            showError("Импорт шаблона отклонён: " + exception.getMessage());
+        }
+    }
+
     private void notifySelectionRequired() {
         Notification notification = Notification.show("Выберите шаблон в каталоге", 3_000,
                 Notification.Position.MIDDLE);
@@ -148,5 +222,10 @@ public class ReportCatalogView extends HorizontalLayout {
     private void showError(String message) {
         Notification notification = Notification.show(message, 5_000, Notification.Position.MIDDLE);
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+    }
+
+    private static String safeFileStem(String name) {
+        String stem = name == null ? "report-template" : name.replaceAll("[^\\p{L}\\p{N}_-]+", "_");
+        return stem.isBlank() ? "report-template" : stem;
     }
 }

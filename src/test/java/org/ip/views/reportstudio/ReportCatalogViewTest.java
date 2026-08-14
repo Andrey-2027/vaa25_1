@@ -1,6 +1,7 @@
 package org.ip.views.reportstudio;
 
 import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,7 +18,7 @@ class ReportCatalogViewTest {
         ReportTemplateService service = mock(ReportTemplateService.class);
         when(service.search(any())).thenReturn(List.of());
 
-        new ReportCatalogView(service, null, null, null, null, null);
+        new ReportCatalogView(service, mock(ReportTemplateTransferService.class), null, null, null, null, null);
 
         verify(service).search("");
     }

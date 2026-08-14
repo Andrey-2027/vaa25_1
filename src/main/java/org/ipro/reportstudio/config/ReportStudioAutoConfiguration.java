@@ -19,6 +19,7 @@ import org.ipro.reportstudio.render.ReportCompiler;
 import org.ipro.reportstudio.run.ReportArtifactCache;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
@@ -131,5 +132,13 @@ public class ReportStudioAutoConfiguration {
             ReportTemplateRepository repository,
             Validator validator) {
         return new ReportTemplateService(repository, validator);
+    }
+    @Bean
+    @ConditionalOnMissingBean
+    public ReportTemplateTransferService reportTemplateTransferService(
+            ObjectMapper objectMapper,
+            ReportQueryGuard guard,
+            ReportTemplateService templateService) {
+        return new ReportTemplateTransferService(objectMapper, guard, templateService);
     }
 }

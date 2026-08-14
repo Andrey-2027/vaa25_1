@@ -88,7 +88,7 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
 
     private ReportTemplate deepCopy(ReportTemplate source) {
         ReportTemplate copy = new ReportTemplate();
-        copy.setName(nextCopyName(source.getName()));
+        copy.setName(nextAvailableName(source.getName(), " (копия)"));
         copy.setDescription(source.getDescription());
         copy.setJpql(source.getJpql());
         copy.setMaxRows(source.getMaxRows());
@@ -143,13 +143,18 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
         return copy;
     }
 
-    private String nextCopyName(String sourceName) {
+    /** Возвращает уникальное имя для новой сущности, не меняя исходный шаблон. */
+    @Transactional(readOnly = true)
+    public String nextImportedName(String sourceName) {
+        return nextAvailableName(sourceName, " (импорт)");
+    }
+
+    private String nextAvailableName(String sourceName, String suffix) {
         String base = sourceName == null || sourceName.isBlank() ? "Отчёт" : sourceName.trim();
-        String suffix = " (копия)";
         String candidate = fitName(base, suffix);
         int index = 2;
         while (repository.existsByName(candidate)) {
-            candidate = fitName(base, " (копия " + index++ + ")");
+            candidate = fitName(base, suffix.substring(0, suffix.length() - 1) + " " + index++ + ")");
         }
         return candidate;
     }
