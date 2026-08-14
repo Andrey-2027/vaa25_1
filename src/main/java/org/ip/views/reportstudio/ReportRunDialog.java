@@ -48,9 +48,17 @@ public class ReportRunDialog extends Dialog {
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler) {
+        this(template, emptyContext(), executionService, lookupService, selectionFormAssembler);
+    }
+
+    public ReportRunDialog(
+            ReportTemplate template,
+            ReportContext context,
+            ReportExecutionService executionService,
+            LookupService lookupService,
+            SelectionFormAssembler selectionFormAssembler) {
         this.template = template;
         this.executionService = executionService;
-        ReportContext context = emptyContext();
         this.paramForm = new ReportParamForm(template.getParams(), context, lookupService, selectionFormAssembler);
 
         setHeaderTitle("Запуск отчёта: " + template.getName());
@@ -102,7 +110,7 @@ public class ReportRunDialog extends Dialog {
         }
     }
 
-    private ReportContext emptyContext() {
+    private static ReportContext emptyContext() {
         return ReportContext.of(null, null, List.of(), null, CurrentUser.username(), Instant.now());
     }
 
