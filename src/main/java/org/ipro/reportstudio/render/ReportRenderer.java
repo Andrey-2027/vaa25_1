@@ -1,4 +1,4 @@
-package org.ipro.reports.render;
+package org.ipro.reportstudio.render;
 
 import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
 import net.sf.dynamicreports.report.builder.DynamicReports;
@@ -8,15 +8,14 @@ import net.sf.dynamicreports.report.builder.component.Components;
 import net.sf.dynamicreports.report.builder.style.Styles;
 import net.sf.dynamicreports.report.constant.PageOrientation;
 import net.sf.dynamicreports.report.constant.PageType;
-import org.ip.model.ReceivingDocument;
+import org.ip.model.UnitOfMeasurement;
 
 import java.io.ByteArrayOutputStream;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Программный рендер отчётов (фаза 0, стек DR 7.0.0-SNAPSHOT + JR 7.0.6).
+ * Программный рендер отчётов (фаза 0, стек DR 7.0.0-ip + JR 7.0.6).
  *
  * Платформенный дефолт шрифта задаётся в src/main/resources/dynamicreports-defaults.xml
  * (DejaVu Sans, покрывает кириллицу); внедрение TrueType-сабсета в PDF включается
@@ -34,40 +33,37 @@ public final class ReportRenderer {
     private ReportRenderer() {
     }
 
-    public static byte[] pdfReceivingDocuments(List<ReceivingDocument> docs) {
+    public static byte[] pdfUnitOfMeasurements(List<UnitOfMeasurement> units) {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            receivingDocumentReport(docs).toPdf(out);
+            unitOfMeasurementReport(units).toPdf(out);
             return out.toByteArray();
         } catch (Exception e) {
             throw new ReportRenderException("Не удалось отрендерить PDF", e);
         }
     }
 
-    public static byte[] xlsxReceivingDocuments(List<ReceivingDocument> docs) {
+    public static byte[] xlsxUnitOfMeasurements(List<UnitOfMeasurement> units) {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            receivingDocumentReport(docs).toXlsx(out);
+            unitOfMeasurementReport(units).toXlsx(out);
             return out.toByteArray();
         } catch (Exception e) {
             throw new ReportRenderException("Не удалось отрендерить XLSX", e);
         }
     }
 
-    private static JasperReportBuilder receivingDocumentReport(List<ReceivingDocument> docs) {
-        ValueColumnBuilder<?, ?> journal = Columns.column("Журнал", "journal.name", String.class);
-        ValueColumnBuilder<?, ?> number = Columns.column("Номер", "number", String.class);
-        ValueColumnBuilder<?, ?> date = Columns.column("Дата", "date", LocalDate.class)
-            .setPattern("dd.MM.yyyy");
-        ValueColumnBuilder<?, ?> receiving = Columns.column("Цех приёмщик", "receivingWorkshop.name", String.class);
-        ValueColumnBuilder<?, ?> transferring = Columns.column("Цех сдатчик", "transferringWorkshop.name", String.class);
+    private static JasperReportBuilder unitOfMeasurementReport(List<UnitOfMeasurement> units) {
+        ValueColumnBuilder<?, ?> code = Columns.column("Код", "code", String.class);
+        ValueColumnBuilder<?, ?> shortCode = Columns.column("Краткий код", "shortCode", String.class);
+        ValueColumnBuilder<?, ?> name = Columns.column("Наименование", "name", String.class);
 
         return DynamicReports.report()
             .setLocale(new Locale("ru", "RU"))
             .setPageFormat(PageType.A4, PageOrientation.PORTRAIT)
-            .title(Components.text("Накладные (демо)")
+            .title(Components.text("Единицы измерения (демо)")
                 .setStyle(Styles.style().setBold(true).setFontSize(16)))
-            .columns(journal, number, date, receiving, transferring)
-            .setDataSource(docs);
+            .columns(code, shortCode, name)
+            .setDataSource(units);
     }
 }

@@ -112,6 +112,13 @@
             <groupId>net.sourceforge.dynamicreports</groupId>
             <artifactId>dynamicreports-core</artifactId>
             <version>${dynamicreports.version}</version>
+            <exclusions>
+                <!-- Google Maps / Chrome / Velocity экспорты нам в V1 не нужны (см. docs/dr-sbom-deps-*.txt) -->
+                <exclusion>
+                    <groupId>net.sf.jasperreports</groupId>
+                    <artifactId>jasperreports-google-maps</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>net.sf.jasperreports</groupId>

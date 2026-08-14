@@ -1,4 +1,4 @@
-package org.ipro.reports.render;
+package org.ipro.reportstudio.render;
 
 /**
  * Ошибка программного рендера отчёта (оборачивает любой сбой стека рендера).
