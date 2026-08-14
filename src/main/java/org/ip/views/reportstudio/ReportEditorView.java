@@ -24,6 +24,8 @@ import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
 import org.ipro.reportstudio.service.ReportTemplateService;
 
+import java.util.List;
+
 /**
  * Пользовательский экран мини-редактора отчётов.
  *
@@ -43,6 +45,7 @@ public class ReportEditorView extends VerticalLayout {
     private final IntegerField maxRows = new IntegerField("Максимум строк");
     private final ReportQueryPreviewView queryPreview;
     private final ReportStructureEditor structureEditor = new ReportStructureEditor();
+    private final ReportParamEditor paramEditor = new ReportParamEditor();
 
     private ReportTemplate template;
 
@@ -52,6 +55,7 @@ public class ReportEditorView extends VerticalLayout {
             ReportTemplateService templateService) {
         this.templateService = templateService;
         this.queryPreview = new ReportQueryPreviewView(guard, previewService);
+        this.paramEditor.setChangeListener(this::syncPreviewDeclaredParams);
 
         setSizeFull();
         setPadding(true);
@@ -78,6 +82,11 @@ public class ReportEditorView extends VerticalLayout {
         structureSection.setWidthFull();
         add(structureSection);
 
+        Details paramsSection = new Details("Параметры", paramEditor);
+        paramsSection.setOpened(true);
+        paramsSection.setWidthFull();
+        add(paramsSection);
+
         newTemplate();
     }
 
@@ -90,6 +99,8 @@ public class ReportEditorView extends VerticalLayout {
         maxRows.setValue(ReportTemplate.DEFAULT_MAX_ROWS);
         queryPreview.setJpql("");
         structureEditor.setTemplate(template);
+        paramEditor.setTemplate(template);
+        syncPreviewDeclaredParams();
     }
 
     public ReportTemplate saveTemplate() {
@@ -97,6 +108,8 @@ public class ReportEditorView extends VerticalLayout {
         ReportTemplate saved = templateService.saveTemplate(template);
         template = saved;
         structureEditor.setTemplate(template);
+        paramEditor.setTemplate(template);
+        syncPreviewDeclaredParams();
         return saved;
     }
 
@@ -154,6 +167,13 @@ public class ReportEditorView extends VerticalLayout {
                     + persistenceException.getMessage(), 6_000, Notification.Position.MIDDLE);
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
+    }
+
+    private void syncPreviewDeclaredParams() {
+        List<String> names = template == null ? List.of() : template.getParams().stream()
+                .map(param -> param.getName())
+                .toList();
+        queryPreview.setDeclaredParamNames(names);
     }
 
     private void applyFormToTemplate() {

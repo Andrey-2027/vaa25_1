@@ -22,6 +22,7 @@ import org.ipro.reportstudio.query.GuardResult;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -160,6 +161,21 @@ public class ReportQueryPreviewView extends VerticalLayout {
     /** Р—Р°РіСЂСѓР¶Р°РµС‚ JPQL СЃРѕС…СЂР°РЅС‘РЅРЅРѕРіРѕ С€Р°Р±Р»РѕРЅР° РІ СЂРµРґР°РєС‚РѕСЂ РїСЂРµРґРїСЂРѕСЃРјРѕС‚СЂР°. */
     public void setJpql(String jpql) {
         jpqlField.setValue(jpql == null ? "" : jpql);
+    }
+    /**
+     * РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РёРјРµРЅР° РїР°СЂР°РјРµС‚СЂРѕРІ, СѓР¶Рµ РѕР±СЉСЏРІР»РµРЅРЅС‹С… РІ СЂРµРґР°РєС‚РёСЂСѓРµРјРѕРј С€Р°Р±Р»РѕРЅРµ.
+     * РџСЂРµРґРїСЂРѕСЃРјРѕС‚СЂ РІСЃС‘ СЂР°РІРЅРѕ РїРѕРІС‚РѕСЂРЅРѕ РїСЂРѕРІРµСЂСЏРµС‚ JPQL С‡РµСЂРµР· guard Рё РЅРµ РІС‹РїРѕР»РЅСЏРµС‚
+     * Р·Р°РїСЂРѕСЃ, РїРѕРєР° РґРµРєР»Р°СЂР°С†РёРё Рё РїР°СЂР°РјРµС‚СЂС‹ JPQL РЅРµ СЃРѕРіР»Р°СЃРѕРІР°РЅС‹.
+     */
+    public void setDeclaredParamNames(Collection<String> names) {
+        paramFields.clear();
+        paramRow.removeAll();
+        List<String> ordered = names == null ? List.of() : names.stream()
+                .filter(name -> name != null && !name.isBlank())
+                .distinct()
+                .sorted()
+                .toList();
+        renderParamFields(ordered);
     }
     private void renderParamFields(List<String> names) {
         paramRow.removeAll();
