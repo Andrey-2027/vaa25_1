@@ -5,6 +5,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import org.ip.form.FieldFactory;
+import org.ip.application.form.ItemFormSaveDispatcher;
 import org.ip.form.SelectionFormAssembler;
 import org.ip.form.TableSectionFactory;
 import org.ip.form.builtin.ItemForm;
@@ -340,6 +341,8 @@ public class FormCoordinator {
                 showError("Запись не найдена: " + id);
                 return;
             }
+        } else {
+            form.initializeNewEntity();
         }
 
         Dialog dialog = new Dialog();
@@ -364,9 +367,7 @@ public class FormCoordinator {
                 return;
             }
             try {
-                T entity = form.getEntity();
-                T saved = service.save(entity);
-                form.commitTableSections(saved);
+                T saved = applicationContext.getBean(ItemFormSaveDispatcher.class).save(form, service);
                 dialog.close();
                 if (onSaved != null) onSaved.accept(saved);
                 showSuccess("Сохранено");

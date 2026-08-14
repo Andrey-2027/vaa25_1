@@ -616,6 +616,29 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      * создаётся новый экземпляр через entityFactory или рефлексию.
      * Применяет все биндинги (значения из UI → поля сущности).
      */
+    /**
+     * Creates and installs the entity for create mode.
+     *
+     * <p>The entity is retained by the form and supplied to every table
+     * section as its unsaved parent. Rows can therefore be created and
+     * validated before the first header save.</p>
+     *
+     * @return the newly created or already initialized form entity
+     */
+    public T initializeNewEntity() {
+        if (entity == null) {
+            entity = newInstance();
+        }
+        registry.readAllFromEntity(entity);
+        for (Consumer<T> refresher : displayRefreshers) {
+            refresher.accept(entity);
+        }
+        for (ItemTable<?, T> table : tableSections) {
+            table.setParent(entity);
+        }
+        updateHistoryButton();
+        return entity;
+    }
     public T getEntity() {
         if (entity == null) {
             entity = newInstance();

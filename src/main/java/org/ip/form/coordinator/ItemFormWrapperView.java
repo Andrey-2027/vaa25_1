@@ -1,6 +1,7 @@
 package org.ip.form.coordinator;
 
 import com.vaadin.flow.component.notification.Notification;
+import org.ip.application.form.ItemFormSaveDispatcher;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
@@ -93,6 +94,8 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
                 // Без права на изменение — форма в режиме только просмотра (Фаза 4).
                 itemFormAccessBinder.applyReadOnlyIfCannotUpdate(form);
             }
+        } else {
+            form.initializeNewEntity();
         }
 
         // Отмена → закрываем вкладку
@@ -118,10 +121,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
             }
 
             try {
-                T entity = form.getEntity();
-                T saved = service.save(entity);
-                form.commitTableSections(saved);
-                form.commitSnapshot();
+                T saved = applicationContext.getBean(ItemFormSaveDispatcher.class).save(form, service);
 
                 if (onSaved != null) {
                     onSaved.accept(saved);
