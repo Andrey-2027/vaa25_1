@@ -18,6 +18,7 @@ import org.ip.metadata.EntityMetadataInfo;
 import org.ip.metadata.MetadataResolver;
 import org.ip.service.BaseService;
 import org.ip.service.ServiceLocator;
+import org.ip.views.reportstudio.ListFormReportActions;
 import org.ip.views.workspace.Workspace;
 import org.ipro.crud.IdentifiableEntity;
 import org.ipro.rls.RlsUiGate;
@@ -236,6 +237,13 @@ public class FormCoordinator {
 
         // Используем FormResolver для поиска формы (кастомная или generic)
         ListForm<T, ID> form = formResolver.resolveListForm(entityClass, variant, parameters);
+        // РџР»Р°С‚С„РѕСЂРјРµРЅРЅР°СЏ РєРѕРјР°РЅРґР° РїРµС‡Р°С‚Рё: РїРѕРґРєР»СЋС‡Р°РµС‚СЃСЏ РєРѕ РІСЃРµРј СЂРµРµСЃС‚СЂР°Рј, РµСЃР»Рё РЅРµ РІС‹РєР»СЋС‡РµРЅР° Р°РЅРЅРѕС‚Р°С†РёРµР№ СЃСѓС‰РЅРѕСЃС‚Рё.
+        if (applicationContext != null) {
+            var reportActionsProvider = applicationContext.getBeanProvider(ListFormReportActions.class);
+            if (reportActionsProvider != null) {
+                reportActionsProvider.ifAvailable(reportActions -> reportActions.addDefaultPrintAction(form, entityClass));
+            }
+        }
 
         // Включаем диалог "Настройка колонок" (нужен резолвер для полей связанных сущностей)
         form.setMetadataResolver(metadataResolver);

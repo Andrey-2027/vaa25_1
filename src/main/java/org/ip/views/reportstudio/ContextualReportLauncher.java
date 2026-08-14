@@ -38,7 +38,17 @@ public class ContextualReportLauncher extends Button {
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler) {
-        super("Отчёты");
+        this("Отчёты", contextSupplier, templateService, executionService, lookupService, selectionFormAssembler);
+    }
+
+    public ContextualReportLauncher(
+            String caption,
+            Supplier<ReportContext> contextSupplier,
+            ReportTemplateService templateService,
+            ReportExecutionService executionService,
+            LookupService lookupService,
+            SelectionFormAssembler selectionFormAssembler) {
+        super(caption);
         this.contextSupplier = contextSupplier;
         this.templateService = templateService;
         this.executionService = executionService;
