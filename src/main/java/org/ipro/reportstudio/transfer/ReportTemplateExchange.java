@@ -53,6 +53,7 @@ public class ReportTemplateExchange {
     public static class Template {
         private String name;
         private String description;
+        private String targetEntityClass;
         private String jpql;
         private int maxRows;
         private int timeoutMs;
@@ -76,6 +77,13 @@ public class ReportTemplateExchange {
             this.description = description;
         }
 
+        public String getTargetEntityClass() {
+            return targetEntityClass;
+        }
+
+        public void setTargetEntityClass(String targetEntityClass) {
+            this.targetEntityClass = targetEntityClass;
+        }
         public String getJpql() {
             return jpql;
         }

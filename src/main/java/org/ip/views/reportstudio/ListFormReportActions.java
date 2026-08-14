@@ -19,11 +19,6 @@ import java.util.Optional;
 
 /**
  * Стандартное действие печати для реестров сущностей.
- *
- * <p>Команда отображается во всех {@link ListForm}, кроме сущностей, помеченных
- * {@link WithReportView}{@code (false)}. Запуск недоступен без выделения строк;
- * выбранные идентификаторы передаются как контекст, а параметры отчёта разрешаются
- * на сервере с применением RLS.</p>
  */
 @Component
 public class ListFormReportActions {
@@ -54,6 +49,7 @@ public class ListFormReportActions {
         Grid<T> grid = form.getGrid();
         ContextualReportLauncher launcher = new ContextualReportLauncher(
                 "Печать",
+                () -> templateService.findPrintableForEntity(entityClass),
                 () -> reportContext(entityClass, grid.getSelectedItems()),
                 templateService,
                 executionService,

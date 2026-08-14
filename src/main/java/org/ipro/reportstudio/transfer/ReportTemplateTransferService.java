@@ -101,6 +101,7 @@ public class ReportTemplateTransferService {
         ReportTemplateExchange.Template target = new ReportTemplateExchange.Template();
         target.setName(template.getName());
         target.setDescription(template.getDescription());
+        target.setTargetEntityClass(template.getTargetEntityClass());
         target.setJpql(template.getJpql());
         target.setMaxRows(template.getMaxRows());
         target.setTimeoutMs(template.getTimeoutMs());
@@ -156,6 +157,7 @@ public class ReportTemplateTransferService {
         ReportTemplate template = new ReportTemplate();
         template.setName(source.getName());
         template.setDescription(source.getDescription());
+        template.setTargetEntityClass(source.getTargetEntityClass());
         template.setJpql(source.getJpql());
         template.setMaxRows(source.getMaxRows());
         template.setTimeoutMs(source.getTimeoutMs());

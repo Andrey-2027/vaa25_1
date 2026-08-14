@@ -61,6 +61,13 @@ public class ReportTemplate extends BaseEntity {
     @Column(nullable = false, columnDefinition = "text")
     private String jpql;
 
+    /**
+     * Полное имя типа сущности, из реестра которого доступна печатная форма.
+     * {@code null} сохраняет совместимость с шаблонами, созданными до этой настройки.
+     */
+    @Column(name = "target_entity_class", length = 512)
+    private String targetEntityClass;
+
     /** Ограничение числа строк результата; 0 = не ограничивать. */
     @Column(name = "max_rows", nullable = false)
     private int maxRows = DEFAULT_MAX_ROWS;
@@ -115,6 +122,16 @@ public class ReportTemplate extends BaseEntity {
 
     public void setJpql(String jpql) {
         this.jpql = jpql;
+    }
+
+    public String getTargetEntityClass() {
+        return targetEntityClass;
+    }
+
+    public void setTargetEntityClass(String targetEntityClass) {
+        this.targetEntityClass = targetEntityClass == null || targetEntityClass.isBlank()
+                ? null
+                : targetEntityClass.trim();
     }
 
     public int getMaxRows() {

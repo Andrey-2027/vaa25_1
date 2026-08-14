@@ -7,6 +7,7 @@ import org.ipro.reportstudio.ReportTemplateRepository;
 import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportField;
 import org.ipro.reportstudio.dom.ReportParam;
+import org.ipro.reportstudio.dom.ReportParamSource;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.dom.ReportTemplateState;
 import org.ipro.reportstudio.dom.ReportTemplateValidator;
@@ -45,6 +46,32 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
                 .filter(template -> containsIgnoreCase(template.getName(), needle)
                         || containsIgnoreCase(template.getDescription(), needle))
                 .toList();
+    }
+
+    /**
+     * Finds printable templates for an entity registry.
+     * Explicit target type wins; old templates are temporarily matched by a
+     * context parameter of the same entity type.
+     */
+    @Transactional(readOnly = true)
+    public List<ReportTemplate> findPrintableForEntity(Class<?> entityClass) {
+        if (entityClass == null) {
+            return List.of();
+        }
+        String entityClassName = entityClass.getName();
+        return repository.findAll().stream()
+                .filter(template -> appliesToEntity(template, entityClassName))
+                .toList();
+    }
+
+    private static boolean appliesToEntity(ReportTemplate template, String entityClassName) {
+        String targetEntityClass = template.getTargetEntityClass();
+        if (targetEntityClass != null) {
+            return targetEntityClass.equals(entityClassName);
+        }
+        return template.getParams().stream().anyMatch(param ->
+                param.getValueSource() == ReportParamSource.CONTEXT
+                        && entityClassName.equals(param.getEntityClass()));
     }
 
     @Transactional(readOnly = true)
@@ -90,6 +117,7 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
         ReportTemplate copy = new ReportTemplate();
         copy.setName(nextAvailableName(source.getName(), " (копия)"));
         copy.setDescription(source.getDescription());
+        copy.setTargetEntityClass(source.getTargetEntityClass());
         copy.setJpql(source.getJpql());
         copy.setMaxRows(source.getMaxRows());
         copy.setTimeoutMs(source.getTimeoutMs());

@@ -1,5 +1,7 @@
 package org.ip.views.reportstudio;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -15,17 +17,18 @@ import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
  * Универсальное UI-действие запуска отчёта из формы или списка сущностей.
  *
- * <p>Потребитель передаёт supplier актуального {@link ReportContext}; компонент
- * не принимает сущности в JPQL и не читает их поля. При фактическом запуске
- * {@code ReportParamResolver} повторно загружает сущностные значения через RLS.</p>
+ * <p>Потребитель передаёт актуальный {@link ReportContext} и каталог допустимых
+ * шаблонов. Параметры ENTITY/ENTITY_LIST разрешаются сервером с применением RLS.</p>
  */
 public class ContextualReportLauncher extends Button {
 
+    private final Supplier<List<ReportTemplate>> templatesSupplier;
     private final Supplier<ReportContext> contextSupplier;
     private final ReportTemplateService templateService;
     private final ReportExecutionService executionService;
@@ -38,7 +41,8 @@ public class ContextualReportLauncher extends Button {
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler) {
-        this("Отчёты", contextSupplier, templateService, executionService, lookupService, selectionFormAssembler);
+        this("Отчёты", () -> templateService.search(""), contextSupplier,
+                templateService, executionService, lookupService, selectionFormAssembler);
     }
 
     public ContextualReportLauncher(
@@ -48,7 +52,20 @@ public class ContextualReportLauncher extends Button {
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler) {
+        this(caption, () -> templateService.search(""), contextSupplier,
+                templateService, executionService, lookupService, selectionFormAssembler);
+    }
+
+    public ContextualReportLauncher(
+            String caption,
+            Supplier<List<ReportTemplate>> templatesSupplier,
+            Supplier<ReportContext> contextSupplier,
+            ReportTemplateService templateService,
+            ReportExecutionService executionService,
+            LookupService lookupService,
+            SelectionFormAssembler selectionFormAssembler) {
         super(caption);
+        this.templatesSupplier = templatesSupplier;
         this.contextSupplier = contextSupplier;
         this.templateService = templateService;
         this.executionService = executionService;
@@ -64,13 +81,13 @@ public class ContextualReportLauncher extends Button {
             return;
         }
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Выберите отчёт для контекстного запуска");
+        dialog.setHeaderTitle("Выберите печатную форму");
         dialog.setWidth("min(760px, 95vw)");
 
         Grid<ReportTemplate> templates = new Grid<>(ReportTemplate.class, false);
         templates.addColumn(ReportTemplate::getName).setHeader("Наименование").setFlexGrow(1);
         templates.addColumn(template -> template.getState().name()).setHeader("Состояние").setAutoWidth(true);
-        templates.setItems(templateService.search(""));
+        templates.setItems(templatesSupplier.get());
         templates.setHeight("340px");
 
         Button run = new Button("Открыть параметры и запустить", event -> {
@@ -87,11 +104,22 @@ public class ContextualReportLauncher extends Button {
                 showError("Не удалось подготовить отчёт: " + exception.getMessage());
             }
         });
+        Button create = new Button("Create print template", event -> {
+            if (context.entityClass() == null) {
+                showError("Current registry does not define an entity type");
+                return;
+            }
+            dialog.close();
+            UI.getCurrent().navigate(
+                    ReportEditorView.class,
+                    QueryParameters.simple(java.util.Map.of(
+                            "targetEntityClass", context.entityClass().getName())));
+        });
         Button cancel = new Button("Закрыть", event -> dialog.close());
         dialog.add(new VerticalLayout(
-                new Paragraph("Контекст содержит текущую сущность, выбранные идентификаторы и viewId. "
+                new Paragraph("В списке доступны только печатные формы, применимые к текущему реестру. "
                         + "Параметры CONTEXT/COMPUTED разрешаются на сервере при запуске."),
-                templates, new HorizontalLayout(run, cancel)));
+                templates, new HorizontalLayout(create, run, cancel)));
         openDialog(dialog);
     }
 

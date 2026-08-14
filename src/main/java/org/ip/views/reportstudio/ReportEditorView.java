@@ -15,6 +15,8 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import jakarta.validation.ValidationException;
@@ -41,7 +43,7 @@ import java.util.List;
 @Route("report-editor")
 @PageTitle("Редактор отчёта")
 @PermitAll
-public class ReportEditorView extends VerticalLayout {
+public class ReportEditorView extends VerticalLayout implements BeforeEnterObserver {
 
     private final ReportTemplateService templateService;
     private final ReportExecutionService executionService;
@@ -122,6 +124,19 @@ public class ReportEditorView extends VerticalLayout {
         structureEditor.setTemplate(template);
         paramEditor.setTemplate(template);
         syncPreviewDeclaredParams();
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        event.getLocation().getQueryParameters().getParameters()
+                .getOrDefault("targetEntityClass", List.of())
+                .stream()
+                .filter(value -> !value.isBlank())
+                .findFirst()
+                .ifPresent(targetEntityClass -> {
+                    newTemplate();
+                    template.setTargetEntityClass(targetEntityClass);
+                });
     }
 
     public ReportTemplate saveTemplate() {
