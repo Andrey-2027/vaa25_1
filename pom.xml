@@ -19,6 +19,9 @@
     <properties>
         <java.version>21</java.version>
         <vaadin.version>25.1.6</vaadin.version>
+        <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (vendor/dynamicreports-7.0.0-ip) + JR 7.0.6 -->
+        <dynamicreports.version>7.0.0-ip.20260813</dynamicreports.version>
+        <jasperreports.version>7.0.6</jasperreports.version>
     </properties>
 
     <dependencyManagement>
@@ -101,6 +104,25 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Рендер отчётов: DynamicReports 7 (внутренняя сборка из закреплённого commit'а) + JasperReports 7 -->
+        <dependency>
+            <groupId>net.sourceforge.dynamicreports</groupId>
+            <artifactId>dynamicreports-core</artifactId>
+            <version>${dynamicreports.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports-fonts</artifactId>
+            <version>${jasperreports.version}</version>
+        </dependency>
+        <!-- golden-харнесс: извлечение текста из PDF (только тесты) -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.4</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

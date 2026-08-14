@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Платформенный дефолтный шрифт для программных отчётов (DynamicReports 7 / JasperReports 7).
+  DR загружает этот файл с корня classpath; DejaVu Sans (из jasperreports-fonts) покрывает
+  кириллицу, внедрение TrueType-сабсета в PDF включается в ReportCompiler (pdf.embedded=true).
+  Без этого JR выбрасывает неохваченные символы -> кириллица пропадает из PDF.
+-->
+<DynamicReports>
+    <font fontName="DejaVu Sans"/>
+</DynamicReports>
