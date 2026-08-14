@@ -28,6 +28,8 @@ import org.hibernate.query.sqm.tree.select.SqmSelectQuery;
 import org.hibernate.query.sqm.tree.select.SqmSelectStatement;
 import org.hibernate.query.sqm.tree.select.SqmSelection;
 import org.hibernate.query.sqm.tree.select.SqmSortSpecification;
+import org.ip.metadata.FieldMetadataInfo;
+import org.ip.metadata.MetadataResolver;
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.query.Analysis;
 import org.ipro.reportstudio.query.EntityUsage;
@@ -52,12 +54,20 @@ import java.util.Set;
 public class SqmQuerySemanticAnalyzer implements QuerySemanticAnalyzer {
 
     private final HqlTranslator translator;
+    private final MetadataResolver metadataResolver;
 
     public SqmQuerySemanticAnalyzer(EntityManagerFactory entityManagerFactory) {
+        this(entityManagerFactory, new MetadataResolver());
+    }
+
+    /** Для тестов и веса caption из {@code @FieldMetadata(@Label)}. */
+    public SqmQuerySemanticAnalyzer(EntityManagerFactory entityManagerFactory,
+                                    MetadataResolver metadataResolver) {
         this.translator = entityManagerFactory
             .unwrap(SessionFactoryImplementor.class)
             .getQueryEngine()
             .getHqlTranslator();
+        this.metadataResolver = metadataResolver;
     }
 
     @Override
@@ -74,18 +84,23 @@ public class SqmQuerySemanticAnalyzer implements QuerySemanticAnalyzer {
         if (!(statement instanceof SqmSelectStatement<?> select)) {
             return Analysis.failed("Разрешён только SELECT-запрос, получен " + statement.getClass().getSimpleName());
         }
-        Collector collector = new Collector();
+        Collector collector = new Collector(metadataResolver);
         collector.collectTop(select);
         return collector.finish();
     }
 
     private static final class Collector {
 
+        private final MetadataResolver metadataResolver;
         private final List<EntityUsage> entities = new ArrayList<>();
         private final List<QueryField> fields = new ArrayList<>();
         private final Set<String> parameterNames = new LinkedHashSet<>();
         private final Set<String> usedFieldNames = new LinkedHashSet<>();
         private int columnOrdinal;
+
+        Collector(MetadataResolver metadataResolver) {
+            this.metadataResolver = metadataResolver;
+        }
 
         void collectTop(SqmSelectStatement<?> select) {
             collectParameters(select);
@@ -251,11 +266,53 @@ public class SqmQuerySemanticAnalyzer implements QuerySemanticAnalyzer {
             }
             String name = uniqueName(item.getAlias(), expressionText);
             Class<?> javaType = javaType(expression);
-            String caption = caption(expressionText, name);
+            String caption = expression instanceof SqmPath<?> path
+                ? metadataCaption(path)
+                : caption(expressionText, name);
             return new QueryField(name, expressionText, javaType, caption,
                 !javaType.isArray() && !javaType.isPrimitive(),
                 !javaType.isArray() && !javaType.isPrimitive(),
                 QueryField.isNumber(javaType));
+        }
+
+        /**
+         * Заголовок колонки из {@code @FieldMetadata(label)}: владелец последнего
+         * атрибута пути (Journal для "s.journal.code") разворачивается в
+         * FieldMetadataInfo, и label берётся оттуда; без метаданных — эвристика
+         * (последний сегмент пути).
+         */
+        private String metadataCaption(SqmPath<?> path) {
+            String lastSegment = localName(path);
+            Class<?> owner = pathOwnerClass(path);
+            if (owner == null) {
+                return caption(pathText(path), lastSegment);
+            }
+            try {
+                FieldMetadataInfo field = metadataResolver.resolve(owner).getFieldByName(lastSegment);
+                if (field != null && !field.isHidden() && !field.getLabel().isBlank()) {
+                    return field.getLabel();
+                }
+            } catch (Exception noMetadata) {
+                // класс без @EntityMetadata/недоступные метаданные — эвристика ниже
+            }
+            return caption(pathText(path), lastSegment);
+        }
+
+        /** Класс сущности, владеющей последним атрибутом пути (для "s.journal.code" — Journal). */
+        private Class<?> pathOwnerClass(SqmPath<?> path) {
+            SqmPath<?> owner = path == null ? null : path.getLhs();
+            if (owner == null) {
+                return null; // корень: последний сегмент — сам root, атрибута-владельца нет
+            }
+            try {
+                var nodeType = owner.getNodeType();
+                if (nodeType != null) {
+                    return nodeType.getExpressibleJavaType().getJavaTypeClass();
+                }
+            } catch (Exception ignored) {
+                // non-attribute шаги — null
+            }
+            return null;
         }
 
         /** Человекочитаемый путь: "j", "s.journal" — по цепочке lhs до корня. */

@@ -106,6 +106,18 @@ class SqmQuerySemanticAnalyzerTest {
     }
 
     @Test
+    void captionComesFromFieldMetadataLabel() {
+        Analysis analysis = analyzer.analyze(
+            "select s.codeSpec, s.journal.name from PrdSpec s");
+
+        assertThat(analysis.valid()).isTrue();
+        QueryField codeSpec = analysis.selectFields().get(0);
+        QueryField journalName = analysis.selectFields().get(1);
+        assertThat(codeSpec.caption()).isEqualTo("Код спецификации");
+        assertThat(journalName.caption()).isEqualTo("Наименование");
+    }
+
+    @Test
     void entitySelectionHasEntityJavaType() {
         Analysis analysis = analyzer.analyze(
             "select s.journal from PrdSpec s");
