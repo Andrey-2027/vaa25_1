@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -17,12 +18,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import jakarta.validation.ValidationException;
+import org.ip.form.SelectionFormAssembler;
+import org.ip.service.LookupService;
 import org.ip.views.test.ReportQueryPreviewView;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.dom.ReportTemplateState;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
 import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.reportstudio.run.ReportExecutionService;
 
 import java.util.List;
 
@@ -40,6 +44,9 @@ import java.util.List;
 public class ReportEditorView extends VerticalLayout {
 
     private final ReportTemplateService templateService;
+    private final ReportExecutionService executionService;
+    private final LookupService lookupService;
+    private final SelectionFormAssembler selectionFormAssembler;
     private final TextField name = new TextField("Наименование отчёта");
     private final TextArea description = new TextArea("Описание");
     private final IntegerField maxRows = new IntegerField("Максимум строк");
@@ -52,8 +59,14 @@ public class ReportEditorView extends VerticalLayout {
     public ReportEditorView(
             ReportQueryGuard guard,
             ReportPreviewService previewService,
-            ReportTemplateService templateService) {
+            ReportTemplateService templateService,
+            ReportExecutionService executionService,
+            LookupService lookupService,
+            SelectionFormAssembler selectionFormAssembler) {
         this.templateService = templateService;
+        this.executionService = executionService;
+        this.lookupService = lookupService;
+        this.selectionFormAssembler = selectionFormAssembler;
         this.queryPreview = new ReportQueryPreviewView(guard, previewService);
         this.paramEditor.setChangeListener(this::syncPreviewDeclaredParams);
 
@@ -150,7 +163,24 @@ public class ReportEditorView extends VerticalLayout {
         Button newButton = new Button("Новый шаблон", event -> newTemplate());
         Button saveButton = new Button("Сохранить", event -> saveFromUi());
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        return new HorizontalLayout(newButton, saveButton);
+        Button runButton = new Button("Запустить", event -> openRunDialog());
+        return new HorizontalLayout(newButton, saveButton, runButton);
+    }
+
+    private void openRunDialog() {
+        try {
+            ReportTemplate saved = saveTemplate();
+            Dialog dialog = new ReportRunDialog(saved, executionService, lookupService, selectionFormAssembler);
+            dialog.open();
+        } catch (ValidationException validationException) {
+            Notification notification = Notification.show(validationException.getMessage(), 6_000,
+                    Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } catch (RuntimeException persistenceException) {
+            Notification notification = Notification.show("Не удалось подготовить запуск: "
+                    + persistenceException.getMessage(), 6_000, Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
     private void saveFromUi() {

@@ -9,7 +9,7 @@ class ReportEditorViewTest {
 
     @Test
     void initializesEmptyTemplateMetadataAndMandatoryDetailBand() {
-        ReportEditorView view = new ReportEditorView(null, null, null);
+        ReportEditorView view = new ReportEditorView(null, null, null, null, null, null);
 
         assertThat(view.reportName()).isEmpty();
         assertThat(view.reportDescription()).isEmpty();
