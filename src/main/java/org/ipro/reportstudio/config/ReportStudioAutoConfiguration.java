@@ -1,7 +1,11 @@
 package org.ipro.reportstudio.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.ipro.reportstudio.param.EntityParamRefresher;
+import org.ipro.reportstudio.param.ReportParamResolver;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryExecutor;
 import org.ipro.reportstudio.query.ReportQueryGuard;
@@ -12,6 +16,7 @@ import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsFilterActivator;
+import org.ipro.rls.RlsReadGate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -60,5 +65,34 @@ public class ReportStudioAutoConfiguration {
     @ConditionalOnMissingBean
     public ReportPreviewService reportPreviewService(ReportQueryExecutor executor) {
         return new ReportPreviewService(executor);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public EntityParamRefresher entityParamRefresher(EntityManager entityManager,
+                                                     RlsFilterActivator rlsFilterActivator,
+                                                     RlsReadGate rlsReadGate,
+                                                     RlsCurrentUser currentUser,
+                                                     EntityManagerFactory entityManagerFactory) {
+        return new EntityParamRefresher(entityManager, rlsFilterActivator, rlsReadGate,
+            currentUser, entityManagerFactory.unwrap(SessionFactoryImplementor.class));
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ObjectMapper reportObjectMapper() {
+        return new ObjectMapper();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ReportParamResolver reportParamResolver(EntityParamRefresher refresher,
+                                                   AccessService accessService,
+                                                   RlsCurrentUser currentUser,
+                                                   EntityManagerFactory entityManagerFactory,
+                                                   ObjectMapper objectMapper,
+                                                   @Value("${ipro.report.rls-org-dimension:BRANCH}") String rlsOrgDimension) {
+        return new ReportParamResolver(refresher, accessService, currentUser,
+            entityManagerFactory.unwrap(SessionFactoryImplementor.class), objectMapper, rlsOrgDimension);
     }
 }
