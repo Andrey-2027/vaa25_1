@@ -478,6 +478,7 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
 
     private void openRowDialog(T row, String title, Runnable onConfirm) {
         ItemForm<T> rowForm = buildRowForm(row);
+        RowDraft<T> rowDraft = RowDraft.capture(row, sectionMeta.getFormFields());
         rowForm.setEntity(row);
         rowForm.setHeightFull();
 
@@ -486,6 +487,8 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
         dialog.setWidth("600px");
         dialog.setModal(true);
         dialog.setDraggable(true);
+        dialog.setCloseOnEsc(false);
+        dialog.setCloseOnOutsideClick(false);
         dialog.add(rowForm);
 
         rowForm.setOnSave(() -> {
@@ -507,7 +510,11 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
                 confirm.setHeader("Несохранённые изменения");
                 confirm.setText(rowForm.getCloseConfirmMessage());
                 confirm.setConfirmButton("Сохранить и закрыть", e -> rowForm.doSave());
-                confirm.setCancelButton("Закрыть", e -> dialog.close());
+                confirm.setCancelButton("Закрыть", e -> {
+                    rowDraft.restore(row, lookupService);
+                    grid.getDataProvider().refreshItem(row);
+                    dialog.close();
+                });
                 confirm.setRejectButton("Отмена", e -> {});
                 confirm.open();
             } else {

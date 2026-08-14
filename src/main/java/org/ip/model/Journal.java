@@ -9,6 +9,7 @@ import org.hibernate.annotations.ParamDef;
 import org.ip.metadata.annotation.EntityMetadata;
 import org.ip.metadata.annotation.FieldMetadata;
 import org.ip.metadata.annotation.GridColumn;
+import org.ip.subsystem.Subsystems;
 import org.ipro.rls.RlsDimension;
 import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsDimensionValue;
@@ -32,7 +33,7 @@ import org.ipro.crud.BaseEntity;
     order = 10,
     icon = "BOOK",
     serviceClass = org.ip.service.JournalService.class,
-    subsystem = org.ip.subsystem.Subsystems.Production.class,
+    subsystem = Subsystems.Production.class,
     selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
 )
