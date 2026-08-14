@@ -6,6 +6,8 @@ import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TupleElement;
 import org.hibernate.Hibernate;
+import org.hibernate.dialect.PostgreSQLDialect;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.jpa.QueryHints;
 import org.ipro.reportstudio.data.EntityRef;
 import org.ipro.reportstudio.data.QueryField;
@@ -60,6 +62,7 @@ public class ReportQueryExecutor {
         QueryField[] schema = fields.toArray(QueryField[]::new);
 
         rlsFilterActivator.ensureRlsEnabled(entityManager);
+        applyServerStatementTimeout(timeoutMs);
         Query query = entityManager.createQuery(jpql, Tuple.class);
         query.setHint(QueryHints.HINT_READONLY, Boolean.TRUE);
         query.setHint(QueryHints.HINT_FETCH_SIZE, Math.min(maxRows, 1000));
@@ -71,6 +74,28 @@ public class ReportQueryExecutor {
         PersistenceUnitUtil persistenceUnitUtil = entityManager.getEntityManagerFactory()
             .getPersistenceUnitUtil();
         return toDataset(schema, tuples, persistenceUnitUtil);
+    }
+
+    /**
+     * Серверный statement_timeout (PostgreSQL): помимо JDBC-hint это ограничивает
+     * сам сервер. H2 в тестах настройку не знает — молча пропускаем.
+     */
+    private void applyServerStatementTimeout(long timeoutMs) {
+        if (timeoutMs <= 0) {
+            return;
+        }
+        SessionFactoryImplementor sessionFactory = entityManager
+            .getEntityManagerFactory()
+            .unwrap(SessionFactoryImplementor.class);
+        if (!(sessionFactory.getJdbcServices().getDialect() instanceof PostgreSQLDialect)) {
+            return;
+        }
+        try {
+            entityManager.createNativeQuery("set local statement_timeout = " + timeoutMs)
+                .executeUpdate();
+        } catch (RuntimeException notSupported) {
+            // H2/другие БД: настройка серверная, отсутствие — не ошибка выполнения
+        }
     }
 
     private void bindParameters(Query query, Map<String, Object> bindings) {

@@ -35,6 +35,9 @@ import java.util.stream.Collectors;
 @Component
 public class ReportQueryGuard {
 
+    /** Максимум колонок результата (runtime-лимит; широкие SELECT'ы — ошибка конфигурации шаблона). */
+    public static final int MAX_COLUMNS = 30;
+
     private final QuerySemanticAnalyzer analyzer;
     private final AccessService accessService;
     private final RlsDimensionRegistry dimensionRegistry;
@@ -93,6 +96,11 @@ public class ReportQueryGuard {
             if (!declared.contains(templateParam)) {
                 warnings.add("Параметр шаблона «" + templateParam + "» не используется в запросе");
             }
+        }
+
+        if (analysis.selectFields().size() > MAX_COLUMNS) {
+            errors.add("Слишком много колонок в SELECT: " + analysis.selectFields().size()
+                + " (лимит " + MAX_COLUMNS + ") — сузьте запрос");
         }
 
         List<String> rlsErrors = checkRls(analysis, declared, paramEntityClasses);

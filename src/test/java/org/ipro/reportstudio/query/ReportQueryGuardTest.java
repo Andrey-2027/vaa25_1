@@ -190,6 +190,38 @@ class ReportQueryGuardTest {
         assertThat(result.errors()).anyMatch(e -> e.contains(":code") && e.contains("не является сущностью"));
     }
 
+    @Test
+    void tooManyColumnsIsDenied() {
+        loginAs("admin");
+        StringBuilder jpql = new StringBuilder("select ");
+        for (int i = 1; i <= ReportQueryGuard.MAX_COLUMNS + 1; i++) {
+            if (i > 1) {
+                jpql.append(", ");
+            }
+            jpql.append("s.codeSpec as col").append(i);
+        }
+        jpql.append(" from PrdSpec s");
+        GuardResult result = guard.guard(jpql.toString(), Set.of());
+        assertThat(result.allowed()).isFalse();
+        assertThat(result.errors()).anyMatch(e -> e.contains("колонок") && e.contains("лимит"));
+    }
+
+    @Test
+    void columnsWithinLimitAreAllowed() {
+        loginAs("admin");
+        StringBuilder jpql = new StringBuilder("select ");
+        for (int i = 1; i <= ReportQueryGuard.MAX_COLUMNS; i++) {
+            if (i > 1) {
+                jpql.append(", ");
+            }
+            jpql.append("s.codeSpec as col").append(i);
+        }
+        jpql.append(" from PrdSpec s");
+        GuardResult result = guard.guard(jpql.toString(), Set.of());
+        assertThat(result.allowed()).isTrue();
+        assertThat(result.selectFields()).hasSize(ReportQueryGuard.MAX_COLUMNS);
+    }
+
     private void loginAs(String username) {
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(username, "n/a", List.of()));
