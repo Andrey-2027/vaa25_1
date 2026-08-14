@@ -105,12 +105,20 @@ public class ReportEditorView extends VerticalLayout {
 
     /** Создаёт новый черновик, сразу содержащий обязательный DETAIL-бэнд. */
     public void newTemplate() {
-        template = new ReportTemplate();
-        template.setState(ReportTemplateState.DRAFT);
-        name.clear();
-        description.clear();
-        maxRows.setValue(ReportTemplate.DEFAULT_MAX_ROWS);
-        queryPreview.setJpql("");
+        ReportTemplate fresh = new ReportTemplate();
+        fresh.setState(ReportTemplateState.DRAFT);
+        fresh.setMaxRows(ReportTemplate.DEFAULT_MAX_ROWS);
+        fresh.setJpql("");
+        editTemplate(fresh);
+    }
+
+    /** Открывает сохранённый шаблон, переданный каталогом, в текущем редакторе. */
+    public void editTemplate(ReportTemplate template) {
+        this.template = java.util.Objects.requireNonNull(template, "template");
+        name.setValue(java.util.Objects.requireNonNullElse(template.getName(), ""));
+        description.setValue(java.util.Objects.requireNonNullElse(template.getDescription(), ""));
+        maxRows.setValue(template.getMaxRows());
+        queryPreview.setJpql(java.util.Objects.requireNonNullElse(template.getJpql(), ""));
         structureEditor.setTemplate(template);
         paramEditor.setTemplate(template);
         syncPreviewDeclaredParams();

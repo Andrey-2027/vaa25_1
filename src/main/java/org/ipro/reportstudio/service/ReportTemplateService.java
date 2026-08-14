@@ -2,14 +2,20 @@ package org.ipro.reportstudio.service;
 
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
-import org.ipro.reportstudio.ReportTemplateRepository;
 import org.ip.service.AbstractBaseService;
+import org.ipro.reportstudio.ReportTemplateRepository;
+import org.ipro.reportstudio.dom.ReportBand;
+import org.ipro.reportstudio.dom.ReportField;
+import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportTemplate;
+import org.ipro.reportstudio.dom.ReportTemplateState;
 import org.ipro.reportstudio.dom.ReportTemplateValidator;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Сервис жизненного цикла пользовательских шаблонов отчётов.
@@ -19,6 +25,8 @@ import java.util.Locale;
  * допустимость агрегатов и согласованность параметров.</p>
  */
 public class ReportTemplateService extends AbstractBaseService<ReportTemplate, Long> {
+
+    private static final int TEMPLATE_NAME_MAX_LENGTH = 250;
 
     private final ReportTemplateRepository repository;
 
@@ -39,6 +47,28 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public ReportTemplate loadTemplate(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Не указан идентификатор шаблона отчёта");
+        }
+        ReportTemplate template = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Шаблон отчёта не найден: " + id));
+        initializeGraph(template);
+        return template;
+    }
+
+    /**
+     * Создаёт независимую черновую копию шаблона без внутренних идентификаторов.
+     * Параметры, бэнды, поля и parent-ссылки групп переносятся целиком.
+     */
+    @Transactional
+    public ReportTemplate copyTemplate(Long sourceId) {
+        ReportTemplate source = loadTemplate(sourceId);
+        ReportTemplate copy = deepCopy(source);
+        return saveTemplate(copy);
+    }
+
     @Transactional
     public ReportTemplate saveTemplate(ReportTemplate template) {
         List<String> violations = ReportTemplateValidator.validate(template);
@@ -46,6 +76,88 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
             throw new ValidationException(String.join("\n", violations));
         }
         return save(template);
+    }
+
+    private static void initializeGraph(ReportTemplate template) {
+        template.getParams().size();
+        for (ReportBand band : template.getBands()) {
+            band.getFields().size();
+            band.getParent();
+        }
+    }
+
+    private ReportTemplate deepCopy(ReportTemplate source) {
+        ReportTemplate copy = new ReportTemplate();
+        copy.setName(nextCopyName(source.getName()));
+        copy.setDescription(source.getDescription());
+        copy.setJpql(source.getJpql());
+        copy.setMaxRows(source.getMaxRows());
+        copy.setTimeoutMs(source.getTimeoutMs());
+        copy.setAdvanced(source.isAdvanced());
+        copy.setState(ReportTemplateState.DRAFT);
+
+        for (ReportParam sourceParam : source.getParams()) {
+            ReportParam param = new ReportParam();
+            param.setName(sourceParam.getName());
+            param.setCaption(sourceParam.getCaption());
+            param.setKind(sourceParam.getKind());
+            param.setEntityClass(sourceParam.getEntityClass());
+            param.setValueSource(sourceParam.getValueSource());
+            param.setRequired(sourceParam.isRequired());
+            param.setShowOnForm(sourceParam.isShowOnForm());
+            param.setDefaultValue(sourceParam.getDefaultValue());
+            param.setComputed(sourceParam.getComputed());
+            param.setPosition(sourceParam.getPosition());
+            copy.addParam(param);
+        }
+
+        Map<ReportBand, ReportBand> copiedBands = new IdentityHashMap<>();
+        for (ReportBand sourceBand : source.getBands()) {
+            ReportBand band = new ReportBand();
+            band.setKind(sourceBand.getKind());
+            band.setGroupField(sourceBand.getGroupField());
+            band.setPosition(sourceBand.getPosition());
+            copy.addBand(band);
+            copiedBands.put(sourceBand, band);
+
+            for (ReportField sourceField : sourceBand.getFields()) {
+                ReportField field = new ReportField();
+                field.setQueryField(sourceField.getQueryField());
+                field.setCaption(sourceField.getCaption());
+                field.setWidth(sourceField.getWidth());
+                field.setFormat(sourceField.getFormat());
+                field.setVisible(sourceField.isVisible());
+                field.setAggregation(sourceField.getAggregation());
+                field.setAlignment(sourceField.getAlignment());
+                field.setPosition(sourceField.getPosition());
+                band.addField(field);
+            }
+        }
+
+        for (ReportBand sourceBand : source.getBands()) {
+            ReportBand sourceParent = sourceBand.getParent();
+            if (sourceParent != null) {
+                copiedBands.get(sourceBand).setParent(copiedBands.get(sourceParent));
+            }
+        }
+        return copy;
+    }
+
+    private String nextCopyName(String sourceName) {
+        String base = sourceName == null || sourceName.isBlank() ? "Отчёт" : sourceName.trim();
+        String suffix = " (копия)";
+        String candidate = fitName(base, suffix);
+        int index = 2;
+        while (repository.existsByName(candidate)) {
+            candidate = fitName(base, " (копия " + index++ + ")");
+        }
+        return candidate;
+    }
+
+    private static String fitName(String base, String suffix) {
+        int maxBaseLength = Math.max(1, TEMPLATE_NAME_MAX_LENGTH - suffix.length());
+        String truncated = base.length() > maxBaseLength ? base.substring(0, maxBaseLength) : base;
+        return truncated + suffix;
     }
 
     private static boolean containsIgnoreCase(String value, String needle) {

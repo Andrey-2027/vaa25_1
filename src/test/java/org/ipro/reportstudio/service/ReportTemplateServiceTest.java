@@ -7,6 +7,7 @@ import org.ipro.reportstudio.ReportTemplateRepository;
 import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportBandKind;
 import org.ipro.reportstudio.dom.ReportField;
+import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.junit.jupiter.api.Test;
 import org.ipro.rls.AccessService;
@@ -14,9 +15,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 
 class ReportTemplateServiceTest {
 
@@ -33,6 +37,33 @@ class ReportTemplateServiceTest {
 
         assertThat(saved).isSameAs(template);
         verify(repository).save(template);
+    }
+
+    @Test
+    void copiesTemplateAsIndependentDraft() {
+        ReportTemplateRepository repository = mock(ReportTemplateRepository.class);
+        ReportTemplate source = validTemplate("Остатки");
+        ReportParam param = new ReportParam();
+        param.setName("date");
+        param.setCaption("Дата");
+        param.setPosition(0);
+        source.addParam(param);
+        when(repository.findById(7L)).thenReturn(Optional.of(source));
+        when(repository.existsByName("Остатки (копия)")).thenReturn(false);
+        when(repository.save(any(ReportTemplate.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        ReportTemplateService service = newService(repository);
+
+        ReportTemplate copy = service.copyTemplate(7L);
+
+        assertThat(copy).isNotSameAs(source);
+        assertThat(copy.getName()).isEqualTo("Остатки (копия)");
+        assertThat(copy.getParams()).singleElement().isNotSameAs(source.getParams().getFirst());
+        assertThat(copy.getBands()).singleElement().satisfies(band -> {
+            assertThat(band).isNotSameAs(source.getBands().getFirst());
+            assertThat(band.getFields()).singleElement()
+                    .isNotSameAs(source.getBands().getFirst().getFields().getFirst());
+        });
+        verify(repository).save(copy);
     }
 
     @Test
