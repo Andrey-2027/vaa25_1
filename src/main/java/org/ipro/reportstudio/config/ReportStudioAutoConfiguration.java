@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import jakarta.validation.Validator;
+import org.ipro.reportstudio.ReportTemplateRepository;
 import org.ipro.reportstudio.param.EntityParamRefresher;
 import org.ipro.reportstudio.param.ReportParamResolver;
 import org.ipro.reportstudio.query.ReportPreviewService;
@@ -16,6 +18,7 @@ import org.ipro.reportstudio.render.JasperReportCompiler;
 import org.ipro.reportstudio.render.ReportCompiler;
 import org.ipro.reportstudio.run.ReportArtifactCache;
 import org.ipro.reportstudio.run.ReportExecutionService;
+import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
@@ -121,5 +124,12 @@ public class ReportStudioAutoConfiguration {
                                                          ReportCompiler compiler,
                                                          ReportArtifactCache cache) {
         return new ReportExecutionService(guard, executor, resolver, compiler, cache);
+    }
+    @Bean
+    @ConditionalOnMissingBean
+    public ReportTemplateService reportTemplateService(
+            ReportTemplateRepository repository,
+            Validator validator) {
+        return new ReportTemplateService(repository, validator);
     }
 }

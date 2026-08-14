@@ -152,6 +152,15 @@ public class ReportQueryPreviewView extends VerticalLayout {
             .addThemeVariants(NotificationVariant.LUMO_ERROR);
     }
 
+    /** Р’РѕР·РІСЂР°С‰Р°РµС‚ СЂРµРґР°РєС‚РёСЂСѓРµРјС‹Р№ JPQL РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РІРјРµСЃС‚Рµ СЃ С€Р°Р±Р»РѕРЅРѕРј. */
+    public String getJpql() {
+        return jpqlField.getValue();
+    }
+
+    /** Р—Р°РіСЂСѓР¶Р°РµС‚ JPQL СЃРѕС…СЂР°РЅС‘РЅРЅРѕРіРѕ С€Р°Р±Р»РѕРЅР° РІ СЂРµРґР°РєС‚РѕСЂ РїСЂРµРґРїСЂРѕСЃРјРѕС‚СЂР°. */
+    public void setJpql(String jpql) {
+        jpqlField.setValue(jpql == null ? "" : jpql);
+    }
     private void renderParamFields(List<String> names) {
         paramRow.removeAll();
         for (String name : names) {
