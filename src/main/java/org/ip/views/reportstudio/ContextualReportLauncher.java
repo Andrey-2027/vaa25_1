@@ -104,9 +104,29 @@ public class ContextualReportLauncher extends Button {
                 showError("Не удалось подготовить отчёт: " + exception.getMessage());
             }
         });
-        Button create = new Button("Create print template", event -> {
+        run.setEnabled(false);
+        Button edit = new Button("Редактировать", event -> {
+            ReportTemplate selected = templates.asSingleSelect().getValue();
+            if (selected == null) {
+                return;
+            }
+            dialog.close();
+            java.util.Map<String, String> parameters = new java.util.HashMap<>();
+            parameters.put("id", String.valueOf(selected.getId()));
+            if (context.entityClass() != null) {
+                parameters.put("targetEntityClass", context.entityClass().getName());
+            }
+            UI.getCurrent().navigate(ReportEditorView.class, QueryParameters.simple(parameters));
+        });
+        edit.setEnabled(false);
+        templates.asSingleSelect().addValueChangeListener(valueChange -> {
+            boolean hasSelection = valueChange.getValue() != null;
+            run.setEnabled(hasSelection);
+            edit.setEnabled(hasSelection);
+        });
+        Button create = new Button("Создать новую форму", event -> {
             if (context.entityClass() == null) {
-                showError("Current registry does not define an entity type");
+                showError("Текущий реестр не определяет тип сущности");
                 return;
             }
             dialog.close();
@@ -119,7 +139,7 @@ public class ContextualReportLauncher extends Button {
         dialog.add(new VerticalLayout(
                 new Paragraph("В списке доступны только печатные формы, применимые к текущему реестру. "
                         + "Параметры CONTEXT/COMPUTED разрешаются на сервере при запуске."),
-                templates, new HorizontalLayout(create, run, cancel)));
+                templates, new HorizontalLayout(create, edit, run, cancel)));
         openDialog(dialog);
     }
 

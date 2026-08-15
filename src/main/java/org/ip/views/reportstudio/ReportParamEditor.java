@@ -1,11 +1,15 @@
 package org.ip.views.reportstudio;
 
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -44,6 +48,8 @@ public class ReportParamEditor extends VerticalLayout {
     private ReportTemplate template;
     private ReportParam selected;
     private Runnable changeListener = () -> { };
+    private boolean formDirty;
+    private boolean processor;
 
     public ReportParamEditor() {
         setPadding(false);
@@ -55,9 +61,11 @@ public class ReportParamEditor extends VerticalLayout {
         Button add = new Button("Добавить параметр", event -> addParam());
         Button update = new Button("Применить изменения", event -> updateParam());
         update.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        Button moveUp = small("Выше", event -> moveSelectedParam(-1));
+        Button moveDown = small("Ниже", event -> moveSelectedParam(1));
         Button remove = new Button("Удалить выбранный", event -> removeParam());
         remove.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        HorizontalLayout actions = new HorizontalLayout(add, update, remove);
+        HorizontalLayout actions = new HorizontalLayout(add, update, moveUp, moveDown, remove);
         actions.setWrap(true);
 
         add(new H3("Параметры отчёта"), grid, hint, form(), actions);
@@ -68,6 +76,7 @@ public class ReportParamEditor extends VerticalLayout {
         selected = null;
         grid.setItems(template.getParams());
         clearForm();
+        formDirty = false;
     }
 
     public ReportTemplate getTemplate() {
@@ -87,8 +96,8 @@ public class ReportParamEditor extends VerticalLayout {
         grid.addComponentColumn(param -> new Span(param.isRequired() ? "Да" : "Нет")).setHeader("Обязательный").setAutoWidth(true);
         grid.addComponentColumn(param -> new Span(param.isShowOnForm() ? "Да" : "Нет")).setHeader("На форме").setAutoWidth(true);
         grid.setWidthFull();
-        grid.setHeight("220px");
-        grid.asSingleSelect().addValueChangeListener(event -> select(event.getValue()));
+        grid.setHeight("200px");
+        grid.asSingleSelect().addValueChangeListener(event -> onParamSwitch(event.getValue()));
     }
 
     private void configureForm() {
@@ -116,6 +125,15 @@ public class ReportParamEditor extends VerticalLayout {
         computed.setValue(ReportComputedValue.NONE);
         computed.setWidth("200px");
         updateFormAvailability();
+        name.addValueChangeListener(event -> markDirty());
+        caption.addValueChangeListener(event -> markDirty());
+        kind.addValueChangeListener(event -> markDirty());
+        valueSource.addValueChangeListener(event -> markDirty());
+        entityClass.addValueChangeListener(event -> markDirty());
+        defaultValue.addValueChangeListener(event -> markDirty());
+        computed.addValueChangeListener(event -> markDirty());
+        required.addValueChangeListener(event -> markDirty());
+        showOnForm.addValueChangeListener(event -> markDirty());
     }
 
     private VerticalLayout form() {
@@ -131,22 +149,84 @@ public class ReportParamEditor extends VerticalLayout {
     }
 
     private void select(ReportParam param) {
-        selected = param;
-        if (param == null) {
-            clearForm();
+        processor = true;
+        try {
+            selected = param;
+            if (param == null) {
+                clearForm();
+                return;
+            }
+            name.setValue(param.getName());
+            caption.setValue(Objects.requireNonNullElse(param.getCaption(), ""));
+            kind.setValue(param.getKind());
+            valueSource.setValue(param.getValueSource());
+            entityClass.setValue(Objects.requireNonNullElse(param.getEntityClass(), ""));
+            defaultValue.setValue(Objects.requireNonNullElse(param.getDefaultValue(), ""));
+            computed.setValue(param.getComputed());
+            required.setValue(param.isRequired());
+            showOnForm.setValue(param.isShowOnForm());
+            updateFormAvailability();
+            hint.setText("Редактируется параметр :" + param.getName() + ".");
+        } finally {
+            processor = false;
+        }
+        formDirty = false;
+    }
+
+    private void onParamSwitch(ReportParam param) {
+        if (processor) {
             return;
         }
-        name.setValue(param.getName());
-        caption.setValue(Objects.requireNonNullElse(param.getCaption(), ""));
-        kind.setValue(param.getKind());
-        valueSource.setValue(param.getValueSource());
-        entityClass.setValue(Objects.requireNonNullElse(param.getEntityClass(), ""));
-        defaultValue.setValue(Objects.requireNonNullElse(param.getDefaultValue(), ""));
-        computed.setValue(param.getComputed());
-        required.setValue(param.isRequired());
-        showOnForm.setValue(param.isShowOnForm());
-        updateFormAvailability();
-        hint.setText("Редактируется параметр :" + param.getName() + ".");
+        if (formDirty && selected != null) {
+            confirmDirty(param);
+            return;
+        }
+        select(param);
+    }
+
+    private void confirmDirty(ReportParam target) {
+        Dialog confirm = new Dialog();
+        confirm.setHeaderTitle("Несохранённые изменения формы");
+        Paragraph message = new Paragraph(
+                "В форме есть изменения, которые ещё не применены к параметру. "
+                        + "Выберите действие перед переходом к другой записи.");
+        Button apply = new Button("Применить и перейти", event -> {
+            applyDirtyForm();
+            confirm.close();
+            switchSelection(target);
+        });
+        Button discard = new Button("Не сохранять", event -> {
+            confirm.close();
+            switchSelection(target);
+        });
+        Button stay = new Button("Остаться", event -> {
+            confirm.close();
+            switchSelection(selected);
+        });
+        confirm.add(new VerticalLayout(message, new HorizontalLayout(apply, discard, stay)));
+        confirm.open();
+    }
+
+    private void applyDirtyForm() {
+        if (selected != null) {
+            applyParamFields(selected);
+        }
+        formDirty = false;
+    }
+
+    private void switchSelection(ReportParam target) {
+        processor = true;
+        try {
+            grid.asSingleSelect().setValue(target);
+        } finally {
+            processor = false;
+        }
+    }
+
+    private void markDirty() {
+        if (!processor) {
+            formDirty = true;
+        }
     }
 
     void addParam() {
@@ -159,7 +239,13 @@ public class ReportParamEditor extends VerticalLayout {
         param.setPosition(template.getParams().size());
         template.addParam(param);
         grid.getListDataView().refreshAll();
-        grid.select(param);
+        processor = true;
+        try {
+            grid.select(param);
+        } finally {
+            processor = false;
+        }
+        formDirty = false;
         notifyChanged();
     }
 
@@ -167,17 +253,40 @@ public class ReportParamEditor extends VerticalLayout {
         if (selected == null || isBlank(name.getValue())) {
             return;
         }
-        selected.setName(name.getValue().trim());
-        selected.setCaption(blankToNull(caption.getValue()));
-        selected.setKind(kind.getValue());
-        selected.setValueSource(valueSource.getValue());
-        selected.setEntityClass(blankToNull(entityClass.getValue()));
-        selected.setDefaultValue(blankToNull(defaultValue.getValue()));
-        selected.setComputed(computed.getValue());
-        selected.setRequired(required.getValue());
-        selected.setShowOnForm(showOnForm.getValue());
+        applyParamFields(selected);
         grid.getListDataView().refreshAll();
         hint.setText("Изменения параметра :" + selected.getName() + " применены. Сохраните шаблон для серверной проверки.");
+        formDirty = false;
+        notifyChanged();
+    }
+
+    private void applyParamFields(ReportParam param) {
+        param.setName(name.getValue().trim());
+        param.setCaption(blankToNull(caption.getValue()));
+        param.setKind(kind.getValue());
+        param.setValueSource(valueSource.getValue());
+        param.setEntityClass(blankToNull(entityClass.getValue()));
+        param.setDefaultValue(blankToNull(defaultValue.getValue()));
+        param.setComputed(computed.getValue());
+        param.setRequired(required.getValue());
+        param.setShowOnForm(showOnForm.getValue());
+    }
+
+    private void moveSelectedParam(int direction) {
+        if (selected == null || template == null) {
+            return;
+        }
+        List<ReportParam> list = template.getParams();
+        int index = list.indexOf(selected);
+        int target = index + direction;
+        if (target < 0 || target >= list.size()) {
+            return;
+        }
+        java.util.Collections.swap(list, index, target);
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).setPosition(i);
+        }
+        grid.getListDataView().refreshAll();
         notifyChanged();
     }
 
@@ -190,6 +299,7 @@ public class ReportParamEditor extends VerticalLayout {
         grid.getListDataView().refreshAll();
         clearForm();
         hint.setText("Параметр удалён. Сохраните шаблон, чтобы зафиксировать изменение.");
+        formDirty = false;
         notifyChanged();
     }
 
@@ -257,5 +367,11 @@ public class ReportParamEditor extends VerticalLayout {
 
     private static boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private static Button small(String caption, ComponentEventListener<ClickEvent<Button>> listener) {
+        Button button = new Button(caption, listener);
+        button.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        return button;
     }
 }

@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Выполнение JPQL-запроса отчёта (Фаза 2). Работает только поверх результата
@@ -98,16 +100,27 @@ public class ReportQueryExecutor {
         }
     }
 
+    /**
+     * Биндит только те параметры, которые реально объявлены в запросе: устаревшие
+     * ключи из карты (редактор хранит значения форм даже после правки JPQL) молча
+     * пропускаются, а объявленный параметр без значения — явная ошибка вместо
+     * поздней невнятной ошибки Hibernate (пользователь видит понятный текст).
+     */
     private void bindParameters(Query query, Map<String, Object> bindings) {
-        if (bindings == null) {
-            return;
-        }
-        for (Map.Entry<String, Object> entry : bindings.entrySet()) {
-            Object value = entry.getValue();
+        Set<String> declared = query.getParameters().stream()
+                .map(jakarta.persistence.Parameter::getName)
+                .filter(Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        for (String name : declared) {
+            Object value = bindings == null ? null : bindings.get(name);
+            if (value == null) {
+                throw new IllegalArgumentException(
+                    "Не задано значение параметра запроса: :" + name);
+            }
             if (value instanceof Collection<?> collection) {
-                query.setParameter(entry.getKey(), collection);
+                query.setParameter(name, collection);
             } else {
-                query.setParameter(entry.getKey(), value);
+                query.setParameter(name, value);
             }
         }
     }

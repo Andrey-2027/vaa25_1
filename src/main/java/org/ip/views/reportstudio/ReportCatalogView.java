@@ -24,6 +24,10 @@ import org.ip.service.LookupService;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.reportstudio.query.editor.QueryEditorAnalysisService;
+import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
+import org.ipro.reportstudio.param.ReportParamResolver;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
@@ -55,13 +59,18 @@ public class ReportCatalogView extends HorizontalLayout {
             ReportTemplateTransferService transferService,
             ReportQueryGuard guard,
             ReportPreviewService previewService,
+            QueryEditorAnalysisService queryEditorAnalysisService,
+            QueryMetadataCatalogService queryMetadataCatalogService,
+            ReportParamResolver reportParamResolver,
+            RlsCurrentUser currentUser,
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler) {
         this.templateService = templateService;
         this.transferService = transferService;
-        this.editor = new ReportEditorView(
-                guard, previewService, templateService, executionService, lookupService, selectionFormAssembler);
+        this.editor = new ReportEditorView(guard, previewService, queryEditorAnalysisService,
+                queryMetadataCatalogService, reportParamResolver, currentUser, templateService,
+                executionService, lookupService, selectionFormAssembler);
 
         setSizeFull();
         setPadding(false);

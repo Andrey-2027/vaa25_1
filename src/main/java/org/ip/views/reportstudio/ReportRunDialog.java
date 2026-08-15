@@ -6,6 +6,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -100,6 +101,10 @@ public class ReportRunDialog extends Dialog {
                     java.time.ZoneId.systemDefault().getId());
             byte[] bytes = executionService.export(result, selectedFormat);
             Anchor download = downloadAnchor(fileName(selectedFormat), selectedFormat, bytes);
+            byte[] pdfBytes = selectedFormat == ReportExportFormat.PDF
+                    ? bytes
+                    : executionService.export(result, ReportExportFormat.PDF);
+            output.add(pdfPreview(pdfBytes));
             output.add(download);
             status.setText("Отчёт сформирован. Артефакт " + result.key() + ".");
         } catch (RuntimeException executionError) {
@@ -120,6 +125,16 @@ public class ReportRunDialog extends Dialog {
         Anchor anchor = new Anchor(resource, "Скачать " + fileName);
         anchor.getElement().setAttribute("download", true);
         return anchor;
+    }
+
+    private IFrame pdfPreview(byte[] pdfBytes) {
+        StreamResource resource = new StreamResource("preview.pdf", () -> new ByteArrayInputStream(pdfBytes));
+        resource.setContentType("application/pdf");
+        IFrame preview = new IFrame();
+        preview.setSrc(resource);
+        preview.setSizeFull();
+        preview.setHeight("60vh");
+        return preview;
     }
 
     private String fileName(ReportExportFormat exportFormat) {

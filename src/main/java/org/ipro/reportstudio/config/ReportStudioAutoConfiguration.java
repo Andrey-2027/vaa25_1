@@ -14,6 +14,8 @@ import org.ipro.reportstudio.query.ReportQueryGuard;
 import org.ipro.reportstudio.query.ReportRunQuota;
 import org.ipro.reportstudio.query.QuerySemanticAnalyzer;
 import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.reportstudio.query.editor.QueryEditorAnalysisService;
+import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
 import org.ipro.reportstudio.render.JasperReportCompiler;
 import org.ipro.reportstudio.render.ReportCompiler;
 import org.ipro.reportstudio.run.ReportArtifactCache;
@@ -25,6 +27,7 @@ import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
+import org.ip.metadata.MetadataResolver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -102,6 +105,22 @@ public class ReportStudioAutoConfiguration {
                                                    @Value("${ipro.report.rls-org-dimension:BRANCH}") String rlsOrgDimension) {
         return new ReportParamResolver(refresher, accessService, currentUser,
             entityManagerFactory.unwrap(SessionFactoryImplementor.class), objectMapper, rlsOrgDimension);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public QueryEditorAnalysisService queryEditorAnalysisService(ReportQueryGuard guard) {
+        return new QueryEditorAnalysisService(guard);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public QueryMetadataCatalogService queryMetadataCatalogService(
+            EntityManagerFactory entityManagerFactory,
+            MetadataResolver metadataResolver,
+            RlsReadGate rlsReadGate,
+            RlsCurrentUser currentUser) {
+        return new QueryMetadataCatalogService(entityManagerFactory, metadataResolver, rlsReadGate, currentUser);
     }
 
     @Bean
