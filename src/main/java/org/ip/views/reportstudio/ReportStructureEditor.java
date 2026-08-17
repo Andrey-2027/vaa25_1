@@ -9,6 +9,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -42,12 +43,12 @@ import java.util.Objects;
 /**
  * Панель «Страница» редактора отчёта.
  *
- * <p>SplitLayout: слева — поля выбранного бэнда в гриде с инлайн-редактированием
- * свойств (ячейка = контрол, изменения применяются сразу), справа — управление
- * бэндами и параметры страницы. Футер-агрегаты — это обычные поля футера
- * (kind COLUMN) со свойством «Агрегация» в ячейке грида. Длинные свойства
- * (текст блока, в будущем — шаблон выражения) редактируются в диалоге с
- * TextArea.</p>
+ * <p>Вертикальный SplitLayout: слева — поля выбранного бэнда (список) и палитра
+ * свойств (FormLayout «наименование — редактор», как у Параметров Отчёта);
+ * справа — бэнды, сортировка и параметры страницы в секциях. Изменения палитры
+ * применяются к выбранному полю сразу. Футер-агрегаты — это обычные поля футера
+ * (kind COLUMN) со свойством «Агрегация» в палитре. Длинные свойства (текст
+ * блока, шаблон выражения, формула) редактируются в диалоге с TextArea.</p>
  */
 public class ReportStructureEditor extends VerticalLayout {
 
@@ -76,6 +77,21 @@ public class ReportStructureEditor extends VerticalLayout {
     private final ButtonLike fieldUp = new ButtonLike("Выше");
     private final ButtonLike fieldDown = new ButtonLike("Ниже");
     private final ButtonLike fieldRemove = new ButtonLike("Удалить");
+
+    // ------------------------------------------------------------ палитра свойств поля (слева)
+
+    private final FormLayout palette = new FormLayout();
+    private final Span paletteHint = new Span(HINT_DEFAULT);
+    private final ComboBox<ReportFieldKind> paletteKind = new ComboBox<>();
+    private final ComboBox<QueryField> paletteFieldQuery = new ComboBox<>();
+    private final TextField paletteCaption = new TextField();
+    private final IntegerField paletteWidth = new IntegerField();
+    private final ComboBox<ReportFieldAlignment> paletteAlignment = new ComboBox<>();
+    private final TextField paletteFormat = new TextField();
+    private final ComboBox<BorderChoice> paletteBorder = new ComboBox<>();
+    private final Checkbox paletteVisible = new Checkbox();
+    private final ComboBox<ReportFieldAggregation> paletteAggregation = new ComboBox<>();
+    private final ButtonLike paletteTextButton = new ButtonLike("Текст…");
 
     // ------------------------------------------------------------ группировка (справа)
 
@@ -123,10 +139,16 @@ public class ReportStructureEditor extends VerticalLayout {
 
         configureBands();
         configureFields();
+        configurePalette();
         configureAppearance();
         configureSorting();
 
-        SplitLayout split = new SplitLayout(fieldsPanel(), bandsPanel());
+        SplitLayout inner = new SplitLayout(fieldsPanel(), palettePanel());
+        inner.setSplitterPosition(58);
+        inner.setSizeFull();
+        inner.getStyle().set("min-height", "0");
+
+        SplitLayout split = new SplitLayout(inner, bandsPanel());
         split.setSplitterPosition(38);
         split.setSizeFull();
         split.getStyle().set("min-height", "0");
@@ -155,6 +177,18 @@ public class ReportStructureEditor extends VerticalLayout {
         panel.add(new Span("Поля бэнда"), bandSelector, addRow, fieldsGrid, fieldActions,
                 fieldHint, errorHint);
         panel.setFlexGrow(1, fieldsGrid);
+        return panel;
+    }
+
+    /** Палитра свойств выбранного поля («Наименование — редактор», как у параметров). */
+    private VerticalLayout palettePanel() {
+        VerticalLayout panel = new VerticalLayout();
+        panel.setPadding(true);
+        panel.setSpacing(true);
+        panel.setWidth("100%");
+        panel.setHeightFull();
+        panel.getStyle().set("overflow", "auto");
+        panel.add(new Span("Свойства поля"), paletteHint, palette);
         return panel;
     }
 
@@ -273,24 +307,8 @@ public class ReportStructureEditor extends VerticalLayout {
     }
 
     private void configureFields() {
-        fieldsGrid.addComponentColumn(this::kindCell).setHeader("Вид").setAutoWidth(true);
-        fieldsGrid.addComponentColumn(this::fieldLabelCell).setHeader("Поле / текст").setFlexGrow(1);
-        fieldsGrid.addComponentColumn(field -> cellOrEmpty(queryCell(field))).setHeader("Поле (alias)")
-                .setAutoWidth(true);
-        fieldsGrid.addComponentColumn(field -> cellOrEmpty(captionCell(field))).setHeader("Заголовок")
-                .setAutoWidth(true);
-        fieldsGrid.addComponentColumn(field -> cellOrEmpty(widthCell(field))).setHeader("Ширина")
-                .setAutoWidth(true);
-        fieldsGrid.addComponentColumn(field -> cellOrEmpty(formatCell(field))).setHeader("Формат")
-                .setAutoWidth(true);
-        fieldsGrid.addComponentColumn(field -> cellOrEmpty(borderCell(field))).setHeader("Граница")
-                .setAutoWidth(true);
-        fieldsGrid.addComponentColumn(field -> cellOrEmpty(visibilityCell(field))).setHeader("Видимость")
-                .setAutoWidth(true);
-        fieldsGrid.addComponentColumn(field -> cellOrEmpty(alignmentCell(field))).setHeader("Выравнивание")
-                .setAutoWidth(true);
-        fieldsGrid.addComponentColumn(field -> cellOrEmpty(aggregationCell(field))).setHeader("Агрегация")
-                .setAutoWidth(true);
+        fieldsGrid.addComponentColumn(ReportStructureEditor::kindCell).setHeader("Вид").setAutoWidth(true);
+        fieldsGrid.addComponentColumn(ReportStructureEditor::fieldLabelCell).setHeader("Поле / текст").setFlexGrow(1);
         fieldsGrid.setWidthFull();
         fieldsGrid.setHeight("220px");
         fieldsGrid.asSingleSelect().addValueChangeListener(event -> onFieldSelect(event.getValue()));
@@ -315,6 +333,70 @@ public class ReportStructureEditor extends VerticalLayout {
         fieldHint.getStyle().set("color", "var(--lumo-secondary-text-color)");
         errorHint.getStyle().set("color", "var(--lumo-error-text-color)");
         errorHint.setVisible(false);
+    }
+
+    /** Палитра свойств поля в стиле «Параметров отчёта»: строка = наименование + редактор. */
+    private void configurePalette() {
+        paletteHint.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        palette.setResponsiveSteps(
+                new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE));
+        palette.setWidthFull();
+        palette.setVisible(false);
+        // Аналог ItemForm.addAsFormItem: label контрола очищается, чтобы у FormItem
+        // не было двойного заголовка («свойство слева, поле справа» в одну строку).
+        addFormItem(palette, paletteKind, "Вид");
+        addFormItem(palette, paletteFieldQuery, "Поле запроса");
+        addFormItem(palette, paletteCaption, "Заголовок");
+        addFormItem(palette, paletteWidth, "Ширина, px");
+        addFormItem(palette, paletteAlignment, "Выравнивание");
+        addFormItem(palette, paletteFormat, "Формат");
+        addFormItem(palette, paletteBorder, "Граница");
+        addFormItem(palette, paletteVisible, "Видимость");
+        addFormItem(palette, paletteAggregation, "Агрегация");
+        addFormItem(palette, paletteTextButton, "Текст");
+
+        paletteKind.setItems(ReportFieldKind.COLUMN, ReportFieldKind.ROW_NUMBER,
+                ReportFieldKind.EXPRESSION, ReportFieldKind.FORMULA);
+        paletteKind.setItemLabelGenerator(ReportStructureEditor::kindLabel);
+        paletteKind.addValueChangeListener(event -> applyFieldKind(selectedField, event.getValue()));
+
+        paletteFieldQuery.setItemLabelGenerator(QueryField::name);
+        paletteFieldQuery.setAllowCustomValue(true);
+        paletteFieldQuery.setClearButtonVisible(true);
+        paletteFieldQuery.setPlaceholder("поле из запроса или alias");
+        paletteFieldQuery.addCustomValueSetListener(event -> paletteFieldQuery.setValue(
+                QueryField.scalar(event.getDetail(), Object.class)));
+        paletteFieldQuery.addValueChangeListener(event -> applyToPalette(field ->
+                applyQueryField(field, event.getValue() == null ? null : event.getValue().name())));
+
+        paletteCaption.addValueChangeListener(event -> applyToPalette(field ->
+                field.setCaption(blankToNull(event.getValue()))));
+        paletteWidth.addValueChangeListener(event -> applyToPalette(field -> field.setWidth(event.getValue())));
+        paletteAlignment.setItems(ReportFieldAlignment.values());
+        paletteAlignment.addValueChangeListener(event -> applyToPalette(field ->
+                field.setAlignment(event.getValue())));
+        paletteFormat.setPlaceholder("#,##0.00 / dd.MM.yyyy");
+        paletteFormat.addValueChangeListener(event -> applyToPalette(field ->
+                field.setFormat(blankToNull(event.getValue()))));
+        paletteBorder.setItems(BorderChoice.values());
+        paletteBorder.setItemLabelGenerator(BorderChoice::label);
+        paletteBorder.setPlaceholder("по умолчанию");
+        paletteBorder.addValueChangeListener(event -> applyToPalette(field ->
+                field.setBorder(borderValue(event.getValue()))));
+        paletteVisible.addValueChangeListener(event -> applyToPalette(field ->
+                field.setVisible(event.getValue())));
+        paletteAggregation.setItems(ReportFieldAggregation.SUM, ReportFieldAggregation.COUNT,
+                ReportFieldAggregation.AVG, ReportFieldAggregation.MIN, ReportFieldAggregation.MAX);
+        paletteAggregation.setItemLabelGenerator(value -> value == null ? "—" : value.name());
+        paletteAggregation.setClearButtonVisible(true);
+        paletteAggregation.setPlaceholder("выберите функцию");
+        paletteAggregation.addValueChangeListener(event -> applyToPalette(field ->
+                field.setAggregation(event.getValue() == null ? ReportFieldAggregation.NONE : event.getValue())));
+        paletteTextButton.addClickListener(event -> {
+            if (selectedField != null) {
+                openTextDialog(selectedField);
+            }
+        });
     }
 
     private void configureAppearance() {
@@ -783,6 +865,8 @@ public class ReportStructureEditor extends VerticalLayout {
             }
             fieldsGrid.asSingleSelect().setValue(field);
             errorHint.setVisible(false);
+            fieldHint.setVisible(false);
+            fillPalette(field);
         } finally {
             processor = false;
         }
@@ -898,24 +982,26 @@ public class ReportStructureEditor extends VerticalLayout {
         refreshBands();
     }
 
-    // ------------------------------------------------------------ ячейки грида (инлайн-редактирование)
+    // ------------------------------------------------------------ ячейки грида (список полей)
 
-    /** Ячейка «Вид»: селектор вида колонки DETAIL (COLUMN/ROW_NUMBER/EXPRESSION/FORMULA), остальное — статично. */
-    private Component kindCell(ReportField field) {
-        if (isDetailColumn(field)) {
-            ComboBox<ReportFieldKind> combo = new ComboBox<>();
-            combo.setItems(ReportFieldKind.COLUMN, ReportFieldKind.ROW_NUMBER,
-                    ReportFieldKind.EXPRESSION, ReportFieldKind.FORMULA);
-            combo.setItemLabelGenerator(this::kindLabel);
-            combo.setWidth("8em");
-            combo.setValue(field.kindOrDefault());
-            combo.addValueChangeListener(event -> applyFieldKind(field, event.getValue()));
-            return combo;
+    /** Ячейка «Поле / текст»: имя колонки либо заготовка текста/шаблона (кратко). */
+    private static Component fieldLabelCell(ReportField field) {
+        if (field.isText() || field.isComputed()) {
+            String text = blankToEmpty(field.getText());
+            if (text.isBlank()) {
+                return new Span(field.isText() ? "Текст" : kindLabel(field.kindOrDefault()));
+            }
+            return new Span(text.length() <= 28 ? text : text.substring(0, 28) + "…");
         }
-        return new Span(field.isText() ? "Текст" : "Колонка");
+        return new Span(emptyAsDash(field.getQueryField()));
     }
 
-    private String kindLabel(ReportFieldKind kind) {
+    /** Ячейка «Вид»: статичная подпись вида поля (редактирование — в палитре). */
+    private static Component kindCell(ReportField field) {
+        return new Span(field.isText() ? "Текст" : kindLabel(field.kindOrDefault()));
+    }
+
+    private static String kindLabel(ReportFieldKind kind) {
         return switch (kind) {
             case COLUMN -> "Колонка";
             case ROW_NUMBER -> "№ п/п";
@@ -939,176 +1025,106 @@ public class ReportStructureEditor extends VerticalLayout {
                         : kind == ReportFieldKind.EXPRESSION ? "Выражение" : "Формула");
             }
         }
+        if (field == selectedField) {
+            fillPalette(field);
+        }
         afterFieldEdit();
     }
 
-    /** Ячейка «Поле / текст»: имя поля либо кнопка открытия диалога шаблона/формулы/текста. */
-    private Component fieldLabelCell(ReportField field) {
-        if (field.isText()) {
-            return dialogButton("Текст…", "Текст блока", field);
+    /** Заполняет палитру значениями поля и показывает применимые строки. */
+    private void fillPalette(ReportField field) {
+        processor = true;
+        try {
+            palette.setVisible(true);
+            paletteHint.setVisible(false);
+            boolean text = field.isText();
+            boolean footer = bandKindOf(field).isFooterBand();
+            boolean detail = bandKindOf(field) == ReportBandKind.DETAIL;
+            ReportFieldKind kind = field.kindOrDefault();
+            boolean column = !text && kind == ReportFieldKind.COLUMN;
+
+            if (!text) {
+                paletteKind.setValue(kind);
+            }
+            paletteCaption.setValue(Objects.requireNonNullElse(field.getCaption(), ""));
+            paletteWidth.setValue(field.getWidth());
+            paletteAlignment.setValue(field.getAlignment());
+            paletteFormat.setValue(Objects.requireNonNullElse(field.getFormat(), ""));
+            paletteBorder.setValue(borderChoice(field.getBorder()));
+            paletteVisible.setValue(field.isVisible());
+            ReportFieldAggregation aggregation = field.getAggregation();
+            paletteAggregation.setValue(aggregation == null || aggregation == ReportFieldAggregation.NONE
+                    ? null : aggregation);
+            paletteTextButton.setText(text ? "Текст…" : kind == ReportFieldKind.EXPRESSION
+                    ? "Шаблон…" : "Формула…");
+
+            ensureItems(paletteFieldQuery, schema, field.getQueryField());
+            paletteFieldQuery.setValue(isBlank(field.getQueryField()) ? null
+                    : QueryField.scalar(field.getQueryField(), Object.class));
+
+            if (text) {
+                showRows(paletteTextButton, paletteAlignment);
+            } else if (footer) {
+                showRows(paletteAggregation);
+            } else if (detail && column) {
+                showRows(paletteKind, paletteFieldQuery, paletteCaption, paletteWidth,
+                        paletteAlignment, paletteFormat, paletteBorder, paletteVisible);
+            } else if (detail && (kind == ReportFieldKind.EXPRESSION || kind == ReportFieldKind.FORMULA)) {
+                showRows(paletteKind, paletteTextButton, paletteCaption, paletteWidth,
+                        paletteAlignment, paletteFormat, paletteBorder, paletteVisible);
+            } else {
+                showRows(paletteKind, paletteCaption, paletteWidth,
+                        paletteAlignment, paletteFormat, paletteBorder, paletteVisible);
+            }
+        } finally {
+            processor = false;
         }
-        if (field.isExpression()) {
-            return dialogButton("Шаблон…", "Выражение (шаблон с {alias})", field);
-        }
-        if (field.isFormula()) {
-            return dialogButton("Формула…", "Формула ({qty} * {price})", field);
-        }
-        return new Span(emptyAsDash(field.getQueryField()));
     }
 
-    private Button dialogButton(String caption, String title, ReportField field) {
-        Button open = new Button(caption, event -> openTextDialog(field, title));
-        open.setSizeUndefined();
-        return open;
+    /** Оставляет видимыми только строки палитры с указанными контролами. */
+    private static void showRows(Component... shown) {
+        java.util.Set<Component> visible = java.util.Set.of(shown);
+        for (Component child : paletteOf(shown).getChildren().toList()) {
+            if (child instanceof FormLayout.FormItem item) {
+                item.setVisible(visible.stream().anyMatch(control -> contains(item, control)));
+            }
+        }
     }
 
-    /** Ячейка «Поле (alias)»: переименование колонки DETAIL через ComboBox со схемой; null — не применимо. */
-    ComboBox<QueryField> queryCell(ReportField field) {
-        if (!isDetailColumn(field)) {
-            return null;
+    private static FormLayout paletteOf(Component... shown) {
+        for (Component control : shown) {
+            if (control instanceof ButtonLike) {
+                continue;
+            }
         }
-        ReportFieldKind kind = field.kindOrDefault();
-        if (kind == ReportFieldKind.ROW_NUMBER || kind == ReportFieldKind.EXPRESSION
-                || kind == ReportFieldKind.FORMULA) {
-            return null;
+        FormLayout layout = null;
+        for (Component control : shown) {
+            if (control.getParent().orElse(null) instanceof FormLayout.FormItem item) {
+                layout = (FormLayout) item.getParent().orElse(null);
+            }
         }
-        ComboBox<QueryField> combo = new ComboBox<>();
-        ensureItems(combo, schema, field.getQueryField());
-        combo.setItemLabelGenerator(QueryField::name);
-        combo.setAllowCustomValue(true);
-        combo.setClearButtonVisible(true);
-        combo.setWidth("9em");
-        combo.setValue(isBlank(field.getQueryField()) ? null
-                : QueryField.scalar(field.getQueryField(), Object.class));
-        combo.addCustomValueSetListener(event -> combo.setValue(
-                QueryField.scalar(event.getDetail(), Object.class)));
-        combo.addValueChangeListener(event -> {
-            QueryField value = event.getValue();
-            applyQueryField(field, value == null ? null : value.name());
-        });
-        return combo;
+        return layout;
     }
 
-    /** Ячейка «Заголовок»: переопределение заголовка колонки DETAIL; null — не применимо. */
-    TextField captionCell(ReportField field) {
-        if (!isDetailColumn(field)) {
-            return null;
+    /** Изменение палитры применяется к выбранному полю сразу. */
+    private void applyToPalette(java.util.function.Consumer<ReportField> updater) {
+        if (processor || selectedField == null) {
+            return;
         }
-        TextField cell = new TextField();
-        cell.setValueChangeMode(ValueChangeMode.ON_CHANGE);
-        cell.setWidth("10em");
-        cell.setValue(Objects.requireNonNullElse(field.getCaption(), ""));
-        cell.addValueChangeListener(event -> {
-            field.setCaption(blankToNull(event.getValue()));
-            afterFieldEdit();
-        });
-        return cell;
+        updater.accept(selectedField);
+        afterFieldEdit();
     }
 
-    /** Ячейка «Ширина»: фиксированная ширина колонки DETAIL, px; null — не применимо. */
-    IntegerField widthCell(ReportField field) {
-        if (!isDetailColumn(field)) {
-            return null;
+    /** Как в ItemForm: очищает собственный label контрола и добавляет FormItem с подписью слева. */
+    private static void addFormItem(FormLayout layout, Component control, String label) {
+        if (control instanceof com.vaadin.flow.component.HasLabel hasLabel) {
+            hasLabel.setLabel(null);
         }
-        IntegerField cell = new IntegerField();
-        cell.setValueChangeMode(ValueChangeMode.ON_CHANGE);
-        cell.setMin(1);
-        cell.setWidth("7em");
-        cell.setValue(field.getWidth());
-        cell.addValueChangeListener(event -> {
-            field.setWidth(event.getValue());
-            afterFieldEdit();
-        });
-        return cell;
+        layout.addFormItem(control, label);
     }
 
-    /** Ячейка «Формат»: паттерн числа/даты колонки DETAIL; null — не применимо. */
-    TextField formatCell(ReportField field) {
-        if (!isDetailColumn(field)) {
-            return null;
-        }
-        TextField cell = new TextField();
-        cell.setValueChangeMode(ValueChangeMode.ON_CHANGE);
-        cell.setPlaceholder("#,##0.00 / dd.MM.yyyy");
-        cell.setWidth("9em");
-        cell.setValue(Objects.requireNonNullElse(field.getFormat(), ""));
-        cell.addValueChangeListener(event -> {
-            field.setFormat(blankToNull(event.getValue()));
-            afterFieldEdit();
-        });
-        return cell;
-    }
-
-    /** Ячейка «Граница»: явная граница колонки DETAIL; null — не применимо. */
-    ComboBox<BorderChoice> borderCell(ReportField field) {
-        if (!isDetailColumn(field)) {
-            return null;
-        }
-        ComboBox<BorderChoice> combo = borderCombo();
-        combo.setValue(borderChoice(field.getBorder()));
-        combo.addValueChangeListener(event -> {
-            field.setBorder(borderValue(event.getValue()));
-            afterFieldEdit();
-        });
-        return combo;
-    }
-
-    /** Ячейка «Видимость»: печать колонки DETAIL; null — не применимо. */
-    Checkbox visibilityCell(ReportField field) {
-        if (!isDetailColumn(field)) {
-            return null;
-        }
-        Checkbox cell = new Checkbox();
-        cell.setValue(field.isVisible());
-        cell.addValueChangeListener(event -> {
-            field.setVisible(event.getValue());
-            afterFieldEdit();
-        });
-        return cell;
-    }
-
-    /** Ячейка «Выравнивание»: выравнивание колонки DETAIL; null — не применимо. */
-    ComboBox<ReportFieldAlignment> alignmentCell(ReportField field) {
-        if (!isDetailColumn(field)) {
-            return null;
-        }
-        ComboBox<ReportFieldAlignment> combo = new ComboBox<>();
-        combo.setItems(ReportFieldAlignment.values());
-        combo.setWidth("9em");
-        combo.setValue(field.getAlignment());
-        combo.addValueChangeListener(event -> {
-            field.setAlignment(event.getValue());
-            afterFieldEdit();
-        });
-        return combo;
-    }
-
-    /** Ячейка «Агрегация»: функция агрегата footer-поля; null — не применимо. */
-    ComboBox<ReportFieldAggregation> aggregationCell(ReportField field) {
-        if (!isFooterColumn(field)) {
-            return null;
-        }
-        ComboBox<ReportFieldAggregation> combo = new ComboBox<>();
-        combo.setItems(ReportFieldAggregation.SUM, ReportFieldAggregation.COUNT,
-                ReportFieldAggregation.AVG, ReportFieldAggregation.MIN, ReportFieldAggregation.MAX);
-        combo.setItemLabelGenerator(value -> value == null ? "—" : value.name());
-        combo.setClearButtonVisible(true);
-        combo.setWidth("9em");
-        combo.setPlaceholder("выберите функцию");
-        ReportFieldAggregation aggregation = field.getAggregation();
-        if (aggregation != null && aggregation != ReportFieldAggregation.NONE) {
-            combo.setValue(aggregation);
-        }
-        combo.addValueChangeListener(event -> {
-            field.setAggregation(event.getValue() == null ? ReportFieldAggregation.NONE : event.getValue());
-            afterFieldEdit();
-        });
-        return combo;
-    }
-
-    /** Пустая ячейка грида, когда свойство к полю неприменимо (категория свойства скрыта). */
-    private static Component cellOrEmpty(Component cell) {
-        return cell == null ? new Span("") : cell;
+    private static boolean contains(FormLayout.FormItem item, Component control) {
+        return item.getChildren().anyMatch(component -> component == control);
     }
 
     private static boolean isDetailColumn(ReportField field) {
@@ -1229,6 +1245,8 @@ public class ReportStructureEditor extends VerticalLayout {
         errorHint.setVisible(false);
         fieldHint.setVisible(true);
         fieldHint.setText(HINT_DEFAULT);
+        palette.setVisible(false);
+        paletteHint.setVisible(true);
     }
 
     private void refreshFieldsGrid() {
@@ -1374,7 +1392,150 @@ public class ReportStructureEditor extends VerticalLayout {
                         .toList();
     }
 
-    // ------------------------------------------------------------ тестовые швы (грид)
+    // ------------------------------------------------------------ тестовые швы (палитра)
+
+    /** Видимость палитры свойств (после выбора поля). */
+    boolean paletteVisible() {
+        return palette.isVisible();
+    }
+
+    /** Шов «Заголовок»: контрол, привязанный к конкретному полю (для выбранного поля — контрол палитры). */
+    TextField captionCell(ReportField field) {
+        if (!isDetailColumn(field)) {
+            return null;
+        }
+        if (field == selectedField) {
+            return paletteCaption;
+        }
+        TextField cell = new TextField();
+        cell.setValueChangeMode(ValueChangeMode.ON_CHANGE);
+        cell.setValue(Objects.requireNonNullElse(field.getCaption(), ""));
+        cell.addValueChangeListener(event -> field.setCaption(blankToNull(event.getValue())));
+        return cell;
+    }
+
+    /** Шов «Ширина»: фиксированная ширина колонки DETAIL, px. */
+    IntegerField widthCell(ReportField field) {
+        if (!isDetailColumn(field)) {
+            return null;
+        }
+        if (field == selectedField) {
+            return paletteWidth;
+        }
+        IntegerField cell = new IntegerField();
+        cell.setValueChangeMode(ValueChangeMode.ON_CHANGE);
+        cell.setMin(1);
+        cell.setValue(field.getWidth());
+        cell.addValueChangeListener(event -> field.setWidth(event.getValue()));
+        return cell;
+    }
+
+    /** Шов «Формат»: паттерн числа/даты колонки DETAIL. */
+    TextField formatCell(ReportField field) {
+        if (!isDetailColumn(field)) {
+            return null;
+        }
+        if (field == selectedField) {
+            return paletteFormat;
+        }
+        TextField cell = new TextField();
+        cell.setValueChangeMode(ValueChangeMode.ON_CHANGE);
+        cell.setPlaceholder("#,##0.00 / dd.MM.yyyy");
+        cell.setValue(Objects.requireNonNullElse(field.getFormat(), ""));
+        cell.addValueChangeListener(event -> field.setFormat(blankToNull(event.getValue())));
+        return cell;
+    }
+
+    /** Шов «Граница»: явная граница колонки DETAIL. */
+    ComboBox<BorderChoice> borderCell(ReportField field) {
+        if (!isDetailColumn(field)) {
+            return null;
+        }
+        if (field == selectedField) {
+            return paletteBorder;
+        }
+        ComboBox<BorderChoice> combo = borderCombo();
+        combo.setValue(borderChoice(field.getBorder()));
+        combo.addValueChangeListener(event -> field.setBorder(borderValue(event.getValue())));
+        return combo;
+    }
+
+    /** Шов «Видимость»: печать колонки DETAIL. */
+    Checkbox visibilityCell(ReportField field) {
+        if (!isDetailColumn(field)) {
+            return null;
+        }
+        if (field == selectedField) {
+            return paletteVisible;
+        }
+        Checkbox cell = new Checkbox();
+        cell.setValue(field.isVisible());
+        cell.addValueChangeListener(event -> field.setVisible(event.getValue()));
+        return cell;
+    }
+
+    /** Шов «Выравнивание»: выравнивание колонки DETAIL. */
+    ComboBox<ReportFieldAlignment> alignmentCell(ReportField field) {
+        if (!isDetailColumn(field)) {
+            return null;
+        }
+        if (field == selectedField) {
+            return paletteAlignment;
+        }
+        ComboBox<ReportFieldAlignment> combo = new ComboBox<>();
+        combo.setItems(ReportFieldAlignment.values());
+        combo.setValue(field.getAlignment());
+        combo.addValueChangeListener(event -> field.setAlignment(event.getValue()));
+        return combo;
+    }
+
+    /** Шов «Агрегация»: функция агрегата footer-поля. */
+    ComboBox<ReportFieldAggregation> aggregationCell(ReportField field) {
+        if (!isFooterColumn(field)) {
+            return null;
+        }
+        if (field == selectedField) {
+            return paletteAggregation;
+        }
+        ComboBox<ReportFieldAggregation> combo = new ComboBox<>();
+        combo.setItems(ReportFieldAggregation.SUM, ReportFieldAggregation.COUNT,
+                ReportFieldAggregation.AVG, ReportFieldAggregation.MIN, ReportFieldAggregation.MAX);
+        combo.setItemLabelGenerator(value -> value == null ? "—" : value.name());
+        combo.setClearButtonVisible(true);
+        combo.setPlaceholder("выберите функцию");
+        ReportFieldAggregation aggregation = field.getAggregation();
+        if (aggregation != null && aggregation != ReportFieldAggregation.NONE) {
+            combo.setValue(aggregation);
+        }
+        combo.addValueChangeListener(event -> {
+            field.setAggregation(event.getValue() == null ? ReportFieldAggregation.NONE : event.getValue());
+        });
+        return combo;
+    }
+
+    /** Шов «Поле запроса»: переименование колонки DETAIL через ComboBox со схемой. */
+    ComboBox<QueryField> queryCell(ReportField field) {
+        if (!isDetailColumn(field) || field.kindOrDefault() != ReportFieldKind.COLUMN) {
+            return null;
+        }
+        if (field == selectedField) {
+            return paletteFieldQuery;
+        }
+        ComboBox<QueryField> combo = new ComboBox<>();
+        ensureItems(combo, schema, field.getQueryField());
+        combo.setItemLabelGenerator(QueryField::name);
+        combo.setAllowCustomValue(true);
+        combo.setClearButtonVisible(true);
+        combo.setValue(isBlank(field.getQueryField()) ? null
+                : QueryField.scalar(field.getQueryField(), Object.class));
+        combo.addCustomValueSetListener(event -> combo.setValue(
+                QueryField.scalar(event.getDetail(), Object.class)));
+        combo.addValueChangeListener(event -> {
+            QueryField value = event.getValue();
+            applyQueryField(field, value == null ? null : value.name());
+        });
+        return combo;
+    }
 
     /** Видимость комбобокса «Поле запроса» (добавление колонок/агрегатов). */
     boolean addFieldComboVisible() {

@@ -38,10 +38,10 @@ public class ReportField extends BaseEntity {
     @Column(length = 10)
     private ReportFieldKind kind = ReportFieldKind.COLUMN;
 
-    /** Имя/alias QueryField — для COLUMN; для TEXT не используется (хранится пустым). */
+    /** Имя/alias QueryField — для COLUMN; для TEXT/EXPRESSION/FORMULA/ROW_NUMBER не используется (хранится пустым). */
     @Size(max = 100)
-    @Column(name = "query_field", nullable = false, length = 100)
-    private String queryField;
+    @Column(name = "query_field", nullable = true, length = 100)
+    private String queryField = "";
 
     /** Текст статического текстового блока — только для kind=TEXT. */
     @Size(max = 2000)

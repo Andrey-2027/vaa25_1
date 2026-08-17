@@ -3,6 +3,7 @@ package org.ip.security;
 import org.ip.Application;
 import org.ip.config.DataInitializer;
 import org.ipro.reportstudio.ReportTemplateRepository;
+import org.ipro.reportstudio.config.ReportSchemaCompatibility;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryExecutor;
 import org.ipro.reportstudio.query.ReportQueryGuard;
@@ -46,6 +47,9 @@ class ReportStudioAutoConfigurationSmokeTest {
     @Autowired
     private ReportTemplateRepository templateRepository;
 
+    @Autowired
+    private ReportSchemaCompatibility schemaCompatibility;
+
     @Test
     void reportStudioBeansAreRegisteredByAutoConfiguration() {
         assertThat(analyzer).isNotNull();
@@ -53,6 +57,11 @@ class ReportStudioAutoConfigurationSmokeTest {
         assertThat(executor).isNotNull();
         assertThat(quota).isNotNull();
         assertThat(previewService).isNotNull();
+    }
+
+    @Test
+    void schemaCompatibilityRunnerIsRegistered() {
+        assertThat(schemaCompatibility).isNotNull();
     }
 
     @Test

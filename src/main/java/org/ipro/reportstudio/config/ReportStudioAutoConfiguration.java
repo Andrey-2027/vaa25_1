@@ -29,9 +29,11 @@ import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
 import org.ip.metadata.MetadataResolver;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Auto-Configuration модуля отчётов (reportstudio). Пакеты org.ipro.reportstudio.*
@@ -146,12 +148,20 @@ public ReportExecutionService reportExecutionService(ReportQueryGuard guard,
                                                          ReportArtifactCache cache) {
         return new ReportExecutionService(guard, executor, resolver, refresher, compiler, cache);
     }
-    @Bean
+@Bean
     @ConditionalOnMissingBean
     public ReportTemplateService reportTemplateService(
             ReportTemplateRepository repository,
             Validator validator) {
         return new ReportTemplateService(repository, validator);
+    }
+    /**
+     * Без {@code @ConditionalOnMissingBean}: в контексте уже есть CommandLineRunner
+     * (DataInitializer), и условие молча отключило бы совместимость схемы.
+     */
+    @Bean
+    public CommandLineRunner reportSchemaCompatibility(JdbcTemplate jdbcTemplate) {
+        return new ReportSchemaCompatibility(jdbcTemplate);
     }
     @Bean
     @ConditionalOnMissingBean

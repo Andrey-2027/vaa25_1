@@ -1,17 +1,23 @@
 package org.ipro.reportstudio.dom;
 
 import jakarta.persistence.EntityManager;
+import jakarta.validation.Validation;
 import org.ip.Application;
 import org.ipro.reportstudio.ReportTemplateRepository;
 import org.ipro.reportstudio.dto.ReportTemplateDto;
 import org.ipro.reportstudio.dto.ReportTemplateDto.ReportParamDto;
 import org.ipro.reportstudio.dto.ReportTemplateMapper;
+import org.ipro.reportstudio.service.ReportTemplateService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
@@ -34,6 +40,39 @@ class ReportTemplateRoundTripIT {
 
     @Autowired
     private ReportTemplateRepository repository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    /**
+     * Регрессия: редактор предпросмотра использует detached-шаблон вне сессии
+     * (ReportQueryEditor.preview -> ordersOf/groupFieldsOf). Все ленивые
+     * коллекции должны быть инициализированы уже в loadTemplate.
+     */
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void loadTemplateInitializesLazyCollectionsForDetachedUiUse() {
+        Long id = new TransactionTemplate(transactionManager).execute(status -> {
+            ReportTemplate template = templateWithHierarchy();
+            template.setName("Detached lazy test");
+            ReportOrder order = new ReportOrder();
+            order.setColumnName("code");
+            order.setPosition(0);
+            template.addOrder(order);
+            repository.saveAndFlush(template);
+            return template.getId();
+        });
+
+        ReportTemplateService service = new ReportTemplateService(repository,
+                Validation.buildDefaultValidatorFactory().getValidator());
+        ReportTemplate loaded = new TransactionTemplate(transactionManager)
+                .execute(status -> service.loadTemplate(id));
+
+        assertThat(loaded.getOrders()).extracting(ReportOrder::getColumnName).containsExactly("code");
+        assertThat(loaded.getParams()).hasSize(2);
+        assertThat(loaded.getBands()).hasSize(4);
+        assertThat(loaded.getBands().get(3).getFields()).hasSize(2);
+    }
 
     @Test
     void saveAndReloadPreservesChildrenOrderAndHierarchy() {
@@ -85,6 +124,54 @@ class ReportTemplateRoundTripIT {
             .containsExactly("code", "amount");
         assertThat(bands.get(3).getFields()).extracting(ReportField::getBorder)
             .containsExactly(Boolean.TRUE, Boolean.FALSE);
+    }
+
+    @Test
+    void computedRowNumberAndTextFieldsSaveWithoutQueryField() {
+        ReportTemplate template = new ReportTemplate();
+        template.setName("Поля без поля запроса");
+        template.setJpql("select a.code, a.name from Account a");
+
+        ReportBand detail = new ReportBand();
+        detail.setKind(ReportBandKind.DETAIL);
+        detail.setPosition(0);
+        ReportField expression = new ReportField();
+        expression.setKind(ReportFieldKind.EXPRESSION);
+        expression.setText("{a.code} получает {a.name}");
+        expression.setPosition(0);
+        detail.addField(expression);
+        ReportField rowNumber = new ReportField();
+        rowNumber.setKind(ReportFieldKind.ROW_NUMBER);
+        rowNumber.setCaption("№");
+        rowNumber.setPosition(1);
+        detail.addField(rowNumber);
+        template.addBand(detail);
+
+        ReportBand header = new ReportBand();
+        header.setKind(ReportBandKind.REPORT_HEADER);
+        header.setPosition(1);
+        ReportField text = new ReportField();
+        text.setKind(ReportFieldKind.TEXT);
+        text.setText("Шапка");
+        text.setPosition(0);
+        header.addField(text);
+        template.addBand(header);
+
+        repository.saveAndFlush(template);
+        entityManager.clear();
+
+        ReportTemplate loaded = repository.findById(template.getId()).orElseThrow();
+        assertThat(loaded.getBands()).hasSize(2);
+        ReportField loadedExpression = loaded.getBands().get(0).getFields().get(0);
+        ReportField loadedRowNumber = loaded.getBands().get(0).getFields().get(1);
+        ReportField loadedText = loaded.getBands().get(1).getFields().get(0);
+        assertThat(loadedExpression.getKind()).isEqualTo(ReportFieldKind.EXPRESSION);
+        assertThat(loadedExpression.getQueryField()).isNullOrEmpty();
+        assertThat(loadedExpression.getText()).isEqualTo("{a.code} получает {a.name}");
+        assertThat(loadedRowNumber.getKind()).isEqualTo(ReportFieldKind.ROW_NUMBER);
+        assertThat(loadedRowNumber.getQueryField()).isNullOrEmpty();
+        assertThat(loadedText.getKind()).isEqualTo(ReportFieldKind.TEXT);
+        assertThat(loadedText.getQueryField()).isNullOrEmpty();
     }
 
     @Test

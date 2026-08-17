@@ -108,6 +108,7 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
 
     private static void initializeGraph(ReportTemplate template) {
         template.getParams().size();
+        template.getOrders().size();
         for (ReportBand band : template.getBands()) {
             band.getFields().size();
             band.getParent();
