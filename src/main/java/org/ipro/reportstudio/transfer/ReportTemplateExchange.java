@@ -4,6 +4,10 @@ import org.ipro.reportstudio.dom.ReportBandKind;
 import org.ipro.reportstudio.dom.ReportComputedValue;
 import org.ipro.reportstudio.dom.ReportFieldAggregation;
 import org.ipro.reportstudio.dom.ReportFieldAlignment;
+import org.ipro.reportstudio.dom.ReportFieldKind;
+import org.ipro.reportstudio.dom.ReportOrderDirection;
+import org.ipro.reportstudio.dom.ReportPageOrientation;
+import org.ipro.reportstudio.dom.ReportPageSize;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
 
@@ -58,8 +62,14 @@ public class ReportTemplateExchange {
         private int maxRows;
         private int timeoutMs;
         private boolean advanced;
+        private ReportPageSize pageSize;
+        private ReportPageOrientation pageOrientation;
+        private Integer baseFontSize;
+        private Boolean gridEnabled;
+        private Boolean stripeRows;
         private List<Param> params = new ArrayList<>();
         private List<Band> bands = new ArrayList<>();
+        private List<Order> orders = new ArrayList<>();
 
         public String getName() {
             return name;
@@ -116,6 +126,46 @@ public class ReportTemplateExchange {
             this.advanced = advanced;
         }
 
+        public ReportPageSize getPageSize() {
+            return pageSize;
+        }
+
+        public void setPageSize(ReportPageSize pageSize) {
+            this.pageSize = pageSize;
+        }
+
+        public ReportPageOrientation getPageOrientation() {
+            return pageOrientation;
+        }
+
+        public void setPageOrientation(ReportPageOrientation pageOrientation) {
+            this.pageOrientation = pageOrientation;
+        }
+
+        public Integer getBaseFontSize() {
+            return baseFontSize;
+        }
+
+        public void setBaseFontSize(Integer baseFontSize) {
+            this.baseFontSize = baseFontSize;
+        }
+
+        public Boolean getGridEnabled() {
+            return gridEnabled;
+        }
+
+        public void setGridEnabled(Boolean gridEnabled) {
+            this.gridEnabled = gridEnabled;
+        }
+
+        public Boolean getStripeRows() {
+            return stripeRows;
+        }
+
+        public void setStripeRows(Boolean stripeRows) {
+            this.stripeRows = stripeRows;
+        }
+
         public List<Param> getParams() {
             return params;
         }
@@ -124,12 +174,50 @@ public class ReportTemplateExchange {
             this.params = params;
         }
 
-        public List<Band> getBands() {
+public List<Band> getBands() {
             return bands;
         }
 
         public void setBands(List<Band> bands) {
             this.bands = bands;
+        }
+
+        public List<Order> getOrders() {
+            return orders;
+        }
+
+        public void setOrders(List<Order> orders) {
+            this.orders = orders;
+        }
+    }
+
+    public static class Order {
+        private String columnName;
+        private ReportOrderDirection direction;
+        private int position;
+
+        public String getColumnName() {
+            return columnName;
+        }
+
+        public void setColumnName(String columnName) {
+            this.columnName = columnName;
+        }
+
+        public ReportOrderDirection getDirection() {
+            return direction;
+        }
+
+        public void setDirection(ReportOrderDirection direction) {
+            this.direction = direction;
+        }
+
+        public int getPosition() {
+            return position;
+        }
+
+        public void setPosition(int position) {
+            this.position = position;
         }
     }
 
@@ -167,12 +255,13 @@ public class ReportTemplateExchange {
         public void setPosition(int position) { this.position = position; }
     }
 
-    public static class Band {
+public static class Band {
         private String key;
         private String parentKey;
         private ReportBandKind kind;
         private int position;
         private String groupField;
+        private Boolean startNewPage;
         private List<Field> fields = new ArrayList<>();
 
         public String getKey() { return key; }
@@ -185,28 +274,39 @@ public class ReportTemplateExchange {
         public void setPosition(int position) { this.position = position; }
         public String getGroupField() { return groupField; }
         public void setGroupField(String groupField) { this.groupField = groupField; }
+        public Boolean getStartNewPage() { return startNewPage; }
+        public void setStartNewPage(Boolean startNewPage) { this.startNewPage = startNewPage; }
         public List<Field> getFields() { return fields; }
         public void setFields(List<Field> fields) { this.fields = fields; }
     }
 
     public static class Field {
+        private ReportFieldKind kind;
         private String queryField;
+        private String text;
         private String caption;
         private Integer width;
         private String format;
+        private Boolean border;
         private boolean visible;
         private ReportFieldAggregation aggregation;
         private ReportFieldAlignment alignment;
         private int position;
 
+        public ReportFieldKind getKind() { return kind; }
+        public void setKind(ReportFieldKind kind) { this.kind = kind; }
         public String getQueryField() { return queryField; }
         public void setQueryField(String queryField) { this.queryField = queryField; }
+        public String getText() { return text; }
+        public void setText(String text) { this.text = text; }
         public String getCaption() { return caption; }
         public void setCaption(String caption) { this.caption = caption; }
         public Integer getWidth() { return width; }
         public void setWidth(Integer width) { this.width = width; }
         public String getFormat() { return format; }
         public void setFormat(String format) { this.format = format; }
+        public Boolean getBorder() { return border; }
+        public void setBorder(Boolean border) { this.border = border; }
         public boolean isVisible() { return visible; }
         public void setVisible(boolean visible) { this.visible = visible; }
         public ReportFieldAggregation getAggregation() { return aggregation; }

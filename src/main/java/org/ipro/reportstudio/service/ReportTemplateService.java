@@ -6,6 +6,7 @@ import org.ip.service.AbstractBaseService;
 import org.ipro.reportstudio.ReportTemplateRepository;
 import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportField;
+import org.ipro.reportstudio.dom.ReportOrder;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamSource;
 import org.ipro.reportstudio.dom.ReportTemplate;
@@ -122,6 +123,11 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
         copy.setMaxRows(source.getMaxRows());
         copy.setTimeoutMs(source.getTimeoutMs());
         copy.setAdvanced(source.isAdvanced());
+        copy.setPageSize(source.getPageSize());
+        copy.setPageOrientation(source.getPageOrientation());
+        copy.setBaseFontSize(source.getBaseFontSize());
+        copy.setGridEnabled(source.getGridEnabledRaw());
+        copy.setStripeRows(source.getStripeRowsRaw());
         copy.setState(ReportTemplateState.DRAFT);
 
         for (ReportParam sourceParam : source.getParams()) {
@@ -144,13 +150,16 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
             ReportBand band = new ReportBand();
             band.setKind(sourceBand.getKind());
             band.setGroupField(sourceBand.getGroupField());
+            band.setStartNewPage(sourceBand.getStartNewPage());
             band.setPosition(sourceBand.getPosition());
             copy.addBand(band);
             copiedBands.put(sourceBand, band);
 
             for (ReportField sourceField : sourceBand.getFields()) {
                 ReportField field = new ReportField();
+                field.setKind(sourceField.getKind());
                 field.setQueryField(sourceField.getQueryField());
+                field.setText(sourceField.getText());
                 field.setCaption(sourceField.getCaption());
                 field.setWidth(sourceField.getWidth());
                 field.setFormat(sourceField.getFormat());
@@ -167,6 +176,14 @@ public class ReportTemplateService extends AbstractBaseService<ReportTemplate, L
             if (sourceParent != null) {
                 copiedBands.get(sourceBand).setParent(copiedBands.get(sourceParent));
             }
+        }
+
+        for (ReportOrder sourceOrder : source.getOrders()) {
+            ReportOrder order = new ReportOrder();
+            order.setColumnName(sourceOrder.getColumnName());
+            order.setDirection(sourceOrder.getDirection());
+            order.setPosition(sourceOrder.getPosition());
+            copy.addOrder(order);
         }
         return copy;
     }

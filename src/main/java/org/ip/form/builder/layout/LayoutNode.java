@@ -15,5 +15,5 @@ package org.ip.form.builder.layout;
  * вставка произвольных компонентов), но не хочется вручную собирать весь layout мимо
  * {@code FieldFactory}/{@code FormBindingRegistry}.
  */
-public sealed interface LayoutNode permits FieldNode, PanelNode, TabSheetNode, CustomNode {
+public sealed interface LayoutNode permits FieldNode, PanelNode, TabSheetNode, CustomNode, DisplayNode {
 }

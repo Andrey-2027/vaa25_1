@@ -16,10 +16,15 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import org.ip.application.form.FormSaveHandler;
+import org.ip.application.form.FormSaveResult;
+import org.ip.form.BindingDescriptor;
 import org.ip.form.FieldFactory;
 import org.ip.form.FieldRenderer;
+import org.ip.form.FormBinding;
 import org.ip.form.FormBindingRegistry;
 import org.ip.form.builder.layout.CustomNode;
+import org.ip.form.builder.layout.DisplayNode;
 import org.ip.form.builder.layout.FieldNode;
 import org.ip.form.builder.layout.ItemFormLayout;
 import org.ip.form.builder.layout.LayoutNode;
@@ -47,8 +52,12 @@ import java.lang.reflect.Method;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -93,6 +102,12 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     private final List<String> tableSectionTitles = new ArrayList<>();
     private com.vaadin.flow.component.tabs.TabSheet tabSheet;
 
+    // Состав и режим секций (PR-1.5, решение №7): конфигурируется до attach —
+    // фабрикой варианта (ItemFormCustomization) или точкой открытия, применяется
+    // TableSectionFactory при attachTableSections().
+    private List<Class<?>> sectionFilter;
+    private List<Class<?>> readOnlySections = List.of();
+
     // Read-only поля по пути через точку (см. renderDisplayField) — обновляются при setEntity(),
     // отдельно от FormBindingRegistry, т.к. FormBinding требует реального FieldMetadataInfo
     // сущности, а путь через точку на него не ложится.
@@ -102,6 +117,7 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     private Supplier<T> entityFactory;
     private Runnable onSave;
     private Runnable onCancel;
+    private FormSaveHandler<T> saveHandler;
 
     /** Кнопка «История» (этап 10): field-level аудит записи, доступ ADMIN. */
     private final Button historyButton = new Button("История", VaadinIcon.CLOCK.create());
@@ -415,14 +431,16 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
 
     private void renderNode(LayoutNode node, FormLayout target) {
         switch (node) {
-            case FieldNode(String fieldName) -> renderField(fieldName, target);
+            case FieldNode(String fieldName, String labelOverride) -> renderField(fieldName, labelOverride, target);
+            case DisplayNode(String key, String label, Function<Object, String> formatter) ->
+                renderDisplayNode(key, label, formatter, target);
             case PanelNode(List<LayoutNode> children) -> target.add(renderPanel(children));
             case TabSheetNode(List<TabDefinition> tabs) -> target.add(renderTabSheet(tabs));
             case CustomNode(Component component) -> target.add(component);
         }
     }
 
-    private void renderField(String fieldName, FormLayout target) {
+    private void renderField(String fieldName, String labelOverride, FormLayout target) {
         if (metadata == null) {
             throw new IllegalStateException(
                 "Кастомный layout требует EntityMetadataInfo — недоступно для форм строк " +
@@ -439,7 +457,15 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
                 " — проверьте, что на поле есть @FieldMetadata и имя указано верно.");
         }
         Component component = fieldFactory.createField(field, registry);
-        addAsFormItem(target, component, field.getLabel());
+        String label = field.getLabel();
+        if (labelOverride != null) {
+            // label-оверрайд живёт в BindingDescriptor: подпись формы и сообщение
+            // required-валидации берутся из одного места (спецификация «Часть D.5»).
+            label = labelOverride;
+            registry.getBinding(field.getName()).ifPresent(
+                b -> registry.replace(b.withLabel(labelOverride)));
+        }
+        addAsFormItem(target, component, label);
     }
 
     /**
@@ -459,6 +485,19 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         displayRefreshers.add(entity -> display.setValue(renderer.apply(columnPath.getValue(entity))));
 
         target.addFormItem(display, columnPath.getLabel());
+    }
+
+    /**
+     * Read-only поле-вывод из {@link DisplayNode} (спецификация «Часть D.5», PR-1.2):
+     * значение — {@code formatter.apply(entity)} при каждом {@code setEntity()}
+     * (см. {@link #displayRefreshers}), в registry не регистрируется.
+     */
+    private void renderDisplayNode(String key, String label, Function<Object, String> formatter,
+                                   FormLayout target) {
+        TextField display = new TextField();
+        display.setReadOnly(true);
+        displayRefreshers.add(entity -> display.setValue(formatter.apply(entity)));
+        target.addFormItem(display, label);
     }
 
     /**
@@ -514,6 +553,43 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     // === Табличные части ===
 
     /**
+     * Ограничивает состав табличных частей, которые подключит {@code TableSectionFactory}
+     * при {@code attachTableSections(form, entityClass)}: прикрепляются только секции с
+     * row-классом из переданного списка.
+     *
+     * <p>Для варианта «только материалы» (PR-1.5) скрытая секция не attach-ится вообще —
+     * она не участвует ни в validateTableSections(), ни в commitTableSections(),
+     * вкладка для неё не создаётся.</p>
+     *
+     * <p>По умолчанию (null) прикрепляются все секции из {@code @TableSections}, как раньше.</p>
+     *
+     * @param rowClasses row-классы секций к подключению; null = все секции
+     */
+    public void setSectionFilter(Collection<Class<?>> rowClasses) {
+        this.sectionFilter = rowClasses == null ? null : List.copyOf(rowClasses);
+    }
+
+    public List<Class<?>> getSectionFilter() {
+        return sectionFilter;
+    }
+
+    /**
+     * Секции, которые должны открыться в режиме «только просмотр» (PR-1.5, решение №7,
+     * драйвер «по роли»): применяется TableSectionFactory при attach — кнопки
+     * Добавить/Изменить/Удалить секции не появляются, шапка и остальные секции
+     * остаются редактируемыми.
+     *
+     * @param rowClasses row-классы секций в read-only; null/пусто = нет read-only секций
+     */
+    public void setReadOnlySections(Collection<Class<?>> rowClasses) {
+        this.readOnlySections = rowClasses == null ? List.of() : List.copyOf(rowClasses);
+    }
+
+    public boolean isSectionReadOnly(Class<?> rowClass) {
+        return readOnlySections.contains(rowClass);
+    }
+
+    /**
      * Подключает табличную часть к форме. Вызывается TableSectionFactory сразу после
      * конструктора, один раз на каждую секцию сущности, в порядке TableSectionMetadataInfo.getOrder() —
      * вручную вызывать не нужно.
@@ -565,6 +641,32 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
 
     public List<ItemTable<?, T>> getTableSections() {
         return List.copyOf(tableSections);
+    }
+
+    /**
+     * Типизированный доступ к табличной части по классу строки.
+     *
+     * Поиск по точному {@link ItemTable#getRowClass()}. Если табличная часть не найдена —
+     * {@link IllegalArgumentException}; если нашлось несколько с одним классом строки —
+     * {@link IllegalStateException} (ошибка конфигурации).
+     *
+     * @param rowClass класс строки (например, ReceivingDocumentItem.class)
+     */
+    @SuppressWarnings("unchecked")
+    public <R extends IdentifiableEntity> ItemTable<R, T> tableSection(Class<R> rowClass) {
+        List<ItemTable<?, T>> matches = tableSections.stream()
+            .filter(table -> table.getRowClass().equals(rowClass))
+            .toList();
+        if (matches.isEmpty()) {
+            throw new IllegalArgumentException(
+                "Табличная часть для " + rowClass.getSimpleName() + " не найдена");
+        }
+        if (matches.size() > 1) {
+            throw new IllegalStateException(
+                "Найдено несколько табличных частей для " + rowClass.getSimpleName()
+                    + " — неоднозначный доступ");
+        }
+        return (ItemTable<R, T>) matches.get(0);
     }
 
     /**
@@ -639,6 +741,26 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         updateHistoryButton();
         return entity;
     }
+
+    /**
+     * Post-save: устанавливает уже сохранённую сущность (с проставленными id) обратно
+     * в форму — поля заполняются, display-поля пересчитываются, но табличные части НЕ
+     * перечитываются через setParent (это стёрло бы состояние строк).
+     *
+     * НЕ вызывать через {@link #setEntity(Object)} после сохранения: setEntity →
+     * {@code table.setParent(saved)} → повторный запрос строк из БД (ItemTable).
+     * Строки для уже сохранённой шапки восстанавливаются отдельно — через
+     * {@code tableSection(...).applyPersistedRows(...)} (см. harvest/re-apply adapter).
+     */
+    public void applyPersistedEntity(T saved) {
+        this.entity = saved;
+        registry.readAllFromEntity(saved);
+        for (Consumer<T> refresher : displayRefreshers) {
+            refresher.accept(saved);
+        }
+        // таблицы: parent через setParent НЕ выставляем — строки придут через applyPersistedRows
+        updateHistoryButton();
+    }
     public T getEntity() {
         if (entity == null) {
             entity = newInstance();
@@ -706,16 +828,47 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         return "Есть несохранённые изменения. Закрыть без сохранения?";
     }
 
+    /**
+     * Сохранить форму через {@link FormSaveHandler} (спецификация «Часть C.1»).
+     *
+     * <p>Сначала валидирует поля и табличные части; при ошибках возвращает
+     * {@link FormSaveResult.Failure} без обращения к обработчику. Исключения
+     * от обработчика тоже превращаются в {@code Failure} — до UI исключения не
+     * долетают. Форму/диалог закрывает только host, читающий {@link #success()}.</p>
+     *
+     * @return результат сохранения (успех/сообщения об ошибках)
+     */
+    public FormSaveResult<T> save() {
+        if (saveHandler == null) {
+            return new FormSaveResult.Failure<>(
+                List.of("Не настроен обработчик сохранения (setSaveHandler)"), null);
+        }
+        List<String> errors = new ArrayList<>();
+        errors.addAll(validate());
+        errors.addAll(validateTableSections());
+        if (!errors.isEmpty()) {
+            return new FormSaveResult.Failure<>(errors, null);
+        }
+        try {
+            return saveHandler.save(this);
+        } catch (RuntimeException ex) {
+            return new FormSaveResult.Failure<>(
+                List.of("Ошибка сохранения: " + ex.getMessage()), ex);
+        }
+    }
+
     @Override
     public boolean doSave() {
         OperationScope scope = null;
         try {
-            scope = TelemetryBridge.beginOperation("save:" + entityClass.getSimpleName());
+            // ui-намерение пользователя; авторитетное бизнес-событие save:<aggregate>
+            // эмитит ровно один раз use case — см. ReceivingDocumentSaveUseCase
+            scope = TelemetryBridge.beginOperation("ui:save-intent:" + entityClass.getSimpleName());
             if (onSave != null) {
                 onSave.run();
                 return !isDirty(); // если after-save snapshot обновился — isDirty() вернёт false
             }
-            return false;
+            return save().success();
         } catch (RuntimeException ex) {
             if (scope != null) {
                 scope.fail(ex);
@@ -882,6 +1035,49 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
 
     // === Кнопки в footer ===
 
+    /**
+     * Установить обработчик сохранения (новый путь, «Часть C.1»).
+     *
+     * <p>Точка входа — {@link #save()}: валидация + вызов обработчика,
+     * результат приходит как {@link FormSaveResult}. Владелец закрытия —
+     * только host (Dialog/Workspace).</p>
+     */
+    public void setSaveHandler(FormSaveHandler<T> saveHandler) {
+        this.saveHandler = saveHandler;
+    }
+
+    /**
+     * Подключить внешнее поле к binding/lifecycle без метаданных (спецификация «Часть D.4», PR-1.1).
+     *
+     * <p>Регистрирует {@link FormBinding#forExternal(BindingDescriptor, Component, Function, BiConsumer, Supplier, Consumer, Predicate, Consumer)}:
+     * поле участвует в сохранении (applyAllToEntity), загрузке (readAllFromEntity), dirty,
+     * required-валидации и read-only — как обычное metadata-поле. Для editable-компонентов
+     * используйте этот метод, НЕ {@code CustomNode}.</p>
+     *
+     * @return этот экземпляр формы (fluent)
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <V> ItemForm<T> bindExternal(BindingDescriptor descriptor, Component component,
+                                        Function<T, V> read, BiConsumer<T, V> write,
+                                        Supplier<V> readComponent, Consumer<V> writeComponent,
+                                        Predicate<V> isEmpty, Consumer<Boolean> setReadOnly) {
+        registry.add(FormBinding.forExternal(descriptor, component,
+            e -> read.apply((T) e),
+            (e, v) -> write.accept((T) e, (V) v),
+            (Supplier<Object>) () -> readComponent.get(),
+            v -> writeComponent.accept((V) v),
+            v -> isEmpty.test((V) v),
+            setReadOnly));
+        return this;
+    }
+
+    /**
+     * @deprecated Переходная совместимость (PR-0.6). Новый путь — {@link #setSaveHandler(FormSaveHandler)}
+     * и {@link #save()}: исход сохранения инкапсулирован в {@link FormSaveResult},
+     * host-владелец сам решает закрытие. Планируется удаление после миграции
+     * оставшихся call sites (ItemTable.openRowDialog).
+     */
+    @Deprecated
     public void setOnSave(Runnable onSave) {
         this.onSave = onSave;
     }

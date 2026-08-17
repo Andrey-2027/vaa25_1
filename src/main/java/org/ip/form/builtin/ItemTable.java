@@ -314,7 +314,13 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
     /**
      * Синхронизирует строки в БД для уже сохранённого родителя и перечитывает их обратно
      * (чтобы получить проставленные id и номера строк).
+     *
+     * @deprecated переходный период. В новом пути сохранения (агрегат + use case) строки
+     * после save возвращает сам use case, а UI применяет их через
+     * {@link #applyPersistedRows(Object, List)} — без повторного запроса к БД.
+     * commit() будет удалён после перевода всех callers.
      */
+    @Deprecated
     public void commit(P savedParent) {
         service.replaceAll(savedParent, rows);
         this.parent = savedParent;
@@ -322,6 +328,32 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
         rows.addAll(service.findByParent(savedParent, activeFetchPaths()));
         grid.getDataProvider().refreshAll();
         dirty = false;
+    }
+
+    /**
+     * Класс строки табличной части (например, ReceivingDocumentItem) —
+     * для типизированного доступа извне, в частности {@code ItemForm.tableSection(Class)}.
+     */
+    @SuppressWarnings("unchecked")
+    public Class<T> getRowClass() {
+        return (Class<T>) sectionMeta.getRowClass();
+    }
+
+    /**
+     * Применяет уже сохранённые строки к таблице: обновляет parent и заменяет in-memory
+     * строки переданными (с проставленными id/номерами) БЕЗ запроса к БД — в отличие от
+     * {@link #commit(Object)}, который перечитывал бы строки через
+     * {@code service.findByParent(...)} и мог потерять состояние, пришедшее из use case.
+     *
+     * @param savedParent    сохранённый родитель (уже с id)
+     * @param persistedRows  строки, возвращённые use case после сохранения
+     */
+    public void applyPersistedRows(P savedParent, List<T> persistedRows) {
+        this.parent = savedParent;
+        this.rows.clear();
+        this.rows.addAll(persistedRows);
+        this.grid.getDataProvider().refreshAll();
+        this.dirty = false;
     }
 
     public boolean isDirty() {
@@ -339,6 +371,10 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
             editButton.setEnabled(false);
             deleteButton.setEnabled(false);
         }
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
     }
 
     // === Виды (GridFormView) ===

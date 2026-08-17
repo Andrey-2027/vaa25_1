@@ -5,6 +5,7 @@ import org.ipro.reportstudio.dom.ReportBandKind;
 import org.ipro.reportstudio.dom.ReportComputedValue;
 import org.ipro.reportstudio.dom.ReportField;
 import org.ipro.reportstudio.dom.ReportFieldAggregation;
+import org.ipro.reportstudio.dom.ReportFieldKind;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
@@ -217,8 +218,10 @@ class ReportTemplateValidatorTest {
     }
 
     @Test
-    void aggregationAllowedOnlyInFooterBands() {
+    void aggregationAllowedOnlyInFooterBandsAndMustReferenceDetailColumns() {
         ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        detail.addField(field("amount", 1));
         ReportBand header = band(ReportBandKind.GROUP_HEADER, 0);
         header.setGroupField("journal");
         ReportBand footer = band(ReportBandKind.GROUP_FOOTER, 1);
@@ -245,6 +248,132 @@ class ReportTemplateValidatorTest {
     }
 
     @Test
+    void footerAggregateMustReferenceDetailColumn() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand footer = band(ReportBandKind.REPORT_FOOTER, 0);
+        t.addBand(footer);
+        ReportField sum = new ReportField();
+        sum.setQueryField("ghost");
+        sum.setAggregation(ReportFieldAggregation.SUM);
+        sum.setPosition(0);
+        footer.addField(sum);
+
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Бэнд REPORT_FOOTER: агрегат по колонке «ghost», отсутствующей в DETAIL");
+    }
+
+    @Test
+    void footerAggregateRequiresAggregationFunction() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        detail.addField(field("amount", 1));
+        ReportBand footer = band(ReportBandKind.REPORT_FOOTER, 0);
+        t.addBand(footer);
+        ReportField noAggregation = new ReportField();
+        noAggregation.setQueryField("amount");
+        noAggregation.setAggregation(ReportFieldAggregation.NONE);
+        noAggregation.setPosition(0);
+        footer.addField(noAggregation);
+
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Бэнд REPORT_FOOTER: агрегат по колонке «amount» — выберите функцию агрегации");
+    }
+
+    @Test
+    void reportHeaderAllowsOnlyTextBlocks() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand header = band(ReportBandKind.REPORT_HEADER, 0);
+        t.addBand(header);
+
+        ReportField text = new ReportField();
+        text.setKind(ReportFieldKind.TEXT);
+        text.setText("Выписка за период");
+        text.setPosition(0);
+        header.addField(text);
+
+        assertThat(ReportTemplateValidator.validate(t)).isEmpty();
+
+        ReportField column = new ReportField();
+        column.setQueryField("code");
+        column.setPosition(1);
+        header.addField(column);
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Бэнд REPORT_HEADER: допустимы только текстовые блоки (поле «code» не является текстовым)");
+    }
+
+    @Test
+    void textBlockRequiresTextAndForbidsColumnAttributes() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand header = band(ReportBandKind.REPORT_HEADER, 0);
+        t.addBand(header);
+
+        ReportField empty = new ReportField();
+        empty.setKind(ReportFieldKind.TEXT);
+        empty.setPosition(0);
+        header.addField(empty);
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Бэнд REPORT_HEADER: текст блока обязателен");
+
+        ReportField dirty = new ReportField();
+        dirty.setKind(ReportFieldKind.TEXT);
+        dirty.setText("Итого");
+        dirty.setQueryField("amount");
+        dirty.setWidth(100);
+        dirty.setAggregation(ReportFieldAggregation.SUM);
+        dirty.setPosition(1);
+        header.addField(dirty);
+        List<String> violations = ReportTemplateValidator.validate(t);
+        assertThat(violations)
+            .contains("Бэнд REPORT_HEADER: у текстового блока не указывается queryField («amount»)");
+    }
+
+    @Test
+    void footerTextBlockAllowedWithTextOnly() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand footer = band(ReportBandKind.REPORT_FOOTER, 0);
+        t.addBand(footer);
+        ReportField text = new ReportField();
+        text.setKind(ReportFieldKind.TEXT);
+        text.setText("Подпись главного бухгалтера");
+        text.setPosition(0);
+        footer.addField(text);
+        assertThat(ReportTemplateValidator.validate(t)).isEmpty();
+    }
+
+    @Test
+    void groupHeaderCannotHaveOwnFields() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand header = band(ReportBandKind.GROUP_HEADER, 0);
+        header.setGroupField("journal");
+        ReportBand footer = band(ReportBandKind.GROUP_FOOTER, 1);
+        footer.setGroupField("journal");
+        t.addBand(header);
+        t.addBand(footer);
+
+        ReportField column = new ReportField();
+        column.setQueryField("code");
+        column.setPosition(0);
+        header.addField(column);
+
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Бэнд GROUP_HEADER: поля недопустимы — заголовок настраивается через группировку (groupField)");
+    }
+
+    @Test
+    void detailAllowsOnlyColumns() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        ReportField text = new ReportField();
+        text.setKind(ReportFieldKind.TEXT);
+        text.setText("не колонка");
+        text.setPosition(1);
+        detail.addField(text);
+
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Бэнд DETAIL: текстовые блоки недопустимы — только колонки");
+    }
+
+    @Test
     void duplicateFieldInBandRejected() {
         ReportTemplate t = minimalTemplate();
         ReportBand detail = t.getBands().get(0);
@@ -253,6 +382,195 @@ class ReportTemplateValidatorTest {
         detail.addField(field("amount", 1));
         assertThat(ReportTemplateValidator.validate(t))
             .contains("Бэнд DETAIL: поле «amount» дублируется");
+    }
+
+    @Test
+    void rowNumberColumnAllowedInDetailWithoutQueryField() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        detail.getFields().clear();
+        detail.addField(rowNumber(0));
+        assertThat(ReportTemplateValidator.validate(t)).isEmpty();
+    }
+
+    @Test
+    void rowNumberColumnRejectsQueryFieldAndAggregation() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        detail.getFields().clear();
+        ReportField row = rowNumber(0);
+        row.setQueryField("code");
+        row.setAggregation(ReportFieldAggregation.SUM);
+        detail.addField(row);
+        List<String> violations = ReportTemplateValidator.validate(t);
+        assertThat(violations)
+            .contains("Бэнд DETAIL: у колонки «№ п/п» не указывается queryField («code»)");
+    }
+
+    @Test
+    void startNewPageAllowedOnlyOnGroupHeader() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand journalHeader = band(ReportBandKind.GROUP_HEADER, 0);
+        journalHeader.setGroupField("journal");
+        journalHeader.setStartNewPage(true);
+        ReportBand journalFooter = band(ReportBandKind.GROUP_FOOTER, 1);
+        journalFooter.setGroupField("journal");
+        ReportBand detail = t.getBands().get(0);
+        detail.setStartNewPage(true);
+        t.addBand(journalHeader);
+        t.addBand(journalFooter);
+        List<String> violations = ReportTemplateValidator.validate(t);
+        assertThat(violations)
+            .contains("Бэнд DETAIL: «с новой страницы» допустимо только у GROUP_HEADER");
+        assertThat(violations)
+            .noneMatch(v -> v.contains("допустимо только у GROUP_HEADER") && v.startsWith("Бэнд GROUP_HEADER"));
+    }
+
+    @Test
+    void singleNoDataBandAllowed() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand noData = band(ReportBandKind.NO_DATA, 1);
+        ReportField text = new ReportField();
+        text.setKind(ReportFieldKind.TEXT);
+        text.setText("Нет данных за период");
+        text.setPosition(0);
+        noData.addField(text);
+        t.addBand(noData);
+        ReportBand noData2 = band(ReportBandKind.NO_DATA, 2);
+        t.addBand(noData2);
+        List<String> violations = ReportTemplateValidator.validate(t);
+        assertThat(violations)
+            .contains("Отчёт: не более одного бэнда NO_DATA (найдено 2)");
+        assertThat(violations).noneMatch(v -> v.contains("текст блока обязателен"));
+    }
+
+    @Test
+    void noDataForbidsColumnFields() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand noData = band(ReportBandKind.NO_DATA, 1);
+        ReportField column = field("code", 0);
+        noData.addField(column);
+        t.addBand(noData);
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Бэнд NO_DATA: допустимы только текстовые блоки (поле «code» не является текстовым)");
+    }
+
+    @Test
+    void ordersRequireColumnNameAndUnique() {
+        ReportTemplate t = minimalTemplate();
+        t.addOrder(order("code", 0));
+        t.addOrder(order("", 1));
+        t.addOrder(order("code", 2));
+        List<String> violations = ReportTemplateValidator.validate(t);
+        assertThat(violations)
+            .contains("Сортировка: имя колонки обязательно")
+            .contains("Сортировка: колонка «code» задана несколько раз");
+    }
+
+    @Test
+    void expressionColumnValidWhenAliasesMatchDetailColumns() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        detail.getFields().clear();
+        detail.addField(field("qty", 0));
+        detail.addField(field("price", 1));
+        ReportField expression = new ReportField();
+        expression.setKind(ReportFieldKind.EXPRESSION);
+        expression.setText("Продано: {qty} шт. по {price}");
+        expression.setPosition(2);
+        detail.addField(expression);
+        assertThat(ReportTemplateValidator.validate(t)).isEmpty();
+    }
+
+    @Test
+    void expressionColumnRejectsUnknownAliasAndAggregation() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        detail.getFields().clear();
+        detail.addField(field("qty", 0));
+        ReportField expression = new ReportField();
+        expression.setKind(ReportFieldKind.EXPRESSION);
+        expression.setText("Сумма: {ghost}");
+        expression.setAggregation(ReportFieldAggregation.SUM);
+        expression.setQueryField("qty");
+        expression.setPosition(1);
+        detail.addField(expression);
+        List<String> violations = ReportTemplateValidator.validate(t);
+        assertThat(violations)
+            .contains("Бэнд DETAIL: вычисляемая колонка ссылается на неизвестную колонку «ghost»")
+            .contains("Бэнд DETAIL: у выражения не указывается queryField («qty»)")
+            .contains("Поле «qty»: агрегат допустим только в footer-бэндах");
+    }
+
+    @Test
+    void expressionColumnRequiresTemplateText() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        detail.getFields().clear();
+        detail.addField(field("qty", 0));
+        ReportField expression = new ReportField();
+        expression.setKind(ReportFieldKind.EXPRESSION);
+        expression.setPosition(1);
+        detail.addField(expression);
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Бэнд DETAIL: текст выражения обязателен");
+    }
+
+    @Test
+    void formulaColumnValidatesGrammarAndAliases() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        detail.getFields().clear();
+        detail.addField(field("qty", 0));
+        detail.addField(field("price", 1));
+        ReportField formula = new ReportField();
+        formula.setKind(ReportFieldKind.FORMULA);
+        formula.setText("({qty} * {price}) + 6");
+        formula.setPosition(2);
+        detail.addField(formula);
+        assertThat(ReportTemplateValidator.validate(t)).isEmpty();
+    }
+
+    @Test
+    void formulaColumnRejectsBrokenGrammar() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand detail = t.getBands().get(0);
+        ReportField formula = new ReportField();
+        formula.setKind(ReportFieldKind.FORMULA);
+        formula.setText("({qty) * {price}}");
+        formula.setPosition(1);
+        detail.addField(formula);
+        assertThat(ReportTemplateValidator.validate(t))
+            .anySatisfy(msg -> assertThat(msg).contains("некорректная формула"));
+    }
+
+    @Test
+    void computedColumnsAllowedOnlyInDetail() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand footer = band(ReportBandKind.REPORT_FOOTER, 1);
+        t.addBand(footer);
+        ReportField formula = new ReportField();
+        formula.setKind(ReportFieldKind.FORMULA);
+        formula.setText("{qty} * 2");
+        formula.setPosition(0);
+        footer.addField(formula);
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Бэнд REPORT_FOOTER: агрегат без queryField");
+    }
+
+    private ReportField rowNumber(int position) {
+        ReportField f = new ReportField();
+        f.setKind(ReportFieldKind.ROW_NUMBER);
+        f.setCaption("№");
+        f.setPosition(position);
+        return f;
+    }
+
+    private ReportOrder order(String columnName, int position) {
+        ReportOrder o = new ReportOrder();
+        o.setColumnName(columnName);
+        o.setPosition(position);
+        return o;
     }
 
     private ReportTemplate minimalTemplate() {

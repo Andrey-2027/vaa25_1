@@ -6,6 +6,8 @@ import org.ip.model.ReceivingDocumentItem;
 import org.ip.service.ReceivingDocumentItemService;
 import org.ip.service.ReceivingDocumentService;
 import org.ip.service.ValidationException;
+import org.ipro.telemetry.api.OperationScope;
+import org.ipro.telemetry.core.TelemetryBridge;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +32,12 @@ public class ReceivingDocumentSaveUseCase {
         this.itemService = Objects.requireNonNull(itemService, "itemService must not be null");
     }
 
+    /**
+     * Единственный владелец бизнес-события {@code save:ReceivingDocument}
+     * (спецификация «Часть C.2»): скоуп открывается только ПОСЛЕ валидации строк,
+     * т.е. событие соответствует попытке сохранения, а UI-слой эмитит лишь
+     * намерение {@code ui:save-intent:...}, не дублируя это событие.
+     */
     @Transactional(rollbackOn = Exception.class)
     public ReceivingDocumentSaveResult save(ReceivingDocumentSaveCommand command) {
         Objects.requireNonNull(command, "command must not be null");
@@ -41,9 +49,11 @@ public class ReceivingDocumentSaveUseCase {
             throw new ValidationException(String.join(System.lineSeparator(), errors));
         }
 
-        ReceivingDocument saved = documentService.save(header);
-        itemService.replaceAll(saved, items);
-        List<ReceivingDocumentItem> persistedItems = itemService.findByParent(saved);
-        return new ReceivingDocumentSaveResult(saved, persistedItems);
+        try (OperationScope scope = TelemetryBridge.beginOperation("save:ReceivingDocument")) {
+            ReceivingDocument saved = documentService.save(header);
+            itemService.replaceAll(saved, items);
+            List<ReceivingDocumentItem> persistedItems = itemService.findByParent(saved);
+            return new ReceivingDocumentSaveResult(saved, persistedItems);
+        }
     }
 }

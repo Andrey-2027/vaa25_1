@@ -39,4 +39,19 @@ class QueryEditorAnalysisServiceTest {
         verify(guard).guard(eq("select x from X x where x.code = :code and x.branch = :branch"),
                 eq(Set.of("code")), eq(Map.of()));
     }
+
+    @Test
+    void serviceParamsAreNotExposedAsDescriptors() {
+        ReportQueryGuard guard = mock(ReportQueryGuard.class);
+        Analysis analysis = new Analysis(List.of(), List.of(), List.of(), Set.of("parEntityId", "code"));
+        when(guard.guard(any(), any(), any())).thenReturn(GuardResult.allowed(analysis));
+
+        QueryEditorAnalysis result = new QueryEditorAnalysisService(guard)
+                .analyze("select x from X x where x.id = :parEntity.id and x.code = :code",
+                        Set.of("code"), Map.of());
+
+        assertThat(result.parameters())
+                .extracting(QueryParameterDescriptor::name)
+                .containsExactly("code");
+    }
 }

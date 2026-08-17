@@ -1,18 +1,19 @@
 package org.ip.views.reportstudio;
 
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.HasLabel;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.ipro.reportstudio.dom.ReportComputedValue;
@@ -20,63 +21,63 @@ import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
 import org.ipro.reportstudio.dom.ReportTemplate;
+import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Визуальный редактор деклараций параметров {@link ReportTemplate}.
  *
- * <p>Компонент изменяет только модель в памяти. Окончательная проверка
- * уникальности имён, type/source-инвариантов и применимости entityClass
- * выполняется {@code ReportTemplateValidator} при сохранении шаблона.</p>
+ * <p>Слева — параметры, справа — палитра свойств (FormLayout как у полей отчёта),
+ * изменение применяется мгновенно. Компонент изменяет только модель в памяти.
+ * Окончательная проверка уникальности имён, type/source-инвариантов и
+ * применимости entityClass выполняется {@code ReportTemplateValidator} при
+ * сохранении шаблона.</p>
  */
 public class ReportParamEditor extends VerticalLayout {
 
     private final Grid<ReportParam> grid = new Grid<>(ReportParam.class, false);
-    private final TextField name = new TextField("Имя JPQL-параметра");
-    private final TextField caption = new TextField("Заголовок на форме");
-    private final ComboBox<ReportParamKind> kind = new ComboBox<>("Вид");
-    private final ComboBox<ReportParamSource> valueSource = new ComboBox<>("Источник значения");
-    private final TextField entityClass = new TextField("Класс сущности");
-    private final TextArea defaultValue = new TextArea("Значение по умолчанию");
-    private final ComboBox<ReportComputedValue> computed = new ComboBox<>("Вычисляемое значение");
-    private final Checkbox required = new Checkbox("Обязательный");
-    private final Checkbox showOnForm = new Checkbox("Показывать в форме запуска", true);
+    private final TextField name = new TextField();
+    private final TextField caption = new TextField();
+    private final ComboBox<ReportParamKind> kind = new ComboBox<>();
+    private final ComboBox<ReportParamSource> valueSource = new ComboBox<>();
+    private final ComboBox<QueryMetadataCatalogService.EntityOption> entityClass = new ComboBox<>();
+    private final TextArea defaultValue = new TextArea();
+    private final ComboBox<ReportComputedValue> computed = new ComboBox<>();
+    private final Checkbox required = new Checkbox();
+    private final Checkbox showOnForm = new Checkbox();
+    private final FormLayout palette = new FormLayout();
+    private final Span paletteHint = new Span("Выберите параметр для настройки его свойств.");
     private final Span hint = new Span("Добавьте декларацию параметра, затем укажите его имя в JPQL как :имя.");
 
     private ReportTemplate template;
     private ReportParam selected;
     private Runnable changeListener = () -> { };
-    private boolean formDirty;
     private boolean processor;
+    private List<QueryMetadataCatalogService.EntityOption> entityOptions = List.of();
 
     public ReportParamEditor() {
         setPadding(false);
-        setSpacing(true);
-        setWidthFull();
+        setSpacing(false);
+        setSizeFull();
+        getStyle().set("min-height", "0");
+
         configureGrid();
-        configureForm();
+        configurePalette();
 
-        Button add = new Button("Добавить параметр", event -> addParam());
-        Button update = new Button("Применить изменения", event -> updateParam());
-        update.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button moveUp = small("Выше", event -> moveSelectedParam(-1));
-        Button moveDown = small("Ниже", event -> moveSelectedParam(1));
-        Button remove = new Button("Удалить выбранный", event -> removeParam());
-        remove.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        HorizontalLayout actions = new HorizontalLayout(add, update, moveUp, moveDown, remove);
-        actions.setWrap(true);
-
-        add(new H3("Параметры отчёта"), grid, hint, form(), actions);
+        SplitLayout split = new SplitLayout(paramsPanel(), palettePanel());
+        split.setSplitterPosition(35);
+        split.setSizeFull();
+        split.getStyle().set("min-height", "0");
+        add(split);
     }
 
     public void setTemplate(ReportTemplate template) {
         this.template = Objects.requireNonNull(template, "template");
-        selected = null;
         grid.setItems(template.getParams());
-        clearForm();
-        formDirty = false;
+        select(null);
     }
 
     public ReportTemplate getTemplate() {
@@ -87,6 +88,53 @@ public class ReportParamEditor extends VerticalLayout {
     public void setChangeListener(Runnable changeListener) {
         this.changeListener = changeListener == null ? () -> { } : changeListener;
     }
+
+    /** Кандидаты вида «сущность» из {@code @EntityMetadata}-каталога (re-select при смене пользователя/RLS). */
+    public void setEntityOptions(List<QueryMetadataCatalogService.EntityOption> options) {
+        this.entityOptions = options == null ? List.of() : options;
+        entityClass.setItems(this.entityOptions);
+    }
+
+    // ------------------------------------------------------------ сборка панелей
+
+    private VerticalLayout paramsPanel() {
+        Button add = new Button("Добавить параметр", event -> addParam());
+        add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        Button moveUp = small("Выше", event -> moveSelectedParam(-1));
+        Button moveDown = small("Ниже", event -> moveSelectedParam(1));
+        Button remove = new Button("Удалить выбранный", event -> removeParam());
+        remove.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        HorizontalLayout addRow = new HorizontalLayout(add);
+        addRow.setWidthFull();
+
+        HorizontalLayout actions = new HorizontalLayout(moveUp, moveDown, remove);
+        actions.setWrap(true);
+
+        VerticalLayout panel = new VerticalLayout();
+        panel.setPadding(true);
+        panel.setSpacing(true);
+        panel.setWidth("100%");
+        panel.setHeightFull();
+        panel.getStyle().set("overflow", "auto");
+        panel.add(new Span("Параметры отчёта"), addRow, grid, actions, hint);
+        panel.setFlexGrow(1, grid);
+        return panel;
+    }
+
+    private VerticalLayout palettePanel() {
+        paletteHint.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        VerticalLayout panel = new VerticalLayout();
+        panel.setPadding(true);
+        panel.setSpacing(true);
+        panel.setWidth("100%");
+        panel.setHeightFull();
+        panel.getStyle().set("overflow", "auto");
+        panel.add(paletteHint, palette);
+        return panel;
+    }
+
+    // ------------------------------------------------------------ конфигурация
 
     private void configureGrid() {
         grid.addColumn(ReportParam::getName).setHeader("Имя").setAutoWidth(true);
@@ -100,67 +148,80 @@ public class ReportParamEditor extends VerticalLayout {
         grid.asSingleSelect().addValueChangeListener(event -> onParamSwitch(event.getValue()));
     }
 
-    private void configureForm() {
-        name.setRequiredIndicatorVisible(true);
+    private void configurePalette() {
+        palette.setResponsiveSteps(
+                new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE));
+        palette.setWidthFull();
+        // Аналог ItemForm.addAsFormItem: label контрола очищается, чтобы у FormItem
+        // не было двойного заголовка («свойство слева, поле справа» в одну строку).
+        addFormItem(palette, name, "Имя JPQL-параметра");
+        addFormItem(palette, caption, "Заголовок на форме");
+        addFormItem(palette, kind, "Вид");
+        addFormItem(palette, valueSource, "Источник значения");
+        addFormItem(palette, entityClass, "Класс сущности");
+        addFormItem(palette, defaultValue, "Значение по умолчанию");
+        addFormItem(palette, computed, "Вычисляемое значение");
+        addFormItem(palette, required, "Обязательный");
+        addFormItem(palette, showOnForm, "Показывать в форме запуска");
+        palette.setVisible(false);
+
         name.setMaxLength(100);
-        name.setWidth("230px");
         caption.setMaxLength(255);
-        caption.setWidth("260px");
         kind.setItems(ReportParamKind.values());
-        kind.setValue(ReportParamKind.SCALAR);
-        kind.setWidth("170px");
-        kind.addValueChangeListener(event -> updateFormAvailability());
         valueSource.setItems(ReportParamSource.values());
-        valueSource.setValue(ReportParamSource.FORM);
-        valueSource.setWidth("180px");
-        valueSource.addValueChangeListener(event -> updateFormAvailability());
-        entityClass.setPlaceholder("org.ip.model.Journal");
-        entityClass.setMaxLength(255);
-        entityClass.setWidth("290px");
+        entityClass.setItemLabelGenerator(option ->
+                option.caption() == null || option.caption().isBlank()
+                        ? option.entityName() : option.caption() + " (" + option.entityName() + ")");
         defaultValue.setMaxLength(1_000);
         defaultValue.setPlaceholder("JSON или строковое значение");
-        defaultValue.setWidth("290px");
         defaultValue.setMinHeight("5em");
         computed.setItems(ReportComputedValue.values());
-        computed.setValue(ReportComputedValue.NONE);
-        computed.setWidth("200px");
-        updateFormAvailability();
-        name.addValueChangeListener(event -> markDirty());
-        caption.addValueChangeListener(event -> markDirty());
-        kind.addValueChangeListener(event -> markDirty());
-        valueSource.addValueChangeListener(event -> markDirty());
-        entityClass.addValueChangeListener(event -> markDirty());
-        defaultValue.addValueChangeListener(event -> markDirty());
-        computed.addValueChangeListener(event -> markDirty());
-        required.addValueChangeListener(event -> markDirty());
-        showOnForm.addValueChangeListener(event -> markDirty());
+
+        name.addValueChangeListener(event -> applyToParam(param -> param.setName(event.getValue().trim())));
+        caption.addValueChangeListener(event -> applyToParam(param -> param.setCaption(blankToNull(event.getValue()))));
+        kind.addValueChangeListener(event -> {
+            applyToParam(param -> param.setKind(event.getValue()));
+            updateFormAvailability();
+        });
+        valueSource.addValueChangeListener(event -> {
+            applyToParam(param -> param.setValueSource(event.getValue()));
+            updateFormAvailability();
+        });
+        entityClass.addValueChangeListener(event -> applyToParam(param -> param.setEntityClass(
+                event.getValue() == null ? null : event.getValue().className())));
+        defaultValue.addValueChangeListener(event -> applyToParam(param -> param.setDefaultValue(blankToNull(event.getValue()))));
+        computed.addValueChangeListener(event -> applyToParam(param -> param.setComputed(event.getValue())));
+        required.addValueChangeListener(event -> applyToParam(param -> param.setRequired(event.getValue())));
+        showOnForm.addValueChangeListener(event -> applyToParam(param -> param.setShowOnForm(event.getValue())));
     }
 
-    private VerticalLayout form() {
-        HorizontalLayout main = new HorizontalLayout(name, caption, kind, valueSource);
-        main.setWrap(true);
-        HorizontalLayout sourceFields = new HorizontalLayout(entityClass, defaultValue, computed, required, showOnForm);
-        sourceFields.setAlignItems(Alignment.END);
-        sourceFields.setWrap(true);
-        VerticalLayout form = new VerticalLayout(main, sourceFields);
-        form.setPadding(false);
-        form.setSpacing(true);
-        return form;
+    // ------------------------------------------------------------ выбор и применение
+
+    private void onParamSwitch(ReportParam param) {
+        if (processor) {
+            return;
+        }
+        select(param);
     }
 
-    private void select(ReportParam param) {
+    /** Выбирает параметр и заполняет палитру (тестовый шов). */
+    void select(ReportParam param) {
         processor = true;
         try {
             selected = param;
             if (param == null) {
+                palette.setVisible(false);
+                paletteHint.setVisible(true);
                 clearForm();
                 return;
             }
+            palette.setVisible(true);
+            paletteHint.setVisible(false);
             name.setValue(param.getName());
             caption.setValue(Objects.requireNonNullElse(param.getCaption(), ""));
             kind.setValue(param.getKind());
             valueSource.setValue(param.getValueSource());
-            entityClass.setValue(Objects.requireNonNullElse(param.getEntityClass(), ""));
+            entityClass.setValue(findEntityOption(param.getEntityClass()));
             defaultValue.setValue(Objects.requireNonNullElse(param.getDefaultValue(), ""));
             computed.setValue(param.getComputed());
             required.setValue(param.isRequired());
@@ -170,63 +231,16 @@ public class ReportParamEditor extends VerticalLayout {
         } finally {
             processor = false;
         }
-        formDirty = false;
     }
 
-    private void onParamSwitch(ReportParam param) {
-        if (processor) {
+    /** Мгновенное применение свойства палитры к выбранному параметру. */
+    private void applyToParam(Consumer<ReportParam> updater) {
+        if (processor || selected == null) {
             return;
         }
-        if (formDirty && selected != null) {
-            confirmDirty(param);
-            return;
-        }
-        select(param);
-    }
-
-    private void confirmDirty(ReportParam target) {
-        Dialog confirm = new Dialog();
-        confirm.setHeaderTitle("Несохранённые изменения формы");
-        Paragraph message = new Paragraph(
-                "В форме есть изменения, которые ещё не применены к параметру. "
-                        + "Выберите действие перед переходом к другой записи.");
-        Button apply = new Button("Применить и перейти", event -> {
-            applyDirtyForm();
-            confirm.close();
-            switchSelection(target);
-        });
-        Button discard = new Button("Не сохранять", event -> {
-            confirm.close();
-            switchSelection(target);
-        });
-        Button stay = new Button("Остаться", event -> {
-            confirm.close();
-            switchSelection(selected);
-        });
-        confirm.add(new VerticalLayout(message, new HorizontalLayout(apply, discard, stay)));
-        confirm.open();
-    }
-
-    private void applyDirtyForm() {
-        if (selected != null) {
-            applyParamFields(selected);
-        }
-        formDirty = false;
-    }
-
-    private void switchSelection(ReportParam target) {
-        processor = true;
-        try {
-            grid.asSingleSelect().setValue(target);
-        } finally {
-            processor = false;
-        }
-    }
-
-    private void markDirty() {
-        if (!processor) {
-            formDirty = true;
-        }
+        updater.accept(selected);
+        grid.getListDataView().refreshAll();
+        notifyChanged();
     }
 
     void addParam() {
@@ -239,37 +253,19 @@ public class ReportParamEditor extends VerticalLayout {
         param.setPosition(template.getParams().size());
         template.addParam(param);
         grid.getListDataView().refreshAll();
-        processor = true;
-        try {
-            grid.select(param);
-        } finally {
-            processor = false;
-        }
-        formDirty = false;
+        grid.select(param);
         notifyChanged();
     }
 
-    private void updateParam() {
-        if (selected == null || isBlank(name.getValue())) {
+    void removeParam() {
+        if (template == null || selected == null) {
             return;
         }
-        applyParamFields(selected);
+        template.getParams().remove(selected);
         grid.getListDataView().refreshAll();
-        hint.setText("Изменения параметра :" + selected.getName() + " применены. Сохраните шаблон для серверной проверки.");
-        formDirty = false;
+        select(null);
+        hint.setText("Параметр удалён. Сохраните шаблон, чтобы зафиксировать изменение.");
         notifyChanged();
-    }
-
-    private void applyParamFields(ReportParam param) {
-        param.setName(name.getValue().trim());
-        param.setCaption(blankToNull(caption.getValue()));
-        param.setKind(kind.getValue());
-        param.setValueSource(valueSource.getValue());
-        param.setEntityClass(blankToNull(entityClass.getValue()));
-        param.setDefaultValue(blankToNull(defaultValue.getValue()));
-        param.setComputed(computed.getValue());
-        param.setRequired(required.getValue());
-        param.setShowOnForm(showOnForm.getValue());
     }
 
     private void moveSelectedParam(int direction) {
@@ -290,18 +286,7 @@ public class ReportParamEditor extends VerticalLayout {
         notifyChanged();
     }
 
-    private void removeParam() {
-        if (template == null || selected == null) {
-            return;
-        }
-        template.getParams().remove(selected);
-        selected = null;
-        grid.getListDataView().refreshAll();
-        clearForm();
-        hint.setText("Параметр удалён. Сохраните шаблон, чтобы зафиксировать изменение.");
-        formDirty = false;
-        notifyChanged();
-    }
+    // ------------------------------------------------------------ вспомогательное
 
     private void notifyChanged() {
         changeListener.run();
@@ -355,6 +340,85 @@ public class ReportParamEditor extends VerticalLayout {
         if (template == null) {
             throw new IllegalStateException("Сначала необходимо установить шаблон отчёта");
         }
+    }
+
+    private QueryMetadataCatalogService.EntityOption findEntityOption(String className) {
+        if (className == null || className.isBlank()) {
+            return null;
+        }
+        return entityOptions.stream()
+                .filter(option -> className.equals(option.className()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /** Как в ItemForm: очищает собственный label контрола и добавляет FormItem с подписью слева. */
+    private static void addFormItem(FormLayout layout, Component control, String label) {
+        if (control instanceof HasLabel hasLabel) {
+            hasLabel.setLabel(null);
+        }
+        layout.addFormItem(control, label);
+    }
+
+    private static boolean contains(FormLayout.FormItem item, Component control) {
+        return item.getChildren().anyMatch(component -> component == control);
+    }
+
+    // ------------------------------------------------------------ тестовые швы
+
+    /** Видимость палитры свойств. */
+    boolean paletteVisible() {
+        return palette.isVisible();
+    }
+
+    /** Видимость строки палитры (по контролу). */
+    boolean paletteRowVisible(Component control) {
+        for (Component child : palette.getChildren().toList()) {
+            if (child instanceof FormLayout.FormItem item && contains(item, control)) {
+                return item.isVisible();
+            }
+        }
+        return false;
+    }
+
+    TextField nameField() {
+        return name;
+    }
+
+    TextField captionField() {
+        return caption;
+    }
+
+    ComboBox<ReportParamKind> kindField() {
+        return kind;
+    }
+
+    ComboBox<ReportParamSource> valueSourceField() {
+        return valueSource;
+    }
+
+    ComboBox<QueryMetadataCatalogService.EntityOption> entityClassField() {
+        return entityClass;
+    }
+
+    TextArea defaultValueField() {
+        return defaultValue;
+    }
+
+    ComboBox<ReportComputedValue> computedField() {
+        return computed;
+    }
+
+    Checkbox requiredField() {
+        return required;
+    }
+
+    Checkbox showOnFormField() {
+        return showOnForm;
+    }
+
+    ReportParam selectedParam() {
+        return selected;
     }
 
     private static String emptyAsDash(String value) {

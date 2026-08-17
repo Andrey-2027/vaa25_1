@@ -13,7 +13,9 @@ public enum ReportBandKind {
     GROUP_HEADER,
     DETAIL,
     GROUP_FOOTER,
-    REPORT_FOOTER;
+    REPORT_FOOTER,
+    /** Блок «нет данных»: печатается, когда выборка пуста; только TEXT-поля. */
+    NO_DATA;
 
     /** Групповой бэнд (требует groupField и парный бэнд). */
     public boolean isGroupBand() {
@@ -23,5 +25,10 @@ public enum ReportBandKind {
     /** Footer-бэнд: единственное место, где допустимы агрегаты. */
     public boolean isFooterBand() {
         return this == GROUP_FOOTER || this == REPORT_FOOTER;
+    }
+
+    /** Бэнд, поля которого — только текстовые блоки (без колонок). */
+    public boolean isTextOnlyBand() {
+        return this == REPORT_HEADER || this == NO_DATA;
     }
 }

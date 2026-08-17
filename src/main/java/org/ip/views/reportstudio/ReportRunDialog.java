@@ -12,7 +12,10 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.StreamResourceRegistry;
+import com.vaadin.flow.server.VaadinSession;
 import org.ip.form.SelectionFormAssembler;
 import org.ip.security.CurrentUser;
 import org.ip.service.LookupService;
@@ -24,6 +27,7 @@ import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.run.ReportRunResult;
 
 import java.io.ByteArrayInputStream;
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 
@@ -131,9 +135,19 @@ public class ReportRunDialog extends Dialog {
         StreamResource resource = new StreamResource("preview.pdf", () -> new ByteArrayInputStream(pdfBytes));
         resource.setContentType("application/pdf");
         IFrame preview = new IFrame();
-        preview.setSrc(resource);
         preview.setSizeFull();
         preview.setHeight("60vh");
+        VaadinSession session = VaadinSession.getCurrent();
+        URI uri = session == null
+                ? StreamResourceRegistry.getURI(resource)
+                : session.getResourceRegistry().getTargetURI(resource);
+        UI.getCurrent().getPage().executeJs(
+            "fetch($0, { credentials: 'same-origin' })"
+                + ".then(r => r.blob())"
+                + ".then(b => { const u = URL.createObjectURL(b); $1.src = u; "
+                + "$1.addEventListener('load', () => URL.revokeObjectURL(u), { once: true }); })"
+                + ".catch(() => { $1.src = $0; });",
+            uri.toASCIIString(), preview.getElement());
         return preview;
     }
 

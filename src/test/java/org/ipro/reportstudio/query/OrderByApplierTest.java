@@ -85,4 +85,48 @@ class OrderByApplierTest {
         assertEquals(-1, OrderByApplier.findOrderBy("select s from S s where s.note = 'order by x'"));
         assertEquals(-1, OrderByApplier.findOrderBy("select string_agg(s.code, ',' order by s.code) from S s"));
     }
+
+    @Test
+    void userSortsAppendAfterGroupFields() {
+        assertEquals(
+            "select s from S s order by s.journal.code, s.code desc, s.qty",
+            OrderByApplier.withOrderBy("select s from S s", List.of("s.journal.code"),
+                List.of(new OrderByApplier.OrderSpec("s.code", true),
+                        new OrderByApplier.OrderSpec("s.qty", false))));
+    }
+
+    @Test
+    void userSortForGroupFieldIsSkipped() {
+        assertEquals(
+            "select s from S s order by s.journal.code, s.qty",
+            OrderByApplier.withOrderBy("select s from S s", List.of("s.journal.code"),
+                List.of(new OrderByApplier.OrderSpec("s.journal.code", true),
+                        new OrderByApplier.OrderSpec("s.qty", false))));
+    }
+
+    @Test
+    void firstOrderOnDuplicateWins() {
+        assertEquals(
+            "select s from S s order by s.code",
+            OrderByApplier.withOrderBy("select s from S s", List.of(),
+                List.of(new OrderByApplier.OrderSpec("s.code", false),
+                        new OrderByApplier.OrderSpec("s.code", true))));
+    }
+
+    @Test
+    void existingOrderByKeepsUserSortsPrefix() {
+        assertEquals(
+            "select s from S s order by s.journal.code, s.code desc, s.extra",
+            OrderByApplier.withOrderBy("select s from S s order by s.extra", List.of("s.journal.code"),
+                List.of(new OrderByApplier.OrderSpec("s.code", true))));
+    }
+
+    @Test
+    void nullOrBlankOrderSpecSkipped() {
+        assertEquals(
+            "select s from S s",
+            OrderByApplier.withOrderBy("select s from S s", List.of(),
+                java.util.Arrays.asList(null, new OrderByApplier.OrderSpec("", true),
+                        new OrderByApplier.OrderSpec(null, false))));
+    }
 }

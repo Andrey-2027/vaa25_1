@@ -20,9 +20,9 @@ public class WorkshopFormConfig implements ItemFormCustomization {
 
     @Override
     public void configure(ItemFormVariants variants) {
-        /*variants.addDefault(ctx -> {
+        variants.addDefault(ctx -> {
             EntityMetadataInfo meta = ctx.metadataResolver().resolve(Workshop.class);
             return new WorkshopItemForm(meta, ctx.fieldFactory());
-        });*/
+        });
     }
 }

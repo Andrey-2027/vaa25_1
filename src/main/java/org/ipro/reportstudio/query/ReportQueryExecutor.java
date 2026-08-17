@@ -63,6 +63,7 @@ public class ReportQueryExecutor {
         }
         QueryField[] schema = fields.toArray(QueryField[]::new);
 
+        jpql = ServiceParams.expand(jpql);
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         applyServerStatementTimeout(timeoutMs);
         Query query = entityManager.createQuery(jpql, Tuple.class);

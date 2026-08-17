@@ -102,7 +102,7 @@ class ReportExecutionIT {
         ReportCompiler compiler = new JasperReportCompiler();
         var artifactCache = new ReportArtifactCache(4);
 
-        service = new ReportExecutionService(guard, executor, resolver, compiler, artifactCache);
+        service = new ReportExecutionService(guard, executor, resolver, refresher, compiler, artifactCache);
 
         Journal journalA = new Journal();
         journalA.setCode("A");
@@ -184,6 +184,23 @@ class ReportExecutionIT {
             service.run(template, ReportContext.empty(currentUser()), Map.of(), "ru_RU", "UTC"));
     }
 
+    @Test
+    void serviceParamIsBoundFromRunContext() throws Exception {
+        loginAs("admin");
+        ReportTemplate template = serviceParamTemplate();
+        entityManager.persist(template);
+        entityManager.flush();
+
+        ReportRunResult result = service.run(template,
+            ReportContext.of(Journal.class, journalAId, List.of(journalAId), "specs",
+                currentUser(), java.time.Instant.now()),
+            Map.of(), "ru_RU", "UTC");
+
+        assertThat(result.print()).isInstanceOf(JasperPrint.class);
+        byte[] pdf = service.export(result, ReportExportFormat.PDF);
+        assertThat(pdfText(pdf)).contains("SPEC-1").contains("SPEC-3");
+    }
+
     private ReportTemplate groupedTemplate() {
         ReportTemplate template = new ReportTemplate();
         template.setName("Отчёт по спецификациям");
@@ -214,6 +231,20 @@ class ReportExecutionIT {
         count.setAggregation(ReportFieldAggregation.COUNT);
         groupFooter.addField(count);
         template.addBand(groupFooter);
+        return template;
+    }
+
+    private ReportTemplate serviceParamTemplate() {
+        ReportTemplate template = new ReportTemplate();
+        template.setName("Спецификации журнала");
+        template.setState(ReportTemplateState.PUBLISHED);
+        template.setJpql("select s.codeSpec from PrdSpec s where s.journal.id = :parEntity.id");
+        template.setMaxRows(100);
+        template.setTimeoutMs(30_000);
+
+        ReportBand detail = band(ReportBandKind.DETAIL, null, null);
+        detail.addField(field("s.codeSpec", "Код спецификации", null));
+        template.addBand(detail);
         return template;
     }
 

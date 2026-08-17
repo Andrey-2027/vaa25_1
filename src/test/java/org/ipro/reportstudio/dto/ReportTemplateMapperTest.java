@@ -6,6 +6,9 @@ import org.ipro.reportstudio.dom.ReportComputedValue;
 import org.ipro.reportstudio.dom.ReportField;
 import org.ipro.reportstudio.dom.ReportFieldAggregation;
 import org.ipro.reportstudio.dom.ReportFieldAlignment;
+import org.ipro.reportstudio.dom.ReportFieldKind;
+import org.ipro.reportstudio.dom.ReportPageOrientation;
+import org.ipro.reportstudio.dom.ReportPageSize;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
@@ -13,6 +16,7 @@ import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.dom.ReportTemplateState;
 import org.ipro.reportstudio.dto.ReportTemplateDto.ReportBandDto;
 import org.ipro.reportstudio.dto.ReportTemplateDto.ReportFieldDto;
+import org.ipro.reportstudio.dto.ReportTemplateDto.ReportOrderDto;
 import org.ipro.reportstudio.dto.ReportTemplateDto.ReportParamDto;
 import org.junit.jupiter.api.Test;
 
@@ -116,6 +120,66 @@ class ReportTemplateMapperTest {
         assertThat(back).usingRecursiveComparison().isEqualTo(dto);
     }
 
+    @Test
+    void roundTripKeepsOrdersAndStartNewPage() {
+        ReportTemplateDto dto = richDto();
+        ReportOrderDto order = new ReportOrderDto();
+        order.setColumnName("amount");
+        order.setDirection(org.ipro.reportstudio.dom.ReportOrderDirection.DESC);
+        order.setPosition(0);
+        dto.getOrders().add(order);
+
+        ReportTemplateDto back = ReportTemplateMapper.toDto(ReportTemplateMapper.toEntity(dto));
+        assertThat(back).usingRecursiveComparison().isEqualTo(dto);
+    }
+
+    @Test
+    void applyToReplacesOrdersAndBands() {
+        ReportTemplate entity = richEntity();
+
+        ReportTemplateDto update = new ReportTemplateDto();
+        update.setName("С правкой сортировки");
+        ReportOrderDto order = new ReportOrderDto();
+        order.setColumnName("code");
+        order.setPosition(0);
+        update.getOrders().add(order);
+        ReportTemplateMapper.applyTo(entity, update);
+
+        // applyTo полностью заменяет бэнды и правила сортировки
+        assertThat(entity.getOrders()).hasSize(1);
+        assertThat(entity.getOrders().get(0).getColumnName()).isEqualTo("code");
+        assertThat(entity.getOrders().get(0).getTemplate()).isSameAs(entity);
+        assertThat(entity.getBands()).isEmpty();
+    }
+
+    @Test
+    void toEntityKeepsStartNewPageAndRowNumberKind() {
+        ReportTemplateDto dto = richDto();
+        ReportBandDto group = dto.getBands().stream()
+            .filter(b -> b.getKind() == ReportBandKind.GROUP_HEADER)
+            .findFirst().orElseThrow();
+        group.setStartNewPage(true);
+        ReportBandDto detail = dto.getBands().stream()
+            .filter(b -> b.getKind() == ReportBandKind.DETAIL)
+            .findFirst().orElseThrow();
+        ReportFieldDto row = new ReportFieldDto();
+        row.setKind(ReportFieldKind.ROW_NUMBER);
+        row.setCaption("№");
+        row.setPosition(0);
+        detail.getFields().add(row);
+
+        ReportTemplate entity = ReportTemplateMapper.toEntity(dto);
+        ReportBand groupEntity = entity.getBands().stream()
+            .filter(b -> b.getKind() == ReportBandKind.GROUP_HEADER)
+            .findFirst().orElseThrow();
+        assertThat(groupEntity.getStartNewPage()).isTrue();
+        ReportBand detailEntity = entity.getBands().stream()
+            .filter(b -> b.getKind() == ReportBandKind.DETAIL)
+            .findFirst().orElseThrow();
+        assertThat(detailEntity.getFields())
+            .anyMatch(f -> f.getKind() == ReportFieldKind.ROW_NUMBER && "№".equals(f.getCaption()));
+    }
+
     private ReportTemplate richEntity() {
         return ReportTemplateMapper.toEntity(richDto());
     }
@@ -131,6 +195,11 @@ class ReportTemplateMapperTest {
         dto.setMaxRows(1000);
         dto.setTimeoutMs(15_000);
         dto.setAdvanced(true);
+        dto.setPageSize(ReportPageSize.A3);
+        dto.setPageOrientation(ReportPageOrientation.LANDSCAPE);
+        dto.setBaseFontSize(12);
+        dto.setGridEnabled(false);
+        dto.setStripeRows(true);
 
         ReportParamDto scalar = new ReportParamDto();
         scalar.setId(1L);
@@ -184,6 +253,13 @@ class ReportTemplateMapperTest {
         title.setWidth(80);
         title.setPosition(0);
         header.getFields().add(title);
+        ReportFieldDto banner = new ReportFieldDto();
+        banner.setId(1005L);
+        banner.setKind(ReportFieldKind.TEXT);
+        banner.setQueryField("");
+        banner.setText("Выписка за период");
+        banner.setPosition(1);
+        header.getFields().add(banner);
         dto.getBands().add(header);
 
         ReportBandDto journalHeader = new ReportBandDto();

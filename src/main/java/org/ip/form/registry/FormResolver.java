@@ -23,10 +23,12 @@ import java.util.function.Consumer;
 /**
  * Резолвер форм — стратегия поиска и создания форм.
  *
- * Иерархия поиска (Form Resolution Strategy):
- *   1. Попробовать найти кастомную форму по указанному варианту
- *   2. Попробовать найти default кастомную форму (variant = null)
- *   3. Создать generic форму из метаданных
+ * Иерархия поиска (Form Resolution Strategy, PR-1.4 «strict variants»):
+ *   1. variant = null → default кастомная форма, если зарегистрирована, иначе generic;
+ *   2. variant != null и зарегистрирован → кастомная форма по варианту;
+ *   3. variant != null и НЕ зарегистрирован → IllegalStateException — fallback на
+ *      default/generic запрещён, неизвестный key — ошибка конфигурации
+ *      (а не тихая подмена формы на менее подходящую).
  *
  * Использование:
  * <pre>
@@ -38,6 +40,7 @@ import java.util.function.Consumer;
  * );
  * </pre>
  */
+@org.springframework.stereotype.Component
 public class FormResolver {
 
     private final FormRegistry formRegistry;
@@ -87,7 +90,7 @@ public class FormResolver {
             String variant,
             Map<String, Object> parameters) {
 
-        // 1. Попробовать найти кастомную форму по варианту
+        // 1. Найти кастомную форму по варианту; неизвестный key — ошибка (strict, PR-1.4)
         if (variant != null) {
             FormFactory factory = formRegistry.findListForm(entityClass, variant);
             if (factory != null) {
@@ -99,6 +102,7 @@ public class FormResolver {
                     "FormFactory for " + entityClass.getSimpleName() + " LIST variant '" + variant +
                     "' returned " + component.getClass().getName() + " instead of ListForm");
             }
+            throw unknownVariant(entityClass, "LIST", variant);
         }
 
         // 2. Попробовать найти default кастомную форму
@@ -135,7 +139,7 @@ public class FormResolver {
             ID id,
             Map<String, Object> parameters) {
 
-        // 1. Попробовать найти кастомную форму по варианту
+        // 1. Найти кастомную форму по варианту; неизвестный key — ошибка (strict, PR-1.4)
         if (variant != null) {
             FormFactory factory = formRegistry.findItemForm(entityClass, variant);
             if (factory != null) {
@@ -150,6 +154,7 @@ public class FormResolver {
                     "FormFactory for " + entityClass.getSimpleName() + " ITEM variant '" + variant +
                     "' returned " + component.getClass().getName() + " instead of ItemForm");
             }
+            throw unknownVariant(entityClass, "ITEM", variant);
         }
 
         // 2. Попробовать найти default кастомную форму
@@ -250,5 +255,12 @@ public class FormResolver {
 
     private <T extends IdentifiableEntity, ID> BaseService<T, ID> findService(Class<T> entityClass) {
         return serviceLocator.findService(entityClass);
+    }
+
+    private static IllegalStateException unknownVariant(Class<?> entityClass, String formType, String variant) {
+        return new IllegalStateException(
+            "Unknown " + formType + " variant '" + variant + "' for " + entityClass.getName() +
+            " — fallback to default/generic is forbidden (strict variants). " +
+            "Check that the variant is registered in the corresponding form customization.");
     }
 }

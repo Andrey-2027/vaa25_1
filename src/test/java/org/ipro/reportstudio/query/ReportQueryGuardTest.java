@@ -90,6 +90,15 @@ class ReportQueryGuardTest {
     }
 
     @Test
+    void serviceParamDoesNotRequireTemplateDeclaration() {
+        loginAs("admin");
+        GuardResult result = guard.guard(
+            "select j.id from Journal j where j.id = :parEntity.id", Set.of());
+        assertThat(result.allowed()).isTrue();
+        assertThat(result.errors()).isEmpty();
+    }
+
+    @Test
     void updateIsDenied() {
         loginAs("admin");
         GuardResult result = guard.guard("update Journal j set j.name = 'x'", Set.of());

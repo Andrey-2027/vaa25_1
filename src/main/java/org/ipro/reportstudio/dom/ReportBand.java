@@ -55,6 +55,13 @@ public class ReportBand extends BaseEntity {
     @Column(name = "group_field", length = 100)
     private String groupField;
 
+    /**
+     * Начинать группу с новой страницы (только GROUP_HEADER).
+     * Хранится на header-бэнде пары; footer значение не использует.
+     */
+    @Column(name = "start_new_page")
+    private Boolean startNewPage;
+
     @OneToMany(mappedBy = "band", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC, id ASC")
     private List<ReportField> fields = new ArrayList<>();
@@ -97,6 +104,18 @@ public class ReportBand extends BaseEntity {
 
     public void setGroupField(String groupField) {
         this.groupField = groupField;
+    }
+
+    public Boolean getStartNewPage() {
+        return startNewPage;
+    }
+
+    public boolean isStartNewPage() {
+        return startNewPage != null && startNewPage;
+    }
+
+    public void setStartNewPage(Boolean startNewPage) {
+        this.startNewPage = startNewPage;
     }
 
     public List<ReportField> getFields() {

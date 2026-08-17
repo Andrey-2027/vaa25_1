@@ -4,6 +4,7 @@ import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.query.GuardResult;
 import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.reportstudio.query.ServiceParams;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -17,6 +18,14 @@ import java.util.TreeSet;
 /**
  * Адаптер над общим guard редактора отчётов. Он не исполняет JPQL и не
  * дублирует SQM-анализ: только подготавливает сведения для редакторского UI.
+ *
+ * <p>Ядро — {@link #analyze(String, Set, Map)} — не привязано к персистентной
+ * декларации {@link ReportParam}: guard'у нужны только имена параметров и,
+ * для сущностных, их класс. Это позволяет {@code ReportQueryEditor} проверять
+ * запрос по своим тестовым значениям параметров, не создавая ReportParam —
+ * окончательная декларация (valueSource/showOnForm/required) остаётся
+ * ответственностью {@code ReportParamEditor}. Перегрузка от {@link ReportParam}
+ * — удобство для вызывающих, у которых уже есть персистентные декларации.</p>
  */
 public class QueryEditorAnalysisService {
 
@@ -26,6 +35,7 @@ public class QueryEditorAnalysisService {
         this.guard = Objects.requireNonNull(guard, "guard");
     }
 
+    /** Удобство для вызывающих с уже персистентными декларациями параметров шаблона. */
     public QueryEditorAnalysis analyze(String jpql, Collection<ReportParam> declaredParams) {
         List<ReportParam> params = declaredParams == null ? List.of() : declaredParams.stream()
                 .filter(Objects::nonNull)
@@ -34,32 +44,32 @@ public class QueryEditorAnalysisService {
                 .map(ReportParam::getName)
                 .filter(name -> name != null && !name.isBlank())
                 .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
-        Map<String, Class<?>> entityClasses = entityClasses(params);
-        GuardResult result = guard.guard(jpql, names, entityClasses);
+        return analyze(jpql, names, entityClasses(params));
+    }
 
-        Map<String, ReportParam> byName = new LinkedHashMap<>();
-        for (ReportParam param : params) {
-            if (param.getName() != null && !param.getName().isBlank()) {
-                byName.put(param.getName(), param);
-            }
-        }
+    /**
+     * Ядро анализа: имена объявленных параметров и (для сущностных) их класс —
+     * без обращения к {@link ReportParam}. Используется редактором JPQL, где
+     * параметры существуют только как тестовые значения для «Проверить/Выполнить».
+     */
+    public QueryEditorAnalysis analyze(String jpql, Set<String> declaredNames, Map<String, Class<?>> entityClasses) {
+        Set<String> names = declaredNames == null ? Set.of() : declaredNames;
+        Map<String, Class<?>> classes = entityClasses == null ? Map.of() : entityClasses;
+        GuardResult result = guard.guard(jpql, names, classes);
+
         List<QueryParameterDescriptor> descriptors = result.analysis().parameters().stream()
-                .map(name -> descriptor(name, byName.get(name)))
+                .filter(name -> !ServiceParams.isServiceName(name))
+                .map(name -> descriptor(name, classes.get(name)))
                 .sorted(Comparator.comparing(QueryParameterDescriptor::name))
                 .toList();
         return new QueryEditorAnalysis(jpql == null ? "" : jpql, result, descriptors);
     }
 
-    private QueryParameterDescriptor descriptor(String name, ReportParam existing) {
-        if (existing == null) {
-            return QueryParameterDescriptor.unknown(name);
-        }
-        Class<?> entityClass = entityClass(existing);
+    private QueryParameterDescriptor descriptor(String name, Class<?> entityClass) {
         if (entityClass != null) {
-            return new QueryParameterDescriptor(name, entityClass, entityClass,
-                    existing.getKind() == ReportParamKind.ENTITY_LIST,
+            return new QueryParameterDescriptor(name, entityClass, entityClass, false,
                     QueryParameterDescriptor.InferenceStatus.INFERRED,
-                    "Тип взят из декларации параметра шаблона");
+                    "Тип взят из класса сущности параметра");
         }
         return QueryParameterDescriptor.unknown(name);
     }

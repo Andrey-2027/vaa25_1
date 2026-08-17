@@ -48,6 +48,38 @@ public class QueryMetadataCatalogService {
                 .toList();
     }
 
+    /**
+     * Вариант выбора типа сущностного параметра: сущности с
+     * {@code @EntityMetadata}, доступные текущему пользователю, в формате
+     * fqcn + caption. Тот же фильтр, что у {@link #roots} (каталог редактора).
+     */
+    public List<EntityOption> entityOptions() {
+        return entityManagerFactory.getMetamodel().getEntities().stream()
+                .sorted(Comparator.comparing(EntityType::getName))
+                .filter(entity -> entity.getJavaType().isAnnotationPresent(EntityMetadata.class))
+                .filter(entity -> rlsReadGate.canRead(entity.getJavaType(), currentUser.username()))
+                .map(this::entityOption)
+                .toList();
+    }
+
+    private EntityOption entityOption(EntityType<?> entity) {
+        EntityMetadataInfo metadata;
+        try {
+            metadata = metadataResolver.resolve(entity.getJavaType());
+        } catch (IllegalArgumentException noPlatformMetadata) {
+            return new EntityOption(entity.getName(), entity.getJavaType().getName(), null);
+        }
+        String caption = metadata.getListFormTitle();
+        if (caption == null || caption.isBlank()) {
+            caption = entity.getName();
+        }
+        return new EntityOption(entity.getName(), entity.getJavaType().getName(), caption);
+    }
+
+    /** Сущность для выбора в декларациях: short/HQL-имя, FQCN, заголовок реестра. */
+    public record EntityOption(String entityName, String className, String caption) {
+    }
+
     private QueryMetadataNode entityNode(EntityType<?> entity) {
         EntityMetadataInfo metadata;
         try {

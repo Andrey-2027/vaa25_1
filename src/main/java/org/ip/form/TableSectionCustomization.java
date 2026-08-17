@@ -3,6 +3,8 @@ package org.ip.form;
 import org.ip.form.builtin.ItemTable;
 import org.ipro.crud.IdentifiableEntity;
 
+import java.util.List;
+
 /**
  * Точечная настройка {@link ItemTable} для конкретного класса строки табличной части —
  * по аналогии с ListFormCustomization/ItemFormCustomization, но для вещей, специфичных
@@ -29,8 +31,7 @@ import org.ipro.crud.IdentifiableEntity;
  *     public Class<PrdSpecMtr> rowClass() { return PrdSpecMtr.class; }
  *
  *     public void configure(ItemTable<PrdSpecMtr, ?> table) {
- *         table.setRowVariantSelector(row ->
- *             row.getTypeMtr() != null && row.getTypeMtr() == 1 ? "product" : "material");
+ *         table.setRowVariantSelector(row -> PrdSpecMtrVariant.of(row.getTypeMtr()).key());
  *         table.setAddOptions(List.of(
  *             new ItemTable.AddOption<>("Добавить материал", row -> row.setTypeMtr(0)),
  *             new ItemTable.AddOption<>("Добавить продукцию", row -> row.setTypeMtr(1))
@@ -45,4 +46,15 @@ public interface TableSectionCustomization<T extends IdentifiableEntity> {
     Class<T> rowClass();
 
     void configure(ItemTable<T, ?> table);
+
+    /**
+     * Именованные варианты формы строки, которые объявляет эта секция (PR-1.4): список
+     * строковых ключей, используемых {@code setRowVariantSelector}. Проверяются на старте
+     * приложения ({@link org.ip.form.TableSectionFactory}) — каждый объявленный вариант
+     * должен быть зарегистрирован как ITEM-вариант формы строки, иначе старт падает.
+     * Пустой список = секция вариантов не объявляет (поведение по умолчанию).
+     */
+    default List<String> declaredRowVariants() {
+        return List.of();
+    }
 }

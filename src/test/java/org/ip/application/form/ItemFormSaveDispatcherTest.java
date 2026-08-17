@@ -5,9 +5,12 @@ import org.ip.form.builtin.ItemForm;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.Workshop;
 import org.ip.service.BaseService;
+import org.ip.service.ServiceLocator;
+import org.ipro.crud.IdentifiableEntity;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -16,38 +19,43 @@ import static org.mockito.Mockito.when;
 
 class ItemFormSaveDispatcherTest {
 
+    private final ReceivingDocumentFormSaveAdapter adapter = mock(ReceivingDocumentFormSaveAdapter.class);
+    private final ServiceLocator serviceLocator = mock(ServiceLocator.class);
+    private final ItemFormSaveDispatcher dispatcher =
+        new ItemFormSaveDispatcher(adapter, serviceLocator);
+
     @Test
     @SuppressWarnings({"rawtypes", "unchecked"})
     void delegatesReceivingDocumentToTransactionalAdapter() {
-        ReceivingDocumentFormSaveAdapter adapter = mock(ReceivingDocumentFormSaveAdapter.class);
         ItemForm<ReceivingDocument> form = mock(ItemForm.class);
-        BaseService<ReceivingDocument, ?> service = mock(BaseService.class);
-        ReceivingDocument saved = mock(ReceivingDocument.class);
         doReturn(ReceivingDocument.class).when(form).getEntityClass();
+        ReceivingDocument saved = mock(ReceivingDocument.class);
         when(adapter.save(form)).thenReturn(saved);
 
-        ReceivingDocument result = new ItemFormSaveDispatcher(adapter).save(form, service);
+        FormSaveResult<IdentifiableEntity> result = dispatcher.save((ItemForm) form);
 
-        assertThat(result).isSameAs(saved);
+        assertThat(result.success()).isTrue();
+        assertThat(((FormSaveResult.Success) result).saved()).isSameAs(saved);
         verify(adapter).save(form);
-        verify(service, never()).save(form.getEntity());
+        verify(serviceLocator, never()).findService(any());
     }
 
     @Test
     @SuppressWarnings({"rawtypes", "unchecked"})
     void retainsGenericSaveLifecycleForOtherEntities() {
-        ReceivingDocumentFormSaveAdapter adapter = mock(ReceivingDocumentFormSaveAdapter.class);
         ItemForm<Workshop> form = mock(ItemForm.class);
-        BaseService<Workshop, ?> service = mock(BaseService.class);
+        doReturn(Workshop.class).when(form).getEntityClass();
         Workshop entity = mock(Workshop.class);
         Workshop saved = mock(Workshop.class);
-        doReturn(Workshop.class).when(form).getEntityClass();
         when(form.getEntity()).thenReturn(entity);
+        BaseService service = mock(BaseService.class);
+        when(serviceLocator.findService(Workshop.class)).thenReturn(service);
         when(service.save(entity)).thenReturn(saved);
 
-        Workshop result = new ItemFormSaveDispatcher(adapter).save(form, service);
+        FormSaveResult<IdentifiableEntity> result = dispatcher.save((ItemForm) form);
 
-        assertThat(result).isSameAs(saved);
+        assertThat(result.success()).isTrue();
+        assertThat(((FormSaveResult.Success) result).saved()).isSameAs(saved);
         verify(service).save(entity);
         verify(form).commitTableSections(saved);
         verify(form).commitSnapshot();

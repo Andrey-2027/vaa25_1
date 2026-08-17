@@ -14,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import org.ip.form.SelectionFormAssembler;
+import org.ip.form.builtin.SelectionForm;
 import org.ip.metadata.ColumnPath;
 import org.ip.metadata.annotation.FieldType;
 import org.ip.service.LookupService;
@@ -139,7 +140,22 @@ public class ReportParamForm extends VerticalLayout {
                                           SelectionFormAssembler assembler) {
         EntityField field = new EntityField(label(param), entitySearch(param, lookupService, assembler));
         field.setWidthFull();
+        installSelectionForm(field, param, assembler);
         return field;
+    }
+
+    /**
+     * Кнопка «…» поля — Форма Выбора ({@code assembler.assemble}: JpaFilterGrid над
+     * {@code BaseService.findAll(spec, pageable)} той же сущности, колонки из
+     * {@code @EntityMetadata.selectColumns()}). Дефолтная форма выбора re используется
+     * приложения, как в {@code FieldFactory}.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void installSelectionForm(EntityField field, ReportParam param,
+                                      SelectionFormAssembler assembler) {
+        Class<?> entityClass = entityClassOf(param);
+        field.setSelectionFormFactory(onSelect ->
+            (SelectionForm) assembler.assemble((Class) entityClass, (Consumer) onSelect));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -153,6 +169,7 @@ public class ReportParamForm extends VerticalLayout {
         Consumer<Void> addRow = ignored -> {
             EntityField row = new EntityField(label(param), entitySearch(param, lookupService, assembler));
             row.setWidthFull();
+            installSelectionForm(row, param, assembler);
             Button remove = new Button(VaadinIcon.MINUS.create(), e -> {
                 list.remove(row);
                 rowFields.remove(row);

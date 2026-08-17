@@ -4,6 +4,8 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValue;
 import org.ip.metadata.FieldMetadataInfo;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -15,17 +17,22 @@ import java.util.function.Supplier;
  *
  * Хранит:
  *   - Ссылку на Vaadin-компонент
- *   - Метаданные поля (@FieldMetadata)
+ *   - Описание поля ({@link BindingDescriptor}) — источник key/label/required
+ *   - Метаданные поля ({@code FieldMetadataInfo}, nullable — только metadata-сценарии)
  *   - Лямбды для чтения/записи в обе стороны
  *
- * Используется ItemForm для синхронизации значений между UI и entity.
+ * Два пути создания (спецификация «Часть D.2», PR-1.1):
+ *   - {@link #forMetadata(FieldMetadataInfo, Component, ...)} — старый путь (поля из метаданных);
+ *   - {@link #forExternal(BindingDescriptor, Component, ...)} — новый путь (Workshop, кастомный
+ *     layout) — те же валидация/dirty/read-only, но без FieldMetadataInfo.
  *
  * Биндинг регистрируется в FormBindingRegistry. Регистр вызывает applyToEntity/readFromEntity
  * на всех биндингах при сохранении/загрузке.
  */
 public class FormBinding {
 
-    private final FieldMetadataInfo fieldInfo;
+    private final BindingDescriptor descriptor;
+    private final FieldMetadataInfo fieldInfo; // nullable, только metadata-сценарии
     private final Component component;
     private final BiConsumer<Object, Object> writeToEntity;
     private final Function<Object, Object> readFromEntity;
@@ -36,6 +43,11 @@ public class FormBinding {
     private boolean readOnly = false;
     private Object lastLoadedValue;
 
+    /**
+     * @deprecated Переходная совместимость. Новый путь — {@link #forMetadata(FieldMetadataInfo, Component, Function, BiConsumer, Supplier, Consumer, Predicate, Consumer)}
+     * и {@link #forExternal(BindingDescriptor, Component, Function, BiConsumer, Supplier, Consumer, Predicate, Consumer)}.
+     */
+    @Deprecated
     public FormBinding(FieldMetadataInfo fieldInfo,
                        Component component,
                        Function<Object, Object> readFromEntity,
@@ -44,14 +56,72 @@ public class FormBinding {
                        Consumer<Object> writeToComponent,
                        Predicate<Object> isEmpty,
                        Consumer<Boolean> setReadOnly) {
+        this(BindingDescriptor.from(fieldInfo), fieldInfo, component,
+            readFromEntity, writeToEntity, readFromComponent, writeToComponent,
+            isEmpty, setReadOnly);
+    }
+
+    private FormBinding(BindingDescriptor descriptor,
+                        FieldMetadataInfo fieldInfo,
+                        Component component,
+                        Function<Object, Object> readFromEntity,
+                        BiConsumer<Object, Object> writeToEntity,
+                        Supplier<Object> readFromComponent,
+                        Consumer<Object> writeToComponent,
+                        Predicate<Object> isEmpty,
+                        Consumer<Boolean> setReadOnly) {
+        this.descriptor = Objects.requireNonNull(descriptor, "descriptor must not be null");
         this.fieldInfo = fieldInfo;
-        this.component = component;
+        this.component = Objects.requireNonNull(component, "component must not be null");
         this.readFromEntity = readFromEntity;
         this.writeToEntity = writeToEntity;
         this.readFromComponent = readFromComponent;
         this.writeToComponent = writeToComponent;
         this.isEmpty = isEmpty;
         this.setReadOnly = setReadOnly;
+    }
+
+    /**
+     * Старый путь: поля key/label/required берутся из {@link FieldMetadataInfo}.
+     */
+    public static FormBinding forMetadata(FieldMetadataInfo field,
+                                          Component component,
+                                          Function<Object, Object> readFromEntity,
+                                          BiConsumer<Object, Object> writeToEntity,
+                                          Supplier<Object> readFromComponent,
+                                          Consumer<Object> writeToComponent,
+                                          Predicate<Object> isEmpty,
+                                          Consumer<Boolean> setReadOnly) {
+        return new FormBinding(field, component, readFromEntity, writeToEntity,
+            readFromComponent, writeToComponent, isEmpty, setReadOnly);
+    }
+
+    /**
+     * Новый путь: явный {@link BindingDescriptor} вместо FieldMetadataInfo.
+     * Используется для полей, которых нет в метаданных (Workshop, кастомный layout).
+     */
+    public static FormBinding forExternal(BindingDescriptor descriptor,
+                                          Component component,
+                                          Function<Object, Object> readFromEntity,
+                                          BiConsumer<Object, Object> writeToEntity,
+                                          Supplier<Object> readFromComponent,
+                                          Consumer<Object> writeToComponent,
+                                          Predicate<Object> isEmpty,
+                                          Consumer<Boolean> setReadOnly) {
+        return new FormBinding(descriptor, null, component, readFromEntity, writeToEntity,
+            readFromComponent, writeToComponent, isEmpty, setReadOnly);
+    }
+
+    /**
+     * Копия биндинга с переопределённым label (спецификация «Часть D.5», PR-1.2 —
+     * {@code FieldNode.labelOverride}): ключ/required/lambdas сохраняются, подпись
+     * (форма + required-валидация) меняется.
+     */
+    public FormBinding withLabel(String label) {
+        return new FormBinding(
+            new BindingDescriptor(descriptor.key(), label, descriptor.required()),
+            fieldInfo, component, readFromEntity, writeToEntity,
+            readFromComponent, writeToComponent, isEmpty, setReadOnly);
     }
 
     /**
@@ -103,7 +173,7 @@ public class FormBinding {
      *   - значение не пустое (isEmpty возвращает false)
      */
     public boolean isValid() {
-        if (!fieldInfo.isRequired()) return true;
+        if (!descriptor.required()) return true;
         Object value = readFromComponent.get();
         if (value == null) return false;
         return !isEmpty.test(value);
@@ -114,7 +184,7 @@ public class FormBinding {
      */
     public String getValidationError() {
         if (isValid()) return null;
-        return fieldInfo.getLabel() + ": обязательно для заполнения";
+        return descriptor.label() + ": обязательно для заполнения";
     }
 
     /**
@@ -136,12 +206,28 @@ public class FormBinding {
 
     // === Геттеры ===
 
+    /**
+     * Метаданные поля, если биндинг создан через metadata-путь
+     * ({@link #forMetadata(...)}); для external-биндингов — пустой Optional.
+     */
+    public Optional<FieldMetadataInfo> getMetadata() {
+        return Optional.ofNullable(fieldInfo);
+    }
+
+    /**
+     * @deprecated Используйте {@link #getMetadata()} (может быть пустым для external-биндингов).
+     */
+    @Deprecated
     public FieldMetadataInfo getFieldInfo() {
         return fieldInfo;
     }
 
     public String getFieldName() {
-        return fieldInfo.getName();
+        return descriptor.key();
+    }
+
+    public BindingDescriptor getDescriptor() {
+        return descriptor;
     }
 
     public Component getComponent() {

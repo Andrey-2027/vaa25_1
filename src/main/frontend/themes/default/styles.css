@@ -20,3 +20,52 @@
   background: var(--lumo-primary-color-10pct) !important;
   border-color: var(--lumo-primary-color-50pct) !important;
 }
+
+/* ===== Редактор отчётов: компактный режим (всегда) ===== */
+
+.report-editor {
+  --lumo-size-xl: 2.75rem;
+  --lumo-size-l: 2.25rem;
+  --lumo-size-m: 1.9rem;
+  --lumo-size-s: 1.65rem;
+  --lumo-size-xs: 1.4rem;
+  --lumo-font-size-xxxl: 1.5rem;
+  --lumo-font-size-xxl: 1.25rem;
+  --lumo-font-size-xl: 1.0625rem;
+  --lumo-font-size-l: 0.9375rem;
+  --lumo-font-size-m: 0.8125rem;
+  --lumo-font-size-s: 0.75rem;
+  --lumo-font-size-xs: 0.6875rem;
+  --lumo-space-xl: 1.5rem;
+  --lumo-space-l: 1rem;
+  --lumo-space-m: 0.5rem;
+  --lumo-space-s: 0.25rem;
+  --lumo-space-xs: 0.125rem;
+  --vaadin-grid-row-height: 2rem;
+  --vaadin-grid-cell-padding: 0.25rem 0.5rem;
+}
+
+.report-editor h2 {
+  margin-top: 0;
+  margin-bottom: 0.25em;
+  font-size: 1.25rem;
+}
+
+.report-editor vaadin-text-area,
+.report-editor vaadin-text-field,
+.report-editor vaadin-integer-field,
+.report-editor vaadin-combo-box {
+  font-size: var(--lumo-font-size-s);
+}
+
+.report-editor vaadin-grid {
+  font-size: var(--lumo-font-size-s);
+}
+
+.report-editor vaadin-tabs {
+  --lumo-space-m: 0.375rem;
+}
+
+.report-editor vaadin-details summary {
+  padding: 0.375rem 0.75rem;
+}

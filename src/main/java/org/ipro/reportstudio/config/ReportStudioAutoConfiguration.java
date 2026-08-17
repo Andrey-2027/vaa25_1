@@ -138,12 +138,13 @@ public class ReportStudioAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ReportExecutionService reportExecutionService(ReportQueryGuard guard,
+public ReportExecutionService reportExecutionService(ReportQueryGuard guard,
                                                          ReportQueryExecutor executor,
                                                          ReportParamResolver resolver,
+                                                         EntityParamRefresher refresher,
                                                          ReportCompiler compiler,
                                                          ReportArtifactCache cache) {
-        return new ReportExecutionService(guard, executor, resolver, compiler, cache);
+        return new ReportExecutionService(guard, executor, resolver, refresher, compiler, cache);
     }
     @Bean
     @ConditionalOnMissingBean

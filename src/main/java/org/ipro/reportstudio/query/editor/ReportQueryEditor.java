@@ -1,21 +1,31 @@
 package org.ipro.reportstudio.query.editor;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import org.ip.form.SelectionFormAssembler;
+import org.ip.metadata.ColumnPath;
+import org.ip.metadata.annotation.FieldType;
+import org.ip.model.HasDisplayName;
 import org.ip.service.LookupService;
-import org.ip.views.components.ReportParamForm;
+import org.ip.views.components.EntityField;
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.data.ReportDataset;
 import org.ipro.reportstudio.data.ReportRow;
@@ -23,35 +33,59 @@ import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
 import org.ipro.reportstudio.dom.ReportTemplate;
-import org.ipro.reportstudio.param.ReportContext;
-import org.ipro.reportstudio.param.ReportParamResolver;
-import org.ipro.reportstudio.param.ResolvedParams;
 import org.ipro.reportstudio.query.ReportPreviewService;
-import org.ipro.rls.RlsCurrentUser;
+import org.ipro.reportstudio.query.OrderByApplier;
+import org.ipro.reportstudio.query.ServiceParams;
+import org.ipro.reportstudio.run.ReportExecutionService;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Компактный переиспользуемый редактор JPQL для источника данных отчёта.
  *
  * <p>Компонент не сохраняет {@link ReportTemplate}; родитель передаёт шаблон,
- * получает изменённые JPQL и параметры через него же, а сохранение остаётся
- * обязанностью редактора отчёта. Анализ и выполнение не обходят общий guard,
- * resolver или RLS-перезапрос сущностных параметров.</p>
+ * получает изменённые JPQL через него же, а сохранение остаётся обязанностью
+ * редактора отчёта. Анализ и выполнение не обходят общий guard.</p>
+ *
+ * <p><b>Параметры в этом редакторе — только тестовые значения</b> для
+ * «Проверить»/«Выполнить» здесь же, в виде {@link QueryTestParam}: имя из
+ * текста JPQL, тип из словаря {@link FieldType} (тот же словарь, что уже
+ * используется для скалярных полей формы — TEXT/INTEGER/DECIMAL/DATE/
+ * DATETIME/BOOLEAN/ENUM/ENTITY_REFERENCE), значение вводится в форме под
+ * гридом параметров. Они никогда не становятся {@link org.ipro.reportstudio.dom.ReportParam}
+ * — с их valueSource/showOnForm/required — это по-прежнему исключительная
+ * ответственность {@code ReportParamEditor} на следующем шаге конструктора.
+ * Так параметры не объявляются в двух конкурирующих местах: guard здесь
+ * проверяется по именам/классам тестовых значений, а не по персистентной
+ * декларации шаблона (её проверяет тот же guard отдельно — при реальном
+ * запуске сохранённого отчёта, через {@code ReportExecutionService}).</p>
  */
 public class ReportQueryEditor extends VerticalLayout {
 
     public static final int DEFAULT_PREVIEW_ROWS = 50;
     public static final int MAX_PREVIEW_ROWS = 500;
+
+    /** Тип параметра выбирается из этого подмножества {@link FieldType} — остальные значения к JPQL-биндингу не относятся. */
+    private static final List<FieldType> PARAM_TYPES = List.of(
+            FieldType.TEXT, FieldType.INTEGER, FieldType.DECIMAL, FieldType.BOOLEAN,
+            FieldType.DATE, FieldType.DATETIME, FieldType.ENUM, FieldType.ENTITY_REFERENCE);
 
     private static final Pattern FROM_ALIAS =
             Pattern.compile("(?is)\\bfrom\\s+([A-Za-z_][\\w.]*)\\s+as?\\s+([A-Za-z_][\\w]*)");
@@ -64,10 +98,8 @@ public class ReportQueryEditor extends VerticalLayout {
     private final QueryEditorAnalysisService analysisService;
     private final QueryMetadataCatalogService catalogService;
     private final ReportPreviewService previewService;
-    private final ReportParamResolver paramResolver;
     private final LookupService lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
-    private final RlsCurrentUser currentUser;
 
     private final TextField catalogFilter = new TextField();
     private final TreeGrid<QueryMetadataNode> catalog = new TreeGrid<>();
@@ -77,16 +109,27 @@ public class ReportQueryEditor extends VerticalLayout {
     private final Button analyzeButton = smallPrimary("Проверить");
     private final Button parametersButton = small("Параметры");
     private final Paragraph status = new Paragraph();
-    private final Grid<ReportParam> parameters = new Grid<>(ReportParam.class, false);
-    private final VerticalLayout parameterValues = new VerticalLayout();
-    private final Grid<ReportRow> result = new Grid<>();
+    private final Grid<QueryTestParam> parameters = new Grid<>();
+    private final ComboBox<FieldType> paramType = new ComboBox<>("Тип");
+    private final ComboBox<String> entityClassName = new ComboBox<>("Класс сущности");
+    private final TextField enumClassName = new TextField("Класс перечисления");
+    private final Map<String, String> entityCaptions = new HashMap<>();
+    private final VerticalLayout paramValueSlot = new VerticalLayout();
+    private final Paragraph paramHint = new Paragraph();
     private final VerticalLayout parameterPanel = new VerticalLayout();
+    private final Button transferParamsButton =
+            new Button("Перенести в параметры отчёта", event -> transferTestParamsToTemplate());
+    private final Grid<ReportRow> result = new Grid<>();
+
+    /** Тестовые значения параметров — см. класс {@link QueryTestParam}; template.getParams() не трогаем. */
+    private final List<QueryTestParam> testParams = new ArrayList<>();
 
     private ReportTemplate template;
-    private ReportParamForm parameterForm;
+    private QueryTestParam selectedParam;
+    private boolean paramFormUpdating;
     private Consumer<ReportTemplate> changeListener = ignored -> { };
+    private Consumer<QueryEditorAnalysis> analysisListener = ignored -> { };
     private boolean parametersVisible;
-    private String parametersSignature;
 
     /** Сущность → алиас из JPQL/анализа; используется для вставки полей. */
     private final Map<String, String> aliasesByEntity = new HashMap<>();
@@ -94,17 +137,22 @@ public class ReportQueryEditor extends VerticalLayout {
     public ReportQueryEditor(QueryEditorAnalysisService analysisService,
                              QueryMetadataCatalogService catalogService,
                              ReportPreviewService previewService,
-                             ReportParamResolver paramResolver,
                              LookupService lookupService,
-                             SelectionFormAssembler selectionFormAssembler,
-                             RlsCurrentUser currentUser) {
+                             SelectionFormAssembler selectionFormAssembler) {
         this.analysisService = Objects.requireNonNull(analysisService, "analysisService");
         this.catalogService = Objects.requireNonNull(catalogService, "catalogService");
         this.previewService = Objects.requireNonNull(previewService, "previewService");
-        this.paramResolver = Objects.requireNonNull(paramResolver, "paramResolver");
         this.lookupService = Objects.requireNonNull(lookupService, "lookupService");
         this.selectionFormAssembler = Objects.requireNonNull(selectionFormAssembler, "selectionFormAssembler");
-        this.currentUser = Objects.requireNonNull(currentUser, "currentUser");
+
+        List<QueryMetadataCatalogService.EntityOption> options = catalogService.entityOptions();
+        if (options != null) {
+            for (QueryMetadataCatalogService.EntityOption option : options) {
+                entityCaptions.put(option.className(), option.caption());
+            }
+        }
+        entityClassName.setItems(entityCaptions.keySet().stream().sorted().toList());
+        entityClassName.setItemLabelGenerator(this::entityClassCaption);
 
         setSizeFull();
         setPadding(false);
@@ -121,9 +169,11 @@ public class ReportQueryEditor extends VerticalLayout {
 
     public void setTemplate(ReportTemplate template) {
         this.template = Objects.requireNonNull(template, "template");
-        parametersSignature = null;
         jpql.setValue(Objects.requireNonNullElse(template.getJpql(), ""));
-        refreshParameters();
+        testParams.clear();
+        syncTestParameters(extractParameterNames(jpql.getValue()));
+        selectParam(null);
+        refreshParametersGrid();
         clearResult();
     }
 
@@ -131,35 +181,43 @@ public class ReportQueryEditor extends VerticalLayout {
         return jpql.getValue();
     }
 
-    public List<ReportParam> getParameterDeclarations() {
-        return template == null ? List.of() : List.copyOf(template.getParams());
+    /** Вводит текст запроса как при ручном вводе: обновляет шаблон и уведомляет changeListener. */
+    public void applyJpqlText(String text) {
+        jpql.setValue(text == null ? "" : text);
     }
 
     public void setChangeListener(Consumer<ReportTemplate> changeListener) {
         this.changeListener = changeListener == null ? ignored -> { } : changeListener;
     }
 
-    /** Выполняет только анализ, согласование параметров и guard-проверку. */
+    /** Вызывается после каждого анализа (кнопка «Проверить» и превью), в т.ч. при ошибках guard. */
+    public void setAnalysisListener(Consumer<QueryEditorAnalysis> analysisListener) {
+        this.analysisListener = analysisListener == null ? ignored -> { } : analysisListener;
+    }
+
+    /** Выполняет только анализ и guard-проверку — по тестовым значениям параметров этого редактора. */
     public QueryEditorAnalysis analyze() {
         if (template == null) {
             throw new IllegalStateException("Сначала необходимо установить шаблон отчёта");
         }
         template.setJpql(jpql.getValue());
-        QueryEditorAnalysis initial = analysisService.analyze(jpql.getValue(), template.getParams());
+        QueryEditorAnalysis initial = analysisService.analyze(jpql.getValue(), testParamNames(), testEntityClasses());
         if (!initial.syntaxValid()) {
             showErrors(initial);
+            analysisListener.accept(initial);
             return initial;
         }
-        reconcileNewParameters(initial);
-        QueryEditorAnalysis checked = analysisService.analyze(jpql.getValue(), template.getParams());
-        refreshParameters();
+        syncTestParameters(initial.parameters().stream().map(QueryParameterDescriptor::name).toList());
+        QueryEditorAnalysis checked = analysisService.analyze(jpql.getValue(), testParamNames(), testEntityClasses());
+        refreshParametersGrid();
         updateAliases(checked);
         if (checked.guardResult().allowed()) {
             status.setText("Запрос проверен: " + checked.guardResult().selectFields().size()
-                    + " полей, параметров: " + checked.parameters().size() + ".");
+                    + " полей, тестовых параметров: " + testParams.size() + ".");
         } else {
             showErrors(checked);
         }
+        analysisListener.accept(checked);
         changeListener.accept(template);
         return checked;
     }
@@ -170,19 +228,15 @@ public class ReportQueryEditor extends VerticalLayout {
         if (!analysis.guardResult().allowed()) {
             return;
         }
-        ResolvedParams resolved = paramResolver.resolve(template.getParams(),
-                ReportContext.empty(currentUser.username()),
-                parameterForm == null ? java.util.Map.of() : parameterForm.values());
-        if (!resolved.errors().isEmpty()) {
-            status.setText("Параметры: " + String.join("; ", resolved.errors()));
-            return;
-        }
         try {
             int rows = previewRows.getValue() == null ? DEFAULT_PREVIEW_ROWS : previewRows.getValue();
-            ReportDataset dataset = previewService.preview(jpql.getValue(), resolved.bindings(),
+            String orderedJpql = OrderByApplier.withOrderBy(jpql.getValue(),
+                    template == null ? List.of() : ReportExecutionService.groupFieldsOf(template),
+                    template == null ? List.of() : ReportExecutionService.ordersOf(template));
+            ReportDataset dataset = previewService.preview(orderedJpql, testBindings(),
                     analysis.guardResult().selectFields(), rows, ReportTemplate.DEFAULT_TIMEOUT_MS);
             renderResult(analysis.guardResult().selectFields(), dataset);
-            String warnings = joinWarnings(analysis.guardResult().warnings(), resolved.warnings());
+            String warnings = joinWarnings(analysis.guardResult().warnings());
             status.setText("Готово: " + dataset.rowCount() + " строк, "
                     + analysis.guardResult().selectFields().size() + " колонок." + warnings);
         } catch (RuntimeException error) {
@@ -212,7 +266,8 @@ public class ReportQueryEditor extends VerticalLayout {
         jpql.addValueChangeListener(event -> {
             if (template != null) {
                 template.setJpql(event.getValue());
-                scaffoldParameters(event.getValue());
+                syncTestParameters(extractParameterNames(event.getValue()));
+                refreshParametersGrid();
                 changeListener.accept(template);
             }
             if (!result.getColumns().isEmpty()) {
@@ -238,18 +293,72 @@ public class ReportQueryEditor extends VerticalLayout {
     }
 
     private void configureParameters() {
-        parameters.addColumn(ReportParam::getName).setHeader("Параметр").setAutoWidth(true);
-        parameters.addColumn(param -> param.getKind().name()).setHeader("Тип").setAutoWidth(true);
-        parameters.addColumn(param -> param.getEntityClass() == null ? "" : param.getEntityClass())
-                .setHeader("Сущность").setFlexGrow(1);
-        parameters.setHeight("7em");
-        parameters.addItemDoubleClickListener(event -> toggleKind(event.getItem()));
-        parameterValues.setPadding(false);
-        parameterValues.setSpacing(false);
+        parameters.addColumn(QueryTestParam::name).setHeader("Параметр").setAutoWidth(true);
+        parameters.addColumn(p -> typeCaption(p.type())).setHeader("Тип").setAutoWidth(true);
+        parameters.addColumn(ReportQueryEditor::formatValue).setHeader("Тестовое значение").setFlexGrow(1);
+        parameters.addComponentColumn(this::removeButton).setAutoWidth(true).setFlexGrow(0);
+        parameters.setHeight("9em");
+        parameters.asSingleSelect().addValueChangeListener(event -> selectParam(event.getValue()));
+
+        paramType.setItems(PARAM_TYPES);
+        paramType.setItemLabelGenerator(ReportQueryEditor::typeCaption);
+        paramType.setWidth("170px");
+        paramType.addValueChangeListener(event -> {
+            if (paramFormUpdating || selectedParam == null || event.getValue() == null) {
+                return;
+            }
+            selectedParam.setType(event.getValue());
+            updateClassFieldVisibility(event.getValue());
+            rebuildValueSlot();
+            parameters.getListDataView().refreshItem(selectedParam);
+        });
+
+        entityClassName.setWidth("280px");
+        entityClassName.setVisible(false);
+        entityClassName.addValueChangeListener(event -> {
+            if (paramFormUpdating || selectedParam == null) {
+                return;
+            }
+            selectedParam.setClassName(blankToNull(event.getValue()));
+            rebuildValueSlot();
+            parameters.getListDataView().refreshItem(selectedParam);
+        });
+
+        enumClassName.setWidth("280px");
+        enumClassName.setVisible(false);
+        enumClassName.setPlaceholder("org.ip.model.DocumentStatus");
+        enumClassName.addValueChangeListener(event -> {
+            if (paramFormUpdating || selectedParam == null) {
+                return;
+            }
+            selectedParam.setClassName(blankToNull(event.getValue()));
+            rebuildValueSlot();
+            parameters.getListDataView().refreshItem(selectedParam);
+        });
+
+        paramValueSlot.setPadding(false);
+        paramValueSlot.setSpacing(false);
+
+        paramHint.getStyle().set("color", "var(--lumo-secondary-text-color)").set("margin", "0");
+
+        HorizontalLayout formRow = new HorizontalLayout(paramType, entityClassName, enumClassName);
+        formRow.setAlignItems(Alignment.END);
+        formRow.setSpacing(true);
+        formRow.setWrap(true);
+        VerticalLayout detail = new VerticalLayout(formRow, paramValueSlot, paramHint);
+        detail.setPadding(false);
+        detail.setSpacing(true);
+        detail.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)")
+                .set("padding-top", "var(--lumo-space-s)")
+                .set("margin-top", "var(--lumo-space-xs)");
+
         parameterPanel.setPadding(false);
-        parameterPanel.setSpacing(false);
-        parameterPanel.add(parameters, parameterValues);
+        parameterPanel.setSpacing(true);
+        transferParamsButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        parameterPanel.add(parameters, transferParamsButton, detail);
         parameterPanel.setVisible(false);
+
+        selectParam(null);
     }
 
     private void configureResult() {
@@ -390,69 +499,351 @@ public class ReportQueryEditor extends VerticalLayout {
             """, token);
     }
 
-    private void reconcileNewParameters(QueryEditorAnalysis analysis) {
-        for (QueryParameterDescriptor descriptor : analysis.parameters()) {
-            boolean exists = template.getParams().stream()
-                    .anyMatch(param -> descriptor.name().equals(param.getName()));
-            if (!exists) {
-                ReportParam param = new ReportParam();
-                param.setName(descriptor.name());
-                param.setCaption(descriptor.name());
-                param.setKind(ReportParamKind.SCALAR);
-                param.setValueSource(ReportParamSource.FORM);
-                param.setShowOnForm(true);
-                param.setRequired(false);
-                param.setPosition(nextParamPosition());
-                template.addParam(param);
+    // === Тестовые параметры (QueryTestParam) ===
+
+    private void syncTestParameters(Collection<String> names) {
+        if (names == null) {
+            return;
+        }
+        Set<String> existing = testParams.stream().map(QueryTestParam::name).collect(Collectors.toSet());
+        for (String name : names) {
+            if (name != null && !name.isBlank() && !existing.contains(name)) {
+                testParams.add(new QueryTestParam(name));
+                existing.add(name);
             }
         }
     }
 
-    private int nextParamPosition() {
-        return template.getParams().stream().map(ReportParam::getPosition).max(Comparator.naturalOrder()).orElse(-1) + 1;
-    }
-
-    private void refreshParameters() {
-        List<ReportParam> ordered = template == null ? List.of() : template.getParams().stream()
-                .sorted(Comparator.comparingInt(ReportParam::getPosition))
-                .toList();
-        parameters.setItems(ordered);
-        String signature = signatureOf(ordered);
-        if (parameterForm != null && signature.equals(parametersSignature)) {
-            return;
-        }
-        parametersSignature = signature;
-        parameterValues.removeAll();
-        parameterForm = new ReportParamForm(ordered, ReportContext.empty(currentUser.username()), lookupService,
-                selectionFormAssembler);
-        parameterValues.add(parameterForm);
-        if (!ordered.isEmpty()) {
+    private void refreshParametersGrid() {
+        testParams.sort(Comparator.comparing(QueryTestParam::name));
+        parameters.setItems(testParams);
+        if (!testParams.isEmpty()) {
             parametersVisible = true;
             parameterPanel.setVisible(true);
         }
     }
 
-    /** Сигнатура набора параметров: пересоздаём форму только при реальном изменении. */
-    private static String signatureOf(List<ReportParam> params) {
-        return params.stream()
-                .map(param -> param.getName() + "|" + param.getKind() + "|" + param.getValueSource()
-                        + "|" + param.isShowOnForm() + "|" + param.isRequired() + "|"
-                        + java.util.Objects.toString(param.getDefaultValue(), "")
-                        + "|" + java.util.Objects.toString(param.getEntityClass(), ""))
-                .collect(java.util.stream.Collectors.joining(";"));
+    private Set<String> testParamNames() {
+        return testParams.stream().map(QueryTestParam::name)
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
-    private void toggleKind(ReportParam param) {
-        if (param.getKind() == ReportParamKind.SCALAR) {
-            status.setText("Тип «" + param.getName() + "» пока SCALAR. Для ENTITY/ENTITY_LIST задайте тип в карточке параметров шаблона.");
+    private Map<String, Class<?>> testEntityClasses() {
+        Map<String, Class<?>> result = new LinkedHashMap<>();
+        for (QueryTestParam param : testParams) {
+            if (param.type() != FieldType.ENTITY_REFERENCE) {
+                continue;
+            }
+            String className = param.className();
+            if (className == null || className.isBlank()) {
+                continue;
+            }
+            try {
+                result.put(param.name(), Class.forName(className));
+            } catch (ClassNotFoundException ignored) {
+                // некорректный класс — сущность просто не попадёт под RLS-проверку guard'а
+            }
         }
+        return result;
+    }
+
+    /** Значения тестовых параметров для биндинга в preview — как есть, без резолвинга ReportParam. */
+    private Map<String, Object> testBindings() {
+        Map<String, Object> bindings = new LinkedHashMap<>();
+        for (QueryTestParam param : testParams) {
+            Object value = param.value();
+            if (value != null && !(value instanceof String s && s.isBlank())) {
+                bindings.put(param.name(), value);
+            }
+        }
+        return bindings;
+    }
+
+    private void removeTestParam(QueryTestParam param) {
+        testParams.remove(param);
+        if (param == selectedParam) {
+            selectParam(null);
+        }
+        refreshParametersGrid();
+    }
+
+    /** Тестовые значения параметров — пакетный доступ для тестов. */
+    List<QueryTestParam> testParams() {
+        return testParams;
+    }
+
+    /**
+     * Переносит тестовые параметры ({@link QueryTestParam}) в персистентные
+     * декларации шаблона ({@link ReportParam}) — только отсутствующие по имени,
+     * существующие декларации не трогает. Вид: ENTITY_REFERENCE → ENTITY
+     * (с классом сущности из тестового значения), остальное → SCALAR.
+     */
+    void transferTestParamsToTemplate() {
+        if (template == null) {
+            return;
+        }
+        Set<String> declared = template.getParams().stream()
+                .map(ReportParam::getName)
+                .filter(name -> name != null && !name.isBlank())
+                .collect(Collectors.toSet());
+        int nextPosition = template.getParams().stream()
+                .mapToInt(ReportParam::getPosition).max().orElse(-1);
+        int created = 0;
+        for (QueryTestParam test : testParams) {
+            if (declared.contains(test.name())) {
+                continue;
+            }
+            ReportParam param = new ReportParam();
+            param.setName(test.name());
+            param.setCaption(test.name());
+            param.setKind(test.toParamKind());
+            if (test.toParamKind() == ReportParamKind.ENTITY) {
+                param.setEntityClass(blankToNull(test.className()));
+            }
+            param.setValueSource(ReportParamSource.FORM);
+            param.setShowOnForm(true);
+            param.setRequired(false);
+            param.setPosition(++nextPosition);
+            template.addParam(param);
+            declared.add(test.name());
+            created++;
+        }
+        status.setText(created > 0
+                ? "В параметры отчёта перенесено: " + created + "."
+                : "Все параметры уже объявлены в параметрах отчёта.");
+        changeListener.accept(template);
+    }
+
+    private Button removeButton(QueryTestParam param) {
+        Button button = new Button(VaadinIcon.CLOSE_SMALL.create());
+        button.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        button.getElement().setAttribute("title", "Убрать тестовое значение параметра");
+        button.addClickListener(event -> removeTestParam(param));
+        return button;
+    }
+
+    // === Форма под гридом: тип/класс/значение выбранного тестового параметра ===
+
+    private void selectParam(QueryTestParam param) {
+        selectedParam = param;
+        paramFormUpdating = true;
+        try {
+            if (param == null) {
+                paramType.clear();
+                entityClassName.clear();
+                entityClassName.setVisible(false);
+                enumClassName.clear();
+                enumClassName.setVisible(false);
+                paramValueSlot.removeAll();
+                paramHint.setText("Выберите параметр в списке, чтобы задать тестовое значение.");
+                return;
+            }
+            paramType.setValue(param.type());
+            entityClassName.setValue(blankToNull(param.className()));
+            enumClassName.setValue(Objects.requireNonNullElse(param.className(), ""));
+            updateClassFieldVisibility(param.type());
+            paramHint.setText("Тестовое значение параметра :" + param.name()
+                    + " — используется только для «Проверить»/«Выполнить» в этом окне.");
+        } finally {
+            paramFormUpdating = false;
+        }
+        rebuildValueSlot();
+    }
+
+    private void updateClassFieldVisibility(FieldType type) {
+        boolean entity = type == FieldType.ENTITY_REFERENCE;
+        boolean enumeration = type == FieldType.ENUM;
+        entityClassName.setVisible(entity);
+        enumClassName.setVisible(enumeration);
+    }
+
+    private String entityClassCaption(String className) {
+        String caption = entityCaptions.get(className);
+        if (caption == null || caption.isBlank()) {
+            return className == null ? "" : className;
+        }
+        int dot = className.lastIndexOf('.');
+        String simple = dot < 0 ? className : className.substring(dot + 1);
+        return caption + " (" + simple + ")";
+    }
+
+    private void rebuildValueSlot() {
+        paramValueSlot.removeAll();
+        if (selectedParam == null) {
+            return;
+        }
+        paramValueSlot.add(createValueField(selectedParam));
+    }
+
+    private Component createValueField(QueryTestParam param) {
+        return switch (param.type()) {
+            case INTEGER -> integerValueField(param);
+            case DECIMAL -> decimalValueField(param);
+            case BOOLEAN -> booleanValueField(param);
+            case DATE -> dateValueField(param);
+            case DATETIME -> dateTimeValueField(param);
+            case ENUM -> enumValueField(param);
+            case ENTITY_REFERENCE -> entityValueField(param);
+            default -> textValueField(param);
+        };
+    }
+
+    private Component textValueField(QueryTestParam param) {
+        TextField field = new TextField();
+        field.setWidth("260px");
+        field.setClearButtonVisible(true);
+        field.setPlaceholder("значение параметра :" + param.name());
+        if (param.value() instanceof String s) {
+            field.setValue(s);
+        }
+        field.addValueChangeListener(e -> param.setValue(blankToNull(e.getValue())));
+        return field;
+    }
+
+    private Component integerValueField(QueryTestParam param) {
+        IntegerField field = new IntegerField();
+        field.setWidth("220px");
+        if (param.value() instanceof Integer i) {
+            field.setValue(i);
+        }
+        field.addValueChangeListener(e -> param.setValue(e.getValue()));
+        return field;
+    }
+
+    private Component decimalValueField(QueryTestParam param) {
+        BigDecimalField field = new BigDecimalField();
+        field.setWidth("220px");
+        if (param.value() instanceof BigDecimal d) {
+            field.setValue(d);
+        }
+        field.addValueChangeListener(e -> param.setValue(e.getValue()));
+        return field;
+    }
+
+    private Component booleanValueField(QueryTestParam param) {
+        Checkbox field = new Checkbox();
+        if (param.value() instanceof Boolean b) {
+            field.setValue(b);
+        }
+        field.addValueChangeListener(e -> param.setValue(e.getValue()));
+        return field;
+    }
+
+    private Component dateValueField(QueryTestParam param) {
+        DatePicker field = new DatePicker();
+        field.setWidth("220px");
+        if (param.value() instanceof LocalDate d) {
+            field.setValue(d);
+        }
+        field.addValueChangeListener(e -> param.setValue(e.getValue()));
+        return field;
+    }
+
+    private Component dateTimeValueField(QueryTestParam param) {
+        DateTimePicker field = new DateTimePicker();
+        field.setWidth("260px");
+        if (param.value() instanceof LocalDateTime d) {
+            field.setValue(d);
+        }
+        field.addValueChangeListener(e -> param.setValue(e.getValue()));
+        return field;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Component enumValueField(QueryTestParam param) {
+        String className = param.className();
+        if (className == null || className.isBlank()) {
+            return hint("Укажите класс перечисления выше, чтобы выбрать значение из списка.");
+        }
+        Class<?> enumClass;
+        try {
+            enumClass = Class.forName(className);
+        } catch (ClassNotFoundException notFound) {
+            return hint("Класс «" + className + "» не найден.");
+        }
+        if (!enumClass.isEnum()) {
+            return hint("Класс «" + className + "» не является перечислением.");
+        }
+        ComboBox field = new ComboBox();
+        field.setItems(enumClass.getEnumConstants());
+        field.setWidth("220px");
+        if (enumClass.isInstance(param.value())) {
+            field.setValue(param.value());
+        }
+        field.addValueChangeListener(e -> param.setValue(e.getValue()));
+        return field;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Component entityValueField(QueryTestParam param) {
+        String className = param.className();
+        if (className == null || className.isBlank()) {
+            return hint("Укажите класс сущности выше, чтобы выбрать тестовое значение.");
+        }
+        Class<?> entityClass;
+        try {
+            entityClass = Class.forName(className);
+        } catch (ClassNotFoundException notFound) {
+            return hint("Класс «" + className + "» не найден.");
+        }
+        SelectionFormAssembler.ResolvedSelection resolved;
+        try {
+            resolved = selectionFormAssembler.resolveColumns(entityClass);
+        } catch (RuntimeException notConfigured) {
+            return hint("У сущности «" + entityClass.getSimpleName()
+                    + "» нет конфигурации выбора (@EntityMetadata.selectColumns).");
+        }
+        String[] searchFields = resolved.columns().stream()
+                .filter(path -> path.getResolvedType() == FieldType.TEXT)
+                .map(ColumnPath::getKey)
+                .toArray(String[]::new);
+        EntityField field = new EntityField(param.name(), term -> lookupService.search(entityClass, searchFields, term, 20));
+        field.setWidthFull();
+        field.setSelectionFormFactory(onSelect ->
+            selectionFormAssembler.assemble((Class) entityClass, (java.util.function.Consumer) onSelect));
+        if (entityClass.isInstance(param.value())) {
+            field.setValue((HasDisplayName) param.value());
+        }
+        field.addValueChangeListener(value -> param.setValue(value));
+        return field;
+    }
+
+    private static Span hint(String text) {
+        Span span = new Span(text);
+        span.getStyle().set("color", "var(--lumo-secondary-text-color)").set("font-size", "var(--lumo-font-size-s)");
+        return span;
+    }
+
+    private static String typeCaption(FieldType type) {
+        return switch (type) {
+            case TEXT -> "Текст";
+            case INTEGER -> "Целое число";
+            case DECIMAL -> "Дробное число";
+            case BOOLEAN -> "Логическое";
+            case DATE -> "Дата";
+            case DATETIME -> "Дата и время";
+            case ENUM -> "Перечисление";
+            case ENTITY_REFERENCE -> "Сущность";
+            default -> type.name();
+        };
+    }
+
+    private static String formatValue(QueryTestParam param) {
+        Object value = param.value();
+        if (value == null) {
+            return "—";
+        }
+        if (value instanceof HasDisplayName named) {
+            return named.getDisplayName();
+        }
+        return value.toString();
     }
 
     private void updateAliases(QueryEditorAnalysis analysis) {
         if (analysis.guardResult() == null || analysis.guardResult().analysis() == null) {
             return;
         }
-        List<String> aliases = new java.util.ArrayList<>();
+        List<String> aliases = new ArrayList<>();
         for (org.ipro.reportstudio.query.EntityUsage usage
                 : analysis.guardResult().analysis().entities()) {
             String alias = aliasOf(usage.path());
@@ -478,39 +869,16 @@ public class ReportQueryEditor extends VerticalLayout {
         return dot < 0 ? path : path.substring(0, dot);
     }
 
-    /** Декларации параметров из текста JPQL — появляются сразу, без отдельной проверки. */
-    private void scaffoldParameters(String sql) {
-        Set<String> names = extractParameterNames(sql);
-        boolean changed = false;
-        for (String name : names) {
-            boolean exists = template.getParams().stream()
-                    .anyMatch(param -> name.equals(param.getName()));
-            if (exists) {
-                continue;
-            }
-            ReportParam param = new ReportParam();
-            param.setName(name);
-            param.setCaption(name);
-            param.setKind(ReportParamKind.SCALAR);
-            param.setValueSource(ReportParamSource.FORM);
-            param.setShowOnForm(true);
-            param.setRequired(false);
-            param.setPosition(nextParamPosition());
-            template.addParam(param);
-            changed = true;
-        }
-        if (changed) {
-            refreshParameters();
-        }
-    }
-
     private static Set<String> extractParameterNames(String sql) {
         if (sql == null || sql.isBlank()) {
             return Set.of();
         }
         Set<String> names = new LinkedHashSet<>();
         for (Matcher matcher = PARAMETER.matcher(sql); matcher.find(); ) {
-            names.add(matcher.group(1));
+            String name = matcher.group(2);
+            if (name != null && !ServiceParams.isServiceName(name)) {
+                names.add(name);
+            }
         }
         return names;
     }
@@ -536,16 +904,17 @@ public class ReportQueryEditor extends VerticalLayout {
         clearResult();
     }
 
-    private static String joinWarnings(List<String> first, List<String> second) {
-        List<String> warnings = new java.util.ArrayList<>();
-        if (first != null) warnings.addAll(first);
-        if (second != null) warnings.addAll(second);
-        return warnings.isEmpty() ? "" : " Предупреждения: " + String.join("; ", warnings);
+    private static String joinWarnings(List<String> warnings) {
+        return warnings == null || warnings.isEmpty() ? "" : " Предупреждения: " + String.join("; ", warnings);
     }
 
     private static String safeMessage(RuntimeException error) {
         String message = error.getMessage();
         return message == null || message.isBlank() ? "не удалось выполнить запрос" : message;
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 
     private static VerticalLayout compact(com.vaadin.flow.component.Component... components) {

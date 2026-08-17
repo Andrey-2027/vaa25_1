@@ -83,6 +83,8 @@ class ReportTemplateRoundTripIT {
 
         assertThat(bands.get(3).getFields()).extracting(ReportField::getQueryField)
             .containsExactly("code", "amount");
+        assertThat(bands.get(3).getFields()).extracting(ReportField::getBorder)
+            .containsExactly(Boolean.TRUE, Boolean.FALSE);
     }
 
     @Test
@@ -198,9 +200,11 @@ class ReportTemplateRoundTripIT {
         detail.setPosition(3);
         ReportField code = new ReportField();
         code.setQueryField("code");
+        code.setBorder(true);
         code.setPosition(0);
         ReportField amount = new ReportField();
         amount.setQueryField("amount");
+        amount.setBorder(false);
         amount.setPosition(1);
         detail.addField(code);
         detail.addField(amount);

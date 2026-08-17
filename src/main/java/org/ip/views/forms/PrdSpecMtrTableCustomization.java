@@ -6,11 +6,13 @@ import org.ip.model.PrdSpecMtr;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Связывает дискриминатор PrdSpecMtr.typeMtr с вариантами формы строки,
- * зарегистрированными в {@link PrdSpecMtrFormCustomization} ("material"/"product"),
- * и задаёт выбор при "Добавить".
+ * зарегистрированными в {@link PrdSpecMtrFormCustomization} ({@link PrdSpecMtrVariant#MATERIAL} /
+ * {@link PrdSpecMtrVariant#PRODUCT}), и задаёт выбор при "Добавить".
  *
  * 0 — материал (поля nomenclature/unit/qt), 1 — продукция (поля prdSpecMtr/unit/qt).
  */
@@ -28,11 +30,18 @@ public class PrdSpecMtrTableCustomization implements TableSectionCustomization<P
     @Override
     public void configure(ItemTable<PrdSpecMtr, ?> table) {
         table.setRowVariantSelector(row ->
-            row.getTypeMtr() != null && row.getTypeMtr() == TYPE_PRODUCT ? "product" : "material");
+            PrdSpecMtrVariant.of(row.getTypeMtr()).key());
 
         table.setAddOptions(List.of(
             new ItemTable.AddOption<>("Добавить материал", row -> row.setTypeMtr(TYPE_MATERIAL)),
             new ItemTable.AddOption<>("Добавить продукцию", row -> row.setTypeMtr(TYPE_PRODUCT))
         ));
+    }
+
+    @Override
+    public List<String> declaredRowVariants() {
+        return Stream.of(PrdSpecMtrVariant.values())
+            .map(PrdSpecMtrVariant::key)
+            .collect(Collectors.toList());
     }
 }

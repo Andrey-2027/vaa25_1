@@ -42,6 +42,9 @@ public class ReportTemplate extends BaseEntity {
     /** Сколько строк берёт «Проверить запрос» (предпросмотр данных, Фаза 2). */
     public static final int PREVIEW_MAX_ROWS = 20;
 
+    /** Базовый размер шрифта печати, pt (если в шаблоне не задан). */
+    public static final int DEFAULT_FONT_SIZE = 10;
+
     @NotBlank
     @Size(max = 100)
     @Column(nullable = false, unique = true, length = 100)
@@ -84,6 +87,28 @@ public class ReportTemplate extends BaseEntity {
     @Column(nullable = false)
     private boolean advanced;
 
+    /** Границы (сетка) колонок и заголовков на печати; null = включено. */
+    @Column(name = "grid_enabled")
+    private Boolean gridEnabled;
+
+    /** Чередование заливки строк (полосатость); null = выключено. */
+    @Column(name = "stripe_rows")
+    private Boolean stripeRows;
+
+    /** Базовый размер шрифта, pt; null = 10. */
+    @Column(name = "base_font_size")
+    private Integer baseFontSize;
+
+    /** Формат печатной страницы (A4 по умолчанию). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "page_size", length = 10)
+    private ReportPageSize pageSize;
+
+    /** Ориентация печатной страницы (PORTRAIT по умолчанию). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "page_orientation", length = 10)
+    private ReportPageOrientation pageOrientation;
+
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC, id ASC")
     private List<ReportParam> params = new ArrayList<>();
@@ -91,6 +116,10 @@ public class ReportTemplate extends BaseEntity {
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC, id ASC")
     private List<ReportBand> bands = new ArrayList<>();
+
+    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position ASC, id ASC")
+    private List<ReportOrder> orders = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -158,6 +187,66 @@ public class ReportTemplate extends BaseEntity {
         this.advanced = advanced;
     }
 
+    public Boolean getGridEnabledRaw() {
+        return gridEnabled;
+    }
+
+    public boolean isGridEnabled() {
+        return gridEnabled == null || gridEnabled;
+    }
+
+    public void setGridEnabled(Boolean gridEnabled) {
+        this.gridEnabled = gridEnabled;
+    }
+
+    public Boolean getStripeRowsRaw() {
+        return stripeRows;
+    }
+
+    public boolean isStripeRows() {
+        return stripeRows != null && stripeRows;
+    }
+
+    public void setStripeRows(Boolean stripeRows) {
+        this.stripeRows = stripeRows;
+    }
+
+    public Integer getBaseFontSize() {
+        return baseFontSize;
+    }
+
+    public int baseFontSizeOrDefault() {
+        return baseFontSize == null ? DEFAULT_FONT_SIZE : baseFontSize;
+    }
+
+    public void setBaseFontSize(Integer baseFontSize) {
+        this.baseFontSize = baseFontSize;
+    }
+
+    public ReportPageSize getPageSize() {
+        return pageSize;
+    }
+
+    public ReportPageSize pageSizeOrDefault() {
+        return pageSize == null ? ReportPageSize.A4 : pageSize;
+    }
+
+    public void setPageSize(ReportPageSize pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public ReportPageOrientation getPageOrientation() {
+        return pageOrientation;
+    }
+
+    public ReportPageOrientation pageOrientationOrDefault() {
+        return pageOrientation == null ? ReportPageOrientation.PORTRAIT : pageOrientation;
+    }
+
+    public void setPageOrientation(ReportPageOrientation pageOrientation) {
+        this.pageOrientation = pageOrientation;
+    }
+
     public List<ReportParam> getParams() {
         return params;
     }
@@ -184,5 +273,19 @@ public class ReportTemplate extends BaseEntity {
     public void addBand(ReportBand band) {
         band.setTemplate(this);
         bands.add(band);
+    }
+
+    public List<ReportOrder> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<ReportOrder> orders) {
+        this.orders = orders;
+    }
+
+    /** Добавляет правило сортировки с двусторонней связью. */
+    public void addOrder(ReportOrder order) {
+        order.setTemplate(this);
+        orders.add(order);
     }
 }

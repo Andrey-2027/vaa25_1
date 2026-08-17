@@ -6,18 +6,21 @@ import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportBandKind;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.param.ReportContext;
+import org.ipro.reportstudio.param.EntityParamRefresher;
 import org.ipro.reportstudio.param.ReportParamResolver;
 import org.ipro.reportstudio.param.ResolvedParams;
 import org.ipro.reportstudio.query.GuardResult;
 import org.ipro.reportstudio.query.OrderByApplier;
 import org.ipro.reportstudio.query.ReportQueryExecutor;
 import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.reportstudio.query.ServiceParams;
 import org.ipro.reportstudio.render.ReportCompiler;
 import org.ipro.reportstudio.render.ReportExportFormat;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,18 +35,20 @@ import java.util.Set;
  */
 public class ReportExecutionService {
 
-    private final ReportQueryGuard guard;
+private final ReportQueryGuard guard;
     private final ReportQueryExecutor executor;
     private final ReportParamResolver resolver;
+    private final EntityParamRefresher refresher;
     private final ReportCompiler compiler;
     private final ReportArtifactCache cache;
 
     public ReportExecutionService(ReportQueryGuard guard, ReportQueryExecutor executor,
-                                  ReportParamResolver resolver, ReportCompiler compiler,
-                                  ReportArtifactCache cache) {
+                                  ReportParamResolver resolver, EntityParamRefresher refresher,
+                                  ReportCompiler compiler, ReportArtifactCache cache) {
         this.guard = guard;
         this.executor = executor;
         this.resolver = resolver;
+        this.refresher = refresher;
         this.compiler = compiler;
         this.cache = cache;
     }
@@ -63,8 +68,10 @@ public class ReportExecutionService {
                 + String.join("; ", params.errors()));
         }
 
-        String jpql = OrderByApplier.withGroupOrderBy(template.getJpql(), groupFieldsOf(template));
-        ReportDataset dataset = executor.execute(jpql, params.bindings(),
+String jpql = OrderByApplier.withOrderBy(template.getJpql(), groupFieldsOf(template), ordersOf(template));
+        Map<String, Object> bindings = new HashMap<>(params.bindings());
+        ServiceParams.bindings(context, refresher).forEach(bindings::putIfAbsent);
+        ReportDataset dataset = executor.execute(jpql, bindings,
             guardResult.selectFields(),
             template.getMaxRows() > 0 ? template.getMaxRows() : ReportTemplate.DEFAULT_MAX_ROWS,
             template.getTimeoutMs() > 0 ? template.getTimeoutMs() : ReportTemplate.DEFAULT_TIMEOUT_MS);
@@ -87,7 +94,7 @@ public class ReportExecutionService {
      * Групповые поля в порядке DR-групп (внешняя группа первой, вложенные после,
      * по position) — должен совпадать с порядком groupBy в компиляторе.
      */
-    static List<String> groupFieldsOf(ReportTemplate template) {
+    public static List<String> groupFieldsOf(ReportTemplate template) {
         List<ReportBand> headers = new ArrayList<>();
         for (ReportBand band : template.getBands()) {
             if (band.getKind() == ReportBandKind.GROUP_HEADER && band.getGroupField() != null
@@ -102,7 +109,15 @@ public class ReportExecutionService {
         for (ReportBand leftover : sortedOf(headers, b -> !ordered.contains(b))) {
             walk(leftover, headers, ordered);
         }
-        return ordered.stream().map(ReportBand::getGroupField).toList();
+return ordered.stream().map(ReportBand::getGroupField).toList();
+    }
+
+    /** Правила пользовательской сортировки шаблона в порядке их позиций. */
+    public static List<OrderByApplier.OrderSpec> ordersOf(ReportTemplate template) {
+        return template.getOrders().stream()
+            .map(order -> new OrderByApplier.OrderSpec(order.getColumnName(),
+                order.directionOrDefault() == org.ipro.reportstudio.dom.ReportOrderDirection.DESC))
+            .toList();
     }
 
     private static void walk(ReportBand band, List<ReportBand> all, List<ReportBand> out) {

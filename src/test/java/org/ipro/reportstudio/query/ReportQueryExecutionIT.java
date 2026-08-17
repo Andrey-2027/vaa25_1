@@ -157,6 +157,20 @@ class ReportQueryExecutionIT {
     }
 
     @Test
+    void serviceEntityIdPathIsExpandedAndBound() {
+        loginAs("admin");
+        String jpql = "select s.codeSpec from PrdSpec s where s.journal.id = :parEntity.id";
+        GuardResult result = guard.guard(jpql, Set.of());
+        assertThat(result.allowed()).isTrue();
+
+        ReportDataset dataset = executor.execute(jpql, Map.of("parEntityId", journalAId),
+            result.selectFields(), PREVIEW_MAX_ROWS, 30_000);
+
+        assertThat(dataset.rowCount()).isEqualTo(1);
+        assertThat(dataset.rows()[0].value("s.codeSpec")).isEqualTo("SPEC-A");
+    }
+
+    @Test
     void maxRowsIsEnforced() {
         loginAs("admin");
         String jpql = "select s.codeSpec from PrdSpec s order by s.codeSpec";

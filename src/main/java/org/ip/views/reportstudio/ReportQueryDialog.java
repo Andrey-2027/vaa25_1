@@ -6,19 +6,19 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.query.editor.ReportQueryEditor;
-
-import java.util.List;
 
 /**
  * Модальное окно редактирования JPQL-запроса отчёта.
  *
  * <p>Редактор {@link ReportQueryEditor} — это отдельный вызываемый слой, чтобы
  * основной экран редактора отчёта оставался компактным. Окно работает со
- * снапшотом исходного состояния шаблона: «Отмена» полностью восстанавливает
- * JPQL и декларации параметров, «Применить» фиксирует результат анализа.</p>
+ * снапшотом исходного JPQL шаблона: «Отмена» полностью восстанавливает текст
+ * запроса, «Применить» фиксирует результат анализа. Декларации параметров
+ * шаблона (ReportParam) окно не трогает — редактор запроса оперирует только
+ * своими тестовыми значениями ({@code QueryTestParam}), а объявление
+ * персистентных параметров остаётся ответственностью ReportParamEditor.</p>
  */
 public class ReportQueryDialog extends Dialog {
 
@@ -27,7 +27,6 @@ public class ReportQueryDialog extends Dialog {
     private final Runnable onRefresh;
     private final java.util.function.Consumer<org.ipro.reportstudio.query.editor.QueryEditorAnalysis> onApplied;
     private final String snapshotJpql;
-    private final List<ReportParam> snapshotParams;
 
     public ReportQueryDialog(ReportQueryEditor editor, ReportTemplate template, Runnable onRefresh) {
         this(editor, template, onRefresh, null);
@@ -40,7 +39,6 @@ public class ReportQueryDialog extends Dialog {
         this.onRefresh = onRefresh == null ? () -> { } : onRefresh;
         this.onApplied = onApplied;
         this.snapshotJpql = java.util.Objects.requireNonNullElse(template.getJpql(), "");
-        this.snapshotParams = template.getParams().stream().map(this::copyParam).toList();
 
         setHeaderTitle("JPQL-запрос отчёта");
         setModal(true);
@@ -89,25 +87,8 @@ public class ReportQueryDialog extends Dialog {
 
     private void cancelAndClose() {
         template.setJpql(snapshotJpql);
-        template.getParams().clear();
-        snapshotParams.forEach(template::addParam);
         editor.setTemplate(template);
         onRefresh.run();
         close();
-    }
-
-    private ReportParam copyParam(ReportParam source) {
-        ReportParam copy = new ReportParam();
-        copy.setName(source.getName());
-        copy.setCaption(source.getCaption());
-        copy.setKind(source.getKind());
-        copy.setValueSource(source.getValueSource());
-        copy.setEntityClass(source.getEntityClass());
-        copy.setDefaultValue(source.getDefaultValue());
-        copy.setComputed(source.getComputed());
-        copy.setRequired(source.isRequired());
-        copy.setShowOnForm(source.isShowOnForm());
-        copy.setPosition(source.getPosition());
-        return copy;
     }
 }

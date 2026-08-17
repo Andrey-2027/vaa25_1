@@ -3,7 +3,6 @@ package org.ip.views.reportstudio;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -23,31 +22,34 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.validation.ValidationException;
 import org.ip.form.SelectionFormAssembler;
 import org.ip.service.LookupService;
+import org.ipro.reportstudio.query.editor.QueryEditorAnalysis;
 import org.ipro.reportstudio.query.editor.QueryEditorAnalysisService;
 import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
 import org.ipro.reportstudio.query.editor.ReportQueryEditor;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.dom.ReportTemplateState;
+import org.ipro.reportstudio.query.ReconcileResult;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
-import org.ipro.reportstudio.param.ReportParamResolver;
-import org.ipro.rls.RlsCurrentUser;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.reportstudio.run.ReportExecutionService;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * Пользовательский экран мини-редактора отчётов.
  *
- * <p>Экран хранит одну редактируемую декларацию {@link ReportTemplate};
- * безопасный предпросмотр JPQL остаётся в переиспользуемом компоненте и всегда
- * идёт через guard и RLS. Запись шаблона выполняется только после структурной
- * и Bean Validation на сервере.</p>
+ * <p>Три вкладки: «Запросы» (кнопка открытия визуального редактора JPQL +
+ * readonly текст запроса), «Параметры Отчёта» (декларации параметров),
+ * «Страница» (поля + палитра свойств и бэнды + параметры страницы). Экран
+ * хранит одну редактируемую декларацию {@link ReportTemplate}; безопасный
+ * предпросмотр JPQL всегда идёт через guard и RLS. Запись шаблона выполняется
+ * только после структурной и Bean Validation.</p>
  */
 @Route("report-editor")
 @PageTitle("Редактор отчёта")
@@ -58,22 +60,29 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
     private final ReportExecutionService executionService;
     private final LookupService lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
+    private final QueryEditorAnalysisService analysisService;
+    private final QueryMetadataCatalogService catalogService;
+    private final ReportPreviewService previewService;
+
     private final TextField name = new TextField("Наименование отчёта");
     private final TextArea description = new TextArea("Описание");
     private final IntegerField maxRows = new IntegerField("Максимум строк");
     private final ReportQueryEditor queryEditor;
     private final ReportStructureEditor structureEditor = new ReportStructureEditor();
     private final ReportParamEditor paramEditor = new ReportParamEditor();
+    private final TextArea jpqlText = new TextArea();
+    private Tabs tabs;
+    private Tab pageTab;
 
     private ReportTemplate template;
+    private String lastAnalyzedJpql = "";
+    private boolean reconcileDialogSuppressed;
 
     public ReportEditorView(
             ReportQueryGuard guard,
             ReportPreviewService previewService,
             QueryEditorAnalysisService queryEditorAnalysisService,
             QueryMetadataCatalogService queryMetadataCatalogService,
-            ReportParamResolver reportParamResolver,
-            RlsCurrentUser currentUser,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
             LookupService lookupService,
@@ -82,8 +91,14 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
         this.executionService = executionService;
         this.lookupService = lookupService;
         this.selectionFormAssembler = selectionFormAssembler;
+        this.analysisService = queryEditorAnalysisService;
+        this.catalogService = queryMetadataCatalogService;
+        this.previewService = previewService;
         this.queryEditor = new ReportQueryEditor(queryEditorAnalysisService, queryMetadataCatalogService,
-                previewService, reportParamResolver, lookupService, selectionFormAssembler, currentUser);
+                previewService, lookupService, selectionFormAssembler);
+        this.queryEditor.setChangeListener(template1 -> syncJpqlText());
+        this.queryEditor.setAnalysisListener(this::onQueryAnalyzed);
+        this.paramEditor.setEntityOptions(queryMetadataCatalogService.entityOptions());
         this.paramEditor.setChangeListener(() -> {
             if (template != null) {
                 queryEditor.setTemplate(template);
@@ -93,34 +108,67 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        addClassName("report-editor");
 
-        add(new H2("Редактор отчёта"));
         configureMetadata();
-        add(metadataRow());
+        add(headerRow());
         add(descriptionSection());
         add(toolbar());
 
-        Tab structureTab = new Tab("Структура");
-        Tab paramsTab = new Tab("Параметры");
+        Tab queriesTab = new Tab("Запросы");
+        Tab paramsTab = new Tab("Параметры Отчёта");
+        Tab pageTab = new Tab("Страница");
+        VerticalLayout queriesPage = queriesPage();
         Map<Tab, com.vaadin.flow.component.Component> pageByTab = new LinkedHashMap<>();
-        pageByTab.put(structureTab, structureEditor);
+        pageByTab.put(queriesTab, queriesPage);
         pageByTab.put(paramsTab, paramEditor);
+        pageByTab.put(pageTab, structureEditor);
 
         Div pages = new Div();
         pages.setWidthFull();
+        pages.setHeightFull();
         pages.getStyle().set("min-height", "0");
 
-        Tabs tabs = new Tabs(structureTab, paramsTab);
+        Tabs tabs = new Tabs(queriesTab, paramsTab, pageTab);
         tabs.addSelectedChangeListener(event -> {
             pages.removeAll();
             pages.add(requireNonNull(pageByTab.get(event.getSelectedTab())));
+            if (event.getSelectedTab() == pageTab) {
+                maybeSyncSchemaFromQuery();
+            }
         });
+        this.tabs = tabs;
+        this.pageTab = pageTab;
 
-        pages.add(structureEditor);
+        pages.add(queriesPage);
         add(tabs);
         add(pages);
+        setFlexGrow(1, pages);
 
         newTemplate();
+    }
+
+    /** Вкладка «Запросы»: кнопка открытия редактора + readonly текст запроса. */
+    private VerticalLayout queriesPage() {
+        jpqlText.setLabel("Текст запроса");
+        jpqlText.setReadOnly(true);
+        jpqlText.setWidthFull();
+        jpqlText.setHeight("110px");
+        jpqlText.getStyle().set("font-family", "monospace");
+
+        Details jpqlDetails = new Details("Текст запроса", jpqlText);
+        jpqlDetails.setOpened(true);
+        jpqlDetails.setWidthFull();
+
+        Button editQuery = new Button("Редактировать запрос…", event -> openQueryDialog());
+        editQuery.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        VerticalLayout page = new VerticalLayout(editQuery, jpqlDetails);
+        page.setPadding(true);
+        page.setSpacing(true);
+        page.setWidthFull();
+        page.setHeightFull();
+        return page;
     }
 
     /** Создаёт новый черновик, сразу содержащий обязательный DETAIL-бэнд. */
@@ -134,13 +182,18 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
 
     /** Открывает сохранённый шаблон, переданный каталогом, в текущем редакторе. */
     public void editTemplate(ReportTemplate template) {
-        this.template = java.util.Objects.requireNonNull(template, "template");
-        name.setValue(java.util.Objects.requireNonNullElse(template.getName(), ""));
-        description.setValue(java.util.Objects.requireNonNullElse(template.getDescription(), ""));
+        this.template = Objects.requireNonNull(template, "template");
+        name.setValue(Objects.requireNonNullElse(template.getName(), ""));
+        description.setValue(Objects.requireNonNullElse(template.getDescription(), ""));
         maxRows.setValue(template.getMaxRows());
         queryEditor.setTemplate(template);
         structureEditor.setTemplate(template);
         paramEditor.setTemplate(template);
+        syncJpqlText();
+        // Схема запроса ещё не известна: молча анализируем при открытии, чтобы
+        // палитра знала поля запроса (иначе существующие колонки выглядят «чужими»).
+        lastAnalyzedJpql = "";
+        maybeSyncSchemaFromQuery();
     }
 
     @Override
@@ -182,6 +235,7 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
         structureEditor.setTemplate(template);
         paramEditor.setTemplate(template);
         queryEditor.setTemplate(template);
+        syncJpqlText();
         return saved;
     }
 
@@ -197,25 +251,48 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
         return template;
     }
 
+    // ------------------------------------------------------------ тестовые швы
+
+    /** Readonly-текст запроса на вкладке «Запросы». */
+    TextArea shownJpqlText() {
+        return jpqlText;
+    }
+
+    ReportQueryEditor queryEditor() {
+        return queryEditor;
+    }
+
+    ReportStructureEditor structureEditor() {
+        return structureEditor;
+    }
+
+    /** Переключает на вкладку «Страница» (как переход пользователя). */
+    void selectPageTab() {
+        if (tabs != null && pageTab != null) {
+            tabs.setSelectedTab(pageTab);
+        }
+    }
+
     private void configureMetadata() {
         name.setRequiredIndicatorVisible(true);
         name.setMaxLength(250);
-        name.setWidth("min(380px, 60vw)");
+        name.setWidth("min(320px, 40vw)");
         description.setMaxLength(2_000);
         description.setWidthFull();
         description.setMinHeight("3.5em");
         maxRows.setMin(0);
         maxRows.setMax(100_000);
         maxRows.setStepButtonsVisible(true);
-        maxRows.setWidth("200px");
+        maxRows.setWidth("160px");
         maxRows.setHelperText("0 — не ограничивать.");
     }
 
-    /** Компактная строка метаданных: наименование и лимит строк. */
-    private HorizontalLayout metadataRow() {
-        HorizontalLayout row = new HorizontalLayout(name, maxRows);
+    /** Компактная шапка: наименование, лимит строк и действия в одну строку. */
+    private HorizontalLayout headerRow() {
+        HorizontalLayout row = new HorizontalLayout(name, maxRows, toolbar());
         row.setWidthFull();
         row.setAlignItems(Alignment.END);
+        row.setWrap(true);
         return row;
     }
 
@@ -235,22 +312,54 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
         return new HorizontalLayout(queryButton, newButton, saveButton, runButton);
     }
 
-    /** Открывает JPQL-запрос в отдельном модальном окне, оставляя экран компактным. */
+    /** Открывает JPQL-запрос в отдельном модальном окне (быстрый доступ к вкладке «Запросы»). */
     private void openQueryDialog() {
-        queryEditor.setTemplate(template);
-        new ReportQueryDialog(queryEditor, template, this::refreshEditors,
-                analysis -> handleNewSchema(analysis.guardResult().selectFields())).open();
+        ReportQueryEditor dialogEditor = new ReportQueryEditor(analysisService, catalogService,
+                previewService, lookupService, selectionFormAssembler);
+        dialogEditor.setTemplate(template);
+        new ReportQueryDialog(dialogEditor, template, this::refreshEditors, this::onQueryAnalyzed).open();
     }
 
     /** Обновляет палитру QueryField и показывает reconcile при расхождениях layout. */
-    private void handleNewSchema(List<org.ipro.reportstudio.data.QueryField> schema) {
-        structureEditor.updateSchema(schema);
-        org.ipro.reportstudio.query.ReconcileResult reconcile = structureEditor.lastReconcile();
+    private void onQueryAnalyzed(QueryEditorAnalysis analysis) {
+        if (analysis == null || analysis.guardResult() == null || !analysis.guardResult().allowed()
+                || template == null) {
+            return;
+        }
+        lastAnalyzedJpql = Objects.requireNonNullElse(template.getJpql(), "");
+        structureEditor.updateSchema(analysis.guardResult().selectFields());
+        if (reconcileDialogSuppressed) {
+            return;
+        }
+        ReconcileResult reconcile = structureEditor.lastReconcile();
         if (reconcile.removed().isEmpty() && reconcile.unknown().isEmpty()
                 && reconcile.changedTypes().isEmpty()) {
             return;
         }
         new ReconcileDialog(reconcile, () -> structureEditor.removeMissingFields(reconcile)).open();
+    }
+
+    /** При переходе на вкладку «Страница» молча обновляет схему, если запрос менялся. */
+    private void maybeSyncSchemaFromQuery() {
+        if (template == null) {
+            return;
+        }
+        String jpql = Objects.requireNonNullElse(template.getJpql(), "");
+        if (jpql.isBlank() || jpql.equals(lastAnalyzedJpql)) {
+            return;
+        }
+        reconcileDialogSuppressed = true;
+        try {
+            queryEditor.analyze();
+        } catch (RuntimeException error) {
+            showNotification("Не удалось проверить запрос: " + error.getMessage());
+        } finally {
+            reconcileDialogSuppressed = false;
+        }
+    }
+
+    private void syncJpqlText() {
+        jpqlText.setValue(template == null ? "" : Objects.requireNonNullElse(template.getJpql(), ""));
     }
 
     private void refreshEditors() {
@@ -259,6 +368,8 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
         }
         structureEditor.setTemplate(template);
         paramEditor.setTemplate(template);
+        queryEditor.setTemplate(template);
+        syncJpqlText();
     }
 
     private static Button small(Button button) {

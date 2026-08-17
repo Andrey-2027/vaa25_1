@@ -21,7 +21,9 @@ import java.util.stream.Collectors;
  * <li>запрос после семантического разбора — корректный SELECT
  *     ({@link QuerySemanticAnalyzer}), иначе выполнение бесполезно;</li>
  * <li>двустороннее покрытие :param: каждый параметр запроса обязан быть
- *     объявлен в шаблоне ({@link ReportParam}), и наоборот — параметр
+ *     объявлен в шаблоне ({@link ReportParam}) — кроме служебных
+ *     ({@link ServiceParams}: parEntity/parEntityId/parEntityIds, значения
+ *     подставляются из контекста запуска); наоборот — параметр
  *     шаблона, который запрос не использует, попадает в warnings
  *     (в V1 параметры биндятся только объявленные);</li>
  * <li>RLS entity-access: каждая сущность, к которой обращается запрос
@@ -72,6 +74,7 @@ public class ReportQueryGuard {
      */
     public GuardResult guard(String jpql, Set<String> templateParamNames,
                              Map<String, Class<?>> paramEntityClasses) {
+        jpql = ServiceParams.expand(jpql);
         Analysis analysis = analyzer.analyze(jpql);
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
@@ -83,7 +86,7 @@ public class ReportQueryGuard {
         Set<String> declared = new LinkedHashSet<>(analysis.parameters());
         List<String> missing = new ArrayList<>();
         for (String parameter : GuardResult.sorted(declared)) {
-            if (!templateParamNames.contains(parameter)) {
+            if (!templateParamNames.contains(parameter) && !ServiceParams.isServiceName(parameter)) {
                 missing.add(parameter);
             }
         }

@@ -5,13 +5,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
- * Чистая функция: авто-дополнение JPQL ORDER BY префиксом групповых полей.
- * Нужна для корректной работы групп отчёта: без сортировки по групповому полю
- * соседние группы склеиваются (JasperReports группирует подряд идущие строки).
+ * Чистая функция: авто-дополнение JPQL ORDER BY префиксом групповых полей
+ * и пользовательской сортировки. Нужна для корректной работы групп отчёта:
+ * без сортировки по групповому полю соседние группы склеиваются (JasperReports
+ * группирует подряд идущие строки).
  * <p>
- * Внешняя группа первой (порядок полей задаёт вызывающий), существующий
- * ORDER BY сохраняется (групповые поля дописываются перед ним). Имена полей —
- * алиасы SELECT, валидные в HQL.
+ * Порядок применения: внешняя группа первой (порядок полей задаёт вызывающий),
+ * затем user-правила без дублей имён (имена, уже покрытые групповыми полями,
+ * пропускаются). Существующий ORDER BY сохраняется (всё дописывается перед ним).
+ * Имена полей — алиасы SELECT, валидные в HQL.
  */
 public final class OrderByApplier {
 
@@ -19,17 +21,44 @@ public final class OrderByApplier {
     }
 
     public static String withGroupOrderBy(String jpql, List<String> groupFields) {
+        return withOrderBy(jpql, groupFields, List.of());
+    }
+
+    /** User-правило сортировки: алиас колонки SELECT и направление. */
+    public record OrderSpec(String columnName, boolean descending) {
+    }
+
+    /**
+     * Дописывает сортировку «группы → user-sorts» (dedupe по имени) перед
+     * существующим ORDER BY. Пустой результат — JPQL без изменений.
+     */
+    public static String withOrderBy(String jpql, List<String> groupFields, List<OrderSpec> orders) {
         if (jpql == null || jpql.isBlank()) {
             throw new IllegalArgumentException("JPQL не может быть пустым");
         }
-        List<String> fields = new ArrayList<>(new LinkedHashSet<>(
-            groupFields == null
-                ? List.of()
-                : groupFields.stream().filter(f -> f != null && !f.isBlank()).toList()));
-        if (fields.isEmpty()) {
+        LinkedHashSet<String> ordered = new LinkedHashSet<>();
+        LinkedHashSet<String> seen = new LinkedHashSet<>();
+        if (groupFields != null) {
+            for (String groupField : groupFields) {
+                if (groupField != null && !groupField.isBlank() && seen.add(groupField)) {
+                    ordered.add(groupField);
+                }
+            }
+        }
+        if (orders != null) {
+            for (OrderSpec order : orders) {
+                if (order == null || order.columnName() == null || order.columnName().isBlank()) {
+                    continue;
+                }
+                if (seen.add(order.columnName())) {
+                    ordered.add(order.columnName() + (order.descending() ? " desc" : ""));
+                }
+            }
+        }
+        if (ordered.isEmpty()) {
             return jpql;
         }
-        String prefix = String.join(", ", fields);
+        String prefix = String.join(", ", ordered);
         int orderBy = findOrderBy(jpql);
         if (orderBy < 0) {
             return jpql + " order by " + prefix;

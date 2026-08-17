@@ -2,6 +2,7 @@ package org.ip.form.registry;
 
 import com.vaadin.flow.component.Component;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,6 +63,26 @@ public class FormRegistry {
      */
     public void registerItemForm(Class<?> entityClass, String variant, FormFactory factory) {
         register(entityClass, FormType.ITEM, variant, factory);
+    }
+
+    /**
+     * Зарегистрировать форму элемента с вариантом-перечислением (PR-1.4 «enum↔string»):
+     * ключом становится {@code variant.name().toLowerCase()} — единое правило перехода,
+     * чтобы строка-ключ не разъезжалась с селектором ({@code enum.key()}).
+     */
+    public void registerItemForm(Class<?> entityClass, Enum<?> variant, FormFactory factory) {
+        registerItemForm(entityClass, enumToKey(variant), factory);
+    }
+
+    /**
+     * Зарегистрировать форму списка с вариантом-перечислением (см. {@link #registerItemForm}).
+     */
+    public void registerListForm(Class<?> entityClass, Enum<?> variant, FormFactory factory) {
+        registerListForm(entityClass, enumToKey(variant), factory);
+    }
+
+    private static String enumToKey(Enum<?> variant) {
+        return variant.name().toLowerCase(Locale.ROOT);
     }
 
     /**

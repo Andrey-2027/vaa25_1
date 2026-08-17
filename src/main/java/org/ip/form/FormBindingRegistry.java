@@ -2,7 +2,9 @@ package org.ip.form;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -11,23 +13,45 @@ import java.util.Optional;
  * и предоставляет операции над ними как над единым целым.
  *
  * Основные операции:
- *   - add(binding)             — зарегистрировать биндинг (вызывается FieldFactory)
+ *   - add(binding)             — зарегистрировать биндинг (вызывается FieldFactory);
+ *                                ключ — {@code getFieldName()}, дубликат — IllegalArgumentException
  *   - applyAllToEntity(entity) — прочитать все компоненты → записать в entity
  *   - readAllFromEntity(entity) — записать из entity во все компоненты
  *   - validate() / isValid()   — проверить required-поля
  *   - setReadOnly(true)        — перевести все поля в read-only
+ *
+ * Порядок итерации — порядок регистрации (LinkedHashMap, спецификация «Часть D.3», PR-1.1).
  */
 public class FormBindingRegistry {
 
-    private final List<FormBinding> bindings = new ArrayList<>();
+    private final Map<String, FormBinding> bindings = new LinkedHashMap<>();
 
     /**
-     * Зарегистрировать биндинг.
+     * Зарегистрировать биндинг. Ключ — {@link FormBinding#getFieldName()};
+     * при дубликате ключа бросает {@link IllegalArgumentException}.
      */
     public FormBindingRegistry add(FormBinding binding) {
         Objects.requireNonNull(binding, "binding must not be null");
-        bindings.add(binding);
+        FormBinding previous = bindings.putIfAbsent(binding.getFieldName(), binding);
+        if (previous != null) {
+            throw new IllegalArgumentException(
+                "Duplicate binding key: " + binding.getFieldName());
+        }
         return this;
+    }
+
+    /**
+     * Заменить биндинг по его ключу (сохраняя позицию в порядке регистрации).
+     * Используется для label-оверрайдов ({@code FormBinding.withLabel(...)}, PR-1.2),
+     * когда сам биндинг уже создан FieldFactory по метаданным.
+     */
+    public void replace(FormBinding binding) {
+        Objects.requireNonNull(binding, "binding must not be null");
+        if (!bindings.containsKey(binding.getFieldName())) {
+            throw new IllegalArgumentException(
+                "No binding to replace for key: " + binding.getFieldName());
+        }
+        bindings.put(binding.getFieldName(), binding);
     }
 
     /**
@@ -35,7 +59,7 @@ public class FormBindingRegistry {
      * Используется при сохранении формы.
      */
     public void applyAllToEntity(Object entity) {
-        for (FormBinding binding : bindings) {
+        for (FormBinding binding : bindings.values()) {
             binding.applyToEntity(entity);
         }
     }
@@ -46,7 +70,7 @@ public class FormBindingRegistry {
      * или при инициализации новой.
      */
     public void readAllFromEntity(Object entity) {
-        for (FormBinding binding : bindings) {
+        for (FormBinding binding : bindings.values()) {
             binding.readFromEntity(entity);
         }
     }
@@ -56,7 +80,7 @@ public class FormBindingRegistry {
      */
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
-        for (FormBinding binding : bindings) {
+        for (FormBinding binding : bindings.values()) {
             String error = binding.getValidationError();
             if (error != null) {
                 errors.add(error);
@@ -77,21 +101,21 @@ public class FormBindingRegistry {
      * {@code readAllFromEntity(...)}/{@link #markClean()} — см. {@link FormBinding#isDirty()}.
      */
     public boolean isDirty() {
-        return bindings.stream().anyMatch(FormBinding::isDirty);
+        return bindings.values().stream().anyMatch(FormBinding::isDirty);
     }
 
     /**
      * Считать текущие значения всех компонентов новой "чистой" точкой отсчёта.
      */
     public void markClean() {
-        bindings.forEach(FormBinding::markClean);
+        bindings.values().forEach(FormBinding::markClean);
     }
 
     /**
      * Установить read-only для всех компонентов.
      */
     public void setReadOnly(boolean readOnly) {
-        for (FormBinding binding : bindings) {
+        for (FormBinding binding : bindings.values()) {
             binding.setReadOnly(readOnly);
         }
     }
@@ -104,16 +128,14 @@ public class FormBindingRegistry {
         if (bindings.isEmpty()) {
             return false;
         }
-        return bindings.stream().allMatch(FormBinding::isReadOnly);
+        return bindings.values().stream().allMatch(FormBinding::isReadOnly);
     }
 
     /**
-     * Найти биндинг по имени поля.
+     * Найти биндинг по ключу (имени поля) — O(1) по карте.
      */
     public Optional<FormBinding> getBinding(String fieldName) {
-        return bindings.stream()
-                .filter(b -> b.getFieldName().equals(fieldName))
-                .findFirst();
+        return Optional.ofNullable(bindings.get(fieldName));
     }
 
     /**
@@ -124,9 +146,9 @@ public class FormBindingRegistry {
     }
 
     /**
-     * Неизменяемый список всех биндингов (для отладки/итерации).
+     * Неизменяемый список всех биндингов в порядке регистрации (для отладки/итерации).
      */
     public List<FormBinding> getAll() {
-        return Collections.unmodifiableList(bindings);
+        return Collections.unmodifiableList(new ArrayList<>(bindings.values()));
     }
 }

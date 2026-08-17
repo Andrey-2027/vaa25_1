@@ -5,9 +5,9 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import org.ip.form.FieldFactory;
+import org.ip.application.form.FormSaveHandler;
+import org.ip.application.form.FormSaveResult;
 import org.ip.application.form.ItemFormSaveDispatcher;
-import org.ip.form.SelectionFormAssembler;
-import org.ip.form.TableSectionFactory;
 import org.ip.form.builtin.ItemForm;
 import org.ip.form.builtin.ListForm;
 import org.ip.form.builtin.SelectionForm;
@@ -30,8 +30,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -70,7 +68,6 @@ public class FormCoordinator {
     private final org.ip.service.GridFormViewService gridFormViewService;
     private final RlsUiGate rlsUiGate;
     private final ItemFormAccessBinder itemFormAccessBinder;
-    private final Map<String, FormSession> sessions = new ConcurrentHashMap<>();
 
     // Опциональная ссылка на Workspace для открытия форм в Tab (1С-стиль)
     private Workspace workspace;
@@ -81,9 +78,7 @@ public class FormCoordinator {
     public FormCoordinator(MetadataResolver metadataResolver,
                            FieldFactory fieldFactory,
                            ApplicationContext applicationContext,
-                           FormRegistry formRegistry,
-                           TableSectionFactory tableSectionFactory,
-                           SelectionFormAssembler selectionFormAssembler,
+                           FormResolver formResolver,
                            ServiceLocator serviceLocator,
                            org.ip.service.FormSettingsService formSettingsService,
                            org.ip.service.GridFormViewService gridFormViewService,
@@ -92,14 +87,12 @@ public class FormCoordinator {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
+        this.formResolver = formResolver;
         this.serviceLocator = serviceLocator;
         this.formSettingsService = formSettingsService;
         this.gridFormViewService = gridFormViewService;
         this.rlsUiGate = rlsUiGate;
         this.itemFormAccessBinder = itemFormAccessBinder;
-        this.formResolver = new FormResolver(
-            formRegistry, metadataResolver, fieldFactory, applicationContext, tableSectionFactory,
-            selectionFormAssembler, serviceLocator);
     }
 
     /**
@@ -266,11 +259,6 @@ public class FormCoordinator {
             form.setAfterColumnsConfigured(() -> configurator.accept(form));
         }
 
-        // Регистрируем сессию
-        String sessionId = UUID.randomUUID().toString();
-        FormSession session = new FormSession(sessionId, entityClass, SessionMode.LIST, null);
-        sessions.put(sessionId, session);
-
         return form;
     }
 
@@ -306,6 +294,29 @@ public class FormCoordinator {
                                                                   String variant,
                                                                   ID id,
                                                                   Consumer<T> onSaved) {
+        openItemForm(entityClass, variant, id, onSaved, null);
+    }
+
+    /**
+     * Открывает форму элемента (ItemForm) с указанным вариантом и параметрами открытия.
+     *
+     * <p>{@code parameters} — произвольные бизнес-параметры конкретного открытия (PR-1.5,
+     * драйвер «по роли»: например, {@code "readOnlySections" = List.of(PrdSpecOper.class)} —
+     * секция операций в режиме «только просмотр», материалы редактируются). Фабрика варианта
+     * читает их из {@code FormContext.getParameter(...)}.</p>
+     *
+     * @param entityClass класс сущности
+     * @param variant имя варианта (null = default)
+     * @param id          ID записи для редактирования (null = создание новой)
+     * @param onSaved     callback после успешного сохранения
+     * @param parameters  параметры открытия формы (могут быть null)
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T extends IdentifiableEntity, ID> void openItemForm(Class<T> entityClass,
+                                                                  String variant,
+                                                                  ID id,
+                                                                  Consumer<T> onSaved,
+                                                                  Map<String, Object> parameters) {
         Map<String, String> context = id != null
                 ? Map.of(MdcKeys.ENTITY_ID, id.toString())
                 : Map.of();
@@ -314,9 +325,9 @@ public class FormCoordinator {
             EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
 
             if (itemFormOpenMode == FormOpenMode.WORKSPACE_TAB) {
-                openItemFormInWorkspace(entityClass, variant, id, onSaved, meta);
+                openItemFormInWorkspace(entityClass, variant, id, onSaved, meta, parameters);
             } else {
-                openItemFormAsDialog(entityClass, variant, id, onSaved, meta);
+                openItemFormAsDialog(entityClass, variant, id, onSaved, meta, parameters);
             }
         }
     }
@@ -326,10 +337,12 @@ public class FormCoordinator {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T extends IdentifiableEntity, ID> void openItemFormAsDialog(
-            Class<T> entityClass, String variant, ID id, Consumer<T> onSaved, EntityMetadataInfo meta) {
+            Class<T> entityClass, String variant, ID id, Consumer<T> onSaved, EntityMetadataInfo meta,
+            Map<String, Object> parameters) {
 
         BaseService<T, ID> service = findService(entityClass);
-        ItemForm<T> form = formResolver.resolveItemForm(entityClass, variant, id, null);
+        ItemForm<T> form = formResolver.resolveItemForm(entityClass, variant, id, parameters);
+        form.setSaveHandler((FormSaveHandler) applicationContext.getBean(ItemFormSaveDispatcher.class));
 
         // Создание без права — форму не открываем вовсе (Фаза 4).
         if (id == null) {
@@ -365,22 +378,16 @@ public class FormCoordinator {
         dialog.add(form);
 
         form.setOnSave(() -> {
-            if (!form.isValid()) {
-                showError("Заполните обязательные поля:\n" + String.join("\n", form.validate()));
-                return;
-            }
-            java.util.List<String> sectionErrors = form.validateTableSections();
-            if (!sectionErrors.isEmpty()) {
-                showError(String.join("\n", sectionErrors));
-                return;
-            }
-            try {
-                T saved = applicationContext.getBean(ItemFormSaveDispatcher.class).save(form, service);
+            FormSaveResult<T> result = form.save();
+            if (result.success()) {
                 dialog.close();
-                if (onSaved != null) onSaved.accept(saved);
+                if (onSaved != null) {
+                    onSaved.accept(((FormSaveResult.Success<T>) result).saved());
+                }
                 showSuccess("Сохранено");
-            } catch (Exception ex) {
-                showError("Ошибка сохранения: " + ex.getMessage());
+            } else if (result instanceof FormSaveResult.Failure<T> failure) {
+                showError(String.join("\n", failure.messages()));
+                // форма остаётся открыта; in-memory rows сохраняются
             }
         });
 
@@ -399,11 +406,6 @@ public class FormCoordinator {
         });
         form.withDefaultButtons();
 
-        String sessionId = UUID.randomUUID().toString();
-        FormSession session = new FormSession(sessionId, entityClass, SessionMode.ITEM, getCurrentSession());
-        session.put("id", id);
-        sessions.put(sessionId, session);
-
         dialog.open();
     }
 
@@ -413,7 +415,8 @@ public class FormCoordinator {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T extends IdentifiableEntity, ID> void openItemFormInWorkspace(
-            Class<T> entityClass, String variant, ID id, Consumer<T> onSaved, EntityMetadataInfo meta) {
+            Class<T> entityClass, String variant, ID id, Consumer<T> onSaved, EntityMetadataInfo meta,
+            Map<String, Object> parameters) {
 
         // Создание без права — вкладку не открываем вовсе (Фаза 4).
         if (id == null) {
@@ -445,15 +448,8 @@ public class FormCoordinator {
         };
 
         workspace.open(ItemFormWrapperView.class, entryId, title, view -> {
-            view.init(entityClass, id, tabOnSaved, () -> workspace.close(entryId));
+            view.init(entityClass, variant, id, tabOnSaved, () -> workspace.close(entryId), parameters);
         });
-
-        // Регистрируем сессию
-        String sessionId = UUID.randomUUID().toString();
-        FormSession session = new FormSession(sessionId, entityClass, SessionMode.ITEM, getCurrentSession());
-        session.put("id", id);
-        session.put("variant", variant);
-        sessions.put(sessionId, session);
     }
 
     /**
@@ -464,34 +460,11 @@ public class FormCoordinator {
      *
      * @param entityClass класс сущности для выбора
      * @param onSelected  callback при выборе записи
-     * @param owner       родительская сессия
      */
     public <T extends IdentifiableEntity> void openSelectionForm(Class<T> entityClass,
-                                                                   Consumer<T> onSelected,
-                                                                   FormSession owner) {
+                                                                   Consumer<T> onSelected) {
         SelectionForm<T> form = formResolver.resolveSelectionForm(entityClass, onSelected);
-
-        String sessionId = UUID.randomUUID().toString();
-        FormSession session = new FormSession(sessionId, entityClass, SessionMode.SELECTION, owner);
-        sessions.put(sessionId, session);
-
         form.open();
-    }
-
-    // === Управление сессиями ===
-
-    /**
-     * Закрывает текущую сессию и возвращается к родительской.
-     * Пока не используется, но заложена точка расширения.
-     */
-    public void closeCurrent() {
-        // TODO: реализовать при необходимости навигации "Назад"
-    }
-
-    private FormSession getCurrentSession() {
-        // TODO: получить из UI.getCurrent() или thread-local
-        // Пока возвращаем null — parent-child связи не критичны для первой версии
-        return null;
     }
 
     // === Поиск сервисов ===

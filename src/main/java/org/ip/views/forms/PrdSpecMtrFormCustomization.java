@@ -51,8 +51,10 @@ public class PrdSpecMtrFormCustomization implements ItemFormCustomization {
 
     @Override
     public void configure(ItemFormVariants variants) {
-        variants.add("material", ctx -> buildForm(ctx, List.of("nomenclature", "unit", "qt"), false));
-        variants.add("product", ctx -> buildForm(ctx, List.of("prdSpecMtr", "unit", "qt"), true));
+        variants.add(PrdSpecMtrVariant.MATERIAL.key(),
+            ctx -> buildForm(ctx, List.of("nomenclature", "unit", "qt"), false));
+        variants.add(PrdSpecMtrVariant.PRODUCT.key(),
+            ctx -> buildForm(ctx, List.of("prdSpecMtr", "unit", "qt"), true));
     }
 
     private ItemForm<PrdSpecMtr> buildForm(org.ip.form.registry.FormContext ctx,

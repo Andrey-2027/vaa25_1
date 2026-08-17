@@ -1,7 +1,6 @@
 package org.ip.form.registry;
 
 import org.ip.form.FieldFactory;
-import org.ip.form.coordinator.FormSession;
 import org.ip.metadata.MetadataResolver;
 import org.ip.service.LookupService;
 
@@ -34,19 +33,17 @@ public class FormContext {
     private final FieldFactory fieldFactory;
     private final LookupService lookupService;
     private final Map<String, Object> parameters;
-    private final FormSession parentSession;
 
     public FormContext(Class<?> entityClass, Object id,
                        MetadataResolver metadataResolver, FieldFactory fieldFactory,
                        LookupService lookupService,
-                       Map<String, Object> parameters, FormSession parentSession) {
+                       Map<String, Object> parameters) {
         this.entityClass = entityClass;
         this.id = id;
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.lookupService = lookupService;
         this.parameters = parameters != null ? new HashMap<>(parameters) : new HashMap<>();
-        this.parentSession = parentSession;
     }
 
     public Class<?> getEntityClass() {
@@ -88,10 +85,6 @@ public class FormContext {
         return parameters.containsKey(key);
     }
 
-    public FormSession getParentSession() {
-        return parentSession;
-    }
-
     // === Builder для удобного создания ===
 
     public static Builder builder(Class<?> entityClass) {
@@ -105,7 +98,6 @@ public class FormContext {
         private FieldFactory fieldFactory;
         private LookupService lookupService;
         private Map<String, Object> parameters = new HashMap<>();
-        private FormSession parentSession;
 
         private Builder(Class<?> entityClass) {
             this.entityClass = entityClass;
@@ -143,14 +135,9 @@ public class FormContext {
             return this;
         }
 
-        public Builder parentSession(FormSession parentSession) {
-            this.parentSession = parentSession;
-            return this;
-        }
-
         public FormContext build() {
             return new FormContext(entityClass, id, metadataResolver, fieldFactory, lookupService,
-                parameters, parentSession);
+                parameters);
         }
     }
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportField;
+import org.ipro.reportstudio.dom.ReportOrder;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.dom.ReportTemplateState;
@@ -106,6 +107,11 @@ public class ReportTemplateTransferService {
         target.setMaxRows(template.getMaxRows());
         target.setTimeoutMs(template.getTimeoutMs());
         target.setAdvanced(template.isAdvanced());
+        target.setPageSize(template.getPageSize());
+        target.setPageOrientation(template.getPageOrientation());
+        target.setBaseFontSize(template.getBaseFontSize());
+        target.setGridEnabled(template.getGridEnabledRaw());
+        target.setStripeRows(template.getStripeRowsRaw());
 
         for (ReportParam source : template.getParams()) {
             ReportTemplateExchange.Param param = new ReportTemplateExchange.Param();
@@ -127,26 +133,37 @@ public class ReportTemplateTransferService {
         for (ReportBand source : template.getBands()) {
             keys.put(source, "band-" + index++);
         }
-        for (ReportBand source : template.getBands()) {
+for (ReportBand source : template.getBands()) {
             ReportTemplateExchange.Band band = new ReportTemplateExchange.Band();
             band.setKey(keys.get(source));
             band.setParentKey(source.getParent() == null ? null : keys.get(source.getParent()));
             band.setKind(source.getKind());
             band.setPosition(source.getPosition());
             band.setGroupField(source.getGroupField());
+            band.setStartNewPage(source.getStartNewPage());
             for (ReportField sourceField : source.getFields()) {
                 ReportTemplateExchange.Field field = new ReportTemplateExchange.Field();
+                field.setKind(sourceField.getKind());
                 field.setQueryField(sourceField.getQueryField());
+                field.setText(sourceField.getText());
                 field.setCaption(sourceField.getCaption());
                 field.setWidth(sourceField.getWidth());
                 field.setFormat(sourceField.getFormat());
+                field.setBorder(sourceField.getBorder());
                 field.setVisible(sourceField.isVisible());
                 field.setAggregation(sourceField.getAggregation());
                 field.setAlignment(sourceField.getAlignment());
                 field.setPosition(sourceField.getPosition());
                 band.getFields().add(field);
             }
-            target.getBands().add(band);
+target.getBands().add(band);
+        }
+        for (ReportOrder sourceOrder : template.getOrders()) {
+            ReportTemplateExchange.Order order = new ReportTemplateExchange.Order();
+            order.setColumnName(sourceOrder.getColumnName());
+            order.setDirection(sourceOrder.getDirection());
+            order.setPosition(sourceOrder.getPosition());
+            target.getOrders().add(order);
         }
         exchange.setTemplate(target);
         return exchange;
@@ -162,6 +179,11 @@ public class ReportTemplateTransferService {
         template.setMaxRows(source.getMaxRows());
         template.setTimeoutMs(source.getTimeoutMs());
         template.setAdvanced(source.isAdvanced());
+        template.setPageSize(source.getPageSize());
+        template.setPageOrientation(source.getPageOrientation());
+        template.setBaseFontSize(source.getBaseFontSize());
+        template.setGridEnabled(source.getGridEnabled());
+        template.setStripeRows(source.getStripeRows());
 
         for (ReportTemplateExchange.Param sourceParam : safeList(source.getParams())) {
             ReportParam param = new ReportParam();
@@ -184,19 +206,25 @@ public class ReportTemplateTransferService {
             if (isBlank(sourceBand.getKey()) || bandsByKey.containsKey(sourceBand.getKey())) {
                 throw new ReportTemplateTransferException("Ключи бэндов должны быть непустыми и уникальными");
             }
-            ReportBand band = new ReportBand();
+ReportBand band = new ReportBand();
             band.setKind(sourceBand.getKind());
             band.setPosition(sourceBand.getPosition());
             band.setGroupField(sourceBand.getGroupField());
+            band.setStartNewPage(sourceBand.getStartNewPage());
             template.addBand(band);
             bandsByKey.put(sourceBand.getKey(), band);
 
             for (ReportTemplateExchange.Field sourceField : safeList(sourceBand.getFields())) {
                 ReportField field = new ReportField();
+                if (sourceField.getKind() != null) {
+                    field.setKind(sourceField.getKind());
+                }
                 field.setQueryField(sourceField.getQueryField());
+                field.setText(sourceField.getText());
                 field.setCaption(sourceField.getCaption());
                 field.setWidth(sourceField.getWidth());
                 field.setFormat(sourceField.getFormat());
+                field.setBorder(sourceField.getBorder());
                 field.setVisible(sourceField.isVisible());
                 field.setAggregation(sourceField.getAggregation());
                 field.setAlignment(sourceField.getAlignment());
@@ -204,7 +232,7 @@ public class ReportTemplateTransferService {
                 band.addField(field);
             }
         }
-        for (ReportTemplateExchange.Band sourceBand : sourceBands) {
+for (ReportTemplateExchange.Band sourceBand : sourceBands) {
             if (!isBlank(sourceBand.getParentKey())) {
                 ReportBand parent = bandsByKey.get(sourceBand.getParentKey());
                 if (parent == null) {
@@ -213,6 +241,13 @@ public class ReportTemplateTransferService {
                 }
                 bandsByKey.get(sourceBand.getKey()).setParent(parent);
             }
+        }
+        for (ReportTemplateExchange.Order sourceOrder : safeList(source.getOrders())) {
+            ReportOrder order = new ReportOrder();
+            order.setColumnName(sourceOrder.getColumnName());
+            order.setDirection(sourceOrder.getDirection());
+            order.setPosition(sourceOrder.getPosition());
+            template.addOrder(order);
         }
         return template;
     }

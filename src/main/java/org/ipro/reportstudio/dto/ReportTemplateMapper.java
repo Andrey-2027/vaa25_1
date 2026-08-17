@@ -2,10 +2,12 @@ package org.ipro.reportstudio.dto;
 
 import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportField;
+import org.ipro.reportstudio.dom.ReportOrder;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.dto.ReportTemplateDto.ReportBandDto;
 import org.ipro.reportstudio.dto.ReportTemplateDto.ReportFieldDto;
+import org.ipro.reportstudio.dto.ReportTemplateDto.ReportOrderDto;
 import org.ipro.reportstudio.dto.ReportTemplateDto.ReportParamDto;
 
 import java.util.ArrayList;
@@ -42,11 +44,19 @@ public final class ReportTemplateMapper {
         dto.setMaxRows(entity.getMaxRows());
         dto.setTimeoutMs(entity.getTimeoutMs());
         dto.setAdvanced(entity.isAdvanced());
+        dto.setPageSize(entity.getPageSize());
+        dto.setPageOrientation(entity.getPageOrientation());
+        dto.setBaseFontSize(entity.getBaseFontSize());
+        dto.setGridEnabled(entity.getGridEnabledRaw());
+        dto.setStripeRows(entity.getStripeRowsRaw());
         for (ReportParam param : entity.getParams()) {
             dto.getParams().add(toParamDto(param));
         }
         for (ReportBand band : entity.getBands()) {
             dto.getBands().add(toBandDto(band));
+        }
+        for (ReportOrder order : entity.getOrders()) {
+            dto.getOrders().add(toOrderDto(order));
         }
         return dto;
     }
@@ -73,6 +83,17 @@ public final class ReportTemplateMapper {
             entity.setTimeoutMs(dto.getTimeoutMs());
         }
         entity.setAdvanced(dto.isAdvanced());
+        if (dto.getPageSize() != null) {
+            entity.setPageSize(dto.getPageSize());
+        }
+        if (dto.getPageOrientation() != null) {
+            entity.setPageOrientation(dto.getPageOrientation());
+        }
+        if (dto.getBaseFontSize() != null) {
+            entity.setBaseFontSize(dto.getBaseFontSize());
+        }
+        entity.setGridEnabled(dto.getGridEnabled());
+        entity.setStripeRows(dto.getStripeRows());
 
         entity.getParams().clear();
         for (ReportParamDto paramDto : dto.getParams()) {
@@ -83,6 +104,11 @@ public final class ReportTemplateMapper {
         List<ReportBand> created = buildBands(entity, dto.getBands());
         if (created.size() > 1) {
             wireParents(dto.getBands(), created);
+        }
+
+        entity.getOrders().clear();
+        for (ReportOrderDto orderDto : dto.getOrders()) {
+            entity.addOrder(toOrder(orderDto, entity));
         }
     }
 
@@ -135,6 +161,7 @@ public final class ReportTemplateMapper {
         dto.setPosition(band.getPosition());
         dto.setParentId(band.getParent() == null ? null : band.getParent().getId());
         dto.setGroupField(band.getGroupField());
+        dto.setStartNewPage(band.getStartNewPage());
         for (ReportField field : band.getFields()) {
             dto.getFields().add(toFieldDto(field));
         }
@@ -145,10 +172,13 @@ public final class ReportTemplateMapper {
         ReportFieldDto dto = new ReportFieldDto();
         dto.setId(field.getId());
         dto.setVersion(field.getVersion());
+        dto.setKind(field.getKind());
         dto.setQueryField(field.getQueryField());
+        dto.setText(field.getText());
         dto.setCaption(field.getCaption());
         dto.setWidth(field.getWidth());
         dto.setFormat(field.getFormat());
+        dto.setBorder(field.getBorder());
         dto.setVisible(field.isVisible());
         dto.setAggregation(field.getAggregation());
         dto.setAlignment(field.getAlignment());
@@ -161,10 +191,15 @@ public final class ReportTemplateMapper {
         field.setBand(band);
         field.setId(dto.getId());
         field.setVersion(dto.getVersion());
+        if (dto.getKind() != null) {
+            field.setKind(dto.getKind());
+        }
         field.setQueryField(dto.getQueryField());
+        field.setText(dto.getText());
         field.setCaption(dto.getCaption());
         field.setWidth(dto.getWidth());
         field.setFormat(dto.getFormat());
+        field.setBorder(dto.getBorder());
         field.setVisible(dto.isVisible());
         if (dto.getAggregation() != null) {
             field.setAggregation(dto.getAggregation());
@@ -174,6 +209,29 @@ public final class ReportTemplateMapper {
         }
         field.setPosition(dto.getPosition());
         return field;
+    }
+
+    private static ReportOrderDto toOrderDto(ReportOrder order) {
+        ReportOrderDto dto = new ReportOrderDto();
+        dto.setId(order.getId());
+        dto.setVersion(order.getVersion());
+        dto.setColumnName(order.getColumnName());
+        dto.setDirection(order.getDirection());
+        dto.setPosition(order.getPosition());
+        return dto;
+    }
+
+    private static ReportOrder toOrder(ReportOrderDto dto, ReportTemplate template) {
+        ReportOrder order = new ReportOrder();
+        order.setTemplate(template);
+        order.setId(dto.getId());
+        order.setVersion(dto.getVersion());
+        order.setColumnName(dto.getColumnName());
+        if (dto.getDirection() != null) {
+            order.setDirection(dto.getDirection());
+        }
+        order.setPosition(dto.getPosition());
+        return order;
     }
 
     private static List<ReportBand> buildBands(ReportTemplate entity, List<ReportBandDto> bandDtos) {
@@ -188,6 +246,7 @@ public final class ReportTemplateMapper {
             }
             band.setPosition(bandDto.getPosition());
             band.setGroupField(bandDto.getGroupField());
+            band.setStartNewPage(bandDto.getStartNewPage());
             for (ReportFieldDto fieldDto : bandDto.getFields()) {
                 band.addField(toField(fieldDto, band));
             }
