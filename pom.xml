@@ -120,6 +120,22 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- UI-обвязка отчётов (окно превью, тулбар экспорта, прогресс): библиотека reportui-core
+             из проекта ReportFlowUI. Тяжесть (DR7/JR7) уже покрыта зависимостью выше — отключаем
+             транзитивный google-maps, как и в прямой зависимости. -->
+        <dependency>
+            <groupId>org.vaadin.reports</groupId>
+            <artifactId>reportui-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.sf.jasperreports</groupId>
+                    <artifactId>jasperreports-google-maps</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>net.sf.jasperreports</groupId>
             <artifactId>jasperreports-fonts</artifactId>

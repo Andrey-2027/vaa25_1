@@ -25,6 +25,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/h2-console/**").permitAll()
             )
+            // Превью отчётов (iframe с PDF из StreamResource) same-origin:
+            // X-Frame-Options по умолчанию DENY блокировал бы встроенный фрейм.
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .with(VaadinSecurityConfigurer.vaadin(), configurer -> {
                 configurer.loginView(LoginView.class);
             });
