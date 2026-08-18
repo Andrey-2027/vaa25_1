@@ -82,6 +82,7 @@ class ReportTemplateServiceTest {
     private ReportTemplateService newService(ReportTemplateRepository repository) {
         ReportTemplateService service = new ReportTemplateService(repository, validator);
         ReflectionTestUtils.setField(service, "accessService", mock(AccessService.class));
+        ReflectionTestUtils.setField(service, "numberingService", Optional.empty());
         return service;
     }
 

@@ -1,5 +1,6 @@
 package org.ipro.rls.config;
 
+import org.ipro.numbering.NumberingScopeResolver;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCurrentUser;
@@ -9,6 +10,7 @@ import org.ipro.rls.RlsGuardRequestFilter;
 import org.ipro.rls.RlsReadGate;
 import org.ipro.rls.RlsReadableIdsCache;
 import org.ipro.rls.RlsRoleResolver;
+import org.ipro.rls.RlsScopeResolver;
 import org.ipro.rls.RlsStatementGuard;
 import org.ipro.rls.RlsUiGate;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,6 +70,18 @@ public class RlsAutoConfiguration {
                                                  RlsReadableIdsCache readableIdsCache,
                                                  RlsCurrentUser currentUser) {
         return new RlsFilterActivator(dimensionRegistry, readableIdsCache, currentUser);
+    }
+
+    /**
+     * Адаптер «RLS → нумерация»: передаёт значения осей доступа платформе нумерации там,
+     * где scope серии совпадает с измерением RLS (обычный случай — номер «в разрезе журнала»).
+     * Нумерация знает только контракт {@link NumberingScopeResolver}; эта реализация — одна из
+     * возможных, предоставляемая модулем RLS.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public NumberingScopeResolver numberingScopeResolver() {
+        return new RlsScopeResolver();
     }
 
     @Bean

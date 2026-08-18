@@ -1,20 +1,18 @@
-package org.ipro.numbering;
+package org.ipro.rls;
 
-import org.ipro.rls.RlsCheckValue;
-import org.ipro.rls.RlsDimensionValue;
+import org.ipro.numbering.NumberingScopeResolver;
 
 import java.util.List;
 
 /**
- * Встроенная дефолт-реализация {@link NumberingScopeResolver}: для измерения берёт первое
+ * Дефолт-реализация {@link NumberingScopeResolver} из данных RLS: для измерения берёт первое
  * значение из {@code RlsDimensionValue.getRlsChecks()} той же сущности (например "JOURNAL" у
  * PrdSpec/ReceivingDocument). {@code NotApplicable} или отсутствие измерения → null (сущность
  * не участвует).
  *
- * <p>Не является структурной зависимостью нумерации от RLS: сущность может реализовать
- * {@code NumberingScopeResolver} сама, а этот резолвер — лишь реализация по умолчанию для
- * совпадающих случаев (scope нумерации = измерение доступа), чтобы не держать второй
- * параллельный способ достать «Journal этой записи».</p>
+ * <p>Адаптер «RLS → нумерация», предоставляется модулем RLS: нумерация знает только контракт
+ * {@code NumberingScopeResolver}, а это конкретное прочтение «значение оси = значение оси
+ * доступа» — одна из возможных семантик, не структурная зависимость платформы нумерации от RLS.</p>
  */
 public class RlsScopeResolver implements NumberingScopeResolver {
 

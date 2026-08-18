@@ -13,4 +13,7 @@ public interface SettingValueRepository extends JpaRepository<SettingValue, Long
 
     /** Все строки сферы (для админ-экрана, выгрузки, клонирования настроек филиала и т.п.). */
     List<SettingValue> findByScopeTypeAndScopeId(String scopeType, long scopeId);
+
+    /** Сброс перекрытия к дефолту разработчика: строка удаляется (см. SettingsService.resetToDefault). */
+    void deleteBySettingKeyAndScopeTypeAndScopeId(String settingKey, String scopeType, long scopeId);
 }

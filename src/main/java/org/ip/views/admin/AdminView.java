@@ -67,6 +67,8 @@ public class AdminView extends VerticalLayout {
     private final FieldAuditQueryService fieldAudit;
     private final TraceService traceService;
     private final AccessGrantAdminService accessGrantAdminService;
+    private final SettingsAdminTab settingsTab;
+    private final NumberingAdminTab numberingTab;
 
     private final Grid<EventRow> eventGrid = new Grid<>(EventRow.class, false);
     private final Grid<AggRow> aggGrid = new Grid<>(AggRow.class, false);
@@ -115,11 +117,15 @@ public class AdminView extends VerticalLayout {
     public AdminView(@Autowired JournalQueryService journal,
                      @Autowired FieldAuditQueryService fieldAudit,
                      @Autowired Optional<TraceService> traceServiceOpt,
-                     @Autowired AccessGrantAdminService accessGrantAdminService) {
+                     @Autowired AccessGrantAdminService accessGrantAdminService,
+                     @Autowired SettingsAdminTab settingsTab,
+                     @Autowired NumberingAdminTab numberingTab) {
         this.journal = journal;
         this.fieldAudit = fieldAudit;
         this.traceService = traceServiceOpt.orElse(null);
         this.accessGrantAdminService = accessGrantAdminService;
+        this.settingsTab = settingsTab;
+        this.numberingTab = numberingTab;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -149,7 +155,10 @@ public class AdminView extends VerticalLayout {
         Tab traceItem = new Tab(new Span("Трассировка"), new Icon(VaadinIcon.BUG));
         Tab historyItem = new Tab(new Span("История изменений"), new Icon(VaadinIcon.CLOCK));
         Tab accessItem = new Tab(new Span("Доступ (RLS)"), new Icon(VaadinIcon.KEY));
-        Tabs tabs = new Tabs(journalItem, aggregatesItem, traceItem, historyItem, accessItem);
+        Tab settingsItem = new Tab(new Span("Настройки"), new Icon(VaadinIcon.COGS));
+        Tab numberingItem = new Tab(new Span("Нумерация"), new Icon(VaadinIcon.HASH));
+        Tabs tabs = new Tabs(journalItem, aggregatesItem, traceItem, historyItem, accessItem,
+                settingsItem, numberingItem);
         add(tabs);
 
         buildJournalTab();
@@ -158,7 +167,7 @@ public class AdminView extends VerticalLayout {
         buildHistoryTab();
         buildAccessTab();
 
-        add(journalTab, aggregatesTab, traceTab, historyTab, accessTab);
+        add(journalTab, aggregatesTab, traceTab, historyTab, accessTab, settingsTab, numberingTab);
         show(journalTab);
 
         tabs.addSelectedChangeListener(e -> {
@@ -171,6 +180,12 @@ public class AdminView extends VerticalLayout {
                 show(historyTab);
             } else if (e.getSelectedTab() == accessItem) {
                 show(accessTab);
+            } else if (e.getSelectedTab() == settingsItem) {
+                show(settingsTab);
+                settingsTab.refresh();
+            } else if (e.getSelectedTab() == numberingItem) {
+                show(numberingTab);
+                numberingTab.refresh();
             } else {
                 show(journalTab);
             }
@@ -183,6 +198,8 @@ public class AdminView extends VerticalLayout {
         traceTab.setVisible(false);
         historyTab.setVisible(false);
         accessTab.setVisible(false);
+        settingsTab.setVisible(false);
+        numberingTab.setVisible(false);
         active.setVisible(true);
     }
 

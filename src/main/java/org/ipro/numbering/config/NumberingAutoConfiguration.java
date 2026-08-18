@@ -1,11 +1,12 @@
 package org.ipro.numbering.config;
 
 import org.ipro.numbering.NumberingCounterService;
+import org.ipro.numbering.NumberingMetadataRegistry;
 import org.ipro.numbering.NumberingRuleRepository;
 import org.ipro.numbering.NumberingRuleService;
 import org.ipro.numbering.NumberingScopeResolver;
 import org.ipro.numbering.NumberingService;
-import org.ipro.numbering.RlsScopeResolver;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -35,15 +36,16 @@ public class NumberingAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public NumberingScopeResolver numberingScopeResolver() {
-        return new RlsScopeResolver();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
     public NumberingService numberingService(NumberingRuleService ruleService,
                                              NumberingCounterService counterService,
                                              NumberingScopeResolver scopeResolver) {
         return new NumberingService(ruleService, counterService, scopeResolver);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NumberingMetadataRegistry numberingMetadataRegistry(
+            @Value("${platform.subsystem-scan-package:org.ip}") String basePackage) {
+        return new NumberingMetadataRegistry(basePackage);
     }
 }

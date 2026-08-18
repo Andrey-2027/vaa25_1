@@ -60,6 +60,19 @@ public class NumberingService {
     }
 
     /**
+     * Текущее (последнее выданное) значение последовательности для поля без побочных эффектов.
+     * 0 — счётчик ещё не создан (ни один номер не выдан). Для админ-экрана.
+     */
+    public long currentValue(Object entity, Field field) {
+        Numbered ann = field.getAnnotation(Numbered.class);
+        if (ann == null) {
+            throw new IllegalArgumentException("Поле " + field + " не помечено @Numbered");
+        }
+        NumberingRule rule = ruleService.effectiveRule(entity.getClass().getSimpleName(), field.getName(), ann);
+        return counterService.lastValue(keyFor(entity, field, ann, rule));
+    }
+
+    /**
      * Отображаемое значение без побочных эффектов (для UI/админ-экрана).
      * Секвенцию следующего номера НЕ резервирует.
      */
@@ -117,18 +130,21 @@ public class NumberingService {
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
                 return counterService.allocate(key, initial);
-            } catch (jakarta.persistence.PersistenceException e) {
-                boolean duplicateFirstCounter = isFirstCounterUniqueViolation(e);
-                if (!duplicateFirstCounter || attempt == 2) {
+            } catch (RuntimeException e) {
+                // Hibernate может пробросить как JPA PersistenceException, так и свою
+                // ConstraintViolationException напрямую — классифицируем по цепочке исключений,
+                // а не по типу обёртки.
+                if (!isFirstCounterUniqueViolation(e) || attempt == 2) {
                     throw e;
                 }
-                // aborted-tx Postgres: повторяем СНАРУЖИ, новой короткой транзакцией
+                // aborted-tx (Postgres) / сбойная транзакция (H2): повторяем СНАРУЖИ,
+                // новой короткой транзакцией.
             }
         }
         throw new IllegalStateException("Не удалось выделить номер для ключа " + key);
     }
 
-    private boolean isFirstCounterUniqueViolation(jakarta.persistence.PersistenceException e) {
+    private boolean isFirstCounterUniqueViolation(Throwable e) {
         Throwable cause = e;
         while (cause != null) {
             if (cause.getClass().getSimpleName().equals("ConstraintViolationException")) {

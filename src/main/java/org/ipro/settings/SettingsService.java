@@ -95,6 +95,17 @@ public class SettingsService {
         repository.save(row);
     }
 
+    /**
+     * Сброс к дефолту разработчика: перекрытие администратора удаляется, последующие чтения
+     * снова возвращают значение из кода. Настройку не «удаляют» — возвращают к каталогу.
+     */
+    @Transactional
+    public void resetToDefault(Class<?> groupClass, String fieldName) {
+        requireDescriptor(groupClass, fieldName);
+        repository.deleteBySettingKeyAndScopeTypeAndScopeId(
+            key(groupClass, fieldName), GLOBAL_SCOPE, GLOBAL_SCOPE_ID);
+    }
+
     /** Имя RLS-измерения раздела ("SETTINGS:Directories") — для право-гейта в UI. */
     public String rlsDimensionOf(Class<?> groupClass) {
         return registry.rlsDimensionOf(groupClass);

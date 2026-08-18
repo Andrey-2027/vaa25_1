@@ -53,4 +53,11 @@ public class NumberingCounterService {
             counter.setLastValue(value);
         }
     }
+
+    /** Текущее значение счётчика без побочных эффектов (0 — счётчик ещё не создан). Для админ-экрана. */
+    @Transactional(readOnly = true)
+    public long lastValue(String key) {
+        NumberingCounter counter = entityManager.find(NumberingCounter.class, key);
+        return counter == null ? 0L : counter.getLastValue();
+    }
 }
