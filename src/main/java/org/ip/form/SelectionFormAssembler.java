@@ -2,9 +2,9 @@ package org.ip.form;
 
 import com.vaadin.flow.function.ValueProvider;
 import org.ip.form.builtin.SelectionForm;
-import org.ip.metadata.ColumnPath;
-import org.ip.metadata.EntityMetadataInfo;
-import org.ip.metadata.MetadataResolver;
+import org.ipro.metadata.ColumnPath;
+import org.ipro.metadata.EntityMetadataInfo;
+import org.ipro.metadata.MetadataResolver;
 import org.ip.service.BaseService;
 import org.ip.service.ServiceLocator;
 import org.ipro.crud.IdentifiableEntity;

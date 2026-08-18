@@ -1,7 +1,7 @@
 package org.ip.service;
 
-import org.ip.metadata.EntityMetadataInfo;
-import org.ip.metadata.MetadataResolver;
+import org.ipro.metadata.EntityMetadataInfo;
+import org.ipro.metadata.MetadataResolver;
 import org.ipro.crud.IdentifiableEntity;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;

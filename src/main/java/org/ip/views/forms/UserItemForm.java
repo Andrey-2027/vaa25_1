@@ -4,7 +4,7 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.textfield.PasswordField;
 import org.ip.form.FieldFactory;
 import org.ip.form.builtin.ItemForm;
-import org.ip.metadata.EntityMetadataInfo;
+import org.ipro.metadata.EntityMetadataInfo;
 import org.ip.model.Role;
 import org.ip.model.User;
 

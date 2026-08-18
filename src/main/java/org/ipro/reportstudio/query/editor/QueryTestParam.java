@@ -1,6 +1,6 @@
 package org.ipro.reportstudio.query.editor;
 
-import org.ip.metadata.annotation.FieldType;
+import org.ipro.metadata.annotation.FieldType;
 import org.ipro.reportstudio.dom.ReportParamKind;
 
 import java.util.Objects;

@@ -27,7 +27,7 @@ import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
-import org.ip.metadata.MetadataResolver;
+import org.ipro.metadata.MetadataResolver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

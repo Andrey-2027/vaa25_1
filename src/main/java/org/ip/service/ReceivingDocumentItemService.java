@@ -1,6 +1,6 @@
 package org.ip.service;
 
-import org.ip.metadata.MetadataResolver;
+import org.ipro.metadata.MetadataResolver;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.ReceivingDocumentItem;
 import org.ip.repository.ReceivingDocumentItemRepository;

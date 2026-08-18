@@ -4,8 +4,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import org.ip.form.FieldFactory;
 import org.ip.form.FormBinding;
 import org.ip.form.FormBindingRegistry;
-import org.ip.metadata.EntityMetadataInfo;
-import org.ip.metadata.FieldMetadataInfo;
+import org.ipro.metadata.EntityMetadataInfo;
+import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.crud.BaseEntity;
 import org.junit.jupiter.api.Test;
 

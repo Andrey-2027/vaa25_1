@@ -5,9 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.ip.metadata.annotation.EntityMetadata;
-import org.ip.metadata.annotation.FieldMetadata;
-import org.ip.metadata.annotation.GridColumn;
+import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.FieldMetadata;
+import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.crud.BaseEntity;
 
 import java.util.HashSet;

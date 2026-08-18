@@ -7,7 +7,7 @@ import org.ip.form.builder.layout.CustomNode;
 import org.ip.form.builder.layout.DisplayNode;
 import org.ip.form.builder.layout.FieldNode;
 import org.ip.form.builtin.ItemForm;
-import org.ip.metadata.EntityMetadataInfo;
+import org.ipro.metadata.EntityMetadataInfo;
 import org.ip.model.Workshop;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package org.ip.form;
 
-import org.ip.metadata.FieldMetadataInfo;
+import org.ipro.metadata.FieldMetadataInfo;
 
 import java.util.Objects;
 

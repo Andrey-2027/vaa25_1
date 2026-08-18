@@ -1,6 +1,6 @@
 package org.ip.form;
 
-import org.ip.metadata.FieldMetadataInfo;
+import org.ipro.metadata.FieldMetadataInfo;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

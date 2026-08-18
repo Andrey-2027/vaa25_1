@@ -3,8 +3,8 @@ package org.ip.views.forms;
 import org.ip.form.builder.ItemFormCustomization;
 import org.ip.form.builder.ItemFormVariants;
 import org.ip.form.builtin.ItemForm;
-import org.ip.metadata.FieldMetadataInfo;
-import org.ip.metadata.RowMetadataInfo;
+import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.RowMetadataInfo;
 import org.ip.model.ReceivingDocument;
 import org.springframework.stereotype.Component;
 

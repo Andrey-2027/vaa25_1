@@ -2,7 +2,7 @@ package org.ip.service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.ip.metadata.ReferenceIndex;
+import org.ipro.metadata.ReferenceIndex;
 import org.ipro.rls.RlsFilterActivator;
 import org.springframework.stereotype.Service;
 

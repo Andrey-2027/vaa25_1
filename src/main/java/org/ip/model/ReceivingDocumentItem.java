@@ -3,10 +3,10 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import org.ip.metadata.annotation.FieldMetadata;
-import org.ip.metadata.annotation.GridColumn;
-import org.ip.metadata.annotation.Lookup;
-import org.ip.metadata.annotation.TableSectionMetadata;
+import org.ipro.metadata.annotation.FieldMetadata;
+import org.ipro.metadata.annotation.GridColumn;
+import org.ipro.metadata.annotation.Lookup;
+import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.ipro.crud.BaseEntity;
 
 import java.math.BigDecimal;

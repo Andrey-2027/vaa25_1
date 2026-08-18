@@ -4,7 +4,7 @@ import org.ip.form.builder.ItemFormCustomization;
 import org.ip.form.builder.ItemFormVariants;
 import org.ip.form.builtin.ItemForm;
 import org.ip.form.registry.FormContext;
-import org.ip.metadata.EntityMetadataInfo;
+import org.ipro.metadata.EntityMetadataInfo;
 import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;
 import org.ip.model.PrdSpecOper;

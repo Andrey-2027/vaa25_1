@@ -9,17 +9,19 @@ import org.hibernate.annotations.Filters;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.FilterDefs;
 import org.hibernate.annotations.ParamDef;
-import org.ip.metadata.annotation.EntityMetadata;
-import org.ip.metadata.annotation.FieldMetadata;
-import org.ip.metadata.annotation.FieldType;
-import org.ip.metadata.annotation.GridColumn;
-import org.ip.metadata.annotation.Lookup;
-import org.ip.metadata.annotation.TableSections;
+import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.FieldMetadata;
+import org.ipro.metadata.annotation.FieldType;
+import org.ipro.metadata.annotation.GridColumn;
+import org.ipro.metadata.annotation.Lookup;
+import org.ipro.metadata.annotation.TableSections;
 import org.ipro.rls.RlsDimension;
 import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.RlsDimensionValue;
 import org.ipro.crud.BaseEntity;
+import org.ipro.numbering.NumberingPeriod;
+import org.ipro.numbering.annotation.Numbered;
 
 import java.time.LocalDate;
 
@@ -51,7 +53,8 @@ import java.time.LocalDate;
  * </ul>
  */
 @Entity
-@Table(name = "receiving_document")
+@Table(name = "receiving_document",
+    uniqueConstraints = @UniqueConstraint(columnNames = {"journal_id", "number"}))
 @RlsDimension("JOURNAL")
 @RlsDimension("BRANCH")
 @RlsDimension(value = "ENTITY:ReceivingDocument", kind = RlsDimensionKind.CHECK_ONLY)
@@ -89,9 +92,16 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     )
     private Journal journal;
 
+    @Numbered(
+        scope = {"JOURNAL"},
+        period = NumberingPeriod.YEAR,
+        prefix = "РН-",
+        pattern = "{prefix}{yyyy}-{seq:000000}",
+        dateField = "date"
+    )
     @NotBlank
     @Size(max = 20)
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @FieldMetadata(
         label = "Номер", required = true, order = 1,
         grid = @GridColumn(order = 1, width = "150px")

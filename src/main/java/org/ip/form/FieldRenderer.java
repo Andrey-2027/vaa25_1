@@ -1,6 +1,6 @@
 package org.ip.form;
 
-import org.ip.metadata.annotation.FieldType;
+import org.ipro.metadata.annotation.FieldType;
 import org.ip.model.HasDisplayName;
 
 import java.math.BigDecimal;

@@ -20,7 +20,7 @@ import org.hibernate.Hibernate;
 /**
  * Снимок «значения» сущности для записи журнала (например, при save):
  * JSON-объект со всеми скалярными полями, ссылками (id+class) и табличными
- * частями — списками, объявленными в {@code org.ip.metadata.annotation.TableSections}
+ * частями — списками, объявленными в {@code org.ipro.metadata.annotation.TableSections}
  * (определяется рефлексией по имени, без зависимости от домена).
  * <p>
  * Ленивые состояния не инициализируются: неинициализированная коллекция
@@ -36,7 +36,7 @@ public final class EntitySnapshot {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final String TABLE_SECTIONS_ANNOTATION =
-            "org.ip.metadata.annotation.TableSections";
+            "org.ipro.metadata.annotation.TableSections";
     private static final int MAX_DEPTH = 3;
     private static final int MAX_ITEMS = 50;
     private static final int MAX_STRING = 200;

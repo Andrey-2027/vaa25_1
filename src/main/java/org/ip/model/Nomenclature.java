@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.ip.metadata.annotation.EntityMetadata;
-import org.ip.metadata.annotation.FieldMetadata;
-import org.ip.metadata.annotation.FieldType;
-import org.ip.metadata.annotation.GridColumn;
-import org.ip.metadata.annotation.Lookup;
+import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.FieldMetadata;
+import org.ipro.metadata.annotation.FieldType;
+import org.ipro.metadata.annotation.GridColumn;
+import org.ipro.metadata.annotation.Lookup;
 import org.ipro.crud.BaseEntity;
+import org.ipro.numbering.NumberingPeriod;
+import org.ipro.numbering.annotation.Numbered;
 
 @Entity
 @Table(name = "nomenclature")
@@ -26,6 +28,7 @@ import org.ipro.crud.BaseEntity;
 )
 public class Nomenclature extends BaseEntity implements HasDisplayName {
 
+    @Numbered(scope = {}, period = NumberingPeriod.NEVER)
     @NotBlank
     @Size(max = 20)
     @Column(nullable = false, unique = true)

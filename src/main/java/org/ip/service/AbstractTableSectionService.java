@@ -3,10 +3,10 @@ package org.ip.service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import org.ip.metadata.FetchGraphs;
-import org.ip.metadata.FieldMetadataInfo;
-import org.ip.metadata.MetadataResolver;
-import org.ip.metadata.TableSectionMetadataInfo;
+import org.ipro.metadata.FetchGraphs;
+import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.crud.IdentifiableEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +56,8 @@ public abstract class AbstractTableSectionService<T extends IdentifiableEntity, 
      * в @TableSectionMetadata.parentEntity() на самом rowClass.
      */
     private static TableSectionMetadataInfo resolveOwnMetadata(MetadataResolver resolver, Class<?> rowClass) {
-        org.ip.metadata.annotation.TableSectionMetadata ann =
-            rowClass.getAnnotation(org.ip.metadata.annotation.TableSectionMetadata.class);
+        org.ipro.metadata.annotation.TableSectionMetadata ann =
+            rowClass.getAnnotation(org.ipro.metadata.annotation.TableSectionMetadata.class);
         if (ann == null) {
             throw new IllegalArgumentException(
                 "Class " + rowClass.getName() + " is not annotated with @TableSectionMetadata.");

@@ -1,8 +1,8 @@
 package org.ip.form.builtin;
 
 import org.ip.form.FieldFactory;
-import org.ip.metadata.MetadataResolver;
-import org.ip.metadata.TableSectionMetadataInfo;
+import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ip.service.TableSectionService;
 import org.ipro.crud.BaseEntity;
 import org.junit.jupiter.api.BeforeEach;

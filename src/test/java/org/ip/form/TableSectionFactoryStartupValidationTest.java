@@ -3,7 +3,7 @@ package org.ip.form;
 import org.ip.form.builtin.ItemTable;
 import org.ip.form.registry.FormRegistry;
 import org.ip.form.registry.FormResolver;
-import org.ip.metadata.MetadataResolver;
+import org.ipro.metadata.MetadataResolver;
 import org.ip.model.PrdSpecMtr;
 import org.ipro.crud.IdentifiableEntity;
 import org.junit.jupiter.api.Test;

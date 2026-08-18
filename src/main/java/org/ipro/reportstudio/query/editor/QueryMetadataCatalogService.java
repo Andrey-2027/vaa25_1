@@ -2,11 +2,11 @@ package org.ipro.reportstudio.query.editor;
 
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.metamodel.EntityType;
-import org.ip.metadata.EntityMetadataInfo;
-import org.ip.metadata.FieldMetadataInfo;
-import org.ip.metadata.MetadataResolver;
-import org.ip.metadata.annotation.EntityMetadata;
-import org.ip.metadata.annotation.FieldType;
+import org.ipro.metadata.EntityMetadataInfo;
+import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.FieldType;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsReadGate;
 

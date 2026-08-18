@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
-import org.ip.metadata.annotation.*;
+import org.ipro.metadata.annotation.*;
 import org.ipro.rls.RlsDimension;
 import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsDimensionValue;

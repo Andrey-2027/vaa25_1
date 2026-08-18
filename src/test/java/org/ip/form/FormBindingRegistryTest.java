@@ -1,7 +1,7 @@
 package org.ip.form;
 
 import com.vaadin.flow.component.textfield.TextField;
-import org.ip.metadata.FieldMetadataInfo;
+import org.ipro.metadata.FieldMetadataInfo;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

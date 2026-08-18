@@ -1,6 +1,6 @@
 package org.ip.form.builtin;
 
-import org.ip.metadata.FieldMetadataInfo;
+import org.ipro.metadata.FieldMetadataInfo;
 import org.ip.service.LookupService;
 import org.ipro.crud.IdentifiableEntity;
 

@@ -3,7 +3,7 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.ip.metadata.annotation.*;
+import org.ipro.metadata.annotation.*;
 import org.ipro.crud.BaseEntity;
 
 @Entity

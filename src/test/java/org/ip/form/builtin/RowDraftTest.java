@@ -1,7 +1,7 @@
 package org.ip.form.builtin;
 
-import org.ip.metadata.FieldMetadataInfo;
-import org.ip.metadata.annotation.FieldMetadata;
+import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.annotation.FieldMetadata;
 import org.ip.service.LookupService;
 import org.ipro.crud.IdentifiableEntity;
 import org.junit.jupiter.api.Test;

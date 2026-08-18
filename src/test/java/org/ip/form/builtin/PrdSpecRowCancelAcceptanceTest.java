@@ -1,10 +1,10 @@
 package org.ip.form.builtin;
 
 import org.ip.form.FieldFactory;
-import org.ip.metadata.MetadataResolver;
-import org.ip.metadata.TableSectionMetadataInfo;
-import org.ip.metadata.FieldMetadataInfo;
-import org.ip.metadata.annotation.FieldMetadata;
+import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.TableSectionMetadataInfo;
+import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.annotation.FieldMetadata;
 import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;

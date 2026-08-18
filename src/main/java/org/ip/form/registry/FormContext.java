@@ -1,7 +1,7 @@
 package org.ip.form.registry;
 
 import org.ip.form.FieldFactory;
-import org.ip.metadata.MetadataResolver;
+import org.ipro.metadata.MetadataResolver;
 import org.ip.service.LookupService;
 
 import java.util.HashMap;

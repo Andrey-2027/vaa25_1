@@ -55,7 +55,7 @@ public final class FieldAuditListener
 
     /** Имя аннотации табличных частей — по имени, без зависимости от домена (паттерн EntitySnapshot). */
     private static final String TABLE_SECTION_METADATA =
-            "org.ip.metadata.annotation.TableSectionMetadata";
+            "org.ipro.metadata.annotation.TableSectionMetadata";
     private static final int MAX_VALUE_CHARS = 200;
 
     @Override

@@ -8,10 +8,10 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import org.ip.metadata.ColumnPath;
-import org.ip.metadata.FilterSpec;
-import org.ip.metadata.GridViewState;
-import org.ip.metadata.MetadataResolver;
+import org.ipro.metadata.ColumnPath;
+import org.ipro.metadata.FilterSpec;
+import org.ipro.metadata.GridViewState;
+import org.ipro.metadata.MetadataResolver;
 import org.ip.model.GridFormView;
 import org.ip.service.GridFormViewService;
 import org.ip.service.LookupService;
@@ -36,7 +36,7 @@ import java.util.function.Consumer;
  */
 public class ViewSelectorDialog extends Dialog {
 
-    private final org.ip.metadata.GridMetadata metadata;
+    private final org.ipro.metadata.GridMetadata metadata;
     private final MetadataResolver metadataResolver;
     private final GridFormViewService gridFormViewService;
     private final LookupService lookupService;
@@ -50,7 +50,7 @@ public class ViewSelectorDialog extends Dialog {
     private final Grid<GridFormView> grid = new Grid<>(GridFormView.class, false);
     private String currentDefaultViewId;
 
-    public ViewSelectorDialog(org.ip.metadata.GridMetadata metadata,
+    public ViewSelectorDialog(org.ipro.metadata.GridMetadata metadata,
                               MetadataResolver metadataResolver,
                               GridFormViewService gridFormViewService,
                               LookupService lookupService,

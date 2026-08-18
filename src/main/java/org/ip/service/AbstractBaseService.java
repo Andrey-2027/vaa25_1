@@ -11,11 +11,13 @@ import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
-import org.ip.metadata.EntityMetadataInfo;
-import org.ip.metadata.FetchGraphs;
-import org.ip.metadata.MetadataResolver;
-import org.ip.metadata.annotation.FieldType;
+import org.ipro.metadata.EntityMetadataInfo;
+import org.ipro.metadata.FetchGraphs;
+import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.annotation.FieldType;
 import org.ip.security.CurrentUser;
+import org.ipro.numbering.NumberingService;
+import org.ipro.numbering.annotation.Numbered;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsContext;
@@ -31,6 +33,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.ipro.crud.IdentifiableEntity;
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +67,9 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     @Autowired
     private Optional<SecurityEventLogger> securityEventLogger;
 
+    @Autowired
+    private Optional<NumberingService> numberingService;
+
     protected AbstractBaseService(JpaRepository<T, ID> repository, Validator validator) {
         this.repository = repository;
         this.validator = validator;
@@ -71,6 +77,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public T save(T entity) {
+        assignNumbers(entity);
         validate(entity);
         validateBusinessRules(entity);
         checkRlsWrite(entity);
@@ -79,6 +86,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public T create(T entity) {
+        assignNumbers(entity);
         validate(entity);
         validateBusinessRules(entity);
         checkRlsWrite(entity);
@@ -337,8 +345,8 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      */
     private List<String> displaySortFieldsFor(String property) {
         try {
-            org.ip.metadata.ColumnPath columnPath =
-                org.ip.metadata.ColumnPath.resolve(getDomainClass(), property);
+            org.ipro.metadata.ColumnPath columnPath =
+                org.ipro.metadata.ColumnPath.resolve(getDomainClass(), property);
             if (columnPath.getResolvedType() != FieldType.ENTITY_REFERENCE) {
                 return List.of();
             }
@@ -428,5 +436,35 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      */
     protected void validateBusinessRules(T entity) {
         // no-op по умолчанию — правила есть только у конкретных сервисов
+    }
+
+    /**
+     * Хук нумерации (см. {@code @Numbered}): перед валидацией присваивает авто-номера полям
+     * ТОЛЬКО для новосозданных сущностей ({@code id == null}) — обновления не перенумеровываются.
+     * Поле с уже заполненным значением при разрешённом ручном вводе не трогается (решает
+     * правиле NumberingRule, см. NumberingService.autoValue). Порядок "до validate" важен:
+     * у Nomenclature.code/ReceivingDocument.number стоят @NotBlank, и поле обязано быть
+     * заполнено к моменту bean-валидации.
+     */
+    protected void assignNumbers(T entity) {
+        if (entity.getId() != null || numberingService.isEmpty()) {
+            return;
+        }
+        for (Field field : entity.getClass().getDeclaredFields()) {
+            if (field.getAnnotation(Numbered.class) == null) {
+                continue;
+            }
+            String value = numberingService.get().autoValue(entity, field);
+            if (value == null) {
+                continue;
+            }
+            try {
+                field.setAccessible(true);
+                field.set(entity, value);
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException("Не удалось установить авто-номер поля "
+                    + entity.getClass().getSimpleName() + "." + field.getName(), e);
+            }
+        }
     }
 }

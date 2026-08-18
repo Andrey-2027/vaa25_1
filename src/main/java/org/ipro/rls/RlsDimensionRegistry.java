@@ -57,7 +57,17 @@ public class RlsDimensionRegistry implements InitializingBean {
 
     public void rebuild() {
         ClassPathScanningCandidateComponentProvider scanner =
-            new ClassPathScanningCandidateComponentProvider(false);
+            new ClassPathScanningCandidateComponentProvider(false) {
+                // Интерфейсные маркеры (например @Subsystem-маркеры с CHECK_ONLY-измерением
+                // "SETTINGS:*") дефолтный isCandidateComponent отбрасывает (см. SubsystemRegistry —
+                // там та же причина и тот же приём). Классам это не мешает: фильтры ниже
+                // ограничивают сканирование ровно носителями @RlsDimension/@RlsDimensions.
+                @Override
+                protected boolean isCandidateComponent(
+                        org.springframework.beans.factory.annotation.AnnotatedBeanDefinition beanDefinition) {
+                    return true;
+                }
+            };
         // Оба фильтра обязательны: сущность, помеченная ОДНИМ @RlsDimension, несёт аннотацию
         // напрямую, а сущность с несколькими — только контейнер @RlsDimensions (Repeatable)
         // в метаданных класса; AnnotationTypeFilter(RlsDimension.class) контейнер не находит,

@@ -1,8 +1,8 @@
 package org.ip.views.components;
 
 import org.ip.form.SelectionFormAssembler;
-import org.ip.metadata.ColumnPath;
-import org.ip.metadata.annotation.FieldType;
+import org.ipro.metadata.ColumnPath;
+import org.ipro.metadata.annotation.FieldType;
 import org.ip.service.LookupService;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;

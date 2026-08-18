@@ -19,13 +19,13 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
-import org.ip.metadata.ColumnPath;
-import org.ip.metadata.EntityMetadataInfo;
-import org.ip.metadata.FieldMetadataInfo;
-import org.ip.metadata.FilterSpec;
-import org.ip.metadata.GridViewState;
-import org.ip.metadata.MetadataResolver;
-import org.ip.metadata.annotation.FieldType;
+import org.ipro.metadata.ColumnPath;
+import org.ipro.metadata.EntityMetadataInfo;
+import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.FilterSpec;
+import org.ipro.metadata.GridViewState;
+import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.annotation.FieldType;
 import org.ip.model.GridFormView;
 import org.ip.service.GridFormViewService;
 import org.ip.service.LookupService;
@@ -92,7 +92,7 @@ public class GridViewEditorDialog extends Dialog {
         }
     }
 
-    private final org.ip.metadata.GridMetadata metadata;
+    private final org.ipro.metadata.GridMetadata metadata;
     private final GridFormViewService gridFormViewService;
     private final LookupService lookupService;
     private final String formKey;
@@ -118,7 +118,7 @@ public class GridViewEditorDialog extends Dialog {
     private final ComboBox<FieldMetadataInfo> addFilterField = new ComboBox<>("Поле для отбора");
     Button add = new Button();
 
-    public GridViewEditorDialog(org.ip.metadata.GridMetadata metadata,
+    public GridViewEditorDialog(org.ipro.metadata.GridMetadata metadata,
                                 MetadataResolver metadataResolver,
                                 GridFormViewService gridFormViewService,
                                 LookupService lookupService,

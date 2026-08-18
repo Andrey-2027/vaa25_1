@@ -1,7 +1,7 @@
 package org.ipro.reportstudio.query.editor;
 
 import org.ip.form.SelectionFormAssembler;
-import org.ip.metadata.annotation.FieldType;
+import org.ipro.metadata.annotation.FieldType;
 import org.ip.service.LookupService;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;

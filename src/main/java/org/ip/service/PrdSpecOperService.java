@@ -1,6 +1,6 @@
 package org.ip.service;
 
-import org.ip.metadata.MetadataResolver;
+import org.ipro.metadata.MetadataResolver;
 import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecOper;
 import org.ip.repository.PrdSpecOperRepository;
