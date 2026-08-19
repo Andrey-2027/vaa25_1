@@ -12,8 +12,6 @@ import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsDimension;
 import org.ipro.rls.RlsDimensionValue;
 import org.ipro.crud.BaseEntity;
-import org.ipro.numbering.NumberingPeriod;
-import org.ipro.numbering.annotation.Numbered;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +62,6 @@ public class PrdSpec extends BaseEntity implements HasDisplayName, RlsDimensionV
     )
     private Nomenclature nomenclature;
 
-    @Numbered(scope = {}, period = NumberingPeriod.NEVER)
     @NotBlank
     @Size(max = 50)
     @Column(nullable = false, name = "code_spec")

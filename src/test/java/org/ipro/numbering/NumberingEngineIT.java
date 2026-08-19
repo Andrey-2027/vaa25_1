@@ -4,6 +4,7 @@ import org.ip.Application;
 import org.ip.config.DataInitializer;
 import org.ip.model.Journal;
 import org.ip.model.Nomenclature;
+import org.ip.model.Oper;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.model.Workshop;
@@ -11,6 +12,7 @@ import org.ip.repository.JournalRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ip.service.NomenclatureService;
+import org.ip.service.OperService;
 import org.ip.service.ReceivingDocumentService;
 import org.ipro.rls.RlsContext;
 import org.junit.jupiter.api.Test;
@@ -58,6 +60,9 @@ class NumberingEngineIT {
 
     @Autowired
     private NomenclatureService nomenclatureService;
+
+    @Autowired
+    private OperService operService;
 
     @Autowired
     private JournalRepository journalRepository;
@@ -287,6 +292,24 @@ class NumberingEngineIT {
 
         Nomenclature nomenclature = new Nomenclature(null, "Деталь", unit);
         assertThat(nomenclatureService.create(nomenclature).getCode()).matches("\\d{6}");
+    }
+
+    @Test
+    void operCreateFillsGlobalCodePilot() {
+        Oper first = new Oper();
+        first.setName("Фрезерная");
+        assertThat(operService.create(first).getCode()).matches("\\d{6}");
+
+        Oper second = new Oper();
+        second.setName("Сварочная");
+        assertThat(operService.create(second).getCode()).matches("\\d{6}");
+        assertThat(second.getCode()).isNotEqualTo(first.getCode());
+
+        // ручной код не перезаписывается (allowManual по умолчанию)
+        Oper manual = new Oper();
+        manual.setName("Ручная");
+        manual.setCode("OP-MANUAL");
+        assertThat(operService.create(manual).getCode()).isEqualTo("OP-MANUAL");
     }
 
     // --------------------------------------------------------------------- helpers

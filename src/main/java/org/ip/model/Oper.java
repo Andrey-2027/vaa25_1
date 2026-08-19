@@ -7,6 +7,8 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.crud.BaseEntity;
+import org.ipro.numbering.NumberingPeriod;
+import org.ipro.numbering.annotation.Numbered;
 
 @Entity
 @Table(name = "oper")
@@ -23,6 +25,7 @@ import org.ipro.crud.BaseEntity;
 )
 public class Oper extends BaseEntity implements HasDisplayName {
 
+    @Numbered(scope = {}, period = NumberingPeriod.NEVER)
     @NotBlank
     @Size(max = 20)
     @Column(nullable = false, unique = true)

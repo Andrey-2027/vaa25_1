@@ -1,7 +1,7 @@
 package org.ipro.numbering;
 
 import org.ip.model.Nomenclature;
-import org.ip.model.PrdSpec;
+import org.ip.model.Oper;
 import org.ip.model.ReceivingDocument;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +25,7 @@ class NumberingMetadataRegistryTest {
         assertThat(all).extracting(NumberingMetadataRegistry.NumberedFieldInfo::key)
             .containsExactly(
                 "Nomenclature.code",
-                "PrdSpec.codeSpec",
+                "Oper.code",
                 "ReceivingDocument.number");
     }
 
@@ -43,13 +43,13 @@ class NumberingMetadataRegistryTest {
 
         NumberingMetadataRegistry.NumberedFieldInfo global =
             registry.all().stream()
-                .filter(f -> f.entityClass() == Nomenclature.class)
+                .filter(f -> f.entityClass() == Oper.class)
                 .findFirst().orElseThrow();
         assertThat(global.annotation().scope()).isEmpty();
         assertThat(global.annotation().period()).isEqualTo(NumberingPeriod.NEVER);
 
         assertThat(registry.all().stream()
-            .filter(f -> f.entityClass() == PrdSpec.class)
+            .filter(f -> f.entityClass() == Nomenclature.class)
             .findFirst().orElseThrow().annotation().scope()).isEmpty();
     }
 

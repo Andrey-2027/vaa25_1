@@ -17,6 +17,7 @@ import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportBandKind;
 import org.ipro.reportstudio.dom.ReportField;
 import org.ipro.reportstudio.dom.ReportFieldAggregation;
+import org.ipro.reportstudio.dom.ReportFieldKind;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
@@ -142,7 +143,7 @@ class ReportExecutionIT {
         assertThat(pdfText)
             .contains("Отчёт по спецификациям")
             .contains("SPEC-1").contains("SPEC-2").contains("SPEC-3")
-            .contains("Количество");
+            .contains("Количество:");
 
         byte[] xlsx = service.export(result, ReportExportFormat.XLSX);
         String xlsxText = xlsxSharedStrings(xlsx);
@@ -230,6 +231,11 @@ class ReportExecutionIT {
         ReportField count = field("s.codeSpec", "Количество", null);
         count.setAggregation(ReportFieldAggregation.COUNT);
         groupFooter.addField(count);
+        ReportField countLabel = new ReportField();
+        countLabel.setKind(ReportFieldKind.TEXT);
+        countLabel.setText("Количество:");
+        countLabel.setVisible(true);
+        groupFooter.addField(countLabel);
         template.addBand(groupFooter);
         return template;
     }
