@@ -17,4 +17,15 @@ public interface NumberingScopeResolver {
      * этом измерении не участвует (не GLOBAL-семантика: участвует в ключе как {@code null}).
      */
     Long scopeValue(String dimension, Object entity);
+
+    /**
+     * Умеет ли резолвер обслуживать измерение {@code dimension}. Default {@code true} —
+     * кастомный резолвер отвечает за свои измерения; {@link org.ipro.rls.RlsScopeResolver}
+     * переопределяет: TRUE только для измерений, реально зарегистрированных в RLS, поэтому
+     * стартовый fail-fast (NumberingService.afterPropertiesSet) ловит типичную ошибку
+     * конфигурации — {@code @Numbered(scope="JOURNAL"), где "JOURNAL" не измерение, а опечатка}.
+     */
+    default boolean canResolve(String dimension) {
+        return true;
+    }
 }

@@ -16,6 +16,12 @@ import java.util.List;
  */
 public class RlsScopeResolver implements NumberingScopeResolver {
 
+    private final RlsDimensionRegistry dimensionRegistry;
+
+    public RlsScopeResolver(RlsDimensionRegistry dimensionRegistry) {
+        this.dimensionRegistry = dimensionRegistry;
+    }
+
     @Override
     public Long scopeValue(String dimension, Object entity) {
         if (!(entity instanceof RlsDimensionValue rdv)) {
@@ -30,5 +36,10 @@ public class RlsScopeResolver implements NumberingScopeResolver {
             return check.id();
         }
         return null;
+    }
+
+    @Override
+    public boolean canResolve(String dimension) {
+        return dimensionRegistry.dimensions().contains(dimension);
     }
 }

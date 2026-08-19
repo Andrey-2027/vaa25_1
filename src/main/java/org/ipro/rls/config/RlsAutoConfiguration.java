@@ -15,6 +15,7 @@ import org.ipro.rls.RlsStatementGuard;
 import org.ipro.rls.RlsUiGate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +39,7 @@ import org.springframework.web.context.annotation.SessionScope;
  * на него нельзя.
  */
 @AutoConfiguration
+@AutoConfigureBefore(org.ipro.numbering.config.NumberingAutoConfiguration.class)
 @EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls", "org.ipro.reportstudio",
     "org.ipro.numbering", "org.ipro.settings"})
 public class RlsAutoConfiguration {
@@ -77,11 +79,15 @@ public class RlsAutoConfiguration {
      * где scope серии совпадает с измерением RLS (обычный случай — номер «в разрезе журнала»).
      * Нумерация знает только контракт {@link NumberingScopeResolver}; эта реализация — одна из
      * возможных, предоставляемая модулем RLS.
+     *
+     * <p>Не конкурирует с дефолтом: NumberingAutoConfiguration берёт бин через
+     * ObjectProvider и подставляет GLOBAL-only фолбэк ровно тогда, когда этого бина нет
+     * (кастомный резолвер приложения тоже переопределит — {@code @ConditionalOnMissingBean}).</p>
      */
     @Bean
     @ConditionalOnMissingBean
-    public NumberingScopeResolver numberingScopeResolver() {
-        return new RlsScopeResolver();
+    public NumberingScopeResolver numberingScopeResolver(RlsDimensionRegistry rlsDimensionRegistry) {
+        return new RlsScopeResolver(rlsDimensionRegistry);
     }
 
     @Bean

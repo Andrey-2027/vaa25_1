@@ -75,6 +75,10 @@ class RlsAutoConfigurationSmokeTest {
     @Autowired
     private NomenclatureService nomenclatureService;
 
+    /** RLS-мост переопределяет GLOBAL-only fallback из NumberingAutoConfiguration. */
+    @Autowired
+    private org.ipro.numbering.NumberingScopeResolver numberingScopeResolver;
+
     @Test
     void rlsBeansAreRegisteredByAutoConfiguration() {
         assertThat(accessGrantRepository).isNotNull();
@@ -83,6 +87,11 @@ class RlsAutoConfigurationSmokeTest {
         assertThat(readableIdsCache).isNotNull();
         assertThat(rlsFilterActivator).isNotNull();
         assertThat(rlsCurrentUser).isNotNull();
+        // RLS-адаптер резолвит только реальные измерения — fail-fast работает, а не
+        // GLOBAL-only fallback с canResolve=false (контекст бы не поднялся: ReceivingDocument
+        // объявляет scope="JOURNAL").
+        assertThat(numberingScopeResolver).isInstanceOf(org.ipro.rls.RlsScopeResolver.class);
+        assertThat(numberingScopeResolver.canResolve("JOURNAL")).isTrue();
     }
 
     @Test

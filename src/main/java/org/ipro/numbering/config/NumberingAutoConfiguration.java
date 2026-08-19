@@ -6,6 +6,7 @@ import org.ipro.numbering.NumberingRuleRepository;
 import org.ipro.numbering.NumberingRuleService;
 import org.ipro.numbering.NumberingScopeResolver;
 import org.ipro.numbering.NumberingService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -38,8 +39,15 @@ public class NumberingAutoConfiguration {
     @ConditionalOnMissingBean
     public NumberingService numberingService(NumberingRuleService ruleService,
                                              NumberingCounterService counterService,
-                                             NumberingScopeResolver scopeResolver) {
-        return new NumberingService(ruleService, counterService, scopeResolver);
+                                             ObjectProvider<NumberingScopeResolver> scopeResolverProvider,
+                                             NumberingMetadataRegistry metadataRegistry) {
+        // Фолбэк — GLOBAL-only (canResolve=false): приложение без RLS-моста/собственного
+        // резолвера с не-GLOBAL scope упадёт на старте через fail-fast NumberingService.
+        // Бин не объявляем: два @ConditionalOnMissingBean-бина одного типа конкурируют
+        // по порядку регистрации и могут разойтись с ожиданием — берём через ObjectProvider.
+        NumberingScopeResolver scopeResolver =
+            scopeResolverProvider.getIfAvailable(NumberingService::globalOnlyDefault);
+        return new NumberingService(ruleService, counterService, scopeResolver, metadataRegistry);
     }
 
     @Bean
