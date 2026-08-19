@@ -169,14 +169,26 @@ public class FormBinding {
     /**
      * Проверить обязательность поля. Возвращает true, если:
      *   - поле не required
+     *   - поле авто-нумеруемое ({@code @Numbered} — значение присвоит хук сервиса при
+     *     сохранении; требовать заполнения в форме бессмысленно и мешает авто-коду,
+     *     например у новых справочников Nomenclature/Oper)
      *   - в компоненте есть значение
      *   - значение не пустое (isEmpty возвращает false)
      */
     public boolean isValid() {
         if (!descriptor.required()) return true;
+        if (isAutoNumbered()) return true;
         Object value = readFromComponent.get();
         if (value == null) return false;
         return !isEmpty.test(value);
+    }
+
+    /** Поле сущности помечено {@code @Numbered} (metadata-путь создания биндинга). */
+    private boolean isAutoNumbered() {
+        if (fieldInfo == null || fieldInfo.getField() == null) {
+            return false;
+        }
+        return fieldInfo.getField().getAnnotation(org.ipro.numbering.annotation.Numbered.class) != null;
     }
 
     /**

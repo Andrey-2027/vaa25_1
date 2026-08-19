@@ -9,6 +9,7 @@ import org.hibernate.annotations.Filters;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.FilterDefs;
 import org.hibernate.annotations.ParamDef;
+import org.ip.subsystem.Subsystems;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
@@ -75,7 +76,7 @@ import java.time.LocalDate;
     order = 200,
     icon = "FILE_TEXT",
     serviceClass = org.ip.service.ReceivingDocumentService.class,
-    subsystem = org.ip.subsystem.Subsystems.ProductionDocuments.class,
+    subsystem = Subsystems.Production.class,
         listColumns = {"id","number","date","journal.code","receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name"}
 )
 @TableSections({ReceivingDocumentItem.class})

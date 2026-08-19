@@ -2,8 +2,11 @@ package org.ip.form;
 
 import com.vaadin.flow.component.textfield.TextField;
 import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.annotation.FieldMetadata;
+import org.ipro.numbering.annotation.Numbered;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,6 +103,48 @@ class FormBindingRegistryTest {
         registry.add(binding("code", "Код", false, new TextField()));
 
         assertThat(registry.isValid()).isTrue();
+    }
+
+    /**
+     * Авто-нумеруемое поле (@Numbered): форма не должна блокировать сохранение пустого
+     * значения — код присвоит хук нумерации в сервисе (Indexed, в UI поле видно с
+     * placeholder'ом, required не выставляется).
+     */
+    @Test
+    void requiredNumberedFieldIsValidEvenWhenEmpty() throws Exception {
+        Field field = NumberedEntity.class.getDeclaredField("code");
+        FieldMetadataInfo info = new FieldMetadataInfo(field,
+            field.getAnnotation(FieldMetadata.class));
+        TextField code = new TextField();
+        FormBindingRegistry registry = new FormBindingRegistry();
+        registry.add(FormBinding.forMetadata(info, code,
+            entity -> ((NumberedEntity) entity).code,
+            (entity, value) -> ((NumberedEntity) entity).code = (String) value,
+            code::getValue,
+            value -> {
+                if (value == null) {
+                    code.clear();
+                } else {
+                    code.setValue((String) value);
+                }
+            },
+            value -> value == null || ((String) value).isBlank(),
+            readOnly -> {
+            }
+        ));
+
+        assertThat(registry.isValid()).isTrue();
+        assertThat(registry.validate()).isEmpty();
+
+        code.setValue("A-1");
+        assertThat(registry.isValid()).isTrue();
+    }
+
+    private static class NumberedEntity {
+
+        @Numbered
+        @FieldMetadata(label = "Код", required = true)
+        private String code;
     }
 
     @Test

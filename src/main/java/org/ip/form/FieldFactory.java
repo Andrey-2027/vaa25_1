@@ -233,24 +233,33 @@ public class FieldFactory {
 
     /**
      * Применяет общие настройки (required, readOnly, placeholder) к HasValue-компонентам.
+     * Авто-нумеруемое поле ({@code @Numbered}): required в компоненте не выставляем (пустое
+     * значение допустимо — номер присвоит сервис при сохранении), подсказываем placeholder'ом.
      */
     private void applyCommonSettings(HasValue<?, ?> field, FieldMetadataInfo info) {
+        boolean numbered = info.getField() != null
+            && info.getField().getAnnotation(org.ipro.numbering.annotation.Numbered.class) != null;
+        boolean required = numbered ? false : info.isRequired();
         if (field instanceof TextField tf) {
-            tf.setRequired(info.isRequired());
+            tf.setRequired(required);
             tf.setReadOnly(info.isReadOnly());
-            if (!info.getPlaceholder().isEmpty()) tf.setPlaceholder(info.getPlaceholder());
+            if (numbered) {
+                tf.setPlaceholder("присвоится автоматически");
+            } else if (!info.getPlaceholder().isEmpty()) {
+                tf.setPlaceholder(info.getPlaceholder());
+            }
         } else if (field instanceof TextArea ta) {
-            ta.setRequired(info.isRequired());
+            ta.setRequired(required);
             ta.setReadOnly(info.isReadOnly());
             if (!info.getPlaceholder().isEmpty()) ta.setPlaceholder(info.getPlaceholder());
         } else if (field instanceof EmailField ef) {
-            ef.setRequired(info.isRequired());
+            ef.setRequired(required);
             ef.setReadOnly(info.isReadOnly());
         } else if (field instanceof PasswordField pf) {
-            pf.setRequired(info.isRequired());
+            pf.setRequired(required);
             pf.setReadOnly(info.isReadOnly());
         } else if (field instanceof DatePicker dp) {
-            dp.setRequired(info.isRequired());
+            dp.setRequired(required);
             dp.setReadOnly(info.isReadOnly());
         } else if (field instanceof DateTimePicker dtp) {
             // DateTimePicker не имеет setRequired в Vaadin 25
