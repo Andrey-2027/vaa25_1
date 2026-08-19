@@ -54,8 +54,10 @@ public class ReferenceCheckService {
     }
 
     private long countReferencing(ReferenceIndex.ReverseReference ref, Object id) {
+        // columnRef: ссылка колонкой-идентификатором (SettingValue.entityRefId), не ассоциацией
+        String fieldPath = ref.columnRef() ? ref.fieldName() : ref.fieldName() + ".id";
         String jpql = "select count(r) from " + ref.referencingClass().getSimpleName() +
-            " r where r." + ref.fieldName() + ".id = :id";
+            " r where r." + fieldPath + " = :id";
         return entityManager.createQuery(jpql, Long.class)
             .setParameter("id", id)
             .getSingleResult();

@@ -16,11 +16,30 @@ import java.util.*;
 @Component
 public class ReferenceIndex implements InitializingBean {
 
+    /**
+     * Дополнительный источник обратных ссылок от платформенных подсистем (направление
+     * зависимости: {@code settings → metadata}, поэтому источники живут в подсистемах и
+     * отдают ссылки здесь). Пример: ссылки из {@code @Setting(ENTITY_REFERENCE)} — настройка
+     * хранит id сущности в {@code SettingValue.entityRefId}, а не ассоциацию.
+     */
+    public interface ReverseReferenceSource {
+        /** Пересобрать набор ссылок (всегда вызывается из ReferenceIndex.rebuild). */
+        void rebuild();
+
+        List<ReverseReference> references();
+    }
+
     private final String basePackage;
+    private final List<ReverseReferenceSource> sources;
     private Map<Class<?>, List<ReverseReference>> index = Map.of();
 
     public ReferenceIndex(@Value("${platform.subsystem-scan-package:org.ip}") String basePackage) {
+        this(basePackage, List.of());
+    }
+
+    public ReferenceIndex(String basePackage, List<ReverseReferenceSource> sources) {
         this.basePackage = basePackage;
+        this.sources = sources;
     }
 
     @Override
@@ -35,6 +54,13 @@ public class ReferenceIndex implements InitializingBean {
         }
         for (Class<?> owner : scanAnnotated(TableSectionMetadata.class)) {
             collectLookupFields(owner, result);
+        }
+        for (ReverseReferenceSource source : sources) {
+            source.rebuild();
+            for (ReverseReference reference : source.references()) {
+                result.computeIfAbsent(reference.targetClass(), k -> new ArrayList<>())
+                    .add(reference);
+            }
         }
         this.index = result;
     }
@@ -81,7 +107,18 @@ public class ReferenceIndex implements InitializingBean {
         return result;
     }
 
-    public record ReverseReference(Class<?> referencingClass, String fieldName) {
+    /**
+     * Обратная ссылка: запись {@code referencingClass}, у которой поле {@code fieldName}
+     * ссылается на целевую сущность {@code targetClass}. {@code columnRef = true} — ссылка не
+     * ассоциацией, а колонкой-идентификатором (например {@code SettingValue.entityRefId}):
+     * проверка считает совпадение по самому полю, а не по {@code field.id}.
+     */
+    public record ReverseReference(Class<?> targetClass, Class<?> referencingClass,
+                                   String fieldName, boolean columnRef) {
+
+        public ReverseReference(Class<?> referencingClass, String fieldName) {
+            this(referencingClass, referencingClass, fieldName, false);
+        }
 
         public String describe(long count) {
             return referencingClass.getSimpleName() + " (поле \"" + fieldName + "\"): " + count +

@@ -33,7 +33,8 @@ public class DocumentSettings {
     public DocPriority defaultPriority = DocPriority.NORMAL;
 
     /** Кто подписывает накладные по умолчанию (id пользователя — на будущее подписывание). */
-    @Setting(type = FieldType.ENTITY_REFERENCE, label = "Подписант по умолчанию (id)")
+    @Setting(type = FieldType.ENTITY_REFERENCE, entityClass = org.ip.model.User.class,
+        label = "Подписант по умолчанию (id)")
     public Long defaultSignerId = 1L;
 
     /** Следующая плановая очистка архива документов. */

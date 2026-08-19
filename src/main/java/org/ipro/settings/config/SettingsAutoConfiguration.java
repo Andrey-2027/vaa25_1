@@ -1,6 +1,7 @@
 package org.ipro.settings.config;
 
 import org.ipro.settings.SettingsRegistry;
+import org.ipro.settings.SettingsReverseReferenceSource;
 import org.ipro.settings.SettingsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -29,5 +30,13 @@ public class SettingsAutoConfiguration {
     public SettingsService settingsService(SettingsRegistry settingsRegistry,
                                            org.ipro.settings.SettingValueRepository repository) {
         return new SettingsService(settingsRegistry, repository);
+    }
+
+    /** Обратные ссылки "настройка → сущность" (ENTITY_REFERENCE) для ReferenceIndex. */
+    @Bean
+    @ConditionalOnMissingBean
+    public SettingsReverseReferenceSource settingsReverseReferenceSource(
+            @Value("${settings.scan-package:org.ip.settings}") String basePackage) {
+        return new SettingsReverseReferenceSource(basePackage);
     }
 }

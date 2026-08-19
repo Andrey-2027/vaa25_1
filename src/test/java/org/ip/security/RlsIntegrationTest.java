@@ -8,6 +8,7 @@ import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.UnitOfMeasurement;
+import org.ip.model.User;
 import org.ip.model.Workshop;
 import org.ip.repository.UserRepository;
 import org.ipro.rls.AccessGrant;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Два (+) пользователя с разными {@link AccessGrant} на измерение JOURNAL — против
@@ -577,5 +579,84 @@ class RlsIntegrationTest {
 
         assertThat(branchId).isNotNull();
         assertThat(page.getContent()).extracting(Workshop::getCode).containsExactly("W1");
+    }
+
+    // ------------------------------------------- доступ к настройкам (SETTINGS:*), план §4.4
+
+    /**
+     * Гейт раздела настроек: CHECK_ONLY "SETTINGS:Production" без гранта = false (bootstrap
+     * на CHECK_ONLY не действует — см. bootstrapDoesNotApplyToCheckOnlyDimensions), с
+     * грантом (dimensionValueId == null) = true. Wildcard-грант admin'а действует как обычно.
+     */
+    @Test
+    void settingsSectionEditableOnlyWithCheckOnlyGrant() {
+        assertThat(accessService.canUpdate("SETTINGS:Production", null, "kim")).isFalse();
+        assertThat(accessService.hasAnyAccess("SETTINGS:Production", "kim")).isFalse();
+
+        persistGrant(AccessGrant.SubjectType.USER, "kim", "SETTINGS:Production", null, true, true, false);
+        entityManager.flush();
+
+        assertThat(accessService.canUpdate("SETTINGS:Production", null, "kim")).isTrue();
+        assertThat(accessService.hasAnyAccess("SETTINGS:Production", "kim")).isTrue();
+        assertThat(accessService.canUpdate("SETTINGS:Production", null, "admin")).isTrue();
+    }
+
+    /** Форма настроек без права изменения — read-only: есть hasAnyAccess, но не canUpdate. */
+    @Test
+    void settingsFormVisibleButReadOnlyWithoutUpdateGrant() {
+        persistGrant(AccessGrant.SubjectType.USER, "leo", "SETTINGS:Production", null, true, false, false);
+        entityManager.flush();
+
+        assertThat(accessService.hasAnyAccess("SETTINGS:Production", "leo")).isTrue();
+        assertThat(accessService.canUpdate("SETTINGS:Production", null, "leo")).isFalse();
+    }
+
+    /**
+     * Политика выдачи (§4.4): гранты SETTINGS:* — ТОЛЬКО dimensionValueId = null. Ловушка
+     * движка: грант с конкретным id тоже удовлетворяет canUpdate(dim, null) (свёртка по
+     * ИЛИ, см. AccessService.hasAccess), поэтому scoped-доступ к настройкам делается через
+     * отдельную ось значения (BRANCH и т.п.), а не через id на SETTINGS:*. Фиксируем
+     * поведение "как есть", чтобы админ-экран не строил политику на случайности.
+     */
+    @Test
+    void settingsGrantWithStaleDimensionValueIdStillOpensUpdate() {
+        persistGrant(AccessGrant.SubjectType.USER, "mia", "SETTINGS:Production", 999L, true, true, false);
+        entityManager.flush();
+
+        assertThat(accessService.canUpdate("SETTINGS:Production", null, "mia")).isTrue();
+        assertThat(accessService.hasAnyAccess("SETTINGS:Production", "mia")).isTrue();
+    }
+
+    // ----------------------- ссылки из настроек (SETTINGS §4.3): удаление с битой ссылкой
+
+    /**
+     * Удаление пользователя, на которого ссылается настройка ({@code SettingValue.entityRefId}),
+     * блокируется checkNoReferences — ровно путь AbstractBaseService.delete. Индекс знает про
+     * ссылку через SettingsReverseReferenceSource (columnRef), считает по колонке, а не по
+     * ассоциации {@code .id}.
+     */
+    @Test
+    void deletionBlockedWhenSettingReferencesEntity() {
+        User signer = new User("signer-1", "secret-1");
+        entityManager.persist(signer);
+        entityManager.flush();
+
+        org.ipro.settings.SettingValue setting = new org.ipro.settings.SettingValue(
+            "DocumentSettings.defaultSignerId", "GLOBAL", 0);
+        setting.setEntityRefId(signer.getId());
+        entityManager.persist(setting);
+        entityManager.flush();
+
+        org.ipro.metadata.ReferenceIndex index = new org.ipro.metadata.ReferenceIndex("org.ip",
+            List.of(new org.ipro.settings.SettingsReverseReferenceSource("org.ip.settings")));
+        index.afterPropertiesSet();
+        org.ip.service.ReferenceCheckService checker =
+            new org.ip.service.ReferenceCheckService(index, activator);
+        ReflectionTestUtils.setField(checker, "entityManager", entityManager);
+
+        assertThatThrownBy(() -> checker.checkNoReferences(User.class, signer.getId()))
+            .isInstanceOf(org.ip.service.ValidationException.class)
+            .hasMessageContaining("SettingValue")
+            .hasMessageContaining("entityRefId");
     }
 }

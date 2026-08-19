@@ -26,4 +26,12 @@ public @interface Setting {
 
     /** Признак чувствительности (SMTP-пароль, API-ключ): при true значение НЕ хранится в БД. */
     boolean secret() default false;
+
+    /**
+     * Целевая сущность для {@code FieldType.ENTITY_REFERENCE} (в v1 значение — id записи,
+     * см. {@code SettingValue.entityRefId}). Нужна для ссылочной целостности: {@code ReferenceIndex}
+     * собирает по ней обратные ссылки "настройка → сущность", и удаление сущности с ссылкой
+     * из настройки блокируется. {@code Void.class} = ссылка не объявлена (проверка не ведётся).
+     */
+    Class<?> entityClass() default Void.class;
 }
