@@ -1,7 +1,7 @@
 package org.ip.views.reportstudio;
 
-import org.ip.form.SelectionFormAssembler;
-import org.ip.service.LookupService;
+import org.ipro.form.SelectionFormAssembler;
+import org.ipro.crud.LookupService;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
 import org.ipro.reportstudio.query.editor.QueryEditorAnalysis;

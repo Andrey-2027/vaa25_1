@@ -4,7 +4,7 @@ import org.ip.model.ReceivingDocument;
 import org.ip.model.ReceivingDocumentItem;
 import org.ip.service.ReceivingDocumentItemService;
 import org.ip.service.ReceivingDocumentService;
-import org.ip.service.ValidationException;
+import org.ipro.crud.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;

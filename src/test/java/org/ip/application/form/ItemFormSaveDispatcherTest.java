@@ -4,8 +4,8 @@ import org.ip.application.document.ReceivingDocumentFormSaveAdapter;
 import org.ip.form.builtin.ItemForm;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.Workshop;
-import org.ip.service.BaseService;
-import org.ip.service.ServiceLocator;
+import org.ipro.crud.BaseService;
+import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.IdentifiableEntity;
 import org.junit.jupiter.api.Test;
 

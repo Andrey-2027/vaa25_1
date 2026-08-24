@@ -9,7 +9,7 @@ import org.ip.repository.BranchRepository;
 import org.ip.repository.JournalRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ip.service.ReceivingDocumentService;
-import org.ip.service.ValidationException;
+import org.ipro.crud.ValidationException;
 import org.ipro.telemetry.core.SecurityEventLogger;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

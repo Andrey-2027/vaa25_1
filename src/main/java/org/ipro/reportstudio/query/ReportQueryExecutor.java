@@ -115,8 +115,8 @@ public class ReportQueryExecutor {
         for (String name : declared) {
             Object value = bindings == null ? null : bindings.get(name);
             if (value == null) {
-                throw new IllegalArgumentException(
-                    "Не задано значение параметра запроса: :" + name);
+                query.setParameter(name, (Object) null);
+                continue;
             }
             if (value instanceof Collection<?> collection) {
                 query.setParameter(name, collection);
@@ -163,7 +163,7 @@ public class ReportQueryExecutor {
     private static String displayName(Object value) {
         try {
             Hibernate.initialize(value);
-            return ((org.ip.model.HasDisplayName) value).getDisplayName();
+            return ((org.ipro.metadata.HasDisplayName) value).getDisplayName();
         } catch (Exception lazy) {
             return null;
         }

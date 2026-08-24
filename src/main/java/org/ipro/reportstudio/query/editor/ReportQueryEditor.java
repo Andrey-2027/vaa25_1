@@ -8,6 +8,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -20,12 +21,12 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import org.ip.form.SelectionFormAssembler;
+import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.annotation.FieldType;
-import org.ip.model.HasDisplayName;
-import org.ip.service.LookupService;
-import org.ip.views.components.EntityField;
+import org.ipro.metadata.HasDisplayName;
+import org.ipro.crud.LookupService;
+import org.ipro.form.EntityField;
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.data.ReportDataset;
 import org.ipro.reportstudio.data.ReportRow;
@@ -158,6 +159,7 @@ public class ReportQueryEditor extends VerticalLayout {
         setPadding(false);
         setSpacing(false);
         getStyle().set("min-height", "0");
+        getStyle().set("font-size", "var(--lumo-font-size-s)");
 
         configureCatalog();
         configureEditor();
@@ -250,11 +252,25 @@ public class ReportQueryEditor extends VerticalLayout {
         catalogFilter.setClearButtonVisible(true);
         catalogFilter.setValueChangeMode(ValueChangeMode.EAGER);
         catalogFilter.setWidthFull();
+        catalogFilter.getElement().setAttribute("theme", "small");
         catalogFilter.addValueChangeListener(event -> refreshCatalog());
-        catalog.addHierarchyColumn(QueryMetadataNode::caption).setHeader("Сущности и поля").setFlexGrow(1);
-        catalog.addColumn(QueryMetadataNode::javaType).setHeader("Тип").setAutoWidth(true);
+        catalog.addHierarchyColumn(QueryMetadataNode::caption).setHeader("Сущности и поля").setFlexGrow(1).setResizable(true).setAutoWidth(false);
+        catalog.addColumn(node -> kindLabel(node.kind())).setHeader("Вид").setResizable(true).setAutoWidth(true).setFlexGrow(0);
+        catalog.addColumn(QueryMetadataNode::javaType).setHeader("Тип").setResizable(true).setAutoWidth(true).setFlexGrow(0);
+        catalog.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
+        catalog.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        catalog.getStyle().set("--lumo-line-height-xs", "1.1");
         catalog.setSizeFull();
         catalog.addItemDoubleClickListener(event -> insertMetadata(event.getItem()));
+    }
+
+    private static String kindLabel(QueryMetadataNode.Kind kind) {
+        return switch (kind) {
+            case ENTITY -> "Таблица";
+            case TABLE -> "Таблица";
+            case PROPERTY -> "Поле";
+            case ASSOCIATION -> "Связь";
+        };
     }
 
     private void configureEditor() {
@@ -262,7 +278,14 @@ public class ReportQueryEditor extends VerticalLayout {
         jpql.setPlaceholder("select s.code as code, s.name as name from Specification s where s.journal = :journal");
         jpql.setWidthFull();
         jpql.setHeight("100%");
-        jpql.getStyle().set("min-height", "190px");
+        jpql.getStyle().set("min-height", "140px");
+        jpql.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        jpql.getStyle().set("font-family", "monospace");
+        analyzeButton.addClickListener(e -> preview());
+        parametersButton.addClickListener(e -> parameterPanel.setVisible(!parameterPanel.isVisible()));
+        previewRows.addValueChangeListener(e -> {
+            if (e.getValue() != null && !result.getColumns().isEmpty()) preview();
+        });
         jpql.addValueChangeListener(event -> {
             if (template != null) {
                 template.setJpql(event.getValue());
@@ -277,32 +300,44 @@ public class ReportQueryEditor extends VerticalLayout {
         activeAlias.setLabel("Алиас");
         activeAlias.setPlaceholder("например, s");
         activeAlias.setAllowCustomValue(true);
-        activeAlias.addCustomValueSetListener(event -> activeAlias.setValue(event.getDetail()));
-        activeAlias.setWidth("8em");
+        activeAlias.setItems(new ArrayList<>());
+        activeAlias.addCustomValueSetListener(event -> {
+            String custom = event.getDetail();
+            if (custom != null && !custom.isBlank()) {
+                List<String> current = new ArrayList<>(activeAlias.getListDataView().getItems().toList());
+                if (!current.contains(custom)) {
+                    current.add(custom);
+                    activeAlias.setItems(current);
+                }
+                activeAlias.setValue(custom);
+            }
+        });
+        activeAlias.setWidth("7em");
+        activeAlias.getElement().setAttribute("theme", "small");
         previewRows.setMin(1);
         previewRows.setMax(MAX_PREVIEW_ROWS);
         previewRows.setStepButtonsVisible(true);
         previewRows.setValue(DEFAULT_PREVIEW_ROWS);
-        previewRows.setWidth("7em");
-        analyzeButton.addClickListener(event -> preview());
-        parametersButton.addClickListener(event -> {
-            parametersVisible = !parametersVisible;
-            parameterPanel.setVisible(parametersVisible);
-        });
+        previewRows.setWidth("6em");
+        previewRows.getElement().setAttribute("theme", "small");
         status.getStyle().set("margin", "var(--lumo-space-xs) 0");
+        status.getStyle().set("font-size", "var(--lumo-font-size-xs)");
     }
 
     private void configureParameters() {
         parameters.addColumn(QueryTestParam::name).setHeader("Параметр").setAutoWidth(true);
         parameters.addColumn(p -> typeCaption(p.type())).setHeader("Тип").setAutoWidth(true);
-        parameters.addColumn(ReportQueryEditor::formatValue).setHeader("Тестовое значение").setFlexGrow(1);
+        parameters.addColumn(ReportQueryEditor::formatValue).setHeader("Значение").setFlexGrow(1);
         parameters.addComponentColumn(this::removeButton).setAutoWidth(true).setFlexGrow(0);
-        parameters.setHeight("9em");
+        parameters.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
+        parameters.setHeight("7em");
+        parameters.getStyle().set("font-size", "var(--lumo-font-size-xs)");
         parameters.asSingleSelect().addValueChangeListener(event -> selectParam(event.getValue()));
 
         paramType.setItems(PARAM_TYPES);
         paramType.setItemLabelGenerator(ReportQueryEditor::typeCaption);
-        paramType.setWidth("170px");
+        paramType.setWidth("140px");
+        paramType.getElement().setAttribute("theme", "small");
         paramType.addValueChangeListener(event -> {
             if (paramFormUpdating || selectedParam == null || event.getValue() == null) {
                 return;
@@ -313,7 +348,8 @@ public class ReportQueryEditor extends VerticalLayout {
             parameters.getListDataView().refreshItem(selectedParam);
         });
 
-        entityClassName.setWidth("280px");
+        entityClassName.setWidth("220px");
+        entityClassName.getElement().setAttribute("theme", "small");
         entityClassName.setVisible(false);
         entityClassName.addValueChangeListener(event -> {
             if (paramFormUpdating || selectedParam == null) {
@@ -324,7 +360,8 @@ public class ReportQueryEditor extends VerticalLayout {
             parameters.getListDataView().refreshItem(selectedParam);
         });
 
-        enumClassName.setWidth("280px");
+        enumClassName.setWidth("220px");
+        enumClassName.getElement().setAttribute("theme", "small");
         enumClassName.setVisible(false);
         enumClassName.setPlaceholder("org.ip.model.DocumentStatus");
         enumClassName.addValueChangeListener(event -> {
@@ -343,17 +380,22 @@ public class ReportQueryEditor extends VerticalLayout {
 
         HorizontalLayout formRow = new HorizontalLayout(paramType, entityClassName, enumClassName);
         formRow.setAlignItems(Alignment.END);
-        formRow.setSpacing(true);
+        formRow.setSpacing(false);
+        formRow.getStyle().set("gap", "var(--lumo-space-xs)");
         formRow.setWrap(true);
+        formRow.setPadding(false);
         VerticalLayout detail = new VerticalLayout(formRow, paramValueSlot, paramHint);
         detail.setPadding(false);
-        detail.setSpacing(true);
+        detail.setSpacing(false);
+        detail.getStyle().set("gap", "var(--lumo-space-xs)");
         detail.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)")
-                .set("padding-top", "var(--lumo-space-s)")
+                .set("padding-top", "var(--lumo-space-xs)")
                 .set("margin-top", "var(--lumo-space-xs)");
+        detail.getStyle().set("font-size", "var(--lumo-font-size-xs)");
 
         parameterPanel.setPadding(false);
-        parameterPanel.setSpacing(true);
+        parameterPanel.setSpacing(false);
+        parameterPanel.getStyle().set("gap", "var(--lumo-space-xs)");
         transferParamsButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         parameterPanel.add(parameters, transferParamsButton, detail);
         parameterPanel.setVisible(false);
@@ -362,8 +404,10 @@ public class ReportQueryEditor extends VerticalLayout {
     }
 
     private void configureResult() {
+        result.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
         result.setSizeFull();
-        result.getStyle().set("min-height", "150px");
+        result.getStyle().set("min-height", "120px");
+        result.getStyle().set("font-size", "var(--lumo-font-size-xs)");
     }
 
     private SplitLayout buildLayout() {
@@ -408,14 +452,36 @@ public class ReportQueryEditor extends VerticalLayout {
         if (node.kind() == QueryMetadataNode.Kind.ENTITY) {
             token = node.token();
             registerEntityAlias(node.token(), null);
-        } else {
+        } else if (node.kind() == QueryMetadataNode.Kind.TABLE) {
             QueryMetadataNode entity = catalog.getTreeData().getParent(node);
             String alias = resolveAlias(entity);
             if (alias == null || alias.isBlank()) {
                 status.setText("Не определён алиас сущности — задайте его в панели инструментов.");
                 return;
             }
-            token = alias.trim() + "." + node.token();
+            token = " JOIN " + alias + "." + node.token() + " " + node.token().substring(0, 1).toLowerCase(java.util.Locale.ROOT);
+            status.setText("Добавлен JOIN для табличной части. Используйте алиас '" + node.token().substring(0, 1).toLowerCase(java.util.Locale.ROOT) + "' для полей таблицы.");
+        } else {
+            QueryMetadataNode parent = catalog.getTreeData().getParent(node);
+            if (parent != null && parent.kind() == QueryMetadataNode.Kind.TABLE) {
+                QueryMetadataNode entity = catalog.getTreeData().getParent(parent);
+                String alias = resolveAlias(entity);
+                if (alias == null || alias.isBlank()) {
+                    status.setText("Не определён алиас сущности — задайте его в панели инструментов.");
+                    return;
+                }
+                String tableAlias = parent.token().substring(0, 1).toLowerCase(java.util.Locale.ROOT);
+                token = tableAlias + "." + node.token();
+                status.setText("Поле табличной части. Убедитесь, что добавлен JOIN " + alias + "." + parent.token() + " " + tableAlias);
+            } else {
+                QueryMetadataNode entity = parent;
+                String alias = resolveAlias(entity);
+                if (alias == null || alias.isBlank()) {
+                    status.setText("Не определён алиас сущности — задайте его в панели инструментов.");
+                    return;
+                }
+                token = alias.trim() + "." + node.token();
+            }
         }
         insertAtCaret(token);
     }
@@ -690,9 +756,10 @@ public class ReportQueryEditor extends VerticalLayout {
 
     private Component textValueField(QueryTestParam param) {
         TextField field = new TextField();
-        field.setWidth("260px");
+        field.setWidth("220px");
+        field.getElement().setAttribute("theme", "small");
         field.setClearButtonVisible(true);
-        field.setPlaceholder("значение параметра :" + param.name());
+        field.setPlaceholder("значение :" + param.name());
         if (param.value() instanceof String s) {
             field.setValue(s);
         }
@@ -702,7 +769,8 @@ public class ReportQueryEditor extends VerticalLayout {
 
     private Component integerValueField(QueryTestParam param) {
         IntegerField field = new IntegerField();
-        field.setWidth("220px");
+        field.setWidth("160px");
+        field.getElement().setAttribute("theme", "small");
         if (param.value() instanceof Integer i) {
             field.setValue(i);
         }
@@ -712,7 +780,8 @@ public class ReportQueryEditor extends VerticalLayout {
 
     private Component decimalValueField(QueryTestParam param) {
         BigDecimalField field = new BigDecimalField();
-        field.setWidth("220px");
+        field.setWidth("160px");
+        field.getElement().setAttribute("theme", "small");
         if (param.value() instanceof BigDecimal d) {
             field.setValue(d);
         }
@@ -731,7 +800,8 @@ public class ReportQueryEditor extends VerticalLayout {
 
     private Component dateValueField(QueryTestParam param) {
         DatePicker field = new DatePicker();
-        field.setWidth("220px");
+        field.setWidth("160px");
+        field.getElement().setAttribute("theme", "small");
         if (param.value() instanceof LocalDate d) {
             field.setValue(d);
         }
@@ -741,7 +811,8 @@ public class ReportQueryEditor extends VerticalLayout {
 
     private Component dateTimeValueField(QueryTestParam param) {
         DateTimePicker field = new DateTimePicker();
-        field.setWidth("260px");
+        field.setWidth("200px");
+        field.getElement().setAttribute("theme", "small");
         if (param.value() instanceof LocalDateTime d) {
             field.setValue(d);
         }

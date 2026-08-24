@@ -1,4 +1,4 @@
-package org.ip.service;
+package org.ipro.crud;
 
 import org.ipro.crud.CrudService;
 import org.ipro.crud.IdentifiableEntity;

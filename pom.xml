@@ -91,6 +91,25 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- UReport3 (форк ureport2, jakarta/Spring6): веб-дизайнер отчётов на /ureport/*.
+             Собран локально из C:\JavaProject\TestVaadin25\UReportFork2\ureport3 (mvn install).
+             Внимание: тянет iText 5 (AGPL) — до релиза заменить на OpenPDF.
+             Spring-зависимости форка (6.2.x) переопределяются BOM Boot 4 на Framework 7. -->
+        <dependency>
+            <groupId>com.bstek.ureport</groupId>
+            <artifactId>ureport3-console</artifactId>
+            <version>3.0.1</version>
+            <exclusions>
+                <!-- Форк пиннит antlr4-runtime 4.5.3, что ломает инициализацию
+                     HQL-парсера Hibernate 7 (собран под 4.13). Рантайм 4.13
+                     обратно совместим со сгенерированным кодом 4.5. -->
+                <exclusion>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>antlr4-runtime</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa-test</artifactId>
@@ -146,6 +165,15 @@
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>3.0.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Архитектурные тесты: контроль границы платформа (org.ipro) / приложение (org.ip).
+             Версия указана явно — Spring Boot BOM её не управляет. -->
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>1.5.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

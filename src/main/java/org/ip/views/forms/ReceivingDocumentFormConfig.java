@@ -33,7 +33,7 @@ public class ReceivingDocumentFormConfig implements ItemFormCustomization {
         variants.addDefault(ctx -> {
             RowMetadataInfo meta = ctx.metadataResolver().resolveRowMetadata(ReceivingDocument.class);
             List<FieldMetadataInfo> fields = meta.getFormFields().stream()
-                .filter(f -> List.of("number", "date", "receivingWorkshop", "transferringWorkshop")
+                .filter(f -> List.of("number", "date", "journal", "receivingWorkshop", "transferringWorkshop")
                     .contains(f.getName()))
                 .toList();
             return new ItemForm<>(ReceivingDocument.class, fields, ctx.fieldFactory());

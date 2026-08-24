@@ -10,6 +10,7 @@ import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.metadata.annotation.Lookup;
 import org.ipro.crud.BaseEntity;
+import org.ipro.metadata.HasDisplayName;
 import org.ipro.numbering.NumberingPeriod;
 import org.ipro.numbering.annotation.Numbered;
 

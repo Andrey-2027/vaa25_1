@@ -1,4 +1,4 @@
-package org.ip.service;
+package org.ipro.crud;
 
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
@@ -9,7 +9,7 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.ipro.metadata.FetchGraphs;
-import org.ip.security.CurrentUser;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
 import org.springframework.data.repository.support.Repositories;
@@ -37,13 +37,16 @@ public class LookupService {
     @PersistenceContext
     private EntityManager entityManager;
 
+    private final RlsCurrentUser currentUser;
     private final Repositories repositories;
     private final RlsFilterActivator rlsFilterActivator;
     private final RlsReadGate rlsReadGate;
 
     public LookupService(org.springframework.beans.factory.ListableBeanFactory beanFactory,
+                         RlsCurrentUser currentUser,
                          RlsFilterActivator rlsFilterActivator,
                          RlsReadGate rlsReadGate) {
+        this.currentUser = currentUser;
         this.repositories = new Repositories(beanFactory);
         this.rlsFilterActivator = rlsFilterActivator;
         this.rlsReadGate = rlsReadGate;
@@ -55,7 +58,7 @@ public class LookupService {
      * Решение — единый {@link RlsReadGate} поверх AccessService.
      */
     private boolean canRead(Class<?> entityClass) {
-        return rlsReadGate.canRead(entityClass, CurrentUser.username());
+        return rlsReadGate.canRead(entityClass, currentUser.username());
     }
 
     /**

@@ -4,7 +4,7 @@ import org.ip.model.ReceivingDocument;
 import org.ip.model.ReceivingDocumentItem;
 import org.ip.service.ReceivingDocumentItemService;
 import org.ip.service.ReceivingDocumentService;
-import org.ip.service.ValidationException;
+import org.ipro.crud.ValidationException;
 import org.ipro.telemetry.api.OperationScope;
 import org.ipro.telemetry.api.Telemetry;
 import org.ipro.telemetry.core.TelemetryBridge;

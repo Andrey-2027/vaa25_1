@@ -1,7 +1,7 @@
-package org.ip.form;
+package org.ipro.form;
 
 import org.ipro.metadata.annotation.FieldType;
-import org.ip.model.HasDisplayName;
+import org.ipro.metadata.HasDisplayName;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

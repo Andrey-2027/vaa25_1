@@ -1,5 +1,9 @@
 package org.ip.service;
 
+import org.ipro.crud.BaseService;
+import org.ipro.crud.ReferenceCheckService;
+import org.ipro.crud.ValidationException;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.PersistenceContext;

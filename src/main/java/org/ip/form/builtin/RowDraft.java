@@ -1,7 +1,7 @@
 package org.ip.form.builtin;
 
 import org.ipro.metadata.FieldMetadataInfo;
-import org.ip.service.LookupService;
+import org.ipro.crud.LookupService;
 import org.ipro.crud.IdentifiableEntity;
 
 import java.util.LinkedHashMap;

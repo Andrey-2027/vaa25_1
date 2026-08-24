@@ -1,4 +1,4 @@
-package org.ip.service;
+package org.ipro.crud;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

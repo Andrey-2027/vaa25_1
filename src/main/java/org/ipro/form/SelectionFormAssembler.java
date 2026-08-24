@@ -1,12 +1,12 @@
-package org.ip.form;
+package org.ipro.form;
 
 import com.vaadin.flow.function.ValueProvider;
-import org.ip.form.builtin.SelectionForm;
+import org.ipro.form.SelectionForm;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
-import org.ip.service.BaseService;
-import org.ip.service.ServiceLocator;
+import org.ipro.crud.BaseService;
+import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.IdentifiableEntity;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;

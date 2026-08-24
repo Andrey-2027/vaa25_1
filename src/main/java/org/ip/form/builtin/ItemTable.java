@@ -12,7 +12,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.function.ValueProvider;
 import org.ip.form.FieldFactory;
-import org.ip.form.FieldRenderer;
+import org.ipro.form.FieldRenderer;
 import org.ip.form.registry.FormResolver;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.FetchGraphs;
@@ -25,7 +25,7 @@ import org.ipro.metadata.annotation.FieldType;
 import org.ip.model.GridFormView;
 import org.ip.service.FormSettingsService;
 import org.ip.service.GridFormViewService;
-import org.ip.service.LookupService;
+import org.ipro.crud.LookupService;
 import org.ip.service.TableSectionService;
 import org.ipro.crud.IdentifiableEntity;
 

@@ -4,13 +4,13 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextField;
 import org.ip.form.FieldFactory;
-import org.ip.form.SelectionFormAssembler;
-import org.ip.form.SelectionFormAssembler;
+import org.ipro.form.SelectionFormAssembler;
+import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ip.model.Workshop;
-import org.ip.service.LookupService;
+import org.ipro.crud.LookupService;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;

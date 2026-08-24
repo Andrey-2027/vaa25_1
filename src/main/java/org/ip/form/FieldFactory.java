@@ -14,10 +14,11 @@ import com.vaadin.flow.component.textfield.TextField;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.annotation.FieldType;
-import org.ip.model.HasDisplayName;
-import org.ip.service.LookupService;
-import org.ip.views.components.EntityField;
-import org.ip.views.components.SearchFunction;
+import org.ipro.metadata.HasDisplayName;
+import org.ipro.crud.LookupService;
+import org.ipro.form.EntityField;
+import org.ipro.form.SelectionFormAssembler;
+import org.ipro.form.SearchFunction;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;

@@ -1,5 +1,7 @@
 package org.ip.service;
 
+import org.ipro.crud.ValidationException;
+
 import jakarta.validation.Validator;
 import org.ip.model.User;
 import org.ip.repository.UserRepository;

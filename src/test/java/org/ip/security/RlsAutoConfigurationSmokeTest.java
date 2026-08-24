@@ -14,7 +14,7 @@ import org.ip.service.AccessGrantAdminService;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
 import org.ip.service.NomenclatureService;
 import org.ip.service.ReceivingDocumentService;
-import org.ip.service.ValidationException;
+import org.ipro.crud.ValidationException;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;

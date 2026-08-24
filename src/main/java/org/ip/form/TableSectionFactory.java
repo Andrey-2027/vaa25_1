@@ -123,7 +123,7 @@ public class TableSectionFactory implements ApplicationRunner {
         ItemTable table = new ItemTable(section, fieldFactory, rawService, metadataResolver,
             applicationContext.getBean(org.ip.service.GridFormViewService.class),
             applicationContext.getBean(org.ip.service.FormSettingsService.class),
-            applicationContext.getBean(org.ip.service.LookupService.class),
+            applicationContext.getBean(org.ipro.crud.LookupService.class),
             formResolverSupplier);
 
         for (TableSectionCustomization<?> customization : customizations) {

@@ -28,7 +28,7 @@ import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.FieldType;
 import org.ip.model.GridFormView;
 import org.ip.service.GridFormViewService;
-import org.ip.service.LookupService;
+import org.ipro.crud.LookupService;
 import org.ipro.crud.IdentifiableEntity;
 import org.ipro.filtergrid.TextFilter;
 
@@ -420,7 +420,7 @@ public class GridViewEditorDialog extends Dialog {
                 List items = lookupService.findAll(condition.field.getLookupEntity());
                 combo.setItems(items);
                 combo.setItemLabelGenerator(
-                    item -> ((org.ip.model.HasDisplayName) item).getDisplayName());
+                    item -> ((org.ipro.metadata.HasDisplayName) item).getDisplayName());
                 if (condition.value != null) {
                     items.stream()
                         .filter(item -> condition.value.equals(String.valueOf(((IdentifiableEntity) item).getId())))

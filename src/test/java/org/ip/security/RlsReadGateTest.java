@@ -12,7 +12,7 @@ import org.ip.repository.JournalRepository;
 import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.ReceivingDocumentRepository;
 import org.ip.repository.WorkshopRepository;
-import org.ip.service.LookupService;
+import org.ipro.crud.LookupService;
 import org.ip.service.NomenclatureService;
 import org.ip.service.ReceivingDocumentService;
 import org.ipro.rls.AccessGrant;

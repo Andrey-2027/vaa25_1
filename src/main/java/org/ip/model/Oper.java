@@ -7,6 +7,7 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.crud.BaseEntity;
+import org.ipro.metadata.HasDisplayName;
 import org.ipro.numbering.NumberingPeriod;
 import org.ipro.numbering.annotation.Numbered;
 

@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @Theme(themeClass = Lumo.class)
 @EntityScan({"org.ip.model", "org.ipro.telemetry.model", "org.ipro.rls", "org.ipro.reportstudio.dom",
-    "org.ipro.numbering", "org.ipro.settings"})
+    "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport.dom"})
 @EnableTransactionManagement(proxyTargetClass = true, order = 0)
 public class Application implements AppShellConfigurator {
 

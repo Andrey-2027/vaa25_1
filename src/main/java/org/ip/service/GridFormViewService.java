@@ -1,5 +1,7 @@
 package org.ip.service;
 
+import org.ipro.crud.ValidationException;
+
 import org.ip.model.GridFormView;
 import org.ip.repository.GridFormViewRepository;
 import org.ip.security.CurrentUser;

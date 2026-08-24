@@ -93,12 +93,68 @@ public class QueryMetadataCatalogService {
                 .map(this::fieldNode)
                 .sorted(Comparator.comparing(QueryMetadataNode::caption))
                 .toList();
+        List<QueryMetadataNode> tables = metadataResolver.resolveTableSections(entity.getJavaType()).stream()
+                .map(this::tableNode)
+                .sorted(Comparator.comparing(QueryMetadataNode::caption))
+                .toList();
+        List<QueryMetadataNode> children = new java.util.ArrayList<>(fields.size() + tables.size());
+        children.addAll(fields);
+        children.addAll(tables);
         String caption = metadata.getListFormTitle();
         if (caption == null || caption.isBlank()) {
             caption = entity.getName();
         }
         return new QueryMetadataNode(QueryMetadataNode.Kind.ENTITY, caption, entity.getName(),
-                entity.getJavaType().getSimpleName(), true, fields);
+                entity.getJavaType().getSimpleName(), true, children);
+    }
+
+    private QueryMetadataNode tableNode(org.ipro.metadata.TableSectionMetadataInfo info) {
+        String caption = "Таблица: " + info.getTitle();
+        String token = resolveCollectionName(info.getParentEntityClass(), info.getRowClass());
+        if (token == null || token.isBlank()) {
+            token = info.getRowClass().getSimpleName().toLowerCase(java.util.Locale.ROOT);
+        }
+        List<QueryMetadataNode> fields = info.getFormFields().stream()
+                .map(f -> new QueryMetadataNode(QueryMetadataNode.Kind.PROPERTY,
+                        f.getLabel() + " (" + f.getName() + ")",
+                        f.getName(), f.getJavaType().getSimpleName(), true, List.of()))
+                .sorted(Comparator.comparing(QueryMetadataNode::caption))
+                .toList();
+        return new QueryMetadataNode(QueryMetadataNode.Kind.TABLE, caption, token,
+                info.getRowClass().getSimpleName(), false, fields);
+    }
+
+    private String resolveCollectionName(Class<?> parent, Class<?> rowClass) {
+        for (java.lang.reflect.Field field : parent.getDeclaredFields()) {
+            if (java.util.Collection.class.isAssignableFrom(field.getType())) {
+                java.lang.reflect.Type generic = field.getGenericType();
+                if (generic instanceof java.lang.reflect.ParameterizedType pt) {
+                    java.lang.reflect.Type arg = pt.getActualTypeArguments()[0];
+                    if (arg instanceof Class<?> argClass && argClass.equals(rowClass)) {
+                        return field.getName();
+                    }
+                    if (arg.getTypeName().equals(rowClass.getName())) {
+                        return field.getName();
+                    }
+                }
+            }
+        }
+        Class<?> cur = parent.getSuperclass();
+        while (cur != null && cur != Object.class) {
+            for (java.lang.reflect.Field field : cur.getDeclaredFields()) {
+                if (java.util.Collection.class.isAssignableFrom(field.getType())) {
+                    java.lang.reflect.Type generic = field.getGenericType();
+                    if (generic instanceof java.lang.reflect.ParameterizedType pt) {
+                        java.lang.reflect.Type arg = pt.getActualTypeArguments()[0];
+                        if (arg instanceof Class<?> argClass && argClass.equals(rowClass)) {
+                            return field.getName();
+                        }
+                    }
+                }
+            }
+            cur = cur.getSuperclass();
+        }
+        return null;
     }
 
     private QueryMetadataNode fieldNode(FieldMetadataInfo field) {

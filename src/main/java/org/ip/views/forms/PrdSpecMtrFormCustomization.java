@@ -12,8 +12,8 @@ import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;
 import org.ip.model.UnitOfMeasurement;
-import org.ip.service.LookupService;
-import org.ip.views.components.EntityField;
+import org.ipro.crud.LookupService;
+import org.ipro.form.EntityField;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

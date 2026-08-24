@@ -1,4 +1,4 @@
-package org.ip.views.components;
+package org.ipro.form;
 
 import java.util.List;
 

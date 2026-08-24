@@ -2,9 +2,9 @@ package org.ip.views.reportstudio;
 
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import org.ip.form.SelectionFormAssembler;
+import org.ipro.form.SelectionFormAssembler;
 import org.ip.form.builtin.ListForm;
-import org.ip.service.LookupService;
+import org.ipro.crud.LookupService;
 import org.ipro.crud.BaseEntity;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;

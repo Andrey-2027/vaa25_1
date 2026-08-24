@@ -1,6 +1,9 @@
 org.ipro.metadata.config.MetadataAutoConfiguration
+org.ipro.crud.config.CrudAutoConfiguration
+org.ipro.form.config.FormAutoConfiguration
 org.ipro.telemetry.config.TelemetryAutoConfiguration
 org.ipro.rls.config.RlsAutoConfiguration
 org.ipro.reportstudio.config.ReportStudioAutoConfiguration
 org.ipro.numbering.config.NumberingAutoConfiguration
 org.ipro.settings.config.SettingsAutoConfiguration
+org.ipro.ureport.config.UreportAutoConfiguration

@@ -123,7 +123,7 @@ public class JasperReportCompiler implements ReportCompiler {
             for (ReportBand groupFooter : footerBands(template)) {
                 ColumnGroupBuilder group = groupOf(groupBindings, groupFooter);
                 List<SubtotalBuilder<?, ?>> subtotals =
-                    buildSubtotals(groupFooter, columnsByField, fontSize, grid);
+                    buildSubtotals(groupFooter, columnsByField, detailColumns, fontSize, grid);
                 List<ComponentBuilder<?, ?>> texts = textBlocks(groupFooter, fontSize);
                 if (!texts.isEmpty()) {
                     group.footer(texts.toArray(new ComponentBuilder[0]));
@@ -137,7 +137,7 @@ public class JasperReportCompiler implements ReportCompiler {
             ReportBand reportFooter = bandOf(template, ReportBandKind.REPORT_FOOTER);
             if (reportFooter != null) {
                 List<SubtotalBuilder<?, ?>> subtotals =
-                    buildSubtotals(reportFooter, columnsByField, fontSize, grid);
+                    buildSubtotals(reportFooter, columnsByField, detailColumns, fontSize, grid);
                 List<ComponentBuilder<?, ?>> texts = textBlocks(reportFooter, fontSize);
                 if (!texts.isEmpty()) {
                     report.summary(texts.toArray(new ComponentBuilder[0]));
@@ -312,12 +312,16 @@ public class JasperReportCompiler implements ReportCompiler {
      * Собирает подытоги footer-бэнда. Поле COLUMN с aggregation != NONE обязано
      * ссылаться на колонку, уже объявленную в DETAIL ({@code columnsByField}) —
      * иначе «повисший» столбец, которого не видит ни layout, ни данные.
+     * При включённой сетке пустые ячейки (например, № п/п) заполняются
+     * бордером, чтобы строка подвала не выглядела рваной.
      */
     private static List<SubtotalBuilder<?, ?>> buildSubtotals(ReportBand footer,
-            Map<String, TextColumnBuilder<?>> columnsByField, int fontSize, boolean grid) {
+            Map<String, TextColumnBuilder<?>> columnsByField,
+            List<TextColumnBuilder<?>> detailColumns, int fontSize, boolean grid) {
         List<SubtotalBuilder<?, ?>> subtotals = new ArrayList<>();
         StyleBuilder valueStyle = grid ? bodyStyle(fontSize) : null;
         StyleBuilder labelStyle = grid ? columnTitleStyle(fontSize) : null;
+        java.util.Set<TextColumnBuilder<?>> aggregated = new java.util.HashSet<>();
         for (ReportField field : visibleFields(footer)) {
             if (field.isText()) {
                 continue;
@@ -328,12 +332,18 @@ public class JasperReportCompiler implements ReportCompiler {
             }
             TextColumnBuilder<?> column = columnsByField.get(field.getQueryField());
             if (column == null) {
-                throw new ReportRenderException("Агрегат по колонке «" + field.getQueryField()
-                    + "», которая не объявлена в DETAIL");
+                for (TextColumnBuilder<?> c : detailColumns) {
+                    if (c.getName() != null && c.getName().equals(field.getQueryField())) {
+                        column = c;
+                        break;
+                    }
+                }
+                if (column == null) {
+                    throw new ReportRenderException("Агрегат по колонке «" + field.getQueryField()
+                        + "», которая не объявлена в DETAIL");
+                }
             }
             SubtotalBuilder<?, ?> subtotal = mapAggregation(aggregation, column);
-            // Без label: заголовок колонки уже напечатан в шапке таблицы, дублировать его
-            // в строке подытога не нужно — остаётся только агрегированное значение.
             if (valueStyle != null) {
                 subtotal.setStyle(valueStyle);
             }
@@ -341,6 +351,21 @@ public class JasperReportCompiler implements ReportCompiler {
                 subtotal.setLabelStyle(labelStyle);
             }
             subtotals.add(subtotal);
+            aggregated.add(column);
+        }
+        if (grid && !detailColumns.isEmpty() && !subtotals.isEmpty()) {
+            for (TextColumnBuilder<?> col : detailColumns) {
+                if (!aggregated.contains(col)) {
+                    SubtotalBuilder<?, ?> filler = DynamicReports.sbt.text("", col);
+                    if (valueStyle != null) {
+                        filler.setStyle(valueStyle);
+                    }
+                    if (labelStyle != null) {
+                        filler.setLabelStyle(labelStyle);
+                    }
+                    subtotals.add(filler);
+                }
+            }
         }
         return subtotals;
     }

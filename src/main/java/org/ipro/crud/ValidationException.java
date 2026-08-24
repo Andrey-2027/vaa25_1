@@ -1,4 +1,4 @@
-package org.ip.service;
+package org.ipro.crud;
 
 public class ValidationException extends RuntimeException {
     public ValidationException(String message) {

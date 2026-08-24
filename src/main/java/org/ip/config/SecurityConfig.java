@@ -24,10 +24,19 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/h2-console/**").permitAll()
+                // Страница ошибок Boot: без этого любая ошибка сервера маскируется 403
+                .requestMatchers("/error").permitAll()
+                // Веб-дизайнер UReport: требует аутентификации (VaadinSecurityConfigurer
+                // по умолчанию не покрывает не-Vaadin URL)
+                .requestMatchers("/ureport/**").authenticated()
             )
             // Превью отчётов (iframe с PDF из StreamResource) same-origin:
             // X-Frame-Options по умолчанию DENY блокировал бы встроенный фрейм.
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+            // Дизайнер UReport шлёт все операции (loadReport/saveReportFile и т.д.)
+            // POST-запросами без CSRF-токена — исключаем его URL из CSRF-проверки.
+            // Аутентификация на /ureport/** при этом сохраняется.
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/ureport/**"))
             .with(VaadinSecurityConfigurer.vaadin(), configurer -> {
                 configurer.loginView(LoginView.class);
             });

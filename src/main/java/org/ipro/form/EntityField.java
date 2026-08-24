@@ -1,4 +1,4 @@
-package org.ip.views.components;
+package org.ipro.form;
 
 import com.vaadin.flow.component.HasLabel;
 import com.vaadin.flow.component.button.Button;
@@ -14,8 +14,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.dom.DomEvent;
-import org.ip.form.builtin.SelectionForm;
-import org.ip.model.HasDisplayName;
+import org.ipro.form.SelectionForm;
+import org.ipro.metadata.HasDisplayName;
 
 import java.util.ArrayList;
 import java.util.List;

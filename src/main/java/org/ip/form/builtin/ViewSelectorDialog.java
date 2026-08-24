@@ -14,7 +14,7 @@ import org.ipro.metadata.GridViewState;
 import org.ipro.metadata.MetadataResolver;
 import org.ip.model.GridFormView;
 import org.ip.service.GridFormViewService;
-import org.ip.service.LookupService;
+import org.ipro.crud.LookupService;
 
 import java.util.List;
 import java.util.function.Consumer;

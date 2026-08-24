@@ -650,12 +650,12 @@ class RlsIntegrationTest {
         org.ipro.metadata.ReferenceIndex index = new org.ipro.metadata.ReferenceIndex("org.ip",
             List.of(new org.ipro.settings.SettingsReverseReferenceSource("org.ip.settings")));
         index.afterPropertiesSet();
-        org.ip.service.ReferenceCheckService checker =
-            new org.ip.service.ReferenceCheckService(index, activator);
+        org.ipro.crud.ReferenceCheckService checker =
+            new org.ipro.crud.ReferenceCheckService(index, activator);
         ReflectionTestUtils.setField(checker, "entityManager", entityManager);
 
         assertThatThrownBy(() -> checker.checkNoReferences(User.class, signer.getId()))
-            .isInstanceOf(org.ip.service.ValidationException.class)
+            .isInstanceOf(org.ipro.crud.ValidationException.class)
             .hasMessageContaining("SettingValue")
             .hasMessageContaining("entityRefId");
     }

@@ -2,17 +2,17 @@ package org.ip.form.registry;
 
 import com.vaadin.flow.component.Component;
 import org.ip.form.FieldFactory;
-import org.ip.form.SelectionFormAssembler;
+import org.ipro.form.SelectionFormAssembler;
 import org.ip.form.TableSectionFactory;
 import org.ip.form.builtin.ItemForm;
 import org.ip.form.builtin.ListForm;
-import org.ip.form.builtin.SelectionForm;
+import org.ipro.form.SelectionForm;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.RowMetadataInfo;
-import org.ip.service.BaseService;
-import org.ip.service.ServiceLocator;
+import org.ipro.crud.BaseService;
+import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.IdentifiableEntity;
 import org.springframework.context.ApplicationContext;
 
@@ -50,7 +50,7 @@ public class FormResolver {
     private final TableSectionFactory tableSectionFactory;
     private final SelectionFormAssembler selectionFormAssembler;
     private final ServiceLocator serviceLocator;
-    private final org.ip.service.LookupService lookupService;
+    private final org.ipro.crud.LookupService lookupService;
 
     public FormResolver(FormRegistry formRegistry,
                         MetadataResolver metadataResolver,
@@ -66,7 +66,7 @@ public class FormResolver {
         this.tableSectionFactory = tableSectionFactory;
         this.selectionFormAssembler = selectionFormAssembler;
         this.serviceLocator = serviceLocator;
-        this.lookupService = applicationContext.getBean(org.ip.service.LookupService.class);
+        this.lookupService = applicationContext.getBean(org.ipro.crud.LookupService.class);
     }
 
     /**

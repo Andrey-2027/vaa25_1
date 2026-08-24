@@ -56,6 +56,7 @@ public final class QueryMetadataNode {
 
     public enum Kind {
         ENTITY,
+        TABLE,
         PROPERTY,
         ASSOCIATION
     }

@@ -13,6 +13,7 @@ import org.ipro.rls.RlsDimension;
 import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsDimensionValue;
 import org.ipro.crud.BaseEntity;
+import org.ipro.metadata.HasDisplayName;
 
 /**
  * RLS: доступ к филиалу — гранты AccessGrant (dimension = "BRANCH"). По устройству —

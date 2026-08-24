@@ -9,7 +9,7 @@ import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;
 import org.ip.model.UnitOfMeasurement;
-import org.ip.service.LookupService;
+import org.ipro.crud.LookupService;
 import org.ip.service.TableSectionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
