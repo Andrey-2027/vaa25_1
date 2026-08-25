@@ -34,6 +34,8 @@ class ReportCatalogViewTest {
 
         new ReportCatalogView(service, mock(ReportTemplateTransferService.class),
                 catalogService, mock(UreportTemplateService.class),
+                mock(org.ipro.jr.service.JrxmlTemplateService.class),
+                mock(org.ipro.jr.run.JrxmlExecutionService.class),
                 mock(ReportQueryGuard.class), mock(ReportPreviewService.class),
                 mock(QueryEditorAnalysisService.class), catalog,
                 mock(ReportExecutionService.class),

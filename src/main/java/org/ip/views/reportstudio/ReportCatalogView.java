@@ -50,6 +50,8 @@ public class ReportCatalogView extends HorizontalLayout {
     private final Grid<ReportCatalogItem> grid = new Grid<>(ReportCatalogItem.class, false);
     private final TextField search = new TextField();
     private final UreportTemplateServiceBridge ureportBridge;
+    private final org.ipro.jr.service.JrxmlTemplateService jrxmlTemplateService;
+    private final org.ipro.jr.run.JrxmlExecutionService jrxmlExecutionService;
     private final ReportExecutionService executionService;
     private final LookupService lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
@@ -59,6 +61,8 @@ public class ReportCatalogView extends HorizontalLayout {
             ReportTemplateTransferService transferService,
             ReportCatalogService catalogService,
             org.ipro.ureport.service.UreportTemplateService ureportTemplateService,
+            org.ipro.jr.service.JrxmlTemplateService jrxmlTemplateService,
+            org.ipro.jr.run.JrxmlExecutionService jrxmlExecutionService,
             ReportQueryGuard guard,
             ReportPreviewService previewService,
             QueryEditorAnalysisService queryEditorAnalysisService,
@@ -70,6 +74,8 @@ public class ReportCatalogView extends HorizontalLayout {
         this.transferService = transferService;
         this.catalogService = catalogService;
         this.ureportBridge = new UreportTemplateServiceBridge(ureportTemplateService);
+        this.jrxmlTemplateService = jrxmlTemplateService;
+        this.jrxmlExecutionService = jrxmlExecutionService;
         this.executionService = executionService;
         this.lookupService = lookupService;
         this.selectionFormAssembler = selectionFormAssembler;
@@ -134,7 +140,7 @@ public class ReportCatalogView extends HorizontalLayout {
     }
 
     private void configureGrid() {
-        grid.addColumn(item -> item.type() == ReportEngineType.UDR ? "UDR" : "UReport3")
+        grid.addColumn(this::typeLabel)
                 .setHeader("Тип").setAutoWidth(true);
         grid.addColumn(this::displayName).setHeader("Наименование").setFlexGrow(1);
         grid.addColumn(ReportCatalogItem::description).setHeader("Описание").setFlexGrow(1);
@@ -147,6 +153,14 @@ public class ReportCatalogView extends HorizontalLayout {
         return item.fileMissing() ? item.name() + " (файл отсутствует)" : item.name();
     }
 
+    private String typeLabel(ReportCatalogItem item) {
+        return switch (item.type()) {
+            case UDR -> "UDR";
+            case UREPORT3 -> "UReport3";
+            case JR -> "JR";
+        };
+    }
+
     private void showCreateTypeDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Новый отчёт: выберите тип");
@@ -156,9 +170,44 @@ public class ReportCatalogView extends HorizontalLayout {
         udr.setWidthFull();
         Button ureport = new Button("UReport3 — веб-дизайнер", event -> { dialog.close(); showCreateUreportDialog(); });
         ureport.setWidthFull();
-        Paragraph hint = new Paragraph("UDR: структурированный конструктор (JPQL, группы, поля). UReport3: pixel-perfect дизайнер.");
+        Button jr = new Button("JR — Jaspersoft Studio (.jrxml)", event -> { dialog.close(); showCreateJrDialog(); });
+        jr.setWidthFull();
+        Paragraph hint = new Paragraph(
+                "UDR: структурированный конструктор (JPQL, группы, поля). "
+                + "UReport3: pixel-perfect дизайнер. "
+                + "JR: макет .jrxml из Jaspersoft Studio, источник jpql:");
         hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
-        dialog.add(new VerticalLayout(udr, ureport, hint));
+        dialog.add(new VerticalLayout(udr, ureport, jr, hint));
+        dialog.open();
+    }
+
+    private void showCreateJrDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Новый отчёт JR (.jrxml)");
+        dialog.setWidth("460px");
+        TextField name = new TextField("Наименование");
+        name.setWidthFull();
+        TextField description = new TextField("Описание");
+        description.setWidthFull();
+        Paragraph hint = new Paragraph(
+                "Будет создан минимальный шаблон с источником jpql:. Макет правится "
+                + "в Jaspersoft Studio (файл в хранилище jrxml).");
+        hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        Button create = new Button("Создать", event -> {
+            if (name.getValue() == null || name.getValue().isBlank()) { showError("Укажите наименование"); return; }
+            try {
+                org.ipro.jr.dom.JrxmlTemplate created =
+                        jrxmlTemplateService.createTemplate(name.getValue(), description.getValue());
+                refreshCatalog();
+                dialog.close();
+                Notification.show("Создан отчёт JR «" + created.getName()
+                        + "» (" + created.getFileName() + ")",
+                        4_000, Notification.Position.MIDDLE);
+            } catch (RuntimeException ex) { showError("Не удалось создать отчёт JR: " + ex.getMessage()); }
+        });
+        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        Button cancel = new Button("Отмена", event -> dialog.close());
+        dialog.add(new VerticalLayout(name, description, hint, new HorizontalLayout(create, cancel)));
         dialog.open();
     }
 
@@ -201,7 +250,16 @@ public class ReportCatalogView extends HorizontalLayout {
         switch (selected.type()) {
             case UDR -> runUdr(selected);
             case UREPORT3 -> runUreport(selected);
+            case JR -> runJr(selected);
         }
+    }
+
+    private void runJr(ReportCatalogItem item) {
+        try {
+            org.ipro.jr.dom.JrxmlTemplate template = jrxmlTemplateService.findById(item.id())
+                    .orElseThrow(() -> new IllegalArgumentException("Шаблон JR не найден: " + item.id()));
+            new org.ip.views.reports.JrxmlRunDialog(template, jrxmlExecutionService).open();
+        } catch (RuntimeException ex) { showError("Не удалось открыть параметры JR: " + ex.getMessage()); }
     }
 
     private void runUdr(ReportCatalogItem item) {
@@ -234,7 +292,20 @@ public class ReportCatalogView extends HorizontalLayout {
         switch (item.type()) {
             case UDR -> openUdrTemplate(item);
             case UREPORT3 -> openDesigner(item);
+            case JR -> openJrInfo(item);
         }
+    }
+
+    private void openJrInfo(ReportCatalogItem item) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Шаблон JR: " + item.name());
+        dialog.setWidth("520px");
+        Paragraph hint = new Paragraph(
+                "Макет .jrxml редактируется в Jaspersoft Studio. Файл в хранилище: "
+                        + "запись каталога — " + item.id() + ".");
+        Button close = new Button("Закрыть", event -> dialog.close());
+        dialog.add(new VerticalLayout(hint, close));
+        dialog.open();
     }
 
     private void openUdrTemplate(ReportCatalogItem item) {
@@ -310,7 +381,24 @@ public class ReportCatalogView extends HorizontalLayout {
         switch (selected.type()) {
             case UDR -> showError("Удаление UDR в каталоге не поддерживается");
             case UREPORT3 -> confirmDeleteUreport(selected);
+            case JR -> confirmDeleteJr(selected);
         }
+    }
+
+    private void confirmDeleteJr(ReportCatalogItem item) {
+        ConfirmDialog confirm = new ConfirmDialog();
+        confirm.setHeader("Удалить отчёт JR?");
+        confirm.setText("«" + item.name() + "»: будут удалены метаданные и .jrxml-файл. Необратимо.");
+        confirm.setConfirmText("Удалить");
+        confirm.setCancelText("Отмена");
+        confirm.addConfirmListener(event -> {
+            try {
+                jrxmlTemplateService.delete(item.id());
+                refreshCatalog();
+                Notification.show("Отчёт «" + item.name() + "» удалён", 3_000, Notification.Position.MIDDLE);
+            } catch (RuntimeException ex) { showError("Не удалось удалить: " + ex.getMessage()); }
+        });
+        confirm.open();
     }
 
     private void confirmDeleteUreport(ReportCatalogItem item) {

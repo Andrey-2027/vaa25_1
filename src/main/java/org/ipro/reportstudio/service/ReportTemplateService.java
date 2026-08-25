@@ -2,7 +2,8 @@ package org.ipro.reportstudio.service;
 
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
-import org.ip.service.AbstractBaseService;
+import org.ipro.crud.ReferenceCheckService;
+import org.ipro.crud.jpa.ValidatedJpaCrudService;
 import org.ipro.reportstudio.ReportTemplateRepository;
 import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportField;
@@ -26,14 +27,15 @@ import java.util.Map;
  * декларативную структуру отчёта: topology бандов, групповые пары,
  * допустимость агрегатов и согласованность параметров.</p>
  */
-public class ReportTemplateService extends AbstractBaseService<ReportTemplate, Long> {
+public class ReportTemplateService extends ValidatedJpaCrudService<ReportTemplate> {
 
     private static final int TEMPLATE_NAME_MAX_LENGTH = 250;
 
     private final ReportTemplateRepository repository;
 
-    public ReportTemplateService(ReportTemplateRepository repository, Validator validator) {
-        super(repository, validator);
+    public ReportTemplateService(ReportTemplateRepository repository, Validator validator,
+                                 ReferenceCheckService referenceCheckService) {
+        super(repository, validator, referenceCheckService);
         this.repository = repository;
     }
 

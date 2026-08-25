@@ -27,16 +27,28 @@ public class ListFormReportActions {
     private final ReportExecutionService executionService;
     private final LookupService lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
+    private final org.ipro.ureport.service.UreportTemplateService ureportService;
+    private final org.ipro.jr.service.JrxmlTemplateService jrTemplateService;
+    private final org.ipro.jr.run.JrxmlExecutionService jrExecutionService;
+    private final ReportContextFactory contextFactory;
 
     public ListFormReportActions(
             ReportTemplateService templateService,
             ReportExecutionService executionService,
             LookupService lookupService,
-            SelectionFormAssembler selectionFormAssembler) {
+            SelectionFormAssembler selectionFormAssembler,
+            org.ipro.ureport.service.UreportTemplateService ureportService,
+            org.ipro.jr.service.JrxmlTemplateService jrTemplateService,
+            org.ipro.jr.run.JrxmlExecutionService jrExecutionService,
+            ReportContextFactory contextFactory) {
         this.templateService = templateService;
         this.executionService = executionService;
         this.lookupService = lookupService;
         this.selectionFormAssembler = selectionFormAssembler;
+        this.ureportService = ureportService;
+        this.jrTemplateService = jrTemplateService;
+        this.jrExecutionService = jrExecutionService;
+        this.contextFactory = contextFactory;
     }
 
     public <T extends IdentifiableEntity, ID> Optional<ContextualReportLauncher> addDefaultPrintAction(
@@ -54,7 +66,11 @@ public class ListFormReportActions {
                 templateService,
                 executionService,
                 lookupService,
-                selectionFormAssembler);
+                selectionFormAssembler,
+                ureportService,
+                jrTemplateService,
+                jrExecutionService);
+
         launcher.setIcon(VaadinIcon.PRINT.create());
         launcher.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         launcher.setTooltipText("Выбрать печатную форму для выделенных строк");
@@ -69,7 +85,7 @@ public class ListFormReportActions {
         return setting == null || setting.value();
     }
 
-    static <T extends IdentifiableEntity> ReportContext reportContext(
+    <T extends IdentifiableEntity> ReportContext reportContext(
             Class<T> entityClass,
             Collection<T> selectedItems) {
         List<Object> selectedIds = selectedItems.stream()
@@ -78,7 +94,7 @@ public class ListFormReportActions {
                 .map(Object.class::cast)
                 .toList();
         Object currentId = selectedIds.isEmpty() ? null : selectedIds.getFirst();
-        return ReportContextFactory.forSelection(
+        return contextFactory.forSelection(
                 entityClass,
                 currentId,
                 selectedIds,

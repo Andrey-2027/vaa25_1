@@ -9,5 +9,7 @@ public enum ReportEngineType {
     /** UserDynamicReport — конструктор reportstudio (ReportTemplate). */
     UDR,
     /** UReport3 — веб-дизайнер (UreportTemplate + XML в файловом хранилище). */
-    UREPORT3
+    UREPORT3,
+    /** JR — шаблоны JasperReports .jrxml (JrxmlTemplate, дизайн в Jaspersoft Studio). */
+    JR
 }

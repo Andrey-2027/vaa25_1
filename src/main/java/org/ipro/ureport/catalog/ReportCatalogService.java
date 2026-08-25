@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import org.ipro.jr.dom.JrxmlTemplate;
+import org.ipro.jr.service.JrxmlTemplateService;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.ureport.dom.UreportTemplate;
@@ -17,15 +19,19 @@ public class ReportCatalogService {
 
     private final ReportTemplateService reportTemplateService;
     private final UreportTemplateService ureportTemplateService;
+    /** nullable: без сервиса JR-ветка не показывается (обратная совместимость). */
+    private final JrxmlTemplateService jrxmlTemplateService;
     private final RlsReadGate rlsReadGate;
     private final RlsCurrentUser currentUser;
 
     public ReportCatalogService(ReportTemplateService reportTemplateService,
                                 UreportTemplateService ureportTemplateService,
+                                JrxmlTemplateService jrxmlTemplateService,
                                 RlsReadGate rlsReadGate,
                                 RlsCurrentUser currentUser) {
         this.reportTemplateService = reportTemplateService;
         this.ureportTemplateService = ureportTemplateService;
+        this.jrxmlTemplateService = jrxmlTemplateService;
         this.rlsReadGate = rlsReadGate;
         this.currentUser = currentUser;
     }
@@ -35,6 +41,9 @@ public class ReportCatalogService {
         List<ReportCatalogItem> result = new ArrayList<>();
         result.addAll(udrItems(term, includeDisabled));
         result.addAll(ureportItems(term, includeDisabled));
+        if (jrxmlTemplateService != null) {
+            result.addAll(jrItems(term, includeDisabled));
+        }
         result.sort(Comparator.comparing(ReportCatalogItem::name,
                 String.CASE_INSENSITIVE_ORDER));
         return result;
@@ -47,6 +56,9 @@ public class ReportCatalogService {
             case UREPORT3 -> ureportItem(ureportTemplateService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Шаблон UReport не найден: " + id)));
+            case JR -> jrItem(jrxmlTemplateService.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Шаблон JR не найден: " + id)));
         };
     }
 
@@ -89,6 +101,22 @@ public class ReportCatalogService {
                 template.getName(), template.getDescription(), template.isEnabled(),
                 UreportTemplateService.designerUrl(template.getFileName()),
                 !ureportTemplateService.fileExists(template.getFileName()));
+    }
+
+    private List<ReportCatalogItem> jrItems(String term, boolean includeDisabled) {
+        if (rlsReadGate.canRead(JrxmlTemplate.class, currentUser.username())) {
+            return jrxmlTemplateService.search(term).stream()
+                    .filter(t -> includeDisabled || t.isEnabled())
+                    .map(this::jrItem)
+                    .toList();
+        }
+        return List.of();
+    }
+
+    private ReportCatalogItem jrItem(JrxmlTemplate template) {
+        return new ReportCatalogItem(template.getId(), ReportEngineType.JR,
+                template.getName(), template.getDescription(), template.isEnabled(),
+                null, !jrxmlTemplateService.fileExists(template.getFileName()));
     }
 
     private static boolean matches(String value, String needle) {

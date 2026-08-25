@@ -24,7 +24,9 @@ class ListFormReportActionsTest {
 
     @Test
     void reportContextContainsCurrentAndAllSelectedIdentifiers() {
-        ReportContext context = ListFormReportActions.reportContext(
+        ListFormReportActions actions = actionsWithStubFactory();
+
+        ReportContext context = actions.reportContext(
                 ReportableEntity.class,
                 List.of(entity(8L), entity(13L)));
 
@@ -32,6 +34,21 @@ class ListFormReportActionsTest {
         assertEquals(8L, context.entityId());
         assertEquals(List.of(8L, 13L), context.selectedIds());
         assertEquals(ReportableEntity.class.getName() + "-list", context.viewId());
+    }
+
+    private static ListFormReportActions actionsWithStubFactory() {
+        org.ipro.reportstudio.param.ReportContextFactory factory =
+                new org.ipro.reportstudio.param.ReportContextFactory(
+                        () -> "test-user", java.time.Clock.systemDefaultZone());
+        return new ListFormReportActions(
+                mock(ReportTemplateService.class),
+                mock(ReportExecutionService.class),
+                mock(LookupService.class),
+                mock(SelectionFormAssembler.class),
+                mock(org.ipro.ureport.service.UreportTemplateService.class),
+                mock(org.ipro.jr.service.JrxmlTemplateService.class),
+                mock(org.ipro.jr.run.JrxmlExecutionService.class),
+                factory);
     }
 
     @Test
@@ -49,11 +66,7 @@ class ListFormReportActionsTest {
         when(form.getGrid()).thenReturn(grid);
         when(form.getToolbar()).thenReturn(toolbar);
 
-        ListFormReportActions actions = new ListFormReportActions(
-                mock(ReportTemplateService.class),
-                mock(ReportExecutionService.class),
-                mock(LookupService.class),
-                mock(SelectionFormAssembler.class));
+        ListFormReportActions actions = actionsWithStubFactory();
 
         ContextualReportLauncher launcher = actions
                 .addDefaultPrintAction(form, ReportableEntity.class)

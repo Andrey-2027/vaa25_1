@@ -27,18 +27,21 @@ class ReportCatalogServiceTest {
 
     private ReportTemplateService udrService;
     private UreportTemplateService ureportService;
+    private org.ipro.jr.service.JrxmlTemplateService jrService;
     private ReportCatalogService catalogService;
 
     @BeforeEach
     void setUp() {
         udrService = mock(ReportTemplateService.class);
         ureportService = mock(UreportTemplateService.class);
+        jrService = mock(org.ipro.jr.service.JrxmlTemplateService.class);
+        when(jrService.search(any())).thenReturn(List.of());
         RlsReadGate readGate = mock(RlsReadGate.class);
         when(readGate.canRead(any(), anyString())).thenReturn(true);
         RlsCurrentUser currentUser = mock(RlsCurrentUser.class);
         when(currentUser.username()).thenReturn("admin");
         catalogService = new ReportCatalogService(udrService, ureportService,
-                readGate, currentUser);
+                jrService, readGate, currentUser);
     }
 
     @Test

@@ -64,7 +64,8 @@ class ReportTemplateRoundTripIT {
         });
 
         ReportTemplateService service = new ReportTemplateService(repository,
-                Validation.buildDefaultValidatorFactory().getValidator());
+                Validation.buildDefaultValidatorFactory().getValidator(),
+                org.mockito.Mockito.mock(org.ipro.crud.ReferenceCheckService.class));
         ReportTemplate loaded = new TransactionTemplate(transactionManager)
                 .execute(status -> service.loadTemplate(id));
 

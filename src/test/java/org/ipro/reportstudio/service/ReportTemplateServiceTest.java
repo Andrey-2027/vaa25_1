@@ -10,8 +10,6 @@ import org.ipro.reportstudio.dom.ReportField;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.junit.jupiter.api.Test;
-import org.ipro.rls.AccessService;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -80,10 +78,10 @@ class ReportTemplateServiceTest {
     }
 
     private ReportTemplateService newService(ReportTemplateRepository repository) {
-        ReportTemplateService service = new ReportTemplateService(repository, validator);
-        ReflectionTestUtils.setField(service, "accessService", mock(AccessService.class));
-        ReflectionTestUtils.setField(service, "numberingService", Optional.empty());
-        return service;
+        // новая платформенная база (ValidatedJpaCrudService) не содержит RLS/numbering-полей —
+        // инъекция accessService/numberingService больше не нужна
+        return new ReportTemplateService(repository, validator,
+                mock(org.ipro.crud.ReferenceCheckService.class));
     }
 
     private static ReportTemplate validTemplate(String name) {

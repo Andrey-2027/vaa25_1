@@ -79,9 +79,16 @@ public class UreportTemplateService extends AbstractBaseService<UreportTemplate,
      */
     @Transactional
     public UreportTemplate createTemplate(String name, String description) {
+        return createTemplate(name, description, null);
+    }
+
+    /** Создание с привязкой к реестру сущностей (кнопка «Печать» реестра). */
+    @Transactional
+    public UreportTemplate createTemplate(String name, String description, String targetEntityClass) {
         UreportTemplate template = new UreportTemplate();
         template.setName(name);
         template.setDescription(description);
+        template.setTargetEntityClass(targetEntityClass);
         template.setFileName(nextAvailableFileName(name));
         writeTemplateFile(template.getFileName(), EMPTY_TEMPLATE_XML);
         try {
@@ -90,6 +97,27 @@ public class UreportTemplateService extends AbstractBaseService<UreportTemplate,
             deleteTemplateFileQuietly(template.getFileName());
             throw rollback;
         }
+    }
+
+    /**
+     * Печатные формы UReport3 для реестра сущностей (кнопка «Печать»):
+     * включённые шаблоны, файл на месте, targetEntityClass совпадает с реестром.
+     * Возвращает готовые строки каталога (type=UREPORT3, designerUrl заполнен).
+     */
+    @Transactional(readOnly = true)
+    public List<org.ipro.ureport.catalog.ReportCatalogItem> findPrintableItemsForEntity(Class<?> entityClass) {
+        if (entityClass == null) {
+            return List.of();
+        }
+        String entityClassName = entityClass.getName();
+        return repository.findAll().stream()
+                .filter(UreportTemplate::isEnabled)
+                .filter(t -> entityClassName.equals(t.getTargetEntityClass()))
+                .filter(t -> Files.isRegularFile(fileStoreDir.resolve(t.getFileName())))
+                .map(t -> new org.ipro.ureport.catalog.ReportCatalogItem(
+                        t.getId(), org.ipro.ureport.catalog.ReportEngineType.UREPORT3,
+                        t.getName(), t.getDescription(), true, designerUrl(t.getFileName()), false))
+                .toList();
     }
 
     @Override

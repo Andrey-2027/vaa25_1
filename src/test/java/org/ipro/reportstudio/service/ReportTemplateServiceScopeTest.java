@@ -24,7 +24,8 @@ class ReportTemplateServiceScopeTest {
     @BeforeEach
     void setUp() {
         repository = mock(ReportTemplateRepository.class);
-        service = new ReportTemplateService(repository, mock(Validator.class));
+        service = new ReportTemplateService(repository, mock(Validator.class),
+                mock(org.ipro.crud.ReferenceCheckService.class));
     }
 
     @Test

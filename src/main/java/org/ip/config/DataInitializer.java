@@ -7,6 +7,7 @@ import org.ip.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -23,7 +24,13 @@ public class DataInitializer implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Транзакция обязательна: без неё findByName возвращает detached-Role,
+     * и save(user) с каскадом на роль падает в Hibernate 7
+     * ("detached entity with generated id ... uninitialized version").
+     */
     @Override
+    @Transactional
     public void run(String... args) {
         if (roleRepository.count() == 0) {
             roleRepository.save(new Role("ADMIN"));

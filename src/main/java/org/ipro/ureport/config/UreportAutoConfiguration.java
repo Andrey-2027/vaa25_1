@@ -37,9 +37,19 @@ public class UreportAutoConfiguration {
     public ReportCatalogService reportCatalogService(
             ReportTemplateService reportTemplateService,
             UreportTemplateService ureportTemplateService,
+            org.springframework.context.ApplicationContext applicationContext,
             RlsReadGate rlsReadGate,
             RlsCurrentUser currentUser) {
+        // JR-сервис опционален: модуль jr может отсутствовать (тот же профиль
+        // обратной совместимости, что и ureportService в ContextualReportLauncher)
+        org.ipro.jr.service.JrxmlTemplateService jrxmlTemplateService;
+        try {
+            jrxmlTemplateService = applicationContext.getBean(
+                    org.ipro.jr.service.JrxmlTemplateService.class);
+        } catch (RuntimeException noBean) {
+            jrxmlTemplateService = null;
+        }
         return new ReportCatalogService(reportTemplateService, ureportTemplateService,
-                rlsReadGate, currentUser);
+                jrxmlTemplateService, rlsReadGate, currentUser);
     }
 }

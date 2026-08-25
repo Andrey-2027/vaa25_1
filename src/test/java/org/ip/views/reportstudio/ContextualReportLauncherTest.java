@@ -78,8 +78,13 @@ class ContextualReportLauncherTest {
         assertFalse(edit.isEnabled());
         assertFalse(run.isEnabled());
 
-        Grid<ReportTemplate> templates = componentOf(launcher.openedDialog, Grid.class);
-        templates.asSingleSelect().setValue(template);
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        Grid<org.ipro.ureport.catalog.ReportCatalogItem> templates =
+                (Grid) componentOf(launcher.openedDialog, Grid.class);
+        // грид единого каталога: выбор UDR-строки (type,id) - Р9
+        templates.asSingleSelect().setValue(new org.ipro.ureport.catalog.ReportCatalogItem(
+                11L, org.ipro.ureport.catalog.ReportEngineType.UDR,
+                "Остатки", null, true, null, false));
 
         assertTrue(edit.isEnabled());
         assertTrue(run.isEnabled());

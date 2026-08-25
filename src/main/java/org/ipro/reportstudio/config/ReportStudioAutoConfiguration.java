@@ -140,6 +140,14 @@ public class ReportStudioAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public org.ipro.reportstudio.param.ReportContextFactory reportContextFactory(
+            RlsCurrentUser currentUser) {
+        return new org.ipro.reportstudio.param.ReportContextFactory(currentUser,
+                java.time.Clock.systemDefaultZone());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
 public ReportExecutionService reportExecutionService(ReportQueryGuard guard,
                                                          ReportQueryExecutor executor,
                                                          ReportParamResolver resolver,
@@ -152,8 +160,9 @@ public ReportExecutionService reportExecutionService(ReportQueryGuard guard,
     @ConditionalOnMissingBean
     public ReportTemplateService reportTemplateService(
             ReportTemplateRepository repository,
-            Validator validator) {
-        return new ReportTemplateService(repository, validator);
+            Validator validator,
+            org.ipro.crud.ReferenceCheckService referenceCheckService) {
+        return new ReportTemplateService(repository, validator, referenceCheckService);
     }
     /**
      * Без {@code @ConditionalOnMissingBean}: в контексте уже есть CommandLineRunner

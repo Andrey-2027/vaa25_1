@@ -45,6 +45,14 @@ public class UreportTemplate extends BaseEntity {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    /**
+     * Привязка к реестру сущностей (canonical name, nullable): шаблон появляется
+     * в кнопке «Печать» этого реестра (ContextualReportLauncher). null = только каталог.
+     */
+    @Size(max = 255)
+    @Column(name = "target_entity_class", length = 255)
+    private String targetEntityClass;
+
     public String getName() {
         return name;
     }
@@ -75,5 +83,13 @@ public class UreportTemplate extends BaseEntity {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public String getTargetEntityClass() {
+        return targetEntityClass;
+    }
+
+    public void setTargetEntityClass(String targetEntityClass) {
+        this.targetEntityClass = targetEntityClass;
     }
 }

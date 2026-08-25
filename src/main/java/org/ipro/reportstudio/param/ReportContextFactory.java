@@ -1,12 +1,13 @@
 package org.ipro.reportstudio.param;
 
-import org.ip.security.CurrentUser;
-import org.ipro.crud.BaseEntity;
-
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
+import org.ipro.crud.BaseEntity;
+import org.ipro.rls.RlsCurrentUser;
 
 /**
  * Построитель безопасного контекста запуска из экранов форм и списков сущностей.
@@ -15,17 +16,27 @@ import java.util.Objects;
  * класс, идентификатор текущей сущности, выбранные идентификаторы и viewId;
  * {@link ReportParamResolver} повторно загружает ENTITY/ENTITY_LIST через
  * защищённые сервисы в момент запуска.</p>
+ *
+ * <p>Spring-bean с инъекцией {@link RlsCurrentUser} (тот же SPI, что у
+ * ReportParamResolver/EntityParamRefresher) и {@link Clock} — детерминируемые
+ * тесты; регистрируется в ReportStudioAutoConfiguration (план
+ * reportstudio-reverse-deps, 2.2 — вместо статического CurrentUser.username()).</p>
  */
-public final class ReportContextFactory {
+public class ReportContextFactory {
 
-    private ReportContextFactory() {
+    private final RlsCurrentUser currentUser;
+    private final Clock clock;
+
+    public ReportContextFactory(RlsCurrentUser currentUser, Clock clock) {
+        this.currentUser = currentUser;
+        this.clock = clock;
     }
 
-    public static ReportContext empty(String viewId) {
+    public ReportContext empty(String viewId) {
         return context(null, null, List.of(), viewId);
     }
 
-    public static ReportContext forEntity(BaseEntity entity, String viewId) {
+    public ReportContext forEntity(BaseEntity entity, String viewId) {
         if (entity == null) {
             return empty(viewId);
         }
@@ -33,7 +44,7 @@ public final class ReportContextFactory {
         return context(entity.getClass(), entityId, entityId == null ? List.of() : List.of(entityId), viewId);
     }
 
-    public static ReportContext forSelection(
+    public ReportContext forSelection(
             Class<?> entityClass,
             Object currentEntityId,
             Collection<?> selectedIds,
@@ -45,7 +56,7 @@ public final class ReportContextFactory {
         return context(entityClass, currentEntityId, ids, viewId);
     }
 
-    public static ReportContext forEntities(Collection<? extends BaseEntity> entities, String viewId) {
+    public ReportContext forEntities(Collection<? extends BaseEntity> entities, String viewId) {
         if (entities == null || entities.isEmpty()) {
             return empty(viewId);
         }
@@ -62,7 +73,7 @@ public final class ReportContextFactory {
         return context(first.getClass(), first.getId(), ids, viewId);
     }
 
-    private static ReportContext context(Class<?> entityClass, Object entityId, List<?> selectedIds, String viewId) {
-        return ReportContext.of(entityClass, entityId, selectedIds, viewId, CurrentUser.username(), Instant.now());
+    private ReportContext context(Class<?> entityClass, Object entityId, List<?> selectedIds, String viewId) {
+        return ReportContext.of(entityClass, entityId, selectedIds, viewId, currentUser.username(), clock.instant());
     }
 }

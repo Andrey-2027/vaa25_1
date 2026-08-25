@@ -4,8 +4,12 @@ import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
 import org.ip.views.login.LoginView;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,6 +21,26 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Отдельная stateless-цепочка для REST-эндпоинта JPQL-превью (фаза 3 плана
+     * ReportJR-Jpql-Plan.md): HTTP Basic, без сессий, CSRF отключён — безопасно
+     * ИМЕННО потому, что транспорт basic (каждый запрос несёт учётные данные),
+     * а не cookie-сессия. Доступ всё равно требует права REPORTS:JPQL_PREVIEW
+     * (проверяется в контроллере, 403 без гранта).
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain jpqlPreviewApiChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/api/report-jpql/**")
+            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .csrf(AbstractHttpConfigurer::disable)
+            .httpBasic(Customizer.withDefaults());
+        return http.build();
     }
 
     @Bean

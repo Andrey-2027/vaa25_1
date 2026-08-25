@@ -74,6 +74,16 @@ public class ReportQueryGuard {
      */
     public GuardResult guard(String jpql, Set<String> templateParamNames,
                              Map<String, Class<?>> paramEntityClasses) {
+        return guard(jpql, templateParamNames, paramEntityClasses, MAX_COLUMNS);
+    }
+
+    /**
+     * То же, но лимит колонок задаёт вызывающий движок: у JR/JSS (pixel-perfect
+     * корпоративный документ: шапка + табличная часть + итоги) ожидаемо больше
+     * полей, чем у ad-hoc отчёта UDR/UReport (стандартный лимит {@link #MAX_COLUMNS}).
+     */
+    public GuardResult guard(String jpql, Set<String> templateParamNames,
+                             Map<String, Class<?>> paramEntityClasses, int maxColumns) {
         jpql = ServiceParams.expand(jpql);
         Analysis analysis = analyzer.analyze(jpql);
         List<String> errors = new ArrayList<>();
@@ -101,9 +111,9 @@ public class ReportQueryGuard {
             }
         }
 
-        if (analysis.selectFields().size() > MAX_COLUMNS) {
+        if (analysis.selectFields().size() > maxColumns) {
             errors.add("Слишком много колонок в SELECT: " + analysis.selectFields().size()
-                + " (лимит " + MAX_COLUMNS + ") — сузьте запрос");
+                + " (лимит " + maxColumns + ") — сузьте запрос");
         }
 
         List<String> rlsErrors = checkRls(analysis, declared, paramEntityClasses);

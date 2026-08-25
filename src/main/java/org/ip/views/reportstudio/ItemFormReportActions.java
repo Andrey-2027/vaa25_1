@@ -28,8 +28,37 @@ public final class ItemFormReportActions {
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler) {
+        return addContextualLauncher(form, contextSupplier, templateService,
+                executionService, lookupService, selectionFormAssembler, null);
+    }
+
+    /** Перегрузка с поддержкой UReport3 (печатные формы, привязанные к реестру). */
+    public static ContextualReportLauncher addContextualLauncher(
+            ItemForm<?> form,
+            Supplier<ReportContext> contextSupplier,
+            ReportTemplateService templateService,
+            ReportExecutionService executionService,
+            LookupService lookupService,
+            SelectionFormAssembler selectionFormAssembler,
+            org.ipro.ureport.service.UreportTemplateService ureportService) {
+        return addContextualLauncher(form, contextSupplier, templateService,
+                executionService, lookupService, selectionFormAssembler,
+                ureportService, null);
+    }
+
+    /** Максимальная перегрузка: все три движка (UDR / UReport3 / JR). */
+    public static ContextualReportLauncher addContextualLauncher(
+            ItemForm<?> form,
+            Supplier<ReportContext> contextSupplier,
+            ReportTemplateService templateService,
+            ReportExecutionService executionService,
+            LookupService lookupService,
+            SelectionFormAssembler selectionFormAssembler,
+            org.ipro.ureport.service.UreportTemplateService ureportService,
+            org.ipro.jr.service.JrxmlTemplateService jrTemplateService) {
         ContextualReportLauncher launcher = new ContextualReportLauncher(
-                contextSupplier, templateService, executionService, lookupService, selectionFormAssembler);
+                contextSupplier, templateService, executionService, lookupService,
+                selectionFormAssembler, ureportService, jrTemplateService);
         form.getFooter().add(launcher);
         return launcher;
     }
