@@ -1,0 +1,3 @@
+vaadin-grid.grouping-grid::part(group-row) {
+  background-color: var(--lumo-contrast-10pct);
+}
