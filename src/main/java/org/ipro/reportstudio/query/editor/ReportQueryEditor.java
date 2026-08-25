@@ -1,5 +1,6 @@
 package org.ipro.reportstudio.query.editor;
 
+import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -89,10 +90,10 @@ public class ReportQueryEditor extends VerticalLayout {
             FieldType.DATE, FieldType.DATETIME, FieldType.ENUM, FieldType.ENTITY_REFERENCE);
 
     private static final Pattern FROM_ALIAS =
-            Pattern.compile("(?is)\\bfrom\\s+([A-Za-z_][\\w.]*)\\s+as?\\s+([A-Za-z_][\\w]*)");
+            Pattern.compile("(?is)\\bfrom\\s+([A-Za-z_][\\w.]*)\\s+(?:as\\s+)?([A-Za-z_][\\w]*)");
     private static final Pattern JOIN_ALIAS =
             Pattern.compile("(?is)\\b(?:left\\s+|right\\s+|inner\\s+|full\\s+|cross\\s+)*join\\s+"
-                    + "([A-Za-z_][\\w.]*)\\s+as?\\s+([A-Za-z_][\\w]*)");
+                    + "([A-Za-z_][\\w.]*)\\s+(?:as\\s+)?([A-Za-z_][\\w]*)");
     private static final Pattern PARAMETER =
             Pattern.compile("(^|[^\\w:])[:]([A-Za-z_][A-Za-z0-9_]*)\\b");
 
@@ -135,6 +136,18 @@ public class ReportQueryEditor extends VerticalLayout {
     /** Сущность → алиас из JPQL/анализа; используется для вставки полей. */
     private final Map<String, String> aliasesByEntity = new HashMap<>();
 
+    /**
+     * Полный, нефильтрованный список корней каталога — кэш для контекстных
+     * подсказок по мере набора текста (см. {@link #onCaretContext}), чтобы не
+     * гонять RLS-проверку по всем сущностям на каждое нажатие клавиши.
+     * Обновляется при построении редактора; RLS-права пользователя за время
+     * сессии редактирования отчёта не меняются, поэтому один раз — достаточно.
+     */
+    private List<QueryMetadataNode> allRoots = List.of();
+
+    /** true, пока дерево каталога сужено подсказкой курсора (см. {@link #onCaretContext}), а не обычным фильтром. */
+    private boolean catalogNarrowedByCaret;
+
     public ReportQueryEditor(QueryEditorAnalysisService analysisService,
                              QueryMetadataCatalogService catalogService,
                              ReportPreviewService previewService,
@@ -167,10 +180,15 @@ public class ReportQueryEditor extends VerticalLayout {
         configureResult();
         add(buildLayout());
         refreshCatalog();
+        refreshAllRootsCache();
+        setupCaretContextListener();
     }
 
     public void setTemplate(ReportTemplate template) {
         this.template = Objects.requireNonNull(template, "template");
+        // Алиасы прошлого запроса не должны влиять на подсказку нового:
+        // карта заполняется через putIfAbsent и иначе никогда не очищается.
+        aliasesByEntity.clear();
         jpql.setValue(Objects.requireNonNullElse(template.getJpql(), ""));
         testParams.clear();
         syncTestParameters(extractParameterNames(jpql.getValue()));
@@ -276,6 +294,9 @@ public class ReportQueryEditor extends VerticalLayout {
     private void configureEditor() {
         jpql.setLabel("JPQL");
         jpql.setPlaceholder("select s.code as code, s.name as name from Specification s where s.journal = :journal");
+        // EAGER: onCaretContext читает jpql.getValue() для inferAliasesFromJpql(),
+        // без этого значение приходит только по blur и подсказка при наборе не срабатывает.
+        jpql.setValueChangeMode(ValueChangeMode.EAGER);
         jpql.setWidthFull();
         jpql.setHeight("100%");
         jpql.getStyle().set("min-height", "140px");
@@ -444,6 +465,143 @@ public class ReportQueryEditor extends VerticalLayout {
         catalog.expand(roots);
     }
 
+    /** Полный список корней — отдельно от {@link #refreshCatalog()}, который применяет пользовательский фильтр. */
+    private void refreshAllRootsCache() {
+        allRoots = catalogService.roots("");
+    }
+
+    // === Контекстная подсказка по мере набора (минимальный вариант — сужение существующего дерева) ===
+
+    /**
+     * Слушатель ввода на самом {@code <textarea>} — минимальный вариант:
+     * никакого нового визуального компонента, только вызов {@link #onCaretContext}
+     * при обнаружении паттерна {@code алиас.частьИмени} непосредственно перед курсором.
+     * С дебаунсом 200мс, чтобы не гонять RPC на каждый символ подряд.
+     */
+    private void setupCaretContextListener() {
+        getElement().executeJs("""
+            const container = this;
+            const input = $0.inputElement || $0.shadowRoot?.querySelector('textarea');
+            if (!input || input.dataset.caretContextAttached) return;
+            input.dataset.caretContextAttached = '1';
+            let timer = null;
+            const check = () => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    const pos = input.selectionStart ?? input.value.length;
+                    const before = input.value.substring(0, pos);
+                    const match = before.match(/([A-Za-z_][\\w.]*)\\.([A-Za-z0-9_]*)$/);
+                    if (match) {
+                        container.$server.onCaretContext(match[1], match[2], input.value);
+                    } else {
+                        container.$server.onCaretContext(null, null, null);
+                    }
+                }, 200);
+            };
+            input.addEventListener('input', check);
+            input.addEventListener('click', check);
+            input.addEventListener('keyup', check);
+            """, jpql.getElement());
+    }
+
+    /**
+     * Вызывается с клиента при каждом изменении контекста курсора. {@code path} —
+     * путь непосредственно перед курсором («h», «h.nomenclature»), {@code prefix} —
+     * набираемая часть после последней точки; оба {@code null}, когда паттерна нет.
+     * {@code jpqlSnapshot} — полный текст поля, снятый на клиенте: источник истины
+     * для резолвинга алиасов именно клиент (серверное значение TextArea может запаздывать
+     * относительно экрана — это уже вызывало «подсказка не видит свеженабранный запрос»).
+     * Текст весь, а не до курсора: from/join могут стоять и после позиции курсора
+     * (типичный случай — курсор в select-части).
+     */
+    @ClientCallable
+    public void onCaretContext(String path, String prefix, String jpqlSnapshot) {
+        if (path == null || path.isBlank()) {
+            if (catalogNarrowedByCaret) {
+                refreshCatalog();
+                catalogNarrowedByCaret = false;
+            }
+            return;
+        }
+        inferAliasesFromJpql(jpqlSnapshot);
+        String[] segments = path.split("\\.");
+        QueryMetadataNode node = resolveAliasRoot(segments[0]);
+        if (node == null) {
+            return;
+        }
+        // Промежуточные сегменты пути — только ассоциации: h.journal. → поля Journal.
+        for (int i = 1; i < segments.length; i++) {
+            QueryMetadataNode next = followAssociation(node, segments[i]);
+            if (next == null) {
+                status.setText("«" + segments[i] + "» у «" + node.caption()
+                        + "» — не связь с сущностью из каталога, вложенных полей нет.");
+                return;
+            }
+            node = next;
+        }
+        String usedAlias = segments[0];
+        QueryMetadataNode narrowed = narrow(node, prefix == null ? "" : prefix);
+        if (narrowed.children().isEmpty()) {
+            status.setText("Нет полей «" + node.caption() + "», начинающихся на «" + prefix + "».");
+            return;
+        }
+        catalog.setItems(List.of(narrowed), QueryMetadataNode::children);
+        catalog.expand(narrowed);
+        catalogNarrowedByCaret = true;
+        status.setText(node.caption() + " — двойной клик по полю вставит его с алиасом " + usedAlias + ".");
+    }
+
+    /** Узел сущности для корневого алиаса пути; при неудаче выставляет статус и возвращает null. */
+    private QueryMetadataNode resolveAliasRoot(String alias) {
+        String entityName = aliasesByEntity.entrySet().stream()
+                .filter(entry -> alias.equals(entry.getValue()))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
+        if (entityName == null) {
+            status.setText("Алиас «" + alias + "» не найден в тексте запроса — нужен from/join вида: from <Сущность> " + alias + ".");
+            return null;
+        }
+        QueryMetadataNode entityNode = findRootByToken(entityName);
+        if (entityNode == null) {
+            status.setText("Сущность «" + entityName + "» есть в запросе, но отсутствует в каталоге слева.");
+            return null;
+        }
+        return entityNode;
+    }
+
+    /** Переход по ассоциации к узлу целевой сущности; null, если сегмент — не связь из каталога. */
+    private QueryMetadataNode followAssociation(QueryMetadataNode node, String segment) {
+        QueryMetadataNode child = node.children().stream()
+                .filter(c -> segment.equals(c.token()))
+                .findFirst()
+                .orElse(null);
+        if (child == null || child.kind() != QueryMetadataNode.Kind.ASSOCIATION) {
+            return null;
+        }
+        return findRootByToken(child.javaType());
+    }
+
+    private QueryMetadataNode findRootByToken(String entityName) {
+        // Каталог keyed по короткому имени сущности; на случай FQCN сравниваем и хвост.
+        String shortName = lastSegment(entityName);
+        return allRoots.stream()
+                .filter(node -> entityName.equals(node.token()) || shortName.equals(node.token()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /** Новый узел с теми же данными сущности, но детьми — только совпавшими по префиксу полями/связями. */
+    private QueryMetadataNode narrow(QueryMetadataNode entityNode, String prefix) {
+        String needle = prefix.toLowerCase(java.util.Locale.ROOT);
+        List<QueryMetadataNode> matched = entityNode.children().stream()
+                .filter(child -> child.kind() != QueryMetadataNode.Kind.TABLE)
+                .filter(child -> child.token() != null && child.token().toLowerCase(java.util.Locale.ROOT).startsWith(needle))
+                .toList();
+        return new QueryMetadataNode(entityNode.kind(), entityNode.caption(), entityNode.token(),
+                entityNode.javaType(), entityNode.selectable(), matched);
+    }
+
     private void insertMetadata(QueryMetadataNode node) {
         if (!node.selectable()) {
             return;
@@ -532,16 +690,25 @@ public class ReportQueryEditor extends VerticalLayout {
         return builder.length() == 0 ? entityName.toLowerCase(java.util.Locale.ROOT) : builder.toString();
     }
 
-    /** Собирает алиасы корневых сущностей и джойнов непосредственно из текста JPQL. */
+    /** Собирает алиасы из текущего значения поля (для вставки полей из дерева). */
     private void inferAliasesFromJpql() {
-        String source = jpql.getValue();
-        if (source == null || source.isBlank()) {
+        inferAliasesFromJpql(jpql.getValue());
+    }
+
+    /**
+     * Собирает алиасы корневых сущностей и джойнов из переданного текста JPQL.
+     * Для подсказки при наборе текст приходит с клиента ({@link #onCaretContext}) —
+     * синхронизация поля на сервер может запаздывать, а клиент всегда актуален.
+     */
+    private void inferAliasesFromJpql(String source) {
+        String text = source == null ? jpql.getValue() : source;
+        if (text.isBlank()) {
             return;
         }
-        for (Matcher matcher = FROM_ALIAS.matcher(source); matcher.find(); ) {
+        for (Matcher matcher = FROM_ALIAS.matcher(text); matcher.find(); ) {
             registerEntityAlias(lastSegment(matcher.group(1)), matcher.group(2));
         }
-        for (Matcher matcher = JOIN_ALIAS.matcher(source); matcher.find(); ) {
+        for (Matcher matcher = JOIN_ALIAS.matcher(text); matcher.find(); ) {
             registerEntityAlias(lastSegment(matcher.group(1)), matcher.group(2));
         }
     }
@@ -557,9 +724,19 @@ public class ReportQueryEditor extends VerticalLayout {
         jpql.getElement().executeJs("""
             const input = this.inputElement || this.shadowRoot?.querySelector('textarea');
             if (!input) return;
+            let text = $0;
             const start = input.selectionStart ?? input.value.length;
             const end = input.selectionEnd ?? start;
-            input.setRangeText($0, start, end, 'end');
+            // Перед курсором уже набрано «алиас.» — вставляем только имя поля,
+            // иначе двойной клик по подсказанному полю даёт «k.k.code».
+            const pair = text.match(/^([A-Za-z_][\\w]*)\\.(\\w+)$/);
+            if (pair) {
+                const before = input.value.substring(0, start);
+                if (before.toLowerCase().endsWith(pair[1].toLowerCase() + '.')) {
+                    text = pair[2];
+                }
+            }
+            input.setRangeText(text, start, end, 'end');
             input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
             input.focus();
             """, token);
@@ -871,7 +1048,7 @@ public class ReportQueryEditor extends VerticalLayout {
         EntityField field = new EntityField(param.name(), term -> lookupService.search(entityClass, searchFields, term, 20));
         field.setWidthFull();
         field.setSelectionFormFactory(onSelect ->
-            selectionFormAssembler.assemble((Class) entityClass, (java.util.function.Consumer) onSelect));
+                selectionFormAssembler.assemble((Class) entityClass, (java.util.function.Consumer) onSelect));
         if (entityClass.isInstance(param.value())) {
             field.setValue((HasDisplayName) param.value());
         }
@@ -919,7 +1096,10 @@ public class ReportQueryEditor extends VerticalLayout {
                 : analysis.guardResult().analysis().entities()) {
             String alias = aliasOf(usage.path());
             if (alias != null && !alias.isBlank()) {
-                registerEntityAlias(usage.entityName(), alias);
+                // Анализатор отдаёт Hibernate-имя сущности (обычно FQCN), а карта
+                // алиасов и каталог keyed по короткому имени — нормализуем, иначе
+                // после «Проверить» алиас начинает резолвиться в «org.ip.model.X».
+                registerEntityAlias(lastSegment(usage.entityName()), alias);
                 aliases.add(alias);
             }
         }
