@@ -1,0 +1,113 @@
+/* Глобальные Windows-стили (1С-компакт) — для теста глобально.
+   Визуал без размеров: размеры переключаются кнопкой DensityToggle (JS vars).
+   При COMPACT (~24px) — компакт, при COMFORTABLE — на 15-20% крупнее. */
+
+html {
+  --lumo-border-radius-s: 0;
+  --lumo-border-radius-m: 0;
+  --lumo-border-radius-l: 0;
+  --vaadin-input-field-border-width: 1px;
+  --vaadin-input-field-border-color: #767676;
+  --vaadin-input-field-border-radius: 0;
+  --vaadin-input-field-background: #ffffff;
+}
+
+vaadin-dialog-overlay::part(header) {
+  background: linear-gradient(to bottom, #fafafa, #ececec);
+  border-bottom: 1px solid #b5b5b5;
+}
+
+vaadin-dialog-overlay::part(header-title) {
+  color: #1c1c1c;
+  font-weight: 600;
+}
+
+vaadin-dialog-overlay::part(footer) {
+  background: #f0f0f0;
+  border-top: 1px solid #d5d5d5;
+}
+
+vaadin-button {
+  --vaadin-button-border-radius: 3px;
+  --lumo-button-size: var(--lumo-size-m);
+  background: linear-gradient(to bottom, #fdfdfd 0%, #f4f4f4 45%, #e6e6e6 100%) !important;
+  border: 1px solid #8f8f8f !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+vaadin-button::part(label) {
+  color: #1c1c1c;
+  font-weight: 400;
+}
+
+vaadin-button:hover {
+  background: linear-gradient(to bottom, #f2f8fd 0%, #e4f0fa 45%, #d3e5f5 100%) !important;
+  border-color: #3c7fb1 !important;
+}
+
+vaadin-button:active,
+vaadin-button[active] {
+  background: #dcdcdc !important;
+  border-color: #6d6d6d !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+vaadin-button[focus-ring] {
+  outline: 1px dotted #333333;
+  outline-offset: -4px;
+}
+
+vaadin-button[theme~="primary"] {
+  border-color: #2f6db4 !important;
+}
+
+vaadin-button[theme~="primary"]:hover {
+  border-color: #1e5a9c !important;
+}
+
+vaadin-button[theme~="icon"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+vaadin-button[theme~="icon"]:hover {
+  background: linear-gradient(to bottom, #f2f8fd, #d3e5f5) !important;
+  border-color: #3c7fb1 !important;
+}
+
+vaadin-grid {
+  border: 1px solid #b5b5b5;
+  background: #ffffff;
+}
+
+vaadin-grid::part(header-cell) {
+  background: linear-gradient(to bottom, #fafafa, #ececec);
+  border-right: 1px solid #d0d0d0;
+  border-bottom: 1px solid #b5b5b5;
+  color: #1c1c1c;
+  font-weight: 400;
+}
+
+vaadin-grid::part(body-cell) {
+  background-color: #ffffff;
+  border-bottom: 1px solid #ebebeb;
+  border-right: 1px solid #f3f3f3;
+  color: #1c1c1c;
+}
+
+vaadin-grid::part(selected-row-cell) {
+  background-color: #d3e8fd !important;
+  background-image: none !important;
+}
+
+vaadin-text-field::part(input-field):focus-within,
+vaadin-combo-box::part(input-field):focus-within,
+vaadin-date-picker::part(input-field):focus-within {
+  border-color: #2f6db4;
+}
+
+vaadin-tabs {
+  border-bottom: 1px solid #b5b5b5;
+}

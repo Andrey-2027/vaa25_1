@@ -4,6 +4,7 @@ import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportBandKind;
 import org.ipro.reportstudio.dom.ReportField;
+import org.ipro.reportstudio.dom.ReportGroupHeaderLayout;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.junit.jupiter.api.Test;
 
@@ -64,6 +65,37 @@ class ReportStructureEditorStructuredTest {
     }
 
     @Test
+    void dndZone2_betweenNestedGroupsKeepsSameParent() {
+        // Регрессия: раньше handleDropBetween всегда ставил parent=null,
+        // независимо от того, между какими бэндами реально произошёл дроп.
+        ReportStructureEditorStructured editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.addGroupPair("region");
+        ReportBand region = groupHeader(template, "region");
+        editor.handleDropNestedGroup("item", region);
+        ReportBand item = groupHeader(template, "item");
+        assertThat(item.getParent()).isSameAs(region);
+
+        List<ReportBand> ordered = template.getBands().stream()
+                .sorted(java.util.Comparator.comparingInt(ReportBand::getPosition))
+                .toList();
+        // Дроп сразу после ЗАКРЫВАЮЩЕГО GROUP_FOOTER группы "item" (а не после
+        // её заголовка) — это точка "рядом с item, всё ещё внутри region";
+        // дроп сразу после заголовка означал бы "внутрь item", другой сценарий.
+        ReportBand itemFooter = ordered.stream()
+                .filter(b -> b.getKind() == ReportBandKind.GROUP_FOOTER && "item".equals(b.getGroupField()))
+                .findFirst().orElseThrow();
+        int dropIndex = ordered.indexOf(itemFooter) + 1;
+        editor.handleDropBetween("warehouse", ordered, dropIndex);
+
+        ReportBand warehouse = groupHeader(template, "warehouse");
+        assertThat(warehouse.getParent()).isSameAs(region);
+        ReportBand itemAfter = groupHeader(template, "item");
+        assertThat(itemAfter.getPosition()).isLessThan(warehouse.getPosition());
+    }
+
+    @Test
     void dndZone3_nestedGroupMovesChildren() {
         ReportStructureEditorStructured editor = newEditor();
         ReportTemplate template = new ReportTemplate();
@@ -72,12 +104,48 @@ class ReportStructureEditorStructuredTest {
         editor.addGroupPair("item");
         ReportBand region = groupHeader(template, "region");
         ReportBand item = groupHeader(template, "item");
-        editor.applyGroupingValues(item, "item", region, false, m -> {});
+        editor.applyGroupingValues(item, "item", region, false, null, null, m -> {});
         assertThat(item.getParent()).isSameAs(region);
         editor.handleDropNestedGroup("warehouse", region);
         ReportBand warehouse = groupHeader(template, "warehouse");
         assertThat(warehouse.getParent()).isSameAs(region);
         assertThat(item.getParent()).isSameAs(warehouse);
+    }
+
+    @Test
+    void deletingNestedGroupPromotesChildrenAndKeepsTemplateConsistent() {
+        ReportStructureEditorStructured editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.addGroupPair("outer");
+        ReportBand outer = groupHeader(template, "outer");
+        editor.handleDropNestedGroup("inner", outer);
+        ReportBand inner = groupHeader(template, "inner");
+        editor.handleDropNestedGroup("leaf", inner);
+        ReportBand leaf = groupHeader(template, "leaf");
+        assertThat(leaf.getParent()).isSameAs(inner);
+
+        editor.selectBand(inner);
+        editor.removeSelectedBandForTest();
+
+        assertThat(leaf.getParent()).isSameAs(outer);
+        assertThat(template.getBands()).noneMatch(b -> "inner".equals(b.getGroupField()));
+    }
+
+    @Test
+    void groupHeaderSettingsAreCopiedToFooterPair() {
+        ReportStructureEditorStructured editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.addGroupPair("region");
+        ReportBand header = groupHeader(template, "region");
+        editor.applyGroupingValues(header, "region", null, false, 140, ReportGroupHeaderLayout.TITLE_AND_VALUE, null);
+        ReportBand footer = template.getBands().stream()
+                .filter(b -> b.getKind() == ReportBandKind.GROUP_FOOTER)
+                .findFirst().orElseThrow();
+        assertThat(header.getTitleWidth()).isEqualTo(140);
+        assertThat(header.getHeaderLayout()).isEqualTo(ReportGroupHeaderLayout.TITLE_AND_VALUE);
+        assertThat(footer.getTitleWidth()).isNull();
     }
 
     @Test

@@ -62,6 +62,24 @@ public class ReportBand extends BaseEntity {
     @Column(name = "start_new_page")
     private Boolean startNewPage;
 
+    /**
+     * Ширина подписи заголовка группы (только GROUP_HEADER, значимо при
+     * headerLayout=TITLE_AND_VALUE) — 1:1 с ColumnGroupBuilder.setTitleWidth.
+     * Хранится на header-бэнде пары; footer значение не использует.
+     */
+    @Column(name = "title_width")
+    private Integer titleWidth;
+
+    /**
+     * Расположение заголовка группы (только GROUP_HEADER) — 1:1 с
+     * ColumnGroupBuilder.setHeaderLayout. null — используется дефолт DR
+     * (VALUE), т.е. поведение существующих сохранённых шаблонов не меняется.
+     * Хранится на header-бэнде пары; footer значение не использует.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "header_layout", length = 20)
+    private ReportGroupHeaderLayout headerLayout;
+
     @OneToMany(mappedBy = "band", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC, id ASC")
     private List<ReportField> fields = new ArrayList<>();
@@ -116,6 +134,22 @@ public class ReportBand extends BaseEntity {
 
     public void setStartNewPage(Boolean startNewPage) {
         this.startNewPage = startNewPage;
+    }
+
+    public Integer getTitleWidth() {
+        return titleWidth;
+    }
+
+    public void setTitleWidth(Integer titleWidth) {
+        this.titleWidth = titleWidth;
+    }
+
+    public ReportGroupHeaderLayout getHeaderLayout() {
+        return headerLayout;
+    }
+
+    public void setHeaderLayout(ReportGroupHeaderLayout headerLayout) {
+        this.headerLayout = headerLayout;
     }
 
     public List<ReportField> getFields() {

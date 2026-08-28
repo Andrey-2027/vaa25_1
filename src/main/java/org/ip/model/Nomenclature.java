@@ -58,6 +58,23 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     )
     private UnitOfMeasurement unitOfMeasurement;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_nom_id")
+    @FieldMetadata(
+        label = "Группа номенклатуры", order = 4,
+        grid = @GridColumn(order = 4, width = "200px"),
+        lookup = @Lookup(entity = GroupNom.class)
+    )
+    private GroupNom groupNom;
+
+    @Size(max = 20)
+    @Column(name = "type_nom", length = 20)
+    @FieldMetadata(
+        label = "Тип", order = 5,
+        grid = @GridColumn(order = 5, width = "150px")
+    )
+    private String typeNom;
+
     public Nomenclature() {
     }
 
@@ -89,6 +106,22 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
 
     public void setUnitOfMeasurement(UnitOfMeasurement unitOfMeasurement) {
         this.unitOfMeasurement = unitOfMeasurement;
+    }
+
+    public GroupNom getGroupNom() {
+        return groupNom;
+    }
+
+    public void setGroupNom(GroupNom groupNom) {
+        this.groupNom = groupNom;
+    }
+
+    public String getTypeNom() {
+        return typeNom;
+    }
+
+    public void setTypeNom(String typeNom) {
+        this.typeNom = typeNom;
     }
 
     @Override

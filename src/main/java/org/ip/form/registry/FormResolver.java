@@ -14,6 +14,8 @@ import org.ipro.metadata.RowMetadataInfo;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.filtergrid.grouping.CriteriaGroupValuesService;
+import org.ipro.filtergrid.grouping.GroupValuesService;
 import org.springframework.context.ApplicationContext;
 
 import java.util.List;
@@ -51,14 +53,17 @@ public class FormResolver {
     private final SelectionFormAssembler selectionFormAssembler;
     private final ServiceLocator serviceLocator;
     private final org.ipro.crud.LookupService lookupService;
+    private final jakarta.persistence.EntityManager entityManager;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public FormResolver(FormRegistry formRegistry,
                         MetadataResolver metadataResolver,
                         FieldFactory fieldFactory,
                         ApplicationContext applicationContext,
                         TableSectionFactory tableSectionFactory,
                         SelectionFormAssembler selectionFormAssembler,
-                        ServiceLocator serviceLocator) {
+                        ServiceLocator serviceLocator,
+                        jakarta.persistence.EntityManager entityManager) {
         this.formRegistry = formRegistry;
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
@@ -67,6 +72,19 @@ public class FormResolver {
         this.selectionFormAssembler = selectionFormAssembler;
         this.serviceLocator = serviceLocator;
         this.lookupService = applicationContext.getBean(org.ipro.crud.LookupService.class);
+        this.entityManager = entityManager;
+    }
+
+    /** Совместимость со старыми тестами: ручное создание без EntityManager → группировка недоступна. */
+    public FormResolver(FormRegistry formRegistry,
+                        MetadataResolver metadataResolver,
+                        FieldFactory fieldFactory,
+                        ApplicationContext applicationContext,
+                        TableSectionFactory tableSectionFactory,
+                        SelectionFormAssembler selectionFormAssembler,
+                        ServiceLocator serviceLocator) {
+        this(formRegistry, metadataResolver, fieldFactory, applicationContext,
+            tableSectionFactory, selectionFormAssembler, serviceLocator, null);
     }
 
     /**
@@ -227,7 +245,11 @@ public class FormResolver {
     private <T extends IdentifiableEntity, ID> ListForm<T, ID> createGenericListForm(Class<T> entityClass) {
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
         BaseService<T, ID> service = findService(entityClass);
-        return new ListForm<>(meta, service);
+        if (entityManager == null) {
+            return new ListForm<>(meta, service);
+        }
+        GroupValuesService<T> gvs = new CriteriaGroupValuesService<>(entityManager, entityClass);
+        return new ListForm<>(meta, service, gvs);
     }
 
     @SuppressWarnings("unchecked")

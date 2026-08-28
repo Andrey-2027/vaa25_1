@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportBandKind;
 import org.ipro.reportstudio.dom.ReportField;
+import org.ipro.reportstudio.dom.ReportGroupHeaderLayout;
 import org.ipro.reportstudio.dom.ReportPageSize;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.dom.ReportTemplateState;
@@ -87,6 +88,8 @@ class ReportTemplateTransferServiceTest {
         group.setKind(ReportBandKind.GROUP_HEADER);
         group.setGroupField("code");
         group.setStartNewPage(true);
+        group.setTitleWidth(120);
+        group.setHeaderLayout(ReportGroupHeaderLayout.TITLE_AND_VALUE);
         group.setPosition(1);
         ReportBand groupFooter = new ReportBand();
         groupFooter.setKind(ReportBandKind.GROUP_FOOTER);
@@ -115,6 +118,8 @@ class ReportTemplateTransferServiceTest {
             .filter(b -> b.getKind() == ReportBandKind.GROUP_HEADER)
             .findFirst().orElseThrow();
         assertThat(groupImported.isStartNewPage()).isTrue();
+        assertThat(groupImported.getTitleWidth()).isEqualTo(120);
+        assertThat(groupImported.getHeaderLayout()).isEqualTo(ReportGroupHeaderLayout.TITLE_AND_VALUE);
         ReportBand noDataImported = imported.getBands().stream()
             .filter(b -> b.getKind() == ReportBandKind.NO_DATA)
             .findFirst().orElseThrow();

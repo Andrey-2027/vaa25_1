@@ -35,12 +35,14 @@ import org.ipro.reportstudio.dom.ReportField;
 import org.ipro.reportstudio.dom.ReportFieldAggregation;
 import org.ipro.reportstudio.dom.ReportFieldAlignment;
 import org.ipro.reportstudio.dom.ReportFieldKind;
+import org.ipro.reportstudio.dom.ReportGroupHeaderLayout;
 import org.ipro.reportstudio.dom.ReportOrder;
 import org.ipro.reportstudio.dom.ReportOrderDirection;
 import org.ipro.reportstudio.dom.ReportPageOrientation;
 import org.ipro.reportstudio.dom.ReportPageSize;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.query.QueryFieldReconciler;
+import org.ipro.reportstudio.layout.ReportLayoutOperations;
 import org.ipro.reportstudio.query.ReconcileResult;
 
 import java.util.ArrayList;
@@ -67,6 +69,8 @@ public class ReportStructureEditorStructured extends VerticalLayout {
     private final Grid<ReportBand> bands = new Grid<>(ReportBand.class, false);
     private final ComboBox<QueryField> bandGroup = new ComboBox<>("Поле группировки");
     private final ComboBox<ReportBand> groupParent = new ComboBox<>("Родительская группа");
+    private final IntegerField groupTitleWidth = new IntegerField("Ширина заголовка");
+    private final ComboBox<ReportGroupHeaderLayout> groupHeaderLayout = new ComboBox<>("Расположение заголовка");
     private final ButtonLike applyBand = new ButtonLike("Применить к бэнду");
     private final Span selectionHint = new Span("Выберите бэнд для настройки его полей.");
     private final Span bandHint = new Span();
@@ -76,6 +80,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
 
     private final ComboBox<ReportBand> bandSelector = new ComboBox<>("Бэнд");
     private final ComboBox<QueryField> queryCombo = new ComboBox<>("Поле запроса");
+    private final ComboBox<ReportFieldAggregation> addAggregation = new ComboBox<>("Агрегация");
     private final ButtonLike addColumnButton = new ButtonLike("Добавить колонку");
     private final ButtonLike addRowNumberButton = new ButtonLike("№ п/п");
     private final ButtonLike addExpressionButton = new ButtonLike("Выражение");
@@ -199,7 +204,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
     // ------------------------------------------------------------ сборка панелей
 
     private VerticalLayout fieldsPanel() {
-        HorizontalLayout addRow = new HorizontalLayout(queryCombo, addColumnButton, addRowNumberButton,
+        HorizontalLayout addRow = new HorizontalLayout(queryCombo, addAggregation, addColumnButton, addRowNumberButton,
                 addExpressionButton, addFormulaButton, addTextButton);
         addRow.setWidthFull();
         addRow.setAlignItems(FlexComponent.Alignment.END);
@@ -255,8 +260,10 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         menu.addThemeVariants(com.vaadin.flow.component.menubar.MenuBarVariant.LUMO_SMALL);
         com.vaadin.flow.component.contextmenu.MenuItem add = menu.addItem("Добавить бэнд");
         add.getSubMenu().addItem("Шапка", e -> addBand(ReportBandKind.REPORT_HEADER));
+        add.getSubMenu().addItem("Шапка страницы", e -> addBand(ReportBandKind.PAGE_HEADER));
         add.getSubMenu().addItem("Группировка", e -> addGroup());
         add.getSubMenu().addItem("Итоги", e -> addBand(ReportBandKind.REPORT_FOOTER));
+        add.getSubMenu().addItem("Подвал страницы", e -> addBand(ReportBandKind.PAGE_FOOTER));
         add.getSubMenu().addItem("Нет данных", e -> addBand(ReportBandKind.NO_DATA));
         ButtonLike moveUp = new ButtonLike("↑", e -> moveSelectedBand(-1));
         ButtonLike moveDown = new ButtonLike("↓", e -> moveSelectedBand(1));
@@ -393,10 +400,24 @@ public class ReportStructureEditorStructured extends VerticalLayout {
                 reparentGroup(selectedBand, event.getValue());
             }
         });
+        groupTitleWidth.setWidth("140px");
+        groupTitleWidth.setPlaceholder("авто");
+        groupTitleWidth.setMin(0);
+        groupTitleWidth.setClearButtonVisible(true);
+        groupTitleWidth.setTooltipText("Ширина подписи заголовка группы (значимо при "
+                + "расположении «Заголовок и значение»); пусто — авто.");
+        groupHeaderLayout.setItems(ReportGroupHeaderLayout.values());
+        groupHeaderLayout.setItemLabelGenerator(this::headerLayoutLabel);
+        groupHeaderLayout.setPlaceholder("по умолчанию");
+        groupHeaderLayout.setClearButtonVisible(true);
+        groupHeaderLayout.setWidth("200px");
+        groupHeaderLayout.addValueChangeListener(event -> syncGroupTitleWidthVisibility());
+        syncGroupTitleWidthVisibility();
         applyBand.addClickListener(event -> applySelectedBand());
         applyBand.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY);
 
-        HorizontalLayout form = new HorizontalLayout(bandGroup, groupParent, startNewPage, applyBand);
+        HorizontalLayout form = new HorizontalLayout(
+                bandGroup, groupParent, startNewPage, groupHeaderLayout, groupTitleWidth, applyBand);
         form.setWidthFull();
         form.setAlignItems(FlexComponent.Alignment.END);
         form.setWrap(true);
@@ -420,8 +441,20 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         queryCombo.setAllowCustomValue(true);
         queryCombo.setPlaceholder("поле из запроса или alias");
         queryCombo.setWidth("220px");
+        addAggregation.setItemLabelGenerator(value -> value == null ? "—" : value.name());
+        addAggregation.setClearButtonVisible(true);
+        addAggregation.setPlaceholder("функция");
+        addAggregation.setWidth("150px");
+        addAggregation.setVisible(false);
+        addAggregation.setHelperText("Для подвала группы: выберите поле и функцию, затем добавьте агрегат.");
         queryCombo.addCustomValueSetListener(event -> queryCombo.setValue(
                 QueryField.scalar(event.getDetail(), Object.class)));
+        queryCombo.addValueChangeListener(event -> {
+            if (selectedBand != null && selectedBand.getKind().isFooterBand()) {
+                addAggregation.setItems(aggregationOptionsFor(
+                        event.getValue() == null ? null : event.getValue().name()));
+            }
+        });
         addColumnButton.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY);
         addColumnButton.addClickListener(event -> addColumn());
         addRowNumberButton.addClickListener(event -> addRowNumberColumn());
@@ -489,10 +522,13 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         paletteVisible.addValueChangeListener(event -> applyToPalette(field ->
                 field.setVisible(event.getValue())));
         paletteAggregation.setItems(ReportFieldAggregation.SUM, ReportFieldAggregation.COUNT,
-                ReportFieldAggregation.AVG, ReportFieldAggregation.MIN, ReportFieldAggregation.MAX);
+                ReportFieldAggregation.COUNT_ROWS, ReportFieldAggregation.AVG,
+                ReportFieldAggregation.MIN, ReportFieldAggregation.MAX);
         paletteAggregation.setItemLabelGenerator(value -> value == null ? "—" : value.name());
         paletteAggregation.setClearButtonVisible(true);
         paletteAggregation.setPlaceholder("выберите функцию");
+        paletteAggregation.setTooltipText("COUNT считает непустые значения именно этой колонки, "
+                + "а не число строк в группе; SUM/AVG/MIN/MAX доступны только для числовых полей.");
         paletteAggregation.addValueChangeListener(event -> applyToPalette(field ->
                 field.setAggregation(event.getValue() == null ? ReportFieldAggregation.NONE : event.getValue())));
         paletteTextButton.addClickListener(event -> {
@@ -844,9 +880,11 @@ public class ReportStructureEditorStructured extends VerticalLayout {
     private static VaadinIcon bandIcon(ReportBandKind kind) {
         return switch (kind) {
             case REPORT_HEADER -> VaadinIcon.HEADER;
+            case PAGE_HEADER -> VaadinIcon.ARROW_UP;
             case DETAIL -> VaadinIcon.TABLE;
             case GROUP_HEADER -> VaadinIcon.FOLDER_OPEN;
             case GROUP_FOOTER -> VaadinIcon.FOLDER;
+            case PAGE_FOOTER -> VaadinIcon.ARROW_DOWN;
             case REPORT_FOOTER -> VaadinIcon.CALC_BOOK;
             case NO_DATA -> VaadinIcon.INFO_CIRCLE;
         };
@@ -855,9 +893,11 @@ public class ReportStructureEditorStructured extends VerticalLayout {
     private static String flowKindLabel(ReportBandKind kind) {
         return switch (kind) {
             case REPORT_HEADER -> "Шапка";
+            case PAGE_HEADER -> "Шапка страницы";
             case DETAIL -> "Строки";
             case GROUP_HEADER -> "Группировка";
             case GROUP_FOOTER -> "ПодвалГруппировки";
+            case PAGE_FOOTER -> "Подвал страницы";
             case REPORT_FOOTER -> "Итоги";
             case NO_DATA -> "Нет данных";
         };
@@ -908,18 +948,28 @@ public class ReportStructureEditorStructured extends VerticalLayout {
                 bandHint.setText("Укажите поле группировки (alias из запроса) и родительскую группу "
                         + "для вложенной группировки. Пара header/footer синхронизируется автоматически.");
             } else if (isFooter) {
-                bandHint.setText("Подвал группы — здесь агрегаты (выберите поле, укажите Σ). Поле группировки — в карточке «Группировка».");
+                bandHint.setText("Подвал группы: выберите колонку, функцию «Агрегация» и нажмите «Добавить агрегат».");
             }
             boolean columns = kind == ReportBandKind.DETAIL;
             boolean footer = kind.isFooterBand();
-            boolean texts = kind == ReportBandKind.REPORT_HEADER || footer || kind == ReportBandKind.NO_DATA;
+            boolean texts = kind.isTextOnlyBand() || footer;
             List<QueryField> candidates = columns ? schema : footer ? footerColumnCandidates() : List.of();
             queryCombo.setVisible(columns || footer);
             queryCombo.setItems(candidates);
+            addAggregation.setVisible(footer);
+            addAggregation.setItems(footer && queryCombo.getValue() != null
+                    ? aggregationOptionsFor(queryCombo.getValue().name())
+                    : List.of(ReportFieldAggregation.SUM, ReportFieldAggregation.COUNT,
+                            ReportFieldAggregation.AVG, ReportFieldAggregation.MIN,
+                            ReportFieldAggregation.MAX));
+            if (!footer) {
+                addAggregation.clear();
+            }
             queryCombo.setAllowCustomValue(columns);
             queryCombo.setPlaceholder(columns ? "поле из запроса или alias"
                     : footer ? "колонка DETAIL для агрегата" : "—");
             addColumnButton.setVisible(columns || footer);
+            addColumnButton.setText(footer ? "Добавить агрегат" : "Добавить колонку");
             addRowNumberButton.setVisible(columns);
             addExpressionButton.setVisible(columns);
             addFormulaButton.setVisible(columns);
@@ -936,10 +986,16 @@ public class ReportStructureEditorStructured extends VerticalLayout {
                     : QueryField.scalar(band.getGroupField(), Object.class));
             groupParent.setValue(band.getParent());
             startNewPage.setValue(band.isStartNewPage());
+            groupTitleWidth.setValue(band.getTitleWidth());
+            groupHeaderLayout.setValue(band.getHeaderLayout());
+            syncGroupTitleWidthVisibility();
             if (kind == ReportBandKind.GROUP_FOOTER && !isBlank(band.getGroupField())) {
                 ReportBand header = groupHeaderOf(band.getGroupField());
                 if (header != null) {
                     startNewPage.setValue(header.isStartNewPage());
+                    groupTitleWidth.setValue(header.getTitleWidth());
+                    groupHeaderLayout.setValue(header.getHeaderLayout());
+                    syncGroupTitleWidthVisibility();
                 }
             }
         } finally {
@@ -965,10 +1021,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
     /** Создаёт пару GROUP_HEADER + GROUP_FOOTER с общим полем группировки. */
     void addGroupPair(String groupField) {
         requireTemplate();
-        ReportBand header = newBand(ReportBandKind.GROUP_HEADER, groupField);
-        template.addBand(header);
-        ReportBand footer = newBand(ReportBandKind.GROUP_FOOTER, groupField);
-        template.addBand(footer);
+        ReportLayoutOperations.addGroupPair(template, groupField, null);
         refreshBandParentCandidates();
         refreshBands();
         refreshFlowLane();
@@ -995,17 +1048,12 @@ public class ReportStructureEditorStructured extends VerticalLayout {
     }
 
     private ReportBand newBand(ReportBandKind kind, String groupField) {
-        ReportBand band = new ReportBand();
-        band.setKind(kind);
-        band.setGroupField(groupField);
-        band.setPosition(nextBandPosition());
-        return band;
+        return ReportLayoutOperations.createBand(template, kind, groupField);
     }
 
     private void addBand(ReportBandKind kind) {
         requireTemplate();
         ReportBand band = newBand(kind, null);
-        template.addBand(band);
         refreshBands();
         refreshBandSelector();
         refreshBandParentCandidates();
@@ -1014,16 +1062,18 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         bands.select(band);
     }
 
+    void removeSelectedBandForTest() {
+        removeSelectedBand();
+    }
+
     private void removeSelectedBand() {
         if (selectedBand == null || template == null || selectedBand.getKind() == ReportBandKind.DETAIL) {
             return;
         }
         if (selectedBand.getKind().isGroupBand()) {
-            String groupField = selectedBand.getGroupField();
-            template.getBands().removeIf(band -> band.getKind().isGroupBand()
-                    && Objects.equals(groupField, band.getGroupField()));
+            ReportLayoutOperations.removeGroup(template, selectedBand);
         } else {
-            template.getBands().remove(selectedBand);
+            ReportLayoutOperations.removeBand(template, selectedBand);
         }
         refreshBands();
         refreshBandSelector();
@@ -1050,36 +1100,22 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         }
         applyGroupingValues(band,
                 bandGroup.getValue() == null ? null : bandGroup.getValue().name(),
-                groupParent.getValue(), startNewPage.getValue(), bandHint::setText);
+                groupParent.getValue(), startNewPage.getValue(),
+                groupTitleWidth.getValue(), groupHeaderLayout.getValue(), bandHint::setText);
         selectBand(band);
     }
 
     /** Применяет значения группировки; парный бэнд (header/footer) синхронизируется автоматически. */
     void applyGroupingValues(ReportBand band, String nextField, ReportBand nextParent,
                              boolean nextStartNewPage,
+                             Integer nextTitleWidth, ReportGroupHeaderLayout nextHeaderLayout,
                              java.util.function.Consumer<String> feedback) {
         if (band == null || template == null || !band.getKind().isGroupBand()) {
             return;
         }
         boolean headerBand = band.getKind() == ReportBandKind.GROUP_HEADER;
-        String currentField = band.getGroupField();
-        for (ReportBand candidate : List.copyOf(template.getBands())) {
-            if (!candidate.getKind().isGroupBand()) {
-                continue;
-            }
-            boolean samePair = candidate == band || Objects.equals(currentField, candidate.getGroupField());
-            if (!samePair) {
-                continue;
-            }
-            candidate.setGroupField(nextField);
-            if (headerBand && nextParent != null) {
-                candidate.setParent(nextParent);
-            }
-            if (candidate.getKind() == ReportBandKind.GROUP_HEADER) {
-                candidate.setStartNewPage(nextStartNewPage);
-            }
-        }
-        band.setParent(headerBand ? nextParent : null);
+        ReportLayoutOperations.applyGrouping(template, band, nextField, nextParent, nextStartNewPage,
+                nextTitleWidth, nextHeaderLayout);
         if (feedback != null) {
             feedback.accept("Поле группировки «" + emptyAsDash(nextField) + "» применено к паре бэндов.");
         }
@@ -1094,15 +1130,8 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         if (selectedBand == null || template == null) {
             return;
         }
-        List<ReportBand> list = template.getBands();
-        int index = list.indexOf(selectedBand);
-        int target = index + direction;
-        if (target < 0 || target >= list.size()) {
+        if (!ReportLayoutOperations.moveBand(template, selectedBand, direction)) {
             return;
-        }
-        java.util.Collections.swap(list, index, target);
-        for (int i = 0; i < list.size(); i++) {
-            list.get(i).setPosition(i);
         }
         refreshBands();
         refreshBandSelector();
@@ -1146,11 +1175,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         if (selectedBand == null || selectedBand.getKind() != ReportBandKind.DETAIL) {
             return;
         }
-        ReportField field = new ReportField();
-        field.setKind(ReportFieldKind.ROW_NUMBER);
-        field.setCaption("№");
-        selectedBand.addField(field);
-        field.setPosition(selectedBand.getFields().size() - 1);
+        ReportField field = ReportLayoutOperations.addRowNumber(selectedBand);
         refreshFieldsGrid();
         refreshBands();
         refreshFlowLane();
@@ -1162,13 +1187,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         if (selectedBand == null || selectedBand.getKind() != ReportBandKind.DETAIL) {
             return;
         }
-        ReportField field = new ReportField();
-        field.setKind(kind);
-        field.setCaption(kind == ReportFieldKind.EXPRESSION ? "Выражение" : "Формула");
-        field.setText(kind == ReportFieldKind.EXPRESSION ? "{code}" : "({qty} * {price})");
-        field.setAlignment(ReportFieldAlignment.RIGHT);
-        selectedBand.addField(field);
-        field.setPosition(selectedBand.getFields().size() - 1);
+        ReportField field = ReportLayoutOperations.addComputed(selectedBand, kind);
         refreshFieldsGrid();
         refreshBands();
         refreshFlowLane();
@@ -1185,10 +1204,8 @@ public class ReportStructureEditorStructured extends VerticalLayout {
             return;
         }
         checkFieldKnown(queryField);
-        ReportField field = new ReportField();
-        selectedBand.addField(field);
-        field.setPosition(selectedBand.getFields().size() - 1);
-        field.setQueryField(queryField);
+        ReportField field = ReportLayoutOperations.addColumnOrAggregate(selectedBand, queryField,
+                schema.stream().filter(q -> queryField.equals(q.name())).findFirst().orElse(null));
         refreshFieldsGrid();
         refreshBands();
         refreshFlowLane();
@@ -1205,14 +1222,11 @@ public class ReportStructureEditorStructured extends VerticalLayout {
             return;
         }
         ReportBandKind kind = selectedBand.getKind();
-        if (kind != ReportBandKind.REPORT_HEADER && kind != ReportBandKind.NO_DATA
-                && !kind.isFooterBand()) {
+        if (!kind.isTextOnlyBand() && !kind.isFooterBand()) {
             return;
         }
-        ReportField field = new ReportField();
-        field.setKind(ReportFieldKind.TEXT);
-        selectedBand.addField(field);
-        field.setPosition(selectedBand.getFields().size() - 1);
+        ReportLayoutOperations.addTextField(selectedBand, null);
+        ReportField field = selectedBand.getFields().get(selectedBand.getFields().size() - 1);
         refreshFieldsGrid();
         refreshBands();
         selectField(field);
@@ -1222,7 +1236,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         if (selectedField == null || selectedBand == null) {
             return;
         }
-        selectedBand.getFields().remove(selectedField);
+        ReportLayoutOperations.removeField(selectedBand, selectedField);
         selectedField = null;
         fieldsGrid.asSingleSelect().clear();
         clearSelection();
@@ -1235,16 +1249,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         if (selectedField == null || selectedBand == null) {
             return;
         }
-        List<ReportField> list = selectedBand.getFields();
-        int index = list.indexOf(selectedField);
-        int target = index + direction;
-        if (target < 0 || target >= list.size()) {
-            return;
-        }
-        java.util.Collections.swap(list, index, target);
-        for (int i = 0; i < list.size(); i++) {
-            list.get(i).setPosition(i);
-        }
+        ReportLayoutOperations.moveField(selectedBand, selectedField, direction);
         refreshFieldsGrid();
         refreshBands();
     }
@@ -1298,6 +1303,38 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         afterFieldEdit();
     }
 
+    private QueryField queryFieldByAlias(String alias) {
+        if (isBlank(alias)) {
+            return null;
+        }
+        for (QueryField qf : schema) {
+            if (alias.equals(qf.name())) {
+                return qf;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Список допустимых функций агрегации для поля — на основе уже готового,
+     * но раньше не использовавшегося QueryField.aggregatable() (= число).
+     * COUNT безопасен для любого типа (считает непустые значения колонки),
+     * поэтому доступен всегда; SUM/AVG/MIN/MAX — только для чисел, иначе
+     * DynamicReports падает в момент генерации отчёта с ClassCastException
+     * (sbt.sum/avg/min/max кастуют колонку к числовому ValueColumnBuilder).
+     * Если поле не найдено в текущей схеме (например, схема уже разъехалась
+     * с запросом) — не сужаем список, чтобы не мешать уже расставленным
+     * агрегатам до того, как reconcile разберётся с расхождением.
+     */
+    private List<ReportFieldAggregation> aggregationOptionsFor(String alias) {
+        QueryField qf = queryFieldByAlias(alias);
+        if (qf != null && !qf.aggregatable()) {
+            return List.of(ReportFieldAggregation.COUNT, ReportFieldAggregation.COUNT_ROWS);
+        }
+        return List.of(ReportFieldAggregation.SUM, ReportFieldAggregation.COUNT,
+                ReportFieldAggregation.AVG, ReportFieldAggregation.MIN, ReportFieldAggregation.MAX);
+    }
+
     /** Заполняет палитру значениями поля и показывает применимые строки. */
     private void fillPalette(ReportField field) {
         processor = true;
@@ -1320,6 +1357,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
             paletteBorder.setValue(borderChoice(field.getBorder()));
             paletteVisible.setValue(field.isVisible());
             ReportFieldAggregation aggregation = field.getAggregation();
+            paletteAggregation.setItems(aggregationOptionsFor(field.getQueryField()));
             paletteAggregation.setValue(aggregation == null || aggregation == ReportFieldAggregation.NONE
                     ? null : aggregation);
             paletteTextButton.setText(text ? "Текст…" : kind == ReportFieldKind.EXPRESSION
@@ -1601,8 +1639,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
     private void ensureDetailBand() {
         boolean exists = template.getBands().stream().anyMatch(band -> band.getKind() == ReportBandKind.DETAIL);
         if (!exists) {
-            ReportBand detail = newBand(ReportBandKind.DETAIL, null);
-            template.addBand(detail);
+            ReportLayoutOperations.createBand(template, ReportBandKind.DETAIL, null);
         }
     }
 
@@ -1633,6 +1670,18 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         }
         String group = isBlank(band.getGroupField()) ? "" : " · " + band.getGroupField();
         return band.getKind() + " #" + band.getPosition() + group;
+    }
+
+    private void syncGroupTitleWidthVisibility() {
+        groupTitleWidth.setVisible(groupHeaderLayout.getValue() == ReportGroupHeaderLayout.TITLE_AND_VALUE);
+    }
+
+    private String headerLayoutLabel(ReportGroupHeaderLayout layout) {
+        return switch (layout) {
+            case VALUE -> "Только значение";
+            case TITLE_AND_VALUE -> "Заголовок и значение";
+            case EMPTY -> "Без заголовка";
+        };
     }
 
     private static String emptyAsDash(String value) {
@@ -1765,8 +1814,7 @@ public class ReportStructureEditorStructured extends VerticalLayout {
             return paletteAggregation;
         }
         ComboBox<ReportFieldAggregation> combo = new ComboBox<>();
-        combo.setItems(ReportFieldAggregation.SUM, ReportFieldAggregation.COUNT,
-                ReportFieldAggregation.AVG, ReportFieldAggregation.MIN, ReportFieldAggregation.MAX);
+        combo.setItems(aggregationOptionsFor(field.getQueryField()));
         combo.setItemLabelGenerator(value -> value == null ? "—" : value.name());
         combo.setClearButtonVisible(true);
         combo.setPlaceholder("выберите функцию");
@@ -2118,13 +2166,19 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         if (duplicate) { notify("Поле «" + a + "» уже есть"); return; }
         ReportField field = new ReportField();
         field.setQueryField(a);
-        if (target.getKind().isFooterBand()) field.setAggregation(ReportFieldAggregation.SUM);
-        target.addField(field);
-        field.setPosition(target.getFields().size() - 1);
+        if (target.getKind().isFooterBand()) {
+            QueryField qf = queryFieldByAlias(a);
+            ReportFieldAggregation selectedAggregation = addAggregation.getValue();
+            field = ReportLayoutOperations.addFooterAggregate(target, a, qf, selectedAggregation);
+        } else {
+            target.addField(field);
+            field.setPosition(target.getFields().size() - 1);
+        }
         refreshFieldsGrid();
         refreshBands();
         refreshFlowLane();
         selectField(field);
+        addAggregation.clear();
     }
 
     void handleDropBetween(String alias, List<ReportBand> before, int index) {
@@ -2135,22 +2189,48 @@ public class ReportStructureEditorStructured extends VerticalLayout {
             notify("Группировка по полю «" + alias + "» уже существует");
             return;
         }
-        ReportBand header = newBand(ReportBandKind.GROUP_HEADER, alias);
-        ReportBand footer = newBand(ReportBandKind.GROUP_FOOTER, alias);
-        header.setPosition(index * 2);
-        footer.setPosition(index * 2 + 1);
-        for (ReportBand b : template.getBands()) {
-            if (b.getPosition() >= index * 2) {
-                b.setPosition(b.getPosition() + 2);
-            }
-        }
-        template.addBand(header);
-        template.addBand(footer);
-        template.getBands().sort(java.util.Comparator.comparingInt(ReportBand::getPosition));
+        ReportBand header = ReportLayoutOperations.addGroupAt(template, alias, before, index);
         refreshBands();
         refreshBandSelector();
         refreshBandParentCandidates();
         refreshFlowLane();
+    }
+
+    /**
+     * Определяет область вложенности (родительский GROUP_HEADER) в точке разрыва
+     * {@code index} упорядоченного по позиции списка бэндов — чтобы группа,
+     * вставляемая между соседями внутри чужой группы, стала сиблингом на ТОМ ЖЕ
+     * уровне вложенности, а не всегда уезжала на верхний уровень отчёта.
+     * Симулирует проход по бэндам от начала списка до точки разрыва, ведя стек
+     * открытых GROUP_HEADER: вход — открыть (push), парный ему GROUP_FOOTER —
+     * закрыть (pop); вершина стека в точке разрыва — искомая область.
+     */
+    ReportBand resolveScopeAt(List<ReportBand> ordered, int index) {
+        return ReportLayoutOperations.resolveScopeAt(ordered, index);
+    }
+
+    /**
+     * Перенумеровывает position у GROUP_HEADER/GROUP_FOOTER так, чтобы порядок
+     * по position снова стал валидным "скобочным" порядком, согласованным с
+     * деревом parent-ссылок (header, поддерево детей, затем footer сразу за
+     * ним) — тем же способом, каким JasperReportCompiler.buildGroups() строит
+     * порядок групп для рендера. Без этого шага после вложения (handleDropNestedGroup)
+     * или переноса (reparentGroup) позиции новых/перемещённых бэндов остаются
+     * там, где их поставил nextBandPosition() (в конце списка), из-за чего
+     * порядок по position расходится с реальной вложенностью — и resolveScopeAt(),
+     * и визуальный порядок flowLane после этого работают неверно.
+     * Бэнды других видов (REPORT_HEADER/DETAIL/REPORT_FOOTER/NO_DATA) не трогает.
+     */
+    private void renumberGroupPositions() {
+        ReportLayoutOperations.renumberGroupPositions(template);
+    }
+
+    List<QueryField> schemaFields() {
+        return List.copyOf(schema);
+    }
+
+    void addGroupPairForUser(String alias) {
+        addGroupPair(alias);
     }
 
     void handleDropNestedGroup(String alias, ReportBand target) {
@@ -2161,22 +2241,15 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         if (isPlaceholder) {
             if (isAncestorGroupField(a, target.getParent())) { notify("Поле «" + a + "» уже используется в предках"); return; }
             if (template.getBands().stream().anyMatch(b -> b != target && b.getKind() == ReportBandKind.GROUP_HEADER && a.equals(b.getGroupField()))) { notify("Группировка по полю «" + a + "» уже существует"); return; }
-            applyGroupingValues(target, a, target.getParent(), target.isStartNewPage(), null);
+            applyGroupingValues(target, a, target.getParent(), target.isStartNewPage(),
+                    target.getTitleWidth(), target.getHeaderLayout(), null);
             refreshFlowLane();
             selectBand(target);
             return;
         }
         if (isAncestorGroupField(a, target)) { notify("Поле «" + a + "» уже используется в предках"); return; }
         if (template.getBands().stream().anyMatch(b -> b.getKind() == ReportBandKind.GROUP_HEADER && a.equals(b.getGroupField()))) { notify("Группировка по полю «" + a + "» уже существует"); return; }
-        ReportBand header = newBand(ReportBandKind.GROUP_HEADER, a);
-        ReportBand footer = newBand(ReportBandKind.GROUP_FOOTER, a);
-        header.setParent(target);
-        footer.setParent(header);
-        template.addBand(header);
-        template.addBand(footer);
-        for (ReportBand child : List.copyOf(template.getBands())) {
-            if (child.getParent() == target && child != header && child != footer) child.setParent(header);
-        }
+        ReportBand header = ReportLayoutOperations.addNestedGroup(template, a, target);
         refreshBandParentCandidates();
         refreshBands();
         refreshFlowLane();
@@ -2229,16 +2302,26 @@ public class ReportStructureEditorStructured extends VerticalLayout {
                 return false;
             }
         }
-        child.setParent(newParent);
-        for (ReportBand footer : template.getBands()) {
-            if (footer.getKind() == ReportBandKind.GROUP_FOOTER && java.util.Objects.equals(footer.getGroupField(), child.getGroupField())) {
-                footer.setParent(null);
-            }
+        if (!ReportLayoutOperations.reparentGroup(template, child, newParent)) {
+            return false;
         }
         refreshBandParentCandidates();
         refreshBands();
         refreshFlowLane();
         return true;
+    }
+
+    private ReportBand groupFooterOf(ReportBand header) {
+        if (header == null || template == null) {
+            return null;
+        }
+        return template.getBands().stream()
+                .filter(band -> band.getKind() == ReportBandKind.GROUP_FOOTER)
+                .filter(band -> band.getParent() == header
+                        || (band.getParent() == null
+                            && Objects.equals(band.getGroupField(), header.getGroupField())))
+                .findFirst()
+                .orElse(null);
     }
 
     private void syncNoDataText(String text) {
@@ -2264,12 +2347,9 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         if (existing != null) {
             return;
         }
-        ReportBand band = newBand(ReportBandKind.NO_DATA, null);
-        ReportField field = new ReportField();
-        field.setKind(ReportFieldKind.TEXT);
-        field.setText(noDataText.getValue() == null || noDataText.getValue().isBlank() ? "Нет данных для отображения" : noDataText.getValue());
-        band.addField(field);
-        template.addBand(band);
+        ReportBand band = ReportLayoutOperations.createBand(template, ReportBandKind.NO_DATA, null);
+        ReportLayoutOperations.addTextField(band, noDataText.getValue() == null || noDataText.getValue().isBlank()
+                ? "Нет данных для отображения" : noDataText.getValue());
         refreshBands();
         refreshBandSelector();
     }
@@ -2278,7 +2358,8 @@ public class ReportStructureEditorStructured extends VerticalLayout {
         if (template == null) {
             return;
         }
-        template.getBands().removeIf(b -> b.getKind() == ReportBandKind.NO_DATA);
+        template.getBands().stream().filter(b -> b.getKind() == ReportBandKind.NO_DATA).findFirst()
+                .ifPresent(b -> ReportLayoutOperations.removeBand(template, b));
         refreshBands();
         refreshBandSelector();
     }

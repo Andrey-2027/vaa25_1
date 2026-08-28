@@ -141,6 +141,8 @@ for (ReportBand source : template.getBands()) {
             band.setPosition(source.getPosition());
             band.setGroupField(source.getGroupField());
             band.setStartNewPage(source.getStartNewPage());
+            band.setTitleWidth(source.getTitleWidth());
+            band.setHeaderLayout(source.getHeaderLayout());
             for (ReportField sourceField : source.getFields()) {
                 ReportTemplateExchange.Field field = new ReportTemplateExchange.Field();
                 field.setKind(sourceField.getKind());
@@ -211,6 +213,8 @@ ReportBand band = new ReportBand();
             band.setPosition(sourceBand.getPosition());
             band.setGroupField(sourceBand.getGroupField());
             band.setStartNewPage(sourceBand.getStartNewPage());
+            band.setTitleWidth(sourceBand.getTitleWidth());
+            band.setHeaderLayout(sourceBand.getHeaderLayout());
             template.addBand(band);
             bandsByKey.put(sourceBand.getKey(), band);
 

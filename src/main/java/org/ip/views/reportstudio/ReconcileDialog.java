@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.combobox.ComboBox;
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.query.ReconcileResult;
 
@@ -21,6 +22,12 @@ import org.ipro.reportstudio.query.ReconcileResult;
 public class ReconcileDialog extends Dialog {
 
     public ReconcileDialog(ReconcileResult result, Runnable onRemoveMissing) {
+        this(result, onRemoveMissing, null, null);
+    }
+
+    public ReconcileDialog(ReconcileResult result, Runnable onRemoveMissing,
+                           java.util.List<QueryField> replacementOptions,
+                           java.util.function.BiConsumer<String, QueryField> onReplace) {
         setHeaderTitle("Запрос изменился — проверьте структуру");
         setModal(true);
 
@@ -43,6 +50,24 @@ public class ReconcileDialog extends Dialog {
         }
         if (!result.unknown().isEmpty()) {
             body.add(section("Битые ссылки (не было ни до, ни после):", result.unknown()));
+        }
+        if (onReplace != null && replacementOptions != null && !replacementOptions.isEmpty()
+                && (!result.removed().isEmpty() || !result.unknown().isEmpty())) {
+            ComboBox<QueryField> oldField = new ComboBox<>("Поле, которое заменить");
+            oldField.setItems(result.removed());
+            oldField.setItemLabelGenerator(QueryField::name);
+            ComboBox<QueryField> replacement = new ComboBox<>("Новая колонка");
+            replacement.setItems(replacementOptions);
+            replacement.setItemLabelGenerator(QueryField::name);
+            Button replace = new Button("Заменить ссылку", event -> {
+                if (oldField.getValue() != null && replacement.getValue() != null) {
+                    onReplace.accept(oldField.getValue().name(), replacement.getValue());
+                    close();
+                }
+            });
+            HorizontalLayout replacementRow = new HorizontalLayout(oldField, replacement, replace);
+            replacementRow.setAlignItems(FlexComponent.Alignment.END);
+            body.add(replacementRow);
         }
 
         Button remove = new Button("Убрать поля отсутствующих колонок", event -> {

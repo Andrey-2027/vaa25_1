@@ -10,9 +10,13 @@ package org.ipro.reportstudio.dom;
 public enum ReportBandKind {
 
     REPORT_HEADER,
+    /** Шапка страницы: печатается на каждой странице (report.pageHeader). */
+    PAGE_HEADER,
     GROUP_HEADER,
     DETAIL,
     GROUP_FOOTER,
+    /** Подвал страницы: печатается на каждой странице (report.pageFooter). */
+    PAGE_FOOTER,
     REPORT_FOOTER,
     /** Блок «нет данных»: печатается, когда выборка пуста; только TEXT-поля. */
     NO_DATA;
@@ -27,8 +31,8 @@ public enum ReportBandKind {
         return this == GROUP_FOOTER || this == REPORT_FOOTER;
     }
 
-    /** Бэнд, поля которого — только текстовые блоки (без колонок). */
+    /** Бэнд, поля которого — только текстовые блоки (без колонок и агрегатов). */
     public boolean isTextOnlyBand() {
-        return this == REPORT_HEADER || this == NO_DATA;
+        return this == REPORT_HEADER || this == NO_DATA || this == PAGE_HEADER || this == PAGE_FOOTER;
     }
 }

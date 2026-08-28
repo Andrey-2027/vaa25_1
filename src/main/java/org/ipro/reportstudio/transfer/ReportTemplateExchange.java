@@ -5,6 +5,7 @@ import org.ipro.reportstudio.dom.ReportComputedValue;
 import org.ipro.reportstudio.dom.ReportFieldAggregation;
 import org.ipro.reportstudio.dom.ReportFieldAlignment;
 import org.ipro.reportstudio.dom.ReportFieldKind;
+import org.ipro.reportstudio.dom.ReportGroupHeaderLayout;
 import org.ipro.reportstudio.dom.ReportOrderDirection;
 import org.ipro.reportstudio.dom.ReportPageOrientation;
 import org.ipro.reportstudio.dom.ReportPageSize;
@@ -24,7 +25,7 @@ import java.util.List;
 public class ReportTemplateExchange {
 
     public static final String FORMAT = "ipro-report-template";
-    public static final int SCHEMA_VERSION = 1;
+    public static final int SCHEMA_VERSION = 3;
 
     private String format = FORMAT;
     private int schemaVersion = SCHEMA_VERSION;
@@ -262,6 +263,8 @@ public static class Band {
         private int position;
         private String groupField;
         private Boolean startNewPage;
+        private Integer titleWidth;
+        private ReportGroupHeaderLayout headerLayout;
         private List<Field> fields = new ArrayList<>();
 
         public String getKey() { return key; }
@@ -276,6 +279,10 @@ public static class Band {
         public void setGroupField(String groupField) { this.groupField = groupField; }
         public Boolean getStartNewPage() { return startNewPage; }
         public void setStartNewPage(Boolean startNewPage) { this.startNewPage = startNewPage; }
+        public Integer getTitleWidth() { return titleWidth; }
+        public void setTitleWidth(Integer titleWidth) { this.titleWidth = titleWidth; }
+        public ReportGroupHeaderLayout getHeaderLayout() { return headerLayout; }
+        public void setHeaderLayout(ReportGroupHeaderLayout headerLayout) { this.headerLayout = headerLayout; }
         public List<Field> getFields() { return fields; }
         public void setFields(List<Field> fields) { this.fields = fields; }
     }

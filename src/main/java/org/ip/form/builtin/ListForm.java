@@ -27,6 +27,9 @@ import org.ipro.filtergrid.DateRangeFilter;
 import org.ipro.filtergrid.FieldFilter;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
+import org.ipro.filtergrid.grouping.CriteriaGroupValuesService;
+import org.ipro.filtergrid.grouping.GroupValuesService;
+import org.ipro.filtergrid.grouping.GroupableJpaFilterGrid;
 import org.ipro.filtergrid.util.JpaPathUtil;
 import org.ipro.crud.IdentifiableEntity;
 import org.ipro.rls.RlsUiGate;
@@ -56,6 +59,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private final Button deleteButton = new Button("Удалить", VaadinIcon.TRASH.create());
     private final Button refreshButton = new Button(VaadinIcon.REFRESH.create());
     private final Button viewsButton = new Button(VaadinIcon.LIST.create());
+    private final Button compactButton = new Button(VaadinIcon.COMPRESS.create());
 
     private List<ColumnPath> activeColumns;
 
@@ -68,6 +72,10 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private final Map<String, FieldFilter<?>> activeFilters = new LinkedHashMap<>();
 
     private Specification<T> contextFilter;
+    private Specification<T> visualFilter;
+    private org.ipro.filter.FilterNode fixedVisualFilter;
+    private org.ipro.filter.FilterNode contextVisualFilter;
+    private org.ipro.filter.FilterNode userVisualFilter;
 
     private org.ip.service.GridFormViewService gridFormViewService;
     private org.ip.service.FormSettingsService formSettingsService;
@@ -81,30 +89,98 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     // === Конструктор 1: внешний FilterGrid ===
 
     public ListForm(EntityMetadataInfo metadata, org.ipro.filtergrid.FilterGrid<T> filterGrid) {
-        this(metadata, filterGrid, null);
+        this(metadata, filterGrid, null, null);
     }
 
     // === Конструктор 2: автосоздание JpaFilterGrid из BaseService ===
 
     public ListForm(EntityMetadataInfo metadata, BaseService<T, ID> service) {
-        this(metadata, null, service);
+        this(metadata, service, null);
+    }
+
+    public ListForm(EntityMetadataInfo metadata, BaseService<T, ID> service,
+                    org.ipro.filtergrid.grouping.GroupValuesService<T> groupValuesService) {
+        this(metadata, null, service, groupValuesService);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private org.ipro.filtergrid.FilterGrid<T> createJpaFilterGrid(
-            EntityMetadataInfo metadata, BaseService<T, ID> service) {
+            EntityMetadataInfo metadata, BaseService<T, ID> service,
+            org.ipro.filtergrid.grouping.GroupValuesService<T> groupValuesService) {
+        if (groupValuesService != null) {
+            return new GroupableJpaFilterGrid<>(
+                (Class<T>) metadata.getEntityClass(),
+                (spec, pageable) -> service.findAll(combineWithContext(spec), pageable, collectFetchPaths()),
+                groupValuesService);
+        }
         return new JpaFilterGrid<>(
             (Class<T>) metadata.getEntityClass(),
             (spec, pageable) -> service.findAll(combineWithContext(spec), pageable, collectFetchPaths()));
     }
 
     private Specification<T> combineWithContext(Specification<T> gridSpec) {
-        if (contextFilter == null) return gridSpec;
-        return gridSpec == null ? contextFilter : Specification.where(gridSpec).and(contextFilter);
+        Specification<T> result = gridSpec;
+        if (contextFilter != null) {
+            result = result == null ? contextFilter : Specification.where(result).and(contextFilter);
+        }
+        if (visualFilter != null) {
+            result = result == null ? visualFilter : Specification.where(result).and(visualFilter);
+        }
+        return result;
+    }
+
+    /** Применяет плоский фильтр пользователя для обратной совместимости. */
+    public void setVisualFilter(org.ipro.filter.FilterDefinition definition) {
+        setUserFilter(definition == null || definition.conditions().isEmpty() ? null
+                : new org.ipro.filter.FilterGroup(definition.operator(), definition.conditions().stream()
+                    .map(org.ipro.filter.FilterConditionNode::of)
+                    .map(node -> (org.ipro.filter.FilterNode) node).toList()));
+    }
+
+    /** Устанавливает фиксированный фильтр вида; он всегда входит в итог через AND. */
+    public void setFixedFilter(org.ipro.filter.FilterNode filter) {
+        fixedVisualFilter = filter;
+        rebuildVisualFilter();
+    }
+
+    /** Устанавливает контекстный фильтр открытия формы. */
+    public void setContextVisualFilter(org.ipro.filter.FilterNode filter) {
+        contextVisualFilter = filter;
+        rebuildVisualFilter();
+    }
+
+    /** Устанавливает пользовательскую группу, включая вложенные OR. */
+    public void setUserFilter(org.ipro.filter.FilterNode filter) {
+        userVisualFilter = filter;
+        rebuildVisualFilter();
+    }
+
+    public void clearVisualFilter() {
+        fixedVisualFilter = null;
+        contextVisualFilter = null;
+        userVisualFilter = null;
+        visualFilter = null;
+        refresh();
+    }
+
+    private void rebuildVisualFilter() {
+        org.ipro.filter.FilterNode root = new org.ipro.filter.FilterComposition(
+                fixedVisualFilter, contextVisualFilter, userVisualFilter).root();
+        visualFilter = root == null ? null
+                : org.ipro.filter.JpaFilterConditionCompiler.compile(root,
+                    new org.ipro.filter.ColumnPathFilterFieldResolver(activeColumns));
+        refresh();
+    }
+
+    public Specification<T> getVisualFilter() {
+        return visualFilter;
     }
 
     public void setContextFilter(Specification<T> contextFilter) {
         this.contextFilter = contextFilter;
+        if (this.filterGrid instanceof GroupableJpaFilterGrid) {
+            ((GroupableJpaFilterGrid<T>) this.filterGrid).setContextSpecification(contextFilter);
+        }
         refresh();
     }
 
@@ -146,10 +222,11 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private ListForm(EntityMetadataInfo metadata,
                      org.ipro.filtergrid.FilterGrid<T> filterGrid,
-                     BaseService<T, ID> service) {
+                     BaseService<T, ID> service,
+                     org.ipro.filtergrid.grouping.GroupValuesService<T> groupValuesService) {
         this.metadata = metadata;
         this.activeColumns = new ArrayList<>(metadata.getListColumnPaths());
-        this.filterGrid = filterGrid != null ? filterGrid : createJpaFilterGrid(metadata, service);
+        this.filterGrid = filterGrid != null ? filterGrid : createJpaFilterGrid(metadata, service, groupValuesService);
 
         setSizeFull();
         setPadding(true);
@@ -158,6 +235,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         configureColumnsAndFilters();
         configureToolbar(service);
         configureGridSelection();
+
+        // Группировка: кнопка-toggle добавляется в общий тулбар ListForm
+        // (после Добавить/Изменить/Удалить/Refresh/Views), панель — слева от грида.
+        if (this.filterGrid instanceof GroupableJpaFilterGrid) {
+            ((GroupableJpaFilterGrid<T>) this.filterGrid).enableGrouping(toolbar);
+        }
 
         if (afterColumnsConfigured != null) {
             afterColumnsConfigured.run();
@@ -194,8 +277,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                 }
             }
 
-            filterGrid.addColumn(
-                path.getKey(), path.getLabel(), valueProvider);
+            filterGrid.addColumn(path.getKey(), path.getKey(), path.getLabel(), valueProvider);
         }
     }
 
@@ -271,7 +353,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         viewsButton.setVisible(false);
         viewsButton.addClickListener(e -> openViewSelector());
 
-        toolbar.add(addButton, editButton, deleteButton, refreshButton, viewsButton);
+        compactButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        compactButton.getElement().setAttribute("aria-label", "Компактный вид");
+        compactButton.setTooltipText("Компактный вид");
+        compactButton.addClickListener(e -> toggleCompact());
+
+        toolbar.add(addButton, editButton, deleteButton, refreshButton, viewsButton, compactButton);
     }
 
     private void openViewSelector() {
@@ -303,6 +390,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         List<ColumnPath> restored = toColumnPaths(state);
         if (!restored.isEmpty()) {
             applyColumns(restored);
+        }
+        if (state.fixedFilter() != null) {
+            setFixedFilter(state.fixedFilter());
+        }
+        if (state.userFilter() != null || !state.filters().isEmpty()) {
+            setUserFilter(state.userFilterOrLegacy());
         }
         applyFilters(state.filters());
     }
@@ -513,6 +606,13 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         this.formSettingsService = formSettingsService;
         this.formKey = formKey;
         viewsButton.setVisible(gridFormViewService != null);
+        if (formSettingsService != null) {
+            formSettingsService.get(compactKey()).ifPresent(v -> {
+                boolean c = Boolean.parseBoolean(v);
+                filterGrid.setCompact(c);
+                updateCompactButtonState();
+            });
+        }
         if (gridFormViewService == null || formSettingsService == null) return;
 
         formSettingsService.get(defaultViewSettingKey()).ifPresent(idStr -> {
@@ -522,6 +622,27 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             } catch (NumberFormatException invalidId) {
             }
         });
+    }
+
+    private String compactKey() {
+        return formKey != null ? "filtergrid.compact." + formKey : "filtergrid.compact";
+    }
+
+    private void toggleCompact() {
+        boolean newCompact = !filterGrid.isCompact();
+        filterGrid.setCompact(newCompact);
+        updateCompactButtonState();
+        if (formSettingsService != null) {
+            formSettingsService.put(compactKey(), String.valueOf(newCompact));
+        }
+    }
+
+    private void updateCompactButtonState() {
+        boolean isCompact = filterGrid.isCompact();
+        compactButton.removeThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        if (isCompact) {
+            compactButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        }
     }
 
     public void setAfterColumnsConfigured(Runnable afterColumnsConfigured) {

@@ -733,9 +733,11 @@ public class ReportStructureEditorCompact extends VerticalLayout {
     private static VaadinIcon bandIcon(ReportBandKind kind) {
         return switch (kind) {
             case REPORT_HEADER -> VaadinIcon.HEADER;
+            case PAGE_HEADER -> VaadinIcon.ARROW_UP;
             case DETAIL -> VaadinIcon.TABLE;
             case GROUP_HEADER -> VaadinIcon.FOLDER_OPEN;
             case GROUP_FOOTER -> VaadinIcon.FOLDER;
+            case PAGE_FOOTER -> VaadinIcon.ARROW_DOWN;
             case REPORT_FOOTER -> VaadinIcon.CALC_BOOK;
             case NO_DATA -> VaadinIcon.INFO_CIRCLE;
         };
@@ -744,9 +746,11 @@ public class ReportStructureEditorCompact extends VerticalLayout {
     private static String flowKindLabel(ReportBandKind kind) {
         return switch (kind) {
             case REPORT_HEADER -> "Шапка";
+            case PAGE_HEADER -> "Шапка страницы";
             case DETAIL -> "Строки";
             case GROUP_HEADER -> "Группировка";
             case GROUP_FOOTER -> "ПодвалГруппировки";
+            case PAGE_FOOTER -> "Подвал страницы";
             case REPORT_FOOTER -> "Итоги";
             case NO_DATA -> "Нет данных";
         };

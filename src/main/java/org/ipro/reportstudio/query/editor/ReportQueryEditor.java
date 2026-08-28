@@ -97,6 +97,10 @@ public class ReportQueryEditor extends VerticalLayout {
     private static final Pattern PARAMETER =
             Pattern.compile("(^|[^\\w:])[:]([A-Za-z_][A-Za-z0-9_]*)\\b");
 
+    /** Ключевые слова, перед которыми «Форматировать» ставит перенос строки (вне строковых литералов). */
+    private static final Pattern FORMAT_KEYWORD =
+            Pattern.compile("(?i)\\b(left\\s+join|right\\s+join|inner\\s+join|full\\s+join|cross\\s+join|join|from|where|group\\s+by|having|order\\s+by)\\b");
+
     private final QueryEditorAnalysisService analysisService;
     private final QueryMetadataCatalogService catalogService;
     private final ReportPreviewService previewService;
@@ -109,6 +113,7 @@ public class ReportQueryEditor extends VerticalLayout {
     private final ComboBox<String> activeAlias = new ComboBox<>();
     private final IntegerField previewRows = new IntegerField("Строк");
     private final Button analyzeButton = smallPrimary("Проверить");
+    private final Button formatButton = small("Форматировать");
     private final Button parametersButton = small("Параметры");
     private final Paragraph status = new Paragraph();
     private final Grid<QueryTestParam> parameters = new Grid<>();
@@ -250,19 +255,44 @@ public class ReportQueryEditor extends VerticalLayout {
         }
         try {
             int rows = previewRows.getValue() == null ? DEFAULT_PREVIEW_ROWS : previewRows.getValue();
-            String orderedJpql = OrderByApplier.withOrderBy(jpql.getValue(),
-                    template == null ? List.of() : ReportExecutionService.groupFieldsOf(template),
-                    template == null ? List.of() : ReportExecutionService.ordersOf(template));
+            // Группировки/сортировки шаблона могли остаться от запроса с другими алиасами:
+            // дописанный «order by a.code» к запросу без алиаса a даёт непонятную
+            // SemanticException вместо результата. Отбрасываем пути по чужому алиасу
+            // (без точки не трогаем — это алиасы SELECT, их так просто не проверить).
+            inferAliasesFromJpql();
+            Set<String> knownAliases = Set.copyOf(aliasesByEntity.values());
+            List<String> allGroups = template == null ? List.of() : ReportExecutionService.groupFieldsOf(template);
+            List<OrderByApplier.OrderSpec> allOrders = template == null ? List.of() : ReportExecutionService.ordersOf(template);
+            List<String> safeGroups = allGroups.stream()
+                    .filter(group -> referencesKnownAlias(group, knownAliases))
+                    .toList();
+            List<OrderByApplier.OrderSpec> safeOrders = allOrders.stream()
+                    .filter(order -> order != null && referencesKnownAlias(order.columnName(), knownAliases))
+                    .toList();
+            int skipped = allGroups.size() - safeGroups.size() + allOrders.size() - safeOrders.size();
+            String orderedJpql = OrderByApplier.withOrderBy(jpql.getValue(), safeGroups, safeOrders);
             ReportDataset dataset = previewService.preview(orderedJpql, testBindings(),
                     analysis.guardResult().selectFields(), rows, ReportTemplate.DEFAULT_TIMEOUT_MS);
             renderResult(analysis.guardResult().selectFields(), dataset);
             String warnings = joinWarnings(analysis.guardResult().warnings());
             status.setText("Готово: " + dataset.rowCount() + " строк, "
-                    + analysis.guardResult().selectFields().size() + " колонок." + warnings);
+                    + analysis.guardResult().selectFields().size() + " колонок." + warnings
+                    + (skipped > 0
+                            ? " Пропущено группировок/сортировок с чужим алиасом: " + skipped + "."
+                            : ""));
         } catch (RuntimeException error) {
             status.setText("Ошибка выполнения запроса: " + safeMessage(error));
             clearResult();
         }
+    }
+
+    /** Путь валиден для текущего запроса: без точки (алиас SELECT) либо начинается с известного алиаса. */
+    private static boolean referencesKnownAlias(String field, Set<String> knownAliases) {
+        if (field == null || field.isBlank()) {
+            return false;
+        }
+        int dot = field.indexOf('.');
+        return dot < 0 || knownAliases.contains(field.substring(0, dot));
     }
 
     private void configureCatalog() {
@@ -303,6 +333,13 @@ public class ReportQueryEditor extends VerticalLayout {
         jpql.getStyle().set("font-size", "var(--lumo-font-size-xs)");
         jpql.getStyle().set("font-family", "monospace");
         analyzeButton.addClickListener(e -> preview());
+        formatButton.addClickListener(e -> {
+            String formatted = formatJpql(jpql.getValue());
+            if (formatted != null && !formatted.equals(jpql.getValue())) {
+                jpql.setValue(formatted);
+                status.setText("Запрос отформатирован.");
+            }
+        });
         parametersButton.addClickListener(e -> parameterPanel.setVisible(!parameterPanel.isVisible()));
         previewRows.addValueChangeListener(e -> {
             if (e.getValue() != null && !result.getColumns().isEmpty()) preview();
@@ -440,7 +477,7 @@ public class ReportQueryEditor extends VerticalLayout {
         left.setSizeFull();
         left.getStyle().set("min-width", "0");
 
-        HorizontalLayout toolbar = new HorizontalLayout(analyzeButton, parametersButton, activeAlias, previewRows);
+        HorizontalLayout toolbar = new HorizontalLayout(analyzeButton, formatButton, parametersButton, activeAlias, previewRows);
         toolbar.setPadding(false);
         toolbar.setSpacing(true);
         toolbar.setAlignItems(Alignment.BASELINE);
@@ -501,6 +538,19 @@ public class ReportQueryEditor extends VerticalLayout {
             input.addEventListener('input', check);
             input.addEventListener('click', check);
             input.addEventListener('keyup', check);
+            // Ctrl+Space: показать поля слова перед курсором, даже если точка ещё не набрана
+            // (пользователь начал печатать h.co и хочет список, не набирая точку).
+            input.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === ' ') {
+                    e.preventDefault();
+                    clearTimeout(timer);
+                    const pos = input.selectionStart ?? input.value.length;
+                    const before = input.value.substring(0, pos);
+                    const word = before.match(/([A-Za-z_][\\w.]*)$/);
+                    if (!word) return;
+                    container.$server.onCaretContext(word[1].replace(/\\.$/, ''), '', input.value);
+                }
+            });
             """, jpql.getElement());
     }
 
@@ -529,15 +579,32 @@ public class ReportQueryEditor extends VerticalLayout {
         if (node == null) {
             return;
         }
-        // Промежуточные сегменты пути — только ассоциации: h.journal. → поля Journal.
+        // Сегменты пути после корневого алиаса: промежуточные — только ассоциации,
+        // последний — любое поле; несуществующее поле ругаемся сразу, не дожидаясь «Проверить».
         for (int i = 1; i < segments.length; i++) {
-            QueryMetadataNode next = followAssociation(node, segments[i]);
-            if (next == null) {
-                status.setText("«" + segments[i] + "» у «" + node.caption()
-                        + "» — не связь с сущностью из каталога, вложенных полей нет.");
+            boolean last = i == segments.length - 1;
+            int finalI = i;
+            QueryMetadataNode child = node.children().stream()
+                    .filter(c -> segments[finalI].equals(c.token()))
+                    .findFirst()
+                    .orElse(null);
+            if (child == null) {
+                status.setText("У «" + node.caption() + "» нет поля «" + segments[i] + "»."
+                        + suggestSimilar(node, segments[i]));
                 return;
             }
-            node = next;
+            if (child.kind() == QueryMetadataNode.Kind.ASSOCIATION) {
+                QueryMetadataNode target = findRootByToken(child.javaType());
+                if (target == null) {
+                    status.setText("Связь «" + segments[i] + "» ведёт к сущности вне каталога слева.");
+                    return;
+                }
+                node = target;
+            } else if (!last) {
+                status.setText("«" + segments[i] + "» у «" + node.caption()
+                        + "» — обычное поле, вложенных полей нет.");
+                return;
+            }
         }
         String usedAlias = segments[0];
         QueryMetadataNode narrowed = narrow(node, prefix == null ? "" : prefix);
@@ -570,16 +637,17 @@ public class ReportQueryEditor extends VerticalLayout {
         return entityNode;
     }
 
-    /** Переход по ассоциации к узлу целевой сущности; null, если сегмент — не связь из каталога. */
-    private QueryMetadataNode followAssociation(QueryMetadataNode node, String segment) {
-        QueryMetadataNode child = node.children().stream()
-                .filter(c -> segment.equals(c.token()))
-                .findFirst()
-                .orElse(null);
-        if (child == null || child.kind() != QueryMetadataNode.Kind.ASSOCIATION) {
-            return null;
-        }
-        return findRootByToken(child.javaType());
+    /** Ищет среди полей похожие на опечатку: совпадение первых букв («code» → «codeSpec»). */
+    private static String suggestSimilar(QueryMetadataNode node, String token) {
+        String lower = token.toLowerCase(java.util.Locale.ROOT);
+        String stem = lower.substring(0, Math.min(3, lower.length()));
+        List<String> close = node.children().stream()
+                .filter(c -> c.token() != null)
+                .map(QueryMetadataNode::token)
+                .filter(t -> t.toLowerCase(java.util.Locale.ROOT).startsWith(stem))
+                .limit(3)
+                .toList();
+        return close.isEmpty() ? "" : " Возможно: " + String.join(", ", close) + "?";
     }
 
     private QueryMetadataNode findRootByToken(String entityName) {
@@ -740,6 +808,36 @@ public class ReportQueryEditor extends VerticalLayout {
             input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
             input.focus();
             """, token);
+    }
+
+    /**
+     * Простое форматирование JPQL: все пробелы/переносы схлопываются в один,
+     * затем перед каждым ключевым словом (FROM/JOIN/WHERE/GROUP BY/HAVING/ORDER BY)
+     * ставится перенос строки. Ключевые слова внутри строковых литералов
+     * не трогаются — отслеживается чётность апострофов. Регистр слов сохраняется.
+     */
+    private static String formatJpql(String jpql) {
+        if (jpql == null || jpql.isBlank()) {
+            return jpql;
+        }
+        String collapsed = jpql.replaceAll("\\s+", " ").trim();
+        Matcher matcher = FORMAT_KEYWORD.matcher(collapsed);
+        StringBuilder formatted = new StringBuilder();
+        int tail = 0;
+        boolean insideLiteral = false;
+        while (matcher.find()) {
+            String gap = collapsed.substring(tail, matcher.start());
+            insideLiteral ^= gap.chars().filter(ch -> ch == '\'').count() % 2 != 0;
+            formatted.append(gap);
+            if (!insideLiteral && formatted.length() > 0
+                    && formatted.charAt(formatted.length() - 1) != '\n') {
+                formatted.append('\n');
+            }
+            formatted.append(matcher.group());
+            tail = matcher.end();
+        }
+        formatted.append(collapsed.substring(tail));
+        return formatted.toString();
     }
 
     // === Тестовые параметры (QueryTestParam) ===

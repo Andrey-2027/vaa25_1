@@ -8,6 +8,7 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -30,7 +31,14 @@ import org.ip.model.GridFormView;
 import org.ip.service.GridFormViewService;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.filter.FilterTreeEditor;
 import org.ipro.filtergrid.TextFilter;
+import org.ipro.filter.FilterConditionNode;
+import org.ipro.filter.FilterDataType;
+import org.ipro.filter.FilterGroup;
+import org.ipro.filter.FilterNode;
+import org.ipro.filter.FilterOperator;
+import org.ipro.filter.LogicalOperator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -113,8 +121,11 @@ public class GridViewEditorDialog extends Dialog {
     private final List<SelectedColumn> selected = new ArrayList<>();
     private final Set<String> selectedPaths = new HashSet<>();
 
+    private FilterTreeEditor filterTreeEditor;
+    private FilterNode filterTreeValue;
     private final Grid<FilterCondition> filterGrid = new Grid<>();
     private final List<FilterCondition> filterConditions = new ArrayList<>();
+    private final ComboBox<LogicalOperator> filterOperator = new ComboBox<>("Объединение условий");
     private final ComboBox<FieldMetadataInfo> addFilterField = new ComboBox<>("Поле для отбора");
     Button add = new Button();
 
@@ -141,6 +152,9 @@ public class GridViewEditorDialog extends Dialog {
         setHeight("680px");
         setResizable(true);
         setDraggable(true);
+        // Класс не подходит: HasStyle у Dialog указывает на невидимый host-элемент,
+        // а theme-атрибут пробрасывается на vaadin-dialog-overlay
+        getElement().getThemeList().add("form-1c");
 
         nameField.setValue(initialName != null ? initialName : "");
         nameField.setWidthFull();
@@ -160,8 +174,11 @@ public class GridViewEditorDialog extends Dialog {
 
         this.supportsFilters = supportsFilters;
         if (supportsFilters) {
-            configureFilterSection();
-            preselectFilters(initialFilters);
+            filterTreeValue = legacyFilterTree(initialFilters);
+            filterTreeEditor = new FilterTreeEditor(
+                    new org.ipro.filter.ColumnPathFilterFieldResolver(metadata.getListColumnPaths()),
+                    filterTreeValue,
+                    value -> filterTreeValue = value);
         }
 
         com.vaadin.flow.component.Component columnsAndMaybeFilters;
@@ -176,6 +193,7 @@ public class GridViewEditorDialog extends Dialog {
         }
 
         VerticalLayout content = new VerticalLayout(header, columnsAndMaybeFilters);
+        content.addClassName("form-1c");
         content.setPadding(false);
         content.setSpacing(true);
         content.setSizeFull();
@@ -338,6 +356,9 @@ public class GridViewEditorDialog extends Dialog {
         filterGrid.addComponentColumn(this::removeFilterButtonFor).setHeader("").setWidth("60px").setFlexGrow(0);
         filterGrid.setItems(filterConditions);
         filterGrid.setSizeFull();
+        filterOperator.setItems(LogicalOperator.values());
+        filterOperator.setValue(LogicalOperator.AND);
+        filterOperator.setItemLabelGenerator(value -> value == LogicalOperator.AND ? "И" : "ИЛИ");
 
         addFilterField.setItems(metadata.getFormFields().stream().filter(this::isFilterable).toList());
         addFilterField.setItemLabelGenerator(FieldMetadataInfo::getLabel);
@@ -447,17 +468,34 @@ public class GridViewEditorDialog extends Dialog {
     }
 
     private VerticalLayout buildFilterLayout() {
-        HorizontalLayout addRow = new HorizontalLayout(addFilterField);
-        addRow.setWidthFull();
-        addRow.expand(addFilterField);
-
         VerticalLayout layout = new VerticalLayout(
-            new H4("Условия отбора (применяются независимо от текущих фильтров грида)"),
-            addRow, add, filterGrid);
+                new H4("Отбор"),
+                new Span("Группы «И» и «ИЛИ» можно вкладывать друг в друга."),
+                filterTreeEditor);
         layout.setPadding(false);
-        layout.setSpacing(true);
+        layout.setSpacing(false);
         layout.setSizeFull();
         return layout;
+    }
+
+    private FilterNode legacyFilterTree(List<FilterSpec> initialFilters) {
+        if (initialFilters == null || initialFilters.isEmpty()) return null;
+        List<FilterNode> nodes = new ArrayList<>();
+        for (FilterSpec spec : initialFilters) {
+            try {
+                var field = new org.ipro.filter.ColumnPathFilterFieldResolver(metadata.getListColumnPaths()).resolve(spec.path());
+                FilterOperator op = switch (spec.mode() == null ? "" : spec.mode()) {
+                    case "EQUALS" -> FilterOperator.EQ;
+                    case "STARTS_WITH" -> FilterOperator.STARTS_WITH;
+                    default -> FilterOperator.CONTAINS;
+                };
+                nodes.add(FilterConditionNode.of(new org.ipro.filter.FilterCondition(
+                        spec.path(), op, spec.value(), null,
+                        field.dataType())));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        return nodes.isEmpty() ? null : new FilterGroup(LogicalOperator.AND, nodes);
     }
 
     private void preselectFilters(List<FilterSpec> initialFilters) {
@@ -518,19 +556,8 @@ public class GridViewEditorDialog extends Dialog {
             columns.add(ColumnPath.resolve(metadata.getEntityClass(), s.path).withLabel(s.customLabel));
         }
 
-        List<FilterSpec> filters = new ArrayList<>(filterConditions.size());
-        for (FilterCondition c : filterConditions) {
-            if (c.field.getResolvedType() == FieldType.DATE) {
-                if (c.value == null && c.valueTo == null) continue;
-                filters.add(new FilterSpec(c.field.getName(), null, c.value, c.valueTo));
-            } else {
-                if (c.value == null || c.value.isBlank()) continue;
-                String mode = c.mode != null ? c.mode.name() : null;
-                filters.add(new FilterSpec(c.field.getName(), mode, c.value, null));
-            }
-        }
-
-        String stateJson = GridViewState.of(columns, metadata.getEntityClass(), filters).toJson();
+        FilterNode userFilter = filterTreeValue;
+        String stateJson = GridViewState.of(columns, metadata.getEntityClass(), null, userFilter).toJson();
 
         try {
             if (editingView == null) {
@@ -548,5 +575,29 @@ public class GridViewEditorDialog extends Dialog {
                 .addThemeVariants(NotificationVariant.LUMO_ERROR);
             return false;
         }
+    }
+
+    private FilterNode buildUserFilter() {
+        List<FilterNode> nodes = new ArrayList<>();
+        for (FilterCondition c : filterConditions) {
+            if (c.value == null || c.value.isBlank()) continue;
+            FilterDataType type = switch (c.field.getResolvedType()) {
+                case INTEGER, DECIMAL -> FilterDataType.NUMBER;
+                case DATE -> FilterDataType.DATE;
+                case ENUM -> FilterDataType.ENUM;
+                case ENTITY_REFERENCE -> FilterDataType.ENTITY_REFERENCE;
+                case BOOLEAN -> FilterDataType.BOOLEAN;
+                default -> FilterDataType.TEXT;
+            };
+            FilterOperator operator = switch (c.mode) {
+                case EQUALS -> FilterOperator.EQ;
+                case STARTS_WITH -> FilterOperator.STARTS_WITH;
+                case ENDS_WITH, CONTAINS -> FilterOperator.CONTAINS;
+            };
+            nodes.add(FilterConditionNode.of(new org.ipro.filter.FilterCondition(
+                    c.field.getName(), operator, c.value, null, type)));
+        }
+        if (nodes.isEmpty()) return null;
+        return new FilterGroup(filterOperator.getValue() == null ? LogicalOperator.AND : filterOperator.getValue(), nodes);
     }
 }

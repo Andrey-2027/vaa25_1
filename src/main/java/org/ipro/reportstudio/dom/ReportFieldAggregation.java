@@ -9,6 +9,8 @@ public enum ReportFieldAggregation {
     NONE,
     SUM,
     COUNT,
+    /** Количество строк области итога, независимо от NULL в пользовательских полях. */
+    COUNT_ROWS,
     AVG,
     MIN,
     MAX

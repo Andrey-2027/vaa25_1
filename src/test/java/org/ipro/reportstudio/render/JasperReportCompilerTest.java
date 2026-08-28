@@ -169,6 +169,61 @@ class JasperReportCompilerTest {
     }
 
     @Test
+    void countRowsCountsNullRowsThroughCompiler() throws Exception {
+        QueryField groupField = new QueryField("group", "", String.class, "Группа", true, true, false);
+        QueryField nullable = new QueryField("value", "", String.class, "Значение", true, true, false);
+        ReportDataset dataset = new ReportDataset(
+                new QueryField[]{groupField, nullable},
+                new ReportRow[]{
+                        new ReportRow(new QueryField[]{groupField, nullable}, new Object[]{"A", "x"}),
+                        new ReportRow(new QueryField[]{groupField, nullable}, new Object[]{"A", null}),
+                        new ReportRow(new QueryField[]{groupField, nullable}, new Object[]{"B", null})});
+        ReportTemplate template = new ReportTemplate();
+        template.setName("COUNT_ROWS");
+        ReportBand detail = band(ReportBandKind.DETAIL, null, null);
+        detail.addField(field("group", "Группа", null));
+        detail.addField(field("value", "Значение", null));
+        template.addBand(detail);
+        ReportBand group = band(ReportBandKind.GROUP_HEADER, null, "group");
+        template.addBand(group);
+        ReportBand groupFooter = band(ReportBandKind.GROUP_FOOTER, group, "group");
+        ReportField groupCount = field("", "Строки группы", null);
+        groupCount.setAggregation(ReportFieldAggregation.COUNT_ROWS);
+        groupFooter.addField(groupCount);
+        template.addBand(groupFooter);
+        ReportBand footer = band(ReportBandKind.REPORT_FOOTER, null, null);
+        ReportField totalCount = field("", "Всего строк", null);
+        totalCount.setAggregation(ReportFieldAggregation.COUNT_ROWS);
+        footer.addField(totalCount);
+        template.addBand(footer);
+
+        byte[] pdf = new JasperReportCompiler().export(new JasperReportCompiler().compile(template, dataset), ReportExportFormat.PDF);
+        try (PDDocument document = Loader.loadPDF(pdf)) {
+            String text = new PDFTextStripper().getText(document);
+            assertThat(text).contains("0").doesNotContain("__reportstudio_row_marker");
+        }
+    }
+
+    @Test
+    void countRowsOnEmptyDatasetRendersZero() throws Exception {
+        QueryField value = new QueryField("value", "", String.class, "Значение", true, true, false);
+        ReportDataset dataset = new ReportDataset(new QueryField[]{value}, new ReportRow[0]);
+        ReportTemplate template = new ReportTemplate();
+        template.setName("Пустой COUNT_ROWS");
+        ReportBand detail = band(ReportBandKind.DETAIL, null, null);
+        detail.addField(field("value", "Значение", null));
+        template.addBand(detail);
+        ReportBand footer = band(ReportBandKind.REPORT_FOOTER, null, null);
+        ReportField count = field("", "Всего строк", null);
+        count.setAggregation(ReportFieldAggregation.COUNT_ROWS);
+        footer.addField(count);
+        template.addBand(footer);
+
+        JasperPrint print = new JasperReportCompiler().compile(template, dataset);
+        assertThat(print).isNotNull();
+    }
+
+    @Test
     void headerAndFooterTextBlocksAreRendered() throws Exception {
         QueryField journal = new QueryField("journalCode", "", String.class, "Журнал", true, true, false);
         QueryField code = new QueryField("codeSpec", "", String.class, "Код спецификации", true, true, true);

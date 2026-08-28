@@ -13,6 +13,7 @@ import net.sf.dynamicreports.report.builder.style.StyleBuilder;
 import net.sf.dynamicreports.report.builder.subtotal.SubtotalBuilder;
 import net.sf.dynamicreports.report.datasource.DRDataSource;
 import net.sf.dynamicreports.report.constant.HorizontalAlignment;
+import net.sf.dynamicreports.report.constant.GroupHeaderLayout;
 import net.sf.dynamicreports.report.constant.PageOrientation;
 import net.sf.dynamicreports.report.constant.PageType;
 import net.sf.jasperreports.engine.JRException;
@@ -34,6 +35,7 @@ import org.ipro.reportstudio.dom.ReportField;
 import org.ipro.reportstudio.dom.ReportFieldAggregation;
 import org.ipro.reportstudio.dom.ReportFieldAlignment;
 import org.ipro.reportstudio.dom.ReportFieldKind;
+import org.ipro.reportstudio.dom.ReportGroupHeaderLayout;
 import org.ipro.reportstudio.dom.ReportPageOrientation;
 import org.ipro.reportstudio.dom.ReportPageSize;
 import org.ipro.reportstudio.dom.ReportTemplate;
@@ -99,14 +101,37 @@ public class JasperReportCompiler implements ReportCompiler {
                 report.setTitleStyle(titleStyle());
                 report.title(titles.toArray(new ComponentBuilder[0]));
             }
+
+            ReportBand pageHeader = bandOf(template, ReportBandKind.PAGE_HEADER);
+            List<ComponentBuilder<?, ?>> pageHeaderTexts = textBlocks(pageHeader, fontSize);
+            if (!pageHeaderTexts.isEmpty()) {
+                report.pageHeader(pageHeaderTexts.toArray(new ComponentBuilder[0]));
+            }
+
+            ReportBand pageFooter = bandOf(template, ReportBandKind.PAGE_FOOTER);
+            List<ComponentBuilder<?, ?>> pageFooterTexts = textBlocks(pageFooter, fontSize);
+            if (!pageFooterTexts.isEmpty()) {
+                report.pageFooter(pageFooterTexts.toArray(new ComponentBuilder[0]));
+            }
             applyTableStyle(report, fontSize, grid);
             report.setHighlightDetailEvenRows(template.isStripeRows());
 
             List<TextColumnBuilder<?>> detailColumns = new ArrayList<>();
             Map<String, TextColumnBuilder<?>> columnsByField = new LinkedHashMap<>();
+            boolean countRowsUsed = template.getBands().stream()
+                    .flatMap(band -> band.getFields().stream())
+                    .anyMatch(field -> field.getAggregation() == ReportFieldAggregation.COUNT_ROWS);
+            TextColumnBuilder<Integer> rowMarker = null;
+            if (countRowsUsed) {
+                rowMarker = DynamicReports.col.column("", "__reportstudio_row_marker", Integer.class);
+            }
             List<ComputedSpec> computed = new ArrayList<>();
             for (ReportField field : visibleFields(bandOf(template, ReportBandKind.DETAIL))) {
                 detailColumns.add(buildColumn(field, dataset, columnsByField, fontSize, computed));
+            }
+            if (countRowsUsed) {
+                detailColumns.add(rowMarker);
+                columnsByField.put("__reportstudio_row_marker", rowMarker);
             }
             if (!detailColumns.isEmpty()) {
                 report.columns(detailColumns.toArray(new ColumnBuilder[0]));
@@ -123,7 +148,7 @@ public class JasperReportCompiler implements ReportCompiler {
             for (ReportBand groupFooter : footerBands(template)) {
                 ColumnGroupBuilder group = groupOf(groupBindings, groupFooter);
                 List<SubtotalBuilder<?, ?>> subtotals =
-                    buildSubtotals(groupFooter, columnsByField, detailColumns, fontSize, grid);
+                    buildSubtotals(groupFooter, columnsByField, detailColumns, fontSize, grid, rowMarker);
                 List<ComponentBuilder<?, ?>> texts = textBlocks(groupFooter, fontSize);
                 if (!texts.isEmpty()) {
                     group.footer(texts.toArray(new ComponentBuilder[0]));
@@ -137,7 +162,7 @@ public class JasperReportCompiler implements ReportCompiler {
             ReportBand reportFooter = bandOf(template, ReportBandKind.REPORT_FOOTER);
             if (reportFooter != null) {
                 List<SubtotalBuilder<?, ?>> subtotals =
-                    buildSubtotals(reportFooter, columnsByField, detailColumns, fontSize, grid);
+                    buildSubtotals(reportFooter, columnsByField, detailColumns, fontSize, grid, rowMarker);
                 List<ComponentBuilder<?, ?>> texts = textBlocks(reportFooter, fontSize);
                 if (!texts.isEmpty()) {
                     report.summary(texts.toArray(new ComponentBuilder[0]));
@@ -260,6 +285,12 @@ public class JasperReportCompiler implements ReportCompiler {
             if (header.isStartNewPage()) {
                 group.setStartInNewPage(true);
             }
+            if (header.getTitleWidth() != null) {
+                group.setTitleWidth(header.getTitleWidth());
+            }
+            if (header.getHeaderLayout() != null) {
+                group.setHeaderLayout(toDrHeaderLayout(header.getHeaderLayout()));
+            }
             boolean inDetail = columnsByField.containsKey(header.getGroupField());
             if (!inDetail) {
                 group.setHideColumn(true);
@@ -267,6 +298,19 @@ public class JasperReportCompiler implements ReportCompiler {
             bindings.add(new GroupBinding(header, group));
         }
         return bindings;
+    }
+
+    /**
+     * 1:1 маппинг на DR-enum — своя копия ReportGroupHeaderLayout существует
+     * только чтобы доменный слой (ReportBand) не зависел от типов
+     * DynamicReports; значения намеренно совпадают один в один.
+     */
+    private static GroupHeaderLayout toDrHeaderLayout(ReportGroupHeaderLayout layout) {
+        return switch (layout) {
+            case VALUE -> GroupHeaderLayout.VALUE;
+            case TITLE_AND_VALUE -> GroupHeaderLayout.TITLE_AND_VALUE;
+            case EMPTY -> GroupHeaderLayout.EMPTY;
+        };
     }
 
     private static void walkChildren(ReportBand band, List<ReportBand> all, List<ReportBand> out) {
@@ -317,7 +361,8 @@ public class JasperReportCompiler implements ReportCompiler {
      */
     private static List<SubtotalBuilder<?, ?>> buildSubtotals(ReportBand footer,
             Map<String, TextColumnBuilder<?>> columnsByField,
-            List<TextColumnBuilder<?>> detailColumns, int fontSize, boolean grid) {
+            List<TextColumnBuilder<?>> detailColumns, int fontSize, boolean grid,
+            TextColumnBuilder<Integer> rowMarker) {
         List<SubtotalBuilder<?, ?>> subtotals = new ArrayList<>();
         StyleBuilder valueStyle = grid ? bodyStyle(fontSize) : null;
         StyleBuilder labelStyle = grid ? columnTitleStyle(fontSize) : null;
@@ -330,7 +375,8 @@ public class JasperReportCompiler implements ReportCompiler {
             if (aggregation == null || aggregation == ReportFieldAggregation.NONE) {
                 continue;
             }
-            TextColumnBuilder<?> column = columnsByField.get(field.getQueryField());
+            TextColumnBuilder<?> column = field.getAggregation() == ReportFieldAggregation.COUNT_ROWS
+                    ? rowMarker : columnsByField.get(field.getQueryField());
             if (column == null) {
                 for (TextColumnBuilder<?> c : detailColumns) {
                     if (c.getName() != null && c.getName().equals(field.getQueryField())) {
@@ -400,6 +446,7 @@ public class JasperReportCompiler implements ReportCompiler {
         return switch (aggregation) {
             case SUM -> DynamicReports.sbt.sum((ValueColumnBuilder) column);
             case COUNT -> DynamicReports.sbt.count(column);
+            case COUNT_ROWS -> DynamicReports.sbt.count(column);
             case AVG -> DynamicReports.sbt.avg((ValueColumnBuilder) column);
             case MIN -> DynamicReports.sbt.min((ValueColumnBuilder) column);
             case MAX -> DynamicReports.sbt.max((ValueColumnBuilder) column);
@@ -581,17 +628,19 @@ public class JasperReportCompiler implements ReportCompiler {
         for (int index = 0; index < computed.size(); index++) {
             allNames[baseCount + index] = computed.get(index).syntheticName();
         }
-        DRDataSource dataSource = new DRDataSource(allNames);
-        for (ReportRow row : dataset.rows()) {
-            Object[] values = new Object[allNames.length];
+        DRDataSource dataSource = new DRDataSource(allNames);            for (ReportRow row : dataset.rows()) {
+                Object[] values = new Object[allNames.length];
             for (int index = 0; index < baseCount; index++) {
                 QueryField field = dataset.fields()[index];
                 values[index] = isScalar(field.javaType())
                     ? row.value(field.name())
                     : row.displayValue(field.name());
             }
+            if (computed.isEmpty() && allNames.length > baseCount) {
+                values[baseCount] = 1;
+            }
             for (int index = 0; index < computed.size(); index++) {
-                values[baseCount + index] = computedValue(computed.get(index).field(), row);
+                values[baseCount + (allNames.length - baseCount - computed.size()) + index] = computedValue(computed.get(index).field(), row);
             }
             dataSource.add(values);
         }

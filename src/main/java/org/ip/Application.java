@@ -9,7 +9,7 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-@Theme(themeClass = Lumo.class)
+@Theme(value = "default", themeClass = Lumo.class)
 @EntityScan({"org.ip.model", "org.ipro.telemetry.model", "org.ipro.rls", "org.ipro.reportstudio.dom",
     "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport.dom", "org.ipro.jr.dom"})
 @EnableTransactionManagement(proxyTargetClass = true, order = 0)

@@ -7,9 +7,12 @@ import org.ip.views.reportstudio.ReportRunDialog;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -20,10 +23,24 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import org.ipro.reportstudio.data.QueryField;
+import org.ipro.reportstudio.dom.ReportBand;
+import org.ipro.reportstudio.dom.ReportBandKind;
+import org.ipro.reportstudio.dom.ReportField;
+import org.ipro.reportstudio.dom.ReportFieldAggregation;
+import org.ipro.reportstudio.dom.ReportFieldAlignment;
+import org.ipro.reportstudio.dom.ReportOrder;
+import org.ipro.reportstudio.dom.ReportOrderDirection;
+import org.ipro.reportstudio.layout.ReportLayoutOperations;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.BeforeLeaveEvent;
+import com.vaadin.flow.router.BeforeLeaveObserver;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import org.ip.views.workspace.Dirtyable;
+import org.ip.views.workspace.Savable;
 import jakarta.annotation.security.PermitAll;
 import jakarta.validation.ValidationException;
 import org.ipro.form.SelectionFormAssembler;
@@ -60,7 +77,7 @@ import static java.util.Objects.requireNonNull;
 @Route("report-editor-structured")
 @PageTitle("Редактор отчёта (структурный)")
 @PermitAll
-public class ReportEditorViewStructured extends VerticalLayout implements BeforeEnterObserver {
+public class ReportEditorViewStructured extends VerticalLayout implements BeforeEnterObserver, BeforeLeaveObserver, Dirtyable, Savable {
 
     private final ReportTemplateService templateService;
     private final ReportExecutionService executionService;
@@ -79,10 +96,33 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
     private final TextArea jpqlText = new TextArea();
     private Tabs tabs;
     private Tab pageTab;
+    private final RadioButtonGroup<ReportEditorMode> layoutMode = new RadioButtonGroup<>();
+    private final Div layoutContent = new Div();
+    private VerticalLayout userLayoutPage;
+    private ComboBox<QueryField> userField;
+    private ComboBox<QueryField> userGroupField;
+    private ComboBox<QueryField> userTotalField;
+    private ComboBox<ReportFieldAggregation> userTotalAggregation;
+    private ComboBox<ReportBand> userGroupTotalGroup;
+    private Grid<ReportField> userFieldsGrid;
+    private Grid<ReportBand> userGroupsGrid;
+    private Grid<ReportField> userTotalsGrid;
+    private ComboBox<QueryField> userSortField;
+    private ComboBox<ReportOrderDirection> userSortDirection;
+    private Grid<ReportOrder> userSortGrid;
+    private ReportField selectedUserField;
+    private TextField userCaption;
+    private IntegerField userWidth;
+    private ComboBox<ReportFieldAlignment> userAlignment;
+    private TextField userFormat;
+    private com.vaadin.flow.component.checkbox.Checkbox userVisible;
+    private com.vaadin.flow.component.checkbox.Checkbox userBorder;
 
     private ReportTemplate template;
     private String lastAnalyzedJpql = "";
     private boolean reconcileDialogSuppressed;
+    private boolean dirty;
+    private boolean syncing;
 
     public ReportEditorViewStructured(
             ReportQueryGuard guard,
@@ -102,12 +142,16 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         this.previewService = previewService;
         this.queryEditor = new ReportQueryEditor(queryEditorAnalysisService, queryMetadataCatalogService,
                 previewService, lookupService, selectionFormAssembler);
-        this.queryEditor.setChangeListener(template1 -> syncJpqlText());
+        this.queryEditor.setChangeListener(template1 -> {
+            syncJpqlText();
+            markDirty();
+        });
         this.queryEditor.setAnalysisListener(this::onQueryAnalyzed);
         this.paramEditor.setEntityOptions(queryMetadataCatalogService.entityOptions());
         this.paramEditor.setChangeListener(() -> {
-            if (template != null) {
+            if (!syncing && template != null) {
                 queryEditor.setTemplate(template);
+                markDirty();
             }
         });
 
@@ -130,7 +174,7 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         Map<Tab, com.vaadin.flow.component.Component> pageByTab = new LinkedHashMap<>();
         pageByTab.put(queriesTab, queriesPage);
         pageByTab.put(paramsTab, paramEditor);
-        pageByTab.put(layoutTab, structureEditor);
+        pageByTab.put(layoutTab, layoutPage());
         pageByTab.put(pageTab, pageContent);
 
         Div pages = new Div();
@@ -156,6 +200,418 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         setFlexGrow(1, pages);
 
         newTemplate();
+    }
+
+    /** Содержимое вкладки «Макет»: переключатель режимов и выбранное представление. */
+    private VerticalLayout layoutPage() {
+        layoutMode.setLabel("Режим редактирования");
+        layoutMode.setItems(ReportEditorMode.USER, ReportEditorMode.ADVANCED);
+        layoutMode.setItemLabelGenerator(mode -> mode == ReportEditorMode.USER
+                ? "Пользовательский" : "Расширенный");
+        layoutMode.setValue(ReportEditorMode.ADVANCED);
+        layoutMode.addValueChangeListener(event -> {
+            showLayoutMode(event.getValue());
+            markDirty();
+        });
+
+        layoutContent.setWidthFull();
+        layoutContent.setHeightFull();
+        layoutContent.getStyle().set("min-height", "0");
+        showLayoutMode(ReportEditorMode.ADVANCED);
+
+        VerticalLayout page = new VerticalLayout(layoutMode, layoutContent);
+        page.setPadding(false);
+        page.setSpacing(true);
+        page.setWidthFull();
+        page.setHeightFull();
+        page.getStyle().set("min-height", "0");
+        page.setFlexGrow(1, layoutContent);
+        return page;
+    }
+
+    private void showLayoutMode(ReportEditorMode mode) {
+        layoutContent.removeAll();
+        if (mode == ReportEditorMode.USER) {
+            layoutContent.add(userLayoutPage());
+        } else {
+            layoutContent.add(structureEditor);
+        }
+    }
+
+    private VerticalLayout userLayoutPage() {
+        if (userLayoutPage != null) {
+            return userLayoutPage;
+        }
+        Span title = new Span("Настройка макета отчёта");
+        title.getStyle().set("font-size", "var(--lumo-font-size-l)")
+                .set("font-weight", "600");
+        Span intro = new Span("Здесь можно будет выбрать поля, группировки, итоги и сортировку. "
+                + "Все изменения сохраняются в том же отчёте, что и в расширенном режиме.");
+        intro.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        userField = new ComboBox<>("Поле");
+        userField.setItemLabelGenerator(this::userFieldLabel);
+        userField.setWidthFull();
+        Button addField = new Button("Добавить поле", event -> addUserField());
+        HorizontalLayout fieldRow = new HorizontalLayout(userField, addField);
+        fieldRow.setWidthFull();
+        fieldRow.setAlignItems(Alignment.END);
+        userFieldsGrid = new Grid<>(ReportField.class, false);
+        userFieldsGrid.addColumn(field -> {
+                    QueryField queryField = findQueryField(field.getQueryField());
+                    return queryField == null ? "Недоступно: " + field.getQueryField() : userFieldLabel(queryField);
+                }).setHeader("Поле").setAutoWidth(true);
+        userFieldsGrid.addColumn(field -> Objects.requireNonNullElse(field.getCaption(), "По умолчанию"))
+                .setHeader("Заголовок").setAutoWidth(true);
+        userFieldsGrid.addColumn(field -> field.isVisible() ? "Да" : "Нет")
+                .setHeader("Видно").setAutoWidth(true);
+        userFieldsGrid.addItemClickListener(event -> selectUserField(event.getItem()));
+        userFieldsGrid.addComponentColumn(field -> {
+            HorizontalLayout actions = new HorizontalLayout(
+                    new Button("↑", event -> moveUserField(field, -1)),
+                    new Button("↓", event -> moveUserField(field, 1)),
+                    new Button("Удалить", event -> removeUserField(field)));
+            actions.setSpacing(false);
+            return actions;
+        }).setHeader("").setFlexGrow(0);
+        userFieldsGrid.setHeight("150px");
+        userCaption = new TextField("Заголовок");
+        userWidth = new IntegerField("Ширина, px");
+        userWidth.setMin(1);
+        userAlignment = new ComboBox<>("Выравнивание");
+        userAlignment.setItems(ReportFieldAlignment.values());
+        userAlignment.setItemLabelGenerator(this::alignmentLabel);
+        userFormat = new TextField("Формат");
+        userVisible = new com.vaadin.flow.component.checkbox.Checkbox("Показывать");
+        userBorder = new com.vaadin.flow.component.checkbox.Checkbox("Граница");
+        Button applyProperties = new Button("Применить свойства", event -> applyUserFieldProperties());
+        HorizontalLayout propertyRow = new HorizontalLayout(userCaption, userWidth, userAlignment,
+                userFormat, userVisible, userBorder, applyProperties);
+        propertyRow.setWidthFull();
+        propertyRow.setWrap(true);
+        propertyRow.setAlignItems(Alignment.END);
+        Details properties = new Details("Свойства выбранного поля", propertyRow);
+        properties.setOpened(true);
+        Details fields = new Details("Поля отчёта", new VerticalLayout(fieldRow, userFieldsGrid, properties));
+        fields.setOpened(true);
+
+        userGroupField = new ComboBox<>("Группировать по");
+        userGroupField.setItemLabelGenerator(this::userFieldLabel);
+        userGroupField.setWidthFull();
+        Button addGroup = new Button("Добавить группировку", event -> addUserGroup());
+        HorizontalLayout groupRow = new HorizontalLayout(userGroupField, addGroup);
+        groupRow.setWidthFull();
+        groupRow.setAlignItems(Alignment.END);
+
+        userGroupTotalGroup = new ComboBox<>("Группа для итога");
+        userGroupTotalGroup.setItemLabelGenerator(band -> userFieldLabel(findQueryField(band.getGroupField())));
+        userGroupTotalGroup.setWidthFull();
+        userTotalField = new ComboBox<>("Поле итога");
+        userTotalField.setItemLabelGenerator(this::userFieldLabel);
+        userTotalField.setWidthFull();
+        userTotalAggregation = new ComboBox<>("Итог");
+        userTotalAggregation.setItems(ReportFieldAggregation.SUM, ReportFieldAggregation.COUNT,
+                ReportFieldAggregation.COUNT_ROWS, ReportFieldAggregation.AVG,
+                ReportFieldAggregation.MIN, ReportFieldAggregation.MAX);
+        userTotalAggregation.setItemLabelGenerator(this::aggregationLabel);
+        Button addGroupTotal = new Button("Добавить итог группы", event -> addUserGroupTotal());
+        Button addTotal = new Button("Добавить общий итог", event -> addUserTotal());
+        HorizontalLayout totalRow = new HorizontalLayout(userTotalField, userTotalAggregation, addTotal);
+        totalRow.setWidthFull();
+        totalRow.setAlignItems(Alignment.END);
+        userGroupsGrid = new Grid<>(ReportBand.class, false);
+        userGroupsGrid.addColumn(band -> {
+                    QueryField queryField = findQueryField(band.getGroupField());
+                    return queryField == null ? "Недоступно: " + band.getGroupField() : userFieldLabel(queryField);
+                })
+                .setHeader("Группировка").setAutoWidth(true);
+        userGroupsGrid.addComponentColumn(band -> new Button("Удалить", event -> removeUserGroup(band)))
+                .setHeader("").setFlexGrow(0);
+        userGroupsGrid.setHeight("150px");
+        userTotalsGrid = new Grid<>(ReportField.class, false);
+        userTotalsGrid.addColumn(field -> {
+                    QueryField queryField = findQueryField(field.getQueryField());
+                    return aggregationLabel(field.getAggregation()) + " · "
+                            + (queryField == null ? "Недоступно: " + field.getQueryField() : userFieldLabel(queryField));
+                })
+                .setHeader("Итог").setAutoWidth(true);
+        userTotalsGrid.addComponentColumn(field -> new Button("Удалить", event -> removeUserTotal(field)))
+                .setHeader("").setFlexGrow(0);
+        userTotalsGrid.setHeight("150px");
+        HorizontalLayout groupTotalRow = new HorizontalLayout(userGroupTotalGroup,                userTotalField, userTotalAggregation, addGroupTotal);
+        groupTotalRow.setWidthFull();
+        groupTotalRow.setAlignItems(Alignment.END);
+        Details groups = new Details("Группировки и итоги", new VerticalLayout(
+                groupRow, userGroupsGrid, groupTotalRow, totalRow, userTotalsGrid));
+        groups.setOpened(true);
+
+        userSortField = new ComboBox<>("Поле сортировки");
+        userSortField.setItemLabelGenerator(this::userFieldLabel);
+        userSortField.setWidthFull();
+        userSortDirection = new ComboBox<>("Направление");
+        userSortDirection.setItems(ReportOrderDirection.values());
+        userSortDirection.setItemLabelGenerator(direction -> direction == ReportOrderDirection.DESC ? "По убыванию" : "По возрастанию");
+        userSortDirection.setValue(ReportOrderDirection.ASC);
+        Button addSort = new Button("Добавить сортировку", event -> addUserSort());
+        userSortGrid = new Grid<>(ReportOrder.class, false);
+        userSortGrid.addColumn(order -> {
+                    QueryField queryField = findQueryField(order.getColumnName());
+                    return (queryField == null ? "Недоступно: " + order.getColumnName() : userFieldLabel(queryField)) + " · "
+                            + (order.directionOrDefault() == ReportOrderDirection.DESC ? "По убыванию" : "По возрастанию");
+                })
+                .setHeader("Сортировка").setAutoWidth(true);
+        userSortGrid.addComponentColumn(order -> {
+            HorizontalLayout actions = new HorizontalLayout(
+                    new Button("↑", event -> moveUserSort(order, -1)),
+                    new Button("↓", event -> moveUserSort(order, 1)),
+                    new Button("Удалить", event -> removeUserSort(order)));
+            actions.setSpacing(false);
+            return actions;
+        }).setHeader("").setFlexGrow(0);
+        userSortGrid.setHeight("150px");
+        userSortGrid.setEmptyStateText("Нет правил сортировки");
+        HorizontalLayout sortRow = new HorizontalLayout(userSortField, userSortDirection, addSort);
+        sortRow.setWidthFull();
+        sortRow.setAlignItems(Alignment.END);
+        Details sorting = new Details("Сортировка", new VerticalLayout(sortRow, userSortGrid));
+        sorting.setOpened(true);
+        Details appearance = new Details("Оформление колонок", new Span(
+                "Выберите поле в списке выше, чтобы изменить заголовок, видимость, ширину, "
+                        + "выравнивание, формат и границы."));
+        appearance.setOpened(true);
+        Details pageHint = new Details("Настройки страницы", new Span(
+                "Заголовок отчёта, формат, ориентация и шапка/подвал страницы находятся на вкладке «Страница»."));
+        pageHint.setOpened(false);
+        Span expert = new Span("Расширенный режим сохраняет полный контроль: формулы, alias, вложенные группы и технические настройки.");
+        expert.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        userLayoutPage = new VerticalLayout(title, intro, fields, groups, sorting, appearance, pageHint, expert);
+        userLayoutPage.setPadding(true);
+        userLayoutPage.setSpacing(true);
+        userLayoutPage.setWidthFull();
+        userLayoutPage.setHeightFull();
+        userLayoutPage.getStyle().set("overflow", "auto");
+        refreshUserChoices();
+        return userLayoutPage;
+    }
+
+    private QueryField findQueryField(String alias) {
+        return structureEditor.schemaFields().stream()
+                .filter(field -> Objects.equals(field.name(), alias)).findFirst().orElse(null);
+    }
+
+    private void refreshUserChoices() {
+        if (userField == null || template == null) return;
+        List<QueryField> fields = structureEditor.schemaFields();
+        userField.setItems(fields);
+        userGroupField.setItems(fields);
+        userTotalField.setItems(fields);
+        userSortField.setItems(fields);
+        if (userGroupTotalGroup != null) {
+            userGroupTotalGroup.setItems(template.getBands().stream()
+                    .filter(band -> band.getKind() == ReportBandKind.GROUP_HEADER).toList());
+        }
+        if (userSortGrid != null) userSortGrid.setItems(template.getOrders());
+        if (userFieldsGrid != null) {
+            ReportBand detail = ReportLayoutOperations.findBand(template, ReportBandKind.DETAIL);
+            userFieldsGrid.setItems(detail == null ? List.of() : detail.getFields());
+        }
+        if (userGroupsGrid != null) {
+            userGroupsGrid.setItems(template.getBands().stream()
+                    .filter(band -> band.getKind() == ReportBandKind.GROUP_HEADER).toList());
+        }
+        if (userTotalsGrid != null) {
+            userTotalsGrid.setItems(template.getBands().stream()
+                    .filter(band -> band.getKind() == ReportBandKind.REPORT_FOOTER
+                            || band.getKind() == ReportBandKind.GROUP_FOOTER)
+                    .flatMap(band -> band.getFields().stream()).toList());
+        }
+    }
+
+    private String userFieldLabel(QueryField field) {
+        return field == null ? "" : Objects.requireNonNullElse(field.caption(), field.name());
+    }
+
+    private String alignmentLabel(ReportFieldAlignment alignment) {
+        return switch (alignment) {
+            case LEFT -> "Слева";
+            case CENTER -> "По центру";
+            case RIGHT -> "Справа";
+        };
+    }
+
+    private String aggregationLabel(ReportFieldAggregation aggregation) {
+        return switch (aggregation) {
+            case SUM -> "Сумма";
+            case COUNT -> "Количество значений";
+            case COUNT_ROWS -> "Количество строк";
+            case AVG -> "Среднее";
+            case MIN -> "Минимум";
+            case MAX -> "Максимум";
+            case NONE -> "—";
+        };
+    }
+
+    private void addUserSort() {
+        if (template == null || userSortField.getValue() == null) return;
+        try {
+            ReportLayoutOperations.addOrder(template, userSortField.getValue().name(), userSortDirection.getValue());
+            markDirty();
+            refreshUserChoices();
+        } catch (IllegalArgumentException error) {
+            showNotification(error.getMessage());
+        }
+    }
+
+    private void removeUserSort(ReportOrder order) {
+        ReportLayoutOperations.removeOrder(template, order);
+        markDirty();
+        refreshUserChoices();
+    }
+
+    private void moveUserSort(ReportOrder order, int delta) {
+        ReportLayoutOperations.moveOrder(template, order, delta);
+        markDirty();
+        refreshUserChoices();
+    }
+
+    private void addUserField() {
+        if (template == null || userField.getValue() == null) return;
+        ReportBand detail = ReportLayoutOperations.ensureBand(template, ReportBandKind.DETAIL);
+        try {
+            ReportLayoutOperations.addDetailColumn(detail, userField.getValue().name(), userField.getValue());
+        } catch (IllegalArgumentException error) {
+            showNotification(error.getMessage());
+        }
+        structureEditor.setTemplate(template);
+        refreshUserChoices();
+    }
+
+    private void selectUserField(ReportField field) {
+        selectedUserField = field;
+        userCaption.setValue(Objects.requireNonNullElse(field.getCaption(), ""));
+        userWidth.setValue(field.getWidth());
+        userAlignment.setValue(field.getAlignment());
+        userFormat.setValue(Objects.requireNonNullElse(field.getFormat(), ""));
+        userVisible.setValue(field.isVisible());
+        userBorder.setValue(field.getBorder() == null || field.getBorder());
+    }
+
+    private void applyUserFieldProperties() {
+        if (selectedUserField == null) return;
+        ReportLayoutOperations.updateFieldProperties(selectedUserField, userCaption.getValue(),
+                userVisible.getValue(), userWidth.getValue(), userAlignment.getValue(),
+                userFormat.getValue(), userBorder.getValue());
+        markDirty();
+        refreshUserChoices();
+        structureEditor.setTemplate(template);
+    }
+
+    private void moveUserField(ReportField field, int delta) {
+        if (field != null && field.getBand() != null) {
+            ReportLayoutOperations.moveField(field.getBand(), field, delta);
+            markDirty();
+            refreshUserChoices();
+            structureEditor.setTemplate(template);
+        }
+    }
+
+    private void removeUserField(ReportField field) {
+        if (field != null && field.getBand() != null) {
+            ReportLayoutOperations.removeField(field.getBand(), field);
+            markDirty();
+            refreshUserChoices();
+            structureEditor.setTemplate(template);
+        }
+    }
+
+    private void addUserGroup() {
+        if (template == null || userGroupField.getValue() == null) return;
+        structureEditor.addGroupPairForUser(userGroupField.getValue().name());
+        markDirty();
+        refreshUserChoices();
+    }
+
+    private void removeUserGroup(ReportBand band) {
+        ReportLayoutOperations.removeGroup(template, band);
+        markDirty();
+        structureEditor.setTemplate(template);
+        refreshUserChoices();
+    }
+
+    private void addUserGroupTotal() {
+        if (template == null || userGroupTotalGroup.getValue() == null
+                || (userTotalField.getValue() == null && userTotalAggregation.getValue() != ReportFieldAggregation.COUNT_ROWS)) return;
+        ReportBand footer = ReportLayoutOperations.ensureGroupFooter(template, userGroupTotalGroup.getValue());
+        ReportLayoutOperations.addFooterAggregate(footer,
+                userTotalField.getValue() == null ? "__reportstudio_row_marker" : userTotalField.getValue().name(),
+                userTotalField.getValue(), userTotalAggregation.getValue());
+        markDirty();
+        structureEditor.setTemplate(template);
+        refreshUserChoices();
+    }
+
+    private void addUserTotal() {
+        if (template == null || (userTotalField.getValue() == null
+                && userTotalAggregation.getValue() != ReportFieldAggregation.COUNT_ROWS)) return;
+        ReportBand footer = ReportLayoutOperations.ensureBand(template, ReportBandKind.REPORT_FOOTER);
+        ReportLayoutOperations.addFooterAggregate(footer,
+                userTotalField.getValue() == null ? "__reportstudio_row_marker" : userTotalField.getValue().name(),
+                userTotalField.getValue(), userTotalAggregation.getValue());
+        markDirty();
+        structureEditor.setTemplate(template);
+        refreshUserChoices();
+    }
+
+    private void removeUserTotal(ReportField field) {
+        if (field != null && field.getBand() != null) {
+            ReportLayoutOperations.removeField(field.getBand(), field);
+            markDirty();
+            refreshUserChoices();
+            structureEditor.setTemplate(template);
+        }
+    }
+
+    private void markDirty() {
+        if (!syncing) {
+            dirty = true;
+        }
+    }
+
+    @Override
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    @Override
+    public String getCloseConfirmMessage() {
+        return "В отчёте есть несохранённые изменения. Сохранить их перед закрытием?";
+    }
+
+    @Override
+    public boolean doSave() {
+        try {
+            saveTemplate();
+            return true;
+        } catch (RuntimeException error) {
+            showNotification("Не удалось сохранить шаблон: " + error.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public void beforeLeave(BeforeLeaveEvent event) {
+        if (!dirty) return;
+        event.postpone();
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Несохранённые изменения");
+        dialog.setText(getCloseConfirmMessage());
+        dialog.setConfirmButton("Сохранить и уйти", e -> {
+            if (doSave()) event.getContinueNavigationAction().proceed();
+        });
+        dialog.setCancelButton("Уйти без сохранения", e -> event.getContinueNavigationAction().proceed());
+        dialog.setRejectButton("Остаться", e -> {});
+        dialog.open();
     }
 
     /** Вкладка «Запросы»: кнопка открытия редактора + readonly текст запроса — компакт. */
@@ -193,6 +649,7 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
 
     /** Открывает сохранённый шаблон, переданный каталогом, в текущем редакторе. */
     public void editTemplate(ReportTemplate template) {
+        syncing = true;
         this.template = Objects.requireNonNull(template, "template");
         name.setValue(Objects.requireNonNullElse(template.getName(), ""));
         description.setValue(Objects.requireNonNullElse(template.getDescription(), ""));
@@ -205,6 +662,8 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         // палитра знала поля запроса (иначе существующие колонки выглядят «чужими»).
         lastAnalyzedJpql = "";
         maybeSyncSchemaFromQuery();
+        dirty = false;
+        syncing = false;
     }
 
     @Override
@@ -243,6 +702,7 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         applyFormToTemplate();
         ReportTemplate saved = templateService.saveTemplate(template);
         template = saved;
+        dirty = false;
         structureEditor.setTemplate(template);
         paramEditor.setTemplate(template);
         queryEditor.setTemplate(template);
@@ -275,6 +735,21 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
 
     ReportStructureEditorStructured structureEditor() {
         return structureEditor;
+    }
+
+    /** Текущий режим вкладки «Макет»; тестовый шов. */
+    ReportEditorMode layoutMode() {
+        return layoutMode.getValue();
+    }
+
+    /** Тестовый шов выбора режима; пользовательский UI использует RadioButtonGroup. */
+    void setLayoutModeForTest(ReportEditorMode mode) {
+        layoutMode.setValue(mode);
+    }
+
+    /** Контейнер содержимого вкладки «Макет»; тестовый шов. */
+    Div layoutContent() {
+        return layoutContent;
     }
 
     /** Переключает на вкладку «Страница» (как переход пользователя). */
@@ -338,8 +813,9 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         queryButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button newButton = small(new Button("Новый шаблон", event -> newTemplate()));
         Button saveButton = small(new Button("Сохранить", event -> saveFromUi()));
+        Button previewButton = small(new Button("Предпросмотр", event -> openRunDialog()));
         Button runButton = small(new Button("Запустить", event -> openRunDialog()));
-        return new HorizontalLayout(queryButton, newButton, saveButton, runButton);
+        return new HorizontalLayout(queryButton, newButton, saveButton, previewButton, runButton);
     }
 
     /** Открывает JPQL-запрос в отдельном модальном окне (быстрый доступ к вкладке «Запросы»). */
@@ -358,6 +834,7 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         }
         lastAnalyzedJpql = Objects.requireNonNullElse(template.getJpql(), "");
         structureEditor.updateSchema(analysis.guardResult().selectFields());
+        refreshUserChoices();
         if (reconcileDialogSuppressed) {
             return;
         }
@@ -366,7 +843,23 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
                 && reconcile.changedTypes().isEmpty()) {
             return;
         }
-        new ReconcileDialog(reconcile, () -> structureEditor.removeMissingFields(reconcile)).open();
+        if (userLayoutPage != null && reconcile.hasChanges()) {
+            addOrphanedNotice(reconcile);
+        }
+        new ReconcileDialog(reconcile, () -> {
+            structureEditor.removeMissingFields(reconcile);
+            markDirty();
+            removeOrphanedNotice();
+            refreshUserChoices();
+        }, structureEditor.schemaFields(), (oldAlias, replacement) -> {
+            int changed = ReportLayoutOperations.replaceFieldReference(template, oldAlias, replacement.name());
+            if (changed > 0) {
+                markDirty();
+                structureEditor.setTemplate(template);
+                refreshUserChoices();
+                removeOrphanedNotice();
+            }
+        }).open();
     }
 
     /** При переходе на вкладку «Страница» молча обновляет схему, если запрос менялся. */
@@ -385,6 +878,23 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
             showNotification("Не удалось проверить запрос: " + error.getMessage());
         } finally {
             reconcileDialogSuppressed = false;
+        }
+    }
+
+    private Span orphanedNotice;
+
+    private void addOrphanedNotice(ReconcileResult reconcile) {
+        removeOrphanedNotice();
+        orphanedNotice = new Span("В запросе изменились поля. Недоступные настройки отмечены в списках; "
+                + "их можно удалить через окно проверки запроса.");
+        orphanedNotice.getStyle().set("color", "var(--lumo-error-text-color)");
+        userLayoutPage.addComponentAsFirst(orphanedNotice);
+    }
+
+    private void removeOrphanedNotice() {
+        if (orphanedNotice != null) {
+            userLayoutPage.remove(orphanedNotice);
+            orphanedNotice = null;
         }
     }
 

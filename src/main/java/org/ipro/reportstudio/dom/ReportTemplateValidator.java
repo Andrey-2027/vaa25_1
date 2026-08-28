@@ -93,8 +93,10 @@ public final class ReportTemplateValidator {
 
     private static void validateBands(ReportTemplate template, List<String> out) {
         int headers = 0;
+        int pageHeaders = 0;
         int details = 0;
         int footers = 0;
+        int pageFooters = 0;
         int noData = 0;
         // Ключ группы: (id родителя, groupField) -> счётчики header/footer.
         Map<GroupKey, int[]> groups = new HashMap<>();
@@ -105,8 +107,10 @@ public final class ReportTemplateValidator {
             ReportBandKind kind = band.getKind();
             switch (kind) {
                 case REPORT_HEADER -> headers++;
+                case PAGE_HEADER -> pageHeaders++;
                 case DETAIL -> details++;
                 case REPORT_FOOTER -> footers++;
+                case PAGE_FOOTER -> pageFooters++;
                 case NO_DATA -> noData++;
                 case GROUP_HEADER, GROUP_FOOTER -> {
                     GroupKey key = new GroupKey(band);
@@ -132,6 +136,12 @@ public final class ReportTemplateValidator {
             if (kind.isGroupBand() && band.getParent() != null && band.getParent().getKind() != ReportBandKind.GROUP_HEADER) {
                 out.add("Бэнд " + kind + ": родителем группы может быть только GROUP_HEADER");
             }
+            if (band.getParent() != null && !template.getBands().contains(band.getParent())) {
+                out.add("Бэнд " + kind + ": родитель отсутствует в текущем шаблоне");
+            }
+            if (kind == ReportBandKind.GROUP_HEADER && band.getParent() == band) {
+                out.add("Бэнд GROUP_HEADER: группа не может быть родителем самой себя");
+            }
             if (band.isStartNewPage() && kind != ReportBandKind.GROUP_HEADER) {
                 out.add("Бэнд " + kind + ": «с новой страницы» допустимо только у GROUP_HEADER");
             }
@@ -148,11 +158,17 @@ public final class ReportTemplateValidator {
         if (headers > 1) {
             out.add("Отчёт: не более одного бэнда REPORT_HEADER");
         }
+        if (pageHeaders > 1) {
+            out.add("Отчёт: не более одного бэнда PAGE_HEADER");
+        }
         if (details != 1) {
             out.add("Отчёт: должен быть ровно один бэнд DETAIL (найдено " + details + ")");
         }
         if (footers > 1) {
             out.add("Отчёт: не более одного бэнда REPORT_FOOTER");
+        }
+        if (pageFooters > 1) {
+            out.add("Отчёт: не более одного бэнда PAGE_FOOTER");
         }
         if (noData > 1) {
             out.add("Отчёт: не более одного бэнда NO_DATA (найдено " + noData + ")");
@@ -243,6 +259,13 @@ public final class ReportTemplateValidator {
         // GROUP_FOOTER / REPORT_FOOTER
         if (textField) {
             requireTextOnly(field, kind.name(), queryField, out);
+            return;
+        }
+        if (field.getAggregation() == ReportFieldAggregation.COUNT_ROWS) {
+            if (field.getQueryField() != null && !field.getQueryField().isBlank()
+                    && !"__reportstudio_row_marker".equals(field.getQueryField())) {
+                out.add("Бэнд " + kind + ": COUNT_ROWS не требует пользовательского queryField");
+            }
             return;
         }
         if (isBlank(queryField)) {

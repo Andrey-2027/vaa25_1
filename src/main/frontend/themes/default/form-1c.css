@@ -1,0 +1,323 @@
+﻿/* =====================================================================
+   Пилотная тема "1С / Windows" для диалоговых форм.
+   Два хука (оба оставляем):
+     1) theme-атрибут на оверлее: dialog.getElement().getThemeList().add("form-1c")
+        -> vaadin-dialog-overlay[theme~="form-1c"]
+     2) класс на контенте: content.addClassName("form-1c") -> .form-1c
+   ===================================================================== */
+
+vaadin-dialog-overlay[theme~="form-1c"],
+.form-1c {
+  --lumo-size-xl: 2.25rem;
+  --lumo-size-l: 1.9rem;
+  --lumo-size-m: 1.65rem;
+  --lumo-size-s: 1.5rem;
+  --lumo-size-xs: 1.35rem;
+  --lumo-font-size-xxxl: 1.25rem;
+  --lumo-font-size-xxl: 1.125rem;
+  --lumo-font-size-xl: 1rem;
+  --lumo-font-size-l: 0.875rem;
+  --lumo-font-size-m: 0.8125rem;
+  --lumo-font-size-s: 0.75rem;
+  --lumo-font-size-xs: 0.6875rem;
+  --lumo-space-xl: 1rem;
+  --lumo-space-l: 0.75rem;
+  --lumo-space-m: 0.5rem;
+  --lumo-space-s: 0.25rem;
+  --lumo-space-xs: 0.125rem;
+  --lumo-border-radius-s: 0;
+  --lumo-border-radius-m: 0;
+  --lumo-border-radius-l: 0;
+  --lumo-base-color: #f0f0f0;
+  --vaadin-input-field-border-width: 1px;
+  --vaadin-input-field-border-color: #767676;
+  --vaadin-input-field-border-radius: 0;
+  --vaadin-input-field-background: #ffffff;
+  --vaadin-input-field-height: 1.625rem;
+  --vaadin-grid-row-height: 1.75rem;
+  --vaadin-grid-header-row-height: 1.75rem;
+  --vaadin-grid-cell-padding: 0 8px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] {
+  background: #f0f0f0;
+  border: 1px solid #7a7a7a;
+  border-radius: 0;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  font-size: var(--lumo-font-size-m);
+}
+
+/* --- Шапка и футер диалога (только оверлей) --- */
+
+vaadin-dialog-overlay[theme~="form-1c"]::part(header) {
+  background: linear-gradient(to bottom, #fafafa, #ececec);
+  border-bottom: 1px solid #b5b5b5;
+  padding: 6px 12px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"]::part(header-title) {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1c1c1c;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"]::part(footer) {
+  background: #f0f0f0;
+  border-top: 1px solid #d5d5d5;
+  padding: 6px 12px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"]::part(content) {
+  padding: 8px 12px;
+}
+
+/* --- Кнопки: классические Win32 --- */
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button,
+.form-1c vaadin-button {
+  --vaadin-button-border-radius: 3px;
+  font-size: var(--lumo-font-size-m);
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button::part(label),
+.form-1c vaadin-button::part(label) {
+  color: #1c1c1c;
+  font-weight: 400;
+  padding: 0 8px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button,
+.form-1c vaadin-button {
+  min-height: 1.625rem;
+  padding: 1px 10px;
+  background: linear-gradient(to bottom, #fdfdfd 0%, #f4f4f4 45%, #e6e6e6 100%) !important;
+  border: 1px solid #8f8f8f !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button:hover,
+.form-1c vaadin-button:hover {
+  background: linear-gradient(to bottom, #f2f8fd 0%, #e4f0fa 45%, #d3e5f5 100%);
+  border-color: #3c7fb1 !important;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button:active,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button[active],
+.form-1c vaadin-button:active,
+.form-1c vaadin-button[active] {
+  background: #dcdcdc !important;
+  border-color: #6d6d6d !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button[focus-ring],
+.form-1c vaadin-button[focus-ring] {
+  outline: 1px dotted #333333;
+  outline-offset: -4px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button[theme~="primary"],
+.form-1c vaadin-button[theme~="primary"] {
+  background: linear-gradient(to bottom, #fdfdfd 0%, #f4f4f4 45%, #e6e6e6 100%) !important;
+  border: 1px solid #2f6db4 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button[theme~="primary"]:hover,
+.form-1c vaadin-button[theme~="primary"]:hover {
+  background: linear-gradient(to bottom, #f2f8fd 0%, #e4f0fa 45%, #d3e5f5 100%);
+  border-color: #1e5a9c !important;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button[theme~="primary"]::part(label),
+.form-1c vaadin-button[theme~="primary"]::part(label) {
+  color: #1c1c1c;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button[theme~="icon"],
+.form-1c vaadin-button[theme~="icon"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none;
+  min-height: 1.5rem;
+  padding: 1px 4px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button[theme~="icon"]:hover,
+.form-1c vaadin-button[theme~="icon"]:hover {
+  background: linear-gradient(to bottom, #f2f8fd, #d3e5f5);
+  border-color: #3c7fb1 !important;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button[theme~="icon"][theme~="error"]:hover,
+.form-1c vaadin-button[theme~="icon"][theme~="error"]:hover {
+  border-color: #b3403c !important;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-button[disabled],
+.form-1c vaadin-button[disabled] {
+  background: #f0f0f0;
+  border-color: #b8b8b8;
+  opacity: 0.6;
+}
+
+/* --- Грид --- */
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid,
+.form-1c vaadin-grid,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-tree-grid,
+.form-1c vaadin-tree-grid {
+  border: 1px solid #b5b5b5;
+  background: #ffffff;
+  font-size: var(--lumo-font-size-s);
+  --_lumo-grid-selected-row-color: #d3e8fd;
+  --vaadin-grid-cell-padding: 0 6px;
+  --lumo-space-m: 0.5rem;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid::part(cell),
+.form-1c vaadin-grid::part(cell) {
+  min-height: 24px;
+  font-size: var(--lumo-font-size-s);
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid::part(header-cell),
+.form-1c vaadin-grid::part(header-cell) {
+  background: linear-gradient(to bottom, #fafafa, #ececec);
+  border-right: 1px solid #d0d0d0;
+  border-bottom: 1px solid #b5b5b5;
+  color: #1c1c1c;
+  font-weight: 400;
+  font-size: var(--lumo-font-size-s);
+  min-height: 24px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid::part(body-cell),
+.form-1c vaadin-grid::part(body-cell) {
+  background-color: #ffffff;
+  border-bottom: 1px solid #ebebeb;
+  border-right: 1px solid #f3f3f3;
+  color: #1c1c1c;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid::part(selected-row-cell),
+.form-1c vaadin-grid::part(selected-row-cell) {
+  background-color: #d3e8fd !important;
+  background-image: none !important;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid vaadin-text-field,
+.form-1c vaadin-grid vaadin-text-field {
+  --vaadin-input-field-height: 22px;
+  font-size: 11px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid vaadin-text-field::part(input-field),
+.form-1c vaadin-grid vaadin-text-field::part(input-field) {
+  min-height: 22px;
+  height: 22px;
+  padding: 0 4px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid vaadin-text-field::part(input-field) input,
+.form-1c vaadin-grid vaadin-text-field::part(input-field) input {
+  height: 22px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid vaadin-button,
+.form-1c vaadin-grid vaadin-button {
+  min-height: 22px;
+  height: 22px;
+  padding: 0 4px;
+  line-height: 22px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid vaadin-button,
+.form-1c vaadin-grid vaadin-button {
+  font-size: 11px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid vaadin-icon,
+.form-1c vaadin-grid vaadin-icon,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid iron-icon,
+.form-1c vaadin-grid iron-icon {
+  width: 14px;
+  height: 14px;
+  --lumo-icon-size-m: 14px;
+  --vaadin-icon-size: 14px;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid vaadin-button[theme~="icon"],
+.form-1c vaadin-grid vaadin-button[theme~="icon"] {
+  min-height: 22px !important;
+  height: 22px !important;
+  padding: 0 2px !important;
+  line-height: 22px !important;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-grid vaadin-button[theme~="icon"],
+.form-1c vaadin-grid vaadin-button[theme~="icon"] {
+  height: 22px;
+}
+
+/* --- Поля ввода --- */
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-text-field,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-integer-field,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-number-field,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-date-picker,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-time-picker,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-combo-box,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-text-area,
+.form-1c vaadin-text-field,
+.form-1c vaadin-integer-field,
+.form-1c vaadin-number-field,
+.form-1c vaadin-date-picker,
+.form-1c vaadin-time-picker,
+.form-1c vaadin-combo-box,
+.form-1c vaadin-text-area {
+  font-size: var(--lumo-font-size-s);
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-text-field::part(input-field):focus-within,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-combo-box::part(input-field):focus-within,
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-date-picker::part(input-field):focus-within,
+.form-1c vaadin-text-field::part(input-field):focus-within,
+.form-1c vaadin-combo-box::part(input-field):focus-within,
+.form-1c vaadin-date-picker::part(input-field):focus-within {
+  border-color: #2f6db4;
+}
+
+/* --- Заголовки секций --- */
+
+vaadin-dialog-overlay[theme~="form-1c"] h4,
+.form-1c h4 {
+  margin: 0;
+  font-size: var(--lumo-font-size-m);
+  font-weight: 600;
+  color: #1c1c1c;
+}
+
+/* --- Вкладки --- */
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-tab,
+.form-1c vaadin-tab {
+  font-size: var(--lumo-font-size-s);
+  color: #1c1c1c;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-tab[selected],
+.form-1c vaadin-tab[selected] {
+  color: #1c1c1c;
+  font-weight: 600;
+}
+
+vaadin-dialog-overlay[theme~="form-1c"] vaadin-tabs,
+.form-1c vaadin-tabs {
+  border-bottom: 1px solid #b5b5b5;
+  background: transparent !important;
+}
+
+
+

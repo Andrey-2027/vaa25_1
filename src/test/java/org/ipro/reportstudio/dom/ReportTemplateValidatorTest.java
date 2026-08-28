@@ -427,6 +427,33 @@ class ReportTemplateValidatorTest {
     }
 
     @Test
+    void pageHeaderAndFooterAllowOnlyTextAndAreUnique() {
+        ReportTemplate t = minimalTemplate();
+        ReportBand pageHeader = band(ReportBandKind.PAGE_HEADER, 1);
+        ReportField text = new ReportField();
+        text.setKind(ReportFieldKind.TEXT);
+        text.setText("Организация");
+        pageHeader.addField(text);
+        t.addBand(pageHeader);
+        ReportBand duplicate = band(ReportBandKind.PAGE_HEADER, 2);
+        t.addBand(duplicate);
+        ReportBand pageFooter = band(ReportBandKind.PAGE_FOOTER, 3);
+        ReportField footerText = new ReportField();
+        footerText.setKind(ReportFieldKind.TEXT);
+        footerText.setText("Страница");
+        pageFooter.addField(footerText);
+        t.addBand(pageFooter);
+        ReportBand duplicateFooter = band(ReportBandKind.PAGE_FOOTER, 4);
+        t.addBand(duplicateFooter);
+
+        assertThat(ReportTemplateValidator.validate(t))
+            .contains("Отчёт: не более одного бэнда PAGE_HEADER")
+            .contains("Отчёт: не более одного бэнда PAGE_FOOTER")
+            .noneMatch(message -> message.contains("PAGE_HEADER: текст блока обязателен")
+                    || message.contains("PAGE_FOOTER: текст блока обязателен"));
+    }
+
+    @Test
     void singleNoDataBandAllowed() {
         ReportTemplate t = minimalTemplate();
         ReportBand noData = band(ReportBandKind.NO_DATA, 1);
