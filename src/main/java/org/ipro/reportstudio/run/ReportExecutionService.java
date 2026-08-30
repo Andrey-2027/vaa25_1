@@ -13,6 +13,8 @@ import org.ipro.reportstudio.query.GuardResult;
 import org.ipro.reportstudio.query.OrderByApplier;
 import org.ipro.reportstudio.query.ReportQueryExecutor;
 import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.reportstudio.query.ReportQueryAssemblyService;
+import org.ipro.reportstudio.query.ReportQueryAssembler;
 import org.ipro.reportstudio.query.ServiceParams;
 import org.ipro.reportstudio.render.ReportCompiler;
 import org.ipro.reportstudio.render.ReportExportFormat;
@@ -41,42 +43,44 @@ private final ReportQueryGuard guard;
     private final EntityParamRefresher refresher;
     private final ReportCompiler compiler;
     private final ReportArtifactCache cache;
+    private final ReportQueryAssemblyService queryAssembler;
 
     public ReportExecutionService(ReportQueryGuard guard, ReportQueryExecutor executor,
                                   ReportParamResolver resolver, EntityParamRefresher refresher,
                                   ReportCompiler compiler, ReportArtifactCache cache) {
+        this(guard, executor, resolver, refresher, compiler, cache,
+                new ReportQueryAssemblyService(guard, resolver, refresher));
+    }
+
+    public ReportExecutionService(ReportQueryGuard guard, ReportQueryExecutor executor,
+                                  ReportParamResolver resolver, EntityParamRefresher refresher,
+                                  ReportCompiler compiler, ReportArtifactCache cache,
+                                  ReportQueryAssemblyService queryAssembler) {
         this.guard = guard;
         this.executor = executor;
         this.resolver = resolver;
         this.refresher = refresher;
         this.compiler = compiler;
         this.cache = cache;
+        this.queryAssembler = queryAssembler;
     }
 
     @Transactional(readOnly = true)
     public ReportRunResult run(ReportTemplate template, ReportContext context,
                                Map<String, Object> formValues, String localeTag, String zoneId) {
-        Set<String> paramNames = ReportQueryGuard.parameterNamesOf(template.getParams());
-        GuardResult guardResult = guard.guard(template.getJpql(), paramNames);
-        if (!guardResult.allowed()) {
-            throw new ReportRunException("Отказ: " + String.join("; ", guardResult.errors()));
+        ReportQueryAssemblyService assembledService = queryAssembler;
+        ReportQueryAssembler assembled;
+        try {
+            assembled = assembledService.assemble(template, context, formValues);
+        } catch (IllegalArgumentException error) {
+            throw new ReportRunException(error.getMessage(), error);
         }
-
-        ResolvedParams params = resolver.resolve(template.getParams(), context, formValues);
-        if (!params.ok()) {
-            throw new ReportRunException("Не удалось заполнить параметры: "
-                + String.join("; ", params.errors()));
-        }
-
-String jpql = OrderByApplier.withOrderBy(template.getJpql(), groupFieldsOf(template), ordersOf(template));
-        Map<String, Object> bindings = new HashMap<>(params.bindings());
-        ServiceParams.bindings(context, refresher).forEach(bindings::putIfAbsent);
-        ReportDataset dataset = executor.execute(jpql, bindings,
-            guardResult.selectFields(),
+        ReportDataset dataset = executor.execute(assembled.jpql(), assembled.bindings(),
+            assembled.fields(),
             template.getMaxRows() > 0 ? template.getMaxRows() : ReportTemplate.DEFAULT_MAX_ROWS,
             template.getTimeoutMs() > 0 ? template.getTimeoutMs() : ReportTemplate.DEFAULT_TIMEOUT_MS);
 
-        String key = ReportArtifactCache.key(template, params, context, localeTag, zoneId);
+        String key = ReportArtifactCache.key(template, resolver.resolve(template.getParams(), context, formValues), context, localeTag, zoneId);
         JasperPrint print = compiler.compile(template, dataset);
         cache.put(key, print);
         return new ReportRunResult(print, key);

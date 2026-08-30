@@ -16,6 +16,9 @@ public final class FilterValueCodec {
         if (value == null) return null;
         Class<?> type = wrap(field.javaType());
         try {
+            if (field.dataType() == FilterDataType.ENTITY_REFERENCE) {
+                throw new IllegalArgumentException("Для ссылочного поля требуется typed lookup/resolver: " + field.path());
+            }
             if (type == String.class || type == Object.class) return value;
             if (type == Integer.class) return Integer.valueOf(value);
             if (type == Long.class) return Long.valueOf(value);
@@ -41,8 +44,11 @@ public final class FilterValueCodec {
 
     public static List<Object> decodeList(String value, FilterFieldResolver.ResolvedFilterField field) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException("IN требует значения");
-        return Arrays.stream(value.split(",", -1)).map(String::trim)
-                .map(item -> decode(item, field)).toList();
+        List<String> items = Arrays.stream(value.split(",", -1)).map(String::trim).toList();
+        if (items.stream().anyMatch(String::isBlank)) {
+            throw new IllegalArgumentException("IN содержит пустое значение");
+        }
+        return items.stream().map(item -> decode(item, field)).toList();
     }
 
     private static Class<?> wrap(Class<?> type) {

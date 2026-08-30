@@ -7,6 +7,7 @@ import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.query.ReportPreviewService;
+import org.ipro.reportstudio.query.ReportQueryAssemblyService;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,8 @@ class ReportQueryEditorTest {
                 mock(QueryMetadataCatalogService.class),
                 mock(ReportPreviewService.class),
                 mock(LookupService.class),
-                mock(SelectionFormAssembler.class));
+                mock(SelectionFormAssembler.class),
+                mock(ReportQueryAssemblyService.class));
         editor.setTemplate(template);
         return editor;
     }
@@ -86,5 +88,31 @@ class ReportQueryEditorTest {
         assertThat(template.getJpql()).isEqualTo("select a.code from Nomenclature a");
         assertThat(changed[0]).isSameAs(template);
         assertThat(editor.getJpql()).isEqualTo("select a.code from Nomenclature a");
+    }
+
+    @Test
+    void constructorResultFormatsTextAndImportsWhereBindingsIntoTestParams() {
+        ReportTemplate template = new ReportTemplate();
+        template.setJpql("select a.code from Nomenclature a");
+        ReportQueryEditor editor = newEditor(template);
+
+        var definition = new org.ipro.reportstudio.query.VisualQueryDefinition("Nomenclature", "nomenclature",
+                java.util.List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.SelectField("code", "code")));
+        String rawJpql = "select nomenclature.code as code from Nomenclature nomenclature "
+                + "where nomenclature.code = :visualFilter_1";
+        editor.applyConstructorResult(new org.ipro.reportstudio.query.constructor.JpqlQueryBuilderDialog.Result(
+                definition, rawJpql, java.util.Map.of("visualFilter_1", "S-1")));
+
+        // В редактор вставлен форматированный текст (как в окне «Запрос» конструктора)
+        assertThat(editor.getJpql()).isNotEqualTo(rawJpql);
+        assertThat(editor.getJpql()).contains("nomenclature.code = :visualFilter_1");
+        // Bindings конструктора стали тестовыми значениями параметров — иначе
+        // «Проверить»/«Выполнить» не сможет забиндить :visualFilter_*.
+        assertThat(editor.testParams()).singleElement().satisfies(param -> {
+            assertThat(param.name()).isEqualTo("visualFilter_1");
+            assertThat(param.value()).isEqualTo("S-1");
+        });
+        assertThat(template.getQuerySource())
+                .isEqualTo(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL);
     }
 }

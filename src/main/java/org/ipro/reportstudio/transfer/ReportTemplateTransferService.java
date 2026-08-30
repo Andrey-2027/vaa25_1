@@ -104,6 +104,7 @@ public class ReportTemplateTransferService {
         target.setDescription(template.getDescription());
         target.setTargetEntityClass(template.getTargetEntityClass());
         target.setJpql(template.getJpql());
+        target.setQuerySource(template.getQuerySource());
         target.setMaxRows(template.getMaxRows());
         target.setTimeoutMs(template.getTimeoutMs());
         target.setAdvanced(template.isAdvanced());
@@ -112,6 +113,8 @@ public class ReportTemplateTransferService {
         target.setBaseFontSize(template.getBaseFontSize());
         target.setGridEnabled(template.getGridEnabledRaw());
         target.setStripeRows(template.getStripeRowsRaw());
+        target.setVisualFilterJson(template.getVisualFilterJson());
+        target.setVisualQueryJson(template.getVisualQueryJson());
 
         for (ReportParam source : template.getParams()) {
             ReportTemplateExchange.Param param = new ReportTemplateExchange.Param();
@@ -178,6 +181,7 @@ target.getBands().add(band);
         template.setDescription(source.getDescription());
         template.setTargetEntityClass(source.getTargetEntityClass());
         template.setJpql(source.getJpql());
+        template.setQuerySource(source.getQuerySource());
         template.setMaxRows(source.getMaxRows());
         template.setTimeoutMs(source.getTimeoutMs());
         template.setAdvanced(source.isAdvanced());
@@ -186,6 +190,8 @@ target.getBands().add(band);
         template.setBaseFontSize(source.getBaseFontSize());
         template.setGridEnabled(source.getGridEnabled());
         template.setStripeRows(source.getStripeRows());
+        template.setVisualFilterJson(source.getVisualFilterJson());
+        template.setVisualQueryJson(source.getVisualQueryJson());
 
         for (ReportTemplateExchange.Param sourceParam : safeList(source.getParams())) {
             ReportParam param = new ReportParam();

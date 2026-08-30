@@ -11,6 +11,7 @@ import org.ipro.reportstudio.dom.ReportPageSize;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
 import org.ipro.reportstudio.dom.ReportTemplateState;
+import org.ipro.reportstudio.dom.ReportQuerySource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class ReportTemplateDto {
     private String description;
     private ReportTemplateState state = ReportTemplateState.DRAFT;
     private String jpql;
+    private ReportQuerySource querySource = ReportQuerySource.MANUAL;
     private Integer maxRows;
     private Integer timeoutMs;
     private boolean advanced;
@@ -40,6 +42,8 @@ public class ReportTemplateDto {
     private Integer baseFontSize;
     private Boolean gridEnabled;
     private Boolean stripeRows;
+    private String visualFilterJson;
+    private String visualQueryJson;
     private List<ReportParamDto> params = new ArrayList<>();
     private List<ReportBandDto> bands = new ArrayList<>();
     private List<ReportOrderDto> orders = new ArrayList<>();
@@ -83,6 +87,9 @@ public class ReportTemplateDto {
     public void setState(ReportTemplateState state) {
         this.state = state;
     }
+
+    public ReportQuerySource getQuerySource() { return querySource; }
+    public void setQuerySource(ReportQuerySource querySource) { this.querySource = querySource; }
 
     public String getJpql() {
         return jpql;
@@ -154,6 +161,17 @@ public class ReportTemplateDto {
 
     public void setStripeRows(Boolean stripeRows) {
         this.stripeRows = stripeRows;
+    }
+
+    public String getVisualQueryJson() { return visualQueryJson; }
+    public void setVisualQueryJson(String visualQueryJson) { this.visualQueryJson = visualQueryJson; }
+
+    public String getVisualFilterJson() {
+        return visualFilterJson;
+    }
+
+    public void setVisualFilterJson(String visualFilterJson) {
+        this.visualFilterJson = visualFilterJson;
     }
 
     public List<ReportParamDto> getParams() {

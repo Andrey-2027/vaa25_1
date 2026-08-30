@@ -8,8 +8,8 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import org.ipro.filter.FilterNode;
 import org.ipro.metadata.ColumnPath;
-import org.ipro.metadata.FilterSpec;
 import org.ipro.metadata.GridViewState;
 import org.ipro.metadata.MetadataResolver;
 import org.ip.model.GridFormView;
@@ -40,6 +40,7 @@ public class ViewSelectorDialog extends Dialog {
     private final MetadataResolver metadataResolver;
     private final GridFormViewService gridFormViewService;
     private final LookupService lookupService;
+    private final org.ipro.filter.FilterEntitySelector entitySelector;
     private final String formKey;
     private final boolean supportsFilters;
     private final Consumer<GridFormView> onApply;
@@ -54,6 +55,7 @@ public class ViewSelectorDialog extends Dialog {
                               MetadataResolver metadataResolver,
                               GridFormViewService gridFormViewService,
                               LookupService lookupService,
+                              org.ipro.filter.FilterEntitySelector entitySelector,
                               String formKey,
                               boolean supportsFilters,
                               List<GridFormView> views,
@@ -66,6 +68,7 @@ public class ViewSelectorDialog extends Dialog {
         this.metadataResolver = metadataResolver;
         this.gridFormViewService = gridFormViewService;
         this.lookupService = lookupService;
+        this.entitySelector = entitySelector;
         this.formKey = formKey;
         this.supportsFilters = supportsFilters;
         this.currentDefaultViewId = currentDefaultViewId;
@@ -127,13 +130,13 @@ public class ViewSelectorDialog extends Dialog {
         standard.setTooltipText("Состав колонок из метаданных, без сохранённого вида");
 
         Button create = new Button("Создать", e -> openEditor(null,
-            metadata.getListColumnPaths(), List.of(), ""));
+            metadata.getListColumnPaths(), null, ""));
 
         Button copy = new Button("Копировать", e -> {
             GridFormView selected = requireSelection();
             if (selected == null) return;
             GridViewState state = GridViewState.fromJson(selected.getColumns());
-            openEditor(null, toColumnPaths(state), state.filters(),
+            openEditor(null, toColumnPaths(state), state.userFilterOrLegacy(),
                 selected.getName() + " (копия)");
         });
 
@@ -141,7 +144,7 @@ public class ViewSelectorDialog extends Dialog {
             GridFormView selected = requireSelection();
             if (selected == null) return;
             GridViewState state = GridViewState.fromJson(selected.getColumns());
-            openEditor(selected, toColumnPaths(state), state.filters(),
+            openEditor(selected, toColumnPaths(state), state.userFilterOrLegacy(),
                 selected.getName());
         });
 
@@ -166,13 +169,14 @@ public class ViewSelectorDialog extends Dialog {
     }
 
     private void openEditor(GridFormView editingView, List<ColumnPath> initialColumns,
-                            List<FilterSpec> initialFilters, String initialName) {
+                            FilterNode initialFilter, String initialName) {
         new GridViewEditorDialog(metadata, metadataResolver, gridFormViewService, lookupService, formKey,
-            editingView, initialColumns, initialFilters, initialName, supportsFilters,
+            editingView, initialColumns, initialFilter, initialName, supportsFilters,
             savedView -> {
                 onApply.accept(savedView);
                 grid.setItems(gridFormViewService.findVisibleViews(formKey));
-            }
+            },
+            entitySelector
         ).open();
     }
 

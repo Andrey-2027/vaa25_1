@@ -31,6 +31,7 @@ import org.ipro.reportstudio.dom.ReportTemplateState;
 import org.ipro.reportstudio.query.ReconcileResult;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.reportstudio.query.ReportQueryAssemblyService;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.reportstudio.run.ReportExecutionService;
 
@@ -63,6 +64,8 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
     private final QueryEditorAnalysisService analysisService;
     private final QueryMetadataCatalogService catalogService;
     private final ReportPreviewService previewService;
+    private final ReportQueryAssemblyService queryAssemblyService;
+    private final org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog;
 
     private final TextField name = new TextField("Наименование отчёта");
     private final TextArea description = new TextArea("Описание");
@@ -86,7 +89,9 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
             ReportTemplateService templateService,
             ReportExecutionService executionService,
             LookupService lookupService,
-            SelectionFormAssembler selectionFormAssembler) {
+            SelectionFormAssembler selectionFormAssembler,
+            ReportQueryAssemblyService queryAssemblyService,
+            org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog) {
         this.templateService = templateService;
         this.executionService = executionService;
         this.lookupService = lookupService;
@@ -94,8 +99,11 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
         this.analysisService = queryEditorAnalysisService;
         this.catalogService = queryMetadataCatalogService;
         this.previewService = previewService;
+        this.queryAssemblyService = queryAssemblyService;
+        this.visualCatalog = visualCatalog;
         this.queryEditor = new ReportQueryEditor(queryEditorAnalysisService, queryMetadataCatalogService,
-                previewService, lookupService, selectionFormAssembler);
+                previewService, lookupService, selectionFormAssembler, queryAssemblyService);
+        this.queryEditor.setQueryConstructorCatalog(visualCatalog);
         this.queryEditor.setChangeListener(template1 -> syncJpqlText());
         this.queryEditor.setAnalysisListener(this::onQueryAnalyzed);
         this.paramEditor.setEntityOptions(queryMetadataCatalogService.entityOptions());
@@ -315,7 +323,8 @@ public class ReportEditorView extends VerticalLayout implements BeforeEnterObser
     /** Открывает JPQL-запрос в отдельном модальном окне (быстрый доступ к вкладке «Запросы»). */
     private void openQueryDialog() {
         ReportQueryEditor dialogEditor = new ReportQueryEditor(analysisService, catalogService,
-                previewService, lookupService, selectionFormAssembler);
+                previewService, lookupService, selectionFormAssembler, queryAssemblyService);
+        dialogEditor.setQueryConstructorCatalog(visualCatalog);
         dialogEditor.setTemplate(template);
         new ReportQueryDialog(dialogEditor, template, this::refreshEditors, this::onQueryAnalyzed).open();
     }

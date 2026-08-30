@@ -54,6 +54,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private final EntityMetadataInfo metadata;
     private final org.ipro.filtergrid.FilterGrid<T> filterGrid;
     private final HorizontalLayout toolbar = new HorizontalLayout();
+    private ListFormVisualFilterPanel visualFilterPanel;
     private final Button addButton = new Button("Создать", VaadinIcon.PLUS.create());
     private final Button editButton = new Button("Изменить", VaadinIcon.EDIT.create());
     private final Button deleteButton = new Button("Удалить", VaadinIcon.TRASH.create());
@@ -76,6 +77,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private org.ipro.filter.FilterNode fixedVisualFilter;
     private org.ipro.filter.FilterNode contextVisualFilter;
     private org.ipro.filter.FilterNode userVisualFilter;
+    private org.ipro.filter.FilterEntitySelector entitySelector;
 
     private org.ip.service.GridFormViewService gridFormViewService;
     private org.ip.service.FormSettingsService formSettingsService;
@@ -152,6 +154,11 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     /** Устанавливает пользовательскую группу, включая вложенные OR. */
     public void setUserFilter(org.ipro.filter.FilterNode filter) {
         userVisualFilter = filter;
+        // Панель отбора должна отражать реально применённый фильтр (в т.ч. из сохранённого вида),
+        // иначе «Применить» поверх неё молча сохранит другой фильтр, а грид останется пустым.
+        if (visualFilterPanel != null) {
+            visualFilterPanel.load(filter);
+        }
         rebuildVisualFilter();
     }
 
@@ -160,6 +167,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         contextVisualFilter = null;
         userVisualFilter = null;
         visualFilter = null;
+        syncGroupingBaseSpecification();
         refresh();
     }
 
@@ -168,8 +176,21 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                 fixedVisualFilter, contextVisualFilter, userVisualFilter).root();
         visualFilter = root == null ? null
                 : org.ipro.filter.JpaFilterConditionCompiler.compile(root,
-                    new org.ipro.filter.ColumnPathFilterFieldResolver(activeColumns));
+                    new org.ipro.filter.LookupFilterFieldResolver(
+                        new org.ipro.filter.ColumnPathFilterFieldResolver(metadata.getListColumnPaths()),
+                        this::lookupFilterOptions));
+        // Дерево группировки должно показывать значения/счётчики с учётом визуального
+        // фильтра, а не полный каталог (иначе «в группировке все типы, хотя отфильтровано»).
+        syncGroupingBaseSpecification();
         refresh();
+    }
+
+    /** Прокидывает визуальный фильтр в дерево группировки (только для группируемого грида). */
+    private void syncGroupingBaseSpecification() {
+        if (this.filterGrid instanceof org.ipro.filtergrid.grouping.GroupableJpaFilterGrid) {
+            ((org.ipro.filtergrid.grouping.GroupableJpaFilterGrid<T>) this.filterGrid)
+                    .setExternalSpecification(visualFilter);
+        }
     }
 
     public Specification<T> getVisualFilter() {
@@ -209,6 +230,14 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         setContextFilter((Specification<T>) null);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private List<?> lookupFilterOptions(org.ipro.filter.FilterFieldResolver.ResolvedFilterField field) {
+        if (lookupService == null || field == null) return List.of();
+        FieldMetadataInfo info = metadata.getFieldByName(field.path());
+        return info != null && info.hasLookup()
+                ? lookupService.findAll(info.getLookupEntity()) : List.of();
+    }
+
     private Collection<String> collectFetchPaths() {
         LinkedHashSet<String> paths = new LinkedHashSet<>();
         for (ColumnPath column : activeColumns) {
@@ -233,6 +262,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         setSpacing(true);
 
         configureColumnsAndFilters();
+        ensureVisualFilterPanel();
         configureToolbar(service);
         configureGridSelection();
 
@@ -252,7 +282,11 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
         try {
             this.filterGrid.build();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            Notification.show("Не удалось построить фильтры списка: "
+                    + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()),
+                    5000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 
@@ -368,7 +402,8 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             ? formSettingsService.get(defaultViewSettingKey()).orElse(null)
             : null;
 
-        new ViewSelectorDialog(metadata, metadataResolver, gridFormViewService, lookupService, formKey, true,
+        new ViewSelectorDialog(metadata, metadataResolver, gridFormViewService, lookupService,
+            entitySelector, formKey, true,
             views, defaultViewId,
             this::applyView,
             view -> {
@@ -562,6 +597,33 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         this.lookupService = lookupService;
     }
 
+    private void ensureVisualFilterPanel() {
+        if (visualFilterPanel != null) return;
+        visualFilterPanel = new ListFormVisualFilterPanel(this, metadata, this::lookupFilterOptions);
+        if (entitySelector != null) {
+            visualFilterPanel.setEntitySelector(entitySelector);
+        }
+        int gridIndex = indexOf(filterGrid);
+        if (gridIndex < 0) {
+            add(visualFilterPanel);
+        } else {
+            addComponentAtIndex(gridIndex, visualFilterPanel);
+        }
+        setFlexGrow(0, visualFilterPanel);
+    }
+
+    /**
+     * Подключает выбор ссылочных полей отбора через форму выбора (SelectionForm),
+     * а не комбобокс с полной загрузкой справочника. Реализация — на стороне
+     * вызывающего кода (FormCoordinator), платформа не зависит от SelectionForm.
+     */
+    public void setEntitySelector(org.ipro.filter.FilterEntitySelector entitySelector) {
+        this.entitySelector = entitySelector;
+        if (visualFilterPanel != null) {
+            visualFilterPanel.setEntitySelector(entitySelector);
+        }
+    }
+
     public void setMetadataResolver(MetadataResolver metadataResolver) {
         this.metadataResolver = metadataResolver;
     }
@@ -675,6 +737,11 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     public Button getEditButton() { return editButton; }
     public Button getDeleteButton() { return deleteButton; }
     public Button getRefreshButton() { return refreshButton; }
+
+    /** Панель сложного пользовательского отбора; создаётся после подключения LookupService. */
+    ListFormVisualFilterPanel getVisualFilterPanel() { return visualFilterPanel; }
+
+    public boolean hasVisualFilterPanel() { return visualFilterPanel != null; }
 
     public void setReadOnly(boolean readOnly) {
         addButton.setVisible(!readOnly);

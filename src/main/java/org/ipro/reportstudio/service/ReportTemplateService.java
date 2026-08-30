@@ -123,6 +123,8 @@ public class ReportTemplateService extends ValidatedJpaCrudService<ReportTemplat
         copy.setDescription(source.getDescription());
         copy.setTargetEntityClass(source.getTargetEntityClass());
         copy.setJpql(source.getJpql());
+        copy.setVisualQueryJson(source.getVisualQueryJson());
+        copy.setQuerySource(source.getQuerySource());
         copy.setMaxRows(source.getMaxRows());
         copy.setTimeoutMs(source.getTimeoutMs());
         copy.setAdvanced(source.isAdvanced());
@@ -131,6 +133,7 @@ public class ReportTemplateService extends ValidatedJpaCrudService<ReportTemplat
         copy.setBaseFontSize(source.getBaseFontSize());
         copy.setGridEnabled(source.getGridEnabledRaw());
         copy.setStripeRows(source.getStripeRowsRaw());
+        copy.setVisualFilterJson(source.getVisualFilterJson());
         copy.setState(ReportTemplateState.DRAFT);
 
         for (ReportParam sourceParam : source.getParams()) {

@@ -200,6 +200,7 @@ class ReportTemplateMapperTest {
         dto.setBaseFontSize(12);
         dto.setGridEnabled(false);
         dto.setStripeRows(true);
+        dto.setVisualFilterJson("{\"type\":\"group\",\"operator\":\"AND\",\"children\":[]}");
 
         ReportParamDto scalar = new ReportParamDto();
         scalar.setId(1L);

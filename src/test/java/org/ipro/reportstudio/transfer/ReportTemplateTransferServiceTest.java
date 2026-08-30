@@ -39,6 +39,7 @@ class ReportTemplateTransferServiceTest {
         ReportTemplate source = template();
         source.setGridEnabled(false);
         source.setPageSize(ReportPageSize.LEGAL);
+        source.setVisualFilterJson("{\"type\":\"group\",\"operator\":\"AND\",\"children\":[{\"type\":\"condition\"}]}");
         String json = transfer.exportTemplate(source);
         ReportTemplate imported = transfer.importTemplate(json);
 
@@ -48,6 +49,7 @@ class ReportTemplateTransferServiceTest {
         assertThat(imported.getState()).isEqualTo(ReportTemplateState.DRAFT);
         assertThat(imported.isGridEnabled()).isFalse();
         assertThat(imported.pageSizeOrDefault()).isEqualTo(ReportPageSize.LEGAL);
+        assertThat(imported.getVisualFilterJson()).isEqualTo(source.getVisualFilterJson());
         assertThat(imported.getBands()).singleElement().satisfies(band ->
                 assertThat(band.getFields()).singleElement().satisfies(field ->
                         assertThat(field.getQueryField()).isEqualTo("code")));

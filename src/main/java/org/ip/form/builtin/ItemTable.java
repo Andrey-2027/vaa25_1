@@ -418,7 +418,7 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
 
         new ViewSelectorDialog(
             new TableSectionGridMetadata(sectionMeta), metadataResolver, gridFormViewService, lookupService,
-            formKey, false,
+            null, formKey, false,
             views, defaultViewId,
             this::applyView,
             view -> {

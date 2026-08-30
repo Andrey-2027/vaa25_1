@@ -136,10 +136,11 @@ public class GridViewEditorDialog extends Dialog {
                                 String formKey,
                                 GridFormView editingView,
                                 List<ColumnPath> initialColumns,
-                                List<FilterSpec> initialFilters,
+                                FilterNode initialFilter,
                                 String initialName,
                                 boolean supportsFilters,
-                                Consumer<GridFormView> onSaved) {
+                                Consumer<GridFormView> onSaved,
+                                org.ipro.filter.FilterEntitySelector entitySelector) {
         this.metadata = metadata;
         this.gridFormViewService = gridFormViewService;
         this.lookupService = lookupService;
@@ -174,11 +175,15 @@ public class GridViewEditorDialog extends Dialog {
 
         this.supportsFilters = supportsFilters;
         if (supportsFilters) {
-            filterTreeValue = legacyFilterTree(initialFilters);
+            filterTreeValue = initialFilter;
             filterTreeEditor = new FilterTreeEditor(
-                    new org.ipro.filter.ColumnPathFilterFieldResolver(metadata.getListColumnPaths()),
+                    new org.ipro.filter.LookupFilterFieldResolver(
+                            new org.ipro.filter.ColumnPathFilterFieldResolver(filterableColumns()),
+                            field -> lookupFilterOptions(field)),
                     filterTreeValue,
-                    value -> filterTreeValue = value);
+                    value -> filterTreeValue = value,
+                    List.of(),
+                    entitySelector);
         }
 
         com.vaadin.flow.component.Component columnsAndMaybeFilters;
@@ -342,6 +347,22 @@ public class GridViewEditorDialog extends Dialog {
 
     // === Секция "Отбор" ===
 
+    private List<ColumnPath> filterableColumns() {
+        return metadata.getListColumnPaths().stream()
+                .filter(column -> column.asFieldMetadata()
+                        .map(FieldMetadataInfo::isFilterEnabled)
+                        .orElse(true))
+                .toList();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private List<?> lookupFilterOptions(org.ipro.filter.FilterFieldResolver.ResolvedFilterField field) {
+        if (field == null || lookupService == null) return List.of();
+        FieldMetadataInfo info = metadata.getFieldByName(field.path());
+        return info != null && info.hasLookup()
+                ? lookupService.findAll(info.getLookupEntity()) : List.of();
+    }
+
     private boolean isFilterable(FieldMetadataInfo field) {
         return switch (field.getResolvedType()) {
             case TEXT, INTEGER, DECIMAL, PASSWORD, EMAIL, DATE, ENUM -> true;
@@ -483,7 +504,7 @@ public class GridViewEditorDialog extends Dialog {
         List<FilterNode> nodes = new ArrayList<>();
         for (FilterSpec spec : initialFilters) {
             try {
-                var field = new org.ipro.filter.ColumnPathFilterFieldResolver(metadata.getListColumnPaths()).resolve(spec.path());
+                var field = new org.ipro.filter.ColumnPathFilterFieldResolver(filterableColumns()).resolve(spec.path());
                 FilterOperator op = switch (spec.mode() == null ? "" : spec.mode()) {
                     case "EQUALS" -> FilterOperator.EQ;
                     case "STARTS_WITH" -> FilterOperator.STARTS_WITH;
@@ -547,6 +568,12 @@ public class GridViewEditorDialog extends Dialog {
         }
         if (selected.isEmpty()) {
             Notification.show("Выберите хотя бы одну колонку", 3000, Notification.Position.MIDDLE)
+                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return false;
+        }
+        List<String> filterErrors = filterTreeEditor == null ? List.of() : filterTreeEditor.validationErrors();
+        if (!filterErrors.isEmpty()) {
+            Notification.show("Отбор: " + filterErrors.get(0), 5000, Notification.Position.MIDDLE)
                 .addThemeVariants(NotificationVariant.LUMO_ERROR);
             return false;
         }

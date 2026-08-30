@@ -11,11 +11,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class FilterConditionTest {
     @Test
     void validatesOperatorsAndValues() {
-        assertThatThrownBy(() -> new FilterCondition("name", FilterOperator.EQ, null, null, FilterDataType.TEXT))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new FilterCondition("name", FilterOperator.BETWEEN, "a", null, FilterDataType.TEXT))
-                .isInstanceOf(IllegalArgumentException.class);
+        // Черновик без значения допустим — полнота проверяется при применении (UI/компилятор).
+        assertThat(new FilterCondition("name", FilterOperator.EQ, null, null, FilterDataType.TEXT).value()).isNull();
+        assertThat(new FilterCondition("name", FilterOperator.BETWEEN, "a", null, FilterDataType.TEXT).valueTo()).isNull();
+        // Структурные правила остаются: «Пусто» не принимает значение, второе значение — только для BETWEEN.
         assertThatThrownBy(() -> new FilterCondition("name", FilterOperator.IS_NULL, "x", null, FilterDataType.TEXT))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new FilterCondition("name", FilterOperator.EQ, "x", "y", FilterDataType.TEXT))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

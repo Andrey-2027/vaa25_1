@@ -10,6 +10,7 @@ import org.ipro.reportstudio.param.EntityParamRefresher;
 import org.ipro.reportstudio.param.ReportParamResolver;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryExecutor;
+import org.ipro.reportstudio.query.ReportQueryAssemblyService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
 import org.ipro.reportstudio.query.ReportRunQuota;
 import org.ipro.reportstudio.query.QuerySemanticAnalyzer;
@@ -117,6 +118,16 @@ public class ReportStudioAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public org.ipro.reportstudio.query.QueryBuilderMetadataCatalog queryBuilderMetadataCatalog(
+            EntityManagerFactory entityManagerFactory,
+            MetadataResolver metadataResolver,
+            RlsReadGate rlsReadGate,
+            RlsCurrentUser currentUser) {
+        return new org.ipro.reportstudio.query.QueryBuilderMetadataCatalog(entityManagerFactory, metadataResolver, rlsReadGate, currentUser);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public QueryMetadataCatalogService queryMetadataCatalogService(
             EntityManagerFactory entityManagerFactory,
             MetadataResolver metadataResolver,
@@ -148,13 +159,23 @@ public class ReportStudioAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-public ReportExecutionService reportExecutionService(ReportQueryGuard guard,
+    public ReportQueryAssemblyService reportQueryAssemblyService(ReportQueryGuard guard,
+                                                                  ReportParamResolver resolver,
+                                                                  EntityParamRefresher refresher,
+                                                                  org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog) {
+        return new ReportQueryAssemblyService(guard, resolver, refresher, visualCatalog);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ReportExecutionService reportExecutionService(ReportQueryGuard guard,
                                                          ReportQueryExecutor executor,
                                                          ReportParamResolver resolver,
                                                          EntityParamRefresher refresher,
                                                          ReportCompiler compiler,
-                                                         ReportArtifactCache cache) {
-        return new ReportExecutionService(guard, executor, resolver, refresher, compiler, cache);
+                                                         ReportArtifactCache cache,
+                                                         ReportQueryAssemblyService queryAssembler) {
+        return new ReportExecutionService(guard, executor, resolver, refresher, compiler, cache, queryAssembler);
     }
 @Bean
     @ConditionalOnMissingBean

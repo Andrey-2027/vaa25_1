@@ -1,291 +1,45 @@
 package org.ipro.reportstudio.dom;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import org.ipro.crud.BaseEntity;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Декларативная сериализуемая модель печатного отчёта (V1) — не Java-код,
- * а данные: JPQL, параметры, поля и layout (бэнды). Изменяемая сущность:
- * частые правки не плодят версий; снапшот декларации делается на момент
- * публикации (ReportTemplateState.PUBLISHED) и при каждом запуске (ReportRun,
- * Фаза 6).
- *
- * JPQL здесь — язык получения данных (SELECT-only, guard в Фазе 2);
- * рендером занимается ReportCompiler (Фаза 4), отчётные сущности с DR/JR
- * не связаны (точка замены стека).
- */
 @Entity
-@Table(name = "report_template",
-    uniqueConstraints = @UniqueConstraint(name = "uk_report_template_name", columnNames = "name"))
+@Table(name = "report_template", uniqueConstraints = @UniqueConstraint(name = "uk_report_template_name", columnNames = "name"))
 public class ReportTemplate extends BaseEntity {
-
-    /** Максимум строк результата по умолчанию (runtime-ограничение, Фаза 2). */
     public static final int DEFAULT_MAX_ROWS = 5000;
-
-    /** Таймаут выполнения запроса по умолчанию, мс. */
-    public static final int DEFAULT_TIMEOUT_MS = 30_000;
-
-    /** Сколько строк берёт «Проверить запрос» (предпросмотр данных, Фаза 2). */
+    public static final int DEFAULT_TIMEOUT_MS = 30000;
     public static final int PREVIEW_MAX_ROWS = 20;
-
-    /** Базовый размер шрифта печати, pt (если в шаблоне не задан). */
     public static final int DEFAULT_FONT_SIZE = 10;
-
-    @NotBlank
-    @Size(max = 100)
-    @Column(nullable = false, unique = true, length = 100)
-    private String name;
-
-    @Size(max = 1000)
-    @Column(length = 1000)
-    private String description;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private ReportTemplateState state = ReportTemplateState.DRAFT;
-
-    /** JPQL-запрос данных (SELECT-only; фактическое выполнение — через guard, Фаза 2). */
-    @NotBlank
-    @Column(nullable = false, columnDefinition = "text")
-    private String jpql;
-
-    /**
-     * Полное имя типа сущности, из реестра которого доступна печатная форма.
-     * {@code null} сохраняет совместимость с шаблонами, созданными до этой настройки.
-     */
-    @Column(name = "target_entity_class", length = 512)
-    private String targetEntityClass;
-
-    /** Ограничение числа строк результата; 0 = не ограничивать. */
-    @Column(name = "max_rows", nullable = false)
-    private int maxRows = DEFAULT_MAX_ROWS;
-
-    /** Таймаут выполнения, мс; 0 = не ограничивать. */
-    @Column(name = "timeout_ms", nullable = false)
-    private int timeoutMs = DEFAULT_TIMEOUT_MS;
-
-    /**
-     * advanced-флаг: полная широта JPQL (CTE, подзапросы, window-функции,
-     * GROUP BY в запросе). Выдаётся ролью; без него запрос проходит
-     * стандартный упрощённый семантический анализ (Фаза 2).
-     */
-    @Column(nullable = false)
-    private boolean advanced;
-
-    /** Границы (сетка) колонок и заголовков на печати; null = включено. */
-    @Column(name = "grid_enabled")
-    private Boolean gridEnabled;
-
-    /** Чередование заливки строк (полосатость); null = выключено. */
-    @Column(name = "stripe_rows")
-    private Boolean stripeRows;
-
-    /** Базовый размер шрифта, pt; null = 10. */
-    @Column(name = "base_font_size")
-    private Integer baseFontSize;
-
-    /** Формат печатной страницы (A4 по умолчанию). */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "page_size", length = 10)
-    private ReportPageSize pageSize;
-
-    /** Ориентация печатной страницы (PORTRAIT по умолчанию). */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "page_orientation", length = 10)
-    private ReportPageOrientation pageOrientation;
-
-    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("position ASC, id ASC")
-    private List<ReportParam> params = new ArrayList<>();
-
-    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("position ASC, id ASC")
-    private List<ReportBand> bands = new ArrayList<>();
-
-    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("position ASC, id ASC")
-    private List<ReportOrder> orders = new ArrayList<>();
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public ReportTemplateState getState() {
-        return state;
-    }
-
-    public void setState(ReportTemplateState state) {
-        this.state = state;
-    }
-
-    public String getJpql() {
-        return jpql;
-    }
-
-    public void setJpql(String jpql) {
-        this.jpql = jpql;
-    }
-
-    public String getTargetEntityClass() {
-        return targetEntityClass;
-    }
-
-    public void setTargetEntityClass(String targetEntityClass) {
-        this.targetEntityClass = targetEntityClass == null || targetEntityClass.isBlank()
-                ? null
-                : targetEntityClass.trim();
-    }
-
-    public int getMaxRows() {
-        return maxRows;
-    }
-
-    public void setMaxRows(int maxRows) {
-        this.maxRows = maxRows;
-    }
-
-    public int getTimeoutMs() {
-        return timeoutMs;
-    }
-
-    public void setTimeoutMs(int timeoutMs) {
-        this.timeoutMs = timeoutMs;
-    }
-
-    public boolean isAdvanced() {
-        return advanced;
-    }
-
-    public void setAdvanced(boolean advanced) {
-        this.advanced = advanced;
-    }
-
-    public Boolean getGridEnabledRaw() {
-        return gridEnabled;
-    }
-
-    public boolean isGridEnabled() {
-        return gridEnabled == null || gridEnabled;
-    }
-
-    public void setGridEnabled(Boolean gridEnabled) {
-        this.gridEnabled = gridEnabled;
-    }
-
-    public Boolean getStripeRowsRaw() {
-        return stripeRows;
-    }
-
-    public boolean isStripeRows() {
-        return stripeRows != null && stripeRows;
-    }
-
-    public void setStripeRows(Boolean stripeRows) {
-        this.stripeRows = stripeRows;
-    }
-
-    public Integer getBaseFontSize() {
-        return baseFontSize;
-    }
-
-    public int baseFontSizeOrDefault() {
-        return baseFontSize == null ? DEFAULT_FONT_SIZE : baseFontSize;
-    }
-
-    public void setBaseFontSize(Integer baseFontSize) {
-        this.baseFontSize = baseFontSize;
-    }
-
-    public ReportPageSize getPageSize() {
-        return pageSize;
-    }
-
-    public ReportPageSize pageSizeOrDefault() {
-        return pageSize == null ? ReportPageSize.A4 : pageSize;
-    }
-
-    public void setPageSize(ReportPageSize pageSize) {
-        this.pageSize = pageSize;
-    }
-
-    public ReportPageOrientation getPageOrientation() {
-        return pageOrientation;
-    }
-
-    public ReportPageOrientation pageOrientationOrDefault() {
-        return pageOrientation == null ? ReportPageOrientation.PORTRAIT : pageOrientation;
-    }
-
-    public void setPageOrientation(ReportPageOrientation pageOrientation) {
-        this.pageOrientation = pageOrientation;
-    }
-
-    public List<ReportParam> getParams() {
-        return params;
-    }
-
-    public void setParams(List<ReportParam> params) {
-        this.params = params;
-    }
-
-    /** Добавляет параметр с двусторонней связью. */
-    public void addParam(ReportParam param) {
-        param.setTemplate(this);
-        params.add(param);
-    }
-
-    public List<ReportBand> getBands() {
-        return bands;
-    }
-
-    public void setBands(List<ReportBand> bands) {
-        this.bands = bands;
-    }
-
-    /** Добавляет бэнд с двусторонней связью. */
-    public void addBand(ReportBand band) {
-        band.setTemplate(this);
-        bands.add(band);
-    }
-
-    public List<ReportOrder> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<ReportOrder> orders) {
-        this.orders = orders;
-    }
-
-    /** Добавляет правило сортировки с двусторонней связью. */
-    public void addOrder(ReportOrder order) {
-        order.setTemplate(this);
-        orders.add(order);
-    }
+    @NotBlank @Size(max = 100) @Column(nullable = false, unique = true, length = 100) private String name;
+    @Size(max = 1000) @Column(length = 1000) private String description;
+    @NotNull @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20) private ReportTemplateState state = ReportTemplateState.DRAFT;
+    @NotBlank @Column(nullable = false, columnDefinition = "text") private String jpql;
+    @Enumerated(EnumType.STRING) @Column(name = "query_source", length = 20) private ReportQuerySource querySource = ReportQuerySource.MANUAL;
+    @Column(name = "target_entity_class", length = 512) private String targetEntityClass;
+    @Column(name = "max_rows", nullable = false) private int maxRows = DEFAULT_MAX_ROWS;
+    @Column(name = "timeout_ms", nullable = false) private int timeoutMs = DEFAULT_TIMEOUT_MS;
+    @Column(nullable = false) private boolean advanced;
+    @Column(name = "grid_enabled") private Boolean gridEnabled;
+    @Column(name = "stripe_rows") private Boolean stripeRows;
+    @Column(name = "base_font_size") private Integer baseFontSize;
+    @Enumerated(EnumType.STRING) @Column(name = "page_size", length = 10) private ReportPageSize pageSize;
+    @Enumerated(EnumType.STRING) @Column(name = "page_orientation", length = 10) private ReportPageOrientation pageOrientation;
+    @Column(name = "visual_filter_json", columnDefinition = "text") private String visualFilterJson;
+    @Column(name = "visual_query_json", columnDefinition = "text") private String visualQueryJson;
+    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true) @OrderBy("position ASC, id ASC") private List<ReportParam> params = new ArrayList<>();
+    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true) @OrderBy("position ASC, id ASC") private List<ReportBand> bands = new ArrayList<>();
+    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true) @OrderBy("position ASC, id ASC") private List<ReportOrder> orders = new ArrayList<>();
+    public String getName(){return name;} public void setName(String v){name=v;} public String getDescription(){return description;} public void setDescription(String v){description=v;}
+    public ReportTemplateState getState(){return state;} public void setState(ReportTemplateState v){state=v;} public String getJpql(){return jpql;} public void setJpql(String v){jpql=v;}
+    public ReportQuerySource getQuerySource(){return querySource == null ? ReportQuerySource.MANUAL : querySource;}
+    public void setQuerySource(ReportQuerySource value){querySource = value == null ? ReportQuerySource.MANUAL : value;}
+    public String getTargetEntityClass(){return targetEntityClass;} public void setTargetEntityClass(String v){targetEntityClass=v==null||v.isBlank()?null:v.trim();}
+    public int getMaxRows(){return maxRows;} public void setMaxRows(int v){maxRows=v;} public int getTimeoutMs(){return timeoutMs;} public void setTimeoutMs(int v){timeoutMs=v;} public boolean isAdvanced(){return advanced;} public void setAdvanced(boolean v){advanced=v;}
+    public Boolean getGridEnabledRaw(){return gridEnabled;} public boolean isGridEnabled(){return gridEnabled==null||gridEnabled;} public void setGridEnabled(Boolean v){gridEnabled=v;} public Boolean getStripeRowsRaw(){return stripeRows;} public boolean isStripeRows(){return stripeRows!=null&&stripeRows;} public void setStripeRows(Boolean v){stripeRows=v;}
+    public Integer getBaseFontSize(){return baseFontSize;} public int baseFontSizeOrDefault(){return baseFontSize==null?DEFAULT_FONT_SIZE:baseFontSize;} public void setBaseFontSize(Integer v){baseFontSize=v;} public ReportPageSize getPageSize(){return pageSize;} public ReportPageSize pageSizeOrDefault(){return pageSize==null?ReportPageSize.A4:pageSize;} public void setPageSize(ReportPageSize v){pageSize=v;} public ReportPageOrientation getPageOrientation(){return pageOrientation;} public ReportPageOrientation pageOrientationOrDefault(){return pageOrientation==null?ReportPageOrientation.PORTRAIT:pageOrientation;} public void setPageOrientation(ReportPageOrientation v){pageOrientation=v;}
+    public String getVisualFilterJson(){return visualFilterJson;} public void setVisualFilterJson(String v){visualFilterJson=v==null||v.isBlank()?null:v;} public String getVisualQueryJson(){return visualQueryJson;} public void setVisualQueryJson(String v){visualQueryJson=v==null||v.isBlank()?null:v;}
+    public List<ReportParam> getParams(){return params;} public void setParams(List<ReportParam> v){params=v;} public void addParam(ReportParam v){v.setTemplate(this);params.add(v);} public List<ReportBand> getBands(){return bands;} public void setBands(List<ReportBand> v){bands=v;} public void addBand(ReportBand v){v.setTemplate(this);bands.add(v);} public List<ReportOrder> getOrders(){return orders;} public void setOrders(List<ReportOrder> v){orders=v;} public void addOrder(ReportOrder v){v.setTemplate(this);orders.add(v);}
 }

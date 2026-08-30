@@ -33,6 +33,9 @@ public final class JpaFilterConditionCompiler {
             FilterCondition condition = conditionNode.condition();
             validate(condition, resolver.resolve(condition.path()));
         } else if (node instanceof FilterGroup group) {
+            if (group.children().isEmpty()) {
+                throw new IllegalArgumentException("Пустая группа фильтра недопустима");
+            }
             group.children().forEach(child -> validateNode(child, resolver));
         }
     }
@@ -41,7 +44,7 @@ public final class JpaFilterConditionCompiler {
                                          FilterFieldResolver resolver) {
         if (node instanceof FilterConditionNode conditionNode) {
             FilterCondition condition = conditionNode.condition();
-            return compileCondition(root, cb, condition, resolver.resolve(condition.path()));
+            return compileCondition(root, cb, condition, resolver.resolve(condition.path()), resolver);
         }
         FilterGroup group = (FilterGroup) node;
         Predicate[] children = group.children().stream()
@@ -51,10 +54,11 @@ public final class JpaFilterConditionCompiler {
     }
 
     private static Predicate compileCondition(Root<?> root, CriteriaBuilder cb, FilterCondition condition,
-                                               FilterFieldResolver.ResolvedFilterField field) {
+                                               FilterFieldResolver.ResolvedFilterField field,
+                                               FilterFieldResolver resolver) {
         Expression<?> path = resolve(root, field.path());
-        Object value = FilterValueCodec.decode(condition.value(), field);
-        Object valueTo = FilterValueCodec.decode(condition.valueTo(), field);
+        Object value = decodeValue(condition.value(), field, resolver);
+        Object valueTo = decodeValue(condition.valueTo(), field, resolver);
         return switch (condition.operator()) {
             case EQ -> cb.equal(path, value);
             case NE -> cb.notEqual(path, value);
@@ -67,8 +71,62 @@ public final class JpaFilterConditionCompiler {
             case BETWEEN -> cb.between(path.as(Comparable.class), (Comparable) value, (Comparable) valueTo);
             case IS_NULL -> cb.isNull(path);
             case IS_NOT_NULL -> cb.isNotNull(path);
-            case IN -> path.in(FilterValueCodec.decodeList(condition.value(), field));
+            case IN -> path.in(decodeListValue(condition.value(), field, resolver));
         };
+    }
+
+    /**
+     * Значение условия в типе поля. Для ссылочных полей каноническая строка
+     * (displayName/toString/id варианта) резолвится в саму сущность через
+     * {@code resolver.valueOptions(field)} — иначе фильтр по {@code @ManyToOne}
+     * падал бы на {@link FilterValueCodec#decode} («требуется typed lookup/resolver»).
+     */
+    private static Object decodeValue(String value, FilterFieldResolver.ResolvedFilterField field,
+                                      FilterFieldResolver resolver) {
+        if (field.dataType() == FilterDataType.ENTITY_REFERENCE) {
+            return resolveEntityRef(value, field, resolver);
+        }
+        return FilterValueCodec.decode(value, field);
+    }
+
+    private static List<?> decodeListValue(String value, FilterFieldResolver.ResolvedFilterField field,
+                                           FilterFieldResolver resolver) {
+        if (field.dataType() != FilterDataType.ENTITY_REFERENCE) {
+            return FilterValueCodec.decodeList(value, field);
+        }
+        if (value == null || value.isBlank()) throw new IllegalArgumentException("IN требует значения");
+        return java.util.Arrays.stream(value.split(",", -1)).map(String::trim)
+                .map(item -> {
+                    if (item.isBlank()) throw new IllegalArgumentException("IN содержит пустое значение");
+                    return resolveEntityRef(item, field, resolver);
+                })
+                .toList();
+    }
+
+    private static Object resolveEntityRef(String value, FilterFieldResolver.ResolvedFilterField field,
+                                           FilterFieldResolver resolver) {
+        if (value == null || value.isBlank()) return null;
+        List<?> options = resolver.valueOptions(field);
+        for (Object option : options) {
+            if (canonicalEntity(option).equals(value)) return option;
+        }
+        for (Object option : options) {
+            if (option instanceof org.ipro.crud.IdentifiableEntity entity && entity.getId() != null
+                    && String.valueOf(entity.getId()).equals(value)) {
+                return option;
+            }
+        }
+        throw new IllegalArgumentException("Значение «" + value + "» не найдено среди вариантов поля «"
+                + field.label() + "»");
+    }
+
+    private static String canonicalEntity(Object option) {
+        if (option == null) return "";
+        if (option instanceof org.ipro.metadata.HasDisplayName displayName) {
+            String canonical = displayName.getDisplayName();
+            if (canonical != null && !canonical.isBlank()) return canonical;
+        }
+        return String.valueOf(option);
     }
 
     private static void validate(FilterCondition condition, FilterFieldResolver.ResolvedFilterField field) {
@@ -81,6 +139,19 @@ public final class JpaFilterConditionCompiler {
                 && field.dataType() != FilterDataType.DATE) {
             throw new IllegalArgumentException("BETWEEN недоступен для поля: " + field.path());
         }
+        if (!FilterCondition.requiresNoValue(condition.operator())) {
+            if (condition.operator() == FilterOperator.BETWEEN) {
+                if (isBlank(condition.value()) || isBlank(condition.valueTo())) {
+                    throw new IllegalArgumentException("BETWEEN требует два значения: " + field.path());
+                }
+            } else if (isBlank(condition.value())) {
+                throw new IllegalArgumentException("Укажите значение фильтра для поля: " + field.path());
+            }
+        }
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     private static Expression<?> resolve(Root<?> root, String fieldPath) {

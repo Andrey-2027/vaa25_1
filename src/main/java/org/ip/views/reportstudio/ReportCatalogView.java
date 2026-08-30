@@ -25,6 +25,7 @@ import org.ipro.crud.LookupService;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.reportstudio.query.ReportQueryAssemblyService;
 import org.ipro.reportstudio.query.editor.QueryEditorAnalysisService;
 import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
 import org.ipro.reportstudio.run.ReportExecutionService;
@@ -69,7 +70,9 @@ public class ReportCatalogView extends HorizontalLayout {
             QueryMetadataCatalogService queryMetadataCatalogService,
             ReportExecutionService executionService,
             LookupService lookupService,
-            SelectionFormAssembler selectionFormAssembler) {
+            SelectionFormAssembler selectionFormAssembler,
+            ReportQueryAssemblyService queryAssemblyService,
+            org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog) {
         this.templateService = templateService;
         this.transferService = transferService;
         this.catalogService = catalogService;
@@ -81,7 +84,8 @@ public class ReportCatalogView extends HorizontalLayout {
         this.selectionFormAssembler = selectionFormAssembler;
         this.editor = new ReportEditorView(guard, previewService, queryEditorAnalysisService,
                 queryMetadataCatalogService, templateService,
-                executionService, lookupService, selectionFormAssembler);
+                executionService, lookupService, selectionFormAssembler, queryAssemblyService,
+                visualCatalog);
 
         setSizeFull();
         setPadding(false);

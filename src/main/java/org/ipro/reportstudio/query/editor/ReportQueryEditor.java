@@ -35,9 +35,18 @@ import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
 import org.ipro.reportstudio.dom.ReportTemplate;
+import org.ipro.reportstudio.query.JpqlFormatter;
+import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
 import org.ipro.reportstudio.query.ReportPreviewService;
+import org.ipro.reportstudio.query.ReportQueryAssembler;
+import org.ipro.reportstudio.query.ReportQueryAssemblyService;
 import org.ipro.reportstudio.query.OrderByApplier;
 import org.ipro.reportstudio.query.ServiceParams;
+import org.ipro.reportstudio.query.VisualQueryDefinition;
+import org.ipro.reportstudio.query.VisualQueryDefinitionJsonCodec;
+import org.ipro.reportstudio.query.VisualQueryTextParser;
+import org.ipro.reportstudio.query.constructor.JpqlQueryBuilderDialog;
+import org.ipro.reportstudio.dom.ReportQuerySource;
 import org.ipro.reportstudio.run.ReportExecutionService;
 
 import java.math.BigDecimal;
@@ -98,18 +107,18 @@ public class ReportQueryEditor extends VerticalLayout {
             Pattern.compile("(^|[^\\w:])[:]([A-Za-z_][A-Za-z0-9_]*)\\b");
 
     /** Ключевые слова, перед которыми «Форматировать» ставит перенос строки (вне строковых литералов). */
-    private static final Pattern FORMAT_KEYWORD =
-            Pattern.compile("(?i)\\b(left\\s+join|right\\s+join|inner\\s+join|full\\s+join|cross\\s+join|join|from|where|group\\s+by|having|order\\s+by)\\b");
-
     private final QueryEditorAnalysisService analysisService;
     private final QueryMetadataCatalogService catalogService;
     private final ReportPreviewService previewService;
+    private final ReportQueryAssemblyService queryAssemblyService;
     private final LookupService lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
 
     private final TextField catalogFilter = new TextField();
     private final TreeGrid<QueryMetadataNode> catalog = new TreeGrid<>();
     private final TextArea jpql = new TextArea();
+    private final Button constructorButton = small("Конструктор запроса…");
+    private QueryBuilderMetadataCatalog constructorCatalog;
     private final ComboBox<String> activeAlias = new ComboBox<>();
     private final IntegerField previewRows = new IntegerField("Строк");
     private final Button analyzeButton = smallPrimary("Проверить");
@@ -158,9 +167,20 @@ public class ReportQueryEditor extends VerticalLayout {
                              ReportPreviewService previewService,
                              LookupService lookupService,
                              SelectionFormAssembler selectionFormAssembler) {
+        this(analysisService, catalogService, previewService, lookupService,
+                selectionFormAssembler, null);
+    }
+
+    public ReportQueryEditor(QueryEditorAnalysisService analysisService,
+                             QueryMetadataCatalogService catalogService,
+                             ReportPreviewService previewService,
+                             LookupService lookupService,
+                             SelectionFormAssembler selectionFormAssembler,
+                             ReportQueryAssemblyService queryAssemblyService) {
         this.analysisService = Objects.requireNonNull(analysisService, "analysisService");
         this.catalogService = Objects.requireNonNull(catalogService, "catalogService");
         this.previewService = Objects.requireNonNull(previewService, "previewService");
+        this.queryAssemblyService = Objects.requireNonNull(queryAssemblyService, "queryAssemblyService");
         this.lookupService = Objects.requireNonNull(lookupService, "lookupService");
         this.selectionFormAssembler = Objects.requireNonNull(selectionFormAssembler, "selectionFormAssembler");
 
@@ -181,6 +201,7 @@ public class ReportQueryEditor extends VerticalLayout {
 
         configureCatalog();
         configureEditor();
+        configureConstructorButton();
         configureParameters();
         configureResult();
         add(buildLayout());
@@ -211,6 +232,12 @@ public class ReportQueryEditor extends VerticalLayout {
         jpql.setValue(text == null ? "" : text);
     }
 
+    /** Каталог (allow-list сущностей) для конструктора запроса; без него кнопка неактивна. */
+    public void setQueryConstructorCatalog(QueryBuilderMetadataCatalog catalog) {
+        constructorCatalog = catalog;
+        constructorButton.setEnabled(catalog != null && !catalog.roots().isEmpty());
+    }
+
     public void setChangeListener(Consumer<ReportTemplate> changeListener) {
         this.changeListener = changeListener == null ? ignored -> { } : changeListener;
     }
@@ -225,6 +252,7 @@ public class ReportQueryEditor extends VerticalLayout {
         if (template == null) {
             throw new IllegalStateException("Сначала необходимо установить шаблон отчёта");
         }
+        // Текст — источник истины: конструктор записывает готовый текст, автоперекомпиляции нет.
         template.setJpql(jpql.getValue());
         QueryEditorAnalysis initial = analysisService.analyze(jpql.getValue(), testParamNames(), testEntityClasses());
         if (!initial.syntaxValid()) {
@@ -270,9 +298,10 @@ public class ReportQueryEditor extends VerticalLayout {
                     .filter(order -> order != null && referencesKnownAlias(order.columnName(), knownAliases))
                     .toList();
             int skipped = allGroups.size() - safeGroups.size() + allOrders.size() - safeOrders.size();
-            String orderedJpql = OrderByApplier.withOrderBy(jpql.getValue(), safeGroups, safeOrders);
-            ReportDataset dataset = previewService.preview(orderedJpql, testBindings(),
-                    analysis.guardResult().selectFields(), rows, ReportTemplate.DEFAULT_TIMEOUT_MS);
+            ReportQueryAssembler assembled = queryAssemblyService.assembleForPreview(
+                    jpql.getValue(), testParamNames(), testBindings(), template, safeGroups, safeOrders);
+            ReportDataset dataset = previewService.preview(assembled.jpql(), assembled.bindings(),
+                    assembled.fields(), rows, ReportTemplate.DEFAULT_TIMEOUT_MS);
             renderResult(analysis.guardResult().selectFields(), dataset);
             String warnings = joinWarnings(analysis.guardResult().warnings());
             status.setText("Готово: " + dataset.rowCount() + " строк, "
@@ -321,6 +350,86 @@ public class ReportQueryEditor extends VerticalLayout {
         };
     }
 
+    private void configureConstructorButton() {
+        constructorButton.addClickListener(event -> openConstructorDialog());
+        constructorButton.setEnabled(false);
+        constructorButton.getElement().setAttribute("title", "Построить запрос в конструкторе (в стиле 1С)");
+    }
+
+    /**
+     * Открывает модальное окно конструктора (в стиле 1С). Источник истины — текст
+     * запроса: он разбирается обратно в структуру (таблицы/поля/JOIN/группировка/
+     * условия/порядок). Неразобранные конструкции перечисляются в предупреждениях
+     * конструктора; если текст пуст или не разобрался — берётся сохранённый черновик.
+     */
+    private void openConstructorDialog() {
+        if (template == null || constructorCatalog == null) return;
+        VisualQueryDefinition saved = null;
+        if (template.getVisualQueryJson() != null && !template.getVisualQueryJson().isBlank()) {
+            try {
+                saved = new VisualQueryDefinitionJsonCodec().read(template.getVisualQueryJson());
+            } catch (Exception error) {
+                status.setText("Сохранённый черновик конструктора некорректен.");
+            }
+        }
+        VisualQueryDefinition initial = saved;
+        List<String> parseWarnings = List.of();
+        String text = jpql.getValue();
+        if (text != null && !text.isBlank()) {
+            var parsed = new VisualQueryTextParser(constructorCatalog).parse(text, saved);
+            if (parsed.definition() != null) {
+                initial = parsed.definition();
+                parseWarnings = parsed.warnings();
+            } else if (saved != null) {
+                status.setText("Текст запроса не разобран — открыт сохранённый черновик конструктора.");
+            }
+        }
+        // Условия WHERE в конструкторе используют типизированные литералы:
+        // :параметры подставляются на runtime через ReportParam, компилятор их не принимает.
+        new JpqlQueryBuilderDialog(constructorCatalog, List.of(), initial, parseWarnings,
+                this::applyConstructorResult).open();
+    }
+
+    /** Применяет результат конструктора: текст — источник истины, определение остаётся черновиком. */
+    void applyConstructorResult(JpqlQueryBuilderDialog.Result result) {
+        if (template == null) return;
+        template.setVisualQueryJson(new VisualQueryDefinitionJsonCodec().write(result.definition()));
+        template.setQuerySource(ReportQuerySource.MANUAL);
+        // В редактор — тот же текст, что показан в окне «Запрос» конструктора (форматированный).
+        String formatted = JpqlFormatter.format(result.jpql());
+        applyJpqlText(formatted == null || formatted.isBlank() ? result.jpql() : formatted);
+        // Значения WHERE-условий конструктора — тестовые значения :visualFilter_*;
+        // без них «Проверить»/«Выполнить» не сможет забиндить параметры запроса.
+        importConstructorBindings(result.bindings());
+        status.setText("Запрос построен конструктором.");
+    }
+
+    /** Разносит bindings конструктора по тестовым параметрам (значение и тип по классу значения). */
+    private void importConstructorBindings(Map<String, Object> bindings) {
+        if (bindings == null || bindings.isEmpty()) return;
+        for (Map.Entry<String, Object> entry : bindings.entrySet()) {
+            Object value = entry.getValue();
+            if (value == null || org.ipro.reportstudio.query.VisualQueryCompiler.PENDING_PARAM.equals(value)) {
+                continue; // :параметр без значения — пользователь заполнит сам
+            }
+            testParams.stream().filter(param -> param.name().equals(entry.getKey())).findFirst()
+                    .ifPresent(param -> {
+                        param.setType(testTypeOf(value));
+                        param.setValue(value);
+                    });
+        }
+        refreshParametersGrid();
+    }
+
+    private static FieldType testTypeOf(Object value) {
+        if (value instanceof Boolean) return FieldType.BOOLEAN;
+        if (value instanceof Integer || value instanceof Long) return FieldType.INTEGER;
+        if (value instanceof Number) return FieldType.DECIMAL;
+        if (value instanceof LocalDate) return FieldType.DATE;
+        if (value instanceof LocalDateTime) return FieldType.DATETIME;
+        return FieldType.TEXT;
+    }
+
     private void configureEditor() {
         jpql.setLabel("JPQL");
         jpql.setPlaceholder("select s.code as code, s.name as name from Specification s where s.journal = :journal");
@@ -334,7 +443,7 @@ public class ReportQueryEditor extends VerticalLayout {
         jpql.getStyle().set("font-family", "monospace");
         analyzeButton.addClickListener(e -> preview());
         formatButton.addClickListener(e -> {
-            String formatted = formatJpql(jpql.getValue());
+            String formatted = JpqlFormatter.format(jpql.getValue());
             if (formatted != null && !formatted.equals(jpql.getValue())) {
                 jpql.setValue(formatted);
                 status.setText("Запрос отформатирован.");
@@ -477,7 +586,7 @@ public class ReportQueryEditor extends VerticalLayout {
         left.setSizeFull();
         left.getStyle().set("min-width", "0");
 
-        HorizontalLayout toolbar = new HorizontalLayout(analyzeButton, formatButton, parametersButton, activeAlias, previewRows);
+        HorizontalLayout toolbar = new HorizontalLayout(constructorButton, analyzeButton, formatButton, parametersButton, activeAlias, previewRows);
         toolbar.setPadding(false);
         toolbar.setSpacing(true);
         toolbar.setAlignItems(Alignment.BASELINE);
@@ -808,36 +917,6 @@ public class ReportQueryEditor extends VerticalLayout {
             input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
             input.focus();
             """, token);
-    }
-
-    /**
-     * Простое форматирование JPQL: все пробелы/переносы схлопываются в один,
-     * затем перед каждым ключевым словом (FROM/JOIN/WHERE/GROUP BY/HAVING/ORDER BY)
-     * ставится перенос строки. Ключевые слова внутри строковых литералов
-     * не трогаются — отслеживается чётность апострофов. Регистр слов сохраняется.
-     */
-    private static String formatJpql(String jpql) {
-        if (jpql == null || jpql.isBlank()) {
-            return jpql;
-        }
-        String collapsed = jpql.replaceAll("\\s+", " ").trim();
-        Matcher matcher = FORMAT_KEYWORD.matcher(collapsed);
-        StringBuilder formatted = new StringBuilder();
-        int tail = 0;
-        boolean insideLiteral = false;
-        while (matcher.find()) {
-            String gap = collapsed.substring(tail, matcher.start());
-            insideLiteral ^= gap.chars().filter(ch -> ch == '\'').count() % 2 != 0;
-            formatted.append(gap);
-            if (!insideLiteral && formatted.length() > 0
-                    && formatted.charAt(formatted.length() - 1) != '\n') {
-                formatted.append('\n');
-            }
-            formatted.append(matcher.group());
-            tail = matcher.end();
-        }
-        formatted.append(collapsed.substring(tail));
-        return formatted.toString();
     }
 
     // === Тестовые параметры (QueryTestParam) ===

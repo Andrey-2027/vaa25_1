@@ -54,6 +54,11 @@ import org.ipro.reportstudio.dom.ReportTemplateState;
 import org.ipro.reportstudio.query.ReconcileResult;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.reportstudio.query.ReportQueryAssemblyService;
+import org.ipro.reportstudio.query.QueryFieldFilterFieldResolver;
+import org.ipro.filter.FilterNode;
+import org.ipro.filter.FilterTreeEditor;
+import org.ipro.filter.FilterTreeJson;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.reportstudio.run.ReportExecutionService;
 
@@ -86,6 +91,8 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
     private final QueryEditorAnalysisService analysisService;
     private final QueryMetadataCatalogService catalogService;
     private final ReportPreviewService previewService;
+    private final ReportQueryAssemblyService queryAssemblyService;
+    private final org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog;
 
     private final TextField name = new TextField("Наименование отчёта");
     private final TextArea description = new TextArea("Описание");
@@ -117,6 +124,7 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
     private TextField userFormat;
     private com.vaadin.flow.component.checkbox.Checkbox userVisible;
     private com.vaadin.flow.component.checkbox.Checkbox userBorder;
+    private FilterTreeEditor userFilterEditor;
 
     private ReportTemplate template;
     private String lastAnalyzedJpql = "";
@@ -132,7 +140,9 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
             ReportTemplateService templateService,
             ReportExecutionService executionService,
             LookupService lookupService,
-            SelectionFormAssembler selectionFormAssembler) {
+            SelectionFormAssembler selectionFormAssembler,
+            ReportQueryAssemblyService queryAssemblyService,
+            org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog) {
         this.templateService = templateService;
         this.executionService = executionService;
         this.lookupService = lookupService;
@@ -140,8 +150,11 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         this.analysisService = queryEditorAnalysisService;
         this.catalogService = queryMetadataCatalogService;
         this.previewService = previewService;
+        this.queryAssemblyService = queryAssemblyService;
+        this.visualCatalog = visualCatalog;
         this.queryEditor = new ReportQueryEditor(queryEditorAnalysisService, queryMetadataCatalogService,
-                previewService, lookupService, selectionFormAssembler);
+                previewService, lookupService, selectionFormAssembler, queryAssemblyService);
+        this.queryEditor.setQueryConstructorCatalog(visualCatalog);
         this.queryEditor.setChangeListener(template1 -> {
             syncJpqlText();
             markDirty();
@@ -382,10 +395,16 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         Details pageHint = new Details("Настройки страницы", new Span(
                 "Заголовок отчёта, формат, ориентация и шапка/подвал страницы находятся на вкладке «Страница»."));
         pageHint.setOpened(false);
+        userFilterEditor = new FilterTreeEditor(
+                new QueryFieldFilterFieldResolver(structureEditor.schemaFields()),
+                readVisualFilter(),
+                this::onUserFilterChanged);
+        Details filters = new Details("Отбор данных", userFilterEditor);
+        filters.setOpened(true);
         Span expert = new Span("Расширенный режим сохраняет полный контроль: формулы, alias, вложенные группы и технические настройки.");
         expert.getStyle().set("color", "var(--lumo-secondary-text-color)");
 
-        userLayoutPage = new VerticalLayout(title, intro, fields, groups, sorting, appearance, pageHint, expert);
+        userLayoutPage = new VerticalLayout(title, intro, fields, groups, filters, sorting, appearance, pageHint, expert);
         userLayoutPage.setPadding(true);
         userLayoutPage.setSpacing(true);
         userLayoutPage.setWidthFull();
@@ -393,6 +412,27 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         userLayoutPage.getStyle().set("overflow", "auto");
         refreshUserChoices();
         return userLayoutPage;
+    }
+
+    private FilterNode readVisualFilter() {
+        if (template == null || template.getVisualFilterJson() == null) return null;
+        try {
+            return FilterTreeJson.read(new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readTree(template.getVisualFilterJson()));
+        } catch (RuntimeException | java.io.IOException error) {
+            return null;
+        }
+    }
+
+    private void onUserFilterChanged(FilterNode value) {
+        if (template == null || userFilterEditor == null) return;
+        if (!userFilterEditor.validationErrors().isEmpty()) {
+            markDirty();
+            return;
+        }
+        template.setVisualFilterJson(value == null ? null :
+                FilterTreeJson.write(value).toString());
+        markDirty();
     }
 
     private QueryField findQueryField(String alias) {
@@ -706,6 +746,9 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         structureEditor.setTemplate(template);
         paramEditor.setTemplate(template);
         queryEditor.setTemplate(template);
+        if (userFilterEditor != null) {
+            userFilterEditor.setValue(readVisualFilter());
+        }
         syncJpqlText();
         return saved;
     }
@@ -821,7 +864,8 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
     /** Открывает JPQL-запрос в отдельном модальном окне (быстрый доступ к вкладке «Запросы»). */
     private void openQueryDialog() {
         ReportQueryEditor dialogEditor = new ReportQueryEditor(analysisService, catalogService,
-                previewService, lookupService, selectionFormAssembler);
+                previewService, lookupService, selectionFormAssembler, queryAssemblyService);
+        dialogEditor.setQueryConstructorCatalog(visualCatalog);
         dialogEditor.setTemplate(template);
         new ReportQueryDialog(dialogEditor, template, this::refreshEditors, this::onQueryAnalyzed).open();
     }
@@ -835,6 +879,9 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         lastAnalyzedJpql = Objects.requireNonNullElse(template.getJpql(), "");
         structureEditor.updateSchema(analysis.guardResult().selectFields());
         refreshUserChoices();
+        if (userFilterEditor != null) {
+            userFilterEditor.setValue(readVisualFilter());
+        }
         if (reconcileDialogSuppressed) {
             return;
         }
@@ -909,6 +956,9 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
         structureEditor.setTemplate(template);
         paramEditor.setTemplate(template);
         queryEditor.setTemplate(template);
+        if (userFilterEditor != null) {
+            userFilterEditor.setValue(readVisualFilter());
+        }
         syncJpqlText();
     }
 

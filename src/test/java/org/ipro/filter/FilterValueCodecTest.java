@@ -22,11 +22,23 @@ class FilterValueCodecTest {
     }
 
     @Test
+    void decodesNonEmptyInList() {
+        assertThat(FilterValueCodec.decodeList("1, 2,3", field(Integer.class, FilterDataType.NUMBER)))
+                .containsExactly(1, 2, 3);
+    }
+
+    @Test
     void rejectsInvalidTypedValue() {
         assertThatThrownBy(() -> FilterValueCodec.decode("not-a-number", field(Integer.class, FilterDataType.NUMBER)))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> FilterValueCodec.decode("yes", field(Boolean.class, FilterDataType.BOOLEAN)))
                 .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> FilterValueCodec.decodeList("1,,3", field(Integer.class, FilterDataType.NUMBER)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("пустое");
+        assertThatThrownBy(() -> FilterValueCodec.decode("17", field(Object.class, FilterDataType.ENTITY_REFERENCE)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasRootCauseMessage("Для ссылочного поля требуется typed lookup/resolver: field");
     }
 
     private static FilterFieldResolver.ResolvedFilterField field(Class<?> type, FilterDataType dataType) {

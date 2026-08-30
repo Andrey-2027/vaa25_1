@@ -2,7 +2,14 @@ package org.ipro.filter;
 
 import java.util.Objects;
 
-/** Одно декларативное условие отбора. Значения хранятся в каноническом строковом виде. */
+/** Одно декларативное условие отбора. Значения хранятся в каноническом строковом виде.
+ *
+ * <p>Конструктор проверяет только структурную согласованность (путь/оператор/тип обязательны,
+ * «Пусто»/«Заполнено» не принимают значение, второе значение — только для BETWEEN).
+ * Незаполненное значение допускается как черновое состояние во время редактирования;
+ * полнота значения проверяется на этапе применения — {@code FilterTreeEditor.validationErrors()}
+ * и {@code JpaFilterConditionCompiler}.</p>
+ */
 public record FilterCondition(String path, FilterOperator operator, String value,
                               String valueTo, FilterDataType dataType) {
     public FilterCondition {
@@ -14,19 +21,13 @@ public record FilterCondition(String path, FilterOperator operator, String value
         if (requiresNoValue(operator) && (value != null || valueTo != null)) {
             throw new IllegalArgumentException("Оператор " + operator + " не принимает значение");
         }
-        if (operator == FilterOperator.BETWEEN && (value == null || valueTo == null)) {
-            throw new IllegalArgumentException("BETWEEN требует два значения");
-        }
         if (operator != FilterOperator.BETWEEN && valueTo != null) {
             throw new IllegalArgumentException("Второе значение допустимо только для BETWEEN");
         }
-        if (!requiresNoValue(operator) && operator != FilterOperator.BETWEEN
-                && (value == null || value.isBlank())) {
-            throw new IllegalArgumentException("Значение фильтра обязательно");
-        }
     }
 
-    private static boolean requiresNoValue(FilterOperator operator) {
+    /** Операторы, не требующие значения (проверка значений — на этапе применения). */
+    public static boolean requiresNoValue(FilterOperator operator) {
         return operator == FilterOperator.IS_NULL || operator == FilterOperator.IS_NOT_NULL;
     }
 }

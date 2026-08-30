@@ -41,6 +41,7 @@ class ReportTemplateServiceTest {
     void copiesTemplateAsIndependentDraft() {
         ReportTemplateRepository repository = mock(ReportTemplateRepository.class);
         ReportTemplate source = validTemplate("Остатки");
+        source.setVisualFilterJson("{\"type\":\"group\",\"operator\":\"AND\",\"children\":[]}");
         ReportParam param = new ReportParam();
         param.setName("date");
         param.setCaption("Дата");
@@ -55,6 +56,7 @@ class ReportTemplateServiceTest {
 
         assertThat(copy).isNotSameAs(source);
         assertThat(copy.getName()).isEqualTo("Остатки (копия)");
+        assertThat(copy.getVisualFilterJson()).isEqualTo(source.getVisualFilterJson());
         assertThat(copy.getParams()).singleElement().isNotSameAs(source.getParams().getFirst());
         assertThat(copy.getBands()).singleElement().satisfies(band -> {
             assertThat(band).isNotSameAs(source.getBands().getFirst());

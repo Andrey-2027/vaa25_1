@@ -241,6 +241,18 @@ public class FormCoordinator {
         // Включаем диалог "Настройка колонок" (нужен резолвер для полей связанных сущностей)
         form.setMetadataResolver(metadataResolver);
 
+        // Выбор ссылочных полей отбора — через форму выбора (SelectionForm), как в остальном
+        // приложении, а не комбобокс с полной загрузкой справочника.
+        form.setEntitySelector((entityClass1, onSelect) ->
+            formResolver.resolveSelectionForm((Class) entityClass1, (java.util.function.Consumer) onSelect).open());
+
+        // Резолв значений ссылочных полей при компиляции фильтра (displayName → сущность):
+        // нужен тот же источник данных, что и у формы выбора, иначе выбранное значение
+        // «не найдётся среди вариантов поля».
+        if (applicationContext != null) {
+            form.setLookupService(applicationContext.getBean(org.ipro.crud.LookupService.class));
+        }
+
         // Поддержка сохранённых видов (GridFormView) + вид по умолчанию за пользователем.
         // Ключ различает варианты формы: у "archived"-варианта своя настройка/свои виды.
         form.setViewSupport(gridFormViewService, formSettingsService,

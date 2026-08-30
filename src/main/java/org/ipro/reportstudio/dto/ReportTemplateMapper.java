@@ -41,6 +41,7 @@ public final class ReportTemplateMapper {
         dto.setDescription(entity.getDescription());
         dto.setState(entity.getState());
         dto.setJpql(entity.getJpql());
+        dto.setQuerySource(entity.getQuerySource());
         dto.setMaxRows(entity.getMaxRows());
         dto.setTimeoutMs(entity.getTimeoutMs());
         dto.setAdvanced(entity.isAdvanced());
@@ -49,6 +50,8 @@ public final class ReportTemplateMapper {
         dto.setBaseFontSize(entity.getBaseFontSize());
         dto.setGridEnabled(entity.getGridEnabledRaw());
         dto.setStripeRows(entity.getStripeRowsRaw());
+        dto.setVisualFilterJson(entity.getVisualFilterJson());
+        dto.setVisualQueryJson(entity.getVisualQueryJson());
         for (ReportParam param : entity.getParams()) {
             dto.getParams().add(toParamDto(param));
         }
@@ -76,6 +79,7 @@ public final class ReportTemplateMapper {
         entity.setDescription(dto.getDescription());
         entity.setState(dto.getState() == null ? entity.getState() : dto.getState());
         entity.setJpql(dto.getJpql());
+        entity.setQuerySource(dto.getQuerySource());
         if (dto.getMaxRows() != null) {
             entity.setMaxRows(dto.getMaxRows());
         }
@@ -94,6 +98,8 @@ public final class ReportTemplateMapper {
         }
         entity.setGridEnabled(dto.getGridEnabled());
         entity.setStripeRows(dto.getStripeRows());
+        entity.setVisualFilterJson(dto.getVisualFilterJson());
+        entity.setVisualQueryJson(dto.getVisualQueryJson());
 
         entity.getParams().clear();
         for (ReportParamDto paramDto : dto.getParams()) {

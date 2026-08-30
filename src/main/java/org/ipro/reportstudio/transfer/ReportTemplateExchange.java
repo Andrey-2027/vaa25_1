@@ -11,6 +11,7 @@ import org.ipro.reportstudio.dom.ReportPageOrientation;
 import org.ipro.reportstudio.dom.ReportPageSize;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
+import org.ipro.reportstudio.dom.ReportQuerySource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,7 @@ public class ReportTemplateExchange {
         private String description;
         private String targetEntityClass;
         private String jpql;
+        private ReportQuerySource querySource = ReportQuerySource.MANUAL;
         private int maxRows;
         private int timeoutMs;
         private boolean advanced;
@@ -68,6 +70,8 @@ public class ReportTemplateExchange {
         private Integer baseFontSize;
         private Boolean gridEnabled;
         private Boolean stripeRows;
+        private String visualFilterJson;
+        private String visualQueryJson;
         private List<Param> params = new ArrayList<>();
         private List<Band> bands = new ArrayList<>();
         private List<Order> orders = new ArrayList<>();
@@ -95,6 +99,9 @@ public class ReportTemplateExchange {
         public void setTargetEntityClass(String targetEntityClass) {
             this.targetEntityClass = targetEntityClass;
         }
+        public ReportQuerySource getQuerySource() { return querySource; }
+        public void setQuerySource(ReportQuerySource querySource) { this.querySource = querySource; }
+
         public String getJpql() {
             return jpql;
         }
@@ -165,6 +172,17 @@ public class ReportTemplateExchange {
 
         public void setStripeRows(Boolean stripeRows) {
             this.stripeRows = stripeRows;
+        }
+
+        public String getVisualQueryJson() { return visualQueryJson; }
+        public void setVisualQueryJson(String visualQueryJson) { this.visualQueryJson = visualQueryJson; }
+
+        public String getVisualFilterJson() {
+            return visualFilterJson;
+        }
+
+        public void setVisualFilterJson(String visualFilterJson) {
+            this.visualFilterJson = visualFilterJson;
         }
 
         public List<Param> getParams() {
