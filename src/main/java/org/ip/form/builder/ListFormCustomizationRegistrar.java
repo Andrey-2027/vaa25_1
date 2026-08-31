@@ -35,6 +35,9 @@ public class ListFormCustomizationRegistrar implements InitializingBean {
             variants.getFactories().forEach((variant, factory) ->
                 formRegistry.registerListForm(entityClass, variant, factory));
 
+            variants.getViewFactories().forEach((variant, factory) ->
+                formRegistry.registerListFormView(entityClass, variant, factory));
+
             variants.getViews().forEach((variant, viewClass) ->
                 formRegistry.registerListFormView(entityClass, variant, viewClass));
 

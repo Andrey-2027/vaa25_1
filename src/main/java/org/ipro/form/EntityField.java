@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.Map;
 
 public class EntityField<T extends HasDisplayName> extends Div implements HasLabel {
 
@@ -288,6 +289,18 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
      * (см. {@code FieldFactory.createEntityField}) сразу после конструктора.
      */
     public void setSelectionFormFactory(Function<Consumer<T>, SelectionForm<T>> selectionFormFactory) {
+        this.selectionFormFactory = selectionFormFactory;
+    }
+
+    /** Установить фабрику выбора; параметры фильтра остаются внутри фабрики поля. */
+    public void setSelectionFilter(Map<String, Object> filters,
+                                   SelectionFormFactory<T> assembler) {
+        this.selectionFormFactory = onSelect -> assembler.create(onSelect, filters);
+    }
+
+    /** Установить фабрику выбора с параметрами конкретной роли поля. */
+    public void setSelectionFormFactoryWithParameters(
+            Function<Consumer<T>, SelectionForm<T>> selectionFormFactory) {
         this.selectionFormFactory = selectionFormFactory;
     }
 

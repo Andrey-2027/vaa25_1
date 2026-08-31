@@ -13,12 +13,12 @@ import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;
 import org.ip.model.UnitOfMeasurement;
 import org.ipro.crud.LookupService;
-import org.ipro.filter.SeedFilter;
 import org.ipro.form.EntityField;
 import org.ipro.form.SelectionFormAssembler;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Кастомизация Формы Элемента для {@link PrdSpecMtr} — табличной части "Компоненты спецификации".
@@ -99,9 +99,9 @@ public class PrdSpecMtrFormCustomization implements ItemFormCustomization {
             EntityField<Nomenclature> nomenclatureField = form.entityField("nomenclature");
             // Тип-ограничение (Фаза 4): компонент-«Материал» нельзя выбрать Узел/Сборку —
             // диалог выбора открывается предотфильтрованным по typeNom = «Материал».
-            nomenclatureField.setSelectionFormFactory(onSelect ->
-                selectionFormAssembler.<Nomenclature, Long>assemble(
-                    Nomenclature.class, onSelect, new SeedFilter("typeNom", "Материал")));
+            nomenclatureField.setSelectionFilter(Map.of("typeNom", "Материал"),
+                (onSelect, filters) -> selectionFormAssembler.assemble(
+                    Nomenclature.class, onSelect, filters));
             nomenclatureField.addValueChangeListener(nom -> unitField.setValue(
                 nom == null ? null : unitOfSelectedNomenclature(lookupService, resolver, nom)));
         }

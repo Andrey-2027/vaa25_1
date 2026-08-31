@@ -39,6 +39,7 @@ public class FormRegistry {
 
     private final Map<FormKey, FormFactory> forms = new ConcurrentHashMap<>();
     private final Map<FormKey, Class<? extends Component>> listFormViews = new ConcurrentHashMap<>();
+    private final Map<FormKey, FormFactory> listFormViewFactories = new ConcurrentHashMap<>();
     private final Map<Class<?>, List<ContextFilterField>> contextFilters = new ConcurrentHashMap<>();
 
     /**
@@ -136,6 +137,7 @@ public class FormRegistry {
     public void clear() {
         forms.clear();
         listFormViews.clear();
+        listFormViewFactories.clear();
         contextFilters.clear();
     }
 
@@ -158,6 +160,16 @@ public class FormRegistry {
     public void registerListFormView(Class<?> entityClass, String variant, Class<? extends Component> viewClass) {
         FormKey key = new FormKey(entityClass, FormType.LIST, variant);
         listFormViews.put(key, viewClass);
+    }
+
+    /** Зарегистрировать составной View, создаваемый с FormContext. */
+    public void registerListFormView(Class<?> entityClass, String variant, FormFactory factory) {
+        FormKey key = new FormKey(entityClass, FormType.LIST, variant);
+        listFormViewFactories.put(key, factory);
+    }
+
+    public FormFactory getListFormViewFactory(Class<?> entityClass, String variant) {
+        return listFormViewFactories.get(new FormKey(entityClass, FormType.LIST, variant));
     }
 
     /**

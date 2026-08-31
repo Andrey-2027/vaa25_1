@@ -19,9 +19,6 @@ import org.ip.form.registry.FormContext;
 import org.ip.form.registry.FormRegistry;
 import org.ip.form.registry.FormResolver;
 import org.ip.form.registry.ListCommand;
-import org.ip.form.registry.ListCommandContext;
-import org.ip.form.registry.ListCommandRegistry;
-import org.ip.form.registry.ListFormViewContextAware;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.crud.BaseService;
@@ -169,10 +166,13 @@ public class FormCoordinator {
         if (workspace != null) {
             Class<? extends com.vaadin.flow.component.Component> customViewClass =
                 formResolver.getFormRegistry().getListFormViewClass(entityClass, variant);
-            if (customViewClass != null) {
-                // Variant-View создаётся Spring-ом и получает динамические параметры после создания.
-                workspace.open((Class) customViewClass, entryId, title,
-                    view -> initializeListFormView(view, entityClass, variant, parameters));
+            org.ip.form.registry.FormFactory customViewFactory =
+                formResolver.getFormRegistry().getListFormViewFactory(entityClass, variant);
+            if (customViewFactory != null) {
+                com.vaadin.flow.component.Component view = customViewFactory.create(buildListFormContext(entityClass, variant, parameters));
+                workspace.openComponent(view, entryId, title);
+            } else if (customViewClass != null) {
+                workspace.open((Class) customViewClass, entryId, title, view -> { });
             } else {
                 // Generic ListForm открывается через стандартный wrapper.
                 workspace.open(ListFormWrapper.class, entryId, title, wrapper -> {
@@ -187,20 +187,22 @@ public class FormCoordinator {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
+    private FormContext buildListFormContext(Class<?> entityClass, String variant, Map<String, Object> parameters) {
+        return FormContext.builder(entityClass)
+            .parameters(parameters)
+            .metadataResolver(metadataResolver)
+            .fieldFactory(fieldFactory)
+            .lookupService(applicationContext != null
+                ? applicationContext.getBean(org.ipro.crud.LookupService.class) : null)
+            .parameter("variant", variant)
+            .parameter("coordinator", this)
+            .build();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void initializeListFormView(com.vaadin.flow.component.Component view, Class<?> entityClass, String variant,
                                         Map<String, Object> parameters) {
-        if (view instanceof ListFormViewContextAware contextAware) {
-            FormContext context = FormContext.builder(entityClass)
-                .parameters(parameters)
-                .metadataResolver(metadataResolver)
-                .fieldFactory(fieldFactory)
-                .lookupService(applicationContext != null
-                    ? applicationContext.getBean(org.ipro.crud.LookupService.class) : null)
-                .parameter("variant", variant)
-                .parameter("coordinator", this)
-                .build();
-            contextAware.init(context);
-        }
+        // Старые View-классы создаются без параметров; новые используют FormFactory.
     }
 
     /**
@@ -331,6 +333,11 @@ public class FormCoordinator {
         form.setEntitySelector((entityClass1, onSelect) ->
             formResolver.resolveSelectionForm((Class) entityClass1, (java.util.function.Consumer) onSelect).open());
 
+        // Диалог выбора для SELECT-контрола панели контекст-фильтров — та же форма выбора,
+        // что и у ссылочных полей; ручной ввод в самом поле идёт через LookupService.
+        form.setSelectionFormProvider((entityClass1, onSelect) ->
+            formResolver.resolveSelectionForm((Class) entityClass1, onSelect));
+
         // Резолв значений ссылочных полей при компиляции фильтра (displayName → сущность):
         // нужен тот же источник данных, что и у формы выбора, иначе выбранное значение
         // «не найдётся среди вариантов поля».
@@ -352,9 +359,6 @@ public class FormCoordinator {
         // Настраиваемые команды списка (row-команды, по образцу ListFormReportActions).
         // Составной View может отключить глобальные команды во вложенном ListForm,
         // оставив только свои локальные действия.
-        if (!Boolean.TRUE.equals(parameters != null ? parameters.get("suppressListCommands") : null)) {
-            applyListCommands(form, entityClass, variant);
-        }
 
         // Настройка callback'ов для кнопок
         form.setOnAdd(entity -> openItemForm(entityClass, null, null, saved -> form.refresh()));
@@ -376,8 +380,8 @@ public class FormCoordinator {
         if (applicationContext == null) {
             return;
         }
-        applicationContext.getBeanProvider(ListCommandRegistry.class).ifAvailable(registry -> {
-            for (ListCommand<?> command : registry.byEntity(entityClass)) {
+        applicationContext.getBeanProvider(org.ip.form.registry.ListCommandRegistry.class).ifAvailable(registry -> {
+            for (org.ip.form.registry.ListCommand<?> command : registry.byEntity(entityClass)) {
                 if (!command.appliesToVariant(variant)) {
                     continue;
                 }
@@ -391,24 +395,24 @@ public class FormCoordinator {
                     }
                 }
 
-                ListCommandContext initialContext = new ListCommandContext(form, this);
+                org.ip.form.registry.ListCommandContext initialContext = new org.ip.form.registry.ListCommandContext(form, this);
                 boolean enabled = !command.requiresSelection()
                     && command.isEnabled(initialContext);
                 button.setEnabled(enabled);
                 form.getGrid().asSingleSelect().addValueChangeListener(e -> {
-                    ListCommandContext current = new ListCommandContext(form, this);
+                    org.ip.form.registry.ListCommandContext current = new org.ip.form.registry.ListCommandContext(form, this);
                     boolean hasSelection = !command.requiresSelection() || e.getValue() != null;
                     button.setEnabled(hasSelection && command.isEnabled(current));
                 });
                 form.addContextChangeListener(ignored -> {
-                    ListCommandContext current = new ListCommandContext(form, this);
+                    org.ip.form.registry.ListCommandContext current = new org.ip.form.registry.ListCommandContext(form, this);
                     boolean hasSelection = !command.requiresSelection()
                         || current.selectedItem() != null;
                     button.setEnabled(hasSelection && command.isEnabled(current));
                 });
 
                 button.addClickListener(e -> {
-                    ListCommandContext current = new ListCommandContext(form, this);
+                    org.ip.form.registry.ListCommandContext current = new org.ip.form.registry.ListCommandContext(form, this);
                     if ((!command.requiresSelection() || current.selectedItem() != null)
                             && command.isEnabled(current)) {
                         command.execute(current);
@@ -630,8 +634,11 @@ public class FormCoordinator {
     public <T extends IdentifiableEntity> void openSelectionForm(Class<T> entityClass,
                                                                    Consumer<T> onSelected,
                                                                    Map<String, Object> parameters) {
-        SelectionForm<T> form = formResolver.resolveSelectionFormWithSeeds(entityClass, onSelected,
-            org.ipro.filter.SeedFilter.allFromParameters(parameters));
+        Map<String, Object> filters = parameters != null
+            && parameters.get("contextFilters") instanceof Map<?, ?> map
+            ? map.entrySet().stream().collect(Collectors.toMap(
+                e -> String.valueOf(e.getKey()), Map.Entry::getValue)) : Map.of();
+        SelectionForm<T> form = formResolver.resolveSelectionForm(entityClass, onSelected, filters);
         form.open();
     }
 

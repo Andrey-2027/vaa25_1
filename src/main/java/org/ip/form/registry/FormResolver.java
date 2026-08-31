@@ -14,7 +14,6 @@ import org.ipro.metadata.RowMetadataInfo;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.IdentifiableEntity;
-import org.ipro.filter.SeedFilter;
 import org.ipro.filtergrid.grouping.CriteriaGroupValuesService;
 import org.ipro.filtergrid.grouping.GroupValuesService;
 import org.springframework.context.ApplicationContext;
@@ -214,14 +213,24 @@ public class FormResolver {
 
     public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionForm(
             Class<T> entityClass, Consumer<T> onSelect, org.ipro.filter.SeedFilter seed) {
-        return selectionFormAssembler.<T, ID>assemble(entityClass, onSelect, seed);
+        return selectionFormAssembler.<T, ID>assemble(entityClass, onSelect,
+            seed == null ? Map.of() : Map.of(seed.path(), seed.value()));
+    }
+
+    public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionForm(
+            Class<T> entityClass, Consumer<T> onSelect, Map<String, Object> filters) {
+        return selectionFormAssembler.<T, ID>assemble(entityClass, onSelect, filters);
     }
 
     /** Открыть выбор с несколькими фиксированными ограничениями связи. */
     public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionFormWithSeeds(
             Class<T> entityClass, Consumer<T> onSelect,
             java.util.Collection<org.ipro.filter.SeedFilter> seeds) {
-        return selectionFormAssembler.<T, ID>assemble(entityClass, onSelect, seeds);
+        Map<String, Object> filters = new java.util.LinkedHashMap<>();
+        if (seeds != null) {
+            for (var seed : seeds) if (seed != null) filters.put(seed.path(), seed.value());
+        }
+        return selectionFormAssembler.<T, ID>assemble(entityClass, onSelect, filters);
     }
 
     /**
@@ -275,9 +284,19 @@ public class FormResolver {
             ListForm<T, ID> form, Map<String, Object> parameters) {
         form.setOpeningParameters(parameters);
         Map<String, Object> seedValues = new java.util.LinkedHashMap<>();
-        for (SeedFilter seed : SeedFilter.allFromParameters(parameters)) {
-            if (seed.path() != null && !seed.path().isBlank() && seed.value() != null) {
-                seedValues.put(seed.path(), seed.value());
+        Object rawFilters = parameters == null ? null : parameters.get("contextFilters");
+        if (rawFilters instanceof Map<?, ?> map) {
+            for (var entry : map.entrySet()) {
+                if (entry.getKey() != null && entry.getValue() != null) {
+                    seedValues.put(String.valueOf(entry.getKey()), entry.getValue());
+                }
+            }
+        }
+        if (parameters != null) {
+            for (var seed : org.ipro.filter.SeedFilter.allFromParameters(parameters)) {
+                if (seed.path() != null && !seed.path().isBlank() && seed.value() != null) {
+                    seedValues.put(seed.path(), seed.value());
+                }
             }
         }
         if (!seedValues.isEmpty()) {

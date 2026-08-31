@@ -24,7 +24,7 @@ import org.ipro.numbering.annotation.Numbered;
     icon = "PACKAGE",
     serviceClass = org.ip.service.NomenclatureService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"code", "name"},
+    selectColumns = {"code", "name","typeNom"},
     displaySortFields = {"code", "name"}  // = getDisplayName(): code + " " + name
 )
 public class Nomenclature extends BaseEntity implements HasDisplayName {

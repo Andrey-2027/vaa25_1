@@ -28,6 +28,7 @@ import java.util.Map;
 public class ListFormVariants {
 
     private final Map<String, FormFactory> factories = new LinkedHashMap<>();
+    private final Map<String, FormFactory> viewFactories = new LinkedHashMap<>();
     private final Map<String, Class<? extends Component>> views = new LinkedHashMap<>();
 
     public ListFormVariants addDefault(FormFactory factory) {
@@ -50,9 +51,23 @@ public class ListFormVariants {
         return this;
     }
 
+    /** View-фабрика с доступом к параметрам конкретного открытия. */
+    public ListFormVariants addView(String variant, FormFactory factory) {
+        viewFactories.put(variant, factory);
+        return this;
+    }
+
+    public ListFormVariants addDefaultView(FormFactory factory) {
+        return addView(null, factory);
+    }
+
     // Package-visible для Registrar
     Map<String, FormFactory> getFactories() {
         return factories;
+    }
+
+    Map<String, FormFactory> getViewFactories() {
+        return viewFactories;
     }
 
     Map<String, Class<? extends Component>> getViews() {

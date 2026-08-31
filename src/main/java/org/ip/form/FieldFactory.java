@@ -22,6 +22,7 @@ import org.ipro.form.SearchFunction;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * Главный создатель Vaadin-компонентов на основе FieldMetadataInfo.

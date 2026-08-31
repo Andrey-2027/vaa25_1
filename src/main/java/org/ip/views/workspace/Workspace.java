@@ -51,6 +51,22 @@ public class Workspace extends VerticalLayout {
         setFlexGrow(1, content);
     }
 
+    public void openComponent(Component view, String entryId, String tabTitle) {
+        if (entries.containsKey(entryId)) {
+            tabs.setSelectedTab(entries.get(entryId).getTab());
+            return;
+        }
+        if (view instanceof HasSize sized) sized.setSizeFull();
+        Tab tab = createTab(entryId, tabTitle);
+        Entry entry = new Entry(entryId, tab, view, tabTitle);
+        entries.put(entryId, entry);
+        tabs.add(tab);
+        tabs.setSelectedTab(tab);
+        view.setVisible(false);
+        content.add(view);
+        showView(entry);
+    }
+
     public <T extends Component> void open(Class<T> viewType, String entryId,
                                            String tabTitle, Consumer<T> initializer) {
         Entry existing = entries.get(entryId);

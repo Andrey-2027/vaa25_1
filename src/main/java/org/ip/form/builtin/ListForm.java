@@ -2,17 +2,23 @@ package org.ip.form.builtin;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.function.ValueProvider;
+import org.ipro.form.EntityField;
 import org.ipro.form.FieldRenderer;
+import org.ipro.form.SearchFunction;
+import org.ipro.form.SelectionForm;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.FieldMetadataInfo;
@@ -33,6 +39,7 @@ import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.ipro.filtergrid.grouping.CriteriaGroupValuesService;
 import org.ipro.filtergrid.grouping.GroupValuesService;
 import org.ipro.filtergrid.grouping.GroupableJpaFilterGrid;
+import org.ipro.filtergrid.grouping.GroupField;
 import org.ipro.filtergrid.util.JpaPathUtil;
 import org.ipro.crud.IdentifiableEntity;
 import org.ipro.rls.RlsUiGate;
@@ -48,6 +55,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Универсальная форма списка. Генерируется из EntityMetadataInfo и использует FilterGrid.
@@ -81,6 +89,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private org.ipro.filter.FilterNode contextVisualFilter;
     private org.ipro.filter.FilterNode userVisualFilter;
     private org.ipro.filter.FilterEntitySelector entitySelector;
+    private SelectionFormProvider contextFilterSelectionFormProvider;
 
     private org.ip.service.GridFormViewService gridFormViewService;
     private org.ip.service.FormSettingsService formSettingsService;
@@ -93,7 +102,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     // Панель контекст-фильтров (предустановленные предзаданные фильтры, например «Журнал»
     // для Спецификаций). Объявляется декларативно per-сущность; пусто — панели нет вовсе.
-    private final Map<String, ComboBox<Object>> contextFilterBoxes = new LinkedHashMap<>();
+    private final Map<String, Component> contextFilterControls = new LinkedHashMap<>();
     private final Map<String, Object> openingParameters = new LinkedHashMap<>();
     private final Map<String, Object> openingContextFilterValues = new LinkedHashMap<>();
     private final Map<String, Object> contextFilterValues = new LinkedHashMap<>();
@@ -154,16 +163,17 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     }
 
     /** Устанавливает фиксированный фильтр вида; он всегда входит в итог через AND. */
+    public void setContextVisualFilter(org.ipro.filter.FilterNode filter) {
+        contextVisualFilter = filter;
+        rebuildVisualFilter();
+    }
+
     public void setFixedFilter(org.ipro.filter.FilterNode filter) {
         fixedVisualFilter = filter;
         rebuildVisualFilter();
     }
 
     /** Устанавливает контекстный фильтр открытия формы. */
-    public void setContextVisualFilter(org.ipro.filter.FilterNode filter) {
-        contextVisualFilter = filter;
-        rebuildVisualFilter();
-    }
 
     /** Устанавливает пользовательскую группу, включая вложенные OR. */
     public void setUserFilter(org.ipro.filter.FilterNode filter) {
@@ -425,31 +435,147 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             setFlexGrow(0, contextFilterPanel);
         }
         for (ContextFilterField field : fields) {
-            contextFilterBoxes.computeIfAbsent(field.path(), p -> createContextFilterCombo(field));
+            contextFilterControls.computeIfAbsent(field.path(), p -> createContextFilterControl(field));
         }
         ensureContextFilterToggle(true);
     }
 
+    /** Вид контроля выбирается декларативно (ContextFilterField.control()); добавляет в панель. */
+    private Component createContextFilterControl(ContextFilterField field) {
+        return switch (field.control()) {
+            case AUTO -> createAutoControl(field);
+            case SELECT -> createSelectControl(field);
+            case LOOKUP -> createLookupCombo(field, field.lookupSource());
+        };
+    }
+
+    /**
+     * Инференс вида из метаданных поля (по образцу {@code createFilterForPath}):
+     * lookup-поле → ComboBox из справочника, enum → ComboBox констант, дата → DatePicker,
+     * прочее → TextField (числа приводятся к типу).
+     */
+    private Component createAutoControl(ContextFilterField field) {
+        try {
+            ColumnPath path = ColumnPath.resolve(metadata.getEntityClass(), field.path());
+            return switch (path.getResolvedType()) {
+                case ENUM -> createEnumCombo(field, path.getJavaType());
+                case ENTITY_REFERENCE -> path.asFieldMetadata()
+                    .filter(FieldMetadataInfo::hasLookup)
+                    .map(FieldMetadataInfo::getLookupEntity)
+                    .filter(source -> lookupService != null)
+                    .<Component>map(source -> createLookupCombo(field, source))
+                    .orElseGet(() -> createTextFieldControl(field, path.getResolvedType()));
+                case DATE -> createDatePicker(field);
+                default -> createTextFieldControl(field, path.getResolvedType());
+            };
+        } catch (IllegalArgumentException unknownPath) {
+            return createTextFieldControl(field, null);
+        }
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private ComboBox<Object> createContextFilterCombo(ContextFilterField field) {
+    private ComboBox<Object> createLookupCombo(ContextFilterField field, Class<?> source) {
         ComboBox<Object> box = new ComboBox<>(field.label());
-        if (lookupService != null && field.valueSource() != null) {
-            box.setItems(query -> lookupService.findAll((Class) field.valueSource()).stream()
+        if (lookupService != null && source != null) {
+            box.setItems(query -> lookupService.findAll((Class) source).stream()
                 .map(item -> (Object) item));
         }
         box.setItemLabelGenerator(item -> item instanceof HasDisplayName d
             ? d.getDisplayName() : String.valueOf(item));
-        box.addValueChangeListener(e -> {
-            Object value = e.getValue();
-            if (value == null) {
-                contextFilterValues.remove(field.path());
-            } else {
-                contextFilterValues.put(field.path(), value);
-            }
-            rebuildContextFilter();
-        });
+        box.addValueChangeListener(e -> putContextValue(field.path(), e.getValue()));
         contextFilterPanel.add(box);
         return box;
+    }
+
+    private ComboBox<Object> createEnumCombo(ContextFilterField field, Class<?> javaType) {
+        ComboBox<Object> box = new ComboBox<>(field.label());
+        if (javaType.isEnum()) {
+            box.setItems((Object[]) javaType.getEnumConstants());
+        }
+        box.setItemLabelGenerator(String::valueOf);
+        box.addValueChangeListener(e -> putContextValue(field.path(), e.getValue()));
+        contextFilterPanel.add(box);
+        return box;
+    }
+
+    private DatePicker createDatePicker(ContextFilterField field) {
+        DatePicker picker = new DatePicker(field.label());
+        picker.addValueChangeListener(e -> putContextValue(field.path(), e.getValue()));
+        contextFilterPanel.add(picker);
+        return picker;
+    }
+
+    private TextField createTextFieldControl(ContextFilterField field, FieldType type) {
+        TextField input = new TextField(field.label());
+        input.addValueChangeListener(e ->
+            putContextValue(field.path(), toTypedValue(e.getValue(), type)));
+        contextFilterPanel.add(input);
+        return input;
+    }
+
+    /**
+     * SELECT: редактируемое lookup-поле (EntityField) — ручной ввод с автокомплитом и кнопка
+     * «⋯» с формой выбора (SelectionForm), как поля ENTITY_REFERENCE в ItemForm: поиск при вводе
+     * идёт по тем же текстовым колонкам, что и диалог. Без провайдера/справочника — честный
+     * fallback на ComboBox.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Component createSelectControl(ContextFilterField field) {
+        if (contextFilterSelectionFormProvider == null
+                || lookupService == null || field.lookupSource() == null) {
+            return createLookupCombo(field, field.lookupSource());
+        }
+        SearchFunction<Object> search = term -> lookupService
+            .search(field.lookupSource(), searchFieldsOf(field.lookupSource()), term, 20)
+            .stream().map(item -> (Object) item).toList();
+        EntityField entityField = new EntityField(field.label(), search);
+        entityField.setSelectionFormFactory(onSelect ->
+            contextFilterSelectionFormProvider.selectionForm(
+                field.lookupSource(), (java.util.function.Consumer) onSelect));
+        entityField.addValueChangeListener(value -> putContextValue(field.path(), value));
+        contextFilterPanel.add(entityField);
+        return entityField;
+    }
+
+    /** Текстовые колонки формы выбора источника — поля поиска автокомплита (как в FieldFactory). */
+    private String[] searchFieldsOf(Class<?> sourceClass) {
+        if (metadataResolver == null) {
+            return new String[0];
+        }
+        try {
+            return metadataResolver.resolve(sourceClass).getSelectColumnPaths().stream()
+                .filter(path -> path.getResolvedType() == FieldType.TEXT)
+                .map(ColumnPath::getKey)
+                .toArray(String[]::new);
+        } catch (RuntimeException unresolvable) {
+            return new String[0];
+        }
+    }
+
+    /** Положить значение панели (null — убрать) и пересобрать фильтр. */
+    private void putContextValue(String path, Object value) {
+        if (value == null) {
+            contextFilterValues.remove(path);
+        } else {
+            contextFilterValues.put(path, value);
+        }
+        rebuildContextFilter();
+    }
+
+    /** Привести введённый текст к типу поля (числа → Long/Double), чтобы не падать при bind. */
+    private static Object toTypedValue(String text, FieldType type) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        try {
+            return switch (type == null ? FieldType.TEXT : type) {
+                case INTEGER -> Long.valueOf(text.trim());
+                case DECIMAL -> Double.valueOf(text.trim());
+                default -> text;
+            };
+        } catch (NumberFormatException notANumber) {
+            return text;
+        }
     }
 
     /** Пересобрать единый Specification контекст-фильтра из выбранных значений (AND). */
@@ -493,6 +619,24 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         return paths;
     }
 
+    /**
+     * Поля группировки по активным колонкам, с генератором подписей значений:
+     * сущности (HasDisplayName) → displayName, прочее → toString. Без генератора
+     * подпись узла дерева — value.toString() («org.ip.model.Journal@…»).
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private List<GroupField<T, ?>> deriveGroupFieldsWithLabels() {
+        List<GroupField<T, ?>> fields = new ArrayList<>();
+        for (ColumnPath path : activeColumns) {
+            Function<T, Object> getter = entity -> path.getValue(entity);
+            fields.add(new GroupField<>(path.getKey(), path.getLabel(), path.getKey(),
+                getter, false)
+                .withLabelGenerator(value -> value instanceof HasDisplayName d
+                    ? d.getDisplayName() : String.valueOf(value)));
+        }
+        return fields;
+    }
+
     // === Главный конструктор ===
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -515,8 +659,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
         // Группировка: кнопка-toggle добавляется в общий тулбар ListForm
         // (после Добавить/Изменить/Удалить/Refresh/Views), панель — слева от грида.
+        // Поля группировки строим сами, с генератором подписей значений: библиотечный
+        // deriveGroupFields() не задаёт labelGenerator, и подпись узла уходит в
+        // value.toString() — «org.ip.model.Journal@…» вместо displayName.
         if (this.filterGrid instanceof GroupableJpaFilterGrid) {
-            ((GroupableJpaFilterGrid<T>) this.filterGrid).enableGrouping(toolbar);
+            ((GroupableJpaFilterGrid<T>) this.filterGrid)
+                .enableGrouping(toolbar, deriveGroupFieldsWithLabels().toArray(GroupField[]::new));
         }
 
         if (afterColumnsConfigured != null) {
@@ -869,6 +1017,21 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         if (visualFilterPanel != null) {
             visualFilterPanel.setEntitySelector(entitySelector);
         }
+    }
+
+    /**
+     * Провайдер диалога выбора для SELECT-контрола панели контекст-фильтров
+     * (EntityField «⋯» → SelectionForm). Реализация — на стороне вызывающего кода
+     * (FormCoordinator), платформа не зависит от SelectionForm напрямую.
+     */
+    public void setSelectionFormProvider(SelectionFormProvider provider) {
+        this.contextFilterSelectionFormProvider = provider;
+    }
+
+    @FunctionalInterface
+    public interface SelectionFormProvider {
+        @SuppressWarnings("rawtypes")
+        SelectionForm selectionForm(Class entityClass, java.util.function.Consumer onSelect);
     }
 
     public void setMetadataResolver(MetadataResolver metadataResolver) {

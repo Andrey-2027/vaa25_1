@@ -4,7 +4,6 @@ import org.ip.form.builder.ItemFormCustomization;
 import org.ip.form.builder.ItemFormVariants;
 import org.ip.form.builtin.ItemForm;
 import org.ip.form.registry.FormContext;
-import org.ipro.filter.SeedFilter;
 import org.ipro.form.EntityField;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.EntityMetadataInfo;
@@ -15,6 +14,7 @@ import org.ip.model.PrdSpecOper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Состав и режим секций формы Спецификации (PR-1.5, решение №7).
@@ -72,9 +72,9 @@ public class PrdSpecFormConfig implements ItemFormCustomization {
     private void restrictHeaderNomenclature(ItemForm<PrdSpec> form) {
         try {
             EntityField<Nomenclature> field = form.entityField("nomenclature");
-            field.setSelectionFormFactory(onSelect ->
-                selectionFormAssembler.<Nomenclature, Long>assemble(
-                    Nomenclature.class, onSelect, new SeedFilter("typeNom", NON_MATERIAL_TYPES)));
+            field.setSelectionFilter(Map.of("typeNom", NON_MATERIAL_TYPES),
+                (onSelect, filters) -> selectionFormAssembler.assemble(
+                    Nomenclature.class, onSelect, filters));
         } catch (IllegalStateException ignored) {
             // поле отсутствует/не EntityField — ограничение не применяем
         }
