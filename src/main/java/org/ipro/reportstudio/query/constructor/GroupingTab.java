@@ -10,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import org.ipro.reportstudio.query.JoinLogicalOperator;
 import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
@@ -168,9 +169,28 @@ final class GroupingTab extends VerticalLayout {
         aggregatesGrid.addColumn(aggregate -> draft.displayPath(aggregate.path()))
                 .setHeader("Суммируемое поле").setFlexGrow(1);
         aggregatesGrid.addComponentColumn(this::functionCombo).setHeader("Функция").setAutoWidth(true).setFlexGrow(0);
+        // Псевдоним агрегата в SELECT: count(m.id) as cntMtr — правится здесь.
+        aggregatesGrid.addComponentColumn(this::aggregateAliasEditor).setHeader("Псевдоним").setAutoWidth(true).setFlexGrow(0);
         aggregatesGrid.addComponentColumn(this::aggregateRemoveButton).setAutoWidth(true).setFlexGrow(0);
         aggregatesGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
         aggregatesGrid.addFocusListener(event -> activeTarget = Target.AGGREGATES);
+    }
+
+    /** Редактор псевдонима агрегата: переименование обновляет ссылки в HAVING. */
+    private com.vaadin.flow.component.Component aggregateAliasEditor(VisualQueryDefinition.Aggregate aggregate) {
+        TextField editor = new TextField();
+        editor.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+        editor.setWidth("92px");
+        editor.setValue(aggregate.resultName());
+        editor.getElement().setAttribute("title", "Псевдоним агрегата в SELECT (например, cntMtr)");
+        editor.addValueChangeListener(event -> {
+            if (!event.isFromClient()) return;
+            String newName = event.getValue();
+            if (newName == null || newName.isBlank() || newName.equals(aggregate.resultName())) return;
+            draft.renameAggregate(aggregate, newName);
+            changed();
+        });
+        return editor;
     }
 
     private void configureHaving() {

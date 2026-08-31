@@ -15,6 +15,7 @@ import org.ipro.reportstudio.query.VisualQueryCompiler;
 import org.ipro.reportstudio.query.VisualQueryDefinition;
 import org.ipro.reportstudio.query.VisualQueryExpression;
 import org.ipro.reportstudio.query.VisualQueryOrder;
+import org.ipro.reportstudio.query.VisualQueryPackage;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -79,6 +80,10 @@ public final class QueryConstructorDraft {
     private final List<VisualQueryDefinition.HavingCondition> havingConditions = new ArrayList<>();
     private JoinLogicalOperator havingOperator = JoinLogicalOperator.AND;
     private FilterNode where;
+    /** Подзапросы активного этапа: условия WHERE ссылаются на них по имени (sub1, sub2, …). */
+    private List<VisualQueryDefinition.Subquery> subqueries = List.of();
+    private final LinkedHashMap<String, VisualQueryDefinition> packageStages = new LinkedHashMap<>();
+    private String activeStage = "main";
     /** Поле SELECT, замещённое агрегатом — для восстановления при удалении агрегата. */
     private final Map<String, VisualQueryDefinition.SelectField> replacedByAggregate = new LinkedHashMap<>();
 
@@ -96,7 +101,13 @@ public final class QueryConstructorDraft {
 
     public QueryBuilderMetadataCatalog.Entity entity(String name) {
         if (name == null) return null;
-        return roots.stream().filter(e -> e.entityName().equals(name)).findFirst().orElse(null);
+        var regular = roots.stream().filter(e -> e.entityName().equals(name)).findFirst().orElse(null);
+        if (regular != null) return regular;
+        // Виртуальный CTE: на этапе main (или следующем этапе) предыдущие временные
+        // таблицы доступны как источники — JOIN к ним есть в определении main.
+        return availableCteEntities().stream()
+                .filter(candidate -> candidate.entityName().equals(name))
+                .findFirst().orElse(null);
     }
 
     public QueryBuilderMetadataCatalog.Entity entityByType(Class<?> type) {
@@ -108,7 +119,84 @@ public final class QueryConstructorDraft {
 
     public boolean hasRoot() { return entityName != null && !entityName.isBlank(); }
 
-    public QueryBuilderMetadataCatalog.Entity root() { return hasRoot() ? entity(entityName) : null; }
+    public QueryBuilderMetadataCatalog.Entity root() {
+        return hasRoot() ? entity(entityName) : null;
+    }
+
+    public String activeStage() { return activeStage; }
+
+    public List<String> stageNames() { return List.copyOf(packageStages.keySet()); }
+
+    public boolean isMainStage() { return "main".equals(activeStage); }
+
+    public void switchStage(String stage) {
+        if (stage == null || stage.isBlank()) throw new IllegalArgumentException("Этап обязателен");
+        if (stage.equals(activeStage)) return;
+        if (!activeStage.equals("main")) packageStages.put(activeStage, definitionOrEmpty());
+        else packageStages.put("main", definitionOrEmpty());
+        VisualQueryDefinition next = packageStages.get(stage);
+        activeStage = stage;
+        clear();
+        if (next != null) load(next);
+    }
+
+    public void renameStage(String oldName, String newName) {
+        if (oldName == null || newName == null || oldName.equals(newName)
+                || "main".equals(oldName) || "main".equals(newName)
+                || packageStages.containsKey(newName)) return;
+        VisualQueryDefinition value = packageStages.remove(oldName);
+        LinkedHashMap<String, VisualQueryDefinition> copy = new LinkedHashMap<>();
+        packageStages.forEach((key, definition) -> copy.put(key.equals(oldName) ? newName : key, definition));
+        packageStages.clear();
+        copy.put(newName, value);
+        if (oldName.equals(activeStage)) activeStage = newName;
+    }
+
+    public String addStage() {
+        String name = "tmp" + (packageStages.size() + 1);
+        int suffix = 2;
+        while (packageStages.containsKey(name)) name = "tmp" + (packageStages.size() + suffix++);
+        if (!activeStage.equals("main")) packageStages.put(activeStage, definitionOrEmpty());
+        else if (hasRoot()) packageStages.put("main", definitionOrEmpty());
+        packageStages.putIfAbsent(name, null);
+        activeStage = name;
+        clear();
+        return name;
+    }
+
+    public void removeStage(String stage) {
+        if (stage == null || "main".equals(stage)) return;
+        packageStages.remove(stage);
+        packageStages.entrySet().removeIf(entry -> entry.getValue() != null
+                && entry.getValue().entityName().equals(stage));
+        if (activeStage.equals(stage)) { activeStage = "main"; clear(); VisualQueryDefinition main = packageStages.get("main"); if (main != null) load(main); }
+    }
+
+    public VisualQueryPackage packageDefinition() {
+        if (activeStage.equals("main")) packageStages.put("main", definitionOrEmpty());
+        else packageStages.put(activeStage, definitionOrEmpty());
+        VisualQueryDefinition main = packageStages.get("main");
+        if (main == null) return null;
+        List<VisualQueryPackage.Cte> ctes = new ArrayList<>();
+        Set<String> available = new LinkedHashSet<>();
+        for (var entry : packageStages.entrySet()) if (!entry.getKey().equals("main") && entry.getValue() != null) {
+            VisualQueryDefinition d = entry.getValue();
+            VisualQueryPackage.Source source = available.contains(d.entityName())
+                    ? new VisualQueryPackage.CteSource(d.entityAlias(), d.entityName())
+                    : new VisualQueryPackage.EntitySource(d.entityName(), d.entityAlias());
+            ctes.add(new VisualQueryPackage.Cte(entry.getKey(), source, d));
+            available.add(entry.getKey());
+        }
+        VisualQueryPackage.Source mainSource = available.contains(main.entityName())
+                ? new VisualQueryPackage.CteSource(main.entityAlias(), main.entityName())
+                : new VisualQueryPackage.EntitySource(main.entityName(), main.entityAlias());
+        // Main source is currently represented by its definition; source is retained
+        // for future package consumers and validated here.
+        if (!mainSource.alias().equals(main.entityAlias())) throw new IllegalStateException("Некорректный alias итогового этапа");
+        return new VisualQueryPackage(ctes, main);
+    }
+
+    private VisualQueryDefinition definitionOrEmpty() { return definition(); }
 
     public String rootAlias() { return entityAlias; }
 
@@ -131,10 +219,63 @@ public final class QueryConstructorDraft {
 
     // === Таблицы ===
 
+    public List<QueryBuilderMetadataCatalog.Entity> availableCteEntities() {
+        List<QueryBuilderMetadataCatalog.Entity> result = new ArrayList<>();
+        for (var entry : packageStages.entrySet()) {
+            if (!entry.getKey().equals("main") && !entry.getKey().equals(activeStage)
+                    && entry.getValue() != null) {
+                result.add(new QueryBuilderMetadataCatalog.Entity(entry.getKey(), Object.class,
+                        entry.getValue().selectFields().stream().map(field ->
+                                new QueryBuilderMetadataCatalog.Field(field.resultName(), field.resultName(), Object.class, false)).toList(),
+                        List.of(), entry.getKey() + " (временная таблица)"));
+            }
+        }
+        return result;
+    }
+
+    public void setCteRoot(String cteName, String alias) {
+        var cte = packageStages.get(cteName);
+        if (cte == null || "main".equals(cteName) || cteName.equals(activeStage)) return;
+        clear();
+        entityName = cteName;
+        entityAlias = alias == null || alias.isBlank() ? "t" : alias;
+    }
+
+    /**
+     * Добавляет виртуальный CTE как таблицу активного этапа: если корень ещё
+     * не выбран — CTE становится корнем этапа; иначе — добавляется независимым
+     * JOIN (условие ON задаётся на вкладке «Связи»). Уже построенный запрос
+     * (корень, поля, связи) при этом не затирается.
+     *
+     * @return alias, под которым CTE доступен на этапе, или null
+     */
+    public String addCteTable(String cteName) {
+        if (cteName == null || cteName.isBlank()) return null;
+        if (!hasRoot()) {
+            setCteRoot(cteName, "t");
+            return hasRoot() ? entityAlias : null;
+        }
+        if (entityName.equals(cteName)) return entityAlias;
+        var existing = tables().stream()
+                .filter(t -> t.entity().entityName().equals(cteName))
+                .findFirst();
+        if (existing.isPresent()) return existing.get().alias();
+        return addJoin(new VisualQueryDefinition.Join(null, cteName,
+                lowerCamel(cteName), VisualQueryDefinition.JoinKind.LEFT)).alias();
+    }
+
+    /** Alias, под которым виртуальный CTE доступен на активном этапе (корень или JOIN). */
+    public String cteFieldAlias(String cteName) {
+        if (cteName == null) return null;
+        if (hasRoot() && entityName.equals(cteName)) return entityAlias;
+        return tables().stream().filter(t -> t.entity().entityName().equals(cteName))
+                .findFirst().map(TableRef::alias).orElse(null);
+    }
+
     public List<TableRef> tables() {
         List<TableRef> result = new ArrayList<>();
         if (hasRoot()) {
-            var entity = entity(entityName);
+            var entity = root();
             if (entity != null) result.add(new TableRef(entityAlias, entity, true, null));
         }
         for (var join : joins) {
@@ -162,7 +303,7 @@ public final class QueryConstructorDraft {
 
     public QueryBuilderMetadataCatalog.Entity entityForAlias(String alias) {
         if (alias == null) return null;
-        if (alias.equals(entityAlias)) return entity(entityName);
+        if (alias.equals(entityAlias)) return root();
         return joins.stream().filter(j -> j.alias().equals(alias)).findFirst()
                 .map(this::entityOfJoin).orElse(null);
     }
@@ -529,6 +670,29 @@ public final class QueryConstructorDraft {
         aggregates.set(index, new VisualQueryDefinition.Aggregate(function, aggregate.path(), aggregate.resultName()));
     }
 
+    /**
+     * Переименовывает псевдоним агрегата (колонка в SELECT, например count(m.id) as cntMtr)
+     * и синхронно обновляет ссылки на него в условиях HAVING. Имя должно быть корректным
+     * идентификатором и свободным; иначе изменение молча игнорируется (после refresh
+     * вернётся прежнее значение).
+     */
+    public void renameAggregate(VisualQueryDefinition.Aggregate aggregate, String newName) {
+        if (aggregate == null || newName == null) return;
+        String sanitized = sanitize(newName);
+        if (!IDENTIFIER.matcher(sanitized).matches() || sanitized.equals(aggregate.resultName())) return;
+        if (resultNameTaken(sanitized)) return;
+        int index = aggregates.indexOf(aggregate);
+        if (index < 0) return;
+        aggregates.set(index, new VisualQueryDefinition.Aggregate(aggregate.function(), aggregate.path(), sanitized));
+        for (int i = 0; i < havingConditions.size(); i++) {
+            var condition = havingConditions.get(i);
+            if (condition.aggregateAlias().equals(aggregate.resultName())) {
+                havingConditions.set(i, new VisualQueryDefinition.HavingCondition(
+                        sanitized, condition.operator(), condition.value()));
+            }
+        }
+    }
+
     public void removeAggregate(VisualQueryDefinition.Aggregate aggregate) {
         aggregates.remove(aggregate);
         if (aggregates.stream().noneMatch(a -> a.path().equals(aggregate.path()))) {
@@ -638,6 +802,9 @@ public final class QueryConstructorDraft {
 
     // === Определение и компиляция ===
 
+    /** Подзапросы активного этапа (для вкладки «Условия» и тестов). */
+    public List<VisualQueryDefinition.Subquery> subqueries() { return List.copyOf(subqueries); }
+
     /** Определение запроса; null, пока не выбраны таблицы и поля. */
     public VisualQueryDefinition definition() {
         if (!hasRoot() || (selections.isEmpty() && aggregates.isEmpty())) return null;
@@ -645,7 +812,7 @@ public final class QueryConstructorDraft {
                 : new VisualQueryDefinition.Having(havingOperator, havingConditions);
         return new VisualQueryDefinition(VisualQueryDefinition.CURRENT_VERSION, entityName, entityAlias,
                 List.copyOf(selections), List.copyOf(joins), effectiveGrouping(), List.copyOf(aggregates),
-                List.copyOf(expressions), having, where, List.of(), List.copyOf(orders));
+                List.copyOf(expressions), having, where, List.of(), List.copyOf(orders), List.copyOf(subqueries));
     }
 
     /** Компилирует черновик; при ошибке возвращает message вместо текста. */
@@ -653,7 +820,9 @@ public final class QueryConstructorDraft {
         var definition = definition();
         if (definition == null) return new Compiled(null, List.of(), Map.of(), null);
         try {
-            ReportQueryAssembler assembled = VisualQueryCompiler.compile(definition, catalog);
+            ReportQueryAssembler assembled = isMainStage() && !packageStages.isEmpty()
+                    ? VisualQueryCompiler.compile(packageDefinition(), catalog)
+                    : VisualQueryCompiler.compile(definition, catalog);
             return new Compiled(assembled.jpql(), assembled.fields(), assembled.bindings(), null);
         } catch (RuntimeException error) {
             return new Compiled(null, List.of(), Map.of(), message(error));
@@ -666,6 +835,7 @@ public final class QueryConstructorDraft {
         if (definition == null) return;
         entityName = definition.entityName();
         entityAlias = definition.entityAlias();
+        subqueries = definition.subqueries();
         selections.addAll(definition.selectFields());
         joins.addAll(definition.joins());
         groupingPaths.addAll(definition.groupBy());
@@ -691,6 +861,7 @@ public final class QueryConstructorDraft {
         havingConditions.clear();
         havingOperator = JoinLogicalOperator.AND;
         where = null;
+        subqueries = List.of();
         replacedByAggregate.clear();
     }
 
@@ -771,6 +942,39 @@ public final class QueryConstructorDraft {
         var entity = entityForAlias(parts[0]);
         String base = entity == null ? parts[0] : entity.entityName();
         return base + "." + String.join(".", java.util.Arrays.copyOfRange(parts, 1, parts.length));
+    }
+
+    /**
+     * Русское имя поля по пути («s.codeSpec» → «Код спецификации»): подпись
+     * последнего сегмента, промежуточные сегменты — проход по ассоциациям.
+     * Для виртуальных CTE подпись — имя колонки; при невозможности резолва —
+     * технический путь как fallback.
+     */
+    public String displayFieldName(String path) {
+        if (path == null || path.isBlank()) return "";
+        String[] segments = path.split("\\.");
+        if (segments.length < 2) return path;
+        QueryBuilderMetadataCatalog.Entity current = entityForAlias(segments[0]);
+        if (current == null) return displayPath(path);
+        for (int i = 1; i < segments.length - 1; i++) {
+            String segment = segments[i];
+            var step = current.associations().stream()
+                    .filter(a -> a.name().equals(segment)).findFirst().orElse(null);
+            if (step == null || step.targetType() == null) return displayPath(path);
+            current = entityByType(step.targetType());
+            if (current == null) return displayPath(path);
+        }
+        final QueryBuilderMetadataCatalog.Entity target = current;
+        String name = segments[segments.length - 1];
+        var field = target.fields().stream().filter(f -> f.name().equals(name)).findFirst().orElse(null);
+        if (field != null && field.caption() != null && !field.caption().isBlank()) return field.caption();
+        var association = target.associations().stream()
+                .filter(a -> a.name().equals(name)).findFirst().orElse(null);
+        if (association != null && association.caption() != null && !association.caption().isBlank()) {
+            return association.caption();
+        }
+        if ("id".equals(name)) return "Идентификатор записи";
+        return displayPath(path);
     }
 
     /** Глубина доступной цепочки ассоциаций для дерева каталога. */

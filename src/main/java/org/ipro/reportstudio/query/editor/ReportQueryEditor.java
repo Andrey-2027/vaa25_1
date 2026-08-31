@@ -43,6 +43,8 @@ import org.ipro.reportstudio.query.ReportQueryAssemblyService;
 import org.ipro.reportstudio.query.OrderByApplier;
 import org.ipro.reportstudio.query.ServiceParams;
 import org.ipro.reportstudio.query.VisualQueryDefinition;
+import org.ipro.reportstudio.query.VisualQueryPackage;
+import org.ipro.reportstudio.query.VisualQueryPackageJsonCodec;
 import org.ipro.reportstudio.query.VisualQueryDefinitionJsonCodec;
 import org.ipro.reportstudio.query.VisualQueryTextParser;
 import org.ipro.reportstudio.query.constructor.JpqlQueryBuilderDialog;
@@ -141,6 +143,7 @@ public class ReportQueryEditor extends VerticalLayout {
     private final List<QueryTestParam> testParams = new ArrayList<>();
 
     private ReportTemplate template;
+    private VisualQueryPackage visualQueryPackage;
     private QueryTestParam selectedParam;
     private boolean paramFormUpdating;
     private Consumer<ReportTemplate> changeListener = ignored -> { };
@@ -216,6 +219,7 @@ public class ReportQueryEditor extends VerticalLayout {
         // карта заполняется через putIfAbsent и иначе никогда не очищается.
         aliasesByEntity.clear();
         jpql.setValue(Objects.requireNonNullElse(template.getJpql(), ""));
+        visualQueryPackage = null;
         testParams.clear();
         syncTestParameters(extractParameterNames(jpql.getValue()));
         selectParam(null);
@@ -367,33 +371,49 @@ public class ReportQueryEditor extends VerticalLayout {
         VisualQueryDefinition saved = null;
         if (template.getVisualQueryJson() != null && !template.getVisualQueryJson().isBlank()) {
             try {
-                saved = new VisualQueryDefinitionJsonCodec().read(template.getVisualQueryJson());
+                if (template.getVisualQueryJson().contains("\"ctes\"")) {
+                    visualQueryPackage = new VisualQueryPackageJsonCodec().read(template.getVisualQueryJson());
+                    saved = visualQueryPackage.main();
+                } else {
+                    saved = new VisualQueryDefinitionJsonCodec().read(template.getVisualQueryJson());
+                }
             } catch (Exception error) {
                 status.setText("Сохранённый черновик конструктора некорректен.");
             }
         }
         VisualQueryDefinition initial = saved;
+        VisualQueryPackage parsedPackage = visualQueryPackage;
         List<String> parseWarnings = List.of();
         String text = jpql.getValue();
         if (text != null && !text.isBlank()) {
-            var parsed = new VisualQueryTextParser(constructorCatalog).parse(text, saved);
-            if (parsed.definition() != null) {
-                initial = parsed.definition();
-                parseWarnings = parsed.warnings();
-            } else if (saved != null) {
-                status.setText("Текст запроса не разобран — открыт сохранённый черновик конструктора.");
+            var parsedPackageResult = new VisualQueryTextParser(constructorCatalog).parsePackage(text);
+            if (parsedPackageResult.queryPackage() != null && !parsedPackageResult.queryPackage().ctes().isEmpty()) {
+                parsedPackage = parsedPackageResult.queryPackage();
+                initial = parsedPackage.main();
+                parseWarnings = parsedPackageResult.warnings();
+            } else {
+                var parsed = new VisualQueryTextParser(constructorCatalog).parse(text, saved);
+                if (parsed.definition() != null) {
+                    initial = parsed.definition();
+                    parseWarnings = parsed.warnings();
+                } else if (saved != null) {
+                    status.setText("Текст запроса не разобран — открыт сохранённый черновик конструктора.");
+                }
             }
         }
         // Условия WHERE в конструкторе используют типизированные литералы:
         // :параметры подставляются на runtime через ReportParam, компилятор их не принимает.
-        new JpqlQueryBuilderDialog(constructorCatalog, List.of(), initial, parseWarnings,
+        new JpqlQueryBuilderDialog(constructorCatalog, List.of(), initial, parsedPackage, parseWarnings,
                 this::applyConstructorResult).open();
     }
 
     /** Применяет результат конструктора: текст — источник истины, определение остаётся черновиком. */
     void applyConstructorResult(JpqlQueryBuilderDialog.Result result) {
         if (template == null) return;
-        template.setVisualQueryJson(new VisualQueryDefinitionJsonCodec().write(result.definition()));
+        visualQueryPackage = result.queryPackage();
+        template.setVisualQueryJson(visualQueryPackage != null && !visualQueryPackage.ctes().isEmpty()
+                ? new VisualQueryPackageJsonCodec().write(visualQueryPackage)
+                : new VisualQueryDefinitionJsonCodec().write(result.definition()));
         template.setQuerySource(ReportQuerySource.MANUAL);
         // В редактор — тот же текст, что показан в окне «Запрос» конструктора (форматированный).
         String formatted = JpqlFormatter.format(result.jpql());
@@ -402,6 +422,10 @@ public class ReportQueryEditor extends VerticalLayout {
         // без них «Проверить»/«Выполнить» не сможет забиндить параметры запроса.
         importConstructorBindings(result.bindings());
         status.setText("Запрос построен конструктором.");
+    }
+
+    public VisualQueryPackage visualQueryPackage() {
+        return visualQueryPackage;
     }
 
     /** Разносит bindings конструктора по тестовым параметрам (значение и тип по классу значения). */

@@ -23,9 +23,21 @@ import java.util.function.Consumer;
 public class JpqlQueryBuilderDialog extends Dialog {
 
     /** Результат работы конструктора: определение, текст JPQL и bindings (значения WHERE). */
-    public record Result(VisualQueryDefinition definition, String jpql, Map<String, Object> bindings) { }
+    public record Result(VisualQueryDefinition definition, String jpql, Map<String, Object> bindings,
+                         org.ipro.reportstudio.query.VisualQueryPackage queryPackage) {
+        public Result(VisualQueryDefinition definition, String jpql, Map<String, ?> bindings) {
+            this(definition, jpql, castBindings(bindings), null);
+        }
+
+        private static Map<String, Object> castBindings(Map<String, ?> bindings) {
+            Map<String, Object> result = new java.util.LinkedHashMap<>();
+            if (bindings != null) bindings.forEach(result::put);
+            return result;
+        }
+    }
 
     private final JpqlQueryConstructor constructor;
+    private final QueryBuilderMetadataCatalog catalog;
 
     public JpqlQueryBuilderDialog(QueryBuilderMetadataCatalog catalog,
                                   List<String> parameterNames,
@@ -43,9 +55,21 @@ public class JpqlQueryBuilderDialog extends Dialog {
                                   VisualQueryDefinition initial,
                                   List<String> parseWarnings,
                                   Consumer<Result> onApply) {
+        this(catalog, parameterNames, initial, null, parseWarnings, onApply);
+    }
+
+    public JpqlQueryBuilderDialog(QueryBuilderMetadataCatalog catalog,
+                                  List<String> parameterNames,
+                                  VisualQueryDefinition initial,
+                                  org.ipro.reportstudio.query.VisualQueryPackage queryPackage,
+                                  List<String> parseWarnings,
+                                  Consumer<Result> onApply) {
+        this.catalog = catalog;
         constructor = new JpqlQueryConstructor(catalog, parameterNames);
         constructor.setParseWarnings(parseWarnings);
-        if (initial != null) {
+        if (queryPackage != null) {
+            constructor.setPackage(queryPackage);
+        } else if (initial != null) {
             constructor.setDefinition(initial);
         }
 
@@ -89,7 +113,7 @@ public class JpqlQueryBuilderDialog extends Dialog {
             return;
         }
         if (onApply != null) {
-            onApply.accept(new Result(definition, constructor.jpql(), constructor.bindings()));
+            onApply.accept(new Result(definition, constructor.jpql(), constructor.bindings(), constructor.queryPackage()));
         }
         close();
     }

@@ -12,7 +12,7 @@ import java.util.List;
  */
 final class ConstructorTreeNode {
 
-    enum Kind { ENTITY, PROPERTY, ASSOCIATION }
+    enum Kind { ENTITY, PROPERTY, ASSOCIATION, CTE }
 
     private final Kind kind;
     /** Отображаемое имя (в стиле 1С — техническое имя сущности/поля/связи). */

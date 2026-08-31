@@ -30,10 +30,57 @@ public final class VisualQueryCompiler {
     private VisualQueryCompiler() { }
     public static ReportQueryAssembler compile(VisualQueryDefinition definition) { return compile(definition, null); }
 
+    /** Компилирует пакет CTE в одном общем контексте параметров. */
+    public static ReportQueryAssembler compile(VisualQueryPackage queryPackage,
+                                               QueryBuilderMetadataCatalog catalog) {
+        if (queryPackage == null) throw new IllegalArgumentException("Пакет запроса обязателен");
+        var parameterContext = new ReportVisualFilterCompiler.ParameterContext();
+        var bindings = new java.util.LinkedHashMap<String, Object>();
+        var renderedCtes = new java.util.ArrayList<String>();
+        VisualQueryPackage.VirtualCatalog virtualCatalog = VisualQueryPackage.VirtualCatalog.empty();
+        Map<String, QueryBuilderMetadataCatalog.Entity> virtualEntities = new HashMap<>();
+        for (VisualQueryPackage.Cte cte : queryPackage.ctes()) {
+            VisualQueryDefinition definition = cte.definition();
+            if (cte.source() instanceof VisualQueryPackage.CteSource source) {
+                definition = withEntityName(definition, source.cteName());
+            } else if (cte.source() instanceof VisualQueryPackage.EntitySource source
+                    && !source.name().equals(definition.entityName())) {
+                definition = withEntityName(definition, source.name());
+            }
+            ReportQueryAssembler compiled = compile(definition, catalog, parameterContext, virtualEntities, virtualCatalog);
+            renderedCtes.add(cte.name() + " as (" + compiled.jpql() + ")");
+            if (catalog != null) {
+                virtualCatalog = virtualCatalog.add(cte.name(), definition, catalog);
+                virtualEntities.put(cte.name(), virtualCatalog.entity(cte.name()));
+            }
+            bindings.putAll(compiled.bindings());
+        }
+        ReportQueryAssembler main = compile(queryPackage.main(), catalog, parameterContext, virtualEntities, virtualCatalog);
+        bindings.putAll(main.bindings());
+        String jpql = main.jpql();
+        if (!renderedCtes.isEmpty()) jpql = "with " + String.join(", ", renderedCtes) + " " + jpql;
+        return new ReportQueryAssembler(jpql, bindings, main.fields(), main.warnings());
+    }
+
     public static ReportQueryAssembler compile(VisualQueryDefinition definition, QueryBuilderMetadataCatalog catalog) {
+        return compile(definition, catalog, new ReportVisualFilterCompiler.ParameterContext(), Map.of(), VisualQueryPackage.VirtualCatalog.empty());
+    }
+
+    private static ReportQueryAssembler compile(VisualQueryDefinition definition,
+                                                QueryBuilderMetadataCatalog catalog,
+                                                ReportVisualFilterCompiler.ParameterContext parameterContext) {
+        return compile(definition, catalog, parameterContext, Map.of(), VisualQueryPackage.VirtualCatalog.empty());
+    }
+
+    private static ReportQueryAssembler compile(VisualQueryDefinition definition,
+                                                QueryBuilderMetadataCatalog catalog,
+                                                ReportVisualFilterCompiler.ParameterContext parameterContext,
+                                                Map<String, QueryBuilderMetadataCatalog.Entity> virtualEntities,
+                                                VisualQueryPackage.VirtualCatalog virtualCatalog) {
         if (definition == null) throw new IllegalArgumentException("Определение запроса обязательно");
         validateIdentifier(definition.entityName(), "сущности"); validateIdentifier(definition.entityAlias(), "alias сущности");
-        QueryBuilderMetadataCatalog.Entity root = catalog == null ? null : catalog.root(definition.entityName());
+        QueryBuilderMetadataCatalog.Entity root = virtualEntities.get(definition.entityName());
+        if (root == null && catalog != null) root = catalog.root(definition.entityName());
         Map<String, QueryBuilderMetadataCatalog.Entity> aliases = new HashMap<>(); aliases.put(definition.entityAlias(), root);
         Set<String> declared = new HashSet<>(); declared.add(definition.entityAlias()); Set<String> paths = new HashSet<>(); StringBuilder joins = new StringBuilder();
         for (VisualQueryDefinition.Join join : definition.joins()) {
@@ -41,10 +88,12 @@ public final class VisualQueryCompiler {
             if (join.independent() && join.on() != null) {
                 if (!paths.add(join.sourcePath())) throw new IllegalArgumentException("Повторный JOIN: " + join.sourcePath());
                 String targetEntity = join.sourcePath(); if (targetEntity.startsWith(definition.entityAlias() + ".")) targetEntity = targetEntity.substring(definition.entityAlias().length() + 1);
-                validateIdentifier(targetEntity, "целевой сущности JOIN"); aliases.put(join.alias(), catalog == null ? null : catalog.root(targetEntity));
+                validateIdentifier(targetEntity, "целевой сущности JOIN"); aliases.put(join.alias(), independentJoinTarget(targetEntity, virtualEntities, catalog));
                 String on = compileOn(join.on(), aliases, catalog); if (on.isBlank()) throw new IllegalArgumentException("Для независимого JOIN требуется условие ON");
                 joins.append(' ').append(join.kind() == VisualQueryDefinition.JoinKind.LEFT ? "left join " : "join ").append(targetEntity).append(' ').append(join.alias()).append(" on ").append(on); continue;
             }
+            if (join.independent()) throw new IllegalArgumentException("Для независимого JOIN «" + join.alias()
+                    + "» требуется условие ON — задайте его на вкладке «Связи»");
             String parent = join.parentAlias(); if (parent == null || parent.isBlank()) parent = definition.entityAlias(); validateIdentifier(parent, "родительского alias JOIN"); if (!aliases.containsKey(parent)) throw new IllegalArgumentException("Неизвестный родительский alias: " + parent);
             validatePath(join.sourcePath()); String association = join.sourcePath(); if (association.startsWith(parent + ".")) association = association.substring(parent.length() + 1); if (association.contains(".")) throw new IllegalArgumentException("Путь JOIN должен быть одной связью: " + join.sourcePath());
             String associationName = association; String path = parent + "." + associationName; if (!paths.add(path)) throw new IllegalArgumentException("Повторный JOIN: " + path);
@@ -60,11 +109,12 @@ public final class VisualQueryCompiler {
         String jpql = "select " + select + " from " + definition.entityName() + " " + definition.entityAlias() + joins;
         Map<String, Object> whereBindings = new HashMap<>();
         if (definition.where() != null) {
-            if (catalog == null) {
-                throw new IllegalArgumentException("Для WHERE требуется metadata catalog");
-            }
-            var resolver = new VisualQueryFilterResolver(definition, catalog);
-            var compiledWhere = new ReportVisualFilterCompiler(resolver).compile(definition.where());
+            var resolver = catalog == null
+                    ? new DefinitionFilterResolver(definition)
+                    : new VisualQueryFilterResolver(definition, catalog, virtualCatalog);
+            var compiledWhere = new ReportVisualFilterCompiler(resolver, parameterContext,
+                    subqueryRenderer(definition, catalog, parameterContext, virtualEntities, virtualCatalog))
+                    .compile(definition.where());
             if (compiledWhere.predicate() != null) jpql += " where " + compiledWhere.predicate();
             whereBindings.putAll(compiledWhere.bindings());
         }
@@ -75,9 +125,111 @@ public final class VisualQueryCompiler {
             jpql += " order by " + definition.orders().stream().map(order -> resolveExpression(order.path(), definition.entityAlias(), aliases, catalog) + " " + order.direction().name().toLowerCase()).collect(Collectors.joining(", "));
         }
         List<QueryField> fields = definition.selectFields().stream().map(field -> { String expression = resolveExpression(field.path(), definition.entityAlias(), aliases, catalog); QueryBuilderMetadataCatalog.Field metadata = fieldMetadata(field.path(), definition.entityAlias(), aliases); Class<?> type = metadata == null ? Object.class : metadata.javaType(); String caption = metadata == null ? field.resultName() : metadata.caption(); return new QueryField(field.resultName(), expression, type, caption, true, false, QueryField.isNumber(type)); }).toList();
+        if (virtualEntities != null && !virtualEntities.isEmpty()) {
+            List<QueryBuilderMetadataCatalog.Field> virtualFields = new java.util.ArrayList<>();
+            definition.selectFields().forEach(field -> virtualFields.add(new QueryBuilderMetadataCatalog.Field(field.resultName(), field.resultName(),
+                    fieldMetadata(field.path(), definition.entityAlias(), aliases) == null ? Object.class : fieldMetadata(field.path(), definition.entityAlias(), aliases).javaType(), false)));
+            definition.aggregates().forEach(field -> virtualFields.add(new QueryBuilderMetadataCatalog.Field(field.resultName(), field.resultName(),
+                    aggregateResultType(field, aliases, definition.entityAlias()), false)));
+            definition.expressions().forEach(field -> virtualFields.add(new QueryBuilderMetadataCatalog.Field(field.resultName(), field.resultName(),
+                    expressionResultType(field.expression(), aliases, definition.entityAlias()), false)));
+            virtualEntities.putIfAbsent(definition.entityName(), new QueryBuilderMetadataCatalog.Entity(definition.entityName(), Object.class, virtualFields, List.of(), definition.entityName()));
+        }
         havingBindings.forEach((k, v) -> { if (v != null) whereBindings.put(k, v); });
         return new ReportQueryAssembler(jpql, whereBindings, fields, List.of());
     }
+    /**
+     * Рендерер подзапросов WHERE: каждое внутреннее определение компилируется один раз
+n     * (кэш на вызов) тем же ParameterContext — нумерация :visualFilter_N сквозная.
+     */
+    private static ReportVisualFilterCompiler.SubqueryRenderer subqueryRenderer(VisualQueryDefinition definition,
+                                                                                QueryBuilderMetadataCatalog catalog,
+                                                                                ReportVisualFilterCompiler.ParameterContext parameterContext,
+                                                                                Map<String, QueryBuilderMetadataCatalog.Entity> virtualEntities,
+                                                                                VisualQueryPackage.VirtualCatalog virtualCatalog) {
+        if (definition.subqueries().isEmpty()) return null;
+        Map<String, ReportVisualFilterCompiler.CompiledSubquery> cache = new HashMap<>();
+        return name -> cache.computeIfAbsent(name, key -> {
+            var subquery = definition.subqueries().stream().filter(candidate -> candidate.name().equals(key)).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Подзапрос не найден: " + key));
+            ReportQueryAssembler inner = compile(subquery.definition(), catalog, parameterContext, virtualEntities, virtualCatalog);
+            return new ReportVisualFilterCompiler.CompiledSubquery("(" + inner.jpql() + ")", inner.bindings());
+        });
+    }
+
+    private static VisualQueryDefinition withEntityName(VisualQueryDefinition source, String entityName) {
+        return new VisualQueryDefinition(source.version(), entityName, source.entityAlias(), source.selectFields(),
+                source.joins(), source.groupBy(), source.aggregates(), source.expressions(), source.having(),
+                source.where(), source.parameters(), source.orders(), source.subqueries());
+    }
+
+    private static Class<?> aggregateResultType(VisualQueryDefinition.Aggregate aggregate,
+                                                 Map<String, QueryBuilderMetadataCatalog.Entity> aliases,
+                                                 String rootAlias) {
+        String function = aggregate.function().toUpperCase();
+        if (function.equals("COUNT") || function.equals("COUNT_ROWS")) return Long.class;
+        QueryBuilderMetadataCatalog.Field source = fieldMetadata(aggregate.path(), rootAlias, aliases);
+        if (function.equals("MIN") || function.equals("MAX")) {
+            return source == null ? Object.class : source.javaType();
+        }
+        if (function.equals("AVG")) return Double.class;
+        if (function.equals("SUM")) return source == null ? Number.class : source.javaType();
+        return Object.class;
+    }
+
+    private static Class<?> expressionResultType(VisualQueryExpression expression,
+                                                  Map<String, QueryBuilderMetadataCatalog.Entity> aliases,
+                                                  String rootAlias) {
+        if (expression instanceof VisualQueryExpression.Literal literal) {
+            return literal.value() == null ? Object.class : literal.value().getClass();
+        }
+        if (expression instanceof VisualQueryExpression.FieldRef field) {
+            QueryBuilderMetadataCatalog.Field metadata = fieldMetadata(field.path(), rootAlias, aliases);
+            return metadata == null ? Object.class : metadata.javaType();
+        }
+        if (expression instanceof VisualQueryExpression.Binary) return Number.class;
+        if (expression instanceof VisualQueryExpression.Case caseExpression) {
+            if (!caseExpression.branches().isEmpty()) {
+                return expressionResultType(caseExpression.branches().get(0).result(), aliases, rootAlias);
+            }
+            return Object.class;
+        }
+        if (expression instanceof VisualQueryExpression.FunctionCall function) {
+            return switch (function.name().toUpperCase()) {
+                case "LOWER", "UPPER", "TRIM", "SUBSTRING", "CONCAT" -> String.class;
+                case "LENGTH", "YEAR", "MONTH", "DAY", "ABS", "ROUND", "MOD" -> Number.class;
+                default -> Object.class;
+            };
+        }
+        return Object.class;
+    }
+
+    private static final class DefinitionFilterResolver implements org.ipro.filter.FilterFieldResolver {
+        private final VisualQueryDefinition definition;
+
+        private DefinitionFilterResolver(VisualQueryDefinition definition) {
+            this.definition = definition;
+        }
+
+        @Override
+        public org.ipro.filter.FilterFieldResolver.ResolvedFilterField resolve(String path) {
+            return new org.ipro.filter.FilterFieldResolver.ResolvedFilterField(
+                    path, path, String.class, org.ipro.filter.FilterDataType.TEXT, true);
+        }
+
+        @Override
+        public List<org.ipro.filter.FilterFieldResolver.ResolvedFilterField> fields() {
+            return definition.selectFields().stream()
+                    .map(field -> resolve(field.path()))
+                    .toList();
+        }
+
+        @Override
+        public List<?> valueOptions(org.ipro.filter.FilterFieldResolver.ResolvedFilterField field) {
+            return List.of();
+        }
+    }
+
     private static String aggregateExpression(VisualQueryDefinition.Aggregate aggregate, Map<String, QueryBuilderMetadataCatalog.Entity> aliases, String rootAlias, QueryBuilderMetadataCatalog catalog) {
         String function = aggregate.function().toUpperCase();
         if (!Set.of("SUM", "AVG", "MIN", "MAX", "COUNT", "COUNT_ROWS").contains(function)) throw new IllegalArgumentException("Неподдерживаемая функция: " + function);
@@ -182,11 +334,38 @@ public final class VisualQueryCompiler {
         VisualQueryDefinition.HavingAggregateRef a = (VisualQueryDefinition.HavingAggregateRef) rawValue;
         return a.alias();
     }
+    /** Цель независимого JOIN: ранее объявленный CTE (виртуальная сущность) или обычная сущность каталога. */
+    private static QueryBuilderMetadataCatalog.Entity independentJoinTarget(String targetEntity,
+                                                                            Map<String, QueryBuilderMetadataCatalog.Entity> virtualEntities,
+                                                                            QueryBuilderMetadataCatalog catalog) {
+        QueryBuilderMetadataCatalog.Entity virtual = virtualEntities.get(targetEntity);
+        if (virtual != null) return virtual;
+        if (catalog == null) return null;
+        try {
+            return catalog.root(targetEntity);
+        } catch (RuntimeException unknown) {
+            return null;
+        }
+    }
     private static String compileOn(JoinCondition condition, Map<String, QueryBuilderMetadataCatalog.Entity> aliases, QueryBuilderMetadataCatalog catalog) { if (condition instanceof JoinCondition.Group group) { String op = group.operator() == JoinLogicalOperator.OR ? " OR " : " AND "; return "(" + group.children().stream().map(c -> compileOn(c, aliases, catalog)).collect(Collectors.joining(op)) + ")"; } JoinCondition.Predicate p = (JoinCondition.Predicate) condition; QueryBuilderMetadataCatalog.Field l = validateFieldReference(p.leftPath(), aliases, catalog), r = validateFieldReference(p.rightPath(), aliases, catalog); if (catalog != null && !sameComparableType(l.javaType(), r.javaType())) throw new IllegalArgumentException("Несовместимые типы полей в ON"); return p.leftPath() + (p.operator() == JoinCondition.Operator.EQ ? " = " : " <> ") + p.rightPath(); }
-    private static QueryBuilderMetadataCatalog.Field validateFieldReference(String value, Map<String, QueryBuilderMetadataCatalog.Entity> aliases, QueryBuilderMetadataCatalog catalog) { if (value == null || !value.matches("[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*")) throw new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value); String alias = value.substring(0, value.indexOf('.')); String name = value.substring(value.indexOf('.') + 1); QueryBuilderMetadataCatalog.Entity entity = aliases.get(alias); if (!aliases.containsKey(alias) || catalog != null && !hasField(entity, name)) throw new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value); return catalog == null ? new QueryBuilderMetadataCatalog.Field(name, name, Object.class, false) : entity.fields().stream().filter(f -> f.name().equals(name)).findFirst().orElseThrow(); }
+    private static QueryBuilderMetadataCatalog.Field validateFieldReference(String value, Map<String, QueryBuilderMetadataCatalog.Entity> aliases, QueryBuilderMetadataCatalog catalog) { if (value == null || !value.matches("[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*")) throw new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value); String alias = value.substring(0, value.indexOf('.')); String name = value.substring(value.indexOf('.') + 1); if ("id".equals(name)) return new QueryBuilderMetadataCatalog.Field("id", "Идентификатор записи", Long.class, true); QueryBuilderMetadataCatalog.Entity entity = aliases.get(alias); if (!aliases.containsKey(alias) || catalog != null && !hasField(entity, name)) throw new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value); return catalog == null ? new QueryBuilderMetadataCatalog.Field(name, name, Object.class, false) : entity.fields().stream().filter(f -> f.name().equals(name)).findFirst().orElseThrow(); }
     private static boolean sameComparableType(Class<?> a, Class<?> b) { return a.equals(b) || Number.class.isAssignableFrom(a) && Number.class.isAssignableFrom(b); }
-    private static String resolveExpression(String path, String rootAlias, Map<String, QueryBuilderMetadataCatalog.Entity> aliases, QueryBuilderMetadataCatalog catalog) { String[] s = path.split("\\."); if (s.length == 1) { if (catalog != null && !hasSelectable(aliases.get(rootAlias), s[0])) throw new IllegalArgumentException("Поле не разрешено: " + path); return rootAlias + "." + s[0]; } if (s.length != 2 || !aliases.containsKey(s[0])) throw new IllegalArgumentException("Неизвестный путь: " + path); if (catalog != null && !hasSelectable(aliases.get(s[0]), s[1])) throw new IllegalArgumentException("Поле не разрешено: " + path); return path; }
-    private static QueryBuilderMetadataCatalog.Field fieldMetadata(String path, String rootAlias, Map<String, QueryBuilderMetadataCatalog.Entity> aliases) { String[] s = path.split("\\."); if (s.length > 2) return null; QueryBuilderMetadataCatalog.Entity e = aliases.get(s.length == 1 ? rootAlias : s[0]); if (e == null) return null; String name = s[s.length - 1]; if ("id".equals(name)) return new QueryBuilderMetadataCatalog.Field("id", "Идентификатор записи", Long.class, true); return e.fields().stream().filter(f -> f.name().equals(name)).findFirst()
+    private static String resolveExpression(String path, String rootAlias, Map<String, QueryBuilderMetadataCatalog.Entity> aliases, QueryBuilderMetadataCatalog catalog) { String[] s = path.split("\\."); if (s.length == 1) { if (catalog != null && !hasSelectable(aliases.get(rootAlias), s[0])) throw new IllegalArgumentException("Поле не разрешено: " + path); return rootAlias + "." + s[0]; } if (!aliases.containsKey(s[0])) throw new IllegalArgumentException("Неизвестный путь: " + path); if (catalog != null && !hasSelectablePath(aliases, s, catalog)) throw new IllegalArgumentException("Поле не разрешено: " + path); return path; }
+    /** Путь «alias.assoc.assoc.field» — JPQL-traversal: промежуточные сегменты — ассоциации, последний — селектируемое поле. */
+    private static boolean hasSelectablePath(Map<String, QueryBuilderMetadataCatalog.Entity> aliases, String[] segments, QueryBuilderMetadataCatalog catalog) {
+        QueryBuilderMetadataCatalog.Entity entity = aliases.get(segments[0]);
+        if (entity == null) return false;
+        for (int i = 1; i < segments.length; i++) {
+            if (i == segments.length - 1) return hasSelectable(entity, segments[i]);
+            int idx = i;
+            var association = entity.associations().stream().filter(a -> a.name().equals(segments[idx])).findFirst().orElse(null);
+            if (association == null || association.targetType() == null) return false;
+            entity = catalog.roots().stream().filter(e -> e.javaType().equals(association.targetType())).findFirst().orElse(null);
+            if (entity == null) return false;
+        }
+        return true;
+    }
+    private static QueryBuilderMetadataCatalog.Field fieldMetadata(String path, String rootAlias, Map<String, QueryBuilderMetadataCatalog.Entity> aliases) { String[] s = path.split("\\."); QueryBuilderMetadataCatalog.Entity e = aliases.get(s.length == 1 ? rootAlias : s[0]); if (e == null) return null; String name = s[s.length - 1]; if ("id".equals(name)) return new QueryBuilderMetadataCatalog.Field("id", "Идентификатор записи", Long.class, true); if (s.length > 2) return null; return e.fields().stream().filter(f -> f.name().equals(name)).findFirst()
             .orElseGet(() -> e.associations().stream().filter(a -> a.name().equals(name)).findFirst()
                     .map(a -> new QueryBuilderMetadataCatalog.Field(a.name(), a.caption(),
                             a.targetType() == null ? Object.class : a.targetType(), false))

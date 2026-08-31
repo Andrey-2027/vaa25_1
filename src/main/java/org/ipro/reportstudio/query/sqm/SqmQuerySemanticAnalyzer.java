@@ -17,6 +17,7 @@ import org.hibernate.query.sqm.tree.predicate.SqmComparisonPredicate;
 import org.hibernate.query.sqm.tree.predicate.SqmExistsPredicate;
 import org.hibernate.query.sqm.tree.predicate.SqmGroupedPredicate;
 import org.hibernate.query.sqm.tree.predicate.SqmInPredicate;
+import org.hibernate.query.sqm.tree.predicate.SqmInSubQueryPredicate;
 import org.hibernate.query.sqm.tree.predicate.SqmLikePredicate;
 import org.hibernate.query.sqm.tree.predicate.SqmPredicate;
 import org.hibernate.query.sqm.tree.select.SqmAliasedNode;
@@ -198,6 +199,12 @@ public class SqmQuerySemanticAnalyzer implements QuerySemanticAnalyzer {
             if (predicate instanceof SqmLikePredicate like) {
                 collectExpression(like.getMatchExpression(), inSubquery);
                 collectExpression(like.getPattern(), inSubquery);
+                return;
+            }
+            if (predicate instanceof SqmInSubQueryPredicate inSub) {
+                // IN (select …): getExpressions() пуст — подзапрос живёт в getSubQueryExpression().
+                collectExpression(inSub.getTestExpression(), inSubquery);
+                collectExpression(inSub.getSubQueryExpression(), inSubquery);
                 return;
             }
             if (predicate instanceof SqmInPredicate in) {

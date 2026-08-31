@@ -122,8 +122,11 @@ public class ReportQueryAssemblyService {
     }
 
     private Map<String, Class<?>> visualParameterEntityClasses(ReportTemplate template) {
-        if (template.getQuerySource() != ReportQuerySource.VISUAL || template.getVisualQueryJson() == null) return Map.of();
-        VisualQueryDefinition definition = new VisualQueryDefinitionJsonCodec().read(template.getVisualQueryJson());
+        if (template.getVisualQueryJson() == null) return Map.of();
+        String json = template.getVisualQueryJson();
+        VisualQueryDefinition definition = json.contains("\"ctes\"")
+                ? new VisualQueryPackageJsonCodec().read(json).main()
+                : new VisualQueryDefinitionJsonCodec().read(json);
         Map<String, Class<?>> result = new HashMap<>();
         for (VisualQueryDefinition.Parameter parameter : definition.parameters()) {
             // Visual-параметры пока не несут отдельного имени Java-класса;
@@ -133,8 +136,11 @@ public class ReportQueryAssemblyService {
     }
 
     private Map<String, Object> resolveVisualParameterBindings(ReportTemplate template, String jpql, Map<String, Object> bindings) {
-        if (template.getQuerySource() != ReportQuerySource.VISUAL || template.getVisualQueryJson() == null) return Map.of();
-        VisualQueryDefinition definition = new VisualQueryDefinitionJsonCodec().read(template.getVisualQueryJson());
+        if (template.getVisualQueryJson() == null) return Map.of();
+        String json = template.getVisualQueryJson();
+        VisualQueryDefinition definition = json.contains("\"ctes\"")
+                ? new VisualQueryPackageJsonCodec().read(json).main()
+                : new VisualQueryDefinitionJsonCodec().read(json);
         Set<String> declared = definition.parameters().stream().map(VisualQueryDefinition.Parameter::name).collect(java.util.stream.Collectors.toSet());
         Set<String> used = new java.util.LinkedHashSet<>();
         java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(":([A-Za-z_][A-Za-z0-9_]*)").matcher(jpql);
@@ -154,8 +160,14 @@ public class ReportQueryAssemblyService {
             return new VisualCompile(template.getJpql(), Map.of());
         }
         try {
-            VisualQueryDefinition definition = new VisualQueryDefinitionJsonCodec().read(template.getVisualQueryJson());
-            ReportQueryAssembler compiled = VisualQueryCompiler.compile(definition, visualCatalog);
+            String json = template.getVisualQueryJson();
+            ReportQueryAssembler compiled;
+            if (json != null && json.contains("\"ctes\"")) {
+                compiled = VisualQueryCompiler.compile(new VisualQueryPackageJsonCodec().read(json), visualCatalog);
+            } else {
+                VisualQueryDefinition definition = new VisualQueryDefinitionJsonCodec().read(json);
+                compiled = VisualQueryCompiler.compile(definition, visualCatalog);
+            }
             return new VisualCompile(compiled.jpql(), compiled.bindings());
         } catch (Exception error) {
             throw new IllegalArgumentException("Некорректный визуальный запрос: " + error.getMessage(), error);

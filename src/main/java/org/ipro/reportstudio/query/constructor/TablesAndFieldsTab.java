@@ -38,6 +38,7 @@ final class TablesAndFieldsTab extends VerticalLayout {
     /** Корни деревьев последнего refreshFromDraft (для тестов — TreeGrid не даёт list data view). */
     private List<ConstructorTreeNode> databaseRoots = List.of();
     private List<ConstructorTreeNode> tableRoots = List.of();
+    private List<ConstructorTreeNode> cteRoots = List.of();
 
     TablesAndFieldsTab(QueryConstructorDraft draft, Runnable onChange) {
         this.draft = draft;
@@ -51,13 +52,19 @@ final class TablesAndFieldsTab extends VerticalLayout {
 
         databaseTree.addHierarchyColumn(ConstructorTreeNode::caption).setHeader("База данных")
                 .setFlexGrow(1).setResizable(true);
+        // Русское имя из описания метаданных («Номенклатура», «Код спецификации»);
+        // для виртуальных CTE — имя этапа.
+        databaseTree.addColumn(this::displayName).setHeader("Имя").setFlexGrow(1).setResizable(true);
         databaseTree.addColumn(this::kindLabel).setHeader("Вид").setAutoWidth(true).setFlexGrow(0);
         databaseTree.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
         databaseTree.addItemDoubleClickListener(event -> addNode(event.getItem()));
 
-        tablesTree.addHierarchyColumn(ConstructorTreeNode::caption).setHeader("Таблицы")
+        // Русское имя таблицы в иерархии («Спецификации»), техническое — отдельной колонкой.
+        tablesTree.addHierarchyColumn(this::displayName).setHeader("Таблицы")
                 .setFlexGrow(1).setResizable(true);
+        tablesTree.addColumn(ConstructorTreeNode::caption).setHeader("Сущность").setFlexGrow(1).setResizable(true);
         tablesTree.addComponentColumn(this::aliasEditor).setHeader("Alias").setAutoWidth(true).setFlexGrow(0);
+        tablesTree.setTooltipGenerator(node -> node.caption());
         tablesTree.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
         tablesTree.addItemDoubleClickListener(event -> {
             if (event.getItem().kind() == ConstructorTreeNode.Kind.PROPERTY) {
@@ -65,7 +72,9 @@ final class TablesAndFieldsTab extends VerticalLayout {
             }
         });
 
-        fieldsGrid.addColumn(field -> draft.displayPath(field.path())).setHeader("Поле").setFlexGrow(1);
+        // Русское имя поля («Код», «Наименование»); технический путь — в подсказке.
+        fieldsGrid.addColumn(field -> draft.displayFieldName(field.path())).setHeader("Поле").setFlexGrow(1);
+        fieldsGrid.setTooltipGenerator(field -> draft.displayPath(field.path()));
         fieldsGrid.addComponentColumn(this::aliasFieldEditor).setHeader("Псевдоним").setAutoWidth(true).setFlexGrow(0);
         fieldsGrid.addComponentColumn(this::removeButton).setAutoWidth(true).setFlexGrow(0);
         fieldsGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
@@ -134,6 +143,8 @@ final class TablesAndFieldsTab extends VerticalLayout {
 
     List<ConstructorTreeNode> tableRoots() { return tableRoots; }
 
+    List<ConstructorTreeNode> cteRoots() { return cteRoots; }
+
     TreeGrid<ConstructorTreeNode> databaseTree() { return databaseTree; }
 
     TreeGrid<ConstructorTreeNode> tablesTree() { return tablesTree; }
@@ -165,8 +176,17 @@ final class TablesAndFieldsTab extends VerticalLayout {
 
     void refreshFromDraft() {
         databaseRoots = CatalogTreeModel.catalogRoots(draft.roots());
+        cteRoots = draft.availableCteEntities().stream()
+                .map(entity -> new ConstructorTreeNode(ConstructorTreeNode.Kind.CTE,
+                        entity.entityName() + " (Временная таблица)", entity, null, null,
+                        entity.fields().stream().map(field -> new ConstructorTreeNode(
+                                ConstructorTreeNode.Kind.PROPERTY, field.name(), entity, field, null, List.of())).toList()))
+                .toList();
+        databaseRoots = new java.util.ArrayList<>(databaseRoots);
+        databaseRoots.addAll(cteRoots);
         databaseTree.setItems(databaseRoots, ConstructorTreeNode::children);
-        databaseTree.expand(databaseRoots);
+        // Сущности не раскрываются автоматически: каталог компактный, поля
+        // раскрывает пользователь двойным кликом по сущности.
 
         tableRoots = CatalogTreeModel.tableRoots(draft.tables(), draft.roots());
         tablesTree.setItems(tableRoots, ConstructorTreeNode::children);
@@ -182,14 +202,35 @@ final class TablesAndFieldsTab extends VerticalLayout {
         if (node == null) return;
         switch (node.kind()) {
             case ENTITY -> draft.addTable(node.entity());
+            // Виртуальный CTE: без корня — становится корнем этапа; при уже
+            // выбранном корне — добавляется независимым JOIN, построение
+            // запроса не затирается.
+            case CTE -> draft.addCteTable(node.entity().entityName());
             // Ассоциация как поле-ссылка (s.nomenclature) — как в 1С; JOIN по ней
             // не создаётся, а цепочка ассоциаций НАД узлом (если есть) создаётся.
             case ASSOCIATION -> draft.addField(node.ownerEntity().entity(),
                     QueryConstructorDraft.chainOf(node.parent(), node.ownerEntity()),
                     node.association().name());
-            case PROPERTY -> draft.addField(node.ownerEntity().entity(), node.chainToOwner(), node.field().name());
+            case PROPERTY -> {
+                var cteOwner = cteOwnerOf(node);
+                if (cteOwner != null) {
+                    // Поле виртуальной таблицы: CTE добавляется при отсутствии
+                    // (корнем или независимым JOIN), поле — под её актуальным alias.
+                    String alias = draft.addCteTable(cteOwner.entity().entityName());
+                    if (alias != null) draft.addSelection(alias + "." + node.field().name(), node.field().name());
+                } else {
+                    draft.addField(node.ownerEntity().entity(), node.chainToOwner(), node.field().name());
+                }
+            }
         }
         changed();
+    }
+
+    /** Узел-виртуальная таблица (CTE), владеющий полем; для обычных сущностей — null. */
+    private static ConstructorTreeNode cteOwnerOf(ConstructorTreeNode node) {
+        ConstructorTreeNode current = node;
+        while (current != null && current.kind() != ConstructorTreeNode.Kind.CTE) current = current.parent();
+        return current;
     }
 
     private void addSelectedFromDatabase() {
@@ -208,6 +249,13 @@ final class TablesAndFieldsTab extends VerticalLayout {
             var chain = node.chainToOwner();
             for (var field : node.entity().fields()) {
                 draft.addField(base, chain, field.name());
+            }
+        } else if (node.kind() == ConstructorTreeNode.Kind.CTE) {
+            String alias = draft.addCteTable(node.entity().entityName());
+            if (alias != null) {
+                for (var field : node.entity().fields()) {
+                    draft.addSelection(alias + "." + field.name(), field.name());
+                }
             }
         }
         changed();
@@ -311,6 +359,21 @@ final class TablesAndFieldsTab extends VerticalLayout {
             case ENTITY -> "Таблица";
             case PROPERTY -> node.field() == null ? "Поле" : node.field().javaType().getSimpleName();
             case ASSOCIATION -> "Связь";
+            case CTE -> "Временная таблица";
+        };
+    }
+
+    /** Русское имя узла из описания метаданных; техническое имя — как fallback. */
+    private String displayName(ConstructorTreeNode node) {
+        return switch (node.kind()) {
+            case ENTITY, CTE -> {
+                String caption = node.entity() == null ? null : node.entity().caption();
+                yield caption == null || caption.isBlank() ? node.caption() : caption;
+            }
+            case PROPERTY -> node.field() == null || node.field().caption() == null
+                    || node.field().caption().isBlank() ? node.caption() : node.field().caption();
+            case ASSOCIATION -> node.association() == null || node.association().caption() == null
+                    || node.association().caption().isBlank() ? node.caption() : node.association().caption();
         };
     }
 

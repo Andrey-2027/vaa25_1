@@ -7,8 +7,11 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.button.Button;
 import org.ipro.reportstudio.query.JpqlFormatter;
 import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
 import org.ipro.reportstudio.query.VisualQueryDefinition;
@@ -36,6 +39,7 @@ public class JpqlQueryConstructor extends VerticalLayout {
     private final Span queryStatus = new Span();
     /** Предупреждения обратного разбора текста запроса (что не восстановилось). */
     private final Div parseWarnings = new Div();
+    private final Select<String> stageSelector = new Select<>();
 
     public JpqlQueryConstructor(QueryBuilderMetadataCatalog catalog, List<String> parameterNames) {
         draft.setCatalog(catalog);
@@ -59,6 +63,7 @@ public class JpqlQueryConstructor extends VerticalLayout {
         pages.put(new Tab("Порядок"), orderingTab);
 
         configureParseWarnings();
+        configureStages(change);
 
         Tabs tabs = new Tabs(pages.keySet().toArray(new Tab[0]));
         tabs.addSelectedChangeListener(event -> showPage(event.getSelectedTab()));
@@ -73,7 +78,20 @@ public class JpqlQueryConstructor extends VerticalLayout {
 
         configureQueryPanel();
 
-        VerticalLayout body = new VerticalLayout(parseWarnings, tabs, pageContainer, queryPanel());
+        // Панель этапов в FormLayout: компактная строка «Этап [выбор] + − » вместо
+        // высокого блока с подписью поля и отдельным рядом кнопок.
+        Button addStage = new Button("+ Этап", event -> { draft.addStage(); refreshAll(); });
+        Button removeStage = new Button("− Этап", event -> { draft.removeStage(stageSelector.getValue()); refreshAll(); });
+        HorizontalLayout stageRow = new HorizontalLayout(stageSelector, addStage, removeStage);
+        stageRow.setPadding(false);
+        stageRow.setSpacing(true);
+        stageRow.setAlignItems(FlexComponent.Alignment.BASELINE);
+        FormLayout stageForm = new FormLayout();
+        stageForm.addFormItem(stageRow, "Этап");
+        stageForm.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
+        stageForm.setWidthFull();
+        stageSelector.setWidth("240px");
+        VerticalLayout body = new VerticalLayout(stageForm, parseWarnings, tabs, pageContainer, queryPanel());
         body.setPadding(false);
         body.setSpacing(false);
         body.setSizeFull();
@@ -86,9 +104,36 @@ public class JpqlQueryConstructor extends VerticalLayout {
         refreshAll();
     }
 
+    private void configureStages(Runnable change) {
+        // Подпись «Этап» даёт FormItem — собственный label у Select убран,
+        // иначе подпись дублируется и панель становится выше.
+        stageSelector.setLabel(null);
+        stageSelector.addValueChangeListener(event -> {
+            if (event.isFromClient()) { draft.switchStage(event.getValue()); refreshAll(); }
+        });
+    }
+
     /** Загружает сохранённое определение как черновик. */
     public void setDefinition(VisualQueryDefinition definition) {
         draft.load(definition);
+        refreshAll();
+    }
+
+    public void setPackage(org.ipro.reportstudio.query.VisualQueryPackage queryPackage) {
+        if (queryPackage == null) return;
+        draft.clear();
+        for (var cte : queryPackage.ctes()) {
+            String stage = draft.stageNames().contains(cte.name()) ? cte.name() : draft.addStage();
+            if (!stage.equals(cte.name())) {
+                // Generated names are replaced by the parsed CTE name in the draft map.
+                draft.renameStage(stage, cte.name());
+                stage = cte.name();
+            }
+            draft.switchStage(stage);
+            draft.load(cte.definition());
+        }
+        draft.switchStage("main");
+        draft.load(queryPackage.main());
         refreshAll();
     }
 
@@ -139,9 +184,17 @@ public class JpqlQueryConstructor extends VerticalLayout {
         return compiled.ok() ? compiled.bindings() : Map.of();
     }
 
+    public org.ipro.reportstudio.query.VisualQueryPackage queryPackage() {
+        return draft.packageDefinition();
+    }
+
     /** Обновляет все вкладки и окно «Запрос» (вызывается после изменений черновика). */
     public void refreshAll() {
         parseWarnings.setVisible(false);
+        var names = new java.util.ArrayList<>(draft.stageNames());
+        if (!names.contains("main")) names.add("main");
+        stageSelector.setItems(names);
+        stageSelector.setValue(draft.activeStage());
         tablesTab.refreshFromDraft();
         joinsTab.refreshFromDraft();
         groupingTab.refreshFromDraft();

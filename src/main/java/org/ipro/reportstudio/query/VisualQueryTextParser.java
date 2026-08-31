@@ -45,15 +45,117 @@ public final class VisualQueryTextParser {
 
     private final QueryBuilderMetadataCatalog catalog;
     private final List<String> warnings = new ArrayList<>();
+    private VisualQueryPackage.VirtualCatalog virtualCatalog = VisualQueryPackage.VirtualCatalog.empty();
     private final List<VisualQueryDefinition.Join> joinsAccumulator = new ArrayList<>();
     private final List<VisualQueryDefinition.Expression> expressionsAccumulator = new ArrayList<>();
+    /** Подзапросы, найденные при разборе WHERE (имена sub1, sub2, … в порядке появления). */
+    private final List<VisualQueryDefinition.Subquery> subqueriesAccumulator = new ArrayList<>();
 
     public VisualQueryTextParser(QueryBuilderMetadataCatalog catalog) {
         this.catalog = catalog;
     }
 
+    /** Результат разбора пакета WITH. */
+    public record PackageParsed(VisualQueryPackage queryPackage, List<String> warnings) { }
+
+    public PackageParsed parsePackage(String jpql) {
+        warnings.clear();
+        virtualCatalog = VisualQueryPackage.VirtualCatalog.empty();
+        if (jpql == null || jpql.isBlank()) return new PackageParsed(null, List.of());
+        String text = jpql.trim();
+        if (!startsWithWord(text, "with")) {
+            Parsed parsed = parse(text, null);
+            return new PackageParsed(parsed.definition() == null ? null
+                    : new VisualQueryPackage(List.of(), parsed.definition()), List.copyOf(warnings));
+        }
+        List<String> cteWarnings = new ArrayList<>();
+        try {
+            int mainStart = findMainSelect(text);
+            if (mainStart < 0) throw new IllegalArgumentException("После WITH не найден основной SELECT");
+            String withBody = text.substring(4, mainStart).trim();
+            List<String> declarations = splitTopLevel(withBody, ',');
+            List<VisualQueryPackage.Cte> ctes = new ArrayList<>();
+            Map<String, QueryBuilderMetadataCatalog.Entity> virtual = new LinkedHashMap<>();
+            for (String declaration : declarations) {
+                int as = indexOfTopLevelAs(declaration);
+                if (as < 0) throw new IllegalArgumentException("CTE не содержит AS: " + declaration);
+                String name = declaration.substring(0, as).trim();
+                String body = declaration.substring(as + 2).trim();
+                if (!body.startsWith("(") || !body.endsWith(")")) {
+                    warnings.add("CTE «" + name + "» имеет неподдерживаемый формат тела.");
+                    continue;
+                }
+                String cteQuery = body.substring(1, body.length() - 1).trim();
+                VisualQueryTextParser nested = new VisualQueryTextParser(catalog);
+                nested.virtualCatalog = virtualCatalog;
+                Parsed parsed = nested.parse(cteQuery, null);
+                // Предупреждения CTE собираются отдельно: parse основного запроса ниже
+                // очищает this.warnings (тот же список), и они бы потерялись.
+                cteWarnings.addAll(parsed.warnings());
+                if (parsed.definition() == null) continue;
+                VisualQueryDefinition definition = parsed.definition();
+                VisualQueryPackage.Source source = virtualCatalog.contains(definition.entityName())
+                        ? new VisualQueryPackage.CteSource(definition.entityAlias(), definition.entityName())
+                        : new VisualQueryPackage.EntitySource(definition.entityName(), definition.entityAlias());
+                ctes.add(new VisualQueryPackage.Cte(name, source, definition));
+                if (catalog != null) {
+                    VisualQueryPackage.VirtualEntity entity = VisualQueryPackage.VirtualEntity.from(
+                            name, definition, catalog, virtualCatalog);
+                    virtualCatalog = virtualCatalog.add(entity);
+                }
+            }
+            this.virtualCatalog = virtualCatalog;
+            Parsed main = parse(text.substring(mainStart), null);
+            List<String> all = new ArrayList<>(cteWarnings);
+            all.addAll(main.warnings());
+            return new PackageParsed(main.definition() == null ? null
+                    : new VisualQueryPackage(ctes, main.definition()), List.copyOf(all));
+        } catch (RuntimeException error) {
+            warnings.add("Не удалось разобрать пакет WITH: " + message(error));
+            List<String> all = new ArrayList<>(warnings);
+            all.addAll(cteWarnings);
+            return new PackageParsed(null, List.copyOf(all));
+        }
+    }
+
+    private static boolean startsWithWord(String text, String word) {
+        return text.regionMatches(true, 0, word, 0, word.length())
+                && (text.length() == word.length() || !Character.isJavaIdentifierPart(text.charAt(word.length())));
+    }
+
+    private static int findMainSelect(String text) {
+        int depth = 0; boolean quote = false;
+        for (int i = 4; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\'') quote = !quote;
+            if (quote) continue;
+            if (c == '(') depth++;
+            else if (c == ')') depth--;
+            else if (depth == 0 && (i == 0 || !Character.isJavaIdentifierPart(text.charAt(i - 1)))
+                    && text.regionMatches(true, i, "select", 0, 6)
+                    && (i + 6 == text.length() || !Character.isJavaIdentifierPart(text.charAt(i + 6)))) return i;
+        }
+        return -1;
+    }
+
+    private static int indexOfTopLevelAs(String text) {
+        int depth = 0; boolean quote = false;
+        for (int i = 0; i + 1 < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\'') quote = !quote;
+            if (quote) continue;
+            if (c == '(') depth++;
+            else if (c == ')') depth--;
+            else if (depth == 0 && text.regionMatches(true, i, "as", 0, 2)
+                    && (i == 0 || !Character.isJavaIdentifierPart(text.charAt(i - 1)))
+                    && (i + 2 == text.length() || !Character.isJavaIdentifierPart(text.charAt(i + 2)))) return i;
+        }
+        return -1;
+    }
+
     public Parsed parse(String jpql, VisualQueryDefinition savedForValues) {
         warnings.clear();
+        subqueriesAccumulator.clear();
         if (jpql == null || jpql.isBlank()) {
             return new Parsed(null, warnings);
         }
@@ -94,9 +196,7 @@ public final class VisualQueryTextParser {
 
     private Parsed doParse(String text, VisualQueryDefinition saved) {
         JpqlLexer.Token[] tokens = JpqlLexer.tokenize(text).toArray(JpqlLexer.Token[]::new);
-        Segments segments = scanClauses(tokens, text);
-
-        Map<String, QueryBuilderMetadataCatalog.Entity> aliases = new LinkedHashMap<>();
+        Segments segments = scanClauses(tokens, text);        Map<String, QueryBuilderMetadataCatalog.Entity> aliases = new LinkedHashMap<>();
         String entityName = parseFrom(segments.from(), aliases);
 
         List<VisualQueryDefinition.SelectField> selects = new ArrayList<>();
@@ -121,7 +221,8 @@ public final class VisualQueryTextParser {
         VisualQueryDefinition definition = new VisualQueryDefinition(
                 VisualQueryDefinition.CURRENT_VERSION, entityName, rootAliasOf(aliases),
                 List.copyOf(selects), List.copyOf(joinsOf(aliases)), groupBy,
-                List.copyOf(aggregates), List.copyOf(expressions), having, where, List.of(), orders);
+                List.copyOf(aggregates), List.copyOf(expressions), having, where, List.of(), orders,
+                List.copyOf(subqueriesAccumulator));
         return new Parsed(definition, warnings);
     }
 
@@ -250,11 +351,14 @@ public final class VisualQueryTextParser {
                     uniqueName(resultName, "expr", selects, aggregates, expressions), ast));
             return;
         }
-        if (path.size() > 2) {
-            warnings.add("Поле «" + item + "» глубже одной связи — элемент пропущен.");
-            return;
-        }
         if (path.size() == 1) {
+            // count(<alias>) — подсчёт строк по сущности алиаса (как в 1С «количество записей»):
+            // компилируется как COUNT_ROWS по alias.id.
+            if (functionName != null && functionName.equals("count") && aliases.containsKey(path.get(0))) {
+                aggregates.add(new VisualQueryDefinition.Aggregate("COUNT_ROWS", path.get(0) + ".id",
+                        uniqueName(resultName, "count_rows", selects, aggregates, expressions)));
+                return;
+            }
             warnings.add("Поле «" + item + "» без алиаса таблицы — элемент пропущен.");
             return;
         }
@@ -264,15 +368,21 @@ public final class VisualQueryTextParser {
             warnings.add("Поле «" + item + "»: алиас «" + alias + "» не найден — элемент пропущен.");
             return;
         }
+        QueryBuilderMetadataCatalog.Entity target = deepPathTarget(path, aliases);
+        if (target == null) {
+            warnings.add("Путь «" + item + "» не разрешается по связям каталога — элемент пропущен.");
+            return;
+        }
         String field = path.get(path.size() - 1);
-        QueryBuilderMetadataCatalog.Association association = associationOf(entity, field);
-        QueryBuilderMetadataCatalog.Field plainField = fieldOf(entity, field);
+        QueryBuilderMetadataCatalog.Association association = associationOf(target, field);
+        QueryBuilderMetadataCatalog.Field plainField = fieldOf(target, field);
+        String joinedPath = String.join(".", path);
         if (functionName == null) {
             if (plainField == null && association == null && !field.equals("id")) {
                 warnings.add("Поле «" + item + "» не найдено в каталоге — элемент пропущен.");
                 return;
             }
-            selects.add(new VisualQueryDefinition.SelectField(alias + "." + field,
+            selects.add(new VisualQueryDefinition.SelectField(joinedPath,
                     resultName == null ? field : resultName));
             return;
         }
@@ -281,7 +391,7 @@ public final class VisualQueryTextParser {
             boolean isCountRows = functionName.equals("count") && field.equalsIgnoreCase("id")
                     && fieldOf(entity, "id") == null;
             if (isCountRows) {
-                aggregates.add(new VisualQueryDefinition.Aggregate("COUNT_ROWS", alias + ".id",
+                aggregates.add(new VisualQueryDefinition.Aggregate("COUNT_ROWS", joinedPath,
                         uniqueName(resultName, "count_rows", selects, aggregates, expressions)));
                 return;
             }
@@ -294,7 +404,7 @@ public final class VisualQueryTextParser {
             return;
         }
         aggregates.add(new VisualQueryDefinition.Aggregate(functionName.toUpperCase(Locale.ROOT),
-                alias + "." + field,
+                joinedPath,
                 uniqueName(resultName, functionName + "_" + field, selects, aggregates, expressions)));
     }
 
@@ -321,6 +431,38 @@ public final class VisualQueryTextParser {
         if (expression.indexOf('(') >= 0) return null;
         if (!expression.matches("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*")) return null;
         return List.of(expression.split("\\."));
+    }
+
+    /** Целевая сущность пути «alias.assoc…field»: проход по ассоциациям; null, если путь не разрешается. */
+    private QueryBuilderMetadataCatalog.Entity deepPathTarget(List<String> path,
+                                                              Map<String, QueryBuilderMetadataCatalog.Entity> aliases) {
+        QueryBuilderMetadataCatalog.Entity entity = aliases.get(path.get(0));
+        for (int i = 1; i < path.size() - 1; i++) {
+            var association = associationOf(entity, path.get(i));
+            if (association == null || association.targetType() == null) return null;
+            entity = entityByType(association.targetType());
+            if (entity == null) return null;
+        }
+        return entity;
+    }
+
+    /** Путь «alias.assoc…field» селектируем: промежуточные сегменты — ассоциации, последний — поле/связь/id. */
+    private boolean selectableDeepPath(String path, Map<String, QueryBuilderMetadataCatalog.Entity> aliases) {
+        if (path == null
+                || !path.matches("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*")
+                || !path.contains(".")) {
+            return false;
+        }
+        String[] segments = path.split("\\.");
+        QueryBuilderMetadataCatalog.Entity entity = aliases.get(segments[0]);
+        for (int i = 1; i < segments.length; i++) {
+            if (i == segments.length - 1) return selectable(entity, segments[i]);
+            var association = associationOf(entity, segments[i]);
+            if (association == null || association.targetType() == null) return false;
+            entity = entityByType(association.targetType());
+            if (entity == null) return false;
+        }
+        return true;
     }
 
     // === Вычисляемые выражения: арифметика, функции allow-list, CASE ===
@@ -875,7 +1017,7 @@ public final class VisualQueryTextParser {
         if (whereBody == null || whereBody.isBlank()) return null;
         JpqlLexer.Token[] tokens = JpqlLexer.tokenize(whereBody).toArray(JpqlLexer.Token[]::new);
         int[] cursor = new int[] { 0 };
-        Object raw = parseWhereExpression(tokens, cursor);
+        Object raw = parseWhereExpression(whereBody, tokens, cursor);
         if (raw == null || cursor[0] < tokens.length) {
             warnings.add("WHERE разобран не полностью — условия после позиции "
                     + (cursor[0] >= tokens.length ? "конца" : "«" + tokens[cursor[0]].value() + "»") + " пропущены.");
@@ -889,10 +1031,10 @@ public final class VisualQueryTextParser {
         return node instanceof FilterGroup group && group.children().isEmpty() ? null : node;
     }
 
-    private Object parseWhereExpression(JpqlLexer.Token[] tokens, int[] cursor) {
+    private Object parseWhereExpression(String whereBody, JpqlLexer.Token[] tokens, int[] cursor) {
         List<Object> items = new ArrayList<>();
         List<org.ipro.filter.LogicalOperator> connectors = new ArrayList<>();
-        Object first = parseWhereFactor(tokens, cursor);
+        Object first = parseWhereFactor(whereBody, tokens, cursor);
         if (first == null) return null;
         items.add(first);
         while (cursor[0] < tokens.length) {
@@ -901,7 +1043,7 @@ public final class VisualQueryTextParser {
             else if (tokens[cursor[0]].word("or")) connector = org.ipro.filter.LogicalOperator.OR;
             if (connector == null) break;
             cursor[0]++;
-            Object next = parseWhereFactor(tokens, cursor);
+            Object next = parseWhereFactor(whereBody, tokens, cursor);
             if (next == null) return null;
             items.add(next);
             connectors.add(connector);
@@ -914,10 +1056,10 @@ public final class VisualQueryTextParser {
         return new RawGroup(connectors.get(0), items);
     }
 
-    private Object parseWhereFactor(JpqlLexer.Token[] tokens, int[] cursor) {
+    private Object parseWhereFactor(String whereBody, JpqlLexer.Token[] tokens, int[] cursor) {
         if (cursor[0] < tokens.length && tokens[cursor[0]].type() == JpqlLexer.Type.LPAREN) {
             cursor[0]++;
-            Object inner = parseWhereExpression(tokens, cursor);
+            Object inner = parseWhereExpression(whereBody, tokens, cursor);
             if (inner == null || cursor[0] >= tokens.length
                     || tokens[cursor[0]].type() != JpqlLexer.Type.RPAREN) return null;
             cursor[0]++;
@@ -933,10 +1075,67 @@ public final class VisualQueryTextParser {
             skipToGroupEnd(tokens, cursor);
             return new RawGroup(org.ipro.filter.LogicalOperator.AND, List.of());
         }
-        return parseWhereCondition(tokens, cursor);
+        // EXISTS(подзапрос): у условия нет левого поля — путь-заглушка @exists,
+        // оператор-заглушка EQ (реальный рендеринг «exists (…)» выполняет компилятор).
+        if (cursor[0] < tokens.length && tokens[cursor[0]].word("exists")) {
+            cursor[0]++;
+            String marker = subqueryAfterParen(whereBody, tokens, cursor);
+            if (marker != null) {
+                return new RawCond(VisualQueryDefinition.SUBQUERY_EXISTS_PATH,
+                        FilterOperator.EQ, marker, null, null, null, false);
+            }
+            warnings.add("EXISTS без подзапроса select не поддерживается — условие пропущено.");
+            skipConditionTail(tokens, cursor);
+            return new RawGroup(org.ipro.filter.LogicalOperator.AND, List.of());
+        }
+        return parseWhereCondition(whereBody, tokens, cursor);
     }
 
-    private Object parseWhereCondition(JpqlLexer.Token[] tokens, int[] cursor) {
+    /** Если после курсора идёт «( select …)» — разбирает подзапрос и двигает курсор за скобку. */
+    private String subqueryAfterParen(String whereBody, JpqlLexer.Token[] tokens, int[] cursor) {
+        if (cursor[0] + 1 >= tokens.length || tokens[cursor[0]].type() != JpqlLexer.Type.LPAREN
+                || !tokens[cursor[0] + 1].word("select")) return null;
+        int open = cursor[0];
+        int close = subqueryEnd(tokens, open);
+        String marker = parseSubquery(whereBody, tokens, open, close);
+        if (marker != null) cursor[0] = close + 1;
+        return marker;
+    }
+
+    /** Индекс закрывающей скобки для '(' на openIndex (с учётом вложенности); -1, если не найдена. */
+    private static int subqueryEnd(JpqlLexer.Token[] tokens, int openIndex) {
+        int depth = 0;
+        for (int i = openIndex; i < tokens.length; i++) {
+            if (tokens[i].type() == JpqlLexer.Type.LPAREN) depth++;
+            else if (tokens[i].type() == JpqlLexer.Type.RPAREN) {
+                depth--;
+                if (depth == 0) return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Разбирает тело подзапроса (текст от select до закрывающей скобки) вложенным
+n     * парсером и регистрирует его под именем subN; возвращает маркер-значение.
+     */
+    private String parseSubquery(String whereBody, JpqlLexer.Token[] tokens, int openIndex, int closeIndex) {
+        if (closeIndex < 0 || openIndex + 1 >= closeIndex) return null;
+        String body = whereBody.substring(tokens[openIndex + 1].position(), tokens[closeIndex].position()).trim();
+        VisualQueryTextParser nested = new VisualQueryTextParser(catalog);
+        nested.virtualCatalog = virtualCatalog;
+        Parsed parsed = nested.parse(body, null);
+        warnings.addAll(parsed.warnings());
+        if (parsed.definition() == null) {
+            warnings.add("Подзапрос не разобран — условие пропущено.");
+            return null;
+        }
+        String name = "sub" + (subqueriesAccumulator.size() + 1);
+        subqueriesAccumulator.add(new VisualQueryDefinition.Subquery(name, parsed.definition()));
+        return VisualQueryDefinition.SUBQUERY_MARKER + name;
+    }
+
+    private Object parseWhereCondition(String whereBody, JpqlLexer.Token[] tokens, int[] cursor) {
         if (cursor[0] >= tokens.length || tokens[cursor[0]].type() != JpqlLexer.Type.WORD) return null;
         String path = tokens[cursor[0]].value();
         cursor[0]++;
@@ -983,6 +1182,11 @@ public final class VisualQueryTextParser {
             return new RawGroup(org.ipro.filter.LogicalOperator.AND, List.of());
         }
         if (operator == FilterOperator.IN) {
+            // Подзапрос: field in (select …)
+            String subqueryMarker = subqueryAfterParen(whereBody, tokens, cursor);
+            if (subqueryMarker != null) {
+                return new RawCond(path, FilterOperator.IN, subqueryMarker, null, null, null, false);
+            }
             String value = parseValueToken(tokens, cursor, true);
             return value == null ? null
                     : new RawCond(path, FilterOperator.IN, value, null, null, null, false);
@@ -998,6 +1202,11 @@ public final class VisualQueryTextParser {
             return new RawCond(path, FilterOperator.BETWEEN,
                     fromParam == null ? from : null, toParam == null ? to : null,
                     fromParam, toParam, false);
+        }
+        // Скалярное сравнение с подзапросом: field <op> (select …)
+        String subqueryMarker = subqueryAfterParen(whereBody, tokens, cursor);
+        if (subqueryMarker != null) {
+            return new RawCond(path, operator, subqueryMarker, null, null, null, false);
         }
         String value = parseValueToken(tokens, cursor, false);
         if (value == null) return null;
@@ -1130,10 +1339,16 @@ public final class VisualQueryTextParser {
                     valueTo = "";
                 }
             }
-            FilterDataType dataType = conditionDataType(cond.path(), aliases);
-            if (dataType == null) {
-                warnings.add("Поле условия «" + cond.path() + "» не найдено в каталоге — условие пропущено.");
-                return new FilterGroup(org.ipro.filter.LogicalOperator.AND, List.of());
+            FilterDataType dataType;
+            if (VisualQueryDefinition.SUBQUERY_EXISTS_PATH.equals(cond.path())) {
+                // Условие EXISTS(подзапрос): левого поля нет, тип условный.
+                dataType = FilterDataType.TEXT;
+            } else {
+                dataType = conditionDataType(cond.path(), aliases);
+                if (dataType == null) {
+                    warnings.add("Поле условия «" + cond.path() + "» не найдено в каталоге — условие пропущено.");
+                    return new FilterGroup(org.ipro.filter.LogicalOperator.AND, List.of());
+                }
             }
             // value для CONTAINS/STARTS_WITH — сырой текст без %: компилятор сам обёртывает.
             return new FilterConditionNode(new FilterCondition(cond.path(), operator, value, valueTo, dataType));
@@ -1158,6 +1373,8 @@ public final class VisualQueryTextParser {
         String field = path.substring(dot + 1);
         QueryBuilderMetadataCatalog.Field plain = fieldOf(entity, field);
         if (plain != null) return dataTypeOf(plain.javaType());
+        // Первичный ключ не входит в поля формы, но валиден в условиях (s.id).
+        if ("id".equals(field)) return FilterDataType.NUMBER;
         return null; // ассоциации в WHERE не используются (нужен typed lookup)
     }
 
@@ -1189,6 +1406,9 @@ public final class VisualQueryTextParser {
 
     /** Сколько :visualFilter_* порождает условие при компиляции (логика ReportVisualFilterCompiler). */
     private static int paramsConsumed(org.ipro.filter.FilterCondition condition) {
+        // Подзапрос-условие не порождает параметров (SQL подзапроса вставляется как есть).
+        if (VisualQueryDefinition.SUBQUERY_EXISTS_PATH.equals(condition.path())) return 0;
+        if (condition.value() != null && condition.value().startsWith(VisualQueryDefinition.SUBQUERY_MARKER)) return 0;
         if (FilterCondition.requiresNoValue(condition.operator())) return 0;
         boolean valueParam = FilterParameterRef.parse(condition.value()) != null;
         if (condition.operator() == FilterOperator.BETWEEN) {
@@ -1223,15 +1443,14 @@ public final class VisualQueryTextParser {
         if (body == null || body.isBlank()) return result;
         for (String item : splitTopLevel(body, ',')) {
             String path = item.trim();
-            if (path.matches("[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*")
-                    && selectableByAlias(path, aliases)) {
+            if (selectableDeepPath(path, aliases)) {
                 result.add(path);
                 continue;
             }
             // Алиас SELECT-колонки → её путь.
             VisualQueryDefinition.SelectField byAlias = selects.stream()
                     .filter(field -> field.resultName().equals(path)).findFirst().orElse(null);
-            if (byAlias != null && selectableByAlias(byAlias.path(), aliases)) {
+            if (byAlias != null && selectableDeepPath(byAlias.path(), aliases)) {
                 result.add(byAlias.path());
                 continue;
             }
@@ -1342,14 +1561,13 @@ public final class VisualQueryTextParser {
             String path = tokens[0].value();
             VisualQueryOrder.Direction direction = VisualQueryOrder.Direction.ASC;
             if (tokens.length > 1 && tokens[1].word("desc")) direction = VisualQueryOrder.Direction.DESC;
-            if (path.matches("[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*")
-                    && selectableByAlias(path, aliases)) {
+            if (selectableDeepPath(path, aliases)) {
                 result.add(new VisualQueryOrder(path, direction));
                 continue;
             }
             VisualQueryDefinition.SelectField byAlias = selects.stream()
                     .filter(field -> field.resultName().equals(path)).findFirst().orElse(null);
-            if (byAlias != null && selectableByAlias(byAlias.path(), aliases)) {
+            if (byAlias != null && selectableDeepPath(byAlias.path(), aliases)) {
                 result.add(new VisualQueryOrder(byAlias.path(), direction));
                 continue;
             }
@@ -1361,6 +1579,8 @@ public final class VisualQueryTextParser {
     // === Утилиты каталога и aliases ===
 
     private QueryBuilderMetadataCatalog.Entity entityOf(String name) {
+        QueryBuilderMetadataCatalog.Entity virtual = virtualCatalog.entity(name);
+        if (virtual != null) return virtual;
         QueryBuilderMetadataCatalog.Entity entity = safeRoot(name);
         if (entity != null) return entity;
         int dot = name.lastIndexOf('.');
