@@ -1,7 +1,10 @@
 package org.ip.form.coordinator;
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import org.ip.form.FieldFactory;
@@ -12,8 +15,13 @@ import org.ip.form.builtin.ItemForm;
 import org.ip.form.builtin.ListForm;
 import org.ipro.form.SelectionForm;
 import org.ip.form.coordinator.FormOpenMode;
+import org.ip.form.registry.FormContext;
 import org.ip.form.registry.FormRegistry;
 import org.ip.form.registry.FormResolver;
+import org.ip.form.registry.ListCommand;
+import org.ip.form.registry.ListCommandContext;
+import org.ip.form.registry.ListCommandRegistry;
+import org.ip.form.registry.ListFormViewContextAware;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.crud.BaseService;
@@ -28,9 +36,11 @@ import org.ipro.telemetry.core.TelemetryBridge;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Координатор форм. Центральный диспетчер для управления жизненным циклом форм.
@@ -152,21 +162,86 @@ public class FormCoordinator {
                                                                   String variant,
                                                                   Map<String, Object> parameters) {
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
-        String entryId = entityClass.getSimpleName().toLowerCase()
-            + (variant != null ? "-" + variant : "");
+        String entryId = listEntryId(entityClass, variant, parameters);
         String title = meta.getListFormTitle()
             + (variant != null ? " (" + variant + ")" : "");
 
         if (workspace != null) {
-            // Открываем в Workspace как вкладку
-            workspace.open(ListFormWrapper.class, entryId, title, wrapper -> {
-                ListForm<T, ID> listForm = createListForm(entityClass, variant, parameters, null);
-                wrapper.setContent(listForm);
-            });
+            Class<? extends com.vaadin.flow.component.Component> customViewClass =
+                formResolver.getFormRegistry().getListFormViewClass(entityClass, variant);
+            if (customViewClass != null) {
+                // Variant-View создаётся Spring-ом и получает динамические параметры после создания.
+                workspace.open((Class) customViewClass, entryId, title,
+                    view -> initializeListFormView(view, entityClass, variant, parameters));
+            } else {
+                // Generic ListForm открывается через стандартный wrapper.
+                workspace.open(ListFormWrapper.class, entryId, title, wrapper -> {
+                    ListForm<T, ID> listForm = createListForm(entityClass, variant, parameters, null);
+                    wrapper.setContent(listForm);
+                });
+            }
         } else {
             throw new IllegalStateException(
                 "Workspace not set. Call coordinator.setWorkspace(workspace) before using openListForm().");
         }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void initializeListFormView(com.vaadin.flow.component.Component view, Class<?> entityClass, String variant,
+                                        Map<String, Object> parameters) {
+        if (view instanceof ListFormViewContextAware contextAware) {
+            FormContext context = FormContext.builder(entityClass)
+                .parameters(parameters)
+                .metadataResolver(metadataResolver)
+                .fieldFactory(fieldFactory)
+                .lookupService(applicationContext != null
+                    ? applicationContext.getBean(org.ipro.crud.LookupService.class) : null)
+                .parameter("variant", variant)
+                .parameter("coordinator", this)
+                .build();
+            contextAware.init(context);
+        }
+    }
+
+    /**
+     * Стабильный ключ вкладки: одинаковый вариант, открытый с разными параметрами связи,
+     * должен быть разными вкладками.
+     */
+    private String listEntryId(Class<?> entityClass, String variant, Map<String, Object> parameters) {
+        String base = entityClass.getSimpleName().toLowerCase()
+            + (variant != null ? "-" + variant : "");
+        if (parameters == null || parameters.isEmpty()) {
+            return base;
+        }
+        String canonical = parameters.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .map(e -> e.getKey() + "=" + stableParameterValue(e.getValue()))
+            .collect(Collectors.joining("&"));
+        return base + "-" + Integer.toHexString(canonical.hashCode());
+    }
+
+    private String stableParameterValue(Object value) {
+        if (value == null) {
+            return "null";
+        }
+        if (value instanceof IdentifiableEntity entity) {
+            return entity.getClass().getName() + "#" + entity.getId();
+        }
+        if (value instanceof Map<?, ?> map) {
+            return map.entrySet().stream()
+                .map(e -> String.valueOf(e.getKey()) + "=" + stableParameterValue(e.getValue()))
+                .sorted()
+                .collect(Collectors.joining(",", "{", "}"));
+        }
+        if (value instanceof Collection<?> collection) {
+            return collection.stream()
+                .map(this::stableParameterValue)
+                .collect(Collectors.joining(",", "[", "]"));
+        }
+        if (value instanceof Class<?> type) {
+            return type.getName();
+        }
+        return String.valueOf(value);
     }
 
     /**
@@ -179,6 +254,16 @@ public class FormCoordinator {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <T extends IdentifiableEntity, ID> ListForm<T, ID> createListForm(Class<T> entityClass) {
         return createListForm(entityClass, null, null, null);
+    }
+
+    /**
+     * Создаёт ListForm указанного варианта с параметрами открытия для встраивания в View.
+     * В отличие от {@link #openListForm(Class, String, Map)} не открывает Workspace-вкладку.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T extends IdentifiableEntity, ID> ListForm<T, ID> createListForm(
+            Class<T> entityClass, String variant, Map<String, Object> parameters) {
+        return createListForm(entityClass, variant, parameters, null);
     }
 
     /**
@@ -261,6 +346,16 @@ public class FormCoordinator {
         // RLS-права на кнопки (Фаза 3): «Создать»/«Изменить»/«Удалить» по RlsUiGate.
         form.setRlsUiGate(rlsUiGate);
 
+        // Панель контекст-фильтров списка (декларативно per-сущность; пусто — панели нет).
+        form.setContextFilters(formResolver.getFormRegistry().getContextFilters(entityClass));
+
+        // Настраиваемые команды списка (row-команды, по образцу ListFormReportActions).
+        // Составной View может отключить глобальные команды во вложенном ListForm,
+        // оставив только свои локальные действия.
+        if (!Boolean.TRUE.equals(parameters != null ? parameters.get("suppressListCommands") : null)) {
+            applyListCommands(form, entityClass, variant);
+        }
+
         // Настройка callback'ов для кнопок
         form.setOnAdd(entity -> openItemForm(entityClass, null, null, saved -> form.refresh()));
         form.setOnEdit(entity -> openItemForm(entityClass, null, (ID) entity.getId(), saved -> form.refresh()));
@@ -272,6 +367,56 @@ public class FormCoordinator {
         }
 
         return form;
+    }
+
+    /** Навешивает зарегистрированные команды списка (row-команды) в тулбар ListForm. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private <T extends IdentifiableEntity, ID> void applyListCommands(
+            ListForm<T, ID> form, Class<T> entityClass, String variant) {
+        if (applicationContext == null) {
+            return;
+        }
+        applicationContext.getBeanProvider(ListCommandRegistry.class).ifAvailable(registry -> {
+            for (ListCommand<?> command : registry.byEntity(entityClass)) {
+                if (!command.appliesToVariant(variant)) {
+                    continue;
+                }
+
+                Button button = new Button(command.title());
+                if (command.iconName() != null) {
+                    try {
+                        button.setIcon(new Icon(VaadinIcon.valueOf(command.iconName())));
+                    } catch (IllegalArgumentException ignored) {
+                        // неверное имя иконки — просто без иконки
+                    }
+                }
+
+                ListCommandContext initialContext = new ListCommandContext(form, this);
+                boolean enabled = !command.requiresSelection()
+                    && command.isEnabled(initialContext);
+                button.setEnabled(enabled);
+                form.getGrid().asSingleSelect().addValueChangeListener(e -> {
+                    ListCommandContext current = new ListCommandContext(form, this);
+                    boolean hasSelection = !command.requiresSelection() || e.getValue() != null;
+                    button.setEnabled(hasSelection && command.isEnabled(current));
+                });
+                form.addContextChangeListener(ignored -> {
+                    ListCommandContext current = new ListCommandContext(form, this);
+                    boolean hasSelection = !command.requiresSelection()
+                        || current.selectedItem() != null;
+                    button.setEnabled(hasSelection && command.isEnabled(current));
+                });
+
+                button.addClickListener(e -> {
+                    ListCommandContext current = new ListCommandContext(form, this);
+                    if ((!command.requiresSelection() || current.selectedItem() != null)
+                            && command.isEnabled(current)) {
+                        command.execute(current);
+                    }
+                });
+                form.getToolbar().add(button);
+            }
+        });
     }
 
     /**
@@ -475,7 +620,18 @@ public class FormCoordinator {
      */
     public <T extends IdentifiableEntity> void openSelectionForm(Class<T> entityClass,
                                                                    Consumer<T> onSelected) {
-        SelectionForm<T> form = formResolver.resolveSelectionForm(entityClass, onSelected);
+        openSelectionForm(entityClass, onSelected, null);
+    }
+
+    /**
+     * Открыть выбор с параметрами открытия; поддерживается сид-фильтр
+     * ({@code parameters.get("seedFilter")}) — выбор открывается предотфильтрованным.
+     */
+    public <T extends IdentifiableEntity> void openSelectionForm(Class<T> entityClass,
+                                                                   Consumer<T> onSelected,
+                                                                   Map<String, Object> parameters) {
+        SelectionForm<T> form = formResolver.resolveSelectionFormWithSeeds(entityClass, onSelected,
+            org.ipro.filter.SeedFilter.allFromParameters(parameters));
         form.open();
     }
 

@@ -167,6 +167,42 @@ class FormResolverTest {
             .hasMessageContaining("instead of ListForm");
     }
 
+    @Test
+    void genericListReceivesOpeningParametersAndSeedFilter() {
+        when(registry.findListForm(PlainEntity.class, null)).thenReturn(null);
+        EntityMetadataInfo meta = entityMetadataFor(PlainEntity.class);
+        when(metadataResolver.resolve(PlainEntity.class)).thenReturn(meta);
+
+        ListForm<PlainEntity, ?> result = resolver.resolveListForm(
+            PlainEntity.class,
+            null,
+            java.util.Map.of(
+                "sourceId", 42L,
+                "seedFilter", java.util.Map.of("path", "id", "value", 7L)));
+
+        assertThat(result.getOpeningParameters()).containsEntry("sourceId", 42L);
+        assertThat(result.getOpeningContextFilters()).containsEntry("id", 7L);
+        assertThat(result.getContextFilterValue("id")).isEqualTo(7L);
+    }
+
+    @Test
+    void genericListReceivesSeveralSeedFilters() {
+        when(registry.findListForm(PlainEntity.class, null)).thenReturn(null);
+        EntityMetadataInfo meta = entityMetadataFor(PlainEntity.class);
+        when(metadataResolver.resolve(PlainEntity.class)).thenReturn(meta);
+
+        ListForm<PlainEntity, ?> result = resolver.resolveListForm(
+            PlainEntity.class,
+            null,
+            java.util.Map.of("seedFilters", java.util.List.of(
+                java.util.Map.of("path", "parent.id", "value", 5L),
+                java.util.Map.of("path", "kind", "value", "A"))));
+
+        assertThat(result.getOpeningContextFilters())
+            .containsEntry("parent.id", 5L)
+            .containsEntry("kind", "A");
+    }
+
     // === SELECTION ===
 
     @Test

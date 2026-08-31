@@ -1,7 +1,9 @@
 package org.ip.form.registry;
 
 import com.vaadin.flow.component.Component;
+import org.ip.form.builder.ContextFilterField;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +39,7 @@ public class FormRegistry {
 
     private final Map<FormKey, FormFactory> forms = new ConcurrentHashMap<>();
     private final Map<FormKey, Class<? extends Component>> listFormViews = new ConcurrentHashMap<>();
+    private final Map<Class<?>, List<ContextFilterField>> contextFilters = new ConcurrentHashMap<>();
 
     /**
      * Зарегистрировать кастомную форму.
@@ -132,6 +135,8 @@ public class FormRegistry {
      */
     public void clear() {
         forms.clear();
+        listFormViews.clear();
+        contextFilters.clear();
     }
 
     /**
@@ -166,5 +171,21 @@ public class FormRegistry {
     public Class<? extends Component> getListFormViewClass(Class<?> entityClass, String variant) {
         FormKey key = new FormKey(entityClass, FormType.LIST, variant);
         return listFormViews.get(key);
+    }
+
+    /**
+     * Зарегистрировать декларированные контекст-фильтры списка для сущности
+     * (панель контекст-фильтров ListForm). Пусто/не null — панели нет.
+     */
+    public void registerContextFilters(Class<?> entityClass, List<ContextFilterField> fields) {
+        contextFilters.put(entityClass, fields == null ? List.of() : List.copyOf(fields));
+    }
+
+    /**
+     * Контекст-фильтры, декларированные для сущности. Пусто — панель контекст-фильтров
+     * для списка этой сущности не показывается.
+     */
+    public List<ContextFilterField> getContextFilters(Class<?> entityClass) {
+        return contextFilters.getOrDefault(entityClass, List.of());
     }
 }

@@ -13,7 +13,9 @@ import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;
 import org.ip.model.UnitOfMeasurement;
 import org.ipro.crud.LookupService;
+import org.ipro.filter.SeedFilter;
 import org.ipro.form.EntityField;
+import org.ipro.form.SelectionFormAssembler;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -43,6 +45,12 @@ public class PrdSpecMtrFormCustomization implements ItemFormCustomization {
      * (см. FetchGraphs.associationPaths): прямые ссылки + их ссылки.
      */
     private static final int LOOKUP_FETCH_DEPTH = 2;
+
+    private final SelectionFormAssembler selectionFormAssembler;
+
+    public PrdSpecMtrFormCustomization(SelectionFormAssembler selectionFormAssembler) {
+        this.selectionFormAssembler = selectionFormAssembler;
+    }
 
     @Override
     public Class<?> entityClass() {
@@ -89,6 +97,11 @@ public class PrdSpecMtrFormCustomization implements ItemFormCustomization {
             });
         } else {
             EntityField<Nomenclature> nomenclatureField = form.entityField("nomenclature");
+            // Тип-ограничение (Фаза 4): компонент-«Материал» нельзя выбрать Узел/Сборку —
+            // диалог выбора открывается предотфильтрованным по typeNom = «Материал».
+            nomenclatureField.setSelectionFormFactory(onSelect ->
+                selectionFormAssembler.<Nomenclature, Long>assemble(
+                    Nomenclature.class, onSelect, new SeedFilter("typeNom", "Материал")));
             nomenclatureField.addValueChangeListener(nom -> unitField.setValue(
                 nom == null ? null : unitOfSelectedNomenclature(lookupService, resolver, nom)));
         }

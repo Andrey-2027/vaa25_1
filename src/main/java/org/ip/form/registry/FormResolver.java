@@ -14,6 +14,7 @@ import org.ipro.metadata.RowMetadataInfo;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.filter.SeedFilter;
 import org.ipro.filtergrid.grouping.CriteriaGroupValuesService;
 import org.ipro.filtergrid.grouping.GroupValuesService;
 import org.springframework.context.ApplicationContext;
@@ -114,7 +115,7 @@ public class FormResolver {
             if (factory != null) {
                 Component component = factory.create(buildListFormContext(entityClass, parameters));
                 if (component instanceof ListForm) {
-                    return (ListForm<T, ID>) component;
+                    return prepareListForm((ListForm<T, ID>) component, parameters);
                 }
                 throw new IllegalStateException(
                     "FormFactory for " + entityClass.getSimpleName() + " LIST variant '" + variant +
@@ -128,7 +129,7 @@ public class FormResolver {
         if (factory != null) {
             Component component = factory.create(buildListFormContext(entityClass, parameters));
             if (component instanceof ListForm) {
-                return (ListForm<T, ID>) component;
+                return prepareListForm((ListForm<T, ID>) component, parameters);
             }
             throw new IllegalStateException(
                 "FormFactory for " + entityClass.getSimpleName() + " LIST default variant " +
@@ -136,7 +137,7 @@ public class FormResolver {
         }
 
         // 3. Создать generic форму из метаданных
-        return createGenericListForm(entityClass);
+        return prepareListForm(createGenericListForm(entityClass, parameters), parameters);
     }
 
     /**
@@ -211,6 +212,18 @@ public class FormResolver {
         return selectionFormAssembler.<T, ID>assemble(entityClass, onSelect);
     }
 
+    public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionForm(
+            Class<T> entityClass, Consumer<T> onSelect, org.ipro.filter.SeedFilter seed) {
+        return selectionFormAssembler.<T, ID>assemble(entityClass, onSelect, seed);
+    }
+
+    /** Открыть выбор с несколькими фиксированными ограничениями связи. */
+    public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionFormWithSeeds(
+            Class<T> entityClass, Consumer<T> onSelect,
+            java.util.Collection<org.ipro.filter.SeedFilter> seeds) {
+        return selectionFormAssembler.<T, ID>assemble(entityClass, onSelect, seeds);
+    }
+
     /**
      * Строит FormContext для кастомных ITEM-фабрик, зарегистрированных через
      * {@code ItemFormCustomization}/{@code ItemFormVariants} — всегда кладёт типизированные
@@ -242,14 +255,35 @@ public class FormResolver {
     // === Создание generic форм из метаданных ===
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> ListForm<T, ID> createGenericListForm(Class<T> entityClass) {
+    private <T extends IdentifiableEntity, ID> ListForm<T, ID> createGenericListForm(
+            Class<T> entityClass,
+            Map<String, Object> parameters) {
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
         BaseService<T, ID> service = findService(entityClass);
+        ListForm<T, ID> form;
         if (entityManager == null) {
-            return new ListForm<>(meta, service);
+            form = new ListForm<>(meta, service);
+        } else {
+            GroupValuesService<T> gvs = new CriteriaGroupValuesService<>(entityManager, entityClass);
+            form = new ListForm<>(meta, service, gvs);
         }
-        GroupValuesService<T> gvs = new CriteriaGroupValuesService<>(entityManager, entityClass);
-        return new ListForm<>(meta, service, gvs);
+        return form;
+    }
+
+    /** Применяет общий контекст открытия ко всем ListForm, включая кастомные фабрики. */
+    private <T extends IdentifiableEntity, ID> ListForm<T, ID> prepareListForm(
+            ListForm<T, ID> form, Map<String, Object> parameters) {
+        form.setOpeningParameters(parameters);
+        Map<String, Object> seedValues = new java.util.LinkedHashMap<>();
+        for (SeedFilter seed : SeedFilter.allFromParameters(parameters)) {
+            if (seed.path() != null && !seed.path().isBlank() && seed.value() != null) {
+                seedValues.put(seed.path(), seed.value());
+            }
+        }
+        if (!seedValues.isEmpty()) {
+            form.setOpeningContextFilters(seedValues);
+        }
+        return form;
     }
 
     @SuppressWarnings("unchecked")

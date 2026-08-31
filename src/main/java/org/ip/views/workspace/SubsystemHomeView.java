@@ -10,7 +10,6 @@ import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import org.ip.form.coordinator.FormCoordinator;
-import org.ip.form.coordinator.ListFormWrapper;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.rls.AccessService;
@@ -41,6 +40,7 @@ public class SubsystemHomeView extends VerticalLayout {
 
     public void init(SubsystemNode node, Workspace workspace) {
         removeAll();
+        coordinator.setWorkspace(workspace);
 
         add(new H3(node.getTitle()));
 
@@ -117,20 +117,8 @@ public class SubsystemHomeView extends VerticalLayout {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void openEntityList(EntityMetadataInfo entity, Workspace workspace) {
-        Class entityClass = entity.getEntityClass();
-        String tabId = "entity-list-" + entityClass.getSimpleName();
-
-        // Проверяем, есть ли кастомный View для default-варианта
-        Class<? extends com.vaadin.flow.component.Component> customViewClass =
-            coordinator.getFormRegistry().getListFormViewClass(entityClass, null);
-
-        if (customViewClass != null) {
-            // Открываем кастомный View
-            workspace.open(customViewClass, tabId, entity.getListFormTitle(), v -> {});
-        } else {
-            // Fallback: автоматический ListForm
-            workspace.open(ListFormWrapper.class, tabId, entity.getListFormTitle(),
-                (ListFormWrapper wrapper) -> wrapper.setContent(coordinator.createListForm(entityClass)));
-        }
+        // Координатор выбирает generic ListForm или зарегистрированный variant-View
+        // и передаёт ему контекст открытия единым способом.
+        coordinator.openListForm((Class) entity.getEntityClass(), null, null);
     }
 }

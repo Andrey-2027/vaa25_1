@@ -36,4 +36,9 @@ public interface ListFormCustomization {
     Class<?> entityClass();
 
     void configure(ListFormVariants variants);
+
+    /** Декларированные контекст-фильтры списка (панель контекст-фильтров). Пусто — панели нет. */
+    default java.util.List<ContextFilterField> contextFilters() {
+        return java.util.List.of();
+    }
 }

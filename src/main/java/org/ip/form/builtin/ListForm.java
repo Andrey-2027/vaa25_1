@@ -2,6 +2,7 @@ package org.ip.form.builtin;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -22,6 +23,8 @@ import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.LookupService;
+import org.ip.form.builder.ContextFilterField;
+import org.ip.form.registry.ListFormContext;
 import org.ipro.filtergrid.ComboBoxFilter;
 import org.ipro.filtergrid.DateRangeFilter;
 import org.ipro.filtergrid.FieldFilter;
@@ -87,6 +90,17 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private RlsUiGate rlsUiGate;
 
     private Runnable afterColumnsConfigured;
+
+    // Панель контекст-фильтров (предустановленные предзаданные фильтры, например «Журнал»
+    // для Спецификаций). Объявляется декларативно per-сущность; пусто — панели нет вовсе.
+    private final Map<String, ComboBox<Object>> contextFilterBoxes = new LinkedHashMap<>();
+    private final Map<String, Object> openingParameters = new LinkedHashMap<>();
+    private final Map<String, Object> openingContextFilterValues = new LinkedHashMap<>();
+    private final Map<String, Object> contextFilterValues = new LinkedHashMap<>();
+    private final List<Consumer<ListFormContext>> contextChangeListeners = new ArrayList<>();
+    private Specification<T> explicitContextFilter;
+    private HorizontalLayout contextFilterPanel;
+    private Button contextFilterToggle;
 
     // === Конструктор 1: внешний FilterGrid ===
 
@@ -185,11 +199,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         refresh();
     }
 
-    /** Прокидывает визуальный фильтр в дерево группировки (только для группируемого грида). */
+    /** Прокидывает визуальный фильтр (+ контекст-фильтр) в дерево группировки (только для
+     *  группируемого грида): счётчики группировки считаются по отфильтрованному набору. */
     private void syncGroupingBaseSpecification() {
         if (this.filterGrid instanceof org.ipro.filtergrid.grouping.GroupableJpaFilterGrid) {
             ((org.ipro.filtergrid.grouping.GroupableJpaFilterGrid<T>) this.filterGrid)
-                    .setExternalSpecification(visualFilter);
+                    .setExternalSpecification(combine(visualFilter, contextFilter));
         }
     }
 
@@ -198,11 +213,131 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     }
 
     public void setContextFilter(Specification<T> contextFilter) {
-        this.contextFilter = contextFilter;
-        if (this.filterGrid instanceof GroupableJpaFilterGrid) {
-            ((GroupableJpaFilterGrid<T>) this.filterGrid).setContextSpecification(contextFilter);
+        this.explicitContextFilter = contextFilter;
+        rebuildContextSpecification();
+    }
+
+    /**
+     * Параметры, с которыми был открыт список. Они доступны локальным View и командам,
+     * но не участвуют в запросе автоматически (для этого используются opening filters).
+     */
+    public void setOpeningParameters(Map<String, Object> parameters) {
+        openingParameters.clear();
+        if (parameters != null) {
+            openingParameters.putAll(parameters);
         }
+    }
+
+    public Map<String, Object> getOpeningParameters() {
+        return immutableCopy(openingParameters);
+    }
+
+    /**
+     * Установить фиксированное ограничение связи, пришедшее от исходной формы/команды.
+     * В отличие от значения панели оно не снимается очисткой пользовательского фильтра.
+     */
+    public void setOpeningContextFilter(String path, Object value) {
+        if (path == null || path.isBlank()) {
+            return;
+        }
+        if (value == null) {
+            openingContextFilterValues.remove(path);
+        } else {
+            openingContextFilterValues.put(path, value);
+        }
+        rebuildContextSpecification();
+    }
+
+    /** Установить несколько фиксированных ограничений связи одним обновлением. */
+    public void setOpeningContextFilters(Map<String, Object> filters) {
+        openingContextFilterValues.clear();
+        if (filters != null) {
+            filters.forEach((path, value) -> {
+                if (path != null && !path.isBlank() && value != null) {
+                    openingContextFilterValues.put(path, value);
+                }
+            });
+        }
+        rebuildContextSpecification();
+    }
+
+    public Map<String, Object> getOpeningContextFilters() {
+        return immutableCopy(openingContextFilterValues);
+    }
+
+    /** Значения интерактивной контекстной панели без фиксированных ограничений открытия. */
+    public Map<String, Object> getContextFilterValues() {
+        return immutableCopy(contextFilterValues);
+    }
+
+    /** Эффективное значение path: фиксированное ограничение имеет приоритет над панелью. */
+    public Object getContextFilterValue(String path) {
+        return openingContextFilterValues.containsKey(path)
+            ? openingContextFilterValues.get(path)
+            : contextFilterValues.get(path);
+    }
+
+    /** Снимок состояния списка для команд и составных View. */
+    public ListFormContext getContextSnapshot() {
+        return new ListFormContext(
+            openingParameters, openingContextFilterValues, contextFilterValues);
+    }
+
+    /** Подписать локальную команду/View на изменения контекстных фильтров. */
+    public void addContextChangeListener(Consumer<ListFormContext> listener) {
+        if (listener != null) {
+            contextChangeListeners.add(listener);
+        }
+    }
+
+    /** Пересобрать итоговую контекстную спецификацию и обновить грид/группировку. */
+    @SuppressWarnings("unchecked")
+    private void rebuildContextSpecification() {
+        Specification<T> combined = combine(
+            specificationForValues(openingContextFilterValues),
+            specificationForValues(contextFilterValues));
+        combined = combine(combined, explicitContextFilter);
+        this.contextFilter = combined;
+        if (this.filterGrid instanceof GroupableJpaFilterGrid) {
+            ((GroupableJpaFilterGrid<T>) this.filterGrid).setContextSpecification(combined);
+        }
+        syncGroupingBaseSpecification();
         refresh();
+        notifyContextChanged();
+    }
+
+    /** Уведомить локальные View/команды об изменении контекста списка. */
+    private void notifyContextChanged() {
+        if (contextChangeListeners.isEmpty()) {
+            return;
+        }
+        ListFormContext snapshot = getContextSnapshot();
+        for (Consumer<ListFormContext> listener : List.copyOf(contextChangeListeners)) {
+            listener.accept(snapshot);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Specification<T> specificationForValues(Map<String, Object> values) {
+        Specification<T> result = null;
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            String path = entry.getKey();
+            Object value = entry.getValue();
+            if (path == null || path.isBlank() || value == null) {
+                continue;
+            }
+            Specification<T> part = value instanceof Collection<?> collection
+                ? (root, query, cb) -> cb.in(JpaPathUtil.resolve(root, path)).value(collection)
+                : (root, query, cb) -> cb.equal(JpaPathUtil.resolve(root, path), value);
+            result = combine(result, part);
+        }
+        return result;
+    }
+
+    private static Map<String, Object> immutableCopy(Map<String, Object> source) {
+        return source == null || source.isEmpty()
+            ? Map.of()
+            : java.util.Collections.unmodifiableMap(new LinkedHashMap<>(source));
     }
 
     /**
@@ -221,13 +356,125 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         addButton.setTooltipText(create.allowed() ? null : create.reason());
     }
 
+    /**
+     * Контекст-фильтр по (path, value). {@code value} — скаляр (=) или коллекция (IN),
+     * удобно для тип-ограничений («не Материал» = список разрешённых типов).
+     */
     public void setContextFilter(String path, Object value) {
-        setContextFilter(value == null ? null :
-            (Specification<T>) (root, query, cb) -> cb.equal(JpaPathUtil.resolve(root, path), value));
+        if (path == null || path.isBlank()) {
+            return;
+        }
+        if (value == null) {
+            contextFilterValues.remove(path);
+        } else {
+            contextFilterValues.put(path, value);
+        }
+        // Строковый API означает именованный пользовательский контекст; произвольная
+        // Specification, установленная старым API, больше не должна дублироваться.
+        explicitContextFilter = null;
+        rebuildContextSpecification();
     }
 
+    private static <T> Specification<T> combine(Specification<T> a, Specification<T> b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        return Specification.where(a).and(b);
+    }
+
+    /** Снять пользовательские контекстные фильтры, сохранив ограничения открытия. */
     public void clearContextFilter() {
-        setContextFilter((Specification<T>) null);
+        contextFilterValues.clear();
+        explicitContextFilter = null;
+        rebuildContextSpecification();
+    }
+
+    /** Снять только одно значение интерактивной контекстной панели. */
+    public void clearContextFilter(String path) {
+        if (path == null) {
+            return;
+        }
+        contextFilterValues.remove(path);
+        explicitContextFilter = null;
+        rebuildContextSpecification();
+    }
+
+    // === Панель контекст-фильтров ===
+
+    /**
+     * Задать декларированные контекст-фильтры списка. Панель показывается только если
+     * поле непустое — по решению конфигурации сущности («есть контекст-фильтры → пацилив
+     * подходит», «нет → панели нет вовсе»). Значение по умолчанию фильтра — «пусто → все записи».
+     */
+    public void setContextFilters(java.util.List<ContextFilterField> fields) {
+        if (fields == null || fields.isEmpty()) {
+            ensureContextFilterToggle(false);
+            return;
+        }
+        if (contextFilterPanel == null) {
+            contextFilterPanel = new HorizontalLayout();
+            contextFilterPanel.setWidthFull();
+            contextFilterPanel.setSpacing(true);
+            contextFilterPanel.setPadding(false);
+            contextFilterPanel.setAlignItems(FlexComponent.Alignment.BASELINE);
+            int gridIndex = indexOf(filterGrid);
+            if (gridIndex < 0) {
+                add(contextFilterPanel);
+            } else {
+                addComponentAtIndex(gridIndex, contextFilterPanel);
+            }
+            setFlexGrow(0, contextFilterPanel);
+        }
+        for (ContextFilterField field : fields) {
+            contextFilterBoxes.computeIfAbsent(field.path(), p -> createContextFilterCombo(field));
+        }
+        ensureContextFilterToggle(true);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private ComboBox<Object> createContextFilterCombo(ContextFilterField field) {
+        ComboBox<Object> box = new ComboBox<>(field.label());
+        if (lookupService != null && field.valueSource() != null) {
+            box.setItems(query -> lookupService.findAll((Class) field.valueSource()).stream()
+                .map(item -> (Object) item));
+        }
+        box.setItemLabelGenerator(item -> item instanceof HasDisplayName d
+            ? d.getDisplayName() : String.valueOf(item));
+        box.addValueChangeListener(e -> {
+            Object value = e.getValue();
+            if (value == null) {
+                contextFilterValues.remove(field.path());
+            } else {
+                contextFilterValues.put(field.path(), value);
+            }
+            rebuildContextFilter();
+        });
+        contextFilterPanel.add(box);
+        return box;
+    }
+
+    /** Пересобрать единый Specification контекст-фильтра из выбранных значений (AND). */
+    private void rebuildContextFilter() {
+        explicitContextFilter = null;
+        rebuildContextSpecification();
+    }
+
+    /** Кнопка-тумблер «Фильтры» в тулбаре: сворачивает/разворачивает панель, не снимая фильтры. */
+    private void ensureContextFilterToggle(boolean enabled) {
+        // единственная кнопка-тумблер на панель
+        if (contextFilterToggle != null) {
+            contextFilterToggle.setVisible(enabled);
+            return;
+        }
+        Button toggle = new Button("Фильтры", VaadinIcon.FILTER.create());
+        contextFilterToggle = toggle;
+        toggle.setVisible(enabled);
+        toggle.getElement().setAttribute("aria-label", "Фильтры контекста");
+        toggle.addClickListener(e -> {
+            if (contextFilterPanel != null) {
+                contextFilterPanel.setVisible(!contextFilterPanel.isVisible());
+            }
+        });
+        toolbar.add(toggle);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

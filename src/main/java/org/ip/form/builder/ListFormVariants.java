@@ -15,11 +15,15 @@ import java.util.Map;
  *
  * Два способа задать вариант:
  *   - {@link #addDefault(FormFactory)}/{@link #add(String, FormFactory)} — обычная функция
- *     {@code FormContext -> ListForm}, использующая FieldFactory/ColumnPath/сервис напрямую;
- *   - {@link #addDefaultView(Class)}/{@link #addView(String, Class)} — когда список нужно
- *     не сгенерировать из метаданных, а собрать композицией (ListForm внутри обычного
- *     Vaadin-компонента вместе с другим UI, как {@code PrdSpecByJournalView}: ComboBox для
- *     выбора журнала + ListForm.setContextFilter(...)).
+ *     {@code FormContext -> ListForm}, использующая FieldFactory/ColumnPath/сервис напрямую;     *   - {@link #addDefaultView(Class)}/{@link #addView(String, Class)} — когда список нужно
+     *     не сгенерировать из метаданных, а собрать композицией (ListForm внутри обычного
+     *     Vaadin-компонента вместе с другим UI: ComboBox-контекст + ListForm.setContextFilter(...)).
+     *     Если View реализует {@code ListFormViewContextAware}, координатор передаст ему
+     *     параметры открытия через {@code init(FormContext)}.
+
+ *     Простые «контекстные» случаи (например выбор журнала/матрицы для реестра) лучше выражать
+ *     декларативно через {@link ListFormCustomization#contextFilters()} — панель контекст-фильтров
+ *     ListForm.
  */
 public class ListFormVariants {
 
