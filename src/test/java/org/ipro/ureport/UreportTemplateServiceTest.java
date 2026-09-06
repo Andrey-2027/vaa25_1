@@ -42,12 +42,12 @@ class UreportTemplateServiceTest {
         });
         when(repository.existsByFileName(any())).thenReturn(false);
         // AbstractBaseService.numberingService - @Autowired Optional, в юнит-тесте пустой
-        java.lang.reflect.Field numbering = org.ip.service.AbstractBaseService.class
+        java.lang.reflect.Field numbering = org.ipro.crud.AbstractBaseService.class
                 .getDeclaredField("numberingService");
         numbering.setAccessible(true);
         numbering.set(service, java.util.Optional.empty());
         // accessService используется в checkRlsWrite (method reference) - мокаем
-        java.lang.reflect.Field access = org.ip.service.AbstractBaseService.class
+        java.lang.reflect.Field access = org.ipro.crud.AbstractBaseService.class
                 .getDeclaredField("accessService");
         access.setAccessible(true);
         access.set(service, mock(org.ipro.rls.AccessService.class));

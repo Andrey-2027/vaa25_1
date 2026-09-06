@@ -1,7 +1,7 @@
 package org.ip.views.forms;
 
-import org.ip.form.builder.ItemFormCustomization;
-import org.ip.form.builder.ItemFormVariants;
+import org.ipro.form.builder.ItemFormCustomization;
+import org.ipro.form.builder.ItemFormVariants;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ip.model.Workshop;
 import org.springframework.stereotype.Component;

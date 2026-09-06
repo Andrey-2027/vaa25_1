@@ -10,8 +10,8 @@ import org.ipro.crud.AbstractEntityForm;
 import org.ipro.crud.FormBuilder;
 import org.ip.model.Workshop;
 import org.ip.service.WorkshopService;
-import org.ip.views.workspace.Dirtyable;
-import org.ip.views.workspace.Savable;
+import org.ipro.form.Dirtyable;
+import org.ipro.form.Savable;
 
 import java.util.Objects;
 

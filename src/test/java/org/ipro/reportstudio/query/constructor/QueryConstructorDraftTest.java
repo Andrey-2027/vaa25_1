@@ -1,10 +1,10 @@
 package org.ipro.reportstudio.query.constructor;
 
-import org.ipro.filter.FilterCondition;
-import org.ipro.filter.FilterConditionNode;
-import org.ipro.filter.FilterDataType;
-import org.ipro.filter.FilterGroup;
-import org.ipro.filter.FilterOperator;
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterConditionNode;
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterGroup;
+import org.ipro.filtergrid.filter.FilterOperator;
 import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
 import org.ipro.reportstudio.query.VisualQueryDefinition;
 import org.ipro.reportstudio.query.VisualQueryOrder;

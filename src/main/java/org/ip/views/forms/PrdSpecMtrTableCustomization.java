@@ -1,7 +1,7 @@
 package org.ip.views.forms;
 
-import org.ip.form.TableSectionCustomization;
-import org.ip.form.builtin.ItemTable;
+import org.ipro.form.TableSectionCustomization;
+import org.ipro.form.builtin.ItemTable;
 import org.ip.model.PrdSpecMtr;
 import org.springframework.stereotype.Component;
 

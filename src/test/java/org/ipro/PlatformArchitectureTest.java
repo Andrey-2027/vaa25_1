@@ -20,14 +20,15 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * <p>Интеграционные тесты платформы (org.ipro.* в src/test) закономерно используют
  * доменные фикстуры приложения — поэтому критерий распространяется только на
  * production-код (DoNotIncludeTests), как и зафиксировано в плане (критерий src/main only).</p>
- * <p>Текущее состояние: красный по известным 8 связям reportstudio — служит
- * счётчиком прогресса среза; после этапа 2 обязан стать зелёным навсегда.</p>
+ * <p>Осознанные строковые связки (не bytecode, правилом не ловятся, зафиксированы здесь):
+ * pointcut {@code org.ip.service..*} в {@code ExecutionTimeAspect},
+ * {@code platform.subsystem-scan-package=org.ip}.</p>
  */
 @AnalyzeClasses(packages = "org.ipro", importOptions = ImportOption.DoNotIncludeTests.class)
 class PlatformArchitectureTest {
 
     @ArchTest
-    static final ArchRule reportStudioIndependent =
-            noClasses().that().resideInAnyPackage("org.ipro.reportstudio..")
+    static final ArchRule platformIndependentOfApplication =
+            noClasses().that().resideInAnyPackage("org.ipro..")
                     .should().dependOnClassesThat().resideInAnyPackage("org.ip..");
 }

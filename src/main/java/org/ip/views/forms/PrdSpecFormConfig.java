@@ -1,9 +1,9 @@
 package org.ip.views.forms;
 
-import org.ip.form.builder.ItemFormCustomization;
-import org.ip.form.builder.ItemFormVariants;
-import org.ip.form.builtin.ItemForm;
-import org.ip.form.registry.FormContext;
+import org.ipro.form.builder.ItemFormCustomization;
+import org.ipro.form.builder.ItemFormVariants;
+import org.ipro.form.builtin.ItemForm;
+import org.ipro.form.registry.FormContext;
 import org.ipro.form.EntityField;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.EntityMetadataInfo;

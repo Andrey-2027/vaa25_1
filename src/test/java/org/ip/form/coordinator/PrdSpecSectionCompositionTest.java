@@ -1,9 +1,9 @@
 package org.ip.form.coordinator;
 
 import org.ip.config.DataInitializer;
-import org.ip.form.builtin.ItemForm;
-import org.ip.form.builtin.ItemTable;
-import org.ip.form.registry.FormResolver;
+import org.ipro.form.builtin.ItemForm;
+import org.ipro.form.builtin.ItemTable;
+import org.ipro.form.registry.FormResolver;
 import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;
 import org.ip.model.PrdSpecOper;

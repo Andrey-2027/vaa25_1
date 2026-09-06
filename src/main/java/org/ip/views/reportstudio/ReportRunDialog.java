@@ -16,7 +16,7 @@ import com.vaadin.flow.server.WrappedHttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.ipro.form.SelectionFormAssembler;
-import org.ip.security.CurrentUser;
+import org.ipro.security.CurrentUser;
 import org.ipro.crud.LookupService;
 import org.ip.views.components.ReportParamForm;
 import org.ipro.reportstudio.dom.ReportTemplate;

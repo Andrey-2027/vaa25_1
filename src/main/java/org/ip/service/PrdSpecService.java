@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
+import org.ipro.crud.AbstractBaseService;
 
 @Service
 public class PrdSpecService extends AbstractBaseService<PrdSpec, Long> {

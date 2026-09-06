@@ -1,9 +1,9 @@
 package org.ipro.reportstudio.query.constructor;
 
-import org.ipro.filter.FilterCondition;
-import org.ipro.filter.FilterConditionNode;
-import org.ipro.filter.FilterGroup;
-import org.ipro.filter.FilterNode;
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterConditionNode;
+import org.ipro.filtergrid.filter.FilterGroup;
+import org.ipro.filtergrid.filter.FilterNode;
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.query.CaseBranch;
 import org.ipro.reportstudio.query.CaseCondition;

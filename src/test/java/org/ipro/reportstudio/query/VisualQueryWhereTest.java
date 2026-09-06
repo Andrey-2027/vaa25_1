@@ -1,6 +1,6 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.filter.*;
+import org.ipro.filtergrid.filter.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

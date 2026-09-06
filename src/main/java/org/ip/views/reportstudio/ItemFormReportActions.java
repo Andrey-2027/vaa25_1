@@ -1,7 +1,7 @@
 package org.ip.views.reportstudio;
 
 import org.ipro.form.SelectionFormAssembler;
-import org.ip.form.builtin.ItemForm;
+import org.ipro.form.builtin.ItemForm;
 import org.ipro.crud.LookupService;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;

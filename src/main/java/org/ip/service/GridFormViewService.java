@@ -4,11 +4,12 @@ import org.ipro.crud.ValidationException;
 
 import org.ip.model.GridFormView;
 import org.ip.repository.GridFormViewRepository;
-import org.ip.security.CurrentUser;
+import org.ipro.security.CurrentUser;
 import org.springframework.stereotype.Service;
 
 import jakarta.validation.Validator;
 import java.util.List;
+import org.ipro.crud.AbstractBaseService;
 
 /**
  * Сервис видов грида. Правило редактирования (см. обсуждение): shared-вид редактирует/

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.ip.service.AbstractBaseService;
+import org.ipro.crud.AbstractBaseService;
 import org.ipro.ureport.UreportTemplateRepository;
 import org.ipro.ureport.dom.UreportTemplate;
 import org.ipro.ureport.params.ParamUiType;

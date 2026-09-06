@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.ipro.crud.AbstractBaseService;
 
 /**
  * rawPassword (см. User) — единственный канал, по которому UserItemForm передаёт сюда новый

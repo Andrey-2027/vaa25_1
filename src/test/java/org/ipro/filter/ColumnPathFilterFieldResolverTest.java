@@ -1,5 +1,6 @@
 package org.ipro.filter;
 
+import org.ipro.filtergrid.filter.FilterDataType;
 import org.ipro.metadata.ColumnPath;
 import org.junit.jupiter.api.Test;
 

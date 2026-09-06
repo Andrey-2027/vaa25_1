@@ -7,7 +7,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import org.ip.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormCoordinator;
 import org.ip.model.Nomenclature;
 import org.ip.model.UnitOfMeasurement;
 

@@ -1,12 +1,12 @@
 package org.ip.views.forms;
 
 import com.vaadin.flow.component.html.Span;
-import org.ip.form.FieldFactory;
-import org.ip.form.builder.layout.ItemFormLayout;
-import org.ip.form.builder.layout.CustomNode;
-import org.ip.form.builder.layout.DisplayNode;
-import org.ip.form.builder.layout.FieldNode;
-import org.ip.form.builtin.ItemForm;
+import org.ipro.form.FieldFactory;
+import org.ipro.form.builder.layout.ItemFormLayout;
+import org.ipro.form.builder.layout.CustomNode;
+import org.ipro.form.builder.layout.DisplayNode;
+import org.ipro.form.builder.layout.FieldNode;
+import org.ipro.form.builtin.ItemForm;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ip.model.Workshop;
 

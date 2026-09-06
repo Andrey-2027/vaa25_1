@@ -19,7 +19,7 @@ import java.util.Set;
  * Минимальная валидирующая CRUD-база платформы (план reportstudio-reverse-deps, 2.3):
  * bean-валидация + reference-check на удаление, поверх JpaRepository.
  *
- * <p>Сознательно НЕ включает (в отличие от {@code org.ip.service.AbstractBaseService}):
+ * <p>Сознательно НЕ включает (в отличие от {@code org.ipro.crud.AbstractBaseService}):
  * RLS write/read-policy и read-gate, нумерацию (@Numbered), metadata fetch-graphs,
  * UI-search по метаданным, конвенции имён бинов. Наследники добавляют своё
  * (см. ReportTemplateService). Идентификатор — Long ({@link IdentifiableEntity}).</p>

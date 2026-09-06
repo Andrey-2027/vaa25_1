@@ -1,0 +1,38 @@
+/* Цветовая разметка журнала диагностики (DiagnosticsView и панели). */
+
+/* Уровень журнала */
+.tl-level-error {
+  color: var(--lumo-error-text-color);
+  font-weight: 600;
+}
+
+.tl-level-warn {
+  color: var(--lumo-warning-text-color);
+  font-weight: 600;
+}
+
+.tl-level-info {
+  color: var(--lumo-secondary-text-color);
+}
+
+/* Фон строк с ошибками/предупреждениями — через part-имена генератора
+   (Grid.setPartNameGenerator), поэтому селекторы по ::part. */
+vaadin-grid::part(tl-row-error) {
+  background-color: var(--lumo-error-color-10pct);
+}
+
+vaadin-grid::part(tl-row-warn) {
+  background-color: var(--lumo-warning-color-10pct);
+}
+
+/* Кликабельный Trace ID: моноширинный, курсор-рука, подчёркивание при наведении */
+.tl-trace-cell {
+  cursor: pointer;
+  font-family: var(--lumo-font-family-monospace, monospace);
+  font-size: var(--lumo-font-size-xs);
+}
+
+.tl-trace-cell:hover {
+  color: var(--lumo-primary-text-color);
+  text-decoration: underline;
+}

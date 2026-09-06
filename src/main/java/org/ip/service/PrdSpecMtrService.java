@@ -5,6 +5,7 @@ import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;
 import org.ip.repository.PrdSpecMtrRepository;
 import org.springframework.stereotype.Service;
+import org.ipro.crud.TableSectionService;
 
 @Service
 public class PrdSpecMtrService extends AbstractTableSectionService<PrdSpecMtr, Long, PrdSpec> {

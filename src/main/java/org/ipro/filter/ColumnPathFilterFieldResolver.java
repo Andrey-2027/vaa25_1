@@ -1,5 +1,7 @@
 package org.ipro.filter;
 
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterFieldResolver;
 import org.ipro.metadata.ColumnPath;
 
 import java.util.List;

@@ -41,7 +41,8 @@ import org.springframework.web.context.annotation.SessionScope;
 @AutoConfiguration
 @AutoConfigureBefore(org.ipro.numbering.config.NumberingAutoConfiguration.class)
 @EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls", "org.ipro.reportstudio",
-    "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport", "org.ipro.jr"})
+    "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport", "org.ipro.jr",
+    "org.ipro.telemetry.repository"})
 public class RlsAutoConfiguration {
 
     @Bean

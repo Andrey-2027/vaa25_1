@@ -1,11 +1,11 @@
 package org.ip.views.forms;
 
-import org.ip.form.builder.ContextFilterField;
-import org.ip.form.builder.ListFormCustomization;
-import org.ip.form.builder.ListFormVariants;
+import org.ipro.form.builder.ContextFilterField;
+import org.ipro.form.builder.ListFormCustomization;
+import org.ipro.form.builder.ListFormVariants;
 import org.ip.model.Journal;
 import org.ip.model.PrdSpec;
-import org.ip.form.registry.FormContext;
+import org.ipro.form.registry.FormContext;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -31,13 +31,17 @@ public class PrdSpecListFormConfig implements ListFormCustomization {
     public void configure(ListFormVariants variants) {
         // default-вариант — generic; «выбор журнала» идёт через панель контекст-фильтров.
         variants.addView("contextual", ctx -> new PrdSpecByJournalView(
-            (org.ip.form.coordinator.FormCoordinator) ctx.getParameter("coordinator"),
+            (org.ipro.form.coordinator.FormCoordinator) ctx.getParameter("coordinator"),
             ctx.lookupService(),
             ctx));
     }
 
     @Override
     public List<ContextFilterField> contextFilters() {
-        return List.of(ContextFilterField.select("journal", "Журнал", Journal.class));
+        // Журнал обязателен и виден везде (все списки, диалог выбора): без него
+        // «Создать» погашена, новая спецификация рождается с проставленным журналом.
+        return List.of(ContextFilterField
+            .requiredSelect("journal", "Журнал", Journal.class)
+            .allListVariants());
     }
 }

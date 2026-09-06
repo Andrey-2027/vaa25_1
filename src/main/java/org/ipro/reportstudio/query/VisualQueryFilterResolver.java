@@ -1,7 +1,7 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.filter.FilterDataType;
-import org.ipro.filter.FilterFieldResolver;
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterFieldResolver;
 
 import java.util.List;
 import java.util.Objects;

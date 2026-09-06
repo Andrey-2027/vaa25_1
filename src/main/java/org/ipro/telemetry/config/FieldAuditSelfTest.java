@@ -52,7 +52,7 @@ public class FieldAuditSelfTest implements ApplicationRunner {
 
     private void runTest() {
         MDC.put(MdcKeys.USER, "system");
-        String code = "AST" + System.currentTimeMillis();
+        String key = "selftest.field-audit." + System.currentTimeMillis();
         Object id;
         try (OperationScope scope = telemetry.beginOperation("selftest:field-audit")) {
             id = tx.execute(status -> {
@@ -61,44 +61,43 @@ public class FieldAuditSelfTest implements ApplicationRunner {
                     em.joinTransaction();
                     // События PreInsert/PreUpdate срабатывают на persist/flush
                     // (native SQL их НЕ порождает), поэтому тест идёт через entity API.
-                    Object unitId = em.createNativeQuery(
-                                    "SELECT id FROM unit_of_measurement LIMIT 1", Long.class)
-                            .getSingleResult();
-                    org.ip.model.Nomenclature n = new org.ip.model.Nomenclature(
-                            code, "before", em.getReference(org.ip.model.UnitOfMeasurement.class,
-                            (Long) unitId));
-                    em.persist(n);
+                    // Сущность — платформенная (SettingValue): self-test не зависит
+                    // от домена приложения.
+                    org.ipro.settings.SettingValue value =
+                        new org.ipro.settings.SettingValue(key, "GLOBAL", 0L);
+                    value.setStringValue("before");
+                    em.persist(value);
                     em.flush();
-                    n.setName("after");
+                    value.setStringValue("after");
                     em.flush();
-                    return n.getId();
+                    return value.getId();
                 } finally {
                     em.close();
                 }
             });
         }
-        verify(code, id);
-        cleanup(code);
+        verify(key, id);
+        cleanup(key);
         MDC.clear();
     }
 
-    private void verify(String code, Object id) {
+    private void verify(String key, Object id) {
         try {
             java.util.List<String> payloads = jdbc.query(
-                    "SELECT payload FROM entity_change_log WHERE entity = 'Nomenclature' "
+                    "SELECT payload FROM entity_change_log WHERE entity = 'SettingValue' "
                             + "AND entity_id = ? ORDER BY id DESC LIMIT 1",
                     (rs, rowNum) -> rs.getString(1), String.valueOf(id));
             if (payloads.isEmpty()) {
-                log.error("field-audit self-test FAILED: no change rows for Nomenclature #{}", id);
+                log.error("field-audit self-test FAILED: no change rows for SettingValue #{}", id);
                 return;
             }
             String payload = payloads.get(0);
-            boolean hasDiff = payload != null && payload.contains("\"name\"")
+            boolean hasDiff = payload != null && payload.contains("\"stringValue\"")
                     && payload.contains("\"before\"") && payload.contains("\"after\"");
             if (hasDiff) {
-                log.info("field-audit self-test OK: Nomenclature #{} change recorded: {}", id, payload);
+                log.info("field-audit self-test OK: SettingValue #{} change recorded: {}", id, payload);
             } else {
-                log.error("field-audit self-test FAILED: unexpected payload for Nomenclature #{}: {}",
+                log.error("field-audit self-test FAILED: unexpected payload for SettingValue #{}: {}",
                         id, payload);
             }
         } catch (RuntimeException e) {
@@ -106,9 +105,9 @@ public class FieldAuditSelfTest implements ApplicationRunner {
         }
     }
 
-    private void cleanup(String code) {
+    private void cleanup(String key) {
         try {
-            int removed = jdbc.update("DELETE FROM nomenclature WHERE code = ?", code);
+            int removed = jdbc.update("DELETE FROM setting_value WHERE setting_key = ?", key);
             if (removed > 0) {
                 log.info("field-audit self-test: cleaned up {} test row(s)", removed);
             }

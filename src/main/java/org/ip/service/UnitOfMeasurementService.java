@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.ipro.crud.AbstractBaseService;
 
 @Service
 public class UnitOfMeasurementService extends AbstractBaseService<UnitOfMeasurement, Long> {

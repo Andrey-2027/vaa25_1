@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManager;
 import org.ip.Application;
 import org.ip.model.Journal;
 import org.ip.repository.UserRepository;
-import org.ip.security.CurrentUser;
+import org.ipro.security.CurrentUser;
 import org.ip.security.UserRepositoryRlsRoleResolver;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;

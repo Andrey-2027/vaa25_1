@@ -1,11 +1,11 @@
 package org.ipro.metadata;
 
-import org.ipro.filter.FilterCondition;
-import org.ipro.filter.FilterConditionNode;
-import org.ipro.filter.FilterDataType;
-import org.ipro.filter.FilterGroup;
-import org.ipro.filter.FilterNode;
-import org.ipro.filter.FilterOperator;
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterConditionNode;
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterGroup;
+import org.ipro.filtergrid.filter.FilterNode;
+import org.ipro.filtergrid.filter.FilterOperator;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -36,7 +36,7 @@ class GridViewStateFilterTreeTest {
                 new FilterSpec("name", "CONTAINS", "pump", null)));
         GridViewState restored = GridViewState.fromJson(state.toJson());
         assertThat(restored.fixedFilter()).isNull();
-        assertThat(restored.userFilterOrLegacy()).isInstanceOf(org.ipro.filter.FilterGroup.class);
-        assertThat(((org.ipro.filter.FilterGroup) restored.userFilterOrLegacy()).children()).hasSize(1);
+        assertThat(restored.userFilterOrLegacy()).isInstanceOf(org.ipro.filtergrid.filter.FilterGroup.class);
+        assertThat(((org.ipro.filtergrid.filter.FilterGroup) restored.userFilterOrLegacy()).children()).hasSize(1);
     }
 }

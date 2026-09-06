@@ -1,10 +1,10 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.filter.FilterCondition;
-import org.ipro.filter.FilterConditionNode;
-import org.ipro.filter.FilterGroup;
-import org.ipro.filter.FilterNode;
-import org.ipro.filter.FilterOperator;
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterConditionNode;
+import org.ipro.filtergrid.filter.FilterGroup;
+import org.ipro.filtergrid.filter.FilterNode;
+import org.ipro.filtergrid.filter.FilterOperator;
 import org.ipro.reportstudio.query.constructor.QueryConstructorDraft;
 import org.junit.jupiter.api.Test;
 
@@ -191,7 +191,7 @@ class VisualQuerySubqueryTest {
                 List.of(new VisualQueryDefinition.SelectField("s.number", "number")), List.of(), List.of(),
                 List.of(), List.of(), null,
                 new FilterConditionNode(new FilterCondition("s.number", FilterOperator.IN,
-                        "@subquery:ghost", null, org.ipro.filter.FilterDataType.TEXT)),
+                        "@subquery:ghost", null, org.ipro.filtergrid.filter.FilterDataType.TEXT)),
                 List.of());
         assertThatThrownBy(() -> VisualQueryCompiler.compile(definition, catalog()))
                 .isInstanceOf(IllegalArgumentException.class)

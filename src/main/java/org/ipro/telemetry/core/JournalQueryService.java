@@ -38,6 +38,7 @@ public final class JournalQueryService {
     /** Фильтр выборки событий журнала (все условия необязательны). */
     public record EventFilter(
             String eventType,
+            String level,
             String userId,
             String operation,
             String entity,
@@ -45,7 +46,16 @@ public final class JournalQueryService {
             Instant to,
             Long minDurationMs,
             boolean n1Only,
+            String errorContains,
+            String traceId,
             int limit) {
+
+        /** Конструктор обратной совместимости (старые вызовы без новых полей). */
+        public EventFilter(String eventType, String userId, String operation, String entity,
+                           Instant from, Instant to, Long minDurationMs, boolean n1Only, int limit) {
+            this(eventType, null, userId, operation, entity, from, to, minDurationMs,
+                    n1Only, null, null, limit);
+        }
     }
 
     /** Строка журнала (без payload — он тяжёлый, берётся по id). */
@@ -98,6 +108,18 @@ public final class JournalQueryService {
         if (filter.eventType() != null && !filter.eventType().isBlank()) {
             sql.append(" AND event_type = ?");
             params.add(filter.eventType());
+        }
+        if (filter.level() != null && !filter.level().isBlank()) {
+            sql.append(" AND level = ?");
+            params.add(filter.level());
+        }
+        if (filter.traceId() != null && !filter.traceId().isBlank()) {
+            sql.append(" AND trace_id = ?");
+            params.add(filter.traceId().trim());
+        }
+        if (filter.errorContains() != null && !filter.errorContains().isBlank()) {
+            sql.append(" AND error_message ILIKE ?");
+            params.add("%" + filter.errorContains().trim() + "%");
         }
         if (filter.userId() != null && !filter.userId().isBlank()) {
             sql.append(" AND user_id ILIKE ?");

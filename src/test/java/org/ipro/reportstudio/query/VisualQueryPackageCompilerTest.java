@@ -1,9 +1,9 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.filter.FilterCondition;
-import org.ipro.filter.FilterConditionNode;
-import org.ipro.filter.FilterDataType;
-import org.ipro.filter.FilterOperator;
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterConditionNode;
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterOperator;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

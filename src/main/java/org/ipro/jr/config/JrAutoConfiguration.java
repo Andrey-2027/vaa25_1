@@ -2,7 +2,6 @@ package org.ipro.jr.config;
 
 import jakarta.validation.Validator;
 
-import org.ip.config.JpqlRunService;
 import org.ipro.crud.ReferenceCheckService;
 import org.ipro.jr.JrxmlTemplateRepository;
 import org.ipro.jr.run.JpqlDatasetRunner;
@@ -38,8 +37,8 @@ public class JrAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public JpqlDatasetRunner jrJpqlDatasetRunner(JpqlRunService jpqlRunService) {
-        return jpqlRunService;
+    public JpqlDatasetRunner jrJpqlDatasetRunner(JpqlDatasetRunner datasetRunner) {
+        return datasetRunner;
     }
 
     @Bean

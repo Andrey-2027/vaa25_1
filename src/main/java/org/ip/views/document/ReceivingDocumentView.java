@@ -1,8 +1,8 @@
 package org.ip.views.document;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import org.ip.form.builtin.ListForm;
-import org.ip.form.coordinator.FormCoordinator;
+import org.ipro.form.builtin.ListForm;
+import org.ipro.form.coordinator.FormCoordinator;
 import org.ip.model.ReceivingDocument;
 
 /**

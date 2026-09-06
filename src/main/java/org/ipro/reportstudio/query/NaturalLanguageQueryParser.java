@@ -1,12 +1,12 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.filter.FilterCondition;
-import org.ipro.filter.FilterConditionNode;
-import org.ipro.filter.FilterDataType;
-import org.ipro.filter.FilterGroup;
-import org.ipro.filter.FilterNode;
-import org.ipro.filter.FilterOperator;
-import org.ipro.filter.LogicalOperator;
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterConditionNode;
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterGroup;
+import org.ipro.filtergrid.filter.FilterNode;
+import org.ipro.filtergrid.filter.FilterOperator;
+import org.ipro.filtergrid.filter.LogicalOperator;
 import org.ipro.reportstudio.query.VisualQueryDefinition.Aggregate;
 import org.ipro.reportstudio.query.VisualQueryDefinition.SelectField;
 
@@ -251,7 +251,7 @@ public final class NaturalLanguageQueryParser {
         List<String> groupBy = new ArrayList<>();
         List<Aggregate> aggregates = new ArrayList<>();
         List<VisualQueryOrder> orders = new ArrayList<>();
-        List<org.ipro.filter.FilterNode> whereNodes = new ArrayList<>();
+        List<org.ipro.filtergrid.filter.FilterNode> whereNodes = new ArrayList<>();
         boolean totals = false;
         for (ClauseBody clause : clauses) {
             switch (clause.kind()) {
@@ -259,12 +259,12 @@ public final class NaturalLanguageQueryParser {
                 case ORDER -> resolveOrders(clause.body(), entity, alias, orders, warnings);
                 case TOTALS -> totals |= resolveTotals(clause.body(), entity, alias, groupBy, aggregates, warnings);
                 case WHERE -> {
-                    org.ipro.filter.FilterNode node = resolveWhere(clause.body(), entity, alias, warnings);
+                    org.ipro.filtergrid.filter.FilterNode node = resolveWhere(clause.body(), entity, alias, warnings);
                     if (node != null) whereNodes.add(node);
                 }
             }
         }
-        org.ipro.filter.FilterNode where = combineWhere(whereNodes);
+        org.ipro.filtergrid.filter.FilterNode where = combineWhere(whereNodes);
 
         if (selects.isEmpty() && aggregates.isEmpty()) {
             // Источник известен — не выбрасываем его из-за сомнительных полей. Но
@@ -621,7 +621,7 @@ public final class NaturalLanguageQueryParser {
      * каждое условие — «поле оператор значение» (равно/содержит/больше/между и т.п.,
      * либо символьные =, <>, >, <, >=, <=). Значение в кавычках или без.
      */
-    private org.ipro.filter.FilterNode resolveWhere(String body,
+    private org.ipro.filtergrid.filter.FilterNode resolveWhere(String body,
                                                     QueryBuilderMetadataCatalog.Entity entity,
                                                     String alias, List<String> warnings) {
         String clean = stripArticle(body);
@@ -633,12 +633,12 @@ public final class NaturalLanguageQueryParser {
         // по «и» не разорвал пару значений на два отдельных условия.
         clean = protectBetween(clean);
         List<String> orGroups = splitTopLevel(clean, "или");
-        List<org.ipro.filter.FilterNode> orItems = new ArrayList<>();
+        List<org.ipro.filtergrid.filter.FilterNode> orItems = new ArrayList<>();
         for (String orGroup : orGroups) {
-            List<org.ipro.filter.FilterNode> andItems = new ArrayList<>();
+            List<org.ipro.filtergrid.filter.FilterNode> andItems = new ArrayList<>();
             for (String conditionPart : splitTopLevel(orGroup, "и")) {
                 for (String condStr : splitByComma(conditionPart)) {
-                    org.ipro.filter.FilterNode condition = resolveCondition(condStr, entity, alias, warnings);
+                    org.ipro.filtergrid.filter.FilterNode condition = resolveCondition(condStr, entity, alias, warnings);
                     if (condition != null) andItems.add(condition);
                 }
             }
@@ -814,14 +814,14 @@ public final class NaturalLanguageQueryParser {
     }
 
     /** Объединяет несколько WHERE-клауз (из нескольких «где …») в одну AND-группу. */
-    private org.ipro.filter.FilterNode combineWhere(List<org.ipro.filter.FilterNode> nodes) {
+    private org.ipro.filtergrid.filter.FilterNode combineWhere(List<org.ipro.filtergrid.filter.FilterNode> nodes) {
         if (nodes.isEmpty()) return null;
         if (nodes.size() == 1) return nodes.get(0);
         return new FilterGroup(LogicalOperator.AND, nodes);
     }
 
     /** Условие «поле оператор значение»: слово-оператор, символьный или по умолчанию Равно. */
-    private org.ipro.filter.FilterNode resolveCondition(String raw, QueryBuilderMetadataCatalog.Entity entity,
+    private org.ipro.filtergrid.filter.FilterNode resolveCondition(String raw, QueryBuilderMetadataCatalog.Entity entity,
                                                         String alias, List<String> warnings) {
         String cond = raw.trim();
         if (cond.isBlank()) return null;

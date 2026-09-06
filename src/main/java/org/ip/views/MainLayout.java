@@ -13,10 +13,11 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinServletRequest;
 import jakarta.annotation.security.PermitAll;
-import org.ip.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ip.views.admin.AdminView;
+import org.ip.views.admin.DiagnosticsView;
 import org.ip.views.directory.WorkshopListView;
 import org.ip.views.preferences.DensityToggle;
 import org.ip.views.preferences.UserPreferencesStore;
@@ -90,10 +91,17 @@ public class MainLayout extends AppLayout {
         nav.addItem(homeItem);
 
         if (isAdmin()) {
+            SideNavItem diagnosticsItem = new SideNavItem("Диагностика");
+            diagnosticsItem.setPrefixComponent(new Icon(VaadinIcon.STETHOSCOPE));
+            diagnosticsItem.getElement().addEventListener("click", e ->
+                    workspace.open(DiagnosticsView.class, "diagnostics",
+                            "Диагностика", v -> {}));
+            nav.addItem(diagnosticsItem);
+
             SideNavItem adminItem = new SideNavItem("Администрирование");
             adminItem.setPrefixComponent(new Icon(VaadinIcon.SHIELD));
             adminItem.getElement().addEventListener("click", e ->
-                    workspace.open(AdminView.class, "admin-telemetry",
+                    workspace.open(AdminView.class, "admin",
                             "Администрирование", v -> {}));
             nav.addItem(adminItem);
         }

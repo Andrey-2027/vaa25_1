@@ -1,6 +1,6 @@
 package org.ip.application.document;
 
-import org.ip.form.builtin.ItemForm;
+import org.ipro.form.builtin.ItemForm;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.ReceivingDocumentItem;
 import org.springframework.stereotype.Component;

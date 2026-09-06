@@ -1,7 +1,7 @@
 package org.ip.application.document;
 
-import org.ip.form.builtin.ItemForm;
-import org.ip.form.builtin.ItemTable;
+import org.ipro.form.builtin.ItemForm;
+import org.ipro.form.builtin.ItemTable;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.ReceivingDocumentItem;
 import org.junit.jupiter.api.Test;

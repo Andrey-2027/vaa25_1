@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Алгоритм для сущности (EntityMetadataInfo):
  * 1. Проверить кэш (MetadataCache)
  * 2. Если нет — прочитать @EntityMetadata на классе
- * 3. Пройти по getDeclaredFields() и собрать FieldMetadataInfo для полей с @FieldMetadata
+ * 3. Пройти по иерархии классов и собрать FieldMetadataInfo для полей с @FieldMetadata
+ *    (при перекрытии имён побеждает подкласс; поля без аннотации, включая BaseEntity.id, —
+ *    не собираются)
  * 4. Разделить на formFields (по order) и gridFields (по grid.order, только visible=true)
  * 5. Положить в кэш
  *
@@ -87,7 +90,7 @@ public class MetadataResolver {
 
     /**
      * Получить метаданные строки табличной части для использования в кастомных формах
-     * (например, в {@link org.ip.form.builder.ItemFormCustomization}).
+     * (например, в {@link org.ipro.form.builder.ItemFormCustomization}).
      *
      * Сканирует поля класса строки через тот же механизм, что и обычные сущности, но
      * возвращает упрощённую обёртку {@link RowMetadataInfo} вместо полной
@@ -108,10 +111,14 @@ public class MetadataResolver {
 
     /**
      * Сбросить кэш для одного класса. Полезно при горячей перезагрузке в dev-режиме.
+     * Чистит запись сущности, секции с этим родителем и секции, где класс — строка
+     * (их FieldMetadataInfo иначе останутся старыми); остальные классы не трогаются.
      */
     public void invalidate(Class<?> entityClass) {
-        cache.clear();
-        tableSectionCache.clear();
+        cache.remove(entityClass);
+        tableSectionCache.remove(entityClass);
+        tableSectionCache.entrySet().removeIf(entry -> entry.getValue().stream()
+            .anyMatch(section -> section.getRowClass().equals(entityClass)));
     }
 
     /**
@@ -249,15 +256,25 @@ public class MetadataResolver {
     // === Общие внутренние методы ===
 
     /**
-     * Сканирует ТОЛЬКО declaredFields текущего класса (без родителей).
-     * Поля BaseEntity (createdAt, modifiedAt, ...) не попадают — у них нет @FieldMetadata.
+     * Сканирует @FieldMetadata-поля по иерархии классов (от сущности вверх).
+     * При перекрытии имён побеждает подкласс. Поля BaseEntity (id, version, аудит)
+     * не попадают — у них нет @FieldMetadata: технический ключ остаётся ручным
+     * (см. WorkshopItemForm), это осознанная политика, а не ограничение скана.
      * Используется одинаково и для обычных @EntityMetadata-сущностей, и для строк табличных
      * частей — строка описывается теми же @FieldMetadata/@GridColumn/@Lookup, что и любая
      * другая сущность.
      */
     private List<FieldMetadataInfo> scanFields(Class<?> entityClass) {
-        List<FieldMetadataInfo> result = new ArrayList<>();
-        for (Field field : entityClass.getDeclaredFields()) {
+        Map<String, Field> byName = new LinkedHashMap<>();
+        for (Class<?> current = entityClass;
+             current != null && current != Object.class;
+             current = current.getSuperclass()) {
+            for (Field field : current.getDeclaredFields()) {
+                byName.putIfAbsent(field.getName(), field);
+            }
+        }
+        List<FieldMetadataInfo> result = new ArrayList<>(byName.size());
+        for (Field field : byName.values()) {
             FieldMetadata ann = field.getAnnotation(FieldMetadata.class);
             if (ann != null) {
                 result.add(new FieldMetadataInfo(field, ann));

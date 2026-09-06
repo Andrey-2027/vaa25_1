@@ -1,5 +1,6 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.filtergrid.projection.ProjectionFilterCompiler;
 import org.ipro.reportstudio.data.QueryField;
 
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public final class VisualQueryCompiler {
     public static ReportQueryAssembler compile(VisualQueryPackage queryPackage,
                                                QueryBuilderMetadataCatalog catalog) {
         if (queryPackage == null) throw new IllegalArgumentException("Пакет запроса обязателен");
-        var parameterContext = new ReportVisualFilterCompiler.ParameterContext();
+        var parameterContext = new ProjectionFilterCompiler.ParameterContext();
         var bindings = new java.util.LinkedHashMap<String, Object>();
         var renderedCtes = new java.util.ArrayList<String>();
         VisualQueryPackage.VirtualCatalog virtualCatalog = VisualQueryPackage.VirtualCatalog.empty();
@@ -63,18 +64,18 @@ public final class VisualQueryCompiler {
     }
 
     public static ReportQueryAssembler compile(VisualQueryDefinition definition, QueryBuilderMetadataCatalog catalog) {
-        return compile(definition, catalog, new ReportVisualFilterCompiler.ParameterContext(), Map.of(), VisualQueryPackage.VirtualCatalog.empty());
+        return compile(definition, catalog, new ProjectionFilterCompiler.ParameterContext(), Map.of(), VisualQueryPackage.VirtualCatalog.empty());
     }
 
     private static ReportQueryAssembler compile(VisualQueryDefinition definition,
                                                 QueryBuilderMetadataCatalog catalog,
-                                                ReportVisualFilterCompiler.ParameterContext parameterContext) {
+                                                ProjectionFilterCompiler.ParameterContext parameterContext) {
         return compile(definition, catalog, parameterContext, Map.of(), VisualQueryPackage.VirtualCatalog.empty());
     }
 
     private static ReportQueryAssembler compile(VisualQueryDefinition definition,
                                                 QueryBuilderMetadataCatalog catalog,
-                                                ReportVisualFilterCompiler.ParameterContext parameterContext,
+                                                ProjectionFilterCompiler.ParameterContext parameterContext,
                                                 Map<String, QueryBuilderMetadataCatalog.Entity> virtualEntities,
                                                 VisualQueryPackage.VirtualCatalog virtualCatalog) {
         if (definition == null) throw new IllegalArgumentException("Определение запроса обязательно");
@@ -112,7 +113,7 @@ public final class VisualQueryCompiler {
             var resolver = catalog == null
                     ? new DefinitionFilterResolver(definition)
                     : new VisualQueryFilterResolver(definition, catalog, virtualCatalog);
-            var compiledWhere = new ReportVisualFilterCompiler(resolver, parameterContext,
+            var compiledWhere = new ProjectionFilterCompiler(resolver, parameterContext,
                     subqueryRenderer(definition, catalog, parameterContext, virtualEntities, virtualCatalog))
                     .compile(definition.where());
             if (compiledWhere.predicate() != null) jpql += " where " + compiledWhere.predicate();
@@ -142,18 +143,18 @@ public final class VisualQueryCompiler {
      * Рендерер подзапросов WHERE: каждое внутреннее определение компилируется один раз
 n     * (кэш на вызов) тем же ParameterContext — нумерация :visualFilter_N сквозная.
      */
-    private static ReportVisualFilterCompiler.SubqueryRenderer subqueryRenderer(VisualQueryDefinition definition,
+    private static ProjectionFilterCompiler.SubqueryRenderer subqueryRenderer(VisualQueryDefinition definition,
                                                                                 QueryBuilderMetadataCatalog catalog,
-                                                                                ReportVisualFilterCompiler.ParameterContext parameterContext,
+                                                                                ProjectionFilterCompiler.ParameterContext parameterContext,
                                                                                 Map<String, QueryBuilderMetadataCatalog.Entity> virtualEntities,
                                                                                 VisualQueryPackage.VirtualCatalog virtualCatalog) {
         if (definition.subqueries().isEmpty()) return null;
-        Map<String, ReportVisualFilterCompiler.CompiledSubquery> cache = new HashMap<>();
+        Map<String, ProjectionFilterCompiler.CompiledSubquery> cache = new HashMap<>();
         return name -> cache.computeIfAbsent(name, key -> {
             var subquery = definition.subqueries().stream().filter(candidate -> candidate.name().equals(key)).findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Подзапрос не найден: " + key));
             ReportQueryAssembler inner = compile(subquery.definition(), catalog, parameterContext, virtualEntities, virtualCatalog);
-            return new ReportVisualFilterCompiler.CompiledSubquery("(" + inner.jpql() + ")", inner.bindings());
+            return new ProjectionFilterCompiler.CompiledSubquery("(" + inner.jpql() + ")", inner.bindings());
         });
     }
 
@@ -204,7 +205,7 @@ n     * (кэш на вызов) тем же ParameterContext — нумерац
         return Object.class;
     }
 
-    private static final class DefinitionFilterResolver implements org.ipro.filter.FilterFieldResolver {
+    private static final class DefinitionFilterResolver implements org.ipro.filtergrid.filter.FilterFieldResolver {
         private final VisualQueryDefinition definition;
 
         private DefinitionFilterResolver(VisualQueryDefinition definition) {
@@ -212,20 +213,20 @@ n     * (кэш на вызов) тем же ParameterContext — нумерац
         }
 
         @Override
-        public org.ipro.filter.FilterFieldResolver.ResolvedFilterField resolve(String path) {
-            return new org.ipro.filter.FilterFieldResolver.ResolvedFilterField(
-                    path, path, String.class, org.ipro.filter.FilterDataType.TEXT, true);
+        public org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField resolve(String path) {
+            return new org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField(
+                    path, path, String.class, org.ipro.filtergrid.filter.FilterDataType.TEXT, true);
         }
 
         @Override
-        public List<org.ipro.filter.FilterFieldResolver.ResolvedFilterField> fields() {
+        public List<org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField> fields() {
             return definition.selectFields().stream()
                     .map(field -> resolve(field.path()))
                     .toList();
         }
 
         @Override
-        public List<?> valueOptions(org.ipro.filter.FilterFieldResolver.ResolvedFilterField field) {
+        public List<?> valueOptions(org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField field) {
             return List.of();
         }
     }

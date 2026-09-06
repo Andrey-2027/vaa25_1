@@ -1,6 +1,6 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterDataType;
 import org.ipro.reportstudio.data.QueryField;
 import org.junit.jupiter.api.Test;
 

@@ -1,12 +1,12 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.filter.FilterCondition;
-import org.ipro.filter.FilterConditionNode;
-import org.ipro.filter.FilterDataType;
-import org.ipro.filter.FilterGroup;
-import org.ipro.filter.FilterNode;
-import org.ipro.filter.FilterOperator;
-import org.ipro.filter.FilterParameterRef;
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterConditionNode;
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterGroup;
+import org.ipro.filtergrid.filter.FilterNode;
+import org.ipro.filtergrid.filter.FilterOperator;
+import org.ipro.filtergrid.filter.FilterParameterRef;
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.query.CaseBranch;
 import org.ipro.reportstudio.query.CaseCondition;
@@ -999,9 +999,9 @@ public final class VisualQueryTextParser {
                            String paramName, String paramNameTo, boolean like) { }
 
     /** Ссылка на условие сохранённого черновика: какой слот значения за именем параметра. */
-    private record SavedRef(org.ipro.filter.FilterCondition condition, boolean valueSlot) { }
+    private record SavedRef(org.ipro.filtergrid.filter.FilterCondition condition, boolean valueSlot) { }
 
-    private record RawGroup(org.ipro.filter.LogicalOperator operator, List<Object> children) { }
+    private record RawGroup(org.ipro.filtergrid.filter.LogicalOperator operator, List<Object> children) { }
 
     private static final class RawTree {
         final Object root;
@@ -1033,14 +1033,14 @@ public final class VisualQueryTextParser {
 
     private Object parseWhereExpression(String whereBody, JpqlLexer.Token[] tokens, int[] cursor) {
         List<Object> items = new ArrayList<>();
-        List<org.ipro.filter.LogicalOperator> connectors = new ArrayList<>();
+        List<org.ipro.filtergrid.filter.LogicalOperator> connectors = new ArrayList<>();
         Object first = parseWhereFactor(whereBody, tokens, cursor);
         if (first == null) return null;
         items.add(first);
         while (cursor[0] < tokens.length) {
-            org.ipro.filter.LogicalOperator connector = null;
-            if (tokens[cursor[0]].word("and")) connector = org.ipro.filter.LogicalOperator.AND;
-            else if (tokens[cursor[0]].word("or")) connector = org.ipro.filter.LogicalOperator.OR;
+            org.ipro.filtergrid.filter.LogicalOperator connector = null;
+            if (tokens[cursor[0]].word("and")) connector = org.ipro.filtergrid.filter.LogicalOperator.AND;
+            else if (tokens[cursor[0]].word("or")) connector = org.ipro.filtergrid.filter.LogicalOperator.OR;
             if (connector == null) break;
             cursor[0]++;
             Object next = parseWhereFactor(whereBody, tokens, cursor);
@@ -1066,14 +1066,14 @@ public final class VisualQueryTextParser {
             // Скобки важны для round-trip: одиночное условие в скобках — группа из одного
             // (компилятор обёртывает каждую группу в скобки, голое условие — без скобок).
             if (inner instanceof RawCond) {
-                return new RawGroup(org.ipro.filter.LogicalOperator.AND, List.of(inner));
+                return new RawGroup(org.ipro.filtergrid.filter.LogicalOperator.AND, List.of(inner));
             }
             return inner;
         }
         if (cursor[0] < tokens.length && tokens[cursor[0]].word("not")) {
             warnings.add("Отрицание NOT не восстанавливается — условие пропущено.");
             skipToGroupEnd(tokens, cursor);
-            return new RawGroup(org.ipro.filter.LogicalOperator.AND, List.of());
+            return new RawGroup(org.ipro.filtergrid.filter.LogicalOperator.AND, List.of());
         }
         // EXISTS(подзапрос): у условия нет левого поля — путь-заглушка @exists,
         // оператор-заглушка EQ (реальный рендеринг «exists (…)» выполняет компилятор).
@@ -1086,7 +1086,7 @@ public final class VisualQueryTextParser {
             }
             warnings.add("EXISTS без подзапроса select не поддерживается — условие пропущено.");
             skipConditionTail(tokens, cursor);
-            return new RawGroup(org.ipro.filter.LogicalOperator.AND, List.of());
+            return new RawGroup(org.ipro.filtergrid.filter.LogicalOperator.AND, List.of());
         }
         return parseWhereCondition(whereBody, tokens, cursor);
     }
@@ -1173,13 +1173,13 @@ n     * парсером и регистрирует его под именем 
         if (op.word("not")) {
             warnings.add("Отрицание NOT не восстанавливается — условие «" + path + "» пропущено.");
             skipConditionTail(tokens, cursor);
-            return new RawGroup(org.ipro.filter.LogicalOperator.AND, List.of());
+            return new RawGroup(org.ipro.filtergrid.filter.LogicalOperator.AND, List.of());
         }
         FilterOperator operator = comparisonOf(op);
         if (operator == null) {
             warnings.add("Оператор условия «" + op.value() + "» у поля " + path + " не поддерживается — условие пропущено.");
             skipConditionTail(tokens, cursor);
-            return new RawGroup(org.ipro.filter.LogicalOperator.AND, List.of());
+            return new RawGroup(org.ipro.filtergrid.filter.LogicalOperator.AND, List.of());
         }
         if (operator == FilterOperator.IN) {
             // Подзапрос: field in (select …)
@@ -1290,21 +1290,21 @@ n     * парсером и регистрирует его под именем 
     }
 
     /** ИЛИ-группы из И-групп (приоритет AND выше OR). */
-    private Object orGroupsOf(List<Object> items, List<org.ipro.filter.LogicalOperator> connectors) {
+    private Object orGroupsOf(List<Object> items, List<org.ipro.filtergrid.filter.LogicalOperator> connectors) {
         List<Object> orItems = new ArrayList<>();
         List<Object> andItems = new ArrayList<>();
         andItems.add(items.get(0));
         for (int i = 0; i < connectors.size(); i++) {
-            if (connectors.get(i) == org.ipro.filter.LogicalOperator.AND) {
+            if (connectors.get(i) == org.ipro.filtergrid.filter.LogicalOperator.AND) {
                 andItems.add(items.get(i + 1));
             } else {
-                orItems.add(andItems.size() == 1 ? andItems.get(0) : new RawGroup(org.ipro.filter.LogicalOperator.AND, andItems));
+                orItems.add(andItems.size() == 1 ? andItems.get(0) : new RawGroup(org.ipro.filtergrid.filter.LogicalOperator.AND, andItems));
                 andItems = new ArrayList<>();
                 andItems.add(items.get(i + 1));
             }
         }
-        orItems.add(andItems.size() == 1 ? andItems.get(0) : new RawGroup(org.ipro.filter.LogicalOperator.AND, andItems));
-        return orItems.size() == 1 ? orItems.get(0) : new RawGroup(org.ipro.filter.LogicalOperator.OR, orItems);
+        orItems.add(andItems.size() == 1 ? andItems.get(0) : new RawGroup(org.ipro.filtergrid.filter.LogicalOperator.AND, andItems));
+        return orItems.size() == 1 ? orItems.get(0) : new RawGroup(org.ipro.filtergrid.filter.LogicalOperator.OR, orItems);
     }
 
     /** Сырые узлы → FilterNode: типы полей по каталогу, значения :visualFilter_* — из сохранённого черновика. */
@@ -1347,7 +1347,7 @@ n     * парсером и регистрирует его под именем 
                 dataType = conditionDataType(cond.path(), aliases);
                 if (dataType == null) {
                     warnings.add("Поле условия «" + cond.path() + "» не найдено в каталоге — условие пропущено.");
-                    return new FilterGroup(org.ipro.filter.LogicalOperator.AND, List.of());
+                    return new FilterGroup(org.ipro.filtergrid.filter.LogicalOperator.AND, List.of());
                 }
             }
             // value для CONTAINS/STARTS_WITH — сырой текст без %: компилятор сам обёртывает.
@@ -1395,8 +1395,8 @@ n     * парсером и регистрирует его под именем 
         Map<String, SavedRef> result = new HashMap<>();
         if (saved == null || saved.where() == null) return result;
         int next = 1;
-        for (org.ipro.filter.FilterConditionNode leaf : leavesOf(saved.where())) {
-            org.ipro.filter.FilterCondition condition = leaf.condition();
+        for (org.ipro.filtergrid.filter.FilterConditionNode leaf : leavesOf(saved.where())) {
+            org.ipro.filtergrid.filter.FilterCondition condition = leaf.condition();
             int consumed = paramsConsumed(condition);
             if (consumed >= 1) result.put("visualFilter_" + next++, new SavedRef(condition, true));
             if (consumed >= 2) result.put("visualFilter_" + next++, new SavedRef(condition, false));
@@ -1404,8 +1404,8 @@ n     * парсером и регистрирует его под именем 
         return result;
     }
 
-    /** Сколько :visualFilter_* порождает условие при компиляции (логика ReportVisualFilterCompiler). */
-    private static int paramsConsumed(org.ipro.filter.FilterCondition condition) {
+    /** Сколько :visualFilter_* порождает условие при компиляции (логика ProjectionFilterCompiler). */
+    private static int paramsConsumed(org.ipro.filtergrid.filter.FilterCondition condition) {
         // Подзапрос-условие не порождает параметров (SQL подзапроса вставляется как есть).
         if (VisualQueryDefinition.SUBQUERY_EXISTS_PATH.equals(condition.path())) return 0;
         if (condition.value() != null && condition.value().startsWith(VisualQueryDefinition.SUBQUERY_MARKER)) return 0;
@@ -1418,14 +1418,14 @@ n     * парсером и регистрирует его под именем 
         return valueParam ? 0 : 1;
     }
 
-    private static List<org.ipro.filter.FilterConditionNode> leavesOf(FilterNode node) {
-        List<org.ipro.filter.FilterConditionNode> result = new ArrayList<>();
+    private static List<org.ipro.filtergrid.filter.FilterConditionNode> leavesOf(FilterNode node) {
+        List<org.ipro.filtergrid.filter.FilterConditionNode> result = new ArrayList<>();
         collectLeaves(node, result);
         return result;
     }
 
-    private static void collectLeaves(FilterNode node, List<org.ipro.filter.FilterConditionNode> result) {
-        if (node instanceof org.ipro.filter.FilterConditionNode leaf) {
+    private static void collectLeaves(FilterNode node, List<org.ipro.filtergrid.filter.FilterConditionNode> result) {
+        if (node instanceof org.ipro.filtergrid.filter.FilterConditionNode leaf) {
             result.add(leaf);
             return;
         }

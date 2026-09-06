@@ -1,12 +1,15 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.filter.FilterCondition;
-import org.ipro.filter.FilterConditionNode;
-import org.ipro.filter.FilterDataType;
-import org.ipro.filter.FilterGroup;
-import org.ipro.filter.FilterOperator;
-import org.ipro.filter.FilterNode;
-import org.ipro.filter.LogicalOperator;
+import org.ipro.filtergrid.projection.CompiledFilter;
+import org.ipro.filtergrid.projection.ProjectionFilterCompiler;
+
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterConditionNode;
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterGroup;
+import org.ipro.filtergrid.filter.FilterOperator;
+import org.ipro.filtergrid.filter.FilterNode;
+import org.ipro.filtergrid.filter.LogicalOperator;
 import org.ipro.reportstudio.data.QueryField;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +35,7 @@ class ReportVisualFilterCompilerTest {
                         FilterConditionNode.of(new FilterCondition("amount", FilterOperator.GE, "10.50", null, FilterDataType.NUMBER)),
                         FilterConditionNode.of(new FilterCondition("status", FilterOperator.EQ, "ACTIVE", null, FilterDataType.ENUM))));
 
-        ReportVisualFilterCompiler.CompiledFilter compiled = new ReportVisualFilterCompiler(resolver).compile(root);
+        CompiledFilter compiled = new ProjectionFilterCompiler(resolver).compile(root);
 
         assertThat(compiled.predicate()).isEqualTo("(code LIKE :visualFilter_1 AND (amount >= :visualFilter_2 OR status = :visualFilter_3))");
         assertThat(compiled.bindings()).containsValues("A%", new BigDecimal("10.50"), Status.ACTIVE);
@@ -45,7 +48,7 @@ class ReportVisualFilterCompilerTest {
                 FilterConditionNode.of(new FilterCondition("code", FilterOperator.IN, "A,B", null, FilterDataType.TEXT)),
                 FilterConditionNode.of(new FilterCondition("code", FilterOperator.IS_NULL, null, null, FilterDataType.TEXT)));
 
-        ReportVisualFilterCompiler.CompiledFilter compiled = new ReportVisualFilterCompiler(resolver).compile(root);
+        CompiledFilter compiled = new ProjectionFilterCompiler(resolver).compile(root);
 
         assertThat(compiled.predicate()).contains("BETWEEN :visualFilter_1 AND :visualFilter_2")
                 .contains("IN :visualFilter_3").contains("IS NULL");
@@ -55,7 +58,7 @@ class ReportVisualFilterCompilerTest {
 
     @Test
     void rejectsEmptyGroupAndOrphanedAlias() {
-        ReportVisualFilterCompiler compiler = new ReportVisualFilterCompiler(resolver);
+        ProjectionFilterCompiler compiler = new ProjectionFilterCompiler(resolver);
         assertThatThrownBy(() -> compiler.compile(new FilterGroup(LogicalOperator.OR, List.of())))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Пустая группа");

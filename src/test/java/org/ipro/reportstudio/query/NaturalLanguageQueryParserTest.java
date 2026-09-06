@@ -168,10 +168,10 @@ class NaturalLanguageQueryParserTest {
         assertThat(result.warnings()).isEmpty();
         var d = result.definition();
         assertThat(d.where()).isNotNull();
-        assertThat(d.where()).isInstanceOf(org.ipro.filter.FilterConditionNode.class);
-        var condition = ((org.ipro.filter.FilterConditionNode) d.where()).condition();
+        assertThat(d.where()).isInstanceOf(org.ipro.filtergrid.filter.FilterConditionNode.class);
+        var condition = ((org.ipro.filtergrid.filter.FilterConditionNode) d.where()).condition();
         assertThat(condition.path()).isEqualTo("e.name");
-        assertThat(condition.operator()).isEqualTo(org.ipro.filter.FilterOperator.EQ);
+        assertThat(condition.operator()).isEqualTo(org.ipro.filtergrid.filter.FilterOperator.EQ);
         assertThat(condition.value()).isEqualTo("олт");
     }
 
@@ -202,8 +202,8 @@ class NaturalLanguageQueryParserTest {
                 "Выбери наименование из товара где стоимость между 10 и 20");
 
         assertThat(result.definition()).isNotNull();
-        var condition = ((org.ipro.filter.FilterConditionNode) result.definition().where()).condition();
-        assertThat(condition.operator()).isEqualTo(org.ipro.filter.FilterOperator.BETWEEN);
+        var condition = ((org.ipro.filtergrid.filter.FilterConditionNode) result.definition().where()).condition();
+        assertThat(condition.operator()).isEqualTo(org.ipro.filtergrid.filter.FilterOperator.BETWEEN);
         assertThat(condition.value()).isEqualTo("10");
         assertThat(condition.valueTo()).isEqualTo("20");
     }
@@ -215,9 +215,9 @@ class NaturalLanguageQueryParserTest {
 
         assertThat(result.definition()).isNotNull();
         var where = result.definition().where();
-        assertThat(where).isInstanceOf(org.ipro.filter.FilterGroup.class);
-        var group = (org.ipro.filter.FilterGroup) where;
-        assertThat(group.operator()).isEqualTo(org.ipro.filter.LogicalOperator.OR);
+        assertThat(where).isInstanceOf(org.ipro.filtergrid.filter.FilterGroup.class);
+        var group = (org.ipro.filtergrid.filter.FilterGroup) where;
+        assertThat(group.operator()).isEqualTo(org.ipro.filtergrid.filter.LogicalOperator.OR);
         assertThat(group.children()).hasSize(2);
     }
 

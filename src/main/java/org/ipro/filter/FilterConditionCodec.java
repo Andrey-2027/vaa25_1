@@ -1,5 +1,8 @@
 package org.ipro.filter;
 
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterOperator;
 import org.ipro.metadata.FilterSpec;
 
 /** Миграция текущего формата FilterSpec к типизированному контракту. */

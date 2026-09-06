@@ -36,6 +36,13 @@ public class MetadataCache {
     }
 
     /**
+     * Удалить запись одного класса.
+     */
+    public void remove(Class<?> entityClass) {
+        cache.remove(entityClass);
+    }
+
+    /**
      * Очистить кэш (для тестов или при горячей перезагрузке классов).
      */
     public void clear() {

@@ -9,13 +9,13 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
-import org.ip.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.RlsDimensionRegistry;
-import org.ip.security.CurrentUser;
+import org.ipro.security.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 

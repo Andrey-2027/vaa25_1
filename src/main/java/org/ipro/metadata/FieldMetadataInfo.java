@@ -24,6 +24,8 @@ public final class FieldMetadataInfo {
     private final boolean hasLookup;
     private final Class<?> lookupEntity;
     private final String lookupVariant;
+    private final String[] lookupColumns;
+    private final String[] lookupSearchFields;
 
     public FieldMetadataInfo(Field field, FieldMetadata annotation) {
         this.field = field;
@@ -34,6 +36,8 @@ public final class FieldMetadataInfo {
         this.hasLookup = lookup.entity() != Void.class;
         this.lookupEntity = hasLookup ? lookup.entity() : null;
         this.lookupVariant = hasLookup ? lookup.variant() : "";
+        this.lookupColumns = hasLookup ? lookup.columns().clone() : new String[0];
+        this.lookupSearchFields = hasLookup ? lookup.searchFields().clone() : new String[0];
 
         field.setAccessible(true);
     }
@@ -177,11 +181,27 @@ public final class FieldMetadataInfo {
     }
 
     /**
-     * Зарезервировано на будущее — см. {@link Lookup#variant()}. Сейчас не используется
-     * резолвером Формы Выбора.
+     * Имя варианта Формы Выбора для этого поля — см. {@link Lookup#variant()}.
+     * Пусто — default-набор колонок целевой сущности.
      */
     public String getLookupVariant() {
         return lookupVariant;
+    }
+
+    /**
+     * Явное переопределение колонок Формы Выбора для этого поля —
+     * см. {@link Lookup#columns()}. Пустой массив — не переопределять.
+     */
+    public String[] getLookupColumns() {
+        return lookupColumns.clone();
+    }
+
+    /**
+     * Явные поля поиска автокомплита для этого поля — см. {@link Lookup#searchFields()}.
+     * Пустой массив — вывести из итогового набора колонок.
+     */
+    public String[] getLookupSearchFields() {
+        return lookupSearchFields.clone();
     }
 
     @Override

@@ -7,7 +7,7 @@ import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.repository.UserRepository;
-import org.ip.security.CurrentUser;
+import org.ipro.security.CurrentUser;
 import org.ip.security.UserRepositoryRlsRoleResolver;
 import org.ipro.reportstudio.data.EntityRef;
 import org.ipro.reportstudio.data.ReportDataset;

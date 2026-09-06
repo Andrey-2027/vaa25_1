@@ -17,6 +17,7 @@ import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadableIdsCache;
 import org.ip.service.WorkshopService;
+import org.ipro.security.CurrentUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

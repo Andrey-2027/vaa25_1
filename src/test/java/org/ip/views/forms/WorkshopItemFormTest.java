@@ -3,7 +3,7 @@ package org.ip.views.forms;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextField;
-import org.ip.form.FieldFactory;
+import org.ipro.form.FieldFactory;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.EntityMetadataInfo;

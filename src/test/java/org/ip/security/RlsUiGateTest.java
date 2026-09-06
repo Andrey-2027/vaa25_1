@@ -2,6 +2,7 @@ package org.ip.security;
 
 import jakarta.persistence.EntityManager;
 import org.ip.model.Branch;
+import org.ipro.security.CurrentUser;
 import org.ip.model.Journal;
 import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;

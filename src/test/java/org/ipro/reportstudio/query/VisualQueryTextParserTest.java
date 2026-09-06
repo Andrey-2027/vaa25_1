@@ -1,10 +1,10 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.filter.FilterCondition;
-import org.ipro.filter.FilterConditionNode;
-import org.ipro.filter.FilterDataType;
-import org.ipro.filter.FilterGroup;
-import org.ipro.filter.FilterOperator;
+import org.ipro.filtergrid.filter.FilterCondition;
+import org.ipro.filtergrid.filter.FilterConditionNode;
+import org.ipro.filtergrid.filter.FilterDataType;
+import org.ipro.filtergrid.filter.FilterGroup;
+import org.ipro.filtergrid.filter.FilterOperator;
 import org.ipro.reportstudio.query.constructor.QueryConstructorDraft;
 import org.junit.jupiter.api.Test;
 
@@ -315,13 +315,13 @@ class VisualQueryTextParserTest {
         assertThat(restored.valueTo()).isEqualTo("20");
     }
 
-    private static List<FilterConditionNode> leaves(org.ipro.filter.FilterNode node) {
+    private static List<FilterConditionNode> leaves(org.ipro.filtergrid.filter.FilterNode node) {
         var result = new java.util.ArrayList<FilterConditionNode>();
         collect(node, result);
         return result;
     }
 
-    private static void collect(org.ipro.filter.FilterNode node, List<FilterConditionNode> result) {
+    private static void collect(org.ipro.filtergrid.filter.FilterNode node, List<FilterConditionNode> result) {
         if (node instanceof FilterConditionNode leaf) {
             result.add(leaf);
             return;

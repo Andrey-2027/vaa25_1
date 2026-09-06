@@ -1,8 +1,8 @@
 package org.ip.views.forms;
 
-import org.ip.form.builder.ItemFormCustomization;
-import org.ip.form.builder.ItemFormVariants;
-import org.ip.form.builtin.ItemForm;
+import org.ipro.form.builder.ItemFormCustomization;
+import org.ipro.form.builder.ItemFormVariants;
+import org.ipro.form.builtin.ItemForm;
 import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.RowMetadataInfo;
 import org.ip.model.ReceivingDocument;

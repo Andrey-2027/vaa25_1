@@ -2,6 +2,7 @@ package org.ip.security;
 
 import org.ipro.rls.RlsCurrentUser;
 import org.springframework.stereotype.Component;
+import org.ipro.security.CurrentUser;
 
 /**
  * Реализация {@link RlsCurrentUser} для этого приложения: делегирует в

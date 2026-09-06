@@ -1,7 +1,7 @@
 package org.ipro.reportstudio.query;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.ipro.filter.FilterNode;
+import org.ipro.filtergrid.filter.FilterNode;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;

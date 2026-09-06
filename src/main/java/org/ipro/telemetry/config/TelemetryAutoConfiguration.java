@@ -12,6 +12,7 @@ import org.ipro.telemetry.core.FieldAuditBridge;
 import org.ipro.telemetry.core.FieldAuditOperationHandler;
 import org.ipro.telemetry.core.FieldAuditQueryService;
 import org.ipro.telemetry.core.JournalQueryService;
+import org.ipro.telemetry.core.JournalSearchService;
 import org.ipro.telemetry.core.NoopEventSink;
 import org.ipro.telemetry.core.OperationCompletionHandler;
 import org.ipro.telemetry.core.OperationContext;
@@ -156,6 +157,13 @@ public class TelemetryAutoConfiguration {
     @Bean
     public JournalQueryService journalQueryService(JdbcTemplate jdbcTemplate) {
         return new JournalQueryService(jdbcTemplate);
+    }
+
+    @Bean
+    public JournalSearchService journalSearchService(
+            org.ipro.telemetry.repository.OperationLogRepository operationLogRepository,
+            JdbcTemplate jdbcTemplate) {
+        return new JournalSearchService(operationLogRepository, jdbcTemplate);
     }
 
     @Bean

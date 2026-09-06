@@ -15,6 +15,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.ipro.crud.TableSectionService;
 
 /**
  * Базовая реализация TableSectionService. Берёт на себя:

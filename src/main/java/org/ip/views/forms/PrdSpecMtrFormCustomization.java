@@ -1,9 +1,9 @@
 package org.ip.views.forms;
 
-import org.ip.form.FieldFactory;
-import org.ip.form.builder.ItemFormCustomization;
-import org.ip.form.builder.ItemFormVariants;
-import org.ip.form.builtin.ItemForm;
+import org.ipro.form.FieldFactory;
+import org.ipro.form.builder.ItemFormCustomization;
+import org.ipro.form.builder.ItemFormVariants;
+import org.ipro.form.builtin.ItemForm;
 import org.ipro.metadata.FetchGraphs;
 import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
@@ -65,7 +65,7 @@ public class PrdSpecMtrFormCustomization implements ItemFormCustomization {
             ctx -> buildForm(ctx, List.of("prdSpecMtr", "unit", "qt"), true));
     }
 
-    private ItemForm<PrdSpecMtr> buildForm(org.ip.form.registry.FormContext ctx,
+    private ItemForm<PrdSpecMtr> buildForm(org.ipro.form.registry.FormContext ctx,
                                            List<String> fieldNames, boolean viaSpec) {
         MetadataResolver resolver = ctx.metadataResolver();
         FieldFactory fieldFactory = ctx.fieldFactory();

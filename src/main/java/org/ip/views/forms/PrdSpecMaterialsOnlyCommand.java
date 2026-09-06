@@ -1,8 +1,8 @@
 package org.ip.views.forms;
 
-import org.ip.form.coordinator.FormCoordinator;
-import org.ip.form.registry.ListCommand;
-import org.ip.form.registry.ListCommandContext;
+import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.registry.ListCommand;
+import org.ipro.form.registry.ListCommandContext;
 import org.ip.model.PrdSpec;
 import org.springframework.stereotype.Component;
 

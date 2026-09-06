@@ -2,7 +2,7 @@ package org.ipro.reportstudio.query.constructor;
 
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import org.ipro.filter.FilterTreeEditor;
+import org.ipro.filtergrid.filter.FilterTreeEditor;
 import org.ipro.reportstudio.query.VisualQueryFilterResolver;
 
 import java.util.List;

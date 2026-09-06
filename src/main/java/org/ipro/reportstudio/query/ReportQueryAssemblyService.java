@@ -1,5 +1,8 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.filtergrid.projection.CompiledFilter;
+import org.ipro.filtergrid.projection.ProjectionFilterCompiler;
+
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.dom.ReportQuerySource;
@@ -9,8 +12,8 @@ import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.param.ReportParamResolver;
 import org.ipro.reportstudio.param.ResolvedParams;
 import org.ipro.reportstudio.run.ReportExecutionService;
-import org.ipro.filter.FilterNode;
-import org.ipro.filter.FilterTreeJson;
+import org.ipro.filtergrid.filter.FilterNode;
+import org.ipro.filtergrid.filter.FilterTreeJson;
 
 import java.util.HashMap;
 import java.util.List;
@@ -180,7 +183,7 @@ public class ReportQueryAssemblyService {
         try {
             FilterNode filter = FilterTreeJson.read(new com.fasterxml.jackson.databind.ObjectMapper()
                     .readTree(template.getVisualFilterJson()));
-            ReportVisualFilterCompiler.CompiledFilter compiled = new ReportVisualFilterCompiler(
+            CompiledFilter compiled = new ProjectionFilterCompiler(
                     new QueryFieldFilterFieldResolver(checked.selectFields())).compile(filter, bindings);
             bindings.putAll(compiled.bindings());
             return WhereClauseApplier.apply(jpql, compiled.predicate());

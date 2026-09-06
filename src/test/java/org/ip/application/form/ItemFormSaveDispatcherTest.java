@@ -1,7 +1,8 @@
 package org.ip.application.form;
 
 import org.ip.application.document.ReceivingDocumentFormSaveAdapter;
-import org.ip.form.builtin.ItemForm;
+import org.ipro.form.builtin.ItemForm;
+import org.ipro.form.FormSaveResult;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.Workshop;
 import org.ipro.crud.BaseService;

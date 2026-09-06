@@ -1,10 +1,12 @@
 package org.ip.form.coordinator;
 
 import org.ip.config.DataInitializer;
-import org.ip.form.builtin.ItemForm;
-import org.ip.form.registry.FormRegistry;
-import org.ip.form.registry.FormResolver;
-import org.ip.form.registry.FormType;
+import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.ItemFormWrapperView;
+import org.ipro.form.builtin.ItemForm;
+import org.ipro.form.registry.FormRegistry;
+import org.ipro.form.registry.FormResolver;
+import org.ipro.form.registry.FormType;
 import org.ip.model.Workshop;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

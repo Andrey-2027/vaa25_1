@@ -24,9 +24,9 @@ class CteVirtualCatalogIT {
                 VisualQueryDefinition.CURRENT_VERSION, "tmp1", "t", List.of(
                 new VisualQueryDefinition.SelectField("t.code", "code")),
                 List.of(), List.of(), List.of(), List.of(), null,
-                new org.ipro.filter.FilterConditionNode(new org.ipro.filter.FilterCondition(
-                        "t.code", org.ipro.filter.FilterOperator.EQ, "A", null,
-                        org.ipro.filter.FilterDataType.TEXT)),
+                new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition(
+                        "t.code", org.ipro.filtergrid.filter.FilterOperator.EQ, "A", null,
+                        org.ipro.filtergrid.filter.FilterDataType.TEXT)),
                 List.of(), List.of());
         var queryPackage = new VisualQueryPackage(List.of(
                 new VisualQueryPackage.Cte("tmp1", first),

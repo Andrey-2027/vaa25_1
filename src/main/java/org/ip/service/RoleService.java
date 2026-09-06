@@ -6,6 +6,7 @@ import org.ip.repository.RoleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.ipro.crud.AbstractBaseService;
 
 @Service
 public class RoleService extends AbstractBaseService<Role, Long> {

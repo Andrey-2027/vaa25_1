@@ -115,6 +115,27 @@ public interface FieldRenderer extends Function<Object, String> {
     }
 
     /**
+     * Рендер даты-времени с секундами ("dd.MM.yyyy HH:mm:ss").
+     * Принимает любой TemporalAccessor (LocalDateTime, ZonedDateTime, ...);
+     * Instant без зоны форматировать нельзя — передавайте с atZone(), иначе toString().
+     * Используется журналом аудита в ItemForm (там время — Instant из БД).
+     */
+    static FieldRenderer dateTimeWithSeconds() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+        return value -> {
+            if (value == null) return "";
+            if (value instanceof java.time.temporal.TemporalAccessor temporal) {
+                try {
+                    return formatter.format(temporal);
+                } catch (java.time.DateTimeException notFormattable) {
+                    return value.toString();
+                }
+            }
+            return value.toString();
+        };
+    }
+
+    /**
      * Единая точка выбора рендера по FieldType. Используется и ListForm (колонки грида
      * сущностей), и ItemTable (колонки грида строк табличной части) — чтобы оба места
      * рендерили значения одинаково и не расходились при развитии типов полей.

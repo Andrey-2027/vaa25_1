@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * Метаданные строки табличной части — упрощённая обёртка для использования в
- * {@link org.ip.form.builder.ItemFormCustomization}, когда нужно построить кастомную форму
+ * {@link org.ipro.form.builder.ItemFormCustomization}, когда нужно построить кастомную форму
  * для строки (например, PrdSpecMtr) с фильтрацией полей и listeners.
  *
  * В отличие от {@link TableSectionMetadataInfo} (который содержит полную информацию о табличной

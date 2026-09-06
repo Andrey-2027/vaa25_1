@@ -3,8 +3,8 @@ package org.ip.views.directory;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import org.ip.form.builtin.ListForm;
-import org.ip.form.coordinator.FormCoordinator;
+import org.ipro.form.builtin.ListForm;
+import org.ipro.form.coordinator.FormCoordinator;
 import org.ip.model.Nomenclature;
 import org.ip.views.MainLayout;
 

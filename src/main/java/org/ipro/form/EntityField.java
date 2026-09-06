@@ -292,16 +292,13 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         this.selectionFormFactory = selectionFormFactory;
     }
 
-    /** Установить фабрику выбора; параметры фильтра остаются внутри фабрики поля. */
+    /**
+     * Установить фабрику выбора с фиксированными фильтрами (фабрика — обычно
+     * {@link SelectionFormAssembler} через {@link SelectionFormFactory}).
+     */
     public void setSelectionFilter(Map<String, Object> filters,
                                    SelectionFormFactory<T> assembler) {
         this.selectionFormFactory = onSelect -> assembler.create(onSelect, filters);
-    }
-
-    /** Установить фабрику выбора с параметрами конкретной роли поля. */
-    public void setSelectionFormFactoryWithParameters(
-            Function<Consumer<T>, SelectionForm<T>> selectionFormFactory) {
-        this.selectionFormFactory = selectionFormFactory;
     }
 
     private void openSelectionDialog() {

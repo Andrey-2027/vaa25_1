@@ -60,9 +60,9 @@ class VisualQueryQ6HibernateIT {
         var definition = new VisualQueryDefinition(3, entity, "s",
                 List.of(new VisualQueryDefinition.SelectField("code", "code")),
                 List.of(), List.of(), List.of(), List.of(), null,
-                new org.ipro.filter.FilterConditionNode(new org.ipro.filter.FilterCondition(
-                        "s.code", org.ipro.filter.FilterOperator.EQ, "S-1", null,
-                        org.ipro.filter.FilterDataType.TEXT)),
+                new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition(
+                        "s.code", org.ipro.filtergrid.filter.FilterOperator.EQ, "S-1", null,
+                        org.ipro.filtergrid.filter.FilterDataType.TEXT)),
                 List.of(), List.of(new VisualQueryOrder("code", VisualQueryOrder.Direction.ASC)));
 
         var catalog = new QueryBuilderMetadataCatalog(emf,
