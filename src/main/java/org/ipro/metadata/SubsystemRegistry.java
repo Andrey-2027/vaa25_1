@@ -4,8 +4,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.Subsystem;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -79,7 +77,7 @@ public class SubsystemRegistry implements InitializingBean {
 
     private Map<Class<?>, SubsystemNode> scanSubsystemNodes() {
         Map<Class<?>, SubsystemNode> result = new LinkedHashMap<>();
-        for (Class<?> markerClass : scanAnnotated(Subsystem.class)) {
+        for (Class<?> markerClass : AnnotationClassScanner.scanAnnotated(basePackage, Subsystem.class)) {
             Subsystem annotation = markerClass.getAnnotation(Subsystem.class);
             result.put(markerClass, new SubsystemNode(markerClass, annotation));
         }
@@ -107,33 +105,9 @@ public class SubsystemRegistry implements InitializingBean {
     private List<EntityMetadataInfo> scanEntities() {
         List<EntityMetadataInfo> result = new ArrayList<>();
         MetadataResolver resolver = new MetadataResolver();
-        for (Class<?> entityClass : scanAnnotated(EntityMetadata.class)) {
+        for (Class<?> entityClass : AnnotationClassScanner.scanAnnotated(basePackage, EntityMetadata.class)) {
             result.add(resolver.resolve(entityClass));
         }
-        return result;
-    }
-
-    private List<Class<?>> scanAnnotated(Class<? extends java.lang.annotation.Annotation> annotationClass) {
-        ClassPathScanningCandidateComponentProvider scanner =
-            new ClassPathScanningCandidateComponentProvider(false) {
-                @Override
-                protected boolean isCandidateComponent(
-                        org.springframework.beans.factory.annotation.AnnotatedBeanDefinition beanDefinition) {
-                    return true;
-                }
-            };
-        scanner.addIncludeFilter(new AnnotationTypeFilter(annotationClass));
-
-        List<Class<?>> result = new ArrayList<>();
-        scanner.findCandidateComponents(basePackage).forEach(candidate -> {
-            try {
-                result.add(Class.forName(candidate.getBeanClassName()));
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(
-                    "Failed to load class found during @" + annotationClass.getSimpleName() +
-                    " classpath scan: " + candidate.getBeanClassName(), e);
-            }
-        });
         return result;
     }
 }

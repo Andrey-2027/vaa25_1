@@ -1,4 +1,6 @@
 org.ipro.metadata.config.MetadataAutoConfiguration
+org.ipro.metadata.explorer.config.EntityExplorerAutoConfiguration
+org.ipro.search.config.GlobalSearchAutoConfiguration
 org.ipro.crud.config.CrudAutoConfiguration
 org.ipro.form.config.FormAutoConfiguration
 org.ipro.telemetry.config.TelemetryAutoConfiguration

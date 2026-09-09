@@ -1,13 +1,12 @@
 package org.ipro.settings;
 
+import org.ipro.metadata.AnnotationClassScanner;
 import org.ipro.metadata.ReferenceIndex;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.settings.setting.Setting;
 import org.ipro.settings.setting.SettingsGroup;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -39,7 +38,8 @@ public class SettingsReverseReferenceSource implements ReferenceIndex.ReverseRef
 
     public void rebuild() {
         List<ReferenceIndex.ReverseReference> result = new ArrayList<>();
-        for (Class<?> groupClass : scanAnnotated(SettingsGroup.class)) {
+        for (Class<?> groupClass :
+                AnnotationClassScanner.scanAnnotated(basePackage, SettingsGroup.class)) {
             for (Field field : groupClass.getDeclaredFields()) {
                 Setting setting = field.getAnnotation(Setting.class);
                 if (setting == null || setting.type() != FieldType.ENTITY_REFERENCE) {
@@ -60,27 +60,4 @@ public class SettingsReverseReferenceSource implements ReferenceIndex.ReverseRef
         return references;
     }
 
-    private List<Class<?>> scanAnnotated(Class<? extends java.lang.annotation.Annotation> annotationClass) {
-        ClassPathScanningCandidateComponentProvider scanner =
-            new ClassPathScanningCandidateComponentProvider(false) {
-                @Override
-                protected boolean isCandidateComponent(
-                        org.springframework.beans.factory.annotation.AnnotatedBeanDefinition beanDefinition) {
-                    return true;
-                }
-            };
-        scanner.addIncludeFilter(new AnnotationTypeFilter(annotationClass));
-
-        List<Class<?>> result = new ArrayList<>();
-        scanner.findCandidateComponents(basePackage).forEach(candidate -> {
-            try {
-                result.add(Class.forName(candidate.getBeanClassName()));
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(
-                    "Failed to load class found during @" + annotationClass.getSimpleName() +
-                    " classpath scan: " + candidate.getBeanClassName(), e);
-            }
-        });
-        return result;
-    }
 }

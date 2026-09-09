@@ -24,6 +24,7 @@ class NumberingMetadataRegistryTest {
 
         assertThat(all).extracting(NumberingMetadataRegistry.NumberedFieldInfo::key)
             .containsExactly(
+                "AttributeType.code",
                 "Nomenclature.code",
                 "Oper.code",
                 "ReceivingDocument.number");

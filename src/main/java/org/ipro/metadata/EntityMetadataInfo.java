@@ -63,10 +63,6 @@ public final class EntityMetadataInfo implements GridMetadata {
         return annotation.icon();
     }
 
-    public boolean isSearchable() {
-        return annotation.searchable();
-    }
-
     /**
      * SQL-эквивалент displayName для сортировки ссылочных колонок на эту сущность —
      * см. {@link EntityMetadata#displaySortFields()}. Пустой список — сортировка по PK.

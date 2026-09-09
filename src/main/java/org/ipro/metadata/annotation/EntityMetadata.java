@@ -68,9 +68,6 @@ public @interface EntityMetadata {
     /** Имя VaadinIcon (например, "PACKAGE", "BOOK", "FILE_TEXT") */
     String icon() default "FILE";
 
-    /** Поддерживает ли сущность полнотекстовый поиск */
-    boolean searchable() default true;
-
     /**
      * Класс Service для этой сущности (опционально).
      * Если не указан — FormCoordinator будет искать Service по имени (nomenclatureService для Nomenclature).

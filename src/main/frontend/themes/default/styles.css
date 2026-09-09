@@ -6,6 +6,49 @@
   overflow: hidden;
 }
 
+.global-search-header {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 14rem;
+  max-width: 40rem;
+}
+
+.global-search-header vaadin-text-field {
+  width: 100%;
+}
+
+.global-search-results {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  max-height: 26rem;
+  overflow: auto;
+  border: 1px solid var(--lumo-contrast-20pct);
+  border-radius: var(--lumo-border-radius-m);
+  background: var(--lumo-base-color);
+  box-shadow: var(--lumo-box-shadow-m);
+  padding: var(--lumo-space-xs);
+}
+
+.global-search-group-title,
+.global-search-status {
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-s);
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+.global-search-group-title {
+  font-weight: 600;
+  margin-top: var(--lumo-space-xs);
+}
+
+.global-search-result {
+  justify-content: flex-start;
+  text-align: left;
+}
+
 .workspace-title {
   background: var(--lumo-base-color);
   border-bottom: 2px solid var(--lumo-primary-color);

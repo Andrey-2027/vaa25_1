@@ -616,8 +616,10 @@ public class GridViewEditorDialog extends Dialog {
             };
             FilterOperator operator = switch (c.mode) {
                 case EQUALS -> FilterOperator.EQ;
+                case NOT_EQUALS -> FilterOperator.NE;
                 case STARTS_WITH -> FilterOperator.STARTS_WITH;
                 case ENDS_WITH, CONTAINS -> FilterOperator.CONTAINS;
+                case NOT_CONTAINS -> FilterOperator.NOT_CONTAINS;
             };
             nodes.add(FilterConditionNode.of(new org.ipro.filtergrid.filter.FilterCondition(
                     c.field.getName(), operator, c.value, null, type)));

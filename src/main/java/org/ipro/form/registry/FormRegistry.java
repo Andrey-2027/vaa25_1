@@ -40,10 +40,18 @@ public class FormRegistry {
     private final Map<FormKey, FormFactory> forms = new ConcurrentHashMap<>();
     private final Map<FormKey, Class<? extends Component>> listFormViews = new ConcurrentHashMap<>();
     private final Map<FormKey, FormFactory> listFormViewFactories = new ConcurrentHashMap<>();
+    /** Источник регистрации (класс-декларант, FQN) для read-only перечисления; null — не указан. */
+    private final Map<FormKey, String> registrationSources = new ConcurrentHashMap<>();
     private final Map<Class<?>, List<ContextFilterField>> contextFilters = new ConcurrentHashMap<>();
     private final Map<FormKey, SelectionColumnsDef> selectionColumns = new ConcurrentHashMap<>();
     private final Map<Class<?>, List<ContextFilterField>> selectionContextFilters = new ConcurrentHashMap<>();
     private final Map<FormKey, List<ContextFilterField>> variantContextFilters = new ConcurrentHashMap<>();
+    /** Источник-декларант общего ряда списка (FQN конфига); null — не указан. */
+    private final Map<Class<?>, String> contextFilterSources = new ConcurrentHashMap<>();
+    /** Источник-декларант рядов вариантов (FQN конфига); отсутствие записи — не указан. */
+    private final Map<FormKey, String> variantContextFilterSources = new ConcurrentHashMap<>();
+    /** Источник-декларант собственного ряда диалога выбора (FQN конфига); null — не указан. */
+    private final Map<Class<?>, String> selectionContextFilterSources = new ConcurrentHashMap<>();
     private final Map<FormKey, List<org.ipro.form.builder.ListFormCustomizer>> listCustomizers =
         new ConcurrentHashMap<>();
     private final Map<FormKey, List<org.ipro.form.builder.ItemFormCustomizer>> itemCustomizers =
@@ -58,8 +66,32 @@ public class FormRegistry {
      * @param factory фабрика для создания формы
      */
     public void register(Class<?> entityClass, FormType formType, String variant, FormFactory factory) {
+        register(entityClass, formType, variant, factory, null);
+    }
+
+    /**
+     * Регистрация с источником (FQN класса-декларанта) — для read-only перечисления
+     * {@link #registrationsOf} (колонка «где явно» в Entity Explorer).
+     */
+    public void register(Class<?> entityClass, FormType formType, String variant,
+                         FormFactory factory, String source) {
         FormKey key = new FormKey(entityClass, formType, variant);
         forms.put(key, factory);
+        putSource(key, source);
+    }
+
+    /** ConcurrentHashMap не допускает null-значений: отсутствие источника = нет записи. */
+    private void putSource(FormKey key, String source) {
+        if (source != null) {
+            registrationSources.put(key, source);
+        }
+    }
+
+    /** ConcurrentHashMap не допускает null-значений: отсутствие источника = нет записи. */
+    private void putSource(Map<Class<?>, String> map, Class<?> key, String source) {
+        if (source != null) {
+            map.put(key, source);
+        }
     }
 
     /**
@@ -69,11 +101,21 @@ public class FormRegistry {
         register(entityClass, FormType.LIST, variant, factory);
     }
 
+    /** Регистрация списка с источником-декларантом (см. {@link #register}). */
+    public void registerListForm(Class<?> entityClass, String variant, FormFactory factory, String source) {
+        register(entityClass, FormType.LIST, variant, factory, source);
+    }
+
     /**
      * Зарегистрировать форму элемента.
      */
     public void registerItemForm(Class<?> entityClass, String variant, FormFactory factory) {
         register(entityClass, FormType.ITEM, variant, factory);
+    }
+
+    /** Регистрация карточки с источником-декларантом (см. {@link #register}). */
+    public void registerItemForm(Class<?> entityClass, String variant, FormFactory factory, String source) {
+        register(entityClass, FormType.ITEM, variant, factory, source);
     }
 
     /**
@@ -98,6 +140,11 @@ public class FormRegistry {
      */
     public void registerSelectionForm(Class<?> entityClass, String variant, FormFactory factory) {
         register(entityClass, FormType.SELECTION, variant, factory);
+    }
+
+    /** Регистрация формы выбора с источником-декларантом (см. {@link #register}). */
+    public void registerSelectionForm(Class<?> entityClass, String variant, FormFactory factory, String source) {
+        register(entityClass, FormType.SELECTION, variant, factory, source);
     }
 
     /**
@@ -167,10 +214,14 @@ public class FormRegistry {
         forms.clear();
         listFormViews.clear();
         listFormViewFactories.clear();
+        registrationSources.clear();
         contextFilters.clear();
         selectionColumns.clear();
         selectionContextFilters.clear();
         variantContextFilters.clear();
+        contextFilterSources.clear();
+        variantContextFilterSources.clear();
+        selectionContextFilterSources.clear();
         listCustomizers.clear();
         itemCustomizers.clear();
     }
@@ -192,14 +243,28 @@ public class FormRegistry {
      * @param viewClass класс View-компонента
      */
     public void registerListFormView(Class<?> entityClass, String variant, Class<? extends Component> viewClass) {
+        registerListFormView(entityClass, variant, viewClass, viewClass == null ? null : viewClass.getName());
+    }
+
+    /** Регистрация View-класса с источником-декларантом (см. {@link #register}). */
+    public void registerListFormView(Class<?> entityClass, String variant,
+                                     Class<? extends Component> viewClass, String source) {
         FormKey key = new FormKey(entityClass, FormType.LIST, variant);
         listFormViews.put(key, viewClass);
+        putSource(key, source);
     }
 
     /** Зарегистрировать составной View, создаваемый с FormContext. */
     public void registerListFormView(Class<?> entityClass, String variant, FormFactory factory) {
         FormKey key = new FormKey(entityClass, FormType.LIST, variant);
         listFormViewFactories.put(key, factory);
+    }
+
+    /** Регистрация составного View с источником-декларантом (см. {@link #register}). */
+    public void registerListFormView(Class<?> entityClass, String variant, FormFactory factory, String source) {
+        FormKey key = new FormKey(entityClass, FormType.LIST, variant);
+        listFormViewFactories.put(key, factory);
+        putSource(key, source);
     }
 
     public FormFactory getListFormViewFactory(Class<?> entityClass, String variant) {
@@ -224,7 +289,13 @@ public class FormRegistry {
      * (панель контекст-фильтров ListForm). Пусто/не null — панели нет.
      */
     public void registerContextFilters(Class<?> entityClass, List<ContextFilterField> fields) {
+        registerContextFilters(entityClass, fields, null);
+    }
+
+    /** Регистрация с источником-декларантом (FQN конфига) — колонка «Источник» Entity Explorer. */
+    public void registerContextFilters(Class<?> entityClass, List<ContextFilterField> fields, String source) {
         contextFilters.put(entityClass, fields == null ? List.of() : List.copyOf(fields));
+        putSource(contextFilterSources, entityClass, source);
     }
 
     /**
@@ -244,7 +315,15 @@ public class FormRegistry {
      * @param def набор колонок и заголовок
      */
     public void registerSelectionColumns(Class<?> entityClass, String variant, SelectionColumnsDef def) {
-        selectionColumns.put(new FormKey(entityClass, FormType.SELECTION, variant), def);
+        registerSelectionColumns(entityClass, variant, def, null);
+    }
+
+    /** Регистрация набора колонок выбора с источником-декларантом (см. {@link #register}). */
+    public void registerSelectionColumns(Class<?> entityClass, String variant,
+                                         SelectionColumnsDef def, String source) {
+        FormKey key = new FormKey(entityClass, FormType.SELECTION, variant);
+        selectionColumns.put(key, def);
+        putSource(key, source);
     }
 
     /**
@@ -260,7 +339,14 @@ public class FormRegistry {
      * Пусто/не вызывать — диалог показывает общий ряд списка ({@link #getContextFilters}).
      */
     public void registerSelectionContextFilters(Class<?> entityClass, List<ContextFilterField> fields) {
+        registerSelectionContextFilters(entityClass, fields, null);
+    }
+
+    /** Регистрация с источником-декларантом (FQN конфига) — колонка «Источник» Entity Explorer. */
+    public void registerSelectionContextFilters(Class<?> entityClass,
+                                                List<ContextFilterField> fields, String source) {
         selectionContextFilters.put(entityClass, fields == null ? List.of() : List.copyOf(fields));
+        putSource(selectionContextFilterSources, entityClass, source);
     }
 
     /**
@@ -271,14 +357,38 @@ public class FormRegistry {
         return selectionContextFilters.getOrDefault(entityClass, List.of());
     }
 
+    /** Источник-декларант общего ряда списка (FQN; null — не указан). */
+    public String getContextFilterSource(Class<?> entityClass) {
+        return contextFilterSources.get(entityClass);
+    }
+
+    /** Источник-декларант ряда конкретного варианта (FQN; null — не указан). */
+    public String getVariantContextFilterSource(Class<?> entityClass, FormType formType, String variant) {
+        return variantContextFilterSources.get(new FormKey(entityClass, formType, variant));
+    }
+
+    /** Источник-декларант собственного ряда диалога выбора (FQN; null — не указан). */
+    public String getSelectionContextFilterSource(Class<?> entityClass) {
+        return selectionContextFilterSources.get(entityClass);
+    }
+
     /**
      * Зарегистрировать ряд контекст-фильтров одного варианта (замена общего ряда,
      * не дополнение). Виден только в этом варианте.
      */
     public void registerVariantContextFilters(Class<?> entityClass, FormType formType,
                                               String variant, List<ContextFilterField> fields) {
-        variantContextFilters.put(new FormKey(entityClass, formType, variant),
-            fields == null ? List.of() : List.copyOf(fields));
+        registerVariantContextFilters(entityClass, formType, variant, fields, null);
+    }
+
+    /** Регистрация с источником-декларантом (FQN конфига) — колонка «Источник» Entity Explorer. */
+    public void registerVariantContextFilters(Class<?> entityClass, FormType formType,
+                                              String variant, List<ContextFilterField> fields, String source) {
+        FormKey key = new FormKey(entityClass, formType, variant);
+        variantContextFilters.put(key, fields == null ? List.of() : List.copyOf(fields));
+        if (source != null) {
+            variantContextFilterSources.put(key, source);
+        }
     }
 
     /**
@@ -350,5 +460,69 @@ public class FormRegistry {
         List<org.ipro.form.builder.ItemFormCustomizer> found =
             itemCustomizers.get(new FormKey(entityClass, FormType.ITEM, variant));
         return found == null ? List.of() : List.copyOf(found);
+    }
+
+    // === Read-only перечисление регистраций (Entity Explorer) ===
+
+    /**
+     * Детерминированное перечисление всех регистраций форм/вариантов/наборов колонок для
+     * сущности — read-only снимок внутренних карт, отсортированный по (formType, variant,
+     * kind). Используется Entity Summary Assembler для раздела «Формы и варианты»: одна
+     * сущность — полный список того, что для неё зарегистрировано (без чтения приватных карт
+     * извне).
+     *
+     * @param entityClass класс сущности
+     * @return снимок регистраций; пусто — ничего не зарегистрировано
+     */
+    public List<Registration> registrationsOf(Class<?> entityClass) {
+        List<Registration> result = new java.util.ArrayList<>();
+        for (FormKey key : forms.keySet()) {
+            if (key.entityClass().equals(entityClass)) {
+                result.add(new Registration(key.formType(), key.variant(), RegistrationKind.FORM_FACTORY,
+                    registrationSources.get(key)));
+            }
+        }
+        for (FormKey key : listFormViews.keySet()) {
+            if (key.entityClass().equals(entityClass)) {
+                result.add(new Registration(key.formType(), key.variant(), RegistrationKind.LIST_VIEW_CLASS,
+                    registrationSources.get(key)));
+            }
+        }
+        for (FormKey key : listFormViewFactories.keySet()) {
+            if (key.entityClass().equals(entityClass)) {
+                result.add(new Registration(key.formType(), key.variant(), RegistrationKind.LIST_VIEW_FACTORY,
+                    registrationSources.get(key)));
+            }
+        }
+        for (FormKey key : selectionColumns.keySet()) {
+            if (key.entityClass().equals(entityClass)) {
+                result.add(new Registration(key.formType(), key.variant(), RegistrationKind.SELECTION_COLUMNS,
+                    registrationSources.get(key)));
+            }
+        }
+        result.sort(java.util.Comparator
+            .comparing(Registration::formType)
+            .thenComparing(Registration::variant, java.util.Comparator.nullsFirst(String::compareTo))
+            .thenComparing(Registration::kind));
+        return result;
+    }
+
+    /** Одна регистрация для read-only перечисления (см. {@link #registrationsOf}). */
+    public enum RegistrationKind {
+        /** Фабрика формы (register/registerListForm/registerItemForm/registerSelectionForm). */
+        FORM_FACTORY,
+        /** Класс кастомного View формы списка (registerListFormView). */
+        LIST_VIEW_CLASS,
+        /** Фабрика кастомного View формы списка, создаваемого с FormContext. */
+        LIST_VIEW_FACTORY,
+        /** Набор колонок Формы Выбора (registerSelectionColumns). */
+        SELECTION_COLUMNS
+    }
+
+    /**
+     * Read-only запись: тип формы + вариант + вид регистрации + источник (FQN класса-декларанта;
+     * null — не указан, например регистрации вне registrar-ов).
+     */
+    public record Registration(FormType formType, String variant, RegistrationKind kind, String source) {
     }
 }

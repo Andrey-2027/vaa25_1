@@ -28,11 +28,12 @@ public class ItemFormCustomizationRegistrar implements InitializingBean {
     public void afterPropertiesSet() {
         for (ItemFormCustomization customization : customizations) {
             Class<?> entityClass = customization.entityClass();
+            String source = customization.getClass().getName();
             ItemFormVariants variants = new ItemFormVariants();
             customization.configure(variants);
 
             variants.getFactories().forEach((variant, factory) ->
-                formRegistry.registerItemForm(entityClass, variant, factory));
+                formRegistry.registerItemForm(entityClass, variant, factory, source));
 
             variants.getCustomizers().forEach((variant, customizerList) ->
                 customizerList.forEach(customizer ->

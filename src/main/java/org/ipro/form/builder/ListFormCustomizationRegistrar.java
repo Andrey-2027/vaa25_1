@@ -29,23 +29,24 @@ public class ListFormCustomizationRegistrar implements InitializingBean {
     public void afterPropertiesSet() {
         for (ListFormCustomization customization : customizations) {
             Class<?> entityClass = customization.entityClass();
+            String source = customization.getClass().getName();
             ListFormVariants variants = new ListFormVariants();
             customization.configure(variants);
 
             variants.getFactories().forEach((variant, factory) ->
-                formRegistry.registerListForm(entityClass, variant, factory));
+                formRegistry.registerListForm(entityClass, variant, factory, source));
 
             variants.getViewFactories().forEach((variant, factory) ->
-                formRegistry.registerListFormView(entityClass, variant, factory));
+                formRegistry.registerListFormView(entityClass, variant, factory, source));
 
             variants.getViews().forEach((variant, viewClass) ->
-                formRegistry.registerListFormView(entityClass, variant, viewClass));
+                formRegistry.registerListFormView(entityClass, variant, viewClass, source));
 
-            formRegistry.registerContextFilters(entityClass, customization.contextFilters());
+            formRegistry.registerContextFilters(entityClass, customization.contextFilters(), source);
 
             variants.getContextFilterRows().forEach((variant, fields) ->
                 formRegistry.registerVariantContextFilters(entityClass,
-                    org.ipro.form.registry.FormType.LIST, variant, fields));
+                    org.ipro.form.registry.FormType.LIST, variant, fields, source));
 
             variants.getCustomizers().forEach((variant, customizerList) ->
                 customizerList.forEach(customizer ->

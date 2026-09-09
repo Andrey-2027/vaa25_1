@@ -29,21 +29,22 @@ public class SelectionFormCustomizationRegistrar implements InitializingBean {
     public void afterPropertiesSet() {
         for (SelectionFormCustomization customization : customizations) {
             Class<?> entityClass = customization.entityClass();
+            String source = customization.getClass().getName();
             SelectionFormVariants variants = new SelectionFormVariants();
             customization.configure(variants);
 
             variants.getFactories().forEach((variant, factory) ->
-                formRegistry.registerSelectionForm(entityClass, variant, factory));
+                formRegistry.registerSelectionForm(entityClass, variant, factory, source));
 
             variants.getColumns().forEach((variant, def) ->
-                formRegistry.registerSelectionColumns(entityClass, variant, def));
+                formRegistry.registerSelectionColumns(entityClass, variant, def, source));
 
             variants.getContextFilterRows().forEach((variant, fields) ->
                 formRegistry.registerVariantContextFilters(entityClass,
-                    org.ipro.form.registry.FormType.SELECTION, variant, fields));
+                    org.ipro.form.registry.FormType.SELECTION, variant, fields, source));
 
             if (!customization.contextFilters().isEmpty()) {
-                formRegistry.registerSelectionContextFilters(entityClass, customization.contextFilters());
+                formRegistry.registerSelectionContextFilters(entityClass, customization.contextFilters(), source);
             }
         }
     }

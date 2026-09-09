@@ -14,10 +14,13 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinServletRequest;
 import jakarta.annotation.security.PermitAll;
 import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.search.GlobalSearchHeader;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ip.views.admin.AdminView;
 import org.ip.views.admin.DiagnosticsView;
+import org.ip.views.admin.EntityExplorerView;
+import org.ip.views.admin.SubsystemStructureView;
 import org.ip.views.directory.WorkshopListView;
 import org.ip.views.preferences.DensityToggle;
 import org.ip.views.preferences.UserPreferencesStore;
@@ -39,15 +42,18 @@ public class MainLayout extends AppLayout {
     private final SubsystemRegistry subsystemRegistry;
     private final FormCoordinator coordinator;
     private final UserPreferencesStore preferencesStore;
+    private final GlobalSearchHeader globalSearchHeader;
 
     @Autowired
     public MainLayout(WorkspaceManager workspaceManager,
                       SubsystemRegistry subsystemRegistry,
                       FormCoordinator coordinator,
-                      UserPreferencesStore preferencesStore) {
+                      UserPreferencesStore preferencesStore,
+                      GlobalSearchHeader globalSearchHeader) {
         this.subsystemRegistry = subsystemRegistry;
         this.coordinator = coordinator;
         this.preferencesStore = preferencesStore;
+        this.globalSearchHeader = globalSearchHeader;
         workspace = new Workspace(workspaceManager);
         setContent(workspace);
         createHeader();
@@ -71,6 +77,7 @@ public class MainLayout extends AppLayout {
         HorizontalLayout header = new HorizontalLayout(
                 new DrawerToggle(),
                 logo,
+                globalSearchHeader,
                 new DensityToggle(preferencesStore),
                 logoutButton
         );
@@ -104,6 +111,20 @@ public class MainLayout extends AppLayout {
                     workspace.open(AdminView.class, "admin",
                             "Администрирование", v -> {}));
             nav.addItem(adminItem);
+
+            SideNavItem explorerItem = new SideNavItem("Структура сущностей");
+            explorerItem.setPrefixComponent(new Icon(VaadinIcon.SITEMAP));
+            explorerItem.getElement().addEventListener("click", e ->
+                    workspace.open(EntityExplorerView.class, "entity-explorer",
+                            "Структура сущностей", v -> v.init(workspace)));
+            nav.addItem(explorerItem);
+
+            SideNavItem subsystemItem = new SideNavItem("Структура подсистем");
+            subsystemItem.setPrefixComponent(new Icon(VaadinIcon.FILE_TREE));
+            subsystemItem.getElement().addEventListener("click", e ->
+                    workspace.open(SubsystemStructureView.class, "subsystem-structure",
+                            "Структура подсистем", v -> v.init(workspace)));
+            nav.addItem(subsystemItem);
         }
 
         for (SubsystemNode root : subsystemRegistry.getRoots()) {
