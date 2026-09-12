@@ -3,22 +3,20 @@ package org.ip.views.forms;
 import org.ipro.form.builder.ItemFormCustomization;
 import org.ipro.form.builder.ItemFormVariants;
 import org.ip.model.User;
-import org.ip.repository.RoleRepository;
+import org.ip.service.RoleService;
 import org.springframework.stereotype.Component;
 
 /**
- * Регистрирует {@link UserItemForm} как default-вариант для {@link User}. RoleRepository —
- * обычная Spring-зависимость этого конфига (не через FormContext.getParameter) — список
- * ролей для MultiSelectComboBox нужен только здесь, заводить для этого что-то в FormContext
- * не требуется.
+ * Регистрирует {@link UserItemForm} как default-вариант для {@link User}. UI получает
+ * роли через application-service и не открывает параллельный repository entry point.
  */
 @Component
 public class UserFormConfig implements ItemFormCustomization {
 
-    private final RoleRepository roleRepository;
+    private final RoleService roleService;
 
-    public UserFormConfig(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository;
+    public UserFormConfig(RoleService roleService) {
+        this.roleService = roleService;
     }
 
     @Override
@@ -30,7 +28,7 @@ public class UserFormConfig implements ItemFormCustomization {
     public void configure(ItemFormVariants variants) {
         variants.addDefault(ctx -> {
             var meta = ctx.metadataResolver().resolve(User.class);
-            return new UserItemForm(meta, ctx.fieldFactory(), roleRepository.findAll());
+            return new UserItemForm(meta, ctx.fieldFactory(), roleService.findAll());
         });
     }
 }

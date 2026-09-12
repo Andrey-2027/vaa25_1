@@ -6,6 +6,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -89,11 +90,22 @@ public abstract class BaseEntity implements IdentifiableEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof BaseEntity that)) return false;
-        return id != null && Objects.equals(id, that.id);
+        if (!persistentClass(this).equals(persistentClass(that))) return false;
+        return getId() != null && Objects.equals(getId(), that.getId());
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return persistentClass(this).hashCode();
+    }
+
+    /**
+     * Возвращает реальный класс JPA-сущности без инициализации Hibernate proxy.
+     * Это сохраняет симметрию equals/hashCode для entity и её proxy, но не делает
+     * равными сущности разных типов с одинаковым числовым идентификатором.
+     */
+    private static Class<?> persistentClass(Object entity) {
+        var initializer = HibernateProxy.extractLazyInitializer(entity);
+        return initializer == null ? entity.getClass() : initializer.getPersistentClass();
     }
 }

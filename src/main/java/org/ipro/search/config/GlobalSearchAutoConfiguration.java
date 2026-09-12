@@ -6,6 +6,7 @@ import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
+import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.search.GlobalSearchCatalog;
 import org.ipro.search.GlobalSearchHeader;
 import org.ipro.search.GlobalSearchConfig;
@@ -72,8 +73,10 @@ public class GlobalSearchAutoConfiguration {
             GlobalSearchProviderRegistry providerRegistry,
             RlsCurrentUser currentUser,
             RlsFilterActivator rlsFilterActivator,
-            RlsReadGate rlsReadGate) {
+            RlsReadGate rlsReadGate,
+            RlsPolicyEnforcer rlsPolicyEnforcer) {
         return new GlobalSearchService(
-            catalog, providerRegistry, currentUser, rlsFilterActivator, rlsReadGate);
+            catalog, providerRegistry, currentUser, rlsFilterActivator, rlsReadGate,
+            rlsPolicyEnforcer);
     }
 }

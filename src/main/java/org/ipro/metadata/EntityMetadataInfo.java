@@ -1,6 +1,7 @@
 package org.ipro.metadata;
 
 import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.EntityKind;
 
 import java.util.List;
 
@@ -16,6 +17,8 @@ public final class EntityMetadataInfo implements GridMetadata {
 
     private final Class<?> entityClass;
     private final EntityMetadata annotation;
+    private final EntityKind entityKind;
+    private final List<FieldMetadataInfo> allAnnotatedFields;
     private final List<FieldMetadataInfo> formFields;
     private final List<FieldMetadataInfo> gridFields;
     private final List<ColumnPath> listColumnPaths;
@@ -23,12 +26,19 @@ public final class EntityMetadataInfo implements GridMetadata {
 
     public EntityMetadataInfo(Class<?> entityClass,
                               EntityMetadata annotation,
+                              EntityKind entityKind,
+                              List<FieldMetadataInfo> allAnnotatedFields,
                               List<FieldMetadataInfo> formFields,
                               List<FieldMetadataInfo> gridFields,
                               List<ColumnPath> listColumnPaths,
                               List<ColumnPath> selectColumnPaths) {
         this.entityClass = entityClass;
         this.annotation = annotation;
+        if (entityKind == EntityKind.AUTO) {
+            throw new IllegalArgumentException("Resolved entity kind must not be AUTO");
+        }
+        this.entityKind = entityKind;
+        this.allAnnotatedFields = List.copyOf(allAnnotatedFields);
         this.formFields = List.copyOf(formFields);
         this.gridFields = List.copyOf(gridFields);
         this.listColumnPaths = List.copyOf(listColumnPaths);
@@ -41,6 +51,11 @@ public final class EntityMetadataInfo implements GridMetadata {
 
     public EntityMetadata getAnnotation() {
         return annotation;
+    }
+
+    /** Эффективный semantic kind; AUTO к моменту построения metadata уже разрешён. */
+    public EntityKind getEntityKind() {
+        return entityKind;
     }
 
     public String getListFormTitle() {
@@ -108,7 +123,7 @@ public final class EntityMetadataInfo implements GridMetadata {
      * Найти поле по имени Java-поля.
      */
     public FieldMetadataInfo getFieldByName(String name) {
-        return formFields.stream()
+        return allAnnotatedFields.stream()
                 .filter(f -> f.getName().equals(name))
                 .findFirst()
                 .orElse(null);
@@ -119,13 +134,14 @@ public final class EntityMetadataInfo implements GridMetadata {
      * Полезно для отладки и для вычисления агрегатов.
      */
     public List<FieldMetadataInfo> getAllAnnotatedFields() {
-        return formFields; // formFields уже исключает hidden
+        return allAnnotatedFields;
     }
 
     @Override
     public String toString() {
         return "EntityMetadataInfo{" +
                 "entity=" + entityClass.getSimpleName() +
+                ", kind=" + entityKind +
                 ", listTitle='" + getListFormTitle() + '\'' +
                 ", formFields=" + formFields.size() +
                 ", gridFields=" + gridFields.size() +

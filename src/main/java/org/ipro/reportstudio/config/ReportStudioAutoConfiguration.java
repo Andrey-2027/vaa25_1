@@ -64,8 +64,9 @@ public class ReportStudioAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ReportQueryExecutor reportQueryExecutor(EntityManager entityManager,
-                                                   RlsFilterActivator rlsFilterActivator) {
-        return new ReportQueryExecutor(entityManager, rlsFilterActivator);
+                                                   RlsFilterActivator rlsFilterActivator,
+                                                   RlsCurrentUser currentUser) {
+        return new ReportQueryExecutor(entityManager, rlsFilterActivator, currentUser);
     }
 
     @Bean
@@ -149,6 +150,14 @@ public class ReportStudioAutoConfiguration {
         return new ReportArtifactCache(maxArtifacts);
     }
 
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    public org.ipro.reportstudio.run.ReportTaskExecutor reportTaskExecutor(
+            @Value("${ipro.report.worker-threads:2}") int threads,
+            @Value("${ipro.report.worker-queue-capacity:16}") int queueCapacity) {
+        return new org.ipro.reportstudio.run.ReportTaskExecutor(threads, queueCapacity);
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public org.ipro.reportstudio.param.ReportContextFactory reportContextFactory(
@@ -174,8 +183,11 @@ public class ReportStudioAutoConfiguration {
                                                          EntityParamRefresher refresher,
                                                          ReportCompiler compiler,
                                                          ReportArtifactCache cache,
-                                                         ReportQueryAssemblyService queryAssembler) {
-        return new ReportExecutionService(guard, executor, resolver, refresher, compiler, cache, queryAssembler);
+                                                         ReportQueryAssemblyService queryAssembler,
+                                                         RlsCurrentUser currentUser,
+                                                         org.ipro.reportstudio.run.ReportTaskExecutor taskExecutor) {
+        return new ReportExecutionService(guard, executor, resolver, refresher, compiler, cache,
+            queryAssembler, currentUser, taskExecutor);
     }
 @Bean
     @ConditionalOnMissingBean

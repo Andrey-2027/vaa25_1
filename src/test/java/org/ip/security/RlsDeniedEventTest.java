@@ -9,7 +9,10 @@ import org.ip.repository.BranchRepository;
 import org.ip.repository.JournalRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ip.service.ReceivingDocumentService;
-import org.ipro.crud.ValidationException;
+import org.ipro.rls.AccessGrant;
+import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.RlsAccessDeniedException;
+import org.ipro.rls.RlsTestFixture;
 import org.ipro.telemetry.core.SecurityEventLogger;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -17,6 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -54,31 +60,53 @@ class RlsDeniedEventTest {
     @Autowired
     private JournalRepository journalRepository;
 
+    @Autowired
+    private AccessGrantRepository accessGrantRepository;
+
+    @org.junit.jupiter.api.AfterEach
+    void clearAuthentication() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     void writeGuardDeniedEmitsRlsSecurityEvent() {
-        Branch branch = new Branch();
-        branch.setCode("DE-1");
-        branch.setName("Филиал");
-        branchRepository.save(branch);
+        String deniedUser = "rls-denied-event-test";
+        ReceivingDocument doc = RlsTestFixture.callAsSuperuser(accessGrantRepository, () -> {
+            Branch branch = new Branch();
+            branch.setCode("DE-1");
+            branch.setName("Филиал");
+            branchRepository.save(branch);
 
-        Workshop receiver = new Workshop("DE-A", "Цех А");
-        receiver.setBranch(branch);
-        workshopRepository.save(receiver);
+            Workshop receiver = new Workshop("DE-A", "Цех А");
+            receiver.setBranch(branch);
+            workshopRepository.save(receiver);
 
-        Workshop deliverer = new Workshop("DE-B", "Цех Б");
-        deliverer.setBranch(branch);
-        workshopRepository.save(deliverer);
+            Workshop deliverer = new Workshop("DE-B", "Цех Б");
+            deliverer.setBranch(branch);
+            workshopRepository.save(deliverer);
 
-        Journal journal = new Journal();
-        journal.setCode("DEJ");
-        journal.setName("Журнал");
-        journalRepository.save(journal);
+            Journal journal = new Journal();
+            journal.setCode("DEJ");
+            journal.setName("Журнал");
+            journalRepository.save(journal);
 
-        ReceivingDocument doc = new ReceivingDocument("DE-1", LocalDate.now(), receiver, deliverer);
-        doc.setJournal(journal);
+            // Подготовка должна пройти; отказ проверяем именно по ENTITY-гранту.
+            accessGrantRepository.save(grant(deniedUser, "BRANCH"));
+            accessGrantRepository.save(grant(deniedUser, "JOURNAL"));
+
+            ReceivingDocument document = new ReceivingDocument(
+                "DE-1", LocalDate.now(), receiver, deliverer);
+            document.setJournal(journal);
+            return document;
+        });
+
+        SecurityContext deniedContext = SecurityContextHolder.createEmptyContext();
+        deniedContext.setAuthentication(
+            new UsernamePasswordAuthenticationToken(deniedUser, "n/a", java.util.List.of()));
+        SecurityContextHolder.setContext(deniedContext);
 
         assertThatThrownBy(() -> receivingDocumentService.create(doc))
-            .isInstanceOf(ValidationException.class)
+            .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на изменение");
 
         ArgumentCaptor<Map<String, Object>> payload = ArgumentCaptor.forClass(Map.class);
@@ -92,5 +120,15 @@ class RlsDeniedEventTest {
         assertThat((String) payload.getValue().get("dimension")).isNotBlank();
         assertThat(payload.getValue().get("action")).isEqualTo("изменение");
         assertThat(payload.getValue().get("entity")).isEqualTo(ReceivingDocument.class.getName());
+    }
+
+    private static AccessGrant grant(String subjectKey, String dimension) {
+        AccessGrant grant = new AccessGrant();
+        grant.setSubjectType(AccessGrant.SubjectType.USER);
+        grant.setSubjectKey(subjectKey);
+        grant.setDimension(dimension);
+        grant.setCanRead(true);
+        grant.setCanUpdate(true);
+        return grant;
     }
 }

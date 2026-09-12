@@ -1,6 +1,8 @@
 package org.ipro.rls;
 
 import jakarta.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.springframework.beans.factory.InitializingBean;
@@ -11,7 +13,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -37,6 +41,8 @@ import java.util.TreeSet;
  * Собранная здесь карта "таблица → имена измерений" используется read-гейтом
  * (фаза 6): для SELECT по таблице сущности с фильтрами нужна активная сессия RLS —
  * иначе "тихая" утечка (фильтр не включён или вовсе не объявлен на запросе).
+ * Annotated entity outside the configured scan package is an error at the first
+ * policy lookup; an unknown policy is never treated as an unprotected entity.
  */
 @Component
 public class RlsDimensionRegistry implements InitializingBean {
@@ -45,6 +51,8 @@ public class RlsDimensionRegistry implements InitializingBean {
     private Map<String, RlsDimensionKind> dimensions = Map.of();
     private Map<String, Set<String>> tableDimensions = Map.of();
     private Map<Class<?>, Set<String>> classDimensions = Map.of();
+    private Map<Class<?>, RlsPolicyDescriptor> policies = Map.of();
+    private Map<String, Class<?>> grantValueTypes = Map.of();
 
     public RlsDimensionRegistry(@Value("${rls.dimension-scan-package:org.ip}") String basePackage) {
         this.basePackage = basePackage;
@@ -79,6 +87,8 @@ public class RlsDimensionRegistry implements InitializingBean {
         Map<String, RlsDimensionKind> found = new LinkedHashMap<>();
         Map<String, Set<String>> tableFilters = new LinkedHashMap<>();
         Map<Class<?>, Set<String>> classFilters = new LinkedHashMap<>();
+        Map<Class<?>, RlsPolicyDescriptor> foundPolicies = new LinkedHashMap<>();
+        Map<String, Class<?>> foundGrantValueTypes = new LinkedHashMap<>();
         for (var candidate : scanner.findCandidateComponents(basePackage)) {
             try {
                 Class<?> entityClass = Class.forName(candidate.getBeanClassName());
@@ -87,15 +97,51 @@ public class RlsDimensionRegistry implements InitializingBean {
                     filterDefNames.add(def.name());
                 }
                 Set<String> filterNames = new HashSet<>();
+                Map<String, String> filterConditions = new LinkedHashMap<>();
                 for (Filter filter : entityClass.getAnnotationsByType(Filter.class)) {
                     filterNames.add(filter.name());
+                    filterConditions.put(filter.name(), filter.condition());
                 }
                 Table table = entityClass.getAnnotation(Table.class);
                 String tableName = table == null ? null : table.name().trim();
                 Set<String> classDims = new TreeSet<>();
+                Map<String, RlsDimensionKind> classPolicy = new LinkedHashMap<>();
+                Map<String, RlsPolicyDescriptor.ValueRule> classValueRules = new LinkedHashMap<>();
 
                 for (RlsDimension ann : entityClass.getAnnotationsByType(RlsDimension.class)) {
+                    if (ann.value() == null || ann.value().isBlank()
+                            || !ann.value().equals(ann.value().trim())) {
+                        throw new IllegalStateException("Измерение RLS на " + entityClass.getName()
+                            + " должно быть непустым именем без внешних пробелов");
+                    }
                     classDims.add(ann.value());
+                    RlsPolicyDescriptor.ValueRule previousRule = classValueRules.putIfAbsent(
+                        ann.value(), new RlsPolicyDescriptor.ValueRule(
+                            List.of(ann.valuePaths()), ann.nullsNotApplicable(), ann.custom()));
+                    if (previousRule != null) {
+                        throw new IllegalStateException("RLS dimension " + ann.value()
+                            + " is declared more than once on " + entityClass.getName());
+                    }
+                    if (ann.grantValues()) {
+                        if (ann.kind() != RlsDimensionKind.FILTERABLE) {
+                            throw new IllegalStateException("CHECK_ONLY dimension " + ann.value()
+                                + " cannot expose grant values");
+                        }
+                        Class<?> previousRoot = foundGrantValueTypes.putIfAbsent(
+                            ann.value(), entityClass);
+                        if (previousRoot != null && previousRoot != entityClass) {
+                            throw new IllegalStateException("Dimension " + ann.value()
+                                + " has multiple grant-value roots: " + previousRoot.getName()
+                                + " and " + entityClass.getName());
+                        }
+                    }
+                    RlsDimensionKind previousOnClass = classPolicy.putIfAbsent(
+                        ann.value(), ann.kind());
+                    if (previousOnClass != null && previousOnClass != ann.kind()) {
+                        throw new IllegalStateException("Измерение RLS \"" + ann.value()
+                            + "\" повторно объявлено на " + entityClass.getName()
+                            + " с разными kind");
+                    }
                     RlsDimensionKind previous = found.putIfAbsent(ann.value(), ann.kind());
                     if (previous != null && previous != ann.kind()) {
                         throw new IllegalStateException("Измерение RLS \"" + ann.value() +
@@ -117,9 +163,29 @@ public class RlsDimensionRegistry implements InitializingBean {
                         if (tableName != null) {
                             tableFilters.computeIfAbsent(tableName, k -> new TreeSet<>()).add(ann.value());
                         }
+                        if (!ann.custom()) {
+                            String expected = expectedFilterCondition(entityClass, ann);
+                            String actual = filterConditions.get(ann.value());
+                            if (!normalizeCondition(expected).equals(normalizeCondition(actual))) {
+                                throw new IllegalStateException("RLS read/write policy mismatch on "
+                                    + entityClass.getName() + " for " + ann.value()
+                                    + ": descriptor expects [" + expected + "] but @Filter has ["
+                                    + actual + "]");
+                            }
+                        }
                     }
                 }
                 classFilters.put(entityClass, Set.copyOf(classDims));
+                boolean persistentEntity = entityClass.isAnnotationPresent(Entity.class);
+                boolean customPolicy = classValueRules.values().stream()
+                    .anyMatch(RlsPolicyDescriptor.ValueRule::custom);
+                if (persistentEntity && customPolicy
+                        && !RlsDimensionValue.class.isAssignableFrom(entityClass)) {
+                    throw new IllegalStateException("Protected entity " + entityClass.getName()
+                        + " has a custom policy and must implement RlsDimensionValue");
+                }
+                foundPolicies.put(entityClass, new RlsPolicyDescriptor(
+                    entityClass, persistentEntity, classPolicy, classValueRules));
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException("Не удалось загрузить класс " +
                     candidate.getBeanClassName() + " при сканировании @RlsDimension", e);
@@ -128,6 +194,8 @@ public class RlsDimensionRegistry implements InitializingBean {
         this.dimensions = Map.copyOf(found);
         this.tableDimensions = frozen(tableFilters);
         this.classDimensions = frozenClasses(classFilters);
+        this.policies = Map.copyOf(foundPolicies);
+        this.grantValueTypes = Map.copyOf(foundGrantValueTypes);
     }
 
     /** Имена всех измерений RLS, известных приложению — независимо от рода. */
@@ -161,7 +229,83 @@ public class RlsDimensionRegistry implements InitializingBean {
      * RlsUiGate (создание/изменение по правам) и read-гейтом (фаза 5).
      */
     public Set<String> dimensionsOf(Class<?> entityClass) {
-        return classDimensions.getOrDefault(entityClass, Set.of());
+        Objects.requireNonNull(entityClass, "entityClass");
+        Set<String> dimensions = classDimensions.get(entityClass);
+        if (dimensions != null) {
+            return dimensions;
+        }
+        if (entityClass.getAnnotationsByType(RlsDimension.class).length > 0) {
+            throw new IllegalStateException("RLS policy for " + entityClass.getName()
+                + " is not registered; include its package in rls.dimension-scan-package");
+        }
+        return Set.of();
+    }
+
+    /** Единый runtime descriptor класса; для незащищённого класса возвращается empty policy. */
+    public RlsPolicyDescriptor policyOf(Class<?> entityClass) {
+        Objects.requireNonNull(entityClass, "entityClass");
+        RlsPolicyDescriptor policy = policies.get(entityClass);
+        if (policy != null) {
+            return policy;
+        }
+        if (entityClass.getAnnotationsByType(RlsDimension.class).length > 0) {
+            throw new IllegalStateException("RLS policy for " + entityClass.getName()
+                + " is not registered; include its package in rls.dimension-scan-package");
+        }
+        return new RlsPolicyDescriptor(entityClass,
+            entityClass.isAnnotationPresent(Entity.class), Map.of(), Map.of());
+    }
+
+    public Class<?> grantValueType(String dimension) {
+        Class<?> type = grantValueTypes.get(dimension);
+        if (type == null) {
+            throw new IllegalArgumentException(
+                "No metadata-derived grant-value entity for dimension " + dimension);
+        }
+        return type;
+    }
+
+    public Set<String> grantValueDimensions() {
+        return grantValueTypes.keySet();
+    }
+
+    private static String expectedFilterCondition(Class<?> entityClass, RlsDimension annotation) {
+        List<String> predicates = new java.util.ArrayList<>();
+        for (String path : annotation.valuePaths()) {
+            String column;
+            if ("id".equals(path)) {
+                column = "id";
+            } else {
+                String root = path.contains(".") ? path.substring(0, path.indexOf('.')) : path;
+                java.lang.reflect.Field field = findField(entityClass, root);
+                JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
+                jakarta.persistence.Column basicColumn = field.getAnnotation(jakarta.persistence.Column.class);
+                column = joinColumn != null && !joinColumn.name().isBlank() ? joinColumn.name()
+                    : basicColumn != null && !basicColumn.name().isBlank() ? basicColumn.name() : root;
+            }
+            String allowed = column + " in (:allowedIds)";
+            predicates.add(annotation.nullsNotApplicable()
+                ? "(" + column + " is null or " + allowed + ")" : allowed);
+        }
+        return String.join(" and ", predicates);
+    }
+
+    private static java.lang.reflect.Field findField(Class<?> type, String name) {
+        Class<?> current = type;
+        while (current != null && current != Object.class) {
+            try {
+                return current.getDeclaredField(name);
+            } catch (NoSuchFieldException ignored) {
+                current = current.getSuperclass();
+            }
+        }
+        throw new IllegalStateException("RLS value path field " + name
+            + " does not exist on " + type.getName());
+    }
+
+    private static String normalizeCondition(String condition) {
+        return condition == null ? "" : condition.toLowerCase(java.util.Locale.ROOT)
+            .replaceAll("\\s+", "").replace("(", "").replace(")", "");
     }
 
     private static Map<String, Set<String>> frozen(Map<String, Set<String>> source) {

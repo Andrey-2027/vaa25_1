@@ -8,12 +8,20 @@ import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsGuardRequestFilter;
 import org.ipro.rls.RlsReadGate;
+import org.ipro.rls.RlsPolicyEnforcer;
+import org.ipro.rls.RlsRepositoryEnforcementAspect;
 import org.ipro.rls.RlsReadableIdsCache;
 import org.ipro.rls.RlsRoleResolver;
 import org.ipro.rls.RlsScopeResolver;
 import org.ipro.rls.RlsStatementGuard;
 import org.ipro.rls.RlsUiGate;
+import org.ipro.rls.RlsWriteGuardBridge;
+import org.ipro.rls.RlsHibernateWriteGuardInstaller;
+import jakarta.persistence.EntityManagerFactory;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.ipro.metadata.SectionMetadataRegistry;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -29,8 +37,8 @@ import org.springframework.web.context.annotation.SessionScope;
  *
  * Приложение поставляет реализации интерфейсов сцепки: {@link RlsCurrentUser}
  * (SecurityRlsUser в org.ip.security), {@link RlsRoleResolver}
- * (UserRepositoryRlsRoleResolver), {@code RlsDimensionValueSource} (Journal/Branch
- * DimensionValueSource).
+ * (UserRepositoryRlsRoleResolver). Grantable dimension values выводятся платформой
+ * из {@code @RlsDimension(grantValues = true)} и entity metadata.
  *
  * Репозитории: явный {@link EnableJpaRepositories} перечисляет ВСЕ базовые пакеты
  * ({@code org.ip} — прикладные репозитории, {@code org.ipro.rls} — AccessGrantRepository),
@@ -71,8 +79,10 @@ public class RlsAutoConfiguration {
     @ConditionalOnMissingBean
     public RlsFilterActivator rlsFilterActivator(RlsDimensionRegistry dimensionRegistry,
                                                  RlsReadableIdsCache readableIdsCache,
-                                                 RlsCurrentUser currentUser) {
-        return new RlsFilterActivator(dimensionRegistry, readableIdsCache, currentUser);
+                                                 RlsCurrentUser currentUser,
+                                                 ObjectProvider<org.ipro.rls.RlsBypassAudit> bypassAudit) {
+        return new RlsFilterActivator(dimensionRegistry, readableIdsCache, currentUser,
+            bypassAudit.getIfAvailable(org.ipro.rls.RlsBypassAudit::loggingOnly));
     }
 
     /**
@@ -104,6 +114,49 @@ public class RlsAutoConfiguration {
     public RlsReadGate rlsReadGate(AccessService accessService,
                                    RlsDimensionRegistry dimensionRegistry) {
         return new RlsReadGate(accessService, dimensionRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public org.ipro.rls.RlsDimensionValueCatalog rlsDimensionValueCatalog(
+            RlsDimensionRegistry dimensionRegistry,
+            RlsFilterActivator filterActivator,
+            org.ipro.metadata.MetadataResolver metadataResolver) {
+        return new org.ipro.rls.RlsDimensionValueCatalog(
+            dimensionRegistry, filterActivator, metadataResolver);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RlsPolicyEnforcer rlsPolicyEnforcer(
+            RlsDimensionRegistry dimensionRegistry,
+            RlsReadGate readGate,
+            RlsFilterActivator filterActivator,
+            AccessService accessService,
+            RlsCurrentUser currentUser,
+            ObjectProvider<org.ipro.telemetry.core.SecurityEventLogger> securityEventLogger) {
+        RlsPolicyEnforcer enforcer = new RlsPolicyEnforcer(dimensionRegistry, readGate,
+            filterActivator, accessService, currentUser,
+            java.util.Optional.ofNullable(securityEventLogger.getIfAvailable()));
+        return enforcer;
+    }
+
+    @Bean
+    public RlsHibernateWriteGuardInstaller rlsHibernateWriteGuardInstaller(
+            EntityManagerFactory entityManagerFactory,
+            RlsDimensionRegistry dimensionRegistry) {
+        return new RlsHibernateWriteGuardInstaller(entityManagerFactory, dimensionRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RlsRepositoryEnforcementAspect rlsRepositoryEnforcementAspect(
+            RlsDimensionRegistry dimensionRegistry,
+            RlsPolicyEnforcer policyEnforcer,
+            SectionMetadataRegistry sectionMetadataRegistry,
+            PlatformTransactionManager transactionManager) {
+        return new RlsRepositoryEnforcementAspect(dimensionRegistry, policyEnforcer,
+            sectionMetadataRegistry, transactionManager);
     }
 
     /**

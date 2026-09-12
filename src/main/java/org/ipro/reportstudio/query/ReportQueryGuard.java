@@ -3,6 +3,7 @@ package org.ipro.reportstudio.query;
 import org.hibernate.persister.entity.EntityPersister;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.rls.AccessService;
+import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.springframework.stereotype.Component;
@@ -124,7 +125,10 @@ public class ReportQueryGuard {
 
     private List<String> checkRls(Analysis analysis, Set<String> usedParams,
                                   Map<String, Class<?>> paramEntityClasses) {
-        String username = currentUser.username();
+        if (RlsContext.isBypassed()) {
+            return List.of();
+        }
+        String username = currentUser.requireAuthenticatedUsername();
         List<String> refused = new ArrayList<>();
         Set<String> alreadyRefused = new LinkedHashSet<>();
 

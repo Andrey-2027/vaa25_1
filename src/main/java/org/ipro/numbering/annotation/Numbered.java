@@ -34,6 +34,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Numbered {
 
+    /** Семантическая роль поля; стандартные роли можно переопределить через @NumberingPolicy. */
+    NumberingRole role() default NumberingRole.CUSTOM;
+
     /** Имена scope-измерений (в стиле @RlsDimension); пусто = GLOBAL (единая последовательность). */
     String[] scope() default {};
 
@@ -52,6 +55,9 @@ public @interface Numbered {
      */
     String pattern() default "{seq:000000}";
 
-    /** Поле сущности с {@link java.time.LocalDate} для расчёта периода (если {@code period() != NEVER}). */
-    String dateField() default "date";
+    /**
+     * Поле сущности с {@link java.time.LocalDate} для расчёта периода и date-токенов.
+     * Для непериодической нумерации может быть пустым.
+     */
+    String dateField() default "";
 }

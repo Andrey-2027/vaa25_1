@@ -79,7 +79,7 @@ public class SettingsAdminTab extends VerticalLayout {
             add(new Span("Разделы настроек не зарегистрированы (org.ip.settings пуст)."));
             return;
         }
-        String username = currentUser.username();
+        String username = currentUser.requireAuthenticatedUsername();
         for (GroupInfo group : groups) {
             add(buildGroup(group, username));
         }

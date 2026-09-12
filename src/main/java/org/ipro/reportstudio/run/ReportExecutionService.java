@@ -18,7 +18,11 @@ import org.ipro.reportstudio.query.ReportQueryAssembler;
 import org.ipro.reportstudio.query.ServiceParams;
 import org.ipro.reportstudio.render.ReportCompiler;
 import org.ipro.reportstudio.render.ReportExportFormat;
+import org.ipro.rls.RlsAccessDeniedException;
+import org.ipro.rls.RlsCurrentUser;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -44,18 +48,23 @@ private final ReportQueryGuard guard;
     private final ReportCompiler compiler;
     private final ReportArtifactCache cache;
     private final ReportQueryAssemblyService queryAssembler;
+    private final RlsCurrentUser currentUser;
+    private final ReportTaskExecutor taskExecutor;
 
     public ReportExecutionService(ReportQueryGuard guard, ReportQueryExecutor executor,
                                   ReportParamResolver resolver, EntityParamRefresher refresher,
-                                  ReportCompiler compiler, ReportArtifactCache cache) {
+                                  ReportCompiler compiler, ReportArtifactCache cache,
+                                  RlsCurrentUser currentUser, ReportTaskExecutor taskExecutor) {
         this(guard, executor, resolver, refresher, compiler, cache,
-                new ReportQueryAssemblyService(guard, resolver, refresher));
+                new ReportQueryAssemblyService(guard, resolver, refresher), currentUser,
+                taskExecutor);
     }
 
     public ReportExecutionService(ReportQueryGuard guard, ReportQueryExecutor executor,
                                   ReportParamResolver resolver, EntityParamRefresher refresher,
                                   ReportCompiler compiler, ReportArtifactCache cache,
-                                  ReportQueryAssemblyService queryAssembler) {
+                                  ReportQueryAssemblyService queryAssembler,
+                                  RlsCurrentUser currentUser, ReportTaskExecutor taskExecutor) {
         this.guard = guard;
         this.executor = executor;
         this.resolver = resolver;
@@ -63,11 +72,18 @@ private final ReportQueryGuard guard;
         this.compiler = compiler;
         this.cache = cache;
         this.queryAssembler = queryAssembler;
+        this.currentUser = currentUser;
+        this.taskExecutor = taskExecutor;
     }
 
     @Transactional(readOnly = true)
     public ReportRunResult run(ReportTemplate template, ReportContext context,
                                Map<String, Object> formValues, String localeTag, String zoneId) {
+        String owner = currentUser.requireAuthenticatedUsername();
+        if (!owner.equals(context.user())) {
+            throw new RlsAccessDeniedException(
+                "Report context belongs to another authenticated user");
+        }
         ReportQueryAssemblyService assembledService = queryAssembler;
         ReportQueryAssembler assembled;
         try {
@@ -82,7 +98,7 @@ private final ReportQueryGuard guard;
 
         String key = ReportArtifactCache.key(template, resolver.resolve(template.getParams(), context, formValues), context, localeTag, zoneId);
         JasperPrint print = compiler.compile(template, dataset);
-        cache.put(key, print);
+        cache.put(key, owner, print);
         return new ReportRunResult(print, key);
     }
 
@@ -91,7 +107,12 @@ private final ReportQueryGuard guard;
     }
 
     public Optional<JasperPrint> cached(String key) {
-        return cache.get(key);
+        return cache.get(key, currentUser.requireAuthenticatedUsername());
+    }
+
+    public void executeAsync(Authentication authentication, RequestAttributes requestAttributes,
+                             Runnable task) {
+        taskExecutor.execute(authentication, requestAttributes, task);
     }
 
     /**

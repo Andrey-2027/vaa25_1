@@ -12,6 +12,7 @@ import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.ureport.dom.UreportTemplate;
 import org.ipro.ureport.service.UreportTemplateService;
 import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsReadGate;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,7 +81,7 @@ public class ReportCatalogService {
             if (!includeDisabled && !template.isEnabled()) {
                 continue;
             }
-            if (!rlsReadGate.canRead(UreportTemplate.class, currentUser.username())) {
+            if (!rlsReadGate.canRead(UreportTemplate.class, currentUsername())) {
                 continue;
             }
             items.add(ureportItem(template));
@@ -104,7 +105,7 @@ public class ReportCatalogService {
     }
 
     private List<ReportCatalogItem> jrItems(String term, boolean includeDisabled) {
-        if (rlsReadGate.canRead(JrxmlTemplate.class, currentUser.username())) {
+        if (rlsReadGate.canRead(JrxmlTemplate.class, currentUsername())) {
             return jrxmlTemplateService.search(term).stream()
                     .filter(t -> includeDisabled || t.isEnabled())
                     .map(this::jrItem)
@@ -117,6 +118,12 @@ public class ReportCatalogService {
         return new ReportCatalogItem(template.getId(), ReportEngineType.JR,
                 template.getName(), template.getDescription(), template.isEnabled(),
                 null, !jrxmlTemplateService.fileExists(template.getFileName()));
+    }
+
+    private String currentUsername() {
+        return RlsContext.isBypassed()
+            ? currentUser.username()
+            : currentUser.requireAuthenticatedUsername();
     }
 
     private static boolean matches(String value, String needle) {

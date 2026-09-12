@@ -9,6 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Журнал изменений полей сущностей (field-level audit, этап 10):
@@ -50,7 +52,8 @@ public class EntityChangeLogEntity {
     @Column(name = "field_count")
     private Integer fieldCount;
 
-    @Column(columnDefinition = "jsonb", nullable = false)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false)
     private String payload;
 
     public Long getId() {

@@ -442,6 +442,31 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     }
 
     /**
+     * Проверить фактическое подключение секции к этой форме.
+     * Состав определяется созданными ItemTable, а не только sectionFilter.
+     */
+    public boolean hasAttachedSection(Class<?> rowClass) {
+        return sections.hasAttachedSection(rowClass);
+    }
+
+    /**
+     * Классы фактически подключённых секций в порядке их отображения.
+     */
+    public java.util.Set<Class<?>> attachedSectionClasses() {
+        return sections.attachedSectionClasses();
+    }
+
+    /**
+     * Получить безопасный снимок секции. Отсутствующая в варианте форма секция
+     * возвращается как {@link org.ipro.form.SectionPayload#absent()}, а не как
+     * пустая команда очистки.
+     */
+    public <R extends IdentifiableEntity> org.ipro.form.SectionPayload<R> sectionPayload(
+            Class<R> rowClass) {
+        return sections.sectionPayload(rowClass);
+    }
+
+    /**
      * Типизированный доступ к табличной части по классу строки.
      *
      * Поиск по точному {@link ItemTable#getRowClass()}. Если табличная часть не найдена —
@@ -455,17 +480,19 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     }
 
     /**
-     * Кросс-валидация всех табличных частей (см. TableSectionService.validateRows()).
-     * Вызывается координатором формы ДО сохранения шапки — чтобы не оставить документ
-     * в частично сохранённом состоянии при ошибке в строках.
+     * Предварительная UI-кросс-валидация табличных частей (см.
+     * TableSectionService.validateRows()). Metadata-driven aggregate save повторяет
+     * authoritative validation внутри транзакции; этот метод оставлен для раннего
+     * отображения ошибок и transition compatibility.
      */
     public List<String> validateTableSections() {
         return sections.validateTableSections(entity);
     }
 
     /**
-     * Синхронизирует строки всех табличных частей с БД для уже сохранённого родителя.
-     * Вызывается координатором формы ПОСЛЕ успешного service.save(entity).
+     * Переходная синхронизация строк с БД для уже сохранённого родителя.
+     * Metadata-driven aggregate save вместо этого возвращает persisted rows и применяет
+     * их без отдельного второго persistence шага.
      */
     public void commitTableSections(T savedEntity) {
         sections.commitTableSections(savedEntity);
@@ -677,7 +704,7 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         OperationScope scope = null;
         try {
             // ui-намерение пользователя; авторитетное бизнес-событие save:<aggregate>
-            // эмитит ровно один раз use case — см. ReceivingDocumentSaveUseCase
+            // эмитит ровно один раз aggregate save service (metadata-driven либо custom).
             scope = TelemetryBridge.beginOperation("ui:save-intent:" + entityClass.getSimpleName());
             if (onSave != null) {
                 onSave.run();

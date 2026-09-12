@@ -2,6 +2,7 @@ package org.ipro.rls;
 
 import java.util.List;
 import java.util.Map;
+import org.hibernate.proxy.HibernateProxy;
 
 /**
  * Ответы "что разрешено делать с сущностью" для UI (кнопки, формы, tooltips) — без
@@ -51,8 +52,15 @@ public class RlsUiGate {
         if (RlsContext.isBypassed()) {
             return AccessDecision.ALLOWED;
         }
-        String username = currentUser.username();
-        for (String dimension : dimensionRegistry.dimensionsOf(entityClass)) {
+        RlsPolicyDescriptor policy = dimensionRegistry.policyOf(entityClass);
+        if (!policy.protectedEntity()) {
+            return AccessDecision.ALLOWED;
+        }
+        String username = authenticatedOrNull();
+        if (username == null) {
+            return deniedUnauthenticated();
+        }
+        for (String dimension : policy.dimensions().keySet()) {
             if (!accessService.canUpdate(dimension, null, username)) {
                 return new AccessDecision(false,
                     "Нет прав на создание (измерение " + dimension + ")");
@@ -70,13 +78,33 @@ public class RlsUiGate {
     }
 
     private AccessDecision canWrite(Object entity, PermissionCheck permission, String actionName) {
-        if (RlsContext.isBypassed() || !(entity instanceof RlsDimensionValue rdv)) {
+        if (RlsContext.isBypassed() || entity == null) {
             return AccessDecision.ALLOWED;
         }
-        String username = currentUser.username();
-        for (Map.Entry<String, List<RlsCheckValue>> entry : rdv.getRlsChecks().entrySet()) {
+        Class<?> entityClass = entityType(entity);
+        RlsPolicyDescriptor policy = dimensionRegistry.policyOf(entityClass);
+        if (!policy.protectedEntity()) {
+            return AccessDecision.ALLOWED;
+        }
+        String username = authenticatedOrNull();
+        if (username == null) {
+            return deniedUnauthenticated();
+        }
+        Map<String, List<RlsCheckValue>> checks;
+        try {
+            checks = policy.checksOf(entity);
+        } catch (RuntimeException invalidPolicy) {
+            return new AccessDecision(false, "RLS policy не может вычислить значения сущности");
+        }
+        for (Map.Entry<String, List<RlsCheckValue>> entry : checks.entrySet()) {
+            if (entry.getValue() == null || entry.getValue().isEmpty()) {
+                return new AccessDecision(false, "RLS policy сущности не содержит проверок");
+            }
             String dimension = entry.getKey();
             for (RlsCheckValue check : entry.getValue()) {
+                if (check == null) {
+                    return new AccessDecision(false, "RLS policy сущности содержит пустую проверку");
+                }
                 if (check instanceof RlsCheckValue.NotApplicable) {
                     continue; // сознательно не участвует в этом измерении — пройдено автоматически
                 }
@@ -89,6 +117,25 @@ public class RlsUiGate {
             }
         }
         return AccessDecision.ALLOWED;
+    }
+
+    private String authenticatedOrNull() {
+        try {
+            return currentUser.requireAuthenticatedUsername();
+        } catch (RlsAccessDeniedException unauthenticated) {
+            return null;
+        }
+    }
+
+    private static AccessDecision deniedUnauthenticated() {
+        return new AccessDecision(false, "Нет аутентифицированного субъекта");
+    }
+
+    private static Class<?> entityType(Object entity) {
+        if (entity instanceof HibernateProxy proxy) {
+            return proxy.getHibernateLazyInitializer().getPersistentClass();
+        }
+        return entity.getClass();
     }
 
     @FunctionalInterface

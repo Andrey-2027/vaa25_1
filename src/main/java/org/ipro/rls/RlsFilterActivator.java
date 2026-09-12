@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -27,7 +29,7 @@ import java.util.function.Supplier;
  *
  * Как следствие, единственный оставшийся риск того же типа, что и с 5-6 путями чтения
  * данных (см. обсуждение RLS) — забыть вызвать ensureRlsEnabled в НОВОМ месте, которое
- * само лезет в БД мимо уже покрытых AbstractBaseService/AbstractTableSectionService/
+ * само лезет в БД мимо уже покрытых AbstractBaseService/GenericOwnedSectionService/
  * LookupService/ReferenceCheckService. Само по себе ensureRlsEnabled никогда не роняет
  * "тихую" утечку — оно либо включает фильтр, либо (RlsContext.isBypassed()) сознательно
  * его не включает; тихой утечкой остаётся только полностью не вызванный метод.
@@ -37,15 +39,27 @@ public class RlsFilterActivator {
 
     private static final String ACTIVATED_PROPERTY = "org.ipro.rls.activated";
 
+    private record Activation(String username, long grantVersion) implements java.io.Serializable {
+    }
+
     private final RlsDimensionRegistry dimensionRegistry;
     private final RlsReadableIdsCache readableIdsCache;
     private final RlsCurrentUser currentUser;
+    private final RlsBypassAudit bypassAudit;
 
     public RlsFilterActivator(RlsDimensionRegistry dimensionRegistry, RlsReadableIdsCache readableIdsCache,
                               RlsCurrentUser currentUser) {
+        this(dimensionRegistry, readableIdsCache, currentUser, RlsBypassAudit.loggingOnly());
+    }
+
+    public RlsFilterActivator(RlsDimensionRegistry dimensionRegistry,
+                              RlsReadableIdsCache readableIdsCache,
+                              RlsCurrentUser currentUser,
+                              RlsBypassAudit bypassAudit) {
         this.dimensionRegistry = dimensionRegistry;
         this.readableIdsCache = readableIdsCache;
         this.currentUser = currentUser;
+        this.bypassAudit = bypassAudit;
     }
 
     /**
@@ -59,12 +73,20 @@ public class RlsFilterActivator {
         if (RlsContext.isBypassed()) {
             return;
         }
-        if (Boolean.TRUE.equals(entityManager.getProperties().get(ACTIVATED_PROPERTY))) {
+        Session session = entityManager.unwrap(Session.class);
+        String username = currentUser.username();
+        Activation requested = new Activation(username, AccessGrantVersion.current());
+        if (requested.equals(entityManager.getProperties().get(ACTIVATED_PROPERTY))) {
             return;
         }
 
-        Session session = entityManager.unwrap(Session.class);
-        String username = currentUser.username();
+        // A reused session must never retain predicates of another subject or grant version.
+        for (String dimension : dimensionRegistry.dimensions()) {
+            if (dimensionRegistry.kindOf(dimension) == RlsDimensionKind.FILTERABLE
+                    && session.getEnabledFilter(dimension) != null) {
+                session.disableFilter(dimension);
+            }
+        }
 
         // набор измерений, обработанных для ЭТОЙ сессии (включён фильтр ИЛИ сознательно
         // пропущен из-за wildcard-гранта) — для RLS-канарейки RlsStatementGuard
@@ -89,7 +111,7 @@ public class RlsFilterActivator {
             processed.add(dimension);
         }
 
-        entityManager.setProperty(ACTIVATED_PROPERTY, Boolean.TRUE);
+        entityManager.setProperty(ACTIVATED_PROPERTY, requested);
         RlsStatementGuard.markProcessed(processed);
     }
 
@@ -108,34 +130,64 @@ public class RlsFilterActivator {
      * ссылки под недоступным пользователю измерением, и получить рассинхрон в БД,
      * невидимый удалившему.
      */
-    public <T> T withRlsDisabled(EntityManager entityManager, Supplier<T> action) {
-        RlsStatementGuard.beginConsent();
-        try {
-            Session session = entityManager.unwrap(Session.class);
-            List<String> disabled = new ArrayList<>();
-            for (String dimension : dimensionRegistry.dimensions()) {
-                if (dimensionRegistry.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY) {
-                    continue; // никогда не был включён — см. ensureRlsEnabled
-                }
-                if (session.getEnabledFilter(dimension) != null) {
-                    session.disableFilter(dimension);
-                    disabled.add(dimension);
-                }
+    public <T> T withReferenceIntegrityCheck(EntityManager entityManager, Supplier<T> action) {
+        return withRlsDisabled(entityManager, RlsBypassScope.REFERENCE_INTEGRITY_CHECK,
+            "count all references before delete", action);
+    }
+
+    public <T> T withDimensionAdministration(EntityManager entityManager, String dimension,
+                                              Supplier<T> action) {
+        String normalized = dimension == null ? "" : dimension.trim().toUpperCase(java.util.Locale.ROOT);
+        String reason = switch (normalized) {
+            case "JOURNAL" -> "list all JOURNAL dimension values";
+            case "BRANCH" -> "list all BRANCH dimension values";
+            default -> throw new IllegalArgumentException(
+                "Dimension is not approved for privileged administration: " + dimension);
+        };
+        return withRlsDisabled(entityManager, RlsBypassScope.RLS_ADMINISTRATION, reason, action);
+    }
+
+    private <T> T withRlsDisabled(EntityManager entityManager,
+                                  RlsBypassScope scope,
+                                  String reason,
+                                  Supplier<T> action) {
+        String requestedBy = currentUser.requireAuthenticatedUsername();
+        Session session = entityManager.unwrap(Session.class);
+        Map<String, List<Long>> disabled = new LinkedHashMap<>();
+        for (String dimension : dimensionRegistry.dimensions()) {
+            if (dimensionRegistry.kindOf(dimension) != RlsDimensionKind.CHECK_ONLY
+                    && session.getEnabledFilter(dimension) != null) {
+                disabled.put(dimension, readableIdsCache.getReadableIds(dimension, requestedBy));
             }
-            try {
-                return action.get();
-            } finally {
-                String username = currentUser.username();
-                for (String dimension : disabled) {
-                    List<Long> allowedIds = readableIdsCache.getReadableIds(dimension, username);
-                    if (allowedIds != null) {
-                        session.enableFilter(dimension).setParameterList("allowedIds", allowedIds);
-                    }
-                }
-            }
-        } finally {
-            // после восстановления фильтров — чтобы гейт не поймал ни один SQL из этого окна
-            RlsStatementGuard.endConsent();
         }
+        try {
+            T result = RlsContext.callAsSystem(scope, reason, requestedBy, () -> {
+                disabled.keySet().forEach(session::disableFilter);
+                try {
+                    return action.get();
+                } finally {
+                    disabled.forEach((dimension, allowedIds) -> {
+                        if (allowedIds != null) {
+                            session.enableFilter(dimension).setParameterList("allowedIds", allowedIds);
+                        }
+                    });
+                }
+            });
+            bypassAudit.record(scope, reason, requestedBy, true, null);
+            return result;
+        } catch (RuntimeException | Error failure) {
+            bypassAudit.record(scope, reason, requestedBy, false, failure);
+            throw failure;
+        }
+    }
+
+    /**
+     * Legacy source-compatibility shim. Untyped bypasses are deliberately disabled:
+     * callers must state a narrow scope and reason.
+     */
+    @Deprecated(forRemoval = false)
+    public <T> T withRlsDisabled(EntityManager entityManager, Supplier<T> action) {
+        throw new UnsupportedOperationException(
+            "Untyped RLS bypass is disabled; use withRlsDisabled(entityManager, scope, reason, action)");
     }
 }

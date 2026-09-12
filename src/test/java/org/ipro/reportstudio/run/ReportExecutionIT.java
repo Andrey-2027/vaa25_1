@@ -103,7 +103,8 @@ class ReportExecutionIT {
         ReportCompiler compiler = new JasperReportCompiler();
         var artifactCache = new ReportArtifactCache(4);
 
-        service = new ReportExecutionService(guard, executor, resolver, refresher, compiler, artifactCache);
+        service = new ReportExecutionService(guard, executor, resolver, refresher, compiler,
+            artifactCache, () -> CurrentUser.username(), new ReportTaskExecutor(Runnable::run));
 
         Journal journalA = new Journal();
         journalA.setCode("A");

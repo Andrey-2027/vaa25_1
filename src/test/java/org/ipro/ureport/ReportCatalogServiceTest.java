@@ -40,6 +40,7 @@ class ReportCatalogServiceTest {
         when(readGate.canRead(any(), anyString())).thenReturn(true);
         RlsCurrentUser currentUser = mock(RlsCurrentUser.class);
         when(currentUser.username()).thenReturn("admin");
+        when(currentUser.requireAuthenticatedUsername()).thenReturn("admin");
         catalogService = new ReportCatalogService(udrService, ureportService,
                 jrService, readGate, currentUser);
     }

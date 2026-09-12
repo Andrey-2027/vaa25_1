@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-09-11",
+  "workspaceContract": {
+    "applicationDirectory": "GitVaa25",
+    "dependencyRoot": "..",
+    "pathPolicy": "All dependency paths are relative to the GitVaa25 checkout."
+  },
+  "toolchain": {
+    "mavenDistribution": "IntelliJ IDEA bundled Maven",
+    "testedMavenVersion": "3.9.9",
+    "javaMajor": 21
+  },
+  "projects": [
+    {
+      "id": "dynamicreports",
+      "relativePath": "../DynamicReport7",
+      "dependsOn": [],
+      "source": {
+        "kind": "vendored-source-copy",
+        "upstream": "https://github.com/dynamicreports/dynamicreports",
+        "upstreamRevision": "c95f34d",
+        "gitCommit": null,
+        "state": "No local .git directory; upstream revision is documented by README-vendor.md and pom.xml."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "1b1932764f7018d3e5d2b718a2a4ac790e5c872e03043276022219df9890a27b",
+        "fileCount": 1321,
+        "inputs": [
+          "pom.xml",
+          "src",
+          "dynamicreports-core/pom.xml",
+          "dynamicreports-core/src"
+        ]
+      },
+      "artifacts": [
+        "net.sourceforge.dynamicreports:dynamicreports-parent:7.0.0-ip.20260813",
+        "net.sourceforge.dynamicreports:dynamicreports-core:7.0.0-ip.20260813"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "dynamicreports-core", "-am", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "reportui",
+      "relativePath": "../ReportFlowUI",
+      "dependsOn": ["dynamicreports"],
+      "source": {
+        "kind": "source-copy",
+        "gitCommit": null,
+        "state": "No local .git directory."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "3c93e54a57d92b747f4aab5549cd7616f32d0beb32918ed627c35d592d4ca420",
+        "fileCount": 13,
+        "inputs": [
+          "pom.xml",
+          "reportui-core/pom.xml",
+          "reportui-core/src"
+        ]
+      },
+      "artifacts": [
+        "org.vaadin.reports:reportui-flow:1.0-SNAPSHOT",
+        "org.vaadin.reports:reportui-core:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "reportui-core", "-am", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "filtergrid",
+      "relativePath": "../FilterGrid",
+      "dependsOn": [],
+      "source": {
+        "kind": "git-unborn-worktree",
+        "gitCommit": null,
+        "branch": "master",
+        "state": "Repository has no HEAD commit; build inputs are untracked or staged."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "bfa65774d8090d8aac3f9da654cb96998060f39f64ee9ce1b494f4e61318e2be",
+        "fileCount": 160,
+        "inputs": [
+          "pom.xml",
+          "filtergrid-core/pom.xml",
+          "filtergrid-core/src",
+          "filtergrid-jpa/pom.xml",
+          "filtergrid-jpa/src",
+          "filtergrid-inmemory/pom.xml",
+          "filtergrid-inmemory/src",
+          "filtergrid-grouping/pom.xml",
+          "filtergrid-grouping/src",
+          "filtergrid-projection/pom.xml",
+          "filtergrid-projection/src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:FilterGrid:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-core:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-jpa:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-inmemory:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-grouping:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-projection:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "filtergrid-jpa,filtergrid-grouping,filtergrid-inmemory,filtergrid-projection", "-am", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "crudui",
+      "relativePath": "../crudui",
+      "dependsOn": [],
+      "source": {
+        "kind": "source-copy",
+        "gitCommit": null,
+        "state": "No local .git directory."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "7946b5e7b6ea1a9387d98146aa34d94d6211404d727f0932ac0f9b6d4d1db0bc",
+        "fileCount": 11,
+        "inputs": [
+          "pom.xml",
+          "crudui-core/pom.xml",
+          "crudui-core/src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro.crudui:crudui-parent:1.0-SNAPSHOT",
+        "org.ipro.crudui:crudui-core:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "crudui-core", "-am", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "ureport3",
+      "relativePath": "../UReportFork2/ureport3",
+      "dependsOn": [],
+      "source": {
+        "kind": "dirty-git-worktree",
+        "upstream": "https://gitee.com/zhenglm/ureport3.git",
+        "gitCommit": "28e7bbc0587cafd9f475930d4f0dc53a776d3a52",
+        "branch": "master",
+        "state": "Tracked and untracked local changes are part of the recorded fingerprint."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "7fe1ada3089bc6c1e7486f44b33612881af70f5a08056bf86dcb8898ed9ba23f",
+        "fileCount": 544,
+        "inputs": [
+          "ureport3-parent/pom.xml",
+          "ureport3-core/pom.xml",
+          "ureport3-core/src",
+          "ureport3-font/pom.xml",
+          "ureport3-font/src",
+          "ureport3-console/pom.xml",
+          "ureport3-console/src"
+        ]
+      },
+      "artifacts": [
+        "com.bstek.ureport:ureport3-parent:3.0.1",
+        "com.bstek.ureport:ureport3-core:3.0.1",
+        "com.bstek.ureport:ureport3-font:3.0.1",
+        "com.bstek.ureport:ureport3-console:3.0.1"
+      ],
+      "buildSteps": [
+        {
+          "pom": "ureport3-parent/pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        },
+        {
+          "pom": "ureport3-core/pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        },
+        {
+          "pom": "ureport3-font/pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        },
+        {
+          "pom": "ureport3-console/pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ],
+      "licenseGate": "UReport3 transitively uses iText 5.5.13 (AGPL/commercial); distribution decision remains open."
+    }
+  ],
+  "application": {
+    "relativePath": ".",
+    "pom": "pom.xml",
+    "arguments": ["clean", "verify"]
+  },
+  "auxiliaryProjects": [
+    {
+      "relativePath": "../JrJpqlExecuter",
+      "artifact": "org.ipro:jr-jpql-executer:1.0.0",
+      "purpose": "Jaspersoft Studio extension; not a GitVaa Maven dependency and not part of the application bootstrap."
+    }
+  ]
+}

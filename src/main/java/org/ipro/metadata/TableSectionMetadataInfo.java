@@ -1,31 +1,36 @@
 package org.ipro.metadata;
 
 import org.ipro.metadata.annotation.TableSectionMetadata;
+import org.ipro.metadata.annotation.SectionPersistenceMode;
+import org.ipro.metadata.annotation.SectionRlsPolicy;
 
 import java.lang.reflect.Field;
 import java.util.List;
 
 /**
- * Immutable информация о табличной части: аннотация @TableSectionMetadata + reflect-поля
- * связи с родителем + списки полей строки (переиспользуют тот же сканер, что и EntityMetadataInfo).
+ * Immutable resolved descriptor owned-секции: root/row types, persistence mode,
+ * reflect-поля связи и номера строки, UI metadata и validation constraints.
  *
  * Создаётся в MetadataResolver.resolveTableSections() и кэшируется там же.
  */
 public final class TableSectionMetadataInfo {
 
     private final Class<?> rowClass;
+    private final Class<?> ownerClass;
     private final TableSectionMetadata annotation;
     private final Field parentField;       // reflect на поле связи со строкой, например "document"
     private final Field lineNumberField;   // reflect на поле номера строки, может быть null
     private final List<FieldMetadataInfo> formFields; // поля диалога строки (аналог getFormFields())
     private final List<FieldMetadataInfo> gridFields; // колонки грида строк (аналог getGridFields())
 
-    public TableSectionMetadataInfo(Class<?> rowClass,
+    public TableSectionMetadataInfo(Class<?> ownerClass,
+                                     Class<?> rowClass,
                                      TableSectionMetadata annotation,
                                      Field parentField,
                                      Field lineNumberField,
                                      List<FieldMetadataInfo> formFields,
                                      List<FieldMetadataInfo> gridFields) {
+        this.ownerClass = ownerClass;
         this.rowClass = rowClass;
         this.annotation = annotation;
         this.parentField = parentField;
@@ -38,8 +43,33 @@ public final class TableSectionMetadataInfo {
         return rowClass;
     }
 
+    /** Класс aggregate root, который явно объявил секцию через @TableSections. */
+    public Class<?> getOwnerClass() {
+        return ownerClass;
+    }
+
     public Class<?> getParentEntityClass() {
-        return annotation.parentEntity();
+        return ownerClass;
+    }
+
+    public String getKey() {
+        return ownerClass.getSimpleName() + "." + rowClass.getSimpleName();
+    }
+
+    public SectionPersistenceMode getPersistenceMode() {
+        return annotation.persistence();
+    }
+
+    public SectionRlsPolicy getRlsPolicy() {
+        return annotation.rlsPolicy();
+    }
+
+    public Field getParentField() {
+        return parentField;
+    }
+
+    public Field getLineNumberField() {
+        return lineNumberField;
     }
 
     public String getTitle() {

@@ -46,8 +46,9 @@ import java.util.function.Supplier;
  *
  * Работает со строками как со списком в памяти, пока пользователь редактирует
  * родительскую форму: добавление/изменение/удаление строки не идёт в БД сразу.
- * Синхронизация происходит один раз — в commit(savedParent), который вызывает
- * ItemForm.commitTableSections() после успешного сохранения шапки.
+ * Синхронизация по умолчанию происходит один раз — metadata-driven aggregate save
+ * возвращает persisted rows, а форма применяет их через applyPersistedRows(). Старый
+ * commit(savedParent)/ItemForm.commitTableSections() оставлен только как переходный API.
  *
  * Колонки грида строятся через {@link ColumnPath} (та же модель, что и у ListForm) —
  * вложенные пути через точку, кастомные заголовки и сохранённые "Виды" (GridFormView) —
@@ -315,8 +316,8 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
      * Синхронизирует строки в БД для уже сохранённого родителя и перечитывает их обратно
      * (чтобы получить проставленные id и номера строк).
      *
-     * @deprecated переходный период. В новом пути сохранения (агрегат + use case) строки
-     * после save возвращает сам use case, а UI применяет их через
+     * @deprecated переходный период. В новом пути сохранения (metadata-driven aggregate
+     * service) строки после save возвращает aggregate result, а UI применяет их через
      * {@link #applyPersistedRows(Object, List)} — без повторного запроса к БД.
      * commit() будет удалён после перевода всех callers.
      */
@@ -346,7 +347,7 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
      * {@code service.findByParent(...)} и мог потерять состояние, пришедшее из use case.
      *
      * @param savedParent    сохранённый родитель (уже с id)
-     * @param persistedRows  строки, возвращённые use case после сохранения
+     * @param persistedRows  строки, возвращённые aggregate save service после сохранения
      */
     public void applyPersistedRows(P savedParent, List<T> persistedRows) {
         this.parent = savedParent;

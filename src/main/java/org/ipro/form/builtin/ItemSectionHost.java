@@ -4,10 +4,14 @@ import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.form.SectionPayload;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -50,6 +54,9 @@ final class ItemSectionHost<T extends IdentifiableEntity> {
 
     public void setReadOnlySections(Collection<Class<?>> rowClasses) {
         this.readOnlySections = rowClasses == null ? List.of() : List.copyOf(rowClasses);
+        for (ItemTable<?, T> table : tableSections) {
+            table.setReadOnly(isSectionReadOnly(table.getRowClass()));
+        }
     }
 
     public boolean isSectionReadOnly(Class<?> rowClass) {
@@ -70,6 +77,9 @@ final class ItemSectionHost<T extends IdentifiableEntity> {
     public void addTableSection(String title, ItemTable<?, T> table) {
         tableSections.add(table);
         tableSectionTitles.add(title);
+        if (isSectionReadOnly(table.getRowClass())) {
+            table.setReadOnly(true);
+        }
 
         if (tableSections.size() == 1) {
             renderSingleSection(title, table);
@@ -112,6 +122,52 @@ final class ItemSectionHost<T extends IdentifiableEntity> {
     }
 
     /**
+     * Проверить, подключена ли секция к текущей форме фактически.
+     *
+     * <p>Метод намеренно смотрит на созданные {@link ItemTable}, а не на
+     * {@link #sectionFilter}: фильтр — это только инструкция фабрике, а список
+     * таблиц — источник истины после сборки формы.</p>
+     */
+    public boolean hasAttachedSection(Class<?> rowClass) {
+        return tableSections.stream()
+            .anyMatch(table -> table.getRowClass().equals(rowClass));
+    }
+
+    /**
+     * Классы фактически подключённых секций в порядке их отображения.
+     */
+    public Set<Class<?>> attachedSectionClasses() {
+        Set<Class<?>> result = new LinkedHashSet<>();
+        for (ItemTable<?, T> table : tableSections) {
+            result.add(table.getRowClass());
+        }
+        return Collections.unmodifiableSet(result);
+    }
+
+    /**
+     * Безопасно получить снимок секции: для отсутствующей секции возвращается
+     * {@link SectionPayload#absent()}, а не исключение и не пустая команда очистки.
+     * Обязательный прямой доступ через {@link #tableSection(Class)} сохраняет
+     * прежнюю строгую семантику и по-прежнему бросает при отсутствии секции.
+     */
+    @SuppressWarnings("unchecked")
+    public <R extends IdentifiableEntity> SectionPayload<R> sectionPayload(Class<R> rowClass) {
+        List<ItemTable<?, T>> matches = tableSections.stream()
+            .filter(table -> table.getRowClass().equals(rowClass))
+            .toList();
+        if (matches.isEmpty()) {
+            return SectionPayload.absent();
+        }
+        if (matches.size() > 1) {
+            throw new IllegalStateException(
+                "Найдено несколько табличных частей для " + rowClass.getSimpleName()
+                    + " — неоднозначный payload");
+        }
+        ItemTable<?, T> table = matches.get(0);
+        return SectionPayload.attached((List<R>) table.getRows());
+    }
+
+    /**
      * Типизированный доступ к табличной части по классу строки.
      *
      * Поиск по точному {@link ItemTable#getRowClass()}. Если табличная часть не найдена —
@@ -138,9 +194,9 @@ final class ItemSectionHost<T extends IdentifiableEntity> {
     }
 
     /**
-     * Кросс-валидация всех табличных частей (см. TableSectionService.validateRows()).
-     * Вызывается координатором формы ДО сохранения шапки — чтобы не оставить документ
-     * в частично сохранённом состоянии при ошибке в строках.
+     * Предварительная UI-кросс-валидация всех табличных частей (см.
+     * TableSectionService.validateRows()). Authoritative validation выполняется
+     * aggregate save service внутри транзакции.
      */
     public List<String> validateTableSections(T entity) {
         List<String> errors = new ArrayList<>();
@@ -151,8 +207,8 @@ final class ItemSectionHost<T extends IdentifiableEntity> {
     }
 
     /**
-     * Синхронизирует строки всех табличных частей с БД для уже сохранённого родителя.
-     * Вызывается координатором формы ПОСЛЕ успешного service.save(entity).
+     * Переходная двухфазная синхронизация строк с БД. Новый metadata-driven путь
+     * применяет persisted rows из результата aggregate save и этот метод не вызывает.
      */
     public void commitTableSections(T savedEntity) {
         for (ItemTable<?, T> table : tableSections) {

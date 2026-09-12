@@ -8,8 +8,6 @@ import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import org.ipro.metadata.annotation.*;
 import org.ipro.rls.RlsDimension;
-import org.ipro.rls.RlsCheckValue;
-import org.ipro.rls.RlsDimensionValue;
 import org.ipro.crud.BaseEntity;
 import org.ipro.metadata.HasDisplayName;
 
@@ -23,8 +21,9 @@ import org.ipro.metadata.HasDisplayName;
  */
 @Entity
 @Table(name = "workshop")
-@RlsDimension("BRANCH")
-@FilterDef(name = "BRANCH", parameters = @ParamDef(name = "allowedIds", type = Long.class))
+@RlsDimension(value = "BRANCH", valuePaths = "branch.id", nullsNotApplicable = true)
+@FilterDef(name = "BRANCH", parameters = @ParamDef(name = "allowedIds", type = Long.class),
+    applyToLoadByKey = true)
 @Filter(name = "BRANCH", condition = "(branch_id is null or branch_id in (:allowedIds))")
 @EntityMetadata(
     listFormTitle = "Цеха",
@@ -35,7 +34,7 @@ import org.ipro.metadata.HasDisplayName;
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     displaySortFields = {"code"}  // = getDisplayName()
 )
-public class Workshop extends BaseEntity implements HasDisplayName, RlsDimensionValue {
+public class Workshop extends BaseEntity implements HasDisplayName {
 
     @NotBlank
     @Size(max = 20)
@@ -107,10 +106,4 @@ public class Workshop extends BaseEntity implements HasDisplayName, RlsDimension
         return code;
     }
 
-    /** Цех без Филиала (branch == null) в RLS по измерению "BRANCH" не участвует вообще. */
-    @Override
-    public java.util.Map<String, java.util.List<RlsCheckValue>> getRlsChecks() {
-        RlsCheckValue check = branch != null ? RlsCheckValue.of(branch.getId()) : RlsCheckValue.notApplicable();
-        return java.util.Map.of("BRANCH", java.util.List.of(check));
-    }
 }

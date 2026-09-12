@@ -14,6 +14,8 @@ import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.data.ReportDataset;
 import org.ipro.reportstudio.data.ReportRow;
 import org.ipro.rls.RlsFilterActivator;
+import org.ipro.rls.RlsContext;
+import org.ipro.rls.RlsCurrentUser;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -24,9 +26,10 @@ import java.util.Set;
 
 /**
  * Выполнение JPQL-запроса отчёта (Фаза 2). Работает только поверх результата
- * {@link ReportQueryGuard} (allowed): сам прав не проверяет, RLS применяет
- * через существующую обвязку {@link RlsFilterActivator#ensureRlsEnabled} —
- * те же фильтры, что у ListForm.
+ * {@link ReportQueryGuard} (allowed): executor дополнительно требует
+ * аутентифицированный subject (кроме typed {@link RlsContext} bypass) и применяет
+ * RLS через существующую обвязку {@link RlsFilterActivator#ensureRlsEnabled} — те же
+ * фильтры, что у ListForm.
  * <p>
  * Детали: результат — Tuple (не Criteria), жёсткий лимит строк maxRows,
  * стартовые hints (readOnly, fetchSize, timeout), биндинг параметров по
@@ -38,10 +41,19 @@ public class ReportQueryExecutor {
 
     private final EntityManager entityManager;
     private final RlsFilterActivator rlsFilterActivator;
+    /** Nullable only for source-compatible hand-built tests; Spring wiring is fail-closed. */
+    private final RlsCurrentUser currentUser;
 
     public ReportQueryExecutor(EntityManager entityManager, RlsFilterActivator rlsFilterActivator) {
+        this(entityManager, rlsFilterActivator, null);
+    }
+
+    public ReportQueryExecutor(EntityManager entityManager,
+                               RlsFilterActivator rlsFilterActivator,
+                               RlsCurrentUser currentUser) {
         this.entityManager = entityManager;
         this.rlsFilterActivator = rlsFilterActivator;
+        this.currentUser = currentUser;
     }
 
     /**
@@ -64,6 +76,9 @@ public class ReportQueryExecutor {
         QueryField[] schema = fields.toArray(QueryField[]::new);
 
         jpql = ServiceParams.expand(jpql);
+        if (currentUser != null && !RlsContext.isBypassed()) {
+            currentUser.requireAuthenticatedUsername();
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         applyServerStatementTimeout(timeoutMs);
         Query query = entityManager.createQuery(jpql, Tuple.class);

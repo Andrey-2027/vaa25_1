@@ -7,6 +7,7 @@ import org.ip.service.ReceivingDocumentService;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsContext;
+import org.ipro.rls.RlsAccessDeniedException;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsStatementGuard;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * RLS-канарейка "тихих утечек" (Фаза 6): композиция в SqlStatementInspector и
@@ -91,8 +93,9 @@ class RlsStatementGuardTest {
     /** Сознательное выключение фильтров (withRlsDisabled — ReferenceCheckService) — не нарушение. */
     @Test
     void withRlsDisabledWindowIsSilent() {
-        rlsFilterActivator.withRlsDisabled(entityManager, () -> {
-            entityManager.createQuery("select d from ReceivingDocument d").getResultList();
+        grantWildcardToAdmin();
+        rlsFilterActivator.withDimensionAdministration(entityManager, "JOURNAL", () -> {
+            entityManager.createQuery("select j from Journal j").getResultList();
             return null;
         });
 
@@ -100,14 +103,35 @@ class RlsStatementGuardTest {
         assertThat(RlsStatementGuard.violationCount()).isZero();
     }
 
-    /** Фоновая задача (RlsContext.runAsSystem) — не нарушение. */
     @Test
-    void runAsSystemWindowIsSilent() {
-        RlsContext.runAsSystem(() ->
-            entityManager.createQuery("select d from ReceivingDocument d").getResultList());
+    void administrationBypassRejectsAnotherProtectedTable() {
+        grantWildcardToAdmin();
 
-        assertThat(RlsStatementGuard.violations()).isEmpty();
-        assertThat(RlsStatementGuard.violationCount()).isZero();
+        assertThatThrownBy(() ->
+            rlsFilterActivator.withDimensionAdministration(entityManager, "JOURNAL", () ->
+                entityManager.createQuery("select d from ReceivingDocument d").getResultList()))
+            .isInstanceOf(RlsAccessDeniedException.class)
+            .hasMessageContaining("receiving_document");
+    }
+
+    @Test
+    void referenceIntegrityBypassRejectsRowMaterialization() {
+        grantWildcardToAdmin();
+
+        assertThatThrownBy(() ->
+            rlsFilterActivator.withReferenceIntegrityCheck(entityManager, () ->
+                entityManager.createQuery("select j from Journal j").getResultList()))
+            .isInstanceOf(RlsAccessDeniedException.class)
+            .hasMessageContaining("COUNT");
+    }
+
+    /** Untyped system context is no longer a supported bypass. */
+    @Test
+    void untypedRunAsSystemIsRejected() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+            RlsContext.runAsSystem(() ->
+                entityManager.createQuery("select d from ReceivingDocument d").getResultList()))
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 
     /** Таблица без @RlsDimension (Nomenclature) гейтом не проверяется вовсе. */

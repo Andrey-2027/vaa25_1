@@ -22,7 +22,6 @@ import org.ipro.metadata.facet.FactSource;
 import org.ipro.metadata.facet.ResolvedValue;
 import org.ipro.numbering.NumberingMetadataRegistry;
 import org.ipro.numbering.NumberingPeriod;
-import org.ipro.numbering.annotation.Numbered;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -428,18 +427,18 @@ public class EntitySummaryAssembler {
             if (!info.entityClass().equals(entityClass)) {
                 continue;
             }
-            Numbered annotation = info.annotation();
+            var definition = info.definition();
             FacetKey key = FacetKey.of(FacetKind.NUMBERING_DECL, entityClass, info.fieldName());
-            String scope = annotation.scope().length == 0
+            String scope = definition.scope().isEmpty()
                 ? "GLOBAL"
-                : String.join(", ", annotation.scope());
+                : String.join(", ", definition.scope());
             rows.add(new EntitySummary.NumberingRow(
                 key,
                 info.fieldName(),
                 ResolvedValue.code(info.fieldName()),
                 scope,
-                periodLabel(annotation.period()),
-                annotation.allowManual()));
+                periodLabel(definition.period()),
+                definition.allowManual()));
         }
         rows.sort(Comparator.comparing(EntitySummary.NumberingRow::fieldName));
         return rows;

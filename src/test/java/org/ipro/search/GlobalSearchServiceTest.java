@@ -41,6 +41,7 @@ class GlobalSearchServiceTest {
         entityManager = mock(EntityManager.class);
         currentUser = mock(RlsCurrentUser.class);
         when(currentUser.username()).thenReturn("user");
+        when(currentUser.requireAuthenticatedUsername()).thenReturn("user");
         rlsFilterActivator = mock(RlsFilterActivator.class);
         rlsReadGate = mock(RlsReadGate.class);
         when(rlsReadGate.canRead(any(), eq("user"))).thenReturn(true);

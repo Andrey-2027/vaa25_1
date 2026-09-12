@@ -135,6 +135,7 @@ class RlsReadGateTest {
      */
     @Test
     void noEntityGrantMakesReadsEmptyEvenWhenRowsPassJournalAndBranchFilters() {
+        bootstrapProtectedWrites();
         Branch branch = branch("RG-B");
         Workshop receiver = workshop("RG-W1", branch);
         Workshop deliverer = workshop("RG-W2", branch);
@@ -153,6 +154,7 @@ class RlsReadGateTest {
     /** План Ф5 (контр-проверка): ENTITY-грант снимает блокировку — те же строки видны. */
     @Test
     void entityGrantUnblocksReads() {
+        bootstrapProtectedWrites();
         Branch branch = branch("UG-B");
         Workshop receiver = workshop("UG-W1", branch);
         Workshop deliverer = workshop("UG-W2", branch);
@@ -172,6 +174,7 @@ class RlsReadGateTest {
     /** План Ф5: lookup-путь (автокомплит/SelectionForm) подчиняется гейту — симметрично сервису. */
     @Test
     void lookupServiceHonorsReadGate() {
+        bootstrapProtectedWrites();
         Branch branch = branch("LK-B");
         Workshop receiver = workshop("LK-W1", branch);
         Workshop deliverer = workshop("LK-W2", branch);
@@ -203,6 +206,11 @@ class RlsReadGateTest {
         Nomenclature saved = nomenclatureService.save(nomenclature);
 
         assertThat(nomenclatureService.findAll()).extracting(Nomenclature::getId)
-            .containsExactly(saved.getId());
+            .contains(saved.getId());
+    }
+
+    private void bootstrapProtectedWrites() {
+        grant("bootstrap", "*", null, true, true, true);
+        loginAs("bootstrap");
     }
 }

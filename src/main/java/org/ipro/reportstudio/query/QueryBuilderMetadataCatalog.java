@@ -10,6 +10,7 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsReadGate;
 
 import java.lang.reflect.ParameterizedType;
@@ -46,7 +47,8 @@ public final class QueryBuilderMetadataCatalog {
                 // без них пакеты вида «group by спецификация + count строк» не строятся.
                 .filter(e -> e.getJavaType().isAnnotationPresent(EntityMetadata.class)
                         || e.getJavaType().isAnnotationPresent(org.ipro.metadata.annotation.TableSectionMetadata.class))
-                .filter(e -> readGate.canRead(e.getJavaType(), currentUser.username()))
+                .filter(e -> RlsContext.isBypassed() || readGate.canRead(e.getJavaType(),
+                    currentUser.requireAuthenticatedUsername()))
                 .map(e -> e.getJavaType().isAnnotationPresent(EntityMetadata.class)
                         ? describe(e.getName(), e.getJavaType())
                         : describeSection(e.getName(), e.getJavaType()))

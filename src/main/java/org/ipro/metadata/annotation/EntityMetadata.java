@@ -28,6 +28,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EntityMetadata {
 
+    /**
+     * Семантический тип сущности. AUTO выводит тип из стандартного mapped superclass:
+     * StandardCatalogEntity -> CATALOG, StandardDocumentEntity -> DOCUMENT,
+     * иначе PLAIN. Явное значение предназначено для нестандартной модели на BaseEntity.
+     */
+    EntityKind kind() default EntityKind.AUTO;
+
     /** Заголовок формы списка (например, "Номенклатура") */
     String listFormTitle() default "";
 

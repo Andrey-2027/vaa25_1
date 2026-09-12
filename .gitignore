@@ -1,4 +1,6 @@
 target/
+.local-maven-repository/
+/config/application-local.properties
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -45,6 +47,12 @@ node_modules/
 *.md
 *.txt
 *.zip
+
+# Versioned architecture sources of truth. Local drafts under docs/plans and
+# agent.md remain ignored by the broad rules above.
+!JMIX_GitVaa_Roadmap_v2.md
+!docs/architecture/
+!docs/architecture/**/*.md
 
 ### Vaadin generated ###
 src/main/frontend/generated/

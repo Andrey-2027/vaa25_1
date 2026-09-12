@@ -1,13 +1,18 @@
 package org.ipro.telemetry.core;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
+
+import javax.sql.DataSource;
 
 import org.ipro.telemetry.api.AggregateStats;
 import org.ipro.telemetry.api.EventSink;
@@ -49,10 +54,16 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
-    private static final String CHANGE_SQL = """
+    private static final String POSTGRES_CHANGE_SQL = """
             INSERT INTO entity_change_log
                 (changed_at, change_type, entity, entity_id, user_id, trace_id, field_count, payload)
             VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS jsonb))
+            """;
+
+    private static final String H2_CHANGE_SQL = """
+            INSERT INTO entity_change_log
+                (changed_at, change_type, entity, entity_id, user_id, trace_id, field_count, payload)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ? FORMAT JSON)
             """;
 
     private sealed interface Entry permits EventEntry, StatsEntry, FieldAuditEntry {
@@ -70,6 +81,7 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
     private final BlockingQueue<Entry> queue;
     private final JdbcTemplate jdbc;
     private final TransactionTemplate tx;
+    private final String changeSql;
     private final Thread thread;
     private volatile boolean running = true;
 
@@ -85,6 +97,7 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
         this.queue = new LinkedBlockingQueue<>(Math.max(64, queueSize));
         this.jdbc = jdbc;
         this.tx = new TransactionTemplate(txManager);
+        this.changeSql = resolveChangeSql(jdbc);
         this.thread = new Thread(this::run, "telemetry-event-sink");
         this.thread.setDaemon(true);
         this.thread.start();
@@ -147,7 +160,7 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
         }
         TelemetryGuard.insideLogging(() -> {
             try {
-                tx.executeWithoutResult(status -> jdbc.update(CHANGE_SQL, changeArgs(change)));
+                tx.executeWithoutResult(status -> jdbc.update(changeSql, changeArgs(change)));
                 writtenFieldChanges.increment();
             } catch (RuntimeException e) {
                 failedBatches.increment();
@@ -231,7 +244,7 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
                         writtenStats.add(counts.length);
                     }
                     if (!changeRows.isEmpty()) {
-                        int[] counts = jdbc.batchUpdate(CHANGE_SQL, changeRows);
+                        int[] counts = jdbc.batchUpdate(changeSql, changeRows);
                         writtenFieldChanges.add(counts.length);
                     }
                 });
@@ -262,6 +275,34 @@ public final class AsyncEventSink implements EventSink, AutoCloseable {
                 event.errorMessage(),
                 event.payload()
         };
+    }
+
+    /**
+     * JSON parameter syntax is deliberately selected once at startup. Hibernate
+     * maps {@code SqlTypes.JSON} to PostgreSQL jsonb and H2 json, but their JDBC
+     * text parameter syntax differs. An unknown database fails closed instead
+     * of silently losing field-audit records.
+     */
+    private static String resolveChangeSql(JdbcTemplate jdbc) {
+        DataSource dataSource = jdbc.getDataSource();
+        if (dataSource == null) {
+            throw new IllegalStateException("Telemetry JdbcTemplate has no DataSource");
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            String product = connection.getMetaData().getDatabaseProductName();
+            String normalized = product == null ? "" : product.toLowerCase(Locale.ROOT);
+            if (normalized.contains("postgresql")) {
+                return POSTGRES_CHANGE_SQL;
+            }
+            if (normalized.equals("h2")) {
+                return H2_CHANGE_SQL;
+            }
+            throw new IllegalStateException(
+                    "Unsupported database for field-audit JSON payload: " + product);
+        } catch (SQLException e) {
+            throw new IllegalStateException(
+                    "Unable to determine database for field-audit JSON payload", e);
+        }
     }
 
     private Object[] statsArgs(AggregateStats stats) {

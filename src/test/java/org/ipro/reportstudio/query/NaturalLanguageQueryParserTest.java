@@ -270,7 +270,8 @@ class NaturalLanguageQueryParserTest {
                 .contains("select e.name as name")
                 .contains("from Item e")
                 .contains("e.amount > :visualFilter_1")
-                .contains("e.name LIKE :visualFilter_2");
+                .contains("lower(e.name) LIKE :visualFilter_2");
+        assertThat(compiled.bindings()).containsEntry("visualFilter_2", "%олт%");
     }
 
     @Test

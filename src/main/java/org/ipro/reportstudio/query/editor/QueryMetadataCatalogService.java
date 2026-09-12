@@ -8,6 +8,7 @@ import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsReadGate;
 
 import java.util.Comparator;
@@ -42,7 +43,8 @@ public class QueryMetadataCatalogService {
         return entityManagerFactory.getMetamodel().getEntities().stream()
                 .sorted(Comparator.comparing(EntityType::getName))
                 .filter(entity -> entity.getJavaType().isAnnotationPresent(EntityMetadata.class))
-                .filter(entity -> rlsReadGate.canRead(entity.getJavaType(), currentUser.username()))
+                .filter(entity -> RlsContext.isBypassed() || rlsReadGate.canRead(
+                    entity.getJavaType(), currentUser.requireAuthenticatedUsername()))
                 .map(this::entityNode)
                 .filter(node -> matches(node, needle))
                 .toList();
@@ -57,7 +59,8 @@ public class QueryMetadataCatalogService {
         return entityManagerFactory.getMetamodel().getEntities().stream()
                 .sorted(Comparator.comparing(EntityType::getName))
                 .filter(entity -> entity.getJavaType().isAnnotationPresent(EntityMetadata.class))
-                .filter(entity -> rlsReadGate.canRead(entity.getJavaType(), currentUser.username()))
+                .filter(entity -> RlsContext.isBypassed() || rlsReadGate.canRead(
+                    entity.getJavaType(), currentUser.requireAuthenticatedUsername()))
                 .map(this::entityOption)
                 .toList();
     }

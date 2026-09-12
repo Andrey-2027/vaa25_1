@@ -40,6 +40,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Auto-Configuration подсистемы телеметрии. Пакеты org.ipro.telemetry.*
@@ -127,6 +128,16 @@ public class TelemetryAutoConfiguration {
     @Bean
     public SecurityEventLogger securityEventLogger(EventSink eventSink) {
         return new SecurityEventLogger(eventSink);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public org.ipro.rls.RlsBypassAudit rlsBypassAudit(SecurityEventLogger securityEventLogger) {
+        return (scope, reason, actor, successful, failure) ->
+            securityEventLogger.emitSecurityEvent("WARN", "rls:bypass", actor,
+                failure == null ? null : failure.getMessage(),
+                Map.of("scope", scope.name(), "reason", reason,
+                    "successful", successful));
     }
 
     @Bean

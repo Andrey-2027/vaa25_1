@@ -15,7 +15,7 @@ import org.ipro.crud.BaseEntity;
         rowFormTitle = "Операция",
         lineNumberField = "order",
         minRows = 1,
-        serviceClass = org.ip.service.PrdSpecOperService.class
+        rlsPolicy = org.ipro.metadata.annotation.SectionRlsPolicy.INHERIT_ROOT
 )
 public class PrdSpecOper extends BaseEntity {
 

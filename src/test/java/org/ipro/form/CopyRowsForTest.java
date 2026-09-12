@@ -43,7 +43,8 @@ class CopyRowsForTest {
         when(rowService.findByParent(any())).thenReturn(List.of(first, second));
 
         TableSectionFactory factory = new TableSectionFactory(metadataResolver, mock(FieldFactory.class),
-            applicationContext, mock(org.springframework.beans.factory.ObjectProvider.class), List.of());
+            applicationContext, mock(org.ipro.crud.GenericOwnedSectionService.class),
+            mock(org.springframework.beans.factory.ObjectProvider.class), List.of());
         Doc target = new Doc();
 
         Map<Class<?>, List<?>> copied =
@@ -74,7 +75,8 @@ class CopyRowsForTest {
         when(rowService.findByParent(any())).thenReturn(List.of());
 
         TableSectionFactory factory = new TableSectionFactory(metadataResolver, mock(FieldFactory.class),
-            applicationContext, mock(org.springframework.beans.factory.ObjectProvider.class), List.of());
+            applicationContext, mock(org.ipro.crud.GenericOwnedSectionService.class),
+            mock(org.springframework.beans.factory.ObjectProvider.class), List.of());
 
         assertThat(factory.copyRowsFor(Doc.class, new Doc(), new Doc(), new EntityCopyService()))
             .isEmpty();

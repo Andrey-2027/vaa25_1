@@ -4,8 +4,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.QueryTimeoutException;
 import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
+import org.ipro.rls.RlsPolicyEnforcer;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,7 @@ public class GlobalSearchService {
     private final RlsCurrentUser currentUser;
     private final RlsFilterActivator rlsFilterActivator;
     private final RlsReadGate rlsReadGate;
+    private final RlsPolicyEnforcer rlsPolicyEnforcer;
 
     public GlobalSearchService(GlobalSearchCatalog catalog,
                                GlobalSearchProviderRegistry providerRegistry,
@@ -48,6 +51,21 @@ public class GlobalSearchService {
         this.currentUser = Objects.requireNonNull(currentUser, "currentUser");
         this.rlsFilterActivator = Objects.requireNonNull(rlsFilterActivator, "rlsFilterActivator");
         this.rlsReadGate = Objects.requireNonNull(rlsReadGate, "rlsReadGate");
+        this.rlsPolicyEnforcer = null;
+    }
+
+    public GlobalSearchService(GlobalSearchCatalog catalog,
+                               GlobalSearchProviderRegistry providerRegistry,
+                               RlsCurrentUser currentUser,
+                               RlsFilterActivator rlsFilterActivator,
+                               RlsReadGate rlsReadGate,
+                               RlsPolicyEnforcer rlsPolicyEnforcer) {
+        this.catalog = Objects.requireNonNull(catalog, "catalog");
+        this.providerRegistry = Objects.requireNonNull(providerRegistry, "providerRegistry");
+        this.currentUser = Objects.requireNonNull(currentUser, "currentUser");
+        this.rlsFilterActivator = Objects.requireNonNull(rlsFilterActivator, "rlsFilterActivator");
+        this.rlsReadGate = Objects.requireNonNull(rlsReadGate, "rlsReadGate");
+        this.rlsPolicyEnforcer = Objects.requireNonNull(rlsPolicyEnforcer, "rlsPolicyEnforcer");
     }
 
     /** Выполнить поиск с безопасными лимитами по умолчанию. */
@@ -64,9 +82,13 @@ public class GlobalSearchService {
             return GlobalSearchResponse.tooShort(request.term());
         }
 
-        String username = currentUser.username();
-        // Как и LookupService, активируем фильтры до выполнения Criteria-запросов.
-        rlsFilterActivator.ensureRlsEnabled(entityManager);
+        String username = RlsContext.isBypassed()
+            ? currentUser.username()
+            : currentUser.requireAuthenticatedUsername();
+        // Legacy constructor compatibility; application wiring uses the policy enforcer below.
+        if (rlsPolicyEnforcer == null) {
+            rlsFilterActivator.ensureRlsEnabled(entityManager);
+        }
 
         List<GlobalSearchResult> results = new ArrayList<>();
 
@@ -74,7 +96,10 @@ public class GlobalSearchService {
             if (results.size() >= request.totalLimit()) {
                 break;
             }
-            if (!rlsReadGate.canRead(source.entityClass(), username)) {
+            boolean readable = rlsPolicyEnforcer != null
+                ? rlsPolicyEnforcer.prepareRead(source.entityClass(), entityManager)
+                : rlsReadGate.canRead(source.entityClass(), username);
+            if (!readable) {
                 continue;
             }
 

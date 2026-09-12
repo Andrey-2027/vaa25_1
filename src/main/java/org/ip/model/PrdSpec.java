@@ -8,9 +8,7 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import org.ipro.metadata.annotation.*;
-import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsDimension;
-import org.ipro.rls.RlsDimensionValue;
 import org.ipro.crud.BaseEntity;
 import org.ipro.metadata.HasDisplayName;
 
@@ -24,8 +22,9 @@ import java.util.List;
  */
 @Entity
 @Table(name = "prd_spec")
-@RlsDimension("JOURNAL")
-@FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class))
+@RlsDimension(value = "JOURNAL", valuePaths = "journal.id")
+@FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class),
+    applyToLoadByKey = true)
 @Filter(name = "JOURNAL", condition = "journal_id in (:allowedIds)")
 @EntityMetadata(
     listFormTitle = "Спецификации",
@@ -39,7 +38,7 @@ import java.util.List;
     displaySortFields = {"codeSpec"}
 )
 @TableSections({PrdSpecMtr.class,PrdSpecOper.class})
-public class PrdSpec extends BaseEntity implements HasDisplayName, RlsDimensionValue {
+public class PrdSpec extends BaseEntity implements HasDisplayName {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "journal_id", nullable = false)
@@ -155,9 +154,4 @@ public class PrdSpec extends BaseEntity implements HasDisplayName, RlsDimensionV
     }
 
     /** Доступ к PrdSpec наследуется от доступа к его Journal (см. бизнес-правило RLS) — не от собственного id. */
-    @Override
-    public java.util.Map<String, java.util.List<RlsCheckValue>> getRlsChecks() {
-        Long journalId = journal != null ? journal.getId() : null;
-        return java.util.Map.of("JOURNAL", java.util.List.of(RlsCheckValue.of(journalId)));
-    }
 }

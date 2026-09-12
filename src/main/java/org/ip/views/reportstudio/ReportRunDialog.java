@@ -23,11 +23,10 @@ import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.run.ReportRunResult;
+import org.ipro.rls.RlsAccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.vaadin.reports.WaitPrintWindow;
 
 import java.time.Instant;
@@ -119,7 +118,8 @@ public class ReportRunDialog extends Dialog {
         if (httpSession == null && VaadinServletRequest.getCurrent() != null) {
             httpSession = VaadinServletRequest.getCurrent().getHttpServletRequest().getSession(false);
         }
-        final HttpSession backgroundSession = httpSession;
+        RequestAttributes backgroundRequest = httpSession == null
+            ? null : new HttpSessionRequestAttributes(httpSession);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         WaitPrintWindow progress = new WaitPrintWindow(template.getName(), true);
@@ -128,13 +128,7 @@ public class ReportRunDialog extends Dialog {
         currentUI.setPollInterval(250);
         long startedNanos = System.nanoTime();
 
-        new Thread(() -> {
-            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-            securityContext.setAuthentication(authentication);
-            SecurityContextHolder.setContext(securityContext);
-            if (backgroundSession != null) {
-                RequestContextHolder.setRequestAttributes(new HttpSessionRequestAttributes(backgroundSession));
-            }
+        executionService.executeAsync(authentication, backgroundRequest, () -> {
             try {
                 ReportRunResult result = executionService.run(template, context, formValues, localeTag, zoneId);
                 // Для быстрых отчётов прогресс-окно иначе закрылось бы в том же
@@ -170,17 +164,16 @@ public class ReportRunDialog extends Dialog {
                         currentUI.setPollInterval(-1);
                     }
                 });
-            } finally {
-                if (backgroundSession != null) {
-                    RequestContextHolder.resetRequestAttributes();
-                }
-                SecurityContextHolder.clearContext();
             }
-        }).start();
+        });
     }
 
     private static ReportContext emptyContext() {
-        return ReportContext.of(null, null, List.of(), null, CurrentUser.username(), Instant.now());
+        String username = CurrentUser.username();
+        if (username == null || username.isBlank() || "system".equals(username)) {
+            throw new RlsAccessDeniedException("Запуск отчёта требует аутентифицированного пользователя");
+        }
+        return ReportContext.of(null, null, List.of(), null, username, Instant.now());
     }
 
     /**

@@ -28,7 +28,7 @@ import java.math.BigDecimal;
     rowFormTitle = "Позиция накладной",
     lineNumberField = "lineNumber",
     minRows = 1,
-    serviceClass = org.ip.service.ReceivingDocumentItemService.class
+    rlsPolicy = org.ipro.metadata.annotation.SectionRlsPolicy.INHERIT_ROOT
 )
 public class ReceivingDocumentItem extends BaseEntity {
 
@@ -38,7 +38,7 @@ public class ReceivingDocumentItem extends BaseEntity {
     private ReceivingDocument document;
 
     /**
-     * Номер строки — проставляется автоматически TableSectionService при сохранении
+     * Номер строки — проставляется автоматически metadata-driven section service при сохранении
      * (1..N по порядку строк в UI). Не редактируется пользователем.
      */
     @Column(name = "line_number")

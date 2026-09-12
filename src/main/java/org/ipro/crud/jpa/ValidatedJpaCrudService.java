@@ -6,6 +6,11 @@ import org.ipro.crud.BaseService;
 import org.ipro.crud.IdentifiableEntity;
 import org.ipro.crud.ReferenceCheckService;
 import org.ipro.crud.ValidationException;
+import org.ipro.events.EntityEventPublisher;
+import org.ipro.events.EventContext;
+import org.ipro.events.EventSource;
+import org.ipro.lifecycle.EntityLifecycleRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,6 +37,16 @@ public class ValidatedJpaCrudService<T extends IdentifiableEntity> implements Ba
     private final ReferenceCheckService referenceCheckService;
     private final Class<T> domainClass;
 
+    /**
+     * Optional-бин контура entity events: база работает и без него (юнит-тесты собирают
+     * сервис вручную), в приложении бин приходит из {@code EventsAutoConfiguration}.
+     */
+    @Autowired
+    private Optional<EntityEventPublisher> entityEventPublisher = Optional.empty();
+
+    @Autowired
+    private Optional<EntityLifecycleRegistry> entityLifecycleRegistry = Optional.empty();
+
     protected ValidatedJpaCrudService(JpaRepository<T, Long> repository, Validator validator,
                                       ReferenceCheckService referenceCheckService) {
         this.repository = repository;
@@ -43,7 +58,110 @@ public class ValidatedJpaCrudService<T extends IdentifiableEntity> implements Ba
     @Override
     public T save(T entity) {
         validate(entity);
-        return repository.save(entity);
+        Optional<T> original = originalForUpdate(entity);
+        EntityEventPublisher.EventScope eventScope = openEntityEventOperation(entity);
+        try {
+            publishSaving(entity);
+            publishUpdating(original, entity);
+            T saved = repository.save(entity);
+            publishSaved(saved);
+            return saved;
+        } finally {
+            closeEventScope(eventScope);
+        }
+    }
+
+    /**
+     * Veto-capable entity-событие перед persistence: доменное правило, оформленное
+     * слушателем {@code EntitySavingEvent}, применяется к любому пути сохранения
+     * (generic CRUD, UI-форма, будущий REST), а не только к UI-экрану.
+     *
+     * <p>Source = {@link EventSource#SYSTEM}: канал вызова сервису неизвестен —
+     * агрегатные операции публикуют своё событие из use case с явным source.</p>
+     */
+    protected void publishSaving(T entity) {
+        EventContext context = lifecycleContext(entity, "save:" + domainClass().getSimpleName());
+        entityEventPublisher.ifPresent(publisher -> publisher.publishSaving(entity, context));
+        entityLifecycleRegistry.ifPresent(registry -> registry.beforeSave(
+            domainClass(), entity, context));
+    }
+
+    /** Вызвать typed callback только для существующей записи с доступным исходным состоянием. */
+    protected void publishUpdating(Optional<T> original, T updated) {
+        if (original.isEmpty()) {
+            return;
+        }
+        EventContext context = lifecycleContext(updated,
+            "update:" + domainClass().getSimpleName());
+        entityLifecycleRegistry.ifPresent(registry -> registry.beforeUpdate(
+            domainClass(), original.get(), updated, context));
+    }
+
+    /** Публикует Saved внутри транзакции и Changed после commit. */
+    protected void publishSaved(T entity) {
+        EventContext context = lifecycleContext(entity, "save:" + domainClass().getSimpleName());
+        entityEventPublisher.ifPresent(publisher -> {
+            if (publisher.isAggregateOperation(domainClass())) {
+                return;
+            }
+            publisher.publishSaved(entity, context);
+            publisher.publishChanged(entity, context);
+        });
+        entityLifecycleRegistry.ifPresent(registry -> {
+            if (entityEventPublisher.isEmpty()
+                || !entityEventPublisher.get().isAggregateOperation(domainClass())) {
+                registry.onSave(domainClass(), entity, context);
+            }
+        });
+    }
+
+    /** Синхронный veto перед удалением. */
+    protected void publishDeleting(T entity) {
+        EventContext context = lifecycleContext(entity, "delete:" + domainClass().getSimpleName());
+        entityEventPublisher.ifPresent(publisher -> publisher.publishDeleting(entity, context));
+        entityLifecycleRegistry.ifPresent(registry -> registry.beforeDelete(
+            domainClass(), entity, context));
+    }
+
+    /** Планирует факт удаления после успешного commit. */
+    protected void publishDeleted(T entity) {
+        entityEventPublisher.ifPresent(publisher -> publisher.publishDeleted(entity,
+            publisher.contextFor(domainClass(), entity.getId(), EventSource.SYSTEM,
+                "delete:" + domainClass().getSimpleName())));
+    }
+
+    private EntityEventPublisher.EventScope openEntityEventOperation(T entity) {
+        if (entityEventPublisher.isEmpty()) {
+            return null;
+        }
+        EntityEventPublisher publisher = entityEventPublisher.get();
+        if (publisher.isAggregateOperation(domainClass())) {
+            return null;
+        }
+        EventContext context = publisher.contextFor(domainClass(), entity.getId(),
+            EventSource.SYSTEM, "entity:" + domainClass().getSimpleName());
+        return publisher.openOperation(context);
+    }
+
+    private static void closeEventScope(EntityEventPublisher.EventScope eventScope) {
+        if (eventScope != null) {
+            eventScope.close();
+        }
+    }
+
+    private EventContext lifecycleContext(T entity, String operationName) {
+        return entityEventPublisher
+            .map(publisher -> publisher.contextFor(
+                domainClass(), entity.getId(), EventSource.SYSTEM, operationName))
+            .orElseGet(() -> EventContext.forEntity(
+                domainClass(), entity.getId(), EventSource.SYSTEM, operationName));
+    }
+
+    private Optional<T> originalForUpdate(T entity) {
+        if (entity.getId() == null) {
+            return Optional.empty();
+        }
+        return repository.findById(entity.getId());
     }
 
     @Override
@@ -63,7 +181,21 @@ public class ValidatedJpaCrudService<T extends IdentifiableEntity> implements Ba
     @Override
     public void delete(Long id) {
         referenceCheckService.checkNoReferences(domainClass(), id);
-        repository.deleteById(id);
+        Optional<T> existing = repository.findById(id);
+        if (existing.isEmpty()) {
+            repository.deleteById(id);
+            return;
+        }
+
+        T entity = existing.get();
+        EntityEventPublisher.EventScope eventScope = openEntityEventOperation(entity);
+        try {
+            publishDeleting(entity);
+            repository.deleteById(id);
+            publishDeleted(entity);
+        } finally {
+            closeEventScope(eventScope);
+        }
     }
 
     @Override

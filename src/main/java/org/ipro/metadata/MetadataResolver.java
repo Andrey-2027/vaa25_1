@@ -1,6 +1,9 @@
 package org.ipro.metadata;
 
+import org.ipro.crud.StandardCatalogEntity;
+import org.ipro.crud.StandardDocumentEntity;
 import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.ipro.metadata.annotation.TableSections;
@@ -12,6 +15,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -74,9 +79,8 @@ public class MetadataResolver {
      * Получить список табличных частей родительского документа.
      * Возвращает пустой список, если на классе нет @TableSections.
      *
-     * Ограничение первой версии: поддерживается ОДНА табличная часть на документ.
-     * Если @TableSections содержит более одного класса — бросает IllegalStateException,
-     * чтобы не создавать видимость поддержки нескольких вкладок, пока ItemForm их не рисует.
+     * Каждая секция возвращается как immutable resolved descriptor; несколько секций
+     * сортируются по {@code order} и обрабатываются независимо.
      */
     public List<TableSectionMetadataInfo> resolveTableSections(Class<?> parentClass) {
         List<TableSectionMetadataInfo> cached = tableSectionCache.get(parentClass);
@@ -139,7 +143,12 @@ public class MetadataResolver {
                 "Add @EntityMetadata annotation to enable metadata-driven form generation.");
         }
 
+        EntityKind entityKind = resolveEntityKind(entityClass, annotation.kind());
+
         List<FieldMetadataInfo> allFields = scanFields(entityClass);
+        List<FieldMetadataInfo> allAnnotatedFields = allFields.stream()
+            .sorted(Comparator.comparingInt(FieldMetadataInfo::getOrder))
+            .toList();
         List<FieldMetadataInfo> formFields = toFormFields(allFields);
         List<FieldMetadataInfo> gridFields = toGridFields(allFields);
 
@@ -158,7 +167,33 @@ public class MetadataResolver {
         }
 
         return new EntityMetadataInfo(
-            entityClass, annotation, formFields, gridFields, listColumnPaths, selectColumnPaths);
+            entityClass, annotation, entityKind, allAnnotatedFields, formFields, gridFields,
+            listColumnPaths, selectColumnPaths);
+    }
+
+    /**
+     * Выводит effective kind из стандартного base class. Явный kind на таком классе
+     * разрешён только если совпадает с выводимым: противоречие является ошибкой
+     * конфигурации, а не скрытым override.
+     */
+    private EntityKind resolveEntityKind(Class<?> entityClass, EntityKind declaredKind) {
+        EntityKind inferredKind = null;
+        if (StandardCatalogEntity.class.isAssignableFrom(entityClass)) {
+            inferredKind = EntityKind.CATALOG;
+        } else if (StandardDocumentEntity.class.isAssignableFrom(entityClass)) {
+            inferredKind = EntityKind.DOCUMENT;
+        }
+
+        if (declaredKind == EntityKind.AUTO) {
+            return inferredKind != null ? inferredKind : EntityKind.PLAIN;
+        }
+        if (inferredKind != null && declaredKind != inferredKind) {
+            throw new IllegalArgumentException(
+                "Entity kind conflict for " + entityClass.getName() + ": @EntityMetadata declares " +
+                declaredKind + ", but base class implies " + inferredKind + ". " +
+                "Remove explicit kind or make it match the standard base class.");
+        }
+        return declaredKind;
     }
 
     /**
@@ -191,7 +226,12 @@ public class MetadataResolver {
         }
 
         List<TableSectionMetadataInfo> result = new ArrayList<>();
+        Set<Class<?>> uniqueRows = new HashSet<>();
         for (Class<?> rowClass : sections.value()) {
+            if (!uniqueRows.add(rowClass)) {
+                throw new IllegalArgumentException("Duplicate row class " + rowClass.getName()
+                    + " in @TableSections on " + parentClass.getName());
+            }
             result.add(buildTableSection(parentClass, rowClass));
         }
         result.sort(Comparator.comparingInt(TableSectionMetadataInfo::getOrder));
@@ -212,6 +252,10 @@ public class MetadataResolver {
                 "but is referenced from " + parentClass.getSimpleName() + " via @TableSections. " +
                 "These must match.");
         }
+        if (annotation.minRows() < 0) {
+            throw new IllegalArgumentException("minRows must be >= 0 in @TableSectionMetadata on "
+                + rowClass.getName());
+        }
 
         Field parentField = findDeclaredFieldInHierarchy(rowClass, annotation.parentField());
         if (parentField == null) {
@@ -220,6 +264,12 @@ public class MetadataResolver {
                 "@TableSectionMetadata on " + rowClass.getName() + " does not exist.");
         }
         parentField.setAccessible(true);
+        if (!parentField.getType().isAssignableFrom(parentClass)) {
+            throw new IllegalArgumentException(
+                "Field '" + annotation.parentField() + "' on " + rowClass.getName()
+                + " has type " + parentField.getType().getName() + ", which cannot reference owner "
+                + parentClass.getName());
+        }
 
         Field lineNumberField = null;
         if (!annotation.lineNumberField().isEmpty()) {
@@ -229,6 +279,14 @@ public class MetadataResolver {
                     "Field '" + annotation.lineNumberField() + "' declared as lineNumberField in " +
                     "@TableSectionMetadata on " + rowClass.getName() + " does not exist.");
             }
+            Class<?> lineType = lineNumberField.getType();
+            if (lineType != Integer.class && lineType != int.class
+                    && lineType != Long.class && lineType != long.class) {
+                throw new IllegalArgumentException(
+                    "lineNumberField '" + annotation.lineNumberField() + "' on "
+                    + rowClass.getName() + " must have type Integer/int/Long/long, but was "
+                    + lineType.getName());
+            }
             lineNumberField.setAccessible(true);
         }
 
@@ -237,7 +295,7 @@ public class MetadataResolver {
         List<FieldMetadataInfo> gridFields = toGridFields(allFields);
 
         return new TableSectionMetadataInfo(
-            rowClass, annotation, parentField, lineNumberField, formFields, gridFields);
+            parentClass, rowClass, annotation, parentField, lineNumberField, formFields, gridFields);
     }
 
     /** Package-visible: переиспользуется в {@link ColumnPath} для резолва пути через точку. */

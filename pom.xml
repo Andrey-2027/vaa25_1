@@ -19,6 +19,10 @@
     <properties>
         <java.version>21</java.version>
         <vaadin.version>25.1.6</vaadin.version>
+        <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
+        <crudui.version>1.0-SNAPSHOT</crudui.version>
+        <reportui.version>1.0-SNAPSHOT</reportui.version>
+        <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
         <dynamicreports.version>7.0.0-ip.20260813</dynamicreports.version>
         <jasperreports.version>7.0.6</jasperreports.version>
@@ -71,29 +75,29 @@
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>filtergrid-jpa</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${filtergrid.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>filtergrid-grouping</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${filtergrid.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>filtergrid-inmemory</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${filtergrid.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>filtergrid-projection</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${filtergrid.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.ipro.crudui</groupId>
             <artifactId>crudui-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${crudui.version}</version>
         </dependency>
 
         <dependency>
@@ -108,7 +112,7 @@
         <dependency>
             <groupId>com.bstek.ureport</groupId>
             <artifactId>ureport3-console</artifactId>
-            <version>3.0.1</version>
+            <version>${ureport.version}</version>
             <exclusions>
                 <!-- Форк пиннит antlr4-runtime 4.5.3, что ломает инициализацию
                      HQL-парсера Hibernate 7 (собран под 4.13). Рантайм 4.13
@@ -156,7 +160,7 @@
         <dependency>
             <groupId>org.vaadin.reports</groupId>
             <artifactId>reportui-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${reportui.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>net.sf.jasperreports</groupId>

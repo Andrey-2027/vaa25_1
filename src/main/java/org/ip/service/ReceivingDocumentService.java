@@ -1,7 +1,5 @@
 package org.ip.service;
 
-import org.ipro.crud.ValidationException;
-
 import jakarta.validation.Validator;
 import org.ip.model.ReceivingDocument;
 import org.ip.repository.ReceivingDocumentRepository;
@@ -11,21 +9,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import org.ipro.crud.AbstractBaseService;
 
 @Service
 public class ReceivingDocumentService extends AbstractBaseService<ReceivingDocument, Long> {
 
     private final ReceivingDocumentRepository documentRepository;
-    private final ReceivingDocumentItemService itemService;
-
     public ReceivingDocumentService(ReceivingDocumentRepository repository,
-                                    Validator validator,
-                                    ReceivingDocumentItemService itemService) {
+                                    Validator validator) {
         super(repository, validator);
         this.documentRepository = repository;
-        this.itemService = itemService;
     }
 
     @Override
@@ -38,41 +31,9 @@ public class ReceivingDocumentService extends AbstractBaseService<ReceivingDocum
                 .toList();
     }
 
-    /**
-     * Каскадное удаление строк табличной части перед удалением шапки.
-     *
-     * Коллекция items больше не хранится на ReceivingDocument как @OneToMany
-     * (см. миграцию на @TableSections), поэтому orphanRemoval JPA больше не сработает
-     * автоматически — каскад теперь явный, на уровне сервиса родителя, как и планировали:
-     * сначала обнуляем строки через TableSectionService.replaceAll(doc, List.of()),
-     * потом удаляем саму шапку.
-     */
-    @Override
-    public void delete(Long id) {
-        Optional<ReceivingDocument> existing = findById(id);
-        existing.ifPresent(doc -> itemService.replaceAll(doc, List.of()));
-        super.delete(id);
-    }
-
     @Override
     public Page<ReceivingDocument> findAll(Specification<ReceivingDocument> spec, Pageable pageable) {
         return findAllWithFetchGraph(spec, pageable);
     }
 
-    /**
-     * Доменные бизнес-правила накладной (хук AbstractBaseService.validateBusinessRules —
-     * вызывается между bean-валидацией и RLS write-guard'ом, см. его javadoc).
-     *
-     * Проверка "документ должен содержать хотя бы одну позицию" теперь на уровне
-     * @TableSectionMetadata(minRows = 1) и выполняется ItemForm.validateTableSections()
-     * ДО вызова save() — сюда она не входит.
-     */
-    @Override
-    protected void validateBusinessRules(ReceivingDocument document) {
-        if (document.getReceivingWorkshop() != null &&
-            document.getTransferringWorkshop() != null &&
-            document.getReceivingWorkshop().getId().equals(document.getTransferringWorkshop().getId())) {
-            throw new ValidationException("Цех-приемщик и цех-сдатчик не могут быть одинаковыми");
-        }
-    }
 }

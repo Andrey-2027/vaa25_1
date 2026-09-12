@@ -9,9 +9,10 @@ import org.ip.repository.UserRepository;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.RlsDimensionRegistry;
-import org.ipro.rls.RlsDimensionValueSource;
+import org.ipro.rls.RlsDimensionValueCatalog;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -26,11 +27,12 @@ import java.util.TreeSet;
  * либо один переключатель без списка записей (CHECK_ONLY — "ENTITY:...", см.
  * RlsDimensionKind).
  *
- * Раньше был захардкожен на JOURNAL — обобщён через {@link RlsDimensionValueSource}
- * (для FILTERABLE) и через {@link RlsDimensionRegistry} (для перечисления CHECK_ONLY,
+ * Раньше был захардкожен на JOURNAL — обобщён через metadata-driven
+ * {@link RlsDimensionValueCatalog} (для FILTERABLE) и через {@link RlsDimensionRegistry} (для перечисления CHECK_ONLY,
  * у которых списка записей нет по определению — там нечего перечислять, только флаги).
  */
 @Service
+@PreAuthorize("hasRole('ADMIN')")
 public class AccessGrantAdminService {
 
     /**
@@ -51,25 +53,20 @@ public class AccessGrantAdminService {
     private final RoleRepository roleRepository;
     private final RlsDimensionRegistry dimensionRegistry;
     private final AccessService accessService;
-    private final Map<String, RlsDimensionValueSource<Object>> sourcesByDimension;
+    private final RlsDimensionValueCatalog valueCatalog;
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public AccessGrantAdminService(AccessGrantRepository accessGrantRepository,
                                    UserRepository userRepository,
                                    RoleRepository roleRepository,
                                    RlsDimensionRegistry dimensionRegistry,
                                    AccessService accessService,
-                                   List<RlsDimensionValueSource> sources) {
+                                   RlsDimensionValueCatalog valueCatalog) {
         this.accessGrantRepository = accessGrantRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.dimensionRegistry = dimensionRegistry;
         this.accessService = accessService;
-        Map<String, RlsDimensionValueSource<Object>> byDimension = new HashMap<>();
-        for (RlsDimensionValueSource source : sources) {
-            byDimension.put(source.dimension(), source);
-        }
-        this.sourcesByDimension = byDimension;
+        this.valueCatalog = valueCatalog;
     }
 
     /**
@@ -78,7 +75,7 @@ public class AccessGrantAdminService {
      * нужен — источник значений для них не регистрируется вообще, см. kindOf).
      */
     public List<String> availableDimensions() {
-        var all = new TreeSet<>(sourcesByDimension.keySet());
+        var all = new TreeSet<>(dimensionRegistry.grantValueDimensions());
         for (String dimension : dimensionRegistry.dimensions()) {
             if (dimensionRegistry.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY) {
                 all.add(dimension);
@@ -99,11 +96,13 @@ public class AccessGrantAdminService {
         return roleRepository.findAll().stream().map(Role::getName).sorted().toList();
     }
 
-    /** Все записи FILTERABLE-измерения (без RLS-ограничений текущего админа) — см. RlsDimensionValueSource. */
+    /** Все записи FILTERABLE-измерения, выведенные из metadata, без RLS текущего админа. */
     public List<ValueRow> allValues(String dimension) {
-        RlsDimensionValueSource<Object> source = sourceFor(dimension);
-        return source.allIgnoringRls().stream()
-            .map(v -> new ValueRow(source.idOf(v), source.displayCode(v), source.displayName(v)))
+        if (dimensionRegistry.kindOf(dimension) != RlsDimensionKind.FILTERABLE) {
+            throw new IllegalArgumentException("CHECK_ONLY dimension has no value catalog: " + dimension);
+        }
+        return valueCatalog.allIgnoringRls(dimension).stream()
+            .map(v -> new ValueRow(v.id(), v.code(), v.name()))
             .toList();
     }
 
@@ -195,14 +194,6 @@ public class AccessGrantAdminService {
         grant.setCanUpdate(flags.update());
         grant.setCanDelete(flags.delete());
         accessGrantRepository.save(grant);
-    }
-
-    private RlsDimensionValueSource<Object> sourceFor(String dimension) {
-        RlsDimensionValueSource<Object> source = sourcesByDimension.get(dimension);
-        if (source == null) {
-            throw new IllegalArgumentException("Нет источника значений для измерения RLS: " + dimension);
-        }
-        return source;
     }
 
     /**

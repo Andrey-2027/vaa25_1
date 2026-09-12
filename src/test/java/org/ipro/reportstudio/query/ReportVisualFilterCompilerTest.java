@@ -37,8 +37,8 @@ class ReportVisualFilterCompilerTest {
 
         CompiledFilter compiled = new ProjectionFilterCompiler(resolver).compile(root);
 
-        assertThat(compiled.predicate()).isEqualTo("(code LIKE :visualFilter_1 AND (amount >= :visualFilter_2 OR status = :visualFilter_3))");
-        assertThat(compiled.bindings()).containsValues("A%", new BigDecimal("10.50"), Status.ACTIVE);
+        assertThat(compiled.predicate()).isEqualTo("(lower(code) LIKE :visualFilter_1 AND (amount >= :visualFilter_2 OR status = :visualFilter_3))");
+        assertThat(compiled.bindings()).containsValues("a%", new BigDecimal("10.50"), Status.ACTIVE);
     }
 
     @Test

@@ -149,7 +149,7 @@ class VisualQuerySubqueryTest {
         assertThat(parsed.definition()).as(parsed.warnings().toString()).isNotNull();
         var compiled = VisualQueryCompiler.compile(parsed.definition(), catalog());
         // LIKE-условие — первый и единственный параметр.
-        assertThat(compiled.bindings()).containsEntry("visualFilter_1", "%A%");
+        assertThat(compiled.bindings()).containsEntry("visualFilter_1", "%a%");
         assertThat(compiled.bindings()).hasSize(1);
     }
 

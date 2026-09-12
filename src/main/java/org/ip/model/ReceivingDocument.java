@@ -31,8 +31,8 @@ import java.time.LocalDate;
  * (ReceivingDocumentItem — см. @TableSections).
  *
  * Строки табличной части НЕ хранятся здесь как @OneToMany EAGER-коллекция — это
- * отдельные сущности со своим репозиторием и сервисом (ReceivingDocumentItemService).
- * ItemTable (UI) и TableSectionService (сервисный слой) сами заботятся о загрузке,
+ * отдельные owned entities, которыми управляет metadata-driven platform service.
+ * ItemTable (UI) и resolved section descriptor отвечают за загрузку,
  * синхронизации и удалении строк — см. ReceivingDocumentService.delete() для каскада.
  *
  * RLS — по двум измерениям сразу (см. план RLS, п.3):
@@ -56,12 +56,15 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "receiving_document",
     uniqueConstraints = @UniqueConstraint(columnNames = {"journal_id", "number"}))
-@RlsDimension("JOURNAL")
-@RlsDimension("BRANCH")
-@RlsDimension(value = "ENTITY:ReceivingDocument", kind = RlsDimensionKind.CHECK_ONLY)
+@RlsDimension(value = "JOURNAL", custom = true)
+@RlsDimension(value = "BRANCH", custom = true)
+@RlsDimension(value = "ENTITY:ReceivingDocument", kind = RlsDimensionKind.CHECK_ONLY,
+    custom = true)
 @FilterDefs({
-    @FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class)),
-    @FilterDef(name = "BRANCH", parameters = @ParamDef(name = "allowedIds", type = Long.class))
+    @FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class),
+        applyToLoadByKey = true),
+    @FilterDef(name = "BRANCH", parameters = @ParamDef(name = "allowedIds", type = Long.class),
+        applyToLoadByKey = true)
 })
 @Filters({
     @Filter(name = "JOURNAL", condition = "journal_id in (:allowedIds)"),

@@ -45,6 +45,18 @@ class MetadataHierarchyTest {
         assertThat(meta.getFieldByName("id")).isNull();
     }
 
+    @Test
+    void hiddenFieldIsAvailableOnlyThroughCompleteMetadataProjection() {
+        EntityMetadataInfo meta = resolver.resolve(WithHiddenField.class);
+
+        assertThat(meta.getFormFields()).extracting(FieldMetadataInfo::getName)
+            .containsExactly("visible");
+        assertThat(meta.getAllAnnotatedFields()).extracting(FieldMetadataInfo::getName)
+            .containsExactly("hidden", "visible");
+        assertThat(meta.getFieldByName("hidden")).isNotNull();
+        assertThat(meta.getAllAnnotatedFields()).isUnmodifiable();
+    }
+
     static abstract class Ancestor {
         @FieldMetadata(label = "Код предка", grid = @GridColumn(order = 1))
         String parentCode;
@@ -71,5 +83,14 @@ class MetadataHierarchyTest {
     static class Plain extends BaseEntity {
         @FieldMetadata(label = "Имя", grid = @GridColumn(order = 1))
         String name;
+    }
+
+    @EntityMetadata(listFormTitle = "Со скрытым полем")
+    static class WithHiddenField extends BaseEntity {
+        @FieldMetadata(label = "Скрытое", hidden = true, order = 1)
+        String hidden;
+
+        @FieldMetadata(label = "Видимое", order = 2)
+        String visible;
     }
 }

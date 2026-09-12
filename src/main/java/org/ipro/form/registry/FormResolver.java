@@ -322,6 +322,12 @@ public class FormResolver {
             .build();
     }
 
+    /**
+     * Контекст кастомной ITEM-формы: те же типизированные инфраструктурные поля, что
+     * и у LIST-контекста, плюс applicationContext — фабрики достают из него свои
+     * зависимости ({@code ctx.applicationContext().getBean(...)}). Без него открытие
+     * карточки такой сущности падало с NullPointerException.
+     */
     private <ID> FormContext buildItemFormContext(Class<?> entityClass, ID id, Map<String, Object> parameters) {
         return FormContext.builder(entityClass)
             .id(id)
@@ -329,6 +335,7 @@ public class FormResolver {
             .metadataResolver(metadataResolver)
             .fieldFactory(fieldFactory)
             .lookupService(lookupService)
+            .applicationContext(applicationContext)
             .build();
     }
 

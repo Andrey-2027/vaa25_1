@@ -9,10 +9,7 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.ipro.metadata.FetchGraphs;
-import org.ipro.rls.RlsCurrentUser;
-import org.ipro.rls.RlsFilterActivator;
-import org.ipro.rls.RlsReadGate;
-import org.springframework.data.repository.support.Repositories;
+import org.ipro.rls.RlsPolicyEnforcer;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,19 +34,10 @@ public class LookupService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private final RlsCurrentUser currentUser;
-    private final Repositories repositories;
-    private final RlsFilterActivator rlsFilterActivator;
-    private final RlsReadGate rlsReadGate;
+    private final RlsPolicyEnforcer rlsPolicyEnforcer;
 
-    public LookupService(org.springframework.beans.factory.ListableBeanFactory beanFactory,
-                         RlsCurrentUser currentUser,
-                         RlsFilterActivator rlsFilterActivator,
-                         RlsReadGate rlsReadGate) {
-        this.currentUser = currentUser;
-        this.repositories = new Repositories(beanFactory);
-        this.rlsFilterActivator = rlsFilterActivator;
-        this.rlsReadGate = rlsReadGate;
+    public LookupService(RlsPolicyEnforcer rlsPolicyEnforcer) {
+        this.rlsPolicyEnforcer = rlsPolicyEnforcer;
     }
 
     /**
@@ -58,7 +46,7 @@ public class LookupService {
      * Решение — единый {@link RlsReadGate} поверх AccessService.
      */
     private boolean canRead(Class<?> entityClass) {
-        return rlsReadGate.canRead(entityClass, currentUser.username());
+        return rlsPolicyEnforcer.prepareRead(entityClass, entityManager);
     }
 
     /**
@@ -74,7 +62,6 @@ public class LookupService {
         if (!canRead(entityClass)) {
             return List.of();
         }
-        rlsFilterActivator.ensureRlsEnabled(entityManager);
         if (term == null || term.isBlank() || searchFields == null || searchFields.length == 0) {
             return findAll(entityClass).stream().limit(limit).toList();
         }
@@ -113,7 +100,6 @@ public class LookupService {
         if (!canRead(entityClass)) {
             return List.of();
         }
-        rlsFilterActivator.ensureRlsEnabled(entityManager);
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> query = cb.createQuery(entityClass);
         query.from(entityClass);
@@ -128,7 +114,6 @@ public class LookupService {
         if (!canRead(entityClass)) {
             return Optional.empty();
         }
-        rlsFilterActivator.ensureRlsEnabled(entityManager);
         return Optional.ofNullable(entityManager.find(entityClass, id));
     }
 
@@ -144,7 +129,6 @@ public class LookupService {
         if (!canRead(entityClass)) {
             return Optional.empty();
         }
-        rlsFilterActivator.ensureRlsEnabled(entityManager);
         if (fetchPaths == null || fetchPaths.isEmpty()) {
             return findById(entityClass, id);
         }
@@ -156,12 +140,4 @@ public class LookupService {
             Map.of("jakarta.persistence.fetchgraph", graph)));
     }
 
-    /**
-     * Получить Spring Data Repository для класса (если есть).
-     * Используется для save/delete, если вызывающая сторона хочет работать через репозиторий.
-     */
-    @SuppressWarnings("unchecked")
-    public <R> Optional<R> getRepository(Class<?> entityClass) {
-        return Optional.ofNullable((R) repositories.getRepositoryFor(entityClass));
-    }
 }

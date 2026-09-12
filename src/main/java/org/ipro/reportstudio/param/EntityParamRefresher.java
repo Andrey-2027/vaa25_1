@@ -3,6 +3,7 @@ package org.ipro.reportstudio.param;
 import jakarta.persistence.EntityManager;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
 
@@ -53,7 +54,8 @@ public class EntityParamRefresher {
         if (id == null) {
             return null;
         }
-        if (!rlsReadGate.canRead(entityClass, currentUser.username())) {
+        if (!RlsContext.isBypassed()
+                && !rlsReadGate.canRead(entityClass, currentUser.requireAuthenticatedUsername())) {
             return null;
         }
         rlsFilterActivator.ensureRlsEnabled(entityManager);

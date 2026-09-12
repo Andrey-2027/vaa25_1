@@ -1,5 +1,7 @@
 package org.ipro.rls;
 
+import java.util.Map;
+
 /**
  * Строгий read-гейт CHECK_ONLY (Фаза 5 RLS-плана): решение "можно ли вообще читать
  * сущности этого класса текущему пользователю".
@@ -39,9 +41,16 @@ public class RlsReadGate {
         if (RlsContext.isBypassed()) {
             return true;
         }
-        for (String dimension : dimensionRegistry.dimensionsOf(entityClass)) {
-            if (dimensionRegistry.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY
-                && !accessService.hasAnyAccess(dimension, username)) {
+        RlsPolicyDescriptor policy = dimensionRegistry.policyOf(entityClass);
+        if (!policy.protectedEntity()) {
+            return true;
+        }
+        if (username == null || username.isBlank() || "system".equals(username)) {
+            return false;
+        }
+        for (Map.Entry<String, RlsDimensionKind> entry : policy.dimensions().entrySet()) {
+            if (entry.getValue() == RlsDimensionKind.CHECK_ONLY
+                && !accessService.hasAnyAccess(entry.getKey(), username)) {
                 return false;
             }
         }

@@ -340,7 +340,8 @@ public class ReportParamResolver {
                 return context.now();
             }
             case CURRENT_USER -> {
-                String user = context.user() != null ? context.user() : currentUser.username();
+                String user = context.user() != null
+                    ? context.user() : currentUser.requireAuthenticatedUsername();
                 if (user == null || user.isBlank()) {
                     out.error("Параметр :" + param.getName() + " — нет текущего пользователя");
                     return null;
@@ -348,7 +349,8 @@ public class ReportParamResolver {
                 return user;
             }
             case RLS_ORG -> {
-                String user = context.user() != null ? context.user() : currentUser.username();
+                String user = context.user() != null
+                    ? context.user() : currentUser.requireAuthenticatedUsername();
                 List<Long> readableIds = accessService.getReadableIds(rlsOrgDimension, user);
                 if (readableIds == null) {
                     out.error("Параметр :" + param.getName() + " — доступ по измерению «"

@@ -36,7 +36,7 @@ public class ReferenceCheckService {
             return;
         }
 
-        List<String> blockers = rlsFilterActivator.withRlsDisabled(entityManager, () -> {
+        List<String> blockers = rlsFilterActivator.withReferenceIntegrityCheck(entityManager, () -> {
             List<String> found = new ArrayList<>();
             for (ReferenceIndex.ReverseReference ref : refs) {
                 long count = countReferencing(ref, id);

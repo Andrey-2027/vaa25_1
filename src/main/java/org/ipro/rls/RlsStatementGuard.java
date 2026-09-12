@@ -37,7 +37,8 @@ import java.util.regex.Pattern;
  * Режимы: прод — ERROR-лог + счётчик ({@link #violationCount}); тесты —
  * коллектор нарушений ({@link #violations}) при {@code rls.guard.strict=true}
  * (свойство, управляется тестовым конфигом). Канарейка НИЧЕГО не блокирует —
- * только фиксирует; AOP-принуждение — отдельное отложенное решение (см. план).
+ * только фиксирует; обязательная server-side граница живёт в
+ * {@link RlsPolicyEnforcer} и {@link RlsRepositoryEnforcementAspect}.
  */
 public final class RlsStatementGuard {
 
@@ -123,10 +124,17 @@ public final class RlsStatementGuard {
     }
 
     private void audit(String sql) {
-        if (sql == null || sql.isBlank() || RlsContext.isBypassed() || Boolean.TRUE.equals(CONSENT.get())) {
+        if (sql == null || sql.isBlank()) {
             return;
         }
         String normalized = sql.stripLeading().toLowerCase(Locale.ROOT);
+        if (RlsContext.isBypassed()) {
+            validatePrivilegedStatement(sql, normalized);
+            return;
+        }
+        if (Boolean.TRUE.equals(CONSENT.get())) {
+            return;
+        }
         if (!normalized.startsWith("select")) {
             return;
         }
@@ -144,6 +152,41 @@ public final class RlsStatementGuard {
                 }
             }
         }
+    }
+
+    private void validatePrivilegedStatement(String sql, String normalized) {
+        RlsBypassScope scope = RlsContext.currentScope();
+        if (!normalized.startsWith("select")) {
+            throw new RlsAccessDeniedException(
+                "RLS bypass scopes are read-only; rejected SQL: " + sql);
+        }
+        if (scope == RlsBypassScope.REFERENCE_INTEGRITY_CHECK) {
+            if (!normalized.matches("select\\s+count\\s*\\(.*")) {
+                throw new RlsAccessDeniedException(
+                    "Reference-integrity bypass may execute COUNT queries only");
+            }
+            return;
+        }
+        if (scope == RlsBypassScope.RLS_ADMINISTRATION) {
+            String allowedTable = scope.administrationTable(RlsContext.currentReason());
+            boolean allowedSeen = false;
+            for (TableCheck check : tables) {
+                if (!check.pattern().matcher(normalized).find()) {
+                    continue;
+                }
+                if (!check.table().equalsIgnoreCase(allowedTable)) {
+                    throw new RlsAccessDeniedException(
+                        "RLS administration bypass cannot query table " + check.table());
+                }
+                allowedSeen = true;
+            }
+            if (!allowedSeen) {
+                throw new RlsAccessDeniedException(
+                    "RLS administration bypass must query its approved dimension table");
+            }
+            return;
+        }
+        throw new RlsAccessDeniedException("Unknown RLS bypass scope");
     }
 
     private void report(String table, String dimension, String sql) {

@@ -12,6 +12,19 @@ package org.ipro.rls;
  */
 public interface RlsCurrentUser {
 
-    /** Имя текущего аутентифицированного пользователя (например, "system" для фоновых задач). */
+    /** Имя субъекта; legacy-реализация может вернуть "system" при отсутствии auth. */
     String username();
+
+    /**
+     * Субъект для protected operation. Неявный {@code system} не является authority:
+     * системная операция обязана открыть типизированный {@link RlsContext}.
+     */
+    default String requireAuthenticatedUsername() {
+        String username = username();
+        if (username == null || username.isBlank() || "system".equals(username)) {
+            throw new RlsAccessDeniedException(
+                "Защищённая операция требует аутентифицированного пользователя");
+        }
+        return username;
+    }
 }

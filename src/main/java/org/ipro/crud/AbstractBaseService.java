@@ -22,13 +22,17 @@ import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.security.CurrentUser;
 import org.ipro.numbering.NumberingService;
-import org.ipro.numbering.annotation.Numbered;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsDimensionValue;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
+import org.ipro.rls.RlsPolicyEnforcer;
+import org.ipro.events.EntityEventPublisher;
+import org.ipro.events.EventContext;
+import org.ipro.events.EventSource;
+import org.ipro.lifecycle.EntityLifecycleRegistry;
 import org.ipro.telemetry.core.SecurityEventLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -38,7 +42,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.ipro.crud.IdentifiableEntity;
-import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
@@ -69,11 +72,36 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     @Autowired
     private RlsReadGate rlsReadGate;
 
+    @Autowired(required = false)
+    private RlsPolicyEnforcer rlsPolicyEnforcer;
+
     @Autowired
     private Optional<SecurityEventLogger> securityEventLogger;
 
     @Autowired
     private Optional<NumberingService> numberingService;
+
+    /**
+     * Optional-бин контура entity events (см. {@code org.ipro.events}). Сервисы остаются
+     * работоспособными и без него (юнит-тесты собирают сервис вручную), в приложении бин
+     * приходит из {@code EventsAutoConfiguration}.
+     */
+    @Autowired
+    private Optional<EntityEventPublisher> entityEventPublisher = Optional.empty();
+
+    /**
+     * Optional typed application lifecycle. Hand-built services remain usable without
+     * the platform registry; Spring application context supplies it automatically.
+     */
+    @Autowired
+    private Optional<EntityLifecycleRegistry> entityLifecycleRegistry = Optional.empty();
+
+    /**
+     * Optional for hand-built unit tests; in the application it removes metadata-declared
+     * owned sections as part of the same root delete transaction.
+     */
+    @Autowired
+    private Optional<GenericOwnedSectionService> genericOwnedSectionService = Optional.empty();
 
     protected AbstractBaseService(JpaRepository<T, ID> repository, Validator validator) {
         this.repository = repository;
@@ -85,9 +113,19 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         normalizeVersion(entity);
         assignNumbers(entity);
         validate(entity);
-        validateBusinessRules(entity);
-        checkRlsWrite(entity);
-        return repository.save(entity);
+        Optional<T> original = originalForUpdate(entity);
+        EntityEventPublisher.EventScope eventScope = openEntityEventOperation(entity);
+        try {
+            publishSaving(entity);
+            publishUpdating(original, entity);
+            validateBusinessRules(entity);
+            checkRlsWrite(entity);
+            T saved = repository.save(entity);
+            publishSaved(saved);
+            return saved;
+        } finally {
+            closeEventScope(eventScope);
+        }
     }
 
     @Override
@@ -95,18 +133,38 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         normalizeVersion(entity);
         assignNumbers(entity);
         validate(entity);
-        validateBusinessRules(entity);
-        checkRlsWrite(entity);
-        return repository.save(entity);
+        Optional<T> original = originalForUpdate(entity);
+        EntityEventPublisher.EventScope eventScope = openEntityEventOperation(entity);
+        try {
+            publishSaving(entity);
+            publishUpdating(original, entity);
+            validateBusinessRules(entity);
+            checkRlsWrite(entity);
+            T saved = repository.save(entity);
+            publishSaved(saved);
+            return saved;
+        } finally {
+            closeEventScope(eventScope);
+        }
     }
 
     @Override
     public T update(T entity) {
         normalizeVersion(entity);
         validate(entity);
-        validateBusinessRules(entity);
-        checkRlsWrite(entity);
-        return repository.save(entity);
+        Optional<T> original = originalForUpdate(entity);
+        EntityEventPublisher.EventScope eventScope = openEntityEventOperation(entity);
+        try {
+            publishSaving(entity);
+            publishUpdating(original, entity);
+            validateBusinessRules(entity);
+            checkRlsWrite(entity);
+            T saved = repository.save(entity);
+            publishSaved(saved);
+            return saved;
+        } finally {
+            closeEventScope(eventScope);
+        }
     }
 
     /**
@@ -127,9 +185,33 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public void delete(ID id) {
-        referenceCheckService.checkNoReferences(getDomainClass(), id);
-        findById(id).ifPresent(this::checkRlsDelete);
-        repository.deleteById(id);
+        Optional<T> existing = findById(id);
+        if (existing.isEmpty()) {
+            // For a protected type "not found" may mean "filtered out". Never turn that
+            // into deleteById, because dimension values would be unavailable for enforcement.
+            if (rlsPolicyEnforcer != null && rlsPolicyEnforcer.isProtected(getDomainClass())) {
+                return;
+            }
+            referenceCheckService.checkNoReferences(getDomainClass(), id);
+            repository.deleteById(id);
+            return;
+        }
+
+        T entity = existing.get();
+        EntityEventPublisher.EventScope eventScope = openEntityEventOperation(entity);
+        try {
+            publishDeleting(entity);
+            checkRlsDelete(entity);
+            genericOwnedSectionService.ifPresent(service ->
+                service.deleteAllOwnedSections(entity));
+            // Owned references have now been removed and flushed. Remaining references
+            // are external blockers; an exception rolls the whole transaction back.
+            referenceCheckService.checkNoReferences(getDomainClass(), id);
+            repository.delete(entity);
+            publishDeleted(entity);
+        } finally {
+            closeEventScope(eventScope);
+        }
     }
 
     /**
@@ -139,14 +221,23 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      * было бы создать PrdSpec под недоступным Journal, не имея формально прав его
      * редактировать). @Filter эту проверку не даёт — он действует только на SELECT.
      *
-     * Сущность, не реализующая RlsDimensionValue, write-guard'ом не проверяется вовсе —
-     * это и есть признак "не защищена RLS на запись" (см. RlsDimensionValue).
+     * Для protected entity runtime descriptor требует {@link RlsDimensionValue};
+     * отсутствие контракта обнаруживается при startup/runtime и не превращается в
+     * разрешение операции. Entity без {@code @RlsDimension} остаётся обычной.
      */
     protected void checkRlsWrite(T entity) {
+        if (rlsPolicyEnforcer != null) {
+            rlsPolicyEnforcer.requireUpdate(entity);
+            return;
+        }
         checkRls(entity, accessService::canUpdate, "изменение");
     }
 
     protected void checkRlsDelete(T entity) {
+        if (rlsPolicyEnforcer != null) {
+            rlsPolicyEnforcer.requireDelete(entity);
+            return;
+        }
         checkRls(entity, accessService::canDelete, "удаление");
     }
 
@@ -428,6 +519,9 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      * построчным FILTERABLE-измерениям. Решение — единый {@link RlsReadGate}.
      */
     private boolean canRead() {
+        if (rlsPolicyEnforcer != null) {
+            return rlsPolicyEnforcer.prepareRead(getDomainClass(), entityManager);
+        }
         return rlsReadGate.canRead(getDomainClass(), CurrentUser.username());
     }
 
@@ -457,9 +551,132 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      * ничего не делает — переопределяется в сервисах с кросс-полевой/кросс-сущностной
      * логикой, которую bean-валидацией не выразить. Исключение из хука прерывает
      * сохранение, как и из validate().
+     *
+     * <p>Для новых правил приоритетный путь — типизированный
+     * {@code EntityLifecycle.beforeSave} (см. {@link #publishSaving(Object)}): он
+     * применяется на любом пути сохранения, а не только там, где правило было
+     * прописано. Хук остаётся для совместимости и переводится в lifecycle handlers
+     * по одному правилу за раз.</p>
      */
     protected void validateBusinessRules(T entity) {
         // no-op по умолчанию — правила есть только у конкретных сервисов
+    }
+
+    /**
+     * Veto-capable entity-событие перед persistence — единая точка, в которой доменное
+     * правило становится применимым к любому пути сохранения, а не к одному конкретному
+     * экрану или use case.
+     *
+     * <p>Source = {@link EventSource#SYSTEM}: сам сервис не знает вызывающий канал
+     * (UI/REST/импорт) — агрегатные операции публикуют свой {@code AggregateSavingEvent}
+     * из use case, где источник известен явно. Событие публикуется до {@code repository.save},
+     * внутри текущей транзакции: исключение listener'а отменяет сохранение.</p>
+     */
+    protected void publishSaving(T entity) {
+        EventContext context = lifecycleContext(entity, "save:" + getDomainClass().getSimpleName());
+        entityEventPublisher.ifPresent(publisher -> publisher.publishSaving(entity, context));
+        entityLifecycleRegistry.ifPresent(registry -> registry.beforeSave(
+            getDomainClass(), entity, context));
+    }
+
+    /** Вызвать typed callback только для существующей записи с доступным исходным состоянием. */
+    protected void publishUpdating(Optional<T> original, T updated) {
+        if (original.isEmpty()) {
+            return;
+        }
+        EventContext context = lifecycleContext(updated,
+            "update:" + getDomainClass().getSimpleName());
+        entityLifecycleRegistry.ifPresent(registry -> registry.beforeUpdate(
+            getDomainClass(), original.get(), updated, context));
+    }
+
+    /**
+     * Публикует Saved внутри текущей транзакции и планирует Changed после commit.
+     * Если сервис вызывается из typed aggregate use case, корневые события принадлежат
+     * use case: сервис оставляет только EntitySavingEvent и не создаёт дубликаты.
+     * В aggregate scope {@code onSave} также вызывается coordinator'ом после
+     * persistence всех подключённых sections.
+     */
+    protected void publishSaved(T entity) {
+        EventContext context = lifecycleContext(entity, "save:" + getDomainClass().getSimpleName());
+        entityEventPublisher.ifPresent(publisher -> {
+            if (publisher.isAggregateOperation(getDomainClass())) {
+                return;
+            }
+            publisher.publishSaved(entity, context);
+            publisher.publishChanged(entity, context);
+        });
+        entityLifecycleRegistry.ifPresent(registry -> {
+            if (entityEventPublisher.isEmpty()
+                || !entityEventPublisher.get().isAggregateOperation(getDomainClass())) {
+                registry.onSave(getDomainClass(), entity, context);
+            }
+        });
+    }
+
+    /** Синхронный veto перед удалением. */
+    protected void publishDeleting(T entity) {
+        EventContext context = lifecycleContext(entity, "delete:" + getDomainClass().getSimpleName());
+        entityEventPublisher.ifPresent(publisher -> publisher.publishDeleting(entity, context));
+        entityLifecycleRegistry.ifPresent(registry -> registry.beforeDelete(
+            getDomainClass(), entity, context));
+    }
+
+    /** Планирует факт удаления после успешного commit. */
+    protected void publishDeleted(T entity) {
+        entityEventPublisher.ifPresent(publisher -> publisher.publishDeleted(entity,
+            publisher.contextFor(getDomainClass(), entity.getId(), EventSource.SYSTEM,
+                "delete:" + getDomainClass().getSimpleName())));
+    }
+
+    /** Контекст для typed lifecycle callbacks с сохранением aggregate scope. */
+    private EventContext lifecycleContext(T entity, String operationName) {
+        return entityEventPublisher
+            .map(publisher -> publisher.contextFor(
+                getDomainClass(), entity.getId(), EventSource.SYSTEM, operationName))
+            .orElseGet(() -> EventContext.forEntity(
+                getDomainClass(), entity.getId(), EventSource.SYSTEM, operationName));
+    }
+
+    /**
+     * Загрузить состояние до изменения. Detached payload получает отдельный managed
+     * снимок; если вызывающий передал уже managed instance, JPA мог потерять старые
+     * значения до входа в сервис, поэтому callback получает тот же instance в роли
+     * original и updated, а надёжный diff требует detached payload или explicit operation.
+     */
+    private Optional<T> originalForUpdate(T entity) {
+        if (entity.getId() == null) {
+            return Optional.empty();
+        }
+        // Services assembled by hand in unit tests do not have the optional
+        // infrastructure collaborators injected. Keep that supported while
+        // the Spring path below still goes through the normal read boundary.
+        if (rlsFilterActivator == null || entityManager == null || rlsReadGate == null) {
+            return repository.findById((ID) entity.getId());
+        }
+        // Use the service read boundary so RLS/read-gate and metadata fetch policy
+        // are applied before exposing the original state to application code.
+        return findById((ID) entity.getId());
+    }
+
+    /** Открыть единый контекст standalone entity-операции; aggregate scope уже открыт use case. */
+    private EntityEventPublisher.EventScope openEntityEventOperation(T entity) {
+        if (entityEventPublisher.isEmpty()) {
+            return null;
+        }
+        EntityEventPublisher publisher = entityEventPublisher.get();
+        if (publisher.isAggregateOperation(getDomainClass())) {
+            return null;
+        }
+        EventContext context = publisher.contextFor(getDomainClass(), entity.getId(),
+            EventSource.SYSTEM, "entity:" + getDomainClass().getSimpleName());
+        return publisher.openOperation(context);
+    }
+
+    private static void closeEventScope(EntityEventPublisher.EventScope eventScope) {
+        if (eventScope != null) {
+            eventScope.close();
+        }
     }
 
     /**
@@ -474,21 +691,6 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         if (entity.getId() != null || numberingService.isEmpty()) {
             return;
         }
-        for (Field field : entity.getClass().getDeclaredFields()) {
-            if (field.getAnnotation(Numbered.class) == null) {
-                continue;
-            }
-            String value = numberingService.get().autoValue(entity, field);
-            if (value == null) {
-                continue;
-            }
-            try {
-                field.setAccessible(true);
-                field.set(entity, value);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("Не удалось установить авто-номер поля "
-                    + entity.getClass().getSimpleName() + "." + field.getName(), e);
-            }
-        }
+        numberingService.get().assignAutoValues(entity);
     }
 }

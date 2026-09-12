@@ -8,9 +8,9 @@ import java.util.List;
  * Сервис табличной части документа. T — строка (например, ReceivingDocumentItem),
  * P — родительский документ (например, ReceivingDocument).
  *
- * Строки табличной части — отдельные сущности со своим репозиторием, не EAGER-коллекция
- * на родителе. UI (ItemTable) работает со списком строк в памяти, пока пользователь
- * редактирует документ, и вызывает replaceAll() один раз — при сохранении шапки.
+ * Строки табличной части — отдельные owned entities, не EAGER-коллекция на родителе.
+ * UI (ItemTable) работает со списком строк в памяти; стандартную реализацию этого
+ * контракта создаёт платформа из resolved descriptor.
  */
 public interface TableSectionService<T extends IdentifiableEntity, P extends IdentifiableEntity> {
 
@@ -43,9 +43,8 @@ public interface TableSectionService<T extends IdentifiableEntity, P extends Ide
      * не может превышать остаток", "не должно быть дублирующихся позиций одной номенклатуры").
      * Возвращает список сообщений об ошибках; пустой список — всё валидно.
      *
-     * Вызывается ДО сохранения шапки документа, чтобы не оставить документ в частично
-     * сохранённом состоянии при ошибке. По умолчанию — только проверка minRows
-     * (см. AbstractTableSectionService), конкретные сервисы переопределяют для доменных правил.
+     * UI вызывает это как раннюю проверку; authoritative validation повторяется внутри
+     * атомарного aggregate save. Предметные cross-section правила оформляются listeners.
      */
     List<String> validateRows(P parent, List<T> rows);
 

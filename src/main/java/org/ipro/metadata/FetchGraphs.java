@@ -17,7 +17,7 @@ import java.util.Set;
  * Общий хелпер построения EntityGraph — раньше одна и та же логика (взять
  * ENTITY_REFERENCE-поля грида → построить EntityGraph) была реализована дважды:
  * в AbstractBaseService (для обычных @EntityMetadata-сущностей) и отдельно в
- * AbstractTableSectionService (для строк табличных частей). Теперь оба места
+ * GenericOwnedSectionService (для строк табличных частей). Теперь оба места
  * используют один и тот же код.
  */
 public final class FetchGraphs {
@@ -194,4 +194,3 @@ public final class FetchGraphs {
     /** Один шаг BFS-обхода: путь + класс цели + глубина. */
     private record DeepenTask(String prefix, Class<?> targetClass, int depth) {}
 }
-

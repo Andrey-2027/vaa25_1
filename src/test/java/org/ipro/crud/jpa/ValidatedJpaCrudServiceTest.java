@@ -6,12 +6,17 @@ import jakarta.validation.constraints.NotBlank;
 import org.ipro.crud.BaseEntity;
 import org.ipro.crud.ReferenceCheckService;
 import org.ipro.crud.ValidationException;
+import org.ipro.lifecycle.EntityLifecycle;
+import org.ipro.lifecycle.EntityLifecycleRegistry;
+import org.ipro.lifecycle.EntitySaveContext;
+import org.ipro.lifecycle.EntityUpdateContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,6 +66,45 @@ class ValidatedJpaCrudServiceTest {
 
         assertThat(service.save(entity)).isSameAs(entity);
         verify(repository).save(entity);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void onSaveRunsAfterRepositorySaveInsideTheCrudPipeline() {
+        EntityLifecycle<NamedEntity> lifecycle = mock(EntityLifecycle.class);
+        when(lifecycle.entityType()).thenReturn(NamedEntity.class);
+        ReflectionTestUtils.setField(service, "entityLifecycleRegistry",
+            Optional.of(new EntityLifecycleRegistry(List.of(lifecycle))));
+        NamedEntity entity = new NamedEntity("valid");
+        when(repository.save(entity)).thenReturn(entity);
+
+        service.save(entity);
+
+        var order = inOrder(lifecycle, repository);
+        order.verify(lifecycle).beforeSave(org.mockito.ArgumentMatchers.any(EntitySaveContext.class));
+        order.verify(repository).save(entity);
+        order.verify(lifecycle).onSave(org.mockito.ArgumentMatchers.any(EntitySaveContext.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void updateDispatchesBeforeUpdateWithOriginalAndUpdatedState() {
+        EntityLifecycle<NamedEntity> lifecycle = mock(EntityLifecycle.class);
+        when(lifecycle.entityType()).thenReturn(NamedEntity.class);
+        ReflectionTestUtils.setField(service, "entityLifecycleRegistry",
+            Optional.of(new EntityLifecycleRegistry(List.of(lifecycle))));
+
+        NamedEntity original = new NamedEntity("old");
+        original.setId(7L);
+        NamedEntity updated = new NamedEntity("new");
+        updated.setId(7L);
+        when(repository.findById(7L)).thenReturn(Optional.of(original));
+        when(repository.save(updated)).thenReturn(updated);
+
+        service.update(updated);
+
+        verify(lifecycle).beforeUpdate(org.mockito.ArgumentMatchers.argThat(
+            context -> context.changed(NamedEntity::getName)));
     }
 
     @Test

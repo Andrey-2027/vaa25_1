@@ -1,5 +1,6 @@
 package org.ip;
 
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
@@ -9,7 +10,8 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-@Theme(value = "default", themeClass = Lumo.class)
+@Theme("default")
+@StyleSheet(Lumo.UTILITY_STYLESHEET)
 @EntityScan({"org.ip.model", "org.ipro.telemetry.model", "org.ipro.rls", "org.ipro.reportstudio.dom",
     "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport.dom", "org.ipro.jr.dom"})
 @EnableTransactionManagement(proxyTargetClass = true, order = 0)

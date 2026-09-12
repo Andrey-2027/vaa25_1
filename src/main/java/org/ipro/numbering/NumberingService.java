@@ -1,6 +1,5 @@
 package org.ipro.numbering;
 
-import org.ipro.numbering.annotation.Numbered;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.lang.reflect.Field;
@@ -68,7 +67,7 @@ public class NumberingService implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         for (NumberingMetadataRegistry.NumberedFieldInfo info : metadataRegistry.all()) {
-            for (String dimension : info.annotation().scope()) {
+            for (String dimension : info.definition().scope()) {
                 if (!scopeResolver.canResolve(dimension)) {
                     throw new IllegalStateException(
                         "Измерение \"" + dimension + "\" из @Numbered(" + info.key() +
@@ -85,22 +84,18 @@ public class NumberingService implements InitializingBean {
      * Применить к {@code entity} (через setter) вызывающий обязан сам.
      */
     public long next(Object entity, Field field) {
-        Numbered ann = field.getAnnotation(Numbered.class);
-        if (ann == null) {
-            throw new IllegalArgumentException("Поле " + field + " не помечено @Numbered");
-        }
-        NumberingRule rule = ruleService.effectiveRule(entity.getClass().getSimpleName(), field.getName(), ann);
-        return allocateWithRetry(keyFor(entity, field, ann, rule), initialFor(rule));
+        NumberingDefinition definition = definitionFor(entity, field);
+        NumberingRule rule = ruleService.effectiveRule(
+            entity.getClass().getSimpleName(), field.getName(), definition);
+        return allocateWithRetry(keyFor(entity, definition, rule), initialFor(rule));
     }
 
     /** Перезапустить последовательность (для админ-экрана); {@code seq} — новое последнее значение. */
     public void setCurrentValue(Object entity, Field field, long seq) {
-        Numbered ann = field.getAnnotation(Numbered.class);
-        if (ann == null) {
-            throw new IllegalArgumentException("Поле " + field + " не помечено @Numbered");
-        }
-        NumberingRule rule = ruleService.effectiveRule(entity.getClass().getSimpleName(), field.getName(), ann);
-        counterService.setCurrentValue(keyFor(entity, field, ann, rule), seq);
+        NumberingDefinition definition = definitionFor(entity, field);
+        NumberingRule rule = ruleService.effectiveRule(
+            entity.getClass().getSimpleName(), field.getName(), definition);
+        counterService.setCurrentValue(keyFor(entity, definition, rule), seq);
     }
 
     /**
@@ -108,12 +103,10 @@ public class NumberingService implements InitializingBean {
      * 0 — счётчик ещё не создан (ни один номер не выдан). Для админ-экрана.
      */
     public long currentValue(Object entity, Field field) {
-        Numbered ann = field.getAnnotation(Numbered.class);
-        if (ann == null) {
-            throw new IllegalArgumentException("Поле " + field + " не помечено @Numbered");
-        }
-        NumberingRule rule = ruleService.effectiveRule(entity.getClass().getSimpleName(), field.getName(), ann);
-        return counterService.lastValue(keyFor(entity, field, ann, rule));
+        NumberingDefinition definition = definitionFor(entity, field);
+        NumberingRule rule = ruleService.effectiveRule(
+            entity.getClass().getSimpleName(), field.getName(), definition);
+        return counterService.lastValue(keyFor(entity, definition, rule));
     }
 
     /**
@@ -121,12 +114,11 @@ public class NumberingService implements InitializingBean {
      * Секвенцию следующего номера НЕ резервирует.
      */
     public String format(Object entity, Field field, long seq) {
-        Numbered ann = field.getAnnotation(Numbered.class);
-        if (ann == null) {
-            throw new IllegalArgumentException("Поле " + field + " не помечено @Numbered");
-        }
-        NumberingRule rule = ruleService.effectiveRule(entity.getClass().getSimpleName(), field.getName(), ann);
-        return NumberFormatter.format(seq, rule.getPrefix(), rule.getPattern(), dateOf(entity, ann.dateField()));
+        NumberingDefinition definition = definitionFor(entity, field);
+        NumberingRule rule = ruleService.effectiveRule(
+            entity.getClass().getSimpleName(), field.getName(), definition);
+        return NumberFormatter.format(
+            seq, rule.getPrefix(), rule.getPattern(), dateOf(entity, definition.dateField()));
     }
 
     /**
@@ -135,12 +127,9 @@ public class NumberingService implements InitializingBean {
      * иначе аллоцирует секвенцию и возвращает ОТФОРМАТИРОВАННУЮ строку для установки в поле.
      */
     public String autoValue(Object entity, Field field) {
-        Numbered ann = field.getAnnotation(Numbered.class);
-        if (ann == null) {
-            throw new IllegalArgumentException("Поле " + field + " не помечено @Numbered");
-        }
+        NumberingDefinition definition = definitionFor(entity, field);
         String entityName = entity.getClass().getSimpleName();
-        NumberingRule rule = ruleService.effectiveRule(entityName, field.getName(), ann);
+        NumberingRule rule = ruleService.effectiveRule(entityName, field.getName(), definition);
 
         if (rule.isManualInput()) {
             try {
@@ -154,16 +143,46 @@ public class NumberingService implements InitializingBean {
             }
         }
 
-        long seq = allocateWithRetry(keyFor(entity, field, ann, rule), initialFor(rule));
+        long seq = allocateWithRetry(keyFor(entity, definition, rule), initialFor(rule));
         return NumberFormatter.format(seq, rule.getPrefix(), rule.getPattern(),
-            dateOf(entity, ann.dateField()));
+            dateOf(entity, definition.dateField()));
+    }
+
+    /** Присваивает все авто-номера новой сущности, включая поля mapped superclass. */
+    public void assignAutoValues(Object entity) {
+        for (NumberingMetadataRegistry.NumberedFieldInfo info
+                : metadataRegistry.forEntity(entity.getClass())) {
+            String value = autoValue(entity, info.field());
+            if (value == null) {
+                continue;
+            }
+            try {
+                info.field().set(entity, value);
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException("Не удалось установить авто-номер поля "
+                    + info.key(), e);
+            }
+        }
     }
 
     /** Ключ счётчика = entity|scope:value,...|period — одна строка на каждую реальную серию. */
-    private String keyFor(Object entity, Field field, Numbered ann, NumberingRule rule) {
+    private String keyFor(Object entity, NumberingDefinition definition, NumberingRule rule) {
         return entity.getClass().getSimpleName() + KEY_SEPARATOR
-            + scopeKey(List.of(ann.scope()), entity) + KEY_SEPARATOR
-            + rule.getPeriod().keyFor(dateOf(entity, ann.dateField()));
+            + scopeKey(definition.scope(), entity) + KEY_SEPARATOR
+            + rule.getPeriod().keyFor(dateOf(entity, definition.dateField()));
+    }
+
+    private NumberingDefinition definitionFor(Object entity, Field field) {
+        return metadataRegistry.find(entity.getClass(), field.getName())
+            .map(NumberingMetadataRegistry.NumberedFieldInfo::definition)
+            .orElseGet(() -> {
+                var annotation = field.getAnnotation(
+                    org.ipro.numbering.annotation.Numbered.class);
+                if (annotation == null) {
+                    throw new IllegalArgumentException("Поле " + field + " не помечено @Numbered");
+                }
+                return NumberingDefinition.from(annotation);
+            });
     }
 
     private long initialFor(NumberingRule rule) {
@@ -209,16 +228,24 @@ public class NumberingService implements InitializingBean {
     }
 
     private LocalDate dateOf(Object entity, String dateField) {
+        if (dateField == null || dateField.isBlank()) {
+            return LocalDate.now();
+        }
         try {
-            Field f = entity.getClass().getDeclaredField(dateField);
+            Field f = NumberingMetadataRegistry.findField(entity.getClass(), dateField)
+                .orElseThrow(() -> new IllegalStateException("Поле даты нумерации "
+                    + entity.getClass().getName() + "." + dateField + " не найдено"));
             f.setAccessible(true);
             Object value = f.get(entity);
             if (value instanceof LocalDate d) {
                 return d;
             }
-            return LocalDate.now();
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            return LocalDate.now();
+            throw new IllegalStateException("Поле даты нумерации "
+                + entity.getClass().getName() + "." + dateField
+                + " не заполнено значением LocalDate");
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Не удалось прочитать поле даты нумерации "
+                + entity.getClass().getName() + "." + dateField, e);
         }
     }
 }

@@ -14,7 +14,9 @@ import org.ip.repository.WorkshopRepository;
 import org.ip.service.NomenclatureService;
 import org.ip.service.OperService;
 import org.ip.service.ReceivingDocumentService;
-import org.ipro.rls.RlsContext;
+import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.RlsTestFixture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -72,6 +74,14 @@ class NumberingEngineIT {
 
     @Autowired
     private UnitOfMeasurementRepository uomRepository;
+
+    @Autowired
+    private AccessGrantRepository accessGrantRepository;
+
+    @BeforeEach
+    void authenticateRlsTestUser() {
+        RlsTestFixture.authenticateAsSuperuser(accessGrantRepository);
+    }
 
     private static final LocalDate DATE_2025 = LocalDate.of(2025, 6, 1);
     private static final LocalDate DATE_2026 = LocalDate.of(2026, 3, 1);
@@ -249,7 +259,7 @@ class NumberingEngineIT {
 
     @Test
     void createAssignsNumberUpdateKeepsIt() {
-        RlsContext.runAsSystem(() -> {
+        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
             Workshop receiving = workshopRepository.save(new Workshop("RW-1", "Цех приёмщик"));
             Workshop transferring = workshopRepository.save(new Workshop("TW-1", "Цех сдатчик"));
             Journal journal = persistedJournal("J-H1");
@@ -270,7 +280,7 @@ class NumberingEngineIT {
 
     @Test
     void manualNumberPreservedOnCreate() {
-        RlsContext.runAsSystem(() -> {
+        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
             Workshop receiving = workshopRepository.save(new Workshop("RW-2", "Цех приёмщик"));
             Workshop transferring = workshopRepository.save(new Workshop("TW-2", "Цех сдатчик"));
             Journal journal = persistedJournal("J-H2");

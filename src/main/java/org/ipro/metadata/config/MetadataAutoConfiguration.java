@@ -3,10 +3,22 @@ package org.ipro.metadata.config;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.ReferenceIndex;
 import org.ipro.metadata.SubsystemRegistry;
+import org.ipro.metadata.SectionMetadataRegistry;
+import org.ipro.crud.GenericOwnedSectionService;
+import org.ipro.crud.MetadataDrivenAggregateSaveService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.form.MetadataDrivenItemFormSaveAdapter;
+import org.ipro.lifecycle.EntityLifecycle;
+import org.ipro.lifecycle.EntityLifecycleRegistry;
+import org.ipro.rls.RlsPolicyEnforcer;
+import jakarta.validation.Validator;
+import org.ipro.events.EntityEventPublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+
+import java.util.List;
 
 /**
  * Auto-Configuration слоя метаданных ({@code org.ipro.metadata}). Пакет вынесен из
@@ -41,5 +53,52 @@ public class MetadataAutoConfiguration {
     public SubsystemRegistry subsystemRegistry(
             @Value("${platform.subsystem-scan-package:org.ip}") String basePackage) {
         return new SubsystemRegistry(basePackage);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SectionMetadataRegistry sectionMetadataRegistry(
+            @Value("${platform.subsystem-scan-package:org.ip}") String basePackage,
+            MetadataResolver metadataResolver) {
+        return new SectionMetadataRegistry(basePackage, metadataResolver);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public EntityLifecycleRegistry entityLifecycleRegistry(
+            List<EntityLifecycle<?>> lifecycleHandlers) {
+        return new EntityLifecycleRegistry(lifecycleHandlers);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public GenericOwnedSectionService genericOwnedSectionService(
+            Validator validator,
+            MetadataResolver metadataResolver,
+            SectionMetadataRegistry sectionMetadataRegistry,
+            RlsPolicyEnforcer rlsPolicyEnforcer) {
+        return new GenericOwnedSectionService(
+            validator, metadataResolver, sectionMetadataRegistry, rlsPolicyEnforcer);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public MetadataDrivenAggregateSaveService metadataDrivenAggregateSaveService(
+            ServiceLocator serviceLocator,
+            SectionMetadataRegistry sectionMetadataRegistry,
+            GenericOwnedSectionService genericOwnedSectionService,
+            EntityEventPublisher entityEventPublisher,
+            EntityLifecycleRegistry entityLifecycleRegistry) {
+        return new MetadataDrivenAggregateSaveService(
+            serviceLocator, sectionMetadataRegistry, genericOwnedSectionService,
+            entityEventPublisher, entityLifecycleRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public MetadataDrivenItemFormSaveAdapter metadataDrivenItemFormSaveAdapter(
+            SectionMetadataRegistry sectionMetadataRegistry,
+            MetadataDrivenAggregateSaveService aggregateSaveService) {
+        return new MetadataDrivenItemFormSaveAdapter(sectionMetadataRegistry, aggregateSaveService);
     }
 }

@@ -49,7 +49,8 @@ public class NumberingAdminTab extends VerticalLayout {
 
     private final Grid<Row> grid = new Grid<>(Row.class, false);
 
-    record Row(Class<?> entityClass, String fieldName, String entityTitle, String subsystemTitle,
+    record Row(Class<?> entityClass, String fieldName, Field field,
+               String entityTitle, String subsystemTitle,
                NumberingRule rule, long currentValue, boolean globalScope) {
     }
 
@@ -103,13 +104,14 @@ public class NumberingAdminTab extends VerticalLayout {
             String subsystemTitle = subsystemRegistry.findByMarker(meta.getAnnotation().subsystem())
                     .map(SubsystemNode::getTitle).orElse("—");
             NumberingRule effective = ruleService.effectiveRule(
-                    clazz.getSimpleName(), info.fieldName(), info.annotation());
-            boolean global = info.annotation().scope().length == 0;
+                    clazz.getSimpleName(), info.fieldName(), info.definition());
+            boolean global = info.definition().scope().isEmpty();
             long current = 0;
             if (global) {
-                current = numberingService.currentValue(instantiate(clazz), fieldOf(clazz, info.fieldName()));
+                current = numberingService.currentValue(instantiate(clazz), info.field());
             }
-            return new Row(clazz, info.fieldName(), meta.getListFormTitle(), subsystemTitle,
+            return new Row(clazz, info.fieldName(), info.field(),
+                    meta.getListFormTitle(), subsystemTitle,
                     effective, current, global);
         }).toList();
     }
@@ -191,7 +193,7 @@ public class NumberingAdminTab extends VerticalLayout {
         Button apply = new Button("Установить", new Icon(VaadinIcon.PENCIL), e -> {
             try {
                 numberingService.setCurrentValue(instantiate(row.entityClass()),
-                        fieldOf(row.entityClass(), row.fieldName()), Long.parseLong(current.getValue().trim()));
+                        row.field(), Long.parseLong(current.getValue().trim()));
                 refresh();
                 Notification.show("Текущее значение обновлено", 2000, Notification.Position.BOTTOM_END);
             } catch (NumberFormatException ex) {
@@ -226,11 +228,4 @@ public class NumberingAdminTab extends VerticalLayout {
         }
     }
 
-    private static Field fieldOf(Class<?> clazz, String name) {
-        try {
-            return clazz.getDeclaredField(name);
-        } catch (NoSuchFieldException e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }

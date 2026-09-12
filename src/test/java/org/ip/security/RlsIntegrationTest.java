@@ -236,8 +236,8 @@ class RlsIntegrationTest {
         loginAs("alice");
         activator.ensureRlsEnabled(entityManager); // включает JOURNAL-фильтр на сессии
 
-        Long countIgnoringRls = activator.withRlsDisabled(entityManager, () ->
-            entityManager.createQuery("select count(s) from PrdSpec s", Long.class).getSingleResult());
+        Long countIgnoringRls = activator.withDimensionAdministration(entityManager, "JOURNAL", () ->
+            entityManager.createQuery("select count(j) from Journal j", Long.class).getSingleResult());
         assertThat(countIgnoringRls).isEqualTo(2L); // обе, несмотря на ограничение alice
 
         List<PrdSpec> visibleAfter = entityManager
@@ -322,7 +322,7 @@ class RlsIntegrationTest {
 
     /**
      * Ключевая проверка write-guard после перехода на мульти-измеренческий контракт
-     * (RlsDimensionValue.getRlsChecks()): у Цеха без Филиала проверка BRANCH должна быть
+     * (RlsPolicyDescriptor): у Цеха без Филиала проверка BRANCH должна быть
      * NotApplicable (пройдена автоматически), а не "null → только wildcard", иначе
      * редактировать Цеха без Филиала мог бы только обладатель wildcard-гранта на BRANCH —
      * это была бы регрессия по сравнению с тем, что видно на чтении.
@@ -331,7 +331,7 @@ class RlsIntegrationTest {
     void workshopWithoutBranchHasNoWriteRestrictionOnBranchDimension() {
         Workshop workshop = new Workshop("W4", "Цех без филиала");
         // carol не имеет НИ ОДНОГО гранта на BRANCH вообще
-        assertThat(workshop.getRlsChecks().get("BRANCH"))
+        assertThat(registry.policyOf(Workshop.class).checksOf(workshop).get("BRANCH"))
             .containsExactly(org.ipro.rls.RlsCheckValue.notApplicable());
     }
 
@@ -638,6 +638,7 @@ class RlsIntegrationTest {
      */
     @Test
     void deletionBlockedWhenSettingReferencesEntity() {
+        loginAs("admin");
         User signer = new User("signer-1", "secret-1");
         entityManager.persist(signer);
         entityManager.flush();

@@ -21,7 +21,7 @@ import java.math.BigDecimal;
         rowFormTitle = "Компонент",
         lineNumberField = "lineNumber",
         minRows = 1,
-        serviceClass = org.ip.service.PrdSpecMtrService.class
+        rlsPolicy = SectionRlsPolicy.INHERIT_ROOT
 )
 public class PrdSpecMtr extends BaseEntity {
 

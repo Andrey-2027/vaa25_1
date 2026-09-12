@@ -112,11 +112,12 @@ class EntitySummaryAssemblerTest {
     }
 
     @Test
-    void emptyFacetsAreEmptyCollectionsNotNull() {
+    void declaredSectionsAreResolvedAndEmptyCollectionsAreNotNull() {
         EntitySummary summary = assembler.summarize(Nomenclature.class);
 
         assertThat(summary.fieldsForm()).isNotEmpty();
-        assertThat(summary.tableSections()).isEmpty();
+        assertThat(summary.tableSections()).singleElement().satisfies(section ->
+            assertThat(section.rowClass()).isEqualTo("NomAttributeValue"));
         assertThat(summary.contextFilters()).isEmpty();
         assertThat(summary.selections()).isEmpty();
         assertThat(summary.numbering()).extracting(EntitySummary.NumberingRow::fieldName)

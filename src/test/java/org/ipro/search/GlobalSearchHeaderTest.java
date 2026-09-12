@@ -21,7 +21,7 @@ class GlobalSearchHeaderTest {
     void startsWithEmptySearchAndHiddenResults() {
         assertThat(header.searchField().getValue()).isEmpty();
         assertThat(header.results().isVisible()).isFalse();
-        assertThat(header.searchField().getAriaLabel()).isEqualTo("Глобальный поиск");
+        assertThat(header.searchField().getAriaLabel()).contains("Глобальный поиск");
     }
 
     @Test

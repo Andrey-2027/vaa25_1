@@ -1,21 +1,24 @@
 package org.ip.application.form;
 
-import org.ip.application.document.ReceivingDocumentFormSaveAdapter;
-import org.ipro.form.builtin.ItemForm;
 import org.ipro.crud.BaseService;
+import org.ipro.crud.IdentifiableEntity;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.form.FormSaveHandler;
 import org.ipro.form.FormSaveResult;
-import org.ip.model.ReceivingDocument;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.form.ItemFormSaveHandler;
+import org.ipro.form.ItemFormSaveHandlerRegistry;
+import org.ipro.form.MetadataDrivenItemFormSaveAdapter;
+import org.ipro.form.builtin.ItemForm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
 /**
- * Selects the save lifecycle for a form. The receiving document uses its
- * aggregate transaction; all other entities retain the existing generic path
- * with the service resolved via {@link ServiceLocator}.
+ * Selects the save lifecycle for a form. Custom application handlers are resolved
+ * through {@link ItemFormSaveHandlerRegistry}; if no override exists, every
+ * standard entity uses the metadata-driven aggregate adapter. The dispatcher has
+ * no knowledge of concrete application/domain types.
  *
  * <p>Implements {@link FormSaveHandler} (спецификация «Часть C.1»): исход
  * возвращается как {@link FormSaveResult}, исключения не подавляются — их
@@ -24,17 +27,19 @@ import java.util.Objects;
 @Component
 public class ItemFormSaveDispatcher implements FormSaveHandler<IdentifiableEntity> {
 
-    private final ReceivingDocumentFormSaveAdapter receivingDocumentAdapter;
+    private final ItemFormSaveHandlerRegistry handlerRegistry;
+    private final MetadataDrivenItemFormSaveAdapter metadataDrivenAdapter;
     private final ServiceLocator serviceLocator;
 
-    public ItemFormSaveDispatcher(ReceivingDocumentFormSaveAdapter receivingDocumentAdapter,
+    @Autowired
+    public ItemFormSaveDispatcher(ItemFormSaveHandlerRegistry handlerRegistry,
+                                  MetadataDrivenItemFormSaveAdapter metadataDrivenAdapter,
                                   ServiceLocator serviceLocator) {
-        this.receivingDocumentAdapter = Objects.requireNonNull(
-            receivingDocumentAdapter, "receivingDocumentAdapter must not be null"
-        );
+        this.handlerRegistry = Objects.requireNonNull(
+            handlerRegistry, "handlerRegistry must not be null");
+        this.metadataDrivenAdapter = metadataDrivenAdapter;
         this.serviceLocator = Objects.requireNonNull(
-            serviceLocator, "serviceLocator must not be null"
-        );
+            serviceLocator, "serviceLocator must not be null");
     }
 
     @Override
@@ -42,14 +47,26 @@ public class ItemFormSaveDispatcher implements FormSaveHandler<IdentifiableEntit
     public FormSaveResult<IdentifiableEntity> save(ItemForm<IdentifiableEntity> form) {
         Objects.requireNonNull(form, "form must not be null");
 
-        if (ReceivingDocument.class.equals(form.getEntityClass())) {
-            ReceivingDocument saved = receivingDocumentAdapter.save((ItemForm) form);
-            return new FormSaveResult.Success<>(saved);
+        var customHandler = handlerRegistry.find(form.getEntityClass());
+        if (customHandler.isPresent()) {
+            ItemFormSaveHandler handler = customHandler.get();
+            return (FormSaveResult) handler.save((ItemForm) form);
+        }
+
+        if (metadataDrivenAdapter != null) {
+            return (FormSaveResult) metadataDrivenAdapter.save(form);
+        }
+
+        // Transitional hand-built fallback for callers that have not yet wired
+        // the platform adapter. It is legal only for a header without sections;
+        // attached sections must never return to the old two-phase save path.
+        if (!form.attachedSectionClasses().isEmpty()) {
+            throw new IllegalStateException(
+                "Metadata-driven aggregate adapter is required for forms with attached sections");
         }
 
         BaseService service = serviceLocator.findService(form.getEntityClass());
         IdentifiableEntity saved = (IdentifiableEntity) service.save(form.getEntity());
-        form.commitTableSections(saved);
         form.commitSnapshot();
         return new FormSaveResult.Success<>(saved);
     }

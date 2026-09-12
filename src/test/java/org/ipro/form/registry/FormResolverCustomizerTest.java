@@ -14,6 +14,7 @@ import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.RowMetadataInfo;
+import com.vaadin.flow.component.Component;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -92,7 +93,15 @@ class FormResolverCustomizerTest {
         ListForm<Doc, ?> result = resolver.resolveListForm(Doc.class, null, null);
 
         assertThat(result).isSameAs(custom);
-        assertThat(custom.getToolbar().getChildren().toList()).hasSize(7);
+        List<Component> toolbarChildren = custom.getToolbar().getChildren().toList();
+        // стандартный состав тулбара: 6 кнопок + spacer + «Ещё» (MenuBar) — состав
+        // намеренный и может расти; суть теста — что кастомайзер применился к форме
+        // кастомной фабрики и его span добавлен последним, а не точное число детей.
+        assertThat(toolbarChildren)
+            .filteredOn(child -> child instanceof com.vaadin.flow.component.html.Span)
+            .hasSize(1);
+        assertThat(toolbarChildren.get(toolbarChildren.size() - 1))
+            .isInstanceOf(com.vaadin.flow.component.html.Span.class);
     }
 
     @Test
@@ -133,6 +142,30 @@ class FormResolverCustomizerTest {
         InOrder inOrder = inOrder(customizer, tableSectionFactory);
         inOrder.verify(customizer).customize(eq(result), any(FormContext.class));
         inOrder.verify(tableSectionFactory).attachTableSections(result, Doc.class);
+    }
+
+    /**
+     * Регрессия: кастомная ITEM-фабрика достаёт свои зависимости из ctx.applicationContext()
+     * (см. NomenclatureItemFormConfig). Раньше buildItemFormContext контекст без
+     * applicationContext не клал — открытие карточки падало с NullPointerException.
+     */
+    @Test
+    void itemCustomFactoryReceivesApplicationContext() {
+        List<FormContext> contexts = new ArrayList<>();
+        registry.registerItemForm(Doc.class, (String) null, ctx -> {
+            contexts.add(ctx);
+            return new ItemForm<>(Doc.class, List.of(), fieldFactory);
+        });
+
+        resolver.resolveItemForm(Doc.class, null, 42L, null);
+
+        assertThat(contexts).hasSize(1);
+        FormContext ctx = contexts.get(0);
+        assertThat(ctx.applicationContext()).isSameAs(applicationContext);
+        assertThat(ctx.metadataResolver()).isSameAs(metadataResolver);
+        assertThat(ctx.fieldFactory()).isSameAs(fieldFactory);
+        assertThat(ctx.lookupService()).isSameAs(applicationContext.getBean(LookupService.class));
+        assertThat(ctx.getId()).isEqualTo(42L);
     }
 
     @Test

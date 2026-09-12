@@ -14,8 +14,10 @@ import java.lang.annotation.Target;
  * Значение должно совпадать с AccessGrant.dimension везде — одна и та же строка, не
  * синхронизируемая вручную. Для FILTERABLE-измерений — ещё и с именем @Filter/@FilterDef.
  *
- * С write-guard'ом (проверка перед save/delete) эта аннотация не связана — там источник
- * истины — {@link RlsDimensionValue#getRlsChecks()} у самой сущности (см. его javadoc).
+ * Descriptor, собранный из этой аннотации, задаёт полный набор измерений и их kind для
+ * read/write/delete enforcement. Значения конкретной записи предоставляет
+ * {@link RlsDimensionValue#getRlsChecks()}; runtime сверяет, что набор ключей совпадает
+ * с descriptor, и при расхождении отказывает (fail-closed).
  *
  * @Repeatable — сущность может участвовать в нескольких измерениях сразу, возможно
  * разного рода (например, документ и по JOURNAL/BRANCH — FILTERABLE, и по
@@ -43,4 +45,16 @@ public @interface RlsDimension {
     String value();
 
     RlsDimensionKind kind() default RlsDimensionKind.FILTERABLE;
+
+    /** Entity itself is the catalog of grantable values for this dimension. */
+    boolean grantValues() default false;
+
+    /** Property paths whose numeric ids are checked for write/delete. */
+    String[] valuePaths() default {"id"};
+
+    /** A null path means that this dimension does not apply to this row. */
+    boolean nullsNotApplicable() default false;
+
+    /** Complex policy supplies values through {@link RlsDimensionValue}. */
+    boolean custom() default false;
 }

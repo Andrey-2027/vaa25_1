@@ -7,6 +7,8 @@ import org.ipro.form.registry.FormRegistry;
 import org.ipro.form.registry.FormType;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.TableSectionMetadataInfo;
+import org.ipro.crud.GenericOwnedSectionService;
+import org.ipro.crud.MetadataTableSectionService;
 import org.ipro.crud.TableSectionService;
 import org.ipro.crud.IdentifiableEntity;
 import org.springframework.beans.factory.ObjectProvider;
@@ -37,17 +39,20 @@ public class TableSectionFactory implements ApplicationRunner {
     private final MetadataResolver metadataResolver;
     private final FieldFactory fieldFactory;
     private final ApplicationContext applicationContext;
+    private final GenericOwnedSectionService genericSectionService;
     private final ObjectProvider<FormResolver> formResolverProvider;
     private final List<TableSectionCustomization<?>> customizations;
 
     public TableSectionFactory(MetadataResolver metadataResolver,
                                FieldFactory fieldFactory,
                                ApplicationContext applicationContext,
+                               GenericOwnedSectionService genericSectionService,
                                ObjectProvider<FormResolver> formResolverProvider,
                                List<TableSectionCustomization<?>> customizations) {
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
         this.applicationContext = applicationContext;
+        this.genericSectionService = genericSectionService;
         this.formResolverProvider = formResolverProvider;
         this.customizations = customizations;
     }
@@ -169,11 +174,18 @@ public class TableSectionFactory implements ApplicationRunner {
     }
 
     /**
-     * Находит Spring-бин TableSectionService для табличной части.
+     * Возвращает UI-service для табличной части.
      *
-     * Стратегия аналогична FormCoordinator.findService() для BaseService:
-     *   1. @TableSectionMetadata.serviceClass(), если указан
-     *   2. Fallback: бин по имени "<rowClassName>Service"
+     * <p>Явный {@code serviceClass} остаётся escape hatch для нестандартного UI
+     * поведения (таблица, fetch, копирование строк). Стандартная секция получает
+     * descriptor-bound platform adapter и не требует application service/repository.
+     * Поиск по magic bean name удалён.</p>
+     *
+     * <p>Контракт UI-only: authoritative validation и persistence стандартного
+     * aggregate save всегда выполняет {@code GenericOwnedSectionService} через
+     * {@code MetadataDrivenAggregateSaveService}; custom {@code serviceClass} в этом
+     * пути не вызывается. Нестандартная persistence-семантика требует явного custom
+     * aggregate handler.</p>
      */
     private TableSectionService<?, ?> findTableSectionService(TableSectionMetadataInfo section) {
         Class<?> serviceClass = section.getServiceClass();
@@ -189,27 +201,6 @@ public class TableSectionFactory implements ApplicationRunner {
             }
         }
 
-        String serviceName = uncapitalize(section.getRowClass().getSimpleName()) + "Service";
-        try {
-            return (TableSectionService<?, ?>) applicationContext.getBean(serviceName);
-        } catch (Exception e) {
-            throw new IllegalStateException(
-                "No TableSectionService found for " + section.getRowClass().getSimpleName() + ". " +
-                "Expected bean name: '" + serviceName + "'. " +
-                "Solutions:\n" +
-                "  1. Add serviceClass to @TableSectionMetadata: serviceClass = YourItemService.class\n" +
-                "  2. Create a @Service class named " + capitalize(serviceName) + "\n" +
-                "  3. Rename your service bean to '" + serviceName + "'", e);
-        }
-    }
-
-    private String uncapitalize(String str) {
-        if (str == null || str.isEmpty()) return str;
-        return Character.toLowerCase(str.charAt(0)) + str.substring(1);
-    }
-
-    private String capitalize(String str) {
-        if (str == null || str.isEmpty()) return str;
-        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+        return new MetadataTableSectionService<>(genericSectionService, section);
     }
 }

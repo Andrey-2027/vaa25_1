@@ -2,6 +2,7 @@ package org.ipro.search;
 
 import jakarta.persistence.EntityManager;
 import org.ip.model.Nomenclature;
+import org.ip.model.PrdSpec;
 import org.ipro.metadata.MetadataResolver;
 import org.junit.jupiter.api.Test;
 
@@ -13,17 +14,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class GlobalSearchProviderRegistryTest {
 
     @Test
-    void explicitProviderWinsAndUnregisteredSourceUsesJpaFallback() {
+    void explicitProviderWinsAndDifferentUnregisteredEntityUsesJpaFallback() {
         GlobalSearchSource nomenclature = new GlobalSearchCatalog(
             new org.ip.config.GlobalSearchApplicationConfig().globalSearchConfig(),
             new MetadataResolver()).requireSource(Nomenclature.class);
+        GlobalSearchSource prdSpec = new GlobalSearchCatalog(
+            new org.ip.config.GlobalSearchApplicationConfig().globalSearchConfig(),
+            new MetadataResolver()).requireSource(PrdSpec.class);
         GlobalSearchProvider<Nomenclature> explicit = new NoOpProvider();
 
         GlobalSearchProviderRegistry registry = new GlobalSearchProviderRegistry(List.of(explicit));
 
         assertThat(registry.providerOf(nomenclature)).isSameAs(explicit);
-        assertThat(registry.providerOf(new GlobalSearchSource(
-            1, Nomenclature.class, List.of("code"), List.of(), "id", "Номенклатура")))
+        assertThat(registry.providerOf(prdSpec))
             .isInstanceOf(JpaGlobalSearchProvider.class);
     }
 

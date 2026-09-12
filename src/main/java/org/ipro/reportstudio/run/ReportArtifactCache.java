@@ -17,7 +17,10 @@ import java.util.Optional;
  */
 public class ReportArtifactCache {
 
-    private final Map<String, JasperPrint> entries;
+    private record Artifact(String owner, JasperPrint print) {
+    }
+
+    private final Map<String, Artifact> entries;
 
     public ReportArtifactCache() {
         this(8);
@@ -27,18 +30,22 @@ public class ReportArtifactCache {
         int size = Math.max(1, maxEntries);
         entries = new LinkedHashMap<>(16, 0.75f, true) {
             @Override
-            protected boolean removeEldestEntry(Map.Entry<String, JasperPrint> eldest) {
+            protected boolean removeEldestEntry(Map.Entry<String, Artifact> eldest) {
                 return size() > size;
             }
         };
     }
 
-    public synchronized void put(String key, JasperPrint print) {
-        entries.put(key, print);
+    public synchronized void put(String key, String owner, JasperPrint print) {
+        entries.put(key, new Artifact(requireOwner(owner), print));
     }
 
-    public synchronized Optional<JasperPrint> get(String key) {
-        return Optional.ofNullable(entries.get(key));
+    public synchronized Optional<JasperPrint> get(String key, String requester) {
+        Artifact artifact = entries.get(key);
+        if (artifact == null || !artifact.owner().equals(requireOwner(requester))) {
+            return Optional.empty();
+        }
+        return Optional.of(artifact.print());
     }
 
     public synchronized void clear() {
@@ -47,6 +54,13 @@ public class ReportArtifactCache {
 
     public synchronized int size() {
         return entries.size();
+    }
+
+    private static String requireOwner(String owner) {
+        if (owner == null || owner.isBlank() || "system".equals(owner)) {
+            throw new IllegalArgumentException("Report artifact requires an authenticated owner");
+        }
+        return owner;
     }
 
     /**

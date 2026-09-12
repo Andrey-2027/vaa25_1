@@ -9,8 +9,7 @@ import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;
 import org.ip.model.PrdSpecOper;
-import org.ip.service.PrdSpecMtrService;
-import org.ip.service.PrdSpecOperService;
+import org.ipro.crud.GenericOwnedSectionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -33,27 +32,24 @@ import static org.mockito.Mockito.verify;
  */
 class PrdSpecHiddenSectionSkipsValidationAndSaveTest {
 
-    private PrdSpecMtrService mtrService;
+    private GenericOwnedSectionService genericSectionService;
     private ApplicationContext applicationContext;
     private TableSectionFactory factory;
 
     @BeforeEach
     @SuppressWarnings({"unchecked", "rawtypes"})
     void setUp() {
-        mtrService = mock(PrdSpecMtrService.class);
+        genericSectionService = mock(GenericOwnedSectionService.class);
 
         MetadataResolver metadataResolver = mock(MetadataResolver.class);
-        TableSectionMetadataInfo mtrSection = sectionMeta(PrdSpecMtr.class, PrdSpecMtrService.class);
-        TableSectionMetadataInfo operSection = sectionMeta(PrdSpecOper.class, PrdSpecOperService.class);
+        TableSectionMetadataInfo mtrSection = sectionMeta(PrdSpecMtr.class);
+        TableSectionMetadataInfo operSection = sectionMeta(PrdSpecOper.class);
         doReturn(List.of(mtrSection, operSection)).when(metadataResolver).resolveTableSections(PrdSpec.class);
 
         applicationContext = mock(ApplicationContext.class);
-        doReturn(mtrService).when(applicationContext).getBean(PrdSpecMtrService.class);
-        doReturn(mock(PrdSpecOperService.class)).when(applicationContext).getBean(PrdSpecOperService.class);
-
         ObjectProvider<FormResolver> resolverProvider = mock(ObjectProvider.class);
         factory = new TableSectionFactory(metadataResolver, mock(FieldFactory.class), applicationContext,
-            resolverProvider, List.of());
+            genericSectionService, resolverProvider, List.of());
     }
 
     @Test
@@ -66,9 +62,8 @@ class PrdSpecHiddenSectionSkipsValidationAndSaveTest {
 
         assertThat(((ItemForm) form).getTableSections()).hasSize(1);
         assertThat(form.tableSection(PrdSpecMtr.class)).isNotNull();
-        // секция операций скрыта: сервис даже не запрашивается
-        verify(applicationContext, never()).getBean(PrdSpecOperService.class);
-        verify(applicationContext, never()).getBean("prdSpecOperService");
+        // attach не выполняет persistence-вызовов; скрытая секция не создаёт ItemTable
+        org.mockito.Mockito.verifyNoInteractions(genericSectionService);
     }
 
     @Test
@@ -81,7 +76,6 @@ class PrdSpecHiddenSectionSkipsValidationAndSaveTest {
         assertThat(((ItemForm) form).getTableSections()).hasSize(2);
         assertThat(form.tableSection(PrdSpecMtr.class)).isNotNull();
         assertThat(form.tableSection(PrdSpecOper.class)).isNotNull();
-        verify(applicationContext).getBean(PrdSpecOperService.class);
     }
 
     @Test
@@ -97,8 +91,7 @@ class PrdSpecHiddenSectionSkipsValidationAndSaveTest {
         List<String> errors = form.validateTableSections();
 
         assertThat(errors).isEmpty();
-        verify(mtrService).validateRows(any(PrdSpec.class), anyList());
-        verify(applicationContext, never()).getBean(PrdSpecOperService.class);
+        verify(genericSectionService).validateRows(any(PrdSpec.class), anyList(), any());
     }
 
     @Test
@@ -113,15 +106,14 @@ class PrdSpecHiddenSectionSkipsValidationAndSaveTest {
 
         form.commitTableSections(saved);
 
-        verify(mtrService).replaceAll(any(PrdSpec.class), anyList());
-        verify(applicationContext, never()).getBean(PrdSpecOperService.class);
+        verify(genericSectionService).replaceAll(any(PrdSpec.class), anyList(), any());
     }
 
     @SuppressWarnings("unchecked")
-    private static TableSectionMetadataInfo sectionMeta(Class<?> rowClass, Class<?> serviceClass) {
+    private static TableSectionMetadataInfo sectionMeta(Class<?> rowClass) {
         TableSectionMetadataInfo section = mock(TableSectionMetadataInfo.class);
         doReturn((Class) rowClass).when(section).getRowClass();
-        doReturn((Class) serviceClass).when(section).getServiceClass();
+        doReturn((Class) void.class).when(section).getServiceClass();
         doReturn(List.of()).when(section).getGridFields();
         doReturn(List.of()).when(section).getFormFields();
         doReturn(rowClass.getSimpleName()).when(section).getTitle();

@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import org.ipro.crud.BaseEntity;
 import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.RlsContext;
 
 /**
  * Построитель безопасного контекста запуска из экранов форм и списков сущностей.
@@ -74,6 +75,10 @@ public class ReportContextFactory {
     }
 
     private ReportContext context(Class<?> entityClass, Object entityId, List<?> selectedIds, String viewId) {
-        return ReportContext.of(entityClass, entityId, selectedIds, viewId, currentUser.username(), clock.instant());
+        return ReportContext.of(entityClass, entityId, selectedIds, viewId,
+            RlsContext.isBypassed()
+                ? currentUser.username()
+                : currentUser.requireAuthenticatedUsername(),
+            clock.instant());
     }
 }

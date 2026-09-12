@@ -22,33 +22,34 @@ class ReportArtifactCacheTest {
         ReportArtifactCache cache = new ReportArtifactCache();
         JasperPrint print = mock(JasperPrint.class);
         String key = "k1";
-        assertTrue(cache.get(key).isEmpty());
-        cache.put(key, print);
-        assertEquals(print, cache.get(key).orElseThrow());
+        assertTrue(cache.get(key, "alice").isEmpty());
+        cache.put(key, "alice", print);
+        assertEquals(print, cache.get(key, "alice").orElseThrow());
+        assertTrue(cache.get(key, "bob").isEmpty());
         assertEquals(1, cache.size());
     }
 
     @Test
     void evictsEldestWhenOverCapacity() {
         ReportArtifactCache cache = new ReportArtifactCache(2);
-        cache.put("a", mock(JasperPrint.class));
-        cache.put("b", mock(JasperPrint.class));
-        cache.put("c", mock(JasperPrint.class));
+        cache.put("a", "alice", mock(JasperPrint.class));
+        cache.put("b", "alice", mock(JasperPrint.class));
+        cache.put("c", "alice", mock(JasperPrint.class));
         assertEquals(2, cache.size());
-        assertTrue(cache.get("a").isEmpty());
-        assertTrue(cache.get("b").isPresent());
-        assertTrue(cache.get("c").isPresent());
+        assertTrue(cache.get("a", "alice").isEmpty());
+        assertTrue(cache.get("b", "alice").isPresent());
+        assertTrue(cache.get("c", "alice").isPresent());
     }
 
     @Test
     void lruKeepsRecentlyUsed() {
         ReportArtifactCache cache = new ReportArtifactCache(2);
-        cache.put("a", mock(JasperPrint.class));
-        cache.put("b", mock(JasperPrint.class));
-        cache.get("a");
-        cache.put("c", mock(JasperPrint.class));
-        assertTrue(cache.get("a").isPresent());
-        assertTrue(cache.get("b").isEmpty());
+        cache.put("a", "alice", mock(JasperPrint.class));
+        cache.put("b", "alice", mock(JasperPrint.class));
+        cache.get("a", "alice");
+        cache.put("c", "alice", mock(JasperPrint.class));
+        assertTrue(cache.get("a", "alice").isPresent());
+        assertTrue(cache.get("b", "alice").isEmpty());
     }
 
     @Test

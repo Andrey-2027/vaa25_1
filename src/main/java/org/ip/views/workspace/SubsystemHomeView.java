@@ -13,9 +13,9 @@ import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.rls.AccessService;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.RlsDimensionRegistry;
-import org.ipro.security.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 
@@ -26,13 +26,16 @@ public class SubsystemHomeView extends VerticalLayout {
     private final FormCoordinator coordinator;
     private final RlsDimensionRegistry dimensionRegistry;
     private final AccessService accessService;
+    private final RlsCurrentUser currentUser;
 
     public SubsystemHomeView(@Autowired FormCoordinator coordinator,
                              @Autowired RlsDimensionRegistry dimensionRegistry,
-                             @Autowired AccessService accessService) {
+                             @Autowired AccessService accessService,
+                             @Autowired RlsCurrentUser currentUser) {
         this.coordinator = coordinator;
         this.dimensionRegistry = dimensionRegistry;
         this.accessService = accessService;
+        this.currentUser = currentUser;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -91,7 +94,7 @@ public class SubsystemHomeView extends VerticalLayout {
         if (dimensionRegistry.kindOf(dimension) != RlsDimensionKind.CHECK_ONLY) {
             return true; // подстраховка: конвенция по именованию не проверяется программно нигде больше
         }
-        return accessService.hasAnyAccess(dimension, CurrentUser.username());
+        return accessService.hasAnyAccess(dimension, currentUser.requireAuthenticatedUsername());
     }
 
     private Button createTile(EntityMetadataInfo entity, Workspace workspace) {

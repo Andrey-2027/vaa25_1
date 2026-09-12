@@ -52,7 +52,8 @@ class TableSectionFactoryStartupValidationTest {
         doReturn(resolver).when(provider).getObject();
 
         return new TableSectionFactory(mock(MetadataResolver.class), mock(FieldFactory.class),
-            mock(ApplicationContext.class), provider, customizations);
+            mock(ApplicationContext.class), mock(org.ipro.crud.GenericOwnedSectionService.class),
+            provider, customizations);
     }
 
     @Test

@@ -1,0 +1,1 @@
+.\scripts\bootstrap-local-dependencies.ps1 -LocalRepository .\.local-maven-repository\distribution-m2 -RequireEmptyLocalRepository -AllowSourceDrift

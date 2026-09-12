@@ -10,8 +10,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.rls.RlsDimension;
-import org.ipro.rls.RlsCheckValue;
-import org.ipro.rls.RlsDimensionValue;
 import org.ipro.crud.BaseEntity;
 import org.ipro.metadata.HasDisplayName;
 
@@ -21,8 +19,9 @@ import org.ipro.metadata.HasDisplayName;
  */
 @Entity
 @Table(name = "branch")
-@RlsDimension("BRANCH")
-@FilterDef(name = "BRANCH", parameters = @ParamDef(name = "allowedIds", type = Long.class))
+@RlsDimension(value = "BRANCH", grantValues = true)
+@FilterDef(name = "BRANCH", parameters = @ParamDef(name = "allowedIds", type = Long.class),
+    applyToLoadByKey = true)
 @Filter(name = "BRANCH", condition = "id in (:allowedIds)")
 @EntityMetadata(
     listFormTitle = "Филиалы",
@@ -35,7 +34,7 @@ import org.ipro.metadata.HasDisplayName;
     selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
 )
-public class Branch extends BaseEntity implements HasDisplayName, RlsDimensionValue {
+public class Branch extends BaseEntity implements HasDisplayName {
 
     @NotBlank
     @Size(max = 20)
@@ -81,8 +80,4 @@ public class Branch extends BaseEntity implements HasDisplayName, RlsDimensionVa
      * id == null (до insert) — пройдёт только у обладателя wildcard-гранта (см. Journal —
      * то же осознанное правило "новые справочники измерений создаёт только полный доступ").
      */
-    @Override
-    public java.util.Map<String, java.util.List<RlsCheckValue>> getRlsChecks() {
-        return java.util.Map.of("BRANCH", java.util.List.of(RlsCheckValue.of(getId())));
-    }
 }
