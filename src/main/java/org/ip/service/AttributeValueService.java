@@ -19,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
@@ -146,6 +147,123 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
                     + " с id=" + refId + ".");
         }
         return getOrCreateRefRow(type, display, refId);
+    }
+
+    /**
+     * Разрешить {@link AttributeType#targetDictionary} в JPA-сущность. Значение
+     * хранит имя класса как устойчивый контракт, но класс всё равно проверяется
+     * через JPA metamodel, чтобы строка из справочника не превратилась в произвольный
+     * {@code Class.forName()} вызов.
+     */
+    @Transactional(readOnly = true)
+    public Class<?> resolveTargetDictionary(AttributeType type) {
+        requireType(type, AttributeValueType.REF);
+        String className = normalizeText(type.getTargetDictionary());
+        if (className.isEmpty()) {
+            throw new ValidationException(
+                "Для типа значения «Ссылка» не задан целевой словарь.");
+        }
+        try {
+            Class<?> targetClass = Class.forName(className);
+            entityManager.getMetamodel().entity(targetClass);
+            if (!HasDisplayName.class.isAssignableFrom(targetClass)) {
+                throw new ValidationException(
+                    "Целевой словарь " + className
+                        + " не реализует HasDisplayName и не может быть выбран в форме.");
+            }
+            return targetClass;
+        } catch (ClassNotFoundException | IllegalArgumentException e) {
+            throw new ValidationException(
+                "Целевой словарь " + className + " не является зарегистрированной JPA-сущностью.", e);
+        }
+    }
+
+    /**
+     * Найти/создать скалярное значение внутри текущей транзакции агрегата.
+     * В отличие от публичного {@link #getOrCreate(AttributeType, String)} этот путь
+     * не открывает {@code REQUIRES_NEW}: если сохранение номенклатуры откатится,
+     * созданная строка словаря также откатится.
+     */
+    @Transactional
+    public AttributeValue getOrCreateInCurrentTransaction(AttributeType type, String raw) {
+        requireType(type, AttributeValueType.STRING, AttributeValueType.ENUM);
+        AttributeType managedType = lockAttributeType(type);
+        String value = normalizeText(raw);
+        return getOrCreateScalarInCurrentTransaction(managedType, value, value);
+    }
+
+    /** Найти/создать каноническое числовое значение в текущей транзакции агрегата. */
+    @Transactional
+    public AttributeValue getOrCreateInCurrentTransaction(AttributeType type, BigDecimal number) {
+        requireType(type, AttributeValueType.NUMBER);
+        AttributeType managedType = lockAttributeType(type);
+        String canonical = canonicalNumber(number);
+        return getOrCreateScalarInCurrentTransaction(managedType, canonical, canonical);
+    }
+
+    /**
+     * Найти/создать ссылочное значение в текущей транзакции агрегата. Блокировка
+     * типа сериализует создание одинаковых ссылочных строк в этом write-path.
+     */
+    @Transactional
+    public AttributeValue getOrCreateRefInCurrentTransaction(
+            AttributeType type, Class<?> targetClass, Long refId) {
+        requireType(type, AttributeValueType.REF);
+        if (refId == null) {
+            throw new ValidationException("Для значения «Ссылка» обязателен id строки словаря.");
+        }
+        AttributeType managedType = lockAttributeType(type);
+        Object target = entityManager.find(targetClass, refId);
+        if (target == null) {
+            throw new ValidationException(
+                "Строка словаря " + targetClass.getSimpleName() + " с id=" + refId + " не найдена.");
+        }
+        String display = target instanceof HasDisplayName hdn
+            ? hdn.getDisplayName()
+            : String.valueOf(target);
+        if (display == null || display.isBlank()) {
+            throw new ValidationException(
+                "Не удалось получить отображаемое имя строки словаря " + targetClass.getSimpleName()
+                    + " с id=" + refId + ".");
+        }
+        Optional<AttributeValue> existing =
+            attributeValueRepository.findByAttrTypeAndRefId(managedType, refId);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        AttributeValue created = attributeValueRepository.save(
+            new AttributeValue(managedType, display, display, null, refId));
+        attributeValueRepository.flush();
+        return created;
+    }
+
+    private AttributeType lockAttributeType(AttributeType type) {
+        if (type == null || type.getId() == null) {
+            throw new ValidationException("Тип атрибута должен быть сохранён до указания значения.");
+        }
+        AttributeType managed = entityManager.find(
+            AttributeType.class, type.getId(), LockModeType.PESSIMISTIC_WRITE);
+        if (managed == null) {
+            throw new ValidationException("Тип атрибута с id=" + type.getId() + " не найден.");
+        }
+        return managed;
+    }
+
+    private AttributeValue getOrCreateScalarInCurrentTransaction(
+            AttributeType type, String code, String name) {
+        if (code.isEmpty()) {
+            throw new ValidationException("Значение атрибута не может быть пустым.");
+        }
+        String codeUp = code.toUpperCase(Locale.ROOT);
+        Optional<AttributeValue> existing =
+            attributeValueRepository.findByAttrTypeAndCodeUp(type, codeUp);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        AttributeValue created = attributeValueRepository.save(
+            new AttributeValue(type, code, name, codeUp, null));
+        attributeValueRepository.flush();
+        return created;
     }
 
     /**

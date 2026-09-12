@@ -14,7 +14,6 @@ import org.ip.service.AccessGrantAdminService;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
 import org.ip.service.NomenclatureService;
 import org.ip.service.ReceivingDocumentService;
-import org.ipro.crud.ValidationException;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;
@@ -26,6 +25,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +48,46 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @SpringBootTest
 class RlsAutoConfigurationSmokeTest {
+
+    /**
+     * Стратегия хранения контекста безопасности ИМЕННО ЭТОГО контекста приложения.
+     *
+     * @PreAuthorize проверяется интерцепторами, которым Spring Security подставил
+     * SecurityContextHolderStrategy из контекста (PrePostMethodSecurityConfiguration);
+     * у Vaadin это бин VaadinAwareSecurityContextHolderStrategy
+     * (SpringSecurityAutoConfiguration.vaadinAwareSecurityContextHolderStrategy).
+     * Статическая SecurityContextHolder — глобальная на всю JVM, и при каждом старте
+     * любого контекста в ней переустанавливается стратегия этого контекста
+     * (securityContextHolderStrategyInitializer). В общем Surefire-JVM контекстов много,
+     * поэтому к моменту теста статическая стратегия может принадлежать ДРУГОМУ контексту,
+     * и аутентификация, положенная только в неё, до интерцепторов этого теста не доходит
+     * ("An Authentication object was not found in the SecurityContext"). Поэтому
+     * аутентифицируем в стратегии контекста — том же объекте, который читают интерцепторы.
+     */
+    @Autowired
+    private SecurityContextHolderStrategy securityContextHolderStrategy;
+
+    @BeforeEach
+    void authenticateAdmin() {
+        authenticateAs("admin");
+    }
+
+    /** Аутентификация от имени заданного субъекта — для проверок, где важен свой субъект. */
+    private void authenticateAs(String username) {
+        SecurityContext context = securityContextHolderStrategy.createEmptyContext();
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(username, "n/a",
+            List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+        securityContextHolderStrategy.setContext(context);
+        // Дополнительно — для бинов, читающих статическую SecurityContextHolder напрямую:
+        // аудит (AuditConfig), RlsCurrentUser, UserContext в телеметрии.
+        SecurityContextHolder.setContext(context);
+    }
+
+    @AfterEach
+    void clearAuthentication() {
+        securityContextHolderStrategy.clearContext();
+        SecurityContextHolder.clearContext();
+    }
 
     /**
      * Сидинг стартовых данных (DataInitializer) имеет известный баг при свежей БД
@@ -128,7 +174,7 @@ class RlsAutoConfigurationSmokeTest {
 
     @Test
     void currentUserDelegatesToSecurityContext() {
-        assertThat(rlsCurrentUser.username()).isEqualTo("system");
+        assertThat(rlsCurrentUser.username()).isEqualTo("admin");
     }
 
     @Test
@@ -163,6 +209,18 @@ class RlsAutoConfigurationSmokeTest {
      */
     @Test
     void receivingDocumentCreateBlockedByWriteGuardWithoutEntityGrant() {
+        // Субъект — свой, не «admin»: другие тесты (RlsStatementGuardTest, JrxmlExecutionIT,
+        // VisualQueryGuardIT) оставляют в общей H2-базе wildcard-грант для admin, и такая
+        // утечка данных делала проверку гейта зависимой от порядка выполнения тестов.
+        String actor = "write-guard-user";
+        authenticateAs(actor);
+        // Разрешаем только подготовку двух FILTERABLE-измерений. ENTITY-грант
+        // намеренно отсутствует, поэтому сам документ обязан быть отклонён.
+        accessGrantRepository.save(grant(actor, AccessGrant.SubjectType.USER,
+            "BRANCH", null, true, true, false));
+        accessGrantRepository.save(grant(actor, AccessGrant.SubjectType.USER,
+            "JOURNAL", null, true, true, false));
+
         Branch branch = new Branch();
         branch.setCode("NW-1");
         branch.setName("Филиал");
@@ -185,12 +243,13 @@ class RlsAutoConfigurationSmokeTest {
         doc.setJournal(journal);
 
         assertThatThrownBy(() -> receivingDocumentService.create(doc))
-            .isInstanceOf(ValidationException.class)
+            .isInstanceOf(org.ipro.rls.RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на изменение");
     }
 
     @Test
     void saveGrantsNormalizesReadFlag() {
+        authenticateAdmin();
         accessGrantAdminService.saveGrants("JOURNAL", AccessGrant.SubjectType.USER, "normalize-u1",
             Map.of(101L, new GrantFlags(false, true, false),
                 102L, new GrantFlags(false, false, true)));
@@ -202,6 +261,7 @@ class RlsAutoConfigurationSmokeTest {
 
     @Test
     void saveGrantsWithAllFlagsFalseRemovesGrantRow() {
+        authenticateAdmin();
         accessGrantAdminService.saveGrants("JOURNAL", AccessGrant.SubjectType.USER, "normalize-u2",
             Map.of(201L, new GrantFlags(true, false, false)));
         accessGrantAdminService.saveGrants("JOURNAL", AccessGrant.SubjectType.USER, "normalize-u2",
@@ -213,6 +273,7 @@ class RlsAutoConfigurationSmokeTest {
 
     @Test
     void saveSingleGrantNormalizesReadFlagAndRemovesOnNone() {
+        authenticateAdmin();
         accessGrantAdminService.saveSingleGrant("ENTITY:ReceivingDocument", AccessGrant.SubjectType.USER,
             "normalize-u3", new GrantFlags(false, true, false));
 
@@ -242,6 +303,7 @@ class RlsAutoConfigurationSmokeTest {
      */
     @Test
     void effectiveGrantsFoldDirectAndRoleGrants() {
+        authenticateAdmin();
         org.ip.model.Role role = new org.ip.model.Role("eff-роль");
         roleRepository.save(role);
         User user = new User("eff-u1", "password");
@@ -264,6 +326,7 @@ class RlsAutoConfigurationSmokeTest {
     /** Wildcard-грант ('*') на чтение — эффективный доступ ко всем записям любого измерения. */
     @Test
     void effectiveGrantsUnlimitedOnWildcardGrant() {
+        authenticateAdmin();
         accessGrantRepository.save(grant("eff-u2", AccessGrant.SubjectType.USER, "*", null,
             true, false, false));
 
@@ -276,6 +339,7 @@ class RlsAutoConfigurationSmokeTest {
     /** Эффективные права РОЛИ — ровно её собственные гранты (у ролей нет своих ролей). */
     @Test
     void effectiveGrantsOfRoleFoldsOwnGrantsOnly() {
+        authenticateAdmin();
         accessGrantRepository.save(grant("eff-роль2", AccessGrant.SubjectType.ROLE, "BRANCH", 401L,
             true, false, true));
 
@@ -289,6 +353,7 @@ class RlsAutoConfigurationSmokeTest {
     /** collectEffective покрывает все настраиваемые измерения, включая CHECK_ONLY. */
     @Test
     void collectEffectiveCoversAllAvailableDimensions() {
+        authenticateAdmin();
         accessGrantRepository.save(grant("eff-u3", AccessGrant.SubjectType.USER, "ENTITY:ReceivingDocument", null,
             true, true, false));
 
@@ -300,6 +365,24 @@ class RlsAutoConfigurationSmokeTest {
         assertThat(effective.get("ENTITY:ReceivingDocument").canUpdate()).isTrue();
         assertThat(effective.get("JOURNAL").canRead()).isFalse();
         assertThat(effective.get("JOURNAL").sources()).isEmpty();
+    }
+
+    @Test
+    void grantValueCatalogIsDerivedFromRlsAndEntityMetadata() {
+        authenticateAdmin();
+        accessGrantRepository.save(grant("admin", AccessGrant.SubjectType.USER,
+            "JOURNAL", null, true, true, false));
+        Journal journal = new Journal();
+        journal.setCode("META-CATALOG");
+        journal.setName("Metadata catalog");
+        Journal saved = journalRepository.save(journal);
+
+        assertThat(accessGrantAdminService.allValues("JOURNAL"))
+            .anySatisfy(value -> {
+                assertThat(value.id()).isEqualTo(saved.getId());
+                assertThat(value.code()).isEqualTo("META-CATALOG");
+                assertThat(value.name()).isEqualTo("Metadata catalog");
+            });
     }
 
     private static AccessGrant grant(String subjectKey, AccessGrant.SubjectType subjectType,

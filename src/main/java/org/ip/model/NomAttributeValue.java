@@ -5,6 +5,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import org.ipro.crud.BaseEntity;
@@ -13,6 +14,8 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.metadata.annotation.Lookup;
+import org.ipro.metadata.annotation.SectionPersistenceMode;
+import org.ipro.metadata.annotation.TableSectionMetadata;
 
 /**
  * Значение атрибута номенклатуры (описание позиции): «позиция → тип → значение».
@@ -36,7 +39,13 @@ import org.ipro.metadata.annotation.Lookup;
     serviceClass = org.ip.service.NomAttributeValueService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"nomenclature", "attrType", "attrValue"},
-    displaySortFields = {"attrType", "attrValue"}
+    displaySortFields = {"attrType", "attrValue"})
+@TableSectionMetadata(
+    parentEntity = Nomenclature.class,
+    parentField = "nomenclature",
+    title = "Атрибуты номенклатуры",
+    rowFormTitle = "Атрибут номенклатуры",
+    persistence = SectionPersistenceMode.MUTABLE_REPLACE_ALL
 )
 public class NomAttributeValue extends BaseEntity implements HasDisplayName {
 
@@ -70,6 +79,22 @@ public class NomAttributeValue extends BaseEntity implements HasDisplayName {
     )
     private AttributeValue attrValue;
 
+    /**
+     * Временный ввод формы строки для STRING/NUMBER. Не является частью схемы:
+     * перед persistence {@code NomenclatureLifecycle} нормализует его и разрешает
+     * в бессмертную строку {@link AttributeValue} в той же транзакции агрегата.
+     */
+    @Transient
+    private String enteredValue;
+
+    /**
+     * Временный выбор строки целевого справочника для REF: id строки словаря
+     * (см. {@link AttributeValue#getRefId()}). Сам объект не является owned-данными
+     * номенклатуры — строка словаря живёт в общем словаре.
+     */
+    @Transient
+    private Long enteredRefId;
+
     public NomAttributeValue() {
     }
 
@@ -101,6 +126,22 @@ public class NomAttributeValue extends BaseEntity implements HasDisplayName {
 
     public void setAttrValue(AttributeValue attrValue) {
         this.attrValue = attrValue;
+    }
+
+    public String getEnteredValue() {
+        return enteredValue;
+    }
+
+    public void setEnteredValue(String enteredValue) {
+        this.enteredValue = enteredValue;
+    }
+
+    public Long getEnteredRefId() {
+        return enteredRefId;
+    }
+
+    public void setEnteredRefId(Long enteredRefId) {
+        this.enteredRefId = enteredRefId;
     }
 
     @Override
