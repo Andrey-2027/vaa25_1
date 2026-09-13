@@ -88,10 +88,21 @@ public class NomAttributeValueItemForm extends ItemForm<NomAttributeValue> {
         rebuildValueArea(null, null);
     }
 
+    /**
+     * Кроме обычной загрузки полей пересобирает поле значения под тип выбранного атрибута
+     * и заново фиксирует точку отсчёта {@code isDirty()}.
+     *
+     * <p>Повторная фиксация нужна из-за порядка шагов: metadata-загрузка очищает внешние
+     * поля (черновик ввода в строке пуст — значение живёт только в словаре), и лишь затем
+     * {@link #rebuildValueArea} подставляет в них текущее значение словаря. Без неё открытие
+     * существующей строки сразу выглядело бы «изменённым», и диалог спрашивал бы про
+     * несохранённые изменения на ровном месте.</p>
+     */
     @Override
     public void setEntity(NomAttributeValue entity) {
         super.setEntity(entity);
         rebuildValueArea(attrTypeField.getValue(), entity);
+        commitSnapshot();
     }
 
     private void onTypeChanged(AttributeType type) {

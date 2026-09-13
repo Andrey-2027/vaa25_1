@@ -2,6 +2,8 @@ package org.ipro.crud;
 
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.SectionMetadataRegistry;
+import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.crud.IdentifiableEntity;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -19,14 +21,29 @@ public class ServiceLocator {
 
     private final ApplicationContext applicationContext;
     private final MetadataResolver metadataResolver;
+    private final SectionMetadataRegistry sectionRegistry;
 
-    public ServiceLocator(ApplicationContext applicationContext, MetadataResolver metadataResolver) {
+    public ServiceLocator(ApplicationContext applicationContext, MetadataResolver metadataResolver,
+                          SectionMetadataRegistry sectionRegistry) {
         this.applicationContext = applicationContext;
         this.metadataResolver = metadataResolver;
+        this.sectionRegistry = sectionRegistry;
     }
 
     @SuppressWarnings("unchecked")
     public <T extends IdentifiableEntity, ID> BaseService<T, ID> findService(Class<T> entityClass) {
+        // Owned-строка секции не бывает самостоятельной сущностью: её чтение не может
+        // выразить обязательный предикат владельца (доступ наследуется от агрегата),
+        // поэтому у неё нет автономного сервиса/списка. Сообщаем реальную причину
+        // вместо совета «создайте service» из ошибки ниже.
+        TableSectionMetadataInfo section = sectionRegistry.findByRow(entityClass).orElse(null);
+        if (section != null) {
+            throw new IllegalStateException(
+                entityClass.getSimpleName() + " — строка owned-секции " + section.getKey()
+                    + " и не имеет автономного сервиса/списка. Секция редактируется в карточке "
+                    + section.getOwnerClass().getSimpleName()
+                    + " и сохраняется aggregate boundary (GenericOwnedSectionService).");
+        }
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
         Class<?> serviceClass = meta.getAnnotation().serviceClass();
 

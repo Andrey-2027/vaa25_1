@@ -2,6 +2,8 @@ package org.ipro.crud;
 
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -35,6 +37,16 @@ import java.util.Set;
  *
  * <p>Lifecycle events и проверка права на aggregate root принадлежат вызывающему
  * aggregate service. Здесь остаётся только persistence section contract.</p>
+ *
+ * <p>Версия шапки ({@code @Version} в {@link BaseEntity}) является версией всего
+ * агрегата: любое стандартное изменение owned sections принудительно увеличивает её
+ * через {@link LockModeType#OPTIMISTIC_FORCE_INCREMENT}. Сохранение, подготовленное
+ * по устаревшей версии, завершается {@link OptimisticLockException} вместо тихой
+ * перезаписи чужих строк. Успешное сохранение подключённых секций обновляет версию
+ * независимо от наличия фактических различий в строках (attached = намерение
+ * записать); последовательное пересохранение с новой возвращённой версией работает,
+ * конфликтует только устаревшая версия. Каскадное удаление секций перед удалением
+ * самого владельца версию не увеличивает.</p>
  */
 public class GenericOwnedSectionService {
 
@@ -146,6 +158,7 @@ public class GenericOwnedSectionService {
         if (!errors.isEmpty()) {
             throw new ValidationException(String.join(System.lineSeparator(), errors));
         }
+        guardAggregateVersion(parent);
 
         List<R> existingRows = findByParent(parent, descriptor);
         Map<Long, R> existingById = new HashMap<>();
@@ -236,10 +249,8 @@ public class GenericOwnedSectionService {
             P parent, TableSectionMetadataInfo descriptor) {
         requireDescriptor(parent, descriptor);
         rlsPolicyEnforcer.requireDelete(parent);
-        for (R row : this.<R, P>findByParent(parent, descriptor)) {
-            entityManager.remove(row);
-        }
-        entityManager.flush();
+        guardAggregateVersion(parent);
+        removeAll(parent, descriptor);
     }
 
     /** Удаляет все standard owned sections, явно объявленные aggregate root. */
@@ -248,8 +259,59 @@ public class GenericOwnedSectionService {
         Objects.requireNonNull(parent, "parent must not be null");
         rlsPolicyEnforcer.requireDelete(parent);
         for (TableSectionMetadataInfo descriptor : sectionRegistry.forOwner(entityType(parent))) {
-            deleteAll(parent, descriptor);
+            removeAll(parent, descriptor);
         }
+    }
+
+    /**
+     * Собственно удаление строк без версионной защиты: каскад перед удалением
+     * владельца версию удаляемой шапки не увеличивает.
+     */
+    private <R extends IdentifiableEntity, P extends IdentifiableEntity> void removeAll(
+            P parent, TableSectionMetadataInfo descriptor) {
+        requireDescriptor(parent, descriptor);
+        for (R row : this.<R, P>findByParent(parent, descriptor)) {
+            entityManager.remove(row);
+        }
+        entityManager.flush();
+    }
+
+    /**
+     * Версионная защита агрегата: {@code @Version} шапки — версия всего агрегата.
+     * Для существующего владельца регистрирует
+     * {@link LockModeType#OPTIMISTIC_FORCE_INCREMENT}: сохранение только секций
+     * тоже увеличивает версию, а устаревшее состояние завершается
+     * {@link OptimisticLockException} вместо тихой потери чужих изменений.
+     * Для detached-входа ожидаемая версия сверяется с актуальной до лока.
+     * Новая (transient) шапка защиты не требует — версия присваивается при вставке.
+     */
+    private void guardAggregateVersion(IdentifiableEntity parent) {
+        if (parent.getId() == null) {
+            return;
+        }
+        if (!(parent instanceof BaseEntity)) {
+            throw new IllegalStateException("Aggregate version guard requires a @Versioned owner: "
+                + parent.getClass().getName() + " must extend BaseEntity");
+        }
+        if (entityManager.contains(parent)) {
+            entityManager.lock(parent, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            return;
+        }
+        BaseEntity input = (BaseEntity) parent;
+        Long expected = input.getVersion() != null ? input.getVersion() : 0L;
+        Object managed = entityManager.find(entityType(parent), parent.getId());
+        if (managed == null) {
+            throw new OptimisticLockException("Aggregate owner was concurrently deleted: "
+                + parent.getClass().getName() + "#" + parent.getId());
+        }
+        BaseEntity current = (BaseEntity) managed;
+        Long actual = current.getVersion() != null ? current.getVersion() : 0L;
+        if (!expected.equals(actual)) {
+            throw new OptimisticLockException("Stale aggregate version: expected " + expected
+                + " but owner " + parent.getClass().getName() + "#" + parent.getId()
+                + " is at version " + actual);
+        }
+        entityManager.lock(managed, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
     }
 
     private <R extends IdentifiableEntity, P extends IdentifiableEntity> void prepareRows(

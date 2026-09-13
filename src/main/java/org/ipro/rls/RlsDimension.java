@@ -57,4 +57,40 @@ public @interface RlsDimension {
 
     /** Complex policy supplies values through {@link RlsDimensionValue}. */
     boolean custom() default false;
+
+    /**
+     * Read-предикат сложной (custom) политики — условие, которое обязано стоять в
+     * {@code @Filter(condition = ...)} для этого измерения.
+     *
+     * Зачем он нужен именно для custom: у стандартного измерения read-предикат
+     * ВЫВОДИТСЯ из {@link #valuePaths()}/{@link #nullsNotApplicable()} и сверяется с
+     * фактическим {@code @Filter} при старте (checked duplication, ADX-06). У сложной
+     * политики вывести его нечем — там подзапросы и конъюнкция нескольких путей, —
+     * поэтому без явного объявления read-предикат вообще нигде не заявлен как intent:
+     * правка SQL фильтра и правка {@link RlsDimensionValue#getRlsChecks()} расходятся
+     * молча, и расходятся в самом опасном направлении (видно меньше, чем можно менять,
+     * либо набор строк записи шире читаемого).
+     *
+     * Объявлять следует так, чтобы расхождение было физически невозможно — одной
+     * константой в обоих местах:
+     * <pre>{@code
+     * public static final String BRANCH_READ = "receiving_workshop_id in (...)";
+     *
+     * @RlsDimension(value = "BRANCH", custom = true, readCondition = BRANCH_READ)
+     * @Filter(name = "BRANCH", condition = BRANCH_READ)
+     * }</pre>
+     * Реестр всё равно сверяет объявленное с фактическим {@code @Filter} и падает при
+     * старте приложения, если они разошлись: гарантия нужна для любой custom-политики,
+     * включая написанную копипастой, а не только для написанной через константу.
+     *
+     * Атрибут имеет смысл ТОЛЬКО при {@code custom = true} и {@code kind = FILTERABLE}:
+     * <ul>
+     * <li>у стандартного измерения предикат выводится из {@link #valuePaths()}, и
+     *     объявленное значение было бы молча проигнорировано (looklike-переопределение);</li>
+     * <li>у CHECK_ONLY-измерения фильтра нет вообще, сверять предикат не с чем —
+     *     «условие на будущее» опаснее отсутствующего, потому что выглядит как контракт.</li>
+     * </ul>
+     * Оба случая — отказ при старте, а не no-op.
+     */
+    String readCondition() default "";
 }

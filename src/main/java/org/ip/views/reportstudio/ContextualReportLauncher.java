@@ -351,7 +351,7 @@ public class ContextualReportLauncher extends Button {
                             .orElseThrow(() -> new IllegalArgumentException(
                                     "Шаблон JR не найден: " + selected.id()));
                     new org.ip.views.reports.JrxmlRunDialog(template,
-                            jrExecutionService, context).open();
+                            jrExecutionService, executionService, context).open();
                 } catch (RuntimeException exception) {
                     showError("Не удалось открыть параметры JR: " + exception.getMessage());
                 }

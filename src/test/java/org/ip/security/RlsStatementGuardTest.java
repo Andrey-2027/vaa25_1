@@ -9,11 +9,15 @@ import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsAccessDeniedException;
 import org.ipro.rls.RlsFilterActivator;
+import org.ipro.rls.RlsGuardRequestFilter;
 import org.ipro.rls.RlsStatementGuard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -79,6 +83,24 @@ class RlsStatementGuardTest {
         assertThat(RlsStatementGuard.violationCount()).isGreaterThan(0);
     }
 
+    /**
+     * C2 фиксирует detection-статус канарейки: strict-режим ({@code rls.guard.strict=true})
+     * регистрирует нарушение в коллекторе, но НЕ прерывает запрос — enforcement живут в
+     * {@code RlsPolicyEnforcer}/repository aspect/write listener. Перевод в deny —
+     * отдельный pre-production gate (A4-PREPROD-RLS-GUARD).
+     */
+    @Test
+    void strictModeRecordsViolationWithoutBlockingQuery() {
+        List<?> rows =
+            entityManager.createQuery("select d from ReceivingDocument d").getResultList();
+
+        assertThat(rows).as("запрос завершён, а не прерван канарейкой").isNotNull();
+        assertThat(RlsStatementGuard.violations()).isNotEmpty();
+        assertThat(String.join("\n", RlsStatementGuard.violations()))
+            .contains("receiving_document");
+        assertThat(RlsStatementGuard.violationCount()).isGreaterThan(0);
+    }
+
     /** Сервисный путь: ensureRlsEnabled включил фильтры — канарейка молчит (в т.ч. wildcard-пропуски). */
     @Test
     void serviceReadWithEnabledFiltersIsSilent() {
@@ -141,5 +163,32 @@ class RlsStatementGuardTest {
 
         assertThat(RlsStatementGuard.violations()).isEmpty();
         assertThat(RlsStatementGuard.violationCount()).isZero();
+    }
+
+    /**
+     * Переиспользование потока пула: метка «фильтры обработаны» принадлежит СЕССИИ этой
+     * нити, а не следующему запросу. Без границы запроса stale-метка заставила бы канарейку
+     * молчать в новом round-trip, в котором активатор так и не был вызван, — то есть тихая
+     * утечка осталась бы незамеченной. Границу ставит {@link RlsGuardRequestFilter}.
+     */
+    @Test
+    void staleSessionMarkOnReusedThreadIsClearedAtRequestBoundary() throws Exception {
+        grantWildcardToAdmin();
+
+        documentService.findAll();
+        entityManager.createQuery("select d from ReceivingDocument d").getResultList();
+        assertThat(RlsStatementGuard.violations())
+            .as("stale-метка принадлежит прошлой сессии и молчит — это и есть риск")
+            .isEmpty();
+
+        new RlsGuardRequestFilter().doFilter(new MockHttpServletRequest(),
+            new MockHttpServletResponse(), new MockFilterChain());
+
+        entityManager.createQuery("select d from ReceivingDocument d").getResultList();
+        assertThat(RlsStatementGuard.violations())
+            .as("после границы запроса канарейка снова видит SELECT без фильтра")
+            .isNotEmpty();
+        assertThat(String.join("\n", RlsStatementGuard.violations()))
+            .contains("receiving_document");
     }
 }

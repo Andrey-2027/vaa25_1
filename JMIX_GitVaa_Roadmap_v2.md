@@ -183,7 +183,12 @@ Living audit `docs/architecture/appdev-first-audit.md` является обяз
 
 - `B3`: semantic entity model migration remains (`ADX-01`); domain switch/two-phase
   save и пустая section wiring (`ADX-02`–`ADX-03`) закрыты в текущем scope;
-- `C2`: дублирование RLS intent между annotations, filter SQL и write checks (`ADX-06`);
+- `C2`: дублирование RLS intent между annotations, filter SQL и write checks
+  (`ADX-06`) закрыто: intent объявляется один раз, read-предикат стал checked duplication
+  с fail-fast сверкой при старте — для стандартного измерения из `valuePaths`, для
+  сложной политики из явного `readCondition`. Checked duplication зафиксирован как
+  конечное решение C2; генерация фильтров не входит в этот scope. Семантика произвольного
+  SQL остаётся свойством конкретной политики и проверяется поведенчески;
 - `C3-C4`: repository/service/search ceremony, fetch leakage, metadata duplication,
   InstanceName и global-search defaults (`ADX-04`, `ADX-05`, `ADX-07`–`ADX-10`);
 - `D`: доказательство defaults через starter/reference application без скрытой
@@ -688,17 +693,94 @@ bypass, критические разрывы и обязательный channe
 
 ### C2. Fail-closed RLS
 
-- закрыть `ADX-06`: простой RLS intent объявляется один раз, а read/write/delete
-  enforcement выводится из единого policy descriptor;
-- защищённый запрос не исполняется без разрешённого security context;
-- неизвестное/неполное измерение означает deny, а не warning;
-- mandatory predicates выводятся и применяются платформой централизованно:
-  прикладной программист не дублирует RLS-условия в каждом repository/query;
-- standard dimension value source выводится из metadata/InstanceName; отдельный
-  application class требуется только для сложного или внешнего источника;
-- privileged bypass является типизированным, минимальным и аудитируемым;
-- statement guard подтверждает enforcement и падает в security tests при нарушении;
-- прямой repository/EntityManager access из UI запрещён архитектурно.
+C2 implementation завершена в согласованном scope; целевые и C2 random-order gates
+зелёные. Широкий random `verify` на текущем worktree ещё не зелёный из-за ошибок
+жизненного цикла Spring test context в двух `DataJpaTest` классах (подробности ниже).
+Production guard остаётся detection-only по решению; переход к deny вынесен в отдельный
+pre-production gate `A4-PREPROD-RLS-GUARD` и не является немедленным изменением
+production-поведения.
+
+- **C2.1 — DONE.** Закрыть `ADX-06`: RLS intent объявляется один раз
+  (`@RlsDimension` → `RlsPolicyDescriptor`), write/delete enforcement выводится из
+  descriptor. Read-предикат остаётся в `@Filter(condition = ...)` на сущности, но
+  сверяется с descriptor при старте, включая `custom`-измерения: для них ожидаемый
+  предикат объявляется явно (`readCondition`, пустое значение — отказ старта), потому
+  что вывести его из `valuePaths` нечем. Checked duplication зафиксирован как конечная
+  форма C2; генератор из descriptor не входит в scope.
+- **C2.2 — DONE для поддерживаемых каналов.** Защищённый запрос не исполняется без
+  разрешённого security context через платформенные каналы (обязательная граница перед
+  repository, flush-time write guard, read-гейты, `requireAuthenticatedUsername`,
+  sentinel вместо «без ограничений»). Произвольные SQL/JDBC-вызовы остаются под
+  production detection guard; deny для них отложен до `A4-PREPROD-RLS-GUARD`.
+- **C2.3 — DONE.** Неизвестное/неполное измерение означает deny, а не warning:
+  незарегистрированный annotated класс, пустой/неполный набор проверок, несовпадение
+  custom-ключей с descriptor — всё отказ, в том числе fail-fast при старте.
+- **C2.4 — DONE (checked duplication).** Mandatory predicates применяются централизованно
+  (`RlsFilterActivator` + `applyToLoadByKey`), но само выражение предиката остаётся
+  объявленным на сущности; прикладной код не дублирует RLS-условия в repository/query.
+- **C2.5 — DONE.** Standard dimension value source выводится из metadata
+  (`@RlsDimension(grantValues = true)` + `RlsDimensionValueCatalog`); дублирующие
+  application-классы источников удалены.
+- **C2.6 — DONE.** Privileged bypass типизирован (`RlsBypassScope`), минимален
+  (закрытый список reason'ов и dimensions), требует аутентифицированного актора и
+  аудируется; SQL обхода ограничен scope'ом, untyped shims удалены.
+- **C2.7 — DONE в согласованном scope.** Statement guard подтверждает enforcement и
+  падает в security tests при нарушении (`rls.guard.strict=true`, коллектор нарушений);
+  в production он осознанно остаётся detection-only. Переключение в deny mode возможно
+  только после отдельного pre-production gate `A4-PREPROD-RLS-GUARD`.
+- **C2.8 — DONE.** Прямой repository/`EntityManager` access из UI запрещён
+  архитектурно для обоих UI-пакетов (`org.ip.views..`, `org.ip.groupgrid..`) и для
+  row-repository owned-секций; спайк `org.ip.groupgrid` перенесён в test-исходники,
+  поэтому production-классpath чист (`DAC-08`).
+
+Исторический cleanup/parity gate C2 прошёл полный `verify`: `1049` тестов, `0`
+failures/errors (`target/full-verify-c2f.log`, состав `863` main / `370` test;
+предыдущие — `1048`, `1040`, `1035`, `1030` и базовое `1010, 0, 0` на коммитах
+`8cd77b6` + `ec7bafa`, `target/full-verify3.log`). Этот результат относится к прежнему
+срезу и не является подтверждением текущего worktree. После текущих изменений (Maven
+IntelliJ IDEA, JDK 21) целевой набор прошёл `53/53`, random-order C2 gate — `156/156`,
+seed `904469758400`. Расширенный random `verify`, исключая отдельно отложенный
+`VisualQuerySubqueryIT`, завершился `BUILD FAILURE`: `1079` тестов, `0` failures,
+`3` errors в `AttributeTypeServiceTest` из-за обращения к уже закрытому
+`GenericWebApplicationContext`. Предыдущий прогон с default context-cache size дал тот
+же симптом в `AttributeValueServiceTest` (`23` errors); повтор с
+`spring.test.context.cache.maxSize=128` сократил их до трёх. Изолированный
+`AttributeTypeServiceTest` проходит `3/3`, связанный прогон `NumberingEngineIT` +
+`AttributeValueServiceTest` — `13/13` и `24/24`. Следующий и единственный оставшийся
+gate-пункт для статуса полного C2 — разобраться с этим порядко-зависимым lifecycle test
+context и получить зелёный широкий `verify`; функциональные C2 checks проходят.
+Повторная проверка после этого результата уточнила нестабильность: один запуск с
+`spring.test.context.cache.maxSize=256` был зелёным (seed `2828632607900`), но следующий
+запуск с тем же лимитом завершился 22 ошибками в `ReportQueryGuardTest`,
+`VisualQueryGuardIT`, `VisualQueryPackageDeepPathIT` и `ReportExecutionIT` (seed
+`3078094256100`). Значит, увеличение кэша не является воспроизводимым исправлением;
+широкий gate остаётся открытым.
+Прирост исторического результата относительно `1040` объясним по классам: `+6` —
+`RlsCustomDimensionParityTest`, `+1` — parity-тест в `RlsIntegrationTest`, `+2` —
+`EntityUpdateContextTest` из параллельной незакоммиченной работы в том же дереве.
+Пробелы подтверждения первой ревизии закрыты: deny-ветки repository-аспекта (native,
+`flush`, bulk, id-only, row-repository секции), отказ без authentication и для
+субъекта `system`, граница запроса против переиспользования thread/session.
+
+Read/write parity сложной политики (`ADX-06`) закрыта машинной сверкой: у
+`custom`-измерения read-предикат не выводится из `valuePaths`, поэтому объявляется в
+`@RlsDimension(readCondition = ...)` и сверяется реестром с фактическим
+`@Filter(condition = ...)` при старте (пропуск или расхождение — отказ). Негативные
+фикстуры `rlsparity.*` доказывают, что проверка не вакуумна, а
+`RlsIntegrationTest.receivingDocumentReadVisibilityMatchesWriteGuardPerRow` сверяет
+видимые строки с проходящими write-guard на одних грантах.
+
+Закрыты `DAC-13`, `DAC-17` и `DAC-19`; `DAC-15` resource permissions остаётся в C5.
+Production guard и произвольные SQL/JDBC deny учитываются отдельным pre-production gate
+`A4-PREPROD-RLS-GUARD`; немедленный deny не требуется и не включается.
+
+Платформенное ограничение, найденное при проверке пробелов gate и теперь явное: строка
+owned-секции не бывает самостоятельным справочником. У неё нет узла подсистемы и
+`serviceClass`, автономный `service`/`repository` удалены, а `ServiceLocator` отказывает
+такому классу с настоящей причиной. Причина не в UI: строка не объявляет своей RLS-политики
+(доступ наследуется от агрегата), поэтому её repository закрыт аспектом, и любой
+автономный список упал бы у пользователя. Инвариант закреплён тестами
+(`SectionParentColumnIsolationTest`, `ServiceLocatorSectionRowTest`).
 
 ### C3. FetchPlan + InstanceName pilot
 

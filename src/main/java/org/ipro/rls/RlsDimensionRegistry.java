@@ -35,7 +35,13 @@ import java.util.TreeSet;
  * <li>каждому FILTERABLE-измерению на классе сущности обязан соответствовать
  *     {@code @FilterDef}/@{@code @Filter} с ТЕМ ЖЕ именем;</li>
  * <li>для CHECK_ONLY-измерений фильтра быть НЕ должно — оно проверяется только
- *     write-guard'ом и {@link AccessService#getReadableIds}.</li>
+ *     write-guard'ом и {@link AccessService#getReadableIds};</li>
+ * <li>read-предикат каждого FILTERABLE-измерения — checked duplication с одним и тем
+ *     же условием: у стандартного измерения ожидаемый предикат выводится из
+ *     {@code valuePaths}/{@code nullsNotApplicable}, у {@code custom = true} — из
+ *     явного {@link RlsDimension#readCondition()}. Расхождение — отказ при старте.
+ *     Это единственное, что удерживает read и write intent от молчаливого расхождения
+ *     в custom-политиках (ADX-06).</li>
  * </ul>
  *
  * Собранная здесь карта "таблица → имена измерений" используется read-гейтом
@@ -163,16 +169,38 @@ public class RlsDimensionRegistry implements InitializingBean {
                         if (tableName != null) {
                             tableFilters.computeIfAbsent(tableName, k -> new TreeSet<>()).add(ann.value());
                         }
-                        if (!ann.custom()) {
-                            String expected = expectedFilterCondition(entityClass, ann);
-                            String actual = filterConditions.get(ann.value());
-                            if (!normalizeCondition(expected).equals(normalizeCondition(actual))) {
-                                throw new IllegalStateException("RLS read/write policy mismatch on "
-                                    + entityClass.getName() + " for " + ann.value()
-                                    + ": descriptor expects [" + expected + "] but @Filter has ["
-                                    + actual + "]");
-                            }
+                        // Симметрия контракта: у стандартного измерения read-предикат выводится
+                        // из valuePaths, и объявленный readCondition там был бы молча проигнорирован
+                        // (разработчик думает, что переопределил предикат, а платформа взяла
+                        // выведенный) — поэтому это отказ, а не no-op.
+                        if (!ann.custom() && !ann.readCondition().isBlank()) {
+                            throw new IllegalStateException("Измерение RLS \"" + ann.value()
+                                + "\" на " + entityClass.getName() + " не является custom, но объявляет "
+                                + "readCondition: у стандартного измерения read-предикат выводится из "
+                                + "valuePaths и объявленное значение было бы молча проигнорировано. "
+                                + "Уберите readCondition или объявите измерение custom с тем же условием.");
                         }
+                        // Read/write parity: у стандартного измерения ожидаемый read-предикат
+                        // выводится из valuePaths, у custom — объявляется через readCondition
+                        // (выводить нечем: подзапросы и конъюнкция нескольких путей). Без этого
+                        // custom-политика была единственным местом, где read intent вообще не
+                        // заявлен и мог разойтись с write intent молча (ADX-06).
+                        String expected = ann.custom()
+                            ? requireReadCondition(entityClass, ann)
+                            : expectedFilterCondition(entityClass, ann);
+                        String actual = filterConditions.get(ann.value());
+                        if (!normalizeCondition(expected).equals(normalizeCondition(actual))) {
+                            throw new IllegalStateException("RLS read/write policy mismatch on "
+                                + entityClass.getName() + " for " + ann.value()
+                                + ": descriptor expects [" + expected + "] but @Filter has ["
+                                + actual + "]");
+                        }
+                    } else if (ann.custom() && !ann.readCondition().isBlank()) {
+                        throw new IllegalStateException("Измерение RLS \"" + ann.value()
+                            + "\" на " + entityClass.getName() + " объявлено как " + ann.kind()
+                            + " с readCondition, но у него нет @Filter — сверять read-предикат не с чем. "
+                            + "Уберите readCondition (у CHECK_ONLY-измерения read-предиката нет) или "
+                            + "поменяйте kind на FILTERABLE и объявите @Filter с тем же условием.");
                     }
                 }
                 classFilters.put(entityClass, Set.copyOf(classDims));
@@ -267,6 +295,25 @@ public class RlsDimensionRegistry implements InitializingBean {
 
     public Set<String> grantValueDimensions() {
         return grantValueTypes.keySet();
+    }
+
+    /**
+     * Обязательный read-предикат custom-измерения — иначе сверка read/write молча выключена.
+     * Отказ намеренно говорит, что именно объявить: без подсказки вторая custom-политика в
+     * проекте скорее всего просто не соберётся у разработчика и он уберёт {@code custom = true},
+     * вернувшись к неверно выведенному read-предикату.
+     */
+    private static String requireReadCondition(Class<?> entityClass, RlsDimension annotation) {
+        String declared = annotation.readCondition();
+        if (declared == null || declared.isBlank()) {
+            throw new IllegalStateException("Измерение RLS \"" + annotation.value() + "\" на "
+                + entityClass.getName() + " объявлено как custom FILTERABLE, но не задаёт readCondition. "
+                + "Для сложной политики read-предикат не выводится из valuePaths, поэтому его надо "
+                + "объявить явно — тем же условием, что стоит в @Filter(name=\"" + annotation.value()
+                + "\"): иначе read и write intent расходятся без отказа при старте. "
+                + "Объявите условие константой класса и подставьте её и в readCondition, и в @Filter.");
+        }
+        return declared;
     }
 
     private static String expectedFilterCondition(Class<?> entityClass, RlsDimension annotation) {

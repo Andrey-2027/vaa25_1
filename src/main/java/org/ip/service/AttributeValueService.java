@@ -1,16 +1,18 @@
 package org.ip.service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.PersistenceContext;
 import jakarta.validation.Validator;
 import org.ip.model.AttributeType;
 import org.ip.model.AttributeValue;
 import org.ip.model.AttributeValueType;
+import org.ip.repository.AttributeTypeRepository;
 import org.ip.repository.AttributeValueRepository;
+import org.ip.repository.SklNomOpaRepository;
+import org.ip.repository.SklNomOpaValueRepository;
 import org.ipro.crud.AbstractBaseService;
+import org.ipro.crud.LookupService;
 import org.ipro.crud.ValidationException;
 import org.ipro.metadata.HasDisplayName;
+import org.ipro.metadata.ManagedEntityCatalog;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -56,29 +58,34 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
     private static final int MAX_ATTEMPTS = 3;
 
     private final AttributeValueRepository attributeValueRepository;
+    private final AttributeTypeRepository attributeTypeRepository;
+    private final SklNomOpaRepository sklNomOpaRepository;
+    private final SklNomOpaValueRepository sklNomOpaValueRepository;
+    private final LookupService lookupService;
+    private final ManagedEntityCatalog entityCatalog;
     private final TransactionTemplate createTx;
     private final TransactionTemplate renameTx;
 
-    /**
-     * Репозиторий строк наборов КСУ — для пересборки displayName затронутых наборов
-     * при переименовании. Injected сеттером: SklNomOpaValueRepository не зависит от
-     * AttributeValueService, цикла нет, но конструкторный цикл между сервисами был бы.
-     */
-    private org.ip.repository.SklNomOpaValueRepository sklNomOpaValueRepository;
-
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    public void setSklNomOpaValueRepository(org.ip.repository.SklNomOpaValueRepository repository) {
-        this.sklNomOpaValueRepository = repository;
-    }
-
-    @PersistenceContext
-    private EntityManager entityManager;
-
     public AttributeValueService(AttributeValueRepository repository,
+                                 AttributeTypeRepository attributeTypeRepository,
+                                 SklNomOpaRepository sklNomOpaRepository,
+                                 SklNomOpaValueRepository sklNomOpaValueRepository,
+                                 LookupService lookupService,
+                                 ManagedEntityCatalog entityCatalog,
                                  Validator validator,
                                  PlatformTransactionManager transactionManager) {
         super(repository, validator);
         this.attributeValueRepository = repository;
+        this.attributeTypeRepository = java.util.Objects.requireNonNull(
+            attributeTypeRepository, "attributeTypeRepository must not be null");
+        this.sklNomOpaRepository = java.util.Objects.requireNonNull(
+            sklNomOpaRepository, "sklNomOpaRepository must not be null");
+        this.sklNomOpaValueRepository = java.util.Objects.requireNonNull(
+            sklNomOpaValueRepository, "sklNomOpaValueRepository must not be null");
+        this.lookupService = java.util.Objects.requireNonNull(
+            lookupService, "lookupService must not be null");
+        this.entityCatalog = java.util.Objects.requireNonNull(
+            entityCatalog, "entityCatalog must not be null");
         this.createTx = new TransactionTemplate(transactionManager);
         this.createTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         // переименование — обычная бизнес-операция: присоединяется к транзакции вызывающего
@@ -127,20 +134,22 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
     /**
      * Найти или создать значение «Ссылки» (REF): {@code refId} + снапшот displayName
      * строки целевого словаря. Дедуп — по {@code (attrType, refId)}.
+     *
+     * <p>Строка словаря загружается через RLS-aware {@link LookupService}: чужая
+     * (недоступная) строка неотличима от отсутствующей — единая доменная ошибка не
+     * раскрывает существование записи из другой ветки.</p>
      */
-    public AttributeValue getOrCreateRef(AttributeType type, Class<?> targetClass, Long refId) {
+    public AttributeValue getOrCreateRef(AttributeType type, Long refId) {
         requireType(type, AttributeValueType.REF);
         if (refId == null) {
             throw new ValidationException("Для значения «Ссылка» обязателен id строки словаря.");
         }
-        Object target = entityManager.find(targetClass, refId);
-        if (target == null) {
-            throw new ValidationException(
-                "Строка словаря " + targetClass.getSimpleName() + " с id=" + refId + " не найдена.");
-        }
-        String display = target instanceof HasDisplayName hdn
-            ? hdn.getDisplayName()
-            : String.valueOf(target);
+        Class<? extends HasDisplayName> targetClass = resolveTargetDictionary(type);
+        HasDisplayName target = lookupService.findById(targetClass, refId)
+            .orElseThrow(() -> new ValidationException(
+                "Строка словаря " + targetClass.getSimpleName() + " с id=" + refId
+                    + " не найдена или недоступна."));
+        String display = target.getDisplayName();
         if (display == null || display.isBlank()) {
             throw new ValidationException(
                 "Не удалось получить отображаемое имя строки словаря " + targetClass.getSimpleName()
@@ -151,31 +160,19 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
 
     /**
      * Разрешить {@link AttributeType#targetDictionary} в JPA-сущность. Значение
-     * хранит имя класса как устойчивый контракт, но класс всё равно проверяется
-     * через JPA metamodel, чтобы строка из справочника не превратилась в произвольный
-     * {@code Class.forName()} вызов.
+     * хранит имя класса как устойчивый контракт; проверка — через платформенный
+     * {@link ManagedEntityCatalog}, чтобы строка из справочника не превратилась
+     * в произвольный {@code Class.forName()} вызов в прикладном сервисе.
      */
     @Transactional(readOnly = true)
-    public Class<?> resolveTargetDictionary(AttributeType type) {
+    public Class<? extends HasDisplayName> resolveTargetDictionary(AttributeType type) {
         requireType(type, AttributeValueType.REF);
         String className = normalizeText(type.getTargetDictionary());
         if (className.isEmpty()) {
             throw new ValidationException(
                 "Для типа значения «Ссылка» не задан целевой словарь.");
         }
-        try {
-            Class<?> targetClass = Class.forName(className);
-            entityManager.getMetamodel().entity(targetClass);
-            if (!HasDisplayName.class.isAssignableFrom(targetClass)) {
-                throw new ValidationException(
-                    "Целевой словарь " + className
-                        + " не реализует HasDisplayName и не может быть выбран в форме.");
-            }
-            return targetClass;
-        } catch (ClassNotFoundException | IllegalArgumentException e) {
-            throw new ValidationException(
-                "Целевой словарь " + className + " не является зарегистрированной JPA-сущностью.", e);
-        }
+        return entityCatalog.resolve(className, HasDisplayName.class);
     }
 
     /**
@@ -204,23 +201,23 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
     /**
      * Найти/создать ссылочное значение в текущей транзакции агрегата. Блокировка
      * типа сериализует создание одинаковых ссылочных строк в этом write-path.
+     *
+     * <p>Строка словаря — через RLS-aware {@link LookupService} (см. {@link #getOrCreateRef}).</p>
      */
     @Transactional
     public AttributeValue getOrCreateRefInCurrentTransaction(
-            AttributeType type, Class<?> targetClass, Long refId) {
+            AttributeType type, Long refId) {
         requireType(type, AttributeValueType.REF);
         if (refId == null) {
             throw new ValidationException("Для значения «Ссылка» обязателен id строки словаря.");
         }
         AttributeType managedType = lockAttributeType(type);
-        Object target = entityManager.find(targetClass, refId);
-        if (target == null) {
-            throw new ValidationException(
-                "Строка словаря " + targetClass.getSimpleName() + " с id=" + refId + " не найдена.");
-        }
-        String display = target instanceof HasDisplayName hdn
-            ? hdn.getDisplayName()
-            : String.valueOf(target);
+        Class<? extends HasDisplayName> targetClass = resolveTargetDictionary(managedType);
+        HasDisplayName target = lookupService.findById(targetClass, refId)
+            .orElseThrow(() -> new ValidationException(
+                "Строка словаря " + targetClass.getSimpleName() + " с id=" + refId
+                    + " не найдена или недоступна."));
+        String display = target.getDisplayName();
         if (display == null || display.isBlank()) {
             throw new ValidationException(
                 "Не удалось получить отображаемое имя строки словаря " + targetClass.getSimpleName()
@@ -241,12 +238,9 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
         if (type == null || type.getId() == null) {
             throw new ValidationException("Тип атрибута должен быть сохранён до указания значения.");
         }
-        AttributeType managed = entityManager.find(
-            AttributeType.class, type.getId(), LockModeType.PESSIMISTIC_WRITE);
-        if (managed == null) {
-            throw new ValidationException("Тип атрибута с id=" + type.getId() + " не найден.");
-        }
-        return managed;
+        return attributeTypeRepository.findByIdForUpdate(type.getId())
+            .orElseThrow(() -> new ValidationException(
+                "Тип атрибута с id=" + type.getId() + " не найден."));
     }
 
     private AttributeValue getOrCreateScalarInCurrentTransaction(
@@ -333,11 +327,9 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
      */
     public AttributeValue renameValue(Long valueId, String newCode, String newName) {
         return renameTx.execute(status -> {
-            AttributeValue value = entityManager.find(
-                AttributeValue.class, valueId, LockModeType.PESSIMISTIC_WRITE);
-            if (value == null) {
-                throw new ValidationException("Значение атрибута с id=" + valueId + " не найдено.");
-            }
+            AttributeValue value = attributeValueRepository.findByIdForUpdate(valueId)
+                .orElseThrow(() -> new ValidationException(
+                    "Значение атрибута с id=" + valueId + " не найдено."));
             AttributeValueType type = value.getAttrType().getValueType();
             if (type == AttributeValueType.REF) {
                 throw new ValidationException(
@@ -372,11 +364,12 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
      * Пересборка displayName затронутых наборов КСУ: displayName — поддерживаемый кэш
      * (решение 2026-09-08), переименование — исправление написания, наборы должны показывать
      * исправленное имя. Канон не меняется: он строится по id, id при переименовании стабилен.
+     *
+     * <p>Обычное доменное изменение через repository (без JPQL bulk update): кэш
+     * меняется тем же путём, что и остальное состояние, optimistic-lock версия
+     * набора корректно увеличивается вместе с ним.</p>
      */
     private void rebuildDisplayNames(AttributeValue renamed) {
-        if (sklNomOpaValueRepository == null) {
-            return; // наборы КСУ ещё не заведены — пересобирать нечего
-        }
         List<org.ip.model.SklNomOpa> sets = sklNomOpaValueRepository.findSetsContainingValue(renamed);
         for (org.ip.model.SklNomOpa set : sets) {
             List<org.ip.model.SklNomOpaValue> items =
@@ -391,17 +384,9 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
                 sb.append(item.getAttrType().getName()).append(": ")
                     .append(item.getValue().getName());
             }
-            setDisplayName(set, sb.toString());
+            set.refreshDisplayName(sb.toString());
+            sklNomOpaRepository.save(set);
         }
-    }
-
-    /** Запись кэша displayName через EntityManager (шапка без сеттеров). */
-    private void setDisplayName(org.ip.model.SklNomOpa set, String displayName) {
-        entityManager.createQuery(
-                "UPDATE SklNomOpa s SET s.displayName = :name WHERE s.id = :id")
-            .setParameter("name", displayName)
-            .setParameter("id", set.getId())
-            .executeUpdate();
     }
 
     private static String normalizeRenameCode(AttributeValueType type, String raw) {

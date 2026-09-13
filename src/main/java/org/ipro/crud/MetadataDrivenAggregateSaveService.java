@@ -36,6 +36,13 @@ import java.util.Set;
  * {@code serviceClass} is UI-only (table, fetch, row copy) and never participates
  * in authoritative validation or persistence here; non-standard persistence
  * semantics require an explicit custom aggregate handler.</p>
+ *
+ * <p>Шапка и owned sections — один агрегат с общей версией ({@code @Version} шапки):
+ * сохранение секций увеличивает её даже без изменения шапки, а состояние,
+ * подготовленное по устаревшей версии, завершается optimistic-конфликтом вместо
+ * тихой перезаписи. После конфликта форма сохраняет правки (rollback-механизм) —
+ * для повторного сохранения требуется перечитать актуальное состояние; подстановка
+ * свежей версии в старые данные запрещена.</p>
  */
 public class MetadataDrivenAggregateSaveService {
 

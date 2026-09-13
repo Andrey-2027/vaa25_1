@@ -1,6 +1,7 @@
 package org.ipro.metadata.config;
 
 import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.ReferenceIndex;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.metadata.SectionMetadataRegistry;
@@ -39,6 +40,13 @@ public class MetadataAutoConfiguration {
     @ConditionalOnMissingBean
     public MetadataResolver metadataResolver() {
         return new MetadataResolver();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ManagedEntityCatalog managedEntityCatalog(
+            jakarta.persistence.EntityManagerFactory entityManagerFactory) {
+        return new ManagedEntityCatalog(entityManagerFactory);
     }
 
     @Bean

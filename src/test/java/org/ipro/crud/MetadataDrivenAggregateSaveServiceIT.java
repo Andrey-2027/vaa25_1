@@ -252,6 +252,59 @@ class MetadataDrivenAggregateSaveServiceIT {
     }
 
     @Test
+    void staleAggregateSaveConflictsInsteadOfLosingConcurrentRows() {
+        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            String suffix = UUID.randomUUID().toString().substring(0, 8);
+            PrdSpec spec = createSpec(suffix);
+            PrdSpecOper first = new PrdSpecOper();
+            first.setRoute("first");
+
+            MetadataDrivenAggregateSaveService.AggregateSaveResult<PrdSpec> created =
+                aggregateSaveService.save(
+                    spec,
+                    List.of(MetadataDrivenAggregateSaveService.SectionInput.attached(
+                        PrdSpecOper.class, List.of(first))),
+                    EventSource.UI);
+
+            // Concurrent saver commits a second row on the fresh version.
+            // The reloaded owner gets its materialized associations back, as a
+            // detached client DTO would carry them (RLS reads journal.id).
+            PrdSpec concurrentOwner = prdSpecRepository.findById(created.aggregate().getId())
+                .orElseThrow();
+            concurrentOwner.setJournal(spec.getJournal());
+            TableSectionMetadataInfo operations = sectionRegistry.findByRow(PrdSpecOper.class)
+                .orElseThrow();
+            List<PrdSpecOper> current = sectionService
+                .<PrdSpecOper, PrdSpec>findByParent(concurrentOwner, operations);
+            PrdSpecOper second = new PrdSpecOper();
+            second.setRoute("concurrent");
+            current.add(second);
+            aggregateSaveService.save(
+                concurrentOwner,
+                List.of(MetadataDrivenAggregateSaveService.SectionInput.attached(
+                    PrdSpecOper.class, current)),
+                EventSource.UI);
+
+            // Stale aggregate (prepared before the concurrent commit) must conflict.
+            PrdSpecOper staleRow = new PrdSpecOper();
+            staleRow.setRoute("stale-edit");
+            PrdSpec staleAggregate = created.aggregate();
+            assertThatThrownBy(() -> aggregateSaveService.save(
+                staleAggregate,
+                List.of(MetadataDrivenAggregateSaveService.SectionInput.attached(
+                    PrdSpecOper.class, List.of(staleRow))),
+                EventSource.UI))
+                .isInstanceOfAny(jakarta.persistence.OptimisticLockException.class,
+                    org.springframework.orm.ObjectOptimisticLockingFailureException.class);
+
+            TableSectionMetadataInfo descriptor = sectionRegistry.findByRow(PrdSpecOper.class)
+                .orElseThrow();
+            assertThat(sectionService.<PrdSpecOper, PrdSpec>findByParent(concurrentOwner, descriptor))
+                .hasSize(2);
+        });
+    }
+
+    @Test
     void standardPilotDocumentsHaveNoCustomSaveOverride() {
         assertThat(handlerRegistry.find(PrdSpec.class)).isEmpty();
         assertThat(handlerRegistry.find(ReceivingDocument.class)).isEmpty();

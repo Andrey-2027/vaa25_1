@@ -34,11 +34,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>Транспорт — HTTP Basic с реальной цепочкой безопасности
  * ({@link FilterChainProxy} подключается явно: в Boot 4 аннотационного
  * AutoConfigureMockMvc нет в базовом стартере тестов).</p>
+ *
+ * <p>Изоляция random-order: собственный ключ Spring-контекста (уникальное test
+ * property), принадлежащие тесту usernames и детерминированное удаление своих
+ * users/grants — данные не протекают в общую БД и не сталкиваются с другими
+ * классами; принудительный порядок тестов не используется.</p>
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        properties = "ip.test.isolation=report-jpql-preview")
 class ReportJpqlPreviewControllerIT {
 
     private static final String URL = "/api/report-jpql/preview";
+
+    /** Пользователи принадлежат только этому классу (никаких bob/dave/admin). */
+    private static final String ADMIN_USER = "jpql-admin";
+    private static final String ALLOWED_USER = "jpql-dave";
+    private static final String DENIED_USER = "jpql-bob";
+    private static final String GRANTLESS_USER = "jpql-carol";
+
+    private static final List<String> OWN_USERS =
+            List.of(ADMIN_USER, ALLOWED_USER, DENIED_USER, GRANTLESS_USER);
 
     @Autowired
     private WebApplicationContext context;
@@ -68,14 +83,14 @@ class ReportJpqlPreviewControllerIT {
         // тест не транзакционный (контроллер работает в своих транзакциях и
         // видит только закоммиченные данные) — сеем через явный commit
         txTemplate().executeWithoutResult(status -> {
-            createUser("admin", "admin-pass");
-            createUser("bob", "bob-pass");
+            createUser(ADMIN_USER, "admin-pass");
+            createUser(DENIED_USER, "bob-pass");
             // dave: право на эндпоинт + wildcard-чтение JOURNAL -> guard пропускает
-            createUser("dave", "dave-pass");
-            persistGrant("dave", "REPORTS:JPQL_PREVIEW", null);
-            persistGrant("dave", "JOURNAL", null);
+            createUser(ALLOWED_USER, "dave-pass");
+            persistGrant(ALLOWED_USER, "REPORTS:JPQL_PREVIEW", null);
+            persistGrant(ALLOWED_USER, "JOURNAL", null);
             // bob: право на эндпоинт есть, RLS-грантов на JOURNAL нет
-            persistGrant("bob", "REPORTS:JPQL_PREVIEW", null);
+            persistGrant(DENIED_USER, "REPORTS:JPQL_PREVIEW", null);
             entityManager.flush();
         });
     }
@@ -87,7 +102,13 @@ class ReportJpqlPreviewControllerIT {
     @AfterEach
     void tearDown() {
         txTemplate().executeWithoutResult(status -> {
-            userRepository.findByUsername("carol").ifPresent(userRepository::delete);
+            entityManager.createQuery(
+                    "delete from AccessGrant g where g.subjectKey in :keys")
+                .setParameter("keys", OWN_USERS)
+                .executeUpdate();
+            for (String username : OWN_USERS) {
+                userRepository.findByUsername(username).ifPresent(userRepository::delete);
+            }
             entityManager.flush();
         });
     }
@@ -102,9 +123,9 @@ class ReportJpqlPreviewControllerIT {
 
     @Test
     void forbiddenWithoutJpqlPreviewGrant() throws Exception {
-        txTemplate().executeWithoutResult(status -> createUser("carol", "carol-pass"));
+        txTemplate().executeWithoutResult(status -> createUser(GRANTLESS_USER, "carol-pass"));
         mockMvc.perform(post(URL)
-                        .header("Authorization", basic("carol", "carol-pass"))
+                        .header("Authorization", basic(GRANTLESS_USER, "carol-pass"))
                         .contentType("application/json")
                         .content("{\"jpql\":\"select j.id from Journal j\"}"))
                 .andExpect(status().isForbidden())
@@ -115,7 +136,7 @@ class ReportJpqlPreviewControllerIT {
     @Test
     void returnsColumnsAndRowsForAllowedUser() throws Exception {
         mockMvc.perform(post(URL)
-                        .header("Authorization", basic("dave", "dave-pass"))
+                        .header("Authorization", basic(ALLOWED_USER, "dave-pass"))
                         .contentType("application/json")
                         .content("""
                                 {"jpql":"select j.id as id from Journal j",
@@ -130,7 +151,7 @@ class ReportJpqlPreviewControllerIT {
     void guardDenialIs400WithReadableMessage() throws Exception {
         // bob: право на эндпоинт есть, но RLS-доступ к Journal закрыт -> отказ guard'а
         String content = mockMvc.perform(post(URL)
-                        .header("Authorization", basic("bob", "bob-pass"))
+                        .header("Authorization", basic(DENIED_USER, "bob-pass"))
                         .contentType("application/json")
                         .content("{\"jpql\":\"select j.id as id from Journal j\"}"))
                 .andExpect(status().isBadRequest())

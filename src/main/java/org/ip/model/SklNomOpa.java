@@ -79,6 +79,18 @@ public class SklNomOpa extends BaseEntity implements HasDisplayName {
         return displayName;
     }
 
+    /**
+     * Обновить поддерживаемый кэш отображения (не канон: канон строится по id и при
+     * переименовании значения стабилен). Единственный допустимый мутатор
+     * «неизменяемого» набора — вызывается обработкой переименования
+     * {@code AttributeValueService#renameValue} в той же транзакции; обычное
+     * доменное изменение через repository, поэтому optimistic-lock версия
+     * корректно увеличивается вместе с кэшем.
+     */
+    public void refreshDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
     @Override
     public String toString() {
         return displayName == null ? canonical : displayName;

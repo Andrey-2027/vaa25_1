@@ -64,7 +64,7 @@ Correctness и security не упрощаются ради уменьшения 
 | `ADX-03` | Пустая section persistence wiring | P0 | `CLOSED в текущем scope` | B3 |
 | `ADX-04` | Обязательные repository/service и magic lookup | P1 | `OPEN` | C4 |
 | `ADX-05` | Повторяющийся/in-memory search | P1 | `OPEN` | C4 |
-| `ADX-06` | Дублирование RLS intent | P0 | `OPEN` | C2 |
+| `ADX-06` | Дублирование RLS intent | P0 | `DONE: descriptor есть, read-предикат проверяется и для custom-политики` | C2 |
 | `ADX-07` | Fetch/session knowledge в UI | P1 | `OPEN` | C3 |
 | `ADX-08` | Дублирование JPA/validation/UI metadata | P1 | `OPEN` | C3-C4 |
 | `ADX-09` | Несколько источников InstanceName | P1 | `OPEN` | C3 |
@@ -208,6 +208,24 @@ metadata/InstanceName; custom policy остаётся для сложных от
 
 **Закрытие.** Простое измерение объявляется один раз; нет ручного SQL и `getRlsChecks()`
 для стандартного случая; сложная policy покрывает read/write parity tests.
+
+**Сделано в C2.** `@RlsDimension` стал единственным объявлением intent:
+`RlsPolicyDescriptor` выводит из него write/delete-проверки, а
+generic dimension value source собирается из metadata (`grantValues = true` +
+`RlsDimensionValueCatalog`), поэтому дублирующие `BranchDimensionValueSource` и
+`JournalDimensionValueSource` из приложения удалены. Read-предикат по-прежнему
+объявлен в `@Filter(condition = ...)`, но больше не является непроверенным
+дублированием: `RlsDimensionRegistry` вычисляет ожидаемое условие и сверяет его с
+фактическим при старте (расхождение — fail-fast). Для сложной политики, где предикат
+вывести нечем (`custom = true`), он объявляется явно (`readCondition`) и сверяется тем
+же механизмом — то есть ADX-06 закрыт и для `ReceivingDocument`, причём без
+обязанности прикладника писать «ещё один тест»: расхождение ловит старт приложения.
+Что остаётся человеческим решением, а не машинной гарантией: эквивалентность
+произвольного SQL `getRlsChecks()` — это свойство конкретной политики, для
+`ReceivingDocument` подтверждённое parity-тестом на одних строках и грантах. Решение
+C2 зафиксировано: checked duplication с fail-fast сверкой — конечная форма; генерация
+фильтров из descriptor не входит в scope (`C2.4`). Переоценка каналов и gate — в
+[`security-channel-matrix.md`](security-channel-matrix.md).
 
 ### ADX-07 — Hibernate session/fetch knowledge в форме (`P1`, C3)
 
@@ -387,6 +405,12 @@ lifecycle rules сохранены и в B4 перенесены из listeners 
 3. Вывести стандартные dimension value sources из metadata/InstanceName.
 4. Мигрировать простые `Branch`, `Journal`, `Workshop`, затем сложные документы.
 5. Подтвердить read/write/delete parity и privileged bypass audit.
+
+Состояние: пункты 1–5 выполнены в согласованном scope. Для стандартных измерений
+read-предикат сверяется с descriptor при старте; для `custom`-измерений
+`ReceivingDocument` ожидаемый предикат объявляется через `readCondition` и также
+сверяется при старте. Checked duplication зафиксирован как конечное решение C2;
+генерация фильтров из descriptor не входит в scope, поэтому `ADX-06` закрыт.
 
 ### Волна 3 — fetch, metadata и data defaults (`C3-C4`)
 

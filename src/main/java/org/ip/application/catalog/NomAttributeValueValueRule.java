@@ -14,9 +14,9 @@ import java.util.Objects;
  * единого словаря {@link AttributeValue}, а связка «тип атрибута ↔ значение» проверяется
  * на сервере.
  *
- * <p>Правило вызывается из двух границ — aggregate save шапки номенклатуры
- * ({@code NomenclatureLifecycle.beforeAggregateSave}) и обычного CRUD самой строки
- * ({@code NomAttributeValueService}). UI передаёт только ввод формы
+ * <p>Единственная граница правила — aggregate save шапки номенклатуры
+ * ({@code NomenclatureLifecycle.beforeAggregateSave}): у строки секции нет автономного
+ * CRUD/списка, её сохранение принадлежит агрегату владельца. UI передаёт только ввод формы
  * ({@code enteredValue}/{@code enteredRefId}); нормализация и поиск или создание строки
  * словаря выполняются в текущей транзакции, поэтому откат сохранения шапки откатывает
  * и созданную строку словаря ({@code AttributeValueService.getOrCreateInCurrentTransaction}).
@@ -124,9 +124,8 @@ public class NomAttributeValueValueRule {
             throw new ValidationException("Для атрибута «" + type.getDisplayName()
                 + "» выберите строку словаря.");
         }
-        Class<?> targetClass = attributeValueService.resolveTargetDictionary(type);
         row.setAttrValue(attributeValueService.getOrCreateRefInCurrentTransaction(
-            type, targetClass, refId));
+            type, refId));
     }
 
     private void requireValueOfType(NomAttributeValue row, AttributeType type) {

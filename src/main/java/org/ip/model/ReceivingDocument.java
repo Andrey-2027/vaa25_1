@@ -56,8 +56,10 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "receiving_document",
     uniqueConstraints = @UniqueConstraint(columnNames = {"journal_id", "number"}))
-@RlsDimension(value = "JOURNAL", custom = true)
-@RlsDimension(value = "BRANCH", custom = true)
+@RlsDimension(value = "JOURNAL", custom = true,
+    readCondition = ReceivingDocument.JOURNAL_READ_CONDITION)
+@RlsDimension(value = "BRANCH", custom = true,
+    readCondition = ReceivingDocument.BRANCH_READ_CONDITION)
 @RlsDimension(value = "ENTITY:ReceivingDocument", kind = RlsDimensionKind.CHECK_ONLY,
     custom = true)
 @FilterDefs({
@@ -67,10 +69,8 @@ import java.time.LocalDate;
         applyToLoadByKey = true)
 })
 @Filters({
-    @Filter(name = "JOURNAL", condition = "journal_id in (:allowedIds)"),
-    @Filter(name = "BRANCH", condition =
-        "(receiving_workshop_id in (select w.id from workshop w where w.branch_id is null or w.branch_id in (:allowedIds))) " +
-        "and (transferring_workshop_id in (select w.id from workshop w where w.branch_id is null or w.branch_id in (:allowedIds)))")
+    @Filter(name = "JOURNAL", condition = ReceivingDocument.JOURNAL_READ_CONDITION),
+    @Filter(name = "BRANCH", condition = ReceivingDocument.BRANCH_READ_CONDITION)
 })
 @EntityMetadata(
     listFormTitle = "Приёмно-сдаточные накладные",
@@ -84,6 +84,28 @@ import java.time.LocalDate;
 )
 @TableSections({ReceivingDocumentItem.class})
 public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
+
+    /**
+     * Read-предикаты сложных измерений. Объявлены константами именно потому, что
+     * подставляются в ДВА места: {@code readCondition} (заявленный intent) и
+     * {@code @Filter(condition = ...)} (фактическое исполнение). В аннотациях ссылка
+     * идёт через {@code ReceivingDocument.ИМЯ} — простые имена в аннотации на самом
+     * классе не резолвятся (аннотация атрибутируется до тела класса). Одна константа
+     * вместо двух копий SQL делает расхождение read/write физически невозможным, а
+     * {@link org.ipro.rls.RlsDimensionRegistry} всё равно сверяет объявленное с
+     * фактическим — гарантия нужна и для custom-политик, написанных копипастой.
+     */
+    public static final String JOURNAL_READ_CONDITION = "journal_id in (:allowedIds)";
+
+    /**
+     * Цех без Филиала участия в BRANCH не принимает (null-passthrough внутри подзапроса),
+     * и проверять надо ОБЕ стороны документа — приёмщика и сдатчика: расхождение одной
+     * из них делает документ либо видимым, но нередактируемым, либо редактируемым по
+     * строкам, которых пользователь не видит.
+     */
+    public static final String BRANCH_READ_CONDITION =
+        "(receiving_workshop_id in (select w.id from workshop w where w.branch_id is null or w.branch_id in (:allowedIds))) "
+            + "and (transferring_workshop_id in (select w.id from workshop w where w.branch_id is null or w.branch_id in (:allowedIds)))";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "journal_id", nullable = true)

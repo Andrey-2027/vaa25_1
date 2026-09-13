@@ -17,8 +17,10 @@ import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
+import org.ipro.crud.LookupService;
 import org.ipro.crud.ReferenceCheckService;
 import org.ipro.crud.ValidationException;
+import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsFilterActivator;
@@ -105,9 +107,18 @@ class SklNomOpaServiceTest {
 
     private AttributeValueService newValueService() {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        LookupService lookupService = mock(LookupService.class);
+        when(lookupService.findById(any(Class.class), any())).thenAnswer(invocation -> {
+            Class<?> entityClass = invocation.getArgument(0);
+            Object id = invocation.getArgument(1);
+            return java.util.Optional.ofNullable(entityManager.find(entityClass, id));
+        });
         AttributeValueService service = new AttributeValueService(
-            attributeValueRepository, validator, transactionManager);
-        ReflectionTestUtils.setField(service, "entityManager", entityManager);
+            attributeValueRepository, attributeTypeRepository,
+            sklNomOpaRepository, sklNomOpaValueRepository,
+            lookupService,
+            new ManagedEntityCatalog(entityManager.getEntityManagerFactory()),
+            validator, transactionManager);
         ReflectionTestUtils.setField(service, "accessService", mock(AccessService.class));
         ReflectionTestUtils.setField(service, "numberingService", java.util.Optional.empty());
         ReflectionTestUtils.setField(service, "referenceCheckService", mock(ReferenceCheckService.class));
@@ -118,7 +129,6 @@ class SklNomOpaServiceTest {
         RlsReadGate readGate = mock(RlsReadGate.class);
         when(readGate.canRead(any(), anyString())).thenReturn(true);
         ReflectionTestUtils.setField(service, "rlsReadGate", readGate);
-        service.setSklNomOpaValueRepository(sklNomOpaValueRepository);
         return service;
     }
 

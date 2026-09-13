@@ -15,11 +15,10 @@ import com.vaadin.flow.server.WrappedHttpSession;
 import jakarta.servlet.http.HttpSession;
 import org.ipro.jr.dom.JrxmlTemplate;
 import org.ipro.jr.run.JrxmlExecutionService;
+import org.ipro.reportstudio.run.ReportExecutionService;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -33,24 +32,33 @@ import java.util.Map;
  * Диалог запуска JR-отчёта (.jrxml): форма скалярных параметров из шаблона +
  * кнопка «Сформировать».
  *
- * <p>Выполнение — в фоновом потоке по паттерну {@code ReportRunDialog}:
- * SecurityContext и HttpSession захватываются до старта потока (критично для
- * session-scoped RlsReadableIdsCache), результат открывается в
- * {@link JrxmlPreviewDialog}. Формирование выполняет {@link JrxmlExecutionService}
- * — JPQL-источник проходит guard+RLS под учёткой пользователя.</p>
+ * <p>Выполнение — в фоновом потоке управляемого исполнителя ({@code ReportTaskExecutor}
+ * через {@link ReportExecutionService#executeAsync}), а не в собственном потоке:
+ * аутентификация и HttpSession захватываются до постановки задачи (критично для
+ * session-scoped RlsReadableIdsCache) и остаются снимком, поэтому мутация контекста
+ * на UI-потоке до задачу не дотягивается. Очистку ThreadLocal выполняет исполнитель в
+ * {@code finally}. Результат открывается в {@link JrxmlPreviewDialog}.
+ * Формирование выполняет {@link JrxmlExecutionService} — JPQL-источник проходит
+ * guard+RLS под учёткой пользователя.</p>
  */
 public class JrxmlRunDialog extends Dialog {
 
     private final JrxmlTemplate template;
     private final JrxmlExecutionService executionService;
+    /**
+     * Исполнитель фоновой задачи: только через него диалог ставит работу.
+     * Своего потока у диалога нет — иначе контекст пришлось бы переносить вручную.
+     */
+    private final ReportExecutionService reportExecutionService;
     /** nullable: запуск из каталога — контекста реестра нет. */
     private final org.ipro.reportstudio.param.ReportContext context;
     private final List<JrxmlExecutionService.JrxmlParamSpec> specs;
     private final Map<String, TextField> valueFields = new HashMap<>();
     private final Map<String, DatePicker> dateFields = new HashMap<>();
 
-    public JrxmlRunDialog(JrxmlTemplate template, JrxmlExecutionService executionService) {
-        this(template, executionService, null);
+    public JrxmlRunDialog(JrxmlTemplate template, JrxmlExecutionService executionService,
+                          ReportExecutionService reportExecutionService) {
+        this(template, executionService, reportExecutionService, null);
     }
 
     /**
@@ -60,9 +68,12 @@ public class JrxmlRunDialog extends Dialog {
      * идентификаторы выделенных строк (та же конвенция, что у UDR).
      */
     public JrxmlRunDialog(JrxmlTemplate template, JrxmlExecutionService executionService,
+                          ReportExecutionService reportExecutionService,
                           org.ipro.reportstudio.param.ReportContext context) {
         this.template = template;
         this.executionService = executionService;
+        this.reportExecutionService = java.util.Objects.requireNonNull(
+            reportExecutionService, "reportExecutionService must not be null");
         this.context = context;
         this.specs = executionService.parameterSpecs(template);
 
@@ -183,7 +194,8 @@ public class JrxmlRunDialog extends Dialog {
     private void runReport() {
         Map<String, Object> parameters = collectParameters();
 
-        // Паттерн ReportRunDialog: контекст до старта фонового потока.
+        // Всё, что должно пережить постановку задачи, снимается здесь: локаль/зона/время
+        // и параметры — обычные значения, а контекст субъекта снимает сам исполнитель.
         String localeTag = getLocale().toLanguageTag();
         ZoneId zone = ZoneId.systemDefault();
         Instant now = Instant.now();
@@ -198,44 +210,46 @@ public class JrxmlRunDialog extends Dialog {
 
         UI currentUI = UI.getCurrent();
         currentUI.setPollInterval(250);
-        new Thread(() -> {
-            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-            securityContext.setAuthentication(authentication);
-            SecurityContextHolder.setContext(securityContext);
-            if (backgroundSession != null) {
-                RequestContextHolder.setRequestAttributes(
-                        new ReportRunRequestAttributes(backgroundSession));
-            }
-            try {
-                var print = executionService.run(template, parameters);
-                currentUI.access(() -> {
-                    try {
-                        close();
-                        new JrxmlPreviewDialog(template.getName(), print,
-                                localeTag, zone, now).open();
-                    } finally {
-                        currentUI.setPollInterval(-1);
-                    }
-                });
-            } catch (RuntimeException executionError) {
-                currentUI.access(() -> {
-                    try {
-                        Notification error = Notification.show(
-                                "Не удалось сформировать отчёт: "
-                                        + executionError.getMessage(),
-                                8_000, Notification.Position.MIDDLE);
-                        error.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    } finally {
-                        currentUI.setPollInterval(-1);
-                    }
-                });
-            } finally {
-                if (backgroundSession != null) {
-                    RequestContextHolder.resetRequestAttributes();
-                }
-                SecurityContextHolder.clearContext();
-            }
-        }).start();
+        try {
+            reportExecutionService.executeAsync(authentication,
+                    backgroundSession != null
+                            ? new ReportRunRequestAttributes(backgroundSession)
+                            : null,
+                    () -> {
+                        try {
+                            var print = executionService.run(template, parameters);
+                            currentUI.access(() -> {
+                                try {
+                                    close();
+                                    new JrxmlPreviewDialog(template.getName(), print,
+                                            localeTag, zone, now).open();
+                                } finally {
+                                    currentUI.setPollInterval(-1);
+                                }
+                            });
+                        } catch (RuntimeException executionError) {
+                            currentUI.access(() -> {
+                                try {
+                                    showRunFailure(executionError.getMessage());
+                                } finally {
+                                    currentUI.setPollInterval(-1);
+                                }
+                            });
+                        }
+                    });
+        } catch (RuntimeException submissionError) {
+            // Исполнитель отказывает ДО постановки задачи (например, субъект не
+            // аутентифицирован) — тогда задача не стартует, и снять polling нужно здесь.
+            currentUI.setPollInterval(-1);
+            showRunFailure(submissionError.getMessage());
+        }
+    }
+
+    private static void showRunFailure(String reason) {
+        Notification error = Notification.show(
+                "Не удалось сформировать отчёт: " + reason,
+                8_000, Notification.Position.MIDDLE);
+        error.addThemeVariants(NotificationVariant.LUMO_ERROR);
     }
 
     /**

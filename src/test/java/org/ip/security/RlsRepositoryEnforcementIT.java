@@ -3,8 +3,11 @@ package org.ip.security;
 import org.ip.config.DataInitializer;
 import org.ip.model.Journal;
 import org.ip.repository.JournalRepository;
+import org.ip.security.probe.RlsDenyProbeRepository;
+import org.ip.security.probe.RlsDenyProbeSectionRowRepository;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.RlsAccessDeniedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,8 @@ class RlsRepositoryEnforcementIT {
 
     @MockitoBean DataInitializer dataInitializer;
     @Autowired JournalRepository journals;
+    @Autowired RlsDenyProbeRepository probe;
+    @Autowired RlsDenyProbeSectionRowRepository sectionRows;
     @Autowired AccessGrantRepository grants;
     @Autowired TransactionTemplate transactions;
 
@@ -51,6 +56,81 @@ class RlsRepositoryEnforcementIT {
 
         assertThat(journals.findById(seed.allowed().getId()).orElseThrow().getName())
             .isEqualTo("C2-dirty-check-A");
+    }
+
+    /**
+     * Запреты границы до {@code proceed()}: канал, который не может доказать построчное
+     * право чтения/записи, закрыт даже у субъекта с полным грантом. Поэтому каждый тест
+     * аутентифицирует пользователя И даёт ему право — отказ обязан прийти от канала, а не
+     * от отсутствия прав.
+     */
+    @Test
+    void nativeQueryIsDeniedForProtectedEntity() {
+        authenticateWithFullGrant("deny-native");
+
+        assertThatThrownBy(() -> probe.findByCodeNative("C2-deny-native"))
+            .isInstanceOf(RlsAccessDeniedException.class)
+            .hasMessageContaining("Native query");
+    }
+
+    @Test
+    void bulkModifyingQueryIsDeniedForProtectedEntity() {
+        authenticateWithFullGrant("deny-bulk");
+
+        assertThatThrownBy(() -> probe.deleteByCodeBulk("C2-deny-bulk"))
+            .isInstanceOf(RlsAccessDeniedException.class)
+            .hasMessageContaining("Bulk mutation");
+    }
+
+    @Test
+    void deleteAllInBatchIsDeniedForProtectedEntity() {
+        authenticateWithFullGrant("deny-batch");
+
+        assertThatThrownBy(() -> journals.deleteAllInBatch())
+            .isInstanceOf(RlsAccessDeniedException.class)
+            .hasMessageContaining("Bulk mutation");
+    }
+
+    @Test
+    void flushIsDeniedForProtectedRepository() {
+        authenticateWithFullGrant("deny-flush");
+
+        assertThatThrownBy(() -> journals.flush())
+            .isInstanceOf(RlsAccessDeniedException.class)
+            .hasMessageContaining("flush");
+    }
+
+    @Test
+    void deleteByIdIsDeniedBecauseIdOnlyMutationCannotBeAuthorized() {
+        authenticateWithFullGrant("deny-id-only");
+
+        assertThatThrownBy(() -> journals.deleteById(1L))
+            .isInstanceOf(RlsAccessDeniedException.class)
+            .hasMessageContaining("requires entity values");
+    }
+
+    /**
+     * Строка owned-секции не объявляет собственной RLS-политики: доступ наследуется от
+     * aggregate root, поэтому произвольный derived/custom запрос к строкам не может
+     * выразить обязательный предикат владельца. Единственная поддержанная граница —
+     * aggregate section service.
+     */
+    @Test
+    void ownedSectionRowRepositoryIsDenied() {
+        authenticateWithFullGrant("deny-section-row");
+
+        assertThatThrownBy(() -> sectionRows.findAll())
+            .isInstanceOf(RlsAccessDeniedException.class)
+            .hasMessageContaining("use the aggregate section service");
+    }
+
+    /**
+     * Полный грант на измерение JOURNAL: запреты выше проверяются на субъекте, который
+     * вправе читать и изменять журналы, — то есть отказ не маскирует отсутствие прав.
+     */
+    private void authenticateWithFullGrant(String username) {
+        login(username);
+        grants.save(grant(username, null, true, true));
     }
 
     private Seed seed(String username) {

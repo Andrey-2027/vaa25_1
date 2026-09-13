@@ -36,8 +36,6 @@ import org.ipro.metadata.annotation.TableSectionMetadata;
     selectionFormTitle = "Выбор атрибута номенклатуры",
     order = 60,
     icon = "LINK",
-    serviceClass = org.ip.service.NomAttributeValueService.class,
-    subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"nomenclature", "attrType", "attrValue"},
     displaySortFields = {"attrType", "attrValue"})
 @TableSectionMetadata(
@@ -49,12 +47,28 @@ import org.ipro.metadata.annotation.TableSectionMetadata;
 )
 public class NomAttributeValue extends BaseEntity implements HasDisplayName {
 
+    /**
+     * Связь с позицией. Колонка в гриде выключена явно: в карточке номенклатуры секция
+     * уже находится внутри своей позиции, и колонка дублировала бы шапку (у секций
+     * {@code ReceivingDocumentItem}/{@code PrdSpecMtr} поле родителя вообще не размечено
+     * metadata). Именно {@code visible = false}, а не отсутствие {@code grid}:
+     * у {@code @GridColumn.visible()} дефолт {@code true}, поэтому поле без явной настройки
+     * всё равно попало бы в грид (последней колонкой, order 999).
+     * <p>Автономного справочника у строки секции нет: {@code subsystem} не указан, поэтому
+     * узел в дереве подсистем не создаётся, и {@code serviceClass} не задан — автономный
+     * сервис такому классу не резолвится. Заголовки и {@code selectColumns} в
+     * {@code @EntityMetadata} оставлены только на отображение (metadata explorer);
+     * ни один автономный list/item/selection form у строки секции не открывается. Причина не в UI: строка не объявляет своей
+     * RLS-политики (доступ наследуется от агрегата), поэтому её чтение отдельным
+     * repository не может выразить обязательный предикат владельца. Атрибуты видны и
+     * редактируются только в карточке номенклатуры — через aggregate boundary.</p>
+     */
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @FieldMetadata(
         label = "Номенклатура", required = true, order = 1,
-        grid = @GridColumn(order = 1, width = "250px"),
+        grid = @GridColumn(visible = false),
         lookup = @Lookup(entity = Nomenclature.class)
     )
     private Nomenclature nomenclature;
@@ -64,7 +78,7 @@ public class NomAttributeValue extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "attr_type_id", nullable = false)
     @FieldMetadata(
         label = "Тип атрибута", required = true, order = 2,
-        grid = @GridColumn(order = 2, width = "200px"),
+        grid = @GridColumn(order = 1, width = "200px"),
         lookup = @Lookup(entity = AttributeType.class)
     )
     private AttributeType attrType;
@@ -74,7 +88,7 @@ public class NomAttributeValue extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "attr_value_id", nullable = false)
     @FieldMetadata(
         label = "Значение", required = true, order = 3,
-        grid = @GridColumn(order = 3, flexGrow = 1),
+        grid = @GridColumn(order = 2, flexGrow = 1),
         lookup = @Lookup(entity = AttributeValue.class)
     )
     private AttributeValue attrValue;

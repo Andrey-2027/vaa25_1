@@ -14,7 +14,9 @@ import org.ip.repository.UserRepository;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;
+import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsFilterActivator;
+import org.ipro.rls.RlsPolicyDescriptor;
 import org.ipro.rls.RlsReadableIdsCache;
 import org.ip.service.WorkshopService;
 import org.ipro.security.CurrentUser;
@@ -438,6 +440,64 @@ class RlsIntegrationTest {
 
         assertThat(accessService.canUpdate("BRANCH", branchA.getId(), "dave2")).isTrue();
         assertThat(accessService.canUpdate("BRANCH", branchB.getId(), "dave2")).isFalse();
+    }
+
+    /**
+     * Read/write parity на ОДНИХ И ТЕХ ЖЕ строках и грантах — то, ради чего read-предикат
+     * custom-измерения вынесен в {@code readCondition}: набор видимых строк обязан совпасть
+     * с набором строк, которые write-guard пропускает. Раньше обе стороны были закрыты
+     * разными тестами (RD-2 виден/не виден; RD-2 не проходит canUpdate), но не сверялись между
+     * собой — а расхождение и есть дефект: видимая и нередактируемая строка (или наоборот)
+     * выглядит как успешно открытая карточка и «внезапный» отказ при сохранении.
+     *
+     * Проверка идёт по трём документам: один проходит и по фильтру, и по write-guard,
+     * два скрыты — приёмщик вне доступного Филиала и сдатчик вне его. Так один и тот же
+     * прогон ловит расхождение в обе стороны, а не только «скрыли, но записать можно».
+     */
+    @Test
+    void receivingDocumentReadVisibilityMatchesWriteGuardPerRow() {
+        Branch branchA = persistBranch("BR-A3", "Филиал А3");
+        Branch branchB = persistBranch("BR-B3", "Филиал Б3");
+        Workshop workshopA = persistWorkshop("W-A3", branchA);
+        Workshop workshopB = persistWorkshop("W-B3", branchB);
+        Workshop workshopNoBranch = persistWorkshop("W-N3", null);
+        Journal journalA = entityManager.find(Journal.class, journalAId);
+
+        ReceivingDocument passesBoth = persistDocument("RD-P1", journalA, workshopA, workshopNoBranch);
+        ReceivingDocument hiddenByDeliverer = persistDocument("RD-P2", journalA, workshopA, workshopB);
+        ReceivingDocument hiddenByReceiver = persistDocument("RD-P3", journalA, workshopB, workshopA);
+        entityManager.flush();
+
+        // gina: Журнал A, Филиал A и ENTITY-грант (CHECK_ONLY-измерение входит в write-guard,
+        // но не в Hibernate-фильтр — без него parity нечего было бы сравнивать).
+        persistGrant(AccessGrant.SubjectType.USER, "gina", "JOURNAL", journalAId, true, true, false);
+        persistGrant(AccessGrant.SubjectType.USER, "gina", "BRANCH", branchA.getId(), true, true, false);
+        persistGrant(AccessGrant.SubjectType.USER, "gina", "ENTITY:ReceivingDocument", null, true, true, false);
+        entityManager.flush();
+
+        loginAs("gina");
+        activator.ensureRlsEnabled(entityManager);
+
+        List<Long> visibleIds = entityManager
+            .createQuery("select d.id from ReceivingDocument d", Long.class)
+            .getResultList();
+
+        RlsPolicyDescriptor policy = registry.policyOf(ReceivingDocument.class);
+        for (ReceivingDocument document : List.of(passesBoth, hiddenByDeliverer, hiddenByReceiver)) {
+            assertThat(visibleIds.contains(document.getId()))
+                .as("видимость %s должна совпадать с прохождением write-guard", document.getNumber())
+                .isEqualTo(writeAllowed(policy, document, "gina"));
+        }
+        assertThat(visibleIds).containsExactly(passesBoth.getId());
+    }
+
+    /** Тот же write-guard, что и в сохранении: все проверки всех измерений — через AccessService. */
+    private boolean writeAllowed(RlsPolicyDescriptor policy, Object entity, String username) {
+        return policy.checksOf(entity).entrySet().stream().allMatch(entry ->
+            entry.getValue().stream().allMatch(check -> switch (check) {
+                case RlsCheckValue.NotApplicable ignored -> true;
+                case RlsCheckValue.Check value -> accessService.canUpdate(entry.getKey(), value.id(), username);
+            }));
     }
 
     // --------------------------------------------------- CHECK_ONLY-измерения (расширение плана)

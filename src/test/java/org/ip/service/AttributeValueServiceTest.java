@@ -16,8 +16,11 @@ import org.ip.repository.AttributeTypeRepository;
 import org.ip.repository.AttributeValueRepository;
 import org.ip.repository.GroupNomRepository;
 import org.ip.repository.NomenclatureRepository;
-import org.ip.repository.NomAttributeValueRepository;
+import org.ip.repository.SklNomOpaRepository;
+import org.ip.repository.SklNomOpaValueRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
+import org.ipro.crud.LookupService;
+import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.crud.ValidationException;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsReadGate;
@@ -26,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -67,15 +71,28 @@ class AttributeValueServiceTest {
     @Autowired
     private UnitOfMeasurementRepository unitOfMeasurementRepository;
     @Autowired
-    private NomAttributeValueRepository nomAttributeValueRepository;
+    private SklNomOpaRepository sklNomOpaRepository;
+    @Autowired
+    private SklNomOpaValueRepository sklNomOpaValueRepository;
     @Autowired
     private PlatformTransactionManager transactionManager;
 
     private AttributeValueService newService() {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        AttributeValueService service =
-            new AttributeValueService(attributeValueRepository, validator, transactionManager);
-        ReflectionTestUtils.setField(service, "entityManager", entityManager);
+        // Lookup через реальный EntityManager слайса (GroupNom незащищён RLS —
+        // для RLS-пути есть отдельная интеграционная проверка полным контекстом).
+        LookupService lookupService = mock(LookupService.class);
+        when(lookupService.findById(any(Class.class), any())).thenAnswer(invocation -> {
+            Class<?> entityClass = invocation.getArgument(0);
+            Object id = invocation.getArgument(1);
+            return Optional.ofNullable(entityManager.find(entityClass, id));
+        });
+        ManagedEntityCatalog entityCatalog =
+            new ManagedEntityCatalog(entityManager.getEntityManagerFactory());
+        AttributeValueService service = new AttributeValueService(
+            attributeValueRepository, attributeTypeRepository,
+            sklNomOpaRepository, sklNomOpaValueRepository,
+            lookupService, entityCatalog, validator, transactionManager);
         ReflectionTestUtils.setField(service, "accessService", mock(AccessService.class));
         ReflectionTestUtils.setField(service, "numberingService", Optional.empty());
         RlsReadGate readGate = mock(RlsReadGate.class);
@@ -85,13 +102,38 @@ class AttributeValueServiceTest {
     }
 
     private AttributeType saveType(String code, AttributeValueType valueType) {
-        return attributeTypeRepository.save(new AttributeType(code, code, valueType));
+        AttributeType type = new AttributeType(code, code, valueType);
+        if (valueType == AttributeValueType.REF) {
+            type.setTargetDictionary(GroupNom.class.getName());
+        }
+        return attributeTypeRepository.save(type);
     }
 
     private Nomenclature saveNomenclature(String code) {
         UnitOfMeasurement unit =
             unitOfMeasurementRepository.save(new UnitOfMeasurement("шт" + code, "Штука " + code, "ШТ" + code));
         return nomenclatureRepository.save(new Nomenclature(code, code, unit));
+    }
+
+    /**
+     * Строка owned-секции пишется и читается через EntityManager: у неё нет собственного
+     * repository — он закрыт как параллельный вход в агрегат, а секция сохраняется только
+     * через aggregate boundary владельца.
+     */
+    private void persistBinding(Nomenclature nomenclature, AttributeType type, AttributeValue value) {
+        new TransactionTemplate(transactionManager).executeWithoutResult(status ->
+            entityManager.persist(new NomAttributeValue(nomenclature, type, value)));
+    }
+
+    private NomAttributeValue bindingOf(Nomenclature nomenclature) {
+        // join fetch: проверяется код словарного значения, а detached-строка после
+        // закрытия транзакции ленивый proxy уже не инициализирует
+        return new TransactionTemplate(transactionManager).execute(status ->
+            entityManager.createQuery(
+                    "select n from NomAttributeValue n join fetch n.attrValue where n.nomenclature = :nom",
+                    NomAttributeValue.class)
+                .setParameter("nom", nomenclature)
+                .getSingleResult());
     }
 
     // === STRING ===
@@ -170,9 +212,9 @@ class AttributeValueServiceTest {
         GroupNom first = groupNomRepository.save(new GroupNom("G-1", "Иванов И.И."));
         GroupNom second = groupNomRepository.save(new GroupNom("G-2", "Иванов И.И."));
 
-        AttributeValue v1 = service.getOrCreateRef(type, GroupNom.class, first.getId());
-        AttributeValue v2 = service.getOrCreateRef(type, GroupNom.class, second.getId());
-        AttributeValue again = service.getOrCreateRef(type, GroupNom.class, first.getId());
+        AttributeValue v1 = service.getOrCreateRef(type, first.getId());
+        AttributeValue v2 = service.getOrCreateRef(type, second.getId());
+        AttributeValue again = service.getOrCreateRef(type, first.getId());
 
         assertThat(v1.getRefId()).isEqualTo(first.getId());
         assertThat(v2.getRefId()).isEqualTo(second.getId());
@@ -187,8 +229,21 @@ class AttributeValueServiceTest {
         AttributeValueService service = newService();
         AttributeType type = saveType("T-REF2", AttributeValueType.REF);
 
-        assertThatThrownBy(() -> service.getOrCreateRef(type, GroupNom.class, 999999L))
+        assertThatThrownBy(() -> service.getOrCreateRef(type, 999999L))
             .isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void refUsesDictionaryConfiguredOnAttributeType() {
+        AttributeValueService service = newService();
+        AttributeType type = saveType("T-REF-NOM", AttributeValueType.REF);
+        type.setTargetDictionary(Nomenclature.class.getName());
+        attributeTypeRepository.save(type);
+        Nomenclature nomenclature = saveNomenclature("RN");
+
+        assertThat(service.resolveTargetDictionary(type)).isEqualTo(Nomenclature.class);
+        assertThat(service.getOrCreateRef(type, nomenclature.getId()).getRefId())
+            .isEqualTo(nomenclature.getId());
     }
 
     // === ENUM ===
@@ -297,7 +352,7 @@ class AttributeValueServiceTest {
         AttributeValueService service = newService();
         AttributeType type = saveType("T-REN-REF", AttributeValueType.REF);
         GroupNom group = groupNomRepository.save(new GroupNom("G-REN", "Иванов И.И."));
-        AttributeValue value = service.getOrCreateRef(type, GroupNom.class, group.getId());
+        AttributeValue value = service.getOrCreateRef(type, group.getId());
 
         assertThatThrownBy(() -> service.renameValue(value.getId(), "Петров", null))
             .isInstanceOf(ValidationException.class)
@@ -361,13 +416,12 @@ class AttributeValueServiceTest {
         AttributeType type = saveType("T-REN-BIND", AttributeValueType.STRING);
         AttributeValue value = service.getOrCreate(type, "Красный");
         Nomenclature nomenclature = saveNomenclature("N-BIND");
-        nomAttributeValueRepository.save(new NomAttributeValue(nomenclature, type, value));
+        persistBinding(nomenclature, type, value);
 
         service.renameValue(value.getId(), "Алый", null);
 
         // привязка ссылается по ID и показывает новый код без каких-либо UPDATE по привязкам
-        NomAttributeValue binding =
-            nomAttributeValueRepository.findByNomenclatureOrderByAttrType(nomenclature).get(0);
+        NomAttributeValue binding = bindingOf(nomenclature);
         assertThat(binding.getAttrValue().getId()).isEqualTo(value.getId());
         assertThat(binding.getAttrValue().getCode()).isEqualTo("Алый");
     }

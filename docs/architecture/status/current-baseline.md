@@ -1,6 +1,6 @@
 # Текущий engineering baseline
 
-- Дата проверки: 2026-09-11
+- Дата проверки: 2026-09-13
 - Ветка: `main`
 - Baseline commit/tag: не создавался
 - Рабочее дерево: содержит пользовательские изменения этапов A0–A4, B3–B4 и C1; baseline commit/tag ещё не создавался
@@ -12,11 +12,11 @@
 | A0 Source of truth | Завершён в объёме A0 | Созданы versioned architecture index, ADR, status и WIP inventory; старый roadmap оставлен архивом. Baseline commit/tag намеренно отложен до общего gate A1–A4 |
 | A1 Quality/correctness | Завершён | Исправлены базовые контракты и тесты; полный `verify`, включая production frontend и упаковку JAR, зелёный |
 | A2 Reproducible build | Завершён в текущем scope | Manifest, fingerprints, относительный workspace contract и IntelliJ Maven bootstrap проверены на отдельном пустом repository; pre-distribution hardening ведётся отдельными gates |
-| A3 Secure configuration | WIP, упрощённый dev-вариант | Локальные DB credentials и абсолютные report paths вынесены во внешний игнорируемый файл; profiles/demo initialization/production validation пока не менялись |
+| A3 Secure configuration | WIP, упрощённый dev-вариант | Локальные DB credentials и абсолютные report paths вынесены во внешний игнорируемый файл; demo initializer ограничен профилями `dev`/`demo`/`test` и opt-in property (`DAC-19`); более широкая production validation остаётся открытой |
 | A4 Schema/PostgreSQL IT | DONE в текущем scope | Переносимый JSON mapping, H2 integration test и fail-fast JDBC selection готовы; PostgreSQL/Flyway вынесены в pre-production gate |
 | B Aggregate save/events | B3 DONE в текущем scope: B3.1–B3.11 | Semantic archetypes, role-based numbering, resolved owned-section registry, custom override registry и единый metadata-driven save для пилотов готовы; переходные save-specific классы, section wiring и ручной delete cascade удалены после parity |
 | B4 Application lifecycle DX | Core реализован в текущем scope | ADR-0005: `EntityLifecycle<T>`, context contracts, fail-fast registry и callbacks подключены к entity/aggregate save boundaries; контрольные listeners мигрированы, Entity Explorer/scaffolder остаются следующими шагами |
-| C RLS enforcement | C1 завершён, C2 готов к старту | Создана карта `DAC-01`–`DAC-21`: CRUD, lookup, sections, search/projection, reports/export, REST, jobs, infrastructure и future integrations; statement guard подтверждён как detection-only |
+| C RLS enforcement | C1 завершён; реализация C2 согласованного scope выполнена, широкая проверка ещё не зелёная | `DAC-13`, `DAC-17` и `DAC-19` закрыты; checked duplication закреплён как конечное решение; detection-only production guard принят и вынесен в `A4-PREPROD-RLS-GUARD`; целевой набор C2 (53 теста) и random-order gate (156 тестов) зелёные. Полный random `verify` пока даёт ошибки жизненного цикла Spring test context в `AttributeValueServiceTest`/`AttributeTypeServiceTest`; `VisualQuerySubqueryIT` исключён по решению владельца и разбирается отдельно |
 | D Physical modularity | Не начат | Проект остаётся одним Maven-модулем |
 
 ## Quality gate
@@ -318,6 +318,99 @@ Living audit `docs/architecture/appdev-first-audit.md` фиксирует 11 г�
 обязательную карту закрытия по B3, C2-C4, D и E3. `ADX-01` находится в `WIP`,
 `ADX-02` и `ADX-03` закрыты в текущем scope, остальные кодовые `ADX-*` открыты;
 документальная волна 0 завершена.
+
+## C2: fail-closed RLS (core реализован)
+
+Строки `DAC-01`–`DAC-21` в
+[`security-channel-matrix.md`](../security-channel-matrix.md) переоценены по коду,
+а не по прежнему состоянию C1. Что закрыто:
+
+- RLS intent объявляется один раз (`@RlsDimension` → `RlsPolicyDescriptor`), из него
+  выводятся write/delete-проверки, а ожидаемый read-предикат вычисляется и сверяется
+  с `@Filter(condition = ...)` при старте (расхождение — fail-fast);
+- неизвестное/неполное измерение и незарегистрированный annotated класс дают отказ,
+  а не тихое «unprotected»; отсутствие грантов даёт sentinel, а не «без ограничений»;
+- субъект без authentication не является authority: `requireAuthenticatedUsername`,
+  read-гейт и артефакт-кэш отказывают для пустого субъекта и `system`, untyped
+  `runAsSystem/callAsSystem` удалены;
+- обязательная граница стоит перед Spring Data repository (native query, `flush()`,
+  bulk и мутация только по id запрещены), а flush-time guard требует capability
+  на каждый INSERT/UPDATE/DELETE, включая implicit dirty-checking на commit;
+- bypass типизирован, ограничен списком reason'ов, обязательным актором, audit и
+  ограничением самого SQL обхода; источник значений измерения выводится из metadata
+  (`grantValues`), дублирующие application-классы удалены;
+- архитектурный запрет repository/`EntityManager` в `org.ip.views..` и запрет
+  row-repository для owned-секций.
+
+Gate C2 зафиксирован в матрице: целевой список тестов каналов, архитектурные правила
+и полный `verify`. Историческое подтверждение (`target/full-verify-c2d.log`; предыдущее —
+`target/full-verify-c2b.log`, `1030, 0, 0`; базовое — `target/full-verify3.log`,
+`1010, 0, 0` на коммитах `8cd77b6` + `ec7bafa`):
+
+```text
+Tests run: 1040, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+Повторная проверка после текущих исправлений (2026-09-13, Maven IntelliJ IDEA, JDK 21):
+целевой набор C2 — `53/0/0`, random-order C2 gate — `156/0/0`, seed `904469758400`.
+Расширенный random `verify`, исключая отдельно отложенный `VisualQuerySubqueryIT`,
+выполнил 1079 тестов, но завершился с ошибками создания JPA auditing bean: в первом
+прогоне — 23 ошибки в `AttributeValueServiceTest`, при `spring.test.context.cache.maxSize=128`
+— 3 ошибки в `AttributeTypeServiceTest`; все с причиной `GenericWebApplicationContext`
+уже закрыт. Один прогон с лимитом 256 завершился зелёным (seed `2828632607900`), но
+повтор с тем же лимитом в Surefire завершился 22 такими ошибками в
+`ReportQueryGuardTest`, `VisualQueryGuardIT`, `VisualQueryPackageDeepPathIT` и
+`ReportExecutionIT` (seed `3078094256100`). Изолированный `AttributeTypeServiceTest`
+проходит (`3/3`), как и связанные парные прогоны. Значит, увеличение кэша не является
+стабильным исправлением. C2-specific gate подтверждён, но широкий random `verify`
+остаётся незелёным/неповторяемым; проблему жизненного цикла тестовых контекстов нельзя
+считать исправленной или скрывать исключением этих классов.
+
+Пробелы подтверждения первой ревизии закрыты поведенческими тестами:
+`RlsRepositoryEnforcementIT` (+6 запретов: native query, `flush`, bulk, `@Modifying`,
+мутация только по id, row-repository секции), `RlsUnauthenticatedAccessIT` (сервис,
+lookup, прямая граница repository, субъект `system` — все отказом) и
+`RlsStatementGuardTest.staleSessionMarkOnReusedThreadIsClearedAtRequestBoundary`
+(граница запроса снова вооружает канарейку).
+
+Закрыты два канала из первой ревизии. `DAC-11`: `JrxmlRunDialog` переведён с raw
+`Thread` на управляемый исполнитель (`ReportTaskExecutor` через
+`ReportExecutionService.executeAsync`), снимок субъекта и очистка ThreadLocal — теперь
+гарантия платформы; архитектурное правило запрещает `new Thread` в `org.ip..`.
+`DAC-08`: спайк `org.ip.groupgrid` (две панели с raw `EntityManager`) перенесён в
+test-исходники, а правило `UiPersistenceBoundaryTest` расширено на этот пакет.
+Невакуумность обоих правил проверена мутацией.
+
+Закрыт последний семантический пробел ADX-06 — read/write parity сложной политики.
+У `custom`-измерения read-предикат вывести нечем (подзапросы и конъюнкция путей),
+поэтому он объявляется явно: `@RlsDimension(value = "BRANCH", custom = true,
+readCondition = ...)` с условием, взятым из одной константы с `@Filter`. Реестр сверяет
+объявленное с фактическим фильтром при старте и отказывает при пропущенном
+`readCondition` или расхождении. Контракт симметричен: объявленный предикат без фильтра
+(CHECK_ONLY) и объявленный предикат на стандартном измерении (его предикат выводится из
+`valuePaths`, поэтому объявление было бы молча проигнорировано) — тоже отказ старта. Гарантия закреплена тестами: негативные фикстуры
+`rlsparity.*` в `RlsCustomDimensionParityTest` показывают, что проверка не вакуумна,
+а `RlsIntegrationTest.receivingDocumentReadVisibilityMatchesWriteGuardPerRow` сверяет
+видимый набор строк с набором, проходящим write-guard, на одних и тех же грантах.
+Что проверка НЕ доказывает: эквивалентность произвольного SQL и `getRlsChecks()` —
+это остаётся свойством конкретной политики, подтверждаемым поведенческим тестом.
+
+В согласованном scope закрыты `DAC-13`, `DAC-17` и `DAC-19`; checked duplication —
+конечное решение C2. Production guard остаётся detection-only по решению и вынесен в
+`A4-PREPROD-RLS-GUARD`; `DAC-15` resource permissions остаётся в C5. Для завершения
+проверки C2 остаётся получить зелёный широкий `verify` на текущем дереве: C2-specific
+random gate проходит, но общий random `verify` пока нестабилен из-за уже закрытого
+Spring-контекста в двух независимых `DataJpaTest` классах. `VisualQuerySubqueryIT`
+сознательно исключён по отдельному решению владельца.
+
+Найденный при проверке пробелов дефект канала закрыт: автономный справочник строки
+секции (`NomAttributeValueService` → `NomAttributeValueRepository`) падал на закрытом
+row-repository. Строка owned-секции больше не является самостоятельным справочником —
+узел подсистемы и `serviceClass` убраны, мёртвые service/repository удалены, а
+`ServiceLocator` отказывает такой строке с настоящей причиной. Инвариант закреплён
+тестами (`SectionParentColumnIsolationTest.everySectionRowIsNotAnAutonomousCatalog`,
+`ServiceLocatorSectionRowTest`).
 
 ## Неошибочные и блокирующие диагностики
 

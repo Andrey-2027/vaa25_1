@@ -15,8 +15,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Полный цикл подзапроса на реальных сущностях: текст с IN(подзапрос) →
  * разбор в визуальное определение → компиляция → выполнение на H2.
+ *
+ * <p>Собственный ключ Spring-контекста (random-order изоляция, как у
+ * ReportJpqlPreviewControllerIT): слайс делит кэш с другими JPA-тестами, и
+ * чужое закрытие общего контекста роняло ленивое создание auditing-бинов
+ * {@code jpaAuditingHandler/jpaMappingContext} первым persist'ом.</p>
  */
-@DataJpaTest
+@DataJpaTest(properties = "ip.test.isolation=visual-query-subquery")
 @EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls"})
 @ContextConfiguration(classes = Application.class)
 class VisualQuerySubqueryIT {

@@ -26,11 +26,17 @@ public final class RlsTestFixture {
 
     public static <T> T callAsSuperuser(AccessGrantRepository grants, Supplier<T> action) {
         SecurityContext previous = SecurityContextHolder.getContext();
-        authenticateAsSuperuser(grants);
+        String username = authenticateAsSuperuser(grants);
         try {
             return action.get();
         } finally {
-            SecurityContextHolder.setContext(previous);
+            try {
+                grants.deleteAll(grants.findBySubjectTypeAndSubjectKeyAndDimension(
+                    AccessGrant.SubjectType.USER, username, "*"));
+                grants.flush();
+            } finally {
+                SecurityContextHolder.setContext(previous);
+            }
         }
     }
 

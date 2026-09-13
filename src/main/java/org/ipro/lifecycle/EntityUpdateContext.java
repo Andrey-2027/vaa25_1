@@ -40,9 +40,32 @@ public record EntityUpdateContext<T extends IdentifiableEntity>(
         return original != updated;
     }
 
-    /** Сравнить значение поля в исходном и новом состоянии. */
+    /**
+     * Сравнить значение поля в исходном и новом состоянии.
+     *
+     * <p>Достоверен только при {@link #hasDistinctOriginal()}: без отдельного
+     * исходного снимка (managed instance в обеих ролях) вернёт {@code false} и для
+     * «не менялось», и для «определить нельзя». Правила обязаны сначала проверять
+     * {@code hasDistinctOriginal()} либо сразу использовать
+     * {@link #changedOrUnknown(Function)}.</p>
+     */
     public boolean changed(Function<? super T, ?> field) {
         Objects.requireNonNull(field, "field must not be null");
         return !Objects.equals(field.apply(original), field.apply(updated));
+    }
+
+    /**
+     * Безопасное по умолчанию сравнение поля: точный diff при отдельном исходном
+     * снимке, иначе {@code true} («не знаю» трактуется как «изменилось»).
+     *
+     * <p>Veto-правило («после проводки код менять нельзя») обязано блокировать
+     * неизвестность — ложный отказ терпим, пропущенный инвариант нет. Derive-правило
+     * («если код изменился — пересчитать») обязано пересчитывать, если пересчёт
+     * идемпотентен. Прямой {@link #changed(Function)} без обёртки корректен только
+     * в detached-канале и тихо пропускает правило в managed-канале.</p>
+     */
+    public boolean changedOrUnknown(Function<? super T, ?> field) {
+        Objects.requireNonNull(field, "field must not be null");
+        return !hasDistinctOriginal() || changed(field);
     }
 }

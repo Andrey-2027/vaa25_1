@@ -82,17 +82,22 @@ class GenericOwnedSectionServiceIT {
             assertThat(saved).extracting(PrdSpecOper::getPrdSpec)
                 .allMatch(spec::equals);
 
+            // Aggregate version contract: sequential saves use the fresh owner state.
+            PrdSpec freshSpec = prdSpecRepository.findById(spec.getId()).orElseThrow();
+            freshSpec.setJournal(journal);
             PrdSpecOper retained = saved.get(1);
             retained.setRoute("updated");
-            sectionService.replaceAll(spec, List.of(retained), descriptor);
+            sectionService.replaceAll(freshSpec, List.of(retained), descriptor);
             List<PrdSpecOper> afterReplace = sectionService.findByParent(spec, descriptor);
             assertThat(afterReplace).hasSize(1);
             assertThat(afterReplace.getFirst().getId()).isEqualTo(retained.getId());
             assertThat(afterReplace.getFirst().getOrder()).isEqualTo(1);
             assertThat(afterReplace.getFirst().getRoute()).isEqualTo("updated");
 
-            sectionService.deleteAll(spec, descriptor);
-            assertThat(sectionService.findByParent(spec, descriptor)).isEmpty();
+            PrdSpec clearOwner = prdSpecRepository.findById(spec.getId()).orElseThrow();
+            clearOwner.setJournal(journal);
+            sectionService.deleteAll(clearOwner, descriptor);
+            assertThat(sectionService.findByParent(freshSpec, descriptor)).isEmpty();
         });
     }
 
@@ -142,6 +147,79 @@ class GenericOwnedSectionServiceIT {
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("принадлежит другому документу");
         });
+    }
+
+    @Test
+    void sectionOnlySaveBumpsAggregateVersion() {
+        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            PrdSpec spec = createSpec("V-" + UUID.randomUUID().toString().substring(0, 8));
+            Long initialVersion = versionOf(spec.getId());
+            TableSectionMetadataInfo descriptor = sectionRegistry.findByRow(PrdSpecOper.class)
+                .orElseThrow();
+
+            PrdSpecOper row = sectionService.createNew(spec, descriptor);
+            row.setRoute("version-bump");
+            sectionService.replaceAll(spec, List.of(row), descriptor);
+
+            assertThat(versionOf(spec.getId())).isGreaterThan(initialVersion);
+        });
+    }
+
+    @Test
+    void staleCompositionSaveConflictsInsteadOfSilentlyDeleting() {
+        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            String suffix = UUID.randomUUID().toString().substring(0, 8);
+            Journal journal = journalRepository.save(journal("J-" + suffix));
+            UnitOfMeasurement unit = unitRepository.save(
+                new UnitOfMeasurement("u" + suffix.substring(0, 3), "Unit " + suffix,
+                    "U" + suffix));
+            Nomenclature nomenclature = nomenclatureRepository.save(
+                new Nomenclature("N-" + suffix, "Nom " + suffix, unit));
+            PrdSpec spec = new PrdSpec();
+            spec.setJournal(journal);
+            spec.setNomenclature(nomenclature);
+            spec.setCodeSpec("SPEC-" + suffix);
+            spec = prdSpecRepository.save(spec);
+            final PrdSpec staleOwner = spec;
+            TableSectionMetadataInfo descriptor = sectionRegistry.findByRow(PrdSpecOper.class)
+                .orElseThrow();
+
+            PrdSpecOper first = sectionService.createNew(spec, descriptor);
+            first.setRoute("first");
+            sectionService.replaceAll(spec, List.of(first), descriptor);
+
+            // Concurrent saver commits a new row on the fresh version.
+            // The reloaded owner gets its materialized associations back, as a
+            // detached client DTO would carry them (RLS reads journal.id).
+            PrdSpec fresh = prdSpecRepository.findById(spec.getId()).orElseThrow();
+            fresh.setJournal(journal);
+            PrdSpecOper concurrent = sectionService.createNew(fresh, descriptor);
+            concurrent.setRoute("concurrent");
+            List<PrdSpecOper> current = sectionService
+                .<PrdSpecOper, PrdSpec>findByParent(fresh, descriptor);
+            current.add(concurrent);
+            sectionService.replaceAll(fresh, current, descriptor);
+            assertThat(sectionService.<PrdSpecOper, PrdSpec>findByParent(fresh, descriptor))
+                .hasSize(2);
+
+            // Stale owner (prepared before the concurrent commit) must conflict,
+            // not silently delete the concurrent row.
+            PrdSpecOper staleRow = sectionService
+                .<PrdSpecOper, PrdSpec>findByParent(fresh, descriptor).getFirst();
+            staleRow.setRoute("stale-edit");
+            assertThatThrownBy(() -> sectionService.replaceAll(staleOwner, List.of(staleRow), descriptor))
+                .isInstanceOf(jakarta.persistence.OptimisticLockException.class);
+
+            List<PrdSpecOper> preserved = sectionService
+                .<PrdSpecOper, PrdSpec>findByParent(fresh, descriptor);
+            assertThat(preserved).hasSize(2);
+            assertThat(preserved).extracting(PrdSpecOper::getRoute)
+                .containsExactlyInAnyOrder("first", "concurrent");
+        });
+    }
+
+    private Long versionOf(Long id) {
+        return prdSpecRepository.findById(id).orElseThrow().getVersion();
     }
 
     private PrdSpec createSpec(String code) {

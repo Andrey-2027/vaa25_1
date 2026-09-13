@@ -262,7 +262,8 @@ public class ReportCatalogView extends HorizontalLayout {
         try {
             org.ipro.jr.dom.JrxmlTemplate template = jrxmlTemplateService.findById(item.id())
                     .orElseThrow(() -> new IllegalArgumentException("Шаблон JR не найден: " + item.id()));
-            new org.ip.views.reports.JrxmlRunDialog(template, jrxmlExecutionService).open();
+            new org.ip.views.reports.JrxmlRunDialog(template, jrxmlExecutionService,
+                    executionService).open();
         } catch (RuntimeException ex) { showError("Не удалось открыть параметры JR: " + ex.getMessage()); }
     }
 

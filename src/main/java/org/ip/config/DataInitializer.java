@@ -5,11 +5,27 @@ import org.ip.model.User;
 import org.ip.repository.RoleRepository;
 import org.ip.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Demo-наполнение (роли ADMIN/MANAGER/VIEWER, пользователи admin/manager/viewer
+ * со статическими паролями) — только для dev/demo/test сред (см. DAC-19).
+ *
+ * <p>Условия включения (оба обязаны выполняться):
+ * <ul>
+ *   <li>активен профиль {@code dev}, {@code demo} или {@code test}, но не {@code prod};</li>
+ *   <li>{@code app.demo-data.enabled=true} (по умолчанию {@code false}).</li>
+ * </ul>
+ * Production/default запуск бин не регистрирует. Повторный запуск идемпотентен
+ * (сидит только при пустых таблицах).</p>
+ */
 @Component
+@Profile("(dev | demo | test) & !prod")
+@ConditionalOnProperty(name = "app.demo-data.enabled", havingValue = "true")
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
