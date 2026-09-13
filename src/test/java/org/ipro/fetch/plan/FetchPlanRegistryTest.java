@@ -90,6 +90,22 @@ class FetchPlanRegistryTest {
         private Nomenclature nomenclature;
     }
 
+    /**
+     * Ссылка на именованную сущность без {@code @FieldMetadata}: её нет ни в гриде, ни в
+     * форме, то есть ни в одном сценарии. Такой путь может прийти только дополнительно —
+     * ровно тот случай, который прежний {@code LookupService.entityGraph} оставлял
+     * неуглублённым.
+     */
+    @EntityMetadata(listFormTitle = "Ссылка вне сценариев", itemFormTitle = "Ссылка вне сценариев")
+    public static class UnscenarioedReference {
+
+        /** JPA-ассоциация без {@code @FieldMetadata}: тип пути распознаётся, но в грид/форму
+         * поле не входит. */
+        @jakarta.persistence.ManyToOne
+        @SuppressWarnings("unused")
+        private NamedHolder named;
+    }
+
     private FetchPlanRegistry registryOver(Class<?>... managedTypes) {
         return registryOver(List.of(managedTypes));
     }
@@ -183,6 +199,53 @@ class FetchPlanRegistryTest {
         assertThat(row.scenario()).isEqualTo(FetchScenario.ROW);
         assertThat(lookup.entityClass()).isEqualTo(Nomenclature.class);
         assertThat(list.entityClass()).isEqualTo(PrdSpecMtr.class);
+    }
+
+    /**
+     * C4.1 (ADR-0007 §4): единое правило {@code scenario plan ∪ extras -> deepen once}.
+     * Прежняя асимметрия: {@code LookupService.entityGraph} объединял план и extras, но не
+     * углублял дополнительный путь, поэтому имя его цели могло остаться без вложенной
+     * загрузки.\n     */
+    @Test
+    void additionalPathsAreDeepenedTogetherWithTheScenarioPlan() {
+        FetchPlanRegistry registry = registryOver(UnscenarioedReference.class, NamedHolder.class,
+            Nomenclature.class, UnitOfMeasurement.class);
+
+        assertThat(registry.paths(UnscenarioedReference.class, FetchScenario.LIST))
+            .as("ссылка без @FieldMetadata не входит ни в один сценарий")
+            .doesNotContain("named");
+
+        assertThat(registry.pathsWith(UnscenarioedReference.class, FetchScenario.LIST,
+                List.of("named")))
+            .as("дополнительный путь углубляется через состав имени цели")
+            .containsExactly("named", "named.nomenclature.unitOfMeasurement");
+    }
+
+    /**
+     * C4.1 (ADR-0007 §4): правило {@code union → validate → deepen}. Без проверки
+     * неизвестный динамический путь оставался в объединении и падал позже, на построении
+     * {@code EntityGraph}.
+     */
+    @Test
+    void unknownAdditionalPathIsRejectedBeforeUnion() {
+        FetchPlanRegistry registry = registryOver(UnscenarioedReference.class, NamedHolder.class,
+            Nomenclature.class, UnitOfMeasurement.class);
+
+        assertThatThrownBy(() -> registry.pathsWith(UnscenarioedReference.class,
+                FetchScenario.LIST, List.of("noSuchField")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("noSuchField");
+    }
+
+    @Test
+    void pathsWithEmptyExtrasEqualsTheScenarioPlan() {
+        FetchPlanRegistry registry = registryOver(NamedHolder.class, Nomenclature.class,
+            UnitOfMeasurement.class);
+
+        assertThat(registry.pathsWith(NamedHolder.class, FetchScenario.LIST, List.of()))
+            .isEqualTo(registry.paths(NamedHolder.class, FetchScenario.LIST));
+        assertThat(registry.pathsWith(NamedHolder.class, FetchScenario.LIST, null))
+            .isEqualTo(registry.paths(NamedHolder.class, FetchScenario.LIST));
     }
 
     @Test

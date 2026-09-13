@@ -2,6 +2,7 @@ package org.ipro.form;
 
 import com.vaadin.flow.component.textfield.TextField;
 import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.numbering.annotation.Numbered;
 import org.junit.jupiter.api.Test;
@@ -143,7 +144,7 @@ class FormBindingRegistryTest {
     private static class NumberedEntity {
 
         @Numbered
-        @FieldMetadata(label = "Код", required = true)
+        @FieldMetadata(label = "Код", required = RequiredMode.REQUIRED)
         private String code;
     }
 

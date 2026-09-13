@@ -72,6 +72,18 @@ public class GenericOwnedSectionService {
         this.fetchPlanRegistry = fetchPlanRegistry;
     }
 
+    /**
+     * C4.1: единый resolver правила {@code scenario plan ∪ extras -> deepen once -> graph}.
+     * Подключается сеттером: metadata-слой обязан подниматься и без C4-границы, тогда
+     * остаётся прежний локальный расчёт графа строки (metadata-only контексты).
+     */
+    private org.ipro.data.ScenarioFetchGraphResolver scenarioFetchGraphResolver;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setScenarioFetchGraphResolver(org.ipro.data.ScenarioFetchGraphResolver resolver) {
+        this.scenarioFetchGraphResolver = resolver;
+    }
+
     public GenericOwnedSectionService(
             Validator validator,
             MetadataResolver metadataResolver,
@@ -256,19 +268,32 @@ public class GenericOwnedSectionService {
             query.orderBy(cb.asc(root.get(descriptor.getLineNumberFieldName())));
         }
         TypedQuery<R> typedQuery = entityManager.createQuery(query);
+        EntityGraph<R> graph = scenarioFetchGraphResolver != null
+            ? scenarioFetchGraphResolver.resolve(entityManager, rowClass,
+                org.ipro.fetch.plan.FetchScenario.ROW, fetchPaths)
+            : legacyRowGraph(rowClass, fetchPaths);
+        if (graph != null) {
+            typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
+        }
+        return typedQuery.getResultList();
+    }
+
+    /**
+     * Fallback для metadata-only контекстов без C4-границы: прежний локальный расчёт
+     * графа строки. Повторяет правило union+deepen, но только здесь и только когда
+     * единый resolver недоступен.
+     */
+    private <R> EntityGraph<R> legacyRowGraph(Class<R> rowClass,
+                                              java.util.Collection<String> fetchPaths) {
         Set<String> paths = new java.util.LinkedHashSet<>();
         if (fetchPlanRegistry != null) {
             paths.addAll(fetchPlanRegistry.paths(rowClass,
                 org.ipro.fetch.plan.FetchScenario.ROW));
         }
         paths.addAll(fetchPaths);
-        EntityGraph<R> graph = FetchGraphs.fromPaths(entityManager, rowClass,
+        return FetchGraphs.fromPaths(entityManager, rowClass,
             FetchGraphs.deepen(rowClass, paths, metadataResolver,
                 InstanceNameBridge::instanceNamePaths));
-        if (graph != null) {
-            typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
-        }
-        return typedQuery.getResultList();
     }
 
     /** Удаляет все строки root независимо от их текущего состава в UI. */

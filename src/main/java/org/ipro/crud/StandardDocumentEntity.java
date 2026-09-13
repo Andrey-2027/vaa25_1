@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.ipro.metadata.HasDisplayName;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.numbering.annotation.Numbered;
@@ -29,7 +30,7 @@ public abstract class StandardDocumentEntity extends BaseEntity implements HasDi
     @Size(max = 50)
     @Column(name = "number", nullable = false, length = 50)
     @FieldMetadata(
-        label = "Номер", required = true, order = 10,
+        label = "Номер", required = RequiredMode.REQUIRED, order = 10,
         grid = @GridColumn(order = 10, width = "150px")
     )
     @Numbered(role = NumberingRole.DOCUMENT_NUMBER, dateField = "date")
@@ -38,7 +39,7 @@ public abstract class StandardDocumentEntity extends BaseEntity implements HasDi
     @NotNull
     @Column(name = "date", nullable = false)
     @FieldMetadata(
-        label = "Дата", required = true, order = 20,
+        label = "Дата", required = RequiredMode.REQUIRED, order = 20,
         grid = @GridColumn(order = 20, width = "150px")
     )
     private LocalDate date;

@@ -28,8 +28,6 @@ public class PrdSpecOper extends BaseEntity {
     @JoinColumn(name = "oper_id")
     @FieldMetadata(
         label = "Операция", order = 1,
-        type = FieldType.ENTITY_REFERENCE,
-        lookup = @Lookup(entity = Oper.class),
         grid = @GridColumn(order = 1, width = "250px")
     )
     private Oper oper;
@@ -38,8 +36,6 @@ public class PrdSpecOper extends BaseEntity {
     @JoinColumn(name = "workshop_id")
     @FieldMetadata(
         label = "Цех", order = 2,
-        type = FieldType.ENTITY_REFERENCE,
-        lookup = @Lookup(entity = Workshop.class),
         grid = @GridColumn(order = 2, width = "200px")
     )
     private Workshop ceh;

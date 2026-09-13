@@ -44,9 +44,7 @@ public class PrdSpec extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "journal_id", nullable = false)
     @NotNull
     @FieldMetadata(
-        label = "Журнал", required = true, order = 1,
-        type = FieldType.ENTITY_REFERENCE,
-        lookup = @Lookup(entity = Journal.class),
+        label = "Журнал", order = 1,
         grid = @GridColumn(order = 1, width = "200px")
     )
     private Journal journal;
@@ -55,9 +53,7 @@ public class PrdSpec extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @NotNull
     @FieldMetadata(
-        label = "Номенклатура", required = true, order = 2,
-        type = FieldType.ENTITY_REFERENCE,
-        lookup = @Lookup(entity = Nomenclature.class),
+        label = "Номенклатура", order = 2,
         grid = @GridColumn(order = 2, width = "250px")
     )
     private Nomenclature nomenclature;
@@ -66,7 +62,7 @@ public class PrdSpec extends BaseEntity implements HasDisplayName {
     @Size(max = 50)
     @Column(nullable = false, name = "code_spec")
     @FieldMetadata(
-        label = "Код спецификации", required = true, order = 3,
+        label = "Код спецификации", order = 3,
         grid = @GridColumn(order = 3, width = "200px")
     )
     private String codeSpec;

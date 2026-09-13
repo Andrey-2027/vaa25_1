@@ -6,6 +6,11 @@ import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.ReceivingDocument;
 import org.ipro.crud.BaseEntity;
+import org.ipro.data.CanonicalReadExecutor;
+import org.ipro.data.EntityCapabilities;
+import org.ipro.data.EntityDescriptor;
+import org.ipro.data.EntityExposure;
+import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsFilterActivator;
@@ -17,6 +22,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -89,6 +95,30 @@ class GlobalSearchServiceTest {
         assertThat(prdSpecProvider.limits()).containsExactly(1);
         assertThat(receivingDocumentProvider.limits()).isEmpty();
         verify(rlsFilterActivator).ensureRlsEnabled(entityManager);
+    }
+
+    /**
+     * C4.1 hardening: подключённая canonical-граница проверяет не только RLS, но и
+     * capability типа. Источник без read-сценария (internal store) не доходит до provider'а,
+     * хотя RLS-гейт его пропускает.
+     */
+    @Test
+    void sourceWithoutCanonicalReadCapabilityIsSkippedBeforeProviderInvocation() {
+        CanonicalReadExecutor readExecutor = mock(CanonicalReadExecutor.class);
+        when(readExecutor.canRead(any())).thenReturn(true);
+        when(readExecutor.descriptorOf(any())).thenReturn(new EntityDescriptor(
+            Object.class, EntityExposure.STANDARD_ROOT, true, true,
+            new EntityCapabilities(Set.of(FetchScenario.LIST), Set.of(), "test"), "test"));
+        when(readExecutor.descriptorOf(PrdSpec.class)).thenReturn(new EntityDescriptor(
+            PrdSpec.class, EntityExposure.INTERNAL_STORE, false, false,
+            new EntityCapabilities(Set.of(), Set.of(), "internal store"), "test"));
+        ReflectionTestUtils.setField(service, "readExecutor", readExecutor);
+
+        GlobalSearchResponse response = service.search("sp");
+
+        assertThat(prdSpecProvider.limits()).isEmpty();
+        assertThat(response.results()).extracting(GlobalSearchResult::entityClass)
+            .doesNotContain(PrdSpec.class);
     }
 
     @Test

@@ -5,37 +5,20 @@ import org.ip.model.Nomenclature;
 import org.ip.repository.NomenclatureRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 import org.ipro.crud.AbstractBaseService;
 
+/**
+ * C4.4 pilot: list/search по номенклатуре идут через canonical engine (ADR-0007 §7),
+ * без repository {@code searchByTerm}/{@code findWithFilter}. Свой Paged-search остаётся
+ * только как {@code findAll(Specification, Pageable)} — то есть как обычный list-запрос.
+ */
 @Service
 public class NomenclatureService extends AbstractBaseService<Nomenclature, Long> {
 
-    private final NomenclatureRepository nomenclatureRepository;
-
     public NomenclatureService(NomenclatureRepository repository, Validator validator) {
         super(repository, validator);
-        this.nomenclatureRepository = repository;
-    }
-
-    @Override
-    public List<Nomenclature> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        return nomenclatureRepository.searchByTerm(term, PageRequest.of(0, 100));
-    }
-
-    @Override
-    public Page<Nomenclature> search(String term, Pageable pageable) {
-        if (term == null || term.isEmpty()) {
-            return findAll(pageable);
-        }
-        return nomenclatureRepository.findWithFilter(term, pageable);
     }
 
     @Override

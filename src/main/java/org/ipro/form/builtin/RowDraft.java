@@ -1,8 +1,6 @@
 package org.ipro.form.builtin;
 
 import org.ipro.metadata.FieldMetadataInfo;
-import org.ipro.crud.LookupService;
-import org.ipro.crud.IdentifiableEntity;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,7 +8,13 @@ import java.util.Map;
 
 /**
  * Lightweight rollback buffer for a table-section row editor.
- * Scalar values are retained as-is; entity references are stored by type and id.
+ *
+ * <p>Captured values are kept as-is, включая захваченные entity-ссылки. C4.1 (ADR-0007 §4):
+ * restore больше не перечитывает каждую ссылку отдельным {@code LookupService.findById} —
+ * это был UI-managed N+1 ({@code RowDraft} хранил тип+id и резолвил заново), а корректным
+ * состоянием отмены является ровно то, которое строка имела до открытия диалога. Побочно
+ * исчезает отказ на несохранённой ссылке (id == null), который прежний путь не умел
+ * восстановить.</p>
  */
 final class RowDraft<T> {
     private final Map<FieldMetadataInfo, Object> values;
@@ -22,27 +26,14 @@ final class RowDraft<T> {
     static <T> RowDraft<T> capture(T row, List<FieldMetadataInfo> fields) {
         Map<FieldMetadataInfo, Object> values = new LinkedHashMap<>();
         for (FieldMetadataInfo field : fields) {
-            Object value = field.getValue(row);
-            values.put(field, value instanceof IdentifiableEntity entity
-                    ? new EntityReference(field.getJavaType(), entity.getId())
-                    : value);
+            values.put(field, field.getValue(row));
         }
         return new RowDraft<>(values);
     }
 
-    void restore(T row, LookupService lookupService) {
+    void restore(T row) {
         for (Map.Entry<FieldMetadataInfo, Object> entry : values.entrySet()) {
-            Object value = entry.getValue();
-            if (value instanceof EntityReference reference) {
-                Object resolved = lookupService.findById(reference.type(), reference.id())
-                        .orElseThrow(() -> new IllegalStateException("Unable to restore row reference"));
-                entry.getKey().setValue(row, resolved);
-            } else {
-                entry.getKey().setValue(row, value);
-            }
+            entry.getKey().setValue(row, entry.getValue());
         }
-    }
-
-    private record EntityReference(Class<?> type, Object id) {
     }
 }

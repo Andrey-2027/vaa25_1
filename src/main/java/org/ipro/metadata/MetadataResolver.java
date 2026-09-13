@@ -114,6 +114,15 @@ public class MetadataResolver {
     }
 
     /**
+     * Все поля с {@code @FieldMetadata} по иерархии классов — включая {@code hidden} и не
+     * входящие в грид. Нужны сквозной проверке метаданных: её предмет — контракт поля, а не
+     * только его видимая проекция (C4.2, ADR-0007 §6).
+     */
+    public List<FieldMetadataInfo> resolveAllAnnotatedFields(Class<?> type) {
+        return List.copyOf(scanFields(type));
+    }
+
+    /**
      * Сбросить кэш для одного класса. Полезно при горячей перезагрузке в dev-режиме.
      * Чистит запись сущности, секции с этим родителем и секции, где класс — строка
      * (их FieldMetadataInfo иначе останутся старыми); остальные классы не трогаются.

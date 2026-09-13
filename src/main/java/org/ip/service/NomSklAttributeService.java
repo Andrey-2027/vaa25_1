@@ -106,16 +106,6 @@ public class NomSklAttributeService extends AbstractBaseService<NomSklAttribute,
     }
 
     @Override
-    public List<NomSklAttribute> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        // полный список мал (привязки на позицию), фильтрация в памяти недопустима —
-        // используем стандартный поиск по репозиторию без термина
-        return findAll();
-    }
-
-    @Override
     public Page<NomSklAttribute> findAll(Specification<NomSklAttribute> spec, Pageable pageable) {
         return findAllWithFetchGraph(spec, pageable);
     }

@@ -5,6 +5,7 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.ipro.metadata.HasDisplayName;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.numbering.annotation.Numbered;
@@ -24,7 +25,7 @@ public abstract class StandardCatalogEntity extends BaseEntity implements HasDis
     @Size(max = 50)
     @Column(name = "code", nullable = false, length = 50)
     @FieldMetadata(
-        label = "Код", required = true, order = 10,
+        label = "Код", required = RequiredMode.REQUIRED, order = 10,
         grid = @GridColumn(order = 10, width = "150px")
     )
     @Numbered(role = NumberingRole.CATALOG_CODE)
@@ -34,7 +35,7 @@ public abstract class StandardCatalogEntity extends BaseEntity implements HasDis
     @Size(max = 200)
     @Column(name = "name", nullable = false, length = 200)
     @FieldMetadata(
-        label = "Наименование", required = true, order = 20,
+        label = "Наименование", required = RequiredMode.REQUIRED, order = 20,
         grid = @GridColumn(order = 20, flexGrow = 1)
     )
     private String name;

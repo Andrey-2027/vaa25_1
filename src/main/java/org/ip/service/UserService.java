@@ -8,7 +8,6 @@ import org.ip.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import org.ipro.crud.AbstractBaseService;
 
 /**
@@ -27,17 +26,6 @@ public class UserService extends AbstractBaseService<User, Long> {
         super(repository, validator);
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
-    }
-
-    @Override
-    public List<User> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        String lower = term.toLowerCase();
-        return findAll().stream()
-            .filter(u -> u.getUsername().toLowerCase().contains(lower))
-            .toList();
     }
 
     @Override

@@ -41,6 +41,18 @@ public class GlobalSearchService {
     private final RlsReadGate rlsReadGate;
     private final RlsPolicyEnforcer rlsPolicyEnforcer;
 
+    /**
+     * C4.1/C4.3: единая read-граница. Optional — legacy-конструктор (юнит-тесты) собирает
+     * сервис вручную; тогда используется прежний gate.
+     *
+     * <p>Когда граница подключена, источник проходит и capability-проверку: тип с пустым
+     * набором read-сценариев (internal store без явного моста владельца) не доходит до
+     * provider'а. Полное сведение самого запроса provider'а к scenario-плану и telemetry —
+     * C4.5; здесь закрыт только доступ, а не фабрика запроса.</p>
+     */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.ipro.data.CanonicalReadExecutor readExecutor;
+
     public GlobalSearchService(GlobalSearchCatalog catalog,
                                GlobalSearchProviderRegistry providerRegistry,
                                RlsCurrentUser currentUser,
@@ -96,9 +108,13 @@ public class GlobalSearchService {
             if (results.size() >= request.totalLimit()) {
                 break;
             }
-            boolean readable = rlsPolicyEnforcer != null
-                ? rlsPolicyEnforcer.prepareRead(source.entityClass(), entityManager)
-                : rlsReadGate.canRead(source.entityClass(), username);
+            boolean readable = readExecutor != null
+                ? readExecutor.canRead(source.entityClass())
+                    && readExecutor.descriptorOf(source.entityClass())
+                        .capabilities().allows(org.ipro.fetch.plan.FetchScenario.LIST)
+                : (rlsPolicyEnforcer != null
+                    ? rlsPolicyEnforcer.prepareRead(source.entityClass(), entityManager)
+                    : rlsReadGate.canRead(source.entityClass(), username));
             if (!readable) {
                 continue;
             }

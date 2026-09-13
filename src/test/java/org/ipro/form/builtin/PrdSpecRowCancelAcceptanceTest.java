@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,8 +39,8 @@ import static org.mockito.Mockito.when;
  *   <li><b>pristine</b> — отмена «Изменить» без правок: строка не трогается, LookupService
  *       не опрашивается (restore не нужен), таблица чистая;</li>
  *   <li><b>dirty</b> — отмена «Изменить» с правками: «Закрыть» в ConfirmDialog выполняет
- *       RowDraft.restore(row, lookupService) — скаляры возвращаются как были, entity-ссылки
- *       перерезолвиваются по типу+id через LookupService (не JPA-clone, решение №3).</li>
+ *       RowDraft.restore(row) — скаляры и entity-ссылки возвращаются как захвачены, без
+ *       отдельного чтения каждой ссылки (C4.1, ADR-0007 §4).</li>
  * </ul>
  */
 class PrdSpecRowCancelAcceptanceTest {
@@ -133,14 +132,14 @@ class PrdSpecRowCancelAcceptanceTest {
         row.setNomenclature(nomenclature(9L));
         row.setUnit(unit(10L));
 
-        // «Закрыть» в ConfirmDialog (ItemTable.java:545-549): restore через LookupService
-        when(lookupService.findById(Nomenclature.class, 1L)).thenReturn(Optional.of(original));
-        when(lookupService.findById(UnitOfMeasurement.class, 2L)).thenReturn(Optional.of(originalUnit));
-        draft.restore(row, lookupService);
+        // «Закрыть» в ConfirmDialog (ItemTable.openRowDialog): restore из захваченного
+        // состояния, без перечитывания ссылок (C4.1, ADR-0007 §4).
+        draft.restore(row);
 
         assertThat(row.getQt()).isEqualByComparingTo("10.5");
         assertThat(row.getNomenclature()).isSameAs(original);
         assertThat(row.getUnit()).isSameAs(originalUnit);
+        verify(lookupService, never()).findById(any(), any());
         assertThat(table.getRows()).containsExactly(row);
         assertThat(table.isDirty()).isFalse();
     }

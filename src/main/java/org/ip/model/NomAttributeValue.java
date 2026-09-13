@@ -13,7 +13,6 @@ import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.SectionPersistenceMode;
 import org.ipro.metadata.annotation.TableSectionMetadata;
 
@@ -67,9 +66,8 @@ public class NomAttributeValue extends BaseEntity implements HasDisplayName {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @FieldMetadata(
-        label = "Номенклатура", required = true, order = 1,
-        grid = @GridColumn(visible = false),
-        lookup = @Lookup(entity = Nomenclature.class)
+        label = "Номенклатура", order = 1,
+        grid = @GridColumn(visible = false)
     )
     private Nomenclature nomenclature;
 
@@ -77,9 +75,8 @@ public class NomAttributeValue extends BaseEntity implements HasDisplayName {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attr_type_id", nullable = false)
     @FieldMetadata(
-        label = "Тип атрибута", required = true, order = 2,
-        grid = @GridColumn(order = 1, width = "200px"),
-        lookup = @Lookup(entity = AttributeType.class)
+        label = "Тип атрибута", order = 2,
+        grid = @GridColumn(order = 1, width = "200px")
     )
     private AttributeType attrType;
 
@@ -87,9 +84,8 @@ public class NomAttributeValue extends BaseEntity implements HasDisplayName {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attr_value_id", nullable = false)
     @FieldMetadata(
-        label = "Значение", required = true, order = 3,
-        grid = @GridColumn(order = 2, flexGrow = 1),
-        lookup = @Lookup(entity = AttributeValue.class)
+        label = "Значение", order = 3,
+        grid = @GridColumn(order = 2, flexGrow = 1)
     )
     private AttributeValue attrValue;
 

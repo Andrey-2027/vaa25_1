@@ -10,6 +10,7 @@ import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.FilterDefs;
 import org.hibernate.annotations.ParamDef;
 import org.ip.subsystem.Subsystems;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
@@ -113,7 +114,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @JoinColumn(name = "journal_id", nullable = true)
     //@NotNull
     @FieldMetadata(
-        label = "Журнал", required = true, order = 0,
+        label = "Журнал", required = RequiredMode.REQUIRED, order = 0,
         type = FieldType.ENTITY_REFERENCE,
         lookup = @Lookup(entity = Journal.class),
         grid = @GridColumn(order = 0, width = "180px")
@@ -131,7 +132,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @Size(max = 20)
     @Column(nullable = false)
     @FieldMetadata(
-        label = "Номер", required = true, order = 1,
+        label = "Номер", required = RequiredMode.REQUIRED, order = 1,
         grid = @GridColumn(order = 1, width = "150px")
     )
     private String number;
@@ -139,7 +140,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @NotNull
     @Column(nullable = false)
     @FieldMetadata(
-        label = "Дата", required = true, order = 2,
+        label = "Дата", required = RequiredMode.REQUIRED, order = 2,
         grid = @GridColumn(order = 2, width = "150px")
     )
     private LocalDate date;
@@ -148,7 +149,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @JoinColumn(name = "receiving_workshop_id", nullable = false)
     @NotNull
     @FieldMetadata(
-        label = "Цех приёмщик", required = true, order = 3,
+        label = "Цех приёмщик", required = RequiredMode.REQUIRED, order = 3,
         grid = @GridColumn(order = 3, flexGrow = 1),
         lookup = @Lookup(entity = Workshop.class)
     )
@@ -158,7 +159,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @JoinColumn(name = "transferring_workshop_id", nullable = false)
     @NotNull
     @FieldMetadata(
-        label = "Цех сдатчик", required = true, order = 4,
+        label = "Цех сдатчик", required = RequiredMode.REQUIRED, order = 4,
         grid = @GridColumn(order = 4, flexGrow = 1),
         lookup = @Lookup(entity = Workshop.class)
     )

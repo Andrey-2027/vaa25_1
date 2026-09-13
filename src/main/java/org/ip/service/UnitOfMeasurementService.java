@@ -4,13 +4,13 @@ import jakarta.validation.Validator;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import org.ipro.crud.AbstractBaseService;
+import org.ipro.data.SearchRead;
 
 @Service
 public class UnitOfMeasurementService extends AbstractBaseService<UnitOfMeasurement, Long> {
@@ -24,10 +24,12 @@ public class UnitOfMeasurementService extends AbstractBaseService<UnitOfMeasurem
 
     @Override
     public List<UnitOfMeasurement> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        return unitRepository.searchByTerm(term, PageRequest.of(0, 100));
+        return search(term, SearchRead.defaultPage()).getContent();
+    }
+
+    @Override
+    public Page<UnitOfMeasurement> search(String term, Pageable pageable) {
+        return searchWithFields(term, pageable, "shortCode");
     }
 
     @Override

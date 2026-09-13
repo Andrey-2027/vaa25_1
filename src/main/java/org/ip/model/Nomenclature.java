@@ -6,9 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
-import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.TableSections;
 import org.ipro.crud.BaseEntity;
 import org.ipro.fetch.instance.InstanceName;
@@ -38,7 +36,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @Size(max = 20)
     @Column(nullable = false, unique = true)
     @FieldMetadata(
-        label = "Код", required = true, order = 1,
+        label = "Код", order = 1,
         grid = @GridColumn(order = 1, width = "150px")
     )
     private String code;
@@ -47,7 +45,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @Size(max = 200)
     @Column(nullable = false)
     @FieldMetadata(
-        label = "Наименование", required = true, order = 2,
+        label = "Наименование", order = 2,
         grid = @GridColumn(order = 2, flexGrow = 1)
     )
     private String name;
@@ -56,9 +54,8 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "unit_id", nullable = false)
     @NotNull
     @FieldMetadata(
-        label = "Единица измерения", required = true, order = 3,
-        grid = @GridColumn(order = 3, width = "200px"),
-        lookup = @Lookup(entity = UnitOfMeasurement.class)
+        label = "Единица измерения", order = 3,
+        grid = @GridColumn(order = 3, width = "200px")
     )
     private UnitOfMeasurement unitOfMeasurement;
 
@@ -66,8 +63,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "group_nom_id")
     @FieldMetadata(
         label = "Группа номенклатуры", order = 4,
-        grid = @GridColumn(order = 4, width = "200px"),
-        lookup = @Lookup(entity = GroupNom.class)
+        grid = @GridColumn(order = 4, width = "200px")
     )
     private GroupNom groupNom;
 

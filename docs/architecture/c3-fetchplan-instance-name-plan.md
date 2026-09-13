@@ -341,7 +341,8 @@ C3 завершён, когда одновременно выполнены вс
 
 ## 8. Следующий этап
 
-После успешного пилота C4 может использовать проверенные FetchPlan и InstanceName как
-отдельные policies внутри узкого data-access facade. C4 должен заменять пустые
-application repository/service по одной вертикали за раз, а не добавлять третий CRUD
-путь поверх существующих.
+После успешного пилота
+[`C4`](c4-data-access-facade-plan.md) может использовать проверенные FetchPlan и
+InstanceName как отдельные policies внутри узкого data-access facade. C4 должен заменять
+пустые application repository/service по одной вертикали за раз, а не добавлять третий
+CRUD-путь поверх существующих.

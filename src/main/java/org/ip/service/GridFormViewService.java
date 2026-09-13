@@ -8,8 +8,11 @@ import org.ipro.security.CurrentUser;
 import org.springframework.stereotype.Service;
 
 import jakarta.validation.Validator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import org.ipro.crud.AbstractBaseService;
+import org.ipro.data.SearchRead;
 
 /**
  * Сервис видов грида. Правило редактирования (см. обсуждение): shared-вид редактирует/
@@ -27,14 +30,12 @@ public class GridFormViewService extends AbstractBaseService<GridFormView, Long>
 
     @Override
     public List<GridFormView> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        String lower = term.toLowerCase();
-        return findAll().stream()
-            .filter(v -> v.getName().toLowerCase().contains(lower)
-                || v.getFormKey().toLowerCase().contains(lower))
-            .toList();
+        return search(term, SearchRead.defaultPage()).getContent();
+    }
+
+    @Override
+    public Page<GridFormView> search(String term, Pageable pageable) {
+        return searchWithFields(term, pageable, "name", "formKey");
     }
 
     /** Виды, доступные текущему пользователю для конкретного formKey (общие + свои личные). */

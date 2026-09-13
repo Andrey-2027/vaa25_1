@@ -10,6 +10,7 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import org.ipro.crud.BaseEntity;
 import org.ipro.metadata.HasDisplayName;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
@@ -53,7 +54,7 @@ public class NomSklAttribute extends BaseEntity implements HasDisplayName {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @FieldMetadata(
-        label = "Номенклатура", required = true, order = 1,
+        label = "Номенклатура", required = RequiredMode.REQUIRED, order = 1,
         grid = @GridColumn(order = 1, width = "250px"),
         lookup = @Lookup(entity = Nomenclature.class)
     )
@@ -63,7 +64,7 @@ public class NomSklAttribute extends BaseEntity implements HasDisplayName {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attr_type_id", nullable = false)
     @FieldMetadata(
-        label = "Атрибут КСУ", required = true, order = 2,
+        label = "Атрибут КСУ", required = RequiredMode.REQUIRED, order = 2,
         grid = @GridColumn(order = 2, width = "250px"),
         lookup = @Lookup(entity = AttributeType.class)
     )

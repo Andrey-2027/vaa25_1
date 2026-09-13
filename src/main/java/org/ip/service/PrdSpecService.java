@@ -5,31 +5,29 @@ import org.ip.model.Journal;
 import org.ip.model.PrdSpec;
 import org.ip.repository.PrdSpecRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.List;
 import org.ipro.crud.AbstractBaseService;
+import org.ipro.data.SearchRead;
 
 @Service
 public class PrdSpecService extends AbstractBaseService<PrdSpec, Long> {
 
-    private final PrdSpecRepository prdSpecRepository;
-
     public PrdSpecService(PrdSpecRepository repository, Validator validator) {
         super(repository, validator);
-        this.prdSpecRepository = repository;
     }
 
     @Override
-    public List<PrdSpec> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        return prdSpecRepository.searchByTerm(term, PageRequest.of(0, 100));
+    public java.util.List<PrdSpec> search(String term) {
+        return search(term, SearchRead.defaultPage()).getContent();
+    }
+
+    @Override
+    public Page<PrdSpec> search(String term, Pageable pageable) {
+        return searchWithFields(term, pageable, "codeSpec", "draft");
     }
 
     /**

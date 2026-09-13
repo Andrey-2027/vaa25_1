@@ -8,12 +8,9 @@ import org.ip.repository.AttributeValueRepository;
 import org.ipro.crud.AbstractBaseService;
 import org.ipro.crud.ValidationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class AttributeTypeService extends AbstractBaseService<AttributeType, Long> {
@@ -54,14 +51,6 @@ public class AttributeTypeService extends AbstractBaseService<AttributeType, Lon
                         + "Заведите новый тип атрибута.");
             }
         }
-    }
-
-    @Override
-    public List<AttributeType> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        return attributeTypeRepository.searchByTerm(term, PageRequest.of(0, 100));
     }
 
     @Override

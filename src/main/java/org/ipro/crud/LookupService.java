@@ -1,57 +1,37 @@
 package org.ipro.crud;
 
-import jakarta.persistence.EntityGraph;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.TypedQuery;
-import org.ipro.metadata.FetchGraphs;
-import org.ipro.rls.RlsPolicyEnforcer;
+import org.ipro.data.CanonicalReadExecutor;
+import org.ipro.data.DetailRead;
+import org.ipro.data.ListRead;
+import org.ipro.data.LookupRead;
+import org.ipro.fetch.plan.FetchScenario;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
  * Сервис динамического поиска сущностей. Используется EntityField для автокомплита
  * и SelectionForm для поиска по подстроке.
  *
- * Поиск работает для ЛЮБОГО @Entity класса — даже если у него нет Spring Data Repository.
- * Использует JPA Criteria API поверх EntityManager.
+ * <p>Поиск работает для ЛЮБОГО {@code @Entity} класса — даже если у него нет Spring Data
+ * Repository. Для операций save/delete через Spring Data — используйте соответствующий
+ * сервис (NomenclatureService и т.п.). LookupService только для ЧТЕНИЯ.</p>
  *
- * Для операций save/delete через Spring Data — используйте соответствующий сервис
- * (NomenclatureService и т.п.). LookupService только для ЧТЕНИЯ.
+ * <p>C4.1 (ADR-0007 §4): собственная Criteria/fetch orchestration удалена. Lookup идёт
+ * через {@link CanonicalReadExecutor} — ту же границу, что и standard reads, с единым
+ * правилом {@code scenario plan ∪ extras -> deepen once -> graph}, обязательным RLS gate
+ * и проверкой экспозиции типа до SQL.</p>
  */
 @Service
 public class LookupService {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final CanonicalReadExecutor readExecutor;
 
-    private final RlsPolicyEnforcer rlsPolicyEnforcer;
-
-    @Autowired(required = false)
-    private org.ipro.fetch.plan.FetchPlanRegistry fetchPlanRegistry;
-
-    public LookupService(RlsPolicyEnforcer rlsPolicyEnforcer) {
-        this.rlsPolicyEnforcer = rlsPolicyEnforcer;
-    }
-
-    /**
-     * Строгий read-гейт CHECK_ONLY (Фаза 5): LookupService — независимый Criteria-путь
-     * чтения (автокомплит/SelectionForm/EntityField), где гейт раньше не проверялся.
-     * Решение — единый {@link RlsReadGate} поверх AccessService.
-     */
-    private boolean canRead(Class<?> entityClass) {
-        return rlsPolicyEnforcer.prepareRead(entityClass, entityManager);
+    public LookupService(CanonicalReadExecutor readExecutor) {
+        this.readExecutor = readExecutor;
     }
 
     /**
@@ -68,90 +48,22 @@ public class LookupService {
     }
 
     /**
-     * То же с дополнительными fetch-путями. Базовый план {@code LOOKUP} в любом случае
-     * добавляется внутри этого сервиса; дополнительные пути его только расширяют.
+     * То же с дополнительными fetch-путями. Базовый план {@code LOOKUP} добавляется в
+     * любом случае; дополнительные пути только расширяют его.
      */
     public <T> List<T> search(Class<T> entityClass, String[] searchFields, String term, int limit,
                               Collection<String> fetchPaths) {
-        if (!canRead(entityClass)) {
-            return List.of();
-        }
-        EntityGraph<T> graph = entityGraph(entityClass, fetchPaths);
-        if (term == null || term.isBlank() || searchFields == null || searchFields.length == 0) {
-            return queryAll(entityClass, graph).stream().limit(limit).toList();
-        }
-
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<T> query = cb.createQuery(entityClass);
-        Root<T> root = query.from(entityClass);
-
-        String lowerTerm = "%" + term.toLowerCase().trim() + "%";
-        List<Predicate> predicates = new ArrayList<>();
-
-        for (String fieldName : searchFields) {
-            try {
-                Path<String> path = root.get(fieldName);
-                // Только String-поля поддерживают LOWER + LIKE
-                if (path.getJavaType() == String.class) {
-                    predicates.add(cb.like(cb.lower(path), lowerTerm));
-                }
-            } catch (IllegalArgumentException | IllegalStateException e) {
-                // Поле не существует на сущности или имеет неподходящий тип — пропускаем
-            }
-        }
-
-        if (predicates.isEmpty()) {
-            return List.of();
-        }
-
-        query.where(cb.or(predicates.toArray(new Predicate[0])));
-        TypedQuery<T> typedQuery = entityManager.createQuery(query).setMaxResults(limit);
-        if (graph != null) {
-            typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
-        }
-        return typedQuery.getResultList();
+        return readExecutor.readLookup(new LookupRead<>(entityClass,
+            searchFields == null ? List.of() : List.of(searchFields), term, limit, fetchPaths));
     }
 
-    /**
-     * Получить все записи сущности.
-     */
+    /** Получить все записи сущности. */
     public <T> List<T> findAll(Class<T> entityClass) {
-        if (!canRead(entityClass)) {
-            return List.of();
-        }
-        return queryAll(entityClass, entityGraph(entityClass, null));
+        return readExecutor.readAll(new ListRead<>(entityClass, FetchScenario.LOOKUP,
+            null, Pageable.unpaged(), List.of()));
     }
 
-    private <T> List<T> queryAll(Class<T> entityClass, EntityGraph<T> graph) {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<T> query = cb.createQuery(entityClass);
-        query.from(entityClass);
-        TypedQuery<T> typedQuery = entityManager.createQuery(query);
-        if (graph != null) {
-            typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
-        }
-        return typedQuery.getResultList();
-    }
-
-    /** LOOKUP — основа графа, дополнительные пути могут расширить его. */
-    private <T> EntityGraph<T> entityGraph(Class<T> entityClass, Collection<String> fetchPaths) {
-        java.util.LinkedHashSet<String> paths = new java.util.LinkedHashSet<>();
-        if (fetchPlanRegistry != null) {
-            paths.addAll(fetchPlanRegistry.paths(entityClass,
-                org.ipro.fetch.plan.FetchScenario.LOOKUP));
-        }
-        if (fetchPaths != null) {
-            paths.addAll(fetchPaths);
-        }
-        if (paths.isEmpty()) {
-            return null;
-        }
-        return FetchGraphs.fromPaths(entityManager, entityClass, paths);
-    }
-
-    /**
-     * Получить запись по ID.
-     */
+    /** Получить запись по ID. */
     public <T> Optional<T> findById(Class<T> entityClass, Object id) {
         return findById(entityClass, id, null);
     }
@@ -161,20 +73,14 @@ public class LookupService {
      * (в т.ч. вложенных через точку: "nomenclature.unitOfMeasurement" → subgraph).
      * Нужно, когда сущность после выбора в UI-компоненте читается вне сессии.
      *
-     * <p>Сценарий {@code LOOKUP} добавляется автоматически; дополнительные пути расширяют его,
-     * но не заменяют.</p>
+     * <p>Сценарий — {@code LOOKUP}, а не {@code DETAIL}: только план выбора несёт
+     * объявленные зависимости {@code @Lookup(fetch = ...)} (например, единицу измерения
+     * выбранной номенклатуры). Extra-пути расширяют его, но не заменяют.</p>
      */
     public <T> Optional<T> findById(Class<T> entityClass, Object id, Collection<String> fetchPaths) {
-        if (id == null) return Optional.empty();
-        if (!canRead(entityClass)) {
+        if (id == null) {
             return Optional.empty();
         }
-        EntityGraph<T> graph = entityGraph(entityClass, fetchPaths);
-        if (graph == null) {
-            return Optional.ofNullable(entityManager.find(entityClass, id));
-        }
-        return Optional.ofNullable(entityManager.find(entityClass, id,
-            Map.of("jakarta.persistence.fetchgraph", graph)));
+        return readExecutor.readDetail(DetailRead.lookup(entityClass, id, fetchPaths));
     }
-
 }

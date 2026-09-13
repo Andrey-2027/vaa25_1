@@ -17,13 +17,15 @@ public final class FetchPlan {
     private final Class<?> entityClass;
     private final FetchScenario scenario;
     private final List<String> paths;
+    private final List<String> rawPaths;
     private final Map<String, String> reasons;
 
     FetchPlan(Class<?> entityClass, FetchScenario scenario,
-              List<String> paths, Map<String, String> reasons) {
+              List<String> paths, List<String> rawPaths, Map<String, String> reasons) {
         this.entityClass = entityClass;
         this.scenario = scenario;
         this.paths = List.copyOf(paths);
+        this.rawPaths = List.copyOf(rawPaths);
         this.reasons = Map.copyOf(new LinkedHashMap<>(reasons));
     }
 
@@ -37,9 +39,18 @@ public final class FetchPlan {
         return scenario;
     }
 
-    /** Пути ассоциаций в стабильном лексикографическом порядке. */
+    /** Пути ассоциаций в стабильном лексикографическом порядке, уже углублённые. */
     public List<String> paths() {
         return paths;
+    }
+
+    /**
+     * Пути плана до углубления — вход правила {@code plan ∪ extras -> deepen once}. Нужны,
+     * чтобы объединение с динамическими путями углублялось ровно один раз, а не проходило
+     * {@code deepen} повторно над уже углублённым планом.
+     */
+    public List<String> rawPaths() {
+        return rawPaths;
     }
 
     /** Почему путь попал в план: {@code metadata:LIST}, {@code instance-name}, {@code lookup:<Owner.field>}, {@code reference-name:<prefix>}. */

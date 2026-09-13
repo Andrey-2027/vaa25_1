@@ -37,6 +37,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.ipro.crud.IdentifiableEntity;
+import org.ipro.data.CanonicalReadExecutor;
+import org.ipro.data.DetailRead;
+import org.ipro.data.ListRead;
+import org.ipro.data.PageRead;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.LinkedHashSet;
@@ -104,6 +108,15 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      */
     @Autowired(required = false)
     private org.ipro.fetch.plan.FetchPlanRegistry fetchPlanRegistry;
+
+    /**
+     * Canonical read boundary C4.1 (см. ADR-0007 §4). Optional: вручную собранные
+     * unit-тесты и частичные контексты без C4-границы продолжают работать по прежнему
+     * пути, а стандартные чтения полного контекста идут через единый executor, а не
+     * строят собственную security/fetch границу.
+     */
+    @Autowired(required = false)
+    private CanonicalReadExecutor readExecutor;
 
     protected AbstractBaseService(JpaRepository<T, ID> repository, Validator validator) {
         this.repository = repository;
@@ -252,6 +265,14 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public Optional<T> findById(ID id) {
+        if (id == null) {
+            // Та же конвенция, что у LookupService.findById: отсутствующий id — «не найдено»,
+            // а не NPE из canonical-запроса.
+            return Optional.empty();
+        }
+        if (readExecutor != null) {
+            return readExecutor.readDetail(DetailRead.of(getDomainClass(), id));
+        }
         if (!canRead()) {
             return Optional.empty();
         }
@@ -268,6 +289,10 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public List<T> findAll() {
+        if (readExecutor != null) {
+            return readExecutor.readAll(ListRead.of(getDomainClass(),
+                org.ipro.fetch.plan.FetchScenario.LIST));
+        }
         if (!canRead()) {
             return List.of();
         }
@@ -292,9 +317,40 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     }
 
     @Override
+    public List<T> search(String term) {
+        return search(term, org.ipro.data.SearchRead.defaultPage()).getContent();
+    }
+
+    /**
+     * C4.4 (ADR-0007 §7): standard {@code search} — compatibility-делегат canonical
+     * read boundary, а не {@code UnsupportedOperationException}. Терм трактуется
+     * литерально, поля выводятся из единой лестницы (InstanceName → metadata-колонки),
+     * порядок детерминирован, paging ограничен.
+     *
+     * <p>Типизированный сервис со специальной search-семантикой (special joins, full-text,
+     * ranking) продолжает переопределять методы; default engine — для стандартных типов.
+     * Hand-built unit-тесты без C4-границы получают явную диагностику, а не мгновенный
+     * {@code UnsupportedOperationException} из середины базового класса.</p>
+     */
+    @Override
     public Page<T> search(String term, Pageable pageable) {
-        throw new UnsupportedOperationException(
-                "search(String, Pageable) not implemented for " + getClass().getSimpleName());
+        return searchWithFields(term, pageable);
+    }
+
+    /**
+     * Canonical search с явно выбранными полями для typed поиска, который сохраняет
+     * предметную поверхность колонок, но использует ту же RLS/fetch/paging границу и
+     * семантику для list и paged overloads.
+     */
+    protected Page<T> searchWithFields(String term, Pageable pageable, String... fields) {
+        if (readExecutor == null) {
+            throw new IllegalStateException("search требует canonical read boundary C4"
+                + " (CanonicalReadExecutor): " + getClass().getSimpleName()
+                + " собран вне Spring-контекста.");
+        }
+        return readExecutor.readSearch(new org.ipro.data.SearchRead<>(getDomainClass(),
+            org.ipro.data.SearchContext.LIST, term, List.of(fields),
+            pageable == null ? org.ipro.data.SearchRead.defaultPage() : pageable, List.of()));
     }
 
     @Override
@@ -338,6 +394,10 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     public Page<T> findAllByScenario(org.ipro.fetch.plan.FetchScenario scenario,
                                      Specification<T> spec, Pageable pageable,
                                      java.util.Collection<String> additionalFetchPaths) {
+        if (readExecutor != null) {
+            return readExecutor.readPage(new PageRead<>(getDomainClass(), scenario, spec,
+                pageable, additionalFetchPaths));
+        }
         return findAllWithFetchGraph(spec, pageable, scenario, additionalFetchPaths);
     }
 
@@ -493,6 +553,9 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     }
 
     public Number sum(String fieldName, Specification<T> spec) {
+        if (readExecutor != null) {
+            return readExecutor.readSum(getDomainClass(), fieldName, spec);
+        }
         if (!canRead()) {
             return 0;
         }

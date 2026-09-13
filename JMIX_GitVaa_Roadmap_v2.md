@@ -853,12 +853,58 @@ read-path применяют свой сценарий, явные пути ли
 
 ### C4. Узкий data-access facade
 
+Детальная последовательность C4.0–C4.8, canonical/compatibility contracts, тестовые
+вертикали и критерии закрытия зафиксированы в
+[`docs/architecture/c4-data-access-facade-plan.md`](docs/architecture/c4-data-access-facade-plan.md).
+
+Статус: **C4.0–C4.2 закрыты; ядро C4.3 реализовано, формальное закрытие pending; C4.4 закрыт**.
+Таксономия всех 37 persistence types, классификация
+service/repository/base слоя, baseline, пилоты и characterization-тесты — в
+[`docs/architecture/c4-inventory.md`](docs/architecture/c4-inventory.md); решения — в
+[`ADR-0007`](docs/architecture/decisions/ADR-0007-canonical-data-access-path.md).
+C4.1 ввёл descriptor/capability catalog и единый read executor: `AbstractBaseService`,
+`LookupService` и global search больше не строят независимых security/fetch границ,
+row cancel не выполняет per-reference reads. Hardening по итогам ревью сделал capability
+enforcement fail-closed (тип вне каталога — отказ, `INTERNAL_STORE` без явного read-моста
+не читается canonical path), вернул сценарий `LOOKUP` для lookup по id, ограничил lookup
+в SQL, добавил paging count parity и буквальное `deepen once`. C4.2 (effective metadata)
+закрыт: `RequiredMode` заменил boolean, `required`/`type`/`reference` выводятся из
+Bean Validation, JPA и Java-типа с записью origin'а каждого факта, сквозная проверка
+метаданных останавливает старт на противоречии контракта поля, а снимок до/после показал
+нулевой diff значений при удалённых дублях деклараций. Hardening C4.2 по итогам ревью
+вернул snapshot-ресурсы в поставку (`.gitignore`), заменил строгое равенство типов на
+таблицу совместимости Java-типа и `FieldType`, дополнил вывод server-required из JPA
+(`@ManyToOne/@OneToOne/@Basic(optional=false)`), убрал дубли типов в snapshot, ограничил
+`MetadataAllowance` warning-кодами и добавил негативный тест fail-fast startup-валидации;
+global search получил capability-грань источника. C4.3 (canonical write path)
+реализовано ядро: публичный `EntityDataAccess`-facade и единый write pipeline, где capability типа —
+fail-closed граница до RLS и пользовательского кода; `EntityDataAccessResolver` выбирает
+по явному типу canonical default или custom policy и отказывает owned/internal; generic
+`CanonicalEntityService` проводит стандартную сущность через list/detail/create/update/delete
+без repository, service, `serviceClass` и bean-name; `ValidatedJpaCrudService` отклоняет
+metadata-driven root. Hardening C4.3 по итогам ревью связал write intent с точной
+JPA-операцией, запретил UPDATE отсутствующей/недоступной исходной строки и проверяет RLS
+для исходного и целевого состояний до валидации/hooks; canonical handle `GridFormView`
+ограничен созданием. Полный pipeline и ранний RLS-отказ покрыты тестами. Формальное
+закрытие C4.3 ожидает write-telemetry, первый production-каталог на canonical path и
+form → write → audit acceptance. C4.4 (server-side search) закрыт: единый metadata-driven
+builder с контекстом (`LIST`/`LOOKUP`/`GLOBAL`), literal escaping, детерминированный
+порядок, bounded paging и согласованные overloads на всех 16 стандартных корнях; для
+typed поисков используются явные field sets. `SearchContext.GLOBAL` имеет отдельный
+`GLOBAL_SEARCH` telemetry intent, а подключение `GlobalSearchService`/providers к
+builder'у остаётся C4.5.
+
+Этап выполняется тремя связанными направлениями: единый read/write data path,
+effective metadata и standard/local/global search. После основной миграции обязателен
+отдельный C4.8 hardening; этап не закрывается только по факту появления facade API.
+
 Фасад унифицирует только:
 
+- classification/capability resolution для самостоятельного entity root;
 - load by id;
 - paged/list load;
 - lookup load;
-- fetch-plan resolution;
+- единое разрешение `scenario FetchPlan ∪ additional paths`;
 - обязательный read enforcement;
 - telemetry context.
 
@@ -867,14 +913,23 @@ search defaults. Он закрывает `ADX-04`, `ADX-05`, `ADX-08` и пла�
 `ADX-10`:
 
 - application repository/service не обязательны, если в них нет предметной семантики;
+- membership в JPA metamodel не выдаёт public data handle: standard roots, owned rows и
+  internal stores имеют разные operation/scenario capabilities;
 - `serviceClass` и bean name `<entity>Service` не являются golden-path contract;
+- `AbstractBaseService` и `ValidatedJpaCrudService` не остаются параллельными generic
+  CRUD implementations для standard path;
 - required/type/reference defaults выводятся из Bean Validation/JPA/Java type, явная
   UI metadata описывает только override;
 - противоречия UI/server/DB metadata диагностируются на старте;
 - стандартный search не требует repository query/service override и не загружает
   `findAll()` для фильтрации в памяти;
+- изменение search fields, wildcard/blank semantics и порядка проверяется per-entity
+  old/new compatibility matrix;
 - global-search contributors являются модульными, а search/display fields по умолчанию
   выводятся из effective metadata и InstanceName.
+
+Отмена редактирования owned row не перечитывает каждую сохранённую ссылку отдельным
+lookup-запросом; этот restore-path входит в cost gate C4.
 
 Он не сохраняет произвольные агрегаты и не заменяет typed application use cases. Security/fetch/telemetry оформляются как отдельные policies/decorators, чтобы не создать новый god object.
 

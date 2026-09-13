@@ -53,6 +53,28 @@ public class ValidatedJpaCrudService<T extends IdentifiableEntity> implements Ba
         this.validator = validator;
         this.referenceCheckService = referenceCheckService;
         this.domainClass = resolveDomainClass();
+        requireInternalStore();
+    }
+
+    /**
+     * ADR-0007 §3: {@code ValidatedJpaCrudService} — internal-store adapter для
+     * non-metadata storage подсистемы (шаблоны отчётов). Metadata-driven root обязан
+     * идти через canonical path, поэтому такая подмена — ошибка конфигурации при старте,
+     * а не тихо потерянные RLS, fetch-план и events.
+     *
+     * <p>Проверка по факту аннотации типа, а не по документации: правило закрыто в самом
+     * классе, и никакой новый сервис не может обойти его случайно.</p>
+     */
+    private void requireInternalStore() {
+        if (domainClass.isAnnotationPresent(
+                org.ipro.metadata.annotation.EntityMetadata.class)) {
+            throw new IllegalStateException(getClass().getSimpleName() + " extends"
+                + " ValidatedJpaCrudService<" + domainClass.getSimpleName()
+                + ">, but that type is metadata-driven (@EntityMetadata)."
+                + " Metadata-driven roots must use the canonical data path"
+                + " (ADR-0007 §3); ValidatedJpaCrudService is only an internal-store"
+                + " adapter for non-metadata storage.");
+        }
     }
 
     @Override
@@ -214,7 +236,9 @@ public class ValidatedJpaCrudService<T extends IdentifiableEntity> implements Ba
     }
 
     /**
-     * UI-search в базе не реализован (см. javadoc класса) — переопределяйте
+     * UI-search здесь не реализован: это база internal-store, а не standard path. Стандартные
+     * сущности ищутся через canonical search engine ({@code AbstractBaseService} →
+     * {@code CanonicalReadExecutor.readSearch}, C4.4); для internal-store переопределяйте
      * предметным поиском.
      */
     @Override

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -90,6 +91,45 @@ public final class FetchPlanRegistry {
     }
 
     /**
+     * Пути плана сценария, расширенные дополнительными путями и углублённые ровно один
+     * раз (C4.1, ADR-0007 §4). Единая точка правила
+     * {@code scenario plan ∪ extras -> deepen once}: потребитель больше не объединяет
+     * план с extras и не вызывает {@link FetchGraphs#deepen} самостоятельно, иначе
+     * дополнительный путь оставался бы неуглублённым (прежняя асимметрия
+     * {@code LookupService.entityGraph}).
+     *
+     * <p>Объединение берёт {@link FetchPlan#rawPaths()} — план до углубления. План в
+     * {@link FetchPlan#paths()} уже углублён, и повторный {@code deepen} над ним давал бы
+     * «углубление дважды»: результат от этого не менялся (углубление идемпотентно), но
+     * правило перестало бы читаться так, как объявлено.</p>
+     *
+     * @param additionalPaths пути динамического вида; {@code null}/пусто — чистый план
+     * @return объединение в детерминированном порядке, уже прошедшее {@code deepen}
+     */
+    public List<String> pathsWith(Class<?> entityClass, FetchScenario scenario,
+                                  Collection<String> additionalPaths) {
+        FetchPlan plan = plan(entityClass, scenario);
+        if (additionalPaths == null || additionalPaths.isEmpty()) {
+            return plan.paths();
+        }
+        // Динамический путь проверяется до объединения: иначе неизвестный путь сохранялся
+        // бы в результате (FetchGraphs.deepen пропускает неразрешимый сегмент) и падал
+        // позже на построении EntityGraph.
+        for (String additional : additionalPaths) {
+            if (additional == null || additional.isBlank()) {
+                throw new IllegalArgumentException("additional fetch path must not be blank");
+            }
+            ColumnPath.resolve(entityClass, additional);
+        }
+        LinkedHashSet<String> union = new LinkedHashSet<>(plan.rawPaths());
+        union.addAll(additionalPaths);
+        return FetchGraphs.deepen(entityClass, union, metadataResolver,
+                instanceNameResolver::instanceNamePaths).stream()
+            .sorted()
+            .toList();
+    }
+
+    /**
      * EntityGraph сценария или {@code null}, если плану нечего загружать.
      */
     public <T> EntityGraph<T> entityGraph(EntityManager entityManager, Class<T> entityClass,
@@ -128,9 +168,13 @@ public final class FetchPlanRegistry {
             }
         }
 
+        // Вход углубления фиксируется до него: pathsWith объединяет extras с сырым планом
+        // и углубляет union ровно один раз (см. pathsWith).
+        List<String> rawPaths = included.keySet().stream().sorted().toList();
+
         // Углубление через единое имя ссылочных целей: ссылочная колонка/поле рендерит имя цели,
         // а имя может читать собственные связи.
-        List<String> deepened = FetchGraphs.deepen(entityClass, included.keySet(), metadataResolver,
+        List<String> deepened = FetchGraphs.deepen(entityClass, rawPaths, metadataResolver,
             instanceNameResolver::instanceNamePaths);
         for (String path : deepened) {
             int lastDot = path.lastIndexOf('.');
@@ -139,12 +183,12 @@ public final class FetchPlanRegistry {
                 : "reference-name:" + path.substring(0, lastDot));
         }
 
-        List<String> orderedPaths = included.keySet().stream().sorted().toList();
+        List<String> deepenedPaths = included.keySet().stream().sorted().toList();
         Map<String, String> orderedReasons = new LinkedHashMap<>();
-        for (String path : orderedPaths) {
+        for (String path : deepenedPaths) {
             orderedReasons.put(path, included.get(path));
         }
-        return new FetchPlan(entityClass, scenario, orderedPaths, orderedReasons);
+        return new FetchPlan(entityClass, scenario, deepenedPaths, rawPaths, orderedReasons);
     }
 
     /** Базовый набор путей сценария из эффективной metadata. */

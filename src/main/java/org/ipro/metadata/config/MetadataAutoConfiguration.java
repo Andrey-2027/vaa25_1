@@ -1,5 +1,7 @@
 package org.ipro.metadata.config;
 
+import org.ipro.metadata.MetadataAllowance;
+import org.ipro.metadata.MetadataConsistencyStartupCheck;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.ReferenceIndex;
@@ -14,8 +16,10 @@ import org.ipro.lifecycle.EntityLifecycleRegistry;
 import org.ipro.rls.RlsPolicyEnforcer;
 import jakarta.validation.Validator;
 import org.ipro.events.EntityEventPublisher;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
@@ -69,6 +73,22 @@ public class MetadataAutoConfiguration {
             @Value("${platform.subsystem-scan-package:org.ip}") String basePackage,
             MetadataResolver metadataResolver) {
         return new SectionMetadataRegistry(basePackage, metadataResolver);
+    }
+
+    /**
+     * Eager-проверка метаданных: ошибка контракта поля останавливает старт, а не ждёт
+     * открытия конкретной формы. Условие перечисляет все зависимости, чтобы частичный
+     * контекст получил backoff, а не {@code UnsatisfiedDependencyException}.
+     */
+    @Bean
+    @ConditionalOnBean({ManagedEntityCatalog.class, MetadataResolver.class})
+    @ConditionalOnMissingBean
+    public MetadataConsistencyStartupCheck metadataConsistencyStartupCheck(
+            ManagedEntityCatalog managedEntityCatalog,
+            MetadataResolver metadataResolver,
+            ObjectProvider<MetadataAllowance> allowances) {
+        return new MetadataConsistencyStartupCheck(managedEntityCatalog, metadataResolver,
+            allowances.orderedStream().toList());
     }
 
     @Bean

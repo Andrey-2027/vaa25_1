@@ -43,7 +43,7 @@ public class Journal extends BaseEntity implements HasDisplayName {
     @Size(max = 20)
     @Column(nullable = false, unique = true)
     @FieldMetadata(
-        label = "Код", required = true, order = 1,
+        label = "Код", order = 1,
         grid = @GridColumn(order = 1, width = "150px")
     )
     private String code;
@@ -52,7 +52,7 @@ public class Journal extends BaseEntity implements HasDisplayName {
     @Size(max = 200)
     @Column(nullable = false)
     @FieldMetadata(
-        label = "Наименование", required = true, order = 2,
+        label = "Наименование", order = 2,
         grid = @GridColumn(order = 2, flexGrow = 1)
     )
     private String name;

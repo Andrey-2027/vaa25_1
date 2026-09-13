@@ -23,6 +23,18 @@ public class ServiceLocator {
     private final MetadataResolver metadataResolver;
     private final SectionMetadataRegistry sectionRegistry;
 
+    /**
+     * Canonical data path (C4, ADR-0007 §1). Optional: metadata-only срезы и hand-built
+     * тесты сохраняют прежнее поведение, а полный контекст получает default handle для
+     * {@code STANDARD_ROOT}, у которого нет application service.
+     */
+    private org.ipro.data.EntityDataAccessResolver dataAccessResolver;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setDataAccessResolver(org.ipro.data.EntityDataAccessResolver dataAccessResolver) {
+        this.dataAccessResolver = dataAccessResolver;
+    }
+
     public ServiceLocator(ApplicationContext applicationContext, MetadataResolver metadataResolver,
                           SectionMetadataRegistry sectionRegistry) {
         this.applicationContext = applicationContext;
@@ -60,15 +72,39 @@ public class ServiceLocator {
         String serviceName = uncapitalize(entityClass.getSimpleName()) + "Service";
         try {
             return (BaseService<T, ID>) applicationContext.getBean(serviceName);
-        } catch (Exception e) {
+        } catch (Exception missingTypedService) {
+            // C4.3: STANDARD_ROOT без application service получает canonical generic handle
+            // вместо отказа. Fallback срабатывает только на реально отсутствующий бин: если
+            // бин есть, но упал при создании, подменять его generic-путём нельзя — иначе
+            // сломанный typed service маскировался бы рабочим default'ом.
+            if (missingTypedService
+                    instanceof org.springframework.beans.factory.NoSuchBeanDefinitionException) {
+                BaseService<T, ID> canonical = canonicalService(entityClass);
+                if (canonical != null) {
+                    return canonical;
+                }
+            }
             throw new IllegalStateException(
                 "No service found for " + entityClass.getSimpleName() + ". " +
                 "Expected bean name: '" + serviceName + "'. " +
                 "Solutions:\n" +
                 "  1. Add serviceClass to @EntityMetadata: serviceClass = YourService.class\n" +
                 "  2. Create a @Service class named " + capitalize(serviceName) + "\n" +
-                "  3. Rename your service bean to '" + serviceName + "'", e);
+                "  3. Rename your service bean to '" + serviceName + "'", missingTypedService);
         }
+    }
+
+    /**
+     * Default data handle canonical path: возвращается только для типа, которому
+     * descriptor разрешил canonical доступ. Для остальных — {@code null} (прежняя
+     * диагностика «создайте service»), а не скрытый generic-путь.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T extends IdentifiableEntity, ID> BaseService<T, ID> canonicalService(Class<T> entityClass) {
+        if (dataAccessResolver == null) {
+            return null;
+        }
+        return dataAccessResolver.<T, ID>findService(entityClass).orElse(null);
     }
 
     private String uncapitalize(String str) {

@@ -461,7 +461,10 @@ read-предикат сверяется с descriptor при старте; дл
 ### Волна 3 — fetch, metadata и data defaults (`C3-C4`)
 
 Закрывает `ADX-04`, `ADX-05`, `ADX-07`, `ADX-08`, `ADX-09` и платформенную часть
-`ADX-10`:
+`ADX-10`.
+
+Детальная последовательность оставшейся части волны зафиксирована в
+[`c4-data-access-facade-plan.md`](c4-data-access-facade-plan.md):
 
 1. Ввести scenario FetchPlans и единый InstanceNameResolver.
 2. Сделать lookup hydrated согласно plan/declared dependencies.

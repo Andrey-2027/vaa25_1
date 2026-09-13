@@ -12,10 +12,10 @@ import org.ipro.crud.AbstractBaseService;
 import org.ipro.crud.ValidationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.ipro.data.SearchRead;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -255,10 +255,12 @@ public class SklNomOpaService extends AbstractBaseService<SklNomOpa, Long> {
 
     @Override
     public List<SklNomOpa> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        return sklNomOpaRepository.searchByTerm(term, PageRequest.of(0, 100)).getContent();
+        return search(term, SearchRead.defaultPage()).getContent();
+    }
+
+    @Override
+    public Page<SklNomOpa> search(String term, Pageable pageable) {
+        return searchWithFields(term, pageable, "displayName");
     }
 
     @Override

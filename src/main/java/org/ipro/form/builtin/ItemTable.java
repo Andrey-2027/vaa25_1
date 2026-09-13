@@ -547,7 +547,7 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
                 confirm.setText(rowForm.getCloseConfirmMessage());
                 confirm.setConfirmButton("Сохранить и закрыть", e -> rowForm.doSave());
                 confirm.setCancelButton("Закрыть", e -> {
-                    rowDraft.restore(row, lookupService);
+                    rowDraft.restore(row);
                     grid.getDataProvider().refreshItem(row);
                     dialog.close();
                 });

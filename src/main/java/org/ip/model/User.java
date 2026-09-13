@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
@@ -33,7 +34,7 @@ public class User extends BaseEntity {
     @NotBlank
     @Size(min = 3, max = 50)
     @Column(nullable = false, unique = true)
-    @FieldMetadata(label = "Логин", required = true, order = 1,
+    @FieldMetadata(label = "Логин", required = RequiredMode.REQUIRED, order = 1,
         grid = @GridColumn(order = 1, width = "200px"))
     private String username;
 

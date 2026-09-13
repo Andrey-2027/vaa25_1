@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import org.ipro.crud.AbstractBaseService;
 
 @Service
@@ -20,14 +19,6 @@ public class WorkshopService extends AbstractBaseService<Workshop, Long> {
     public WorkshopService(WorkshopRepository repository, Validator validator) {
         super(repository, validator);
         this.workshopRepository = repository;
-    }
-
-    @Override
-    public List<Workshop> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        return workshopRepository.searchByTerm(term, org.springframework.data.domain.PageRequest.of(0, 100));
     }
 
     @Override

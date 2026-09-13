@@ -54,6 +54,12 @@ node_modules/
 !docs/architecture/
 !docs/architecture/**/*.md
 
+# C4.2 snapshot-ресурсы тестов метаданных — часть поставки: EffectiveMetadataSnapshotTest
+# сравнивает текущие effective-факты с этими файлами, поэтому на чистом checkout они
+# обязаны присутствовать, а не создаваться локальным прогоном.
+!src/test/resources/metadata/
+!src/test/resources/metadata/*.txt
+
 ### Vaadin generated ###
 src/main/frontend/generated/
 vite.generated.ts

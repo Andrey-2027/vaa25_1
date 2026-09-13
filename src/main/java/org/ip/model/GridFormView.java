@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
@@ -44,7 +45,7 @@ public class GridFormView extends BaseEntity {
     @NotBlank
     @Column(name = "form_key", nullable = false)
     @FieldMetadata(
-        label = "Реестр (форма)", required = true, order = 1,
+        label = "Реестр (форма)", required = RequiredMode.REQUIRED, order = 1,
         grid = @GridColumn(order = 1, width = "220px")
     )
     private String formKey;
@@ -52,7 +53,7 @@ public class GridFormView extends BaseEntity {
     @NotBlank
     @Column(nullable = false)
     @FieldMetadata(
-        label = "Название", required = true, order = 2,
+        label = "Название", required = RequiredMode.REQUIRED, order = 2,
         grid = @GridColumn(order = 2, flexGrow = 1)
     )
     private String name;

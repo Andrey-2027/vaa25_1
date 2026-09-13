@@ -1,6 +1,6 @@
 # Текущий engineering baseline
 
-- Дата проверки: 2026-09-13
+- Дата общего baseline: 2026-09-13; адресная проверка C4.3/C4.4: 2026-09-14
 - Ветка: `main`
 - Baseline commit/tag: не создавался
 - Рабочее дерево: содержит пользовательские изменения этапов A0–A4, B3–B4 и C1; baseline commit/tag ещё не создавался
@@ -18,6 +18,7 @@
 | B4 Application lifecycle DX | Core реализован в текущем scope | ADR-0005: `EntityLifecycle<T>`, context contracts, fail-fast registry и callbacks подключены к entity/aggregate save boundaries; контрольные listeners мигрированы, Entity Explorer/scaffolder остаются следующими шагами |
 | C3 FetchPlan + InstanceName | C3.0–C3.7 реализованы; адресные проверки C3.7 выполняются | Периметр C3.0; `@InstanceName` + резолвер (пилот `ReceivingDocument`, `Nomenclature`); `FetchPlanRegistry` со сценариями `LIST`/`DETAIL`/`LOOKUP`/`ROW` и декларацией `@Lookup(fetch)`; read-path выбирает сценарий внутри сервиса, явные пути расширяют план; `ItemTable` использует один section reload через `ROW`; `DETAIL`/`LIST` независимы, планы детерминированы. C3.7 включает раннюю write-авторизацию и единый lifecycle-managed `InstanceNameProvider`. Широкое распространение `@InstanceName` на остальные сущности остаётся отдельной миграцией |
 | C RLS enforcement | C1 завершён; реализация C2 согласованного scope выполнена, широкая проверка ещё не зелёная | `DAC-13`, `DAC-17` и `DAC-19` закрыты; checked duplication закреплён как конечное решение; detection-only production guard принят и вынесен в `A4-PREPROD-RLS-GUARD`; целевой набор C2 (53 теста) и random-order gate (156 тестов) зелёные. Полный random `verify` пока даёт ошибки жизненного цикла Spring test context в `AttributeValueServiceTest`/`AttributeTypeServiceTest`; `VisualQuerySubqueryIT` исключён по решению владельца и разбирается отдельно |
+| C4 Data-access facade | C4.0–C4.2 закрыты; C4.3 core реализовано, формальное закрытие pending; C4.4 закрыт | Таксономия всех 37 persistence types, классификация service/repository/base слоя, baseline и пилоты зафиксированы в `c4-inventory.md`; решения — в `ADR-0007`. C4.1: единый canonical read executor, descriptor/capability catalog и правило `plan ∪ extras -> deepen once`; `AbstractBaseService`, `LookupService` и global search используют одну границу; row cancel без per-reference reads. C4.1 hardening: capability enforcement fail-closed, LOOKUP для lookup по id, SQL-bound lookup, paging count parity, `deepen once`. C4.2: tri-state `RequiredMode`, вывод `type`/`reference`/server-nullability/UI-required с `FactOrigin`, eager startup-валидация и `MetadataAllowance`; пилотная зачистка дублей сохранила effective values без diff. C4.2 hardening: snapshot-ресурсы в поставке, таблица совместимости Java-типа и `FieldType`, вывод server-required из JPA, дедупликация типов, негативный startup-тест и whitelist warning-кодов; global search получил capability-грань источника. C4.3 core: `EntityDataAccess`, единый `CanonicalWriteExecutor`, type-directed resolver, generic `CanonicalEntityService` и исполняемые запреты; `ValidatedJpaCrudService` ограничен internal-store. C4.3 hardening: intent задаёт точную JPA-операцию; UPDATE требует существующую доступную исходную строку и авторизует исходное и целевое состояния до валидации/hooks; `GridFormView` canonical handle ограничен `CREATE`. Полный порядок pipeline и ранний отказ покрыты тестами. Формальное закрытие C4.3 ожидает write-telemetry, первый production-каталог на canonical write path и form → write → audit acceptance. C4.4: canonical search builder и согласованные overloads на всех 16 стандартных корнях, literal escaping, deterministic ordering и bounded paging; `SearchContext.GLOBAL` использует отдельный `GLOBAL_SEARCH` telemetry intent, подключение provider'ов остаётся в C4.5. C4.5–C4.8 впереди |
 | D Physical modularity | Не начат | Проект остаётся одним Maven-модулем |
 
 ## Quality gate
@@ -774,6 +775,340 @@ BUILD SUCCESS
 Ограничений в C3.7 больше нет. Измерения C3.6 проверяют отсутствие регрессии, а не
 выигрыш по запросам. За пределами C3 остаётся распространение `@InstanceName` на остальные
 сущности.
+
+## C4.0: inventory, ADR и characterization
+
+Первый срез C4 закрывает классификацию и фиксирует baseline до изменения кода. Ни один
+production-класс ещё не мигрирован — это осознанно: C4.1 начинается только после того, как
+таксономия и решения проверяемы.
+
+- [`../c4-inventory.md`](../c4-inventory.md): все **37** persistence types получают ровно
+  одну classification — **16 `STANDARD_ROOT`**, **5 `OWNED_ROW`**, **16 `INTERNAL_STORE`**.
+  Отдельно зафиксированы **18** metadata-driven типов и **4** объявленных
+  `@TableSectionMetadata`-строки, включая два пересечения (`NomAttributeValue`,
+  `PrdSpecMtr`).
+- Classification service/repository/base слоя: **17** subclasses `AbstractBaseService`,
+  **2** `ValidatedJpaCrudService`, **18** application repositories, **11** `searchByTerm`,
+  **11** `serviceClass` declarations, **15** вызовов `LookupService`.
+- Таксономическая находка, которую план предсказывал: `SklNomOpaValue` — строка агрегата
+  `SklNomOpa` без `@TableSectionMetadata`, но с собственным repository. C4.1 обязан
+  классифицировать её `OWNED_ROW` до появления generic fallback, иначе JPA-metamodel
+  membership выдаст ей автономный handle.
+- [`../decisions/ADR-0007-canonical-data-access-path.md`](../decisions/ADR-0007-canonical-data-access-path.md):
+  canonical path `EntityDataAccess`, taxonomy/capability descriptor, судьба
+  `BaseService`/`AbstractBaseService` (**absorb**), `ValidatedJpaCrudService` (**retain as
+  internal-store**), tri-state `required`, literal-escaping search, telemetry policy для
+  LOOKUP и compatibility milestones.
+- Characterization-тесты фиксируют поведение, которое C4 меняет:
+  `CharacterizationStandardPathIT` (7 тестов, пилот `Branch`) — wildcard-семантика `%`/`_`,
+  bounded blank term у lookup, молчаливый пропуск неизвестного search field, runtime trap
+  `search(String, Pageable)`, неограниченный blank legacy-search; `RowDraftTest`
+  (`restoreIssuesOneLookupPerEntityReference`) — по одному read'у на каждую ссылку строки,
+  то есть UI-managed N+1, который C4.1 обязан убрать.
+
+Проверка (Maven из IntelliJ IDEA, JDK 21, offline):
+
+```text
+CharacterizationStandardPathIT, RowDraftTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+Открытые решения C4.1, актуальные после hardening-среза: остаётся ли `GridFormView`
+`STANDARD_ROOT` с custom policy или переходит в `INTERNAL_STORE` (решается в C4.6).
+Окончательная форма descriptor/capability API зафиксирована разделом ниже; способ
+объявления `SklNomOpaValue` owned row выбран (`EntityExposureOverride`).
+
+## C4.1: unified read kernel
+
+Срез заменяет три независимые query-boundary одной. Ни один production-класс ещё не
+мигрирован по data-handle: это C4.3+.
+
+Добавлено (пакет `org.ipro.data`, auto-configuration `DataAccessAutoConfiguration`):
+
+- `EntityDescriptorCatalog` — классифицированный descriptor поверх `ManagedEntityCatalog`
+  и `SectionMetadataRegistry`, без нового scan. Baseline: **16 `STANDARD_ROOT`**,
+  **5 `OWNED_ROW`**, **16 `INTERNAL_STORE`**; `SklNomOpaValue` классифицируется явным
+  `EntityExposureOverride` из `org.ip.config.EntityClassificationConfig` (находка
+  `c4-inventory.md` §2.3).
+- `ScenarioFetchGraphResolver` — единственная точка правила
+  `scenario plan ∪ extras -> deepen once -> graph`; `FetchPlanRegistry.pathsWith`
+  вычисляет углублённое объединение. Прежняя асимметрия
+  (`LookupService.entityGraph` union без deepen) устранена.
+- `CanonicalReadExecutor` — content/count/sort, отдельный count query без fetch-графа,
+  обязательный RLS read gate и проверка экспозиции типа **до** RLS/SQL. Owned row не
+  получает автономный list/detail/lookup: отказ с реальной причиной.
+- `ReadTelemetry` — optional seam с noop по умолчанию (ADR-0007 §8); durable-event policy
+  для LOOKUP остаётся за C4.4/C4.5.
+- Immutable read requests `PageRead`/`ListRead`/`DetailRead`/`LookupRead`.
+
+Мигрировано без изменения public-поведения:
+
+- `AbstractBaseService`: `findById`, `findAll()`, `findAll(Pageable)`,
+  `findAll(Specification, Pageable)`, `findAllByScenario`/`findAllWithFetchGraph` и `sum`
+  идут через executor, когда он есть в контексте; при ручной сборке (unit-тесты) остаётся
+  прежний путь.
+- `LookupService`: собственная Criteria/fetch orchestration удалена, поиск идёт через ту
+  же границу.
+- `GenericOwnedSectionService`: граф строки `ROW` строится тем же resolver'ом.
+- `GlobalSearchService`: read gate идёт через executor; провайдер выполняется внутри
+  canonical security-границы. Консолидация самого provider-запроса — C4.5.
+- `RowDraft.restore` больше не перечитывает каждую entity-ссылку: UI-managed N+1 убран,
+  отмена возвращает захваченное состояние (включая несохранённую ссылку без id).
+
+Проверка (Maven из IntelliJ IDEA, JDK 21, offline):
+
+```text
+Полный тестовый набор (default order, фаза test)
+Tests run: 1164, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+
+Random-order gate, seed 20260913
+Tests run: 1164, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+Осознанные ограничения среза: реальная telemetry-реализация не включается (только
+noop-seam); architecture-тест, запрещающий строить scenario-граф вне resolver'а, входит
+в C4.7; provider-запрос global search остаётся за C4.5; per-entity search matrix — C4.4.
+Для ownership есть fallback-путь без единого resolver'а в metadata-only контекстах, где
+C3/C4-границы отсутствуют по построению.
+
+### C4.1 hardening по итогам ревью
+
+Ревью C4.1 нашло расхождение кода с ADR §2/§4 и одну поведенческую регрессию. Срез
+закрывает их, не добавляя пользовательского функционала:
+
+- **capabilities стали enforcement-границей.** `CanonicalReadExecutor.requireScenario`
+  проверяет `descriptor.capabilities().allows(scenario)` до RLS и SQL. `INTERNAL_STORE`
+  больше не читается через canonical path «потому что не owned row».
+- **Тип вне каталога — отказ, а не permissive root.** Новая экспозиция
+  `EntityExposure.UNCLASSIFIED`: пустые capabilities и явная причина вместо полного
+  read/write handle. Прежний fallback `descriptorOf` выдавал неизвестному классу
+  `STANDARD_ROOT`, то есть решение уезжало глубже в RLS/JPA.
+- **Явная capability policy типа.** Добавлена `EntityCapabilityOverride` (наборы reads и
+  writes заменяют выведенные из экспозиции) и объявлены предметные ограничения из
+  инвентаря: `AttributeValue` — только create, `SklNomOpa` — без generic writes,
+  `GridFormView` — writes с ownership-ограничением в причине. Владелец подсистемы
+  отчётов отдаёт `UreportTemplate` явный read-мост `LIST`/`DETAIL` до перевода сервиса на
+  internal-store adapter (C4.3); lookup не выдан намеренно.
+- **lookup по id снова идёт сценарием `LOOKUP`.** `DetailRead` несёт сценарий
+  (`DETAIL` для карточки, `LOOKUP` для значения выбора):
+  `LookupService.findById` терял объявленные `@Lookup(fetch)` зависимости, которых в
+  DETAIL нет. Регрессия закрыта тестом `lookupByIdKeepsTheSelectionDependenciesThatTheFormPlanOmits`.
+- **lookup ограничивается в SQL.** Blank term и пустой список полей ставят
+  `setMaxResults` на запрос вместо чтения таблицы с обрезкой в памяти; `limit == 0` —
+  пустой результат без запроса.
+- **paging count parity.** Если Specification помечает запрос distinct (join по to-many),
+  count тоже считается `countDistinct` — как в Spring Data. На H2 тест зелёный и без этого
+  (H2 сворачивает `select distinct count(...)`), на PostgreSQL прежняя запись дубликаты не
+  убирает, поэтому явный `countDistinct` — переносимое поведение, а тест фиксирует контракт.
+- **`deepen once` без повторного углубления.** `FetchPlan` хранит `rawPaths()` (план до
+  углубления), `pathsWith` углубляет объединение ровно один раз. Ранее план приходил уже
+  углублённым и углублялся повторно: результат не менялся, но правило не соответствовало
+  объявленному.
+- **Телеметрия считает страницу страницей** (`getNumberOfElements`), а не одним
+  результатом; `AbstractBaseService.findById(null)` возвращает пустой результат, как
+  `LookupService.findById`, вместо NPE из canonical-запроса.
+- **Остатки второго ревью C4.1 закрыты.** `readLookup` активирует
+  `rlsFilterActivator.ensureRlsEnabled` безусловно, как list/detail/sum — в
+  fallback-конфигурации без `RlsPolicyEnforcer` lookup больше не остаётся единственным
+  чтением без FILTERABLE-предикатов. `GlobalSearchService` проверяет capability источника
+  до provider-callback. `pathsWith` валидирует каждый динамический путь через `ColumnPath`
+  **до** объединения — правило читается буквально как `union → validate → deepen once`,
+  а неизвестный путь отклоняется сразу, а не падает на построении `EntityGraph`.
+
+Проверка (Maven из IntelliJ IDEA, JDK 21, offline):
+
+```text
+Адресный набор (CanonicalReadBoundaryIT, FetchPlanMeasurementIT, FetchPlanRegistryTest)
+Tests run: 27, Failures: 0, Errors: 0, Skipped: 0
+
+Полный тестовый набор (default order, фаза test)
+Tests run: 1171, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+
+Random-order gate, seed 20260913
+Tests run: 1171, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+``` Оставшееся осознанно открытым: write-enforcement capabilities (`writes` читает C4.3,
+когда появится canonical write path) и миграция `UreportTemplateService` с
+`AbstractBaseService` на internal-store adapter.
+
+### C4.2: effective metadata
+
+Срез убирает единственность явного атрибута как источника истины: `required`, `type` и
+`reference` выводятся из Bean Validation, JPA и Java-типа, а объявление остаётся там, где
+вывод невозможен или должен быть переопределён.
+
+- `RequiredMode` (`AUTO`/`REQUIRED`/`OPTIONAL`) заменил `boolean required`; мигрировано
+  52 объявления. Примитивы не становятся обязательными: `nullable = false` на `boolean`
+  не создаёт требования заполнить поле.
+- `FieldMetadataInfo` хранит effective-факты и `FactOrigin` каждого: `required` —
+  `EXPLICIT`/`BEAN_VALIDATION`/`JPA_MAPPING`/`PLATFORM_DEFAULT`; `type` —
+  `EXPLICIT`/`JAVA_TYPE`/`JPA_MAPPING`; `reference` — `EXPLICIT`/`JPA_MAPPING`.
+- Конфликты (объявленный тип против Java/JPA, `@Lookup.entity` против типа ссылки,
+  `OPTIONAL` против server-required) — `ERROR`; избыточное объявление — `INFO`;
+  UI-строгость без server-контракта — `WARNING`.
+- `MetadataConsistencyValidator` обходит все managed-типы, `MetadataConsistencyStartupCheck`
+  останавливает старт на `ERROR`, сообщая все ошибки сразу с сущностью/полем/источником.
+- `MetadataAllowance` объявляет осознанное расхождение с причиной; исчезновение условия
+  даёт `STALE_ALLOWANCE` (`ERROR`). Единственное известное расхождение —
+  `ReceivingDocument.journal` (UI требует, сервер допускает NULL) — объявлено в
+  `org.ip.config.MetadataDiagnosticsConfig`.
+- Пилоты (Branch, Journal, UnitOfMeasurement, Nomenclature, PrdSpec и их строки) переведены
+  на вывод: удалены дублирующие `required`, `type = ENTITY_REFERENCE` и `lookup.entity`.
+- Snapshot parity: `src/test/resources/metadata/effective-metadata-{before,after}.txt` —
+  diff пуст (ни одно effective-значение не изменилось), а перераспределение источников
+  видно в `effective-metadata-origins.txt`.
+- Hardening по итогам ревью: `*.txt`-исключение в `.gitignore` вернуло snapshot-ресурсы в
+  поставку (до него чистый checkout терял их); объявленный `type` проверяется на
+  совместимость с Java-типом (таблица `String → TEXT/TEXT_AREA/EMAIL/PASSWORD`), а не
+  строгим равенством — иначе `EMAIL`/`PASSWORD`/`TEXT_AREA` останавливали старт;
+  `jpaDeclaresNonNull` учитывает `@ManyToOne`/`@OneToOne`/`@Basic(optional=false)`;
+  snapshot собирает типы через `LinkedHashSet` (строки больше не дублируются);
+  `MetadataAllowance` понижает только warning-коды из `ALLOWABLE_CODES`, а не любую
+  диагностику; `MetadataConsistencyStartupCheck` покрыт негативным тестом;
+  `GlobalSearchService` проверяет capability источника.
+
+Проверка (Maven из IntelliJ IDEA, JDK 21, offline):
+
+```text
+Адресный набор (EffectiveMetadataSnapshotTest, EffectiveFieldFactsTest,
+MetadataConsistencyValidatorTest, MetadataConsistencyStartupCheckTest,
+FetchPlanRegistryTest)
+Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
+
+Полный тестовый набор (default order, фаза test)
+Tests run: 1185, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+
+Random-order gate, seed 20260913
+Tests run: 1185, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+На реальной модели проверка не нашла ни одной ошибки и ни одного предупреждения: 1
+разрешённое расхождение (`ReceivingDocument.journal`) и 40 избыточных объявлений вне
+пилотов (24 `required`, 8 `type`, 8 `lookup.entity`) — перечислены как `INFO`, то есть
+следующий срез может удалять их по готовому списку, а не по поиску.
+
+### C4.3: canonical write path
+
+Срез замыкает write-обещание ADR-0007 §1/§2/§5: write intent становится отдельной
+boundary, а `STANDARD_ROOT` проходит CRUD без Spring Data repository и application service.
+
+- `EntityDataAccess` — публичный facade (`detail`/`list`/`lookup`/`create`/`update`/`save`/
+  `delete`); `CanonicalEntityDataAccess` не принимает решений о policy, а проецирует их на
+  единые executor'ы.
+- `CanonicalWriteExecutor` — единый порядок: capability типа (fail-closed) → ранний RLS →
+  нормализация версии → нумерация → bean-валидация → lifecycle before-hooks и before-events
+  → persistence через `EntityManager` → after-events и `onSave`. Запрещённая операция не
+  доходит ни до валидации, ни до хуков, ни до пользовательского расширителя.
+- `EntityDataPolicy` (SPI) + `EntityDataAccessResolver` — type-directed выбор: explicit typed
+  custom policy, иначе canonical generic path, иначе отказ с реальной причиной. Две policy
+  для одного типа и policy на не-JPA тип — startup error.
+- `CanonicalEntityService<T>` (`BaseService`) — default handle для `STANDARD_ROOT` без своего
+  сервиса; `ServiceLocator` отдаёт его только там, где canonical path разрешён, иначе
+  сохраняет прежнюю диагностику.
+- Предметные запреты стали исполняемыми: `AttributeValue` — только `CREATE`, `SklNomOpa` —
+  без generic writes, `UreportTemplate` (read-мост владельца) — без writes.
+- `ValidatedJpaCrudService` отклоняет metadata-driven root в конструкторе: internal-store
+  adapter больше не может молча обслуживать standard root (ADR-0007 §3).
+- Hardening по итогам ревью: intent определяет JPA-операцию и сверяется с точным
+  persistence-классом (`create` с существующим `id` больше не делает `merge`, `update` без
+  `id` отклоняется). UPDATE сначала требует существующую и доступную исходную строку,
+  затем авторизует и сохранённое исходное, и поданное целевое состояние до нормализации,
+  валидации и hooks; это не допускает неявный insert через `merge` и обход RLS сменой
+  классифицирующего поля. Canonical handle `GridFormView` ограничен `CREATE` — ownership-правило
+  (`checkEditable`) не исполняется canonical pipeline и не обходится facade;
+  `CanonicalWritePathIT` проверяет `update` после `flush`/`clear` и подтверждает полный
+  порядок pipeline (`RLS → numbering → validation → events`), а также что RLS-отказ
+  останавливает операцию до validator'а, хуков и событий.
+
+Исторический полный прогон до последующего hardening (Maven, JDK 21, offline):
+
+```text
+Адресный набор (CanonicalWritePathIT, CanonicalWriteBoundaryIT,
+CanonicalReadBoundaryIT, ServiceLocatorCanonicalFallbackTest,
+ValidatedJpaCrudServiceGuardTest)
+Tests run: 32, Failures: 0, Errors: 0, Skipped: 0
+
+Полный тестовый набор (default order, фаза test)
+Tests run: 1214, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+
+Random-order gate, seed 20260913
+Tests run: 1214, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+`CanonicalWritePathIT` использует изолированный persistence unit: test-only entity
+(`org.ipro.data.fixture.C4FixtureEntity`) с `@EntityMetadata` и полями, но без repository,
+service, `serviceClass` и bean-name — то есть успех не объясняется инфраструктурой
+приложения. Формальное закрытие C4.3 остаётся pending: **write-telemetry** (план C4.3
+п.4), **первый реальный справочник** на canonical path (план C4.3 п.7) и form → write →
+audit acceptance. До выполнения этих пунктов production canonical fallback не несёт
+нагрузки, поэтому статус опирается на fixture и boundary-тесты. Отдельно остаются
+поглощение `AbstractBaseService` (C4.7) и снятие read-моста `UreportTemplate`.
+
+### C4.4: server-side search
+
+Срез делает search единым механизмом: один query builder с явным контекстом, а не
+независимые repository-запросы и in-memory фильтры.
+
+- `SearchContext` (`LIST`/`LOOKUP`/`GLOBAL`) и `SearchRead` — контекст задаёт
+  FetchPlan-сценарий, telemetry-намерение, строгость проверки явных полей и ranking.
+  `GLOBAL` сохраняет FetchPlan `LIST`, но использует отдельную telemetry operation
+  `GLOBAL_SEARCH`; подключение global provider'ов к builder'у — следующий C4.5.
+- `CanonicalReadExecutor.readSearch` — единственный builder для standard LIST/LOOKUP:
+  capability сценария → read gate → RLS → fetch-граф → SQL. `readLookup` стал тонкой
+  проекцией того же builder'а. Global providers пока строят source query отдельно; их
+  подключение к `SearchContext.GLOBAL` запланировано в C4.5.
+- `SearchFieldResolver` — единая лестница полей: явные поля → `@InstanceName` → строковые
+  `selectColumns` effective metadata. Неизвестное явное поле в list/global search
+  отклоняется (`SearchFieldResolverTest`), а не пропускается молча.
+- `SearchTerms` — literal escaping: `%`/`_`/`\` трактуются буквально (принятое изменение;
+  раньше это были SQL-wildcard). Порядок детерминирован: `exact → prefix → substring → id`.
+- Blank term не является фильтром: выдача bounded (page/limit) и упорядочена по id, а не
+  `findAll()`; paging считает `totalElements` отдельным count-запросом.
+- `BaseService.search(String, Pageable)` больше не runtime trap, а compatibility-делегат;
+  `CanonicalEntityService.search` реализован.
+- Все 16 стандартных корней используют canonical builder; repository `searchByTerm` и
+  `findWithFilter` на стандартном пути удалены. `PrdSpec`, `SklNomOpa`,
+  `UnitOfMeasurement` и `GridFormView` сохраняют поля поиска через explicit field sets,
+  но оба overload используют один builder. `User` больше не фильтрует `findAll()` в
+  памяти; `NomSklAttribute` без строковых полей возвращает bounded page для blank term и
+  пустую выдачу для непустого. Typed application services остаются в C4.6, их search
+  query уже canonical. Global providers остаются в C4.5.
+
+Исторический полный прогон до последующего hardening (Maven, JDK 21, offline):
+
+```text
+Адресный набор до hardening C4.3/C4.4 (исторический снимок)
+Tests run: 29, Failures: 0, Errors: 0, Skipped: 0
+
+Полный тестовый набор и random-order gate до hardening C4.3/C4.4:
+1227 tests, 0 failures, 0 errors, 0 skipped (исторический снимок)
+```
+
+Повторная адресная проверка после устранения замечаний C4.3/C4.4 (2026-09-14,
+JDK 21, offline):
+
+```text
+SearchTermsTest, SearchFieldResolverTest, SearchOverloadParityTest,
+CanonicalWritePathIT, CanonicalWriteBoundaryIT, ServiceLocatorCanonicalFallbackTest,
+ValidatedJpaCrudServiceGuardTest, CharacterizationStandardPathIT
+Tests run: 48, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+Полный `mvn verify` после этих изменений не запускался.
+
+Тесты literal escaping проверены откатом: без экранирования падают и `SearchTermsTest`,
+и поведенческий `CanonicalWritePathIT.searchTreatsWildcardsLiterally`. Для typed search
+сервисы сохраняют предметные методы, но запросы уже идут через canonical builder с
+explicit fields. Открыта только интеграция provider'ов глобального поиска — C4.5.
 
 ## Неошибочные и блокирующие диагностики
 

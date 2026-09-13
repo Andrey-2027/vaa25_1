@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.*;
 import org.ipro.rls.RlsDimension;
 import org.ipro.crud.BaseEntity;
@@ -40,7 +41,7 @@ public class Workshop extends BaseEntity implements HasDisplayName {
     @Size(max = 20)
     @Column(nullable = false, unique = true)
     @FieldMetadata(
-        label = "Код", required = true, order = 1,
+        label = "Код", required = RequiredMode.REQUIRED, order = 1,
         grid = @GridColumn(order = 1, width = "150px")
     )
     private String code;
@@ -49,7 +50,7 @@ public class Workshop extends BaseEntity implements HasDisplayName {
     @Size(max = 100)
     @Column(nullable = false)
     @FieldMetadata(
-        label = "Наименование", required = true, order = 2,
+        label = "Наименование", required = RequiredMode.REQUIRED, order = 2,
         grid = @GridColumn(order = 2, flexGrow = 1)
     )
     private String name;
@@ -57,7 +58,7 @@ public class Workshop extends BaseEntity implements HasDisplayName {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")
     @FieldMetadata(
-        label = "Филиал", required = false, order = 3,
+        label = "Филиал", required = RequiredMode.OPTIONAL, order = 3,
         type = FieldType.ENTITY_REFERENCE,
         grid = @GridColumn(order = 3, width = "180px"),
         lookup = @Lookup(entity = Branch.class)

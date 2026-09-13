@@ -3,6 +3,7 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.metadata.annotation.Lookup;
@@ -48,7 +49,7 @@ public class ReceivingDocumentItem extends BaseEntity {
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @NotNull
     @FieldMetadata(
-        label = "Номенклатура", required = true, order = 1,
+        label = "Номенклатура", required = RequiredMode.REQUIRED, order = 1,
         grid = @GridColumn(order = 1, flexGrow = 1),
         lookup = @Lookup(entity = Nomenclature.class)
     )
@@ -58,7 +59,7 @@ public class ReceivingDocumentItem extends BaseEntity {
     @Positive
     @Column(nullable = false)
     @FieldMetadata(
-        label = "Количество", required = true, order = 2,
+        label = "Количество", required = RequiredMode.REQUIRED, order = 2,
         grid = @GridColumn(order = 2, width = "140px")
     )
     private BigDecimal quantity;

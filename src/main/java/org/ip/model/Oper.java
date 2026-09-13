@@ -3,6 +3,7 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
@@ -31,7 +32,7 @@ public class Oper extends BaseEntity implements HasDisplayName {
     @Size(max = 20)
     @Column(nullable = false, unique = true)
     @FieldMetadata(
-        label = "Код", required = true, order = 1,
+        label = "Код", required = RequiredMode.REQUIRED, order = 1,
         grid = @GridColumn(order = 1, width = "150px")
     )
     private String code;
@@ -40,7 +41,7 @@ public class Oper extends BaseEntity implements HasDisplayName {
     @Size(max = 200)
     @Column(nullable = false)
     @FieldMetadata(
-        label = "Наименование", required = true, order = 2,
+        label = "Наименование", required = RequiredMode.REQUIRED, order = 2,
         grid = @GridColumn(order = 2, flexGrow = 1)
     )
     private String name;

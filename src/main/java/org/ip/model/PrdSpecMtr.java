@@ -33,7 +33,7 @@ public class PrdSpecMtr extends BaseEntity {
     @NotNull
     @Column(nullable = false, name = "type_mtr")
     @FieldMetadata(
-        label = "Тип", required = true, order = 1,
+        label = "Тип", order = 1,
         type = FieldType.INTEGER,
         grid = @GridColumn(order = 1, width = "100px")
     )
@@ -43,11 +43,9 @@ public class PrdSpecMtr extends BaseEntity {
     @JoinColumn(name = "prd_spec_mtr_id")
     @FieldMetadata(
         label = "Спецификация компонента", order = 2,
-        type = FieldType.ENTITY_REFERENCE,
         // Форма строки сразу читает номенклатуру спецификации и её единицу измерения —
         // зависимость сценария выбора объявлена здесь, а грузит её единый FetchPlan (ADX-07).
-        lookup = @Lookup(entity = PrdSpec.class,
-            fetch = {"nomenclature", "nomenclature.unitOfMeasurement"}),
+        lookup = @Lookup(fetch = {"nomenclature", "nomenclature.unitOfMeasurement"}),
         grid = @GridColumn(order = 2, width = "250px")
     )
     private PrdSpec prdSpecMtr;
@@ -56,10 +54,9 @@ public class PrdSpecMtr extends BaseEntity {
     @JoinColumn(name = "nomenclature_id")
     @FieldMetadata(
         label = "Номенклатура", order = 3,
-        type = FieldType.ENTITY_REFERENCE,
         // Единица измерения строки автозаполняется из выбранной номенклатуры —
         // зависимость сценария выбора, не знание формы о persistence.
-        lookup = @Lookup(entity = Nomenclature.class, fetch = {"unitOfMeasurement"}),
+        lookup = @Lookup(fetch = {"unitOfMeasurement"}),
         grid = @GridColumn(order = 3, width = "250px")
     )
     private Nomenclature nomenclature;
@@ -68,8 +65,6 @@ public class PrdSpecMtr extends BaseEntity {
     @JoinColumn(name = "unit_id")
     @FieldMetadata(
         label = "Единица измерения", order = 4,
-        type = FieldType.ENTITY_REFERENCE,
-        lookup = @Lookup(entity = UnitOfMeasurement.class),
         grid = @GridColumn(order = 4, width = "150px")
     )
     private UnitOfMeasurement unit;

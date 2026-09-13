@@ -27,7 +27,7 @@ public class UnitOfMeasurement extends BaseEntity implements HasDisplayName {
     @Size(max = 10)
     @Column(nullable = false, unique = true)
     @FieldMetadata(
-        label = "Краткий код", required = true, order = 1,
+        label = "Краткий код", order = 1,
         grid = @GridColumn(order = 1, width = "100px")
     )
     private String shortCode;
@@ -36,7 +36,7 @@ public class UnitOfMeasurement extends BaseEntity implements HasDisplayName {
     @Size(max = 100)
     @Column(nullable = false)
     @FieldMetadata(
-        label = "Наименование", required = true, order = 2,
+        label = "Наименование", order = 2,
         grid = @GridColumn(order = 2, flexGrow = 1)
     )
     private String name;
@@ -45,7 +45,7 @@ public class UnitOfMeasurement extends BaseEntity implements HasDisplayName {
     @Size(max = 10)
     @Column(nullable = false, unique = true)
     @FieldMetadata(
-        label = "Код", required = true, order = 3,
+        label = "Код", order = 3,
         grid = @GridColumn(order = 3, width = "100px")
     )
     private String code;

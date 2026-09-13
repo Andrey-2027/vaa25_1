@@ -15,7 +15,6 @@ import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -533,14 +532,6 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
                 entity.setCodeUp(entity.getCode().toUpperCase(Locale.ROOT));
             }
         }
-    }
-
-    @Override
-    public List<AttributeValue> search(String term) {
-        if (term == null || term.isEmpty()) {
-            return findAll();
-        }
-        return attributeValueRepository.searchByTerm(term, PageRequest.of(0, 100));
     }
 
     @Override

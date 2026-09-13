@@ -2,6 +2,7 @@ package org.ip.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
@@ -27,7 +28,7 @@ public class Role extends BaseEntity {
 
     @NotBlank
     @Column(nullable = false, unique = true)
-    @FieldMetadata(label = "Название", required = true, order = 1,
+    @FieldMetadata(label = "Название", required = RequiredMode.REQUIRED, order = 1,
         grid = @GridColumn(order = 1, flexGrow = 1))
     private String name;
 
