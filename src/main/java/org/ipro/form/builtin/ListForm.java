@@ -537,7 +537,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     /**
      * Поля группировки по активным колонкам, с генератором подписей значений:
-     * сущности (HasDisplayName) → displayName, прочее → toString. Без генератора
+     * ссылочные сущности → единое имя (instance name), прочее → toString. Без генератора
      * подпись узла дерева — value.toString() («org.ip.model.Journal@…»).
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -547,8 +547,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             Function<T, Object> getter = entity -> path.getValue(entity);
             fields.add(new GroupField<>(path.getKey(), path.getLabel(), path.getKey(),
                 getter, false)
-                .withLabelGenerator(value -> value instanceof HasDisplayName d
-                    ? d.getDisplayName() : String.valueOf(value)));
+                .withLabelGenerator(org.ipro.fetch.instance.InstanceNameBridge::displayName));
         }
         return fields;
     }
@@ -669,7 +668,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                     List items = lookupService.findAll(field.getLookupEntity());
                     filter.setItems(items);
                     filter.setItemLabelGenerator((com.vaadin.flow.function.SerializableFunction)
-                        (item -> ((HasDisplayName) item).getDisplayName()));
+                        org.ipro.fetch.instance.InstanceNameBridge::displayName);
                     return filter;
                 })
                 .orElse(null);

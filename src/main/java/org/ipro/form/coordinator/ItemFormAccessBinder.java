@@ -21,9 +21,9 @@ import org.springframework.stereotype.Component;
  *     бейдж {code "Только просмотр: ...причина..."}.</li>
  * </ul>
  *
- * Серверный write-guard (AbstractBaseService.checkRlsWrite) остаётся последней
- * линией и НЕ ослабляется: UI-блокировка — только удобство (параллель с 1С), не
- * защита.
+ * Серверный write-guard (общая RLS-граница: repository-aspect + Hibernate
+ * flush-listener) остаётся последней линией и НЕ ослабляется: UI-блокировка — только
+ * удобство (параллель с 1С), не защита.
  */
 @Component
 public class ItemFormAccessBinder {

@@ -15,13 +15,10 @@ import org.ipro.form.FieldFactory;
 import org.ipro.form.FieldRenderer;
 import org.ipro.form.registry.FormResolver;
 import org.ipro.metadata.ColumnPath;
-import org.ipro.metadata.FetchGraphs;
-import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.GridViewState;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.TableSectionGridMetadata;
 import org.ipro.metadata.TableSectionMetadataInfo;
-import org.ipro.metadata.annotation.FieldType;
 import org.ipro.form.spi.FormSettingsStore;
 import org.ipro.form.spi.GridView;
 import org.ipro.form.spi.GridViewStore;
@@ -30,11 +27,12 @@ import org.ipro.crud.TableSectionService;
 import org.ipro.crud.IdentifiableEntity;
 
 import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -217,75 +215,68 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
     }
 
     /**
-     * Fetch-пути для EntityGraph — из активных колонок (может быть уже не дефолтный
-     * состав, если применён вид). Берутся имена колонок целиком: для вложенных путей
-     * FetchGraphs.deepen сам выделит ссылочные префиксы и углубит их через display-состав
-     * целей — чтобы getDisplayName() ссылок рендерился без LazyInitializationException.
+     * Дополнительные fetch-пути динамических колонок. Базовый сценарий {@code ROW} и
+     * углубление связей применяет read-сервис секции, чтобы UI не собирал план сам.
      */
     private List<String> activeFetchPaths() {
-        return FetchGraphs.deepen(sectionMeta.getRowClass(),
-            activeColumns.stream().map(ColumnPath::getKey).toList(), metadataResolver);
-    }
-
-    /**
-     * Перечитывает ссылочные поля строки по ID с fetch-графом, собранным из колонок
-     * применённого вида. Строки грида живут в памяти (rows), а выбранные в форме строки
-     * lookup-сущности приходят с ленивыми прокси (сессия закрыта) — колонка вида,
-     * обращающаяся к вложенным полям такой ссылки (например, nomenclature.unitOfMeasurement.code),
-     * рендерила бы прокси вне сессии → LazyInitializationException → пустая ячейка.
-     * Поэтому перед вставкой/обновлением строки в гриде каждая ссылка, до которой из
-     * активных колонок есть вложенные пути, заменяется сущностью, перечитанной по ID
-     * с нужным подграфом (LookupService.findById(Class, Object, Collection)).
-     *
-     * Вызывается из save-обработчика диалога строки (гидратация после добавления/
-     * изменения) и из {@link #hydrateAllRows()} при смене вида.
-     */
-    @SuppressWarnings("unchecked")
-    private void hydrateRow(T row) {
-        Map<String, Set<String>> pathsByRootField = new LinkedHashMap<>();
+        LinkedHashSet<String> paths = new LinkedHashSet<>();
         for (ColumnPath column : activeColumns) {
-            ColumnPath resolved;
-            try {
-                resolved = ColumnPath.resolve(sectionMeta.getRowClass(), column.getKey());
-            } catch (IllegalArgumentException stale) {
-                continue; // колонку из сохранённого вида переименовали/удалили
-            }
-            for (String path : resolved.getFetchPaths()) {
-                int dot = path.indexOf('.');
-                if (dot < 0) continue; // путь до самого поля — значение уже на строке
-                pathsByRootField.computeIfAbsent(path.substring(0, dot),
-                    k -> new LinkedHashSet<>()).add(path.substring(dot + 1));
-            }
+            paths.addAll(column.getFetchPaths());
         }
-        if (pathsByRootField.isEmpty()) return;
-
-        List<FieldMetadataInfo> rowFields = sectionMeta.getFormFields();
-        for (Map.Entry<String, Set<String>> entry : pathsByRootField.entrySet()) {
-            FieldMetadataInfo fieldInfo = rowFields.stream()
-                .filter(f -> f.getName().equals(entry.getKey()))
-                .findFirst().orElse(null);
-            if (fieldInfo == null || fieldInfo.getResolvedType() != FieldType.ENTITY_REFERENCE) continue;
-            Object value = fieldInfo.getValue(row);
-            if (!(value instanceof IdentifiableEntity ref) || ref.getId() == null) continue;
-            lookupService.findById(ref.getClass(), ref.getId(), new ArrayList<>(entry.getValue()))
-                .ifPresent(full -> fieldInfo.setValue(row, full));
-        }
+        return List.copyOf(paths);
     }
 
     /**
-     * Гидратация всех in-memory строк под текущий {@link #activeColumns} — вызывается после
-     * смены/сброса вида. Строки загружаются из БД один раз (при открытии документа, через
-     * {@link #setParent}) и после этого в память не перечитываются: повторный запрос к БД
-     * потерял бы несохранённые правки (изменённые и добавленные строки). Смена вида — только
-     * операция отображения: перестраиваются колонки и перечитываются ссылки строк под новый
-     * состав колонок.
+     * При смене вида одним запросом перечитывает все сохранённые строки с графом ROW и
+     * активными колонками, затем переносит только подготовленные ссылки в UI-снимки строк.
+     * Это сохраняет несохранённые правки строки и не создаёт запрос на каждую ссылку.
      */
     private void hydrateAllRows() {
-        if (parent == null) return;
-        for (T row : rows) {
-            hydrateRow(row);
+        if (parent != null && parent.getId() != null && !rows.isEmpty()) {
+            Map<Long, T> loadedById = new LinkedHashMap<>();
+            for (T loaded : service.findByParent(parent, activeFetchPaths())) {
+                if (loaded.getId() != null) {
+                    loadedById.put(loaded.getId(), loaded);
+                }
+            }
+            List<Field> referenceFields = activeReferenceFields();
+            for (T row : rows) {
+                T loaded = row.getId() == null ? null : loadedById.get(row.getId());
+                if (loaded != null) {
+                    mergeHydratedReferences(row, loaded, referenceFields);
+                }
+            }
         }
         grid.getDataProvider().refreshAll();
+    }
+
+    private List<Field> activeReferenceFields() {
+        Map<String, Field> fields = new LinkedHashMap<>();
+        for (ColumnPath column : activeColumns) {
+            if (!column.getFetchPaths().isEmpty()) {
+                Field root = column.getRootField();
+                fields.putIfAbsent(root.getName(), root);
+            }
+        }
+        return List.copyOf(fields.values());
+    }
+
+    private void mergeHydratedReferences(T row, T loaded, List<Field> fields) {
+        for (Field field : fields) {
+            try {
+                Object current = field.get(row);
+                Object refreshed = field.get(loaded);
+                if (current instanceof IdentifiableEntity currentEntity
+                        && refreshed instanceof IdentifiableEntity refreshedEntity
+                        && currentEntity.getId() != null
+                        && Objects.equals(currentEntity.getId(), refreshedEntity.getId())) {
+                    field.set(row, refreshed);
+                }
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException(
+                    "Cannot merge hydrated reference '" + field.getName() + "'", e);
+            }
+        }
     }
 
     // === Загрузка/сохранение ===
@@ -546,7 +537,6 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
                 return;
             }
             rowForm.getEntity();
-            hydrateRow(row);
             dialog.close();
             onConfirm.run();
         });

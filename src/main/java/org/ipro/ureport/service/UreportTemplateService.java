@@ -33,7 +33,8 @@ import jakarta.validation.Validator;
  * в файловом хранилище движка ({@code ureport.fileStoreDir}).
  *
  * <p>RLS-права каталога — стандартные CHECK_ONLY-расширения RLS на
- * {@link UreportTemplate} (checkRlsWrite/checkRlsDelete в базовом сервисе).</p>
+ * {@link UreportTemplate} (write/delete enforcement выполняет общая
+ * repository/flush-граница RLS; см. ADR-0006 и C3.0.1).</p>
  */
 public class UreportTemplateService extends AbstractBaseService<UreportTemplate, Long> {
 

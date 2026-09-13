@@ -462,7 +462,7 @@ public class GridViewEditorDialog extends Dialog {
                 List items = lookupService.findAll(condition.field.getLookupEntity());
                 combo.setItems(items);
                 combo.setItemLabelGenerator(
-                    item -> ((org.ipro.metadata.HasDisplayName) item).getDisplayName());
+                    org.ipro.fetch.instance.InstanceNameBridge::displayName);
                 if (condition.value != null) {
                     items.stream()
                         .filter(item -> condition.value.equals(String.valueOf(((IdentifiableEntity) item).getId())))

@@ -21,6 +21,7 @@ import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.RlsDimensionValue;
 import org.ipro.crud.BaseEntity;
+import org.ipro.fetch.instance.InstanceName;
 import org.ipro.numbering.NumberingPeriod;
 import org.ipro.numbering.annotation.Numbered;
 
@@ -82,6 +83,7 @@ import java.time.LocalDate;
     subsystem = Subsystems.Production.class,
         listColumns = {"id","number","date","journal.code","receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name"}
 )
+@InstanceName(value = {"number", "date"}, separator = " от ")
 @TableSections({ReceivingDocumentItem.class})
 public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
 

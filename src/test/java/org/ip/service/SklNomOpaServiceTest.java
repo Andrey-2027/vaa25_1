@@ -22,7 +22,6 @@ import org.ipro.crud.ReferenceCheckService;
 import org.ipro.crud.ValidationException;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
-import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
 import org.junit.jupiter.api.Test;
@@ -92,7 +91,6 @@ class SklNomOpaServiceTest {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         SklNomOpaService service = new SklNomOpaService(
             sklNomOpaRepository, sklNomOpaValueRepository, validator, transactionManager);
-        ReflectionTestUtils.setField(service, "accessService", mock(AccessService.class));
         ReflectionTestUtils.setField(service, "numberingService", java.util.Optional.empty());
         ReflectionTestUtils.setField(service, "referenceCheckService", mock(ReferenceCheckService.class));
         ReflectionTestUtils.setField(service, "rlsFilterActivator", mock(RlsFilterActivator.class));
@@ -119,7 +117,6 @@ class SklNomOpaServiceTest {
             lookupService,
             new ManagedEntityCatalog(entityManager.getEntityManagerFactory()),
             validator, transactionManager);
-        ReflectionTestUtils.setField(service, "accessService", mock(AccessService.class));
         ReflectionTestUtils.setField(service, "numberingService", java.util.Optional.empty());
         ReflectionTestUtils.setField(service, "referenceCheckService", mock(ReferenceCheckService.class));
         ReflectionTestUtils.setField(service, "rlsFilterActivator", mock(RlsFilterActivator.class));
@@ -470,7 +467,6 @@ class SklNomOpaServiceTest {
     private NomSklAttributeService newBindingsService() {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         NomSklAttributeService service = new NomSklAttributeService(nomSklAttributeRepository, validator);
-        ReflectionTestUtils.setField(service, "accessService", mock(AccessService.class));
         ReflectionTestUtils.setField(service, "numberingService", java.util.Optional.empty());
         ReflectionTestUtils.setField(service, "referenceCheckService", mock(ReferenceCheckService.class));
         ReflectionTestUtils.setField(service, "rlsFilterActivator", mock(RlsFilterActivator.class));

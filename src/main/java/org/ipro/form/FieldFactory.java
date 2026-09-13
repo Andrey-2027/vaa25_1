@@ -59,12 +59,10 @@ public class FieldFactory {
         this.formRegistry = formRegistry;
     }
 
-    /**
-     * Совместимость: ручное создание без реестра (тесты) — варианты выбора недоступны,
-     * резолв идёт по default-метаданным.
-     */
+    /** Совместимость для тестов и ручной сборки без metadata/form registry. */
     public FieldFactory(LookupService lookupService, SelectionFormAssembler selectionFormAssembler) {
-        this(lookupService, selectionFormAssembler, new org.ipro.metadata.MetadataResolver(), new FormRegistry());
+        this(lookupService, selectionFormAssembler, new org.ipro.metadata.MetadataResolver(),
+            new FormRegistry());
     }
 
     /**
@@ -194,12 +192,9 @@ public class FieldFactory {
                 entity -> {
                     Object v = entity == null ? null : info.getValue(entity);
                     if (v == null) return null;
-                    try {
-                        Method m = v.getClass().getMethod("getDisplayName");
-                        return m.invoke(v);
-                    } catch (Exception e) {
-                        return v.toString();
-                    }
+                    // Та же лестница, что у всех каналов отображения (ADX-09), а не
+                    // собственная рефлексия по getDisplayName().
+                    return org.ipro.fetch.instance.InstanceNameBridge.displayName(v);
                 },
                 (entity, value) -> { /* read-only */ },
                 fallback::getValue,
@@ -246,6 +241,7 @@ public class FieldFactory {
                 .map(ColumnPath::getKey)
                 .toArray(String[]::new);
 
+        // LookupService применяет сценарий LOOKUP внутри своей read-границы.
         SearchFunction search = term -> lookupService.search(lookupEntity, searchFields, term, 20);
 
         EntityField entityField = new EntityField(info.getLabel(), search);

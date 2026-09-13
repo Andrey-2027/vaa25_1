@@ -14,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.dom.DomEvent;
+import org.ipro.fetch.instance.InstanceNameBridge;
 import org.ipro.form.SelectionForm;
 import org.ipro.metadata.HasDisplayName;
 
@@ -92,7 +93,9 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
                 .set("width", "350px");
 
         suggestionGrid = new Grid<>();
-        suggestionGrid.addColumn(T::getDisplayName);
+        // Подписи и текст поля — единое имя (instance name), а не getDisplayName() напрямую:
+        // мигрированная сущность выглядит в lookup так же, как в grid, поиске и аудите.
+        suggestionGrid.addColumn(InstanceNameBridge::displayName);
         suggestionGrid.setWidthFull();
         suggestionGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
         suggestionGrid.addThemeVariants();
@@ -104,7 +107,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
                 selectedValue = e.getFirstSelectedItem().get();
                 userEdited = true;
                 suppressValueChange = true;
-                textField.setValue(selectedValue.getDisplayName());
+                textField.setValue(InstanceNameBridge.displayName(selectedValue));
                 suppressValueChange = false;
                 setStatusValid();
                 hideSuggestion();
@@ -175,7 +178,8 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
                 return;
             }
             List<T> matches = searchFunction.search(value);
-            if (matches.size() == 1 && matches.get(0).getDisplayName().equalsIgnoreCase(value)) {
+            if (matches.size() == 1
+                    && InstanceNameBridge.displayName(matches.get(0)).equalsIgnoreCase(value)) {
                 T oldValue = selectedValue;
                 selectedValue = matches.get(0);
                 setStatusValid();
@@ -315,7 +319,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         this.selectedValue = selected;
         this.userEdited = true;
         this.suppressValueChange = true;
-        this.textField.setValue(selected.getDisplayName());
+        this.textField.setValue(InstanceNameBridge.displayName(selected));
         this.suppressValueChange = false;
         setStatusValid();
         fireValueChangeEvent(oldValue, selected);
@@ -330,7 +334,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         userEdited = false;
         suppressValueChange = true;
         if (value != null) {
-            textField.setValue(value.getDisplayName());
+            textField.setValue(InstanceNameBridge.displayName(value));
         } else {
             textField.clear();
         }

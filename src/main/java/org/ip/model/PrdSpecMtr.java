@@ -44,7 +44,10 @@ public class PrdSpecMtr extends BaseEntity {
     @FieldMetadata(
         label = "Спецификация компонента", order = 2,
         type = FieldType.ENTITY_REFERENCE,
-        lookup = @Lookup(entity = PrdSpec.class),
+        // Форма строки сразу читает номенклатуру спецификации и её единицу измерения —
+        // зависимость сценария выбора объявлена здесь, а грузит её единый FetchPlan (ADX-07).
+        lookup = @Lookup(entity = PrdSpec.class,
+            fetch = {"nomenclature", "nomenclature.unitOfMeasurement"}),
         grid = @GridColumn(order = 2, width = "250px")
     )
     private PrdSpec prdSpecMtr;
@@ -54,7 +57,9 @@ public class PrdSpecMtr extends BaseEntity {
     @FieldMetadata(
         label = "Номенклатура", order = 3,
         type = FieldType.ENTITY_REFERENCE,
-        lookup = @Lookup(entity = Nomenclature.class),
+        // Единица измерения строки автозаполняется из выбранной номенклатуры —
+        // зависимость сценария выбора, не знание формы о persistence.
+        lookup = @Lookup(entity = Nomenclature.class, fetch = {"unitOfMeasurement"}),
         grid = @GridColumn(order = 3, width = "250px")
     )
     private Nomenclature nomenclature;

@@ -15,8 +15,19 @@ import java.util.Objects;
 public final class GlobalSearchProviderRegistry {
 
     private final Map<Class<?>, GlobalSearchProvider<?>> providers;
+    private final org.ipro.fetch.instance.InstanceNameResolver instanceNameResolver;
 
     public GlobalSearchProviderRegistry(List<GlobalSearchProvider<?>> providers) {
+        this(providers, null);
+    }
+
+    /**
+     * @param instanceNameResolver единый источник отображаемого имени для мигрированных
+     *                              сущностей; {@code null} — generic JPA-провайдер остаётся
+     *                              на объявленных display fields
+     */
+    public GlobalSearchProviderRegistry(List<GlobalSearchProvider<?>> providers,
+                                        org.ipro.fetch.instance.InstanceNameResolver instanceNameResolver) {
         Map<Class<?>, GlobalSearchProvider<?>> index = new HashMap<>();
         for (GlobalSearchProvider<?> provider : providers) {
             Objects.requireNonNull(provider, "provider");
@@ -28,6 +39,7 @@ public final class GlobalSearchProviderRegistry {
             }
         }
         this.providers = Map.copyOf(index);
+        this.instanceNameResolver = instanceNameResolver;
     }
 
     /**
@@ -40,7 +52,7 @@ public final class GlobalSearchProviderRegistry {
         if (provider != null) {
             return (GlobalSearchProvider<T>) provider;
         }
-        return new JpaGlobalSearchProvider<>((Class<T>) source.entityClass());
+        return new JpaGlobalSearchProvider<>((Class<T>) source.entityClass(), instanceNameResolver);
     }
 
     /** Зарегистрированные прикладные провайдеры — только для диагностики и тестов. */

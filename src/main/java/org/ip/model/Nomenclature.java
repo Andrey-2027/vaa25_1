@@ -11,6 +11,7 @@ import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.TableSections;
 import org.ipro.crud.BaseEntity;
+import org.ipro.fetch.instance.InstanceName;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.numbering.NumberingPeriod;
 import org.ipro.numbering.annotation.Numbered;
@@ -28,6 +29,7 @@ import org.ipro.numbering.annotation.Numbered;
     selectColumns = {"code", "name","typeNom"},
     displaySortFields = {"code", "name"}  // = getDisplayName(): code + " " + name
 )
+@InstanceName
 @TableSections({NomAttributeValue.class})
 public class Nomenclature extends BaseEntity implements HasDisplayName {
 

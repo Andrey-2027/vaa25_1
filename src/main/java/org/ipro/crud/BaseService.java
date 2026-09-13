@@ -5,6 +5,7 @@ import org.ipro.crud.IdentifiableEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.ipro.fetch.plan.FetchScenario;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,14 +27,20 @@ public interface BaseService<T extends IdentifiableEntity, ID> extends CrudServi
     }
 
     /**
-     * То же, что {@link #findAll(Specification, Pageable)}, но с явным списком JPA-путей
-     * ассоциаций для fetch-EntityGraph (нужен ListForm с динамическим составом колонок,
-     * в т.ч. колонок через точку — см. ColumnPath.getFetchPaths()).
-     *
-     * Дефолтная реализация игнорирует пути — реализации без EntityGraph (или без метаданных)
-     * продолжают работать как раньше; AbstractBaseService переопределяет полноценно.
+     * То же, что {@link #findAll(Specification, Pageable)}, но с дополнительными JPA-путями
+     * для динамических колонок. Базовый сценарий {@code LIST} при этом сохраняется.
      */
     default Page<T> findAll(Specification<T> spec, Pageable pageable, Collection<String> fetchPaths) {
+        return findAll(spec, pageable);
+    }
+
+    /**
+     * Чтение для конкретного платформенного сценария. Дополнительные пути расширяют план
+     * сценария, но не заменяют его. Реализации без fetch-plan поддержки сохраняют прежнее
+     * поведение и делегируют стандартному paged read.
+     */
+    default Page<T> findAllByScenario(FetchScenario scenario, Specification<T> spec,
+                                      Pageable pageable, Collection<String> additionalFetchPaths) {
         return findAll(spec, pageable);
     }
 }

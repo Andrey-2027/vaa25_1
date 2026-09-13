@@ -6,8 +6,9 @@ import org.hibernate.proxy.HibernateProxy;
 
 /**
  * Ответы "что разрешено делать с сущностью" для UI (кнопки, формы, tooltips) — без
- * зависимости от Vaadin, по образцу write-guard'а сервисов (см. AbstractBaseService.
- * checkRls), но без исключений: возвращает {@link AccessDecision} с причиной для
+ * зависимости от Vaadin, по образцу RLS write/delete-проверок
+ * ({@link RlsPolicyEnforcer#requireUpdate(Object)} / {@link RlsPolicyEnforcer#requireDelete(Object)}),
+ * но без исключений: возвращает {@link AccessDecision} с причиной для
  * tooltip вместо throw. Серверный write-guard остаётся последней линией и не
  * ослабляется.
  *
@@ -23,7 +24,7 @@ import org.hibernate.proxy.HibernateProxy;
  *     не действует (AccessService.isNewDimensionValueAllowed).</li>
  * <li>{@link #canUpdate(Object)} / {@link #canDelete(Object)} — AND-цикл по
  *     {@link RlsDimensionValue#getRlsChecks()} для каждой проверки каждого измерения
- *     (NotApplicable пропускается автоматически, как в checkRls).</li>
+ *     (NotApplicable пропускается автоматически, как в RlsPolicyEnforcer).</li>
  * <li>Сущности без {@code @RlsDimension} / без {@code implements RlsDimensionValue} —
  *     все операции разрешены (как в сервисах).</li>
  * <li>{@link RlsContext#isBypassed()} — всё разрешено (фоновые задачи, системный

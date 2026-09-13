@@ -11,6 +11,7 @@ import jakarta.persistence.criteria.Root;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.hibernate.proxy.HibernateProxy;
+import org.ipro.fetch.instance.InstanceNameBridge;
 import org.ipro.metadata.FetchGraphs;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.SectionMetadataRegistry;
@@ -57,6 +58,19 @@ public class GenericOwnedSectionService {
     private final MetadataResolver metadataResolver;
     private final SectionMetadataRegistry sectionRegistry;
     private final RlsPolicyEnforcer rlsPolicyEnforcer;
+
+    /**
+     * Планы загрузки C3.4 для сценария {@code ROW}. Подключается сеттером, а не
+     * конструктором, потому что бин создаётся metadata-конфигурацией, которая обязана
+     * подниматься и без границы C3 (ADR-0006): без него остаётся прежний
+     * metadata-производный набор путей строки.
+     */
+    private org.ipro.fetch.plan.FetchPlanRegistry fetchPlanRegistry;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setFetchPlanRegistry(org.ipro.fetch.plan.FetchPlanRegistry fetchPlanRegistry) {
+        this.fetchPlanRegistry = fetchPlanRegistry;
+    }
 
     public GenericOwnedSectionService(
             Validator validator,
@@ -206,11 +220,18 @@ public class GenericOwnedSectionService {
         entityManager.flush();
     }
 
-    /** Загружает строки в line-number order с metadata-derived fetch graph. */
+    /**
+     * Загружает строки в line-number order с планом сценария {@code ROW} (C3.4).
+     * Без границы C3 (metadata-конфигурация поднята без неё) используется прежний
+     * metadata-производный набор ссылок строки.
+     */
     @Transactional(readOnly = true)
     public <R extends IdentifiableEntity, P extends IdentifiableEntity> List<R> findByParent(
             P parent, TableSectionMetadataInfo descriptor) {
-        List<String> paths = FetchGraphs.entityReferencePaths(descriptor.getGridFields());
+        List<String> paths = fetchPlanRegistry == null
+            ? FetchGraphs.entityReferencePaths(descriptor.getGridFields())
+            : fetchPlanRegistry.paths(descriptor.getRowClass(),
+                org.ipro.fetch.plan.FetchScenario.ROW);
         return findByParent(parent, descriptor, paths);
     }
 
@@ -235,8 +256,15 @@ public class GenericOwnedSectionService {
             query.orderBy(cb.asc(root.get(descriptor.getLineNumberFieldName())));
         }
         TypedQuery<R> typedQuery = entityManager.createQuery(query);
+        Set<String> paths = new java.util.LinkedHashSet<>();
+        if (fetchPlanRegistry != null) {
+            paths.addAll(fetchPlanRegistry.paths(rowClass,
+                org.ipro.fetch.plan.FetchScenario.ROW));
+        }
+        paths.addAll(fetchPaths);
         EntityGraph<R> graph = FetchGraphs.fromPaths(entityManager, rowClass,
-            FetchGraphs.deepen(rowClass, fetchPaths, metadataResolver));
+            FetchGraphs.deepen(rowClass, paths, metadataResolver,
+                InstanceNameBridge::instanceNamePaths));
         if (graph != null) {
             typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
         }

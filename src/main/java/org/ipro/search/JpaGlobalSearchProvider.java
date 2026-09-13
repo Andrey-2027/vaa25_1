@@ -28,9 +28,17 @@ public final class JpaGlobalSearchProvider<T> implements GlobalSearchProvider<T>
     private static final char LIKE_ESCAPE = '\\';
 
     private final Class<T> entityClass;
+    private final org.ipro.fetch.instance.InstanceNameResolver instanceNameResolver;
 
+    /** Без InstanceName: сущности без C3-декларации остаются на объявленных display fields. */
     public JpaGlobalSearchProvider(Class<T> entityClass) {
+        this(entityClass, null);
+    }
+
+    public JpaGlobalSearchProvider(Class<T> entityClass,
+                                   org.ipro.fetch.instance.InstanceNameResolver instanceNameResolver) {
         this.entityClass = entityClass;
+        this.instanceNameResolver = instanceNameResolver;
     }
 
     @Override
@@ -116,6 +124,14 @@ public final class JpaGlobalSearchProvider<T> implements GlobalSearchProvider<T>
 
     @Override
     public String displayValue(T entity, GlobalSearchSource source) {
+        // Мигрированные (@InstanceName) сущности дают одно представление в lookup, поиске
+        // и аудите; остальные остаются на объявленных displayFields/HasDisplayName.
+        if (instanceNameResolver != null) {
+            String declared = instanceNameResolver.declaredName(entity);
+            if (declared != null) {
+                return safeText(declared);
+            }
+        }
         if (source.usesDisplayName() && entity instanceof HasDisplayName displayName) {
             return safeText(displayName.getDisplayName());
         }

@@ -178,7 +178,9 @@ public class ReportQueryExecutor {
     private static String displayName(Object value) {
         try {
             Hibernate.initialize(value);
-            return ((org.ipro.metadata.HasDisplayName) value).getDisplayName();
+            // Единая лестница имени (instance name → HasDisplayName → toString), чтобы подпись
+            // ссылки в отчёте совпадала с lookup/grid/поиском (ADX-09).
+            return org.ipro.fetch.instance.InstanceNameBridge.displayName(value);
         } catch (Exception lazy) {
             return null;
         }

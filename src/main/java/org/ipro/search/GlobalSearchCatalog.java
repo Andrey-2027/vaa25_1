@@ -135,9 +135,12 @@ public final class GlobalSearchCatalog {
 
     private static void validateDisplayFields(Class<?> entityClass, List<String> fields) {
         if (fields.isEmpty()) {
-            if (!HasDisplayName.class.isAssignableFrom(entityClass)) {
+            // Единый источник имени (@InstanceName) — самодостаточное представление,
+            // HasDisplayName или displayFields для такого класса больше не требуются.
+            if (!HasDisplayName.class.isAssignableFrom(entityClass)
+                    && !org.ipro.fetch.instance.InstanceNameBridge.hasDeclaration(entityClass)) {
                 throw configurationError(entityClass,
-                    "нет HasDisplayName и не заданы displayFields для fallback-подписи");
+                    "нет @InstanceName/HasDisplayName и не заданы displayFields для fallback-подписи");
             }
             return;
         }

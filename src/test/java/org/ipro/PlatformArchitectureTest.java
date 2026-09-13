@@ -31,4 +31,15 @@ class PlatformArchitectureTest {
     static final ArchRule platformIndependentOfApplication =
             noClasses().that().resideInAnyPackage("org.ipro..")
                     .should().dependOnClassesThat().resideInAnyPackage("org.ip..");
+
+    /**
+     * Metadata core поднимается без компонентов C3 (ADR-0006): пакет
+     * {@code org.ipro.metadata} не зависит от FetchPlan/InstanceName
+     * ({@code org.ipro.fetch}). Обратное направление — C3 использует metadata —
+     * разрешено и ожидаемо.
+     */
+    @ArchTest
+    static final ArchRule metadataCoreIndependentOfFetchPlanAndInstanceName =
+            noClasses().that().resideInAnyPackage("org.ipro.metadata..")
+                    .should().dependOnClassesThat().resideInAnyPackage("org.ipro.fetch..");
 }

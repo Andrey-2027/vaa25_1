@@ -163,7 +163,6 @@ public class TableSectionFactory implements ApplicationRunner {
             applicationContext.getBean(org.ipro.form.spi.FormSettingsStore.class),
             applicationContext.getBean(org.ipro.crud.LookupService.class),
             formResolverSupplier);
-
         for (TableSectionCustomization<?> customization : customizations) {
             if (customization.rowClass() == section.getRowClass()) {
                 ((TableSectionCustomization) customization).configure(table);

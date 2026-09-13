@@ -7,6 +7,7 @@ import jakarta.persistence.metamodel.EntityType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Строгое разрешение имени класса в управляемую JPA-сущность — единственная
@@ -31,6 +32,18 @@ public final class ManagedEntityCatalog {
             entities.put(javaType.getName(), javaType);
         }
         this.managedEntitiesByName = Map.copyOf(entities);
+    }
+
+    /**
+     * Read-only набор всех управляемых entity-классов текущего persistence unit —
+     * представление уже построенного снимка metamodel, а не новый classpath scan.
+     *
+     * <p>Предназначен для платформенных компонентов, которым нужен весь набор сущностей
+     * (например, registries C3). Второй сканирующий каталог сущностей не создаётся:
+     * приложение и платформа получают один и тот же набор из одного места.</p>
+     */
+    public Set<Class<?>> managedEntityClasses() {
+        return Set.copyOf(managedEntitiesByName.values());
     }
 
     /**

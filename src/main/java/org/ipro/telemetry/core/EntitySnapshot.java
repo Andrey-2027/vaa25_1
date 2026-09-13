@@ -229,6 +229,14 @@ public final class EntitySnapshot {
         if (value == null || !Hibernate.isInitialized(value)) {
             return null;
         }
+        // Единое имя для сущностей, мигрированных на @InstanceName; остальные — прежним
+        // рефлексивным способом (getDisplayName), чтобы аудит не менял представление
+        // немигрированных сущностей.
+        String declared = org.ipro.fetch.instance.InstanceNameBridge.declaredName(value);
+        if (declared != null) {
+            return declared.length() <= MAX_STRING
+                    ? declared : declared.substring(0, MAX_STRING) + "...";
+        }
         try {
             Method method = Hibernate.getClass(value).getMethod("getDisplayName");
             Object name = method.invoke(value);

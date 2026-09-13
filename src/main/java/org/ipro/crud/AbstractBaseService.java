@@ -16,16 +16,12 @@ import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
-import org.ipro.metadata.EntityMetadataInfo;
+import org.ipro.fetch.instance.InstanceNameBridge;
 import org.ipro.metadata.FetchGraphs;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.security.CurrentUser;
 import org.ipro.numbering.NumberingService;
-import org.ipro.rls.AccessService;
-import org.ipro.rls.RlsCheckValue;
-import org.ipro.rls.RlsContext;
-import org.ipro.rls.RlsDimensionValue;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
 import org.ipro.rls.RlsPolicyEnforcer;
@@ -33,7 +29,6 @@ import org.ipro.events.EntityEventPublisher;
 import org.ipro.events.EventContext;
 import org.ipro.events.EventSource;
 import org.ipro.lifecycle.EntityLifecycleRegistry;
-import org.ipro.telemetry.core.SecurityEventLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,6 +39,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.ipro.crud.IdentifiableEntity;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -67,16 +63,10 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     private RlsFilterActivator rlsFilterActivator;
 
     @Autowired
-    private AccessService accessService;
-
-    @Autowired
     private RlsReadGate rlsReadGate;
 
     @Autowired(required = false)
     private RlsPolicyEnforcer rlsPolicyEnforcer;
-
-    @Autowired
-    private Optional<SecurityEventLogger> securityEventLogger;
 
     @Autowired
     private Optional<NumberingService> numberingService;
@@ -103,6 +93,18 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     @Autowired
     private Optional<GenericOwnedSectionService> genericOwnedSectionService = Optional.empty();
 
+    /**
+     * Планы загрузки C3.4 (см. ADR-0006): сценарий {@code LIST} для запроса списка,
+     * {@code DETAIL} — для загрузки формы элемента.
+     *
+     * <p>В приложении бин присутствует всегда. При ручной сборке сервиса вне Spring
+     * (юнит-тесты) поле остаётся null — тогда граф не строится, и запрос идёт обычным
+     * LAZY-путём, как для сущности без metadata. Поэтому null здесь не маскируется
+     * fallback-реализацией второго способа расчёта путей.</p>
+     */
+    @Autowired(required = false)
+    private org.ipro.fetch.plan.FetchPlanRegistry fetchPlanRegistry;
+
     protected AbstractBaseService(JpaRepository<T, ID> repository, Validator validator) {
         this.repository = repository;
         this.validator = validator;
@@ -110,6 +112,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public T save(T entity) {
+        authorizeWrite(entity, false);
         normalizeVersion(entity);
         assignNumbers(entity);
         validate(entity);
@@ -119,7 +122,6 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
             publishSaving(entity);
             publishUpdating(original, entity);
             validateBusinessRules(entity);
-            checkRlsWrite(entity);
             T saved = repository.save(entity);
             publishSaved(saved);
             return saved;
@@ -130,6 +132,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public T create(T entity) {
+        authorizeWrite(entity, false);
         normalizeVersion(entity);
         assignNumbers(entity);
         validate(entity);
@@ -139,7 +142,6 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
             publishSaving(entity);
             publishUpdating(original, entity);
             validateBusinessRules(entity);
-            checkRlsWrite(entity);
             T saved = repository.save(entity);
             publishSaved(saved);
             return saved;
@@ -150,6 +152,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public T update(T entity) {
+        authorizeWrite(entity, false);
         normalizeVersion(entity);
         validate(entity);
         Optional<T> original = originalForUpdate(entity);
@@ -158,7 +161,6 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
             publishSaving(entity);
             publishUpdating(original, entity);
             validateBusinessRules(entity);
-            checkRlsWrite(entity);
             T saved = repository.save(entity);
             publishSaved(saved);
             return saved;
@@ -198,10 +200,13 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         }
 
         T entity = existing.get();
+        // Ранний write-гейт: решение об удалении принимается до publishDeleting и до
+        // удаления owned sections, иначе строки табличных частей уходили бы в БД до
+        // проверки права (отменялись бы только rollback'ом).
+        authorizeWrite(entity, true);
         EntityEventPublisher.EventScope eventScope = openEntityEventOperation(entity);
         try {
             publishDeleting(entity);
-            checkRlsDelete(entity);
             genericOwnedSectionService.ifPresent(service ->
                 service.deleteAllOwnedSections(entity));
             // Owned references have now been removed and flushed. Remaining references
@@ -215,76 +220,34 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     }
 
     /**
-     * canUpdate по ВСЕМ измерениям и ВСЕМ проверкам внутри каждого измерения сразу (AND) —
-     * не только на редактирование существующей записи, но и на create(): по бизнес-правилу
-     * RLS право "изменение" на измерение governs и создание записей под ним (иначе можно
-     * было бы создать PrdSpec под недоступным Journal, не имея формально прав его
-     * редактировать). @Filter эту проверку не даёт — он действует только на SELECT.
+     * Ранняя авторизация write-операции на границе сервиса (C3.7 hardening).
      *
-     * Для protected entity runtime descriptor требует {@link RlsDimensionValue};
-     * отсутствие контракта обнаруживается при startup/runtime и не превращается в
-     * разрешение операции. Entity без {@code @RlsDimension} остаётся обычной.
+     * <p>Вызывается первым действием create/update/delete/save, до нормализации,
+     * bean-валидации, {@code validateBusinessRules}, lifecycle hooks и before-событий:
+     * запрещённая операция не должна раскрывать результаты бизнес-валидации и не должна
+     * давать пользовательскому расширителю платформы шанс выполнить внешний побочный
+     * эффект, который откат транзакции не отменит.</p>
+     *
+     * <p>Решение принимает тот же {@link RlsPolicyEnforcer}, что и
+     * {@code RlsRepositoryEnforcementAspect}: ранний гейт не выводит политику заново, а
+     * лишь вызывает её раньше, поэтому не может разойтись с repository-границей.
+     * Повторный вызов не ослабляет enforcement — {@code RlsWriteAuthorization.grant}
+     * только перезаписывает capability равным значением, а потребляет её flush-listener
+     * ровно один раз. Aspect и {@code RlsWriteEnforcementListener} остаются последним
+     * рубежом для прямых вызовов repository и commit-time dirty checking.</p>
+     *
+     * <p>null-энфорсер — ручная сборка сервиса в юнит-тестах: тогда гейт отсутствует,
+     * как и раньше.</p>
      */
-    protected void checkRlsWrite(T entity) {
-        if (rlsPolicyEnforcer != null) {
-            rlsPolicyEnforcer.requireUpdate(entity);
+    private void authorizeWrite(T entity, boolean delete) {
+        if (rlsPolicyEnforcer == null || entity == null) {
             return;
         }
-        checkRls(entity, accessService::canUpdate, "изменение");
-    }
-
-    protected void checkRlsDelete(T entity) {
-        if (rlsPolicyEnforcer != null) {
+        if (delete) {
             rlsPolicyEnforcer.requireDelete(entity);
-            return;
+        } else {
+            rlsPolicyEnforcer.requireUpdate(entity);
         }
-        checkRls(entity, accessService::canDelete, "удаление");
-    }
-
-    private void checkRls(T entity, RlsPermissionCheck permissionCheck, String actionName) {
-        if (RlsContext.isBypassed() || !(entity instanceof RlsDimensionValue rdv)) {
-            return;
-        }
-        String username = CurrentUser.username();
-        for (Map.Entry<String, List<RlsCheckValue>> entry : rdv.getRlsChecks().entrySet()) {
-            String dimension = entry.getKey();
-            for (RlsCheckValue check : entry.getValue()) {
-                if (check instanceof RlsCheckValue.NotApplicable) {
-                    continue; // сознательно не участвует в этом измерении — пройдено автоматически
-                }
-                Long id = ((RlsCheckValue.Check) check).id();
-                if (!permissionCheck.test(dimension, id, username)) {
-                    emitRlsDenied(username, actionName, dimension, id);
-                    throw new ValidationException("Нет прав на " + actionName + " (измерение " + dimension +
-                        (id != null ? ", id=" + id : ", создание новой записи") + ")");
-                }
-            }
-        }
-    }
-
-    /**
-     * SECURITY-событие "rls:denied" (Фаза 8 RLS-плана) — durable-путь, видно в журнале
-     * админки (SECURITY хранится 1 год). Payload: действие, измерение, id записи,
-     * класс сущности. Телеметрия может быть выключена — тогда события не пишутся
-     * (Optional), сама проверка прав от этого не зависит.
-     */
-    private void emitRlsDenied(String username, String actionName, String dimension, Long id) {
-        securityEventLogger.ifPresent(logger -> logger.emitSecurityEvent(
-            "WARN",
-            "rls:denied",
-            username,
-            "Нет прав на " + actionName + " (измерение " + dimension
-                + (id != null ? ", id=" + id : ", создание новой записи") + ")",
-            Map.of(
-                "action", actionName,
-                "dimension", dimension,
-                "dimensionValueId", id != null ? String.valueOf(id) : "",
-                "entity", getDomainClass().getName())));
-    }
-
-    @FunctionalInterface
-    private interface RlsPermissionCheck {
-        boolean test(String dimension, Long dimensionValueId, String username);
     }
 
     @Override
@@ -294,7 +257,8 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         Class<T> domainClass = getDomainClass();
-        EntityGraph<T> graph = buildFetchGraph(domainClass);
+        EntityGraph<T> graph = buildFetchGraph(domainClass,
+            org.ipro.fetch.plan.FetchScenario.DETAIL);
         if (graph != null) {
             var hints = Map.of("jakarta.persistence.fetchgraph", (Object) graph);
             return Optional.ofNullable(entityManager.find(domainClass, id, hints));
@@ -308,16 +272,23 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
             return List.of();
         }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
-        return repository.findAll();
+        Class<T> domainClass = getDomainClass();
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<T> query = cb.createQuery(domainClass);
+        Root<T> root = query.from(domainClass);
+        query.select(root);
+        TypedQuery<T> typedQuery = entityManager.createQuery(query);
+        EntityGraph<T> graph = buildFetchGraph(domainClass,
+            org.ipro.fetch.plan.FetchScenario.LIST);
+        if (graph != null) {
+            typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
+        }
+        return typedQuery.getResultList();
     }
 
     @Override
     public Page<T> findAll(Pageable pageable) {
-        if (!canRead()) {
-            return Page.empty(pageable);
-        }
-        rlsFilterActivator.ensureRlsEnabled(entityManager);
-        return repository.findAll(pageable);
+        return findAllWithFetchGraph(null, pageable);
     }
 
     @Override
@@ -328,7 +299,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     @Override
     public Page<T> findAll(Specification<T> spec, Pageable pageable) {
-        return findAllWithFetchGraph(spec, pageable);
+        return findAllByScenario(org.ipro.fetch.plan.FetchScenario.LIST, spec, pageable, List.of());
     }
 
     /**
@@ -343,12 +314,9 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      * а нам нужен именно динамический граф, собранный из @FieldMetadata текущей
      * сущности, а не статический @EntityGraph на репозитории.
      *
-     * EntityGraph строится ТОЛЬКО из полей типа ENTITY_REFERENCE, которые реально
-     * показываются в гриде (EntityMetadataInfo.getGridFields()) — не более. Для
-     * сущностей без @EntityMetadata (например, legacy Workshop) граф не строится,
-     * запрос выполняется как обычный LAZY-запрос (без явного fetch join) — в этом
-     * случае N+1 на рендере грида берёт на себя hibernate.default_batch_fetch_size
-     * (см. application.properties).
+     * Базовый граф берётся из сценария {@code LIST}; дополнительные пути могут расширить
+     * его для динамического вида. Если C3 registry отсутствует, учитываются только явные
+     * дополнительные пути, а при их отсутствии запрос идёт обычным JPA read-path.
      *
      * Публичные сервисы вызывают этот метод из своего findAll(Specification, Pageable)
      * вместо repository.findAll(spec, pageable) напрямую.
@@ -358,18 +326,29 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     }
 
     /**
-     * Вариант с явными путями fetch-графа — для ListForm с динамическим составом колонок.
-     * fetchPaths == null → граф строится из статических метаданных (как раньше);
-     * непустая коллекция → граф строится ровно из переданных путей (с поддержкой вложенных
-     * путей через subgraph, например "unitOfMeasurement.parentUnit").
+     * Вариант с дополнительными путями fetch-графа — для динамического состава колонок.
+     * Переданные пути добавляются к сценарию {@code LIST}; они не отключают его.
      */
     @Override
     public Page<T> findAll(Specification<T> spec, Pageable pageable, java.util.Collection<String> fetchPaths) {
-        return findAllWithFetchGraph(spec, pageable, fetchPaths);
+        return findAllByScenario(org.ipro.fetch.plan.FetchScenario.LIST, spec, pageable, fetchPaths);
+    }
+
+    @Override
+    public Page<T> findAllByScenario(org.ipro.fetch.plan.FetchScenario scenario,
+                                     Specification<T> spec, Pageable pageable,
+                                     java.util.Collection<String> additionalFetchPaths) {
+        return findAllWithFetchGraph(spec, pageable, scenario, additionalFetchPaths);
     }
 
     protected Page<T> findAllWithFetchGraph(Specification<T> spec, Pageable pageable,
                                             java.util.Collection<String> fetchPaths) {
+        return findAllByScenario(org.ipro.fetch.plan.FetchScenario.LIST, spec, pageable, fetchPaths);
+    }
+
+    protected Page<T> findAllWithFetchGraph(Specification<T> spec, Pageable pageable,
+                                            org.ipro.fetch.plan.FetchScenario scenario,
+                                            java.util.Collection<String> additionalFetchPaths) {
         if (!canRead()) {
             return Page.empty(pageable);
         }
@@ -384,9 +363,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
         applySort(pageable, dataRoot, dataQuery, cb);
 
         TypedQuery<T> typedQuery = entityManager.createQuery(dataQuery);
-        EntityGraph<T> graph = (fetchPaths != null)
-            ? buildFetchGraph(domainClass, fetchPaths)
-            : buildFetchGraph(domainClass);
+        EntityGraph<T> graph = buildFetchGraph(domainClass, scenario, additionalFetchPaths);
         if (graph != null) {
             typedQuery.setHint("jakarta.persistence.fetchgraph", graph);
         }
@@ -472,18 +449,35 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
     }
 
     /**
-     * EntityGraph по ENTITY_REFERENCE-полям грида (из @EntityMetadata/@FieldMetadata) —
-     * ровно то, что нужно для рендера грида, не более. null — если сущность не
-     * metadata-driven, или у неё нет ни одной entity-reference колонки.
+     * EntityGraph сценария из единого плана C3.4 — вместо локального перечисления
+     * ENTITY_REFERENCE-полей. План выводится в {@code FetchPlanRegistry} из эффективной
+     * metadata, зависимостей instance name и объявленных зависимостей выбора, поэтому
+     * список и форма грузят то, что объявлено, а не то, что знает этот класс.
+     *
+     * <p>null — если C3-граница не подключена (ручная сборка сервиса) и дополнительных
+     * путей нет, либо если итоговый план пуст.</p>
      */
-    private EntityGraph<T> buildFetchGraph(Class<T> domainClass) {
-        EntityMetadataInfo meta;
-        try {
-            meta = metadataResolver.resolve(domainClass);
-        } catch (IllegalArgumentException notMetadataDriven) {
-            return null;
+    private EntityGraph<T> buildFetchGraph(Class<T> domainClass,
+                                           org.ipro.fetch.plan.FetchScenario scenario) {
+        return buildFetchGraph(domainClass, scenario, List.of());
+    }
+
+    /** Сценарий — обязательная основа графа; dynamic paths могут только расширить её. */
+    private EntityGraph<T> buildFetchGraph(Class<T> domainClass,
+                                           org.ipro.fetch.plan.FetchScenario scenario,
+                                           java.util.Collection<String> additionalPaths) {
+        LinkedHashSet<String> paths = new LinkedHashSet<>();
+        if (fetchPlanRegistry == null) {
+            if (additionalPaths == null || additionalPaths.isEmpty()) {
+                return null;
+            }
+        } else {
+            paths.addAll(fetchPlanRegistry.paths(domainClass, scenario));
         }
-        return buildFetchGraph(domainClass, FetchGraphs.entityReferencePaths(meta.getGridFields()));
+        if (additionalPaths != null) {
+            paths.addAll(additionalPaths);
+        }
+        return buildFetchGraph(domainClass, paths);
     }
 
     /**
@@ -494,7 +488,8 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
      */
     private EntityGraph<T> buildFetchGraph(Class<T> domainClass, java.util.Collection<String> paths) {
         return FetchGraphs.fromPaths(entityManager, domainClass,
-            FetchGraphs.deepen(domainClass, paths, metadataResolver));
+            FetchGraphs.deepen(domainClass, paths, metadataResolver,
+                InstanceNameBridge::instanceNamePaths));
     }
 
     public Number sum(String fieldName, Specification<T> spec) {
@@ -547,7 +542,11 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
 
     /**
      * Хук доменных бизнес-правил сервиса: вызывается между {@link #validate(Object)}
-     * (bean-валидация) и {@link #checkRlsWrite(Object)} в save/create/update. По умолчанию
+     * (bean-валидация) и записью через repository в save/create/update; RLS write
+     * enforcement при этом выполнен РАНЬШЕ — на входе в операцию
+     * ({@link #authorizeWrite(Object, boolean)}), поэтому хук не запускается для
+     * запрещённой операции. Repository-aspect и flush-listener остаются последним
+     * рубежом для каналов в обход сервиса. По умолчанию
      * ничего не делает — переопределяется в сервисах с кросс-полевой/кросс-сущностной
      * логикой, которую bean-валидацией не выразить. Исключение из хука прерывает
      * сохранение, как и из validate().

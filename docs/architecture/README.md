@@ -8,12 +8,14 @@
 |---|---|
 | [`../../JMIX_GitVaa_Roadmap_v2.md`](../../JMIX_GitVaa_Roadmap_v2.md) | Текущие приоритеты, этапы и Definition of Done |
 | [`appdev-first-audit.md`](appdev-first-audit.md) | Living audit нарушений AppDev-first, artifact budgets и карта их устранения по этапам |
+| [`c3-fetchplan-instance-name-plan.md`](c3-fetchplan-instance-name-plan.md) | Детальный план пилота C3: FetchPlan, InstanceName, миграция ручного fetch-кода и приёмочные gates |
 | [`security-channel-matrix.md`](security-channel-matrix.md) | C1: карта каналов доступа, владельцев enforcement и допустимых privileged bypass |
 | [`decisions/ADR-0001-platform-roadmap-stages.md`](decisions/ADR-0001-platform-roadmap-stages.md) | Принятое разделение Engineering Baseline, RLS enforcement и физической модульности |
 | [`decisions/ADR-0002-lifecycle-event-semantics.md`](decisions/ADR-0002-lifecycle-event-semantics.md) | Семантика Saving/Saved/Changed/Deleting/Deleted и граница транзакции |
 | [`decisions/ADR-0003-developer-experience-and-default-aggregate-save.md`](decisions/ADR-0003-developer-experience-and-default-aggregate-save.md) | Постулат AppDev-first, metadata-driven default save и custom override policy |
 | [`decisions/ADR-0004-semantic-entity-archetypes.md`](decisions/ADR-0004-semantic-entity-archetypes.md) | Семантические типы сущностей, стандартные базовые классы, numbering policies и независимые owned sections |
 | [`decisions/ADR-0005-entity-lifecycle-and-application-behavior.md`](decisions/ADR-0005-entity-lifecycle-and-application-behavior.md) | Единая точка `EntityLifecycle<T>` для прикладных callbacks, границы operations/queries/UI и feature-package convention |
+| [`decisions/ADR-0006-fetchplan-and-instance-name.md`](decisions/ADR-0006-fetchplan-and-instance-name.md) | Сценарные FetchPlan и единый InstanceName: границы API/SPI/internal, `ManagedEntityCatalog` как единственный источник сущностей |
 | [`status/current-baseline.md`](status/current-baseline.md) | Проверяемое состояние сборки и этапов |
 | [`status/wip-inventory.md`](status/wip-inventory.md) | Состав незавершённого save/events среза |
 | [`build/local-dependency-workspace.md`](build/local-dependency-workspace.md) | Воспроизводимая сборка соседних fork/SNAPSHOT-проектов |

@@ -9,7 +9,9 @@ import java.util.Map;
  * нескольких измерений сразу, например документ с проверкой и по Журналу, и по Филиалу
  * через два разных Цеха).
  *
- * checkRlsWrite/checkRlsDelete в AbstractBaseService требуют ВСЕ проверки из ВСЕХ
+ * Общая RLS-граница записи ({@link RlsPolicyEnforcer#requireUpdate(Object)} /
+ * {@link RlsPolicyEnforcer#requireDelete(Object)}, вызываемая repository-aspect'ом)
+ * требует ВСЕ проверки из ВСЕХ
  * измерений разом (AND) — как между разными измерениями, так и между несколькими
  * проверками одного измерения (например, у ReceivingDocument по измерению "BRANCH" — две
  * проверки: через Цех-приёмщик и через Цех-сдатчик, обе должны пройти).

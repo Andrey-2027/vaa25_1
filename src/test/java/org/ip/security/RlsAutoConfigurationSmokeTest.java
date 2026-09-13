@@ -200,9 +200,10 @@ class RlsAutoConfigurationSmokeTest {
     private BranchRepository branchRepository;
 
     /**
-     * Write-guard на реальном сервисе (после дедупликации save/create/update в Фазе 1.3):
-     * без ENTITY-гранта создание Накладной должно быть заблокировано на уровне
-     * checkRlsWrite (наследуемого из AbstractBaseService), а не сохранено молча.
+     * Write-guard на реальном сервисе (после удаления дублирующей сервисной проверки
+     * в C3.0.1): без ENTITY-гранта создание Накладной должно быть заблокировано общей
+     * RLS-границей (RlsRepositoryEnforcementAspect при repository.save), а не сохранено
+     * молча.
      * В свежей БД bootstrap разрешает JOURNAL/BRANCH (грантов нет), но CHECK_ONLY
      * измерение "ENTITY:ReceivingDocument" bootstrap'ом НЕ покрывается (AccessService.
      * isNewDimensionValueAllowed) — блокирует именно оно.

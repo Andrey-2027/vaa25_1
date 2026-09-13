@@ -46,11 +46,6 @@ class UreportTemplateServiceTest {
                 .getDeclaredField("numberingService");
         numbering.setAccessible(true);
         numbering.set(service, java.util.Optional.empty());
-        // accessService используется в checkRlsWrite (method reference) - мокаем
-        java.lang.reflect.Field access = org.ipro.crud.AbstractBaseService.class
-                .getDeclaredField("accessService");
-        access.setAccessible(true);
-        access.set(service, mock(org.ipro.rls.AccessService.class));
     }
 
     @Test

@@ -95,7 +95,8 @@ public class SelectionFormAssembler {
         for (ColumnPath path : resolved.columns()) fetchPaths.addAll(path.getFetchPaths());
 
         JpaFilterGrid<T> filterGrid = new JpaFilterGrid<>(
-            entityClass, (spec, pageable) -> service.findAll(spec, pageable, fetchPaths));
+            entityClass, (spec, pageable) -> service.findAllByScenario(
+                org.ipro.fetch.plan.FetchScenario.LOOKUP, spec, pageable, fetchPaths));
         Specification<T> fixed = specificationFor(filters);
         if (fixed != null) filterGrid.setAdditionalSpecification(fixed);
 

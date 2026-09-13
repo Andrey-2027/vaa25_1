@@ -39,12 +39,10 @@ class GroupNomServiceVersionTest {
         GroupNomService service = new GroupNomService(groupNomRepository,
                 jakarta.validation.Validation.buildDefaultValidatorFactory().getValidator());
         // Поля, не участвующие в save() GroupNom, не нужны; numberingService —
-        // Optional-бин, без инъекции был бы null → NPE в assignNumbers(),
-        // а checkRlsWrite() строит method reference accessService::canUpdate
-        // ещё до early-return по не-RLS сущности → нужен non-null accessService.
+        // Optional-бин, без инъекции был бы null → NPE в assignNumbers(). RLS
+        // write-guard больше не живёт в сервисе (C3.0.1), поэтому accessService
+        // сервису не нужен.
         ReflectionTestUtils.setField(service, "numberingService", Optional.empty());
-        ReflectionTestUtils.setField(service, "accessService",
-                org.mockito.Mockito.mock(org.ipro.rls.AccessService.class));
         return service;
     }
 

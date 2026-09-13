@@ -1282,10 +1282,7 @@ public class ReportQueryEditor extends VerticalLayout {
         if (value == null) {
             return "—";
         }
-        if (value instanceof HasDisplayName named) {
-            return named.getDisplayName();
-        }
-        return value.toString();
+        return org.ipro.fetch.instance.InstanceNameBridge.displayName(value);
     }
 
     private void updateAliases(QueryEditorAnalysis analysis) {

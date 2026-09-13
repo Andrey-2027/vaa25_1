@@ -8,7 +8,6 @@ import org.ipro.metadata.annotation.FieldType;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,7 +65,9 @@ public final class FetchGraphs {
      * (например, {@code PrdSpec.getDisplayName()} читает {@code nomenclature}) — после закрытия
      * сессии такой прокси даёт LazyInitializationException. Этот метод добавляет к каждому пути,
      * заканчивающемуся (или проходящему через) ENTITY_REFERENCE-сегмент, вложенные пути из
-     * display-состава цели (selectColumns, fallback — displaySortFields), рекурсивно.
+     * состава отображаемого имени цели — единый {@code @InstanceName} для мигрированных
+     * сущностей, иначе metadata-производный (selectColumns, fallback — displaySortFields) —
+     * рекурсивно.
      *
      * Например: "prdSpecMtr" + selectColumns(PrdSpec) = [codeSpec, nomenclature.name]
      *   → добавляется "prdSpecMtr.nomenclature".
@@ -77,9 +78,22 @@ public final class FetchGraphs {
      */
     public static List<String> deepen(Class<?> rootClass, Collection<String> fetchPaths,
                                       MetadataResolver metadataResolver) {
+        return deepen(rootClass, fetchPaths, metadataResolver, InstanceNameSource.NONE);
+    }
+
+    /**
+     * То же, но состав имени цели берётся из единого источника C3 для сущностей, объявивших
+     * {@code @InstanceName}, и из metadata — для остальных. Без этого grid/list-канал
+     * продолжал бы углубляться по {@code selectColumns}, а имя мигрированной сущности
+     * вычислялось бы иначе, чем в lookup и аудите (ADX-09).
+     */
+    public static List<String> deepen(Class<?> rootClass, Collection<String> fetchPaths,
+                                      MetadataResolver metadataResolver,
+                                      InstanceNameSource instanceNameSource) {
         if (fetchPaths == null || fetchPaths.isEmpty() || metadataResolver == null) {
             return List.copyOf(fetchPaths == null ? List.of() : fetchPaths);
         }
+        InstanceNameSource names = instanceNameSource == null ? InstanceNameSource.NONE : instanceNameSource;
 
         Set<String> result = new LinkedHashSet<>(fetchPaths);
         Deque<DeepenTask> queue = new ArrayDeque<>();
@@ -105,20 +119,7 @@ public final class FetchGraphs {
             DeepenTask task = queue.poll();
             if (task.depth() > MAX_DEEPEN_DEPTH) continue;
 
-            EntityMetadataInfo targetMeta;
-            try {
-                targetMeta = metadataResolver.resolve(task.targetClass());
-            } catch (IllegalArgumentException notMetadataDriven) {
-                continue;
-            }
-
-            List<ColumnPath> displayColumns = targetMeta.getSelectColumnPaths();
-            if (displayColumns.isEmpty()) {
-                displayColumns = targetMeta.getDisplaySortFields().stream()
-                    .map(name -> safeResolve(targetMeta.getEntityClass(), name))
-                    .filter(java.util.Objects::nonNull)
-                    .toList();
-            }
+            List<ColumnPath> displayColumns = nameComposition(task.targetClass(), metadataResolver, names);
 
             for (ColumnPath display : displayColumns) {
                 for (String nested : display.getFetchPaths()) {
@@ -132,63 +133,46 @@ public final class FetchGraphs {
         return List.copyOf(result);
     }
 
+    /**
+     * Состав отображаемого имени цели: единый instance name для мигрированных сущностей,
+     * иначе metadata-производный ({@code selectColumns} → {@code displaySortFields}).
+     */
+    private static List<ColumnPath> nameComposition(Class<?> targetClass, MetadataResolver metadataResolver,
+                                                   InstanceNameSource instanceNameSource) {
+        List<String> declared = instanceNameSource.pathsOf(targetClass);
+        if (!declared.isEmpty()) {
+            List<ColumnPath> resolved = new java.util.ArrayList<>(declared.size());
+            for (String name : declared) {
+                ColumnPath path = safeResolve(targetClass, name);
+                if (path != null) {
+                    resolved.add(path);
+                }
+            }
+            return List.copyOf(resolved);
+        }
+
+        EntityMetadataInfo targetMeta;
+        try {
+            targetMeta = metadataResolver.resolve(targetClass);
+        } catch (IllegalArgumentException notMetadataDriven) {
+            return List.of();
+        }
+        List<ColumnPath> displayColumns = targetMeta.getSelectColumnPaths();
+        if (displayColumns.isEmpty()) {
+            displayColumns = targetMeta.getDisplaySortFields().stream()
+                .map(name -> safeResolve(targetMeta.getEntityClass(), name))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+        }
+        return displayColumns;
+    }
+
     private static ColumnPath safeResolve(Class<?> rootClass, String path) {
         try {
             return ColumnPath.resolve(rootClass, path);
         } catch (IllegalArgumentException invalidPath) {
             return null;
         }
-    }
-
-    /**
-     * Все пути ассоциаций сущности, которые нужно инициализировать, чтобы выбранная из
-     * lookup-поиска сущность была "живой" для UI-кода: прямые ENTITY_REFERENCE-поля +
-     * их ссылки до заданной глубины (BFS).
-     *
-     * Это не то же самое, что {@link #deepen}: deepen углубляет через display-состав целей
-     * (selectColumns/displaySortFields) — например, для Nomenclature display-состав {code, name},
-     * и unitOfMeasurement туда не попадёт. Этот метод идёт по структуре ассоциаций самой
-     * сущности: для PrdSpec {nomenclature} → у Nomenclature есть ссылка unitOfMeasurement →
-     * при глубине 2 результат ровно ["nomenclature", "nomenclature.unitOfMeasurement"].
-     *
-     * Защиты: BFS с лимитом глубины (против циклов A→B→A), visited по классу, dedupe.
-     */
-    public static List<String> associationPaths(Class<?> rootClass, MetadataResolver metadataResolver,
-                                                int maxDepth) {
-        if (rootClass == null || metadataResolver == null || maxDepth < 1) {
-            return List.of();
-        }
-
-        Set<String> result = new LinkedHashSet<>();
-        Set<Class<?>> visited = new HashSet<>();
-        Deque<DeepenTask> queue = new ArrayDeque<>();
-
-        for (FieldMetadataInfo field : entityReferenceFields(rootClass, metadataResolver)) {
-            result.add(field.getName());
-            queue.add(new DeepenTask(field.getName(), field.getJavaType(), 1));
-        }
-
-        while (!queue.isEmpty()) {
-            DeepenTask task = queue.poll();
-            if (task.depth() >= maxDepth || !visited.add(task.targetClass())) {
-                continue;
-            }
-            for (FieldMetadataInfo nestedField : entityReferenceFields(task.targetClass(), metadataResolver)) {
-                String extended = task.prefix() + "." + nestedField.getName();
-                if (result.add(extended)) {
-                    queue.add(new DeepenTask(extended, nestedField.getJavaType(), task.depth() + 1));
-                }
-            }
-        }
-        return List.copyOf(result);
-    }
-
-    /** ENTITY_REFERENCE-поля класса (resolveRowMetadata работает для любого класса). */
-    private static List<FieldMetadataInfo> entityReferenceFields(Class<?> entityClass,
-                                                                 MetadataResolver metadataResolver) {
-        return metadataResolver.resolveRowMetadata(entityClass).getFormFields().stream()
-            .filter(f -> f.getResolvedType() == FieldType.ENTITY_REFERENCE)
-            .toList();
     }
 
     /** Один шаг BFS-обхода: путь + класс цели + глубина. */

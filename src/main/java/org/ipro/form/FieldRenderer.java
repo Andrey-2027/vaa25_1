@@ -1,7 +1,7 @@
 package org.ipro.form;
 
+import org.ipro.fetch.instance.InstanceNameBridge;
 import org.ipro.metadata.annotation.FieldType;
-import org.ipro.metadata.HasDisplayName;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -102,16 +102,13 @@ public interface FieldRenderer extends Function<Object, String> {
     }
 
     /**
-     * Рендер связанной сущности (@ManyToOne, @OneToOne).
-     * Если сущность implements HasDisplayName — использует getDisplayName().
-     * Иначе — toString().
+     * Рендер связанной сущности (@ManyToOne, @OneToOne) через единый источник имени:
+     * мигрированные на {@code @InstanceName} сущности берутся из резолвера, остальные —
+     * {@code HasDisplayName}, иначе {@code toString()}. Ни один канал отображения не должен
+     * собирать эту лестницу сам (ADX-09).
      */
     static FieldRenderer entityReference() {
-        return value -> {
-            if (value == null) return "";
-            if (value instanceof HasDisplayName h) return h.getDisplayName();
-            return value.toString();
-        };
+        return value -> InstanceNameBridge.displayName(value);
     }
 
     /**

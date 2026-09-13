@@ -65,9 +65,9 @@ Correctness и security не упрощаются ради уменьшения 
 | `ADX-04` | Обязательные repository/service и magic lookup | P1 | `OPEN` | C4 |
 | `ADX-05` | Повторяющийся/in-memory search | P1 | `OPEN` | C4 |
 | `ADX-06` | Дублирование RLS intent | P0 | `DONE: descriptor есть, read-предикат проверяется и для custom-политики` | C2 |
-| `ADX-07` | Fetch/session knowledge в UI | P1 | `OPEN` | C3 |
+| `ADX-07` | Fetch/session knowledge в UI | P1 | `DONE: граф сценария даёт FetchPlan, форма декларативна` | C3 |
 | `ADX-08` | Дублирование JPA/validation/UI metadata | P1 | `OPEN` | C3-C4 |
-| `ADX-09` | Несколько источников InstanceName | P1 | `OPEN` | C3 |
+| `ADX-09` | Несколько источников InstanceName | P1 | `DONE: пилот и каналы отображения на одном источнике` | C3 |
 | `ADX-10` | Центральная регистрация global search | P2 | `OPEN` | C4/E3 |
 | `ADX-11` | Тяжёлый stringly-typed form API | P2 | `OPEN` | E3 |
 | `ADX-12` | Нет единой discoverable точки entity lifecycle | P1 | `WIP: core закрыт` | B4/E3 |
@@ -243,6 +243,21 @@ lookup entities, чтобы избежать `LazyInitializationException` по�
 **Закрытие.** Custom form не содержит EntityGraph hints, depth constants, reload ради
 lazy proxy или обработки `LazyInitializationException`.
 
+**Прогресс 2026-09-13 (закрыто).** Срез C3.3–C3.5: появился `FetchPlanRegistry` с ключом
+`(entityClass, scenario)` для `LIST`/`DETAIL`/`LOOKUP`/`ROW` и декларация зависимостей
+выбора `@Lookup(fetch = ...)`. `PrdSpecMtr` объявил `unitOfMeasurement` (от номенклатуры)
+и `nomenclature` + `nomenclature.unitOfMeasurement` (от спецификации компонента), а
+`PrdSpecMtrFormCustomization` читает обычные геттеры. Из кастомизации удалены
+`LOOKUP_FETCH_DEPTH`, `FetchGraphs.associationPaths`, перечитывание по ID и знание о
+сессии; `FetchGraphs.associationPaths` как отдельный механизм удалён. Закрытие
+зафиксировано ArchUnit-правилом `ApplicationFormFetchBoundaryTest`: кастомизация формы не
+может зависеть от `jakarta.persistence`/`org.hibernate`, `FetchGraphs` или `LookupService`.
+Приёмка — `FetchPlanLookupHydrationIT` (объявленные зависимости приходят загруженными из
+`LookupService.search`) и `FetchPlanRegistryTest` (невалидный объявленный путь — отказ
+старта). Дополнительно сценарии `LIST`/`DETAIL`/`ROW` подключены к существующей
+read-границе (`AbstractBaseService`, `GenericOwnedSectionService`, `ItemTable`), поэтому
+перечисление ссылочных полей убрано и из неё; приёмка — `FetchPlanReadBoundaryIT`.
+
 ### ADX-08 — дублирование JPA, Bean Validation и UI metadata (`P1`, C3/C4)
 
 **Сейчас.** Обязательность повторяется в `@NotNull/@NotBlank`, `@Column(nullable=false)`
@@ -286,6 +301,37 @@ fallback; consumers не реализуют собственную паралл�
 
 **Закрытие.** Пилотные entities имеют один источник instance name; lookup/search/audit
 дают согласованное представление без lazy loading.
+
+**Прогресс 2026-09-13.** Срез C3.2: введён `InstanceNameResolver` с публичной
+декларацией `@InstanceName` (явные paths либо вывод из metadata `displaySortFields`) и
+startup-валидацией. Пилотные `ReceivingDocument` (явные paths `number`+`date`, ранее —
+`toString()`) и `Nomenclature` (metadata-derived `code`+`name`) переведены на единый
+источник; lookup (`FieldRenderer`), глобальный поиск (`JpaGlobalSearchProvider`), аудит
+(`EntitySnapshot`) и RLS-каталог (`RlsDimensionValueCatalog`) используют его для
+мигрированных сущностей, а немигрированные сохраняют прежнее представление. На момент
+этого среза ещё предстояли приёмка C3.6 (измерения, detached-render и query/graph gates)
+и распространение на остальные сущности. Приёмка C3.6 закрыта в следующем срезе;
+широкая миграция остальных сущностей остаётся отдельной работой.
+
+**Прогресс 2026-09-13 (закрыто).** Срез C3.3–C3.5: параллельные резолюции имён у
+потребителей сняты — единая лестница `definition → HasDisplayName → toString` живёт в
+`InstanceNameBridge.displayName`, и через неё теперь идут lookup (`EntityField` — подписи
+саггеста и текст поля), grid/list (`FieldRenderer`, `ListForm` группировка и
+`ComboBoxFilter`), контекстные фильтры (`ContextFilterPanel`), фильтры вида
+(`GridViewEditorDialog`), отчёты (`ReportQueryExecutor`, `ReportQueryEditor`) и
+RLS-каталог. Важное следствие: каналы, которые раньше кастовали значение к
+`HasDisplayName`, на мигрированной сущности без этого интерфейса (`ReceivingDocument`)
+падали или показывали `toString()` — теперь они дают единое имя. Углубление fetch-графов
+(`FetchGraphs.deepen`) тоже читает состав имени из единого источника, поэтому grid
+загружает ровно то, что нужно имени, а не `selectColumns`. Startup-валидация глобального
+поиска принимает `@InstanceName` как самодостаточное представление вместо требования
+`HasDisplayName`. Немигрированные сущности сохраняют прежнее поведение — это осознанный
+compatibility-путь, а не второй рекомендуемый источник.
+
+**Текущий статус после C3.6–C3.7 (закрыто).** Приёмочные измерения подтверждены тестами;
+bridge выбирает подходящую регистрацию и для отображения, и для анализа имени/fetch-путей
+по типу сущности. Поздний частичный контекст больше не затеняет resolver, знающий пилотный
+тип. Распространение `@InstanceName` на остальные сущности остаётся отдельной миграцией.
 
 ### ADX-10 — центральная ручная регистрация глобального поиска (`P2`, C4/E3)
 

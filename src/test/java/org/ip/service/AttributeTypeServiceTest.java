@@ -10,7 +10,6 @@ import org.ip.model.AttributeValueType;
 import org.ip.repository.AttributeTypeRepository;
 import org.ip.repository.AttributeValueRepository;
 import org.ipro.crud.ValidationException;
-import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsReadGate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,6 @@ class AttributeTypeServiceTest {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         AttributeTypeService service = new AttributeTypeService(
             attributeTypeRepository, attributeValueRepository, validator);
-        ReflectionTestUtils.setField(service, "accessService", mock(AccessService.class));
         ReflectionTestUtils.setField(service, "numberingService", Optional.empty());
         RlsReadGate readGate = mock(RlsReadGate.class);
         when(readGate.canRead(any(), anyString())).thenReturn(true);

@@ -535,8 +535,8 @@ class RlsIntegrationTest {
      * "Пользователь может создавать Накладные, но не имеет доступа к Ордерам" — в
      * точности этот механизм: canUpdate по "ENTITY:ReceivingDocument" не зависит от
      * JOURNAL/BRANCH вообще, это отдельное AND-условие в write-guard'е (см.
-     * AbstractBaseService.checkRls — не тестируем здесь напрямую, см. javadoc класса, но
-     * сама проверка через AccessService — та же самая, что checkRls вызывает внутри).
+     * RlsPolicyEnforcer.requireUpdate — не тестируем здесь напрямую, см. javadoc класса,
+     * но сама проверка через AccessService — та же самая, что граница вызывает внутри).
      */
     @Test
     void entityLevelGrantGatesWriteIndependentlyOfJournalAndBranch() {

@@ -26,6 +26,7 @@ public final class FieldMetadataInfo {
     private final String lookupVariant;
     private final String[] lookupColumns;
     private final String[] lookupSearchFields;
+    private final String[] lookupFetch;
 
     public FieldMetadataInfo(Field field, FieldMetadata annotation) {
         this.field = field;
@@ -38,6 +39,7 @@ public final class FieldMetadataInfo {
         this.lookupVariant = hasLookup ? lookup.variant() : "";
         this.lookupColumns = hasLookup ? lookup.columns().clone() : new String[0];
         this.lookupSearchFields = hasLookup ? lookup.searchFields().clone() : new String[0];
+        this.lookupFetch = hasLookup ? lookup.fetch().clone() : new String[0];
 
         field.setAccessible(true);
     }
@@ -202,6 +204,14 @@ public final class FieldMetadataInfo {
      */
     public String[] getLookupSearchFields() {
         return lookupSearchFields.clone();
+    }
+
+    /**
+     * Зависимости сценария выбора для этого поля — см. {@link Lookup#fetch()}.
+     * Пустой массив — у выбранного значения дополнительных связей не запрашивается.
+     */
+    public String[] getLookupFetch() {
+        return lookupFetch.clone();
     }
 
     @Override

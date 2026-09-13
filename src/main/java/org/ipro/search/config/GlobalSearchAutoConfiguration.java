@@ -1,6 +1,7 @@
 package org.ipro.search.config;
 
 import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.fetch.instance.InstanceNameResolver;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.ipro.rls.RlsCurrentUser;
@@ -16,6 +17,7 @@ import org.ipro.search.GlobalSearchProviderRegistry;
 import org.ipro.search.GlobalSearchService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
@@ -46,8 +48,11 @@ public class GlobalSearchAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(GlobalSearchProviderRegistry.class)
     public GlobalSearchProviderRegistry globalSearchProviderRegistry(
-            List<GlobalSearchProvider<?>> providers) {
-        return new GlobalSearchProviderRegistry(providers);
+            List<GlobalSearchProvider<?>> providers,
+            ObjectProvider<InstanceNameResolver> instanceNameResolver) {
+        // Optional: граница C3 может отсутствовать (например, metadata-only slice), и тогда
+        // поиск работает по прежним объявленным display fields без обязательного бина.
+        return new GlobalSearchProviderRegistry(providers, instanceNameResolver.getIfAvailable());
     }
 
     @Bean

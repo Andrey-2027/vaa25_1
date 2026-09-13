@@ -34,9 +34,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 /**
- * Фаза 8 RLS-плана: отказ прав в write-guard'е сервиса (checkRls) фиксируется
- * SECURITY-событием "rls:denied" через durable-путь SecurityEventLogger — до
- * броска ValidationException. Полезно для журнала админки (SECURITY хранится 1 год):
+ * Фаза 8 RLS-плана: отказ прав на общей RLS-границе (RlsPolicyEnforcer через
+ * repository-aspect) фиксируется SECURITY-событием "rls:denied" через durable-путь
+ * SecurityEventLogger — до броска RlsAccessDeniedException. Полезно для журнала
+ * админки (SECURITY хранится 1 год):
  * видно, кто и по какому измерению пытался изменить запись.
  */
 @SpringBootTest

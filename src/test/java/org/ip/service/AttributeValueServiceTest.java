@@ -22,7 +22,6 @@ import org.ip.repository.UnitOfMeasurementRepository;
 import org.ipro.crud.LookupService;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.crud.ValidationException;
-import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsReadGate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +92,6 @@ class AttributeValueServiceTest {
             attributeValueRepository, attributeTypeRepository,
             sklNomOpaRepository, sklNomOpaValueRepository,
             lookupService, entityCatalog, validator, transactionManager);
-        ReflectionTestUtils.setField(service, "accessService", mock(AccessService.class));
         ReflectionTestUtils.setField(service, "numberingService", Optional.empty());
         RlsReadGate readGate = mock(RlsReadGate.class);
         when(readGate.canRead(any(), anyString())).thenReturn(true);

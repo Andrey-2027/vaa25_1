@@ -107,8 +107,7 @@ public class ContextFilterPanel extends HorizontalLayout {
             box.setItems(query -> lookupService.findAll((Class) source).stream()
                 .map(item -> (Object) item));
         }
-        box.setItemLabelGenerator(item -> item instanceof HasDisplayName d
-            ? d.getDisplayName() : String.valueOf(item));
+        box.setItemLabelGenerator(org.ipro.fetch.instance.InstanceNameBridge::displayName);
         box.addValueChangeListener(e -> onValue.accept(field.path(), e.getValue()));
         add(box);
         return box;

@@ -68,7 +68,7 @@ public final class RlsDimensionValueCatalog {
     }
 
     private static String instanceName(Object value) {
-        return value instanceof HasDisplayName named ? named.getDisplayName() : String.valueOf(value);
+        return org.ipro.fetch.instance.InstanceNameBridge.displayName(value);
     }
 
     private static String text(Object value) {

@@ -130,6 +130,11 @@ public final class ColumnPath {
         return path;
     }
 
+    /** Корневое поле пути; используется, например, чтобы заменить загруженную JPA-ссылку. */
+    public Field getRootField() {
+        return chain.get(0);
+    }
+
     /** true — путь через точку (цепочка длиной больше одного поля). */
     public boolean isNested() {
         return chain.size() > 1;

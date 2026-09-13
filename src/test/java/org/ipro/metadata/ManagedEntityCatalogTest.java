@@ -32,6 +32,13 @@ class ManagedEntityCatalogTest {
     }
 
     @Test
+    void exposesAllManagedEntityClassesWithoutASecondScan() {
+        assertThat(catalog().managedEntityClasses())
+            .contains(GroupNom.class, Nomenclature.class, org.ip.model.Journal.class)
+            .doesNotContain(String.class);
+    }
+
+    @Test
     void rejectsBlankName() {
         assertThatThrownBy(() -> catalog().resolve("  ", HasDisplayName.class))
             .isInstanceOf(ValidationException.class);
