@@ -13,6 +13,8 @@ import org.ipro.events.EntityEventPublisher;
 import org.ipro.events.EventContext;
 import org.ipro.events.EventSource;
 import org.ipro.lifecycle.EntityLifecycleRegistry;
+import org.ipro.metadata.SectionMetadataRegistry;
+import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.numbering.NumberingService;
 import org.ipro.rls.RlsPolicyEnforcer;
 
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Единый canonical write pipeline (C4, ADR-0007 §5):
@@ -62,6 +65,7 @@ public class CanonicalWriteExecutor {
     private final EntityLifecycleRegistry lifecycleRegistry;
     private final GenericOwnedSectionService ownedSectionService;
     private final ReferenceCheckService referenceCheckService;
+    private final SectionMetadataRegistry sectionMetadataRegistry;
 
     public CanonicalWriteExecutor(EntityDescriptorCatalog catalog,
                                   CanonicalReadExecutor readExecutor,
@@ -72,7 +76,8 @@ public class CanonicalWriteExecutor {
                                   EntityEventPublisher eventPublisher,
                                   EntityLifecycleRegistry lifecycleRegistry,
                                   GenericOwnedSectionService ownedSectionService,
-                                  ReferenceCheckService referenceCheckService) {
+                                  ReferenceCheckService referenceCheckService,
+                                  SectionMetadataRegistry sectionMetadataRegistry) {
         this.catalog = Objects.requireNonNull(catalog, "catalog must not be null");
         this.readExecutor = Objects.requireNonNull(readExecutor, "readExecutor must not be null");
         this.entityManager = Objects.requireNonNull(entityManager, "entityManager must not be null");
@@ -86,6 +91,9 @@ public class CanonicalWriteExecutor {
         this.lifecycleRegistry = lifecycleRegistry;
         this.ownedSectionService = ownedSectionService;
         this.referenceCheckService = referenceCheckService;
+        // Optional metadata source: slice-контексты без registry сохраняют прежнее
+        // поведение, а полный контекст получает aggregate-boundary guard.
+        this.sectionMetadataRegistry = sectionMetadataRegistry;
     }
 
     /** Descriptor типа — для диагностики вызывающих. */
@@ -95,11 +103,13 @@ public class CanonicalWriteExecutor {
 
     @Transactional
     public <T extends IdentifiableEntity> T create(Class<T> type, T entity) {
+        requireIntentCoversSections(type, DataOperation.CREATE);
         return persist(type, entity, DataOperation.CREATE);
     }
 
     @Transactional
     public <T extends IdentifiableEntity> T update(Class<T> type, T entity) {
+        requireIntentCoversSections(type, DataOperation.UPDATE);
         return persist(type, entity, DataOperation.UPDATE);
     }
 
@@ -211,6 +221,33 @@ public class CanonicalWriteExecutor {
     private <T extends IdentifiableEntity> T persistNew(T entity) {
         entityManager.persist(entity);
         return entity;
+    }
+
+    /**
+     * C4.6 (ADR-0007 §5): агрегат с owned-секциями нельзя сохранить прямым {@code create}
+     * или {@code update}. Такой intent не несёт графа секций, поэтому сохранил бы только
+     * шапку, а строки оставил бы прежними.
+     *
+     * <p>Aggregate boundary — {@code MetadataDrivenAggregateSaveService}: он заменяет секции
+     * и затем вызывает {@link #save}. Отказ явный и происходит до RLS, до
+     * валидации, хуков и событий — то есть до пользовательского кода.</p>
+     */
+    private void requireIntentCoversSections(Class<?> type, DataOperation operation) {
+        if (sectionMetadataRegistry == null) {
+            return;
+        }
+        List<TableSectionMetadataInfo> sections = sectionMetadataRegistry.forOwner(type);
+        if (sections.isEmpty()) {
+            return;
+        }
+        String keys = sections.stream()
+            .map(TableSectionMetadataInfo::getKey)
+            .sorted()
+            .collect(Collectors.joining(", "));
+        throw new IllegalStateException(type.getSimpleName()
+            + " — агрегат с owned-секциями (" + keys + "): прямой " + operation
+            + " сохранил бы только шапку. Сохраняйте агрегат через aggregate boundary"
+            + " (MetadataDrivenAggregateSaveService), который заменяет секции и вызывает save().");
     }
 
     /**

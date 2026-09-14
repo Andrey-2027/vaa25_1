@@ -40,7 +40,7 @@
 | 11 | `PrdSpec` | document | да | — | ROOT | CRUD | |
 | 12 | `PrdSpecMtr` | plain | да | да | ROW | — | пересечение metadata ∩ owned row |
 | 13 | `PrdSpecOper` | plain | нет | да | ROW | — | |
-| 14 | `ReceivingDocument` | document | да | — | ROOT | CRUD | in-memory `search` |
+| 14 | `ReceivingDocument` | document | да | — | ROOT | CRUD | canonical search (C4.4); in-memory поиск удалён |
 | 15 | `ReceivingDocumentItem` | plain | нет | да | ROW | — | |
 | 16 | `Role` | plain | да | — | ROOT | CRUD | bean-name convention (`roleService`) |
 | 17 | `SklNomOpa` | plain | да | — | ROOT | через typed use case | `save`/`create`/`update`/`delete` запрещены (`SklNomOpaService:227,234,241,249`) |
@@ -108,17 +108,17 @@
 
 | Класс | Тип | Класс работы | Решение |
 |---|---|---|---|
-| `AttributeTypeService` | ROOT | pure CRUD/search boilerplate | migrate → удалить после C4.6 |
+| `AttributeTypeService` | ROOT | typed domain validation (словарь только для REF; запрет смены `valueType` при наличии значений) | retain как domain port + canonical delegation (решение C4.6) |
 | `AttributeValueService` | ROOT | typed domain (find-or-create, rename, race) | retain как domain port + canonical facade через композицию |
 | `BranchService` | ROOT | pure CRUD/search boilerplate | migrate → удалить (пилот C4.6) |
-| `GridFormViewService` | ROOT | typed UI store (visibility/ownership) | retain как custom policy provider до решения C4.6 |
+| `GridFormViewService` | ROOT | typed UI store (visibility/ownership) | retain как custom policy provider: `STANDARD_ROOT` + custom policy, canonical write — только `CREATE` (решение C4.6) |
 | `GroupNomService` | ROOT | pure CRUD/search boilerplate | migrate → удалить |
 | `JournalService` | ROOT | pure CRUD/search boilerplate | migrate → удалить (пилот C4.6) |
 | `NomSklAttributeService` | ROOT | typed (bind/unbind/setBindings) | retain как domain port |
 | `NomenclatureService` | ROOT | pure CRUD/search boilerplate | migrate → удалить |
 | `OperService` | ROOT | pure CRUD/search boilerplate | migrate → удалить |
 | `PrdSpecService` | ROOT | typed (`findByJournal`) | retain как domain port + композиция facade |
-| `ReceivingDocumentService` | ROOT | in-memory `search` + typed override | migrate: search → default engine; overrides удалить |
+| `ReceivingDocumentService` | ROOT | typed override (fetch graph) | migrate → удалить; search уже canonical с C4.4 |
 | `RoleService` | ROOT | pure CRUD/search boilerplate | migrate → удалить |
 | `SklNomOpaService` | ROOT | typed immutable aggregate (findOrCreate/items) | retain как domain port с explicit capability policy |
 | `UnitOfMeasurementService` | ROOT | pure CRUD/search boilerplate | migrate → удалить (пилот bean-name) |
@@ -334,3 +334,41 @@ directory-сущность с полным набором `@FieldMetadata` и о
 - не удаляет `serviceClass`, magic bean-name и repositories — это C4.6–C4.7;
 - не вводит `INTERNAL_STORE` exposure gate в код — он появится на первом write/read
   срезе C4.1–C4.3 и будет проверен architecture-тестом.
+
+## 11. C4.6/C4.7: решения и волны миграции
+
+Решения, зафиксированные до первого изменения кода:
+
+1. C4.5 фиксируется отдельным чекпоинт-коммитом до старта C4.6.
+2. `GridFormView` остаётся `STANDARD_ROOT` с custom policy: ownership живёт в
+   `GridFormViewService`, canonical write-handle типа — только `CREATE`.
+3. `serviceClass` убирается по волнам вместе с сущностью; сам атрибут
+   `@EntityMetadata.serviceClass()` и ветка в `ServiceLocator` удаляются одним отдельным
+   шагом в C4.7, с полным `verify` до и после.
+4. `AttributeType` остаётся domain port'ом: правило словаря и `valueType` живёт в
+   `AttributeTypeService`, стандартные read/write делегируются canonical.
+5. `AbstractBaseService` удаляется полностью: остаток перебазируется на canonical
+   composition seam, `org.ipro.crud.AbstractBaseService` исчезает.
+6. `CanonicalReadExecutor.readSum` выводится на canonical-поверхность: без этого UI-грид
+   `WorkshopListView` не отвязать от compatibility base.
+
+Волны — по нарастанию риска:
+
+| Волна | Сущности | Суть |
+|---|---|---|
+| A | `Branch`, `Journal`, `Oper`, `Role` | класс и `serviceClass` удаляются целиком; `RoleRepository` остаётся (пишет `DataInitializer`, читает `AccessGrantAdminService`) |
+| B | `GroupNom`, `Nomenclature`, `ReceivingDocument` | снимается дублирующий `findAll(spec, pageable)`, затем класс; `Nomenclature` и `ReceivingDocument` — aggregate roots с owned-секциями |
+| C | `Workshop`, `UnitOfMeasurement`, `GridFormView` | `sum` на canonical-поверхность + перевод `WorkshopListView`; `shortCode` → `@SearchFields`; у `GridFormView` снимается только дубль-override |
+| E | `AttributeValueService`, `NomSklAttributeService`, `SklNomOpaService`, `PrdSpecService`, `UserService`, `AttributeTypeService` | домен остаётся, стандартные read/write делегируются canonical |
+| F | `GridFormViewService`, `UreportTemplateService` | не удаляются, но перестают наследовать compatibility base |
+
+Заборы C4.6 (`CompatibilityMigrationArchitectureTest`): allowlist наследников
+compatibility base (17 → 0), allowlist «модель → application service» (11 → 0), UI без
+зависимостей от `org.ip.repository`, UI без собственного `EntityManager` (1 → 0). Каждый
+список проверяется в обе стороны, поэтому его можно только уменьшать.
+
+Пятый гейт C4.6 (ADR-0007 §5): агрегат с declared owned-секциями нельзя сохранить прямым
+`EntityDataAccess.create/update` — такой intent не несёт графа секций и молча сохранил бы
+только шапку. Отказ происходит до RLS, валидации, хуков и событий; aggregate boundary
+(`MetadataDrivenAggregateSaveService`) остаётся единственным путём и вызывает `save()`
+(`aggregateRootWithOwnedSectionsRejectsDirectWriteIntent`).

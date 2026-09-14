@@ -98,7 +98,7 @@ class CanonicalWritePathIT {
         ReflectionTestUtils.setField(readExecutor, "entityManager", entityManager);
 
         writeExecutor = new CanonicalWriteExecutor(catalog, readExecutor, entityManager,
-            validator, null, null, null, null, null, null);
+            validator, null, null, null, null, null, null, null);
         access = new CanonicalEntityDataAccess(catalog, readExecutor, writeExecutor, null);
         resolver = new EntityDataAccessResolver(catalog, access, readExecutor, List.of());
         service = new CanonicalEntityService<>(C4FixtureEntity.class, readExecutor, access);
@@ -180,7 +180,7 @@ class CanonicalWritePathIT {
         }).when(enforcer).requireUpdate(any());
         Validator spyValidator = spy(Validation.buildDefaultValidatorFactory().getValidator());
         CanonicalWriteExecutor guarded = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, spyValidator, enforcer, null, null, null, null, null);
+            entityManager, spyValidator, enforcer, null, null, null, null, null, null);
 
         guarded.update(C4FixtureEntity.class, submitted);
 
@@ -212,7 +212,7 @@ class CanonicalWritePathIT {
         EntityLifecycleRegistry lifecycle = mock(EntityLifecycleRegistry.class);
         EntityEventPublisher events = mock(EntityEventPublisher.class);
         CanonicalWriteExecutor guarded = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, spyValidator, enforcer, null, events, lifecycle, null, null);
+            entityManager, spyValidator, enforcer, null, events, lifecycle, null, null, null);
 
         assertThatThrownBy(() -> guarded.update(C4FixtureEntity.class, submitted))
             .isInstanceOf(IllegalStateException.class)
@@ -243,7 +243,7 @@ class CanonicalWritePathIT {
         RlsPolicyEnforcer enforcer = mock(RlsPolicyEnforcer.class);
 
         CanonicalWriteExecutor full = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, spyValidator, enforcer, numbering, events, lifecycle, null, null);
+            entityManager, spyValidator, enforcer, numbering, events, lifecycle, null, null, null);
 
         C4FixtureEntity created = full.create(C4FixtureEntity.class,
             new C4FixtureEntity("B-1", "Полный"));
@@ -271,7 +271,7 @@ class CanonicalWritePathIT {
         doThrow(new IllegalStateException("RLS denied")).when(enforcer).requireUpdate(any());
 
         CanonicalWriteExecutor guarded = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, spyValidator, enforcer, null, events, lifecycle, null, null);
+            entityManager, spyValidator, enforcer, null, events, lifecycle, null, null, null);
 
         C4FixtureEntity existing = new C4FixtureEntity("RLS-1", "Попытка изменения");
         existing.setId(saved.getId());

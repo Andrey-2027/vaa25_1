@@ -135,12 +135,13 @@ public class DataAccessAutoConfiguration {
             ObjectProvider<EntityEventPublisher> eventPublisher,
             ObjectProvider<EntityLifecycleRegistry> lifecycleRegistry,
             ObjectProvider<GenericOwnedSectionService> ownedSectionService,
-            ObjectProvider<ReferenceCheckService> referenceCheckService) {
+            ObjectProvider<ReferenceCheckService> referenceCheckService,
+            ObjectProvider<SectionMetadataRegistry> sectionMetadataRegistry) {
         return new CanonicalWriteExecutor(entityDescriptorCatalog, canonicalReadExecutor,
             entityManager, validator, rlsPolicyEnforcer.getIfAvailable(),
             numberingService.getIfAvailable(), eventPublisher.getIfAvailable(),
             lifecycleRegistry.getIfAvailable(), ownedSectionService.getIfAvailable(),
-            referenceCheckService.getIfAvailable());
+            referenceCheckService.getIfAvailable(), sectionMetadataRegistry.getIfAvailable());
     }
 
     /** Публичный canonical data access (ADR-0007 §1). */

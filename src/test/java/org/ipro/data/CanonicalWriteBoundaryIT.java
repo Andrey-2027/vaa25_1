@@ -4,6 +4,7 @@ import org.ip.config.DataInitializer;
 import org.ip.model.AttributeValue;
 import org.ip.model.GridFormView;
 import org.ip.model.NomAttributeValue;
+import org.ip.model.Nomenclature;
 import org.ip.model.SklNomOpa;
 import org.ip.model.UserFormSettings;
 import org.ip.service.BranchService;
@@ -122,6 +123,28 @@ class CanonicalWriteBoundaryIT {
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("CREATE")
             .hasMessageContaining("INTERNAL_STORE");
+    }
+
+    @Test
+    void aggregateRootWithOwnedSectionsRejectsDirectWriteIntent() {
+        // C4.6 (ADR-0007 §5): прямой create/update не несёт графа секций, поэтому молча
+        // сохранил бы только шапку. Отказ обязан быть явным и до RLS, валидации и событий,
+        // а сохранение агрегата — идти через aggregate boundary.
+        Nomenclature root = new Nomenclature();
+        root.setCode("AGG-1");
+        root.setName("Агрегат");
+
+        assertThatThrownBy(() -> access.create(Nomenclature.class, root))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("owned-секциями")
+            .hasMessageContaining("Nomenclature.NomAttributeValue")
+            .hasMessageContaining("CREATE")
+            .hasMessageContaining("aggregate boundary");
+
+        assertThatThrownBy(() -> access.update(Nomenclature.class, root))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("UPDATE")
+            .hasMessageContaining("Nomenclature.NomAttributeValue");
     }
 
     @Test
