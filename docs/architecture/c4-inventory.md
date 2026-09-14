@@ -351,6 +351,12 @@ directory-сущность с полным набором `@FieldMetadata` и о
    composition seam, `org.ipro.crud.AbstractBaseService` исчезает.
 6. `CanonicalReadExecutor.readSum` выводится на canonical-поверхность: без этого UI-грид
    `WorkshopListView` не отвязать от compatibility base.
+7. Интернированные сущности (ADR-0008, ADX-13) получают один механизм
+   `NaturalKeyCreateSupport` и поведенческий маркер `InternedEntity`; узкий service-шов для
+   них строится на canonical-шве и вводится вместе с удалением `AbstractBaseService`,
+   чтобы не завести нового наследника compatibility-базы накануне её удаления. Волна E
+   поэтому переводит `AttributeValueService`/`SklNomOpaService` только на делегирование
+   CRUD: `save`/`create`/`update`/`delete` остаются в базе до C4.7.
 
 Волны — по нарастанию риска:
 

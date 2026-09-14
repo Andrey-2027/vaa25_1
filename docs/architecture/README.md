@@ -19,6 +19,7 @@
 | [`decisions/ADR-0005-entity-lifecycle-and-application-behavior.md`](decisions/ADR-0005-entity-lifecycle-and-application-behavior.md) | Единая точка `EntityLifecycle<T>` для прикладных callbacks, границы operations/queries/UI и feature-package convention |
 | [`decisions/ADR-0006-fetchplan-and-instance-name.md`](decisions/ADR-0006-fetchplan-and-instance-name.md) | Сценарные FetchPlan и единый InstanceName: границы API/SPI/internal, `ManagedEntityCatalog` как единственный источник сущностей |
 | [`decisions/ADR-0007-canonical-data-access-path.md`](decisions/ADR-0007-canonical-data-access-path.md) | C4: canonical `EntityDataAccess`, таксономия экспозиции типов, судьба generic CRUD-баз, search semantics, telemetry policy и compatibility milestones |
+| [`decisions/ADR-0008-interned-entities.md`](decisions/ADR-0008-interned-entities.md) | Интернированные сущности: натуральный ключ как capability, поведенческий маркер `InternedEntity`, один механизм `NaturalKeyCreateSupport` и граница с обычным справочником |
 | [`status/current-baseline.md`](status/current-baseline.md) | Проверяемое состояние сборки и этапов |
 | [`status/wip-inventory.md`](status/wip-inventory.md) | Состав незавершённого save/events среза |
 | [`build/local-dependency-workspace.md`](build/local-dependency-workspace.md) | Воспроизводимая сборка соседних fork/SNAPSHOT-проектов |
