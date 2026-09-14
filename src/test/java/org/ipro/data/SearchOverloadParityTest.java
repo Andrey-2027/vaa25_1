@@ -3,11 +3,9 @@ package org.ipro.data;
 import jakarta.validation.Validator;
 import org.ip.model.User;
 import org.ip.repository.GridFormViewRepository;
-import org.ip.repository.NomSklAttributeRepository;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ip.service.GridFormViewService;
-import org.ip.service.NomSklAttributeService;
 import org.ip.service.SklNomOpaService;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.NaturalKeyCreateSupport;
@@ -54,9 +52,10 @@ class SearchOverloadParityTest {
         assertParity(new CanonicalEntityService<>(User.class,
             mock(CanonicalReadExecutor.class), mock(EntityDataAccess.class)), List.of());
 
-        NomSklAttributeRepository bindingRepository = mock(NomSklAttributeRepository.class);
-        assertParity(new NomSklAttributeService(bindingRepository, validator),
-            List.of(), bindingRepository);
+        // C4.6 волна E: NomSklAttribute тоже делегирует canonical handle (сервис оставил только
+        // предметные операции над привязками).
+        assertParity(new CanonicalEntityService<>(org.ip.model.NomSklAttribute.class,
+            mock(CanonicalReadExecutor.class), mock(EntityDataAccess.class)), List.of());
     }
 
     private static void assertParity(BaseService<?, ?> service, List<String> fields) {

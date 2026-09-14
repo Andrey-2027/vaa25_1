@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -466,18 +467,21 @@ class SklNomOpaServiceTest {
         });
     }
 
+    /**
+     * C4.6 волна E: сервис привязок больше не наследует compatibility base — ему нужны только
+     * repository (предметная замена набора) и canonical handle (стандартная поверхность).
+     * В {@code @DataJpaTest}-срезе canonical pipeline недостижим, поэтому handle подменён
+     * заглушкой, которая пишет теми же repository — проверяется поведение самих привязок.
+     */
     private NomSklAttributeService newBindingsService() {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        NomSklAttributeService service = new NomSklAttributeService(nomSklAttributeRepository, validator);
-        ReflectionTestUtils.setField(service, "numberingService", java.util.Optional.empty());
-        ReflectionTestUtils.setField(service, "referenceCheckService", mock(ReferenceCheckService.class));
-        ReflectionTestUtils.setField(service, "rlsFilterActivator", mock(RlsFilterActivator.class));
-        MetadataResolver metadataResolver = mock(MetadataResolver.class);
-        when(metadataResolver.resolve(any())).thenThrow(new IllegalArgumentException("no metadata"));
-        ReflectionTestUtils.setField(service, "metadataResolver", metadataResolver);
-        RlsReadGate readGate = mock(RlsReadGate.class);
-        when(readGate.canRead(any(), anyString())).thenReturn(true);
-        ReflectionTestUtils.setField(service, "rlsReadGate", readGate);
-        return service;
+        org.ipro.data.CanonicalEntityService<NomSklAttribute> canonical =
+            mock(org.ipro.data.CanonicalEntityService.class);
+        when(canonical.save(any(NomSklAttribute.class)))
+            .thenAnswer(invocation -> nomSklAttributeRepository.save(invocation.getArgument(0)));
+        doAnswer(invocation -> {
+            nomSklAttributeRepository.deleteById(invocation.getArgument(0));
+            return null;
+        }).when(canonical).delete(any(Long.class));
+        return new NomSklAttributeService(nomSklAttributeRepository, canonical);
     }
 }

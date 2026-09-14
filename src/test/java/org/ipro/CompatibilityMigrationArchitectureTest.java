@@ -27,7 +27,6 @@ class CompatibilityMigrationArchitectureTest {
     private static final Set<String> COMPATIBILITY_BASE_SUBCLASSES = Set.of(
             "org.ip.service.AttributeValueService",
             "org.ip.service.GridFormViewService",
-            "org.ip.service.NomSklAttributeService",
             "org.ip.service.SklNomOpaService",
             "org.ipro.ureport.service.UreportTemplateService");
 
