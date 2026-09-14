@@ -11,7 +11,7 @@ package org.ipro.rls;
  *     измерения, который существовал до появления CHECK_ONLY (JOURNAL, BRANCH) —
  *     дефолтное значение {@link RlsDimension#kind()} ради обратной совместимости.</li>
  * <li>{@link #CHECK_ONLY} — измерение участвует ТОЛЬКО в write-guard'е сервисов
- *     (см. AbstractBaseService.checkRls) и в {@link AccessService#getReadableIds} (для
+ *     (см. {@link RlsPolicyEnforcer}) и в {@link AccessService#getReadableIds} (для
  *     скрытия навигации/меню — см. RlsNavigationAccess.hasAnyAccess). Никакого
  *     {@code @Filter} для него нет и не должно быть; {@link RlsFilterActivator} НЕ
  *     вызывает {@code enableFilter} для таких измерений — иначе Hibernate бросит

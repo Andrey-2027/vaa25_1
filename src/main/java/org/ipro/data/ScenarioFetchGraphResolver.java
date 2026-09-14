@@ -17,8 +17,8 @@ import java.util.Objects;
  * Единственная точка правила {@code scenario plan ∪ extras -> validate -> deepen once -> graph}
  * (C4.1, ADR-0007 §4).
  *
- * <p>Устраняет прежнюю асимметрию: {@code AbstractBaseService} углублял объединение
- * плана и дополнительных путей, а {@code LookupService} строил graph из union без
+ * <p>Устраняет прежнюю асимметрию compatibility-путей: один углублял объединение
+ * плана и дополнительных путей, а lookup строил graph из union без
  * углубления. Теперь объединение и углубление вычисляются здесь, а потребители
  * (read executor, aggregate section service) получают уже готовый граф.</p>
  *

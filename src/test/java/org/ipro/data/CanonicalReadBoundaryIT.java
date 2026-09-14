@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * {@code @TableSectionMetadata} классифицируется явно;</li>
  * <li>owned row не получает автономного list/detail/lookup handle — отказ приходит
  * <b>до</b> RLS и SQL;</li>
- * <li>{@code LookupService} и {@code AbstractBaseService} используют один и тот же
+ * <li>{@code LookupService} и стандартные чтения сервисов используют один и тот же
  * canonical executor, а не строят собственную границу;</li>
  * <li>capabilities — enforcement, а не декларация: {@code INTERNAL_STORE} и тип вне
  * каталога читаются через canonical path только с явным разрешением владельца.</li>
@@ -194,7 +194,7 @@ class CanonicalReadBoundaryIT {
     /**
      * C4.6 волна F: тип без metadata ({@code INTERNAL_STORE}) обслуживается своим владельцем
      * и canonical handle не получает вообще. Раньше владелец отдавал ему {@code LIST} и
-     * {@code DETAIL} явным мостом — пока его сервис наследовал {@code AbstractBaseService} и
+     * {@code DETAIL} явным мостом — пока его сервис наследовал compatibility base и
      * ходил через canonical path. После перевода сервиса на internal-store adapter мост снят,
      * поэтому тип должен отказывать до RLS и SQL, а не получать граф без metadata.
      */

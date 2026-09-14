@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  *
  * Как следствие, единственный оставшийся риск того же типа, что и с 5-6 путями чтения
  * данных (см. обсуждение RLS) — забыть вызвать ensureRlsEnabled в НОВОМ месте, которое
- * само лезет в БД мимо уже покрытых AbstractBaseService/GenericOwnedSectionService/
+ * само лезет в БД мимо уже покрытых canonical read boundary/GenericOwnedSectionService/
  * LookupService/ReferenceCheckService. Само по себе ensureRlsEnabled никогда не роняет
  * "тихую" утечку — оно либо включает фильтр, либо (RlsContext.isBypassed()) сознательно
  * его не включает; тихой утечкой остаётся только полностью не вызванный метод.

@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
  * и возвращена в C3.7 — но уже на входе в операцию, а не перед {@code repository.save}:
  * отказ обязан приходить ДО bean-валидации, business-правил, lifecycle hooks и
  * before-событий, иначе запрещённая операция запускает пользовательский код
- * (ср. {@code authorizeWrite} в {@code AbstractBaseService}).</p>
+ * (ср. ранний write-гейт canonical write pipeline).</p>
  * <ul>
  * <li>сервисный путь защищён ранним гейтом, repository-aspect и flush-listener остаются
  *     последним рубежом для каналов в обход сервиса;</li>

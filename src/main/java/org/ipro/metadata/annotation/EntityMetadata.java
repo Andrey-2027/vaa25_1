@@ -75,17 +75,5 @@ public @interface EntityMetadata {
     /** Имя VaadinIcon (например, "PACKAGE", "BOOK", "FILE_TEXT") */
     String icon() default "FILE";
 
-    /**
-     * Класс Service для этой сущности (опционально).
-     * Если не указан — FormCoordinator будет искать Service по имени (nomenclatureService для Nomenclature).
-     * Если указан — используется явно заданный класс.
-     *
-     * Пример:
-     * <pre>
-     * serviceClass = NomenclatureService.class
-     * </pre>
-     */
-    Class<?> serviceClass() default void.class;
-
     Class<?> subsystem() default Subsystem.NoSubsystem.class;
 }

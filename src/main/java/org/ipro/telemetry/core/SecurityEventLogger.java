@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * События безопасности (EventType.SECURITY): вход, неудачный вход, выход, отказ
- * прав RLS (rls:denied — см. AbstractBaseService.checkRls, Фаза 8 RLS-плана).
+ * прав RLS (rls:denied — см. {@code RlsPolicyEnforcer}, Фаза 8 RLS-плана).
  * Записываются через durable-путь {@link EventSink#acceptDurable} —
  * события безопасности не должны теряться при переполнении очереди.
  * IP клиента берётся из текущего HTTP-запроса, если он доступен.

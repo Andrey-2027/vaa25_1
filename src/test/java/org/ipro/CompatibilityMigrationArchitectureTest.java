@@ -4,7 +4,8 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
-import org.ipro.crud.AbstractBaseService;
+import org.ipro.crud.BaseService;
+import org.ipro.crud.jpa.ValidatedJpaCrudService;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -12,33 +13,50 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Заборы миграции C4.6/C4.7 (ADR-0007 §3): compatibility-механизмы не могут расширяться,
- * а списки исключений обязаны сокращаться до нуля.
- *
- * <p>Каждый allowlist ниже проверяется в обе стороны: «ничего лишнего» (новый наследник или
- * новая зависимость) и «ничего устаревшего» (список не должен переживать удалённый класс).
- * Поэтому список можно только уменьшать — молчаливое расширение невозможно.</p>
+ * Заборы миграции C4.6/C4.7 (ADR-0007 §3): compatibility-механизмы не возвращаются,
+ * а списки исключений проверяются в обе стороны — «ничего лишнего» (новая generic база или
+ * новый наследник) и «ничего устаревшего» (запись пережила удалённый класс). Поэтому список
+ * можно только уменьшать, а молчаливое расширение невозможно.
  */
 class CompatibilityMigrationArchitectureTest {
 
+    /** Удалён в C4.7; возврат вернул бы вторую generic CRUD-базу рядом с canonical path. */
+    private static final String REMOVED_COMPATIBILITY_BASE = "org.ipro.crud.AbstractBaseService";
+
     /**
-     * Наследники compatibility base на входе C4.6. C4.6 волна F мигрировала последние два
-     * ({@code GridFormViewService} — на canonical handle, {@code UreportTemplateService} —
-     * на internal-store adapter), поэтому список пуст и остаётся таким: забор теперь
-     * запрещает любое новое наследование, а не сокращает известный долг.
+     * Все production-реализации {@link BaseService} — проверенный список, а не «сколько
+     * получилось». Новый CRUD-путь обязан появиться здесь осознанно: либо это типизированный
+     * use case с предметным доменом, либо canonical handle, либо internal-store adapter.
      */
-    private static final Set<String> COMPATIBILITY_BASE_SUBCLASSES = Set.of();
+    private static final Set<String> BASE_SERVICE_IMPLEMENTATIONS = Set.of(
+            "org.ipro.crud.jpa.ValidatedJpaCrudService",
+            "org.ipro.data.CanonicalEntityService",
+            "org.ip.service.AttributeValueService",
+            "org.ip.service.GridFormViewService",
+            "org.ip.service.NomSklAttributeService",
+            "org.ip.service.SklNomOpaService",
+            "org.ip.service.UserService",
+            "org.ipro.jr.service.JrxmlTemplateService",
+            "org.ipro.reportstudio.service.ReportTemplateService",
+            "org.ipro.ureport.service.UreportTemplateService");
+
+    /** ADR-0007 §3: {@code ValidatedJpaCrudService} обслуживает только non-metadata storage. */
+    private static final Set<String> INTERNAL_STORE_ADAPTER_SUBCLASSES = Set.of(
+            "org.ipro.jr.service.JrxmlTemplateService",
+            "org.ipro.reportstudio.service.ReportTemplateService",
+            "org.ipro.ureport.service.UreportTemplateService");
 
     /**
      * Сущности, чья модель ссылается на application service через {@code @EntityMetadata}.
-     * C4.6 волна E: пусто — ни одна модель не называет сервисный класс, тип резолвится
-     * bean-name convention, а сервисы прикладного домена остаются обычными use case'ами.
+     * C4.6 волна E: пусто — ни одна модель не называет сервисный класс, а сервисы
+     * прикладного домена регистрируются по entity type в {@code ServiceLocator}.
      */
     private static final Set<String> MODEL_TO_SERVICE_DEPENDENCIES = Set.of();
 
-    /** Единственная известная UI-утечка persistence context; цель C4.7 — пустой набор. */
+    /** Единственная известная UI-утечка persistence context; цель — пустой набор. */
     private static final Set<String> PERSISTENCE_CONTEXT_IN_UI = Set.of(
             "org.ipro.form.registry.FormResolver");
 
@@ -50,20 +68,60 @@ class CompatibilityMigrationArchitectureTest {
                 .importPackages("org.ip", "org.ipro");
     }
 
+    /**
+     * Compatibility base удалён, и это проверяется по факту: возврат класса (в любом пакете,
+     * с тем же FQN) снова дал бы production-код, наследующий generic CRUD-базу.
+     */
     @Test
-    void onlyTrackedClassesInheritCompatibilityBaseService() {
+    void compatibilityBaseServiceStaysRemoved() {
+        assertThatThrownBy(() -> Class.forName(REMOVED_COMPATIBILITY_BASE))
+                .as("удалённая compatibility-база вернулась: canonical path не должен получить"
+                        + " вторую generic CRUD-базу рядом с собой")
+                .isInstanceOf(ClassNotFoundException.class);
+
+        Set<String> reintroduced = productionClasses().stream()
+                .filter(c -> c.getName().equals(REMOVED_COMPATIBILITY_BASE))
+                .map(JavaClass::getName)
+                .collect(Collectors.toCollection(TreeSet::new));
+        assertThat(reintroduced).isEmpty();
+    }
+
+    /** Каждая production-реализация {@link BaseService} проходит ревью и попадает в список. */
+    @Test
+    void baseServiceImplementationsAreReviewed() {
         JavaClasses classes = productionClasses();
         Set<String> actual = classes.stream()
-                .filter(c -> !c.getName().equals(AbstractBaseService.class.getName()))
-                .filter(c -> c.isAssignableTo(AbstractBaseService.class))
+                .filter(c -> !c.getName().equals(BaseService.class.getName()))
+                .filter(c -> c.isAssignableTo(BaseService.class))
                 .map(JavaClass::getName)
                 .collect(Collectors.toCollection(TreeSet::new));
 
         assertThat(actual)
-                .as("новый наследник compatibility base — миграция обязана уменьшать список, не расширять")
-                .isSubsetOf(COMPATIBILITY_BASE_SUBCLASSES);
-        assertThat(COMPATIBILITY_BASE_SUBCLASSES)
-                .as("устаревшая запись allowlist: класс удалён или перебазирован — уберите его из списка")
+                .as("новый BaseService-путь — осознанное решение, а не побочный эффект")
+                .isSubsetOf(BASE_SERVICE_IMPLEMENTATIONS);
+        assertThat(BASE_SERVICE_IMPLEMENTATIONS)
+                .as("устаревшая запись списка: класс удалён или перебазирован — уберите её")
+                .isSubsetOf(actual);
+    }
+
+    /**
+     * ADR-0007 §3: {@code ValidatedJpaCrudService} — internal-store adapter. Он не может
+     * обслуживать metadata-driven root, и его область не расширяется незаметно.
+     */
+    @Test
+    void internalStoreAdapterOnlyServesNonMetadataStores() {
+        JavaClasses classes = productionClasses();
+        Set<String> actual = classes.stream()
+                .filter(c -> !c.getName().equals(ValidatedJpaCrudService.class.getName()))
+                .filter(c -> c.isAssignableTo(ValidatedJpaCrudService.class))
+                .map(JavaClass::getName)
+                .collect(Collectors.toCollection(TreeSet::new));
+
+        assertThat(actual)
+                .as("internal-store adapter не должен получать новых наследников молча")
+                .isSubsetOf(INTERNAL_STORE_ADAPTER_SUBCLASSES);
+        assertThat(INTERNAL_STORE_ADAPTER_SUBCLASSES)
+                .as("устаревшая запись списка: наследник удалён — уберите её")
                 .isSubsetOf(actual);
     }
 
@@ -72,7 +130,7 @@ class CompatibilityMigrationArchitectureTest {
         JavaClasses classes = productionClasses();
         Set<String> actual = classes.stream()
                 .filter(c -> c.getPackageName().equals("org.ip.model"))
-                .filter(c -> dependsOnServicePackage(c))
+                .filter(CompatibilityMigrationArchitectureTest::dependsOnServicePackage)
                 .map(JavaClass::getName)
                 .collect(Collectors.toCollection(TreeSet::new));
 
@@ -80,7 +138,7 @@ class CompatibilityMigrationArchitectureTest {
                 .as("модель получила новую ссылку на application service")
                 .isSubsetOf(MODEL_TO_SERVICE_DEPENDENCIES);
         assertThat(MODEL_TO_SERVICE_DEPENDENCIES)
-                .as("устаревшая запись allowlist: модель больше не ссылается на service — уберите её")
+                .as("устаревшая запись списка: модель больше не ссылается на service — уберите её")
                 .isSubsetOf(actual);
     }
 
@@ -114,7 +172,7 @@ class CompatibilityMigrationArchitectureTest {
                 .as("новая UI-утечка persistence context")
                 .isSubsetOf(PERSISTENCE_CONTEXT_IN_UI);
         assertThat(PERSISTENCE_CONTEXT_IN_UI)
-                .as("устаревшая запись allowlist: утечка закрыта — уберите класс из списка")
+                .as("устаревшая запись списка: утечка закрыта — уберите класс из списка")
                 .isSubsetOf(actual);
     }
 

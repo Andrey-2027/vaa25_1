@@ -32,8 +32,8 @@ import jakarta.validation.Validator;
  * Сервис жизненного цикла шаблонов UReport3: метаданные в БД + XML-файл
  * в файловом хранилище движка ({@code ureport.fileStoreDir}).
  *
- * <p>C4.6 волна F: класс больше не наследует compatibility base
- * {@code AbstractBaseService}. Тип — {@code INTERNAL_STORE} (нет
+ * <p>C4.6 волна F: класс больше не наследует compatibility base (сама база удалена в C4.7,
+ * когда последние два наследника были мигрированы). Тип — {@code INTERNAL_STORE} (нет
  * {@code @EntityMetadata}), поэтому его владелец обслуживает storage сам, а не через
  * canonical entity facade: так решил ADR-0007 §3 для non-metadata report stores, и ту же
  * базу уже используют соседи по подсистеме ({@code ReportTemplate}, {@code JrxmlTemplate}).

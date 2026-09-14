@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * получает aborted-tx от {@code NumberingCounterService} и делает новый проход уже со
  * существующей строкой.</p>
  *
- * <p>Вызывается в {@code AbstractBaseService} при создании сущности, когда поле пустое и
+ * <p>Вызывается платформенным write-путём при создании сущности, когда поле пустое и
  * правило не запрещает ручной ввод (manualInput == false ⇒ всегда авто).</p>
  */
 public class NumberingService implements InitializingBean {
@@ -122,7 +122,7 @@ public class NumberingService implements InitializingBean {
     }
 
     /**
-     * Авто-выдача для save-хука (AbstractBaseService.assignNumbers): решает по правилу —
+     * Авто-выдача для save-хука canonical write pipeline: решает по правилу —
      * если ручной ввод разрешён и значение уже задано, возвращает {@code null} (не трогаем);
      * иначе аллоцирует секвенцию и возвращает ОТФОРМАТИРОВАННУЮ строку для установки в поле.
      */

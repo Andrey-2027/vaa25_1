@@ -648,7 +648,8 @@ class RlsIntegrationTest {
 
     /**
      * Удаление пользователя, на которого ссылается настройка ({@code SettingValue.entityRefId}),
-     * блокируется checkNoReferences — ровно путь AbstractBaseService.delete. Индекс знает про
+     * блокируется checkNoReferences — ровно путь удаления через canonical write pipeline.
+     * Индекс знает про
      * ссылку через SettingsReverseReferenceSource (columnRef), считает по колонке, а не по
      * ассоциации {@code .id}.
      */

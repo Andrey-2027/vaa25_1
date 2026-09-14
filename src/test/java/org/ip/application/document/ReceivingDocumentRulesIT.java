@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * <p>Ключевые утверждения:</p>
  * <ul>
- *   <li>{@code AbstractBaseService.save} публикует {@code EntitySavingEvent} — значит
+ *   <li>canonical write pipeline публикует {@code EntitySavingEvent} — значит
  *       правило шапки применяется на любом пути сохранения, а не только там, где оно
  *       было прописано;</li>
  *   <li>правило «цеха не могут совпадать» больше не лежит в typed-сервисе документа,

@@ -19,8 +19,8 @@ import java.util.Optional;
  * <p>Это не третья CRUD-база: класс не содержит ни одной строчки write-оркестрации и
  * валидации, а только проецирует контракт {@link BaseService} на canonical executor'ы.
  * Именно поэтому тип проходит list/detail/create/update/delete, не имея
- * Spring Data repository, application service, {@code serviceClass} и bean-name
- * convention — их здесь просто нет как зависимостей.</p>
+ * ни Spring Data repository, ни application service, ни объявленного сервиса — их здесь
+ * просто нет как зависимостей.</p>
  *
  * <p>Владелец типа со собственным API (typed use case) по-прежнему использует его:
  * canonical service — default для тех, у кого своего пути нет, а не замена domain-логике.</p>

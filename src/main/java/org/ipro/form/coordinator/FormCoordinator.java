@@ -777,21 +777,12 @@ public class FormCoordinator {
     // === Поиск сервисов ===
 
     /**
-     * Динамически находит Spring-бин Service для указанной сущности.
+     * Находит data handle для указанной сущности через {@link ServiceLocator}.
      *
-     * Стратегия:
-     *   1. Проверяет @EntityMetadata.serviceClass() — если указан, использует его
-     *   2. Fallback: ищет бин по имени nomenclatureService для Nomenclature.class
-     *   3. Если не найдено — бросает исключение с подсказкой
-     *
-     * Примеры:
-     * <pre>
-     * // Явное указание:
-     * {@code @EntityMetadata(serviceClass = NomenclatureService.class)}
-     *
-     * // Автопоиск по имени:
-     * {@code @EntityMetadata(...)} // ищет бин "nomenclatureService"
-     * </pre>
+     * <p>C4.7: резолв по имени бина удалён. Сначала берётся типизированный application
+     * service, зарегистрированный под своим entity type, затем — canonical generic handle,
+     * если descriptor типа его допускает; иначе {@link ServiceLocator} отказывает с
+     * реальной причиной.</p>
      */
     private <T extends IdentifiableEntity, ID> BaseService<T, ID> findService(Class<T> entityClass) {
         return serviceLocator.findService(entityClass);

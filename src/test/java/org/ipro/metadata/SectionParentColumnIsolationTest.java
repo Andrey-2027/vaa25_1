@@ -79,9 +79,10 @@ class SectionParentColumnIsolationTest {
             assertThat(rowMetadata.subsystem())
                 .as("строка %s не должна создавать узел подсистемы", section.getKey())
                 .isEqualTo(Subsystem.NoSubsystem.class);
-            assertThat(rowMetadata.serviceClass())
-                .as("строка %s не должна объявлять автономный сервис", section.getKey())
-                .isEqualTo(void.class);
+            // C4.7: атрибут serviceClass удалён вместе с compatibility base. Автономность
+            // строки выражается структурно — она не metadata-driven root, поэтому у неё нет
+            // ни своего узла подсистемы, ни типизированной регистрации в ServiceLocator;
+            // попытка получить для неё data handle падает в самом ServiceLocator.
         }
     }
 }

@@ -39,10 +39,9 @@ import java.util.stream.Collectors;
  * -&gt; after-events / lifecycle onSave
  * </pre>
  *
- * <p>Это тот же порядок, что у compatibility-пути {@code AbstractBaseService}: запрещённая
- * операция останавливается до валидации, хуков и событий, а repository-aspect и flush-listener
- * остаются последним рубежом для прямых вызовов repository. В отличие от compatibility-пути,
- * здесь <b>не нужен ни Spring Data repository, ни application service</b>: persistence идёт
+ * <p>Запрещённая операция останавливается до валидации, хуков и событий, а repository-aspect и
+ * flush-listener остаются последним рубежом для прямых вызовов repository. При этом здесь
+ * <b>не нужен ни Spring Data repository, ни application service</b>: persistence идёт
  * через {@link EntityManager}, поэтому тип проходит CRUD, не имея ни repository, ни сервиса.</p>
  *
  * <p>Policy не дублируется: RLS, валидация, нумерация, lifecycle, события и aggregate

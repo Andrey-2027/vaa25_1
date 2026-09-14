@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *   <li>blank term у lookup ограничен только {@code limit} (сохранено);</li>
  *   <li>неизвестное search field у lookup молча пропускается, а канонический
  *       search такой вызов отклоняет;</li>
- *   <li>{@code AbstractBaseService.search(String, Pageable)} — production-time trap —
+ *   <li>{@code search(String, Pageable)} сервисной базы — production-time trap —
  *       <b>изменено в C4.4</b>: метод делегирует canonical engine;</li>
  *   <li>blank legacy-search уходит в неограниченный {@code findAll()} — <b>изменено
  *       в C4.4</b>: blank term даёт bounded выдачу с детерминированным id-порядком.</li>

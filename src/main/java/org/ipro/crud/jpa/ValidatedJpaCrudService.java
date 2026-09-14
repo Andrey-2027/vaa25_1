@@ -24,7 +24,7 @@ import java.util.Set;
  * Минимальная валидирующая CRUD-база платформы (план reportstudio-reverse-deps, 2.3):
  * bean-валидация + reference-check на удаление, поверх JpaRepository.
  *
- * <p>Сознательно НЕ включает (в отличие от {@code org.ipro.crud.AbstractBaseService}):
+ * <p>Сознательно НЕ включает (в отличие от canonical data path, ADR-0007):
  * RLS write/read-policy и read-gate, нумерацию (@Numbered), metadata fetch-graphs,
  * UI-search по метаданным, конвенции имён бинов. Наследники добавляют своё
  * (см. ReportTemplateService). Идентификатор — Long ({@link IdentifiableEntity}).</p>
@@ -237,8 +237,8 @@ public class ValidatedJpaCrudService<T extends IdentifiableEntity> implements Ba
 
     /**
      * UI-search здесь не реализован: это база internal-store, а не standard path. Стандартные
-     * сущности ищутся через canonical search engine ({@code AbstractBaseService} →
-     * {@code CanonicalReadExecutor.readSearch}, C4.4); для internal-store переопределяйте
+     * сущности ищутся через canonical search engine
+     * ({@code CanonicalReadExecutor.readSearch}, C4.4); для internal-store переопределяйте
      * предметным поиском.
      */
     @Override

@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Решения RlsUiGate "что разрешено" против настоящего AccessService/H2 (стиль
  * RlsIntegrationTest — DataJpaTest с ручной сборкой, без Vaadin/весного контекста).
- * Зеркальные правила write-guard'а AbstractBaseService; сами сервисы не поднимаются.
+ * Зеркальные правила write-гейта сервисной границы; сами сервисы не поднимаются.
  */
 @DataJpaTest
 @EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls"})

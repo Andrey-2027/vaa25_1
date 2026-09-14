@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Общий хелпер построения EntityGraph — раньше одна и та же логика (взять
  * ENTITY_REFERENCE-поля грида → построить EntityGraph) была реализована дважды:
- * в AbstractBaseService (для обычных @EntityMetadata-сущностей) и отдельно в
+ * в сервисной базе (для обычных @EntityMetadata-сущностей) и отдельно в
  * GenericOwnedSectionService (для строк табличных частей). Теперь оба места
  * используют один и тот же код.
  */

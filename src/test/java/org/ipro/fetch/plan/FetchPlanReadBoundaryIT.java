@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * C3.4: сценарии {@code LIST}, {@code DETAIL} и {@code ROW} потребляются существующей
- * read-границей — {@code AbstractBaseService} (список/форма) и
+ * read-границей — canonical executor (список/форма) и
  * {@code GenericOwnedSectionService} (строка табличной части), а не собираются в этих
  * классах заново.
  *
