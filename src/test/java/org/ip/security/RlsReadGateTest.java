@@ -9,11 +9,11 @@ import org.ip.model.UnitOfMeasurement;
 import org.ip.model.Workshop;
 import org.ip.repository.BranchRepository;
 import org.ip.repository.JournalRepository;
-import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.ReceivingDocumentRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ipro.crud.LookupService;
-import org.ip.service.NomenclatureService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ip.service.ReceivingDocumentService;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
@@ -65,16 +65,19 @@ class RlsReadGateTest {
     private ReceivingDocumentRepository documentRepository;
 
     @Autowired
-    private NomenclatureRepository nomenclatureRepository;
-
-    @Autowired
     private org.ip.repository.UnitOfMeasurementRepository unitOfMeasurementRepository;
 
     @Autowired
     private ReceivingDocumentService documentService;
 
     @Autowired
-    private NomenclatureService nomenclatureService;
+    private ServiceLocator serviceLocator;
+
+    /** C4.6: у {@code Nomenclature} больше нет typed-сервиса — резолв идёт canonical-хэндлом. */
+    private CanonicalEntityService<Nomenclature> nomenclatures() {
+        return (CanonicalEntityService<Nomenclature>) serviceLocator
+            .<Nomenclature, Long>findService(Nomenclature.class);
+    }
 
     @Autowired
     private LookupService lookupService;
@@ -203,9 +206,9 @@ class RlsReadGateTest {
         UnitOfMeasurement uom = new UnitOfMeasurement("шт", "Штука", "RG-UOM");
         unitOfMeasurementRepository.save(uom);
         Nomenclature nomenclature = new Nomenclature("RG-N", "Номенклатура без RLS", uom);
-        Nomenclature saved = nomenclatureService.save(nomenclature);
+        Nomenclature saved = nomenclatures().save(nomenclature);
 
-        assertThat(nomenclatureService.findAll()).extracting(Nomenclature::getId)
+        assertThat(nomenclatures().findAll()).extracting(Nomenclature::getId)
             .contains(saved.getId());
     }
 

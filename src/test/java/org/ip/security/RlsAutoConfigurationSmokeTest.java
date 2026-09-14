@@ -12,8 +12,9 @@ import org.ip.repository.UserRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ip.service.AccessGrantAdminService;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
-import org.ip.service.NomenclatureService;
 import org.ip.service.ReceivingDocumentService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;
@@ -119,7 +120,7 @@ class RlsAutoConfigurationSmokeTest {
     private UserRepository userRepository;
 
     @Autowired
-    private NomenclatureService nomenclatureService;
+    private ServiceLocator serviceLocator;
 
     /** RLS-мост переопределяет GLOBAL-only fallback из NumberingAutoConfiguration. */
     @Autowired
@@ -143,7 +144,10 @@ class RlsAutoConfigurationSmokeTest {
     @Test
     void applicationBeansAndRepositoriesAreStillRegistered() {
         assertThat(userRepository).isNotNull();
-        assertThat(nomenclatureService).isNotNull();
+        // C4.6: typed-сервиса у Nomenclature больше нет, но тип остаётся обслуживаемым —
+        // резолв отдаёт canonical-хэндл с тем же контрактом.
+        assertThat(serviceLocator.findService(org.ip.model.Nomenclature.class))
+            .isInstanceOf(CanonicalEntityService.class);
     }
 
     @Test

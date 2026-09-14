@@ -28,7 +28,6 @@ class CompatibilityMigrationArchitectureTest {
             "org.ip.service.AttributeTypeService",
             "org.ip.service.AttributeValueService",
             "org.ip.service.GridFormViewService",
-            "org.ip.service.NomenclatureService",
             "org.ip.service.NomSklAttributeService",
             "org.ip.service.PrdSpecService",
             "org.ip.service.ReceivingDocumentService",
@@ -43,7 +42,6 @@ class CompatibilityMigrationArchitectureTest {
             "org.ip.model.AttributeType",
             "org.ip.model.AttributeValue",
             "org.ip.model.NomSklAttribute",
-            "org.ip.model.Nomenclature",
             "org.ip.model.PrdSpec",
             "org.ip.model.ReceivingDocument",
             "org.ip.model.SklNomOpa");

@@ -24,7 +24,6 @@ import org.ipro.search.GlobalSearchable;
     selectionFormTitle = "Выбор номенклатуры",
     order = 100,
     icon = "PACKAGE",
-    serviceClass = org.ip.service.NomenclatureService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"code", "name","typeNom"},
     displaySortFields = {"code", "name"}  // = getDisplayName(): code + " " + name

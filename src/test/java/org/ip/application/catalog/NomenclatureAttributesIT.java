@@ -13,6 +13,8 @@ import org.ip.repository.AttributeValueRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ipro.crud.GenericOwnedSectionService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.crud.ValidationException;
 import org.ipro.events.EventSource;
@@ -46,6 +48,9 @@ class NomenclatureAttributesIT {
     private MetadataDrivenAggregateSaveService aggregateSaveService;
 
     @Autowired
+    private ServiceLocator serviceLocator;
+
+    @Autowired
     private GenericOwnedSectionService sectionService;
 
     @Autowired
@@ -65,6 +70,40 @@ class NomenclatureAttributesIT {
 
     @Autowired
     private AccessGrantRepository accessGrantRepository;
+
+    /**
+     * C4.6 волна B: {@code Nomenclature} — первый aggregate root, который проходит
+     * canonical fallback. Здесь проверяется сама предпосылка: типизированного сервиса нет,
+     * {@code ServiceLocator} отдаёт canonical handle, а aggregate с owned-секцией
+     * сохраняется тем же boundary, что и раньше, — header и строки в одной транзакции.
+     */
+    @Test
+    void aggregateRootSavesThroughCanonicalHandleWithoutTypedService() {
+        String suffix = UUID.randomUUID().toString().substring(0, 6);
+        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            assertThat(serviceLocator.findService(Nomenclature.class))
+                .as("у Nomenclature нет application service — только canonical handle")
+                .isInstanceOf(CanonicalEntityService.class);
+
+            AttributeType type = stringType("AT-CANON-" + suffix, "Тип " + suffix);
+            Nomenclature nomenclature = nomenclature(suffix);
+
+            MetadataDrivenAggregateSaveService.AggregateSaveResult<Nomenclature> result =
+                aggregateSaveService.save(nomenclature,
+                    List.of(MetadataDrivenAggregateSaveService.SectionInput.attached(
+                        NomAttributeValue.class,
+                        List.of(row(type, "значение-" + suffix)))),
+                    EventSource.UI);
+
+            assertThat(result.aggregate().getId()).isNotNull();
+            List<NomAttributeValue> persisted = rowsOf(result.aggregate());
+            assertThat(persisted)
+                .as("owned-строка сохранена aggregate boundary вместе с шапкой")
+                .hasSize(1);
+            assertThat(persisted.get(0).getAttrType().getId()).isEqualTo(type.getId());
+            assertThat(persisted.get(0).getAttrValue().getCode()).isEqualTo("значение-" + suffix);
+        });
+    }
 
     @Test
     void sectionIsDeclaredAsOwnedMutableSectionOfNomenclature() {

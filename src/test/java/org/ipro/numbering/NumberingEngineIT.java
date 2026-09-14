@@ -11,10 +11,10 @@ import org.ip.model.Workshop;
 import org.ip.repository.JournalRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
-import org.ip.service.NomenclatureService;
 import org.ip.model.Oper;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ip.service.ReceivingDocumentService;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsTestFixture;
@@ -63,7 +63,7 @@ class NumberingEngineIT {
     private ReceivingDocumentService documentService;
 
     @Autowired
-    private NomenclatureService nomenclatureService;
+    private ServiceLocator serviceLocatorForNomenclature;
 
     @Autowired
     private ServiceLocator serviceLocator;
@@ -79,6 +79,12 @@ class NumberingEngineIT {
 
     @Autowired
     private AccessGrantRepository accessGrantRepository;
+
+    /** Волна B: у {@code Nomenclature} нет application service — резолв идёт canonical handle. */
+    private CanonicalEntityService<Nomenclature> nomenclatures() {
+        return (CanonicalEntityService<Nomenclature>) serviceLocatorForNomenclature
+            .<Nomenclature, Long>findService(Nomenclature.class);
+    }
 
     /** Волна A: у {@code Oper} нет application service — нумерация проверяется на canonical handle. */
     private BaseService<Oper, Long> oper() {
@@ -308,7 +314,7 @@ class NumberingEngineIT {
         uomRepository.save(unit);
 
         Nomenclature nomenclature = new Nomenclature(null, "Деталь", unit);
-        assertThat(nomenclatureService.create(nomenclature).getCode()).matches("\\d{6}");
+        assertThat(nomenclatures().save(nomenclature).getCode()).matches("\\d{6}");
     }
 
     @Test
