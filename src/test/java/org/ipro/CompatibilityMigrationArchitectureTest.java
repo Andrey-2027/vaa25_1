@@ -30,7 +30,6 @@ class CompatibilityMigrationArchitectureTest {
             "org.ip.service.GridFormViewService",
             "org.ip.service.NomSklAttributeService",
             "org.ip.service.PrdSpecService",
-            "org.ip.service.ReceivingDocumentService",
             "org.ip.service.SklNomOpaService",
             "org.ip.service.UnitOfMeasurementService",
             "org.ip.service.UserService",
@@ -43,7 +42,6 @@ class CompatibilityMigrationArchitectureTest {
             "org.ip.model.AttributeValue",
             "org.ip.model.NomSklAttribute",
             "org.ip.model.PrdSpec",
-            "org.ip.model.ReceivingDocument",
             "org.ip.model.SklNomOpa");
 
     /** Единственная известная UI-утечка persistence context; цель C4.7 — пустой набор. */

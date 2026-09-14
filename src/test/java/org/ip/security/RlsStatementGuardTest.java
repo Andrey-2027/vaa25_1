@@ -3,7 +3,9 @@ package org.ip.security;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.ip.config.DataInitializer;
-import org.ip.service.ReceivingDocumentService;
+import org.ip.model.ReceivingDocument;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsContext;
@@ -45,7 +47,7 @@ class RlsStatementGuardTest {
     private EntityManager entityManager;
 
     @Autowired
-    private ReceivingDocumentService documentService;
+    private ServiceLocator serviceLocator;
 
     @Autowired
     private RlsFilterActivator rlsFilterActivator;
@@ -73,6 +75,12 @@ class RlsStatementGuardTest {
     }
 
     /** Сырой Criteria-запрос по RLS-таблице без ensureRlsEnabled — фиксируется нарушение. */
+    /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
+    private CanonicalEntityService<ReceivingDocument> documents() {
+        return (CanonicalEntityService<ReceivingDocument>) serviceLocator
+            .<ReceivingDocument, Long>findService(ReceivingDocument.class);
+    }
+
     @Test
     void rawCriteriaSelectWithoutEnsureRlsEnabledIsReported() {
         entityManager.createQuery("select d from ReceivingDocument d").getResultList();
@@ -106,7 +114,7 @@ class RlsStatementGuardTest {
     void serviceReadWithEnabledFiltersIsSilent() {
         grantWildcardToAdmin();
 
-        documentService.findAll();
+        documents().findAll();
 
         assertThat(RlsStatementGuard.violations()).isEmpty();
         assertThat(RlsStatementGuard.violationCount()).isZero();
@@ -175,7 +183,7 @@ class RlsStatementGuardTest {
     void staleSessionMarkOnReusedThreadIsClearedAtRequestBoundary() throws Exception {
         grantWildcardToAdmin();
 
-        documentService.findAll();
+        documents().findAll();
         entityManager.createQuery("select d from ReceivingDocument d").getResultList();
         assertThat(RlsStatementGuard.violations())
             .as("stale-метка принадлежит прошлой сессии и молчит — это и есть риск")

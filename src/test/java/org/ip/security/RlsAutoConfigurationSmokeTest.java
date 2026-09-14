@@ -12,7 +12,6 @@ import org.ip.repository.UserRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ip.service.AccessGrantAdminService;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
-import org.ip.service.ReceivingDocumentService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.rls.AccessGrant;
@@ -126,6 +125,12 @@ class RlsAutoConfigurationSmokeTest {
     @Autowired
     private org.ipro.numbering.NumberingScopeResolver numberingScopeResolver;
 
+    /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
+    private CanonicalEntityService<ReceivingDocument> documents() {
+        return (CanonicalEntityService<ReceivingDocument>) serviceLocator
+            .<ReceivingDocument, Long>findService(ReceivingDocument.class);
+    }
+
     @Test
     void rlsBeansAreRegisteredByAutoConfiguration() {
         assertThat(accessGrantRepository).isNotNull();
@@ -191,8 +196,6 @@ class RlsAutoConfigurationSmokeTest {
     @Autowired
     private AccessGrantAdminService accessGrantAdminService;
 
-    @Autowired
-    private ReceivingDocumentService receivingDocumentService;
 
     @Autowired
     private JournalRepository journalRepository;
@@ -247,7 +250,7 @@ class RlsAutoConfigurationSmokeTest {
         ReceivingDocument doc = new ReceivingDocument("NW-1", java.time.LocalDate.now(), receiver, deliverer);
         doc.setJournal(journal);
 
-        assertThatThrownBy(() -> receivingDocumentService.create(doc))
+        assertThatThrownBy(() -> documents().save(doc))
             .isInstanceOf(org.ipro.rls.RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на изменение");
     }

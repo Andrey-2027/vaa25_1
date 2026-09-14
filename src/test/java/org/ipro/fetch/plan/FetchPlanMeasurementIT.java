@@ -22,7 +22,8 @@ import org.ip.repository.ReceivingDocumentRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ip.service.PrdSpecService;
-import org.ip.service.ReceivingDocumentService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.crud.LookupService;
 import org.ipro.fetch.instance.InstanceNameBridge;
 import org.ipro.metadata.EntityMetadataInfo;
@@ -72,7 +73,7 @@ class FetchPlanMeasurementIT {
     private MetadataResolver metadataResolver;
 
     @Autowired
-    private ReceivingDocumentService documentService;
+    private ServiceLocator serviceLocator;
 
     @Autowired
     private PrdSpecService prdSpecService;
@@ -142,6 +143,12 @@ class FetchPlanMeasurementIT {
             InstanceNameBridge::instanceNamePaths);
     }
 
+    /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
+    private CanonicalEntityService<ReceivingDocument> documents() {
+        return (CanonicalEntityService<ReceivingDocument>) serviceLocator
+            .<ReceivingDocument, Long>findService(ReceivingDocument.class);
+    }
+
     @Test
     void planCoversAtLeastTheLegacyGraph() {
         List<String> legacy = legacyListPaths(ReceivingDocument.class);
@@ -165,11 +172,11 @@ class FetchPlanMeasurementIT {
         entityManager.flush();
 
         entityManager.clear();
-        long legacyQueries = countStatements(statistics, () -> documentService.findAll(
+        long legacyQueries = countStatements(statistics, () -> documents().findAll(
             null, PageRequest.of(0, 10), legacyListPaths(ReceivingDocument.class)));
 
         entityManager.clear();
-        long planQueries = countStatements(statistics, () -> documentService.findAll(
+        long planQueries = countStatements(statistics, () -> documents().findAll(
             null, PageRequest.of(0, 10)));
 
         assertThat(legacyQueries).as("эталон должен выполнять хотя бы один запрос").isPositive();
@@ -188,7 +195,7 @@ class FetchPlanMeasurementIT {
         entityManager.flush();
         entityManager.clear();
 
-        var rows = documentService.findAll(null, PageRequest.of(0, 10)).getContent();
+        var rows = documents().findAll(null, PageRequest.of(0, 10)).getContent();
         assertThat(rows).isNotEmpty();
 
         long afterLoad = statistics.getPrepareStatementCount();

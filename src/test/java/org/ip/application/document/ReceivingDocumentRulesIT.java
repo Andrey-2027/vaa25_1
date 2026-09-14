@@ -12,8 +12,9 @@ import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.ReceivingDocumentRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
-import org.ip.service.ReceivingDocumentService;
 import org.ipro.crud.GenericOwnedSectionService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.crud.ValidationException;
 import org.ipro.events.EntityDeletedEvent;
@@ -52,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *   <li>{@code AbstractBaseService.save} публикует {@code EntitySavingEvent} — значит
  *       правило шапки применяется на любом пути сохранения, а не только там, где оно
  *       было прописано;</li>
- *   <li>правило «цеха не могут совпадать» больше не лежит в {@code ReceivingDocumentService},
+ *   <li>правило «цеха не могут совпадать» больше не лежит в typed-сервисе документа,
  *       но по-прежнему отменяет сохранение через generic-путь;</li>
  *   <li>правило «номенклатура не повторяется» живёт только в lifecycle handler и отменяет
  *       metadata-driven aggregate save без дублирования логики.</li>
@@ -66,7 +67,7 @@ class ReceivingDocumentRulesIT {
     private DataInitializer dataInitializer;
 
     @Autowired
-    private ReceivingDocumentService documentService;
+    private ServiceLocator serviceLocator;
 
     @Autowired
     private GenericOwnedSectionService sectionService;
@@ -103,6 +104,12 @@ class ReceivingDocumentRulesIT {
         recorder.clear();
     }
 
+    /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
+    private CanonicalEntityService<ReceivingDocument> documents() {
+        return (CanonicalEntityService<ReceivingDocument>) serviceLocator
+            .<ReceivingDocument, Long>findService(ReceivingDocument.class);
+    }
+
     @Test
     void genericSavePublishesEntitySavingEventBeforePersistence() {
         String suffix = suffix();
@@ -110,7 +117,7 @@ class ReceivingDocumentRulesIT {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
             ReceivingDocument document = documentWithDifferentWorkshops(suffix);
 
-            documentService.save(document);
+            documents().save(document);
 
             assertThat(recorder.entitySavingEvents()).singleElement().satisfies(event -> {
                 assertThat(event.entity()).isInstanceOf(ReceivingDocument.class);
@@ -135,7 +142,7 @@ class ReceivingDocumentRulesIT {
                 "РН-" + suffix + "-B", LocalDate.now(), workshop, workshop);
             document.setJournal(journal);
 
-            assertThatThrownBy(() -> documentService.save(document))
+            assertThatThrownBy(() -> documents().save(document))
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("Цех-приемщик и цех-сдатчик не могут быть одинаковыми");
 
@@ -161,7 +168,7 @@ class ReceivingDocumentRulesIT {
                 ReceivingDocumentItem.class).orElseThrow();
             assertThat(sectionService.findByParent(saved, descriptor)).hasSize(1);
 
-            documentService.delete(saved.getId());
+            documents().delete(saved.getId());
 
             // veto-capable событие пришло синхронно до удаления, факт удаления — после commit
             assertThat(recorder.deletingEvents()).singleElement().satisfies(event -> {
@@ -185,10 +192,10 @@ class ReceivingDocumentRulesIT {
 
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
             ReceivingDocument document = documentWithDifferentWorkshops(suffix);
-            ReceivingDocument saved = documentService.save(document);
+            ReceivingDocument saved = documents().save(document);
             recorder.blockDeletesFor(saved.getId());
 
-            assertThatThrownBy(() -> documentService.delete(saved.getId()))
+            assertThatThrownBy(() -> documents().delete(saved.getId()))
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("Удаление заблокировано слушателем");
 

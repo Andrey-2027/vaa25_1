@@ -8,7 +8,8 @@ import org.ip.model.Workshop;
 import org.ip.repository.BranchRepository;
 import org.ip.repository.JournalRepository;
 import org.ip.repository.WorkshopRepository;
-import org.ip.service.ReceivingDocumentService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsAccessDeniedException;
@@ -50,7 +51,7 @@ class RlsDeniedEventTest {
     private SecurityEventLogger securityEventLogger;
 
     @Autowired
-    private ReceivingDocumentService receivingDocumentService;
+    private ServiceLocator serviceLocator;
 
     @Autowired
     private BranchRepository branchRepository;
@@ -67,6 +68,12 @@ class RlsDeniedEventTest {
     @org.junit.jupiter.api.AfterEach
     void clearAuthentication() {
         SecurityContextHolder.clearContext();
+    }
+
+    /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
+    private CanonicalEntityService<ReceivingDocument> documents() {
+        return (CanonicalEntityService<ReceivingDocument>) serviceLocator
+            .<ReceivingDocument, Long>findService(ReceivingDocument.class);
     }
 
     @Test
@@ -106,7 +113,7 @@ class RlsDeniedEventTest {
             new UsernamePasswordAuthenticationToken(deniedUser, "n/a", java.util.List.of()));
         SecurityContextHolder.setContext(deniedContext);
 
-        assertThatThrownBy(() -> receivingDocumentService.create(doc))
+        assertThatThrownBy(() -> documents().save(doc))
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на изменение");
 

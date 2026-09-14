@@ -3,7 +3,8 @@ package org.ip.security;
 import org.ip.config.DataInitializer;
 import org.ip.model.ReceivingDocument;
 import org.ip.repository.JournalRepository;
-import org.ip.service.ReceivingDocumentService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.crud.LookupService;
 import org.ipro.rls.RlsAccessDeniedException;
 import org.junit.jupiter.api.AfterEach;
@@ -38,7 +39,7 @@ class RlsUnauthenticatedAccessIT {
     /** Сидирование стартовых данных имеет известный дефект на свежей БД — вне скоупа. */
     @MockitoBean DataInitializer dataInitializer;
 
-    @Autowired ReceivingDocumentService documents;
+    @Autowired ServiceLocator serviceLocator;
     @Autowired LookupService lookups;
     @Autowired JournalRepository journals;
 
@@ -57,9 +58,15 @@ class RlsUnauthenticatedAccessIT {
         SecurityContextHolder.clearContext();
     }
 
+    /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
+    private CanonicalEntityService<ReceivingDocument> documents() {
+        return (CanonicalEntityService<ReceivingDocument>) serviceLocator
+            .<ReceivingDocument, Long>findService(ReceivingDocument.class);
+    }
+
     @Test
     void serviceReadWithoutAuthenticationIsDeniedInsteadOfReturningEverything() {
-        assertThatThrownBy(() -> documents.findAll())
+        assertThatThrownBy(() -> documents().findAll())
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("аутентифицированного пользователя");
     }
@@ -69,7 +76,7 @@ class RlsUnauthenticatedAccessIT {
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken("system", "n/a", List.of()));
 
-        assertThatThrownBy(() -> documents.findAll())
+        assertThatThrownBy(() -> documents().findAll())
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("аутентифицированного пользователя");
     }

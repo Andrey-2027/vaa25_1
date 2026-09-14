@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Канонический lifecycle handler накладной: раньше правила были в
- * {@code ReceivingDocumentService.validateBusinessRules} и legacy section service.
+ * предметный lifecycle-правило и legacy section service.
  */
 class ReceivingDocumentRulesListenerTest {
 

@@ -36,7 +36,8 @@ import java.time.LocalDate;
  * Строки табличной части НЕ хранятся здесь как @OneToMany EAGER-коллекция — это
  * отдельные owned entities, которыми управляет metadata-driven platform service.
  * ItemTable (UI) и resolved section descriptor отвечают за загрузку,
- * синхронизации и удалении строк — см. ReceivingDocumentService.delete() для каскада.
+ * синхронизации и удалении строк — cascade owned-строк выполняет canonical delete
+ * (CanonicalWriteExecutor через GenericOwnedSectionService), а не application service.
  *
  * RLS — по двум измерениям сразу (см. план RLS, п.3):
  * <ul>
@@ -82,7 +83,6 @@ import java.time.LocalDate;
     selectionFormTitle = "Выбор накладной",
     order = 200,
     icon = "FILE_TEXT",
-    serviceClass = org.ip.service.ReceivingDocumentService.class,
     subsystem = Subsystems.Production.class,
         listColumns = {"id","number","date","journal.code","receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name"}
 )

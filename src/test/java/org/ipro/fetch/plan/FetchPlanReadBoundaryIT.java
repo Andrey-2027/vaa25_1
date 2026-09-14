@@ -16,7 +16,8 @@ import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.ReceivingDocumentRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
-import org.ip.service.ReceivingDocumentService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.crud.GenericOwnedSectionService;
 import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
@@ -62,7 +63,7 @@ class FetchPlanReadBoundaryIT {
     private FetchPlanRegistry fetchPlanRegistry;
 
     @Autowired
-    private ReceivingDocumentService documentService;
+    private ServiceLocator serviceLocator;
 
     @Autowired
     private GenericOwnedSectionService sectionService;
@@ -115,6 +116,12 @@ class FetchPlanReadBoundaryIT {
         accessGrantRepository.saveAndFlush(wildcard);
     }
 
+    /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
+    private CanonicalEntityService<ReceivingDocument> documents() {
+        return (CanonicalEntityService<ReceivingDocument>) serviceLocator
+            .<ReceivingDocument, Long>findService(ReceivingDocument.class);
+    }
+
     @Test
     void scenarioPlansComeFromMetadataDeclarations() {
         assertThat(fetchPlanRegistry.paths(ReceivingDocument.class, FetchScenario.LIST))
@@ -132,7 +139,7 @@ class FetchPlanReadBoundaryIT {
         entityManager.flush();
         entityManager.clear();
 
-        ReceivingDocument loaded = documentService.findById(document.getId()).orElseThrow();
+        ReceivingDocument loaded = documents().findById(document.getId()).orElseThrow();
 
         assertThat(Hibernate.isInitialized(loaded.getJournal())).isTrue();
         assertThat(Hibernate.isInitialized(loaded.getReceivingWorkshop())).isTrue();
@@ -145,7 +152,7 @@ class FetchPlanReadBoundaryIT {
         entityManager.flush();
         entityManager.clear();
 
-        List<ReceivingDocument> rows = documentService
+        List<ReceivingDocument> rows = documents()
             .findAll(null, PageRequest.of(0, 10)).getContent()
             .stream()
             .filter(row -> row.getId().equals(document.getId()))
@@ -162,21 +169,21 @@ class FetchPlanReadBoundaryIT {
         entityManager.flush();
         entityManager.clear();
 
-        ReceivingDocument unpaged = documentService.findAll().stream()
+        ReceivingDocument unpaged = documents().findAll().stream()
             .filter(row -> row.getId().equals(document.getId()))
             .findFirst().orElseThrow();
         assertThat(Hibernate.isInitialized(unpaged.getReceivingWorkshop())).isTrue();
         assertThat(Hibernate.isInitialized(unpaged.getTransferringWorkshop())).isTrue();
 
         entityManager.clear();
-        ReceivingDocument paged = documentService.findAll(PageRequest.of(0, 10)).getContent().stream()
+        ReceivingDocument paged = documents().findAll(PageRequest.of(0, 10)).getContent().stream()
             .filter(row -> row.getId().equals(document.getId()))
             .findFirst().orElseThrow();
         assertThat(Hibernate.isInitialized(paged.getReceivingWorkshop())).isTrue();
         assertThat(Hibernate.isInitialized(paged.getTransferringWorkshop())).isTrue();
 
         entityManager.clear();
-        ReceivingDocument explicitEmpty = documentService.findAll(null, PageRequest.of(0, 10), List.of())
+        ReceivingDocument explicitEmpty = documents().findAll(null, PageRequest.of(0, 10), List.of())
             .getContent().stream()
             .filter(row -> row.getId().equals(document.getId()))
             .findFirst().orElseThrow();

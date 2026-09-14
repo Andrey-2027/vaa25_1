@@ -15,7 +15,6 @@ import org.ip.model.Oper;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.data.CanonicalEntityService;
-import org.ip.service.ReceivingDocumentService;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsTestFixture;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,8 +58,7 @@ class NumberingEngineIT {
     @Autowired
     private NumberingRuleService ruleService;
 
-    @Autowired
-    private ReceivingDocumentService documentService;
+
 
     @Autowired
     private ServiceLocator serviceLocatorForNomenclature;
@@ -110,6 +108,12 @@ class NumberingEngineIT {
     }
 
     // ------------------------------------------------------------ последовательности
+
+    /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
+    private CanonicalEntityService<ReceivingDocument> documents() {
+        return (CanonicalEntityService<ReceivingDocument>) serviceLocator
+            .<ReceivingDocument, Long>findService(ReceivingDocument.class);
+    }
 
     @Test
     void journalScopeIsolatesSequencesAndYearPeriodRestartsCounter() {
@@ -280,12 +284,12 @@ class NumberingEngineIT {
             ReceivingDocument document = new ReceivingDocument(null, DATE_2026, receiving, transferring);
             document.setJournal(journal);
 
-            ReceivingDocument saved = documentService.create(document);
+            ReceivingDocument saved = documents().save(document);
             String firstNumber = saved.getNumber();
             assertThat(firstNumber).matches("РН-\\d{4}-\\d{6}");
 
             saved.setDate(LocalDate.of(2026, 5, 5)); // правка существующего — не перенумеровывает
-            ReceivingDocument updated = documentService.update(saved);
+            ReceivingDocument updated = documents().save(saved);
 
             assertThat(updated.getNumber()).isEqualTo(firstNumber);
         });
@@ -301,7 +305,7 @@ class NumberingEngineIT {
             ReceivingDocument document = new ReceivingDocument("МНУЧ-015", DATE_2026, receiving, transferring);
             document.setJournal(journal);
 
-            assertThat(documentService.create(document).getNumber()).isEqualTo("МНУЧ-015");
+            assertThat(documents().save(document).getNumber()).isEqualTo("МНУЧ-015");
         });
     }
 

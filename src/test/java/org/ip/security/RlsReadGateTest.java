@@ -14,7 +14,6 @@ import org.ip.repository.WorkshopRepository;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.data.CanonicalEntityService;
-import org.ip.service.ReceivingDocumentService;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -67,8 +66,6 @@ class RlsReadGateTest {
     @Autowired
     private org.ip.repository.UnitOfMeasurementRepository unitOfMeasurementRepository;
 
-    @Autowired
-    private ReceivingDocumentService documentService;
 
     @Autowired
     private ServiceLocator serviceLocator;
@@ -136,6 +133,12 @@ class RlsReadGateTest {
      * по JOURNAL/BRANCH» — dave читает Журнал и Филиал документа (обоих!), но без
      * "ENTITY:ReceivingDocument" список и запись пусты.
      */
+    /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
+    private CanonicalEntityService<ReceivingDocument> documents() {
+        return (CanonicalEntityService<ReceivingDocument>) serviceLocator
+            .<ReceivingDocument, Long>findService(ReceivingDocument.class);
+    }
+
     @Test
     void noEntityGrantMakesReadsEmptyEvenWhenRowsPassJournalAndBranchFilters() {
         bootstrapProtectedWrites();
@@ -149,9 +152,9 @@ class RlsReadGateTest {
         grant("dave", "BRANCH", branch.getId(), true, false, false);
         loginAs("dave");
 
-        assertThat(documentService.findAll()).isEmpty();
-        assertThat(documentService.findAll(PageRequest.of(0, 10))).isEmpty();
-        assertThat(documentService.findById(doc.getId())).isEmpty();
+        assertThat(documents().findAll()).isEmpty();
+        assertThat(documents().findAll(PageRequest.of(0, 10))).isEmpty();
+        assertThat(documents().findById(doc.getId())).isEmpty();
     }
 
     /** План Ф5 (контр-проверка): ENTITY-грант снимает блокировку — те же строки видны. */
@@ -169,9 +172,9 @@ class RlsReadGateTest {
         grant("dave", "ENTITY:ReceivingDocument", null, true, false, false);
         loginAs("dave");
 
-        assertThat(documentService.findAll()).extracting(ReceivingDocument::getNumber)
+        assertThat(documents().findAll()).extracting(ReceivingDocument::getNumber)
             .containsExactly("UG-1");
-        assertThat(documentService.findById(doc.getId())).isPresent();
+        assertThat(documents().findById(doc.getId())).isPresent();
     }
 
     /** План Ф5: lookup-путь (автокомплит/SelectionForm) подчиняется гейту — симметрично сервису. */
