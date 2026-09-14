@@ -7,10 +7,12 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.crud.BaseEntity;
+import org.ipro.data.SearchFields;
 import org.ipro.metadata.HasDisplayName;
 
 @Entity
 @Table(name = "unit_of_measurement")
+@SearchFields({"shortCode"})
 @EntityMetadata(
     listFormTitle = "Единицы измерения",
     itemFormTitle = "Единица измерения",

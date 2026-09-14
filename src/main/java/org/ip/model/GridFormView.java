@@ -9,6 +9,7 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.crud.BaseEntity;
+import org.ipro.data.SearchFields;
 
 /**
  * Сохранённый вид формы списка (аналог "Пользовательских настроек" — конкретно набора
@@ -33,6 +34,7 @@ import org.ipro.crud.BaseEntity;
  */
 @Entity
 @Table(name = "grid_form_view")
+@SearchFields({"name", "formKey"})
 @EntityMetadata(
     listFormTitle = "Виды форм списка",
     itemFormTitle = "Вид формы списка",

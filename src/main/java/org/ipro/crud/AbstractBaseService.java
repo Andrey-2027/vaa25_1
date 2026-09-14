@@ -552,6 +552,7 @@ public abstract class AbstractBaseService<T extends IdentifiableEntity, ID> impl
                 InstanceNameBridge::instanceNamePaths));
     }
 
+    @Override
     public Number sum(String fieldName, Specification<T> spec) {
         if (readExecutor != null) {
             return readExecutor.readSum(getDomainClass(), fieldName, spec);

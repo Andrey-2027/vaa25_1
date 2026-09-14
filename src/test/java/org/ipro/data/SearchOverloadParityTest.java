@@ -6,13 +6,11 @@ import org.ip.repository.NomSklAttributeRepository;
 import org.ip.repository.PrdSpecRepository;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
-import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.UserRepository;
 import org.ip.service.GridFormViewService;
 import org.ip.service.NomSklAttributeService;
 import org.ip.service.PrdSpecService;
 import org.ip.service.SklNomOpaService;
-import org.ip.service.UnitOfMeasurementService;
 import org.ip.service.UserService;
 import org.ipro.crud.BaseService;
 import org.junit.jupiter.api.Test;
@@ -48,13 +46,12 @@ class SearchOverloadParityTest {
         assertParity(new SklNomOpaService(sklRepository, mock(SklNomOpaValueRepository.class),
             validator, mock(PlatformTransactionManager.class)), List.of("displayName"), sklRepository);
 
-        UnitOfMeasurementRepository unitRepository = mock(UnitOfMeasurementRepository.class);
-        assertParity(new UnitOfMeasurementService(unitRepository, validator),
-            List.of("shortCode"), unitRepository);
-
+        // C4.6 волна C: у UnitOfMeasurement больше нет typed-сервиса, а GridFormView больше
+        // не переопределяет search — его поля объявлены @SearchFields на типе, поэтому явный
+        // набор пуст, а решение принимает единый resolver.
         GridFormViewRepository viewRepository = mock(GridFormViewRepository.class);
         assertParity(new GridFormViewService(viewRepository, validator),
-            List.of("name", "formKey"), viewRepository);
+            List.of(), viewRepository);
 
         UserRepository userRepository = mock(UserRepository.class);
         assertParity(new UserService(userRepository, validator, mock(PasswordEncoder.class)),

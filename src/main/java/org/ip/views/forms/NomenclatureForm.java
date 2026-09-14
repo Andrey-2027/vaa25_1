@@ -2,24 +2,29 @@ package org.ip.views.forms;
 
 import org.ipro.crud.AbstractEntityForm;
 import org.ipro.crud.FormBuilder;
+import org.ipro.crud.LookupService;
 import org.ip.model.Nomenclature;
 import org.ip.model.UnitOfMeasurement;
-import org.ip.service.UnitOfMeasurementService;
 
+/**
+ * C4.6 волна C: у {@code UnitOfMeasurement} больше нет typed-сервиса, поэтому список
+ * единиц приходит canonical lookup'ом — тем же путём, что и остальные списочные выдачи
+ * формы (как {@code UserFormConfig} после волны A).
+ */
 public class NomenclatureForm extends AbstractEntityForm<Nomenclature> {
 
-    private final UnitOfMeasurementService unitService;
+    private final LookupService lookupService;
 
-    public NomenclatureForm(UnitOfMeasurementService unitService) {
+    public NomenclatureForm(LookupService lookupService) {
         super(Nomenclature.class);
-        this.unitService = unitService;
+        this.lookupService = lookupService;
     }
 
     @Override
     protected void buildForm(FormBuilder<Nomenclature> form) {
         form.addAuto("code", "Код");
         form.addAuto("name", "Наименование");
-        form.addCombo("Единица Измерения", unitService.findAll(),
+        form.addCombo("Единица Измерения", lookupService.findAll(UnitOfMeasurement.class),
             UnitOfMeasurement::toString,
             Nomenclature::getUnitOfMeasurement,
             Nomenclature::setUnitOfMeasurement);

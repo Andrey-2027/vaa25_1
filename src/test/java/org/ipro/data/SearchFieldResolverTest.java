@@ -1,7 +1,9 @@
 package org.ipro.data;
 
 import org.ip.model.Branch;
+import org.ip.model.GridFormView;
 import org.ip.model.PrdSpec;
+import org.ip.model.UnitOfMeasurement;
 import org.ipro.metadata.MetadataResolver;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +32,19 @@ class SearchFieldResolverTest {
         assertThat(resolver.resolve(PrdSpec.class, List.of()))
             .containsExactly("codeSpec", "draft")
             .doesNotContain("nomenclature.name");
+    }
+
+    /**
+     * C4.6 волна C: поля поиска, которые раньше жили переопределением в сервисе
+     * ({@code UnitOfMeasurementService}, {@code GridFormViewService}), объявлены на типе —
+     * поэтому удаление сервиса не меняет набор и порядок полей.
+     */
+    @Test
+    void searchFieldsDeclaredOnTypeReplaceServiceOverrides() {
+        assertThat(resolver.resolve(UnitOfMeasurement.class, List.of()))
+            .containsExactly("shortCode");
+        assertThat(resolver.resolve(GridFormView.class, List.of()))
+            .containsExactly("name", "formKey");
     }
 
     @Test

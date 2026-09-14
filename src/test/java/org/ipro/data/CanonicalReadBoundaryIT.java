@@ -7,8 +7,10 @@ import org.ip.model.Nomenclature;
 import org.ip.model.NomAttributeValue;
 import org.ip.model.SklNomOpa;
 import org.ip.model.SklNomOpaValue;
+import org.ip.model.UnitOfMeasurement;
 import org.ip.model.UserFormSettings;
 import org.ip.model.Workshop;
+import org.ipro.crud.BaseService;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.fetch.plan.FetchScenario;
@@ -128,6 +130,29 @@ class CanonicalReadBoundaryIT {
             .isInstanceOf(org.ipro.data.CanonicalEntityService.class);
         assertThat(ReflectionTestUtils.getField(
                 serviceLocator.findService(org.ip.model.Branch.class), "readExecutor"))
+            .isSameAs(readExecutor);
+    }
+
+    /**
+     * C4.6 волна C: у {@code Workshop} и {@code UnitOfMeasurement} больше нет typed-сервисов,
+     * поэтому {@code ServiceLocator} отдаёт им canonical handle, а агрегат футера грида
+     * ({@code BaseService.sum}) идёт той же read-границей, а не отдельным запросом мимо RLS.
+     * Поведенчески второй путь проверяется в {@code FetchPlanReadBoundaryIT}, где есть
+     * аутентификация (здесь вызов read с RLS без пользователя корректно отказывает).
+     */
+    @Test
+    void waveCMigratedTypesResolveToCanonicalHandle() {
+        BaseService<Workshop, Long> workshops = serviceLocator.findService(Workshop.class);
+        BaseService<UnitOfMeasurement, Long> units =
+            serviceLocator.findService(UnitOfMeasurement.class);
+
+        assertThat(workshops).isInstanceOf(CanonicalEntityService.class);
+        assertThat(units).isInstanceOf(CanonicalEntityService.class);
+        // Один read boundary на оба хэндла: агрегат футера грида и поиск единиц не
+        // открывают второй путь мимо RLS/FetchPlan.
+        assertThat(ReflectionTestUtils.getField(workshops, "readExecutor"))
+            .isSameAs(readExecutor);
+        assertThat(ReflectionTestUtils.getField(units, "readExecutor"))
             .isSameAs(readExecutor);
     }
 

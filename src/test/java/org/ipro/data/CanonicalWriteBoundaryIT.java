@@ -158,11 +158,13 @@ class CanonicalWriteBoundaryIT {
 
     @Test
     void standardRootWithTypedServiceKeepsItsOwnService() {
-        BaseService<?, ?> resolved = serviceLocator.findService(org.ip.model.Workshop.class);
+        // Волна C: {@code Workshop} мигрирован и больше не годится как пример «root с
+        // типизированным сервисом» — берём тип, у которого сервис остался.
+        BaseService<?, ?> resolved = serviceLocator.findService(org.ip.model.AttributeType.class);
 
         assertThat(resolved)
             .as("canonical default не подменяет типизированный application service")
-            .isSameAs(serviceLocator.findService(org.ip.model.Workshop.class));
+            .isSameAs(serviceLocator.findService(org.ip.model.AttributeType.class));
         assertThat(resolved).isNotInstanceOf(CanonicalEntityService.class);
         assertThat(resolver.resolve(org.ip.model.Workshop.class)).isSameAs(access);
     }

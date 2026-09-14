@@ -31,9 +31,7 @@ class CompatibilityMigrationArchitectureTest {
             "org.ip.service.NomSklAttributeService",
             "org.ip.service.PrdSpecService",
             "org.ip.service.SklNomOpaService",
-            "org.ip.service.UnitOfMeasurementService",
             "org.ip.service.UserService",
-            "org.ip.service.WorkshopService",
             "org.ipro.ureport.service.UreportTemplateService");
 
     /** Сущности, чья модель ещё ссылается на application service через {@code @EntityMetadata}. */

@@ -115,4 +115,13 @@ public class CanonicalEntityService<T extends IdentifiableEntity> implements Bas
         return readExecutor.readSearch(SearchRead.of(type, SearchContext.LIST, term,
             pageable == null ? SearchRead.defaultPage() : pageable));
     }
+
+    /**
+     * Скалярный aggregate футера грида (C4.6): тот же read boundary, что у списка —
+     * capability сценария, read gate и RLS применяются до SQL, а не поверх выгрузки.
+     */
+    @Override
+    public Number sum(String fieldName, Specification<T> spec) {
+        return readExecutor.readSum(type, fieldName, spec);
+    }
 }

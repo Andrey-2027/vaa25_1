@@ -3,27 +3,41 @@ package org.ip.views.directory;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
 import org.ipro.crud.AbstractCrudView;
+import org.ipro.crud.BaseService;
 import org.ipro.crud.EditMode;
+import org.ipro.crud.ServiceLocator;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.ip.model.Workshop;
-import org.ip.service.WorkshopService;
 import org.ip.views.forms.WorkshopForm;
 
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * C4.6 волна C: у {@code Workshop} больше нет typed-сервиса, поэтому вид работает с
+ * canonical-хэндлом, который отдаёт {@link ServiceLocator} — тот же handle, что получают
+ * generic list/detail/search. Агрегат футера считается read-границей
+ * ({@link BaseService#sum}), а не отдельным запросом мимо RLS/FetchPlan.
+ */
 public class WorkshopListView extends AbstractCrudView<Workshop> {
 
-    private final WorkshopService service;
+    private final ServiceLocator serviceLocator;
+    private final BaseService<Workshop, Long> service;
     private Consumer<Long> onEdit;
 
-    public WorkshopListView(WorkshopService service) {
-        this(service, new JpaFilterGrid<>(Workshop.class, service::findAll));
+    public WorkshopListView(ServiceLocator serviceLocator) {
+        this(serviceLocator, serviceLocator.<Workshop, Long>findService(Workshop.class));
     }
 
-    private WorkshopListView(WorkshopService service, JpaFilterGrid<Workshop> fg) {
+    private WorkshopListView(ServiceLocator serviceLocator, BaseService<Workshop, Long> service) {
+        this(serviceLocator, service, new JpaFilterGrid<>(Workshop.class, service::findAll));
+    }
+
+    private WorkshopListView(ServiceLocator serviceLocator, BaseService<Workshop, Long> service,
+                             JpaFilterGrid<Workshop> fg) {
         super(Workshop.class, service, fg.getGrid(), fg, EditMode.DIALOG);
+        this.serviceLocator = serviceLocator;
         this.service = service;
     }
 
@@ -32,9 +46,12 @@ public class WorkshopListView extends AbstractCrudView<Workshop> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void configureGrid() {
         JpaFilterGrid<Workshop> fg = getGridComponent();
-        WorkshopService svc = (WorkshopService) getService();
+        // configureGrid вызывает базовый конструктор — поле ещё не присвоено, поэтому
+        // агрегат футера берётся с того же handle, что базовый класс положил в getService().
+        BaseService<Workshop, Long> svc = (BaseService<Workshop, Long>) getService();
 
         fg.addColumnFilter("id", "id", Workshop::getId, new TextFilter<>());
         fg.addColumnFilter("code", "Код", Workshop::getCode, new TextFilter<>());
@@ -48,7 +65,7 @@ public class WorkshopListView extends AbstractCrudView<Workshop> {
 
     @Override
     protected WorkshopForm createForm() {
-        return new WorkshopForm(service);
+        return new WorkshopForm(serviceLocator);
     }
 
     @Override

@@ -16,6 +16,7 @@ import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.ReceivingDocumentRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
+import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.crud.GenericOwnedSectionService;
@@ -28,7 +29,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -190,6 +193,62 @@ class FetchPlanReadBoundaryIT {
         assertThat(Hibernate.isInitialized(explicitEmpty.getReceivingWorkshop()))
             .as("дополнительные пути не должны выключать базовый LIST plan")
             .isTrue();
+    }
+
+    /**
+     * C4.6 волна C: регрессия «фильтр колонки + активный RLS {@code @Filter}» (раньше
+     * проверялась вручную собранным {@code WorkshopService}) идёт canonical-хэндлом — той же
+     * read-границей, что и generic list. Поэтому спецификация фильтра обязана по-прежнему
+     * сужать выдачу, а RLS — прятать строки чужого филиала.
+     */
+    /**
+     * C4.6 волна C: агрегат футера грида ({@code BaseService.sum}) — та же read-граница, что
+     * и список, а не отдельный запрос мимо RLS/FetchPlan. Он стал общедоступным ровно
+     * потому, что {@code WorkshopListView} больше не может опереться на typed-сервис.
+     */
+    @Test
+    void gridFooterAggregateUsesTheCanonicalReadBoundary() {
+        Workshop row = workshop("agg-" + suffix(), null);
+        entityManager.flush();
+        entityManager.clear();
+
+        BaseService<Workshop, Long> workshops = serviceLocator.findService(Workshop.class);
+
+        assertThat(workshops.sum("id", null).longValue())
+            .isGreaterThanOrEqualTo(row.getId());
+    }
+
+    @Test
+    void restrictedBranchGrantStillFiltersCanonicalListWithSpecification() {
+        Branch allowedBranch = branch("RB-ok-" + suffix());
+        Branch deniedBranch = branch("RB-no-" + suffix());
+        String marker = "grid-" + suffix();
+        Workshop allowed = workshop(marker + "-ok", allowedBranch);
+        workshop(marker + "-no", deniedBranch);
+
+        String username = "plan-boundary-" + UUID.randomUUID();
+        AccessGrant readAllowedBranchOnly = new AccessGrant();
+        readAllowedBranchOnly.setSubjectType(AccessGrant.SubjectType.USER);
+        readAllowedBranchOnly.setSubjectKey(username);
+        readAllowedBranchOnly.setDimension("BRANCH");
+        readAllowedBranchOnly.setDimensionValueId(allowedBranch.getId());
+        readAllowedBranchOnly.setCanRead(true);
+        accessGrantRepository.saveAndFlush(readAllowedBranchOnly);
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken(username, "n/a", List.of()));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Specification<Workshop> byNamePrefix = (root, query, cb) ->
+            cb.like(cb.lower(root.get("name")), marker + "%");
+
+        Page<Workshop> page = serviceLocator.<Workshop, Long>findService(Workshop.class)
+            .findAll(byNamePrefix, PageRequest.of(0, 100));
+
+        assertThat(page.getContent()).extracting(Workshop::getCode)
+            .as("спецификация фильтра не должна переживать RLS-фильтр активного измерения")
+            .containsExactly(allowed.getCode());
     }
 
     @Test

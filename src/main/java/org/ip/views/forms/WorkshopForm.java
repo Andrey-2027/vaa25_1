@@ -9,7 +9,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.ipro.crud.AbstractEntityForm;
 import org.ipro.crud.FormBuilder;
 import org.ip.model.Workshop;
-import org.ip.service.WorkshopService;
+import org.ipro.crud.CrudService;
+import org.ipro.crud.ServiceLocator;
 import org.ipro.form.Dirtyable;
 import org.ipro.form.Savable;
 
@@ -17,15 +18,21 @@ import java.util.Objects;
 
 public class WorkshopForm extends AbstractEntityForm<Workshop> implements Dirtyable, Savable {
 
-    private final WorkshopService service;
+    // CrudService, а не BaseService: у карточки есть только findById/save, а два
+    // generic-перегруза findById при статическом типе BaseService неразрешимо неоднозначны.
+    private final CrudService<Workshop> service;
     private String initialCode;
     private String initialName;
     private Runnable onClose;
     private Runnable afterSave;
 
-    public WorkshopForm(WorkshopService service) {
+    /**
+     * C4.6 волна C: у {@code Workshop} больше нет typed-сервиса, но карточке нужен тот же
+     * контракт сохранения/чтения — его даёт canonical-handle из {@link ServiceLocator}.
+     */
+    public WorkshopForm(ServiceLocator serviceLocator) {
         super(Workshop.class);
-        this.service = service;
+        this.service = serviceLocator.findService(Workshop.class);
     }
 
     @Override

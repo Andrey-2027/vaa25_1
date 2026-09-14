@@ -12,7 +12,6 @@ import org.ipro.filtergrid.FilterGrid;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.ip.model.UnitOfMeasurement;
-import org.ip.service.UnitOfMeasurementService;
 import org.ip.views.forms.UnitForm;
 
 import java.util.List;

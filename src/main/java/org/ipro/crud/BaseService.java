@@ -27,6 +27,16 @@ public interface BaseService<T extends IdentifiableEntity, ID> extends CrudServi
     }
 
     /**
+     * Скалярный aggregate (SUM) по полю с учётом RLS и сценария {@code LIST} — поверхность
+     * футеров грида. Тот же контракт, что у {@link #findAll(Specification, Pageable)}:
+     * canonical handle считает агрегат через read boundary, а реализация без неё обязана
+     * отказать явно, а не посчитать мимо RLS.
+     */
+    default Number sum(String fieldName, Specification<T> spec) {
+        throw new UnsupportedOperationException("sum not implemented in " + getClass().getSimpleName());
+    }
+
+    /**
      * То же, что {@link #findAll(Specification, Pageable)}, но с дополнительными JPA-путями
      * для динамических колонок. Базовый сценарий {@code LIST} при этом сохраняется.
      */
