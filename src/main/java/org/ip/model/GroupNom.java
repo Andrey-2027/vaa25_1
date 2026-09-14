@@ -18,7 +18,6 @@ import org.ipro.metadata.annotation.GridColumn;
     selectionFormTitle = "Выбор группы номенклатуры",
     order = 90,
     icon = "FOLDER",
-    serviceClass = org.ip.service.GroupNomService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}

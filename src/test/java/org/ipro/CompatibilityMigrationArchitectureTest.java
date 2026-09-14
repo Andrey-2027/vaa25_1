@@ -28,7 +28,6 @@ class CompatibilityMigrationArchitectureTest {
             "org.ip.service.AttributeTypeService",
             "org.ip.service.AttributeValueService",
             "org.ip.service.GridFormViewService",
-            "org.ip.service.GroupNomService",
             "org.ip.service.NomenclatureService",
             "org.ip.service.NomSklAttributeService",
             "org.ip.service.PrdSpecService",
@@ -43,7 +42,6 @@ class CompatibilityMigrationArchitectureTest {
     private static final Set<String> MODEL_TO_SERVICE_DEPENDENCIES = Set.of(
             "org.ip.model.AttributeType",
             "org.ip.model.AttributeValue",
-            "org.ip.model.GroupNom",
             "org.ip.model.NomSklAttribute",
             "org.ip.model.Nomenclature",
             "org.ip.model.PrdSpec",

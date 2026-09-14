@@ -1,6 +1,7 @@
 package org.ip.service;
 
 import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.Validation;
@@ -14,7 +15,6 @@ import org.ip.model.NomAttributeValue;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.repository.AttributeTypeRepository;
 import org.ip.repository.AttributeValueRepository;
-import org.ip.repository.GroupNomRepository;
 import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
@@ -64,8 +64,6 @@ class AttributeValueServiceTest {
     @Autowired
     private AttributeTypeRepository attributeTypeRepository;
     @Autowired
-    private GroupNomRepository groupNomRepository;
-    @Autowired
     private NomenclatureRepository nomenclatureRepository;
     @Autowired
     private UnitOfMeasurementRepository unitOfMeasurementRepository;
@@ -75,6 +73,17 @@ class AttributeValueServiceTest {
     private SklNomOpaValueRepository sklNomOpaValueRepository;
     @Autowired
     private PlatformTransactionManager transactionManager;
+
+    /**
+     * Класс намеренно не транзакционный ({@code Propagation.NOT_SUPPORTED}), а сервис
+     * коммитит свои изменения сам. Раньше фикстуру писал repository {@code save()}, у
+     * которого есть собственная {@code @Transactional}; после C4.6 такой repository для
+     * {@code GroupNom} не нужен, поэтому транзакцию открываем явно.
+     */
+    private void persistInOwnTransaction(Object entity) {
+        new TransactionTemplate(transactionManager)
+            .executeWithoutResult(status -> entityManager.persist(entity));
+    }
 
     private AttributeValueService newService() {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
@@ -207,8 +216,12 @@ class AttributeValueServiceTest {
         AttributeValueService service = newService();
         AttributeType type = saveType("T-REF", AttributeValueType.REF);
 
-        GroupNom first = groupNomRepository.save(new GroupNom("G-1", "Иванов И.И."));
-        GroupNom second = groupNomRepository.save(new GroupNom("G-2", "Иванов И.И."));
+        // C4.6: GroupNomRepository удалён вместе с GroupNomService — фикстура пишется
+        // тем же способом, что и раньше под капотом save(): через EntityManager слайса.
+        GroupNom first = new GroupNom("G-1", "Иванов И.И.");
+        persistInOwnTransaction(first);
+        GroupNom second = new GroupNom("G-2", "Иванов И.И.");
+        persistInOwnTransaction(second);
 
         AttributeValue v1 = service.getOrCreateRef(type, first.getId());
         AttributeValue v2 = service.getOrCreateRef(type, second.getId());
@@ -349,7 +362,8 @@ class AttributeValueServiceTest {
     void renameRefForbidden() {
         AttributeValueService service = newService();
         AttributeType type = saveType("T-REN-REF", AttributeValueType.REF);
-        GroupNom group = groupNomRepository.save(new GroupNom("G-REN", "Иванов И.И."));
+        GroupNom group = new GroupNom("G-REN", "Иванов И.И.");
+        persistInOwnTransaction(group);
         AttributeValue value = service.getOrCreateRef(type, group.getId());
 
         assertThatThrownBy(() -> service.renameValue(value.getId(), "Петров", null))
