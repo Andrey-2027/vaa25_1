@@ -36,7 +36,6 @@ import org.ipro.numbering.annotation.Numbered;
     selectionFormTitle = "Выбор типа атрибута",
     order = 80,
     icon = "TAGS",
-    serviceClass = org.ip.service.AttributeTypeService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"code", "name", "valueType"},
     displaySortFields = {"code", "name"}

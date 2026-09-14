@@ -25,7 +25,6 @@ class CompatibilityMigrationArchitectureTest {
 
     /** Наследники compatibility base на входе C4.6; цель C4.7 — пустой набор. */
     private static final Set<String> COMPATIBILITY_BASE_SUBCLASSES = Set.of(
-            "org.ip.service.AttributeTypeService",
             "org.ip.service.AttributeValueService",
             "org.ip.service.GridFormViewService",
             "org.ip.service.NomSklAttributeService",
@@ -36,7 +35,6 @@ class CompatibilityMigrationArchitectureTest {
 
     /** Сущности, чья модель ещё ссылается на application service через {@code @EntityMetadata}. */
     private static final Set<String> MODEL_TO_SERVICE_DEPENDENCIES = Set.of(
-            "org.ip.model.AttributeType",
             "org.ip.model.AttributeValue",
             "org.ip.model.NomSklAttribute",
             "org.ip.model.PrdSpec",

@@ -15,7 +15,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import org.ip.model.AttributeType;
 import org.ip.model.NomSklAttribute;
 import org.ip.model.Nomenclature;
-import org.ip.service.AttributeTypeService;
 import org.ip.service.NomSklAttributeService;
 import org.ipro.form.FieldFactory;
 import org.ipro.form.builtin.ItemForm;
@@ -34,11 +33,14 @@ import java.util.List;
  * формы не касаются. Привязки — настройка, а не история: отвязка допустима; уже созданные
  * наборы не затрагиваются. Секция появляется после первого сохранения позиции (до этого
  * привязке некуда ссылаться).</p>
+ *
+ * <p>Список доступных типов атрибутов приходит готовым (canonical lookup): форма не
+ * открывает собственный read-путь к справочнику типов.</p>
  */
 public class NomenclatureItemForm extends ItemForm<Nomenclature> {
 
     private final NomSklAttributeService bindingService;
-    private final AttributeTypeService attributeTypeService;
+    private final List<AttributeType> availableTypes;
 
     private final Grid<NomSklAttribute> bindingsGrid = new Grid<>();
     private final Button bindButton = new Button("Привязать атрибут", VaadinIcon.PLUS.create());
@@ -50,10 +52,10 @@ public class NomenclatureItemForm extends ItemForm<Nomenclature> {
 
     public NomenclatureItemForm(EntityMetadataInfo meta, FieldFactory fieldFactory,
                                 NomSklAttributeService bindingService,
-                                AttributeTypeService attributeTypeService) {
+                                List<AttributeType> availableTypes) {
         super(meta, fieldFactory, (List<String>) null);
         this.bindingService = bindingService;
-        this.attributeTypeService = attributeTypeService;
+        this.availableTypes = availableTypes == null ? List.of() : List.copyOf(availableTypes);
 
         H4 title = new H4("Атрибуты КСУ");
         bindingsGrid.addColumn(b -> b.getAttrType() != null ? b.getAttrType().getCode() : "")
@@ -143,7 +145,7 @@ public class NomenclatureItemForm extends ItemForm<Nomenclature> {
         typeGrid.addColumn(AttributeType::getDisplayName).setHeader("Атрибут").setFlexGrow(1);
         typeGrid.addColumn(t -> t.getValueType() != null ? t.getValueType().getLabel() : "")
             .setHeader("Тип значения").setWidth("160px");
-        typeGrid.setItems(attributeTypeService.findAll());
+        typeGrid.setItems(availableTypes);
         typeGrid.setHeight("240px");
         typeGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
 
