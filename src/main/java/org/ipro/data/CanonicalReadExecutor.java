@@ -249,62 +249,94 @@ public class CanonicalReadExecutor {
     public <T> Page<T> readSearch(SearchRead<T> request) {
         Objects.requireNonNull(request, "request must not be null");
         SearchContext context = request.context();
-        return measured(context.operation(), request.type(), context.scenario(), () -> {
-            requireScenario(request.type(), context.scenario());
-            if (!canRead(request.type())) {
-                return Page.empty(request.pageable());
-            }
-            rlsFilterActivator.ensureRlsEnabled(entityManager);
+        return measured(context.operation(), request.type(), context.scenario(),
+            () -> executeSearch(request, 0, true));
+    }
 
-            boolean blank = SearchTerms.isBlank(request.term());
-            List<String> fields = searchFieldResolver.resolve(request.type(),
-                request.searchFields(), context.strictExplicitFields());
-            if (fields.isEmpty() && !blank) {
-                return Page.empty(request.pageable());
-            }
+    /**
+     * Bounded top-N search for global results. Uses the same canonical query and security
+     * boundary as {@link #readSearch(SearchRead)}, applies a per-source timeout, and skips
+     * the count query because the caller only needs the returned window.
+     */
+    public <T> List<T> readSearchWindow(SearchRead<T> request, int limit, int timeoutMs) {
+        Objects.requireNonNull(request, "request must not be null");
+        if (request.context() != SearchContext.GLOBAL) {
+            throw new IllegalArgumentException("readSearchWindow требует SearchContext.GLOBAL");
+        }
+        if (limit <= 0) {
+            return List.of();
+        }
+        if (timeoutMs <= 0) {
+            throw new IllegalArgumentException("timeoutMs должен быть больше нуля");
+        }
+        SearchRead<T> bounded = new SearchRead<>(request.type(), request.context(),
+            request.term(), request.searchFields(), PageRequest.of(0, limit),
+            request.additionalPaths());
+        SearchContext context = bounded.context();
+        return measured(context.operation(), bounded.type(), context.scenario(),
+            () -> executeSearch(bounded, timeoutMs, false).getContent());
+    }
 
-            EntityGraph<T> graph = graphResolver.resolve(entityManager, request.type(),
-                context.scenario(), request.additionalPaths());
-            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-            CriteriaQuery<T> query = cb.createQuery(request.type());
-            Root<T> root = query.from(request.type());
-            Path<?> idPath = root.get(SearchFieldResolver.idFieldName(request.type()));
+    private <T> Page<T> executeSearch(SearchRead<T> request, int timeoutMs,
+                                      boolean countTotal) {
+        SearchContext context = request.context();
+        requireScenario(request.type(), context.scenario());
+        if (!canRead(request.type())) {
+            return Page.empty(request.pageable());
+        }
+        rlsFilterActivator.ensureRlsEnabled(entityManager);
 
-            if (blank) {
-                // Blank term не является фильтром: bounded-выдача по id, а не «вся таблица».
-                query.select(root).orderBy(cb.asc(idPath));
-            } else {
-                query.select(root)
-                    .where(matchingPredicate(cb, root, fields, request.term()))
-                    .orderBy(context.ranked()
-                        ? List.of(cb.asc(rankExpression(cb, root, fields, request.term())),
-                            cb.asc(idPath))
-                        : List.of(cb.asc(idPath)));
-            }
+        boolean blank = SearchTerms.isBlank(request.term());
+        List<String> fields = searchFieldResolver.resolve(request.type(),
+            request.searchFields(), context.strictExplicitFields());
+        if (fields.isEmpty() && !blank) {
+            return Page.empty(request.pageable());
+        }
 
-            TypedQuery<T> typedQuery = entityManager.createQuery(query);
-            if (graph != null) {
-                typedQuery.setHint(FETCHGRAPH_HINT, graph);
-            }
-            Pageable pageable = boundedPage(request.pageable());
-            if (pageable.isPaged()) {
-                typedQuery.setFirstResult((int) pageable.getOffset());
-                typedQuery.setMaxResults(pageable.getPageSize());
-            }
-            List<T> content = typedQuery.getResultList();
+        EntityGraph<T> graph = graphResolver.resolve(entityManager, request.type(),
+            context.scenario(), request.additionalPaths());
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<T> query = cb.createQuery(request.type());
+        Root<T> root = query.from(request.type());
+        Path<?> idPath = root.get(SearchFieldResolver.idFieldName(request.type()));
 
-            if (!pageable.isPaged()) {
-                return new PageImpl<>(content, Pageable.unpaged(), content.size());
-            }
-            CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-            Root<T> countRoot = countQuery.from(request.type());
-            countQuery.select(blank ? cb.count(countRoot) : cb.countDistinct(countRoot));
-            if (!blank) {
-                countQuery.where(matchingPredicate(cb, countRoot, fields, request.term()));
-            }
-            long total = entityManager.createQuery(countQuery).getSingleResult();
-            return new PageImpl<>(content, pageable, total);
-        });
+        if (blank) {
+            // Blank term не является фильтром: bounded-выдача по id, а не «вся таблица».
+            query.select(root).orderBy(cb.asc(idPath));
+        } else {
+            query.select(root)
+                .where(matchingPredicate(cb, root, fields, request.term()))
+                .orderBy(context.ranked()
+                    ? List.of(cb.asc(rankExpression(cb, root, fields, request.term())),
+                        cb.asc(idPath))
+                    : List.of(cb.asc(idPath)));
+        }
+
+        TypedQuery<T> typedQuery = entityManager.createQuery(query);
+        if (graph != null) {
+            typedQuery.setHint(FETCHGRAPH_HINT, graph);
+        }
+        if (timeoutMs > 0) {
+            typedQuery.setHint("jakarta.persistence.query.timeout", timeoutMs);
+        }
+        Pageable pageable = boundedPage(request.pageable());
+        if (pageable.isPaged()) {
+            typedQuery.setFirstResult((int) pageable.getOffset());
+            typedQuery.setMaxResults(pageable.getPageSize());
+        }
+        List<T> content = typedQuery.getResultList();
+
+        if (!countTotal || !pageable.isPaged()) {
+            return new PageImpl<>(content, pageable, content.size());
+        }
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<T> countRoot = countQuery.from(request.type());
+        countQuery.select(blank ? cb.count(countRoot) : cb.countDistinct(countRoot));
+        if (!blank) {
+            countQuery.where(matchingPredicate(cb, countRoot, fields, request.term()));
+        }
+        long total = entityManager.createQuery(countQuery).getSingleResult();
+        return new PageImpl<>(content, pageable, total);
     }
 
     /** Подстрочный предикат по всем полям; поля с соединением не размножают строки (countDistinct). */

@@ -1,34 +1,30 @@
 package org.ipro.search;
 
-import jakarta.persistence.EntityManager;
-
-import java.util.List;
-
 /**
- * Типизированный провайдер одного источника глобального поиска.
+ * Typed result customizer for one explicitly participating global-search entity.
  *
- * <p>Провайдер владеет способом выполнения bounded-запроса и преобразованием сущности
- * в безопасные значения результата. Общий сервис владеет каталогом, лимитами и RLS,
- * поэтому провайдер не может случайно обойти общие гейты.</p>
+ * <p>Providers do not execute persistence queries. The canonical read executor owns the
+ * bounded query, capability checks, RLS, fetch graph and telemetry; a provider supplies
+ * only result mapping/classification and an optional query timeout.</p>
  */
 public interface GlobalSearchProvider<T> {
 
-    /** Сущность, которую обслуживает провайдер. */
+    int DEFAULT_QUERY_TIMEOUT_MS = 2_000;
+
+    /** Entity type this provider customizes. It must also declare {@link GlobalSearchable}. */
     Class<T> entityClass();
 
-    /** Выполнить ограниченный запрос по уже разрешённой декларации источника. */
-    List<T> search(EntityManager entityManager,
-                   GlobalSearchSource source,
-                   String term,
-                   int limit,
-                   int timeoutMs);
+    /** Per-source timeout budget, applied by the canonical executor. */
+    default int queryTimeoutMs() {
+        return DEFAULT_QUERY_TIMEOUT_MS;
+    }
 
-    /** Извлечь технический идентификатор для навигации, не отдавая entity в UI. */
+    /** Extract the navigation identifier without returning an entity to the UI. */
     Object idOf(T entity);
 
-    /** Сформировать готовую подпись результата. */
+    /** Produce the safe, already-loaded display value for a result. */
     String displayValue(T entity, GlobalSearchSource source);
 
-    /** Определить вид и поле совпадения для уже найденной записи. */
+    /** Classify a row already returned by the canonical ranked query. */
     GlobalSearchMatch classify(T entity, GlobalSearchSource source, String term);
 }

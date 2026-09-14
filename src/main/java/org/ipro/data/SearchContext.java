@@ -7,9 +7,8 @@ import org.ipro.fetch.plan.FetchScenario;
  *
  * <p>До C4.4 список, автокомплит ссылки и глобальный поиск собирали запросы независимо,
  * поэтому одна и та же операция шла с разной policy (blank term, escaping, порядок,
- * limit). Контекст фиксирует это как данные, а не как копию builder'а. Standard LIST и
- * LOOKUP уже используют общий builder; подключение текущих global-search providers к
- * {@link #GLOBAL} выполняется отдельным шагом C4.5.</p>
+ * limit). Контекст фиксирует это как данные, а не как копию builder'а. Standard LIST,
+ * LOOKUP и GLOBAL используют общий builder и canonical read boundary.</p>
  *
  * <ul>
  * <li>{@link #LIST} — поиск по таблице формы списка;</li>

@@ -42,7 +42,7 @@ class SearchOverloadParityTest {
 
         PrdSpecRepository prdSpecRepository = mock(PrdSpecRepository.class);
         assertParity(new PrdSpecService(prdSpecRepository, validator),
-            List.of("codeSpec", "draft"), prdSpecRepository);
+            List.of(), prdSpecRepository);
 
         SklNomOpaRepository sklRepository = mock(SklNomOpaRepository.class);
         assertParity(new SklNomOpaService(sklRepository, mock(SklNomOpaValueRepository.class),

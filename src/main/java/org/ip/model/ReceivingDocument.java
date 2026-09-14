@@ -25,6 +25,7 @@ import org.ipro.crud.BaseEntity;
 import org.ipro.fetch.instance.InstanceName;
 import org.ipro.numbering.NumberingPeriod;
 import org.ipro.numbering.annotation.Numbered;
+import org.ipro.search.GlobalSearchable;
 
 import java.time.LocalDate;
 
@@ -58,6 +59,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "receiving_document",
     uniqueConstraints = @UniqueConstraint(columnNames = {"journal_id", "number"}))
+@GlobalSearchable(order = 300)
 @RlsDimension(value = "JOURNAL", custom = true,
     readCondition = ReceivingDocument.JOURNAL_READ_CONDITION)
 @RlsDimension(value = "BRANCH", custom = true,

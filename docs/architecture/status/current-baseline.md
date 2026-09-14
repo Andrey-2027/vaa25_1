@@ -18,7 +18,7 @@
 | B4 Application lifecycle DX | Core реализован в текущем scope | ADR-0005: `EntityLifecycle<T>`, context contracts, fail-fast registry и callbacks подключены к entity/aggregate save boundaries; контрольные listeners мигрированы, Entity Explorer/scaffolder остаются следующими шагами |
 | C3 FetchPlan + InstanceName | C3.0–C3.7 реализованы; адресные проверки C3.7 выполняются | Периметр C3.0; `@InstanceName` + резолвер (пилот `ReceivingDocument`, `Nomenclature`); `FetchPlanRegistry` со сценариями `LIST`/`DETAIL`/`LOOKUP`/`ROW` и декларацией `@Lookup(fetch)`; read-path выбирает сценарий внутри сервиса, явные пути расширяют план; `ItemTable` использует один section reload через `ROW`; `DETAIL`/`LIST` независимы, планы детерминированы. C3.7 включает раннюю write-авторизацию и единый lifecycle-managed `InstanceNameProvider`. Широкое распространение `@InstanceName` на остальные сущности остаётся отдельной миграцией |
 | C RLS enforcement | C1 завершён; реализация C2 согласованного scope выполнена, широкая проверка ещё не зелёная | `DAC-13`, `DAC-17` и `DAC-19` закрыты; checked duplication закреплён как конечное решение; detection-only production guard принят и вынесен в `A4-PREPROD-RLS-GUARD`; целевой набор C2 (53 теста) и random-order gate (156 тестов) зелёные. Полный random `verify` пока даёт ошибки жизненного цикла Spring test context в `AttributeValueServiceTest`/`AttributeTypeServiceTest`; `VisualQuerySubqueryIT` исключён по решению владельца и разбирается отдельно |
-| C4 Data-access facade | C4.0–C4.2 закрыты; C4.3 core реализовано, формальное закрытие pending; C4.4 закрыт | Таксономия всех 37 persistence types, классификация service/repository/base слоя, baseline и пилоты зафиксированы в `c4-inventory.md`; решения — в `ADR-0007`. C4.1: единый canonical read executor, descriptor/capability catalog и правило `plan ∪ extras -> deepen once`; `AbstractBaseService`, `LookupService` и global search используют одну границу; row cancel без per-reference reads. C4.1 hardening: capability enforcement fail-closed, LOOKUP для lookup по id, SQL-bound lookup, paging count parity, `deepen once`. C4.2: tri-state `RequiredMode`, вывод `type`/`reference`/server-nullability/UI-required с `FactOrigin`, eager startup-валидация и `MetadataAllowance`; пилотная зачистка дублей сохранила effective values без diff. C4.2 hardening: snapshot-ресурсы в поставке, таблица совместимости Java-типа и `FieldType`, вывод server-required из JPA, дедупликация типов, негативный startup-тест и whitelist warning-кодов; global search получил capability-грань источника. C4.3 core: `EntityDataAccess`, единый `CanonicalWriteExecutor`, type-directed resolver, generic `CanonicalEntityService` и исполняемые запреты; `ValidatedJpaCrudService` ограничен internal-store. C4.3 hardening: intent задаёт точную JPA-операцию; UPDATE требует существующую доступную исходную строку и авторизует исходное и целевое состояния до валидации/hooks; `GridFormView` canonical handle ограничен `CREATE`. Полный порядок pipeline и ранний отказ покрыты тестами. Формальное закрытие C4.3 ожидает write-telemetry, первый production-каталог на canonical write path и form → write → audit acceptance. C4.4: canonical search builder и согласованные overloads на всех 16 стандартных корнях, literal escaping, deterministic ordering и bounded paging; `SearchContext.GLOBAL` использует отдельный `GLOBAL_SEARCH` telemetry intent, подключение provider'ов остаётся в C4.5. C4.5–C4.8 впереди |
+| C4 Data-access facade | C4.0–C4.2 закрыты; C4.3 core реализовано, формальное закрытие pending; C4.4–C4.5 закрыты | Таксономия всех 37 persistence types, классификация service/repository/base слоя, baseline и пилоты зафиксированы в `c4-inventory.md`; решения — в `ADR-0007`. C4.1: единый canonical read executor, descriptor/capability catalog и правило `plan ∪ extras -> deepen once`; `AbstractBaseService`, `LookupService` и global search используют одну границу; row cancel без per-reference reads. C4.1 hardening: capability enforcement fail-closed, LOOKUP для lookup по id, SQL-bound lookup, paging count parity, `deepen once`. C4.2: tri-state `RequiredMode`, вывод `type`/`reference`/server-nullability/UI-required с `FactOrigin`, eager startup-валидация и `MetadataAllowance`; пилотная зачистка дублей сохранила effective values без diff. C4.2 hardening: snapshot-ресурсы в поставке, таблица совместимости Java-типа и `FieldType`, вывод server-required из JPA, дедупликация типов, негативный startup-тест и whitelist warning-кодов; global search получил capability-грань источника. C4.3 core: `EntityDataAccess`, единый `CanonicalWriteExecutor`, type-directed resolver, generic `CanonicalEntityService` и исполняемые запреты; `ValidatedJpaCrudService` ограничен internal-store. C4.3 hardening: intent задаёт точную JPA-операцию; UPDATE требует существующую доступную исходную строку и авторизует исходное и целевое состояния до валидации/hooks; `GridFormView` canonical handle ограничен `CREATE`. Полный порядок pipeline и ранний отказ покрыты тестами. Формальное закрытие C4.3 ожидает write-telemetry, первый production-каталог на canonical write path и form → write → audit acceptance. C4.4: canonical search builder и согласованные overloads на всех 16 стандартных корнях, literal escaping, deterministic ordering и bounded paging. C4.5: модульное участие через `@GlobalSearchable`, canonical secured query без count, удаление central config и Spring wiring; целевые тесты зелёные. C4.6–C4.8 впереди |
 | D Physical modularity | Не начат | Проект остаётся одним Maven-модулем |
 
 ## Quality gate
@@ -851,8 +851,8 @@ BUILD SUCCESS
 - `LookupService`: собственная Criteria/fetch orchestration удалена, поиск идёт через ту
   же границу.
 - `GenericOwnedSectionService`: граф строки `ROW` строится тем же resolver'ом.
-- `GlobalSearchService`: read gate идёт через executor; провайдер выполняется внутри
-  canonical security-границы. Консолидация самого provider-запроса — C4.5.
+- `GlobalSearchService`: read gate идёт через executor; provider query консолидирован в
+  `CanonicalReadExecutor` в C4.5, SPI оставлен только для отображения/классификации.
 - `RowDraft.restore` больше не перечитывает каждую entity-ссылку: UI-managed N+1 убран,
   отмена возвращает захваченное состояние (включая несохранённую ссылку без id).
 
@@ -870,7 +870,7 @@ BUILD SUCCESS
 
 Осознанные ограничения среза: реальная telemetry-реализация не включается (только
 noop-seam); architecture-тест, запрещающий строить scenario-граф вне resolver'а, входит
-в C4.7; provider-запрос global search остаётся за C4.5; per-entity search matrix — C4.4.
+в C4.7; per-entity search matrix — C4.4.
 Для ownership есть fallback-путь без единого resolver'а в metadata-only контекстах, где
 C3/C4-границы отсутствуют по построению.
 
@@ -1060,12 +1060,13 @@ audit acceptance. До выполнения этих пунктов production c
 - `SearchContext` (`LIST`/`LOOKUP`/`GLOBAL`) и `SearchRead` — контекст задаёт
   FetchPlan-сценарий, telemetry-намерение, строгость проверки явных полей и ranking.
   `GLOBAL` сохраняет FetchPlan `LIST`, но использует отдельную telemetry operation
-  `GLOBAL_SEARCH`; подключение global provider'ов к builder'у — следующий C4.5.
-- `CanonicalReadExecutor.readSearch` — единственный builder для standard LIST/LOOKUP:
+  `GLOBAL_SEARCH`; глобальная интеграция описана ниже в C4.5.
+- `CanonicalReadExecutor.readSearch` — единственный builder для LIST/LOOKUP/GLOBAL:
   capability сценария → read gate → RLS → fetch-граф → SQL. `readLookup` стал тонкой
-  проекцией того же builder'а. Global providers пока строят source query отдельно; их
-  подключение к `SearchContext.GLOBAL` запланировано в C4.5.
-- `SearchFieldResolver` — единая лестница полей: явные поля → `@InstanceName` → строковые
+  проекцией того же builder'а; `readSearchWindow` даёт bounded top-N для global search
+  без count query и применяет per-source timeout.
+- `SearchFieldResolver` — единая лестница полей: явные поля → type-level `@SearchFields`
+  → `@InstanceName` → строковые
   `selectColumns` effective metadata. Неизвестное явное поле в list/global search
   отклоняется (`SearchFieldResolverTest`), а не пропускается молча.
 - `SearchTerms` — literal escaping: `%`/`_`/`\` трактуются буквально (принятое изменение;
@@ -1075,12 +1076,13 @@ audit acceptance. До выполнения этих пунктов production c
 - `BaseService.search(String, Pageable)` больше не runtime trap, а compatibility-делегат;
   `CanonicalEntityService.search` реализован.
 - Все 16 стандартных корней используют canonical builder; repository `searchByTerm` и
-  `findWithFilter` на стандартном пути удалены. `PrdSpec`, `SklNomOpa`,
-  `UnitOfMeasurement` и `GridFormView` сохраняют поля поиска через explicit field sets,
+  `findWithFilter` на стандартном пути удалены. `PrdSpec` задаёт общие поля
+  `codeSpec,draft` через `@SearchFields`; `SklNomOpa`, `UnitOfMeasurement` и
+  `GridFormView` сохраняют поля через explicit field sets,
   но оба overload используют один builder. `User` больше не фильтрует `findAll()` в
   памяти; `NomSklAttribute` без строковых полей возвращает bounded page для blank term и
   пустую выдачу для непустого. Typed application services остаются в C4.6, их search
-  query уже canonical. Global providers остаются в C4.5.
+  query уже canonical.
 
 Исторический полный прогон до последующего hardening (Maven, JDK 21, offline):
 
@@ -1108,7 +1110,32 @@ BUILD SUCCESS
 Тесты literal escaping проверены откатом: без экранирования падают и `SearchTermsTest`,
 и поведенческий `CanonicalWritePathIT.searchTreatsWildcardsLiterally`. Для typed search
 сервисы сохраняют предметные методы, но запросы уже идут через canonical builder с
-explicit fields. Открыта только интеграция provider'ов глобального поиска — C4.5.
+explicit fields или общими type-level defaults.
+
+### C4.5: modular global search
+
+Глобальный поиск переведён на общий secured query path без центральной карты источников:
+
+- `@GlobalSearchable(order)` объявляет участие и стабильный порядок; каталог включает
+  только managed `STANDARD_ROOT` с разрешённым `LIST`, а необъявленные managed types
+  автоматически не публикуются;
+- поля выводятся через `SearchFieldResolver`; `@SearchFields` сохраняет семантику
+  `PrdSpec` (`codeSpec`, `draft`) одинаковой для list/global search, не включая
+  `nomenclature.name` из отображаемой metadata;
+- `GlobalSearchProvider` стал mapper/classifier/timeout SPI без EntityManager и SQL.
+  `GlobalSearchCatalog` проверяет конфликты и невалидную конфигурацию при старте;
+- `CanonicalReadExecutor.readSearchWindow` выполняет bounded GLOBAL query с лимитом,
+  timeout и RLS/read-capability/fetch-plan policy, без дополнительного count-запроса;
+- `Nomenclature`, `PrdSpec`, `ReceivingDocument` объявляют участие рядом с сущностями;
+  custom `PrdSpecGlobalSearchProvider` сохраняет подпись `codeSpec — draft`; центральные
+  `GlobalSearchConfig` и `GlobalSearchApplicationConfig` удалены;
+- тесты закрепляют fixed source order, поля и подписи, пропуск timeout источника, wiring
+  Spring-контекста и один bounded SQL-запрос без count с ранжированием
+  `exact → prefix → substring → id`.
+
+Проверка C4.5 (JDK 21, offline): целевой набор — 55 тестов, 0 failures/errors/skipped;
+общий random-order `mvn verify` — 1233 теста, 0 failures/errors/skipped, BUILD SUCCESS
+(seed `3330014842700`; `VisualQuerySubqueryIT` исключён проектным gate).
 
 ## Неошибочные и блокирующие диагностики
 

@@ -22,6 +22,8 @@ import java.util.Set;
  * <li>явные поля вызывающего — <b>проверяются</b>: неизвестное поле или поле не-String
  * тип отклоняется, а не молча пропускается (принятое изменение против прежнего
  * {@code LookupService});</li>
+ * <li>type-level {@link SearchFields} — единый источник для сущностей с предметным набором
+ * полей, который используется всеми search-контекстами;</li>
  * <li>пути {@code @InstanceName} — единый источник имени C3 (ADX-09);</li>
  * <li>строковые {@code selectColumns} effective metadata — колонки, которые форма и так
  * показывает.</li>
@@ -63,6 +65,10 @@ public final class SearchFieldResolver {
         Objects.requireNonNull(type, "type must not be null");
         if (explicit != null && !explicit.isEmpty()) {
             return strict ? validateExplicit(type, explicit) : tolerantExplicit(type, explicit);
+        }
+        SearchFields declared = type.getAnnotation(SearchFields.class);
+        if (declared != null) {
+            return validateExplicit(type, List.of(declared.value()));
         }
         List<String> instanceName = stringFields(type, instanceNamePaths(type));
         if (!instanceName.isEmpty()) {

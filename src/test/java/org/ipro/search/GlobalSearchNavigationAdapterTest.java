@@ -1,9 +1,7 @@
 package org.ipro.search;
 
-import org.ip.config.GlobalSearchApplicationConfig;
 import org.ip.model.Nomenclature;
 import org.ipro.form.coordinator.FormCoordinator;
-import org.ipro.metadata.MetadataResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,16 +18,17 @@ class GlobalSearchNavigationAdapterTest {
 
     @BeforeEach
     void setUp() {
-        GlobalSearchCatalog catalog = new GlobalSearchCatalog(
-            new GlobalSearchApplicationConfig().globalSearchConfig(), new MetadataResolver());
+        GlobalSearchCatalog catalog = GlobalSearchTestSupport.catalog();
         formCoordinator = mock(FormCoordinator.class);
         adapter = new GlobalSearchNavigationAdapter(catalog, formCoordinator);
     }
 
     @Test
     void opensRegisteredResultThroughFormCoordinator() {
+        GlobalSearchSource source = GlobalSearchTestSupport.catalog()
+            .requireSource(Nomenclature.class);
         adapter.open(new GlobalSearchResult(
-            0, "Номенклатура", Nomenclature.class, 17L,
+            source.declarationOrder(), source.groupTitle(), Nomenclature.class, 17L,
             "N-017 Гайка", GlobalSearchMatchKind.PREFIX, "code"));
 
         verify(formCoordinator).openItemForm(Nomenclature.class, 17L, null);
@@ -46,8 +45,10 @@ class GlobalSearchNavigationAdapterTest {
 
     @Test
     void rejectsStaleCatalogOrderOrTitle() {
+        GlobalSearchSource source = GlobalSearchTestSupport.catalog()
+            .requireSource(Nomenclature.class);
         assertThatThrownBy(() -> adapter.open(new GlobalSearchResult(
-            99, "Номенклатура", Nomenclature.class, 17L,
+            source.declarationOrder() + 1, source.groupTitle(), Nomenclature.class, 17L,
             "N-017 Гайка", GlobalSearchMatchKind.PREFIX, "code")))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("не соответствует текущему каталогу");

@@ -1,42 +1,32 @@
 package org.ipro.search;
 
-import jakarta.persistence.EntityManager;
-import org.ip.config.GlobalSearchApplicationConfig;
+import jakarta.persistence.QueryTimeoutException;
 import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.ReceivingDocument;
 import org.ipro.crud.BaseEntity;
 import org.ipro.data.CanonicalReadExecutor;
-import org.ipro.data.EntityCapabilities;
-import org.ipro.data.EntityDescriptor;
-import org.ipro.data.EntityExposure;
-import org.ipro.fetch.plan.FetchScenario;
-import org.ipro.metadata.MetadataResolver;
-import org.ipro.rls.RlsCurrentUser;
-import org.ipro.rls.RlsFilterActivator;
-import org.ipro.rls.RlsReadGate;
+import org.ipro.data.SearchContext;
+import org.ipro.data.SearchRead;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.mockito.ArgumentCaptor;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class GlobalSearchServiceTest {
 
-    private EntityManager entityManager;
-    private RlsCurrentUser currentUser;
-    private RlsFilterActivator rlsFilterActivator;
-    private RlsReadGate rlsReadGate;
+    private CanonicalReadExecutor readExecutor;
     private StubProvider<Nomenclature> nomenclatureProvider;
     private StubProvider<PrdSpec> prdSpecProvider;
     private StubProvider<ReceivingDocument> receivingDocumentProvider;
@@ -44,14 +34,6 @@ class GlobalSearchServiceTest {
 
     @BeforeEach
     void setUp() {
-        entityManager = mock(EntityManager.class);
-        currentUser = mock(RlsCurrentUser.class);
-        when(currentUser.username()).thenReturn("user");
-        when(currentUser.requireAuthenticatedUsername()).thenReturn("user");
-        rlsFilterActivator = mock(RlsFilterActivator.class);
-        rlsReadGate = mock(RlsReadGate.class);
-        when(rlsReadGate.canRead(any(), eq("user"))).thenReturn(true);
-
         nomenclatureProvider = new StubProvider<>(Nomenclature.class,
             List.of(nomenclature(1L, "N-001", "Гайка"), nomenclature(2L, "N-002", "Болт")));
         prdSpecProvider = new StubProvider<>(PrdSpec.class,
@@ -59,79 +41,94 @@ class GlobalSearchServiceTest {
         receivingDocumentProvider = new StubProvider<>(ReceivingDocument.class,
             List.of(receivingDocument(20L, "RD-001")));
 
+        GlobalSearchCatalog catalog = GlobalSearchTestSupport.catalog(
+            GlobalSearchTestSupport.APPLICATION_TYPES,
+            org.ipro.data.EntityExposure.STANDARD_ROOT,
+            List.of(nomenclatureProvider, prdSpecProvider, receivingDocumentProvider));
         GlobalSearchProviderRegistry providers = new GlobalSearchProviderRegistry(List.of(
             nomenclatureProvider, prdSpecProvider, receivingDocumentProvider));
-        GlobalSearchCatalog catalog = new GlobalSearchCatalog(
-            new GlobalSearchApplicationConfig().globalSearchConfig(), new MetadataResolver());
-        service = new GlobalSearchService(
-            catalog, providers, currentUser, rlsFilterActivator, rlsReadGate);
-        ReflectionTestUtils.setField(service, "entityManager", entityManager);
+        readExecutor = mock(CanonicalReadExecutor.class);
+        doAnswer(invocation -> {
+            SearchRead<?> request = invocation.getArgument(0);
+            int limit = invocation.getArgument(1);
+            if (request.type() == Nomenclature.class) {
+                return nomenclatureProvider.values().stream().limit(limit).toList();
+            }
+            if (request.type() == PrdSpec.class) {
+                return prdSpecProvider.values().stream().limit(limit).toList();
+            }
+            if (request.type() == ReceivingDocument.class) {
+                return receivingDocumentProvider.values().stream().limit(limit).toList();
+            }
+            return List.of();
+        }).when(readExecutor).readSearchWindow(any(SearchRead.class), anyInt(), anyInt());
+        service = new GlobalSearchService(catalog, providers, readExecutor);
     }
 
     @Test
-    void shortQueryDoesNotTouchRlsOrProviders() {
+    void shortQueryDoesNotTouchCanonicalExecutorOrProviders() {
         GlobalSearchResponse response = service.search("а");
 
         assertThat(response.queryTooShort()).isTrue();
         assertThat(response.results()).isEmpty();
-        verify(rlsFilterActivator, org.mockito.Mockito.never()).ensureRlsEnabled(any());
-        assertThat(nomenclatureProvider.limits()).isEmpty();
-        assertThat(prdSpecProvider.limits()).isEmpty();
-        assertThat(receivingDocumentProvider.limits()).isEmpty();
+        verifyNoInteractions(readExecutor);
     }
 
     @Test
-    void resultsFollowCatalogOrderAndRespectPerSourceAndGlobalLimits() {
-        GlobalSearchResponse response = service.search(
-            new GlobalSearchRequest("гайка", 2, 3));
+    void resultsFollowDeclaredOrderAndRespectPerSourceAndGlobalLimits() {
+        GlobalSearchResponse response = service.search(new GlobalSearchRequest("гайка", 2, 3));
 
         assertThat(response.queryTooShort()).isFalse();
         assertThat(response.totalLimitReached()).isTrue();
         assertThat(response.results()).extracting(GlobalSearchResult::entityClass)
             .containsExactly(Nomenclature.class, Nomenclature.class, PrdSpec.class);
         assertThat(response.results()).extracting(GlobalSearchResult::sourceOrder)
-            .containsExactly(0, 0, 1);
-        assertThat(nomenclatureProvider.limits()).containsExactly(2);
-        assertThat(prdSpecProvider.limits()).containsExactly(1);
-        assertThat(receivingDocumentProvider.limits()).isEmpty();
-        verify(rlsFilterActivator).ensureRlsEnabled(entityManager);
-    }
-
-    /**
-     * C4.1 hardening: подключённая canonical-граница проверяет не только RLS, но и
-     * capability типа. Источник без read-сценария (internal store) не доходит до provider'а,
-     * хотя RLS-гейт его пропускает.
-     */
-    @Test
-    void sourceWithoutCanonicalReadCapabilityIsSkippedBeforeProviderInvocation() {
-        CanonicalReadExecutor readExecutor = mock(CanonicalReadExecutor.class);
-        when(readExecutor.canRead(any())).thenReturn(true);
-        when(readExecutor.descriptorOf(any())).thenReturn(new EntityDescriptor(
-            Object.class, EntityExposure.STANDARD_ROOT, true, true,
-            new EntityCapabilities(Set.of(FetchScenario.LIST), Set.of(), "test"), "test"));
-        when(readExecutor.descriptorOf(PrdSpec.class)).thenReturn(new EntityDescriptor(
-            PrdSpec.class, EntityExposure.INTERNAL_STORE, false, false,
-            new EntityCapabilities(Set.of(), Set.of(), "internal store"), "test"));
-        ReflectionTestUtils.setField(service, "readExecutor", readExecutor);
-
-        GlobalSearchResponse response = service.search("sp");
-
-        assertThat(prdSpecProvider.limits()).isEmpty();
-        assertThat(response.results()).extracting(GlobalSearchResult::entityClass)
-            .doesNotContain(PrdSpec.class);
+            .containsExactly(100, 100, 200);
+        ArgumentCaptor<SearchRead> requests = ArgumentCaptor.forClass(SearchRead.class);
+        ArgumentCaptor<Integer> limits = ArgumentCaptor.forClass(Integer.class);
+        ArgumentCaptor<Integer> timeouts = ArgumentCaptor.forClass(Integer.class);
+        verify(readExecutor, org.mockito.Mockito.times(2))
+            .readSearchWindow(requests.capture(), limits.capture(), timeouts.capture());
+        assertThat(requests.getAllValues()).extracting(SearchRead::context)
+            .containsOnly(SearchContext.GLOBAL);
+        assertThat(requests.getAllValues()).extracting(SearchRead::type)
+            .containsExactly(Nomenclature.class, PrdSpec.class);
+        assertThat(requests.getAllValues().get(0).searchFields())
+            .containsExactly("code", "name");
+        assertThat(requests.getAllValues().get(1).searchFields())
+            .containsExactly("codeSpec", "draft");
+        assertThat(requests.getAllValues()).extracting(request -> request.pageable().getPageSize())
+            .containsExactly(2, 1);
+        assertThat(limits.getAllValues()).containsExactly(2, 1);
+        assertThat(timeouts.getAllValues()).containsExactly(2_000, 2_000);
+        verify(readExecutor, never()).readSearch(any(SearchRead.class));
     }
 
     @Test
-    void sourceWithoutReadAccessIsSkippedBeforeProviderInvocation() {
-        when(rlsReadGate.canRead(PrdSpec.class, "user")).thenReturn(false);
+    void aTimedOutSourceDoesNotPreventLaterGroups() {
+        doAnswer(invocation -> {
+            SearchRead<?> request = invocation.getArgument(0);
+            if (request.type() == PrdSpec.class) {
+                throw new QueryTimeoutException("slow source");
+            }
+            int limit = invocation.getArgument(1);
+            if (request.type() == Nomenclature.class) {
+                return nomenclatureProvider.values().stream().limit(limit).toList();
+            }
+            return receivingDocumentProvider.values().stream().limit(limit).toList();
+        }).when(readExecutor).readSearchWindow(any(SearchRead.class), anyInt(), anyInt());
 
         GlobalSearchResponse response = service.search("sp");
 
         assertThat(response.results()).extracting(GlobalSearchResult::entityClass)
             .containsExactly(Nomenclature.class, Nomenclature.class, ReceivingDocument.class);
-        assertThat(prdSpecProvider.limits()).isEmpty();
-        assertThat(nomenclatureProvider.limits()).containsExactly(5);
-        assertThat(receivingDocumentProvider.limits()).containsExactly(5);
+        ArgumentCaptor<SearchRead> requests = ArgumentCaptor.forClass(SearchRead.class);
+        ArgumentCaptor<Integer> limits = ArgumentCaptor.forClass(Integer.class);
+        verify(readExecutor, org.mockito.Mockito.times(3))
+            .readSearchWindow(requests.capture(), limits.capture(), anyInt());
+        assertThat(requests.getAllValues()).extracting(SearchRead::type)
+            .containsExactly(Nomenclature.class, PrdSpec.class, ReceivingDocument.class);
+        assertThat(limits.getAllValues()).containsExactly(5, 5, 5);
     }
 
     private static Nomenclature nomenclature(long id, String code, String name) {
@@ -146,6 +143,7 @@ class GlobalSearchServiceTest {
         PrdSpec value = new PrdSpec();
         value.setId(id);
         value.setCodeSpec(code);
+        value.setDraft("draft " + code);
         return value;
     }
 
@@ -157,10 +155,10 @@ class GlobalSearchServiceTest {
         return value;
     }
 
-    private static final class StubProvider<T extends BaseEntity> implements GlobalSearchProvider<T> {
+    private static final class StubProvider<T extends BaseEntity>
+            implements GlobalSearchProvider<T> {
         private final Class<T> entityClass;
         private final List<T> values;
-        private final List<Integer> limits = new ArrayList<>();
 
         private StubProvider(Class<T> entityClass, List<T> values) {
             this.entityClass = entityClass;
@@ -170,13 +168,6 @@ class GlobalSearchServiceTest {
         @Override
         public Class<T> entityClass() {
             return entityClass;
-        }
-
-        @Override
-        public List<T> search(EntityManager entityManager, GlobalSearchSource source,
-                              String term, int limit, int timeoutMs) {
-            limits.add(limit);
-            return values.stream().limit(limit).toList();
         }
 
         @Override
@@ -195,8 +186,9 @@ class GlobalSearchServiceTest {
                 source.searchFields().get(0));
         }
 
-        private List<Integer> limits() {
-            return limits;
+        private List<T> values() {
+            return values;
         }
+
     }
 }

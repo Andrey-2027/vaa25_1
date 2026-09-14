@@ -5,13 +5,20 @@ import org.hibernate.Hibernate;
 import org.ip.config.DataInitializer;
 import org.ip.model.Journal;
 import org.ip.model.Nomenclature;
+import org.ip.model.PrdSpec;
 import org.ip.model.ReceivingDocument;
 import org.ipro.form.FieldRenderer;
+import org.ipro.search.GlobalSearchCatalog;
+import org.ipro.search.GlobalSearchHeader;
+import org.ipro.search.GlobalSearchProviderRegistry;
+import org.ipro.search.GlobalSearchService;
 import org.ipro.search.GlobalSearchSource;
 import org.ipro.search.JpaGlobalSearchProvider;
+import org.ip.search.PrdSpecGlobalSearchProvider;
 import org.ipro.telemetry.core.EntitySnapshot;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +45,18 @@ class InstanceNamePilotIT {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private GlobalSearchCatalog globalSearchCatalog;
+
+    @Autowired
+    private GlobalSearchService globalSearchService;
+
+    @Autowired
+    private GlobalSearchProviderRegistry globalSearchProviderRegistry;
+
+    @Autowired
+    private ObjectProvider<GlobalSearchHeader> globalSearchHeaders;
+
     // Мост здесь намеренно НЕ устанавливается вручную: регистрацию делает
     // InstanceNameBridgeInstaller при старте контекста, и именно это проверяется
     // (раньше каждому тесту приходилось переустанавливать глобальное состояние самому).
@@ -46,6 +65,21 @@ class InstanceNamePilotIT {
     void pilotsAreDeclaredAndValidatedAtStartup() {
         assertThat(resolver.hasDeclaration(ReceivingDocument.class)).isTrue();
         assertThat(resolver.hasDeclaration(Nomenclature.class)).isTrue();
+    }
+
+    @Test
+    void applicationWiresOptedInSourcesThroughCanonicalGlobalSearch() {
+        assertThat(globalSearchCatalog.sources()).extracting(GlobalSearchSource::entityClass)
+            .containsExactly(Nomenclature.class, PrdSpec.class, ReceivingDocument.class);
+        assertThat(globalSearchCatalog.requireSource(PrdSpec.class).searchFields())
+            .containsExactly("codeSpec", "draft");
+        assertThat(globalSearchCatalog.requireSource(PrdSpec.class).additionalPaths())
+            .isEmpty();
+        assertThat(globalSearchProviderRegistry.providerOf(
+            globalSearchCatalog.requireSource(PrdSpec.class)))
+            .isInstanceOf(PrdSpecGlobalSearchProvider.class);
+        assertThat(globalSearchService).isNotNull();
+        assertThat(globalSearchHeaders.getIfAvailable()).isNotNull();
     }
 
     @Test
@@ -60,7 +94,7 @@ class InstanceNamePilotIT {
         assertThat(EntitySnapshot.displayNameOf(document)).isEqualTo(expected);
         // global search
         GlobalSearchSource source = new GlobalSearchSource(0, ReceivingDocument.class,
-            List.of("number"), List.of("number", "date"), "id", "Накладные");
+            List.of("number"), "id", "Накладные");
         assertThat(new JpaGlobalSearchProvider<>(ReceivingDocument.class, resolver)
             .displayValue(document, source)).isEqualTo(expected);
         // единый источник

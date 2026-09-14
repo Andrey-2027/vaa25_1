@@ -1,115 +1,132 @@
 package org.ipro.search;
 
-import org.ip.config.GlobalSearchApplicationConfig;
 import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
-import org.ip.model.PrdSpecMtr;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.User;
-import org.ipro.metadata.MetadataResolver;
+import org.ipro.data.EntityExposure;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GlobalSearchCatalogTest {
 
-    private final MetadataResolver metadataResolver = new MetadataResolver();
-
     @Test
-    void applicationSourcesKeepDeclarationOrderAndValidatedFields() {
-        GlobalSearchConfig config = new GlobalSearchApplicationConfig().globalSearchConfig();
-
-        GlobalSearchCatalog catalog = new GlobalSearchCatalog(config, metadataResolver);
+    void sourcesUseExplicitParticipationCanonicalFieldsAndStableOrder() {
+        GlobalSearchCatalog catalog = GlobalSearchTestSupport.catalog();
 
         assertThat(catalog.sources()).extracting(GlobalSearchSource::entityClass)
             .containsExactly(Nomenclature.class, PrdSpec.class, ReceivingDocument.class);
         assertThat(catalog.sources()).extracting(GlobalSearchSource::declarationOrder)
-            .containsExactly(0, 1, 2);
-        assertThat(catalog.requireSource(Nomenclature.class).idFieldName())
-            .isEqualTo("id");
+            .containsExactly(100, 200, 300);
+        assertThat(catalog.requireSource(Nomenclature.class).idFieldName()).isEqualTo("id");
         assertThat(catalog.requireSource(Nomenclature.class).searchFields())
             .containsExactly("code", "name");
         assertThat(catalog.requireSource(PrdSpec.class).searchFields())
             .containsExactly("codeSpec", "draft");
-        assertThat(catalog.requireSource(PrdSpec.class).displayFields())
-            .containsExactly("codeSpec", "draft");
-        assertThat(catalog.requireSource(ReceivingDocument.class).displayFields())
-            .containsExactly("number", "date");
-        assertThat(catalog.requireSource(Nomenclature.class).usesDisplayName()).isTrue();
-        assertThat(catalog.requireSource(ReceivingDocument.class).usesDisplayName()).isFalse();
+        assertThat(catalog.requireSource(PrdSpec.class).additionalPaths()).isEmpty();
+        assertThat(catalog.requireSource(ReceivingDocument.class).searchFields())
+            .containsExactly("number");
+        assertThat(catalog.requireSource(Nomenclature.class).groupTitle())
+            .isEqualTo("Номенклатура");
     }
 
     @Test
-    void duplicateEntityDeclarationFailsFast() {
-        GlobalSearchConfig config = new GlobalSearchConfig();
-        config.add(Nomenclature.class, "code");
-        config.add(Nomenclature.class, "name");
+    void sourceOrderDoesNotDependOnManagedEntityDiscoveryOrder() {
+        GlobalSearchCatalog reversed = GlobalSearchTestSupport.catalog(
+            List.of(ReceivingDocument.class, PrdSpec.class, Nomenclature.class));
 
-        assertThatThrownBy(() -> new GlobalSearchCatalog(config, metadataResolver))
+        assertThat(reversed.sources()).extracting(GlobalSearchSource::entityClass)
+            .containsExactly(Nomenclature.class, PrdSpec.class, ReceivingDocument.class);
+    }
+
+    @Test
+    void managedEntityMembershipDoesNotOptAnEntityIntoGlobalSearch() {
+        GlobalSearchCatalog catalog = GlobalSearchTestSupport.catalog(
+            List.of(Nomenclature.class, PrdSpec.class, ReceivingDocument.class, User.class));
+
+        assertThat(catalog.sourceOf(User.class)).isEmpty();
+        assertThat(catalog.sources()).hasSize(3);
+    }
+
+    @Test
+    void optedInNonStandardRootFailsAtStartup() {
+        assertThatThrownBy(() -> GlobalSearchTestSupport.catalog(
+            List.of(PrdSpec.class), EntityExposure.INTERNAL_STORE, List.of()))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("добавлена повторно");
+            .hasMessageContaining("только для STANDARD_ROOT");
     }
 
     @Test
-    void unknownSearchFieldFailsFast() {
-        GlobalSearchConfig config = new GlobalSearchConfig();
-        config.add(Nomenclature.class, "missing");
+    void customProviderMustBelongToAnOptedInSource() {
+        GlobalSearchProvider<User> provider = new UserProvider();
 
-        assertThatThrownBy(() -> new GlobalSearchCatalog(config, metadataResolver))
+        assertThatThrownBy(() -> GlobalSearchTestSupport.catalog(
+            List.of(Nomenclature.class, PrdSpec.class, ReceivingDocument.class, User.class),
+            EntityExposure.STANDARD_ROOT, List.of(provider)))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("missing");
+            .hasMessageContaining("не объявлен через @GlobalSearchable");
     }
 
     @Test
-    void relationshipCannotBeSearchFieldInMvp() {
-        GlobalSearchConfig config = new GlobalSearchConfig();
-        config.add(PrdSpec.class, "nomenclature");
-
-        assertThatThrownBy(() -> new GlobalSearchCatalog(config, metadataResolver))
+    void nonPositiveProviderTimeoutFailsAtCatalogCreation() {
+        assertThatThrownBy(() -> GlobalSearchTestSupport.catalog(
+            GlobalSearchTestSupport.APPLICATION_TYPES, EntityExposure.STANDARD_ROOT,
+            List.of(new InvalidTimeoutProvider())))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("только прямые String-поля");
+            .hasMessageContaining("queryTimeoutMs должен быть больше нуля");
     }
 
-    @Test
-    void tableSectionCannotBeOrdinarySearchSource() {
-        GlobalSearchConfig config = new GlobalSearchConfig();
-        config.add(PrdSpecMtr.class, "typeMtr");
+    private static final class InvalidTimeoutProvider implements GlobalSearchProvider<Nomenclature> {
+        @Override
+        public Class<Nomenclature> entityClass() {
+            return Nomenclature.class;
+        }
 
-        assertThatThrownBy(() -> new GlobalSearchCatalog(config, metadataResolver))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("строки табличных частей");
+        @Override
+        public int queryTimeoutMs() {
+            return 0;
+        }
+
+        @Override
+        public Object idOf(Nomenclature entity) {
+            return entity.getId();
+        }
+
+        @Override
+        public String displayValue(Nomenclature entity, GlobalSearchSource source) {
+            return entity.getDisplayName();
+        }
+
+        @Override
+        public GlobalSearchMatch classify(Nomenclature entity, GlobalSearchSource source,
+                                          String term) {
+            return new GlobalSearchMatch(GlobalSearchMatchKind.SUBSTRING, "name");
+        }
     }
 
-    @Test
-    void transientFieldCannotBeSearchField() {
-        GlobalSearchConfig config = new GlobalSearchConfig();
-        config.add(User.class, "rawPassword");
+    private static final class UserProvider implements GlobalSearchProvider<User> {
+        @Override
+        public Class<User> entityClass() {
+            return User.class;
+        }
 
-        assertThatThrownBy(() -> new GlobalSearchCatalog(config, metadataResolver))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("не сохраняется JPA");
-    }
+        @Override
+        public Object idOf(User entity) {
+            return entity.getId();
+        }
 
-    @Test
-    void entityWithoutDisplayContractFailsFast() {
-        GlobalSearchConfig config = new GlobalSearchConfig();
-        config.add(User.class, "username");
+        @Override
+        public String displayValue(User entity, GlobalSearchSource source) {
+            return entity.getUsername();
+        }
 
-        assertThatThrownBy(() -> new GlobalSearchCatalog(config, metadataResolver))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("displayFields");
-    }
-
-    @Test
-    void catalogIsIndependentFromLaterConfigMutation() {
-        GlobalSearchConfig config = new GlobalSearchConfig();
-        config.add(Nomenclature.class, "code");
-        GlobalSearchCatalog catalog = new GlobalSearchCatalog(config, metadataResolver);
-
-        config.add(PrdSpec.class, "codeSpec");
-
-        assertThat(catalog.sources()).hasSize(1);
-        assertThat(catalog.sourceOf(PrdSpec.class)).isEmpty();
+        @Override
+        public GlobalSearchMatch classify(User entity, GlobalSearchSource source, String term) {
+            return new GlobalSearchMatch(GlobalSearchMatchKind.SUBSTRING, "username");
+        }
     }
 }

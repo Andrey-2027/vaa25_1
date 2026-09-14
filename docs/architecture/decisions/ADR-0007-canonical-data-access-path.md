@@ -238,10 +238,11 @@ Default search выполняется в БД, с paging/limit, RLS и подх�
 Приоритет search fields:
 
 1. явный override search context (проверяется, а не пропускается);
-2. пути `@InstanceName` — единый источник имени C3;
-3. строковые `selectColumns` effective metadata — в них уже выражены отображаемые
+2. type-level `@SearchFields` — единое предметное исключение для всех search contexts;
+3. пути `@InstanceName` — единый источник имени C3;
+4. строковые `selectColumns` effective metadata — в них уже выражены отображаемые
    `code`/`name`/`number`, поэтому отдельная карта «по entity kind» не вводится;
-4. пустой набор — пустая выдача; startup error для entity, явно участвующей в global
+5. пустой набор — пустая выдача; startup error для entity, явно участвующей в global
    search без корректных полей, остаётся за `GlobalSearchCatalog` (C4.5).
 
 Контракт:
@@ -281,7 +282,7 @@ LOOKUP — горячий путь:
 | C4.2 | tri-state `required`, effective metadata и snapshot parity на пилотах |
 | C4.3 | canonical write path; `ValidatedJpaCrudService` ограничен internal-store; intentional prohibitions в descriptor |
 | C4.4 | default server-side search; per-entity parity; первые `searchByTerm` удалены |
-| C4.5 | modular global search; `GlobalSearchApplicationConfig` удалён после parity |
+| C4.5 | modular global search; `GlobalSearchApplicationConfig` удалён после parity — реализовано |
 | C4.6 | application CRUD services/repositories мигрированы; `serviceClass` и magic bean-name удалены |
 | C4.7 | compatibility orchestration удалена/сведена к thin delegate; architecture gates |
 | D | `BaseService`/`AbstractBaseService` удалены, если consumers мигрированы полностью |
@@ -460,15 +461,16 @@ canonical path (план C4.3 п.7) — логично делать вместе
 - **`BaseService.search(String, Pageable)`** перестал быть runtime trap — delegates to
   canonical engine; `CanonicalEntityService.search` реализован, а не бросает;
 - **все 16 стандартных корней используют один default engine**; repository
-  `searchByTerm`/`findWithFilter` удалены. Для `PrdSpec`, `SklNomOpa`,
+  `searchByTerm`/`findWithFilter` удалены. Для `PrdSpec` предметные поля заданы через
+  `@SearchFields`; для `SklNomOpa`,
   `UnitOfMeasurement` и `GridFormView` прежняя предметная search-семантика задана явными
   полями, но оба overload (`search(String)` и `search(String, Pageable)`) вызывают тот же
   canonical builder. Остальные корни используют metadata/InstanceName resolver;
   `User` больше не фильтрует `findAll()` в памяти, а `NomSklAttribute` без строковых полей
   возвращает bounded page для blank term и пустую выдачу для непустого.
 - **global telemetry intent отделён от LIST**: `SearchContext.GLOBAL` отображается на
-  `DataOperation.GLOBAL_SEARCH`, при этом сохраняет FetchPlan `LIST`. Подключение
-  `GlobalSearchService` и его provider'ов к общему search builder остаётся в C4.5.
+  `DataOperation.GLOBAL_SEARCH`, при этом сохраняет FetchPlan `LIST`; подключение
+  `GlobalSearchService` к общему search builder выполнено в C4.5.
 
 DoD проверен без repository/service: isolated fixture ищется через canonical engine
 (`CanonicalWritePathIT`), literal escaping и paging закреплены поведенчески;
@@ -482,6 +484,27 @@ DoD проверен без repository/service: isolated fixture ищется ч
 Последующая адресная проверка overload parity и новых граничных случаев: 48 тестов,
 0 failures/errors/skipped (2026-09-14); детали в [`current baseline`](../status/current-baseline.md#c44-server-side-search).
 Полный `mvn verify` после этих изменений не запускался.
+
+### C4.5 — modular global search (2026-09-14)
+
+Реализована модульная декларация `@GlobalSearchable(order)` и startup-каталог, который
+допускает только managed `STANDARD_ROOT` с `LIST` capability. Порядок групп задан
+декларацией, а managed entity без аннотации не появляется в выдаче. Поисковые поля
+поступают из общего `SearchFieldResolver`; `@SearchFields` сохраняет единый набор
+`PrdSpec(codeSpec, draft)` для list/global search. Центральные `GlobalSearchConfig` и
+`GlobalSearchApplicationConfig` удалены.
+
+`GlobalSearchProvider` не владеет EntityManager или запросом: custom SPI отвечает за
+подпись/классификацию результата и timeout. `CanonicalReadExecutor.readSearchWindow`
+выполняет bounded GLOBAL query без count внутри обычного capability → read gate → RLS →
+fetch graph → SQL pipeline. Дополнительные fetch paths каталога гарантируют, что
+классификатор и `@InstanceName` читают только инициализированные пути. `PrdSpec` сохраняет
+подпись `codeSpec — draft` без обращения к lazy `nomenclature`.
+
+Поведенческие проверки включают fixed source order, поля/подписи, отказ невалидной
+регистрации, пропуск timeout источника, Spring wiring и один SQL-запрос без count с
+ранжированием `exact → prefix → substring → id`; результат запуска приведён в
+[`current-baseline.md`](../status/current-baseline.md#c45-modular-global-search).
 
 ## Открытые вопросы
 

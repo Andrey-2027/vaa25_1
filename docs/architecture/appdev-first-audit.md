@@ -335,8 +335,8 @@ bridge выбирает подходящую регистрацию и для о
 
 ### ADX-10 — центральная ручная регистрация глобального поиска (`P2`, C4/E3)
 
-**Сейчас.** [`GlobalSearchApplicationConfig`](../../src/main/java/org/ip/config/GlobalSearchApplicationConfig.java)
-требует для каждой entity снова перечислить search и display fields.
+**Baseline до C4.5.** Центральная `GlobalSearchApplicationConfig` требовала для каждой
+entity снова перечислить search и display fields.
 
 **Риск.** Новая searchable entity требует правки общего файла; участие легко забыть;
 конфигурация дублирует instance-name/field metadata.
@@ -344,8 +344,9 @@ bridge выбирает подходящую регистрацию и для о
 **Цель.** Модульные contributors и metadata-driven defaults. Явное включение/исключение
 остаётся декларацией intent; поля по умолчанию выводятся из search/instance metadata.
 
-**Закрытие.** Новый модуль добавляет searchable entity без редактирования центрального
-application config; конфликт и неизвестное поле диагностируются на старте.
+**Закрытие (C4.5, 2026-09-14).** `@GlobalSearchable(order)` включает сущность рядом с
+моделью; общий config удалён. Каталог валидирует exposure/capabilities, search fields,
+provider collisions/timeouts и наличие подписи при старте.
 
 ### ADX-11 — тяжёлый и stringly-typed form customization API (`P2`, E3)
 

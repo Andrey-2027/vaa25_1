@@ -10,7 +10,9 @@ import org.hibernate.annotations.ParamDef;
 import org.ipro.metadata.annotation.*;
 import org.ipro.rls.RlsDimension;
 import org.ipro.crud.BaseEntity;
+import org.ipro.data.SearchFields;
 import org.ipro.metadata.HasDisplayName;
+import org.ipro.search.GlobalSearchable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "prd_spec")
+@GlobalSearchable(order = 200)
+@SearchFields({"codeSpec", "draft"})
 @RlsDimension(value = "JOURNAL", valuePaths = "journal.id")
 @FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class),
     applyToLoadByKey = true)

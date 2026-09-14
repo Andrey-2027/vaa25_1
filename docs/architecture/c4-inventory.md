@@ -162,7 +162,7 @@
 | `AbstractBaseService.findAll(Specification, Pageable)` + `findAllWithFetchGraph` | 42 совпадения в `src/main` (объявления + вызовы в 16 subclasses и form/grid) |
 | `BaseService.search(String[,Pageable])` | 20 реализаций/переопределений в `src/main`; `AbstractBaseService:295` и `ValidatedJpaCrudService:221,227` бросают `UnsupportedOperationException` |
 | `BaseService.findAll(Specification, Pageable)` default | `BaseService:26` бросает `UnsupportedOperationException`; `ValidatedJpaCrudService` не переопределяет |
-| `GlobalSearchApplicationConfig` | центральная регистрация `Nomenclature`, `PrdSpec`, `ReceivingDocument` |
+| `@GlobalSearchable` + `GlobalSearchCatalog` | явное entity-level участие и стабильный порядок; центральная source-конфигурация удалена в C4.5 |
 | `RowDraft.restore` → `LookupService.findById` | `ItemTable`/`ItemForm` cancel path: по одному read на каждую entity-ссылку строки |
 
 ## 5. Intentional write prohibitions (baseline)
@@ -277,12 +277,13 @@ grep -rnE "lookupService\.(search|findById|findAll)" src/main/java | wc -l  # ->
 ### 7.2. «New» сторона: canonical search engine (C4.4)
 
 Сервисы больше не реализуют собственные search Criteria/repository queries: поля выводит
-`SearchFieldResolver` по одной лестнице — явные поля → пути `@InstanceName` (единый источник C3) → строковые
+`SearchFieldResolver` по одной лестнице — явные поля → `@SearchFields` → пути `@InstanceName` (единый источник C3) → строковые
 `selectColumns` effective metadata. Для всех мигрированных типов это `code`/`name`
 (у `Branch`, `Journal`, `Oper`, `Workshop`, `GroupNom`, `AttributeType`, `AttributeValue`,
 `Nomenclature`) — то есть тот же набор, что у прежнего `searchByTerm`, но без repository query.
-Чтобы сохранить предметную поверхность без второго query builder, explicit field sets задают
-`PrdSpec` (`codeSpec`, `draft`), `SklNomOpa` (`displayName`), `UnitOfMeasurement`
+Чтобы сохранить предметную поверхность без второго query builder, `@SearchFields` задаёт
+общие для list/global search поля `PrdSpec` (`codeSpec`, `draft`), а explicit field sets —
+`SklNomOpa` (`displayName`), `UnitOfMeasurement`
 (`shortCode`) и `GridFormView` (`name`, `formKey`). `User` выводит `username` из metadata.
 У `NomSklAttribute` нет строковых search paths: непустой терм даёт пустую выдачу, blank term
 возвращает только bounded page.
@@ -302,9 +303,9 @@ grep -rnE "lookupService\.(search|findById|findAll)" src/main/java | wc -l  # ->
 `GridFormView`, `GroupNom`, `Journal`, `NomSklAttribute`, `Nomenclature`, `Oper`, `PrdSpec`,
 `ReceivingDocument`, `Role`, `SklNomOpa`, `UnitOfMeasurement`, `User`, `Workshop`. Все
 repository `searchByTerm` и `findWithFilter` на стандартном пути удалены. Четыре прежних
-typed query сохраняют поля поиска как explicit field sets и используют тот же Criteria
-builder; их application service/domain migration остаётся в C4.6. Интеграция
-`GlobalSearchService`/providers с `SearchContext.GLOBAL` остаётся в C4.5.
+typed query сохраняют поля поиска и используют тот же Criteria builder; их application
+service/domain migration остаётся в C4.6. В C4.5 global providers переведены на
+`SearchContext.GLOBAL` внутри canonical read boundary; подробности — в `current-baseline.md`.
 
 ## 8. Effective metadata snapshot (метод C4.2)
 
@@ -323,7 +324,7 @@ directory-сущность с полным набором `@FieldMetadata` и о
 | `Branch` | явный `serviceClass`, zero domain methods | самый дешёвый реальный CRUD-pilot (C4.3/C4.6) |
 | `Journal` | явный `serviceClass`, используется typed `PrdSpecService.findByJournal` | проверяет композицию facade и typed use case |
 | `UnitOfMeasurement` | bean-name convention, без `serviceClass` | проверяет удаление magic lookup |
-| `Nomenclature` | global search + InstanceName + собственный `serviceClass` | миграция global search (C4.5) |
+| `Nomenclature` | global search + InstanceName + собственный `serviceClass` | C4.5: модульное участие; вместе с `PrdSpec` и `ReceivingDocument` проходит canonical global read |
 | `PrdSpec` | document с owned sections (`PrdSpecMtr`/`PrdSpecOper`) | aggregate boundary + typed query |
 
 ## 10. Что C4.0 сознательно не решает

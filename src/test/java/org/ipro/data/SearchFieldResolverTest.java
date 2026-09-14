@@ -1,6 +1,7 @@
 package org.ipro.data;
 
 import org.ip.model.Branch;
+import org.ip.model.PrdSpec;
 import org.ipro.metadata.MetadataResolver;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +23,13 @@ class SearchFieldResolverTest {
     void defaultsComeFromMetadataSelectColumns() {
         assertThat(resolver.resolve(Branch.class, List.of()))
             .containsExactly("code", "name");
+    }
+
+    @Test
+    void typeLevelSearchFieldsAreSharedDefaultsAcrossContexts() {
+        assertThat(resolver.resolve(PrdSpec.class, List.of()))
+            .containsExactly("codeSpec", "draft")
+            .doesNotContain("nomenclature.name");
     }
 
     @Test

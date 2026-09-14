@@ -4,6 +4,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.ipro.data.fixture.C4FixtureEntity;
 import org.ipro.data.fixture.C4FixtureJpaConfiguration;
 import org.ipro.data.fixture.C4NoTextFixtureEntity;
@@ -390,6 +392,35 @@ class CanonicalWritePathIT {
             "alpha", List.of(), PageRequest.of(0, 10), List.of()));
 
         assertThat(observed).containsExactly(DataOperation.GLOBAL_SEARCH);
+    }
+
+    @Test
+    void globalSearchWindowUsesOneBoundedQueryWithoutCount() {
+        service.create(new C4FixtureEntity("alpha", "точное"));
+        service.create(new C4FixtureEntity("alpha-beta", "префикс"));
+        service.create(new C4FixtureEntity("G-1", "contains alpha one"));
+        service.create(new C4FixtureEntity("G-2", "contains alpha two"));
+        entityManager.flush();
+        entityManager.clear();
+
+        List<DataOperation> observed = new ArrayList<>();
+        CanonicalReadExecutor measured = new CanonicalReadExecutor(catalog,
+            new ScenarioFetchGraphResolver(new MetadataResolver(), null, null),
+            new MetadataResolver(), rlsFilterActivator, readGate, null,
+            (operation, type, scenario, resultCount, durationNanos) -> observed.add(operation));
+        ReflectionTestUtils.setField(measured, "entityManager", entityManager);
+        Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.setStatisticsEnabled(true);
+        statistics.clear();
+
+        List<C4FixtureEntity> results = measured.readSearchWindow(SearchRead.of(
+            C4FixtureEntity.class, SearchContext.GLOBAL, "alpha"), 4, 1_500);
+
+        assertThat(results).extracting(C4FixtureEntity::getCode)
+            .containsExactly("alpha", "alpha-beta", "G-1", "G-2");
+        assertThat(statistics.getQueryExecutionCount()).isEqualTo(1);
+        assertThat(observed).containsExactly(DataOperation.GLOBAL_SEARCH);
+        verify(rlsFilterActivator).ensureRlsEnabled(entityManager);
     }
 
     @Test

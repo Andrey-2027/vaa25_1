@@ -13,9 +13,11 @@ import org.ipro.fetch.instance.InstanceName;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.numbering.NumberingPeriod;
 import org.ipro.numbering.annotation.Numbered;
+import org.ipro.search.GlobalSearchable;
 
 @Entity
 @Table(name = "nomenclature")
+@GlobalSearchable(order = 100)
 @EntityMetadata(
     listFormTitle = "Номенклатура",
     itemFormTitle = "Элемент номенклатуры",

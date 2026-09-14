@@ -1,6 +1,6 @@
 # C4: узкий data-access facade — план работ
 
-Статус: `IN PROGRESS` — C4.0–C4.2 закрыты. Ядро C4.3 реализовано и hardening пройден, но формальное закрытие остаётся pending: write telemetry, первый production-каталог на canonical write path и полный form → write → audit acceptance. C4.4 server-side search закрыт для стандартного list/lookup пути: один builder, согласованные overloads, per-type поля через canonical search, literal escaping и bounded paging. Контекст `GLOBAL_SEARCH` определён, подключение существующего provider service к нему остаётся в C4.5.
+Статус: `IN PROGRESS` — C4.0–C4.2 закрыты. Ядро C4.3 реализовано и hardening пройден, но формальное закрытие остаётся pending: write telemetry, первый production-каталог на canonical write path и полный form → write → audit acceptance. C4.4 server-side search закрыт для стандартного list/lookup пути. C4.5 modular global search выполнен поверх canonical secured query; central configuration удалена. C4.6–C4.8 впереди.
 Родительский этап: [`JMIX_GitVaa_Roadmap_v2.md`, C4](../../JMIX_GitVaa_Roadmap_v2.md#c4-узкий-data-access-facade)
 Связанные нарушения: `ADX-04`, `ADX-05`, `ADX-08`, платформенная часть `ADX-10`.
 Использует результаты: C2 fail-closed RLS boundary; C3 FetchPlan и InstanceName.
@@ -344,20 +344,19 @@ limit/paging и выдача на одном наборе данных. Кажд
 ### 4.8. Global-search participation
 
 Стандартное участие в global search требует явного intent, но не повторения fields.
-Предпочтительная модель:
+Реализованная модель:
 
-- entity-level intent входит в effective metadata;
-- стандартный contributor строит source из managed entities и defaults;
-- модульный `GlobalSearchContributor`/provider описывает только отличие;
-- центральный `GlobalSearchApplicationConfig` является migration adapter и удаляется к
-  завершению C4.
+- entity-level `@GlobalSearchable(order)` задаёт участие и стабильный порядок;
+- `GlobalSearchCatalog` принимает только JPA-managed `STANDARD_ROOT` с capability `LIST`,
+  а поля выводит через общий `SearchFieldResolver`;
+- `@SearchFields` задаёт предметное исключение один раз для сущности (сейчас `PrdSpec`),
+  чтобы list/global search сохраняли одинаковую семантику;
+- модульный `GlobalSearchProvider` содержит только отображение результата, классификацию
+  совпадения и бюджет timeout; SQL остаётся внутри `CanonicalReadExecutor`;
+- центральные `GlobalSearchConfig` и `GlobalSearchApplicationConfig` удалены.
 
-Точное Java-представление entity-level intent (`@EntityMetadata` property либо отдельная
-узкая декларация) выбирается C4.0 с условием: оно не должно дублироваться одновременно в
-entity и contributor.
-
-Startup validation обнаруживает duplicate entity, unmanaged type, неизвестное поле,
-неподдерживаемый field type, несколько providers и отсутствие search/display defaults.
+Startup validation обнаруживает unmanaged type, неизвестное поле, неподдерживаемый field
+type, несколько providers, некорректный timeout и отсутствие search/display defaults.
 
 Standard `JpaGlobalSearchProvider` не является самостоятельным security-relevant read
 path. Он выполняется внутри canonical RLS/fetch/telemetry boundary либо делегирует общему
@@ -558,7 +557,7 @@ name; owned/internal/immutable types не получают лишних capabili
 override; old/new выдача сопоставлена per entity, а принятые изменения blank term,
 special characters, order и paging зафиксированы поведенчески.
 
-Статус среза (2026-09-14): пп. 1–8 закрыты. `LIST` и `LOOKUP` выполняются общим builder'ом; оба `BaseService.search` overload используют одну семантику и поля. Все стандартные корни переведены на него: обычные поля выводятся из metadata/`@InstanceName`, а для `PrdSpec`, `SklNomOpa`, `UnitOfMeasurement`, `GridFormView` сохранены прежние поля через explicit field set. У `User` убран unbounded in-memory search; `NomSklAttribute` использует стандартный контракт сущности без строковых search fields. Все repository `searchByTerm` и `findWithFilter` у стандартных корней удалены. `SearchContext.GLOBAL` имеет отдельный telemetry intent `GLOBAL_SEARCH`; подключение `GlobalSearchService` и его providers к builder'у остаётся в C4.5. П.9 сохранён как extension point для действительно специализированных query/provider реализаций; текущие standard roots такой реализации не требуют.
+Статус среза (2026-09-14): пп. 1–8 закрыты. `LIST` и `LOOKUP` выполняются общим builder'ом; оба `BaseService.search` overload используют одну семантику и поля. Все стандартные корни переведены на него: обычные поля выводятся из metadata/`@InstanceName`, а для `PrdSpec`, `SklNomOpa`, `UnitOfMeasurement`, `GridFormView` сохранены прежние поля через explicit field set или type-level `@SearchFields`. У `User` убран unbounded in-memory search; `NomSklAttribute` использует стандартный контракт сущности без строковых search fields. Все repository `searchByTerm` и `findWithFilter` у стандартных корней удалены. `SearchContext.GLOBAL` имеет отдельный telemetry intent `GLOBAL_SEARCH`; подключение global service/provider закрыто в C4.5. П.9 сохранён как extension point для действительно специализированных query/provider реализаций; текущие standard roots такой реализации не требуют.
 
 ### C4.5. Modular global search
 
@@ -572,10 +571,13 @@ special characters, order и paging зафиксированы поведенч�
 6. Мигрировать существующие `Nomenclature`, `PrdSpec`, `ReceivingDocument`.
 7. Выполнять standard/custom providers внутри canonical secured query boundary, оставив
    provider только ranking/classification/timeout semantics.
-8. Удалить центральный `GlobalSearchApplicationConfig` после behavioural parity.
+8. Удалить центральный `GlobalSearchApplicationConfig` после behavioural parity (выполнено).
 
 Критерий завершения: новый модуль добавляет searchable entity без изменения общего
 application config, а custom provider объявляет только нестандартную семантику.
+
+Статус (2026-09-14): пункты 1–8 закрыты; подробности реализации и проверок — в
+[`current-baseline.md`](status/current-baseline.md#c45-modular-global-search).
 
 ### C4.6. Application migration
 

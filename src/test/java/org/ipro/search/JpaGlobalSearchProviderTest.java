@@ -1,9 +1,9 @@
 package org.ipro.search;
 
-import org.ip.config.GlobalSearchApplicationConfig;
 import org.ip.model.Nomenclature;
 import org.ip.model.ReceivingDocument;
-import org.ipro.metadata.MetadataResolver;
+import org.ipro.fetch.instance.InstanceNameResolver;
+import org.ip.search.PrdSpecGlobalSearchProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,13 +16,18 @@ class JpaGlobalSearchProviderTest {
     private GlobalSearchCatalog catalog;
     private JpaGlobalSearchProvider<Nomenclature> nomenclatureProvider;
     private JpaGlobalSearchProvider<ReceivingDocument> documentProvider;
+    private InstanceNameResolver instanceNameResolver;
 
     @BeforeEach
     void setUp() {
-        catalog = new GlobalSearchCatalog(
-            new GlobalSearchApplicationConfig().globalSearchConfig(), new MetadataResolver());
-        nomenclatureProvider = new JpaGlobalSearchProvider<>(Nomenclature.class);
-        documentProvider = new JpaGlobalSearchProvider<>(ReceivingDocument.class);
+        catalog = GlobalSearchTestSupport.catalog();
+        instanceNameResolver = new InstanceNameResolver(
+            GlobalSearchTestSupport.APPLICATION_TYPES,
+            GlobalSearchTestSupport.METADATA_RESOLVER);
+        nomenclatureProvider = new JpaGlobalSearchProvider<>(
+            Nomenclature.class, instanceNameResolver);
+        documentProvider = new JpaGlobalSearchProvider<>(
+            ReceivingDocument.class, instanceNameResolver);
     }
 
     @Test
@@ -54,26 +59,37 @@ class JpaGlobalSearchProviderTest {
     }
 
     @Test
-    void explicitDisplayFieldsAvoidLazyDisplayNameDependencies() {
+    void genericProviderUsesLegacyDisplayNameWhenNoInstanceNameIsDeclared() {
         org.ip.model.PrdSpec value = new org.ip.model.PrdSpec();
         value.setCodeSpec("SP-1");
         value.setDraft("черновик");
         GlobalSearchSource source = catalog.requireSource(org.ip.model.PrdSpec.class);
         JpaGlobalSearchProvider<org.ip.model.PrdSpec> provider =
-            new JpaGlobalSearchProvider<>(org.ip.model.PrdSpec.class);
+            new JpaGlobalSearchProvider<>(org.ip.model.PrdSpec.class, instanceNameResolver);
 
         assertThat(provider.displayValue(value, source))
+            .isEqualTo("SP-1");
+    }
+
+    @Test
+    void prdSpecProviderUsesCodeAndDraftWithoutNomenclatureDisplayName() {
+        org.ip.model.PrdSpec value = new org.ip.model.PrdSpec();
+        value.setCodeSpec("SP-1");
+        value.setDraft("черновик");
+        GlobalSearchSource source = catalog.requireSource(org.ip.model.PrdSpec.class);
+
+        assertThat(new PrdSpecGlobalSearchProvider().displayValue(value, source))
             .isEqualTo("SP-1 — черновик");
     }
 
     @Test
-    void explicitDisplayFieldsAreUsedWhenEntityHasNoDisplayContractForSource() {
+    void declaredInstanceNameIsUsedForReceivingDocument() {
         ReceivingDocument value = new ReceivingDocument();
         value.setNumber("RD-1");
         value.setDate(LocalDate.of(2026, 2, 3));
         GlobalSearchSource source = catalog.requireSource(ReceivingDocument.class);
 
         assertThat(documentProvider.displayValue(value, source))
-            .isEqualTo("RD-1 — 2026-02-03");
+            .isEqualTo("RD-1 от 2026-02-03");
     }
 }

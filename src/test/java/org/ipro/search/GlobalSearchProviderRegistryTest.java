@@ -1,9 +1,7 @@
 package org.ipro.search;
 
-import jakarta.persistence.EntityManager;
 import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
-import org.ipro.metadata.MetadataResolver;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -15,12 +13,9 @@ class GlobalSearchProviderRegistryTest {
 
     @Test
     void explicitProviderWinsAndDifferentUnregisteredEntityUsesJpaFallback() {
-        GlobalSearchSource nomenclature = new GlobalSearchCatalog(
-            new org.ip.config.GlobalSearchApplicationConfig().globalSearchConfig(),
-            new MetadataResolver()).requireSource(Nomenclature.class);
-        GlobalSearchSource prdSpec = new GlobalSearchCatalog(
-            new org.ip.config.GlobalSearchApplicationConfig().globalSearchConfig(),
-            new MetadataResolver()).requireSource(PrdSpec.class);
+        GlobalSearchCatalog catalog = GlobalSearchTestSupport.catalog();
+        GlobalSearchSource nomenclature = catalog.requireSource(Nomenclature.class);
+        GlobalSearchSource prdSpec = catalog.requireSource(PrdSpec.class);
         GlobalSearchProvider<Nomenclature> explicit = new NoOpProvider();
 
         GlobalSearchProviderRegistry registry = new GlobalSearchProviderRegistry(List.of(explicit));
@@ -44,12 +39,6 @@ class GlobalSearchProviderRegistryTest {
         @Override
         public Class<Nomenclature> entityClass() {
             return Nomenclature.class;
-        }
-
-        @Override
-        public List<Nomenclature> search(EntityManager entityManager, GlobalSearchSource source,
-                                         String term, int limit, int timeoutMs) {
-            return List.of();
         }
 
         @Override
