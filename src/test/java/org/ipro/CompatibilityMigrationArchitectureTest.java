@@ -27,14 +27,12 @@ class CompatibilityMigrationArchitectureTest {
     private static final Set<String> COMPATIBILITY_BASE_SUBCLASSES = Set.of(
             "org.ip.service.AttributeValueService",
             "org.ip.service.GridFormViewService",
-            "org.ip.service.SklNomOpaService",
             "org.ipro.ureport.service.UreportTemplateService");
 
     /** Сущности, чья модель ещё ссылается на application service через {@code @EntityMetadata}. */
     private static final Set<String> MODEL_TO_SERVICE_DEPENDENCIES = Set.of(
             "org.ip.model.AttributeValue",
-            "org.ip.model.NomSklAttribute",
-            "org.ip.model.SklNomOpa");
+            "org.ip.model.NomSklAttribute");
 
     /** Единственная известная UI-утечка persistence context; цель C4.7 — пустой набор. */
     private static final Set<String> PERSISTENCE_CONTEXT_IN_UI = Set.of(

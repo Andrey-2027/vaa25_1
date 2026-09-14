@@ -3,18 +3,13 @@ package org.ipro.data;
 import jakarta.validation.Validator;
 import org.ip.model.User;
 import org.ip.repository.GridFormViewRepository;
-import org.ip.repository.SklNomOpaRepository;
-import org.ip.repository.SklNomOpaValueRepository;
 import org.ip.service.GridFormViewService;
-import org.ip.service.SklNomOpaService;
 import org.ipro.crud.BaseService;
-import org.ipro.crud.NaturalKeyCreateSupport;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 
@@ -35,10 +30,10 @@ class SearchOverloadParityTest {
 
         // C4.6 волна E: у PrdSpec больше нет typed-сервиса — search идёт canonical handle,
         // а собственный embeddable adapter ему не нужен.
-        SklNomOpaRepository sklRepository = mock(SklNomOpaRepository.class);
-        assertParity(new SklNomOpaService(sklRepository, mock(SklNomOpaValueRepository.class),
-                validator, new NaturalKeyCreateSupport(mock(PlatformTransactionManager.class))),
-            List.of("displayName"), sklRepository);
+        // C4.6 волна E: SklNomOpaService тоже делегирует поиск canonical handle, а
+        // displayName объявлен @SearchFields на типе (единая лестница resolver'а).
+        assertParity(new CanonicalEntityService<>(org.ip.model.SklNomOpa.class,
+            mock(CanonicalReadExecutor.class), mock(EntityDataAccess.class)), List.of());
 
         // C4.6 волна C: у UnitOfMeasurement больше нет typed-сервиса, а GridFormView больше
         // не переопределяет search — его поля объявлены @SearchFields на типе, поэтому явный

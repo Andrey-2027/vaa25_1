@@ -43,6 +43,9 @@ class SearchFieldResolverTest {
     void searchFieldsDeclaredOnTypeReplaceServiceOverrides() {
         assertThat(resolver.resolve(UnitOfMeasurement.class, List.of()))
             .containsExactly("shortCode");
+        // C4.6 волна E: SklNomOpa тоже объявил поля на типе вместо override в сервисе
+        assertThat(resolver.resolve(org.ip.model.SklNomOpa.class, List.of()))
+            .containsExactly("displayName");
         assertThat(resolver.resolve(GridFormView.class, List.of()))
             .containsExactly("name", "formKey");
     }

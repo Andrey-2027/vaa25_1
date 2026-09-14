@@ -89,21 +89,16 @@ class SklNomOpaServiceTest {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
+    /**
+     * C4.6 волна E: сервис набора больше не наследует compatibility base. Проверяются
+     * канонизация и интернирование — они работают через repository; canonical handle
+     * (чтения) в этих сценариях не участвует и подменён заглушкой.
+     */
     private SklNomOpaService newSetService() {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        SklNomOpaService service = new SklNomOpaService(
-            sklNomOpaRepository, sklNomOpaValueRepository, validator,
-            new NaturalKeyCreateSupport(transactionManager));
-        ReflectionTestUtils.setField(service, "numberingService", java.util.Optional.empty());
-        ReflectionTestUtils.setField(service, "referenceCheckService", mock(ReferenceCheckService.class));
-        ReflectionTestUtils.setField(service, "rlsFilterActivator", mock(RlsFilterActivator.class));
-        MetadataResolver metadataResolver = mock(MetadataResolver.class);
-        when(metadataResolver.resolve(any())).thenThrow(new IllegalArgumentException("no metadata"));
-        ReflectionTestUtils.setField(service, "metadataResolver", metadataResolver);
-        RlsReadGate readGate = mock(RlsReadGate.class);
-        when(readGate.canRead(any(), anyString())).thenReturn(true);
-        ReflectionTestUtils.setField(service, "rlsReadGate", readGate);
-        return service;
+        return new SklNomOpaService(
+            sklNomOpaRepository, sklNomOpaValueRepository,
+            new NaturalKeyCreateSupport(transactionManager),
+            mock(org.ipro.data.CanonicalEntityService.class));
     }
 
     private AttributeValueService newValueService() {

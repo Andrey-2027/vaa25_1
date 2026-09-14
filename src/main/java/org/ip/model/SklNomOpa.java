@@ -10,6 +10,7 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import org.ipro.crud.BaseEntity;
 import org.ipro.crud.InternedEntity;
+import org.ipro.data.SearchFields;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.Lookup;
@@ -31,13 +32,13 @@ import org.ipro.metadata.annotation.Lookup;
 @Table(name = "skl_nom_opa", uniqueConstraints = {
     @UniqueConstraint(name = "uk_skl_nom_opa_nom_canonical", columnNames = {"nomenclature_id", "canonical"})
 })
+@SearchFields({"displayName"})
 @EntityMetadata(
     listFormTitle = "Наборы атрибутов КСУ",
     itemFormTitle = "Набор атрибутов КСУ",
     selectionFormTitle = "Выбор набора атрибутов",
     order = 75,
     icon = "LIST_UL",
-    serviceClass = org.ip.service.SklNomOpaService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"nomenclature", "displayName"},
     displaySortFields = {"displayName"}

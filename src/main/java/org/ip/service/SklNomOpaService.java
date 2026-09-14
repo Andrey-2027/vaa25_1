@@ -1,6 +1,5 @@
 package org.ip.service;
 
-import jakarta.validation.Validator;
 import org.ip.model.AttributeType;
 import org.ip.model.AttributeValue;
 import org.ip.model.Nomenclature;
@@ -8,19 +7,25 @@ import org.ip.model.SklNomOpa;
 import org.ip.model.SklNomOpaValue;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
-import org.ipro.crud.AbstractBaseService;
+import org.ipro.crud.BaseService;
 import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ValidationException;
+import org.ipro.data.CanonicalEntityService;
+import org.ipro.data.EntityDataAccessResolver;
+import org.ipro.data.SearchRead;
+import org.ipro.fetch.plan.FetchScenario;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.ipro.data.SearchRead;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 
@@ -42,9 +47,15 @@ import java.util.TreeMap;
  * <p>Набор immutable: {@code update}/{@code delete} не предусмотрены. Исправление написания
  * значения — {@link AttributeValueService#renameValue} (id значения стабилен → канон всех
  * наборов стабилен); {@code displayName} затронутых наборов пересобирается той же транзакцией.
+ *
+ * <p>C4.6 волна E: класс больше не наследует compatibility base. Стандартная поверхность
+ * (list/detail/search) делегируется canonical handle — те же FetchPlan, RLS и capability
+ * границы, что у типов без собственного сервиса. Запись остаётся здесь только в виде
+ * интернирования: descriptor типа намеренно не выдаёт generic write-capabilities, поэтому
+ * {@code save/create/update/delete} отказывают явно, а не тихо обходят канонизацию.
  */
 @Service
-public class SklNomOpaService extends AbstractBaseService<SklNomOpa, Long> {
+public class SklNomOpaService implements BaseService<SklNomOpa, Long> {
 
     /** Потолок строк на набор — константа с понятной ошибкой; поднять — без миграции схемы. */
     public static final int MAX_ITEMS = 16;
@@ -55,14 +66,37 @@ public class SklNomOpaService extends AbstractBaseService<SklNomOpa, Long> {
     /** Интернирование набора: гонка на создании разрешается общим механизмом платформы. */
     private final NaturalKeyCreateSupport createSupport;
 
+    /** Чтение списка/карточки/поиска — canonical boundary. */
+    private final CanonicalEntityService<SklNomOpa> canonical;
+
+    @Autowired
     public SklNomOpaService(SklNomOpaRepository repository,
                             SklNomOpaValueRepository valueRepository,
-                            Validator validator,
-                            NaturalKeyCreateSupport createSupport) {
-        super(repository, validator);
-        this.sklNomOpaRepository = repository;
-        this.valueRepository = valueRepository;
-        this.createSupport = createSupport;
+                            NaturalKeyCreateSupport createSupport,
+                            EntityDataAccessResolver dataAccessResolver) {
+        this.sklNomOpaRepository = Objects.requireNonNull(repository, "repository must not be null");
+        this.valueRepository = Objects.requireNonNull(valueRepository, "valueRepository must not be null");
+        this.createSupport = Objects.requireNonNull(createSupport, "createSupport must not be null");
+        Objects.requireNonNull(dataAccessResolver, "dataAccessResolver must not be null");
+        BaseService<SklNomOpa, Long> handle = dataAccessResolver
+            .<SklNomOpa, Long>findService(SklNomOpa.class)
+            .orElseThrow(() -> new IllegalStateException(
+                "SklNomOpa не имеет canonical data handle: "
+                    + dataAccessResolver.resolutionReason(SklNomOpa.class)));
+        @SuppressWarnings("unchecked")
+        CanonicalEntityService<SklNomOpa> resolved = (CanonicalEntityService<SklNomOpa>) handle;
+        this.canonical = resolved;
+    }
+
+    /** Сборка с явным canonical handle — для тестов, где полный контекст не нужен. */
+    SklNomOpaService(SklNomOpaRepository repository,
+                     SklNomOpaValueRepository valueRepository,
+                     NaturalKeyCreateSupport createSupport,
+                     CanonicalEntityService<SklNomOpa> canonical) {
+        this.sklNomOpaRepository = Objects.requireNonNull(repository, "repository must not be null");
+        this.valueRepository = Objects.requireNonNull(valueRepository, "valueRepository must not be null");
+        this.createSupport = Objects.requireNonNull(createSupport, "createSupport must not be null");
+        this.canonical = Objects.requireNonNull(canonical, "canonical must not be null");
     }
 
     // === Режимы find-or-create ===
@@ -181,9 +215,7 @@ public class SklNomOpaService extends AbstractBaseService<SklNomOpa, Long> {
         return canonicalOf(normalize(attrs));
     }
 
-    // === Создание с обработкой гонки ===
-
-    // === Immutable ===
+    // === Immutable: generic-запись намеренно запрещена capability типа ===
 
     /** Набор создаётся только через {@link #findOrCreate} — канонизация не обходится. */
     @Override
@@ -215,7 +247,40 @@ public class SklNomOpaService extends AbstractBaseService<SklNomOpa, Long> {
                 + "Новая комбинация значений создаёт новый набор.");
     }
 
-    // === Инфраструктура ===
+    // === Стандартная поверхность: делегируется canonical handle ===
+
+    @Override
+    public Optional<SklNomOpa> findById(Long id) {
+        return canonical.findById(id);
+    }
+
+    @Override
+    public List<SklNomOpa> findAll() {
+        return canonical.findAll();
+    }
+
+    @Override
+    public Page<SklNomOpa> findAll(Pageable pageable) {
+        return canonical.findAll(pageable);
+    }
+
+    @Override
+    public Page<SklNomOpa> findAll(Specification<SklNomOpa> spec, Pageable pageable) {
+        return canonical.findAll(spec, pageable);
+    }
+
+    @Override
+    public Page<SklNomOpa> findAll(Specification<SklNomOpa> spec, Pageable pageable,
+                                   Collection<String> fetchPaths) {
+        return canonical.findAll(spec, pageable, fetchPaths);
+    }
+
+    @Override
+    public Page<SklNomOpa> findAllByScenario(FetchScenario scenario, Specification<SklNomOpa> spec,
+                                             Pageable pageable,
+                                             Collection<String> additionalFetchPaths) {
+        return canonical.findAllByScenario(scenario, spec, pageable, additionalFetchPaths);
+    }
 
     @Override
     public List<SklNomOpa> search(String term) {
@@ -224,11 +289,11 @@ public class SklNomOpaService extends AbstractBaseService<SklNomOpa, Long> {
 
     @Override
     public Page<SklNomOpa> search(String term, Pageable pageable) {
-        return searchWithFields(term, pageable, "displayName");
+        return canonical.search(term, pageable);
     }
 
     @Override
-    public Page<SklNomOpa> findAll(Specification<SklNomOpa> spec, Pageable pageable) {
-        return findAllWithFetchGraph(spec, pageable);
+    public Number sum(String fieldName, Specification<SklNomOpa> spec) {
+        return canonical.sum(fieldName, spec);
     }
 }
