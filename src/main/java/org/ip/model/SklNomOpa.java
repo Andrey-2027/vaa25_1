@@ -9,6 +9,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import org.ipro.crud.BaseEntity;
+import org.ipro.crud.InternedEntity;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.Lookup;
@@ -41,7 +42,7 @@ import org.ipro.metadata.annotation.Lookup;
     selectColumns = {"nomenclature", "displayName"},
     displaySortFields = {"displayName"}
 )
-public class SklNomOpa extends BaseEntity implements HasDisplayName {
+public class SklNomOpa extends BaseEntity implements HasDisplayName, InternedEntity {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -89,6 +90,24 @@ public class SklNomOpa extends BaseEntity implements HasDisplayName {
      */
     public void refreshDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    /**
+     * Идентичность — {@code (nomenclature, canonical)}; закреплена уникальным индексом
+     * {@code uk_skl_nom_opa_nom_canonical}. Канон строится по id значений словаря, поэтому
+     * переименование значения ключ не меняет.
+     *
+     * <p>Статический вариант — единственное определение ключа: канонизация знает пару до
+     * создания шапки, а на попытках повтора шапка создаётся заново.</p>
+     */
+    public static String interningKeyOf(Nomenclature nomenclature, String canonical) {
+        String nomKey = nomenclature == null ? "?" : String.valueOf(nomenclature.getId());
+        return nomKey + "|" + canonical;
+    }
+
+    @Override
+    public String interningKey() {
+        return interningKeyOf(nomenclature, canonical);
     }
 
     @Override

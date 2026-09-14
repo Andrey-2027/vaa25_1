@@ -18,6 +18,7 @@ import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ipro.crud.LookupService;
+import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ReferenceCheckService;
 import org.ipro.crud.ValidationException;
 import org.ipro.metadata.ManagedEntityCatalog;
@@ -90,7 +91,8 @@ class SklNomOpaServiceTest {
     private SklNomOpaService newSetService() {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         SklNomOpaService service = new SklNomOpaService(
-            sklNomOpaRepository, sklNomOpaValueRepository, validator, transactionManager);
+            sklNomOpaRepository, sklNomOpaValueRepository, validator,
+            new NaturalKeyCreateSupport(transactionManager));
         ReflectionTestUtils.setField(service, "numberingService", java.util.Optional.empty());
         ReflectionTestUtils.setField(service, "referenceCheckService", mock(ReferenceCheckService.class));
         ReflectionTestUtils.setField(service, "rlsFilterActivator", mock(RlsFilterActivator.class));
@@ -116,7 +118,7 @@ class SklNomOpaServiceTest {
             sklNomOpaRepository, sklNomOpaValueRepository,
             lookupService,
             new ManagedEntityCatalog(entityManager.getEntityManagerFactory()),
-            validator, transactionManager);
+            validator, new NaturalKeyCreateSupport(transactionManager), transactionManager);
         ReflectionTestUtils.setField(service, "numberingService", java.util.Optional.empty());
         ReflectionTestUtils.setField(service, "referenceCheckService", mock(ReferenceCheckService.class));
         ReflectionTestUtils.setField(service, "rlsFilterActivator", mock(RlsFilterActivator.class));

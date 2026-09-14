@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.ipro.crud.BaseEntity;
+import org.ipro.crud.InternedEntity;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
@@ -49,7 +50,7 @@ import org.ipro.metadata.annotation.Lookup;
     selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
 )
-public class AttributeValue extends BaseEntity implements HasDisplayName {
+public class AttributeValue extends BaseEntity implements HasDisplayName, InternedEntity {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -155,5 +156,26 @@ public class AttributeValue extends BaseEntity implements HasDisplayName {
     @Override
     public String getDisplayName() {
         return code + " " + name;
+    }
+
+    /**
+     * Идентичность закреплена двумя уникальными индексами схемы: {@code (attr_type_id,
+     * code_up)} для скалярных/enum-значений и {@code (attr_type_id, ref_id)} для ссылок.
+     * Для одного типа применим ровно один из них, поэтому ключ ветвится по {@code refId}.
+     *
+     * <p>Статический вариант — единственное определение ключа: вызывающий (интернирование)
+     * знает тип и нормализованное значение до того, как строка создана.</p>
+     */
+    public static String interningKeyOf(AttributeType attrType, String codeUp, Long refId) {
+        String typeKey = attrType == null ? "?" : String.valueOf(attrType.getId());
+        if (refId != null) {
+            return typeKey + "|ref:" + refId;
+        }
+        return typeKey + "|code:" + codeUp;
+    }
+
+    @Override
+    public String interningKey() {
+        return interningKeyOf(attrType, codeUp, refId);
     }
 }

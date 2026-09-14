@@ -20,6 +20,7 @@ import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ipro.crud.LookupService;
+import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.crud.ValidationException;
 import org.ipro.rls.RlsReadGate;
@@ -100,7 +101,8 @@ class AttributeValueServiceTest {
         AttributeValueService service = new AttributeValueService(
             attributeValueRepository, attributeTypeRepository,
             sklNomOpaRepository, sklNomOpaValueRepository,
-            lookupService, entityCatalog, validator, transactionManager);
+            lookupService, entityCatalog, validator,
+            new NaturalKeyCreateSupport(transactionManager), transactionManager);
         ReflectionTestUtils.setField(service, "numberingService", Optional.empty());
         RlsReadGate readGate = mock(RlsReadGate.class);
         when(readGate.canRead(any(), anyString())).thenReturn(true);

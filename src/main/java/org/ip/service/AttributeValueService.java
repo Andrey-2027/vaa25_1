@@ -10,21 +10,19 @@ import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ipro.crud.AbstractBaseService;
 import org.ipro.crud.LookupService;
+import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ValidationException;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.ManagedEntityCatalog;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -43,10 +41,11 @@ import java.util.Optional;
  *       строки целевого словаря (дедуп по {@code (attrType, refId)}).</li>
  * </ul>
  *
- * <p>Гонка двух потоков, создающих одно и то же значение: уникальное ограничение ловит
- * второй INSERT, транзакция создания откатывается (REQUIRES_NEW — отдельно от вызывающей,
- * чтобы aborted-tx на Postgres не портил внешнюю транзакцию), затем повторный SELECT
- * возвращает строку победителя.
+ * <p>Гонка двух потоков, создающих одно и то же значение, разрешается общим механизмом
+ * интернирования ({@link NaturalKeyCreateSupport}): уникальное ограничение ловит второй
+ * INSERT, транзакция создания откатывается (REQUIRES_NEW — отдельно от вызывающей, чтобы
+ * aborted-tx на Postgres не портил внешнюю транзакцию), затем повторный SELECT возвращает
+ * строку победителя. Канонизация ключа (нормализация значения) остаётся здесь, в типе.
  *
  * <p>Значения бессмертны: {@link #delete(Object)} не предусмотрен; единственный способ
  * изменить строку — обработка переименования {@link #renameValue(Long, String, String)}.
@@ -54,15 +53,15 @@ import java.util.Optional;
 @Service
 public class AttributeValueService extends AbstractBaseService<AttributeValue, Long> {
 
-    private static final int MAX_ATTEMPTS = 3;
-
     private final AttributeValueRepository attributeValueRepository;
     private final AttributeTypeRepository attributeTypeRepository;
     private final SklNomOpaRepository sklNomOpaRepository;
     private final SklNomOpaValueRepository sklNomOpaValueRepository;
     private final LookupService lookupService;
     private final ManagedEntityCatalog entityCatalog;
-    private final TransactionTemplate createTx;
+    /** Интернирование значения: гонка на создании разрешается общим механизмом платформы. */
+    private final NaturalKeyCreateSupport createSupport;
+    /** Переименование — обычная бизнес-операция, REQUIRES_NEW здесь не нужен. */
     private final TransactionTemplate renameTx;
 
     public AttributeValueService(AttributeValueRepository repository,
@@ -72,6 +71,7 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
                                  LookupService lookupService,
                                  ManagedEntityCatalog entityCatalog,
                                  Validator validator,
+                                 NaturalKeyCreateSupport createSupport,
                                  PlatformTransactionManager transactionManager) {
         super(repository, validator);
         this.attributeValueRepository = repository;
@@ -85,8 +85,8 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
             lookupService, "lookupService must not be null");
         this.entityCatalog = java.util.Objects.requireNonNull(
             entityCatalog, "entityCatalog must not be null");
-        this.createTx = new TransactionTemplate(transactionManager);
-        this.createTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.createSupport = java.util.Objects.requireNonNull(
+            createSupport, "createSupport must not be null");
         // переименование — обычная бизнес-операция: присоединяется к транзакции вызывающего
         // (если она есть) или открывает свою; REQUIRES_NEW здесь не нужен (см. renameValue)
         this.renameTx = new TransactionTemplate(transactionManager);
@@ -454,8 +454,8 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
         if (existing.isPresent()) {
             return existing.get();
         }
-        return createWithRetry(() ->
-            attributeValueRepository.findByAttrTypeAndCodeUp(type, codeUp),
+        return createSupport.getOrCreate(AttributeValue.interningKeyOf(type, codeUp, null),
+            () -> attributeValueRepository.findByAttrTypeAndCodeUp(type, codeUp),
             () -> attributeValueRepository.save(new AttributeValue(type, code, name, codeUp, null)));
     }
 
@@ -464,50 +464,10 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
         if (existing.isPresent()) {
             return existing.get();
         }
-        return createWithRetry(() ->
-            attributeValueRepository.findByAttrTypeAndRefId(type, refId),
+        return createSupport.getOrCreate(AttributeValue.interningKeyOf(type, null, refId),
+            () -> attributeValueRepository.findByAttrTypeAndRefId(type, refId),
             () -> attributeValueRepository.save(
                 new AttributeValue(type, displayName, displayName, null, refId)));
-    }
-
-    /**
-     * SELECT → INSERT в отдельной REQUIRES_NEW-транзакции; при уникальном конфликте
-     * транзакция откатывается и попытка повторяется с повторным SELECT (строка победителя).
-     */
-    private AttributeValue createWithRetry(
-            java.util.function.Supplier<Optional<AttributeValue>> finder,
-            java.util.function.Supplier<AttributeValue> inserter) {
-        for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-            try {
-                return createTx.execute(status -> {
-                    Optional<AttributeValue> existing = finder.get();
-                    if (existing.isPresent()) {
-                        return existing.get();
-                    }
-                    return inserter.get();
-                });
-            } catch (RuntimeException e) {
-                if (!isUniqueViolation(e) || attempt == MAX_ATTEMPTS - 1) {
-                    throw e;
-                }
-                // гонка: другой поток уже создал строку — повторяем SELECT в новой транзакции
-            }
-        }
-        throw new IllegalStateException("Недостижимо");
-    }
-
-    /**
-     * Классификация уникального нарушения по цепочке причин (Hibernate может пробросить
-     * как JPA-обёртку, так и своё исключение напрямую, Spring — как DataIntegrityViolation).
-     */
-    private static boolean isUniqueViolation(RuntimeException e) {
-        for (Throwable cause = e; cause != null; cause = cause.getCause()) {
-            if (cause instanceof org.hibernate.exception.ConstraintViolationException
-                    || cause instanceof SQLIntegrityConstraintViolationException) {
-                return true;
-            }
-        }
-        return e instanceof DataIntegrityViolationException;
     }
 
     // === Кросс-полевые правила при сохранении через формы (generic справочник) ===

@@ -1,6 +1,7 @@
 package org.ipro.crud.config;
 
 import org.ipro.crud.LookupService;
+import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ReferenceCheckService;
 import org.ipro.crud.ServiceLocator;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Import;
  * повторное определение того же типа просто выигрывает у импорта).</p>
  */
 @AutoConfiguration
-@Import({ServiceLocator.class, ReferenceCheckService.class, LookupService.class})
+@Import({ServiceLocator.class, ReferenceCheckService.class, LookupService.class,
+    NaturalKeyCreateSupport.class})
 public class CrudAutoConfiguration {
 }

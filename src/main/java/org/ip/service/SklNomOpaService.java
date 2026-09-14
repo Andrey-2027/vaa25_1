@@ -9,18 +9,14 @@ import org.ip.model.SklNomOpaValue;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ipro.crud.AbstractBaseService;
+import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ValidationException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.ipro.data.SearchRead;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -36,10 +32,12 @@ import java.util.TreeMap;
  * {@code "typeId:valueId;..."} (детерминирован, поэтому уникальный ключ — сама строка,
  * без хеша). Порядок входной карты не важен.
  *
- * <p>Гонка двух потоков на одну комбинацию: INSERT ловит unique-конфликт
+ * <p>Гонка двух потоков на одну комбинацию разрешается общим механизмом интернирования
+ * ({@link org.ipro.crud.NaturalKeyCreateSupport}): INSERT ловит unique-конфликт
  * {@code (nomenclature, canonical)}, транзакция создания откатывается (REQUIRES_NEW —
  * отдельно от вызывающей, чтобы aborted-tx на Postgres не портил внешнюю транзакцию),
- * повторный SELECT возвращает шапку победителя.
+ * повторный SELECT возвращает шапку победителя. Канонизация ключа остаётся здесь, в типе:
+ * общим является поведение интернирования, а не состав ключа.
  *
  * <p>Набор immutable: {@code update}/{@code delete} не предусмотрены. Исправление написания
  * значения — {@link AttributeValueService#renameValue} (id значения стабилен → канон всех
@@ -51,21 +49,20 @@ public class SklNomOpaService extends AbstractBaseService<SklNomOpa, Long> {
     /** Потолок строк на набор — константа с понятной ошибкой; поднять — без миграции схемы. */
     public static final int MAX_ITEMS = 16;
 
-    private static final int MAX_ATTEMPTS = 3;
-
     private final SklNomOpaRepository sklNomOpaRepository;
     private final SklNomOpaValueRepository valueRepository;
-    private final TransactionTemplate createTx;
+
+    /** Интернирование набора: гонка на создании разрешается общим механизмом платформы. */
+    private final NaturalKeyCreateSupport createSupport;
 
     public SklNomOpaService(SklNomOpaRepository repository,
                             SklNomOpaValueRepository valueRepository,
                             Validator validator,
-                            PlatformTransactionManager transactionManager) {
+                            NaturalKeyCreateSupport createSupport) {
         super(repository, validator);
         this.sklNomOpaRepository = repository;
         this.valueRepository = valueRepository;
-        this.createTx = new TransactionTemplate(transactionManager);
-        this.createTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.createSupport = createSupport;
     }
 
     // === Режимы find-or-create ===
@@ -97,7 +94,20 @@ public class SklNomOpaService extends AbstractBaseService<SklNomOpa, Long> {
         if (existing.isPresent()) {
             return existing.get();
         }
-        return createWithRetry(nomenclature, canonical, displayName, sorted);
+        return createSupport.getOrCreate(SklNomOpa.interningKeyOf(nomenclature, canonical),
+            () -> sklNomOpaRepository.findByNomenclatureAndCanonical(nomenclature, canonical),
+            () -> {
+                // шапка создаётся заново на каждой попытке: после сорванного flush экземпляр
+                // может уже нести сгенерированный id, и повторный save стал бы UPDATE
+                SklNomOpa header = sklNomOpaRepository.save(
+                    new SklNomOpa(nomenclature, canonical, displayName));
+                List<SklNomOpaValue> items = new ArrayList<>(sorted.size());
+                for (Map.Entry<AttributeType, AttributeValue> e : sorted.entrySet()) {
+                    items.add(new SklNomOpaValue(header, e.getKey(), e.getValue()));
+                }
+                valueRepository.saveAll(items);
+                return header;
+            });
     }
 
     /** Ленивый пустой набор: одна шапка без строк с пустым каноном на номенклатуру. */
@@ -172,52 +182,6 @@ public class SklNomOpaService extends AbstractBaseService<SklNomOpa, Long> {
     }
 
     // === Создание с обработкой гонки ===
-
-    /**
-     * INSERT шапки + строк в отдельной REQUIRES_NEW-транзакции; при уникальном конфликте
-     * транзакция откатывается и попытка повторяется с повторным SELECT (шапка победителя).
-     */
-    private SklNomOpa createWithRetry(Nomenclature nomenclature, String canonical,
-                                      String displayName, TreeMap<AttributeType, AttributeValue> sorted) {
-        for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-            try {
-                return createTx.execute(status -> {
-                    Optional<SklNomOpa> again =
-                        sklNomOpaRepository.findByNomenclatureAndCanonical(nomenclature, canonical);
-                    if (again.isPresent()) {
-                        return again.get();
-                    }
-                    SklNomOpa header = sklNomOpaRepository.save(new SklNomOpa(nomenclature, canonical, displayName));
-                    List<SklNomOpaValue> items = new ArrayList<>(sorted.size());
-                    for (Map.Entry<AttributeType, AttributeValue> e : sorted.entrySet()) {
-                        items.add(new SklNomOpaValue(header, e.getKey(), e.getValue()));
-                    }
-                    valueRepository.saveAll(items);
-                    return header;
-                });
-            } catch (RuntimeException e) {
-                if (!isUniqueViolation(e) || attempt == MAX_ATTEMPTS - 1) {
-                    throw e;
-                }
-                // гонка: другой поток уже создал набор — повторяем SELECT в новой транзакции
-            }
-        }
-        throw new IllegalStateException("Недостижимо");
-    }
-
-    /**
-     * Классификация уникального нарушения по цепочке причин (Hibernate может пробросить
-     * как JPA-обёртку, так и своё исключение напрямую, Spring — как DataIntegrityViolation).
-     */
-    private static boolean isUniqueViolation(RuntimeException e) {
-        for (Throwable cause = e; cause != null; cause = cause.getCause()) {
-            if (cause instanceof org.hibernate.exception.ConstraintViolationException
-                    || cause instanceof SQLIntegrityConstraintViolationException) {
-                return true;
-            }
-        }
-        return e instanceof DataIntegrityViolationException;
-    }
 
     // === Immutable ===
 

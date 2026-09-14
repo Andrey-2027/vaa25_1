@@ -13,6 +13,7 @@ import org.ip.service.PrdSpecService;
 import org.ip.service.SklNomOpaService;
 import org.ip.service.UserService;
 import org.ipro.crud.BaseService;
+import org.ipro.crud.NaturalKeyCreateSupport;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Page;
@@ -44,7 +45,8 @@ class SearchOverloadParityTest {
 
         SklNomOpaRepository sklRepository = mock(SklNomOpaRepository.class);
         assertParity(new SklNomOpaService(sklRepository, mock(SklNomOpaValueRepository.class),
-            validator, mock(PlatformTransactionManager.class)), List.of("displayName"), sklRepository);
+                validator, new NaturalKeyCreateSupport(mock(PlatformTransactionManager.class))),
+            List.of("displayName"), sklRepository);
 
         // C4.6 волна C: у UnitOfMeasurement больше нет typed-сервиса, а GridFormView больше
         // не переопределяет search — его поля объявлены @SearchFields на типе, поэтому явный
