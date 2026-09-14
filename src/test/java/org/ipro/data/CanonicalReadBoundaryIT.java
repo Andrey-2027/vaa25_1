@@ -9,8 +9,8 @@ import org.ip.model.SklNomOpa;
 import org.ip.model.SklNomOpaValue;
 import org.ip.model.UserFormSettings;
 import org.ip.model.Workshop;
-import org.ip.service.BranchService;
 import org.ipro.crud.LookupService;
+import org.ipro.crud.ServiceLocator;
 import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.ureport.dom.UreportTemplate;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ class CanonicalReadBoundaryIT {
     private LookupService lookupService;
 
     @Autowired
-    private BranchService branchService;
+    private ServiceLocator serviceLocator;
 
     @Test
     void everyManagedModelTypeHasExactlyOneExposure() {
@@ -122,7 +122,12 @@ class CanonicalReadBoundaryIT {
     void lookupServiceAndBaseServiceShareTheCanonicalExecutor() {
         assertThat(ReflectionTestUtils.getField(lookupService, "readExecutor"))
             .isSameAs(readExecutor);
-        assertThat(ReflectionTestUtils.getField(branchService, "readExecutor"))
+        // Волна A: у Branch больше нет типизированного сервиса, но shared executor
+        // остаётся тем же — canonical handle не заводит второй read-путь.
+        assertThat(serviceLocator.findService(org.ip.model.Branch.class))
+            .isInstanceOf(org.ipro.data.CanonicalEntityService.class);
+        assertThat(ReflectionTestUtils.getField(
+                serviceLocator.findService(org.ip.model.Branch.class), "readExecutor"))
             .isSameAs(readExecutor);
     }
 

@@ -29,7 +29,6 @@ import org.ipro.metadata.HasDisplayName;
     selectionFormTitle = "Выбор филиала",
     order = 20,
     icon = "BUILDING",
-    serviceClass = org.ip.service.BranchService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}

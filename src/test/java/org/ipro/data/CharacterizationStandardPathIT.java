@@ -2,7 +2,8 @@ package org.ipro.data;
 
 import org.ip.config.DataInitializer;
 import org.ip.model.Branch;
-import org.ip.service.BranchService;
+import org.ipro.data.CanonicalEntityService;
+import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.LookupService;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsTestFixture;
@@ -54,13 +55,23 @@ class CharacterizationStandardPathIT {
     private DataInitializer dataInitializer;
 
     @Autowired
-    private BranchService branchService;
+    private ServiceLocator serviceLocator;
 
     @Autowired
     private LookupService lookupService;
 
     @Autowired
     private AccessGrantRepository accessGrantRepository;
+
+    /**
+     * Волна A: {@code Branch} больше не имеет application service, но characterization
+     * проверяется через тот же контракт {@code BaseService} — теперь его даёт canonical
+     * handle, поэтому принятая семантика C4.4 подтверждается на целевом пути, а не на
+     * удаляемом compatibility-классе.
+     */
+    private CanonicalEntityService<Branch> branches() {
+        return (CanonicalEntityService<Branch>) serviceLocator.<Branch, Long>findService(Branch.class);
+    }
 
     @AfterEach
     void clearSecurityContext() {
@@ -140,7 +151,7 @@ class CharacterizationStandardPathIT {
     void pagedBranchSearchUsesTheCanonicalEngine() {
         withSuperuser(() -> {
             // C4.4: production-time trap закрыт — standard search делегирует canonical engine.
-            Page<Branch> page = branchService.search("x", PageRequest.of(0, 10));
+            Page<Branch> page = branches().search("x", PageRequest.of(0, 10));
 
             assertThat(page).isNotNull();
             assertThat(page.getSize()).isEqualTo(10);
@@ -154,7 +165,7 @@ class CharacterizationStandardPathIT {
             try {
                 // C4.4: blank term — не фильтр, но выдача bounded (page/limit) и
                 // упорядочена по id, а не неограниченный findAll().
-                List<Branch> found = branchService.search("");
+                List<Branch> found = branches().search("");
 
                 assertThat(found).hasSizeLessThanOrEqualTo(100);
                 assertThat(found).extracting(Branch::getCode)
@@ -171,7 +182,7 @@ class CharacterizationStandardPathIT {
             List<Branch> seeded = seed("CHR-HIT-", 2);
             String code = seeded.get(1).getCode();
             try {
-                assertThat(branchService.search(code))
+                assertThat(branches().search(code))
                     .extracting(Branch::getCode)
                     .contains(code);
             } finally {
@@ -194,7 +205,7 @@ class CharacterizationStandardPathIT {
             Branch branch = new Branch();
             branch.setCode(prefix + run + "-" + i);
             branch.setName("characterization " + prefix + i);
-            branches.add(branchService.save(branch));
+            branches.add(branches().save(branch));
         }
         return branches;
     }
@@ -204,7 +215,7 @@ class CharacterizationStandardPathIT {
         // запрещает id/bulk-mutation даже субъекту с полным грантом.
         for (Branch branch : branches) {
             if (branch.getId() != null) {
-                branchService.delete(branch.getId());
+                branches().delete(branch.getId());
             }
         }
     }

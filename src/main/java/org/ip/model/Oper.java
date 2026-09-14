@@ -20,7 +20,6 @@ import org.ipro.numbering.annotation.Numbered;
     selectionFormTitle = "Выбор операции",
     order = 20,
     icon = "COG",
-    serviceClass = org.ip.service.OperService.class,
     subsystem = org.ip.subsystem.Subsystems.Production.class,
     selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}

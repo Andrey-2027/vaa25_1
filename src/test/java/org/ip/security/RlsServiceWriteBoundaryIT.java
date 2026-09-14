@@ -4,7 +4,8 @@ import jakarta.persistence.EntityManager;
 import org.ip.config.DataInitializer;
 import org.ip.model.Journal;
 import org.ip.repository.JournalRepository;
-import org.ip.service.JournalService;
+import org.ipro.crud.ServiceLocator;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.crud.GenericOwnedSectionService;
 import org.ipro.events.EntityEventPublisher;
 import org.ipro.lifecycle.EntityLifecycleRegistry;
@@ -74,7 +75,7 @@ class RlsServiceWriteBoundaryIT {
     private GenericOwnedSectionService ownedSections;
 
     @Autowired
-    private JournalService journals;
+    private ServiceLocator serviceLocator;
 
     @Autowired
     private JournalRepository journalRepository;
@@ -87,6 +88,15 @@ class RlsServiceWriteBoundaryIT {
 
     @Autowired
     private EntityManager entityManager;
+
+    /**
+     * Сервисный write-путь после волны A: у {@code Journal} нет application service,
+     * поэтому граница проверяется на canonical handle из {@code ServiceLocator} — том же,
+     * который получит форма.
+     */
+    private CanonicalEntityService<Journal> journals() {
+        return (CanonicalEntityService<Journal>) serviceLocator.<Journal, Long>findService(Journal.class);
+    }
 
     @AfterEach
     void clearSecurityContext() {
@@ -101,7 +111,7 @@ class RlsServiceWriteBoundaryIT {
         login(actor);
         grants.saveAndFlush(grant(actor, null, true, true, false));
 
-        Journal saved = journals.create(journal("WSB-AC-" + suffix()));
+        Journal saved = journals().create(journal("WSB-AC-" + suffix()));
 
         assertThat(saved.getId()).isNotNull();
     }
@@ -115,7 +125,7 @@ class RlsServiceWriteBoundaryIT {
         grants.saveAndFlush(grant(actor("holder"), null, true, true, false));
         login(actor);
 
-        assertThatThrownBy(() -> journals.create(journal(code)))
+        assertThatThrownBy(() -> journals().create(journal(code)))
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на изменение");
 
@@ -131,7 +141,7 @@ class RlsServiceWriteBoundaryIT {
 
         Journal detached = loadAsSuperuser(id);
         detached.setName("обновлено");
-        journals.update(detached);
+        journals().update(detached);
 
         assertThat(loadAsSuperuser(id).getName()).isEqualTo("обновлено");
     }
@@ -146,7 +156,7 @@ class RlsServiceWriteBoundaryIT {
         Journal detached = loadAsSuperuser(id);
         detached.setName("запрещено");
 
-        assertThatThrownBy(() -> journals.update(detached))
+        assertThatThrownBy(() -> journals().update(detached))
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на изменение");
 
@@ -160,7 +170,7 @@ class RlsServiceWriteBoundaryIT {
         login(actor);
         grants.saveAndFlush(grant(actor, id, true, false, true));
 
-        journals.delete(id);
+        journals().delete(id);
 
         assertThat(findAsSuperuser(id)).isEmpty();
     }
@@ -172,7 +182,7 @@ class RlsServiceWriteBoundaryIT {
         login(actor);
         grants.saveAndFlush(grant(actor, id, true, false, false));
 
-        assertThatThrownBy(() -> journals.delete(id))
+        assertThatThrownBy(() -> journals().delete(id))
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на удаление");
 
@@ -196,7 +206,7 @@ class RlsServiceWriteBoundaryIT {
 
         Journal invalid = new Journal(); // code/name пусты — @NotBlank не выполнен
 
-        assertThatThrownBy(() -> journals.create(invalid))
+        assertThatThrownBy(() -> journals().create(invalid))
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на изменение");
 
@@ -219,7 +229,7 @@ class RlsServiceWriteBoundaryIT {
         detached.setVersion(null);
         detached.setName("запрещено");
 
-        assertThatThrownBy(() -> journals.update(detached))
+        assertThatThrownBy(() -> journals().update(detached))
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на изменение");
 
@@ -240,7 +250,7 @@ class RlsServiceWriteBoundaryIT {
         login(actor);
         grants.saveAndFlush(grant(actor, id, true, false, false));
 
-        assertThatThrownBy(() -> journals.delete(id))
+        assertThatThrownBy(() -> journals().delete(id))
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на удаление");
 
@@ -262,11 +272,11 @@ class RlsServiceWriteBoundaryIT {
         login(actor);
         grants.saveAndFlush(grant(actor, id, true, true, true));
 
-        journals.update(loadAsSuperuser(id));
+        journals().update(loadAsSuperuser(id));
         verify(entityEventPublisher).publishSaving(any(), any());
         verify(lifecycleRegistry).beforeSave(any(), any(), any());
 
-        journals.delete(id);
+        journals().delete(id);
         verify(entityEventPublisher).publishDeleting(any(), any());
         verify(lifecycleRegistry).beforeDelete(any(), any(), any());
         verify(ownedSections).deleteAllOwnedSections(any());

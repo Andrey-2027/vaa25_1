@@ -17,8 +17,9 @@ import org.ipro.metadata.HasDisplayName;
 /**
  * RLS: доступ к журналу — гранты AccessGrant (dimension = "JOURNAL").
  * @Filter включается через RlsFilterActivator, активируемый на каждой сессии
- * (один round-trip); UPDATE/DELETE проверяются вручную в JournalService
- * (см. AccessService.canUpdate/canDelete) — @Filter на них не действует.
+ * (один round-trip); UPDATE/DELETE проверяются на write-границе
+ * (RlsPolicyEnforcer.requireUpdate/requireDelete из canonical pipeline) — @Filter на них
+ * не действует.
  */
 @Entity
 @Table(name = "journal")
@@ -32,7 +33,6 @@ import org.ipro.metadata.HasDisplayName;
     selectionFormTitle = "Выбор журнала",
     order = 10,
     icon = "BOOK",
-    serviceClass = org.ip.service.JournalService.class,
     subsystem = Subsystems.Production.class,
     selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}

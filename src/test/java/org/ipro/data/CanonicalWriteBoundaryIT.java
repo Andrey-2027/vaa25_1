@@ -7,7 +7,6 @@ import org.ip.model.NomAttributeValue;
 import org.ip.model.Nomenclature;
 import org.ip.model.SklNomOpa;
 import org.ip.model.UserFormSettings;
-import org.ip.service.BranchService;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.ureport.dom.UreportTemplate;
@@ -47,9 +46,6 @@ class CanonicalWriteBoundaryIT {
 
     @Autowired
     private ServiceLocator serviceLocator;
-
-    @Autowired
-    private BranchService branchService;
 
     @Test
     void attributeValueGenericUpdateAndDeleteAreRejectedBeforeRlsAndSql() {
@@ -175,6 +171,9 @@ class CanonicalWriteBoundaryIT {
     void resolverReasonsAreReadableForDiagnostics() {
         assertThat(resolver.resolutionReason(org.ip.model.Workshop.class))
             .contains("canonical generic path");
-        assertThat(branchService).isNotNull();
+        // Волна A: Branch мигрирован — типизированного сервиса нет, ServiceLocator отдаёт
+        // canonical handle, а не прежний bean-name convention.
+        assertThat(serviceLocator.findService(org.ip.model.Branch.class))
+            .isInstanceOf(CanonicalEntityService.class);
     }
 }

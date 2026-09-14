@@ -12,7 +12,9 @@ import org.ip.repository.JournalRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ip.service.NomenclatureService;
-import org.ip.service.OperService;
+import org.ip.model.Oper;
+import org.ipro.crud.BaseService;
+import org.ipro.crud.ServiceLocator;
 import org.ip.service.ReceivingDocumentService;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsTestFixture;
@@ -64,7 +66,7 @@ class NumberingEngineIT {
     private NomenclatureService nomenclatureService;
 
     @Autowired
-    private OperService operService;
+    private ServiceLocator serviceLocator;
 
     @Autowired
     private JournalRepository journalRepository;
@@ -77,6 +79,11 @@ class NumberingEngineIT {
 
     @Autowired
     private AccessGrantRepository accessGrantRepository;
+
+    /** Волна A: у {@code Oper} нет application service — нумерация проверяется на canonical handle. */
+    private BaseService<Oper, Long> oper() {
+        return serviceLocator.<Oper, Long>findService(Oper.class);
+    }
 
     @BeforeEach
     void authenticateRlsTestUser() {
@@ -308,18 +315,18 @@ class NumberingEngineIT {
     void operCreateFillsGlobalCodePilot() {
         Oper first = new Oper();
         first.setName("Фрезерная");
-        assertThat(operService.create(first).getCode()).matches("\\d{6}");
+        assertThat(oper().create(first).getCode()).matches("\\d{6}");
 
         Oper second = new Oper();
         second.setName("Сварочная");
-        assertThat(operService.create(second).getCode()).matches("\\d{6}");
+        assertThat(oper().create(second).getCode()).matches("\\d{6}");
         assertThat(second.getCode()).isNotEqualTo(first.getCode());
 
         // ручной код не перезаписывается (allowManual по умолчанию)
         Oper manual = new Oper();
         manual.setName("Ручная");
         manual.setCode("OP-MANUAL");
-        assertThat(operService.create(manual).getCode()).isEqualTo("OP-MANUAL");
+        assertThat(oper().create(manual).getCode()).isEqualTo("OP-MANUAL");
     }
 
     // --------------------------------------------------------------------- helpers
