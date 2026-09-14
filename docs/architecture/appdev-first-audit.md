@@ -62,16 +62,16 @@ Correctness и security не упрощаются ради уменьшения 
 | `ADX-01` | Нет semantic entity archetypes в коде | P0 | `WIP` | B3 |
 | `ADX-02` | Save-specific обвязка и domain switch | P0 | `CLOSED в текущем scope` | B3 |
 | `ADX-03` | Пустая section persistence wiring | P0 | `CLOSED в текущем scope` | B3 |
-| `ADX-04` | Обязательные repository/service и magic lookup | P1 | `OPEN` | C4 |
-| `ADX-05` | Повторяющийся/in-memory search | P1 | `OPEN` | C4 |
+| `ADX-04` | Обязательные repository/service и magic lookup | P1 | `DONE: standard path без repository/service, `serviceClass` и magic bean name` | C4 |
+| `ADX-05` | Повторяющийся/in-memory search | P1 | `DONE: server-side search, in-memory fallback убран` | C4 |
 | `ADX-06` | Дублирование RLS intent | P0 | `DONE: descriptor есть, read-предикат проверяется и для custom-политики` | C2 |
 | `ADX-07` | Fetch/session knowledge в UI | P1 | `DONE: граф сценария даёт FetchPlan, форма декларативна` | C3 |
-| `ADX-08` | Дублирование JPA/validation/UI metadata | P1 | `OPEN` | C3-C4 |
+| `ADX-08` | Дублирование JPA/validation/UI metadata | P1 | `DONE: effective metadata с origin'ами и startup-конфликтами` | C3-C4 |
 | `ADX-09` | Несколько источников InstanceName | P1 | `DONE: пилот и каналы отображения на одном источнике` | C3 |
-| `ADX-10` | Центральная регистрация global search | P2 | `OPEN` | C4/E3 |
+| `ADX-10` | Центральная регистрация global search | P2 | `DONE в платформенной части (C4.5)`, остальное — E3 | C4/E3 |
 | `ADX-11` | Тяжёлый stringly-typed form API | P2 | `OPEN` | E3 |
 | `ADX-12` | Нет единой discoverable точки entity lifecycle | P1 | `WIP: core закрыт` | B4/E3 |
-| `ADX-13` | Нет контракта интернированных сущностей | P1 | `DONE: механизм и забор есть, узкий service-шов ожидает C4.7` | C4.6 |
+| `ADX-13` | Нет контракта интернированных сущностей | P1 | `DONE: механизм, забор и узкая service-форма (canonical handle / internal-store adapter)` | C4.6-C4.7 |
 
 ### ADX-01 — отсутствующая семантика типа сущности (`P0`, B3)
 
@@ -175,6 +175,18 @@ API не стал новым обходным каналом.
 **Закрытие.** Обычная entity работает без application repository/service и без ссылки
 модели на infrastructure class; custom service разрешается явным typed override.
 
+**Сделано (C4.3–C4.7, 2026-09-14).** Пилот без обвязки закрыт на изолированной fixture:
+list/detail/create/update/delete и Bean Validation проходят canonical path в persistence
+unit, где нет ни одной сущности приложения и ни одного repository/service (C4.3). Дальше
+тот же путь подтверждён на реальных типах: волны A–E C4.6 мигрировали 16 стандартных
+корней и справочников, волна F перевела два последних сервиса, после чего
+`AbstractBaseService` удалён (C4.7) — второй generic CRUD-базы рядом с canonical path
+больше нет. `serviceClass` удалён из `@EntityMetadata`, а резолв по имени бина заменён
+type-directed реестром: сервис объявляет свой entity type первым аргументом `BaseService`,
+две регистрации на один тип останавливают контекст (см. ниже про «что не является
+нарушением»). Typed service остаётся у пяти типов с предметным доменом — они делегируют
+стандартную поверхность canonical handle, а не повторяют её.
+
 ### ADX-05 — повторяющийся и иногда in-memory поиск (`P1`, C4)
 
 **Сейчас.** `AbstractBaseService.search(term, pageable)` бросает
@@ -190,6 +202,13 @@ Custom query — только осознанная оптимизация или
 
 **Закрытие.** Стандартные каталоги и документы ищутся без repository query/service
 override; in-memory search отсутствует на entity data path.
+
+**Сделано (C4.4).** Единый search builder стоит на всех 16 стандартных корнях: literal
+escaping, детерминированный порядок и bounded paging; blank term больше не выгружает
+таблицу. Все 22 вхождения `searchByTerm` (11 repository-override и их дубли) удалены,
+`ReceivingDocumentService.search` перестал фильтровать `findAll()` в памяти, `User` — тоже.
+Внутренние хранилища отчётов ищут по своему каталогу намеренно: это путь владельца storage,
+а не standard path.
 
 ### ADX-06 — RLS intent повторяется в нескольких механизмах (`P0`, C2)
 
@@ -287,6 +306,17 @@ read-границе (`AbstractBaseService`, `GenericOwnedSectionService`, `ItemT
 **Закрытие.** Startup validation обнаруживает противоречия; standard persistent field
 получает type/required/reference defaults без дублирования; explicit metadata остаётся
 override.
+
+**Сделано (C4.2 + hardening).** Raw-аннотации и effective-факты разделены, у каждого
+факта (`required`, `type`, `reference`) есть `origin`; `required` стал tri-state;
+серверная обязательность выводится из Bean Validation и JPA (`@Column`/`@JoinColumn`/
+`@ManyToOne`/`@OneToOne`/`@Basic`); конфликты (`TYPE_CONFLICT`, `REFERENCE_CONFLICT`,
+`UI_OPTIONAL_SERVER_REQUIRED`) диагностируются адресно и останавливают старт, а
+`MetadataAllowance` может понизить только согласованный перечень warning-кодов.
+Снимок effective-фактов до/после показал нулевой diff значений при удалённых дублях —
+то есть вывод убрал дублирование, не изменив поведение. Именно этот слой — причина, по
+которой явные `required`/`type`/lookup-объявления вне пилотов остаются рабочим
+`INFO`-списком, а не незакрытым нарушением.
 
 ### ADX-09 — несколько источников instance name (`P1`, C3)
 
@@ -508,6 +538,14 @@ read-предикат сверяется с descriptor при старте; дл
 6. Убрать обязательность `serviceClass`/magic bean names для standard path.
 7. Подключить modular global-search contributors и defaults.
 
+Состояние: волна закрыта. Пункты 1–2 выполнены в C3 (`FetchPlanRegistry`,
+`InstanceNameResolver`, lookup по `@Lookup(fetch)`); пункт 3 — в C4.3 (canonical write
+path и default CRUD без обвязки); пункт 4 — в C4.4; пункт 5 — в C4.2; пункт 7 — в C4.5;
+пункт 6 — в C4.7: миграция C4.6 убрала `serviceClass` из моделей, а резолв стал
+type-directed, поэтому обычный справочник не требует ни `serviceClass`, ни бина с
+выведенным из имени класса именем. `ADX-11` остаётся открытым: это волна E3 (form
+authoring), а не data path.
+
 ### Волна 4 — поставляемый platform default (`D`)
 
 Не закрывает отдельный запах сам по себе, а доказывает, что исправления не зависят от
@@ -544,6 +582,14 @@ read-предикат сверяется с descriptor при старте; дл
 Budget: `0` обязательных application repository, service, search query, display-name
 method и central registration. Явные overrides не считаются нарушением, если содержат
 отличающуюся семантику.
+
+**Измерено (C4.7, периметр — приложение `org.ip`, до C4 `128b3f5` → после):** реализаций
+`BaseService` 21 → 10, `org.ip.service` 18 → 7 файлов, `org.ip.repository` 18 → 16,
+`searchByTerm`-override'ов 22 → 0, `findAllWithFetchGraph`-override'ов 15 → 0. Бюджет
+соблюдён на 16 стандартных корнях, а не только на изолированной fixture: обязательная пара
+repository/service больше не требуется ни одному из них. Полная таблица и разбор каждого
+оставшегося класса (включая методы без вызовов) — в
+[`status/current-baseline.md`](status/current-baseline.md).
 
 ### Стандартный документ
 

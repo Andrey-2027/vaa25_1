@@ -1,6 +1,6 @@
 # C4: узкий data-access facade — план работ
 
-Статус: `IN PROGRESS` — C4.0–C4.2 закрыты. Ядро C4.3 реализовано и hardening пройден, но формальное закрытие остаётся pending: write telemetry, первый production-каталог на canonical write path и полный form → write → audit acceptance. C4.4 server-side search закрыт для стандартного list/lookup пути. C4.5 modular global search выполнен поверх canonical secured query; central configuration удалена. C4.6–C4.8 впереди.
+Статус: `IN PROGRESS` — C4.0–C4.7 выполнены. C4.6 мигрировал 16 стандартных корней и справочников, то есть canonical path перестал опираться только на fixture: первый production-каталог прошёл его целиком. Волна F сняла сужение `GridFormView` и read-мост `UreportTemplate`, после чего C4.7 удалил `AbstractBaseService`, `@EntityMetadata.serviceClass` и резолв по имени бина (остался type-directed реестр), а ссылки моделей на сервисные классы отсутствуют. Осталась впереди C4.8 (hardening и закрытие этапа): **write-telemetry** (seam вокруг canonical write не заведён — это не выполнено и не заявляется выполненным), объём telemetry на `LOOKUP`, `readSearch` distinct/content при search-поле через to-many, и полный `mvn verify`-гейт как условие закрытия самого C4.
 Родительский этап: [`JMIX_GitVaa_Roadmap_v2.md`, C4](../../JMIX_GitVaa_Roadmap_v2.md#c4-узкий-data-access-facade)
 Связанные нарушения: `ADX-04`, `ADX-05`, `ADX-08`, платформенная часть `ADX-10`.
 Использует результаты: C2 fail-closed RLS boundary; C3 FetchPlan и InstanceName.
@@ -636,6 +636,29 @@ entity facade.
 
 Критерий завершения: основной функциональный DoD C4 выполнен, compatibility path не
 является равноправным API, а удалённый boilerplate не оставлен рядом с facade.
+
+### Состояние C4.6 и C4.7
+
+Волны миграции пройдены по возрастанию риска: A (чистый boilerplate), B (первый aggregate
+root через canonical fallback), C (частичная миграция: домен остаётся, CRUD делегируется),
+D (report stores и `GridFormView`), E (доменные сервисы с правилами) и F (два последних
+наследника compatibility base). Правила типов переехали из сервисов в canonical-executed
+`EntityLifecycle`, поэтому запрет исполняется на любом канале записи, а не только на том,
+которым шёл конкретный сервис.
+
+Что это дало измеримо: реализаций `BaseService` в production осталось 10 (пять типизированных
+use case'ов, три internal-store адаптера отчётов и две generic-базы — canonical и
+internal-store), `searchByTerm`-override'ов — 0 из 22, `findAllWithFetchGraph`-overrides —
+0 из 15. Пара «repository + service» больше не обязательна ни для одного стандартного корня:
+прикладной справочник получает list/detail/lookup/create/update/delete/search через
+canonical path, имея только JPA-сущность и аннотации.
+
+Чего C4.7 сознательно не сделал: не удалял repositories, у которых остались предметные
+query (например, `findByCode`/`existsByCode` у справочников с проверкой уникальности кода,
+`findVisibleViews` у видов грида), и не трогал `ValidatedJpaCrudService` сверх правила
+«только non-metadata storage». Это зафиксированные роли, а не недоделка; artifact budget с
+разбором каждого оставшегося класса — в
+[`status/current-baseline.md`](status/current-baseline.md).
 
 ### C4.8. Hardening и закрытие этапа
 

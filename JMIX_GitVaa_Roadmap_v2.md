@@ -857,7 +857,7 @@ read-path применяют свой сценарий, явные пути ли
 вертикали и критерии закрытия зафиксированы в
 [`docs/architecture/c4-data-access-facade-plan.md`](docs/architecture/c4-data-access-facade-plan.md).
 
-Статус: **C4.0–C4.2 закрыты; ядро C4.3 реализовано, формальное закрытие pending; C4.4 закрыт**.
+Статус: **C4.0–C4.7 выполнены; впереди C4.8 (hardening и закрытие этапа)**. Compatibility-механизмы C4 удалены: `AbstractBaseService`, `@EntityMetadata.serviceClass` и резолв по имени бина; data handle выбирается по entity type.
 Таксономия всех 37 persistence types, классификация
 service/repository/base слоя, baseline, пилоты и characterization-тесты — в
 [`docs/architecture/c4-inventory.md`](docs/architecture/c4-inventory.md); решения — в

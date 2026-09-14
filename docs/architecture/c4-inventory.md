@@ -8,6 +8,14 @@
 командами, приведёнными в §6, и должны перепроверяться тем же способом: это baseline, а не
 пересказ.
 
+> **Состояние после C4.** Ниже описан срез до C4.0 и цели среза, поэтому упоминания
+> `AbstractBaseService`, `serviceClass` и обязательной пары repository/service
+> относятся к исходному состоянию. К C4.7 `AbstractBaseService` и `serviceClass`
+> удалены, `BaseService` резолвится по entity type, а canonical handle получили все 16
+> стандартных корней. Итоговые числа, artifact budget и разбор каждого оставшегося
+> класса — в [`status/current-baseline.md`](status/current-baseline.md) и
+> [`decisions/ADR-0007-canonical-data-access-path.md`](decisions/ADR-0007-canonical-data-access-path.md).
+
 ## 1. Область подсчёта
 
 - `src/main/java`, production-код. Тестовые сущности и тестовые сервисы не входят, кроме

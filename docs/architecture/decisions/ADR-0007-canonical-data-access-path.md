@@ -118,7 +118,7 @@ descriptor'ом независимо от наличия `SklNomOpaValueReposito
 | База | Решение | Milestone |
 |---|---|---|
 | `BaseService<T,ID>` | остаётся compatibility-интерфейсом; deprecated к концу C4 | удаление в D |
-| `AbstractBaseService<T,ID>` | **absorb**: собственная read/write orchestration переносится в canonical path; класс становится тонким deprecated delegate | C4.7 |
+| `AbstractBaseService<T,ID>` | **удалён в C4.7**: orchestration перенесена в canonical path, последние два наследника мигрированы волной F C4.6 | C4.7 — выполнено |
 | `ValidatedJpaCrudService<T>` | **retain as internal-store adapter** для non-metadata report stores (`JrxmlTemplate`, `ReportTemplate`) | C4.3 |
 | `GenericOwnedSectionService` | **retain**: единственный persistence-путь owned row | — |
 
@@ -506,19 +506,59 @@ fetch graph → SQL pipeline. Дополнительные fetch paths ката�
 ранжированием `exact → prefix → substring → id`; результат запуска приведён в
 [`current-baseline.md`](../status/current-baseline.md#c45-modular-global-search).
 
+### C4.6 волны E–F и C4.7 — compatibility-механизмы удалены (2026-09-14)
+
+Волна E перевела доменные сервисы (`AttributeType`, `PrdSpec`, `User`, `AttributeValue`,
+`NomSklAttribute`, `SklNomOpa`, `GroupNom`, `ReceivingDocument`) на делегирование canonical
+handle, а их правила — в `EntityLifecycle`; интернирование значений вынесено в один
+`NaturalKeyCreateSupport` (ADR-0008, `ADX-13`).
+
+Волна F закрыла два последних наследника compatibility base:
+
+- **`GridFormView`** — ownership-правило переехало в `GridFormViewLifecycle`, поэтому
+  canonical handle типа больше не сужается до `CREATE`. Раньше запрет жил только в сервисе,
+  и facade приходилось закрывать, чтобы его не обойти; теперь правило исполняет тот же
+  write pipeline, что и остальные lifecycle-запреты, а `update`/`delete` остаются доступны
+  законному автору вида. `beforeUpdate` решает по сохранённому состоянию, а не по payload —
+  иначе чужой личный вид можно было бы изменить, передав его с `shared = true`;
+- **`UreportTemplate`** — владелец обслуживает свой storage (non-metadata `INTERNAL_STORE`)
+  через `ValidatedJpaCrudService`; read-мост владельца (`EntityCapabilityOverride` с
+  `LIST`/`DETAIL`) снят вместе с причиной его существования.
+
+C4.7 удалил саму базу и остатки compatibility-резолва:
+
+- `AbstractBaseService` удалён: наследников не осталось, а второй generic CRUD-базе рядом
+  с canonical path нечего обслуживать. Забор `CompatibilityMigrationArchitectureTest`
+  проверяет это по факту (`Class.forName` + ArchUnit) и ведёт reviewed-список реализаций
+  `BaseService` в обе стороны;
+- `@EntityMetadata.serviceClass` и ветка его чтения удалены: атрибут не задавался ни одной
+  production-моделью;
+- резолв `BaseService` стал type-directed: `ServiceLocator` индексирует бины по первому
+  аргументу `BaseService` после создания синглтонов (`SmartInitializingSingleton`) и
+  отказывает на дубликате — выбор не зависит от имён и порядка регистрации.
+
+Полный набор `mvn verify` — 1272 теста, 0 failures/errors; random-order gate — 1271 тест,
+0 failures/errors (seed `3330014842700`); детали и artifact budget — в
+[`../status/current-baseline.md`](../status/current-baseline.md).
+
 ## Открытые вопросы
 
-- остаётся ли `GridFormView` `STANDARD_ROOT` с custom policy или переходит в
-  `INTERNAL_STORE` — решается в C4.6;
-- точная форма публичной intent-проекции (§1): read-намерения уже проходят через
-  executor, публичный `EntityDataAccess` и write-намерения — C4.3;
-- architecture-тест, запрещающий строить scenario-граф вне resolver'а — C4.7;
-- `writes` в descriptor теперь читает `CanonicalWriteExecutor` (C4.3); остаётся открытым
-  вопрос, должен ли typed application service тоже проходить capability-проверку: сейчас
-  запреты ограничивают canonical/generic handle, а владелец типа сохраняет свою authority —
-  это осознанная граница (descriptor описывает canonical handle), но её стоит подтвердить
-  при поглощении `AbstractBaseService` в C4.7;
-- `UreportTemplate` сохраняет read-мост через `AbstractBaseService`; перевод сервиса на
-  internal-store adapter снимает мост. Форма adapter'а теперь определена: canonical
-  write не выдаёт типу writes, а владелец обслуживает storage сам — остаётся выбрать,
-  `ValidatedJpaCrudService` или отдельный internal-store adapter.
+- **Решено (C4.6 волна F):** `GridFormView` остаётся `STANDARD_ROOT`. Тип — полноценная
+  metadata-driven сущность с собственным предметным доступом к видам реестра, а
+  row-level правило выражается lifecycle handler'ом, а не сужением capabilities.
+- **Решено (C4.6 волна F):** `UreportTemplate` переведён на `ValidatedJpaCrudService` как
+  internal-store adapter — ту же базу, что соседи по подсистеме (`ReportTemplate`,
+  `JrxmlTemplate`). Отдельный adapter не понадобился: форма одна, и `ADR-0007 §3` уже
+  считал эту базу целевой для non-metadata storage.
+- **Решено (C4.7):** typed application service не обязан проходить capability-проверку.
+  Descriptor описывает canonical/generic handle, а типизированный use case — владелец типа,
+  который не повторяет canonical CRUD, а держит домен (канонизация значений, нормализация
+  пароля). Попытка распространить capability и на него заставила бы выдавать типу
+  write-права, которые затем никто не обязан проверять на уровне строк; row-level запреты
+  для этого и выражаются lifecycle handler'ом.
+- Точная форма публичной intent-проекции (§1) — остаётся открытым: read-намерения уже
+  проходят через executor, публичный `EntityDataAccess` и write-намерения — C4.3;
+  architecture-тест, запрещающий строить scenario-граф вне resolver'а — C4.7.
+- Organizational gate, не технический: платформа для одного приложения или reusable
+  framework для многих. От ответа зависит, идёт ли команда сразу в C5/D или сначала
+  проверяет, окупился ли C4 на практике; решение владельца, в коде не выражается.
