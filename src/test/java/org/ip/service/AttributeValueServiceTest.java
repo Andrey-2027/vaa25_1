@@ -21,6 +21,7 @@ import org.ip.repository.SklNomOpaValueRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.NaturalKeyCreateSupport;
+import org.ipro.data.CanonicalEntityService;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.crud.ValidationException;
 import org.ipro.rls.RlsReadGate;
@@ -86,8 +87,12 @@ class AttributeValueServiceTest {
             .executeWithoutResult(status -> entityManager.persist(entity));
     }
 
+    /**
+     * C4.6 волна E: сервис значений больше не наследует compatibility base. Проверяются
+     * канонизация, дедуп, гонка и переименование — они идут через repository; canonical handle
+     * (стандартная поверхность) в этих сценариях не участвует и подменён заглушкой.
+     */
     private AttributeValueService newService() {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         // Lookup через реальный EntityManager слайса (GroupNom незащищён RLS —
         // для RLS-пути есть отдельная интеграционная проверка полным контекстом).
         LookupService lookupService = mock(LookupService.class);
@@ -98,16 +103,12 @@ class AttributeValueServiceTest {
         });
         ManagedEntityCatalog entityCatalog =
             new ManagedEntityCatalog(entityManager.getEntityManagerFactory());
-        AttributeValueService service = new AttributeValueService(
+        return new AttributeValueService(
             attributeValueRepository, attributeTypeRepository,
             sklNomOpaRepository, sklNomOpaValueRepository,
-            lookupService, entityCatalog, validator,
-            new NaturalKeyCreateSupport(transactionManager), transactionManager);
-        ReflectionTestUtils.setField(service, "numberingService", Optional.empty());
-        RlsReadGate readGate = mock(RlsReadGate.class);
-        when(readGate.canRead(any(), anyString())).thenReturn(true);
-        ReflectionTestUtils.setField(service, "rlsReadGate", readGate);
-        return service;
+            lookupService, entityCatalog,
+            new NaturalKeyCreateSupport(transactionManager), transactionManager,
+            mock(CanonicalEntityService.class));
     }
 
     private AttributeType saveType(String code, AttributeValueType valueType) {

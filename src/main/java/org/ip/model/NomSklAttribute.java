@@ -43,7 +43,6 @@ import org.ipro.metadata.annotation.Lookup;
     selectionFormTitle = "Выбор атрибута КСУ",
     order = 65,
     icon = "LINK",
-    serviceClass = org.ip.service.NomSklAttributeService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"nomenclature", "attrType", "required"},
     displaySortFields = {"attrType", "nomenclature"}

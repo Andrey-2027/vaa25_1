@@ -25,14 +25,15 @@ class CompatibilityMigrationArchitectureTest {
 
     /** Наследники compatibility base на входе C4.6; цель C4.7 — пустой набор. */
     private static final Set<String> COMPATIBILITY_BASE_SUBCLASSES = Set.of(
-            "org.ip.service.AttributeValueService",
             "org.ip.service.GridFormViewService",
             "org.ipro.ureport.service.UreportTemplateService");
 
-    /** Сущности, чья модель ещё ссылается на application service через {@code @EntityMetadata}. */
-    private static final Set<String> MODEL_TO_SERVICE_DEPENDENCIES = Set.of(
-            "org.ip.model.AttributeValue",
-            "org.ip.model.NomSklAttribute");
+    /**
+     * Сущности, чья модель ссылается на application service через {@code @EntityMetadata}.
+     * C4.6 волна E: пусто — ни одна модель не называет сервисный класс, тип резолвится
+     * bean-name convention, а сервисы прикладного домена остаются обычными use case'ами.
+     */
+    private static final Set<String> MODEL_TO_SERVICE_DEPENDENCIES = Set.of();
 
     /** Единственная известная UI-утечка persistence context; цель C4.7 — пустой набор. */
     private static final Set<String> PERSISTENCE_CONTEXT_IN_UI = Set.of(

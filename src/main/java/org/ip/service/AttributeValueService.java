@@ -8,12 +8,16 @@ import org.ip.repository.AttributeTypeRepository;
 import org.ip.repository.AttributeValueRepository;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
-import org.ipro.crud.AbstractBaseService;
+import org.ipro.crud.BaseService;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ValidationException;
+import org.ipro.data.CanonicalEntityService;
+import org.ipro.data.EntityDataAccessResolver;
+import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.ManagedEntityCatalog;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,8 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -47,11 +53,18 @@ import java.util.Optional;
  * aborted-tx на Postgres не портил внешнюю транзакцию), затем повторный SELECT возвращает
  * строку победителя. Канонизация ключа (нормализация значения) остаётся здесь, в типе.
  *
- * <p>Значения бессмертны: {@link #delete(Object)} не предусмотрен; единственный способ
+ * <p>Значения бессмертны: {@link #delete(Long)} не предусмотрен; единственный способ
  * изменить строку — обработка переименования {@link #renameValue(Long, String, String)}.
+ *
+ * <p>C4.6 волна E: класс больше не наследует compatibility base. Стандартная поверхность
+ * (list/detail/search, а также {@code save/create}) делегируется canonical handle: descriptor
+ * типа выдаёт только {@code CREATE}, поэтому запрещённый generic-update теперь отклоняется
+ * до SQL и до пользовательского кода, а не тихо выполнялся бы через repository. Нормализация
+ * {@code codeUp}/{@code refId} вынесена в {@code AttributeValueLifecycle}, чтобы применяться
+ * ко всем путям записи, а не только к тому, которым шёл этот сервис.</p>
  */
 @Service
-public class AttributeValueService extends AbstractBaseService<AttributeValue, Long> {
+public class AttributeValueService implements BaseService<AttributeValue, Long> {
 
     private final AttributeValueRepository attributeValueRepository;
     private final AttributeTypeRepository attributeTypeRepository;
@@ -64,16 +77,38 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
     /** Переименование — обычная бизнес-операция, REQUIRES_NEW здесь не нужен. */
     private final TransactionTemplate renameTx;
 
+    /** Стандартная поверхность (список, карточка, поиск, create) — canonical boundary. */
+    private final CanonicalEntityService<AttributeValue> canonical;
+
+    @Autowired
     public AttributeValueService(AttributeValueRepository repository,
                                  AttributeTypeRepository attributeTypeRepository,
                                  SklNomOpaRepository sklNomOpaRepository,
                                  SklNomOpaValueRepository sklNomOpaValueRepository,
                                  LookupService lookupService,
                                  ManagedEntityCatalog entityCatalog,
-                                 Validator validator,
                                  NaturalKeyCreateSupport createSupport,
-                                 PlatformTransactionManager transactionManager) {
-        super(repository, validator);
+                                 PlatformTransactionManager transactionManager,
+                                 EntityDataAccessResolver dataAccessResolver) {
+        this(repository, attributeTypeRepository, sklNomOpaRepository, sklNomOpaValueRepository,
+            lookupService, entityCatalog, createSupport, transactionManager,
+            canonicalHandle(dataAccessResolver));
+    }
+
+    /**
+     * Сборка с явным canonical handle — для тестов, где полный контекст не нужен.
+     * Намеренно package-private, чтобы Spring autowiring видел ровно одного кандидата.
+     */
+    AttributeValueService(AttributeValueRepository repository,
+                          AttributeTypeRepository attributeTypeRepository,
+                          SklNomOpaRepository sklNomOpaRepository,
+                          SklNomOpaValueRepository sklNomOpaValueRepository,
+                          LookupService lookupService,
+                          ManagedEntityCatalog entityCatalog,
+                          NaturalKeyCreateSupport createSupport,
+                          PlatformTransactionManager transactionManager,
+                          CanonicalEntityService<AttributeValue> canonical) {
+        this.canonical = Objects.requireNonNull(canonical, "canonical must not be null");
         this.attributeValueRepository = repository;
         this.attributeTypeRepository = java.util.Objects.requireNonNull(
             attributeTypeRepository, "attributeTypeRepository must not be null");
@@ -90,6 +125,21 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
         // переименование — обычная бизнес-операция: присоединяется к транзакции вызывающего
         // (если она есть) или открывает свою; REQUIRES_NEW здесь не нужен (см. renameValue)
         this.renameTx = new TransactionTemplate(transactionManager);
+    }
+
+    private static CanonicalEntityService<AttributeValue> canonicalHandle(
+            EntityDataAccessResolver resolver) {
+        Objects.requireNonNull(resolver, "dataAccessResolver must not be null");
+        BaseService<AttributeValue, Long> handle = resolver
+            .<AttributeValue, Long>findService(AttributeValue.class)
+            .orElseThrow(() -> new IllegalStateException(
+                "AttributeValue не имеет canonical data handle: "
+                    + resolver.resolutionReason(AttributeValue.class)));
+        // findService всегда строит именно canonical service: кастомный policy подставляет
+        // свой EntityDataAccess внутрь того же handle, а не отдельный сервис.
+        @SuppressWarnings("unchecked")
+        CanonicalEntityService<AttributeValue> resolved = (CanonicalEntityService<AttributeValue>) handle;
+        return resolved;
     }
 
     // === Основные операции ===
@@ -470,32 +520,64 @@ public class AttributeValueService extends AbstractBaseService<AttributeValue, L
                 new AttributeValue(type, displayName, displayName, null, refId)));
     }
 
-    // === Кросс-полевые правила при сохранении через формы (generic справочник) ===
+    // === Стандартная поверхность: делегируется canonical handle ===
 
     @Override
-    protected void validateBusinessRules(AttributeValue entity) {
-        if (entity.getRefId() != null) {
-            if (entity.getAttrType() == null
-                    || entity.getAttrType().getValueType() != AttributeValueType.REF) {
-                throw new ValidationException(
-                    "Ссылочное значение (refId) допустимо только для типа «Ссылка».");
-            }
-            entity.setCodeUp(null);
-        } else {
-            if (entity.getAttrType() != null
-                    && entity.getAttrType().getValueType() == AttributeValueType.REF) {
-                throw new ValidationException(
-                    "Для типа «Ссылка» значение обязано ссылаться на строку словаря (refId).");
-            }
-            // пересчитываем служебный дедуп-ключ (поле не участвует в формах)
-            if (entity.getCode() != null) {
-                entity.setCodeUp(entity.getCode().toUpperCase(Locale.ROOT));
-            }
-        }
+    public AttributeValue save(AttributeValue entity) {
+        return canonical.save(entity);
+    }
+
+    @Override
+    public AttributeValue create(AttributeValue entity) {
+        return canonical.create(entity);
+    }
+
+    @Override
+    public Optional<AttributeValue> findById(Long id) {
+        return canonical.findById(id);
+    }
+
+    @Override
+    public List<AttributeValue> findAll() {
+        return canonical.findAll();
+    }
+
+    @Override
+    public Page<AttributeValue> findAll(Pageable pageable) {
+        return canonical.findAll(pageable);
     }
 
     @Override
     public Page<AttributeValue> findAll(Specification<AttributeValue> spec, Pageable pageable) {
-        return findAllWithFetchGraph(spec, pageable);
+        return canonical.findAll(spec, pageable);
+    }
+
+    @Override
+    public Page<AttributeValue> findAll(Specification<AttributeValue> spec, Pageable pageable,
+                                        Collection<String> fetchPaths) {
+        return canonical.findAll(spec, pageable, fetchPaths);
+    }
+
+    @Override
+    public Page<AttributeValue> findAllByScenario(FetchScenario scenario,
+                                                  Specification<AttributeValue> spec,
+                                                  Pageable pageable,
+                                                  Collection<String> additionalFetchPaths) {
+        return canonical.findAllByScenario(scenario, spec, pageable, additionalFetchPaths);
+    }
+
+    @Override
+    public List<AttributeValue> search(String term) {
+        return canonical.search(term);
+    }
+
+    @Override
+    public Page<AttributeValue> search(String term, Pageable pageable) {
+        return canonical.search(term, pageable);
+    }
+
+    @Override
+    public Number sum(String fieldName, Specification<AttributeValue> spec) {
+        return canonical.sum(fieldName, spec);
     }
 }

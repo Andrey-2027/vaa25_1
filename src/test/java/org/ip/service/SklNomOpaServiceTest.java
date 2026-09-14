@@ -101,30 +101,21 @@ class SklNomOpaServiceTest {
             mock(org.ipro.data.CanonicalEntityService.class));
     }
 
+    /** C4.6 волна E: тот же шов, что в {@code newSetService} — repository плюс canonical handle. */
     private AttributeValueService newValueService() {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         LookupService lookupService = mock(LookupService.class);
         when(lookupService.findById(any(Class.class), any())).thenAnswer(invocation -> {
             Class<?> entityClass = invocation.getArgument(0);
             Object id = invocation.getArgument(1);
             return java.util.Optional.ofNullable(entityManager.find(entityClass, id));
         });
-        AttributeValueService service = new AttributeValueService(
+        return new AttributeValueService(
             attributeValueRepository, attributeTypeRepository,
             sklNomOpaRepository, sklNomOpaValueRepository,
             lookupService,
             new ManagedEntityCatalog(entityManager.getEntityManagerFactory()),
-            validator, new NaturalKeyCreateSupport(transactionManager), transactionManager);
-        ReflectionTestUtils.setField(service, "numberingService", java.util.Optional.empty());
-        ReflectionTestUtils.setField(service, "referenceCheckService", mock(ReferenceCheckService.class));
-        ReflectionTestUtils.setField(service, "rlsFilterActivator", mock(RlsFilterActivator.class));
-        MetadataResolver metadataResolver = mock(MetadataResolver.class);
-        when(metadataResolver.resolve(any())).thenThrow(new IllegalArgumentException("no metadata"));
-        ReflectionTestUtils.setField(service, "metadataResolver", metadataResolver);
-        RlsReadGate readGate = mock(RlsReadGate.class);
-        when(readGate.canRead(any(), anyString())).thenReturn(true);
-        ReflectionTestUtils.setField(service, "rlsReadGate", readGate);
-        return service;
+            new NaturalKeyCreateSupport(transactionManager), transactionManager,
+            mock(org.ipro.data.CanonicalEntityService.class));
     }
 
     @Autowired

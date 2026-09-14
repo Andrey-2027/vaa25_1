@@ -45,7 +45,6 @@ import org.ipro.metadata.annotation.Lookup;
     selectionFormTitle = "Выбор значения атрибута",
     order = 70,
     icon = "LIST_UL",
-    serviceClass = org.ip.service.AttributeValueService.class,
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
     selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
