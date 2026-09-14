@@ -145,12 +145,18 @@ class CanonicalWriteBoundaryIT {
         SecurityContextHolder.setContext(context);
     }
 
+    /**
+     * C4.6 волна F: владелец обслуживает свой storage сам, поэтому canonical handle у типа нет
+     * даже на чтение. Отказ приходит из resolver'а — то есть до capability, RLS и SQL, а не
+     * глубоко внутри запроса без metadata-плана.
+     */
     @Test
-    void ownerReadBridgeDoesNotGrantWrites() {
-        assertThat(resolver.find(UreportTemplate.class))
-            .as("владелец явно отдал canonical чтение")
-            .isPresent();
+    void internalStoreHasNoCanonicalHandleAtAll() {
+        assertThat(resolver.find(UreportTemplate.class)).isEmpty();
 
+        assertThatThrownBy(() -> resolver.resolve(UreportTemplate.class))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("INTERNAL_STORE");
         assertThatThrownBy(() -> access.create(UreportTemplate.class, new UreportTemplate()))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("CREATE")

@@ -8,7 +8,6 @@ import org.ipro.data.EntityCapabilityOverride;
 import org.ipro.data.EntityExposure;
 import org.ipro.data.EntityExposureOverride;
 import org.ipro.fetch.plan.FetchScenario;
-import org.ipro.ureport.dom.UreportTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,10 +30,13 @@ import java.util.Set;
  * path, а не знанием внутри одного класса (ADR-0007 §2, «intentional prohibitions»).</p>
  *
  * <p>Объявлений здесь ровно столько, сколько запретов <b>нельзя</b> выразить исполняемым
- * правилом: после C4.6 волны F ownership-запрет {@code GridFormView} переехал в
- * {@code GridFormViewLifecycle} и перестал быть capability-сужением. То есть capability
- * override остаётся для «операции у типа нет вообще», а правило вида «операция есть, но не
- * для всех строк» выражается lifecycle handler'ом.</p>
+ * правилом: capability override остаётся для «операции у типа нет вообще», а правило вида
+ * «операция есть, но не для всех строк» выражается lifecycle handler'ом. C4.6 волна F
+ * провела эту границу дважды: ownership-запрет {@code GridFormView} переехал в
+ * {@link org.ip.application.form.GridFormViewLifecycle} и перестал быть сужением
+ * capabilities, а read-мост {@code UreportTemplate} снят — после перевода его сервиса на
+ * internal-store adapter canonical handle у типа нет вообще, и попытка получить его
+ * отклоняется до SQL, а не отдаёт граф без metadata.</p>
  */
 @Configuration(proxyBeanMethods = false)
 public class EntityClassificationConfig {
@@ -44,23 +46,6 @@ public class EntityClassificationConfig {
         return new EntityExposureOverride(SklNomOpaValue.class, EntityExposure.OWNED_ROW,
             SklNomOpa.class,
             "структурная строка агрегата SklNomOpa, состав ведёт typed use case");
-    }
-
-    /**
-     * Каталог uReport — {@code INTERNAL_STORE} (нет {@code @EntityMetadata}, владелец —
-     * подсистема отчётов), но его владелец читает шаблоны сервисом, который пока наследует
-     * {@code AbstractBaseService}, то есть идёт через canonical path. Пока сервис не
-     * переведён на owner-специфичный internal-store adapter (C4.3), владелец явно отдаёт
-     * типу чтение списка и карточки. Lookup не выдан: ни один потребитель его не запрашивает,
-     * и появление такого вызова должно падать, а не молча получать граф без metadata.
-     */
-    @Bean
-    public EntityCapabilityOverride ureportTemplateOwnerReadBridge() {
-        return new EntityCapabilityOverride(UreportTemplate.class,
-            Set.of(FetchScenario.LIST, FetchScenario.DETAIL), Set.of(),
-            "владелец подсистемы отчётов читает шаблоны через UreportTemplateService"
-                + " (наследует AbstractBaseService); временный мост до перевода сервиса"
-                + " на internal-store adapter");
     }
 
     /** Значение атрибута неизменяемо: generic update/delete запрещены typed policy. */
@@ -86,18 +71,4 @@ public class EntityClassificationConfig {
                 + " typed use case");
     }
 
-    /**
-     * {@code GridFormView} намеренно <b>не</b> объявлен здесь. Раньше его canonical handle
-     * был ограничен одним {@code CREATE}, потому что ownership-правило (чужой личный вид
-     * менять нельзя) жило внутри {@code GridFormViewService} и canonical pipeline его не
-     * исполняла. C4.6 волна F перенесла правило в
-     * {@link org.ip.application.form.GridFormViewLifecycle}, поэтому сужение capabilities
-     * снято: тип снова обычный {@code STANDARD_ROOT} с полным CRUD, а запрет исполняется
-     * тем же write pipeline, что и остальные lifecycle-правила.
-     *
-     * <p>Оставшийся открытый вопрос ADR-0007 («{@code GridFormView} — {@code STANDARD_ROOT}
-     * с custom policy или {@code INTERNAL_STORE}») решён в пользу первого варианта: тип
-     * остаётся полноценной metadata-driven сущностью с собственным предметным доступом к
-     * видам реестра, а не внутренним хранилищем.</p>
-     */
 }

@@ -23,9 +23,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class CompatibilityMigrationArchitectureTest {
 
-    /** Наследники compatibility base на входе C4.6; цель C4.7 — пустой набор. */
-    private static final Set<String> COMPATIBILITY_BASE_SUBCLASSES = Set.of(
-            "org.ipro.ureport.service.UreportTemplateService");
+    /**
+     * Наследники compatibility base на входе C4.6. C4.6 волна F мигрировала последние два
+     * ({@code GridFormViewService} — на canonical handle, {@code UreportTemplateService} —
+     * на internal-store adapter), поэтому список пуст и остаётся таким: забор теперь
+     * запрещает любое новое наследование, а не сокращает известный долг.
+     */
+    private static final Set<String> COMPATIBILITY_BASE_SUBCLASSES = Set.of();
 
     /**
      * Сущности, чья модель ссылается на application service через {@code @EntityMetadata}.

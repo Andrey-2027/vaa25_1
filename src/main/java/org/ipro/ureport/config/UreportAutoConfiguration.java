@@ -28,8 +28,10 @@ public class UreportAutoConfiguration {
     public UreportTemplateService ureportTemplateService(
             UreportTemplateRepository repository,
             Validator validator,
+            org.ipro.crud.ReferenceCheckService referenceCheckService,
             @Value("${ureport.fileStoreDir}") String fileStoreDir) {
-        return new UreportTemplateService(repository, validator, fileStoreDir);
+        return new UreportTemplateService(repository, validator, referenceCheckService,
+                fileStoreDir);
     }
 
     @Bean

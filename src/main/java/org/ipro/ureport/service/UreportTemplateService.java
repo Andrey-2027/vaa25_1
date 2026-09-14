@@ -6,13 +6,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.ipro.crud.AbstractBaseService;
+import org.ipro.crud.ReferenceCheckService;
+import org.ipro.crud.jpa.ValidatedJpaCrudService;
 import org.ipro.ureport.UreportTemplateRepository;
 import org.ipro.ureport.dom.UreportTemplate;
 import org.ipro.ureport.params.ParamUiType;
@@ -32,11 +32,20 @@ import jakarta.validation.Validator;
  * Сервис жизненного цикла шаблонов UReport3: метаданные в БД + XML-файл
  * в файловом хранилище движка ({@code ureport.fileStoreDir}).
  *
- * <p>RLS-права каталога — стандартные CHECK_ONLY-расширения RLS на
- * {@link UreportTemplate} (write/delete enforcement выполняет общая
- * repository/flush-граница RLS; см. ADR-0006 и C3.0.1).</p>
+ * <p>C4.6 волна F: класс больше не наследует compatibility base
+ * {@code AbstractBaseService}. Тип — {@code INTERNAL_STORE} (нет
+ * {@code @EntityMetadata}), поэтому его владелец обслуживает storage сам, а не через
+ * canonical entity facade: так решил ADR-0007 §3 для non-metadata report stores, и ту же
+ * базу уже используют соседи по подсистеме ({@code ReportTemplate}, {@code JrxmlTemplate}).
+ * Write-права RLS на этом пути не теряются: их обеспечивает общая repository/flush-граница,
+ * а не сервис (см. ADR-0006 и C3.0.1).</p>
+ *
+ * <p>Следствие, зафиксированное намеренно: read-мост владельца
+ * ({@code EntityCapabilityOverride} с {@code LIST}/{@code DETAIL}) снят — он существовал
+ * ровно потому, что сервис шёл через canonical path. Теперь canonical handle у типа нет
+ * вообще, и попытка получить его отклоняется до SQL, а не отдаёт граф наугад.</p>
  */
-public class UreportTemplateService extends AbstractBaseService<UreportTemplate, Long> {
+public class UreportTemplateService extends ValidatedJpaCrudService<UreportTemplate> {
 
     /** Минимальный валидный шаблон: одна пустая ячейка A1 + A4-страница. */
     static final String EMPTY_TEMPLATE_XML = """
@@ -51,19 +60,26 @@ public class UreportTemplateService extends AbstractBaseService<UreportTemplate,
             html-report-align="left" bg-image="" html-interval-refresh-value="0" \
             column-enabled="false"></paper></ureport>""";
 
-    private final UreportTemplateRepository repository;
+    /** Типизированный доступ к каталогу шаблонов (предметные запросы, а не generic CRUD). */
+    private final UreportTemplateRepository templateRepository;
     private final Path fileStoreDir;
 
     public UreportTemplateService(UreportTemplateRepository repository, Validator validator,
+                                  ReferenceCheckService referenceCheckService,
                                   String fileStoreDir) {
-        super(repository, validator);
-        this.repository = repository;
+        super(repository, validator, referenceCheckService);
+        this.templateRepository = repository;
         this.fileStoreDir = Paths.get(fileStoreDir);
     }
 
+    /**
+     * Поиск по каталогу шаблонов — предметная поверхность владельца storage, а не standard
+     * search: тип не является metadata-driven, поэтому его поля поиска задаёт подсистема
+     * (имя и описание). Каталог шаблонов невелик и читается для одного экрана.
+     */
     @Override
     public List<UreportTemplate> search(String term) {
-        List<UreportTemplate> all = repository.findAll();
+        List<UreportTemplate> all = templateRepository.findAll();
         if (term == null || term.isBlank()) {
             return all;
         }
@@ -111,7 +127,7 @@ public class UreportTemplateService extends AbstractBaseService<UreportTemplate,
             return List.of();
         }
         String entityClassName = entityClass.getName();
-        return repository.findAll().stream()
+        return templateRepository.findAll().stream()
                 .filter(UreportTemplate::isEnabled)
                 .filter(t -> entityClassName.equals(t.getTargetEntityClass()))
                 .filter(t -> Files.isRegularFile(fileStoreDir.resolve(t.getFileName())))
@@ -124,7 +140,7 @@ public class UreportTemplateService extends AbstractBaseService<UreportTemplate,
     @Override
     @Transactional
     public void delete(Long id) {
-        UreportTemplate template = repository.findById(id)
+        UreportTemplate template = templateRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Шаблон UReport не найден: " + id));
         super.delete(id);
         deleteTemplateFileQuietly(template.getFileName());
@@ -209,7 +225,8 @@ public class UreportTemplateService extends AbstractBaseService<UreportTemplate,
         String stem = fileStem(name);
         String candidate = stem + ".ureport.xml";
         int index = 2;
-        while (repository.existsByFileName(candidate) || Files.exists(fileStoreDir.resolve(candidate))) {
+        while (templateRepository.existsByFileName(candidate)
+                || Files.exists(fileStoreDir.resolve(candidate))) {
             candidate = stem + "_" + index++ + ".ureport.xml";
         }
         return candidate;

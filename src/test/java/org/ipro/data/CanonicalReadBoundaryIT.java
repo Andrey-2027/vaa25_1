@@ -192,25 +192,27 @@ class CanonicalReadBoundaryIT {
     }
 
     /**
-     * Явный мост владельца (каталог uReport) выдаёт ровно те сценарии, которые использует
-     * его сервис, и ни одного сверх: lookup не выдан, потому что metadata-плана у типа нет
-     * и появление такого вызова должно падать, а не отдавать граф наугад.
+     * C4.6 волна F: тип без metadata ({@code INTERNAL_STORE}) обслуживается своим владельцем
+     * и canonical handle не получает вообще. Раньше владелец отдавал ему {@code LIST} и
+     * {@code DETAIL} явным мостом — пока его сервис наследовал {@code AbstractBaseService} и
+     * ходил через canonical path. После перевода сервиса на internal-store adapter мост снят,
+     * поэтому тип должен отказывать до RLS и SQL, а не получать граф без metadata.
      */
     @Test
-    void ownerBridgeGrantsOnlyTheReadsItsServiceUses() {
+    void internalStoreWithoutAnOwnerBridgeHasNoCanonicalHandle() {
         EntityDescriptor descriptor = catalog.descriptorOf(UreportTemplate.class);
 
         assertThat(descriptor.exposure()).isEqualTo(EntityExposure.INTERNAL_STORE);
-        assertThat(descriptor.capabilities().readScenarios())
-            .containsExactlyInAnyOrder(FetchScenario.LIST, FetchScenario.DETAIL);
-        assertThat(descriptor.capabilities().reason()).contains("UreportTemplateService");
+        assertThat(descriptor.capabilities().readScenarios()).isEmpty();
+        assertThat(descriptor.capabilities().writes()).isEmpty();
 
-        assertThat(readExecutor.readAll(ListRead.of(UreportTemplate.class, FetchScenario.LIST)))
-            .as("мост владельца оставляет список и карточку рабочими")
-            .isEmpty();
+        assertThatThrownBy(() -> readExecutor.readAll(
+            ListRead.of(UreportTemplate.class, FetchScenario.LIST)))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("INTERNAL_STORE");
         assertThatThrownBy(() -> lookupService.findAll(UreportTemplate.class))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("LOOKUP");
+            .hasMessageContaining("INTERNAL_STORE");
     }
 
     /**

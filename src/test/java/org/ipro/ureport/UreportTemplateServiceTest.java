@@ -30,22 +30,19 @@ class UreportTemplateServiceTest {
     private UreportTemplateService service;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         repository = mock(UreportTemplateRepository.class);
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        // C4.6 волна F: сервис — internal-store adapter (ValidatedJpaCrudService), поэтому
+        // больше не требует рефлексии в наследника compatibility base.
         service = new UreportTemplateService(repository, validator,
-                fileStoreDir.toString());
+                mock(org.ipro.crud.ReferenceCheckService.class), fileStoreDir.toString());
         when(repository.save(any())).thenAnswer(invocation -> {
             UreportTemplate t = invocation.getArgument(0);
             t.setId(1L);
             return t;
         });
         when(repository.existsByFileName(any())).thenReturn(false);
-        // AbstractBaseService.numberingService - @Autowired Optional, в юнит-тесте пустой
-        java.lang.reflect.Field numbering = org.ipro.crud.AbstractBaseService.class
-                .getDeclaredField("numberingService");
-        numbering.setAccessible(true);
-        numbering.set(service, java.util.Optional.empty());
     }
 
     @Test
