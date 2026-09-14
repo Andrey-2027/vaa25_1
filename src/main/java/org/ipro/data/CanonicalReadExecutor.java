@@ -53,7 +53,18 @@ import java.util.function.Supplier;
  * <p>Executor не владеет policy: RLS, FetchPlan, InstanceName и metadata остаются
  * отдельными collaborators. Owned row не получает автономный list/detail/lookup: его
  * граница — aggregate root и {@code GenericOwnedSectionService}.</p>
+ *
+ * <p><b>Транзакция обязательна и принадлежит границе, а не вызывающему.</b>
+ * {@code RlsFilterActivator} включает Hibernate {@code @Filter} на сессии текущего
+ * {@code EntityManager}, поэтому gate и content query обязаны выполняться в одном
+ * persistence context. Без активной транзакции shared {@code EntityManager} proxy
+ * выдаёт каждый вызов на отдельной сессии: фильтр включался бы на временной сессии,
+ * а запрос выполнялся бы на другой — то есть RLS молча не применялся бы. Раньше это
+ * случайно обеспечивалось тем, что вызывающие сервисы наследовали class-level
+ * {@code @Transactional} от compatibility base; canonical граница не должна от этого
+ * зависеть (C4.6).</p>
  */
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class CanonicalReadExecutor {
 
     private static final String FETCHGRAPH_HINT = "jakarta.persistence.fetchgraph";
