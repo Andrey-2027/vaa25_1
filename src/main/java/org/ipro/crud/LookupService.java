@@ -17,8 +17,9 @@ import java.util.Optional;
  * и SelectionForm для поиска по подстроке.
  *
  * <p>Поиск работает для ЛЮБОГО {@code @Entity} класса — даже если у него нет Spring Data
- * Repository. Для операций save/delete через Spring Data — используйте соответствующий
- * сервис (NomenclatureService и т.п.). LookupService только для ЧТЕНИЯ.</p>
+ * Repository. Для операций записи используйте canonical handle
+ * ({@link org.ipro.data.EntityDataAccess}) либо предметный use case типа —
+ * LookupService только для ЧТЕНИЯ.</p>
  *
  * <p>C4.1 (ADR-0007 §4): собственная Criteria/fetch orchestration удалена. Lookup идёт
  * через {@link CanonicalReadExecutor} — ту же границу, что и standard reads, с единым

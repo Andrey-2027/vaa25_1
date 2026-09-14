@@ -1137,6 +1137,39 @@ explicit fields или общими type-level defaults.
 общий random-order `mvn verify` — 1233 теста, 0 failures/errors/skipped, BUILD SUCCESS
 (seed `3330014842700`; `VisualQuerySubqueryIT` исключён проектным gate).
 
+### C4.6: ворота входа зафиксированы до миграции
+
+Перед первым шагом миграции compatibility-механизмов полный прогон выполнен на состоянии
+после волн A–E (JDK 21, offline, IntelliJ bundled Maven 3.9.9):
+
+```text
+mvn verify                        1261 тест,  0 failures/errors/skipped, BUILD SUCCESS (03:17)
+random-order gate                1260 тестов, 0 failures/errors/skipped, BUILD SUCCESS (02:50)
+  seed 3330014842700, случайный порядок классов и методов,
+  VisualQuerySubqueryIT исключён проектным gate (решение владельца)
+```
+
+Зафиксированный состав по волнам (коммиты `86554a1`, `b438eff`, `ae7af4d`, `6ee24d2`,
+`4cb9152`, `9cede58`, `caf202d`, `eb570ea`, `128c912`, `a8a8f9b`, `b1ee1fd`, `8ceff17`,
+`0301413`):
+
+- `ServiceLocator` не использует ни один мигрированный `<entity>Service`; `@EntityMetadata`
+  больше не называет сервисный класс ни в одной модели;
+- `AttributeType`, `PrdSpec`, `User`, `AttributeValue`, `NomSklAttribute`, `SklNomOpa`
+  сохранили предметный домен, а CRUD делегируют canonical handle;
+- доменные правила переехали в canonical-executed lifecycle (`AttributeTypeLifecycle`,
+  `AttributeValueLifecycle`, `NomSklAttributeLifecycle`, `PrdSpecLifecycle`), поэтому они
+  применяются любым каналом записи, а не только сервисом;
+- интернирование экземпляров вынесено в один компонент (`NaturalKeyCreateSupport`,
+  маркер `InternedEntity`, ADR-0008/ADX-13) вместо двух дословно дублированных retry-циклов;
+- `CompatibilityMigrationArchitectureTest` пропускает ровно двух наследников
+  compatibility base — цель волны F.
+
+Остаются волна F (`GridFormViewService`, `UreportTemplateService` перестают наследовать
+`AbstractBaseService`) и C4.7 (удаление `serviceClass` и `AbstractBaseService`, ворота
+приёмки, artifact budget, синхронизация ADX-аудита). Полная документация C4.6
+синхронизируется одним проходом в C4.7 — та же конвенция, что у волн A–C.
+
 ## Неошибочные и блокирующие диагностики
 
 | Диагностика | Категория | Действие |
