@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * а не мок AccessService. Ровно тот сценарий, который раньше проверяли только руками на
  * реальном сервере (см. обсуждение RLS, п.5 плана).
  *
- * Сознательно НЕ поднимает application services (например, PrdSpecService) и весь контекст
+ * Сознательно НЕ поднимает application services (например, AttributeValueService) и весь контекст
  * приложения
  * (Vaadin, MetadataResolver и т.п.) — целимся в сам механизм RLS (AccessService +
  * RlsFilterActivator + Hibernate @Filter), а не в UI-слой сервисов. RlsDimensionRegistry/

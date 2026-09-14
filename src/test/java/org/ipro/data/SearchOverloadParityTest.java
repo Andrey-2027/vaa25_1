@@ -3,13 +3,11 @@ package org.ipro.data;
 import jakarta.validation.Validator;
 import org.ip.repository.GridFormViewRepository;
 import org.ip.repository.NomSklAttributeRepository;
-import org.ip.repository.PrdSpecRepository;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ip.repository.UserRepository;
 import org.ip.service.GridFormViewService;
 import org.ip.service.NomSklAttributeService;
-import org.ip.service.PrdSpecService;
 import org.ip.service.SklNomOpaService;
 import org.ip.service.UserService;
 import org.ipro.crud.BaseService;
@@ -39,10 +37,8 @@ class SearchOverloadParityTest {
     void typedSearchesUseOneCanonicalFieldSetForBothOverloads() {
         Validator validator = mock(Validator.class);
 
-        PrdSpecRepository prdSpecRepository = mock(PrdSpecRepository.class);
-        assertParity(new PrdSpecService(prdSpecRepository, validator),
-            List.of(), prdSpecRepository);
-
+        // C4.6 волна E: у PrdSpec больше нет typed-сервиса — search идёт canonical handle,
+        // а собственный embeddable adapter ему не нужен.
         SklNomOpaRepository sklRepository = mock(SklNomOpaRepository.class);
         assertParity(new SklNomOpaService(sklRepository, mock(SklNomOpaValueRepository.class),
                 validator, new NaturalKeyCreateSupport(mock(PlatformTransactionManager.class))),

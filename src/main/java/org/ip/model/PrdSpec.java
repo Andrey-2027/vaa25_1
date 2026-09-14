@@ -36,7 +36,6 @@ import java.util.List;
     selectionFormTitle = "Выбор спецификации",
     order = 30,
     icon = "CLIPBOARD_TEXT",
-    serviceClass = org.ip.service.PrdSpecService.class,
     subsystem = org.ip.subsystem.Subsystems.Production.class,
     selectColumns = {"codeSpec", "nomenclature.name"},
     displaySortFields = {"codeSpec"}

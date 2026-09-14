@@ -10,7 +10,6 @@ import org.ip.repository.JournalRepository;
 import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.PrdSpecRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
-import org.ip.service.PrdSpecService;
 import org.ipro.crud.GenericOwnedSectionService;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.crud.ValidationException;
@@ -19,6 +18,7 @@ import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
+import org.ipro.crud.ServiceLocator;
 import org.ipro.rls.RlsAccessDeniedException;
 import org.ipro.rls.RlsTestFixture;
 import org.junit.jupiter.api.AfterEach;
@@ -66,8 +66,9 @@ class PrdSpecMetadataAggregateIT {
     @Autowired
     private AccessGrantRepository accessGrantRepository;
 
+    /** C4.6 волна E: у {@code PrdSpec} больше нет typed-сервиса — форма идёт canonical handle. */
     @Autowired
-    private PrdSpecService prdSpecService;
+    private ServiceLocator serviceLocator;
 
     @AfterEach
     void clearSecurityContext() {
@@ -123,7 +124,7 @@ class PrdSpecMetadataAggregateIT {
         persistGrant("metadata-delete-user", persisted.getJournal().getId(), true, true, false);
         loginAs("metadata-delete-user");
 
-        assertThatThrownBy(() -> prdSpecService.delete(persisted.getId()))
+        assertThatThrownBy(() -> serviceLocator.findService(PrdSpec.class).delete(persisted.getId()))
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("Нет прав на удаление")
             .hasMessageContaining("JOURNAL");

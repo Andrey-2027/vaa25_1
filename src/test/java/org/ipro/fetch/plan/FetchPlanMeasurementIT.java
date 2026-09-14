@@ -21,7 +21,6 @@ import org.ip.model.PrdSpecMtr;
 import org.ip.repository.ReceivingDocumentRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
-import org.ip.service.PrdSpecService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.crud.LookupService;
@@ -74,9 +73,6 @@ class FetchPlanMeasurementIT {
 
     @Autowired
     private ServiceLocator serviceLocator;
-
-    @Autowired
-    private PrdSpecService prdSpecService;
 
     @Autowired
     private LookupService lookupService;
@@ -147,6 +143,12 @@ class FetchPlanMeasurementIT {
     private CanonicalEntityService<ReceivingDocument> documents() {
         return (CanonicalEntityService<ReceivingDocument>) serviceLocator
             .<ReceivingDocument, Long>findService(ReceivingDocument.class);
+    }
+
+    /** C4.6 волна E: у {@code PrdSpec} тоже остался только canonical handle. */
+    private CanonicalEntityService<PrdSpec> prdSpecs() {
+        return (CanonicalEntityService<PrdSpec>) serviceLocator
+            .<PrdSpec, Long>findService(PrdSpec.class);
     }
 
     @Test
@@ -227,7 +229,7 @@ class FetchPlanMeasurementIT {
         prdSpecRepository.saveAndFlush(spec);
         entityManager.clear();
 
-        PrdSpec loaded = prdSpecService.findById(spec.getId()).orElseThrow();
+        PrdSpec loaded = prdSpecs().findById(spec.getId()).orElseThrow();
 
         assertThat(Hibernate.isInitialized(loaded.getNomenclature()))
             .as("ссылка формы должна быть загружена планом DETAIL")
@@ -343,7 +345,7 @@ class FetchPlanMeasurementIT {
             return cb.equal(root.join("materials").get("typeMtr"), 0);
         };
 
-        Page<PrdSpec> page = prdSpecService.findAll(joinsMaterials, PageRequest.of(0, 10));
+        Page<PrdSpec> page = prdSpecs().findAll(joinsMaterials, PageRequest.of(0, 10));
 
         assertThat(page.getContent()).hasSize(1);
         assertThat(page.getTotalElements())

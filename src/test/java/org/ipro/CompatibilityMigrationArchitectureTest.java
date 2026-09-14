@@ -28,7 +28,6 @@ class CompatibilityMigrationArchitectureTest {
             "org.ip.service.AttributeValueService",
             "org.ip.service.GridFormViewService",
             "org.ip.service.NomSklAttributeService",
-            "org.ip.service.PrdSpecService",
             "org.ip.service.SklNomOpaService",
             "org.ip.service.UserService",
             "org.ipro.ureport.service.UreportTemplateService");
@@ -37,7 +36,6 @@ class CompatibilityMigrationArchitectureTest {
     private static final Set<String> MODEL_TO_SERVICE_DEPENDENCIES = Set.of(
             "org.ip.model.AttributeValue",
             "org.ip.model.NomSklAttribute",
-            "org.ip.model.PrdSpec",
             "org.ip.model.SklNomOpa");
 
     /** Единственная известная UI-утечка persistence context; цель C4.7 — пустой набор. */
