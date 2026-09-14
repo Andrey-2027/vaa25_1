@@ -341,7 +341,7 @@ class NomenclatureAttributesIT {
         String unitCode = "U" + suffix;
         UnitOfMeasurement unit = unitRepository.findByCode(unitCode)
             .orElseGet(() -> unitRepository.save(new UnitOfMeasurement(
-                "u" + suffix.substring(0, 3), "Unit " + suffix, unitCode)));
+                "u" + suffix, "Unit " + suffix, unitCode)));
         return new Nomenclature("N-" + suffix, "Nom " + suffix, unit);
     }
 

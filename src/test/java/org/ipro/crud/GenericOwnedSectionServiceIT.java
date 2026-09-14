@@ -59,7 +59,7 @@ class GenericOwnedSectionServiceIT {
             String suffix = UUID.randomUUID().toString().substring(0, 8);
             Journal journal = journalRepository.save(journal("J-" + suffix));
             UnitOfMeasurement unit = unitRepository.save(
-                new UnitOfMeasurement("u" + suffix.substring(0, 3), "Unit " + suffix, "U" + suffix));
+                new UnitOfMeasurement("u" + suffix, "Unit " + suffix, "U" + suffix));
             Nomenclature nomenclature = nomenclatureRepository.save(
                 new Nomenclature("N-" + suffix, "Nom " + suffix, unit));
             PrdSpec spec = new PrdSpec();
@@ -107,7 +107,7 @@ class GenericOwnedSectionServiceIT {
             String suffix = UUID.randomUUID().toString().substring(0, 8);
             Journal journal = journalRepository.save(journal("J-" + suffix));
             UnitOfMeasurement unit = unitRepository.save(
-                new UnitOfMeasurement("u" + suffix.substring(0, 3), "Unit " + suffix, "U" + suffix));
+                new UnitOfMeasurement("u" + suffix, "Unit " + suffix, "U" + suffix));
             Nomenclature nomenclature = nomenclatureRepository.save(
                 new Nomenclature("N-" + suffix, "Nom " + suffix, unit));
             PrdSpec spec = new PrdSpec();
@@ -171,7 +171,7 @@ class GenericOwnedSectionServiceIT {
             String suffix = UUID.randomUUID().toString().substring(0, 8);
             Journal journal = journalRepository.save(journal("J-" + suffix));
             UnitOfMeasurement unit = unitRepository.save(
-                new UnitOfMeasurement("u" + suffix.substring(0, 3), "Unit " + suffix,
+                new UnitOfMeasurement("u" + suffix, "Unit " + suffix,
                     "U" + suffix));
             Nomenclature nomenclature = nomenclatureRepository.save(
                 new Nomenclature("N-" + suffix, "Nom " + suffix, unit));
@@ -222,10 +222,18 @@ class GenericOwnedSectionServiceIT {
         return prdSpecRepository.findById(id).orElseThrow().getVersion();
     }
 
+    /**
+     * Краткий код единицы уникален в схеме: вывод из префикса кода давал коллизию, когда
+     * два фикстуры делили префикс, и падал уникальный индекс вместо проверяемого правила.
+     */
+    private static String uniqueShortCode() {
+        return "u" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
     private PrdSpec createSpec(String code) {
         Journal journal = journalRepository.save(journal("J-" + code));
         UnitOfMeasurement unit = unitRepository.save(
-            new UnitOfMeasurement("u" + code.substring(0, 3), "Unit " + code,
+            new UnitOfMeasurement(uniqueShortCode(), "Unit " + code,
                 "U" + code.substring(0, Math.min(code.length(), 8))));
         Nomenclature nomenclature = nomenclatureRepository.save(
             new Nomenclature("N-" + code, "Nom " + code, unit));

@@ -332,7 +332,7 @@ class MetadataDrivenAggregateSaveServiceIT {
         journal.setName("Journal " + suffix);
         journal = journalRepository.save(journal);
         UnitOfMeasurement unit = unitRepository.save(
-            new UnitOfMeasurement("u" + suffix.substring(0, 3), "Unit " + suffix,
+            new UnitOfMeasurement("u" + suffix, "Unit " + suffix,
                 "U" + suffix));
         Nomenclature nomenclature = nomenclatureRepository.save(
             new Nomenclature("N-" + suffix, "Nom " + suffix, unit));
