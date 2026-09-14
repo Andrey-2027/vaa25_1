@@ -1,22 +1,20 @@
 package org.ipro.data;
 
 import jakarta.validation.Validator;
+import org.ip.model.User;
 import org.ip.repository.GridFormViewRepository;
 import org.ip.repository.NomSklAttributeRepository;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
-import org.ip.repository.UserRepository;
 import org.ip.service.GridFormViewService;
 import org.ip.service.NomSklAttributeService;
 import org.ip.service.SklNomOpaService;
-import org.ip.service.UserService;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.NaturalKeyCreateSupport;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -51,17 +49,17 @@ class SearchOverloadParityTest {
         assertParity(new GridFormViewService(viewRepository, validator),
             List.of(), viewRepository);
 
-        UserRepository userRepository = mock(UserRepository.class);
-        assertParity(new UserService(userRepository, validator, mock(PasswordEncoder.class)),
-            List.of(), userRepository);
+        // C4.6 волна E: User тоже идёт canonical handle (UserService — только нормализация
+        // пароля поверх него), поэтому parity проверяется у самого canonical service.
+        assertParity(new CanonicalEntityService<>(User.class,
+            mock(CanonicalReadExecutor.class), mock(EntityDataAccess.class)), List.of());
 
         NomSklAttributeRepository bindingRepository = mock(NomSklAttributeRepository.class);
         assertParity(new NomSklAttributeService(bindingRepository, validator),
             List.of(), bindingRepository);
     }
 
-    private static void assertParity(BaseService<?, ?> service, List<String> fields,
-                                     Object repository) {
+    private static void assertParity(BaseService<?, ?> service, List<String> fields) {
         CanonicalReadExecutor executor = mock(CanonicalReadExecutor.class);
         doReturn(Page.empty()).when(executor).readSearch(any(SearchRead.class));
         ReflectionTestUtils.setField(service, "readExecutor", executor);
@@ -80,6 +78,11 @@ class SearchOverloadParityTest {
             .isEqualTo(SearchRead.defaultPage());
         assertThat(requests.getAllValues().get(1).pageable())
             .isEqualTo(PageRequest.of(2, 5));
+    }
+
+    private static void assertParity(BaseService<?, ?> service, List<String> fields,
+                                     Object repository) {
+        assertParity(service, fields);
         verifyNoInteractions(repository);
     }
 }

@@ -29,7 +29,6 @@ class CompatibilityMigrationArchitectureTest {
             "org.ip.service.GridFormViewService",
             "org.ip.service.NomSklAttributeService",
             "org.ip.service.SklNomOpaService",
-            "org.ip.service.UserService",
             "org.ipro.ureport.service.UreportTemplateService");
 
     /** Сущности, чья модель ещё ссылается на application service через {@code @EntityMetadata}. */
