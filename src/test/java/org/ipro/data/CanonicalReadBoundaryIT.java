@@ -222,10 +222,21 @@ class CanonicalReadBoundaryIT {
         assertThat(catalog.descriptorOf(AttributeValue.class).capabilities().writes())
             .containsExactly(DataOperation.CREATE);
         assertThat(catalog.descriptorOf(SklNomOpa.class).capabilities().writes()).isEmpty();
+    }
+
+    /**
+     * C4.6 волна F: ownership вида — правило «операция есть, но не для всех строк», а не
+     * «операции у типа нет». Оно исполняется lifecycle handler'ом внутри canonical write
+     * pipeline, поэтому canonical handle типа больше не сужается: сужение было обходным
+     * решением и делало update/delete недоступными даже законному автору вида.
+     */
+    @Test
+    void rowLevelRuleIsNotExpressedAsACapabilityLimit() {
         assertThat(catalog.descriptorOf(GridFormView.class).capabilities().writes())
-            .containsExactly(DataOperation.CREATE);
+            .containsExactlyInAnyOrder(DataOperation.CREATE, DataOperation.UPDATE,
+                DataOperation.DELETE);
         assertThat(catalog.descriptorOf(GridFormView.class).capabilities().reason())
-            .contains("ownership");
+            .contains("standard root");
     }
 
     private long countInModelPackage(EntityExposure exposure) {

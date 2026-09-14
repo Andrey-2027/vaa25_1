@@ -14,7 +14,7 @@ import java.util.function.Predicate;
  *
  * getReadableIds() — для включения Hibernate @Filter (см. @RlsDimension).
  * canUpdate()/canDelete() — для проверок в сервисах перед save()/delete() (тем же приёмом,
- * что GridFormViewService.checkEditable() — @Filter на UPDATE/DELETE не действует, это
+ * что ownership-правило GridFormViewLifecycle — @Filter на UPDATE/DELETE не действует, это
  * только для SELECT).
  *
  * Не знает про конкретную модель User/Role приложения — роли пользователя добывает через

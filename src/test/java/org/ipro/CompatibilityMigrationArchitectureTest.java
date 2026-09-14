@@ -25,7 +25,6 @@ class CompatibilityMigrationArchitectureTest {
 
     /** Наследники compatibility base на входе C4.6; цель C4.7 — пустой набор. */
     private static final Set<String> COMPATIBILITY_BASE_SUBCLASSES = Set.of(
-            "org.ip.service.GridFormViewService",
             "org.ipro.ureport.service.UreportTemplateService");
 
     /**

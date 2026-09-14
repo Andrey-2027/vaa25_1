@@ -1,35 +1,79 @@
 package org.ip.service;
 
-import org.ipro.crud.ValidationException;
-
 import org.ip.model.GridFormView;
 import org.ip.repository.GridFormViewRepository;
+import org.ipro.crud.BaseService;
+import org.ipro.data.CanonicalEntityService;
+import org.ipro.data.EntityDataAccessResolver;
+import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.security.CurrentUser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import jakarta.validation.Validator;
+import java.util.Collection;
 import java.util.List;
-import org.ipro.crud.AbstractBaseService;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
- * Сервис видов грида. Правило редактирования (см. обсуждение): shared-вид редактирует/
- * удаляет кто угодно, личный (shared = false) — только автор (BaseEntity.createdBy).
+ * Сохранённые виды формы списка: предметный доступ к видам конкретного реестра плюс
+ * стандартная CRUD-поверхность canonical boundary.
+ *
+ * <p>C4.6 волна F: класс больше не наследует compatibility base. Стандартные операции
+ * ({@code save/create/update/delete}, list/detail/search) делегируются canonical handle,
+ * поэтому capability-граница, ранний RLS, валидация, lifecycle и события применяются тем же
+ * pipeline, что и у типов без своего сервиса.</p>
+ *
+ * <p>Ownership-правило (общий/личный вид) вынесено в
+ * {@link org.ip.application.form.GridFormViewLifecycle} и исполняется canonical write
+ * pipeline. Именно поэтому canonical handle типа перестал быть ограниченным одним
+ * {@code CREATE}: update/delete теперь проверяются там же, где исполняются, а не остаются
+ * знанием внутри одного класса.</p>
  */
 @Service
-public class GridFormViewService extends AbstractBaseService<GridFormView, Long> {
+public class GridFormViewService implements BaseService<GridFormView, Long> {
 
     private final GridFormViewRepository repository;
 
-    public GridFormViewService(GridFormViewRepository repository, Validator validator) {
-        super(repository, validator);
-        this.repository = repository;
+    /** Стандартная поверхность: canonical boundary (ADR-0007 §1). */
+    private final CanonicalEntityService<GridFormView> canonical;
+
+    @Autowired
+    public GridFormViewService(GridFormViewRepository repository,
+                               EntityDataAccessResolver dataAccessResolver) {
+        this(repository, canonicalHandle(dataAccessResolver));
     }
 
     /**
-     * Набор полей поиска — не переопределение, а объявление типа
-     * ({@code @SearchFields({"name", "formKey"})} на {@link GridFormView}): C4.6 волна C
-     * сняла дубль, который раньше держал те же два поля в сервисе.
+     * Сборка с явным canonical handle — для unit-тестов, где полный контекст не нужен.
+     * Намеренно package-private, чтобы Spring autowiring видел ровно одного кандидата.
      */
+    GridFormViewService(GridFormViewRepository repository,
+                        CanonicalEntityService<GridFormView> canonical) {
+        this.repository = Objects.requireNonNull(repository, "repository must not be null");
+        this.canonical = Objects.requireNonNull(canonical, "canonical must not be null");
+    }
+
+    private static CanonicalEntityService<GridFormView> canonicalHandle(
+            EntityDataAccessResolver resolver) {
+        Objects.requireNonNull(resolver, "dataAccessResolver must not be null");
+        BaseService<GridFormView, Long> handle = resolver
+            .<GridFormView, Long>findService(GridFormView.class)
+            .orElseThrow(() -> new IllegalStateException(
+                "GridFormView не имеет canonical data handle: "
+                    + resolver.resolutionReason(GridFormView.class)));
+        // findService всегда строит именно canonical service: кастомный policy подставляет
+        // свой EntityDataAccess внутрь того же handle, а не отдельный сервис.
+        @SuppressWarnings("unchecked")
+        CanonicalEntityService<GridFormView> resolved =
+            (CanonicalEntityService<GridFormView>) handle;
+        return resolved;
+    }
+
+    // === Предметная поверхность ===
 
     /** Виды, доступные текущему пользователю для конкретного formKey (общие + свои личные). */
     public List<GridFormView> findVisibleViews(String formKey) {
@@ -42,31 +86,74 @@ public class GridFormViewService extends AbstractBaseService<GridFormView, Long>
         return create(view);
     }
 
+    // === Стандартная поверхность: делегируется canonical handle ===
+
+    @Override
+    public GridFormView save(GridFormView entity) {
+        return canonical.save(entity);
+    }
+
+    @Override
+    public GridFormView create(GridFormView entity) {
+        return canonical.create(entity);
+    }
+
     @Override
     public GridFormView update(GridFormView entity) {
-        checkEditable(entity);
-        return super.update(entity);
+        return canonical.update(entity);
     }
 
     @Override
     public void delete(Long id) {
-        findById(id).ifPresent(this::checkEditable);
-        super.delete(id);
+        canonical.delete(id);
     }
 
-    /**
-     * shared = true — редактировать/удалять может кто угодно.
-     * shared = false — только автор (createdBy).
-     */
-    private void checkEditable(GridFormView view) {
-        if (view.isShared()) {
-            return;
-        }
-        String username = CurrentUser.username();
-        if (!username.equals(view.getCreatedBy())) {
-            throw new ValidationException(
-                "Этот вид личный (не общий) — изменять или удалять его может только автор: " +
-                view.getCreatedBy());
-        }
+    @Override
+    public Optional<GridFormView> findById(Long id) {
+        return canonical.findById(id);
+    }
+
+    @Override
+    public List<GridFormView> findAll() {
+        return canonical.findAll();
+    }
+
+    @Override
+    public Page<GridFormView> findAll(Pageable pageable) {
+        return canonical.findAll(pageable);
+    }
+
+    @Override
+    public Page<GridFormView> findAll(Specification<GridFormView> spec, Pageable pageable) {
+        return canonical.findAll(spec, pageable);
+    }
+
+    @Override
+    public Page<GridFormView> findAll(Specification<GridFormView> spec, Pageable pageable,
+                                      Collection<String> fetchPaths) {
+        return canonical.findAll(spec, pageable, fetchPaths);
+    }
+
+    @Override
+    public Page<GridFormView> findAllByScenario(FetchScenario scenario,
+                                                Specification<GridFormView> spec,
+                                                Pageable pageable,
+                                                Collection<String> additionalFetchPaths) {
+        return canonical.findAllByScenario(scenario, spec, pageable, additionalFetchPaths);
+    }
+
+    @Override
+    public List<GridFormView> search(String term) {
+        return canonical.search(term);
+    }
+
+    @Override
+    public Page<GridFormView> search(String term, Pageable pageable) {
+        return canonical.search(term, pageable);
+    }
+
+    @Override
+    public Number sum(String fieldName, Specification<GridFormView> spec) {
+        return canonical.sum(fieldName, spec);
     }
 }

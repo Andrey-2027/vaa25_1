@@ -1,7 +1,6 @@
 package org.ip.config;
 
 import org.ip.model.AttributeValue;
-import org.ip.model.GridFormView;
 import org.ip.model.SklNomOpa;
 import org.ip.model.SklNomOpaValue;
 import org.ipro.data.DataOperation;
@@ -30,6 +29,12 @@ import java.util.Set;
  * но generic canonical handle не совпадает с предметным правилом. Инвентарь фиксирует эти
  * ограничения в коде сервисов; здесь они становятся контрактом, который читает canonical
  * path, а не знанием внутри одного класса (ADR-0007 §2, «intentional prohibitions»).</p>
+ *
+ * <p>Объявлений здесь ровно столько, сколько запретов <b>нельзя</b> выразить исполняемым
+ * правилом: после C4.6 волны F ownership-запрет {@code GridFormView} переехал в
+ * {@code GridFormViewLifecycle} и перестал быть capability-сужением. То есть capability
+ * override остаётся для «операции у типа нет вообще», а правило вида «операция есть, но не
+ * для всех строк» выражается lifecycle handler'ом.</p>
  */
 @Configuration(proxyBeanMethods = false)
 public class EntityClassificationConfig {
@@ -82,22 +87,17 @@ public class EntityClassificationConfig {
     }
 
     /**
-     * Виды грида — общий UI-стор: кроме прав RLS на update/delete действует ownership
-     * (чужой/личный вид редактировать нельзя). Ownership-проверка живёт в
-     * {@code GridFormViewService.checkEditable} и не может быть исполнена canonical
-     * pipeline, поэтому canonical handle ограничен созданием: update/delete идут только
-     * через типизированный сервис, а не через публичный {@code EntityDataAccess}.
+     * {@code GridFormView} намеренно <b>не</b> объявлен здесь. Раньше его canonical handle
+     * был ограничен одним {@code CREATE}, потому что ownership-правило (чужой личный вид
+     * менять нельзя) жило внутри {@code GridFormViewService} и canonical pipeline его не
+     * исполняла. C4.6 волна F перенесла правило в
+     * {@link org.ip.application.form.GridFormViewLifecycle}, поэтому сужение capabilities
+     * снято: тип снова обычный {@code STANDARD_ROOT} с полным CRUD, а запрет исполняется
+     * тем же write pipeline, что и остальные lifecycle-правила.
      *
-     * <p>CREATE безопасен на canonical path: новая строка ещё не принадлежит другому
-     * автору, а создание собственником проверки не требует.</p>
+     * <p>Оставшийся открытый вопрос ADR-0007 («{@code GridFormView} — {@code STANDARD_ROOT}
+     * с custom policy или {@code INTERNAL_STORE}») решён в пользу первого варианта: тип
+     * остаётся полноценной metadata-driven сущностью с собственным предметным доступом к
+     * видам реестра, а не внутренним хранилищем.</p>
      */
-    @Bean
-    public EntityCapabilityOverride gridFormViewCanonicalWritesAreCreateOnly() {
-        return new EntityCapabilityOverride(GridFormView.class,
-            Set.of(FetchScenario.LIST, FetchScenario.DETAIL, FetchScenario.LOOKUP),
-            Set.of(DataOperation.CREATE),
-            "UI-хранилище видов: canonical path допускает только создание; update/delete"
-                + " ограничены ownership (GridFormViewService.checkEditable) и не"
-                + " исполняются canonical pipeline");
-    }
 }

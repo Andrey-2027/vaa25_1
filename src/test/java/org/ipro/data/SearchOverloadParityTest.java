@@ -1,9 +1,6 @@
 package org.ipro.data;
 
-import jakarta.validation.Validator;
 import org.ip.model.User;
-import org.ip.repository.GridFormViewRepository;
-import org.ip.service.GridFormViewService;
 import org.ipro.crud.BaseService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,15 +16,12 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 /** Both public search overloads must construct the same canonical request. */
 class SearchOverloadParityTest {
 
     @Test
     void typedSearchesUseOneCanonicalFieldSetForBothOverloads() {
-        Validator validator = mock(Validator.class);
-
         // C4.6 волна E: у PrdSpec больше нет typed-сервиса — search идёт canonical handle,
         // а собственный embeddable adapter ему не нужен.
         // C4.6 волна E: SklNomOpaService тоже делегирует поиск canonical handle, а
@@ -38,9 +32,11 @@ class SearchOverloadParityTest {
         // C4.6 волна C: у UnitOfMeasurement больше нет typed-сервиса, а GridFormView больше
         // не переопределяет search — его поля объявлены @SearchFields на типе, поэтому явный
         // набор пуст, а решение принимает единый resolver.
-        GridFormViewRepository viewRepository = mock(GridFormViewRepository.class);
-        assertParity(new GridFormViewService(viewRepository, validator),
-            List.of(), viewRepository);
+        // C4.6 волна F: GridFormViewService тоже только делегирует canonical handle
+        // (ownership-правило ушло в GridFormViewLifecycle), поэтому parity проверяется у
+        // самого canonical service — как для остальных мигрированных типов.
+        assertParity(new CanonicalEntityService<>(org.ip.model.GridFormView.class,
+            mock(CanonicalReadExecutor.class), mock(EntityDataAccess.class)), List.of());
 
         // C4.6 волна E: User тоже идёт canonical handle (UserService — только нормализация
         // пароля поверх него), поэтому parity проверяется у самого canonical service.
@@ -72,11 +68,5 @@ class SearchOverloadParityTest {
             .isEqualTo(SearchRead.defaultPage());
         assertThat(requests.getAllValues().get(1).pageable())
             .isEqualTo(PageRequest.of(2, 5));
-    }
-
-    private static void assertParity(BaseService<?, ?> service, List<String> fields,
-                                     Object repository) {
-        assertParity(service, fields);
-        verifyNoInteractions(repository);
     }
 }

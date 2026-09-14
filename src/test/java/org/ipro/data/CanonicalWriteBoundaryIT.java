@@ -7,12 +7,17 @@ import org.ip.model.NomAttributeValue;
 import org.ip.model.Nomenclature;
 import org.ip.model.SklNomOpa;
 import org.ip.model.UserFormSettings;
+import org.ip.repository.GridFormViewRepository;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
+import org.ipro.crud.ValidationException;
 import org.ipro.ureport.dom.UreportTemplate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +51,9 @@ class CanonicalWriteBoundaryIT {
 
     @Autowired
     private ServiceLocator serviceLocator;
+
+    @Autowired
+    private GridFormViewRepository gridFormViewRepository;
 
     @Test
     void attributeValueGenericUpdateAndDeleteAreRejectedBeforeRlsAndSql() {
@@ -92,21 +100,49 @@ class CanonicalWriteBoundaryIT {
             .hasMessageContaining("требуется create");
     }
 
+    /**
+     * C4.6 волна F: ownership вида больше не сужает capability, а исполняется внутри
+     * canonical write pipeline ({@code GridFormViewLifecycle}). Проверка ведётся на живой
+     * строке через публичный facade: именно этот путь раньше обходил правило, и именно
+     * поэтому handle типа был ограничен одним {@code CREATE}.
+     */
     @Test
-    void gridFormViewOwnershipRuleIsNotBypassedByCanonicalFacade() {
-        // Ownership-проверка живёт в GridFormViewService и canonical pipeline её не
-        // исполняет, поэтому update/delete через публичный facade должны отклоняться
-        // до RLS и SQL, а не молча обходить правило.
-        GridFormView view = new GridFormView("formKey", "Личный вид", "[]", false);
+    void gridFormViewOwnershipIsEnforcedInsideTheCanonicalWritePipeline() {
+        authenticateAs("view-owner");
+        GridFormView personal = gridFormViewRepository.saveAndFlush(
+            new GridFormView("ownIt.formKey", "Личный вид", "[]", false));
+        Long id = personal.getId();
+        assertThat(personal.getCreatedBy()).isEqualTo("view-owner");
+        try {
+            // Чужой пользователь не может ни изменить, ни удалить личный вид.
+            authenticateAs("other-user");
+            GridFormView payload = gridFormViewRepository.findById(id).orElseThrow();
+            payload.setName("Переименовано чужим");
+            assertThatThrownBy(() -> access.update(GridFormView.class, payload))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("личный");
+            assertThatThrownBy(() -> access.delete(GridFormView.class, id))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("личный");
 
-        assertThatThrownBy(() -> access.update(GridFormView.class, view))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("UPDATE")
-            .hasMessageContaining("ownership");
-        assertThatThrownBy(() -> access.delete(GridFormView.class, 1L))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("DELETE")
-            .hasMessageContaining("ownership");
+            // Автор сохраняет своё право: сужение capability не должно было стать
+            // блокировкой законного редактирования.
+            authenticateAs("view-owner");
+            GridFormView own = gridFormViewRepository.findById(id).orElseThrow();
+            own.setName("Переименовано автором");
+            assertThat(access.update(GridFormView.class, own).getName())
+                .isEqualTo("Переименовано автором");
+        } finally {
+            SecurityContextHolder.clearContext();
+            gridFormViewRepository.deleteById(id);
+        }
+    }
+
+    private static void authenticateAs(String username) {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(
+            username, "n/a", java.util.List.of()));
+        SecurityContextHolder.setContext(context);
     }
 
     @Test

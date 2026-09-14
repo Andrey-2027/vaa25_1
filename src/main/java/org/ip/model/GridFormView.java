@@ -23,7 +23,7 @@ import org.ipro.data.SearchFields;
  *
  * shared = true — вид общий: виден и редактируем ЛЮБЫМ пользователем.
  * shared = false — личный вид: виден и редактируем только автором
- * (см. GridFormViewService.checkEditable()).
+ * (см. GridFormViewLifecycle — правило исполняет canonical write pipeline).
  *
  * "По умолчанию для пользователя" — это НЕ поле на этой сущности, а отдельная запись
  * в UserFormSettings ("listform.defaultview.<formKey>" -> id этого вида) — один вид

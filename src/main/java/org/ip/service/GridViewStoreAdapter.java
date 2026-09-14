@@ -10,8 +10,9 @@ import java.util.Optional;
 
 /**
  * Адаптер видов грида к платформенному {@link GridViewStore}: маппинг
- * сущность ({@link GridFormView}) ↔ DTO ({@link GridView}), правила
- * редактирования (общий/личный) остаются в {@link GridFormViewService}.
+ * сущность ({@link GridFormView}) ↔ DTO ({@link GridView}). Правила
+ * редактирования (общий/личный) сервис не держит: их исполняет canonical write pipeline
+ * через {@code org.ip.application.form.GridFormViewLifecycle}.
  */
 @Component
 public class GridViewStoreAdapter implements GridViewStore {
