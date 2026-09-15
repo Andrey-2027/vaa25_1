@@ -1,5 +1,7 @@
 package org.ipro.fetch.instance;
 
+import org.ipro.telemetry.api.DeclaredNameSource;
+import org.ipro.telemetry.core.DeclaredNameBridge;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
@@ -25,6 +27,12 @@ public final class InstanceNameBridgeInstaller implements InitializingBean, Disp
     private final InstanceNameProvider provider;
     private final InstanceNameResolver analysis;
 
+    /**
+     * Регистрация в шве телеметрии — держится полем, а не пересоздаётся при снятии: снятие
+     * адресное (по объекту), и новая лямбда его бы не нашла.
+     */
+    private final DeclaredNameSource declaredNameSource = InstanceNameBridge::declaredName;
+
     public InstanceNameBridgeInstaller(InstanceNameResolver analysis,
                                        ObjectProvider<InstanceNameProvider> providers) {
         this.analysis = Objects.requireNonNull(analysis, "analysis must not be null");
@@ -42,10 +50,16 @@ public final class InstanceNameBridgeInstaller implements InitializingBean, Disp
     @Override
     public void afterPropertiesSet() {
         InstanceNameBridge.install(provider, analysis);
+        // D2 → D3: аудит получает объявленное имя через нейтральный шов телеметрии, а не
+        // прямым вызовом статики fetch-плана. Ставится здесь же, где и сам мост имён, —
+        // иначе жизненный цикл регистрации разъехался бы с ним (второй контекст перезаписывал
+        // бы первый, а пользовательский провайдер не снимался бы).
+        DeclaredNameBridge.install(declaredNameSource);
     }
 
     @Override
     public void destroy() {
         InstanceNameBridge.uninstall(provider, analysis);
+        DeclaredNameBridge.uninstall(declaredNameSource);
     }
 }

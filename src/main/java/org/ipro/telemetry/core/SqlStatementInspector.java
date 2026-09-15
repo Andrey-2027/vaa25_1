@@ -1,7 +1,6 @@
 package org.ipro.telemetry.core;
 
 import org.hibernate.resource.jdbc.spi.StatementInspector;
-import org.ipro.rls.RlsStatementGuard;
 
 /**
  * StatementInspector (свойство {@code hibernate.session_factory.statement_inspector}):
@@ -12,9 +11,14 @@ import org.ipro.rls.RlsStatementGuard;
  * {@link SqlStatementListener}. Регистрируется самим Hibernate, поэтому
  * public no-arg конструктор и доступ к контексту через {@link SqlTimingBridge}.
  * <p>
- * Заодно прогоняет каждый SQL через RLS-канарейку {@link RlsStatementGuard} —
+ * Заодно прогоняет каждый SQL через наблюдателей {@link SqlStatementAuditBridge} —
  * композиция, а не второй StatementInspector (Hibernate держит только один).
- * Guard работает независимо от телеметрии и вызывается ДО её early-return'ов.
+ * Наблюдатели работают независимо от телеметрии и вызываются ДО её early-return'ов.
+ *
+ * <p>D2 → D3 (пара `telemetry` + `rls`): раньше здесь стоял прямой вызов
+ * {@code org.ipro.rls.RlsStatementGuard.inspect} — слой наблюдения не собирался без слоя
+ * принуждения. Теперь конкретный наблюдатель приходит извне через мост
+ * {@link SqlStatementAuditBridge}, а телеметрия о RLS не знает.</p>
  */
 public final class SqlStatementInspector implements StatementInspector {
 
@@ -23,7 +27,7 @@ public final class SqlStatementInspector implements StatementInspector {
         if (sql == null) {
             return null;
         }
-        RlsStatementGuard.inspect(sql);
+        SqlStatementAuditBridge.audit(sql);
         if (!TelemetryGuard.isEnabled() || TelemetryGuard.isInsideLogging()) {
             return sql;
         }

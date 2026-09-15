@@ -231,8 +231,9 @@ public final class EntitySnapshot {
         }
         // Единое имя для сущностей, мигрированных на @InstanceName; остальные — прежним
         // рефлексивным способом (getDisplayName), чтобы аудит не менял представление
-        // немигрированных сущностей.
-        String declared = org.ipro.fetch.instance.InstanceNameBridge.declaredName(value);
+        // немигрированных сущностей. Источник объявленных имён приходит через нейтральный
+        // шов (D2 → D3): раньше здесь стоял прямой вызов InstanceNameBridge из fetch-плана.
+        String declared = DeclaredNameBridge.declaredName(value);
         if (declared != null) {
             return declared.length() <= MAX_STRING
                     ? declared : declared.substring(0, MAX_STRING) + "...";

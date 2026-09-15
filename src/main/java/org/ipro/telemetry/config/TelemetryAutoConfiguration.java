@@ -40,13 +40,18 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Auto-Configuration подсистемы телеметрии. Пакеты org.ipro.telemetry.*
  * не попадают в component-scan приложения (базовый пакет org.ip), поэтому
  * все бины регистрируются здесь — это же гарантирует выключение
  * подсистемы целиком при ipro.telemetry.enabled=false.
+ *
+ * <p>D2 → D3 (пара `telemetry` + `rls`): конфигурация больше не называет ни одного типа RLS.
+ * Адаптер {@code RlsBypassAudit} переехал на сторону RLS (там же живёт канарейка SQL), а
+ * наблюдатели стейтментов приходят через нейтральный шов
+ * {@link org.ipro.telemetry.core.SqlStatementAuditBridge}. До этого подсистема наблюдения
+ * физически не поднималась в развёртывании без подсистемы принуждения.</p>
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "ipro.telemetry", name = "enabled",
@@ -128,16 +133,6 @@ public class TelemetryAutoConfiguration {
     @Bean
     public SecurityEventLogger securityEventLogger(EventSink eventSink) {
         return new SecurityEventLogger(eventSink);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public org.ipro.rls.RlsBypassAudit rlsBypassAudit(SecurityEventLogger securityEventLogger) {
-        return (scope, reason, actor, successful, failure) ->
-            securityEventLogger.emitSecurityEvent("WARN", "rls:bypass", actor,
-                failure == null ? null : failure.getMessage(),
-                Map.of("scope", scope.name(), "reason", reason,
-                    "successful", successful));
     }
 
     @Bean

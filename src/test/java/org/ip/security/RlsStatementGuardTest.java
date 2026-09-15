@@ -13,6 +13,7 @@ import org.ipro.rls.RlsAccessDeniedException;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsGuardRequestFilter;
 import org.ipro.rls.RlsStatementGuard;
+import org.ipro.telemetry.core.SqlStatementAuditBridge;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +59,19 @@ class RlsStatementGuardTest {
     @BeforeEach
     void setUp() {
         RlsStatementGuard.reset();
+    }
+
+    /**
+     * D2 → D3 (пара `telemetry` + `rls`): канарейка стоит в нейтральном шве телеметрии, а не
+     * вызывается из неё. Вторая половина утверждения (у телеметрии нет ни одной ссылки на
+     * подсистему RLS) меряется в {@code PlatformSubsystemClosureTest}: там замыкание
+     * телеметрии на дерево равно пустому множеству.
+     */
+    @Test
+    void canaryIsRegisteredThroughTheTelemetrySeam() {
+        assertThat(SqlStatementAuditBridge.installedCount())
+            .as("конфигурация RLS обязана поставить канарейку в шов телеметрии при старте")
+            .isGreaterThan(0);
     }
 
     private void grantWildcardToAdmin() {

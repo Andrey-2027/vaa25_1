@@ -17,6 +17,9 @@ import org.ipro.rls.RlsStatementGuard;
 import org.ipro.rls.RlsUiGate;
 import org.ipro.rls.RlsWriteGuardBridge;
 import org.ipro.rls.RlsHibernateWriteGuardInstaller;
+import org.ipro.rls.RlsBypassAudit;
+import org.ipro.telemetry.core.SecurityEventLogger;
+import org.ipro.telemetry.core.SqlStatementAuditBridge;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.ipro.metadata.SectionMetadataRegistry;
@@ -62,6 +65,13 @@ import org.springframework.web.context.annotation.SessionScope;
  * репозиториями, поэтому из списка убраны и они — хаб перечисляет только то, что ещé живёт
  * в дереве. Направление связи при этом не изменилось: RLS предоставляет нумерации резолвер
  * scope (см. {@link #numberingScopeResolver}), то есть подсистемы ниже по слою, чем RLS.</p>
+ *
+ * <p>D2 → D3 (пара `telemetry` + `rls`): здесь же теперь живёт весь минимум связей цикла.
+ * RLS <b>реализует</b> нейтральные швы телеметрии — канарейку SQL стейтментов
+ * ({@code SqlStatementAuditBridge}) и аудит привилегированных окон ({@link RlsBypassAudit}), —
+ * а телеметрия о RLS не знает вовсе. До этого направления были двусторонние: телеметрия
+ * вызывала {@code RlsStatementGuard} и сама создавала {@code RlsBypassAudit}, из-за чего
+ * наблюдение не собиралось без принуждения.</p>
  */
 @AutoConfiguration
 @AutoConfigureBefore(org.ipro.numbering.config.NumberingAutoConfiguration.class)
@@ -185,8 +195,31 @@ public class RlsAutoConfiguration {
     public RlsStatementGuard rlsStatementGuard(RlsDimensionRegistry dimensionRegistry,
                                                @Value("${rls.guard.strict:false}") boolean strict) {
         RlsStatementGuard guard = new RlsStatementGuard(dimensionRegistry, strict);
-        RlsStatementGuard.install(guard);
+        SqlStatementAuditBridge.install(guard);
         return guard;
+    }
+
+    /**
+     * Адаптер «RLS → журнал безопасности»: каждый привилегированный обход пишет SECURITY-событие.
+     *
+     * <p>D2 → D3 (пара `telemetry` + `rls`): бин переехал сюда из
+     * {@code TelemetryAutoConfiguration} и был обратной связью цикла — телеметрия создавала
+     * реализацию интерфейса RLS. Теперь направление одно: RLS знает телеметрию (верхний слой —
+     * артефакт), телеметрия RLS — нет. Если журнал недоступен (телеметрия выключена), остаётся
+     * та же no-op заглушка, что и раньше давал {@code getIfAvailable} у активатора.</p>
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RlsBypassAudit rlsBypassAudit(ObjectProvider<SecurityEventLogger> securityEventLogger) {
+        SecurityEventLogger logger = securityEventLogger.getIfAvailable();
+        if (logger == null) {
+            return RlsBypassAudit.loggingOnly();
+        }
+        return (scope, reason, actor, successful, failure) ->
+            logger.emitSecurityEvent("WARN", "rls:bypass", actor,
+                failure == null ? null : failure.getMessage(),
+                java.util.Map.of("scope", scope.name(), "reason", reason,
+                    "successful", successful));
     }
 
     /** Сброс состояния read-гейта на границе каждого HTTP-запроса (см. RlsGuardRequestFilter). */

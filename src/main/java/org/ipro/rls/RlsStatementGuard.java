@@ -1,5 +1,6 @@
 package org.ipro.rls;
 
+import org.ipro.telemetry.api.SqlStatementAudit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +20,11 @@ import java.util.regex.Pattern;
  *
  * Композиция в {@code org.ipro.telemetry.core.SqlStatementInspector} (Hibernate
  * держит один StatementInspector — второй ставить нельзя, затрёт телеметрию):
- * инспектор вызывается Hibernate'ом (public no-arg конструктор, без Spring),
- * поэтому guard подключён к нему статическим мостом по образцу SqlTimingBridge:
- * Spring-конфигурация ставит экземпляр через {@link #install}, а состояние
+ * инспектор вызывается Hibernate'ом (public no-arg конструктор, без Spring), поэтому
+ * guard подключён к нему через нейтральный шов
+ * {@link org.ipro.telemetry.core.SqlStatementAuditBridge}: конфигурация RLS ставит
+ * экземпляр, телеметрия о RLS не знает (D2 → D3: до этого здесь был прямой статический
+ * мост из телеметрии в RLS, из-за чего наблюдение зависело от слоя принуждения). Состояние
  * "фильтры включены" приходит от {@link RlsFilterActivator} через
  * {@link #markProcessed} — у StatementInspector нет доступа к текущей Hibernate
  * Session (аналог проблемы "нельзя проверить session.getEnabledFilter(dim)").
@@ -40,11 +43,9 @@ import java.util.regex.Pattern;
  * только фиксирует; обязательная server-side граница живёт в
  * {@link RlsPolicyEnforcer} и {@link RlsRepositoryEnforcementAspect}.
  */
-public final class RlsStatementGuard {
+public final class RlsStatementGuard implements SqlStatementAudit {
 
     private static final Logger log = LoggerFactory.getLogger(RlsStatementGuard.class);
-
-    private static volatile RlsStatementGuard instance;
 
     /** Измерения, обработанные активатором для текущей сессии потока (включён фильтр ИЛИ
      *  сознательно пропущен из-за wildcard-гранта). Отсутствие измерения = фильтр не включался. */
@@ -70,19 +71,6 @@ public final class RlsStatementGuard {
                 Pattern.compile("\\b" + Pattern.quote(entry.getKey()) + "\\b")));
         }
         this.tables = List.copyOf(checks);
-    }
-
-    /** Spring-конфигурация выставляет готовый guard; до этого момента inspect — no-op. */
-    public static void install(RlsStatementGuard guard) {
-        instance = guard;
-    }
-
-    /** Вызывается из StatementInspector на каждый SQL-текст. */
-    public static void inspect(String sql) {
-        RlsStatementGuard guard = instance;
-        if (guard != null) {
-            guard.audit(sql);
-        }
     }
 
     /** Активатор отметил, что для текущей сессии потока обработаны именно эти измерения. */
@@ -123,7 +111,9 @@ public final class RlsStatementGuard {
         return VIOLATION_COUNT.get();
     }
 
-    private void audit(String sql) {
+    /** Вызывается швом телеметрии на каждый SQL-текст, подготовленный Hibernate. */
+    @Override
+    public void audit(String sql) {
         if (sql == null || sql.isBlank()) {
             return;
         }

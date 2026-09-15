@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,9 +39,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  * прозаические статусы: тест считает замыкание из исходников и требует совпадения с
  * reviewed-реестром до последнего типа.</p>
  *
+ * <p><b>Чем мерить.</b> Первая версия читала только {@code import}, и это занижало
+ * замыкание двумя способами: ссылка полным именем в теле (а конфигурации платформы пишут
+ * именно так — {@code org.ipro.rls.RlsBypassAudit} в возвращаемом типе бина) была не видна
+ * вовсе, а у посещённого типа дерева не просматривались его собственные однопачечные
+ * зависимости (файл не импортирует то, что лежит в его же пакете). Из-за второго
+ * {@code telemetry} выглядела как «один тип до независимости», хотя тянула пакет RLS
+ * целиком. Теперь ссылкой считается импорт, полное имя вне строкового литерала и простое
+ * имя, разрешающееся в тип того же пакета.</p>
+ *
  * <p>Реестр shrink-only в обе стороны: рост поймает новый импорт подсистемы в дерево,
  * сокращение — состоявшийся срез, запись о котором надо снять сознательно, а не оставить
- * «висящую» цифру в документе.</p>
+ * «висящую» цифру в документе. Пустое множество — не «нет данных», а измеренный факт:
+ * подсистема готова стать артефактом.</p>
  */
 class PlatformSubsystemClosureTest {
 
@@ -59,6 +68,12 @@ class PlatformSubsystemClosureTest {
     private static final Pattern PACKAGE = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);
     private static final Pattern IMPORT = Pattern.compile(
         "^\\s*import\\s+(?:static\\s+)?(org\\.ipro\\.[\\w.]+)\\s*;", Pattern.MULTILINE);
+    /** Полное имя в теле: возвращаемый тип, вызов статики, ссылка через владельца. */
+    private static final Pattern FQN = Pattern.compile("\\borg\\.ipro\\.[A-Za-z0-9_.]+");
+    /** Простое имя типа: разрешается в тип того же пакета, что и ссылающийся файл. */
+    private static final Pattern SIMPLE_TYPE = Pattern.compile("\\b([A-Z][A-Za-z0-9_]*)\\b");
+    /** Строковые литералы из тела убираются: имя в строке — это не ссылка на тип. */
+    private static final Pattern STRING_LITERAL = Pattern.compile("\"(?:\\\\.|[^\"\\\\])*\"");
     private static final Pattern BLOCK_COMMENT = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
     private static final Pattern LINE_COMMENT = Pattern.compile("//[^\\n]*");
 
@@ -106,14 +121,14 @@ class PlatformSubsystemClosureTest {
             if (!seen.add(type)) {
                 continue;
             }
-            for (String imported : importsOf(tree.get(type))) {
-                if (tree.containsKey(imported)) {
-                    frontier.add(imported);
+            for (String reference : referencesOf(tree.get(type))) {
+                if (tree.containsKey(reference)) {
+                    frontier.add(reference);
                     continue;
                 }
-                // импорт вложенного типа (org.ipro.a.Outer.Inner) или статический импорт
-                // члена (org.ipro.a.Outer.MEMBER): владелец — предыдущий сегмент
-                String owner = imported.substring(0, imported.lastIndexOf('.'));
+                // ссылка на вложенный тип (org.ipro.a.Outer.Inner) или на член статики
+                // (org.ipro.a.Outer.MEMBER): владелец — предыдущий сегмент
+                String owner = reference.substring(0, reference.lastIndexOf('.'));
                 if (tree.containsKey(owner)) {
                     frontier.add(owner);
                 }
@@ -151,13 +166,34 @@ class PlatformSubsystemClosureTest {
         return types;
     }
 
-    private static List<String> importsOf(Path source) {
-        List<String> imports = new ArrayList<>();
-        Matcher matcher = IMPORT.matcher(withoutComments(read(source)));
-        while (matcher.find()) {
-            imports.add(matcher.group(1));
+    /**
+     * Типы, на которые ссылается файл: импорты, полные имена в теле (вне строковых литералов)
+     * и простые имена, разрешимые в тип своего пакета.
+     */
+    private static List<String> referencesOf(Path source) {
+        String text = withoutComments(read(source));
+        List<String> references = new ArrayList<>();
+
+        Matcher imports = IMPORT.matcher(text);
+        while (imports.find()) {
+            references.add(imports.group(1));
         }
-        return imports;
+
+        String body = STRING_LITERAL.matcher(text).replaceAll("\"\"");
+        Matcher fqns = FQN.matcher(body);
+        while (fqns.find()) {
+            references.add(fqns.group());
+        }
+
+        Matcher packageMatcher = PACKAGE.matcher(text);
+        if (packageMatcher.find()) {
+            String pkg = packageMatcher.group(1);
+            Matcher simpleTypes = SIMPLE_TYPE.matcher(body);
+            while (simpleTypes.find()) {
+                references.add(pkg + "." + simpleTypes.group(1));
+            }
+        }
+        return references;
     }
 
     /** Импорт без комментариев: упоминание {@code org.ipro...} в javadoc зависимостью не является. */
@@ -175,22 +211,46 @@ class PlatformSubsystemClosureTest {
 
     private static Map<String, Set<String>> reviewedReachBack() {
         Map<String, Set<String>> registry = new TreeMap<>();
-        registry.put("org.ipro.telemetry", Set.of("org.ipro.rls.RlsStatementGuard"));
-        registry.put("org.ipro.rls", new LinkedHashSet<>(List.of(
+
+        // Замыкание пусто: связи цикла вывернуты через нейтральные швы телеметрии
+        // (SqlStatementAudit, DeclaredNameSource), поэтому подсистема наблюдения может стать
+        // артефактом. Единственный артефакт с пустым замыканием — следующий срез.
+        registry.put("org.ipro.telemetry", Set.of());
+
+        registry.put("org.ipro.rls", Set.of(
             "org.ipro.crud.StandardCatalogEntity",
             "org.ipro.crud.StandardDocumentEntity",
             "org.ipro.crud.TableSectionService",
+            "org.ipro.fetch.instance.InstanceName",
+            "org.ipro.fetch.instance.InstanceNameBridge",
+            "org.ipro.fetch.instance.InstanceNameProvider",
+            "org.ipro.fetch.instance.InstanceNameResolver",
             "org.ipro.metadata.ColumnPath",
             "org.ipro.metadata.EntityMetadataInfo",
+            "org.ipro.metadata.FactOrigin",
+            "org.ipro.metadata.FieldMetadataInfo",
+            "org.ipro.metadata.FilterSpec",
+            "org.ipro.metadata.GridMetadata",
+            "org.ipro.metadata.GridViewState",
             "org.ipro.metadata.HasDisplayName",
+            "org.ipro.metadata.MetadataCache",
+            "org.ipro.metadata.MetadataDiagnostic",
+            "org.ipro.metadata.MetadataDiagnosticCodes",
             "org.ipro.metadata.MetadataResolver",
+            "org.ipro.metadata.RowMetadataInfo",
             "org.ipro.metadata.SectionMetadataRegistry",
             "org.ipro.metadata.TableSectionMetadataInfo",
+            "org.ipro.telemetry.api.AggregateStats",
             "org.ipro.telemetry.api.EventSink",
             "org.ipro.telemetry.api.EventType",
+            "org.ipro.telemetry.api.FieldChangeRecord",
+            "org.ipro.telemetry.api.SqlStatementAudit",
             "org.ipro.telemetry.api.TelemetryEvent",
-            "org.ipro.telemetry.core.SecurityEventLogger")));
-        registry.put("org.ipro.reportstudio", new LinkedHashSet<>(List.of(
+            "org.ipro.telemetry.core.PayloadJson",
+            "org.ipro.telemetry.core.SecurityEventLogger",
+            "org.ipro.telemetry.core.SqlStatementAuditBridge"));
+
+        registry.put("org.ipro.reportstudio", Set.of(
             "org.ipro.crud.BaseService",
             "org.ipro.crud.LookupService",
             "org.ipro.crud.ReferenceCheckService",
@@ -200,35 +260,91 @@ class PlatformSubsystemClosureTest {
             "org.ipro.crud.TableSectionService",
             "org.ipro.crud.ValidationException",
             "org.ipro.crud.jpa.ValidatedJpaCrudService",
+            "org.ipro.data.CanonicalEntityService",
             "org.ipro.data.CanonicalReadExecutor",
             "org.ipro.data.DetailRead",
+            "org.ipro.data.EntityCapabilities",
+            "org.ipro.data.EntityDataAccess",
+            "org.ipro.data.EntityDataAccessResolver",
+            "org.ipro.data.EntityDataPolicy",
+            "org.ipro.data.EntityDescriptor",
+            "org.ipro.data.EntityDescriptorCatalog",
             "org.ipro.data.ListRead",
             "org.ipro.data.LookupRead",
+            "org.ipro.data.PageRead",
+            "org.ipro.data.ReadTelemetry",
+            "org.ipro.data.ScenarioFetchGraphResolver",
+            "org.ipro.data.SearchContext",
+            "org.ipro.data.SearchFieldResolver",
+            "org.ipro.data.SearchRead",
+            "org.ipro.data.SearchTerms",
+            "org.ipro.fetch.ManagedEntityTypes",
+            "org.ipro.fetch.instance.InstanceName",
             "org.ipro.fetch.instance.InstanceNameBridge",
+            "org.ipro.fetch.instance.InstanceNameProvider",
             "org.ipro.fetch.instance.InstanceNameResolver",
+            "org.ipro.fetch.plan.FetchPlan",
+            "org.ipro.fetch.plan.FetchPlanRegistry",
             "org.ipro.form.EntityField",
+            "org.ipro.form.FieldRenderer",
+            "org.ipro.form.FilterGridMoreMenu",
+            "org.ipro.form.SearchFunction",
             "org.ipro.form.SelectionForm",
             "org.ipro.form.SelectionFormAssembler",
+            "org.ipro.form.SelectionFormFactory",
+            "org.ipro.form.SelectionGridCustomizer",
             "org.ipro.metadata.ColumnPath",
             "org.ipro.metadata.EntityMetadataInfo",
+            "org.ipro.metadata.FactOrigin",
+            "org.ipro.metadata.FetchGraphs",
             "org.ipro.metadata.FieldMetadataInfo",
+            "org.ipro.metadata.FilterSpec",
+            "org.ipro.metadata.GridMetadata",
+            "org.ipro.metadata.GridViewState",
             "org.ipro.metadata.HasDisplayName",
+            "org.ipro.metadata.InstanceNameSource",
+            "org.ipro.metadata.ManagedEntityCatalog",
+            "org.ipro.metadata.MetadataCache",
+            "org.ipro.metadata.MetadataDiagnostic",
+            "org.ipro.metadata.MetadataDiagnosticCodes",
             "org.ipro.metadata.MetadataResolver",
+            "org.ipro.metadata.RowMetadataInfo",
             "org.ipro.metadata.SectionMetadataRegistry",
             "org.ipro.metadata.TableSectionMetadataInfo",
+            "org.ipro.rls.AccessGrant",
+            "org.ipro.rls.AccessGrantChangeListener",
+            "org.ipro.rls.AccessGrantRepository",
+            "org.ipro.rls.AccessGrantVersion",
             "org.ipro.rls.AccessService",
             "org.ipro.rls.RlsAccessDeniedException",
+            "org.ipro.rls.RlsBypassAudit",
+            "org.ipro.rls.RlsBypassScope",
+            "org.ipro.rls.RlsCheckValue",
             "org.ipro.rls.RlsContext",
             "org.ipro.rls.RlsCurrentUser",
+            "org.ipro.rls.RlsDimension",
+            "org.ipro.rls.RlsDimensionKind",
             "org.ipro.rls.RlsDimensionRegistry",
+            "org.ipro.rls.RlsDimensionValue",
+            "org.ipro.rls.RlsDimensions",
             "org.ipro.rls.RlsFilterActivator",
+            "org.ipro.rls.RlsPolicyDescriptor",
             "org.ipro.rls.RlsPolicyEnforcer",
             "org.ipro.rls.RlsReadGate",
+            "org.ipro.rls.RlsReadableIdsCache",
+            "org.ipro.rls.RlsRoleResolver",
+            "org.ipro.rls.RlsStatementGuard",
+            "org.ipro.rls.RlsWriteAuthorization",
             "org.ipro.security.CurrentUser",
+            "org.ipro.telemetry.api.AggregateStats",
             "org.ipro.telemetry.api.EventSink",
             "org.ipro.telemetry.api.EventType",
+            "org.ipro.telemetry.api.FieldChangeRecord",
+            "org.ipro.telemetry.api.SqlStatementAudit",
             "org.ipro.telemetry.api.TelemetryEvent",
-            "org.ipro.telemetry.core.SecurityEventLogger")));
+            "org.ipro.telemetry.core.PayloadJson",
+            "org.ipro.telemetry.core.SecurityEventLogger"));
+
         return registry;
     }
 }
