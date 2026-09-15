@@ -88,4 +88,12 @@ mvn -o -f platform-contracts/pom.xml clean install    BUILD SUCCESS (модул�
 mvn -o compile (приложения, до install)               ожидаемый отказ: пакета нет на пути компиляции
 mvn -o verify                                         1320 тестов, 0 failures/errors/skipped
 random-order gate                                     1320 тестов, 0 failures/errors (seed 20260915)
+bootstrap-local-dependencies.ps1 -ValidateOnly         OK fingerprint: platform-contracts (13 файлов)
 ```
+
+Последняя строка — проверка записи в манифесте воркспейса их же алгоритмом: fingerprint
+модуля совпал, то есть на чистом checkout бутстрап собирает артефакт до приложения. Скрипт
+запускался с `-AllowToolchainDrift`/`-AllowSourceDrift`: локальный Maven в этой среде не тот,
+что зафиксирован в манифесте (`3.9.9`). Это ограничение среды прогона, а не манифеста —
+read-only режим `-ValidateOnly` проверяет манифест, раскладку воркспейса и fingerprints
+полностью, сборки не выполняет.
