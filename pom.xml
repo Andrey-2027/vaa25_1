@@ -26,6 +26,7 @@
         <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
         <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
         <platform-numbering.version>1.0-SNAPSHOT</platform-numbering.version>
+        <platform-settings.version>1.0-SNAPSHOT</platform-settings.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
         <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
@@ -143,6 +144,18 @@
             <groupId>org.ipro</groupId>
             <artifactId>platform-numbering</artifactId>
             <version>${platform-numbering.version}</version>
+        </dependency>
+
+        <!--
+          D2 → D3 (второй модуль-подсистема): константы целиком — маркеры, каталог значений
+          по умолчанию, сервис с сущностью и репозиторием, обратные ссылки для индекса
+          метаданных и своя авто-конфигурация. Приложение больше не перечисляет его пакеты
+          ни в @EntityScan, ни в хабе репозиториев.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-settings</artifactId>
+            <version>${platform-settings.version}</version>
         </dependency>
 
         <dependency>

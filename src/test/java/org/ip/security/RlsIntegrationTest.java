@@ -19,10 +19,12 @@ import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsPolicyDescriptor;
 import org.ipro.rls.RlsReadableIdsCache;
 import org.ipro.security.CurrentUser;
+import org.ipro.settings.config.SettingsAutoConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,6 +54,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DataJpaTest
 // org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
 @EnableJpaRepositories(basePackages = {"org.ipro.rls"})
+// Последний сценарий теста пишет org.ipro.settings.SettingValue: пакет принадлежит вынесенному
+// модулю, а @DataJpaTest отключает авто-конфигурации — без явного подключения сущность не
+// попадает в persistence unit среза (иначе это выясняется только в рантайме, на запросе).
+@ImportAutoConfiguration(SettingsAutoConfiguration.class)
 class RlsIntegrationTest {
 
     @Autowired

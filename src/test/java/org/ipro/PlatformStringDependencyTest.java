@@ -132,11 +132,12 @@ class PlatformStringDependencyTest {
         reviewed.put("src/main/java/org/ipro/rls/config/RlsAutoConfiguration.java",
             new Reviewed(Set.of(RLS_SCAN_PACKAGE), rlsScan));
 
-        reviewed.put("src/main/java/org/ipro/settings/SettingsRegistry.java",
-            new Reviewed(Set.of(SETTINGS_SCAN_PACKAGE), settingsScan));
-        reviewed.put("src/main/java/org/ipro/settings/SettingsReverseReferenceSource.java",
-            new Reviewed(Set.of(SETTINGS_SCAN_PACKAGE), settingsScan));
-        reviewed.put("src/main/java/org/ipro/settings/config/SettingsAutoConfiguration.java",
+        // Константы выехали в platform-settings целиком. Две записи сняты устранением связи:
+        // у каталога и у источника обратных ссылок @Value-конструктор был мёртв (оба всегда
+        // создаются авто-конфигурацией с явным значением), а сам литерал держал в артефакте
+        // имя прикладного пакета. Третья переехала в артефакт: параметр @Bean — загружаемый.
+        reviewed.put("platform-settings/src/main/java/org/ipro/settings/config/"
+            + "SettingsAutoConfiguration.java",
             new Reviewed(Set.of(SETTINGS_SCAN_PACKAGE), settingsScan));
 
         reviewed.put("src/main/java/org/ipro/telemetry/core/ExecutionTimeAspect.java",

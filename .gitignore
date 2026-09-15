@@ -74,6 +74,7 @@ node_modules/
 !platform-persistence/README.md
 !platform-metadata/README.md
 !platform-numbering/README.md
+!platform-settings/README.md
 
 ### Vaadin generated ###
 src/main/frontend/generated/

@@ -40,7 +40,8 @@ class PersistenceTypeRegistrationTest {
         Path.of("platform-contracts/src/main/java"),
         Path.of("platform-events/src/main/java"),
         Path.of("platform-persistence/src/main/java"),
-        Path.of("platform-numbering/src/main/java"));
+        Path.of("platform-numbering/src/main/java"),
+        Path.of("platform-settings/src/main/java"));
 
     /** Пакеты, которые обязаны быть объявлены в @EntityScan (reviewed). */
     private static final Set<String> REVIEWED_ENTITY_PACKAGES = Set.of(
@@ -64,6 +65,23 @@ class PersistenceTypeRegistrationTest {
         "org.ipro.telemetry.repository",
         "org.ipro.jr");
 
+    /**
+     * Артефакты, которые объявляют себе persistence-регистрацию (reviewed). Список
+     * выводится из объявлений, а не из имён каталогов: модуль без {@code @EntityScan} и
+     * {@code @EnableJpaRepositories} сюда не попадёт и в проверке срезов участвовать не будет.
+     */
+    private static final Set<String> REVIEWED_SELF_REGISTERING_MODULES = Set.of(
+        "platform-persistence", "platform-numbering", "platform-settings");
+
+    private static final Pattern SLICE = Pattern.compile("^\\s*@DataJpaTest\\b", Pattern.MULTILINE);
+    /**
+     * Строка импорта. Регистрация должна быть <b>использована</b>: лежащий без дела импорт
+     * ничего не подключает, поэтому при проверке ссылки импорты убираются.
+     */
+    private static final Pattern IMPORT = Pattern.compile("^\\s*import\\s+[^;]+;\\s*$", Pattern.MULTILINE);
+    private static final Pattern AUTO_CONFIGURATION = Pattern.compile(
+        "^\\s*@AutoConfiguration\\b", Pattern.MULTILINE);
+
     private static final Pattern ENTITY = Pattern.compile("^\\s*@Entity\\b", Pattern.MULTILINE);
     private static final Pattern REPOSITORY = Pattern.compile(
         "interface\\s+\\w+.*?extends\\s+[^{]*\\b(JpaRepository|CrudRepository|"
@@ -86,7 +104,7 @@ class PersistenceTypeRegistrationTest {
     void everyEntityIsCoveredByADeclaredEntityScanPackage() {
         Set<String> declared = new TreeSet<>();
         for (Path source : allSources()) {
-            declared.addAll(annotationPackages(source, "EntityScan"));
+            declared.addAll(annotationPackages(withoutComments(read(source)), "EntityScan"));
         }
 
         List<String> uncovered = new ArrayList<>();
@@ -114,7 +132,8 @@ class PersistenceTypeRegistrationTest {
     void everyRepositoryIsCoveredByADeclaredEnableJpaRepositoriesPackage() {
         Set<String> declared = new TreeSet<>();
         for (Path source : allSources()) {
-            declared.addAll(annotationPackages(source, "EnableJpaRepositories"));
+            declared.addAll(annotationPackages(withoutComments(read(source)),
+                "EnableJpaRepositories"));
         }
 
         List<String> uncovered = new ArrayList<>();
@@ -141,24 +160,47 @@ class PersistenceTypeRegistrationTest {
 
     /**
      * Срезы (`@DataJpaTest`) отключают авто-конфигурации, поэтому пакеты модуля в них надо
-     * подключать явно. Именно на этом сломался реальный прогон: срез перечислял
-     * `org.ipro.jr` в своём `@EnableJpaRepositories`, но сущность осталась без `@EntityScan`.
+     * подключать явно. Именно на этом сломался реальный прогон дважды: сначала срез перечислял
+     * `org.ipro.jr` в своём `@EnableJpaRepositories`, но сущность осталась без `@EntityScan`,
+     * потом то же повторилось с `org.ipro.settings`.
      *
-     * <p>Проверка ловит класс ошибки, а не конкретный файл: если тестовая конфигурация
-     * называет пакет вынесенного модуля, она обязана подключить и его регистрацию.</p>
+     * <p>Проверка ловит класс ошибки, а не конкретный файл, и не знает заранее ни одного
+     * имени: модули и их пакеты берутся из объявлений самих модулей, поэтому новый вынесенный
+     * модуль попадает под правило сам, без правки теста.</p>
      */
     @Test
     void sliceConfigurationsThatNameModulePackagesImportTheModuleRegistration() {
-        Path testRoot = Path.of("src/test/java");
+        List<ModuleRegistration> modules = moduleRegistrations();
+        assertThat(modules.stream().map(ModuleRegistration::artifact).sorted().toList())
+            .as("модули, объявляющие себе persistence-регистрацию, — reviewed: новый модуль с"
+                + " сущностями должен появиться здесь вместе со своим решением о регистрации")
+            .containsExactlyElementsOf(REVIEWED_SELF_REGISTERING_MODULES.stream().sorted().toList());
+
         List<String> problems = new ArrayList<>();
-        try (Stream<Path> files = Files.walk(testRoot)) {
+        try (Stream<Path> files = Files.walk(Path.of("src/test/java"))) {
             for (Path source : files.filter(path -> path.toString().endsWith(".java")).toList()) {
                 String text = withoutComments(read(source));
-                boolean namesModulePackage = List.of("\"org.ipro.jr\"", "\"org.ipro.jr.dom\"")
-                    .stream().anyMatch(text::contains);
-                if (namesModulePackage && !text.contains("PersistenceAutoConfiguration")) {
-                    problems.add(source + ": срез называет пакет platform-persistence,"
-                        + " но не подключает его регистрацию");
+                if (!SLICE.matcher(text).find()) {
+                    continue;
+                }
+                Set<String> literals = new TreeSet<>();
+                Matcher matcher = STRING_LITERAL.matcher(text);
+                while (matcher.find()) {
+                    literals.add(matcher.group(1));
+                }
+                for (ModuleRegistration module : modules) {
+                    String named = touchedPackage(module, text, literals);
+                    if (named == null) {
+                        continue;
+                    }
+                    String body = IMPORT.matcher(text).replaceAll(" ");
+                    boolean registrationUsed = module.configurations().stream()
+                        .anyMatch(body::contains);
+                    if (!registrationUsed) {
+                        problems.add(source + ": срез трогает " + named + " из "
+                            + module.artifact() + ", но не подключает его регистрацию ("
+                            + String.join(" / ", module.configurations()) + ")");
+                    }
                 }
             }
         } catch (IOException e) {
@@ -166,9 +208,90 @@ class PersistenceTypeRegistrationTest {
         }
 
         assertThat(problems)
-            .as("@DataJpaTest отключает авто-конфигурации: без явного импорта модуль теряет"
+            .as("@DataJpaTest отключает авто-конфигурации: без явного подключения модуль теряет"
                 + " свои @EntityScan/@EnableJpaRepositories, и сущность выпадает из persistence unit")
             .isEmpty();
+    }
+
+    @Test
+    void extractedSettingsTypesLiveInTheModuleAndNotInTheTree() {
+        assertThat(Path.of("src/main/java/org/ipro/settings/SettingValue.java")).doesNotExist();
+        assertThat(Path.of("src/main/java/org/ipro/settings/SettingsService.java")).doesNotExist();
+        assertThat(Path.of("platform-settings/src/main/java/org/ipro/settings/SettingValue.java"))
+            .exists();
+    }
+
+    /**
+     * Артефакт, объявивший себе persistence-регистрацию: его persistence-типы, их пакеты и
+     * классы-регистраторы.
+     *
+     * <p>Срез обязан подключать регистрацию тогда, когда он трогает persistence-типы модуля
+     * (сущности и Spring Data репозитории). Бин модуля сам по себе — не повод: срез вправе
+     * сконструировать его вручную или замокать (`CanonicalWritePathIT` мокает
+     * `NumberingService` и не нуждается ни в одной сущности нумерации).</p>
+     */
+    private record ModuleRegistration(String artifact, Set<String> packages, Set<String> types,
+                                      Set<String> configurations) {}
+
+    /**
+     * Модули выводятся из reviewed-списка {@link #SOURCE_ROOTS}: «модуль» — всё, что не дерево
+     * приложения. Пакет считается принадлежащим модулю, если модуль объявил его сам, а класс —
+     * регистратором, если он несёт {@code @AutoConfiguration}.
+     */
+    private static List<ModuleRegistration> moduleRegistrations() {
+        List<ModuleRegistration> modules = new ArrayList<>();
+        for (Path root : SOURCE_ROOTS) {
+            if (root.equals(Path.of("src/main/java"))) {
+                continue;
+            }
+            Set<String> declared = new TreeSet<>();
+            Set<String> packages = new TreeSet<>();
+            Set<String> types = new TreeSet<>();
+            Set<String> configurations = new TreeSet<>();
+            try (Stream<Path> files = Files.walk(root)) {
+                for (Path source : files.filter(path -> path.toString().endsWith(".java")).toList()) {
+                    String text = withoutComments(read(source));
+                    declared.addAll(annotationPackages(text, "EntityScan"));
+                    declared.addAll(annotationPackages(text, "EnableJpaRepositories"));
+                    if (isEntity(source) || isRepository(source)) {
+                        packages.add(packageOf(source));
+                        types.add(qualifiedName(source));
+                    }
+                    if (AUTO_CONFIGURATION.matcher(text).find()) {
+                        configurations.add(source.getFileName().toString().replace(".java", ""));
+                    }
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            if (!declared.isEmpty()) {
+                modules.add(new ModuleRegistration(root.getName(0).toString(), packages, types,
+                    configurations));
+            }
+        }
+        return modules;
+    }
+
+    /**
+     * Пакет модуля, который трогает срез: по полному имени persistence-типа (импорт или
+     * inline-ссылка) либо по строковому литералу пакета или его подпакета. Возвращает имя
+     * пакета или {@code null}, если срез ничего из этого модуля не трогает.
+     */
+    private static String touchedPackage(ModuleRegistration module, String text,
+                                         Set<String> literals) {
+        for (String type : module.types()) {
+            if (text.contains(type)) {
+                return type;
+            }
+        }
+        for (String pkg : module.packages()) {
+            boolean named = literals.stream()
+                .anyMatch(literal -> literal.equals(pkg) || literal.startsWith(pkg + "."));
+            if (named) {
+                return pkg;
+            }
+        }
+        return null;
     }
 
     @Test
@@ -196,20 +319,32 @@ class PersistenceTypeRegistrationTest {
     }
 
     private static String qualifiedName(Path source) {
+        return packageOf(source) + "." + typeName(source);
+    }
+
+    private static String packageOf(Path source) {
         Matcher packageMatcher = PACKAGE.matcher(read(source));
         if (!packageMatcher.find()) {
             throw new IllegalStateException("нет package: " + source);
         }
+        return packageMatcher.group(1);
+    }
+
+    private static String typeName(Path source) {
         Matcher typeMatcher = TYPE_NAME.matcher(read(source));
         if (!typeMatcher.find()) {
             throw new IllegalStateException("нет объявления типа: " + source);
         }
-        return packageMatcher.group(1) + "." + typeMatcher.group(1);
+        return typeMatcher.group(1);
     }
 
-    /** Пакеты, перечисленные в аннотации: поддерживаются строка и массив строк. */
-    private static List<String> annotationPackages(Path source, String annotation) {
-        String text = withoutComments(read(source));
+    /**
+     * Имена пакетов, перечисленные в аннотации: поддерживаются строка и массив строк. Из
+     * параметров аннотации берутся только литералы, похожие на имя пакета, — иначе служебные
+     * значения вроде {@code entityManagerFactoryRef = "entityManagerFactory"} попали бы в
+     * reviewed-список.
+     */
+    private static List<String> annotationPackages(String text, String annotation) {
         List<String> packages = new ArrayList<>();
         Matcher matcher = ANNOTATION.matcher(text);
         while (matcher.find()) {
@@ -236,7 +371,9 @@ class PersistenceTypeRegistrationTest {
             }
             Matcher literals = STRING_LITERAL.matcher(text.substring(open, index));
             while (literals.find()) {
-                packages.add(literals.group(1));
+                if (literals.group(1).startsWith("org.")) {
+                    packages.add(literals.group(1));
+                }
             }
         }
         return packages;

@@ -4,9 +4,10 @@ import org.ipro.settings.fixture.FixtureTypedSettings;
 import org.ipro.settings.fixture.FixtureTypedSettings.TestMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.ipro.settings.config.SettingsAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.math.BigDecimal;
@@ -23,9 +24,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * FieldType, секреты, fail-fast по каталогу.
  */
 @DataJpaTest
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе).
+// Пакет org.ipro.settings из среза больше не перечисляется: он принадлежит вынесенному модулю,
+// а @DataJpaTest отключает авто-конфигурации — поэтому регистрация модуля подключается явно.
+@ImportAutoConfiguration(SettingsAutoConfiguration.class)
 @ContextConfiguration(classes = org.ip.Application.class)
-// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
-@EnableJpaRepositories(basePackages = {"org.ipro.settings"})
 class SettingsServiceSliceIT {
 
     @Autowired

@@ -5,7 +5,6 @@ import org.ipro.metadata.annotation.Subsystem;
 import org.ipro.settings.setting.Setting;
 import org.ipro.settings.setting.SettingsGroup;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
@@ -48,7 +47,12 @@ public class SettingsRegistry implements InitializingBean {
     private final String basePackage;
     private Map<Class<?>, GroupInfo> groups = Map.of();
 
-    public SettingsRegistry(@Value("${settings.scan-package:org.ip.settings}") String basePackage) {
+    /**
+     * Реестр строится явно: пакет сканирования передаёт авто-конфигурация подсистемы из
+     * конфигурации приложения. Собственного {@code @Value} здесь нет — он подменял бы
+     * переданный аргумент и держал бы в артефакте имя прикладного пакета строкой.
+     */
+    public SettingsRegistry(String basePackage) {
         this.basePackage = basePackage;
     }
 

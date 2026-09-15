@@ -175,10 +175,6 @@ class PlatformSubsystemClosureTest {
 
     private static Map<String, Set<String>> reviewedReachBack() {
         Map<String, Set<String>> registry = new TreeMap<>();
-        // Метаданные-позвоночник (сканер и индекс ссылок) выехал в platform-metadata,
-        // после чего обе подсистемы больше не тянули дерево. `numbering` уже выехала
-        // целиком и из реестра снята; `settings` ждёт своей очереди.
-        registry.put("org.ipro.settings", Set.of());
         registry.put("org.ipro.telemetry", Set.of("org.ipro.rls.RlsStatementGuard"));
         registry.put("org.ipro.rls", new LinkedHashSet<>(List.of(
             "org.ipro.crud.StandardCatalogEntity",

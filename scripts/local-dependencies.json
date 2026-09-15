@@ -163,6 +163,38 @@
       ]
     },
     {
+      "id": "platform-settings",
+      "relativePath": "platform-settings",
+      "dependsOn": [
+        "platform-contracts",
+        "platform-metadata",
+        "platform-persistence"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 → D3 second subsystem module: the whole settings subsystem (markers @Setting/@SettingsGroup, the code-defaults catalog, service, its entity and repository, the reverse-reference source for platform-metadata, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Its value is not the extraction but the defect class it exposed: two @DataJpaTest slices imitated the module registration instead of importing it, which no test of the module itself could catch."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "cc8982d1c704fcf4d5e471e8aa7cf017afefef313bc946d812515f417c05f0ba",
+        "fileCount": 10,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-settings:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
       "id": "dynamicreports",
       "relativePath": "../DynamicReport7",
       "dependsOn": [],

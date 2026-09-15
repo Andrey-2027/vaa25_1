@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-settings</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform settings</name>
+    <description>
+        D2 → D3: подсистема констант целиком — маркеры (@Setting/@SettingsGroup), каталог
+        значений по умолчанию, сервис с его сущностью и репозиторием и обратные ссылки
+        «настройка → сущность» для platform-metadata. Второй модуль-подсистема после
+        нумерации: замыкание на дерево было 2 типа и обнулилось вместе с выносом
+        позвоночника метаданных, поэтому срез проверяет уже не новое свойство механизма,
+        а воспроизводимость приёма на подсистеме с сущностью и ссылками на метаданные.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
+        <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
+        <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
+    </properties>
+
+    <!--
+      Разрешённые зависимости — reviewed, проверяются PlatformSettingsModuleTest:
+
+      1. platform-persistence — база сущностей (SettingValue);
+      2. platform-metadata — ReferenceIndex.ReverseReferenceSource (подсистема отдаёт ссылки
+         в индекс; направление settings → metadata зафиксировано в javadoc самого интерфейса)
+         и скан классов по аннотации;
+      3. platform-contracts — аннотации метаданных (@FieldType, @Subsystem);
+      4. JPA API, Spring Data JPA и автоконфигурация Boot.
+
+      Реализации верхних слоёв (data path, form, rls, telemetry, UI) запрещены: каталог
+      констант читают формы и админ-вкладки, поэтому он лежит ниже их.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-contracts</artifactId>
+            <version>${platform-contracts.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-metadata</artifactId>
+            <version>${platform-metadata.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-persistence</artifactId>
+            <version>${platform-persistence.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- @EntityScan в Boot 4 живёт в отдельном модуле, а не в autoconfigure. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-persistence</artifactId>
+        </dependency>
+    </dependencies>
+</project>

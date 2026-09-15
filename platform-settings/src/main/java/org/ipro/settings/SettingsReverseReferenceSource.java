@@ -6,7 +6,6 @@ import org.ipro.metadata.annotation.FieldType;
 import org.ipro.settings.setting.Setting;
 import org.ipro.settings.setting.SettingsGroup;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -26,8 +25,8 @@ public class SettingsReverseReferenceSource implements ReferenceIndex.ReverseRef
     private final String basePackage;
     private List<ReferenceIndex.ReverseReference> references = List.of();
 
-    public SettingsReverseReferenceSource(
-            @Value("${settings.scan-package:org.ip.settings}") String basePackage) {
+    /** Пакет сканирования передаёт авто-конфигурация подсистемы; своего default здесь нет. */
+    public SettingsReverseReferenceSource(String basePackage) {
         this.basePackage = basePackage;
     }
 
