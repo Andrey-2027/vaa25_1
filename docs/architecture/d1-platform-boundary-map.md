@@ -20,12 +20,13 @@ D1 не рефакторит платформу и ничего не перен�
 | Что | Число |
 |---|---|
 | Прикладной код (`org.ip`, src/main) | 161 файл |
-| Платформенный код в репозитории (`org.ipro`, src/main) | 469 файлов на момент D1 → **412 после срезов D2 и моста D2 → D3** |
+| Платформенный код в репозитории (`org.ipro`, src/main) | 469 файлов на момент D1 → **404 после срезов D2 и моста D2 → D3** |
 | Платформенные артефакты **вне** репозитория (5 штук) | 69 типов |
 | Типы платформы, которые называет приложение | **194** (перенос типов периметр не меняет) |
-| — из них осталось в дереве репозитория | 149 |
+| — из них осталось в дереве репозитория | 143 |
 | — из них в артефакте `platform-contracts` | 21 (из 34 типов срезов) |
 | — из них в артефакте `platform-numbering` | 7 (подсистема вынесена целиком, срез 6) |
+| — из них в артефакте `platform-settings` | 6 (подсистема вынесена целиком, срез 7) |
 | — из них в артефакте `platform-persistence` | 2 (`BaseEntity` и `JrxmlTemplate`) |
 | — из них в прочих внешних артефактах (`crudui-core`, `filtergrid-*`) | 15 |
 | — из них в `platform-events` / `platform-metadata` | 0: их типы называет платформенный слой внутри приложения, а не `org.ip` |
@@ -36,8 +37,8 @@ D1 не рефакторит платформу и ничего не перен�
 
 Строки «в артефакте контрактов» и «в прочих внешних артефактах» считаются по каждому
 названному приложением FQN (включая вложенные типы и подключевые пакеты, например
-`org.ipro.filtergrid.filter.*`): 21 (контракты) + 7 (нумерация) + 2 (persistence) + 15 (прочие
-внешние) = 45 из 194. Значение D1 «уже лежат во внешних
+`org.ipro.filtergrid.filter.*`): 21 (контракты) + 7 (нумерация) + 6 (константы) + 2 (persistence)
++ 15 (прочие внешние) = 51 из 194. Значение D1 «уже лежат во внешних
 артефактах — 8» считалось грубее (только совпадение с корневым пакетом артефакта) и было
 заниженным; актуальные числа воспроизводимы по скрипту ниже.
 
@@ -56,8 +57,11 @@ while read -r t; do p=$(echo "$t" | tr '.' '/');
   if   [ -f "src/main/java/$p.java" ];                          then echo "tree      $t"
   elif [ -f "platform-contracts/src/main/java/$p.java" ];        then echo "contracts $t"
   elif [ -f "platform-numbering/src/main/java/$p.java" ];         then echo "numbering $t"
+  elif [ -f "platform-settings/src/main/java/$p.java" ];          then echo "settings  $t"
   elif [ -f "platform-persistence/src/main/java/$p.java" ];       then echo "persistence $t"
   else echo "external  $t"; fi
+# вложенные типы (FQN длиннее имени файла) относятся к тому артефакту, где лежит их
+# внешний класс: перебор укорачивается до первого существующего файла
 done < <(grep -rhoE '^import org\.ipro\.[A-Za-z0-9_.]+;' src/main/java/org/ip --include=*.java \
           | sed 's/import //;s/;//' | sort -u)
 ```
@@ -71,7 +75,7 @@ done < <(grep -rhoE '^import org\.ipro\.[A-Za-z0-9_.]+;' src/main/java/org/ip --
 
 | Владелец | Что | Как задаётся |
 |---|---|---|
-| Репозиторий (this checkout) | 15 пакетов, 412 файлов (после срезов D2 и моста D2 → D3) | `src/main/java/org/ipro` |
+| Репозиторий (this checkout) | 15 пакетов, 404 файла (после срезов D2 и моста D2 → D3) | `src/main/java/org/ipro` |
 | Собственные артефакты платформы, собранные из этого же checkout | `org.ipro:platform-contracts` (34 типа), `org.ipro:platform-events` (3 типа), `org.ipro:platform-persistence` (4 типа), `org.ipro:platform-metadata` (2 типа), `org.ipro:platform-numbering` (17 типов) | `platform-*/`, манифест |
 | Внешние артефакты `org.ipro:filtergrid-*` | `filtergrid.jpa`, `filtergrid.grouping`, `filtergrid.inmemory`, `filtergrid.projection` | pom, `filtergrid.version` |
 | Внешний артефакт `org.ipro.crudui:crudui-core` | `org.ipro.crud` (12 типов) + Vaadin-база CRUD | pom, `crudui.version` |
