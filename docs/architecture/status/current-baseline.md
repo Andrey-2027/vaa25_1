@@ -1,9 +1,10 @@
 # Текущий engineering baseline
 
-- Дата общего baseline: 2026-09-13; адресная проверка C4.3/C4.4: 2026-09-14
+- Дата общего baseline: 2026-09-13; адресная проверка C4.3/C4.4: 2026-09-14; D2 (два среза): 2026-09-15
 - Ветка: `main`
 - Baseline commit/tag: `3793165` / `c4.8-d1-baseline` — заморозка C4.0–C4.8 и D1 перед первым extraction slice (D2)
 - Рабочее дерево: чистое на момент заморозки; изменения этапов A0–A4, B3–B4, C1–C4.8 и D1 вошли в baseline commit
+- Текущий срез: D2 (срез 1 `16068ae`/`01f4310`, срезы 2–4 — изменения в рабочем дереве на этом checkout)
 
 > Разделы ниже сохраняют формулировки того среза, в котором были написаны. Если срез
 > помечен как исторический (C4.1–C4.7), его «в работе»/«pending»-формулировки описывают
@@ -25,7 +26,7 @@
 | C3 FetchPlan + InstanceName | C3.0–C3.7 реализованы; адресные проверки C3.7 выполняются | Периметр C3.0; `@InstanceName` + резолвер (пилот `ReceivingDocument`, `Nomenclature`); `FetchPlanRegistry` со сценариями `LIST`/`DETAIL`/`LOOKUP`/`ROW` и декларацией `@Lookup(fetch)`; read-path выбирает сценарий внутри сервиса, явные пути расширяют план; `ItemTable` использует один section reload через `ROW`; `DETAIL`/`LIST` независимы, планы детерминированы. C3.7 включает раннюю write-авторизацию и единый lifecycle-managed `InstanceNameProvider`. Широкое распространение `@InstanceName` на остальные сущности остаётся отдельной миграцией |
 | C RLS enforcement | C1 завершён; реализация C2 согласованного scope выполнена, широкая проверка ещё не зелёная | `DAC-13`, `DAC-17` и `DAC-19` закрыты; checked duplication закреплён как конечное решение; detection-only production guard принят и вынесен в `A4-PREPROD-RLS-GUARD`; целевой набор C2 (53 теста) и random-order gate (156 тестов) зелёные. Полный random `verify` пока даёт ошибки жизненного цикла Spring test context в `AttributeValueServiceTest`/`AttributeTypeServiceTest`; `VisualQuerySubqueryIT` исключён по решению владельца и разбирается отдельно |
 | C4 Data-access facade | C4.0–C4.8 закрыты | Таксономия всех 37 persistence types, классификация service/repository/base слоя, baseline и пилоты зафиксированы в `c4-inventory.md`; решения — в `ADR-0007`. C4.1: единый canonical read executor, descriptor/capability catalog и правило `plan ∪ extras -> deepen once`; `AbstractBaseService`, `LookupService` и global search используют одну границу; row cancel без per-reference reads. C4.1 hardening: capability enforcement fail-closed, LOOKUP для lookup по id, SQL-bound lookup, paging count parity, `deepen once`. C4.2: tri-state `RequiredMode`, вывод `type`/`reference`/server-nullability/UI-required с `FactOrigin`, eager startup-валидация и `MetadataAllowance`; пилотная зачистка дублей сохранила effective values без diff. C4.2 hardening: snapshot-ресурсы в поставке, таблица совместимости Java-типа и `FieldType`, вывод server-required из JPA, дедупликация типов, негативный startup-тест и whitelist warning-кодов; global search получил capability-грань источника. C4.3 core: `EntityDataAccess`, единый `CanonicalWriteExecutor`, type-directed resolver, generic `CanonicalEntityService` и исполняемые запреты; `ValidatedJpaCrudService` ограничен internal-store. C4.3 hardening: intent задаёт точную JPA-операцию; UPDATE требует существующую доступную исходную строку и авторизует исходное и целевое состояния до валидации/hooks; `GridFormView` canonical handle ограничен `CREATE`. Полный порядок pipeline и ранний отказ покрыты тестами. Формальное закрытие C4.3 ожидало write-telemetry, первый production-каталог на canonical write path и form → write → audit acceptance; write-telemetry-seam заведён в C4.8 (остальное перенесено туда же). C4.4: canonical search builder и согласованные overloads на всех 16 стандартных корнях, literal escaping, deterministic ordering и bounded paging. C4.5: модульное участие через `@GlobalSearchable`, canonical secured query без count, удаление central config и Spring wiring; целевые тесты зелёные. C4.6 (закрыт): заборы миграции и aggregate-boundary guard, волна A (`Branch`/`Journal`/`Oper`/`Role`), волна B (`GroupNom`/`Nomenclature`/`ReceivingDocument`), волна C (`Workshop`/`UnitOfMeasurement` + снятый дубль `GridFormView`, `BaseService.sum` на canonical-поверхности). ADR-0008/ADX-13: интернированные сущности получили один механизм `NaturalKeyCreateSupport` вместо двух копий retry. Волна D: `ReceivingDocument` и report stores. Волна E: `AttributeType`/`AttributeValue`/`NomSklAttribute`/`SklNomOpa`/`User`/`PrdSpec` — домен остался, CRUD делегирован canonical handle, правила переехали в `EntityLifecycle`. Волна F: `GridFormView` — ownership в lifecycle, сужение handle снято; `UreportTemplate` — internal-store adapter, read-мост снят. C4.7: `AbstractBaseService` удалён, `serviceClass` удалён, резолв по имени бина заменён type-directed реестром. C4.8 (закрыт): write-telemetry с двухфазным исходом (pipeline → коммит), typed-классификация отказов, fail-closed глобальный поиск, отказ to-many-сортировки вместо distinct-эмуляции, точные наборы литералов в реестре строковых связок. Полный `mvn verify` — 1316/0/0, random-order gate — 1316/0/0 (seed `20260915`) |
-| D Physical modularity | D1 выполнен (карта и игровые правила); D2 выполнен (первый extraction slice); D3+ не начат | Проект остаётся одним Maven-модулем `Vaa25_1`, но платформа частично уже опубликована как внешние артефакты (`org.ipro:filtergrid-*`, `org.ipro.crudui:crudui-core`). D1 (`docs/architecture/d1-platform-boundary-map.md`): классификация API/SPI/internal, исполняемые правила направлений (`PlatformDependencyDirectionTest`, 8 правил) и shrink-only реестр строковых связок (`PlatformStringDependencyTest`). Результат D1 по строкам сформулирован точно: связки **выявлены, зарегистрированы по точным наборам литералов и запрещены к расширению**, а их снятие (13 файлов, 16 литералов) отнесено к D3. D2 (`docs/architecture/d2-contracts-extraction.md`): пакет `org.ipro.metadata.annotation` (12 типов) вынесен в отдельный артефакт `org.ipro:platform-contracts:1.0-SNAPSHOT` и потребляется приложением как зависимость; граница доказана негативно (без артефакта приложение не компилируется) и держится тестом `PlatformContractsModuleTest`; ни одной новой обязательной регистрации в приложении не появилось. Гейты после D2: `mvn verify` — 1320/0/0, random-order — 1320/0/0 (seed `20260915`) |
+| D Physical modularity | D1 выполнен (карта и игровые правила); D2 выполнен (четыре extraction slice); D3+ не начат | Проект остаётся одним Maven-модулем `Vaa25_1`, но платформа частично уже опубликована как внешние артефакты (`org.ipro:filtergrid-*`, `org.ipro.crudui:crudui-core`). D1 (`docs/architecture/d1-platform-boundary-map.md`): классификация API/SPI/internal, исполняемые правила направлений (`PlatformDependencyDirectionTest`, 8 правил) и shrink-only реестр строковых связок (`PlatformStringDependencyTest`). Результат D1 по строкам сформулирован точно: связки **выявлены, зарегистрированы по точным наборам литералов и запрещены к расширению**, а их снятие (13 файлов, 16 литералов) отнесено к D3. D2 (`docs/architecture/d2-contracts-extraction.md`): тремя срезами вынесены два артефакта. Контракты (`org.ipro:platform-contracts:1.0-SNAPSHOT`, **34 типа**): декларации метаданных (12) и event/lifecycle SPI с нейтральными identifiers (22). Runtime (`org.ipro:platform-events:1.0-SNAPSHOT`, **3 типа**): publisher, fail-fast registry и своя авто-конфигурация — первый срез с бинами и первая связка платформа→платформа (`dependsOn: platform-contracts`). Persistence (`org.ipro:platform-persistence:1.0-SNAPSHOT`, **4 типа**): сущность, Spring Data репозиторий, `BaseEntity` и своя регистрация в persistence unit и Spring Data (`dependsOn: crudui`). Риск §3.5 карты D1 (потеря entity/репозиториев при выносе) закрыт: модуль объявляет свои пакеты сам, две декларации `@EnableJpaRepositories` не перекрываются (проверено контекстом), а потеря регистрации в этой конфигурации падает громко (проверено двумя экспериментами). Граница доказана негативно на обоих артефактах (без них приложение не компилируется), владение проверено по байткоду, состав и зависимости — reviewed-списками в тестах; реестр авто-конфигураций проверяется по всем артефактам сразу (каждая зарегистрирована ровно один раз и именно своим артефактом). Ни одной новой обязательной регистрации в приложении: запись `EventsAutoConfiguration` убрана из imports-файла приложения, модуль несёт свой. Потеря контура больше не тихая: без саморегистрации модуля старт падает (проверено экспериментом), а диагностика названа `EventContourStartupCheck`. Гейты после D2: `mvn verify` — 1346/0/0, random-order — 1346/0/0 (seed `20260915`) |
 
 ## Quality gate
 
@@ -1339,6 +1340,94 @@ D1 и зафиксирован в `d1-platform-boundary-map.md`.
   (blank/литеральный `%`: bounded page + count, не вся таблица) и `DetachedRenderCostIT`
   (рендер отсоединённого list/detail — ноль запросов и загрузок). Cancel/restore owned-строки
   по-прежнему закреплён `PrdSpecRowCancelAcceptanceTest`.
+
+## D2: extraction slices (контракты + runtime + persistence, закрыто)
+
+Артефакт: `docs/architecture/d2-contracts-extraction.md`. Срез 1 (`16068ae`) вынес 12 типов
+`org.ipro.metadata.annotation`; срез 2 добавил 22 типа — event/lifecycle SPI (`EntityLifecycle`
+и пять контекстов, `EventContext`, `EventSource`, семейство `Entity*Event`, `AggregateSection`)
+и нейтральные identifiers/декларации (`DataOperation`, `EntityExposure`, `SearchFields`,
+`EntityExposureOverride`, `EntityCapabilityOverride`, `FetchScenario`). Срез 3 вынес
+runtime-контур в отдельный артефакт `org.ipro:platform-events:1.0-SNAPSHOT`
+(`EntityEventPublisher`, `EntityLifecycleRegistry`, `EventsAutoConfiguration`) — первый срез
+с бинами и первая связка платформа→платформа (`dependsOn: platform-contracts`). Срез 4 вынес
+persistence-капсулу в `org.ipro:platform-persistence:1.0-SNAPSHOT` (`JrxmlTemplate`,
+`JrxmlTemplateRepository`, `org.ipro.crud.BaseEntity`, `PersistenceAutoConfiguration` со своими
+`@EntityScan`/`@EnableJpaRepositories`; `dependsOn: crudui`).
+
+Свойства, которые срез доказал, а не заявил:
+
+- **граница держится сборкой**: без установленного артефакта `mvn compile` приложения падает —
+  проверено на обоих артефактах (`javac` без `platform-contracts` и без `platform-events`);
+- **владение классами, а не файлами**: перенесённых классов нет ни в исходниках, ни в
+  `target/classes` — они приходят из `platform-contracts`/`platform-events` jar, и
+  `EventContourWiringIT` проверяет это по `CodeSource` загруженного класса;
+- **политика зависимостей модулей стала reviewed**: у контрактов две объявленные зависимости
+  (внешний `slf4j-api` и нейтральный identifier из `crudui-core`, где Vaadin — `provided`),
+  у runtime — контракты плюс API фреймворка; любая новая ломает тест, а не проходит незаметно;
+- **состав срезов — reviewed-бюджет** (34 типа контрактов + 3 типа runtime), и **список
+  разделённых пакетов перечислен явно** (`org.ipro.data`, `org.ipro.fetch.plan` — он
+  сократился с четырёх: `events` и `lifecycle` ушли целиком);
+- **ни одной новой обязательной регистрации** в приложении: запись `EventsAutoConfiguration`
+  убрана из imports-файла приложения (там 14 строк), модуль несёт свой; **реестр
+  авто-конфигураций проверяется по всем артефактам сразу** — каждая ровно один раз и именно
+  своим артефактом;
+- **потеря контура не тихая.** Эксперимент: `clean install` модуля без его imports-файла →
+  старт приложения падает (`No qualifying bean of type EntityEventPublisher`); первый прогон
+  дал ложный «зелёный», потому что `install` без `clean` оставил в jar удалённый ресурс —
+  модули надо переустанавливать с `clean`. Остаточная тихая ветка (write executor берёт контур
+  через `getIfAvailable()`) закрыта `EventContourStartupCheck`: старт падает, если handlers
+  объявлены без registry, или registry есть без publisher. Частичный контекст без handlers
+  проходит молча — иначе проверка сломала бы slice-тесты.
+- **обнаружение handlers не теряется при выносе**: `EventContourWiringIT` сверяет registry со
+  всеми `EntityLifecycle`-бинами контекста (сейчас семь).
+- **риск §3.5 карты D1 закрыт, и гипотеза оказалась неверной.** «Потеря репозиториев» — не
+  молчаливая: (а) без саморегистрации модуля старт падает (`No qualifying bean of type
+  JrxmlTemplateRepository`); (б) без `@EntityScan` — `Not a managed type`. Обе громкости —
+  свойство конкретной конфигурации (репозиторий требуется другому бину и создаётся сразу),
+  поэтому рядом стоит детерминированный реестр объявлений: `PersistenceTypeRegistrationTest`
+  требует, чтобы каждый `@Entity` попадал в объявленный `@EntityScan`-пакет, а каждый
+  `JpaRepository` — в объявленный `@EnableJpaRepositories`-пакет.
+- **предположение «вторая `@EnableJpaRepositories` перекрывает первую» оказалось ложным.**
+  Прежний javadoc хаба предупреждал об обратном; срез проверил кодом: после выноса
+  `org.ipro.jr` из хаба работают три независимые декларации, и `PersistenceRegistrationIT`
+  требует наличия репозитория из каждого объявленного пакета. Значит модуль может объявлять
+  свои репозитории сам — это и есть механизм, которым D3 будет выносить persistence-подсистемы.
+- **entity не выносится без своей базы.** Модуль не компилировался, пока `BaseEntity`
+  оставался в дереве приложения: 44 файла зависят от него, включая прикладные сущности
+  `org.ip.model.*`. Следствие — `org.ipro.crud` теперь делят три артефакта (дерево,
+  `crudui-core`, `platform-persistence`); устранение этой тройственности требует владельца
+  `crudui` и отнесено к D3.
+- **срез тестов, а не только код.** `@DataJpaTest` отключает авто-конфигурации, поэтому
+  `JrxmlExecutionIT` — срез с явным `@EnableJpaRepositories` — упал на полном прогоне
+  (`Not a managed type`), пока в него не добавили явное подключение регистрации модуля.
+  Чтобы этот класс ошибки не вернулся молча, реестр проверяет: если тестовая конфигурация
+  называет пакет вынесенного модуля, она обязана подключить и его регистрацию.
+
+Побочно удалены 13 файлов «мёртвых копий» `filtergrid-core/-grouping/-inmemory/-projection`
+без `pom.xml`: они не компилировались ни в одной сборке, и публичная поверхность платформы
+не уменьшилась ни на один живой тип. Держатели проверены до удаления (ни ссылок из `pom.xml`
+и скриптов, ни манифестных записей: пути в `local-dependencies.json` относятся к внешнему
+`../FilterGrid`); каталоги больше не создают ложного впечатления, что часть платформы лежит
+в этом репозитории.
+
+Проверка (JDK 21, offline):
+
+```text
+mvn -o -f platform-contracts/pom.xml clean install      BUILD SUCCESS (34 типа)
+mvn -o -f platform-events/pom.xml clean install         BUILD SUCCESS (3 типа)
+mvn -o -f platform-persistence/pom.xml clean install    BUILD SUCCESS (4 типа)
+mvn -o clean verify                                     1346 тестов, 0 failures/errors/skipped
+random-order gate                                       1346 тестов, 0 failures/errors (seed 20260915)
+bootstrap -ValidateOnly                                 OK fingerprint: platform-contracts (35 файлов),
+                                                        OK fingerprint: platform-events (5 файлов),
+                                                        OK fingerprint: platform-persistence (6 файлов)
+```
+
+Открытое наблюдение по воркспейсу: у двух внешних соседних проектов (`../DynamicReport7`,
+`../ureport3`) скрипт видит расхождение fingerprint с манифестом. Каталоги вне этого
+репозитория и этой работой не менялись — расхождение зафиксировано, но их fingerprint не
+обновлялся: это чужое решение.
 
 ## Неошибочные и блокирующие диагностики
 

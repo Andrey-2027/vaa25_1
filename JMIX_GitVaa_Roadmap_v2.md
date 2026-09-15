@@ -1000,16 +1000,43 @@ lookup-запросом; этот restore-path входит в cost gate C4.
   11 аннотаций + 18 SPI + value types; первый срез обязан **не** переносить остальные
   ~165 (иначе публичная граница модуля копируется как есть).
 
-### D2. Первый extraction slice — ✅ 2026-09-15 (первый срез)
+### D2. Extraction slices — ✅ 2026-09-15 (четыре среза)
 
 Артефакт: [`docs/architecture/d2-contracts-extraction.md`](docs/architecture/d2-contracts-extraction.md).
-Первый срез: пакет `org.ipro.metadata.annotation` (12 типов, 527 строк) вынесен в отдельный
+Срез 1: пакет `org.ipro.metadata.annotation` (12 типов, 527 строк) вынесен в отдельный
 Maven-проект `platform-contracts` (`org.ipro:platform-contracts:1.0-SNAPSHOT`), приложение
 получает его как зависимость; пакеты сохранены, поэтому правок в коде не потребовалось.
-Проверено негативно: без установленного артефакта `mvn compile` приложения падает — граница
-держки сборкой, а не договорённостью. Ни одной новой обязательной регистрации в приложении
-не добавлено, модуль зарегистрирован в манифесте воркспейса с fingerprint'ом.
-Гейты: `mvn verify` — 1320/0/0, random-order — 1320/0/0 (seed `20260915`).
+Срез 2: event/lifecycle SPI и нейтральные identifiers — `EntityLifecycle` и его контексты,
+контракты событий, `EventContext`, `DataOperation`, `FetchScenario`, `SearchFields` и
+overrides (22 типа). Всего в артефакте 34 типа; у контрактов появились ровно две объявленные
+зависимости (внешний `slf4j-api` и нейтральный identifier из `crudui-core`, где Vaadin —
+`provided`), а их состав и набор зависимостей стали reviewed-списками в тесте.
+Срез 3: первый срез с бинами — runtime-контур событий (`EntityEventPublisher`,
+`EntityLifecycleRegistry`, `EventsAutoConfiguration`) вынесен в отдельный артефакт
+`platform-events`, который зависит на `platform-contracts` (первая связка платформа→платформа)
+и регистрирует себя собственным imports-файлом: запись убрана из приложения, то есть
+обязательных registrations в application не прибавилось.
+Срез 4: persistence-капсула (`JrxmlTemplate`, `JrxmlTemplateRepository`,
+`org.ipro.crud.BaseEntity` и `PersistenceAutoConfiguration` со своими `@EntityScan` и
+`@EnableJpaRepositories`) вынесена в `platform-persistence` (`dependsOn: crudui`) — это ответ
+на риск §3.5 карты D1. Приложение больше не перечисляет пакеты модуля ни в `@EntityScan`,
+ни в центральном хабе репозиториев.
+
+Проверено негативно: без любого из артефактов `javac` приложения падает — граница держится
+сборкой, а не договорённостью; перенесённых классов нет ни в исходниках, ни в байткоде
+приложения, а `EventContourWiringIT` проверяет происхождение класса по `CodeSource` и то, что
+registry знает все объявленные приложением handlers. Потеря контура перестала быть тихой:
+эксперимент с модулем без саморегистрации роняет старт, а остаточная ветка (write path берёт
+контур через `getIfAvailable()`) закрыта `EventContourStartupCheck` с названной причиной.
+Потеря persistence-регистрации тоже громкая (два эксперимента: без саморегистрации —
+`No qualifying bean JrxmlTemplateRepository`; без `@EntityScan` — `Not a managed type`), но
+громкость здесь — свойство конфигурации, поэтому рядом стоит детерминированный реестр:
+`PersistenceTypeRegistrationTest` сверяет покрытие типов объявлениями, а
+`PersistenceRegistrationIT` — что ни одна из трёх деклараций `@EnableJpaRepositories` не
+перекрыла остальные. Ложная гипотеза «вторая декларация перекрывает первую» опровергнута
+кодом — модуль может объявлять свои репозитории сам, без участия приложения.
+Побочно удалены 13 файлов «мёртвых копий» `filtergrid-*` без `pom.xml` (не участвовали ни в
+одной сборке). Гейты: `mvn verify` — 1346/0/0, random-order — 1346/0/0 (seed `20260915`).
 
 Сначала физически выделить небольшой стабильный слой contracts/API и подключить его обратно к приложению. Не переносить сразу формы, отчёты и persistence целиком.
 
