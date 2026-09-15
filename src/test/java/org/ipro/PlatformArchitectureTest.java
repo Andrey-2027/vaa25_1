@@ -20,9 +20,10 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * <p>Интеграционные тесты платформы (org.ipro.* в src/test) закономерно используют
  * доменные фикстуры приложения — поэтому критерий распространяется только на
  * production-код (DoNotIncludeTests), как и зафиксировано в плане (критерий src/main only).</p>
- * <p>Осознанные строковые связки (не bytecode, правилом не ловятся, зафиксированы здесь):
- * pointcut {@code org.ip.service..*} в {@code ExecutionTimeAspect},
- * {@code platform.subsystem-scan-package=org.ip}.</p>
+ * <p>Строковые связки (pointcut {@code org.ip.service..*}, default-значения
+ * scan-пакетов) bytecode-правилом не ловятся и вынесены в отдельный shrink-only
+ * реестр — {@link PlatformStringDependencyTest}; направления зависимостей внутри
+ * платформы закреплены {@link PlatformDependencyDirectionTest} (D1).</p>
  */
 @AnalyzeClasses(packages = "org.ipro", importOptions = ImportOption.DoNotIncludeTests.class)
 class PlatformArchitectureTest {

@@ -3,7 +3,13 @@
 - Дата общего baseline: 2026-09-13; адресная проверка C4.3/C4.4: 2026-09-14
 - Ветка: `main`
 - Baseline commit/tag: не создавался
-- Рабочее дерево: содержит пользовательские изменения этапов A0–A4, B3–B4 и C1; baseline commit/tag ещё не создавался
+- Рабочее дерево: содержит пользовательские изменения этапов A0–A4, B3–B4, C1–C4.8; baseline commit/tag ещё не создавался
+
+> Разделы ниже сохраняют формулировки того среза, в котором были написаны. Если срез
+> помечен как исторический (C4.1–C4.7), его «в работе»/«pending»-формулировки описывают
+> момент среза, а не текущее состояние checkout. Актуальное состояние C4 — «C4.0–C4.7
+> закрыты, C4.8 (hardening/закрытие) закрыт»; этап D начат с D1 (карта границы и
+> исполняемые правила — `docs/architecture/d1-platform-boundary-map.md`).
 
 ## Статус этапов
 
@@ -18,8 +24,8 @@
 | B4 Application lifecycle DX | Core реализован в текущем scope | ADR-0005: `EntityLifecycle<T>`, context contracts, fail-fast registry и callbacks подключены к entity/aggregate save boundaries; контрольные listeners мигрированы, Entity Explorer/scaffolder остаются следующими шагами |
 | C3 FetchPlan + InstanceName | C3.0–C3.7 реализованы; адресные проверки C3.7 выполняются | Периметр C3.0; `@InstanceName` + резолвер (пилот `ReceivingDocument`, `Nomenclature`); `FetchPlanRegistry` со сценариями `LIST`/`DETAIL`/`LOOKUP`/`ROW` и декларацией `@Lookup(fetch)`; read-path выбирает сценарий внутри сервиса, явные пути расширяют план; `ItemTable` использует один section reload через `ROW`; `DETAIL`/`LIST` независимы, планы детерминированы. C3.7 включает раннюю write-авторизацию и единый lifecycle-managed `InstanceNameProvider`. Широкое распространение `@InstanceName` на остальные сущности остаётся отдельной миграцией |
 | C RLS enforcement | C1 завершён; реализация C2 согласованного scope выполнена, широкая проверка ещё не зелёная | `DAC-13`, `DAC-17` и `DAC-19` закрыты; checked duplication закреплён как конечное решение; detection-only production guard принят и вынесен в `A4-PREPROD-RLS-GUARD`; целевой набор C2 (53 теста) и random-order gate (156 тестов) зелёные. Полный random `verify` пока даёт ошибки жизненного цикла Spring test context в `AttributeValueServiceTest`/`AttributeTypeServiceTest`; `VisualQuerySubqueryIT` исключён по решению владельца и разбирается отдельно |
-| C4 Data-access facade | C4.0–C4.7 выполнены; C4.8 (hardening/закрытие) впереди | Таксономия всех 37 persistence types, классификация service/repository/base слоя, baseline и пилоты зафиксированы в `c4-inventory.md`; решения — в `ADR-0007`. C4.1: единый canonical read executor, descriptor/capability catalog и правило `plan ∪ extras -> deepen once`; `AbstractBaseService`, `LookupService` и global search используют одну границу; row cancel без per-reference reads. C4.1 hardening: capability enforcement fail-closed, LOOKUP для lookup по id, SQL-bound lookup, paging count parity, `deepen once`. C4.2: tri-state `RequiredMode`, вывод `type`/`reference`/server-nullability/UI-required с `FactOrigin`, eager startup-валидация и `MetadataAllowance`; пилотная зачистка дублей сохранила effective values без diff. C4.2 hardening: snapshot-ресурсы в поставке, таблица совместимости Java-типа и `FieldType`, вывод server-required из JPA, дедупликация типов, негативный startup-тест и whitelist warning-кодов; global search получил capability-грань источника. C4.3 core: `EntityDataAccess`, единый `CanonicalWriteExecutor`, type-directed resolver, generic `CanonicalEntityService` и исполняемые запреты; `ValidatedJpaCrudService` ограничен internal-store. C4.3 hardening: intent задаёт точную JPA-операцию; UPDATE требует существующую доступную исходную строку и авторизует исходное и целевое состояния до валидации/hooks; `GridFormView` canonical handle ограничен `CREATE`. Полный порядок pipeline и ранний отказ покрыты тестами. Формальное закрытие C4.3 ожидает write-telemetry, первый production-каталог на canonical write path и form → write → audit acceptance. C4.4: canonical search builder и согласованные overloads на всех 16 стандартных корнях, literal escaping, deterministic ordering и bounded paging. C4.5: модульное участие через `@GlobalSearchable`, canonical secured query без count, удаление central config и Spring wiring; целевые тесты зелёные. C4.6 (в работе): заборы миграции и aggregate-boundary guard, волна A (`Branch`/`Journal`/`Oper`/`Role`), волна B (`GroupNom`/`Nomenclature`/`ReceivingDocument`), волна C (`Workshop`/`UnitOfMeasurement` + снятый дубль `GridFormView`, `BaseService.sum` на canonical-поверхности). ADR-0008/ADX-13: интернированные сущности получили один механизм `NaturalKeyCreateSupport` вместо двух копий retry. Волна D: `ReceivingDocument` и report stores. Волна E: `AttributeType`/`AttributeValue`/`NomSklAttribute`/`SklNomOpa`/`User`/`PrdSpec` — домен остался, CRUD делегирован canonical handle, правила переехали в `EntityLifecycle`. Волна F: `GridFormView` — ownership в lifecycle, сужение handle снято; `UreportTemplate` — internal-store adapter, read-мост снят. C4.7: `AbstractBaseService` удалён, `serviceClass` удалён, резолв по имени бина заменён type-directed реестром. Полный `mvn verify` — 1272/0/0, random-order gate — 1271/0/0 |
-| D Physical modularity | Не начат | Проект остаётся одним Maven-модулем |
+| C4 Data-access facade | C4.0–C4.8 закрыты | Таксономия всех 37 persistence types, классификация service/repository/base слоя, baseline и пилоты зафиксированы в `c4-inventory.md`; решения — в `ADR-0007`. C4.1: единый canonical read executor, descriptor/capability catalog и правило `plan ∪ extras -> deepen once`; `AbstractBaseService`, `LookupService` и global search используют одну границу; row cancel без per-reference reads. C4.1 hardening: capability enforcement fail-closed, LOOKUP для lookup по id, SQL-bound lookup, paging count parity, `deepen once`. C4.2: tri-state `RequiredMode`, вывод `type`/`reference`/server-nullability/UI-required с `FactOrigin`, eager startup-валидация и `MetadataAllowance`; пилотная зачистка дублей сохранила effective values без diff. C4.2 hardening: snapshot-ресурсы в поставке, таблица совместимости Java-типа и `FieldType`, вывод server-required из JPA, дедупликация типов, негативный startup-тест и whitelist warning-кодов; global search получил capability-грань источника. C4.3 core: `EntityDataAccess`, единый `CanonicalWriteExecutor`, type-directed resolver, generic `CanonicalEntityService` и исполняемые запреты; `ValidatedJpaCrudService` ограничен internal-store. C4.3 hardening: intent задаёт точную JPA-операцию; UPDATE требует существующую доступную исходную строку и авторизует исходное и целевое состояния до валидации/hooks; `GridFormView` canonical handle ограничен `CREATE`. Полный порядок pipeline и ранний отказ покрыты тестами. Формальное закрытие C4.3 ожидало write-telemetry, первый production-каталог на canonical write path и form → write → audit acceptance; write-telemetry-seam заведён в C4.8 (остальное перенесено туда же). C4.4: canonical search builder и согласованные overloads на всех 16 стандартных корнях, literal escaping, deterministic ordering и bounded paging. C4.5: модульное участие через `@GlobalSearchable`, canonical secured query без count, удаление central config и Spring wiring; целевые тесты зелёные. C4.6 (закрыт): заборы миграции и aggregate-boundary guard, волна A (`Branch`/`Journal`/`Oper`/`Role`), волна B (`GroupNom`/`Nomenclature`/`ReceivingDocument`), волна C (`Workshop`/`UnitOfMeasurement` + снятый дубль `GridFormView`, `BaseService.sum` на canonical-поверхности). ADR-0008/ADX-13: интернированные сущности получили один механизм `NaturalKeyCreateSupport` вместо двух копий retry. Волна D: `ReceivingDocument` и report stores. Волна E: `AttributeType`/`AttributeValue`/`NomSklAttribute`/`SklNomOpa`/`User`/`PrdSpec` — домен остался, CRUD делегирован canonical handle, правила переехали в `EntityLifecycle`. Волна F: `GridFormView` — ownership в lifecycle, сужение handle снято; `UreportTemplate` — internal-store adapter, read-мост снят. C4.7: `AbstractBaseService` удалён, `serviceClass` удалён, резолв по имени бина заменён type-directed реестром. C4.8 (закрыт): write-telemetry с двухфазным исходом (pipeline → коммит), typed-классификация отказов, fail-closed глобальный поиск, отказ to-many-сортировки вместо distinct-эмуляции, точные наборы литералов в реестре строковых связок. Полный `mvn verify` — 1316/0/0, random-order gate — 1316/0/0 (seed `20260915`) |
+| D Physical modularity | D1 выполнен (карта и игровые правила); D2+ не начат | Проект остаётся одним Maven-модулем `Vaa25_1`, но платформа частично уже опубликована как внешние артефакты (`org.ipro:filtergrid-*`, `org.ipro.crudui:crudui-core`). D1 (`docs/architecture/d1-platform-boundary-map.md`): классификация API/SPI/internal, исполняемые правила направлений (`PlatformDependencyDirectionTest`, 8 правил) и shrink-only реестр строковых связок (`PlatformStringDependencyTest`). Результат D1 по строкам сформулирован точно: связки **выявлены, зарегистрированы по точным наборам литералов и запрещены к расширению**, а их снятие (13 файлов, 16 литералов) отнесено к D3 |
 
 ## Quality gate
 
@@ -1200,7 +1206,7 @@ random-order gate                1271 тест,  0 failures/errors/skipped, BUIL
 | Метрика | До C4 | После C4.7 | Комментарий |
 |---|---:|---:|---|
 | реализаций `BaseService` в production | 21 | 10 | 16 entity-сервисов свелись к 5 use case'ам с предметным доменом; остальное — 3 internal-store адаптера и 2 generic-базы |
-| `org.ip.service` файлов | 18 | 7 | 5 use case'ов + 2 UI-адаптера (`GridViewStoreAdapter`, `FormSettingsStoreAdapter`) |
+| `org.ip.service` файлов | 18 | 9 | 7 use case'ов (в т.ч. `AccessGrantAdminService`, `FormSettingsService`) + 2 UI-адаптера (`GridViewStoreAdapter`, `FormSettingsStoreAdapter`) |
 | `org.ip.service` строк | 1908 | 1790 | классы стали компактнее, но не пустыми: домен остался, а CRUD делегируется |
 | `org.ip.repository` файлов | 18 | 16 | удалены два, у которых не осталось ни одного потребителя |
 | `org.ip.repository` строк | 446 | 324 | −27% строк: query-методы не переписывались заново, а перестали дублировать canonical search |
@@ -1226,10 +1232,113 @@ random-order gate                1271 тест,  0 failures/errors/skipped, BUIL
 задача C4.8 (со снятием вместе с arch-проверкой «удалённое не вернулось»), а не слепое
 удаление в конце миграции.
 
+**Сделано (C4.8).** Два тестовых fixture-lookup'а (`NomenclatureAttributesIT`,
+`RlsServiceWriteBoundaryIT`) переведены на canonical-совместимый `findAll`-фильтр, после чего
+все перечисленные выше методы удалены из repository. `existsByName` в этом списке значится
+ошибочно — он используется `ReportTemplateService` и сохранён. Возврат удалённых методов
+запрещает `CompatibilityMigrationArchitectureTest.removedDeadRepositoryQueriesDoNotComeBack`.
+Последняя UI-утечка persistence context (`FormResolver` с `EntityManager` ради grouping)
+закрыта выносом адаптера в `org.ipro.data.grouping`; список исключений в arch-тесте стал пустым.
+
 Осознанно не входит в C4.7 и остаётся открытым: **write-telemetry** вокруг canonical write
 (seam не заведён — это записано как незакрытый пункт C4.8, а не как выполненное), объём
-telemetry на `LOOKUP`, `readSearch` distinct/content при search-поле через to-many, а также
+telemetry на `LOOKUP`, `search` distinct/content при search-поле через to-many, а также
 формальное закрытие самого C4 в C4.8.
+
+> Исторический срез: на момент C4.7 перечисленное выше было открыто. Все три пункта закрыты
+> в C4.8 (см. следующий раздел): write-telemetry заведён, объём `LOOKUP` остался без durable
+> event, а политика to-many зафиксирована как запрет с отклонением до SQL.
+
+### C4.8: hardening и закрытие этапа (закрыт)
+
+C4.8 — финальный hardening-gate, а не миграционная волна; публичный `EntityDataAccess` не
+расширяется, `BaseService` как интерфейс не удаляется (это граница следующего этапа).
+Сделано в этом срезе:
+
+- **write-telemetry seam заведён, исход двухфазный.** Добавлен `WriteTelemetry` (typed
+  collaborator с noop по умолчанию, `@ConditionalOnMissingBean`), покрывающий
+  `create`/`update`/`save`/`delete`. Scope открывается до проверки capability, поэтому ранний
+  deny фиксируется как `denied`, а ошибка исполнения — как `failed`. Успех сообщается
+  поэтапно: `pipelineCompleted` после flush внутри операции (ошибки БД принадлежат самой
+  операции, а не коммиту после возврата метода), затем `committed` или `rolledBack` по исходу
+  транзакции через `TransactionSynchronization` — иначе падение flush/commit записывалось бы
+  как `SUCCESS`. Вложенный canonical write в одной бизнес-операции переиспользует внешний
+  scope, а не открывает второй. В telemetry идут только технические данные — операция, тип,
+  вид отказа, outcome, число строк.
+- **Отказы классифицируются по типу, а не по «любому `IllegalStateException`».** Введён
+  `CanonicalWriteDeniedException` с `WriteTelemetry.DenialKind` (`CAPABILITY`,
+  `AGGREGATE_BOUNDARY`, `ACCESS`); `RlsAccessDeniedException` (наследник
+  `AccessDeniedException`) тоже записывается как отказ доступа, а ошибка нумерации,
+  валидации или lifecycle — как `failed`. Ошибка вызывающего (create существующей строки,
+  update без id) deny'ом больше не считается.
+- **read-telemetry унифицирован.** `ReadTelemetry` получил `ReadOutcome`; все публичные
+  overloads фиксируют и успех, и отказ через единый `measured(...)`, а не только факт
+  завершения.
+- **auth-граница глобального поиска восстановлена и стала fail-closed.** При переходе на
+  canonical boundary в C4.5 была снята явная проверка `requireAuthenticatedUsername()`;
+  теперь `GlobalSearchService` снова требует аутентифицированного субъекта (явный typed
+  RLS-bypass проходит как системная операция), а анонимный вызов отклоняется до каталога,
+  провайдеров и SQL. Отсутствие `RlsCurrentUser` больше не отключает гейт: без него бин
+  вообще не создаётся (`@ConditionalOnBean`), а незащищённый режим доступен только
+  отдельной явно названной фабрике для срезов и unit-тестов.
+- **to-many: политика вместо эмуляции.** Сортировка по пути через `PluralAttribute`
+  отклоняется до SQL с названной причиной (порядок корня по элементу коллекции не определён,
+  а `SELECT DISTINCT` с `ORDER BY` по join'нутой коллекции невалиден в PostgreSQL — H2
+  этого не воспроизводит). `distinct` сохраняется там, где он осмыслен: spec-driven
+  filter (parity content/count) и страховка в поиске для полей, пришедших в executor минуя
+  резолвер.
+- **Реестр строковых связок платформы стал точным.** `PlatformStringDependencyTest`
+  сравнивает `файл → набор литералов` (13 файлов, 16 литералов), а не только имена файлов,
+  поэтому второй литерал в уже разрешённом файле ломает сборку; сканируется код без
+  комментариев, поэтому упоминание пакета в javadoc зависимостью не считается.
+- **artifact budget исправлен:** `org.ip.service` в C4.7 — 9 файлов, а не 7 (7 use case'ов
+  и 2 UI-адаптера).
+- **Остаточные persistence-seam'ы закрыты.** `FormResolver` больше не держит
+  `EntityManager` (grouping вынесен в `org.ipro.data.grouping.JpaGroupingValuesProviderFactory`),
+  поэтому UI-слой не владеет persistence context; список исключений
+  `CompatibilityMigrationArchitectureTest.uiDoesNotOwnPersistenceContext` стал пустым.
+- **Мёртвые repository-методы удалены** после перевода двух тестовых fixture-lookup'ов на
+  canonical-совместимый `findAll`-фильтр; возврат запрещает
+  `removedDeadRepositoryQueriesDoNotComeBack`.
+- **Parity-решения зафиксированы** в `c4-inventory.md` §7.3 (to-many в полях поиска
+  запрещён + defensive distinct; metadata snapshot без diff).
+
+Проверка (JDK 21, offline, Maven 3.9.9):
+
+```text
+mvn verify                        1316 тестов, 0 failures/errors/skipped, BUILD SUCCESS
+random-order gate                1316 тестов, 0 failures/errors/skipped, BUILD SUCCESS
+  seed 20260915
+```
+
+Разбор ревью C4.8 (четыре претензии, все подтверждены по коду и закрыты в этом срезе):
+успех фиксировался до коммита → двухфазный исход; deny размывался до любого
+`IllegalStateException`, а настоящий security-отказ уезжал в ошибки → typed-классификация;
+реестр строковых связок сравнивал только имена файлов → сравнение по наборам литералов и
+сканирование без комментариев; глобальный поиск молча становился анонимным без
+`RlsCurrentUser` → fail-closed на wiring. Неблокирующее замечание о сортировке по to-many
+закрыто запретом с отказом до SQL (`CanonicalReadSortGuardTest`), а не эмуляцией `distinct`.
+
+Отдельно зафиксировано: `complexity-audit.md` (C2-R) в отслеживаемом дереве отсутствует —
+это локальный/игнорируемый черновик, поэтому его пункты не «закрываются» правкой файла;
+оставшийся пункт обзора (разделение публичной поверхности на API/SPI/internal) растворён в
+D1 и зафиксирован в `d1-platform-boundary-map.md`.
+
+Ранее открытые пункты среза закрыты (план C4.8 пп.2, 5, 6):
+
+- **Детерминизм resolution.** `EntityDataAccessResolverTest` покрывает duplicate
+  `EntityDataPolicy` (startup error), policy на non-JPA типе, порядко-независимость выбора
+  (переворот списка = эмуляция reverse-order регистрации бинов), precedence custom policy над
+  canonical path, отказ для owned/internal/UNCLASSIFIED и одинаковый выбор в урезанном
+  («partial») каталоге.
+- **Search-parity как артефакт.** `SearchFieldParitySnapshotTest` +
+  `src/test/resources/search/search-fields-after.txt` фиксируют поисковые поля всех 16
+  standard roots и участие в global search; поведенческая часть — `CharacterizationStandardPathIT`,
+  `SearchTermsTest`, `CanonicalWritePathIT.blankAndSpecialCharacterSearchStayBounded`.
+- **Именованные cost-тесты.** `CanonicalWritePathIT.blankAndSpecialCharacterSearchStayBounded`
+  (blank/литеральный `%`: bounded page + count, не вся таблица) и `DetachedRenderCostIT`
+  (рендер отсоединённого list/detail — ноль запросов и загрузок). Cancel/restore owned-строки
+  по-прежнему закреплён `PrdSpecRowCancelAcceptanceTest`.
 
 ## Неошибочные и блокирующие диагностики
 

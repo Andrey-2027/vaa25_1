@@ -554,7 +554,7 @@ public class ReportQueryEditor extends VerticalLayout {
         enumClassName.setWidth("220px");
         enumClassName.getElement().setAttribute("theme", "small");
         enumClassName.setVisible(false);
-        enumClassName.setPlaceholder("org.ip.model.DocumentStatus");
+        enumClassName.setPlaceholder("com.example.Status");
         enumClassName.addValueChangeListener(event -> {
             if (paramFormUpdating || selectedParam == null) {
                 return;

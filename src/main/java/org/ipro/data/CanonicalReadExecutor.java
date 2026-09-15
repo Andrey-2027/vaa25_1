@@ -140,6 +140,7 @@ public class CanonicalReadExecutor {
             if (!canRead(request.type())) {
                 return Page.empty(request.pageable());
             }
+            requireSortWithoutCollection(request.type(), request.pageable());
             rlsFilterActivator.ensureRlsEnabled(entityManager);
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<T> dataQuery = cb.createQuery(request.type());
@@ -183,6 +184,7 @@ public class CanonicalReadExecutor {
             if (!canRead(request.type())) {
                 return List.of();
             }
+            requireSortWithoutCollection(request.type(), request.sort());
             rlsFilterActivator.ensureRlsEnabled(entityManager);
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<T> query = cb.createQuery(request.type());
@@ -321,6 +323,15 @@ public class CanonicalReadExecutor {
                     ? List.of(cb.asc(rankExpression(cb, root, fields, request.term())),
                         cb.asc(idPath))
                     : List.of(cb.asc(idPath)));
+            // C4.8: страховка на случай, если поисковое поле всё же проходит через
+            // to-many-коллекцию: LEFT JOIN в predicate/rank размножает root-строки, count
+            // считает countDistinct, и без distinct content разошёлся бы с totalElements.
+            // Политикой такой путь запрещён (`SearchFieldResolver` отклоняет его в strict-
+            // режиме), поэтому ветка недостижима через стандартный резолвер — но остаётся,
+            // потому что пришедшие извне поля executor не перепроверяет.
+            if (multipliesRows(request.type(), fields)) {
+                query.distinct(true);
+            }
         }
 
         TypedQuery<T> typedQuery = entityManager.createQuery(query);
@@ -401,6 +412,103 @@ public class CanonicalReadExecutor {
         }
         Path<?> path = from.get(segments[segments.length - 1]);
         return path.getJavaType() == String.class ? path.as(String.class) : null;
+    }
+
+    /**
+     * C4.8: пересекает ли поисковое поле to-many-коллекцию. Проверка идёт по JPA metamodel,
+     * а не по разбору имени: только {@code PluralAttribute} в пути действительно размножает
+     * строки при join. Знание нужно, чтобы content-query и count-query принимали одно и то же
+     * решение о distinct.
+     */
+    private boolean multipliesRows(Class<?> rootType, List<String> fields) {
+        if (fields.isEmpty()) {
+            return false;
+        }
+        try {
+            jakarta.persistence.metamodel.Metamodel metamodel = entityManager.getMetamodel();
+            for (String field : fields) {
+                if (fieldCrossesCollection(metamodel, rootType, field)) {
+                    return true;
+                }
+            }
+        } catch (RuntimeException noMetamodelInSlice) {
+            // Слайс-контексты без полного metamodel: консервативно считаем, что размножения нет,
+            // как и до C4.8 (поля всё равно приходят уже провалидированными резолвером).
+            return false;
+        }
+        return false;
+    }
+
+    private static boolean fieldCrossesCollection(jakarta.persistence.metamodel.Metamodel metamodel,
+                                                  Class<?> rootType, String field) {
+        Class<?> current = rootType;
+        for (String segment : field.split("\\.")) {
+            jakarta.persistence.metamodel.ManagedType<?> managed;
+            try {
+                managed = metamodel.managedType(current);
+            } catch (IllegalArgumentException notManaged) {
+                return false;
+            }
+            jakarta.persistence.metamodel.Attribute<?, ?> attribute = null;
+            for (jakarta.persistence.metamodel.Attribute<?, ?> candidate : managed.getAttributes()) {
+                if (candidate.getName().equals(segment)) {
+                    attribute = candidate;
+                    break;
+                }
+            }
+            if (attribute == null) {
+                return false;
+            }
+            if (attribute instanceof jakarta.persistence.metamodel.PluralAttribute<?, ?, ?>) {
+                return true;
+            }
+            current = attribute.getJavaType();
+        }
+        return false;
+    }
+
+    /**
+     * C4.8: сортировка по to-many-пути отклоняется, а не «эмулируется» distinct'ом.
+     *
+     * <p>Порядок корня по элементу коллекции не определён: у корня несколько элементов, и
+     * выбранный для сравнения произволен. Прежняя реализация добавляла {@code distinct} и
+     * делала вид, что поддержка есть, но в PostgreSQL это ещё и невалидно:
+     * при {@code SELECT DISTINCT} выражения {@code ORDER BY} обязаны присутствовать в списке
+     * выборки, а путь идёт по join'нутой коллекции (в H2, на котором идут тесты, ошибка не
+     * воспроизводится). Отказ дешевле неопределённого порядка: вызывающий получает названную
+     * причину до SQL, а не другой порядок или пустую страницу.</p>
+     */
+    private void requireSortWithoutCollection(Class<?> rootType, Pageable pageable) {
+        String offending = collectionSortProperty(rootType, pageable);
+        if (offending == null) {
+            return;
+        }
+        throw new IllegalArgumentException("Сортировка по to-many-пути «" + offending
+            + "» на " + rootType.getSimpleName() + " не поддерживается: порядок корня по"
+            + " элементу коллекции не определён, а SELECT DISTINCT с ORDER BY по join'нутой"
+            + " коллекции невалиден в PostgreSQL. Сортируйте по полю корня или по"
+            + " to-one-ассоциации.");
+    }
+
+    /** Первое свойство сортировки, путь которого проходит через {@code PluralAttribute}. */
+    private String collectionSortProperty(Class<?> rootType, Pageable pageable) {
+        if (pageable == null || pageable.getSort().isUnsorted()) {
+            return null;
+        }
+        try {
+            jakarta.persistence.metamodel.Metamodel metamodel = entityManager.getMetamodel();
+            for (Sort.Order order : pageable.getSort()) {
+                String property = order.getProperty();
+                if (property != null && fieldCrossesCollection(metamodel, rootType, property)) {
+                    return property;
+                }
+            }
+        } catch (RuntimeException noMetamodelInSlice) {
+            // Слайс-контексты без полного metamodel: размножение строк здесь не наблюдаемо,
+            // поэтому запрет не выдумывается и поведение прежнее.
+            return null;
+        }
+        return null;
     }
 
     private static Pageable boundedPage(Pageable pageable) {
@@ -523,13 +631,24 @@ public class CanonicalReadExecutor {
         }
     }
 
+    /**
+     * C4.8: единая точке telemetry для всех публичных read-overloads. Успех и отказ
+     * различаются исходом, а не только фактом завершения: без этого отказ pipeline
+     * (например, capability/RLS) вообще не был виден в telemetry.
+     */
     private <T> T measured(DataOperation operation, Class<?> type, FetchScenario scenario,
                            Supplier<T> action) {
         long start = System.nanoTime();
-        T result = action.get();
-        telemetry.completed(operation, type, scenario, resultCount(result),
-            System.nanoTime() - start);
-        return result;
+        try {
+            T result = action.get();
+            telemetry.completed(operation, type, scenario, ReadTelemetry.ReadOutcome.SUCCESS,
+                resultCount(result), System.nanoTime() - start);
+            return result;
+        } catch (RuntimeException | Error failure) {
+            telemetry.completed(operation, type, scenario, ReadTelemetry.ReadOutcome.FAILED,
+                0, System.nanoTime() - start);
+            throw failure;
+        }
     }
 
     private static int resultCount(Object result) {

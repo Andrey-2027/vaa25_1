@@ -22,7 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code jpaAuditingHandler/jpaMappingContext} первым persist'ом.</p>
  */
 @DataJpaTest(properties = "ip.test.isolation=visual-query-subquery")
-@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls"})
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
+@EnableJpaRepositories(basePackages = {"org.ipro.rls"})
 @ContextConfiguration(classes = Application.class)
 class VisualQuerySubqueryIT {
     @Autowired EntityManagerFactory entityManagerFactory;

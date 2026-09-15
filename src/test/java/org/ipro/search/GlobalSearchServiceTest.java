@@ -8,6 +8,8 @@ import org.ipro.crud.BaseEntity;
 import org.ipro.data.CanonicalReadExecutor;
 import org.ipro.data.SearchContext;
 import org.ipro.data.SearchRead;
+import org.ipro.rls.RlsAccessDeniedException;
+import org.ipro.rls.RlsCurrentUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -16,11 +18,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -30,6 +34,8 @@ class GlobalSearchServiceTest {
     private StubProvider<Nomenclature> nomenclatureProvider;
     private StubProvider<PrdSpec> prdSpecProvider;
     private StubProvider<ReceivingDocument> receivingDocumentProvider;
+    private GlobalSearchCatalog catalog;
+    private GlobalSearchProviderRegistry providers;
     private GlobalSearchService service;
 
     @BeforeEach
@@ -41,11 +47,11 @@ class GlobalSearchServiceTest {
         receivingDocumentProvider = new StubProvider<>(ReceivingDocument.class,
             List.of(receivingDocument(20L, "RD-001")));
 
-        GlobalSearchCatalog catalog = GlobalSearchTestSupport.catalog(
+        catalog = GlobalSearchTestSupport.catalog(
             GlobalSearchTestSupport.APPLICATION_TYPES,
             org.ipro.data.EntityExposure.STANDARD_ROOT,
             List.of(nomenclatureProvider, prdSpecProvider, receivingDocumentProvider));
-        GlobalSearchProviderRegistry providers = new GlobalSearchProviderRegistry(List.of(
+        providers = new GlobalSearchProviderRegistry(List.of(
             nomenclatureProvider, prdSpecProvider, receivingDocumentProvider));
         readExecutor = mock(CanonicalReadExecutor.class);
         doAnswer(invocation -> {
@@ -62,7 +68,9 @@ class GlobalSearchServiceTest {
             }
             return List.of();
         }).when(readExecutor).readSearchWindow(any(SearchRead.class), anyInt(), anyInt());
-        service = new GlobalSearchService(catalog, providers, readExecutor);
+        // Security-контура в unit-тесте нет: незащищённый режим включается явной фабрикой.
+        service = GlobalSearchService.withoutSecurityContextForTests(
+            catalog, providers, readExecutor);
     }
 
     @Test
@@ -129,6 +137,63 @@ class GlobalSearchServiceTest {
         assertThat(requests.getAllValues()).extracting(SearchRead::type)
             .containsExactly(Nomenclature.class, PrdSpec.class, ReceivingDocument.class);
         assertThat(limits.getAllValues()).containsExactly(5, 5, 5);
+    }
+
+    @Test
+    void productionConstructorRefusesToStartWithoutSecurityContext() {
+        // Fail-closed: отсутствие RlsCurrentUser — ошибка wiring, а не «гейт не нужен».
+        assertThatThrownBy(() -> new GlobalSearchService(catalog, providers, readExecutor, null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("security-контура");
+    }
+
+    @Test
+    void anonymousCallIsRejectedBeforeAnyCatalogOrProviderWork() {
+        // RlsCurrentUser без аутентификации: username() → "system", а default
+        // requireAuthenticatedUsername() обязан отказать.
+        RlsCurrentUser anonymous = () -> "system";
+        GlobalSearchService guarded =
+            new GlobalSearchService(catalog, providers, readExecutor, anonymous);
+
+        assertThatThrownBy(() -> guarded.search("гайка"))
+            .isInstanceOf(RlsAccessDeniedException.class)
+            .hasMessageContaining("аутентифицированного пользователя");
+        verifyNoInteractions(readExecutor);
+    }
+
+    @Test
+    void authenticatedCallStillSearchesNormally() {
+        RlsCurrentUser admin = () -> "admin";
+        GlobalSearchService guarded =
+            new GlobalSearchService(catalog, providers, readExecutor, admin);
+
+        GlobalSearchResponse response = guarded.search("гайка");
+
+        assertThat(response.results()).isNotEmpty();
+    }
+
+    @Test
+    void deniedSourceDoesNotReachProviderCallbacks() {
+        StubProvider<Nomenclature> tracked = spy(nomenclatureProvider);
+        GlobalSearchProviderRegistry trackedProviders = new GlobalSearchProviderRegistry(
+            List.of(tracked, prdSpecProvider, receivingDocumentProvider));
+        GlobalSearchService trackedService = GlobalSearchService.withoutSecurityContextForTests(
+            catalog, trackedProviders, readExecutor);
+        // Canonical executor возвращает пусто для denied-источника (RlsReadGate отказал до SQL).
+        doAnswer(invocation -> {
+            SearchRead<?> request = invocation.getArgument(0);
+            if (request.type() == Nomenclature.class) {
+                return List.of();
+            }
+            int limit = invocation.getArgument(1);
+            return prdSpecProvider.values().stream().limit(limit).toList();
+        }).when(readExecutor).readSearchWindow(any(SearchRead.class), anyInt(), anyInt());
+
+        trackedService.search("гайка");
+
+        verify(tracked, never()).classify(any(), any(), any());
+        verify(tracked, never()).idOf(any());
+        verify(tracked, never()).displayValue(any(), any());
     }
 
     private static Nomenclature nomenclature(long id, String code, String name) {

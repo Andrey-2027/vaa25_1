@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface GridFormViewRepository
@@ -22,6 +21,4 @@ public interface GridFormViewRepository
         "where v.formKey = :formKey and (v.shared = true or v.createdBy = :username) " +
         "order by v.name")
     List<GridFormView> findVisibleViews(@Param("formKey") String formKey, @Param("username") String username);
-
-    Optional<GridFormView> findByIdAndFormKey(Long id, String formKey);
 }

@@ -315,6 +315,30 @@ typed query сохраняют поля поиска и используют т�
 service/domain migration остаётся в C4.6. В C4.5 global providers переведены на
 `SearchContext.GLOBAL` внутри canonical read boundary; подробности — в `current-baseline.md`.
 
+### 7.3. C4.8: принятые parity-решения
+
+- **to-many в полях поиска.** Решение принято явно: путь через `PluralAttribute` не является
+  допустимым поисковым полем — `SearchFieldResolver` валидирует поля через `ColumnPath`, где
+  коллекция не разворачивается, поэтому такой путь отклоняется (strict) или пропускается
+  (lookup). Исполнимость политики закреплена `SearchFieldResolverTest`.
+- **to-many в сортировке списка.** Тоже запрещено, но уже на уровне executor'а:
+  сортировка по пути через `PluralAttribute` отклоняется до SQL (`CanonicalReadExecutor`),
+  а не «эмулируется» `distinct`. Причина двойная: порядок корня по элементу коллекции не
+  определён, а `SELECT DISTINCT` с `ORDER BY` по join'нутой коллекции невалиден в PostgreSQL
+  (H2, на котором идут тесты, ошибки не воспроизводит). Проверка — `CanonicalReadSortGuardTest`.
+- **distinct там, где он осмыслен.** Spec-driven filter оставляет `distinct` для parity
+  content/count (закрыто в C4.1); в поиске защитный `distinct` остаётся как страховка для
+  полей, пришедших в executor минуя резолвер, и недостижим на стандартном пути.
+- **write-telemetry: исход двухфазный.** Успех pipeline (после flush внутри операции) — не
+  успех записи: коммит и откат сообщаются отдельно, а отказы различаются типом
+  (`CanonicalWriteDeniedException` + `DenialKind`, security-отказ — тоже отказ).
+- **old/new search matrix.** Поведенческая фиксация — `CharacterizationStandardPathIT` плюс
+  `SearchFieldResolverTest`/`SearchTermsTest`; необъяснённых изменений полей, blank-term,
+  case, escaping, order и limit не осталось, каждое изменение перечислено в таблице §7.2.
+- **metadata snapshot.** `EffectiveMetadataSnapshotTest` сравнивает effective
+  `required`/`type`/`reference` побайтово и должен быть human-reviewed; C4.8 не менял
+  declarations, поэтому diff пуст.
+
 ## 8. Effective metadata snapshot (метод C4.2)
 
 До изменения declarations сохраняется snapshot effective `required`/`type`/`reference` по

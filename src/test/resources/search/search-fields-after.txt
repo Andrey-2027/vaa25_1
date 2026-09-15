@@ -1,0 +1,16 @@
+org.ip.model.AttributeType global=false fields=code,name
+org.ip.model.AttributeValue global=false fields=code,name
+org.ip.model.Branch global=false fields=code,name
+org.ip.model.GridFormView global=false fields=name,formKey
+org.ip.model.GroupNom global=false fields=code,name
+org.ip.model.Journal global=false fields=code,name
+org.ip.model.NomSklAttribute global=false fields=
+org.ip.model.Nomenclature global=true fields=code,name
+org.ip.model.Oper global=false fields=code,name
+org.ip.model.PrdSpec global=true fields=codeSpec,draft
+org.ip.model.ReceivingDocument global=true fields=number
+org.ip.model.Role global=false fields=name
+org.ip.model.SklNomOpa global=false fields=displayName
+org.ip.model.UnitOfMeasurement global=false fields=shortCode
+org.ip.model.User global=false fields=username
+org.ip.model.Workshop global=false fields=code,name

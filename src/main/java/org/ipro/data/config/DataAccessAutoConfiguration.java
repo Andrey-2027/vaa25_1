@@ -15,6 +15,9 @@ import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.EntityExposureOverride;
 import org.ipro.data.ReadTelemetry;
 import org.ipro.data.ScenarioFetchGraphResolver;
+import org.ipro.data.WriteTelemetry;
+import org.ipro.data.grouping.GroupingValuesProviderFactory;
+import org.ipro.data.grouping.JpaGroupingValuesProviderFactory;
 import org.ipro.events.EntityEventPublisher;
 import org.ipro.fetch.config.FetchPlanInstanceNameAutoConfiguration;
 import org.ipro.fetch.instance.InstanceNameResolver;
@@ -97,6 +100,25 @@ public class DataAccessAutoConfiguration {
         return ReadTelemetry.noop();
     }
 
+    /** Default write-telemetry seam — noop (C4.8, ADR-0007 §5/§8); приложение может заменить бин. */
+    @Bean
+    @ConditionalOnMissingBean
+    public WriteTelemetry writeTelemetry() {
+        return WriteTelemetry.noop();
+    }
+
+    /**
+     * C4.8: persistence-адаптер группировки списка. Вынесен из {@code FormResolver}, чтобы
+     * UI/form-слой не зависел от {@code EntityManager}; это тот же безопасный data adapter,
+     * что и остальные canonical collaborators, но с узким контрактом.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public GroupingValuesProviderFactory groupingValuesProviderFactory(
+            EntityManager entityManager) {
+        return new JpaGroupingValuesProviderFactory(entityManager);
+    }
+
     /** Единая read-граница для standard list/detail/lookup и aggregate section reads. */
     @Bean
     @ConditionalOnBean({EntityDescriptorCatalog.class, ScenarioFetchGraphResolver.class,
@@ -136,12 +158,14 @@ public class DataAccessAutoConfiguration {
             ObjectProvider<EntityLifecycleRegistry> lifecycleRegistry,
             ObjectProvider<GenericOwnedSectionService> ownedSectionService,
             ObjectProvider<ReferenceCheckService> referenceCheckService,
-            ObjectProvider<SectionMetadataRegistry> sectionMetadataRegistry) {
+            ObjectProvider<SectionMetadataRegistry> sectionMetadataRegistry,
+            ObjectProvider<WriteTelemetry> writeTelemetry) {
         return new CanonicalWriteExecutor(entityDescriptorCatalog, canonicalReadExecutor,
             entityManager, validator, rlsPolicyEnforcer.getIfAvailable(),
             numberingService.getIfAvailable(), eventPublisher.getIfAvailable(),
             lifecycleRegistry.getIfAvailable(), ownedSectionService.getIfAvailable(),
-            referenceCheckService.getIfAvailable(), sectionMetadataRegistry.getIfAvailable());
+            referenceCheckService.getIfAvailable(), sectionMetadataRegistry.getIfAvailable(),
+            writeTelemetry.getIfAvailable());
     }
 
     /** Публичный canonical data access (ADR-0007 §1). */

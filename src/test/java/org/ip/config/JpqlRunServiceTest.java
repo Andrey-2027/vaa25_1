@@ -39,7 +39,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * контекст без Vaadin/сервисов.
  */
 @DataJpaTest
-@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls"})
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
+@EnableJpaRepositories(basePackages = {"org.ipro.rls"})
 @ContextConfiguration(classes = Application.class)
 class JpqlRunServiceTest {
 

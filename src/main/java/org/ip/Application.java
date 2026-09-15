@@ -9,6 +9,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -32,6 +33,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @StyleSheet(Lumo.UTILITY_STYLESHEET)
 @EntityScan({"org.ip.model", "org.ipro.telemetry.model", "org.ipro.rls", "org.ipro.reportstudio.dom",
     "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport.dom", "org.ipro.jr.dom"})
+// D1: прикладной пакет объявляет свои репозитории сам. Платформенный
+// RlsAutoConfiguration перечисляет только платформенные пакеты, поэтому имя org.ip
+// больше не встречается в строковых контрактах платформы.
+@EnableJpaRepositories({"org.ip"})
 @EnableTransactionManagement(proxyTargetClass = true, order = 0)
 @Import(AuditConfig.class)
 public class Application implements AppShellConfigurator {

@@ -337,8 +337,11 @@ class RlsServiceWriteBoundaryIT {
     }
 
     private boolean existsAsSuperuser(String code) {
+        // Fixture-lookup идёт через canonical-совместимый findAll, а не через удалённый
+        // C4.8 repository-метод findByCode (единственным потребителем был этот helper).
         return RlsTestFixture.callAsSuperuser(grants, () ->
-            journalRepository.findByCode(code).isPresent());
+            journalRepository.findAll().stream()
+                .anyMatch(journal -> code.equals(journal.getCode())));
     }
 
     private void login(String username) {

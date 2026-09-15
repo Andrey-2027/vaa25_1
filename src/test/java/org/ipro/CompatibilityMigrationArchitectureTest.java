@@ -8,6 +8,9 @@ import org.ipro.crud.BaseService;
 import org.ipro.crud.jpa.ValidatedJpaCrudService;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -56,11 +59,47 @@ class CompatibilityMigrationArchitectureTest {
      */
     private static final Set<String> MODEL_TO_SERVICE_DEPENDENCIES = Set.of();
 
-    /** Единственная известная UI-утечка persistence context; цель — пустой набор. */
-    private static final Set<String> PERSISTENCE_CONTEXT_IN_UI = Set.of(
-            "org.ipro.form.registry.FormResolver");
+    /**
+     * C4.8: UI/form больше не владеет persistence context. Последняя утечка —
+     * {@code FormResolver}, державший {@code EntityManager} ради grouping — закрыта
+     * выносом адаптера в {@code org.ipro.data.grouping}. Набор пуст и обязан таким остаться.
+     */
+    private static final Set<String> PERSISTENCE_CONTEXT_IN_UI = Set.of();
 
     private static final String ENTITY_MANAGER = "jakarta.persistence.EntityManager";
+
+    /**
+     * C4.8: query-методы без единого production-потребителя удалены после перевода
+     * тестовых fixture-lookup'ов на canonical-совместимый доступ. Возврат такого метода
+     * снова завёл бы дубль canonical search под видом предметного query.
+     */
+    private static final Map<String, Set<String>> REMOVED_REPOSITORY_QUERIES = Map.ofEntries(
+            Map.entry("org.ip.repository.AttributeTypeRepository",
+                    Set.of("findByCode", "existsByCode")),
+            Map.entry("org.ip.repository.BranchRepository",
+                    Set.of("findByCode", "existsByCode")),
+            Map.entry("org.ip.repository.JournalRepository",
+                    Set.of("findByCode", "existsByCode")),
+            Map.entry("org.ip.repository.NomenclatureRepository",
+                    Set.of("findByCode", "existsByCode")),
+            Map.entry("org.ip.repository.UnitOfMeasurementRepository",
+                    Set.of("findByCode", "existsByCode")),
+            Map.entry("org.ip.repository.WorkshopRepository",
+                    Set.of("findByCode", "existsByCode")),
+            Map.entry("org.ip.repository.PrdSpecRepository",
+                    Set.of("findByCodeSpec", "existsByCodeSpec")),
+            Map.entry("org.ip.repository.ReceivingDocumentRepository",
+                    Set.of("findByNumber", "existsByNumber")),
+            Map.entry("org.ip.repository.SklNomOpaRepository",
+                    Set.of("existsByNomenclature")),
+            Map.entry("org.ip.repository.SklNomOpaValueRepository",
+                    Set.of("findByValue")),
+            Map.entry("org.ip.repository.UserRepository",
+                    Set.of("existsByUsername")),
+            Map.entry("org.ip.repository.GridFormViewRepository",
+                    Set.of("findByIdAndFormKey")),
+            Map.entry("org.ip.repository.NomSklAttributeRepository",
+                    Set.of("findByNomenclatureOrderByAttrType")));
 
     private static JavaClasses productionClasses() {
         return new ClassFileImporter()
@@ -174,6 +213,27 @@ class CompatibilityMigrationArchitectureTest {
         assertThat(PERSISTENCE_CONTEXT_IN_UI)
                 .as("устаревшая запись списка: утечка закрыта — уберите класс из списка")
                 .isSubsetOf(actual);
+    }
+
+    /** C4.8: удалённые мёртвые query-методы не возвращаются ни в одной форме. */
+    @Test
+    void removedDeadRepositoryQueriesDoNotComeBack() {
+        for (Map.Entry<String, Set<String>> entry : REMOVED_REPOSITORY_QUERIES.entrySet()) {
+            Class<?> repository;
+            try {
+                repository = Class.forName(entry.getKey());
+            } catch (ClassNotFoundException missing) {
+                throw new AssertionError("repository исчез: " + entry.getKey(), missing);
+            }
+            Set<String> present = Arrays.stream(repository.getMethods())
+                    .map(Method::getName)
+                    .collect(Collectors.toCollection(TreeSet::new));
+            assertThat(present)
+                    .as("C4.8 удалил %s у %s: у метода не было production-потребителя,"
+                            + " а возврат завёл бы дубль canonical search",
+                            entry.getValue(), entry.getKey())
+                    .doesNotContainAnyElementsOf(entry.getValue());
+        }
     }
 
     private static boolean dependsOnServicePackage(JavaClass javaClass) {

@@ -18,9 +18,6 @@ public interface NomSklAttributeRepository extends JpaRepository<NomSklAttribute
     @EntityGraph(attributePaths = {"attrType"})
     List<NomSklAttribute> findByNomenclature(Nomenclature nomenclature);
 
-    @EntityGraph(attributePaths = {"nomenclature", "attrType"})
-    List<NomSklAttribute> findByNomenclatureOrderByAttrType(Nomenclature nomenclature);
-
     Optional<NomSklAttribute> findByNomenclatureAndAttrType(Nomenclature nomenclature, AttributeType attrType);
 
     boolean existsByAttrType(AttributeType attrType);

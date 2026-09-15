@@ -22,7 +22,8 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls"})
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
+@EnableJpaRepositories(basePackages = {"org.ipro.rls"})
 @ContextConfiguration(classes = Application.class)
 class VisualQueryGuardIT {
     @Autowired private jakarta.persistence.EntityManagerFactory entityManagerFactory;

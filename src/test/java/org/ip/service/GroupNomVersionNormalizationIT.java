@@ -100,7 +100,11 @@ class GroupNomVersionNormalizationIT {
         // «Detached entity ... uninitialized version value».
         GroupNom saved = writeExecutor.save(GroupNom.class, legacy);
 
-        assertThat(saved.getVersion()).isEqualTo(0L);
+        // C4.8: pipeline выполняет flush внутри операции, поэтому наблюдаемая версия — уже
+        // результат применённого UPDATE (optimistic locking: нормализованный 0 → 1), а не
+        // нормализованное значение до записи. Предмет регрессии — не число, а то, что строка
+        // обновилась без PropertyValueException.
+        assertThat(saved.getVersion()).isEqualTo(1L);
         entityManager.flush();
         entityManager.clear();
         assertThat(entityManager.find(GroupNom.class, saved.getId()).getName())

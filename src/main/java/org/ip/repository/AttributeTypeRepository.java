@@ -14,12 +14,8 @@ import java.util.Optional;
 public interface AttributeTypeRepository extends JpaRepository<AttributeType, Long>,
         JpaSpecificationExecutor<AttributeType> {
 
-    Optional<AttributeType> findByCode(String code);
-
     /** Строка типа под запись: проверка цели и создание значения атомарны. */
     @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("select t from AttributeType t where t.id = :id")
     Optional<AttributeType> findByIdForUpdate(@Param("id") Long id);
-
-    boolean existsByCode(String code);
 }

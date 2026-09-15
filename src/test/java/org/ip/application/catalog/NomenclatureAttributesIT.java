@@ -339,7 +339,11 @@ class NomenclatureAttributesIT {
      */
     private Nomenclature nomenclature(String suffix) {
         String unitCode = "U" + suffix;
-        UnitOfMeasurement unit = unitRepository.findByCode(unitCode)
+        // Fixture-lookup идёт через canonical-совместимый findAll, а не через удалённый
+        // C4.8 repository-метод findByCode (единственным потребителем был этот helper).
+        UnitOfMeasurement unit = unitRepository.findAll().stream()
+            .filter(candidate -> unitCode.equals(candidate.getCode()))
+            .findFirst()
             .orElseGet(() -> unitRepository.save(new UnitOfMeasurement(
                 "u" + suffix, "Unit " + suffix, unitCode)));
         return new Nomenclature("N-" + suffix, "Nom " + suffix, unit);

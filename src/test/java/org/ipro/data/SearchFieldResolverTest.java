@@ -77,4 +77,22 @@ class SearchFieldResolverTest {
         assertThatThrownBy(() -> resolver.resolve(Branch.class, List.of(" ")))
             .isInstanceOf(IllegalArgumentException.class);
     }
+
+    /**
+     * C4.8: to-many в полях поиска запрещено политикой, и запрет исполняем, а не декларативен.
+     * Путь через коллекцию не разворачивается: сама коллекция — не строковое поле, а
+     * следующий сегмент на {@code java.util.List} не находится вовсе. В strict-режиме (list
+     * и global search) это отказ, в tolerant (lookup, поля приходят из UI) — пропуск.
+     */
+    @Test
+    void toManyPathIsNotAValidSearchField() {
+        assertThatThrownBy(() -> resolver.resolve(PrdSpec.class, List.of("materials.nomenclature")))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> resolver.resolve(PrdSpec.class, List.of("materials")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("не является строковым");
+
+        assertThat(resolver.resolve(PrdSpec.class, List.of("materials", "codeSpec"), false))
+            .containsExactly("codeSpec");
+    }
 }

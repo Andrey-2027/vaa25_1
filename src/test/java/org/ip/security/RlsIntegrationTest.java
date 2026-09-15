@@ -50,7 +50,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * тесте нет, а конструкторы у всех трёх классов простые, без Spring-магии внутри.
  */
 @DataJpaTest
-@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls"})
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
+@EnableJpaRepositories(basePackages = {"org.ipro.rls"})
 class RlsIntegrationTest {
 
     @Autowired

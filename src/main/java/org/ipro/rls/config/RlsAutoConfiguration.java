@@ -40,15 +40,20 @@ import org.springframework.web.context.annotation.SessionScope;
  * (UserRepositoryRlsRoleResolver). Grantable dimension values выводятся платформой
  * из {@code @RlsDimension(grantValues = true)} и entity metadata.
  *
- * Репозитории: явный {@link EnableJpaRepositories} перечисляет ВСЕ базовые пакеты
- * ({@code org.ip} — прикладные репозитории, {@code org.ipro.rls} — AccessGrantRepository),
- * т.к. декларация @EnableJpaRepositories отключает автоматическое сканирование
- * базового пакета применения (back-off JpaRepositoriesAutoConfiguration), и полагаться
- * на него нельзя.
+ * Репозитории: явный {@link EnableJpaRepositories} перечисляет базовые пакеты
+ * <b>платформы</b> ({@code org.ipro.rls} — AccessGrantRepository и т.д.).
+ *
+ * <p>D1: прикладной пакет здесь больше не называется. Раньше список содержал
+ * {@code org.ip}, то есть платформа знала имя пакета приложения — это и была одна из
+ * строковых (не bytecode) зависимостей платформы на {@code org.ip}. Теперь приложение
+ * само объявляет {@code @EnableJpaRepositories("org.ip")} рядом со своим
+ * {@code @SpringBootApplication}: обе декларации независимы и не пересекаются.
+ * Так платформа остаётся нейтральной к имени прикладного пакета, а состав репозиториев
+ * не меняется.</p>
  */
 @AutoConfiguration
 @AutoConfigureBefore(org.ipro.numbering.config.NumberingAutoConfiguration.class)
-@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls", "org.ipro.reportstudio",
+@EnableJpaRepositories(basePackages = {"org.ipro.rls", "org.ipro.reportstudio",
     "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport", "org.ipro.jr",
     "org.ipro.telemetry.repository"})
 public class RlsAutoConfiguration {

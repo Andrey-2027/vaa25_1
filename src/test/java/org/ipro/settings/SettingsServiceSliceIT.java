@@ -24,7 +24,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @DataJpaTest
 @ContextConfiguration(classes = org.ip.Application.class)
-@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.settings"})
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
+@EnableJpaRepositories(basePackages = {"org.ipro.settings"})
 class SettingsServiceSliceIT {
 
     @Autowired

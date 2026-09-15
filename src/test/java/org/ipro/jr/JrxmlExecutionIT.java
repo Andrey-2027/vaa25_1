@@ -47,7 +47,8 @@ import static org.mockito.Mockito.mock;
  * получает отказ конвейера; SQL без маркера jpql: — явный отказ.
  */
 @DataJpaTest
-@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls", "org.ipro.jr"})
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
+@EnableJpaRepositories(basePackages = {"org.ipro.rls", "org.ipro.jr"})
 @ContextConfiguration(classes = Application.class)
 class JrxmlExecutionIT {
 

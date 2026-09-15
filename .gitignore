@@ -60,6 +60,12 @@ node_modules/
 !src/test/resources/metadata/
 !src/test/resources/metadata/*.txt
 
+# C4.8 search-parity baseline — часть поставки: SearchFieldParitySnapshotTest сравнивает
+# поисковые поля standard roots с этим файлом, поэтому на чистом checkout он обязан
+# присутствовать, а не создаваться локальным прогоном.
+!src/test/resources/search/
+!src/test/resources/search/*.txt
+
 ### Vaadin generated ###
 src/main/frontend/generated/
 vite.generated.ts

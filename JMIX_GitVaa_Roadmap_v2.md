@@ -857,7 +857,7 @@ read-path применяют свой сценарий, явные пути ли
 вертикали и критерии закрытия зафиксированы в
 [`docs/architecture/c4-data-access-facade-plan.md`](docs/architecture/c4-data-access-facade-plan.md).
 
-Статус: **C4.0–C4.7 выполнены; впереди C4.8 (hardening и закрытие этапа)**. Compatibility-механизмы C4 удалены: `AbstractBaseService`, `@EntityMetadata.serviceClass` и резолв по имени бина; data handle выбирается по entity type.
+Статус: **C4.0–C4.8 закрыты**. Compatibility-механизмы C4 удалены: `AbstractBaseService`, `@EntityMetadata.serviceClass` и резолв по имени бина; data handle выбирается по entity type. C4.8 (hardening и закрытие этапа) закрыт: `WriteTelemetry`-seam с двухфазным исходом (успех pipeline ≠ коммит), отказы классифицированы типом, глобальный поиск fail-closed без `RlsCurrentUser`, сортировка по to-many-пути отклоняется до SQL, унифицирован `ReadTelemetry`, закрыт последний UI-persistence-seam и удалены мёртвые repository-запросы под arch-проверкой; `mvn verify` — 1316/0/0, random-order gate — 1316/0/0 (seed `20260915`).
 Таксономия всех 37 persistence types, классификация
 service/repository/base слоя, baseline, пилоты и characterization-тесты — в
 [`docs/architecture/c4-inventory.md`](docs/architecture/c4-inventory.md); решения — в
@@ -967,12 +967,38 @@ lookup-запросом; этот restore-path входит в cost gate C4.
 
 ## 7. Этап D — физическая платформизация (`LATER, обязательный`)
 
-### D1. Карта зависимостей и публичного API
+### D1. Карта зависимостей и публичного API — ✅ 2026-09-15
 
-- классифицировать `org.ipro` классы как API, SPI или internal;
-- устранить строковые зависимости платформы на `org.ip`;
-- зафиксировать допустимые направления зависимостей;
-- определить compatibility policy.
+- ✅ классифицировать `org.ipro` классы как API, SPI или internal;
+- ✅ выявить и зарегистрировать строковые зависимости платформы на `org.ip` (shrink-only реестр по точным наборам литералов, расширение запрещено; снятие 13 файлов/16 литералов — D3);
+- ✅ зафиксировать допустимые направления зависимостей;
+- ✅ определить compatibility policy.
+
+Артефакт: `docs/architecture/d1-platform-boundary-map.md`. Два пункта сделаны
+исполняемыми, а не текстом: `PlatformDependencyDirectionTest` (8 правил «нижний слой не
+знает верхнего»), `PlatformStringDependencyTest` (shrink-only реестр строковых связок).
+Исправлено в D1: реальная утечка `data -> form` (порт группировки перенесён в
+`org.ipro.data.grouping`) и `@EnableJpaRepositories({"org.ip", ...})` в платформенной
+авто-конфигурации.
+
+Реестр строковых связок сверяется по `файл → точный набор литералов` и сканирует код без
+комментариев: второй литерал в уже разрешённом файле ломает сборку так же, как новый файл,
+а упоминание пакета в javadoc зависимостью не считается. Итог D1 по этому пункту —
+«выявлены и зарегистрированы с запретом расширения», а не «устранены»: снятие остатка — D3.
+
+Замером D1 обнаружено то, чего в roadmap не было и что меняет метод D2:
+
+- **`org.ipro` — root-пакет трёх владельцев**: репозиторий (469 файлов) и уже
+  опубликованные артефакты `org.ipro:filtergrid-*` + `org.ipro.crudui:crudui-core`
+  (69 типов). Платформизация частично уже произошла;
+- **`org.ipro.crud` — split package**: контракт `IdentifiableEntity` уже вынесен в
+  `crudui-core`, а `BaseEntity`/`BaseService` — ещё нет. Резать «по пакетам» нельзя,
+  единица разреза — тип/роль;
+- **`@EnableJpaRepositories` — единый хаб в `RlsAutoConfiguration`** для шести чужих
+  подсистем: ошибка при выносе модуля теряет репозитории молча, нужен fail-fast в D2;
+- публичную поверхность приложение называет **194 типами**, из которых контракты —
+  11 аннотаций + 18 SPI + value types; первый срез обязан **не** переносить остальные
+  ~165 (иначе публичная граница модуля копируется как есть).
 
 ### D2. Первый extraction slice
 

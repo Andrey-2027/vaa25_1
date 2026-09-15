@@ -2,6 +2,7 @@ package org.ipro.data;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceException;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.hibernate.SessionFactory;
@@ -9,13 +10,16 @@ import org.hibernate.stat.Statistics;
 import org.ipro.data.fixture.C4FixtureEntity;
 import org.ipro.data.fixture.C4FixtureJpaConfiguration;
 import org.ipro.data.fixture.C4NoTextFixtureEntity;
+import org.ipro.crud.ValidationException;
 import org.ipro.events.EntityEventPublisher;
 import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.lifecycle.EntityLifecycleRegistry;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.SectionMetadataRegistry;
+import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.numbering.NumberingService;
+import org.ipro.rls.RlsAccessDeniedException;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsReadGate;
@@ -28,10 +32,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -67,6 +76,12 @@ class CanonicalWritePathIT {
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    private MetadataResolver metadataResolver;
+    private ManagedEntityCatalog managed;
+    private SectionMetadataRegistry sections;
     private EntityDescriptorCatalog catalog;
     private CanonicalReadExecutor readExecutor;
     private CanonicalWriteExecutor writeExecutor;
@@ -75,15 +90,15 @@ class CanonicalWritePathIT {
     private CanonicalEntityService<C4FixtureEntity> service;
     private RlsFilterActivator rlsFilterActivator;
     private RlsReadGate readGate;
+    private Validator validator;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
     void buildCanonicalStack() {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        MetadataResolver metadataResolver = new MetadataResolver();
-        ManagedEntityCatalog managed = new ManagedEntityCatalog(entityManagerFactory);
-        SectionMetadataRegistry sections =
-            new SectionMetadataRegistry("org.ipro.data.fixture", metadataResolver);
+        validator = Validation.buildDefaultValidatorFactory().getValidator();
+        metadataResolver = new MetadataResolver();
+        managed = new ManagedEntityCatalog(entityManagerFactory);
+        sections = new SectionMetadataRegistry("org.ipro.data.fixture", metadataResolver);
         sections.afterPropertiesSet();
 
         catalog = new EntityDescriptorCatalog(managed, sections, metadataResolver,
@@ -378,6 +393,37 @@ class CanonicalWritePathIT {
         assertThat(nonBlank.getContent()).isEmpty();
     }
 
+    /**
+     * C4.8: blank-term и специальные символы не превращаются в unbounded read. Проверяется
+     * измеримо: число SQL-запросов ограничено (content + count), а размер выдачи — page size,
+     * а не размер таблицы.
+     */
+    @Test
+    void blankAndSpecialCharacterSearchStayBounded() {
+        for (int i = 0; i < 30; i++) {
+            service.create(new C4FixtureEntity("B-" + i, i % 2 == 0 ? "alpha" : "beta"));
+        }
+        entityManager.flush();
+        entityManager.clear();
+        Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.setStatisticsEnabled(true);
+        statistics.clear();
+
+        Page<C4FixtureEntity> blank = service.search("   ", PageRequest.of(0, 5));
+
+        assertThat(blank.getContent()).hasSize(5);
+        assertThat(blank.getTotalElements()).isEqualTo(30);
+        assertThat(statistics.getQueryExecutionCount())
+            .as("blank term — bounded page + count, а не вся таблица")
+            .isEqualTo(2);
+
+        statistics.clear();
+        Page<C4FixtureEntity> literalPercent = service.search("%", PageRequest.of(0, 5));
+
+        assertThat(literalPercent.getContent()).isEmpty();
+        assertThat(statistics.getQueryExecutionCount()).isEqualTo(2);
+    }
+
     @Test
     void globalSearchContextKeepsDistinctTelemetryIntent() {
         MetadataResolver metadataResolver = new MetadataResolver();
@@ -385,7 +431,8 @@ class CanonicalWritePathIT {
         CanonicalReadExecutor measured = new CanonicalReadExecutor(catalog,
             new ScenarioFetchGraphResolver(metadataResolver, null, null), metadataResolver,
             rlsFilterActivator, readGate, null,
-            (operation, type, scenario, resultCount, durationNanos) -> observed.add(operation));
+            (operation, type, scenario, outcome, resultCount, durationNanos) ->
+                observed.add(operation));
         ReflectionTestUtils.setField(measured, "entityManager", entityManager);
 
         measured.readSearch(new SearchRead<>(C4FixtureEntity.class, SearchContext.GLOBAL,
@@ -407,7 +454,8 @@ class CanonicalWritePathIT {
         CanonicalReadExecutor measured = new CanonicalReadExecutor(catalog,
             new ScenarioFetchGraphResolver(new MetadataResolver(), null, null),
             new MetadataResolver(), rlsFilterActivator, readGate, null,
-            (operation, type, scenario, resultCount, durationNanos) -> observed.add(operation));
+            (operation, type, scenario, outcome, resultCount, durationNanos) ->
+                observed.add(operation));
         ReflectionTestUtils.setField(measured, "entityManager", entityManager);
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.setStatisticsEnabled(true);
@@ -468,5 +516,220 @@ class CanonicalWritePathIT {
         assertThat(writeExecutor.allowedWrites(C4FixtureEntity.class))
             .containsExactlyInAnyOrder(DataOperation.CREATE, DataOperation.UPDATE,
                 DataOperation.DELETE);
+    }
+
+    // ------------------------------------------------------------------ C4.8 write-telemetry
+
+    @Test
+    void successfulWriteReportsPipelineThenCommitOutcome() {
+        // Исход транзакции наблюдаем: успех обязан быть подтверждён коммитом, а не фактом
+        // возврата метода — иначе откат на коммите записывался бы как успех.
+        RecordingWriteTelemetry telemetry = new RecordingWriteTelemetry();
+        CanonicalWriteExecutor executor = executorWith(telemetry);
+
+        try {
+            inNewTransaction(() -> executor.create(C4FixtureEntity.class,
+                new C4FixtureEntity("T-COMMIT", "Запись")));
+
+            assertThat(telemetry.events).containsExactly(
+                "begin:CREATE", "pipelineCompleted:1", "close", "committed");
+        } finally {
+            removeCommittedRow("T-COMMIT");
+        }
+    }
+
+    @Test
+    void rolledBackTransactionIsNotReportedAsSuccess() {
+        RecordingWriteTelemetry telemetry = new RecordingWriteTelemetry();
+        CanonicalWriteExecutor executor = executorWith(telemetry);
+
+        inNewTransaction(status -> {
+            executor.create(C4FixtureEntity.class, new C4FixtureEntity("T-ROLLBACK", "Запись"));
+            status.setRollbackOnly();
+        });
+
+        assertThat(telemetry.events).containsExactly(
+            "begin:CREATE", "pipelineCompleted:1", "close", "rolledBack:STATUS_ROLLED_BACK");
+    }
+
+    @Test
+    void capabilityDenialIsRecordedAsDeniedBeforePersistence() {
+        // Тип без canonical write-handle: отказ обязан быть зафиксирован как deny с видом
+        // policy, а не как ошибка исполнения — до RLS, валидации и SQL.
+        RecordingWriteTelemetry telemetry = new RecordingWriteTelemetry();
+        EntityDescriptorCatalog writeDenied = new EntityDescriptorCatalog(managed, sections,
+            metadataResolver, List.of(), List.of(new EntityCapabilityOverride(
+                C4FixtureEntity.class, Set.of(FetchScenario.LIST), Set.of(),
+                "тест: canonical write не выдан")));
+        CanonicalWriteExecutor executor = executorWith(writeDenied, entityManager, telemetry);
+
+        assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
+            new C4FixtureEntity("D-1", "запрещено")))
+            .isInstanceOf(CanonicalWriteDeniedException.class);
+
+        assertThat(telemetry.events).containsExactly(
+            "begin:CREATE", "denied:CAPABILITY", "close");
+    }
+
+    @Test
+    void aggregateBoundaryDenialIsRecordedAsDenied() {
+        RecordingWriteTelemetry telemetry = new RecordingWriteTelemetry();
+        SectionMetadataRegistry ownedSections = mock(SectionMetadataRegistry.class);
+        TableSectionMetadataInfo section = mock(TableSectionMetadataInfo.class);
+        when(section.getKey()).thenReturn("materials");
+        when(ownedSections.forOwner(C4FixtureEntity.class)).thenReturn(List.of(section));
+        CanonicalWriteExecutor executor = new CanonicalWriteExecutor(catalog, readExecutor,
+            entityManager, validator, null, null, null, null, null, null, ownedSections, telemetry);
+
+        assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
+            new C4FixtureEntity("A-1", "агрегат")))
+            .isInstanceOf(CanonicalWriteDeniedException.class)
+            .hasMessageContaining("aggregate boundary");
+
+        assertThat(telemetry.events).containsExactly(
+            "begin:CREATE", "denied:AGGREGATE_BOUNDARY", "close");
+    }
+
+    @Test
+    void accessDenialIsRecordedAsDeniedNotAsError() {
+        // RlsAccessDeniedException наследует AccessDeniedException: это отказ доступа, а не
+        // сбой pipeline. До C4.8 такое исключение попадало в ошибки.
+        RecordingWriteTelemetry telemetry = new RecordingWriteTelemetry();
+        RlsPolicyEnforcer enforcer = mock(RlsPolicyEnforcer.class);
+        doThrow(new RlsAccessDeniedException("нет права записи")).when(enforcer).requireUpdate(any());
+        CanonicalWriteExecutor executor = new CanonicalWriteExecutor(catalog, readExecutor,
+            entityManager, validator, enforcer, null, null, null, null, null, null, telemetry);
+
+        assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
+            new C4FixtureEntity("R-1", "нет прав")))
+            .isInstanceOf(RlsAccessDeniedException.class);
+
+        assertThat(telemetry.events).containsExactly(
+            "begin:CREATE", "denied:ACCESS", "close");
+    }
+
+    @Test
+    void wrongIntentIsRecordedAsErrorNotAsDenial() {
+        // create существующей строки — ошибка вызывающего, а не отказ policy: раньше любой
+        // IllegalStateException попадал в deny и растворял настоящие отказы.
+        RecordingWriteTelemetry telemetry = new RecordingWriteTelemetry();
+        CanonicalWriteExecutor executor = executorWith(telemetry);
+        C4FixtureEntity withId = new C4FixtureEntity("D-1", "уже существует");
+        withId.setId(4242L);
+
+        assertThatThrownBy(() -> executor.create(C4FixtureEntity.class, withId))
+            .isInstanceOf(IllegalStateException.class)
+            .isNotInstanceOf(CanonicalWriteDeniedException.class);
+
+        assertThat(telemetry.events).containsExactly(
+            "begin:CREATE", "failed:IllegalStateException", "close");
+    }
+
+    @Test
+    void failingWriteIsRecordedAsFailedNotSuccess() {
+        RecordingWriteTelemetry telemetry = new RecordingWriteTelemetry();
+        CanonicalWriteExecutor executor = executorWith(telemetry);
+
+        assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
+            new C4FixtureEntity(null, "без кода")))
+            .isInstanceOf(ValidationException.class);
+
+        assertThat(telemetry.events).containsExactly(
+            "begin:CREATE", "failed:ValidationException", "close");
+    }
+
+    @Test
+    void databaseRejectionInsidePipelineIsRecordedAsFailedNotSuccess() {
+        // Отказ БД на flush принадлежит этой операции: flush выполняется внутри pipeline,
+        // поэтому отклонённая база не может быть записана как успех.
+        RecordingWriteTelemetry telemetry = new RecordingWriteTelemetry();
+        EntityManager rejecting = mock(EntityManager.class);
+        doThrow(new PersistenceException("ограничение БД")).when(rejecting).flush();
+        CanonicalWriteExecutor executor = executorWith(catalog, rejecting, telemetry);
+
+        assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
+            new C4FixtureEntity("B-1", "ограничение")))
+            .isInstanceOf(PersistenceException.class);
+
+        assertThat(telemetry.events).containsExactly(
+            "begin:CREATE", "failed:PersistenceException", "close");
+    }
+
+    private CanonicalWriteExecutor executorWith(WriteTelemetry telemetry) {
+        return executorWith(catalog, entityManager, telemetry);
+    }
+
+    private CanonicalWriteExecutor executorWith(EntityDescriptorCatalog descriptors,
+                                                EntityManager manager,
+                                                WriteTelemetry telemetry) {
+        return new CanonicalWriteExecutor(descriptors, readExecutor, manager, validator,
+            null, null, null, null, null, null, null, telemetry);
+    }
+
+    /** Транзакция, исход которой наблюдаем: REQUIRES_NEW коммитится или откатывается. */
+    private void inNewTransaction(java.util.function.Consumer<TransactionStatus> body) {
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        template.execute(status -> {
+            body.accept(status);
+            return null;
+        });
+    }
+
+    private void inNewTransaction(Runnable body) {
+        inNewTransaction(status -> body.run());
+    }
+
+    /**
+     * Коммит в отдельной транзакции переживает откат теста: строка убирается, чтобы не влиять
+     * на остальные тесты этого контекста.
+     */
+    private void removeCommittedRow(String code) {
+        inNewTransaction(status -> entityManager
+            .createQuery("delete from C4FixtureEntity e where e.code = :code")
+            .setParameter("code", code)
+            .executeUpdate());
+    }
+
+    /** Минимальная реализация seam'а, фиксирующая порядок и исход, без payload. */
+    private static final class RecordingWriteTelemetry implements WriteTelemetry {
+
+        private final List<String> events = new ArrayList<>();
+
+        @Override
+        public WriteScope begin(DataOperation operation, Class<?> type) {
+            events.add("begin:" + operation);
+            return new WriteScope() {
+                @Override
+                public void denied(DenialKind kind, String reason) {
+                    events.add("denied:" + kind);
+                }
+
+                @Override
+                public void failed(Throwable error) {
+                    events.add("failed:" + error.getClass().getSimpleName());
+                }
+
+                @Override
+                public void pipelineCompleted(int affectedRows) {
+                    events.add("pipelineCompleted:" + affectedRows);
+                }
+
+                @Override
+                public void committed() {
+                    events.add("committed");
+                }
+
+                @Override
+                public void rolledBack(String reason) {
+                    events.add("rolledBack:" + reason);
+                }
+
+                @Override
+                public void close() {
+                    events.add("close");
+                }
+            };
+        }
     }
 }

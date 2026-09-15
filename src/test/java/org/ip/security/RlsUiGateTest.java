@@ -34,7 +34,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Зеркальные правила write-гейта сервисной границы; сами сервисы не поднимаются.
  */
 @DataJpaTest
-@EnableJpaRepositories(basePackages = {"org.ip", "org.ipro.rls"})
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
+@EnableJpaRepositories(basePackages = {"org.ipro.rls"})
 class RlsUiGateTest {
 
     @Autowired

@@ -8,6 +8,7 @@ import org.ipro.fetch.instance.InstanceNameResolver;
 import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.config.RlsAutoConfiguration;
 import org.ipro.search.GlobalSearchCatalog;
 import org.ipro.search.GlobalSearchHeader;
@@ -60,15 +61,22 @@ public class GlobalSearchAutoConfiguration {
         return new GlobalSearchNavigationAdapter(catalog, formCoordinator);
     }
 
+    /**
+     * Глобальный поиск создаётся только вместе с security-контуром: без
+     * {@link RlsCurrentUser} бин не появляется, и поиск становится недоступен, а не
+     * анонимен. Fail-closed на wiring — то, чем D2/D3 защищаются от потери policy при
+     * смене состава и порядка авто-конфигураций.
+     */
     @Bean
     @ConditionalOnBean({GlobalSearchCatalog.class, GlobalSearchProviderRegistry.class,
-        CanonicalReadExecutor.class})
+        CanonicalReadExecutor.class, RlsCurrentUser.class})
     @ConditionalOnMissingBean(GlobalSearchService.class)
     public GlobalSearchService globalSearchService(
             GlobalSearchCatalog catalog,
             GlobalSearchProviderRegistry providerRegistry,
-            CanonicalReadExecutor readExecutor) {
-        return new GlobalSearchService(catalog, providerRegistry, readExecutor);
+            CanonicalReadExecutor readExecutor,
+            RlsCurrentUser currentUser) {
+        return new GlobalSearchService(catalog, providerRegistry, readExecutor, currentUser);
     }
 
     @Bean

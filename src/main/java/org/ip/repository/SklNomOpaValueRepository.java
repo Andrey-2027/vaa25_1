@@ -17,9 +17,6 @@ public interface SklNomOpaValueRepository extends JpaRepository<SklNomOpaValue, 
     @EntityGraph(attributePaths = {"attrType", "value"})
     List<SklNomOpaValue> findBySetOrderByAttrTypeId(SklNomOpa set);
 
-    /** Обратный поиск: все наборы, содержащие значение (для «все карточки, где цвет = красный»). */
-    List<SklNomOpaValue> findByValue(AttributeValue value);
-
     /**
      * Шапки, содержащие значение (для пересборки displayName при переименовании значения).
      * DISTINCT — набор может содержать значение только один раз, но JPA требует distinct

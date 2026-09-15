@@ -1,6 +1,6 @@
 # C4: узкий data-access facade — план работ
 
-Статус: `IN PROGRESS` — C4.0–C4.7 выполнены. C4.6 мигрировал 16 стандартных корней и справочников, то есть canonical path перестал опираться только на fixture: первый production-каталог прошёл его целиком. Волна F сняла сужение `GridFormView` и read-мост `UreportTemplate`, после чего C4.7 удалил `AbstractBaseService`, `@EntityMetadata.serviceClass` и резолв по имени бина (остался type-directed реестр), а ссылки моделей на сервисные классы отсутствуют. Осталась впереди C4.8 (hardening и закрытие этапа): **write-telemetry** (seam вокруг canonical write не заведён — это не выполнено и не заявляется выполненным), объём telemetry на `LOOKUP`, `readSearch` distinct/content при search-поле через to-many, и полный `mvn verify`-гейт как условие закрытия самого C4.
+Статус: `DONE` — C4.0–C4.8 закрыты. C4.6 мигрировал 16 стандартных корней и справочников, то есть canonical path перестал опираться только на fixture: первый production-каталог прошёл его целиком. Волна F сняла сужение `GridFormView` и read-мост `UreportTemplate`, после чего C4.7 удалил `AbstractBaseService`, `@EntityMetadata.serviceClass` и резолв по имени бина (остался type-directed реестр), а ссылки моделей на сервисные классы отсутствуют. C4.8 (hardening и закрытие этапа) закрыт: **write-telemetry** заведён с двухфазным исходом (успех pipeline ≠ коммит), отказы классифицированы типом (`CanonicalWriteDeniedException` + `DenialKind`, security-отказ — тоже отказ), глобальный поиск fail-closed без `RlsCurrentUser`, сортировка по to-many-пути отклоняется до SQL вместо distinct-эмуляции, а полный `mvn verify` (1316/0/0) и random-order gate (1316/0/0, seed `20260915`) стали условием закрытия самого C4.
 Родительский этап: [`JMIX_GitVaa_Roadmap_v2.md`, C4](../../JMIX_GitVaa_Roadmap_v2.md#c4-узкий-data-access-facade)
 Связанные нарушения: `ADX-04`, `ADX-05`, `ADX-08`, платформенная часть `ADX-10`.
 Использует результаты: C2 fail-closed RLS boundary; C3 FetchPlan и InstanceName.
@@ -526,7 +526,7 @@ contract и mandatory RLS; row cancel не выполняет per-reference read
 RLS tests без Spring Data repository, application service, `serviceClass` и magic bean
 name; owned/internal/immutable types не получают лишних capabilities.
 
-Статус среза (2026-09-14): ядро пп. 1–6 и 8 реализовано; формальное закрытие C4.3 отложено до выполнения оставшихся пунктов:
+Статус среза (2026-09-14, исторический): ядро пп. 1–6 и 8 реализовано; формальное закрытие C4.3 отложено до выполнения оставшихся пунктов. Перечисленное ниже закрыто позже: write-telemetry — в C4.8, перевод реального справочника и form/audit acceptance — в C4.6/C4.7:
 
 - **п.4 write-telemetry** — seam не заведён (переносится отдельным шагом);
 - **п.7 «перевести первый реальный простой справочник»** — типизированные сервисы реальных
@@ -689,6 +689,20 @@ C4.8 планируется заранее и не является неопре
 
 Этап закрывается только после исправления найденных hardening-дефектов и повторной
 приёмки, а не после формального выполнения миграционного списка C4.6.
+
+Статус среза (C4.8, закрыт): заведён `WriteTelemetry` (scope до capability, двухфазный исход
+`pipelineCompleted` → `committed`/`rolledBack`, без дубля при вложенном canonical write) и
+унифицирован `ReadTelemetry` (outcome на всех публичных overloads); восстановлена явная
+auth-граница глобального поиска (снятая в C4.5) и сделана fail-closed без `RlsCurrentUser`;
+политика to-many зафиксирована как запрет (поле поиска отклоняет резолвер, сортировка —
+executor до SQL); закрыт последний UI-persistence-seam (`FormResolver` без `EntityManager`);
+удалены мёртвые repository-query-методы под arch-проверкой; исправлен artifact budget по
+`org.ip.service`. Полный `mvn verify` и random-order gate зелёные: 1316/0/0 (seed
+`20260915`). Ранее отмеченные открытые пункты закрыты именованными тестами:
+`EntityDataAccessResolverTest` (reverse-order/partial-context/duplicate policy),
+`SearchFieldParitySnapshotTest` (search-поля 16 корней), `DetachedRenderCostIT` и
+`blankAndSpecialCharacterSearchStayBounded` (cost), `CanonicalReadSortGuardTest`
+(сортировка по to-many — отказ до построения запроса).
 
 ## 6. Промежуточные измеримые результаты
 

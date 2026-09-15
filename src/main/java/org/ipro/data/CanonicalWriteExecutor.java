@@ -17,6 +17,9 @@ import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.numbering.NumberingService;
 import org.ipro.rls.RlsPolicyEnforcer;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Objects;
@@ -51,6 +54,12 @@ import java.util.stream.Collectors;
  * <p>Capability проверяется как enforcement-граница: write intent без разрешения отклоняется
  * до RLS и до пользовательского кода. Тип с намеренно запрещённой операцией (например,
  * {@code AttributeValue} — только create) отказывает здесь, а не глубоко в generic-вызове.</p>
+ *
+ * <p>Отказ policy выражен типом {@link CanonicalWriteDeniedException} (capability, aggregate
+ * boundary) и security-исключением ({@link AccessDeniedException}); всё остальное — ошибка
+ * исполнения. Телеметрия записи двухфазная: {@code pipelineCompleted} фиксируется после
+ * flush внутри операции, а {@code committed}/{@code rolledBack} — по исходу транзакции,
+ * потому что Spring коммитит уже после возврата метода.</p>
  */
 public class CanonicalWriteExecutor {
 
@@ -65,6 +74,15 @@ public class CanonicalWriteExecutor {
     private final GenericOwnedSectionService ownedSectionService;
     private final ReferenceCheckService referenceCheckService;
     private final SectionMetadataRegistry sectionMetadataRegistry;
+    private final WriteTelemetry writeTelemetry;
+
+    /**
+     * C4.8: глубина вложенных canonical write в одной бизнес-операции. Пока внешний scope
+     * открыт (например, aggregate save вызвал {@code save}), вложенный вызов не открывает
+     * второй scope — одна бизнес-операция даёт одну запись telemetry.
+     */
+    private static final ThreadLocal<Integer> WRITE_TELEMETRY_DEPTH =
+        ThreadLocal.withInitial(() -> 0);
 
     public CanonicalWriteExecutor(EntityDescriptorCatalog catalog,
                                   CanonicalReadExecutor readExecutor,
@@ -77,6 +95,23 @@ public class CanonicalWriteExecutor {
                                   GenericOwnedSectionService ownedSectionService,
                                   ReferenceCheckService referenceCheckService,
                                   SectionMetadataRegistry sectionMetadataRegistry) {
+        this(catalog, readExecutor, entityManager, validator, rlsPolicyEnforcer,
+            numberingService, eventPublisher, lifecycleRegistry, ownedSectionService,
+            referenceCheckService, sectionMetadataRegistry, null);
+    }
+
+    public CanonicalWriteExecutor(EntityDescriptorCatalog catalog,
+                                  CanonicalReadExecutor readExecutor,
+                                  EntityManager entityManager,
+                                  Validator validator,
+                                  RlsPolicyEnforcer rlsPolicyEnforcer,
+                                  NumberingService numberingService,
+                                  EntityEventPublisher eventPublisher,
+                                  EntityLifecycleRegistry lifecycleRegistry,
+                                  GenericOwnedSectionService ownedSectionService,
+                                  ReferenceCheckService referenceCheckService,
+                                  SectionMetadataRegistry sectionMetadataRegistry,
+                                  WriteTelemetry writeTelemetry) {
         this.catalog = Objects.requireNonNull(catalog, "catalog must not be null");
         this.readExecutor = Objects.requireNonNull(readExecutor, "readExecutor must not be null");
         this.entityManager = Objects.requireNonNull(entityManager, "entityManager must not be null");
@@ -93,6 +128,7 @@ public class CanonicalWriteExecutor {
         // Optional metadata source: slice-контексты без registry сохраняют прежнее
         // поведение, а полный контекст получает aggregate-boundary guard.
         this.sectionMetadataRegistry = sectionMetadataRegistry;
+        this.writeTelemetry = writeTelemetry == null ? WriteTelemetry.noop() : writeTelemetry;
     }
 
     /** Descriptor типа — для диагностики вызывающих. */
@@ -102,14 +138,18 @@ public class CanonicalWriteExecutor {
 
     @Transactional
     public <T extends IdentifiableEntity> T create(Class<T> type, T entity) {
-        requireIntentCoversSections(type, DataOperation.CREATE);
-        return persist(type, entity, DataOperation.CREATE);
+        return instrumented(DataOperation.CREATE, type, () -> {
+            requireIntentCoversSections(type, DataOperation.CREATE);
+            return persist(type, entity, DataOperation.CREATE);
+        });
     }
 
     @Transactional
     public <T extends IdentifiableEntity> T update(Class<T> type, T entity) {
-        requireIntentCoversSections(type, DataOperation.UPDATE);
-        return persist(type, entity, DataOperation.UPDATE);
+        return instrumented(DataOperation.UPDATE, type, () -> {
+            requireIntentCoversSections(type, DataOperation.UPDATE);
+            return persist(type, entity, DataOperation.UPDATE);
+        });
     }
 
     /** Create или update по наличию id — единый intent UI-формы. */
@@ -118,38 +158,134 @@ public class CanonicalWriteExecutor {
         Objects.requireNonNull(entity, "entity must not be null");
         DataOperation operation = entity.getId() == null
             ? DataOperation.CREATE : DataOperation.UPDATE;
-        return persist(type, entity, operation);
+        return instrumented(operation, type, () -> persist(type, entity, operation));
     }
 
     @Transactional
     public <T extends IdentifiableEntity> void delete(Class<T> type, Object id) {
-        requireCapability(type, DataOperation.DELETE);
-        if (id == null) {
-            return;
-        }
-        Optional<T> existing = readExecutor.readDetail(DetailRead.of(type, id));
-        if (existing.isEmpty()) {
-            // Если protected-тип вернул пусто, это «отфильтровано», а не «не существует»:
-            // превращать это в удаление по id нельзя — размерности недоступны для enforcement,
-            // и repository-aspect не смог бы проверить право.
-            return;
-        }
-        T entity = existing.get();
-        authorizeDelete(entity);
-        EntityEventPublisher.EventScope scope = openOperation(entity);
+        instrumented(DataOperation.DELETE, type, () -> {
+            requireCapability(type, DataOperation.DELETE);
+            if (id == null) {
+                return false;
+            }
+            Optional<T> existing = readExecutor.readDetail(DetailRead.of(type, id));
+            if (existing.isEmpty()) {
+                // Если protected-тип вернул пусто, это «отфильтровано», а не «не существует»:
+                // превращать это в удаление по id нельзя — размерности недоступны для enforcement,
+                // и repository-aspect не смог бы проверить право.
+                return false;
+            }
+            T entity = existing.get();
+            authorizeDelete(entity);
+            EntityEventPublisher.EventScope scope = openOperation(entity);
+            try {
+                publishDeleting(entity);
+                if (ownedSectionService != null) {
+                    ownedSectionService.deleteAllOwnedSections(entity);
+                }
+                if (referenceCheckService != null) {
+                    referenceCheckService.checkNoReferences(type, id);
+                }
+                entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
+                publishDeleted(entity);
+            } finally {
+                close(scope);
+            }
+            return true;
+        }, removed -> removed ? 1 : 0);
+    }
+
+    /**
+     * C4.8: единая telemetry-обвязка public write-intent'ов. Scope открывается до проверки
+     * capability, поэтому ранний отказ фиксируется как {@code denied} с видом из
+     * {@link WriteTelemetry.DenialKind}, а ошибка исполнения — как {@code failed}.
+     * Вложенный canonical write в рамках одной бизнес-операции переиспользует внешний scope,
+     * а не открывает второй.
+     *
+     * <p>Исход двухфазный: успех pipeline сообщается после flush (ошибки БД принадлежат этой
+     * операции, а не «коммиту после возврата»), а факт коммита или отката — от synchronization
+     * транзакции. Без наблюдаемой транзакции (hand-built executor без прокси) сообщается только
+     * pipeline-фаза: выдать её за commit-исход нечем.</p>
+     */
+    private <T> T instrumented(DataOperation operation, Class<?> type,
+                               java.util.function.Supplier<T> action) {
+        return instrumented(operation, type, action, ignored -> 1);
+    }
+
+    private <T> T instrumented(DataOperation operation, Class<?> type,
+                               java.util.function.Supplier<T> action,
+                               java.util.function.ToIntFunction<T> affectedRows) {
+        boolean outermost = WRITE_TELEMETRY_DEPTH.get() == 0;
+        WriteTelemetry.WriteScope scope = outermost
+            ? writeTelemetry.begin(operation, type) : null;
+        WRITE_TELEMETRY_DEPTH.set(WRITE_TELEMETRY_DEPTH.get() + 1);
         try {
-            publishDeleting(entity);
-            if (ownedSectionService != null) {
-                ownedSectionService.deleteAllOwnedSections(entity);
+            T result = action.get();
+            if (scope != null) {
+                // Flush принадлежит этой операции: констрейнт, уникальность или ошибка
+                // нумерации обязаны попасть в исход операции, а не в commit после возврата.
+                entityManager.flush();
+                scope.pipelineCompleted(affectedRows.applyAsInt(result));
+                registerTransactionOutcome(scope);
             }
-            if (referenceCheckService != null) {
-                referenceCheckService.checkNoReferences(type, id);
+            return result;
+        } catch (CanonicalWriteDeniedException denied) {
+            // Capability и aggregate boundary отказывают до RLS, валидации, хуков и SQL.
+            if (scope != null) {
+                scope.denied(denied.kind(), denied.getMessage());
             }
-            entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
-            publishDeleted(entity);
+            throw denied;
+        } catch (AccessDeniedException accessDenied) {
+            // RLS/security-отказ — тоже deny: пользователю отказано в доступе, операция
+            // не сломалась. Отдельная ветка нужна, потому что это исключение не проверяет
+            // policy типа, а проверяет право на строку.
+            if (scope != null) {
+                scope.denied(WriteTelemetry.DenialKind.ACCESS, accessDenied.getMessage());
+            }
+            throw accessDenied;
+        } catch (RuntimeException | Error error) {
+            // Ошибка исполнения: валидация, нумерация, lifecycle, события, SQL. Считать это
+            // deny нельзя — иначе настоящий отказ policy растворяется среди сбоев.
+            if (scope != null) {
+                scope.failed(error);
+            }
+            throw error;
         } finally {
-            close(scope);
+            WRITE_TELEMETRY_DEPTH.set(WRITE_TELEMETRY_DEPTH.get() - 1);
+            if (scope != null) {
+                scope.close();
+            }
         }
+    }
+
+    /**
+     * C4.8: коммит выполняет Spring уже после возврата метода, поэтому успех pipeline не
+     * является успехом записи. Исход транзакции сообщается отдельно — от synchronization, —
+     * иначе откат отмечался бы как {@code SUCCESS}. Вне транзакции synchronization сообщить
+     * нечего: там доступна только pipeline-фаза, и это соответствует контракту seam'а.
+     */
+    private void registerTransactionOutcome(WriteTelemetry.WriteScope scope) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == TransactionSynchronization.STATUS_COMMITTED) {
+                    scope.committed();
+                } else {
+                    scope.rolledBack(rollbackReason(status));
+                }
+            }
+        });
+    }
+
+    private static String rollbackReason(int status) {
+        return switch (status) {
+            case TransactionSynchronization.STATUS_ROLLED_BACK -> "STATUS_ROLLED_BACK";
+            case TransactionSynchronization.STATUS_UNKNOWN -> "STATUS_UNKNOWN";
+            default -> "STATUS_" + status;
+        };
     }
 
     private <T extends IdentifiableEntity> T persist(Class<T> type, T entity,
@@ -192,9 +328,11 @@ public class CanonicalWriteExecutor {
             if (original.isEmpty()) {
                 // Одинаковое сообщение для отсутствующей и RLS-скрытой строки не раскрывает,
                 // существует ли недоступный пользователю id. UPDATE не должен превращаться
-                // в INSERT через семантику EntityManager.merge().
-                throw new IllegalStateException("Нельзя обновить " + type.getSimpleName()
-                    + " id=" + entity.getId() + ": запись отсутствует или недоступна");
+                // в INSERT через семантику EntityManager.merge(). Отказ — доступ-образный:
+                // запись либо скрыта политикой, либо её нет.
+                throw new CanonicalWriteDeniedException(WriteTelemetry.DenialKind.ACCESS,
+                    "Нельзя обновить " + type.getSimpleName()
+                        + " id=" + entity.getId() + ": запись отсутствует или недоступна");
             }
             // Проверяем обе стороны переноса состояния. Проверка только payload позволила бы
             // заменить RLS-измерения и перезаписать строку, которую пользователь не может
@@ -243,10 +381,11 @@ public class CanonicalWriteExecutor {
             .map(TableSectionMetadataInfo::getKey)
             .sorted()
             .collect(Collectors.joining(", "));
-        throw new IllegalStateException(type.getSimpleName()
-            + " — агрегат с owned-секциями (" + keys + "): прямой " + operation
-            + " сохранил бы только шапку. Сохраняйте агрегат через aggregate boundary"
-            + " (MetadataDrivenAggregateSaveService), который заменяет секции и вызывает save().");
+        throw new CanonicalWriteDeniedException(WriteTelemetry.DenialKind.AGGREGATE_BOUNDARY,
+            type.getSimpleName()
+                + " — агрегат с owned-секциями (" + keys + "): прямой " + operation
+                + " сохранил бы только шапку. Сохраняйте агрегат через aggregate boundary"
+                + " (MetadataDrivenAggregateSaveService), который заменяет секции и вызывает save().");
     }
 
     /**
@@ -259,14 +398,16 @@ public class CanonicalWriteExecutor {
             return;
         }
         if (descriptor.exposure() == EntityExposure.OWNED_ROW) {
-            throw new IllegalStateException(type.getSimpleName()
-                + " — строка owned-секции и не имеет автономного " + operation
-                + "-handle. Секция изменяется только aggregate boundary владельца ("
-                + descriptor.reason() + ").");
+            throw new CanonicalWriteDeniedException(WriteTelemetry.DenialKind.CAPABILITY,
+                type.getSimpleName()
+                    + " — строка owned-секции и не имеет автономного " + operation
+                    + "-handle. Секция изменяется только aggregate boundary владельца ("
+                    + descriptor.reason() + ").");
         }
-        throw new IllegalStateException(type.getSimpleName() + " не имеет canonical "
-            + operation + "-handle: " + descriptor.exposure() + " («" + descriptor.reason()
-            + "», policy: " + descriptor.capabilities().reason() + ").");
+        throw new CanonicalWriteDeniedException(WriteTelemetry.DenialKind.CAPABILITY,
+            type.getSimpleName() + " не имеет canonical "
+                + operation + "-handle: " + descriptor.exposure() + " («" + descriptor.reason()
+                + "», policy: " + descriptor.capabilities().reason() + ").");
     }
 
     /** Ранний write-гейт: до валидации, хуков и before-событий. */

@@ -1,6 +1,6 @@
 # ADR-0007: canonical data-access path и таксономия экспозиции типов
 
-- Статус: принято; реализация начинается с этапа C4
+- Статус: принято; C4.0–C4.8 закрыты (C4.8 — hardening и закрытие этапа)
 - Дата: 2026-09-13
 - Область: platform API/SPI, type exposure taxonomy, read/write pipeline, search defaults,
   effective metadata, telemetry policy, compatibility lifecycle
@@ -430,7 +430,9 @@ C4.3 остаётся pending по DoD: write-telemetry, первый production
 write path и acceptance-цепочка form → write → audit. Эти пункты нужны, чтобы подтвердить
 интеграцию не только на изолированной fixture.
 
-Осознанно не входит в срез и остаётся открытым: поглощение `AbstractBaseService`
+Осознанно не входит в срез и остаётся открытым (историческая запись среза C4.3; всё
+перечисленное закрыто позже — write-telemetry в C4.8, остальное в C4.4–C4.7): поглощение
+`AbstractBaseService`
 (§3, milestone C4.7) — типизированные сервисы пока сохраняют собственный write-путь,
 а canonical executor обслуживает generic/`STANDARD_ROOT` без своего сервиса; снятие
 read-моста `UreportTemplate` переводом сервиса на internal-store adapter; server-side
@@ -540,6 +542,41 @@ C4.7 удалил саму базу и остатки compatibility-резолв
 Полный набор `mvn verify` — 1272 теста, 0 failures/errors; random-order gate — 1271 тест,
 0 failures/errors (seed `3330014842700`); детали и artifact budget — в
 [`../status/current-baseline.md`](../status/current-baseline.md).
+
+### C4.8 — hardening и закрытие этапа (закрыт)
+
+- **§5 write-telemetry заведён, исход двухфазный.** `WriteTelemetry` — typed collaborator с
+  noop по умолчанию (аналог `ReadTelemetry`); scope открывается до capability-проверки,
+  поэтому ранний deny фиксируется как `denied`, а ошибка исполнения — как `failed`.
+  Успех сообщается поэтапно: `pipelineCompleted` после flush внутри операции и затем
+  `committed` либо `rolledBack` по исходу транзакции (`TransactionSynchronization`), так как
+  Spring коммитит уже после возврата метода и откат на коммите выглядел бы как успех.
+  Вложенный canonical write в одной бизнес-операции переиспользует внешний scope, а не
+  открывает второй. Никакой payload, значений, паролей или поисковых строк в seam не попадает.
+- **§5 отказ — это policy, а не любой `IllegalStateException`.** Введён
+  `CanonicalWriteDeniedException` с `DenialKind` (`CAPABILITY`, `AGGREGATE_BOUNDARY`,
+  `ACCESS`); security-отказ (`RlsAccessDeniedException`) относится к отказу доступа, а
+  валидация, нумерация и lifecycle — к ошибкам исполнения.
+- **§8 read-telemetry унифицирован.** Единый `measured(...)` фиксирует и успех, и отказ на
+  всех публичных overloads; `LOOKUP` остаётся hot path без durable event.
+- **§2/§7 auth-граница search — fail-closed.** Глобальный поиск — защищённая операция:
+  снятая в C4.5 проверка `requireAuthenticatedUsername()` восстановлена (явный typed
+  RLS-bypass проходит как системная операция). Без `RlsCurrentUser` бин не создаётся, поэтому
+  «забытая» policy не превращает поиск в анонимный; незащищённый режим доступен только
+  явной фабрике для срезов/тестов.
+- **§7 to-many: запрет вместо эмуляции.** Поля поиска через `PluralAttribute` отклоняются
+  резолвером (strict) или пропускаются (lookup), а сортировка по to-many-пути отклоняется до
+  SQL: порядок корня по элементу коллекции не определён, а `SELECT DISTINCT` с `ORDER BY`
+  по join'нутой коллекции невалиден в PostgreSQL. `distinct` остаётся для spec-driven filter
+  (parity content/count) и как страховка в поиске для полей, пришедших минуя резолвер.
+- **§1/§4 UI persistence boundary.** `FormResolver` больше не владеет `EntityManager`;
+  grouping вынесен в data-адаптер вне UI-пакетов, а arch-тест зафиксировал пустой список
+  исключений.
+
+Проверка (JDK 21, offline): `mvn verify` — 1316 тестов, 0 failures/errors/skipped;
+random-order gate — 1316 тестов, 0 failures/errors (seed `20260915`). Детали и разбор ревью
+среза — в
+[`../status/current-baseline.md`](../status/current-baseline.md#c48-hardening-и-закрытие-этапа-закрыт).
 
 ## Открытые вопросы
 

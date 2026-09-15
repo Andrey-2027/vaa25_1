@@ -18,7 +18,4 @@ public interface SklNomOpaRepository extends JpaRepository<SklNomOpa, Long>,
 
     @EntityGraph(attributePaths = {"nomenclature"})
     List<SklNomOpa> findByNomenclature(Nomenclature nomenclature);
-
-    boolean existsByNomenclature(Nomenclature nomenclature);
-
 }
