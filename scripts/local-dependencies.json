@@ -131,6 +131,38 @@
       ]
     },
     {
+      "id": "platform-numbering",
+      "relativePath": "platform-numbering",
+      "dependsOn": [
+        "platform-contracts",
+        "platform-metadata",
+        "platform-persistence"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 → D3 first subsystem module: the whole numbering subsystem (annotations applied by the application, rules and counters, repositories, services, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Chosen first by measured dependency closure, and the first slice that carries entities, repositories, beans and reflection-based registration in one artifact."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "23b7c01f476f7818b3ddfcbb878355b917baa58661e135a77a78cfb285682585",
+        "fileCount": 19,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-numbering:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
       "id": "dynamicreports",
       "relativePath": "../DynamicReport7",
       "dependsOn": [],

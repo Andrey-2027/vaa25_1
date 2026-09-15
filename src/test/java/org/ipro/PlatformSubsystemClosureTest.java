@@ -175,9 +175,9 @@ class PlatformSubsystemClosureTest {
 
     private static Map<String, Set<String>> reviewedReachBack() {
         Map<String, Set<String>> registry = new TreeMap<>();
-        // Метаданные-позвоночник (сканер и индекс ссылок) выехал в platform-metadata:
-        // обе подсистемы больше не тянут дерево и готовы стать модулями.
-        registry.put("org.ipro.numbering", Set.of());
+        // Метаданные-позвоночник (сканер и индекс ссылок) выехал в platform-metadata,
+        // после чего обе подсистемы больше не тянули дерево. `numbering` уже выехала
+        // целиком и из реестра снята; `settings` ждёт своей очереди.
         registry.put("org.ipro.settings", Set.of());
         registry.put("org.ipro.telemetry", Set.of("org.ipro.rls.RlsStatementGuard"));
         registry.put("org.ipro.rls", new LinkedHashSet<>(List.of(
@@ -190,10 +190,6 @@ class PlatformSubsystemClosureTest {
             "org.ipro.metadata.MetadataResolver",
             "org.ipro.metadata.SectionMetadataRegistry",
             "org.ipro.metadata.TableSectionMetadataInfo",
-            "org.ipro.numbering.NumberingPeriod",
-            "org.ipro.numbering.NumberingScopeResolver",
-            "org.ipro.numbering.annotation.Numbered",
-            "org.ipro.numbering.annotation.NumberingRole",
             "org.ipro.telemetry.api.EventSink",
             "org.ipro.telemetry.api.EventType",
             "org.ipro.telemetry.api.TelemetryEvent",
@@ -224,9 +220,6 @@ class PlatformSubsystemClosureTest {
             "org.ipro.metadata.MetadataResolver",
             "org.ipro.metadata.SectionMetadataRegistry",
             "org.ipro.metadata.TableSectionMetadataInfo",
-            "org.ipro.numbering.NumberingPeriod",
-            "org.ipro.numbering.annotation.Numbered",
-            "org.ipro.numbering.annotation.NumberingRole",
             "org.ipro.rls.AccessService",
             "org.ipro.rls.RlsAccessDeniedException",
             "org.ipro.rls.RlsContext",

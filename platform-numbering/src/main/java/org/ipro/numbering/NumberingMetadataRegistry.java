@@ -6,7 +6,6 @@ import org.ipro.numbering.annotation.Numbered;
 import org.ipro.numbering.annotation.NumberingPolicy;
 import org.ipro.numbering.annotation.NumberingRole;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -38,7 +37,13 @@ public class NumberingMetadataRegistry implements InitializingBean {
     private final String basePackage;
     private List<NumberedFieldInfo> fields = List.of();
 
-    public NumberingMetadataRegistry(@Value("${platform.subsystem-scan-package:org.ip}") String basePackage) {
+    /**
+     * Реестр строится явно: base package передаёт авто-конфигурация подсистемы из
+     * конфигурации приложения. Собственного {@code @Value} здесь нет — иначе значение
+     * подменяло бы переданный аргумент и артефакт носил бы имя прикладного пакета строкой
+     * (та же причина, по которой его нет в {@code ReferenceIndex} из platform-metadata).
+     */
+    public NumberingMetadataRegistry(String basePackage) {
         this.basePackage = basePackage;
     }
 

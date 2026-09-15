@@ -10,17 +10,26 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Auto-Configuration подсистемы нумерации. Пакет {@code org.ipro.numbering} не попадает в
  * component-scan приложения (базовый пакет {@code org.ip}), поэтому бины регистрируются здесь.
  *
- * <p>Репозитории подсистемы добавляются в явный {@code @EnableJpaRepositories} класса
- * {@code RlsAutoConfiguration}: повторная декларация аннотации здесь перекрывала бы список
- * пакетов (побеждает последний зарегистрированный), поэтому базовые пакеты заданы в одном месте.</p>
+ * <p>D2 → D3: подсистема выехала в собственный артефакт, поэтому здесь же объявляются её
+ * {@code @EntityScan} и {@code @EnableJpaRepositories}. Раньше и сущности, и репозитории
+ * перечисляли приложение и платформенный хаб {@code RlsAutoConfiguration}; теперь модуль
+ * владеет своими пакетами, и потеря регистрации при выносе невозможна по построению —
+ * репозиторий требуется бином {@link #numberingRuleService}, поэтому старт падает, а не
+ * молчит. Заодно снято прежнее ограничение «аннотацию нельзя повторять»: две независимые
+ * декларации {@code @EnableJpaRepositories} не перекрываются, это проверено
+ * persistence-срезом.</p>
  */
 @AutoConfiguration
+@EntityScan("org.ipro.numbering")
+@EnableJpaRepositories("org.ipro.numbering")
 public class NumberingAutoConfiguration {
 
     @Bean

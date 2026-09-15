@@ -56,11 +56,17 @@ import org.springframework.web.context.annotation.SessionScope;
  * убран. Две независимые декларации {@code @EnableJpaRepositories} не перекрываются —
  * именно на этом свойстве держится и прежнее разделение с {@code org.ip}; проверяется
  * оно тестом, который требует наличия репозитория из каждого базового пакета.</p>
+ *
+ * <p>D2 → D3 (модуль нумерации): подсистема целиком выехала в {@code platform-numbering}
+ * вместе со своими сущностями и репозиториями, поэтому {@code org.ipro.numbering} из
+ * списка убран — хаб перечисляет только то, что ещé живёт в дереве. Направление связи при
+ * этом не изменилось: RLS предоставляет нумерации резолвер scope (см.
+ * {@link #numberingScopeResolver}), то есть подсистема ниже по слою, чем RLS.</p>
  */
 @AutoConfiguration
 @AutoConfigureBefore(org.ipro.numbering.config.NumberingAutoConfiguration.class)
 @EnableJpaRepositories(basePackages = {"org.ipro.rls", "org.ipro.reportstudio",
-    "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport",
+    "org.ipro.settings", "org.ipro.ureport",
     "org.ipro.telemetry.repository"})
 public class RlsAutoConfiguration {
 

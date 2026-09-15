@@ -25,6 +25,7 @@
         <platform-events.version>1.0-SNAPSHOT</platform-events.version>
         <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
         <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
+        <platform-numbering.version>1.0-SNAPSHOT</platform-numbering.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
         <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
@@ -128,6 +129,20 @@
             <groupId>org.ipro</groupId>
             <artifactId>platform-metadata</artifactId>
             <version>${platform-metadata.version}</version>
+        </dependency>
+
+        <!--
+          D2 → D3 (первый модуль-подсистема): нумерация целиком — аннотации, сущности,
+          репозитории, сервисы и своя авто-конфигурация с @EntityScan/@EnableJpaRepositories.
+          Выбран первым по замеру замыкания: после выноса позвоночника метаданных у него не
+          осталось ссылок на дерево приложения. Механизм здесь проверяется на том, чего не
+          было в предыдущих срезах: сущности, репозитории, бины и reflection-регистрация в
+          одном артефакте; приложение не перечисляет его пакеты нигде.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-numbering</artifactId>
+            <version>${platform-numbering.version}</version>
         </dependency>
 
         <dependency>

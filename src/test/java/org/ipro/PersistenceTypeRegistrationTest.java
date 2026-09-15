@@ -39,7 +39,8 @@ class PersistenceTypeRegistrationTest {
         Path.of("src/main/java"),
         Path.of("platform-contracts/src/main/java"),
         Path.of("platform-events/src/main/java"),
-        Path.of("platform-persistence/src/main/java"));
+        Path.of("platform-persistence/src/main/java"),
+        Path.of("platform-numbering/src/main/java"));
 
     /** Пакеты, которые обязаны быть объявлены в @EntityScan (reviewed). */
     private static final Set<String> REVIEWED_ENTITY_PACKAGES = Set.of(

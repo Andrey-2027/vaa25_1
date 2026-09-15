@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-numbering</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform numbering</name>
+    <description>
+        D2 → D3 (первый модуль-подсистема): нумерация документов целиком — аннотации
+        (@Numbered/@NumberingRole), правила и счётчики, сервисы и свой резолвер scope.
+        Выбран первым не по размеру, а по замеру замыкания: после выноса позвоночника
+        метаданных у него не осталось ни одной ссылки на дерево приложения. На этом
+        модуле механизм проверяется на том, чего не было в предыдущих срезах — сущности,
+        репозитории, бины, авто-конфигурация и reflection-регистрация в одном артефакте.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
+        <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
+        <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
+    </properties>
+
+    <!--
+      Разрешённые зависимости — reviewed, проверяются PlatformNumberingModuleTest:
+
+      1. platform-persistence — база сущностей (@MappedSuperclass BaseEntity): без неё
+         сущности нумерации не собираются вне дерева (тот же вывод, что у persistence-среза);
+      2. platform-metadata — скан классов по аннотации (@Numbered стоит на сущностях
+         приложения, поэтому нумерация читает аннотации сканером платформы);
+      3. platform-contracts — аннотации метаданных (@EntityMetadata);
+      4. JPA/validation API, Spring Data JPA, автоконфигурация и @EntityScan из Boot 4.
+
+      Реализации верхних слоёв (data path, form, rls, telemetry, UI) запрещены: подсистема
+      обязана остаться ниже их, иначе её нельзя будет вынести без цикла. Направление
+      «верх → низ» здесь и есть предмет проверки: например, rls зависит на нумерацию, а не
+      наоборот.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-contracts</artifactId>
+            <version>${platform-contracts.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-metadata</artifactId>
+            <version>${platform-metadata.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-persistence</artifactId>
+            <version>${platform-persistence.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- @EntityScan в Boot 4 живёт в отдельном модуле, а не в autoconfigure. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-persistence</artifactId>
+        </dependency>
+    </dependencies>
+</project>

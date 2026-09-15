@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 // D2 (persistence slice): пакеты артефакта platform-persistence здесь больше не перечисляются —
 // он объявляет свои @EntityScan/@EnableJpaRepositories сам, поэтому забыть о нём молча нельзя.
 @EntityScan({"org.ip.model", "org.ipro.telemetry.model", "org.ipro.rls", "org.ipro.reportstudio.dom",
-    "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport.dom"})
+    "org.ipro.settings", "org.ipro.ureport.dom"})
 // D1: прикладной пакет объявляет свои репозитории сам. Платформенный
 // RlsAutoConfiguration перечисляет только платформенные пакеты, поэтому имя org.ip
 // больше не встречается в строковых контрактах платформы.

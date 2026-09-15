@@ -117,9 +117,14 @@ class PlatformStringDependencyTest {
             new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
         reviewed.put("src/main/java/org/ipro/metadata/explorer/config/EntityExplorerAutoConfiguration.java",
             new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
-        reviewed.put("src/main/java/org/ipro/numbering/NumberingMetadataRegistry.java",
-            new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
-        reviewed.put("src/main/java/org/ipro/numbering/config/NumberingAutoConfiguration.java",
+        // Нумерация выехала в platform-numbering целиком. Одна из двух записей снята
+        // устранением связи (мертвый @Value в реестре нумерации — как ранее в ReferenceIndex),
+        // вторая переехала в артефакт: default свойства сканирования в её авто-конфигурации
+        // загружаемый — без него подсистема потеряет пакет сканирования, если приложение не
+        // задало свойство. Снятие этой записи — перенос значения в конфигурацию приложения
+        // для всего платформенного семейства сразу, а не по одной подсистеме.
+        reviewed.put("platform-numbering/src/main/java/org/ipro/numbering/config/"
+            + "NumberingAutoConfiguration.java",
             new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
 
         reviewed.put("src/main/java/org/ipro/rls/RlsDimensionRegistry.java",
