@@ -20,23 +20,24 @@ D1 не рефакторит платформу и ничего не перен�
 | Что | Число |
 |---|---|
 | Прикладной код (`org.ip`, src/main) | 161 файл |
-| Платформенный код в репозитории (`org.ipro`, src/main) | 469 файлов на момент D1 → **431 после срезов D2** |
+| Платформенный код в репозитории (`org.ipro`, src/main) | 469 файлов на момент D1 → **412 после срезов D2 и моста D2 → D3** |
 | Платформенные артефакты **вне** репозитория (5 штук) | 69 типов |
 | Типы платформы, которые называет приложение | **194** (перенос типов периметр не меняет) |
-| — из них осталось в дереве репозитория | 156 |
+| — из них осталось в дереве репозитория | 149 |
 | — из них в артефакте `platform-contracts` | 21 (из 34 типов срезов) |
+| — из них в артефакте `platform-numbering` | 7 (подсистема вынесена целиком, срез 6) |
 | — из них в артефакте `platform-persistence` | 2 (`BaseEntity` и `JrxmlTemplate`) |
 | — из них в прочих внешних артефактах (`crudui-core`, `filtergrid-*`) | 15 |
-| — из них в `platform-events` | 0: runtime-типы называет платформенный слой внутри приложения, а не `org.ip` |
+| — из них в `platform-events` / `platform-metadata` | 0: их типы называет платформенный слой внутри приложения, а не `org.ip` |
 | Из них — аннотации (`*.annotation.*`, бюджет среза 1) | 11 |
 | Из них — SPI-контракты, реализуемые приложением | 18 |
-| Строковые связи платформы на `org.ip` | 13 файлов (реестр ниже) |
+| Строковые связи платформы на `org.ip` | 11 файлов (реестр ниже; снято 2 из 13) |
 | «Мёртвые копии» `filtergrid-*` в репозитории (без `pom.xml`, вне любой сборки) | 13 файлов — удалены в D2 (§7) |
 
 Строки «в артефакте контрактов» и «в прочих внешних артефактах» считаются по каждому
 названному приложением FQN (включая вложенные типы и подключевые пакеты, например
-`org.ipro.filtergrid.filter.*`): 21 (контракты) + 2 (persistence) + 15 (прочие внешние) =
-38 из 194. Значение D1 «уже лежат во внешних
+`org.ipro.filtergrid.filter.*`): 21 (контракты) + 7 (нумерация) + 2 (persistence) + 15 (прочие
+внешние) = 45 из 194. Значение D1 «уже лежат во внешних
 артефактах — 8» считалось грубее (только совпадение с корневым пакетом артефакта) и было
 заниженным; актуальные числа воспроизводимы по скрипту ниже.
 
@@ -54,6 +55,8 @@ grep -rn ':org\.ip' src/main/java/org/ipro --include=*.java | grep -v 'org\.ipro
 while read -r t; do p=$(echo "$t" | tr '.' '/');
   if   [ -f "src/main/java/$p.java" ];                          then echo "tree      $t"
   elif [ -f "platform-contracts/src/main/java/$p.java" ];        then echo "contracts $t"
+  elif [ -f "platform-numbering/src/main/java/$p.java" ];         then echo "numbering $t"
+  elif [ -f "platform-persistence/src/main/java/$p.java" ];       then echo "persistence $t"
   else echo "external  $t"; fi
 done < <(grep -rhoE '^import org\.ipro\.[A-Za-z0-9_.]+;' src/main/java/org/ip --include=*.java \
           | sed 's/import //;s/;//' | sort -u)
@@ -68,8 +71,8 @@ done < <(grep -rhoE '^import org\.ipro\.[A-Za-z0-9_.]+;' src/main/java/org/ip --
 
 | Владелец | Что | Как задаётся |
 |---|---|---|
-| Репозиторий (this checkout) | 15 пакетов, 431 файл (после срезов D2) | `src/main/java/org/ipro` |
-| Собственные артефакты платформы, собранные из этого же checkout | `org.ipro:platform-contracts` (34 типа), `org.ipro:platform-events` (3 типа), `org.ipro:platform-persistence` (4 типа) | `platform-*/`, манифест |
+| Репозиторий (this checkout) | 15 пакетов, 412 файлов (после срезов D2 и моста D2 → D3) | `src/main/java/org/ipro` |
+| Собственные артефакты платформы, собранные из этого же checkout | `org.ipro:platform-contracts` (34 типа), `org.ipro:platform-events` (3 типа), `org.ipro:platform-persistence` (4 типа), `org.ipro:platform-metadata` (2 типа), `org.ipro:platform-numbering` (17 типов) | `platform-*/`, манифест |
 | Внешние артефакты `org.ipro:filtergrid-*` | `filtergrid.jpa`, `filtergrid.grouping`, `filtergrid.inmemory`, `filtergrid.projection` | pom, `filtergrid.version` |
 | Внешний артефакт `org.ipro.crudui:crudui-core` | `org.ipro.crud` (12 типов) + Vaadin-база CRUD | pom, `crudui.version` |
 
@@ -197,9 +200,12 @@ fail-fast проверкой в D2, а не комментарием.
    зависят 44 файла, включая прикладные сущности). Это значит, что persistence-срезы идут
    капсулами и что `org.ipro.crud` теперь разделён между тремя артефактами.
 
-Остаток для D3: хаб по-прежнему перечисляет шесть платформенных пакетов — их вынос в модули
+Остаток для D3: хаб по-прежнему перечисляет пять платформенных пакетов (`org.ipro.rls`,
+`org.ipro.reportstudio`, `org.ipro.settings`, `org.ipro.ureport`, `org.ipro.telemetry.repository`;
+`org.ipro.numbering` из списка убран вместе с выносом подсистемы). Их вынос в модули
 с самостоятельной регистрацией снимает связность окончательно (сейчас эта связность уже не
-обязательна, а только привычна).
+обязательна, а только привычна). Порядок и замер по каждому пакету — в
+`docs/architecture/d3-subsystem-extraction.md`.
 
 ---
 
@@ -266,17 +272,24 @@ fail-fast проверкой в D2, а не комментарием.
 1. `@EnableJpaRepositories({"org.ip", ...})` — платформа объявляла репозитории приложения (§3.3);
 2. `ReportQueryEditor` — пример-плейсхолдер `org.ip.model.DocumentStatus` заменён на нейтральный.
 
-**Осталось (13 файлов, реестр с причинами в тесте):**
+**Осталось (11 файлов, реестр с причинами в тесте):**
 
 | Семейство | Файлов | Когда уходит |
 |---|---|---|
-| default `platform.subsystem-scan-package:org.ip` | 7 | D3 (авто-конфигурации метаданных) |
+| default `platform.subsystem-scan-package:org.ip` | 5 (4 в дереве + 1 в `platform-numbering`) | D3: перенос значения в конфигурацию приложения сразу для всего семейства |
 | default `rls.dimension-scan-package:org.ip` | 2 | D3 |
 | default `settings.scan-package:org.ip.settings` | 3 | D3 |
 | pointcut `org.ip.service..*` (`ExecutionTimeAspect`) | 1 | D3, переход на маркер/@Measured |
 
-В этих файлах закреплено ровно **16 литералов**: сравнение идёт по ним, а не по составу
+В этих файлах закреплено ровно **11 литералов**: сравнение идёт по ним, а не по составу
 файлов.
+
+**Снято в D2 → D3 (мост):** два литерала, оба — мёртвые default-значения. У
+`ReferenceIndex` (уехал в `platform-metadata`) и `NumberingMetadataRegistry` (уехал в
+`platform-numbering`) был `@Value` с default `org.ip`, хотя оба создаются авто-конфигурацией
+с явным значением из конфигурации. Реестр сократился не переписыванием причины, а
+устранением связи — и забор теперь сканирует также исходники платформенных артефактов: после
+D2 часть платформы лежит вне дерева, где строковая связка заметнее не становится.
 
 Ни один из этих литералов не решается на D1 без правки конфигурации приложения, поэтому
 они **зарегистрированы, а не «почти исправлены»**. DoD этапа D требует, чтобы
