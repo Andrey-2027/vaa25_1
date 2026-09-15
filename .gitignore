@@ -66,6 +66,10 @@ node_modules/
 !src/test/resources/search/
 !src/test/resources/search/*.txt
 
+# D2: README модуля контрактов — часть поставки: он объясняет, почему слой вынесен и что
+# в него не попадает. Без него граница читается только по коду.
+!platform-contracts/README.md
+
 ### Vaadin generated ###
 src/main/frontend/generated/
 vite.generated.ts

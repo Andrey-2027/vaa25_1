@@ -13,6 +13,34 @@
   },
   "projects": [
     {
+      "id": "platform-contracts",
+      "relativePath": "platform-contracts",
+      "dependsOn": [],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 first extraction slice: contracts live in this checkout, but build independently of the application — the module has no dependency on org.ip, so javac cannot see application classes."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "06d8025ebb61fd78ba70f8311eef66f6c00a01a3116c99cffb2dde484c4d0334",
+        "fileCount": 13,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-contracts:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
       "id": "dynamicreports",
       "relativePath": "../DynamicReport7",
       "dependsOn": [],

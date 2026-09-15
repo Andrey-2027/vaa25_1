@@ -21,6 +21,7 @@
         <vaadin.version>25.1.6</vaadin.version>
         <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
         <crudui.version>1.0-SNAPSHOT</crudui.version>
+        <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
         <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
@@ -71,6 +72,18 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!--
+          D2: контракты платформы вынесены в собственный артефакт (platform-contracts).
+          Пакеты сохранены, поэтому перенос не потребовал правок в коде; граница
+          обеспечивается сборкой — у этого артефакта нет и не может быть зависимости на
+          приложение. Порядок сборки: platform-contracts install, затем verify приложения
+          (см. scripts/local-dependencies.json).
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-contracts</artifactId>
+            <version>${platform-contracts.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ipro</groupId>
