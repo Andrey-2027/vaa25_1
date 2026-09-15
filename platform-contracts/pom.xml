@@ -24,20 +24,41 @@
 
     <name>GitVaa platform contracts</name>
     <description>
-        D2 (первый extraction slice): стабильный слой контрактов платформы — декларации,
-        которые читают и приложение, и платформенные реализации. Пакеты контрактов
-        сохранены, поэтому перенос не потребовал правок в коде; граница обеспечивается
-        отсутствием зависимостей, а не договорённостью.
+        D2 (extraction slice контрактов платформы): декларации, которые читают и приложение,
+        и платформенные реализации — метаданные сущностей, event/lifecycle SPI и нейтральные
+        identifiers. Пакеты контрактов сохранены, поэтому перенос не потребовал правок в коде;
+        граница обеспечивается объявленными зависимостями, а не договорённостью.
     </description>
 
     <properties>
         <java.version>21</java.version>
         <maven.compiler.release>21</maven.compiler.release>
+        <crudui.version>1.0-SNAPSHOT</crudui.version>
     </properties>
 
     <!--
-      Зависимостей нет и быть не должно: слой контрактов не знает ни платформенных
-      реализаций, ни прикладного пакета org.ip. Любая новая зависимость здесь означает,
-      что в этот модуль попало не контрактное знание.
+      Слой контрактов не знает ни платформенных реализаций, ни прикладного пакета org.ip.
+      Разрешены только два вида зависимости:
+
+      1. Внешний опубликованный API-артефакт (slf4j-api — версия из spring-boot parent).
+      2. Нейтральный identifier, который уже опубликован в другом платформенном
+         артефакте (crudui-core -> org.ipro.crud.IdentifiableEntity). crudui-core
+         объявляет Vaadin as provided, поэтому UI в потребителей контрактов не течёт.
+
+      Любая новая зависимость здесь означает, что в модуль попало не контрактное знание:
+      набор объявленных зависимостей зафиксирован ревью и проверяется
+      PlatformContractsModuleTest. Перевод IdentifiableEntity в этот модуль — задача
+      владельца crudui (вне этого репозитория), зарегистрирована в карте D1/D3.
     -->
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro.crudui</groupId>
+            <artifactId>crudui-core</artifactId>
+            <version>${crudui.version}</version>
+        </dependency>
+    </dependencies>
 </project>

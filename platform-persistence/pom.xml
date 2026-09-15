@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-persistence</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform persistence</name>
+    <description>
+        D2 (persistence slice): persistence-типы платформенных подсистем вместе со своей
+        регистрацией в persistence unit (@EntityScan) и в Spring Data
+        (@EnableJpaRepositories). Отвечает на риск D1 §3.5 — может ли артефакт потерять
+        свои entity/репозитории молча.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <crudui.version>1.0-SNAPSHOT</crudui.version>
+    </properties>
+
+    <!--
+      Зависимости persistence-модуля: нейтральная база сущностей (crudui-core), API JPA
+      и валидации, Spring Data JPA и точка авто-конфигурации. Реализации платформы
+      (metadata, data path, UI) здесь запрещены: модуль обязан оставаться ниже их, иначе
+      он не сможет быть вынесен без цикла. Набор зафиксирован ревью и проверяется
+      PlatformPersistenceModuleTest.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro.crudui</groupId>
+            <artifactId>crudui-core</artifactId>
+            <version>${crudui.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- @EntityScan в Boot 4 живёт в отдельном модуле, а не в autoconfigure. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-persistence</artifactId>
+        </dependency>
+        <!-- База сущностей (@MappedSuperclass) использует деталь прокси-модели Hibernate. -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+    </dependencies>
+</project>

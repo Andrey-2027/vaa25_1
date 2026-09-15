@@ -8,6 +8,7 @@ import org.ip.config.JpqlRunService;
 import org.ipro.jr.dom.JrxmlTemplate;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
+import org.ipro.persistence.config.PersistenceAutoConfiguration;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryExecutor;
 import org.ipro.reportstudio.query.ReportQueryGuard;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -47,8 +49,12 @@ import static org.mockito.Mockito.mock;
  * получает отказ конвейера; SQL без маркера jpql: — явный отказ.
  */
 @DataJpaTest
-// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
-@EnableJpaRepositories(basePackages = {"org.ipro.rls", "org.ipro.jr"})
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе).
+// Платформенный хаб даёт org.ipro.rls. Пакеты вынесенного persistence-артефакта срез больше не
+// перечисляет: @DataJpaTest отключает авто-конфигурации, поэтому модуль подключается явно —
+// так же, как это делало бы приложение, если бы полагалось на его авто-конфигурацию.
+@EnableJpaRepositories(basePackages = {"org.ipro.rls"})
+@ImportAutoConfiguration(PersistenceAutoConfiguration.class)
 @ContextConfiguration(classes = Application.class)
 class JrxmlExecutionIT {
 

@@ -50,11 +50,17 @@ import org.springframework.web.context.annotation.SessionScope;
  * {@code @SpringBootApplication}: обе декларации независимы и не пересекаются.
  * Так платформа остаётся нейтральной к имени прикладного пакета, а состав репозиториев
  * не меняется.</p>
+ *
+ * <p>D2 (persistence slice): вынесенный артефакт объявляет свои базовые пакеты сам
+ * ({@code PersistenceAutoConfiguration}), поэтому {@code org.ipro.jr} из этого списка
+ * убран. Две независимые декларации {@code @EnableJpaRepositories} не перекрываются —
+ * именно на этом свойстве держится и прежнее разделение с {@code org.ip}; проверяется
+ * оно тестом, который требует наличия репозитория из каждого базового пакета.</p>
  */
 @AutoConfiguration
 @AutoConfigureBefore(org.ipro.numbering.config.NumberingAutoConfiguration.class)
 @EnableJpaRepositories(basePackages = {"org.ipro.rls", "org.ipro.reportstudio",
-    "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport", "org.ipro.jr",
+    "org.ipro.numbering", "org.ipro.settings", "org.ipro.ureport",
     "org.ipro.telemetry.repository"})
 public class RlsAutoConfiguration {
 

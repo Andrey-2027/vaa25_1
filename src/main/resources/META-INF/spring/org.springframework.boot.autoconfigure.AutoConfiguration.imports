@@ -1,5 +1,4 @@
 org.ipro.metadata.config.MetadataAutoConfiguration
-org.ipro.events.config.EventsAutoConfiguration
 org.ipro.metadata.explorer.config.EntityExplorerAutoConfiguration
 org.ipro.search.config.GlobalSearchAutoConfiguration
 org.ipro.crud.config.CrudAutoConfiguration

@@ -66,9 +66,12 @@ node_modules/
 !src/test/resources/search/
 !src/test/resources/search/*.txt
 
-# D2: README модуля контрактов — часть поставки: он объясняет, почему слой вынесен и что
-# в него не попадает. Без него граница читается только по коду.
+# D2: README платформенных модулей — часть поставки: они объясняют, почему слой вынесен,
+# что в него не попадает и как модуль регистрирует себя контейнеру. Без них граница
+# читается только по коду.
 !platform-contracts/README.md
+!platform-events/README.md
+!platform-persistence/README.md
 
 ### Vaadin generated ###
 src/main/frontend/generated/

@@ -14,6 +14,7 @@ import org.ipro.data.EntityDataPolicy;
 import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.EntityExposureOverride;
 import org.ipro.data.ReadTelemetry;
+import org.ipro.data.EventContourStartupCheck;
 import org.ipro.data.ScenarioFetchGraphResolver;
 import org.ipro.data.WriteTelemetry;
 import org.ipro.data.grouping.GroupingValuesProviderFactory;
@@ -22,6 +23,7 @@ import org.ipro.events.EntityEventPublisher;
 import org.ipro.fetch.config.FetchPlanInstanceNameAutoConfiguration;
 import org.ipro.fetch.instance.InstanceNameResolver;
 import org.ipro.fetch.plan.FetchPlanRegistry;
+import org.ipro.lifecycle.EntityLifecycle;
 import org.ipro.lifecycle.EntityLifecycleRegistry;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
@@ -39,6 +41,8 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+
+import java.util.List;
 
 /**
  * Бины canonical data path C4 (ADR-0007).
@@ -166,6 +170,22 @@ public class DataAccessAutoConfiguration {
             lifecycleRegistry.getIfAvailable(), ownedSectionService.getIfAvailable(),
             referenceCheckService.getIfAvailable(), sectionMetadataRegistry.getIfAvailable(),
             writeTelemetry.getIfAvailable());
+    }
+
+    /**
+     * D2: контур lifecycle обязателен там, где есть write path. Write-граница берёт его
+     * через {@code getIfAvailable()}, чтобы поднимались частичные контексты, поэтому потеря
+     * runtime-артефакта иначе выглядела бы как «правила просто не сработали». Проверка
+     * останавливает старт с названной причиной; частичный контекст (без handlers) проходит молча.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public EventContourStartupCheck eventContourStartupCheck(
+            List<EntityLifecycle<?>> lifecycleHandlers,
+            ObjectProvider<EntityLifecycleRegistry> lifecycleRegistry,
+            ObjectProvider<EntityEventPublisher> eventPublisher) {
+        return new EventContourStartupCheck(
+            lifecycleHandlers, lifecycleRegistry, eventPublisher);
     }
 
     /** Публичный canonical data access (ADR-0007 §1). */

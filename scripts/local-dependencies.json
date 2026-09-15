@@ -19,12 +19,12 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D2 first extraction slice: contracts live in this checkout, but build independently of the application — the module has no dependency on org.ip, so javac cannot see application classes."
+        "state": "D2 extraction slice: contracts live in this checkout, but build independently of the application — the module has no dependency on org.ip, so javac cannot see application classes."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "06d8025ebb61fd78ba70f8311eef66f6c00a01a3116c99cffb2dde484c4d0334",
-        "fileCount": 13,
+        "sha256": "d64f1bc5b4619755af4d7bb0e06b1dafa106511cb2d07bb9a1fc5a945cbe0541",
+        "fileCount": 35,
         "inputs": [
           "pom.xml",
           "src"
@@ -32,6 +32,66 @@
       },
       "artifacts": [
         "org.ipro:platform-contracts:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-events",
+      "relativePath": "platform-events",
+      "dependsOn": [
+        "platform-contracts"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 runtime slice: the entity-lifecycle event contour (publisher, fail-fast registry, its own auto-configuration) builds as a separate artifact that depends on platform-contracts and is registered by its own META-INF/spring/...AutoConfiguration.imports, so the application needs no entry for it."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "77aad4fc08d2f3774819ef860c78c3b0e26e90b43539cdf234a1867a353d68df",
+        "fileCount": 5,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-events:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-persistence",
+      "relativePath": "platform-persistence",
+      "dependsOn": [
+        "crudui"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 persistence slice: entity, repository and the entity base class together with the module's own @EntityScan/@EnableJpaRepositories. Depends on the published crudui-core artifact, so this is the first platform module with an edge to a workspace project."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "1909b4c217d8708d2132d38d4d9f36eba0e25e08bbc7244decb880e019538731",
+        "fileCount": 6,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-persistence:1.0-SNAPSHOT"
       ],
       "buildSteps": [
         {
