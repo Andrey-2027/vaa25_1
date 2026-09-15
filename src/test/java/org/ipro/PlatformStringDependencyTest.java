@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -48,6 +49,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PlatformStringDependencyTest {
 
     private static final Path PLATFORM_SOURCE = Path.of("src/main/java/org/ipro");
+
+    /**
+     * Платформенные артефакты. После D2 часть платформы лежит вне дерева, и строковая
+     * связка в модуле блокирует ровно так же, как в дереве — более того, её труднее
+     * заметить: модуль читается как чужая зависимость. Реестр один на все исходники
+     * платформы, пути в нём — от корня проекта.
+     */
+    private static final List<Path> PLATFORM_ARTIFACT_SOURCES = artifactSources();
 
     /** Прикладной пакет, имя которого платформа знать не должна. */
     private static final String APPLICATION_PACKAGE = "org.ip";
@@ -95,8 +104,11 @@ class PlatformStringDependencyTest {
             + " авто-конфигурацией констант";
 
         Map<String, Reviewed> reviewed = new LinkedHashMap<>();
-        reviewed.put("src/main/java/org/ipro/metadata/ReferenceIndex.java",
-            new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
+        // `ReferenceIndex` снят с реестра не переписыванием причины, а устранением связи:
+        // тип выехал в platform-metadata, и вместе с ним ушло default значение свойства
+        // сканирования — оно было мертво (бин всегда создаёт MetadataAutoConfiguration с
+        // явным значением) и оставалось единственным местом, где платформенный артефакт
+        // называл имя прикладного пакета. Остальные три класса метаданных ещё в дереве.
         reviewed.put("src/main/java/org/ipro/metadata/SectionMetadataRegistry.java",
             new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
         reviewed.put("src/main/java/org/ipro/metadata/SubsystemRegistry.java",
@@ -187,18 +199,43 @@ class PlatformStringDependencyTest {
     private static Map<String, Set<String>> literalDependencies() {
         Path root = Path.of("").toAbsolutePath();
         Map<String, Set<String>> result = new TreeMap<>();
-        try (Stream<Path> files = Files.walk(PLATFORM_SOURCE)) {
-            for (Path path : files.filter(p -> p.toString().endsWith(".java")).toList()) {
-                Set<String> literals = literalsIn(read(path));
-                if (!literals.isEmpty()) {
-                    result.put(root.relativize(path.toAbsolutePath())
-                        .toString().replace('\\', '/'), literals);
+        List<Path> roots = new java.util.ArrayList<>();
+        roots.add(PLATFORM_SOURCE);
+        roots.addAll(PLATFORM_ARTIFACT_SOURCES);
+        try {
+            for (Path sourceRoot : roots) {
+                try (Stream<Path> files = Files.walk(sourceRoot)) {
+                    for (Path path : files.filter(p -> p.toString().endsWith(".java")).toList()) {
+                        Set<String> literals = literalsIn(read(path));
+                        if (!literals.isEmpty()) {
+                            result.put(root.relativize(path.toAbsolutePath())
+                                .toString().replace('\\', '/'), literals);
+                        }
+                    }
                 }
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
         return result;
+    }
+
+    /**
+     * Корни исходников платформенных артефактов. Обнаруживаются по имени каталога, а не
+     * списком: забытый в перечислении новый модуль выпал бы из забора молча — ровно та
+     * ошибка, против которой этот тест и написан.
+     */
+    private static List<Path> artifactSources() {
+        try (Stream<Path> modules = Files.list(Path.of("."))) {
+            return modules
+                .filter(path -> path.getFileName().toString().startsWith("platform-"))
+                .map(path -> path.resolve("src/main/java"))
+                .filter(Files::isDirectory)
+                .sorted()
+                .toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private static Set<String> literalsIn(String source) {

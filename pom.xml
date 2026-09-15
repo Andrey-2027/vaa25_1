@@ -24,6 +24,7 @@
         <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
         <platform-events.version>1.0-SNAPSHOT</platform-events.version>
         <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
+        <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
         <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
@@ -112,6 +113,21 @@
             <groupId>org.ipro</groupId>
             <artifactId>platform-persistence</artifactId>
             <version>${platform-persistence.version}</version>
+        </dependency>
+
+        <!--
+          D2 → D3 (metadata spine): скан классов по аннотации и индекс обратных ссылок.
+          Замер замыкания подсистем на дерево показал, что весь их упор в метаданные — это
+          ровно эти два типа, поэтому именно они, а не весь пакет org.ipro.metadata,
+          выносятся первыми: numbering (1 тип) и settings (2 типа) после этого перестают
+          тянуться в дерево. Авто-конфигурации модуль не несёт — бин ReferenceIndex
+          объявляет MetadataAutoConfiguration приложения, поэтому потеря модуля ломает
+          сборку, а не проявляется тихо в рантайме.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-metadata</artifactId>
+            <version>${platform-metadata.version}</version>
         </dependency>
 
         <dependency>

@@ -5,13 +5,20 @@ import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
-@Component
+/**
+ * Индекс обратных ссылок на сущности.
+ *
+ * <p>D2 → D3: тип вынесен в {@code platform-metadata}, поэтому здесь нет ни
+ * {@code @Component}, ни default значения свойства сканирования. Бин объявляет
+ * {@code MetadataAutoConfiguration} приложения (оно же передаёт base package из
+ * конфигурации), а тесты строят индекс явно. Иначе артефакт носил бы имя прикладного
+ * пакета строкой — именно та связь, которую запрещает D1-забор
+ * {@code PlatformStringDependencyTest}, и он же сканирует исходники модулей.</p>
+ */
 public class ReferenceIndex implements InitializingBean {
 
     /**
@@ -31,7 +38,8 @@ public class ReferenceIndex implements InitializingBean {
     private final List<ReverseReferenceSource> sources;
     private Map<Class<?>, List<ReverseReference>> index = Map.of();
 
-    public ReferenceIndex(@Value("${platform.subsystem-scan-package:org.ip}") String basePackage) {
+    /** Индекс строится явно: значение base package приходит из конфигурации приложения. */
+    public ReferenceIndex(String basePackage) {
         this(basePackage, List.of());
     }
 
