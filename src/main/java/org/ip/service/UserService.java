@@ -5,6 +5,7 @@ import org.ipro.crud.ValidationException;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.data.EntityDataAccessResolver;
 import org.ipro.fetch.plan.FetchScenario;
+import org.ipro.telemetry.api.Measured;
 
 import org.ip.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ import java.util.Optional;
  * состояния, которое валидируется ({@code password} объявлен {@code @NotBlank}), поэтому
  * порядок «сначала нормализация, затем граница» здесь обязателен.</p>
  */
+@Measured
 @Service
 public class UserService implements BaseService<User, Long> {
 

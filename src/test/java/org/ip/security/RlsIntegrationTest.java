@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.ipro.rls.config.RlsPersistenceAutoConfiguration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -52,12 +52,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * тесте нет, а конструкторы у всех трёх классов простые, без Spring-магии внутри.
  */
 @DataJpaTest
-// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
-@EnableJpaRepositories(basePackages = {"org.ipro.rls"})
+// org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе).
+// Регистрацию вынесенного platform-rls срез подключает явно, а не имитирует вручную.
 // Последний сценарий теста пишет org.ipro.settings.SettingValue: пакет принадлежит вынесенному
 // модулю, а @DataJpaTest отключает авто-конфигурации — без явного подключения сущность не
 // попадает в persistence unit среза (иначе это выясняется только в рантайме, на запросе).
-@ImportAutoConfiguration(SettingsAutoConfiguration.class)
+@ImportAutoConfiguration({SettingsAutoConfiguration.class, RlsPersistenceAutoConfiguration.class})
 class RlsIntegrationTest {
 
     @Autowired

@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 /**
  * Read-доступ к operation_log для UI «Диагностика» (ленивый грид журнала
- * со Specification-фильтрами и пагинацией). Регистрируется через явный
- * {@code @EnableJpaRepositories} в RlsAutoConfiguration (см. там же).
+ * со Specification-фильтрами и пагинацией). Регистрируется собственным
+ * {@code @EnableJpaRepositories} в {@code TelemetryAutoConfiguration} модуля —
+ * ни приложение, ни платформенный хаб {@code RlsAutoConfiguration} этот пакет
+ * больше не перечисляют.
  * <p>
  * Сущность {@link OperationLogEntity} уже входит в {@code @EntityScan}
  * приложения. Сам репозиторий прав не проверяет — проверка ROLE_ADMIN

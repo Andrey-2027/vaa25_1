@@ -2,16 +2,21 @@ package org.ipro.rls;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.ipro.metadata.ColumnPath;
-import org.ipro.metadata.EntityMetadataInfo;
-import org.ipro.metadata.HasDisplayName;
-import org.ipro.metadata.MetadataResolver;
 
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.List;
 
-/** Generic metadata/instance-name driven catalog for RLS administration. */
+/**
+ * Generic каталог значений RLS-измерений для администрирования.
+ *
+ * <p>Отображаемые имена приходят через нейтральный шов
+ * {@link RlsDimensionValueLabelResolver}, который реализует приложение поверх метаданных
+ * и fetch-плана (шаг 8б): RLS не зависит ни от {@code MetadataResolver}, ни от
+ * {@code InstanceNameBridge}. Семантика сохранена: {@code code} — первая select-колонка,
+ * {@code name} — вторая либо display name; сортировка по {@code code}
+ * ({@code nullsLast}, case-insensitive).</p>
+ */
 public final class RlsDimensionValueCatalog {
 
     public record Value(Long id, String code, String name) {
@@ -19,17 +24,17 @@ public final class RlsDimensionValueCatalog {
 
     private final RlsDimensionRegistry registry;
     private final RlsFilterActivator filterActivator;
-    private final MetadataResolver metadataResolver;
+    private final RlsDimensionValueLabelResolver labelResolver;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     public RlsDimensionValueCatalog(RlsDimensionRegistry registry,
                                     RlsFilterActivator filterActivator,
-                                    MetadataResolver metadataResolver) {
+                                    RlsDimensionValueLabelResolver labelResolver) {
         this.registry = registry;
         this.filterActivator = filterActivator;
-        this.metadataResolver = metadataResolver;
+        this.labelResolver = labelResolver;
     }
 
     public List<Value> allIgnoringRls(String dimension) {
@@ -38,23 +43,18 @@ public final class RlsDimensionValueCatalog {
             jakarta.persistence.Entity entity = entityClass.getAnnotation(jakarta.persistence.Entity.class);
             String entityName = entity != null && !entity.name().isBlank()
                 ? entity.name() : entityClass.getSimpleName();
-            EntityMetadataInfo metadata = metadataResolver.resolve(entityClass);
-            List<ColumnPath> displayColumns = metadata.getSelectColumnPaths();
             return entityManager.createQuery("select e from " + entityName + " e", Object.class)
                 .getResultList().stream()
-                .map(value -> toValue(value, displayColumns))
+                .map(value -> toValue(entityClass, value))
                 .sorted(Comparator.comparing(Value::code,
                     Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .toList();
         });
     }
 
-    private static Value toValue(Object value, List<ColumnPath> columns) {
-        Long id = idOf(value);
-        String code = columns.isEmpty() ? null : text(columns.getFirst().getValue(value));
-        String name = columns.size() < 2 ? instanceName(value)
-            : text(columns.get(1).getValue(value));
-        return new Value(id, code, name);
+    private Value toValue(Class<?> entityClass, Object value) {
+        RlsDimensionValueLabelResolver.Labels labels = labelResolver.resolve(entityClass, value);
+        return new Value(idOf(value), labels.code(), labels.name());
     }
 
     private static Long idOf(Object value) {
@@ -65,13 +65,5 @@ public final class RlsDimensionValueCatalog {
         } catch (ReflectiveOperationException | ClassCastException failure) {
             throw new IllegalStateException("Grant-value entity must expose numeric getId()", failure);
         }
-    }
-
-    private static String instanceName(Object value) {
-        return org.ipro.fetch.instance.InstanceNameBridge.displayName(value);
-    }
-
-    private static String text(Object value) {
-        return value == null ? "" : String.valueOf(value);
     }
 }

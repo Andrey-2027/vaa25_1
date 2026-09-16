@@ -14,6 +14,7 @@ import org.ipro.data.CanonicalEntityService;
 import org.ipro.data.EntityDataAccessResolver;
 import org.ipro.data.SearchRead;
 import org.ipro.fetch.plan.FetchScenario;
+import org.ipro.telemetry.api.Measured;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -54,6 +55,7 @@ import java.util.TreeMap;
  * интернирования: descriptor типа намеренно не выдаёт generic write-capabilities, поэтому
  * {@code save/create/update/delete} отказывают явно, а не тихо обходят канонизацию.
  */
+@Measured
 @Service
 public class SklNomOpaService implements BaseService<SklNomOpa, Long> {
 

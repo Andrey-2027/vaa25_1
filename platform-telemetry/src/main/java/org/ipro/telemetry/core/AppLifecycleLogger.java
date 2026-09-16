@@ -63,10 +63,15 @@ public final class AppLifecycleLogger {
                 payload));
     }
 
+    /**
+     * Версия Vaadin — рефлексией по имени, без зависимости на UI: модуля platform-telemetry
+     * Vaadin не видит даже на компиляции. Без Vaadin в classpath — {@code "?"}.
+     */
     private static String vaadinVersion() {
         try {
-            return com.vaadin.flow.server.Version.getFullVersion();
-        } catch (NoClassDefFoundError | RuntimeException e) {
+            Class<?> version = Class.forName("com.vaadin.flow.server.Version");
+            return String.valueOf(version.getMethod("getFullVersion").invoke(null));
+        } catch (ReflectiveOperationException | NoClassDefFoundError | RuntimeException e) {
             return "?";
         }
     }

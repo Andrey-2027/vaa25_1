@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
  * перехватывается автоматически, без аннотации.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface Measured {
 }

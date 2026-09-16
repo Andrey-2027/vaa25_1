@@ -69,23 +69,15 @@ class PlatformStringDependencyTest {
     private static final Pattern STRING_LITERAL_WITH_APPLICATION_PACKAGE = Pattern.compile(
         "\"[^\"\n]*(?<![\\w.])" + Pattern.quote(APPLICATION_PACKAGE) + "(?!\\w)[^\"\n]*\"");
 
-    /** Литерал default-свойства сканирования подсистем. */
-    private static final String SUBSYSTEM_SCAN_PACKAGE =
-        "\"${platform.subsystem-scan-package:org.ip}\"";
-
-    /** Литерал default-свойства сканирования RLS-измерений. */
-    private static final String RLS_SCAN_PACKAGE = "\"${rls.dimension-scan-package:org.ip}\"";
-
-    /** Литерал default-свойства сканирования констант настроек. */
-    private static final String SETTINGS_SCAN_PACKAGE = "\"${settings.scan-package:org.ip.settings}\"";
-
-    /** Pointcut timing-аспекта по прикладным сервисам. */
-    private static final String SERVICE_POINTCUT = "\"execution(* org.ip.service..*(..))\"";
-
     /**
      * Reviewed-реестр: {@code file -> точный набор литералов} плюс причина. Каждая запись —
      * осознанное решение, а не «исторически сложилось»: реестр законен только пока у записи
      * назван момент снятия.
+     *
+     * <p>Шаг D3-зачистки: default-значения сканирования (`platform.subsystem-scan-package`,
+     * `settings.scan-package`) и строковый pointcut (`org.ip.service`) устранены —
+     * свойства задаёт приложение, аспект работает по маркеру `@Measured`. Константы
+     * литералов ниже оставлены для юнит-проверки сканера.</p>
      */
     private static final Map<String, Reviewed> REVIEWED_STRING_DEPENDENCIES =
         reviewedDependencies();
@@ -95,56 +87,17 @@ class PlatformStringDependencyTest {
     }
 
     private static Map<String, Reviewed> reviewedDependencies() {
-        String subsystemScan = "default свойства platform.subsystem-scan-package; снимается вместе"
-            + " с выносом авто-конфигураций метаданных (D3) и переносом значения в конфигурацию"
-            + " приложения";
-        String rlsScan = "default свойства rls.dimension-scan-package; уходит в D3 вместе с"
-            + " авто-конфигурацией RLS";
-        String settingsScan = "default свойства settings.scan-package; уходит в D3 вместе с"
-            + " авто-конфигурацией констант";
-
         Map<String, Reviewed> reviewed = new LinkedHashMap<>();
         // `ReferenceIndex` снят с реестра не переписыванием причины, а устранением связи:
         // тип выехал в platform-metadata, и вместе с ним ушло default значение свойства
         // сканирования — оно было мертво (бин всегда создаёт MetadataAutoConfiguration с
         // явным значением) и оставалось единственным местом, где платформенный артефакт
         // называл имя прикладного пакета. Остальные три класса метаданных ещё в дереве.
-        reviewed.put("src/main/java/org/ipro/metadata/SectionMetadataRegistry.java",
-            new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
-        reviewed.put("src/main/java/org/ipro/metadata/SubsystemRegistry.java",
-            new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
-        reviewed.put("src/main/java/org/ipro/metadata/config/MetadataAutoConfiguration.java",
-            new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
-        reviewed.put("src/main/java/org/ipro/metadata/explorer/config/EntityExplorerAutoConfiguration.java",
-            new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
-        // Нумерация выехала в platform-numbering целиком. Одна из двух записей снята
-        // устранением связи (мертвый @Value в реестре нумерации — как ранее в ReferenceIndex),
-        // вторая переехала в артефакт: default свойства сканирования в её авто-конфигурации
-        // загружаемый — без него подсистема потеряет пакет сканирования, если приложение не
-        // задало свойство. Снятие этой записи — перенос значения в конфигурацию приложения
-        // для всего платформенного семейства сразу, а не по одной подсистеме.
-        reviewed.put("platform-numbering/src/main/java/org/ipro/numbering/config/"
-            + "NumberingAutoConfiguration.java",
-            new Reviewed(Set.of(SUBSYSTEM_SCAN_PACKAGE), subsystemScan));
-
-        reviewed.put("src/main/java/org/ipro/rls/RlsDimensionRegistry.java",
-            new Reviewed(Set.of(RLS_SCAN_PACKAGE), rlsScan));
-        reviewed.put("src/main/java/org/ipro/rls/config/RlsAutoConfiguration.java",
-            new Reviewed(Set.of(RLS_SCAN_PACKAGE), rlsScan));
-
-        // Константы выехали в platform-settings целиком. Две записи сняты устранением связи:
-        // у каталога и у источника обратных ссылок @Value-конструктор был мёртв (оба всегда
-        // создаются авто-конфигурацией с явным значением), а сам литерал держал в артефакте
-        // имя прикладного пакета. Третья переехала в артефакт: параметр @Bean — загружаемый.
-        reviewed.put("platform-settings/src/main/java/org/ipro/settings/config/"
-            + "SettingsAutoConfiguration.java",
-            new Reviewed(Set.of(SETTINGS_SCAN_PACKAGE), settingsScan));
-
-        reviewed.put("src/main/java/org/ipro/telemetry/core/ExecutionTimeAspect.java",
-            new Reviewed(Set.of(SERVICE_POINTCUT),
-                "pointcut по прикладному пакету (timing @Service приложения); снимается в D3 вместе"
-                    + " с модулем телеметрии — переход на собственный маркер/аннотацию вместо имени"
-                    + " пакета"));
+        // D3-зачистка (шаг 4): default-значения сканирования устранены везде —
+        // `platform.subsystem-scan-package` (4 класса метаданных + нумерация),
+        // `settings.scan-package` (конфигурация констант) и строковый pointcut аспекта
+        // (переход на маркер `@Measured`) сняты переписыванием кода, а не реестра.
+        // Записей с литералами имени пакета в реестре больше нет.
         return Map.copyOf(reviewed);
     }
 
@@ -187,7 +140,7 @@ class PlatformStringDependencyTest {
             + "}\n";
 
         assertThat(literalsIn(source)).containsExactlyInAnyOrder(
-            SUBSYSTEM_SCAN_PACKAGE, "\"org.ip.service\"");
+            "\"${platform.subsystem-scan-package:org.ip}\"", "\"org.ip.service\"");
     }
 
     @Test

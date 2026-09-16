@@ -1,8 +1,7 @@
 # Мост D2 → D3: вынос платформенных подсистем
 
-**Статус:** в работе. Срезы 5 (метаданные), 6 (нумерация) и 7 (`settings`) закрыты;
-шаг 8 (пара `telemetry` + `rls`) начат с выворота связи цикла — замыкание `telemetry`
-стало пустым, `rls` пока тянет 29 типов. Последним — `reportstudio`.
+**Статус:** в работе. Срезы 5 (метаданные), 6 (нумерация), 7 (`settings`), 8а
+(`platform-telemetry`) и 8б (`platform-rls`) закрыты. Последним — `reportstudio`.
 
 ## 0. Зачем это между D2 и D3
 
@@ -187,7 +186,8 @@ random-order gate                                   1365 тестов, 0 failure
 
 Направление выбрано по слою, а не по цене. Наблюдение обязано работать без принуждения: до
 выворота телеметрия физически не собиралась без RLS. Обратное направление (`rls` вниз) не
-даёт выносимого модуля — у RLS 29 типов дерева, и первым он не поедет.
+даёт выносимого модуля — у RLS оставалось 31 тип дерева (22 после выноса телеметрии),
+и первым он не поедет.
 
 ### Что нашлось при этом
 
@@ -209,35 +209,125 @@ mvn -o clean verify      1369 тестов, 0 failures/errors/skipped
 random-order gate        1369 тестов, 0 failures/errors (seed 20260915)
 ```
 
+### Срез 8а: `platform-telemetry` — третий модуль-подсистема
+
+Вынесено целиком наблюдение (**66 типов**): API (включая нейтральные швы
+`SqlStatementAudit`/`DeclaredNameSource`), core, сущности журнала, репозиторий и своя
+авто-конфигурация с `@EntityScan("org.ipro.telemetry.model")` /
+`@EnableJpaRepositories("org.ipro.telemetry.repository")` и собственным imports-файлом.
+Vaadin-адаптеры (`TelemetryVaadinInitListener`, `TelemetryErrorHandler`) в модуль не
+вошли — живут в дереве приложения (`org.ip.telemetry.vaadin`, решение 1 этапа A);
+`Application` и хаб `RlsAutoConfiguration` пакеты модуля больше не перечисляют.
+Unit-тесты без Spring (`TelemetrySeamBridgesTest`, `JournalSearchServiceTest`, 8 методов)
+переехали в модуль, интеграционные остались в приложении. Зависит на
+`platform-settings` (пробная сущность `FieldAuditSelfTest` — `SettingValue`), дальше
+только библиотеки; reviewed-зависимости — в `PlatformTelemetryModuleTest`.
+
+Что нашлось при этом (честная сборка видит то, чего не видит замер по исходникам):
+
+- **`FieldAuditSelfTest` тянул `platform-settings` полным именем в теле**
+  (`org.ipro.settings.SettingValue`) — import-замер по дереву этого не показал, т.к.
+  `settings` уже артефакт. Зависимость честная (`telemetry → settings`, верх на низ,
+  цикла нет) и зафиксирована в `pom` + `PlatformTelemetryModuleTest`, а не спрятана.
+- **`AppLifecycleLogger` звал `com.vaadin.flow.server.Version` полным именем** —
+  для `javac` это compile-зависимость, `try/catch` не спасает. Версия Vaadin теперь
+  читается рефлексией (`Class.forName`), без Vaadin в classpath — `"?"`.
+- **Строковый реестр тоже переезжает**: запись pointcut
+  `"execution(* org.ip.service..*(..))"` сменила ключ с `src/main/...` на
+  `platform-telemetry/src/main/...` (`PlatformStringDependencyTest` сканирует и
+  артефакты).
+
+```
+mvn -o -f platform-telemetry/pom.xml -DskipTests clean install   BUILD SUCCESS (66 типов)
+mvn -o -f platform-telemetry/pom.xml test                         8 тестов, 0 failures/errors
+mvn -o clean verify                                                1367 тестов, 0 failures/errors/skipped
+random-order gate                                                  1367 тестов, 0 failures/errors (seed 20260915)
+bootstrap -ValidateOnly                                            OK fingerprint: семь платформенных модулей
+```
+
+Приложение после среза **не потеряло ни одной регистрации и не приобрело ни одной**:
+`org.ipro.telemetry.model` убран из `@EntityScan` приложения,
+`org.ipro.telemetry.repository` — из хаба `RlsAutoConfiguration`, запись
+`TelemetryAutoConfiguration` — из imports-файла приложения в собственный файл модуля.
+Реестр замыканий после среза: запись `telemetry` снята (пакета в дереве нет), `rls`
+`31 → 22`, `reportstudio` `93 → 85` (типы телеметрии больше не типы дерева).
+
+### Срез 8б: `platform-rls` — четвёртый модуль-подсистема
+
+Вынесен целиком RLS (**36 типов**: 33 класса подсистемы, 2 нейтральных SPI,
+`RlsPersistenceAutoConfiguration`) с двумя авто-конфигурациями: `RlsAutoConfiguration`
+(бины принуждения) и `RlsPersistenceAutoConfiguration`
+(`@EntityScan`/`@EnableJpaRepositories("org.ipro.rls")`) — чтобы `@DataJpaTest`-срезы
+подключали только persistence-часть. Зависимости на metadata/fetch заменены SPI
+(`RlsDimensionValueLabelResolver`, `RlsOwnedSectionLookup`), которые реализует
+приложение: lookup — в `MetadataAutoConfiguration` (только metadata-типы, запрет
+`metadata → fetch` соблюдён), label-резолвер — в `FetchPlanInstanceNameAutoConfiguration`
+(там уже есть `MetadataResolver`, направление `fetch → metadata` разрешено, backoff
+сохранён через `@ConditionalOnBean`). Без адаптера контекст не стартует (fail-fast
+вместо silent fail-open). Свойство `rls.dimension-scan-package` без default — задаёт
+приложение. Заодно хаб разгружен: reportstudio и ureport объявляют свои
+persistence-пакеты сами (`ReportStudioPersistenceAutoConfiguration`,
+`UreportPersistenceAutoConfiguration`), `Application` — только `org.ip.model`.
+
+Что нашлось при этом:
+
+- **13 `@DataJpaTest`-срезов имитировали регистрацию RLS** ручным
+  `@EnableJpaRepositories({"org.ipro.rls"})` — заменены на
+  `@ImportAutoConfiguration(RlsPersistenceAutoConfiguration.class)`; правило
+  `PersistenceTypeRegistrationTest` перечислило их само.
+- **Строковый реестр тоже переезжает**: default `:org.ip` снят и в реестре, и в
+  авто-конфигурации; свойство задаёт приложение.
+- **BOM-ловушка**: правка файлов через PowerShell `Set-Content`/`Add-Content` пишет BOM,
+  а проект собирается в Cp1251 — `javac` падает с `illegal character: '\ufeff'`.
+  Править только редактором или `[System.IO.File]` + явное удаление BOM.
+
+```
+mvn -o -f platform-rls/pom.xml -DskipTests clean install   BUILD SUCCESS (36 типов)
+mvn -o clean verify                                         1372 тестов, 0 failures/errors/skipped
+random-order gate                                           1372 тестов, 0 failures/errors (seed 20260915)
+bootstrap -ValidateOnly                                     OK fingerprint: восемь платформенных модулей
+```
+
+Приложение после среза **не потеряло ни одной регистрации и не приобрело ни одной**:
+`org.ipro.rls` убран из `@EntityScan` приложения, `org.ipro.reportstudio`/`org.ipro.ureport`
+— из хаба `RlsAutoConfiguration` в собственные persistence-конфигурации, запись
+`RlsAutoConfiguration` — из imports-файла приложения в собственный файл модуля.
+Реестр замыканий после среза: запись `rls` снята (пакета в дереве нет), `reportstudio`
+минус 24 типа `org.ipro.rls.*`.
+
 ## 7. Что осталось и в каком порядке
 
 | Шаг | Подсистема | Условие готовности | Открытый вопрос |
 |---|---|---|---|
 | ~~7~~ | ~~`settings`~~ | **закрыт, см. §5** | — |
-| ~~8а~~ | ~~`telemetry`~~ | **цикл вывернут, замыкание пусто — готов к выносу (см. §6)** | — |
-| 8б | `rls` | 29 типов дерева: метаданные (11), `fetch.instance` (4), телеметрия (8), `crud` (3) | пока метаданные и `fetch.instance` не станут артефактами (или их публичная часть — контрактами), RLS модулем не станет |
-| 8 | `telemetry` + `rls` (пара) | одна из двух связей цикла вывернута через контракт | куда её выворачивать: `telemetry` вниз (тогда RLS-гейт фильтра — SPI контрактов) или `rls` вниз (тогда sink журналирования — SPI) |
-| 9 | `reportstudio` | 42 типа замыкания + консолидация редакторов | три параллельные реализации редактора отчётов надо свести к одной **до** выноса: иначе избыточность зацементируется границей модуля, а кросс-модульный рефакторинг дороже внутреннего |
+| ~~8а (цикл)~~ | ~~`telemetry`~~ | **цикл вывернут, замыкание пусто (см. §6)** | — |
+| ~~8а (срез)~~ | ~~`platform-telemetry`~~ | **закрыт: 66 типов, свой imports-файл, Vaadin-адаптеры в `org.ip` (см. §6.1)** | — |
+| ~~8б~~ | ~~`platform-rls`~~ | **закрыт: 36 типов, два SPI, две авто-конфигурации (см. §6.2)** | — |
+| 8 | `telemetry` + `rls` (пара) | обе связи цикла вывернуты, оба модуля вынесены | — |
+| 9 | `reportstudio` | 61 тип замыкания + консолидация редакторов | три параллельные реализации редактора отчётов надо свести к одной **до** выноса: иначе избыточность зацементируется границей модуля, а кросс-модульный рефакторинг дороже внутреннего |
 
 Зарегистрированные задачи D3 (не сделаны сознательно):
 
-1. **`platform.subsystem-scan-package` default в конфигурацию приложения.** Сейчас 11 файлов
-   (включая один в модуле нумерации) носят default `org.ip`. Это единая платформенная связка:
-   снимать её надо сразу для всего семейства, а не по одной подсистеме за срез.
+1. ~~**`platform.subsystem-scan-package` default в конфигурацию приложения.**~~ Снято
+   полностью (шаг D3-зачистки): default-значения `platform.subsystem-scan-package`
+   (4 класса метаданных + нумерация), `settings.scan-package` и строковый pointcut
+   `org.ip.service..*` (переход на маркер `@Measured`, помечены 9 классов
+   `org.ip.service`) устранены; свойства задаёт приложение. String-реестр пуст.
 2. **Свести `IdentifiableEntity` и `BaseEntity`.** `org.ipro.crud` разделён между тремя
-   артефактами, причём `IdentifiableEntity` живёт в другом репозитории (`crudui`), то есть
-   решение за пределами этого checkout.
+   артефактами, причём `IdentifiableEntity` живёт в другом репозитории (`crudui`).
+   Попытка переноса в `platform-contracts` отменена владельцем: границы дженериков
+   `crudui-core` (`AbstractCrudView`/`AbstractEntityForm`/`CrudService`) ссылаются на
+   этот тип, и переезд тянет зависимость `crudui-core → platform-contracts` через
+   границу репозиториев. Владелец — `crudui-core`, решение отложено; статус-кво
+   восстановлен byte-identical (проверено diff + verify).
 3. **Консолидировать редакторы `reportstudio`** до его выноса (шаг 9).
-4. ~~**Вывернуть связь цикла `rls` ↔ `telemetry`** перед шагом 8.~~ Сделано наполовину
-   (шаг 8а, §6): телеметрия от RLS свободна, RLS от телеметрии — нет и не должен: он на неё
-   законно опирается как верхний слой на артефакт. Осталось само вынесение телеметрии, а
-   для RLS — вынести метаданные-хвост (11 типов) и `fetch.instance` (4).
-5. **Вынести `telemetry` (шаг 8а) — замыкание пусто, блокеров нет.** Перед переносом надо
-   решить одно: оставлять ли Vaadin-адаптеры (`TelemetryErrorHandler`,
-   `TelemetryVaadinInitListener`) в модуле. Они делают артефакт наблюдения зависимым от UI,
-   хотя подсистема по слою ниже UI и ею пользуется RLS. Альтернатива — оставить адаптеры в
-   дереве в пакете приложения, как это уже сделано с метаданными: модуль берёт не пакет
-   целиком, а то, что подсистема обязана нести с собой.
+4. ~~**Вывернуть связь цикла `rls` ↔ `telemetry`** перед шагом 8.~~ Сделано полностью:
+   шаг 8а (§6) вывернул цикл, срез 8а (§6.1) вынес `platform-telemetry` (66 типов),
+   срез 8б (§6.2) вынес `platform-rls` (36 типов). RLS опирается на телеметрию как
+   верхний слой на артефакт — это направление законно и остаётся.
+5. ~~**Вынести `telemetry` (шаг 8а).**~~ Закрыт (§6.1): Vaadin-адаптеры
+   (`TelemetryErrorHandler`, `TelemetryVaadinInitListener`) остались в дереве в пакете
+   приложения `org.ip.telemetry.vaadin`, модуль зависимости на UI не имеет.
 
 ## 8. Инвентарь на текущий момент
 
@@ -249,14 +339,18 @@ random-order gate        1369 тестов, 0 failures/errors (seed 20260915)
 | `platform-events` | 3 | publisher событий, fail-fast registry, своя авто-конфигурация | `platform-contracts` |
 | `platform-numbering` | 17 | подсистема нумерации целиком | `platform-contracts`, `platform-metadata`, `platform-persistence` |
 | `platform-settings` | 8 | сущность константы с репозиторием, каталог, сервис, источник обратных ссылок, своя авто-конфигурация | `platform-contracts`, `platform-metadata`, `crudui` |
+| `platform-telemetry` | 66 | наблюдение целиком: API со швами, core, сущности журнала, репозиторий, своя авто-конфигурация | `platform-settings`, JPA/Hibernate, Spring Data/JDBC/TX/Web/Security, Jackson, Logback |
+| `platform-rls` | 36 | RLS целиком: гейты, аспект, канарейка, 2 SPI, гранты, две авто-конфигурации | `platform-persistence`, `platform-numbering`, `platform-telemetry`, JPA/Hibernate/validation, Spring Data/TX/Web/Security, AspectJ |
 
-Распределение 194 типов платформы, которые называет приложение: **143** в дереве, **21** в
-контрактах, **7** в нумерации, **6** в константах, **2** в persistence, **15** во внешних
-артефактах. Платформенных файлов в дереве: **404** (было 469 на момент D1, 431 после D2).
+Распределение типов платформы, которые называет приложение: **42** в дереве, **21** в
+контрактах, **7** в нумерации, **6** в константах, **2** в persistence, **66** в
+телеметрии, **36** в RLS, **15** во внешних артефактах (+2 Vaadin-адаптера телеметрии
+уехали в приложение). Платформенных файлов в дереве: **303** (было 336 до среза, 404
+до telemetry, 469 на момент D1, 431 после D2).
 
 ## 9. Честные оговорки
 
-- **`reportstudio` — самая дорогая часть и самая рискованная**: 42 типа замыкания включают
+- **`reportstudio` — самая дорогая часть и самая рискованная**: 61 тип замыкания включает
   `crud.BaseService`/`ServiceLocator`/`ValidatedJpaCrudService` и `data.CanonicalReadExecutor`,
   то есть вынос отчётов тянет за собой определение самой сервисной границы — это уже предмет
   D3, а не моста.

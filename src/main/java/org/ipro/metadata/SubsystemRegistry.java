@@ -15,7 +15,7 @@ public class SubsystemRegistry implements InitializingBean {
     private List<SubsystemNode> roots = List.of();
 
     public SubsystemRegistry(
-            @Value("${platform.subsystem-scan-package:org.ip}") String basePackage) {
+            @Value("${platform.subsystem-scan-package}") String basePackage) {
         this.basePackage = basePackage;
     }
 

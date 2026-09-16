@@ -17,6 +17,7 @@ import org.ipro.data.EntityDataAccessResolver;
 import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.ManagedEntityCatalog;
+import org.ipro.telemetry.api.Measured;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,6 +64,7 @@ import java.util.Optional;
  * {@code codeUp}/{@code refId} вынесена в {@code AttributeValueLifecycle}, чтобы применяться
  * ко всем путям записи, а не только к тому, которым шёл этот сервис.</p>
  */
+@Measured
 @Service
 public class AttributeValueService implements BaseService<AttributeValue, Long> {
 

@@ -1,6 +1,7 @@
 package org.ip.service;
 
 import org.ipro.form.spi.FormSettingsStore;
+import org.ipro.telemetry.api.Measured;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -9,6 +10,7 @@ import java.util.Optional;
  * Адаптер пользовательских настроек форм к платформенному {@link FormSettingsStore}:
  * делегирование 1:1.
  */
+@Measured
 @Component
 public class FormSettingsStoreAdapter implements FormSettingsStore {
 

@@ -62,7 +62,7 @@ public class NumberingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public NumberingMetadataRegistry numberingMetadataRegistry(
-            @Value("${platform.subsystem-scan-package:org.ip}") String basePackage) {
+            @Value("${platform.subsystem-scan-package}") String basePackage) {
         return new NumberingMetadataRegistry(basePackage);
     }
 }

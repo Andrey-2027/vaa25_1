@@ -145,7 +145,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "23b7c01f476f7818b3ddfcbb878355b917baa58661e135a77a78cfb285682585",
+        "sha256": "e99a2b04523402b1291a8bff9a333835aa328aea887f6a068a0ef4a0abaf4235",
         "fileCount": 19,
         "inputs": [
           "pom.xml",
@@ -177,7 +177,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "cc8982d1c704fcf4d5e471e8aa7cf017afefef313bc946d812515f417c05f0ba",
+        "sha256": "5f85dccd50b8efba9819009e830ffb6272b48b6fc4a56be602aba660b126e37f",
         "fileCount": 10,
         "inputs": [
           "pom.xml",
@@ -186,6 +186,68 @@
       },
       "artifacts": [
         "org.ipro:platform-settings:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-telemetry",
+      "relativePath": "platform-telemetry",
+      "dependsOn": [
+        "platform-settings"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 → D3 third subsystem module: the whole observation subsystem (telemetry API with the neutral SqlStatementAudit/DeclaredNameSource seams, core operations, field audit, journal, security events, SQL inspection, journal entities, repository, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Chosen third by measured dependency closure (empty after the step-8a cycle inversion with RLS); Vaadin adapters stay in the application tree (org.ip.telemetry.vaadin), the module has no UI dependency."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "1af838136c7ce7f9f30383e40f27745392aed54bb1b58f09f47660ae70aa57b7",
+        "fileCount": 70,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-telemetry:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-rls",
+      "relativePath": "platform-rls",
+      "dependsOn": [
+        "platform-persistence",
+        "platform-numbering",
+        "platform-telemetry"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 → D3 fourth subsystem module: the whole Row-Level Security subsystem (dimensions and policies, read/write gates, Hibernate filters and enforcement aspect, SQL-leak canary, neutral SPIs RlsDimensionValueLabelResolver/RlsOwnedSectionLookup implemented by the application, AccessGrant entity with repository, two auto-configurations for beans and persistence registration). Direct metadata/fetch dependencies replaced by SPIs; consumes platform-telemetry as an artifact, provides platform-numbering with a scope resolver."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "f19c80e3305574009efad3385ecf04b450ee6da35513947cc5217bf02c34982f",
+        "fileCount": 38,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-rls:1.0-SNAPSHOT"
       ],
       "buildSteps": [
         {

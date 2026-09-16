@@ -5,7 +5,8 @@ import org.ip.Application;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.ipro.rls.config.RlsPersistenceAutoConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
@@ -19,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataJpaTest
 // org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе)
-@EnableJpaRepositories(basePackages = {"org.ipro.rls"})
+@ImportAutoConfiguration(RlsPersistenceAutoConfiguration.class)
 @ContextConfiguration(classes = Application.class)
 class VisualQueryPackageDeepPathIT {
     @Autowired EntityManagerFactory entityManagerFactory;

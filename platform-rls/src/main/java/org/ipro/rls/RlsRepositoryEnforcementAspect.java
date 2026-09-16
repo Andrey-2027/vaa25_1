@@ -10,8 +10,6 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.Order;
-import org.ipro.metadata.SectionMetadataRegistry;
-import org.ipro.metadata.TableSectionMetadataInfo;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -42,17 +40,17 @@ public class RlsRepositoryEnforcementAspect {
 
     private final RlsDimensionRegistry registry;
     private final RlsPolicyEnforcer enforcer;
-    private final SectionMetadataRegistry sectionRegistry;
+    private final RlsOwnedSectionLookup ownedSectionLookup;
     private final PlatformTransactionManager transactionManager;
 
     public RlsRepositoryEnforcementAspect(
             RlsDimensionRegistry registry,
             RlsPolicyEnforcer enforcer,
-            SectionMetadataRegistry sectionRegistry,
+            RlsOwnedSectionLookup ownedSectionLookup,
             PlatformTransactionManager transactionManager) {
         this.registry = registry;
         this.enforcer = enforcer;
-        this.sectionRegistry = sectionRegistry;
+        this.ownedSectionLookup = ownedSectionLookup;
         this.transactionManager = transactionManager;
     }
 
@@ -69,13 +67,13 @@ public class RlsRepositoryEnforcementAspect {
             return invocation.proceed();
         }
 
-        TableSectionMetadataInfo section = sectionRegistry.findByRow(domainClass).orElse(null);
-        if (section != null) {
+        String ownedSectionKey = ownedSectionLookup.sectionKey(domainClass).orElse(null);
+        if (ownedSectionKey != null) {
             // A generic row repository cannot express the owner's mandatory predicate
             // for every derived/custom query. Deny the parallel entry point instead;
             // GenericOwnedSectionService is the only supported aggregate boundary.
             throw new RlsAccessDeniedException("Owned section repository access is not allowed for "
-                + section.getKey() + "; use the aggregate section service");
+                + ownedSectionKey + "; use the aggregate section service");
         }
         if (!registry.policyOf(domainClass).protectedEntity()) {
             return invocation.proceed();

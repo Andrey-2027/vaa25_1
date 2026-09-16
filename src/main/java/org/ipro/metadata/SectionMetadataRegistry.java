@@ -28,7 +28,7 @@ public final class SectionMetadataRegistry implements InitializingBean {
     private List<TableSectionMetadataInfo> sections = List.of();
 
     public SectionMetadataRegistry(
-            @Value("${platform.subsystem-scan-package:org.ip}") String basePackage,
+            @Value("${platform.subsystem-scan-package}") String basePackage,
             MetadataResolver metadataResolver) {
         this.basePackage = basePackage;
         this.metadataResolver = metadataResolver;

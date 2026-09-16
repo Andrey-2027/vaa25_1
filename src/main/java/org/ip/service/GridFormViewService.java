@@ -7,6 +7,7 @@ import org.ipro.data.CanonicalEntityService;
 import org.ipro.data.EntityDataAccessResolver;
 import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.security.CurrentUser;
+import org.ipro.telemetry.api.Measured;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,7 @@ import java.util.Optional;
  * {@code CREATE}: update/delete теперь проверяются там же, где исполняются, а не остаются
  * знанием внутри одного класса.</p>
  */
+@Measured
 @Service
 public class GridFormViewService implements BaseService<GridFormView, Long> {
 

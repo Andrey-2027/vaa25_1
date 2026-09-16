@@ -41,7 +41,9 @@ class PersistenceTypeRegistrationTest {
         Path.of("platform-events/src/main/java"),
         Path.of("platform-persistence/src/main/java"),
         Path.of("platform-numbering/src/main/java"),
-        Path.of("platform-settings/src/main/java"));
+        Path.of("platform-settings/src/main/java"),
+        Path.of("platform-telemetry/src/main/java"),
+        Path.of("platform-rls/src/main/java"));
 
     /** Пакеты, которые обязаны быть объявлены в @EntityScan (reviewed). */
     private static final Set<String> REVIEWED_ENTITY_PACKAGES = Set.of(
@@ -71,7 +73,8 @@ class PersistenceTypeRegistrationTest {
      * {@code @EnableJpaRepositories} сюда не попадёт и в проверке срезов участвовать не будет.
      */
     private static final Set<String> REVIEWED_SELF_REGISTERING_MODULES = Set.of(
-        "platform-persistence", "platform-numbering", "platform-settings");
+        "platform-persistence", "platform-numbering", "platform-settings", "platform-telemetry",
+        "platform-rls");
 
     private static final Pattern SLICE = Pattern.compile("^\\s*@DataJpaTest\\b", Pattern.MULTILINE);
     /**
@@ -218,6 +221,19 @@ class PersistenceTypeRegistrationTest {
         assertThat(Path.of("src/main/java/org/ipro/settings/SettingValue.java")).doesNotExist();
         assertThat(Path.of("src/main/java/org/ipro/settings/SettingsService.java")).doesNotExist();
         assertThat(Path.of("platform-settings/src/main/java/org/ipro/settings/SettingValue.java"))
+            .exists();
+    }
+
+    @Test
+    void extractedTelemetryTypesLiveInTheModuleAndNotInTheTree() {
+        assertThat(Path.of("src/main/java/org/ipro/telemetry/api/Telemetry.java")).doesNotExist();
+        assertThat(Path.of("src/main/java/org/ipro/telemetry/core/TelemetryService.java")).doesNotExist();
+        assertThat(Path.of("src/main/java/org/ipro/telemetry/model/OperationLogEntity.java")).doesNotExist();
+        assertThat(Path.of("src/main/java/org/ipro/telemetry/repository/OperationLogRepository.java"))
+            .doesNotExist();
+        assertThat(Path.of("platform-telemetry/src/main/java/org/ipro/telemetry/api/Telemetry.java"))
+            .exists();
+        assertThat(Path.of("platform-telemetry/src/main/java/org/ipro/telemetry/core/TelemetryService.java"))
             .exists();
     }
 

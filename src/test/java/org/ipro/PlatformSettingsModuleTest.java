@@ -22,17 +22,17 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * D2 → D3: второй модуль-подсистема после нумерации.
+ * D2 в†’ D3: РІС‚РѕСЂРѕР№ РјРѕРґСѓР»СЊ-РїРѕРґСЃРёСЃС‚РµРјР° РїРѕСЃР»Рµ РЅСѓРјРµСЂР°С†РёРё.
  *
- * <p>Нумерация доказала, что подсистема с сущностями, репозиториями, бинами и reflection
- * может жить вне дерева. Константы нужны не как ещё одно доказательство того же, а как
- * проверка воспроизводимости приёма на подсистеме другого профиля: здесь есть каталог,
- * который сам сканирует пакет приложения, каталог значений по умолчанию и обратная ссылка в
- * индекс метаданных ({@code settings → metadata}).</p>
+ * <p>РќСѓРјРµСЂР°С†РёСЏ РґРѕРєР°Р·Р°Р»Р°, С‡С‚Рѕ РїРѕРґСЃРёСЃС‚РµРјР° СЃ СЃСѓС‰РЅРѕСЃС‚СЏРјРё, СЂРµРїРѕР·РёС‚РѕСЂРёСЏРјРё, Р±РёРЅР°РјРё Рё reflection
+ * РјРѕР¶РµС‚ Р¶РёС‚СЊ РІРЅРµ РґРµСЂРµРІР°. РљРѕРЅСЃС‚Р°РЅС‚С‹ РЅСѓР¶РЅС‹ РЅРµ РєР°Рє РµС‰С‘ РѕРґРЅРѕ РґРѕРєР°Р·Р°С‚РµР»СЊСЃС‚РІРѕ С‚РѕРіРѕ Р¶Рµ, Р° РєР°Рє
+ * РїСЂРѕРІРµСЂРєР° РІРѕСЃРїСЂРѕРёР·РІРѕРґРёРјРѕСЃС‚Рё РїСЂРёС‘РјР° РЅР° РїРѕРґСЃРёСЃС‚РµРјРµ РґСЂСѓРіРѕРіРѕ РїСЂРѕС„РёР»СЏ: Р·РґРµСЃСЊ РµСЃС‚СЊ РєР°С‚Р°Р»РѕРі,
+ * РєРѕС‚РѕСЂС‹Р№ СЃР°Рј СЃРєР°РЅРёСЂСѓРµС‚ РїР°РєРµС‚ РїСЂРёР»РѕР¶РµРЅРёСЏ, РєР°С‚Р°Р»РѕРі Р·РЅР°С‡РµРЅРёР№ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ Рё РѕР±СЂР°С‚РЅР°СЏ СЃСЃС‹Р»РєР° РІ
+ * РёРЅРґРµРєСЃ РјРµС‚Р°РґР°РЅРЅС‹С… ({@code settings в†’ metadata}).</p>
  *
- * <p>Замыкание констант на дерево до среза было ровно два типа — те самые сканер и индекс,
- * что уехали в {@code platform-metadata}; поэтому срез обнулил его и снял запись о подсистеме
- * с реестра {@code PlatformSubsystemClosureTest}.</p>
+ * <p>Р—Р°РјС‹РєР°РЅРёРµ РєРѕРЅСЃС‚Р°РЅС‚ РЅР° РґРµСЂРµРІРѕ РґРѕ СЃСЂРµР·Р° Р±С‹Р»Рѕ СЂРѕРІРЅРѕ РґРІР° С‚РёРїР° вЂ” С‚Рµ СЃР°РјС‹Рµ СЃРєР°РЅРµСЂ Рё РёРЅРґРµРєСЃ,
+ * С‡С‚Рѕ СѓРµС…Р°Р»Рё РІ {@code platform-metadata}; РїРѕСЌС‚РѕРјСѓ СЃСЂРµР· РѕР±РЅСѓР»РёР» РµРіРѕ Рё СЃРЅСЏР» Р·Р°РїРёСЃСЊ Рѕ РїРѕРґСЃРёСЃС‚РµРјРµ
+ * СЃ СЂРµРµСЃС‚СЂР° {@code PlatformSubsystemClosureTest}.</p>
  */
 class PlatformSettingsModuleTest {
 
@@ -41,7 +41,7 @@ class PlatformSettingsModuleTest {
     private static final String IMPORTS_RESOURCE =
         "META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports";
 
-    /** Reviewed-бюджет среза: подсистема целиком. */
+    /** Reviewed-Р±СЋРґР¶РµС‚ СЃСЂРµР·Р°: РїРѕРґСЃРёСЃС‚РµРјР° С†РµР»РёРєРѕРј. */
     private static final Set<String> REVIEWED_TYPES = Set.of(
         "org.ipro.settings.SettingValue",
         "org.ipro.settings.SettingValueRepository",
@@ -99,7 +99,7 @@ class PlatformSettingsModuleTest {
         String autoConfiguration = read(
             MODULE.resolve("src/main/java/org/ipro/settings/config/SettingsAutoConfiguration.java"));
         assertThat(declaredAnnotations(autoConfiguration))
-            .as("модуль обязан объявлять и persistence unit, и Spring Data")
+            .as("РјРѕРґСѓР»СЊ РѕР±СЏР·Р°РЅ РѕР±СЉСЏРІР»СЏС‚СЊ Рё persistence unit, Рё Spring Data")
             .containsExactlyInAnyOrder("EntityScan", "EnableJpaRepositories");
         assertThat(autoConfiguration).contains("\"org.ipro.settings\"");
 
@@ -107,8 +107,8 @@ class PlatformSettingsModuleTest {
             .as("приложение больше не перечисляет пакеты подсистемы")
             .doesNotContain("org.ipro.settings");
 
-        assertThat(read(Path.of("src/main/java/org/ipro/rls/config/RlsAutoConfiguration.java")))
-            .as("платформенный хаб репозиториев перечисляет только то, что ещё живёт в дереве")
+        assertThat(read(Path.of("platform-rls/src/main/java/org/ipro/rls/config/RlsAutoConfiguration.java")))
+            .as("РїР»Р°С‚С„РѕСЂРјРµРЅРЅС‹Р№ С…Р°Р± СЂРµРїРѕР·РёС‚РѕСЂРёРµРІ РїРµСЂРµС‡РёСЃР»СЏРµС‚ С‚РѕР»СЊРєРѕ С‚Рѕ, С‡С‚Рѕ РµС‰С‘ Р¶РёРІС‘С‚ РІ РґРµСЂРµРІРµ")
             .doesNotContain("\"org.ipro.settings\"");
 
         assertThat(lines(MODULE.resolve("src/main/resources").resolve(IMPORTS_RESOURCE)))
@@ -124,17 +124,17 @@ class PlatformSettingsModuleTest {
     }
 
     /**
-     * Файловые проверки говорят, где типы объявлены; эта — откуда они берутся в рантайме.
-     * Для констант это существенно: {@code @Setting}/{@code @SettingsGroup} стоят на
-     * appdev-классах приложения, а читает их каталог из артефакта.
+     * Р¤Р°Р№Р»РѕРІС‹Рµ РїСЂРѕРІРµСЂРєРё РіРѕРІРѕСЂСЏС‚, РіРґРµ С‚РёРїС‹ РѕР±СЉСЏРІР»РµРЅС‹; СЌС‚Р° вЂ” РѕС‚РєСѓРґР° РѕРЅРё Р±РµСЂСѓС‚СЃСЏ РІ СЂР°РЅС‚Р°Р№РјРµ.
+     * Р”Р»СЏ РєРѕРЅСЃС‚Р°РЅС‚ СЌС‚Рѕ СЃСѓС‰РµСЃС‚РІРµРЅРЅРѕ: {@code @Setting}/{@code @SettingsGroup} СЃС‚РѕСЏС‚ РЅР°
+     * appdev-РєР»Р°СЃСЃР°С… РїСЂРёР»РѕР¶РµРЅРёСЏ, Р° С‡РёС‚Р°РµС‚ РёС… РєР°С‚Р°Р»РѕРі РёР· Р°СЂС‚РµС„Р°РєС‚Р°.
      */
     @Test
     void subsystemClassesAreResolvedFromTheArtifactAtRuntime() {
         for (Class<?> type : List.of(SettingsService.class, SettingsRegistry.class, Setting.class)) {
             CodeSource codeSource = type.getProtectionDomain().getCodeSource();
-            assertThat(codeSource).as("%s должен грузиться из артефакта", type.getName()).isNotNull();
+            assertThat(codeSource).as("%s РґРѕР»Р¶РµРЅ РіСЂСѓР·РёС‚СЊСЃСЏ РёР· Р°СЂС‚РµС„Р°РєС‚Р°", type.getName()).isNotNull();
             assertThat(codeSource.getLocation().toString())
-                .as("%s: класс обязан приходить из platform-settings, а не из target/classes",
+                .as("%s: РєР»Р°СЃСЃ РѕР±СЏР·Р°РЅ РїСЂРёС…РѕРґРёС‚СЊ РёР· platform-settings, Р° РЅРµ РёР· target/classes",
                     type.getName())
                 .contains("platform-settings");
         }
@@ -177,7 +177,7 @@ class PlatformSettingsModuleTest {
     private static String packageOf(Path source) {
         Matcher matcher = PACKAGE.matcher(read(source));
         if (!matcher.find()) {
-            throw new IllegalStateException("Нет package в " + source);
+            throw new IllegalStateException("РќРµС‚ package РІ " + source);
         }
         return matcher.group(1);
     }

@@ -13,6 +13,7 @@ import org.ipro.crud.ServiceLocator;
 import org.ipro.form.MetadataDrivenItemFormSaveAdapter;
 import org.ipro.lifecycle.EntityLifecycle;
 import org.ipro.lifecycle.EntityLifecycleRegistry;
+import org.ipro.rls.RlsOwnedSectionLookup;
 import org.ipro.rls.RlsPolicyEnforcer;
 import jakarta.validation.Validator;
 import org.ipro.events.EntityEventPublisher;
@@ -56,23 +57,37 @@ public class MetadataAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ReferenceIndex referenceIndex(
-            @Value("${platform.subsystem-scan-package:org.ip}") String basePackage) {
+            @Value("${platform.subsystem-scan-package}") String basePackage) {
         return new ReferenceIndex(basePackage);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public SubsystemRegistry subsystemRegistry(
-            @Value("${platform.subsystem-scan-package:org.ip}") String basePackage) {
+            @Value("${platform.subsystem-scan-package}") String basePackage) {
         return new SubsystemRegistry(basePackage);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public SectionMetadataRegistry sectionMetadataRegistry(
-            @Value("${platform.subsystem-scan-package:org.ip}") String basePackage,
+            @Value("${platform.subsystem-scan-package}") String basePackage,
             MetadataResolver metadataResolver) {
         return new SectionMetadataRegistry(basePackage, metadataResolver);
+    }
+
+    /**
+     * Адаптер «метаданные → RLS» для нейтрального шва {@code RlsOwnedSectionLookup}
+     * (шаг 8б): repository-граница RLS спрашивает только этот контракт, а реализация
+     * читает {@code SectionMetadataRegistry}. Только metadata-типы — вызова fetch
+     * здесь нет и быть не должно (запрет {@code metadata → fetch} проверяет
+     * {@code PlatformArchitectureTest}).
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RlsOwnedSectionLookup rlsOwnedSectionLookup(SectionMetadataRegistry sectionMetadataRegistry) {
+        return rowType -> sectionMetadataRegistry.findByRow(rowType)
+            .map(org.ipro.metadata.TableSectionMetadataInfo::getKey);
     }
 
     /**

@@ -1,0 +1,2 @@
+org.ipro.rls.config.RlsAutoConfiguration
+org.ipro.rls.config.RlsPersistenceAutoConfiguration

@@ -24,7 +24,6 @@ import org.ipro.telemetry.core.SqlTimingBridge;
 import org.ipro.telemetry.core.TelemetryBridge;
 import org.ipro.telemetry.core.TelemetryGuard;
 import org.ipro.telemetry.core.TelemetryService;
-import org.ipro.telemetry.core.TelemetryVaadinInitListener;
 import org.ipro.telemetry.core.TraceDumpHandler;
 import org.ipro.telemetry.core.TraceRequestFilter;
 import org.ipro.telemetry.core.TraceServiceImpl;
@@ -33,8 +32,10 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -52,12 +53,21 @@ import java.util.List;
  * наблюдатели стейтментов приходят через нейтральный шов
  * {@link org.ipro.telemetry.core.SqlStatementAuditBridge}. До этого подсистема наблюдения
  * физически не поднималась в развёртывании без подсистемы принуждения.</p>
+ *
+ * <p>D2 → D3 (срез platform-telemetry): подсистема выехала в собственный артефакт, поэтому
+ * здесь же объявляются её {@code @EntityScan} и {@code @EnableJpaRepositories} — модуль
+ * владеет своими пакетами, приложение и платформенный хаб {@code RlsAutoConfiguration}
+ * их больше не перечисляют. Vaadin-адаптеры ({@code TelemetryVaadinInitListener},
+ * {@code TelemetryErrorHandler}) в модуль не входят — они живут в дереве приложения
+ * ({@code org.ip.telemetry.vaadin}), модуль остаётся без зависимости на UI.</p>
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "ipro.telemetry", name = "enabled",
         havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(TelemetryProperties.class)
 @EnableScheduling
+@EntityScan("org.ipro.telemetry.model")
+@EnableJpaRepositories("org.ipro.telemetry.repository")
 public class TelemetryAutoConfiguration {
 
     private final TelemetryProperties properties;
@@ -138,11 +148,6 @@ public class TelemetryAutoConfiguration {
     @Bean
     public AppLifecycleLogger appLifecycleLogger(EventSink eventSink) {
         return new AppLifecycleLogger(eventSink, properties.getAppName());
-    }
-
-    @Bean
-    public TelemetryVaadinInitListener telemetryVaadinInitListener(EventSink eventSink) {
-        return new TelemetryVaadinInitListener(eventSink);
     }
 
     @Bean

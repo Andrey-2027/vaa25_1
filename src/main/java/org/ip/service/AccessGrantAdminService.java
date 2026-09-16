@@ -10,6 +10,7 @@ import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsDimensionValueCatalog;
+import org.ipro.telemetry.api.Measured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +34,7 @@ import java.util.TreeSet;
  */
 @Service
 @PreAuthorize("hasRole('ADMIN')")
+@Measured
 public class AccessGrantAdminService {
 
     /**

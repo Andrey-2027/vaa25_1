@@ -3,6 +3,7 @@ package org.ip.service;
 import jakarta.transaction.Transactional;
 import org.ip.model.UserFormSettings;
 import org.ip.repository.UserFormSettingsRepository;
+import org.ipro.telemetry.api.Measured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.Optional;
  */
 @Service
 @Transactional
+@Measured
 public class FormSettingsService {
 
     private final UserFormSettingsRepository repository;

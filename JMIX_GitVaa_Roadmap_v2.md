@@ -1081,11 +1081,23 @@ application: существующие defaults подключаются чере
   вместо одного и три связи вместо одной — все три вывернуты через нейтральные швы
   (`SqlStatementAudit`, `DeclaredNameSource`) и перенос адаптера `RlsBypassAudit` на сторону
   RLS. Замыкание телеметрии — пусто: подсистема готова стать артефактом.
-- ⏳ Дальше: вынос `platform-telemetry` (решение о Vaadin-адаптерах) → `rls` (29 типов: нужны
-  метаданные-хвост и `fetch.instance`) → `reportstudio` последним, после консолидации трёх
-  редакторов отчётов.
+- ✅ **Шаг 8а — `platform-telemetry` вынесена (66 типов).** Vaadin-адаптеры остались
+  в дереве (`org.ip.telemetry.vaadin`), unit-тесты без Spring (8 методов) переехали
+  в модуль, `Application` и хаб `RlsAutoConfiguration` пакеты модуля больше не перечисляют.
+  Честная сборка нашла две связи, невидимые замеру: `FieldAuditSelfTest → platform-settings`
+  (зависимость зафиксирована) и `AppLifecycleLogger → Vaadin` (теперь рефлексия).
+  Замыкание `rls` после среза — 22 типа (метаданные 15, `fetch.instance` 4, `crud` 3).
 
-Гейты моста: `mvn verify` — 1369/0/0, random-order — 1369/0/0 (seed `20260915`).
+Гейты среза: `mvn -o -f platform-telemetry/pom.xml clean install` — BUILD SUCCESS (66 типов),
+`mvn verify` — 1367/0/0, random-order — 1367/0/0 (seed `20260915`).
+- ✅ **Шаг 8б — `platform-rls` вынесена (36 типов).** Зависимости на metadata/fetch заменены
+  двумя SPI (`RlsDimensionValueLabelResolver`, `RlsOwnedSectionLookup`), адаптеры — в
+  `MetadataAutoConfiguration` и `FetchPlanInstanceNameAutoConfiguration`; хаб разгружен
+  (reportstudio/ureport регистрируют свои пакеты сами), 13 `@DataJpaTest`-срезов переведены
+  на `RlsPersistenceAutoConfiguration`. Замыкание `rls` пусто, `reportstudio` минус 24 типа.
+
+Гейты среза: `mvn -o -f platform-rls/pom.xml clean install` — BUILD SUCCESS (36 типов),
+`mvn verify` — 1372/0/0, random-order — 1372/0/0 (seed `20260915`).
 
 ### D3. Spring и Vaadin adapters
 

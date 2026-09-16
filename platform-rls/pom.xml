@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-rls</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform RLS</name>
+    <description>
+        D2 → D3 (подсистема Row-Level Security целиком): измерения и политики доступа,
+        read/write-гейты, Hibernate-фильтры и enforcement-аспект, канарейка SQL,
+        нейтральные SPI (RlsDimensionValueLabelResolver, RlsOwnedSectionLookup),
+        сущность грантов с репозиторием и свои авто-конфигурации. Вынесена четвёртой,
+        после telemetry: зависимости на metadata/fetch заменены SPI, которые реализует
+        приложение. Потребляет platform-telemetry как артефакт (верхний слой —
+        наблюдение), предоставляет platform-numbering резолвер scope.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
+        <platform-numbering.version>1.0-SNAPSHOT</platform-numbering.version>
+        <platform-telemetry.version>1.0-SNAPSHOT</platform-telemetry.version>
+    </properties>
+
+    <!--
+      Разрешённые зависимости — reviewed, проверяются PlatformRlsModuleTest:
+
+      1. platform-persistence — база сущностей (AccessGrant extends BaseEntity);
+      2. platform-numbering — контракт NumberingScopeResolver (RLS предоставляет
+         реализацию, направление rls → numbering);
+      3. platform-telemetry — SecurityEventLogger/SqlStatementAuditBridge (RLS знает
+         телеметрию как артефакт, обратное запрещено шагом 8а);
+      4. jakarta.persistence-api + hibernate-core — @Filter/@FilterDef, Session,
+         листенеры write-guard;
+      5. jakarta.validation-api — constraints на AccessGrant;
+      6. spring-data-jpa — AccessGrantRepository;
+      7. spring-tx — PlatformTransactionManager в enforcement-аспекте;
+      8. spring-web — @SessionScope, RequestContextHolder;
+      9. spring-security-core — AccessDeniedException как родитель RlsAccessDeniedException;
+      10. spring-boot-autoconfigure + spring-boot-persistence — авто-конфигурации, @EntityScan;
+      11. aspectjweaver — @Aspect RlsRepositoryEnforcementAspect (как и в platform-telemetry:
+          org.aspectj:aspectjrt отсутствует в офлайн-репозитории, классы org.aspectj.lang
+          лежат в weaver — его же тянет starter-aspectj приложения);
+      12. jakarta.servlet-api (provided) — RlsGuardRequestFilter;
+      13. slf4j-api — логирование.
+
+      Запрещены: подсистему метаданных, fetch, reportstudio, ureport, org.ip, Vaadin.
+      Связки с metadata/fetch идут только через нейтральные SPI этого модуля.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-persistence</artifactId>
+            <version>${platform-persistence.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-numbering</artifactId>
+            <version>${platform-numbering.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-telemetry</artifactId>
+            <version>${platform-telemetry.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- @EntityScan в Boot 4 живёт в отдельном модуле, а не в autoconfigure. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-persistence</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

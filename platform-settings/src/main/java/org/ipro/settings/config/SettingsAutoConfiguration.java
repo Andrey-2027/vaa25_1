@@ -30,7 +30,7 @@ public class SettingsAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public SettingsRegistry settingsRegistry(
-            @Value("${settings.scan-package:org.ip.settings}") String basePackage) {
+            @Value("${settings.scan-package}") String basePackage) {
         return new SettingsRegistry(basePackage);
     }
 
@@ -45,7 +45,7 @@ public class SettingsAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public SettingsReverseReferenceSource settingsReverseReferenceSource(
-            @Value("${settings.scan-package:org.ip.settings}") String basePackage) {
+            @Value("${settings.scan-package}") String basePackage) {
         return new SettingsReverseReferenceSource(basePackage);
     }
 }

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-telemetry</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform telemetry</name>
+    <description>
+        D2 → D3 (подсистема наблюдения целиком): API (EventSink/Telemetry/TraceService/UserContext,
+        нейтральные швы SqlStatementAudit/DeclaredNameSource), core (операции, field audit, журнал,
+        security-события, SQL-инспекция), сущности журнала, репозиторий и своя авто-конфигурация
+        с @EntityScan/@EnableJpaRepositories. Выбрана третьей по замеру замыкания: после выворота
+        цикла с RLS (шаг 8а) у неё не осталось ни одной ссылки на дерево приложения. Vaadin-адаптеры
+        (TelemetryVaadinInitListener/TelemetryErrorHandler) в модуль не входят — они живут в
+        пакете приложения, модуль остаётся без зависимости на UI.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-settings.version>1.0-SNAPSHOT</platform-settings.version>
+    </properties>
+
+    <!--
+      Разрешённые зависимости — reviewed, проверяются PlatformTelemetryModuleTest:
+
+      0. platform-settings — пробная сущность field-audit self-test (SettingValue);
+      1. jakarta.persistence-api + hibernate-core — сущности журнала, StatementInspector,
+         Integrator/листенеры field audit (Hibernate создаёт их сам, без Spring);
+      2. spring-data-jpa — OperationLogRepository (JpaRepository + Specification);
+      3. spring-jdbc — JdbcTemplate (journal/trace/field-audit query-сервисы, AsyncEventSink);
+      4. spring-tx — PlatformTransactionManager/TransactionTemplate;
+      5. spring-web — OncePerRequestFilter (TraceRequestFilter), RequestContextHolder (IP клиента);
+      6. spring-security-core — события входа/выхода в SecurityEventLogger;
+      7. spring-boot-autoconfigure + spring-boot-persistence — авто-конфигурация, @EntityScan;
+      8. aspectjweaver — @Aspect ExecutionTimeAspect (тот же артефакт, что тянет
+         spring-boot-starter-aspectj приложения);
+      9. jackson-databind — PayloadJson/EntitySnapshot/JsonLayout;
+      10. logback-classic — JsonLayout файлового лога;
+      11. jakarta.servlet-api (provided) — servlet-фильтр.
+
+      Реализации верхних слоёв (data path, form, rls, fetch, reportstudio, UI) запрещены:
+      наблюдение обязано работать без принуждения — это и есть вывернутый цикл шага 8а.
+      Vaadin запрещён отдельно: адаптеры живут в приложении.
+    -->
+    <dependencies>
+        <!--
+          Пробная сущность field-audit self-test (FieldAuditSelfTest): платформенная
+          SettingValue — self-test не зависит от домена приложения. Направление
+          telemetry → settings — верх на низ, цикла нет (settings телеметрию не знает).
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-settings</artifactId>
+            <version>${platform-settings.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- @EntityScan в Boot 4 живёт в отдельном модуле, а не в autoconfigure. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-persistence</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <!-- Unit-тесты модуля (без Spring-контекста, на моках). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

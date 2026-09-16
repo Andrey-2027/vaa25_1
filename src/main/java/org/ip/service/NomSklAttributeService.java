@@ -9,6 +9,7 @@ import org.ipro.crud.ValidationException;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.data.EntityDataAccessResolver;
 import org.ipro.fetch.plan.FetchScenario;
+import org.ipro.telemetry.api.Measured;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,7 @@ import java.util.Optional;
  * без собственного сервиса. Предметные операции над привязками остаются здесь, потому что
  * заменяют набор строк одной операцией, а не сохраняют одну сущность.</p>
  */
+@Measured
 @Service
 public class NomSklAttributeService implements BaseService<NomSklAttribute, Long> {
 

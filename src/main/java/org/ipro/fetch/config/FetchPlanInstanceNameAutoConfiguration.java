@@ -6,9 +6,11 @@ import org.ipro.fetch.instance.InstanceNameBridgeInstaller;
 import org.ipro.fetch.instance.InstanceNameProvider;
 import org.ipro.fetch.instance.InstanceNameResolver;
 import org.ipro.fetch.plan.FetchPlanRegistry;
+import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
+import org.ipro.rls.RlsDimensionValueLabelResolver;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -88,5 +90,34 @@ public class FetchPlanInstanceNameAutoConfiguration {
                                                MetadataResolver metadataResolver,
                                                InstanceNameResolver instanceNameResolver) {
         return new FetchPlanRegistry(managedEntityTypes, metadataResolver, instanceNameResolver);
+    }
+
+    /**
+     * Адаптер «fetch+metadata → RLS» для нейтрального шва
+     * {@code RlsDimensionValueLabelResolver} (шаг 8б): каталог значений RLS спрашивает
+     * только этот контракт, а реализация читает select-колонки метаданных и единое
+     * display-имя fetch-плана. Живёт здесь, а не в {@code MetadataAutoConfiguration}:
+     * вызов {@code InstanceNameBridge} из metadata-конфигурации нарушил бы запрет
+     * {@code metadata → fetch} ({@code PlatformArchitectureTest}), направление
+     * {@code fetch → metadata} разрешено. Backoff как у соседних бинов: без
+     * {@code MetadataResolver} бин не создаётся, metadata-only срезы не падают.
+     */
+    @Bean
+    @ConditionalOnBean(MetadataResolver.class)
+    @ConditionalOnMissingBean
+    public RlsDimensionValueLabelResolver rlsDimensionValueLabelResolver(
+            MetadataResolver metadataResolver) {
+        return (entityType, value) -> {
+            java.util.List<ColumnPath> columns =
+                metadataResolver.resolve(entityType).getSelectColumnPaths();
+            String code = columns.isEmpty() ? null : text(columns.getFirst().getValue(value));
+            String name = columns.size() < 2 ? InstanceNameBridge.displayName(value)
+                : text(columns.get(1).getValue(value));
+            return new RlsDimensionValueLabelResolver.Labels(code, name);
+        };
+    }
+
+    private static String text(Object value) {
+        return value == null ? "" : String.valueOf(value);
     }
 }

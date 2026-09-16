@@ -21,30 +21,30 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * D2 → D3: первый настоящий модуль-подсистема, а не срез контрактов и не капсула из одного
- * типа.
+ * D2 в†’ D3: РїРµСЂРІС‹Р№ РЅР°СЃС‚РѕСЏС‰РёР№ РјРѕРґСѓР»СЊ-РїРѕРґСЃРёСЃС‚РµРјР°, Р° РЅРµ СЃСЂРµР· РєРѕРЅС‚СЂР°РєС‚РѕРІ Рё РЅРµ РєР°РїСЃСѓР»Р° РёР· РѕРґРЅРѕРіРѕ
+ * С‚РёРїР°.
  *
- * <p>Предыдущие срезы проверяли по одному свойству каждый: контракты — что их читает
- * компилятор; events — что модуль регистрирует свои бины сам; persistence — что модуль сам
- * объявляет свои пакеты в persistence unit. Нумерация несёт все эти свойства сразу, и
- * именно поэтому она выбрана первой по замеру: после выноса позвоночника метаданных
- * ({@code platform-metadata}) у неё не осталось ни одной ссылки на дерево приложения.</p>
+ * <p>РџСЂРµРґС‹РґСѓС‰РёРµ СЃСЂРµР·С‹ РїСЂРѕРІРµСЂСЏР»Рё РїРѕ РѕРґРЅРѕРјСѓ СЃРІРѕР№СЃС‚РІСѓ РєР°Р¶РґС‹Р№: РєРѕРЅС‚СЂР°РєС‚С‹ вЂ” С‡С‚Рѕ РёС… С‡РёС‚Р°РµС‚
+ * РєРѕРјРїРёР»СЏС‚РѕСЂ; events вЂ” С‡С‚Рѕ РјРѕРґСѓР»СЊ СЂРµРіРёСЃС‚СЂРёСЂСѓРµС‚ СЃРІРѕРё Р±РёРЅС‹ СЃР°Рј; persistence вЂ” С‡С‚Рѕ РјРѕРґСѓР»СЊ СЃР°Рј
+ * РѕР±СЉСЏРІР»СЏРµС‚ СЃРІРѕРё РїР°РєРµС‚С‹ РІ persistence unit. РќСѓРјРµСЂР°С†РёСЏ РЅРµСЃС‘С‚ РІСЃРµ СЌС‚Рё СЃРІРѕР№СЃС‚РІР° СЃСЂР°Р·Сѓ, Рё
+ * РёРјРµРЅРЅРѕ РїРѕСЌС‚РѕРјСѓ РѕРЅР° РІС‹Р±СЂР°РЅР° РїРµСЂРІРѕР№ РїРѕ Р·Р°РјРµСЂСѓ: РїРѕСЃР»Рµ РІС‹РЅРѕСЃР° РїРѕР·РІРѕРЅРѕС‡РЅРёРєР° РјРµС‚Р°РґР°РЅРЅС‹С…
+ * ({@code platform-metadata}) Сѓ РЅРµС‘ РЅРµ РѕСЃС‚Р°Р»РѕСЃСЊ РЅРё РѕРґРЅРѕР№ СЃСЃС‹Р»РєРё РЅР° РґРµСЂРµРІРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ.</p>
  *
- * <p>Что здесь проверяется и почему именно это:</p>
+ * <p>Р§С‚Рѕ Р·РґРµСЃСЊ РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ Рё РїРѕС‡РµРјСѓ РёРјРµРЅРЅРѕ СЌС‚Рѕ:</p>
  * <ol>
- * <li>состав среза — reviewed-бюджет: подсистема выехала целиком (17 типов), а не половиной,
- *     иначе «модуль» остался бы папкой в дереве;</li>
- * <li>объявленные зависимости — reviewed: вниз (контракты, метаданные, persistence) и
- *     API-артефакты, но не вверх к {@code data}/{@code form}/{@code rls}/{@code telemetry};</li>
- * <li>регистрация: сущности и репозитории объявляет модуль, приложение и платформенный хаб
- *     их больше не перечисляют — иначе появились бы две декларации там, где раньше была
- *     одна, и «кто владелец» перестало бы быть проверяемым;</li>
- * <li>reflection-регистрация работает через артефакт: {@code @Numbered} стоит на сущностях
- *     приложения, а сканирует их платформенный сканер — то есть аннотация обязана грузиться
- *     из модуля, а не из дерева;</li>
- * <li>авто-конфигурация зарегистрирована <b>своим</b> imports-файлом, а не файлом
- *     приложения: требование roadmap «extraction не увеличивает число обязательных
- *     registrations в application».</li>
+ * <li>СЃРѕСЃС‚Р°РІ СЃСЂРµР·Р° вЂ” reviewed-Р±СЋРґР¶РµС‚: РїРѕРґСЃРёСЃС‚РµРјР° РІС‹РµС…Р°Р»Р° С†РµР»РёРєРѕРј (17 С‚РёРїРѕРІ), Р° РЅРµ РїРѕР»РѕРІРёРЅРѕР№,
+ *     РёРЅР°С‡Рµ В«РјРѕРґСѓР»СЊВ» РѕСЃС‚Р°Р»СЃСЏ Р±С‹ РїР°РїРєРѕР№ РІ РґРµСЂРµРІРµ;</li>
+ * <li>РѕР±СЉСЏРІР»РµРЅРЅС‹Рµ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё вЂ” reviewed: РІРЅРёР· (РєРѕРЅС‚СЂР°РєС‚С‹, РјРµС‚Р°РґР°РЅРЅС‹Рµ, persistence) Рё
+ *     API-Р°СЂС‚РµС„Р°РєС‚С‹, РЅРѕ РЅРµ РІРІРµСЂС… Рє {@code data}/{@code form}/{@code rls}/{@code telemetry};</li>
+ * <li>СЂРµРіРёСЃС‚СЂР°С†РёСЏ: СЃСѓС‰РЅРѕСЃС‚Рё Рё СЂРµРїРѕР·РёС‚РѕСЂРёРё РѕР±СЉСЏРІР»СЏРµС‚ РјРѕРґСѓР»СЊ, РїСЂРёР»РѕР¶РµРЅРёРµ Рё РїР»Р°С‚С„РѕСЂРјРµРЅРЅС‹Р№ С…Р°Р±
+ *     РёС… Р±РѕР»СЊС€Рµ РЅРµ РїРµСЂРµС‡РёСЃР»СЏСЋС‚ вЂ” РёРЅР°С‡Рµ РїРѕСЏРІРёР»РёСЃСЊ Р±С‹ РґРІРµ РґРµРєР»Р°СЂР°С†РёРё С‚Р°Рј, РіРґРµ СЂР°РЅСЊС€Рµ Р±С‹Р»Р°
+ *     РѕРґРЅР°, Рё В«РєС‚Рѕ РІР»Р°РґРµР»РµС†В» РїРµСЂРµСЃС‚Р°Р»Рѕ Р±С‹ Р±С‹С‚СЊ РїСЂРѕРІРµСЂСЏРµРјС‹Рј;</li>
+ * <li>reflection-СЂРµРіРёСЃС‚СЂР°С†РёСЏ СЂР°Р±РѕС‚Р°РµС‚ С‡РµСЂРµР· Р°СЂС‚РµС„Р°РєС‚: {@code @Numbered} СЃС‚РѕРёС‚ РЅР° СЃСѓС‰РЅРѕСЃС‚СЏС…
+ *     РїСЂРёР»РѕР¶РµРЅРёСЏ, Р° СЃРєР°РЅРёСЂСѓРµС‚ РёС… РїР»Р°С‚С„РѕСЂРјРµРЅРЅС‹Р№ СЃРєР°РЅРµСЂ вЂ” С‚Рѕ РµСЃС‚СЊ Р°РЅРЅРѕС‚Р°С†РёСЏ РѕР±СЏР·Р°РЅР° РіСЂСѓР·РёС‚СЊСЃСЏ
+ *     РёР· РјРѕРґСѓР»СЏ, Р° РЅРµ РёР· РґРµСЂРµРІР°;</li>
+ * <li>Р°РІС‚Рѕ-РєРѕРЅС„РёРіСѓСЂР°С†РёСЏ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅР° <b>СЃРІРѕРёРј</b> imports-С„Р°Р№Р»РѕРј, Р° РЅРµ С„Р°Р№Р»РѕРј
+ *     РїСЂРёР»РѕР¶РµРЅРёСЏ: С‚СЂРµР±РѕРІР°РЅРёРµ roadmap В«extraction РЅРµ СѓРІРµР»РёС‡РёРІР°РµС‚ С‡РёСЃР»Рѕ РѕР±СЏР·Р°С‚РµР»СЊРЅС‹С…
+ *     registrations РІ applicationВ».</li>
  * </ol>
  */
 class PlatformNumberingModuleTest {
@@ -54,7 +54,7 @@ class PlatformNumberingModuleTest {
     private static final String IMPORTS_RESOURCE =
         "META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports";
 
-    /** Reviewed-бюджет среза: подсистема целиком, ни больше ни меньше. */
+    /** Reviewed-Р±СЋРґР¶РµС‚ СЃСЂРµР·Р°: РїРѕРґСЃРёСЃС‚РµРјР° С†РµР»РёРєРѕРј, РЅРё Р±РѕР»СЊС€Рµ РЅРё РјРµРЅСЊС€Рµ. */
     private static final Set<String> REVIEWED_TYPES = Set.of(
         "org.ipro.numbering.NumberFormatter",
         "org.ipro.numbering.NumberingCounter",
@@ -97,8 +97,8 @@ class PlatformNumberingModuleTest {
         }
 
         assertThat(actual)
-            .as("срез подсистемы reviewed: половина подсистемы в модуле, половина в дереве"
-                + " означала бы, что граница проходит внутри неё")
+            .as("СЃСЂРµР· РїРѕРґСЃРёСЃС‚РµРјС‹ reviewed: РїРѕР»РѕРІРёРЅР° РїРѕРґСЃРёСЃС‚РµРјС‹ РІ РјРѕРґСѓР»Рµ, РїРѕР»РѕРІРёРЅР° РІ РґРµСЂРµРІРµ"
+                + " РѕР·РЅР°С‡Р°Р»Р° Р±С‹, С‡С‚Рѕ РіСЂР°РЅРёС†Р° РїСЂРѕС…РѕРґРёС‚ РІРЅСѓС‚СЂРё РЅРµС‘")
             .isEqualTo(new TreeSet<>(REVIEWED_TYPES));
     }
 
@@ -125,26 +125,26 @@ class PlatformNumberingModuleTest {
         String autoConfiguration =
             read(MODULE.resolve("src/main/java/org/ipro/numbering/config/NumberingAutoConfiguration.java"));
         assertThat(declaredAnnotations(autoConfiguration))
-            .as("модуль обязан объявлять и persistence unit, и Spring Data: иначе его"
-                + " сущности и репозитории остаются в артефакте без регистрации")
+            .as("РјРѕРґСѓР»СЊ РѕР±СЏР·Р°РЅ РѕР±СЉСЏРІР»СЏС‚СЊ Рё persistence unit, Рё Spring Data: РёРЅР°С‡Рµ РµРіРѕ"
+                + " СЃСѓС‰РЅРѕСЃС‚Рё Рё СЂРµРїРѕР·РёС‚РѕСЂРёРё РѕСЃС‚Р°СЋС‚СЃСЏ РІ Р°СЂС‚РµС„Р°РєС‚Рµ Р±РµР· СЂРµРіРёСЃС‚СЂР°С†РёРё")
             .containsExactlyInAnyOrder("EntityScan", "EnableJpaRepositories");
         assertThat(autoConfiguration).contains("\"org.ipro.numbering\"");
 
         String application = read(Path.of("src/main/java/org/ip/Application.java"));
         assertThat(application)
-            .as("приложение больше не перечисляет пакеты подсистемы")
+            .as("РїСЂРёР»РѕР¶РµРЅРёРµ Р±РѕР»СЊС€Рµ РЅРµ РїРµСЂРµС‡РёСЃР»СЏРµС‚ РїР°РєРµС‚С‹ РїРѕРґСЃРёСЃС‚РµРјС‹")
             .doesNotContain("org.ipro.numbering");
 
-        String hub = read(Path.of("src/main/java/org/ipro/rls/config/RlsAutoConfiguration.java"));
+        String hub = read(Path.of("platform-rls/src/main/java/org/ipro/rls/config/RlsAutoConfiguration.java"));
         assertThat(hub)
-            .as("платформенный хаб репозиториев перечисляет только то, что ещё живёт в дереве")
+            .as("модуль RLS не владеет чужими пакетами: свои регистрирует RlsPersistenceAutoConfiguration")
             .doesNotContain("\"org.ipro.numbering\"");
 
         assertThat(lines(MODULE.resolve("src/main/resources").resolve(IMPORTS_RESOURCE)))
             .containsExactly("org.ipro.numbering.config.NumberingAutoConfiguration");
         assertThat(lines(Path.of("src/main/resources").resolve(IMPORTS_RESOURCE)))
-            .as("приложение не должно регистрировать чужую авто-конфигурацию: модуль делает"
-                + " это сам")
+            .as("РїСЂРёР»РѕР¶РµРЅРёРµ РЅРµ РґРѕР»Р¶РЅРѕ СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊ С‡СѓР¶СѓСЋ Р°РІС‚Рѕ-РєРѕРЅС„РёРіСѓСЂР°С†РёСЋ: РјРѕРґСѓР»СЊ РґРµР»Р°РµС‚"
+                + " СЌС‚Рѕ СЃР°Рј")
             .doesNotContain("org.ipro.numbering.config.NumberingAutoConfiguration");
     }
 
@@ -155,17 +155,17 @@ class PlatformNumberingModuleTest {
     }
 
     /**
-     * Файловые проверки говорят, где типы объявлены; эта — откуда они берутся в рантайме.
-     * Для нумерации это не формальность: {@code @Numbered} стоит на сущностях приложения,
-     * и сканер метаданных читает аннотацию с класса, приехавшего из артефакта.
+     * Р¤Р°Р№Р»РѕРІС‹Рµ РїСЂРѕРІРµСЂРєРё РіРѕРІРѕСЂСЏС‚, РіРґРµ С‚РёРїС‹ РѕР±СЉСЏРІР»РµРЅС‹; СЌС‚Р° вЂ” РѕС‚РєСѓРґР° РѕРЅРё Р±РµСЂСѓС‚СЃСЏ РІ СЂР°РЅС‚Р°Р№РјРµ.
+     * Р”Р»СЏ РЅСѓРјРµСЂР°С†РёРё СЌС‚Рѕ РЅРµ С„РѕСЂРјР°Р»СЊРЅРѕСЃС‚СЊ: {@code @Numbered} СЃС‚РѕРёС‚ РЅР° СЃСѓС‰РЅРѕСЃС‚СЏС… РїСЂРёР»РѕР¶РµРЅРёСЏ,
+     * Рё СЃРєР°РЅРµСЂ РјРµС‚Р°РґР°РЅРЅС‹С… С‡РёС‚Р°РµС‚ Р°РЅРЅРѕС‚Р°С†РёСЋ СЃ РєР»Р°СЃСЃР°, РїСЂРёРµС…Р°РІС€РµРіРѕ РёР· Р°СЂС‚РµС„Р°РєС‚Р°.
      */
     @Test
     void subsystemClassesAreResolvedFromTheArtifactAtRuntime() {
         for (Class<?> type : List.of(NumberingService.class, NumberingRuleService.class, Numbered.class)) {
             CodeSource codeSource = type.getProtectionDomain().getCodeSource();
-            assertThat(codeSource).as("%s должен грузиться из артефакта", type.getName()).isNotNull();
+            assertThat(codeSource).as("%s РґРѕР»Р¶РµРЅ РіСЂСѓР·РёС‚СЊСЃСЏ РёР· Р°СЂС‚РµС„Р°РєС‚Р°", type.getName()).isNotNull();
             assertThat(codeSource.getLocation().toString())
-                .as("%s: класс обязан приходить из platform-numbering, а не из target/classes",
+                .as("%s: РєР»Р°СЃСЃ РѕР±СЏР·Р°РЅ РїСЂРёС…РѕРґРёС‚СЊ РёР· platform-numbering, Р° РЅРµ РёР· target/classes",
                     type.getName())
                 .contains("platform-numbering");
         }
@@ -208,7 +208,7 @@ class PlatformNumberingModuleTest {
     private static String packageOf(Path source) {
         Matcher matcher = PACKAGE.matcher(read(source));
         if (!matcher.find()) {
-            throw new IllegalStateException("Нет package в " + source);
+            throw new IllegalStateException("РќРµС‚ package РІ " + source);
         }
         return matcher.group(1);
     }

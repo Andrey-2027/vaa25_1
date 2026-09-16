@@ -3,6 +3,7 @@ package org.ip.service;
 import org.ip.model.GridFormView;
 import org.ipro.form.spi.GridView;
 import org.ipro.form.spi.GridViewStore;
+import org.ipro.telemetry.api.Measured;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Optional;
  * редактирования (общий/личный) сервис не держит: их исполняет canonical write pipeline
  * через {@code org.ip.application.form.GridFormViewLifecycle}.
  */
+@Measured
 @Component
 public class GridViewStoreAdapter implements GridViewStore {
 

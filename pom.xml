@@ -27,6 +27,8 @@
         <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
         <platform-numbering.version>1.0-SNAPSHOT</platform-numbering.version>
         <platform-settings.version>1.0-SNAPSHOT</platform-settings.version>
+        <platform-telemetry.version>1.0-SNAPSHOT</platform-telemetry.version>
+        <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
         <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
@@ -156,6 +158,30 @@
             <groupId>org.ipro</groupId>
             <artifactId>platform-settings</artifactId>
             <version>${platform-settings.version}</version>
+        </dependency>
+
+        <!--
+          D2 → D3 (третий модуль-подсистема): наблюдение целиком — API, core, сущности
+          журнала, репозиторий и своя авто-конфигурация с @EntityScan/@EnableJpaRepositories.
+          Замыкание на дерево пусто после выворота цикла с RLS (шаг 8а). Vaadin-адаптеры
+          в модуль не входят — они живут в дереве приложения (org.ip.telemetry.vaadin).
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-telemetry</artifactId>
+            <version>${platform-telemetry.version}</version>
+        </dependency>
+
+        <!--
+          D2 → D3 (четвёртый модуль-подсистема): Row-Level Security целиком — измерения,
+          гейты, enforcement-аспект, канарейка SQL, нейтральные SPI, сущность грантов
+          и две авто-конфигурации (бины + persistence-регистрация). Зависимости на
+          metadata/fetch заменены SPI, которые реализует приложение.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rls</artifactId>
+            <version>${platform-rls.version}</version>
         </dependency>
 
         <dependency>

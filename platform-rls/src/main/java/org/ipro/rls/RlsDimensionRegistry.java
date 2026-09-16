@@ -60,7 +60,7 @@ public class RlsDimensionRegistry implements InitializingBean {
     private Map<Class<?>, RlsPolicyDescriptor> policies = Map.of();
     private Map<String, Class<?>> grantValueTypes = Map.of();
 
-    public RlsDimensionRegistry(@Value("${rls.dimension-scan-package:org.ip}") String basePackage) {
+    public RlsDimensionRegistry(@Value("${rls.dimension-scan-package}") String basePackage) {
         this.basePackage = basePackage;
     }
 

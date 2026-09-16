@@ -17,22 +17,22 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * D2 (persistence slice): модуль с persistence-типами отвечает на риск §3.5 карты D1.
+ * D2 (persistence slice): РјРѕРґСѓР»СЊ СЃ persistence-С‚РёРїР°РјРё РѕС‚РІРµС‡Р°РµС‚ РЅР° СЂРёСЃРє В§3.5 РєР°СЂС‚С‹ D1.
  *
- * <p>Риск был: {@code @EntityScan} и {@code @EnableJpaRepositories} задаются
- * централизованно, поэтому вынесенный тип может остаться без регистрации. Ответ среза —
- * модуль объявляет свои пакеты сам, а приложение о них больше не знает. Тест держит три
- * свойства:</p>
+ * <p>Р РёСЃРє Р±С‹Р»: {@code @EntityScan} Рё {@code @EnableJpaRepositories} Р·Р°РґР°СЋС‚СЃСЏ
+ * С†РµРЅС‚СЂР°Р»РёР·РѕРІР°РЅРЅРѕ, РїРѕСЌС‚РѕРјСѓ РІС‹РЅРµСЃРµРЅРЅС‹Р№ С‚РёРї РјРѕР¶РµС‚ РѕСЃС‚Р°С‚СЊСЃСЏ Р±РµР· СЂРµРіРёСЃС‚СЂР°С†РёРё. РћС‚РІРµС‚ СЃСЂРµР·Р° вЂ”
+ * РјРѕРґСѓР»СЊ РѕР±СЉСЏРІР»СЏРµС‚ СЃРІРѕРё РїР°РєРµС‚С‹ СЃР°Рј, Р° РїСЂРёР»РѕР¶РµРЅРёРµ Рѕ РЅРёС… Р±РѕР»СЊС€Рµ РЅРµ Р·РЅР°РµС‚. РўРµСЃС‚ РґРµСЂР¶РёС‚ С‚СЂРё
+ * СЃРІРѕР№СЃС‚РІР°:</p>
  * <ol>
- * <li>reviewed состав и зависимости модуля;</li>
- * <li>модуль сам несёт обе декларации, а приложение и платформенный хаб — уже нет;</li>
- * <li>типы уехали из дерева приложения: копия в дереве означала бы, что граница"
- *     декоративная.</li>
+ * <li>reviewed СЃРѕСЃС‚Р°РІ Рё Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РјРѕРґСѓР»СЏ;</li>
+ * <li>РјРѕРґСѓР»СЊ СЃР°Рј РЅРµСЃС‘С‚ РѕР±Рµ РґРµРєР»Р°СЂР°С†РёРё, Р° РїСЂРёР»РѕР¶РµРЅРёРµ Рё РїР»Р°С‚С„РѕСЂРјРµРЅРЅС‹Р№ С…Р°Р± вЂ” СѓР¶Рµ РЅРµС‚;</li>
+ * <li>С‚РёРїС‹ СѓРµС…Р°Р»Рё РёР· РґРµСЂРµРІР° РїСЂРёР»РѕР¶РµРЅРёСЏ: РєРѕРїРёСЏ РІ РґРµСЂРµРІРµ РѕР·РЅР°С‡Р°Р»Р° Р±С‹, С‡С‚Рѕ РіСЂР°РЅРёС†Р°"
+ *     РґРµРєРѕСЂР°С‚РёРІРЅР°СЏ.</li>
  * </ol>
  *
- * <p>Динамическая часть — в {@code PersistenceRegistrationIT} (репозиторий существует как бин,
- * entity в persistence unit, ни одна чужая декларация не перекрыта) и в
- * {@link PersistenceTypeRegistrationTest} (реестр покрытия типов).</p>
+ * <p>Р”РёРЅР°РјРёС‡РµСЃРєР°СЏ С‡Р°СЃС‚СЊ вЂ” РІ {@code PersistenceRegistrationIT} (СЂРµРїРѕР·РёС‚РѕСЂРёР№ СЃСѓС‰РµСЃС‚РІСѓРµС‚ РєР°Рє Р±РёРЅ,
+ * entity РІ persistence unit, РЅРё РѕРґРЅР° С‡СѓР¶Р°СЏ РґРµРєР»Р°СЂР°С†РёСЏ РЅРµ РїРµСЂРµРєСЂС‹С‚Р°) Рё РІ
+ * {@link PersistenceTypeRegistrationTest} (СЂРµРµСЃС‚СЂ РїРѕРєСЂС‹С‚РёСЏ С‚РёРїРѕРІ).</p>
  */
 class PlatformPersistenceModuleTest {
 
@@ -69,9 +69,9 @@ class PlatformPersistenceModuleTest {
         }
 
         assertThat(actual)
-            .as("persistence-капсула — reviewed: сюда попадают только типы, которые нужны"
-                + " артефакту, чтобы быть самодостаточным (включая базу сущностей), но не"
-                + " реализации платформы")
+            .as("persistence-РєР°РїСЃСѓР»Р° вЂ” reviewed: СЃСЋРґР° РїРѕРїР°РґР°СЋС‚ С‚РѕР»СЊРєРѕ С‚РёРїС‹, РєРѕС‚РѕСЂС‹Рµ РЅСѓР¶РЅС‹"
+                + " Р°СЂС‚РµС„Р°РєС‚Сѓ, С‡С‚РѕР±С‹ Р±С‹С‚СЊ СЃР°РјРѕРґРѕСЃС‚Р°С‚РѕС‡РЅС‹Рј (РІРєР»СЋС‡Р°СЏ Р±Р°Р·Сѓ СЃСѓС‰РЅРѕСЃС‚РµР№), РЅРѕ РЅРµ"
+                + " СЂРµР°Р»РёР·Р°С†РёРё РїР»Р°С‚С„РѕСЂРјС‹")
             .isEqualTo(new TreeSet<>(REVIEWED_TYPES));
     }
 
@@ -98,22 +98,21 @@ class PlatformPersistenceModuleTest {
         String autoConfiguration = read(MODULE
             .resolve("src/main/java/org/ipro/persistence/config/PersistenceAutoConfiguration.java"));
         assertThat(declaredAnnotations(autoConfiguration))
-            .as("модуль обязан объявлять и persistence unit, и Spring Data: иначе его типы"
-                + " остаются в артефакте без регистрации")
+            .as("РјРѕРґСѓР»СЊ РѕР±СЏР·Р°РЅ РѕР±СЉСЏРІР»СЏС‚СЊ Рё persistence unit, Рё Spring Data: РёРЅР°С‡Рµ РµРіРѕ С‚РёРїС‹"
+                + " РѕСЃС‚Р°СЋС‚СЃСЏ РІ Р°СЂС‚РµС„Р°РєС‚Рµ Р±РµР· СЂРµРіРёСЃС‚СЂР°С†РёРё")
             .containsExactlyInAnyOrder("EntityScan", "EnableJpaRepositories");
         assertThat(autoConfiguration).contains("\"org.ipro.jr.dom\"");
         assertThat(autoConfiguration).contains("\"org.ipro.jr\"");
 
-        // Приложение сохраняет свои три регистрации: @EntityScan для прикладных сущностей
-        // и @EnableJpaRepositories для своих репозиториев. Уезжает только чужое.
+        // РџСЂРёР»РѕР¶РµРЅРёРµ СЃРѕС…СЂР°РЅСЏРµС‚ СЃРІРѕРё С‚СЂРё СЂРµРіРёСЃС‚СЂР°С†РёРё: @EntityScan РґР»СЏ РїСЂРёРєР»Р°РґРЅС‹С… СЃСѓС‰РЅРѕСЃС‚РµР№
+        // Рё @EnableJpaRepositories РґР»СЏ СЃРІРѕРёС… СЂРµРїРѕР·РёС‚РѕСЂРёРµРІ. РЈРµР·Р¶Р°РµС‚ С‚РѕР»СЊРєРѕ С‡СѓР¶РѕРµ.
         assertThat(declaredAnnotations(read(Path.of("src/main/java/org/ip/Application.java"))))
             .containsExactlyInAnyOrder("EntityScan", "EnableJpaRepositories");
         assertThat(read(Path.of("src/main/java/org/ip/Application.java")))
             .doesNotContain("org.ipro.jr.dom");
 
-        assertThat(read(Path.of("src/main/java/org/ipro/rls/config/RlsAutoConfiguration.java")))
-            .as("платформенный хаб репозиториев больше не перечисляет пакеты модуля — их"
-                + " объявляет сам модуль, и две декларации не перекрываются")
+        assertThat(read(Path.of("platform-rls/src/main/java/org/ipro/rls/config/RlsAutoConfiguration.java")))
+            .as("модуль RLS не владеет чужими пакетами: свои регистрирует RlsPersistenceAutoConfiguration")
             .doesNotContain("\"org.ipro.jr\"");
 
         assertThat(lines(MODULE.resolve("src/main/resources").resolve(IMPORTS_RESOURCE)))
@@ -125,8 +124,8 @@ class PlatformPersistenceModuleTest {
         assertThat(Path.of("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).doesNotExist();
         assertThat(Path.of("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).doesNotExist();
         assertThat(Path.of("src/main/java/org/ipro/crud/BaseEntity.java"))
-            .as("база сущностей входит в persistence-капсулу: без неё entity не компилируется"
-                + " вне дерева приложения")
+            .as("Р±Р°Р·Р° СЃСѓС‰РЅРѕСЃС‚РµР№ РІС…РѕРґРёС‚ РІ persistence-РєР°РїСЃСѓР»Сѓ: Р±РµР· РЅРµС‘ entity РЅРµ РєРѕРјРїРёР»РёСЂСѓРµС‚СЃСЏ"
+                + " РІРЅРµ РґРµСЂРµРІР° РїСЂРёР»РѕР¶РµРЅРёСЏ")
             .doesNotExist();
     }
 
@@ -153,7 +152,7 @@ class PlatformPersistenceModuleTest {
     private static String packageOf(Path source) {
         Matcher matcher = PACKAGE.matcher(read(source));
         if (!matcher.find()) {
-            throw new IllegalStateException("нет package: " + source);
+            throw new IllegalStateException("РЅРµС‚ package: " + source);
         }
         return matcher.group(1);
     }

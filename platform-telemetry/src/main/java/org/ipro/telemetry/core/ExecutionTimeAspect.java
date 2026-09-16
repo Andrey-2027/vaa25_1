@@ -41,15 +41,20 @@ public class ExecutionTimeAspect {
         this.entityDataEnabled = entityDataEnabled;
     }
 
-    @Pointcut("execution(* org.ip.service..*(..))")
-    void serviceLayer() {
+    /**
+     * Маркерный pointcut вместо строкового `execution(* org.ip.service..*(..))` (D3):
+     * платформа больше не называет пакет приложения даже строкой. Классы приложения
+     * включаются аннотацией {@code @Measured} (метод или целиком тип).
+     */
+    @Pointcut("@within(org.ipro.telemetry.api.Measured)")
+    void measuredType() {
     }
 
     @Pointcut("@annotation(org.ipro.telemetry.api.Measured)")
     void measured() {
     }
 
-    @Around("serviceLayer() || measured()")
+    @Around("measuredType() || measured()")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
         String name = pjp.getSignature().getDeclaringType().getSimpleName()
                 + "." + pjp.getSignature().getName();

@@ -45,6 +45,7 @@ class PersistenceRegistrationIT {
     /** По одной entity на каждый объявленный @EntityScan-пакет (там, где entities есть). */
     private static final Map<String, String> ENTITIES_BY_PACKAGE = Map.of(
         "org.ip.model", "org.ip.model.Branch",
+        "org.ipro.rls", "org.ipro.rls.AccessGrant",
         "org.ipro.jr.dom", "org.ipro.jr.dom.JrxmlTemplate",
         "org.ipro.settings", "org.ipro.settings.SettingValue");
 
@@ -88,14 +89,14 @@ class PersistenceRegistrationIT {
         Map<String, Class<?>> repositories = new LinkedHashMap<>();
         // приложение объявляет свои репозитории само
         repositories.put("org.ip", org.ip.repository.BranchRepository.class);
-        // платформенный хаб RlsAutoConfiguration
-        repositories.put("org.ipro.rls", org.ipro.rls.AccessGrantRepository.class);
+        // собственные persistence-конференции подсистем в дереве
         repositories.put("org.ipro.reportstudio", org.ipro.reportstudio.ReportTemplateRepository.class);
+        repositories.put("org.ipro.ureport", org.ipro.ureport.UreportTemplateRepository.class);
+        // вынесенные модули объявляют свои пакеты сами
         repositories.put("org.ipro.numbering", org.ipro.numbering.NumberingRuleRepository.class);
         repositories.put("org.ipro.settings", org.ipro.settings.SettingValueRepository.class);
-        repositories.put("org.ipro.ureport", org.ipro.ureport.UreportTemplateRepository.class);
         repositories.put("org.ipro.telemetry.repository", org.ipro.telemetry.repository.OperationLogRepository.class);
-        // вынесенный модуль объявляет свои пакеты сам
+        repositories.put("org.ipro.rls", org.ipro.rls.AccessGrantRepository.class);
         repositories.put("org.ipro.jr", org.ipro.jr.JrxmlTemplateRepository.class);
         return repositories;
     }

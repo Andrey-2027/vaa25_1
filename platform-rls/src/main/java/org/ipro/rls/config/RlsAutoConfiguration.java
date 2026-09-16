@@ -22,7 +22,6 @@ import org.ipro.telemetry.core.SecurityEventLogger;
 import org.ipro.telemetry.core.SqlStatementAuditBridge;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.ipro.metadata.SectionMetadataRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -30,7 +29,6 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.context.annotation.SessionScope;
 
 /**
@@ -43,46 +41,18 @@ import org.springframework.web.context.annotation.SessionScope;
  * (UserRepositoryRlsRoleResolver). Grantable dimension values выводятся платформой
  * из {@code @RlsDimension(grantValues = true)} и entity metadata.
  *
- * Репозитории: явный {@link EnableJpaRepositories} перечисляет базовые пакеты
- * <b>платформы</b> ({@code org.ipro.rls} — AccessGrantRepository и т.д.).
- *
- * <p>D1: прикладной пакет здесь больше не называется. Раньше список содержал
- * {@code org.ip}, то есть платформа знала имя пакета приложения — это и была одна из
- * строковых (не bytecode) зависимостей платформы на {@code org.ip}. Теперь приложение
- * само объявляет {@code @EnableJpaRepositories("org.ip")} рядом со своим
- * {@code @SpringBootApplication}: обе декларации независимы и не пересекаются.
- * Так платформа остаётся нейтральной к имени прикладного пакета, а состав репозиториев
- * не меняется.</p>
- *
- * <p>D2 (persistence slice): вынесенный артефакт объявляет свои базовые пакеты сам
- * ({@code PersistenceAutoConfiguration}), поэтому {@code org.ipro.jr} из этого списка
- * убран. Две независимые декларации {@code @EnableJpaRepositories} не перекрываются —
- * именно на этом свойстве держится и прежнее разделение с {@code org.ip}; проверяется
- * оно тестом, который требует наличия репозитория из каждого базового пакета.</p>
- *
- * <p>D2 → D3 (модули подсистем): нумерация и константы выехали целиком в
- * {@code platform-numbering} и {@code platform-settings} вместе со своими сущностями и
- * репозиториями, поэтому из списка убраны и они — хаб перечисляет только то, что ещé живёт
- * в дереве. Направление связи при этом не изменилось: RLS предоставляет нумерации резолвер
- * scope (см. {@link #numberingScopeResolver}), то есть подсистемы ниже по слою, чем RLS.</p>
- *
- * <p>D2 → D3 (пара `telemetry` + `rls`): здесь же теперь живёт весь минимум связей цикла.
- * RLS <b>реализует</b> нейтральные швы телеметрии — канарейку SQL стейтментов
- * ({@code SqlStatementAuditBridge}) и аудит привилегированных окон ({@link RlsBypassAudit}), —
- * а телеметрия о RLS не знает вовсе. До этого направления были двусторонние: телеметрия
- * вызывала {@code RlsStatementGuard} и сама создавала {@code RlsBypassAudit}, из-за чего
- * наблюдение не собиралось без принуждения.</p>
+ * Репозитории и persistence unit объявляет {@code RlsPersistenceAutoConfiguration}
+ * этого же модуля — здесь только бины принуждения. Хаб чужих пакетов упразднён на
+ * шаге 8б: reportstudio и ureport регистрируют свои пакеты сами.</p>
  */
 @AutoConfiguration
 @AutoConfigureBefore(org.ipro.numbering.config.NumberingAutoConfiguration.class)
-@EnableJpaRepositories(basePackages = {"org.ipro.rls", "org.ipro.reportstudio",
-    "org.ipro.ureport", "org.ipro.telemetry.repository"})
 public class RlsAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
     public RlsDimensionRegistry rlsDimensionRegistry(
-            @Value("${rls.dimension-scan-package:org.ip}") String basePackage) {
+            @Value("${rls.dimension-scan-package}") String basePackage) {
         return new RlsDimensionRegistry(basePackage);
     }
 
@@ -147,9 +117,9 @@ public class RlsAutoConfiguration {
     public org.ipro.rls.RlsDimensionValueCatalog rlsDimensionValueCatalog(
             RlsDimensionRegistry dimensionRegistry,
             RlsFilterActivator filterActivator,
-            org.ipro.metadata.MetadataResolver metadataResolver) {
+            org.ipro.rls.RlsDimensionValueLabelResolver labelResolver) {
         return new org.ipro.rls.RlsDimensionValueCatalog(
-            dimensionRegistry, filterActivator, metadataResolver);
+            dimensionRegistry, filterActivator, labelResolver);
     }
 
     @Bean
@@ -179,10 +149,10 @@ public class RlsAutoConfiguration {
     public RlsRepositoryEnforcementAspect rlsRepositoryEnforcementAspect(
             RlsDimensionRegistry dimensionRegistry,
             RlsPolicyEnforcer policyEnforcer,
-            SectionMetadataRegistry sectionMetadataRegistry,
+            org.ipro.rls.RlsOwnedSectionLookup ownedSectionLookup,
             PlatformTransactionManager transactionManager) {
         return new RlsRepositoryEnforcementAspect(dimensionRegistry, policyEnforcer,
-            sectionMetadataRegistry, transactionManager);
+            ownedSectionLookup, transactionManager);
     }
 
     /**

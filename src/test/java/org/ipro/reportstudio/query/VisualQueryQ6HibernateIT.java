@@ -16,6 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.ipro.rls.config.RlsPersistenceAutoConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
@@ -31,6 +34,10 @@ import static org.assertj.core.api.Assertions.assertThat;
         // которых нет в q6-срезе — seed-данные этому тесту не нужны.
         "spring.sql.init.mode=never"
 })
+@ImportAutoConfiguration(RlsPersistenceAutoConfiguration.class)
+// @EntityScan модуля вытесняет autopackage среза (q6): без явного пакета Q6Product
+// выпадает из persistence unit (Not an entity). Пакет rls даёт RlsPersistenceAutoConfiguration.
+@EntityScan("org.ipro.reportstudio.query.q6")
 @ContextConfiguration(classes = Q6JpaTestConfiguration.class)
 class VisualQueryQ6HibernateIT {
     @Autowired EntityManager entityManager;

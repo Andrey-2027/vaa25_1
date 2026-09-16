@@ -48,7 +48,7 @@ public class EntityExplorerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EntitySummaryAssembler entitySummaryAssembler(
-            @Value("${platform.subsystem-scan-package:org.ip}") String basePackage,
+            @Value("${platform.subsystem-scan-package}") String basePackage,
             MetadataResolver metadataResolver,
             FormRegistry formRegistry,
             ReferenceIndex referenceIndex,

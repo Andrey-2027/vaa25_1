@@ -157,28 +157,32 @@ metadata-ядро не зависит от `fetch` (ADR-0006).
 | Нарушение | Масштаб | Причина оставить до D2 | Снятие |
 |---|---|---|---|
 | `metadata -> form` | 5 файлов | `metadata.explorer` (`EntitySummary*`, `SubsystemSummaryAssembler`, `EntityExplorerAutoConfiguration`) — read-model форм; `MetadataAutoConfiguration` импортирует `MetadataDrivenItemFormSaveAdapter`. Это переносится **вместе** с form-срезом, а не до него | D2 |
-| `rls -> reportstudio`, `rls -> ureport` | 1 файл | `RlsAutoConfiguration#@EnableJpaRepositories` перечисляет репозиторные пакеты **шести чужих** подсистем плюс свой (см. 3.5) | D3 |
+| ~~`rls -> reportstudio`, `rls -> ureport`~~ | ~~1 файл~~ | ~~Снято шагом 8б: reportstudio и ureport объявляют свои пакеты сами (`ReportStudioPersistenceAutoConfiguration`, `UreportPersistenceAutoConfiguration`); хаб держит только `org.ipro.rls` до выноса `platform-rls`, после — ничего~~ | ~~D3~~ |
 
-### 3.5. Центральный хаб регистрации репозиториев (риск для D2/D3)
+### 3.5. Центральный хаб регистрации репозиториев (риск для D2/D3 — закрыт шагом 8б)
 
-`@EnableJpaRepositories` платформы объявлен **ровно один раз** — в
+~~`@EnableJpaRepositories` платформы объявлен **ровно один раз** — в
 `RlsAutoConfiguration`, и перечисляет семь пакетов: свой `org.ipro.rls` и чужие
 `org.ipro.reportstudio`, `org.ipro.numbering`, `org.ipro.settings`, `org.ipro.ureport`,
-`org.ipro.jr`, `org.ipro.telemetry.repository`. Пять других файлов
-(`JrxmlTemplateRepository`, `NumberingAutoConfiguration`, `SettingsAutoConfiguration`,
-`UreportTemplateRepository`, `UreportAutoConfiguration`, `OperationLogRepository`)
-**документируют** этот факт комментарием «репозитории добавлены в
-`RlsAutoConfiguration#@EnableJpaRepositories`».
+`org.ipro.jr`, `org.ipro.telemetry.repository`.~~ Снято: каждый модуль/подсистема
+объявляет свои пакеты сам (`RlsPersistenceAutoConfiguration`,
+`ReportStudioPersistenceAutoConfiguration`, `UreportPersistenceAutoConfiguration`,
+модули numbering/settings/telemetry/persistence); хаб упразднён выносом
+`platform-rls`. Правило «модуль объявляет себя сам» исполняется тестом
+`PlatformAutoConfigurationRegistryTest`, потерю пакетов ловит
+`PersistenceTypeRegistrationTest` + `PersistenceRegistrationIT`.
 
-Это скрытая связность: RLS-авто-конфигурация обязана знать каждый чужой подсистемный
+~~Это скрытая связность: RLS-авто-конфигурация обязана знать каждый чужой подсистемный
 пакет, а порядок — не случаен (`@AutoConfigureBefore(NumberingAutoConfiguration)`).
 При выносе модулей (D3) каждый модуль должен объявлять свои репозитории сам; ошибка
 здесь не падает на старте, а **молча теряет репозитории** — это надо закрыть
-fail-fast проверкой в D2, а не комментарием.
+fail-fast проверкой в D2, а не комментарием.~~ Закрыто шагом 8б: хаб упразднён,
+порядок держится `@AutoConfigureBefore` модуля.
 
-Симметрично `@EntityScan` приложения перечисляет платформенные entity-пакеты
+~~Симметрично `@EntityScan` приложения перечисляет платформенные entity-пакеты
 (`org.ipro.telemetry.model`, `org.ipro.rls`, `reportstudio.dom`, `numbering`, `settings`,
-`ureport.dom`, `jr.dom`). Roadmap D2 требует, чтобы extraction **не увеличивал** число
+`ureport.dom`, `jr.dom`).~~ Закрыто: `Application` сканирует только `org.ip.model`,
+остальное объявляют сами подсистемы/модули. Roadmap D2 требует, чтобы extraction **не увеличивал** число
 обязательных регистраций в приложении — сегодня добавление платформенного модуля
 требует правки этого списка; starter D4 обязан это снять.
 
@@ -276,16 +280,16 @@ fail-fast проверкой в D2, а не комментарием.
 1. `@EnableJpaRepositories({"org.ip", ...})` — платформа объявляла репозитории приложения (§3.3);
 2. `ReportQueryEditor` — пример-плейсхолдер `org.ip.model.DocumentStatus` заменён на нейтральный.
 
-**Осталось (11 файлов, реестр с причинами в тесте):**
+**Осталось (9 файлов, реестр с причинами в тесте):**
 
 | Семейство | Файлов | Когда уходит |
 |---|---|---|
 | default `platform.subsystem-scan-package:org.ip` | 5 (4 в дереве + 1 в `platform-numbering`) | D3: перенос значения в конфигурацию приложения сразу для всего семейства |
-| default `rls.dimension-scan-package:org.ip` | 2 | D3 |
+| ~~default `rls.dimension-scan-package:org.ip` — снят шагом 8б~~ | ~~2 → 0~~ | ~~закрыт: default удалён, свойство задаёт приложение~~ |
 | default `settings.scan-package:org.ip.settings` | 3 | D3 |
 | pointcut `org.ip.service..*` (`ExecutionTimeAspect`) | 1 | D3, переход на маркер/@Measured |
 
-В этих файлах закреплено ровно **11 литералов**: сравнение идёт по ним, а не по составу
+В этих файлах закреплено ровно **9 литералов**: сравнение идёт по ним, а не по составу
 файлов.
 
 **Снято в D2 → D3 (мост):** два литерала, оба — мёртвые default-значения. У

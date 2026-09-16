@@ -212,43 +212,13 @@ class PlatformSubsystemClosureTest {
     private static Map<String, Set<String>> reviewedReachBack() {
         Map<String, Set<String>> registry = new TreeMap<>();
 
-        // Замыкание пусто: связи цикла вывернуты через нейтральные швы телеметрии
-        // (SqlStatementAudit, DeclaredNameSource), поэтому подсистема наблюдения может стать
-        // артефактом. Единственный артефакт с пустым замыканием — следующий срез.
-        registry.put("org.ipro.telemetry", Set.of());
+        // platform-telemetry вынесена целиком (срез 8а): нейтральные швы SqlStatementAudit
+        // и DeclaredNameSource вывернули цикл с RLS, Vaadin-адаптеры остались в org.ip,
+        // поэтому пакет org.ipro.telemetry в дереве отсутствует и в реестре его нет.
 
-        registry.put("org.ipro.rls", Set.of(
-            "org.ipro.crud.StandardCatalogEntity",
-            "org.ipro.crud.StandardDocumentEntity",
-            "org.ipro.crud.TableSectionService",
-            "org.ipro.fetch.instance.InstanceName",
-            "org.ipro.fetch.instance.InstanceNameBridge",
-            "org.ipro.fetch.instance.InstanceNameProvider",
-            "org.ipro.fetch.instance.InstanceNameResolver",
-            "org.ipro.metadata.ColumnPath",
-            "org.ipro.metadata.EntityMetadataInfo",
-            "org.ipro.metadata.FactOrigin",
-            "org.ipro.metadata.FieldMetadataInfo",
-            "org.ipro.metadata.FilterSpec",
-            "org.ipro.metadata.GridMetadata",
-            "org.ipro.metadata.GridViewState",
-            "org.ipro.metadata.HasDisplayName",
-            "org.ipro.metadata.MetadataCache",
-            "org.ipro.metadata.MetadataDiagnostic",
-            "org.ipro.metadata.MetadataDiagnosticCodes",
-            "org.ipro.metadata.MetadataResolver",
-            "org.ipro.metadata.RowMetadataInfo",
-            "org.ipro.metadata.SectionMetadataRegistry",
-            "org.ipro.metadata.TableSectionMetadataInfo",
-            "org.ipro.telemetry.api.AggregateStats",
-            "org.ipro.telemetry.api.EventSink",
-            "org.ipro.telemetry.api.EventType",
-            "org.ipro.telemetry.api.FieldChangeRecord",
-            "org.ipro.telemetry.api.SqlStatementAudit",
-            "org.ipro.telemetry.api.TelemetryEvent",
-            "org.ipro.telemetry.core.PayloadJson",
-            "org.ipro.telemetry.core.SecurityEventLogger",
-            "org.ipro.telemetry.core.SqlStatementAuditBridge"));
+        // platform-rls вынесена целиком (срез 8б): зависимости на metadata/fetch заменены
+        // нейтральными SPI (RlsDimensionValueLabelResolver, RlsOwnedSectionLookup),
+        // поэтому пакет org.ipro.rls в дереве отсутствует и в реестре его нет.
 
         registry.put("org.ipro.reportstudio", Set.of(
             "org.ipro.crud.BaseService",
@@ -311,39 +281,7 @@ class PlatformSubsystemClosureTest {
             "org.ipro.metadata.RowMetadataInfo",
             "org.ipro.metadata.SectionMetadataRegistry",
             "org.ipro.metadata.TableSectionMetadataInfo",
-            "org.ipro.rls.AccessGrant",
-            "org.ipro.rls.AccessGrantChangeListener",
-            "org.ipro.rls.AccessGrantRepository",
-            "org.ipro.rls.AccessGrantVersion",
-            "org.ipro.rls.AccessService",
-            "org.ipro.rls.RlsAccessDeniedException",
-            "org.ipro.rls.RlsBypassAudit",
-            "org.ipro.rls.RlsBypassScope",
-            "org.ipro.rls.RlsCheckValue",
-            "org.ipro.rls.RlsContext",
-            "org.ipro.rls.RlsCurrentUser",
-            "org.ipro.rls.RlsDimension",
-            "org.ipro.rls.RlsDimensionKind",
-            "org.ipro.rls.RlsDimensionRegistry",
-            "org.ipro.rls.RlsDimensionValue",
-            "org.ipro.rls.RlsDimensions",
-            "org.ipro.rls.RlsFilterActivator",
-            "org.ipro.rls.RlsPolicyDescriptor",
-            "org.ipro.rls.RlsPolicyEnforcer",
-            "org.ipro.rls.RlsReadGate",
-            "org.ipro.rls.RlsReadableIdsCache",
-            "org.ipro.rls.RlsRoleResolver",
-            "org.ipro.rls.RlsStatementGuard",
-            "org.ipro.rls.RlsWriteAuthorization",
-            "org.ipro.security.CurrentUser",
-            "org.ipro.telemetry.api.AggregateStats",
-            "org.ipro.telemetry.api.EventSink",
-            "org.ipro.telemetry.api.EventType",
-            "org.ipro.telemetry.api.FieldChangeRecord",
-            "org.ipro.telemetry.api.SqlStatementAudit",
-            "org.ipro.telemetry.api.TelemetryEvent",
-            "org.ipro.telemetry.core.PayloadJson",
-            "org.ipro.telemetry.core.SecurityEventLogger"));
+            "org.ipro.security.CurrentUser"));
 
         return registry;
     }

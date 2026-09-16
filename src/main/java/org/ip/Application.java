@@ -33,8 +33,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @StyleSheet(Lumo.UTILITY_STYLESHEET)
 // D2 (persistence slice): пакеты артефакта platform-persistence здесь больше не перечисляются —
 // он объявляет свои @EntityScan/@EnableJpaRepositories сам, поэтому забыть о нём молча нельзя.
-@EntityScan({"org.ip.model", "org.ipro.telemetry.model", "org.ipro.rls", "org.ipro.reportstudio.dom",
-    "org.ipro.ureport.dom"})
+// D2 → D3: то же для platform-numbering, platform-settings и platform-telemetry —
+// вынесенные модули владеют своими пакетами сами.
+// D2 → D3 (шаг 8б): reportstudio и ureport объявляют свои persistence-пакеты сами
+// (ReportStudioPersistenceAutoConfiguration, UreportPersistenceAutoConfiguration) —
+// остался только прикладной пакет.
+@EntityScan({"org.ip.model"})
 // D1: прикладной пакет объявляет свои репозитории сам. Платформенный
 // RlsAutoConfiguration перечисляет только платформенные пакеты, поэтому имя org.ip
 // больше не встречается в строковых контрактах платформы.

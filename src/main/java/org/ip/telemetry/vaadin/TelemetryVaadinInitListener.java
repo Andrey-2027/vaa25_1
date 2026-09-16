@@ -1,8 +1,9 @@
-package org.ipro.telemetry.core;
+package org.ip.telemetry.vaadin;
 
 import java.io.Serializable;
 
 import org.ipro.telemetry.api.EventSink;
+import org.ipro.telemetry.core.TelemetryBridge;
 
 import com.vaadin.flow.server.DefaultErrorHandler;
 import com.vaadin.flow.server.ErrorEvent;

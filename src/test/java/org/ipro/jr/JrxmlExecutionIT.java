@@ -27,7 +27,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.ipro.rls.config.RlsPersistenceAutoConfiguration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,8 +53,7 @@ import static org.mockito.Mockito.mock;
 // Платформенный хаб даёт org.ipro.rls. Пакеты вынесенного persistence-артефакта срез больше не
 // перечисляет: @DataJpaTest отключает авто-конфигурации, поэтому модуль подключается явно —
 // так же, как это делало бы приложение, если бы полагалось на его авто-конфигурацию.
-@EnableJpaRepositories(basePackages = {"org.ipro.rls"})
-@ImportAutoConfiguration(PersistenceAutoConfiguration.class)
+@ImportAutoConfiguration({PersistenceAutoConfiguration.class, RlsPersistenceAutoConfiguration.class})
 @ContextConfiguration(classes = Application.class)
 class JrxmlExecutionIT {
 

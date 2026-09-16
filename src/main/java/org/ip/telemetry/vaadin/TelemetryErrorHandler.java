@@ -1,10 +1,12 @@
-package org.ipro.telemetry.core;
+package org.ip.telemetry.vaadin;
 
 import java.io.Serializable;
 import java.time.Instant;
 
 import org.ipro.telemetry.api.EventType;
 import org.ipro.telemetry.api.TelemetryEvent;
+import org.ipro.telemetry.core.MdcKeys;
+import org.ipro.telemetry.core.TelemetryBridge;
 import org.slf4j.MDC;
 
 import com.vaadin.flow.server.ErrorEvent;
