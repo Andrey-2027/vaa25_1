@@ -1,9 +1,22 @@
 # D1: reviewed реестр публичной поверхности платформы (FQN -> роль).
 # Формат: <role> <fqn> [файлы приложения, которые называют тип — только для legacy-internal]
 # Роли: API | SPI | legacy-internal; критерий и забор — в PlatformPublicSurfaceTest.
+#
+# Бюджет legacy-internal: 73 -> 74.
+#   73 -> 75 — это исправление измерения, а не новое разрешение. Забор читал только строки
+#   `import`, поэтому пять production-типов приложения, записанных fully-qualified или через
+#   wildcard-импорт пакета, в реестр вообще не попадали (WorkspaceGateway, JpqlDatasetRunner,
+#   SectionRlsPolicy, JrxmlTemplateService, ServiceParams). Два из них действительно внутренние
+#   на сегодня, и честный бюджет — 75.
+#   75 -> 74 — осознанное решение: NaturalKeyCreateSupport признан поддерживаемым API. Это не
+#   generic-внутренность, а механизм, намеренно используемый прикладными interned use cases;
+#   роль не сходилась с употреблением.
+# Дальше бюджет только сокращается: ссылки снимаются в D3.5 (LookupService, ServiceLocator) и
+# D3.7 (report-контракты).
 API org.ipro.crud.CrudService
 API org.ipro.crud.EditMode
 API org.ipro.crud.FormBuilder
+API org.ipro.crud.NaturalKeyCreateSupport
 API org.ipro.crud.ValidationException
 API org.ipro.data.CanonicalEntityService
 API org.ipro.data.DataOperation
@@ -68,6 +81,7 @@ API org.ipro.metadata.annotation.GridColumn
 API org.ipro.metadata.annotation.Lookup
 API org.ipro.metadata.annotation.RequiredMode
 API org.ipro.metadata.annotation.SectionPersistenceMode
+API org.ipro.metadata.annotation.SectionRlsPolicy
 API org.ipro.metadata.annotation.Subsystem
 API org.ipro.metadata.annotation.TableSectionMetadata
 API org.ipro.metadata.annotation.TableSections
@@ -121,7 +135,9 @@ SPI org.ipro.form.registry.ListCommand
 SPI org.ipro.form.spi.FormSettingsStore
 SPI org.ipro.form.spi.GridViewStore
 SPI org.ipro.form.spi.ListFormToolbarContributor
+SPI org.ipro.form.spi.WorkspaceGateway
 SPI org.ipro.identity.IdentifiableEntity
+SPI org.ipro.jr.run.JpqlDatasetRunner
 SPI org.ipro.lifecycle.EntityLifecycle
 SPI org.ipro.metadata.HasDisplayName
 SPI org.ipro.rls.RlsCurrentUser
@@ -129,8 +145,8 @@ SPI org.ipro.rls.RlsDimensionValue
 SPI org.ipro.rls.RlsRoleResolver
 SPI org.ipro.search.GlobalSearchProvider
 legacy-internal org.ipro.crud.LookupService org/ip/service/AttributeValueService.java org/ip/views/components/ReportParamForm.java org/ip/views/forms/NomAttributeValueItemForm.java org/ip/views/forms/NomenclatureForm.java org/ip/views/forms/NomenclatureItemFormConfig.java org/ip/views/forms/PrdSpecByJournalView.java org/ip/views/forms/UserFormConfig.java org/ip/views/reportstudio/ContextualReportLauncher.java org/ip/views/reportstudio/ItemFormReportActions.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/ReportPrintToolbarContributor.java org/ip/views/reportstudio/ReportRunDialog.java org/ip/views/reportstudio/compact/ReportCatalogViewCompact.java org/ip/views/reportstudio/compact/ReportEditorViewCompact.java org/ip/views/reportstudio/structured/ReportCatalogViewStructured.java org/ip/views/reportstudio/structured/ReportEditorViewStructured.java 
-legacy-internal org.ipro.crud.NaturalKeyCreateSupport org/ip/service/AttributeValueService.java org/ip/service/SklNomOpaService.java 
 legacy-internal org.ipro.crud.ServiceLocator org/ip/application/form/ItemFormSaveDispatcher.java org/ip/views/directory/WorkshopListView.java org/ip/views/forms/NomenclatureItemFormConfig.java org/ip/views/forms/UserFormConfig.java org/ip/views/forms/WorkshopForm.java 
+legacy-internal org.ipro.jr.service.JrxmlTemplateService org/ip/views/reportstudio/ContextualReportLauncher.java org/ip/views/reportstudio/ItemFormReportActions.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintToolbarContributor.java
 legacy-internal org.ipro.form.builtin.ItemTable org/ip/model/ReceivingDocument.java org/ip/views/document/ReceivingDocumentView.java org/ip/views/forms/NomAttributeValueTableCustomization.java org/ip/views/forms/PrdSpecMtrTableCustomization.java 
 legacy-internal org.ipro.form.builtin.ListForm org/ip/model/GridFormView.java org/ip/model/Role.java org/ip/views/directory/NomenclatureView.java org/ip/views/directory/UnitView.java org/ip/views/document/ReceivingDocumentView.java org/ip/views/forms/PrdSpecByJournalView.java org/ip/views/forms/PrdSpecListFormConfig.java org/ip/views/reportstudio/ReportPrintToolbarContributor.java org/ip/views/reportstudio/WithReportView.java org/ip/views/test/ReportQueryPreviewView.java org/ip/views/test/TestVariantsView.java org/ip/views/workspace/SubsystemHomeView.java 
 legacy-internal org.ipro.form.coordinator.FormCoordinator org/ip/model/GridFormView.java org/ip/views/MainLayout.java org/ip/views/admin/EntityExplorerView.java org/ip/views/admin/EntitySummaryPanel.java org/ip/views/admin/SubsystemStructureView.java org/ip/views/directory/NomenclatureView.java org/ip/views/directory/UnitView.java org/ip/views/document/ReceivingDocumentView.java org/ip/views/forms/PrdSpecByJournalView.java org/ip/views/forms/PrdSpecListFormConfig.java org/ip/views/forms/PrdSpecMaterialsOnlyCommand.java org/ip/views/test/TestVariantsView.java org/ip/views/workspace/SubsystemHomeView.java 
@@ -174,6 +190,7 @@ legacy-internal org.ipro.reportstudio.query.ReconcileResult org/ip/views/reports
 legacy-internal org.ipro.reportstudio.query.ReportPreviewService org/ip/config/JpqlRunService.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/compact/ReportCatalogViewCompact.java org/ip/views/reportstudio/compact/ReportEditorViewCompact.java org/ip/views/reportstudio/structured/ReportCatalogViewStructured.java org/ip/views/reportstudio/structured/ReportEditorViewStructured.java org/ip/views/test/ReportQueryPreviewView.java 
 legacy-internal org.ipro.reportstudio.query.ReportQueryAssemblyService org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/compact/ReportCatalogViewCompact.java org/ip/views/reportstudio/compact/ReportEditorViewCompact.java org/ip/views/reportstudio/structured/ReportCatalogViewStructured.java org/ip/views/reportstudio/structured/ReportEditorViewStructured.java 
 legacy-internal org.ipro.reportstudio.query.ReportQueryGuard org/ip/config/JpqlRunService.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/compact/ReportCatalogViewCompact.java org/ip/views/reportstudio/compact/ReportEditorViewCompact.java org/ip/views/reportstudio/structured/ReportCatalogViewStructured.java org/ip/views/reportstudio/structured/ReportEditorViewStructured.java org/ip/views/test/ReportQueryPreviewView.java 
+legacy-internal org.ipro.reportstudio.query.ServiceParams org/ip/views/reports/JrxmlRunDialog.java
 legacy-internal org.ipro.reportstudio.query.editor.QueryEditorAnalysis org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/ReportQueryDialog.java org/ip/views/reportstudio/compact/ReportEditorViewCompact.java org/ip/views/reportstudio/structured/ReportEditorViewStructured.java 
 legacy-internal org.ipro.reportstudio.query.editor.QueryEditorAnalysisService org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/compact/ReportCatalogViewCompact.java org/ip/views/reportstudio/compact/ReportEditorViewCompact.java org/ip/views/reportstudio/structured/ReportCatalogViewStructured.java org/ip/views/reportstudio/structured/ReportEditorViewStructured.java 
 legacy-internal org.ipro.reportstudio.query.editor.QueryMetadataCatalogService org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/ReportParamEditor.java org/ip/views/reportstudio/compact/ReportCatalogViewCompact.java org/ip/views/reportstudio/compact/ReportEditorViewCompact.java org/ip/views/reportstudio/compact/ReportParamEditorCompact.java org/ip/views/reportstudio/structured/ReportCatalogViewStructured.java org/ip/views/reportstudio/structured/ReportEditorViewStructured.java org/ip/views/reportstudio/structured/ReportParamEditorStructured.java 
@@ -183,8 +200,6 @@ legacy-internal org.ipro.reportstudio.run.ReportExecutionService org/ip/views/re
 legacy-internal org.ipro.reportstudio.run.ReportRunResult org/ip/views/reportstudio/ReportPreviewDialog.java org/ip/views/reportstudio/ReportRunDialog.java 
 legacy-internal org.ipro.reportstudio.service.ReportTemplateService org/ip/views/reportstudio/ContextualReportLauncher.java org/ip/views/reportstudio/ItemFormReportActions.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/ReportPrintToolbarContributor.java org/ip/views/reportstudio/compact/ReportCatalogViewCompact.java org/ip/views/reportstudio/compact/ReportEditorViewCompact.java org/ip/views/reportstudio/structured/ReportCatalogViewStructured.java org/ip/views/reportstudio/structured/ReportEditorViewStructured.java 
 legacy-internal org.ipro.reportstudio.transfer.ReportTemplateTransferService org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/compact/ReportCatalogViewCompact.java org/ip/views/reportstudio/structured/ReportCatalogViewStructured.java 
-legacy-internal org.ipro.search.JpaGlobalSearchProvider org/ip/search/PrdSpecGlobalSearchProvider.java 
-legacy-internal org.ipro.security.CurrentUser org/ip/application/form/GridFormViewLifecycle.java org/ip/security/SecurityRlsUser.java org/ip/service/GridFormViewService.java org/ip/views/reportstudio/ReportRunDialog.java 
 legacy-internal org.ipro.telemetry.core.FieldAuditQueryService org/ip/views/admin/DiagnosticsView.java org/ip/views/admin/HistoryPanel.java 
 legacy-internal org.ipro.telemetry.core.FieldAuditQueryService.ChangeFilter org/ip/views/admin/HistoryPanel.java 
 legacy-internal org.ipro.telemetry.core.FieldAuditQueryService.ChangeRow org/ip/views/admin/HistoryPanel.java 

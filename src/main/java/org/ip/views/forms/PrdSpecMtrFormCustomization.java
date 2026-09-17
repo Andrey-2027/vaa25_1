@@ -13,6 +13,7 @@ import org.ip.model.PrdSpecMtr;
 import org.ip.model.UnitOfMeasurement;
 import org.ipro.form.EntityField;
 import org.ipro.form.SelectionFormAssembler;
+import org.ipro.form.registry.FormContext;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -58,7 +59,7 @@ public class PrdSpecMtrFormCustomization implements ItemFormCustomization {
             ctx -> buildForm(ctx, List.of("prdSpecMtr", "unit", "qt"), true));
     }
 
-    private ItemForm<PrdSpecMtr> buildForm(org.ipro.form.registry.FormContext ctx,
+    private ItemForm<PrdSpecMtr> buildForm(FormContext ctx,
                                            List<String> fieldNames, boolean viaSpec) {
         MetadataResolver resolver = ctx.metadataResolver();
         FieldFactory fieldFactory = ctx.fieldFactory();

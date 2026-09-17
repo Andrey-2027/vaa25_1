@@ -31,6 +31,7 @@ import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
+import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class ReportCatalogViewCompact extends HorizontalLayout {
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler,
             ReportQueryAssemblyService queryAssemblyService,
-            org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog) {
+            QueryBuilderMetadataCatalog visualCatalog) {
         this.templateService = templateService;
         this.transferService = transferService;
         this.editor = new ReportEditorViewCompact(guard, previewService, queryEditorAnalysisService,

@@ -23,6 +23,11 @@ import org.ipro.ureport.catalog.ReportCatalogItem;
 import org.ipro.ureport.catalog.ReportEngineType;
 import org.ipro.ureport.dom.UreportTemplate;
 import org.ipro.ureport.service.UreportTemplateService;
+import org.ipro.jr.dom.JrxmlTemplate;
+import org.ipro.jr.run.JrxmlExecutionService;
+import org.ipro.jr.service.JrxmlTemplateService;
+import org.ipro.reportstudio.dom.ReportTemplateState;
+import org.ipro.ureport.params.UreportParamSpec;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,9 +57,9 @@ public class ContextualReportLauncher extends Button {
     /** nullable: без сервиса UReport3-ветка недоступна (обратная совместимость). */
     private final UreportTemplateService ureportService;
     /** nullable: без сервиса JR-создание недоступно (обратная совместимость). */
-    private final org.ipro.jr.service.JrxmlTemplateService jrTemplateService;
+    private final JrxmlTemplateService jrTemplateService;
     /** nullable: без сервиса запуск JR-форм из реестра недоступен. */
-    private final org.ipro.jr.run.JrxmlExecutionService jrExecutionService;
+    private final JrxmlExecutionService jrExecutionService;
 
     public ContextualReportLauncher(
             Supplier<ReportContext> contextSupplier,
@@ -91,7 +96,7 @@ public class ContextualReportLauncher extends Button {
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler,
             UreportTemplateService ureportService,
-            org.ipro.jr.service.JrxmlTemplateService jrTemplateService) {
+            JrxmlTemplateService jrTemplateService) {
         this("Отчёты", () -> templateService.search(""), contextSupplier,
                 templateService, executionService, lookupService, selectionFormAssembler,
                 ureportService, jrTemplateService, null);
@@ -152,8 +157,8 @@ public class ContextualReportLauncher extends Button {
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler,
             UreportTemplateService ureportService,
-            org.ipro.jr.service.JrxmlTemplateService jrTemplateService,
-            org.ipro.jr.run.JrxmlExecutionService jrExecutionService) {
+            JrxmlTemplateService jrTemplateService,
+            JrxmlExecutionService jrExecutionService) {
         super(caption);
         this.templatesSupplier = templatesSupplier;
         this.contextSupplier = contextSupplier;
@@ -278,7 +283,7 @@ public class ContextualReportLauncher extends Button {
                 return;
             }
             try {
-                org.ipro.jr.dom.JrxmlTemplate created = jrTemplateService.createTemplate(
+                JrxmlTemplate created = jrTemplateService.createTemplate(
                         name.getValue(), null, context.entityClass().getName());
                 input.close();
                 Notification.show("Создан отчёт JR «" + created.getName()
@@ -300,7 +305,7 @@ public class ContextualReportLauncher extends Button {
         for (ReportTemplate template : templatesSupplier.get()) {
             items.add(new ReportCatalogItem(template.getId(), ReportEngineType.UDR,
                     template.getName(), template.getDescription(),
-                    template.getState() == org.ipro.reportstudio.dom.ReportTemplateState.PUBLISHED,
+                    template.getState() == ReportTemplateState.PUBLISHED,
                     null, false));
         }
         if (ureportService != null && context.entityClass() != null) {
@@ -333,7 +338,7 @@ public class ContextualReportLauncher extends Button {
             }
             case UREPORT3 -> {
                 try {
-                    List<org.ipro.ureport.params.UreportParamSpec> specs =
+                    List<UreportParamSpec> specs =
                             ureportService.loadParamSpecs(fileNameOf(selected));
                     new UreportParamsDialog(selected.name(), fileNameOf(selected), specs).open();
                 } catch (RuntimeException exception) {
@@ -346,7 +351,7 @@ public class ContextualReportLauncher extends Button {
                     return;
                 }
                 try {
-                    org.ipro.jr.dom.JrxmlTemplate template = jrTemplateService
+                    JrxmlTemplate template = jrTemplateService
                             .findById(selected.id())
                             .orElseThrow(() -> new IllegalArgumentException(
                                     "Шаблон JR не найден: " + selected.id()));

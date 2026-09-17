@@ -35,6 +35,8 @@
         <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
         <!-- D3.3: backend платформы (generic CRUD/data/metadata/search/fetch/filter) -->
         <platform-core.version>1.0-SNAPSHOT</platform-core.version>
+        <!-- D3.4: wiring backend-ядра — авто-конфигурации metadata/CRUD/data/fetch/search -->
+        <platform-spring-boot-autoconfigure.version>1.0-SNAPSHOT</platform-spring-boot-autoconfigure.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
         <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
@@ -221,20 +223,31 @@
 
         <!--
           D3.3 (backend платформы): generic CRUD/data access, метаданные, поиск, fetch и filter —
-          без Vaadin и без кода приложения. Модуль вынесен как реализация, а не как авто-конфигурация:
-          пакеты org.ipro.*.config остаются в дереве до D3.4, поэтому потеря конфигурации ломает сборку,
-          а не проявляется тихо в рантайме.
+          без Vaadin и без кода приложения.
 
           Переезд шёл группой, которую нельзя разделить: org.ipro.metadata, org.ipro.crud,
           org.ipro.data и org.ipro.fetch образуют цикл, а пакет нельзя перенести частично —
-          типы одного пакета в двух артефактах это split package. Пакеты org.ipro.*.config
-          остались в дереве до D3.4, поэтому потеря модуля ломает сборку, а не проявляется
-          тихо в рантайме.
+          типы одного пакета в двух артефактах это split package.
+
+          D3.4: авто-конфигурации org.ipro.*.config уехали в platform-spring-boot-autoconfigure
+          (со своим AutoConfiguration.imports), поэтому потеря wiring больше не видна компилятору —
+          её ловит реестр авто-конфигураций и ApplicationContextRunner-тесты модуля.
         -->
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>platform-core</artifactId>
             <version>${platform-core.version}</version>
+        </dependency>
+
+        <!--
+          D3.4: авто-конфигурации backend-ядра платформы. Приложение не регистрирует их
+          в своём AutoConfiguration.imports — модуль публикует собственный imports-файл,
+          как platform-events; состав реестра закреплён тестом модуля.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-spring-boot-autoconfigure</artifactId>
+            <version>${platform-spring-boot-autoconfigure.version}</version>
         </dependency>
 
         <dependency>

@@ -27,7 +27,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class GridFormViewLifecycleTest {
 
-    private final GridFormViewLifecycle lifecycle = new GridFormViewLifecycle();
+    private final GridFormViewLifecycle lifecycle =
+        new GridFormViewLifecycle(() -> SecurityContextHolder.getContext()
+            .getAuthentication() == null ? "system"
+            : SecurityContextHolder.getContext().getAuthentication().getName());
 
     @AfterEach
     void clearSecurityContext() {

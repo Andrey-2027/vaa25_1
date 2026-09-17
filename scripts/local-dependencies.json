@@ -258,7 +258,7 @@
       "buildSteps": [
         {
           "pom": "pom.xml",
-          "arguments": ["-DskipTests", "clean", "install"]
+          "arguments": ["clean", "install"]
         }
       ]
     },
@@ -344,12 +344,12 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D3.3 backend platform module: 93 types of generic CRUD/data/metadata/search/fetch/filter, no Vaadin, no org.ip. The first group could not be smaller than crud+data+fetch+metadata because those four packages reference each other (MetadataResolver -> crud.Standard*Entity, SectionMetadataRegistry -> crud.TableSectionService, and back), and a package cannot be moved partially: the same package in two artifacts is a split package. search and filter followed because nothing in the cycle references them. dependsOn carries real edges: crudui for the two neutral leaf contracts (platform-identity-api, platform-crud-api - the same artifacts the UI library consumes, which is why platform-core does not declare crudui-core), filtergrid for the condition tree and grouping providers, and the seven platform modules listed. It is installed with tests enabled: its composition gate lives in the module. That is deliberately not yet true for platform-metadata/numbering/settings/telemetry/rls, which still build with -DskipTests because no owner-side tests have been moved to them."
+        "state": "D3.3 backend platform module: 92 types of generic CRUD/data/metadata/search/fetch/filter, no Vaadin, no org.ip. The first group could not be smaller than crud+data+fetch+metadata because those four packages reference each other (MetadataResolver -> crud.Standard*Entity, SectionMetadataRegistry -> crud.TableSectionService, and back), and a package cannot be moved partially: the same package in two artifacts is a split package. search and filter followed because nothing in the cycle references them. dependsOn carries real edges: crudui for the two neutral leaf contracts (platform-identity-api, platform-crud-api - the same artifacts the UI library consumes, which is why platform-core does not declare crudui-core), filtergrid for the condition tree and grouping providers, and the seven platform modules listed. It is installed with tests enabled: its composition gate lives in the module. That is deliberately not yet true for platform-metadata/numbering/settings/telemetry/rls, which still build with -DskipTests because no owner-side tests have been moved to them."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "eb36d3f9e0c9bdf42b5cb12dc3abd28c590e35efc969b8f513f825d9c70015b9",
-        "fileCount": 118,
+        "sha256": "6317d355fa21c8cbd5865ca756e7e250e36fb0e5612963c1c300bc0f3bf54e8f",
+        "fileCount": 117,
         "inputs": [
           "pom.xml",
           "src"
@@ -357,6 +357,34 @@
       },
       "artifacts": [
         "org.ipro:platform-core:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-spring-boot-autoconfigure",
+      "relativePath": "platform-spring-boot-autoconfigure",
+      "dependsOn": ["platform-contracts", "platform-core", "platform-events", "platform-numbering", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.4 wiring module: the five backend auto-configurations (metadata, CRUD, data access, fetch/instance-name, global search core) moved here from the application tree together with their own AutoConfiguration.imports, so the application tree no longer registers platform backend wiring. Domain types stay in platform-core; this artifact only declares beans, conditions and PlatformProperties (the typed platform.subsystem-scan-package binding, fail-fast without a default). dependsOn carries the exact compile imports: platform-core (domain types of all five configs), platform-contracts (EntityLifecycle in EventContourStartupCheck signature), platform-events (publisher and lifecycle registry), platform-numbering and platform-rls (service types and the auto-configurations referenced by @AutoConfigureAfter). It installs with tests enabled: every configuration has an ApplicationContextRunner test in the module."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "7ce36fa75e34274a1af119a35b21ca75a001c96fa0616575619c579014c3d9cf",
+        "fileCount": 15,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-spring-boot-autoconfigure:1.0-SNAPSHOT"
       ],
       "buildSteps": [
         {

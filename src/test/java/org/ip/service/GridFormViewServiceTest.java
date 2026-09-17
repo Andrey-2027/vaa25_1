@@ -28,7 +28,12 @@ class GridFormViewServiceTest {
     private final CanonicalEntityService<GridFormView> canonical =
         mock(CanonicalEntityService.class);
     private final GridFormViewRepository repository = mock(GridFormViewRepository.class);
-    private final GridFormViewService service = new GridFormViewService(repository, canonical);
+    private final GridFormViewService service = new GridFormViewService(repository, canonical,
+        // Тот же SPI, что в проде: имя читается из Spring Security context, который
+        // authenticateAs() выставляет перед каждым сценарием.
+        () -> SecurityContextHolder.getContext().getAuthentication() == null
+            ? "system"
+            : SecurityContextHolder.getContext().getAuthentication().getName());
 
     @AfterEach
     void clearSecurityContext() {

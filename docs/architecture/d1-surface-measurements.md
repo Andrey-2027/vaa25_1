@@ -6,13 +6,13 @@
 
 ```text
 app-source-files=164
-platform-tree-files=217
-platform-artifact-files=264
-named-platform-types=200
-api-types=103
-spi-types=24
-legacy-internal-types=73
-legacy-internal-usage-links=304
+platform-tree-files=212
+platform-artifact-files=270
+named-platform-types=204
+api-types=105
+spi-types=26
+legacy-internal-types=72
+legacy-internal-usage-links=302
 ```
 
 Расшифровка:
@@ -20,7 +20,7 @@ legacy-internal-usage-links=304
 - `app-source-files` — прикладной код (`org.ip`, `src/main`);
 - `platform-tree-files` — платформа, оставшаяся в дереве репозитория (`org.ipro`, `src/main`);
 - `platform-artifact-files` — исходники вынесенных платформенных артефактов (`platform-*` плюс нейтральные leaf-контракты `platform-identity-api` и `platform-crud-api` соседнего реактора `crudui`);
-- `named-platform-types` — типы платформы, которые называет приложение (методика D1 §1: по импортам);
+- `named-platform-types` — типы платформы, которые называет приложение: импорты плюс fully-qualified ссылки, разрешённые по classpath (wildcard-импорты платформенных пакетов запрещены отдельной проверкой: они скрывали типы);
 - `api-types` / `spi-types` / `legacy-internal-types` — роли из reviewed-реестра `platform-public-surface.txt`;
 - `legacy-internal-usage-links` — общее число зафиксированных ссылок приложения на внутренние типы (измеренный reach-through, бюджет только уменьшается).
 

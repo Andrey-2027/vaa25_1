@@ -6,6 +6,7 @@ import org.ipro.form.builder.ListFormVariants;
 import org.ip.model.Journal;
 import org.ip.model.PrdSpec;
 import org.ipro.form.registry.FormContext;
+import org.ipro.form.coordinator.FormCoordinator;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class PrdSpecListFormConfig implements ListFormCustomization {
     public void configure(ListFormVariants variants) {
         // default-вариант — generic; «выбор журнала» идёт через панель контекст-фильтров.
         variants.addView("contextual", ctx -> new PrdSpecByJournalView(
-            (org.ipro.form.coordinator.FormCoordinator) ctx.getParameter("coordinator"),
+            (FormCoordinator) ctx.getParameter("coordinator"),
             ctx.lookupService(),
             ctx));
     }

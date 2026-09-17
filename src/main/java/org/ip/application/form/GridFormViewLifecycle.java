@@ -5,8 +5,10 @@ import org.ipro.crud.ValidationException;
 import org.ipro.lifecycle.EntityDeleteContext;
 import org.ipro.lifecycle.EntityLifecycle;
 import org.ipro.lifecycle.EntityUpdateContext;
-import org.ipro.security.CurrentUser;
+import org.ipro.rls.RlsCurrentUser;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 /**
  * Ownership-правило сохранённого вида формы списка: общий ({@code shared}) вид
@@ -26,6 +28,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class GridFormViewLifecycle implements EntityLifecycle<GridFormView> {
 
+    private final RlsCurrentUser currentUser;
+
+    public GridFormViewLifecycle(RlsCurrentUser currentUser) {
+        this.currentUser = Objects.requireNonNull(currentUser, "currentUser must not be null");
+    }
+
     @Override
     public Class<GridFormView> entityType() {
         return GridFormView.class;
@@ -42,11 +50,11 @@ public class GridFormViewLifecycle implements EntityLifecycle<GridFormView> {
     }
 
     /** shared = true — кто угодно; shared = false — только автор. */
-    static void requireEditableByCurrentUser(GridFormView view) {
+    private void requireEditableByCurrentUser(GridFormView view) {
         if (view.isShared()) {
             return;
         }
-        String username = CurrentUser.username();
+        String username = currentUser.username();
         if (!username.equals(view.getCreatedBy())) {
             throw new ValidationException(
                 "Этот вид личный (не общий) — изменять или удалять его может только автор: " +

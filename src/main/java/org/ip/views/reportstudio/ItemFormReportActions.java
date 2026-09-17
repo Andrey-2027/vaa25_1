@@ -6,6 +6,8 @@ import org.ipro.crud.LookupService;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.jr.service.JrxmlTemplateService;
+import org.ipro.ureport.service.UreportTemplateService;
 
 import java.util.function.Supplier;
 
@@ -40,7 +42,7 @@ public final class ItemFormReportActions {
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            org.ipro.ureport.service.UreportTemplateService ureportService) {
+            UreportTemplateService ureportService) {
         return addContextualLauncher(form, contextSupplier, templateService,
                 executionService, lookupService, selectionFormAssembler,
                 ureportService, null);
@@ -54,8 +56,8 @@ public final class ItemFormReportActions {
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            org.ipro.ureport.service.UreportTemplateService ureportService,
-            org.ipro.jr.service.JrxmlTemplateService jrTemplateService) {
+            UreportTemplateService ureportService,
+            JrxmlTemplateService jrTemplateService) {
         ContextualReportLauncher launcher = new ContextualReportLauncher(
                 contextSupplier, templateService, executionService, lookupService,
                 selectionFormAssembler, ureportService, jrTemplateService);

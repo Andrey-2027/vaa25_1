@@ -1,0 +1,60 @@
+# platform-spring-boot-autoconfigure: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+class public org.ipro.autoconfigure.PlatformProperties
+  annotation org.springframework.boot.context.properties.ConfigurationProperties
+  ctor public()
+  method public java.lang.String getSubsystemScanPackage()
+  method public java.lang.String requiredSubsystemScanPackage()
+  method public void setSubsystemScanPackage(java.lang.String)
+
+class public org.ipro.crud.config.CrudAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.context.annotation.Import
+  ctor public()
+
+class public org.ipro.data.config.DataAccessAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfigureAfter
+  ctor public()
+  method public org.ipro.data.CanonicalReadExecutor canonicalReadExecutor(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.ScenarioFetchGraphResolver, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsReadGate, org.springframework.beans.factory.ObjectProvider<org.ipro.rls.RlsPolicyEnforcer>, org.springframework.beans.factory.ObjectProvider<org.ipro.data.ReadTelemetry>, org.springframework.beans.factory.ObjectProvider<org.ipro.fetch.instance.InstanceNameResolver>, org.ipro.rls.RlsCurrentUser)
+  method public org.ipro.data.CanonicalWriteExecutor canonicalWriteExecutor(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.CanonicalReadExecutor, jakarta.persistence.EntityManager, jakarta.validation.Validator, org.springframework.beans.factory.ObjectProvider<org.ipro.rls.RlsPolicyEnforcer>, org.springframework.beans.factory.ObjectProvider<org.ipro.numbering.NumberingService>, org.springframework.beans.factory.ObjectProvider<org.ipro.events.EntityEventPublisher>, org.springframework.beans.factory.ObjectProvider<org.ipro.lifecycle.EntityLifecycleRegistry>, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.GenericOwnedSectionService>, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.ReferenceCheckService>, org.springframework.beans.factory.ObjectProvider<org.ipro.metadata.SectionMetadataRegistry>, org.springframework.beans.factory.ObjectProvider<org.ipro.data.WriteTelemetry>)
+  method public org.ipro.data.EntityDataAccess entityDataAccess(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.CanonicalReadExecutor, org.ipro.data.CanonicalWriteExecutor, org.springframework.beans.factory.ObjectProvider<org.ipro.fetch.instance.InstanceNameResolver>)
+  method public org.ipro.data.EntityDataAccessResolver entityDataAccessResolver(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.EntityDataAccess, org.ipro.data.CanonicalReadExecutor, org.springframework.beans.factory.ObjectProvider<org.ipro.data.EntityDataPolicy>)
+  method public org.ipro.data.EntityDescriptorCatalog entityDescriptorCatalog(org.ipro.metadata.ManagedEntityCatalog, org.ipro.metadata.SectionMetadataRegistry, org.ipro.metadata.MetadataResolver, org.springframework.beans.factory.ObjectProvider<org.ipro.data.EntityExposureOverride>, org.springframework.beans.factory.ObjectProvider<org.ipro.data.EntityCapabilityOverride>)
+  method public org.ipro.data.EventContourStartupCheck eventContourStartupCheck(java.util.List<org.ipro.lifecycle.EntityLifecycle<?>>, org.springframework.beans.factory.ObjectProvider<org.ipro.lifecycle.EntityLifecycleRegistry>, org.springframework.beans.factory.ObjectProvider<org.ipro.events.EntityEventPublisher>)
+  method public org.ipro.data.ReadTelemetry readTelemetry()
+  method public org.ipro.data.ScenarioFetchGraphResolver scenarioFetchGraphResolver(org.ipro.metadata.MetadataResolver, org.springframework.beans.factory.ObjectProvider<org.ipro.fetch.plan.FetchPlanRegistry>, org.springframework.beans.factory.ObjectProvider<org.ipro.fetch.instance.InstanceNameResolver>)
+  method public org.ipro.data.WriteTelemetry writeTelemetry()
+  method public org.ipro.data.grouping.GroupingValuesProviderFactory groupingValuesProviderFactory(jakarta.persistence.EntityManager)
+
+class public org.ipro.fetch.config.FetchPlanInstanceNameAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfigureAfter
+  ctor public()
+  method public org.ipro.fetch.ManagedEntityTypes managedEntityTypes(org.ipro.metadata.ManagedEntityCatalog)
+  method public org.ipro.fetch.instance.InstanceNameBridgeInstaller instanceNameBridgeInstaller(org.ipro.fetch.instance.InstanceNameResolver, org.springframework.beans.factory.ObjectProvider<org.ipro.fetch.instance.InstanceNameProvider>)
+  method public org.ipro.fetch.instance.InstanceNameResolver instanceNameResolver(org.ipro.fetch.ManagedEntityTypes, org.ipro.metadata.MetadataResolver)
+  method public org.ipro.fetch.plan.FetchPlanRegistry fetchPlanRegistry(org.ipro.fetch.ManagedEntityTypes, org.ipro.metadata.MetadataResolver, org.ipro.fetch.instance.InstanceNameResolver)
+  method public org.ipro.rls.RlsDimensionValueLabelResolver rlsDimensionValueLabelResolver(org.ipro.metadata.MetadataResolver)
+
+class public org.ipro.metadata.config.MetadataAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.context.properties.EnableConfigurationProperties
+  ctor public()
+  method public org.ipro.crud.GenericOwnedSectionService genericOwnedSectionService(jakarta.validation.Validator, org.ipro.metadata.MetadataResolver, org.ipro.metadata.SectionMetadataRegistry, org.ipro.rls.RlsPolicyEnforcer)
+  method public org.ipro.crud.MetadataDrivenAggregateSaveService metadataDrivenAggregateSaveService(org.ipro.crud.ServiceLocator, org.ipro.metadata.SectionMetadataRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry)
+  method public org.ipro.metadata.ManagedEntityCatalog managedEntityCatalog(jakarta.persistence.EntityManagerFactory)
+  method public org.ipro.metadata.MetadataConsistencyStartupCheck metadataConsistencyStartupCheck(org.ipro.metadata.ManagedEntityCatalog, org.ipro.metadata.MetadataResolver, org.springframework.beans.factory.ObjectProvider<org.ipro.metadata.MetadataAllowance>)
+  method public org.ipro.metadata.MetadataResolver metadataResolver()
+  method public org.ipro.metadata.ReferenceIndex referenceIndex(org.ipro.autoconfigure.PlatformProperties)
+  method public org.ipro.metadata.SectionMetadataRegistry sectionMetadataRegistry(org.ipro.autoconfigure.PlatformProperties, org.ipro.metadata.MetadataResolver)
+  method public org.ipro.metadata.SubsystemRegistry subsystemRegistry(org.ipro.autoconfigure.PlatformProperties)
+  method public org.ipro.rls.RlsOwnedSectionLookup rlsOwnedSectionLookup(org.ipro.metadata.SectionMetadataRegistry)
+
+class public org.ipro.search.config.GlobalSearchAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfigureAfter
+  ctor public()
+  method public org.ipro.search.GlobalSearchCatalog globalSearchCatalog(org.ipro.data.EntityDescriptorCatalog, org.ipro.metadata.MetadataResolver, org.ipro.fetch.instance.InstanceNameResolver, java.util.List<org.ipro.search.GlobalSearchProvider<?>>)
+  method public org.ipro.search.GlobalSearchProviderRegistry globalSearchProviderRegistry(java.util.List<org.ipro.search.GlobalSearchProvider<?>>, org.springframework.beans.factory.ObjectProvider<org.ipro.fetch.instance.InstanceNameResolver>)
+  method public org.ipro.search.GlobalSearchService globalSearchService(org.ipro.search.GlobalSearchCatalog, org.ipro.search.GlobalSearchProviderRegistry, org.ipro.data.CanonicalReadExecutor, org.ipro.rls.RlsCurrentUser)
+

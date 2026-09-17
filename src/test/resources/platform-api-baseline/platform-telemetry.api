@@ -1,0 +1,804 @@
+# platform-telemetry: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+annotation public abstract interface org.ipro.telemetry.api.FieldAudit
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+
+annotation public abstract interface org.ipro.telemetry.api.Measured
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [METHOD, TYPE]
+
+class public final org.ipro.telemetry.core.AppLifecycleLogger
+  ctor public(org.ipro.telemetry.api.EventSink, java.lang.String)
+  method public void onApplicationReady(org.springframework.boot.context.event.ApplicationReadyEvent)
+  method public void onContextClosed(org.springframework.context.event.ContextClosedEvent)
+
+class public final org.ipro.telemetry.core.AsyncEventSink
+  implements java.lang.AutoCloseable
+  implements org.ipro.telemetry.api.EventSink
+  ctor public(org.springframework.jdbc.core.JdbcTemplate, org.springframework.transaction.PlatformTransactionManager, int)
+  method public org.ipro.telemetry.core.AsyncEventSink$SinkState getState()
+  method public void accept(org.ipro.telemetry.api.TelemetryEvent)
+  method public void acceptDurable(org.ipro.telemetry.api.TelemetryEvent)
+  method public void acceptFieldChange(org.ipro.telemetry.api.FieldChangeRecord)
+  method public void acceptFieldChangeDurable(org.ipro.telemetry.api.FieldChangeRecord)
+  method public void acceptStats(org.ipro.telemetry.api.AggregateStats)
+  method public void close()
+  method public void flush()
+
+class public final org.ipro.telemetry.core.CompositeOperationHandler
+  implements org.ipro.telemetry.core.OperationCompletionHandler
+  ctor public(java.util.List<org.ipro.telemetry.core.OperationCompletionHandler>)
+  method public void onOperationComplete(org.ipro.telemetry.core.Operation)
+
+class public final org.ipro.telemetry.core.DeclaredNameBridge
+  method public static int installedCount()
+  method public static java.lang.String declaredName(java.lang.Object)
+  method public static void install(org.ipro.telemetry.api.DeclaredNameSource)
+  method public static void uninstall(org.ipro.telemetry.api.DeclaredNameSource)
+
+class public final org.ipro.telemetry.core.EntitySnapshot
+  method public static java.lang.String displayNameOf(java.lang.Object)
+  method public static java.lang.String render(java.lang.Object, int)
+  method public static java.lang.String renderWithRows(java.lang.Object, java.util.Collection<?>, int)
+
+class public final org.ipro.telemetry.core.FieldAuditBridge
+  method public static org.ipro.telemetry.core.FieldAuditQueryService queryService()
+  method public static void configure(java.util.Set<java.lang.String>, java.util.Set<java.lang.String>)
+  method public static void setQueryService(org.ipro.telemetry.core.FieldAuditQueryService)
+
+class public final org.ipro.telemetry.core.FieldAuditIntegrator
+  implements org.hibernate.integrator.spi.Integrator
+  ctor public()
+  method public void disintegrate(org.hibernate.engine.spi.SessionFactoryImplementor, org.hibernate.service.spi.SessionFactoryServiceRegistry)
+  method public void integrate(org.hibernate.boot.Metadata, org.hibernate.boot.spi.BootstrapContext, org.hibernate.engine.spi.SessionFactoryImplementor)
+
+class public final org.ipro.telemetry.core.FieldAuditIntegratorProvider
+  implements org.hibernate.jpa.boot.spi.IntegratorProvider
+  ctor public()
+  method public java.util.List<org.hibernate.integrator.spi.Integrator> getIntegrators()
+
+class public final org.ipro.telemetry.core.FieldAuditListener
+  implements org.hibernate.event.spi.PostInsertEventListener
+  implements org.hibernate.event.spi.PreDeleteEventListener
+  implements org.hibernate.event.spi.PreInsertEventListener
+  implements org.hibernate.event.spi.PreUpdateEventListener
+  ctor public()
+  method public boolean onPreDelete(org.hibernate.event.spi.PreDeleteEvent)
+  method public boolean onPreInsert(org.hibernate.event.spi.PreInsertEvent)
+  method public boolean onPreUpdate(org.hibernate.event.spi.PreUpdateEvent)
+  method public void onPostInsert(org.hibernate.event.spi.PostInsertEvent)
+
+class public final org.ipro.telemetry.core.FieldAuditOperationHandler
+  implements org.ipro.telemetry.core.OperationCompletionHandler
+  ctor public(org.ipro.telemetry.api.EventSink)
+  method public void onOperationComplete(org.ipro.telemetry.core.Operation)
+
+class public final org.ipro.telemetry.core.FieldAuditQueryService
+  ctor public(org.springframework.jdbc.core.JdbcTemplate)
+  method public java.lang.String payloadById(long)
+  method public java.util.List<org.ipro.telemetry.core.FieldAuditQueryService$ChangeRow> queryChanges(org.ipro.telemetry.core.FieldAuditQueryService$ChangeFilter)
+
+class public final org.ipro.telemetry.core.JournalQueryService
+  ctor public(org.springframework.jdbc.core.JdbcTemplate)
+  method public java.lang.String payloadById(long)
+  method public java.util.List<org.ipro.telemetry.core.JournalQueryService$AggRow> aggregates(java.lang.String, java.time.Instant, int)
+  method public java.util.List<org.ipro.telemetry.core.JournalQueryService$EventRow> queryEvents(org.ipro.telemetry.core.JournalQueryService$EventFilter)
+  method public org.ipro.telemetry.core.JournalQueryService$SinkHealth sinkHealth()
+
+class public final org.ipro.telemetry.core.JournalSearchService
+  ctor public(org.ipro.telemetry.repository.OperationLogRepository, org.springframework.jdbc.core.JdbcTemplate)
+  field public static final int MAX_PAGE_SIZE = 200
+  method public java.util.List<org.ipro.telemetry.core.JournalSearchService$ErrorGroupRow> errorGroups(org.ipro.telemetry.core.JournalSearchService$ErrorGroupFilter)
+  method public org.springframework.data.domain.Page<org.ipro.telemetry.model.OperationLogEntity> search(org.springframework.data.jpa.domain.Specification<org.ipro.telemetry.model.OperationLogEntity>, org.springframework.data.domain.Pageable)
+  method public static org.springframework.data.jpa.domain.Specification<org.ipro.telemetry.model.OperationLogEntity> durationGte(java.lang.Long)
+  method public static org.springframework.data.jpa.domain.Specification<org.ipro.telemetry.model.OperationLogEntity> errorMessageContains(java.lang.String)
+  method public static org.springframework.data.jpa.domain.Specification<org.ipro.telemetry.model.OperationLogEntity> eventTypeEq(java.lang.String)
+  method public static org.springframework.data.jpa.domain.Specification<org.ipro.telemetry.model.OperationLogEntity> levelEq(java.lang.String)
+  method public static org.springframework.data.jpa.domain.Specification<org.ipro.telemetry.model.OperationLogEntity> n1True()
+  method public static org.springframework.data.jpa.domain.Specification<org.ipro.telemetry.model.OperationLogEntity> startedAtGte(java.time.Instant)
+  method public static org.springframework.data.jpa.domain.Specification<org.ipro.telemetry.model.OperationLogEntity> startedAtLte(java.time.Instant)
+  method public static org.springframework.data.jpa.domain.Specification<org.ipro.telemetry.model.OperationLogEntity> traceIdEq(java.lang.String)
+
+class public final org.ipro.telemetry.core.JsonLayout
+  extends ch.qos.logback.core.LayoutBase<ch.qos.logback.classic.spi.ILoggingEvent>
+  ctor public()
+  method public java.lang.String doLayout(ch.qos.logback.classic.spi.ILoggingEvent)
+
+class public final org.ipro.telemetry.core.MdcKeys
+  field public static final java.lang.String ENTITY = entity
+  field public static final java.lang.String ENTITY_DATA = entityData
+  field public static final java.lang.String ENTITY_ID = entityId
+  field public static final java.lang.String OPERATION = operation
+  field public static final java.lang.String SESSION = session
+  field public static final java.lang.String TRACE = trace
+  field public static final java.lang.String TRACE_ID = traceId
+  field public static final java.lang.String USER = user
+
+class public final org.ipro.telemetry.core.NoopEventSink
+  implements org.ipro.telemetry.api.EventSink
+  field public static final org.ipro.telemetry.core.NoopEventSink INSTANCE
+  method public boolean isNoop()
+  method public void accept(org.ipro.telemetry.api.TelemetryEvent)
+  method public void acceptDurable(org.ipro.telemetry.api.TelemetryEvent)
+  method public void acceptStats(org.ipro.telemetry.api.AggregateStats)
+  method public void flush()
+
+class public final org.ipro.telemetry.core.Operation
+  extends org.ipro.telemetry.core.Frame
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+  method public boolean isN1(int)
+  method public boolean isTraceActive()
+  method public int getDroppedFrames()
+  method public int getNodeCount()
+  method public java.lang.String getContextValue(java.lang.String)
+  method public java.lang.String getErrorMessage()
+  method public java.lang.String getSessionId()
+  method public java.lang.String getTraceId()
+  method public java.lang.String getUser()
+  method public java.time.Instant getStartedAt()
+  method public java.util.List<java.lang.String> getMdcKeysAdded()
+  method public java.util.Map<java.lang.String, org.ipro.telemetry.core.FieldAuditAccumulator> takeFieldAudit()
+  method public org.ipro.telemetry.api.EventType getEventType()
+  method public org.ipro.telemetry.core.FieldAuditAccumulator fieldAudit(java.lang.String, java.lang.String)
+  method public void addMdcKey(java.lang.String)
+  method public void countSql(java.lang.String)
+  method public void incrementDroppedFrames()
+  method public void incrementNodeCount()
+  method public void recordContext(java.lang.String, java.lang.String)
+  method public void setErrorMessage(java.lang.String)
+  method public void setEventType(org.ipro.telemetry.api.EventType)
+  method public void setTraceActive(boolean)
+
+class public final org.ipro.telemetry.core.OperationContext
+  ctor public(org.ipro.telemetry.core.PerfCounterStore, org.ipro.telemetry.api.UserContext, org.ipro.telemetry.core.OperationCompletionHandler, int)
+  method public org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String)
+  method public org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
+  method public org.ipro.telemetry.core.Frame beginFrame(java.lang.String)
+  method public org.ipro.telemetry.core.Frame currentFrame()
+  method public org.ipro.telemetry.core.Operation currentOperation()
+  method public static java.lang.String lastCompletedTraceId()
+  method public void endFrame(org.ipro.telemetry.core.Frame, long, java.lang.Throwable)
+  method public void putContext(java.lang.String, java.lang.String)
+  method public void putEntityData(java.lang.String)
+
+class public final org.ipro.telemetry.core.PayloadJson
+  method public static java.lang.String json(java.util.Map<java.lang.String, java.lang.Object>)
+
+class public final org.ipro.telemetry.core.PerfCounterStore
+  ctor public(long)
+  method public java.util.Map<java.lang.String, org.ipro.telemetry.core.PerfCounterStore$Counter> counters()
+  method public org.ipro.telemetry.core.PerfCounterStore$WindowSnapshot rollWindow()
+  method public void record(java.lang.String, long)
+
+class public final org.ipro.telemetry.core.SecurityEventLogger
+  ctor public(org.ipro.telemetry.api.EventSink)
+  method public void emitSecurityEvent(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>)
+  method public void onAuthenticationFailure(org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent)
+  method public void onAuthenticationSuccess(org.springframework.security.authentication.event.AuthenticationSuccessEvent)
+  method public void onLogoutSuccess(org.springframework.security.authentication.event.LogoutSuccessEvent)
+
+class public final org.ipro.telemetry.core.SlowOperationHandler
+  implements org.ipro.telemetry.core.OperationCompletionHandler
+  ctor public(long, int, org.ipro.telemetry.api.EventSink)
+  method public void onOperationComplete(org.ipro.telemetry.core.Operation)
+
+class public final org.ipro.telemetry.core.SqlNormalizer
+  method public static java.lang.String normalize(java.lang.String)
+
+class public final org.ipro.telemetry.core.SqlStatementAuditBridge
+  method public static int installedCount()
+  method public static void audit(java.lang.String)
+  method public static void install(org.ipro.telemetry.api.SqlStatementAudit)
+  method public static void uninstall(org.ipro.telemetry.api.SqlStatementAudit)
+
+class public final org.ipro.telemetry.core.SqlStatementInspector
+  implements org.hibernate.resource.jdbc.spi.StatementInspector
+  ctor public()
+  method public java.lang.String inspect(java.lang.String)
+
+class public final org.ipro.telemetry.core.SqlStatementListener
+  extends org.hibernate.BaseSessionEventListener
+  ctor public()
+  method public void jdbcExecuteBatchEnd()
+  method public void jdbcExecuteBatchStart()
+  method public void jdbcExecuteStatementEnd()
+  method public void jdbcExecuteStatementStart()
+
+class public final org.ipro.telemetry.core.SqlTimingBridge
+  method public static java.lang.String takeLastStatement()
+  method public static org.ipro.telemetry.core.Frame currentFrame()
+  method public static org.ipro.telemetry.core.Operation currentOperation()
+  method public static org.ipro.telemetry.core.OperationContext operationContext()
+  method public static void setLastStatement(java.lang.String)
+  method public static void setOperationContext(org.ipro.telemetry.core.OperationContext)
+
+class public final org.ipro.telemetry.core.TelemetryBridge
+  method public static org.ipro.telemetry.api.EventSink getSink()
+  method public static org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String)
+  method public static org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
+  method public static void set(org.ipro.telemetry.api.Telemetry)
+  method public static void setSink(org.ipro.telemetry.api.EventSink)
+
+class public final org.ipro.telemetry.core.TelemetryGuard
+  method public static boolean isEnabled()
+  method public static boolean isInsideLogging()
+  method public static void insideLogging(java.lang.Runnable)
+  method public static void setEnabled(boolean)
+
+class public final org.ipro.telemetry.core.TraceDumpHandler
+  implements org.ipro.telemetry.core.OperationCompletionHandler
+  ctor public(org.ipro.telemetry.api.EventSink, java.lang.String, int)
+  method public void onOperationComplete(org.ipro.telemetry.core.Operation)
+
+class public final org.ipro.telemetry.core.TraceFileRenderer
+  method public static java.lang.String render(org.ipro.telemetry.core.Operation)
+
+class public final org.ipro.telemetry.core.TraceServiceImpl
+  implements org.ipro.telemetry.api.TraceService
+  ctor public(org.springframework.jdbc.core.JdbcTemplate)
+  method public boolean isTraceActive(java.lang.String)
+  method public java.util.List<org.ipro.telemetry.api.TraceService$TraceWindow> activeTraces()
+  method public void loadFromDatabase(org.springframework.context.event.ContextRefreshedEvent)
+  method public void startTrace(java.lang.String, int)
+  method public void startTraceForAll(int)
+  method public void stopAllTraces()
+  method public void stopTrace(java.lang.String)
+
+class public final org.ipro.telemetry.core.TreeJsonRenderer
+  method public static java.lang.String render(org.ipro.telemetry.core.Operation)
+  method public static java.lang.String render(org.ipro.telemetry.core.Operation, boolean)
+
+class public final org.ipro.telemetry.core.TreeRenderer
+  method public static java.lang.String render(org.ipro.telemetry.core.Operation)
+
+class public final org.ipro.telemetry.core.WindowReporter
+  implements java.lang.AutoCloseable
+  implements java.lang.Runnable
+  ctor public(org.ipro.telemetry.core.PerfCounterStore, long, org.ipro.telemetry.api.EventSink)
+  method public void close()
+  method public void run()
+
+class public org.ipro.telemetry.config.FieldAuditSelfTest
+  implements org.springframework.boot.ApplicationRunner
+  ctor public(jakarta.persistence.EntityManagerFactory, org.springframework.transaction.PlatformTransactionManager, org.ipro.telemetry.api.Telemetry, org.springframework.jdbc.core.JdbcTemplate)
+  method public void run(org.springframework.boot.ApplicationArguments)
+
+class public org.ipro.telemetry.config.TelemetryAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+  annotation org.springframework.boot.context.properties.EnableConfigurationProperties
+  annotation org.springframework.boot.persistence.autoconfigure.EntityScan
+  annotation org.springframework.data.jpa.repository.config.EnableJpaRepositories
+  annotation org.springframework.scheduling.annotation.EnableScheduling
+  ctor public(org.ipro.telemetry.config.TelemetryProperties)
+  method public org.ipro.telemetry.api.EventSink noopTelemetryEventSink()
+  method public org.ipro.telemetry.api.EventSink telemetryEventSink(org.springframework.jdbc.core.JdbcTemplate, org.springframework.transaction.PlatformTransactionManager)
+  method public org.ipro.telemetry.api.Telemetry telemetryService(org.ipro.telemetry.core.OperationContext)
+  method public org.ipro.telemetry.api.TraceService traceService(org.springframework.jdbc.core.JdbcTemplate)
+  method public org.ipro.telemetry.api.UserContext telemetryUserContext()
+  method public org.ipro.telemetry.config.FieldAuditSelfTest fieldAuditSelfTest(jakarta.persistence.EntityManagerFactory, org.springframework.transaction.PlatformTransactionManager, org.ipro.telemetry.api.Telemetry, org.springframework.jdbc.core.JdbcTemplate)
+  method public org.ipro.telemetry.config.TraceSelfTest traceSelfTest(jakarta.persistence.EntityManagerFactory, org.springframework.transaction.PlatformTransactionManager, org.ipro.telemetry.api.Telemetry)
+  method public org.ipro.telemetry.core.AppLifecycleLogger appLifecycleLogger(org.ipro.telemetry.api.EventSink)
+  method public org.ipro.telemetry.core.ExecutionTimeAspect executionTimeAspect(org.ipro.telemetry.core.OperationContext)
+  method public org.ipro.telemetry.core.FieldAuditQueryService fieldAuditQueryService(org.springframework.jdbc.core.JdbcTemplate)
+  method public org.ipro.telemetry.core.JournalQueryService journalQueryService(org.springframework.jdbc.core.JdbcTemplate)
+  method public org.ipro.telemetry.core.JournalSearchService journalSearchService(org.ipro.telemetry.repository.OperationLogRepository, org.springframework.jdbc.core.JdbcTemplate)
+  method public org.ipro.telemetry.core.OperationCompletionHandler operationCompletionHandler(org.ipro.telemetry.api.EventSink)
+  method public org.ipro.telemetry.core.OperationContext operationContext(org.ipro.telemetry.core.PerfCounterStore, org.ipro.telemetry.api.UserContext, org.ipro.telemetry.core.OperationCompletionHandler)
+  method public org.ipro.telemetry.core.PerfCounterStore perfCounterStore()
+  method public org.ipro.telemetry.core.RetentionPurgeJob retentionPurgeJob(org.springframework.jdbc.core.JdbcTemplate)
+  method public org.ipro.telemetry.core.SecurityEventLogger securityEventLogger(org.ipro.telemetry.api.EventSink)
+  method public org.ipro.telemetry.core.WindowReporter windowReporter(org.ipro.telemetry.core.PerfCounterStore, org.ipro.telemetry.api.EventSink)
+  method public org.springframework.boot.web.servlet.FilterRegistrationBean<org.ipro.telemetry.core.TraceRequestFilter> traceRequestFilter(org.ipro.telemetry.api.TraceService)
+
+class public org.ipro.telemetry.config.TelemetryProperties
+  annotation org.springframework.boot.context.properties.ConfigurationProperties
+  ctor public()
+  method public boolean isDbJournal()
+  method public boolean isEnabled()
+  method public boolean isEntityDataEnabled()
+  method public boolean isIncludeParams()
+  method public int getFrameLimit()
+  method public int getN1Threshold()
+  method public int getQueueSize()
+  method public int getTraceDefaultMinutes()
+  method public java.lang.String getAppName()
+  method public java.lang.String getFileDir()
+  method public java.lang.String getTraceDir()
+  method public long getL0WindowSeconds()
+  method public long getMethodThresholdMs()
+  method public long getSqlThresholdMs()
+  method public org.ipro.telemetry.config.TelemetryProperties$FieldAudit getFieldAudit()
+  method public org.ipro.telemetry.config.TelemetryProperties$Retention getRetention()
+  method public org.ipro.telemetry.config.TelemetryProperties$Sql getSql()
+  method public void setAppName(java.lang.String)
+  method public void setDbJournal(boolean)
+  method public void setEnabled(boolean)
+  method public void setEntityDataEnabled(boolean)
+  method public void setFieldAudit(org.ipro.telemetry.config.TelemetryProperties$FieldAudit)
+  method public void setFileDir(java.lang.String)
+  method public void setFrameLimit(int)
+  method public void setIncludeParams(boolean)
+  method public void setL0WindowSeconds(long)
+  method public void setMethodThresholdMs(long)
+  method public void setN1Threshold(int)
+  method public void setQueueSize(int)
+  method public void setRetention(org.ipro.telemetry.config.TelemetryProperties$Retention)
+  method public void setSql(org.ipro.telemetry.config.TelemetryProperties$Sql)
+  method public void setSqlThresholdMs(long)
+  method public void setTraceDefaultMinutes(int)
+  method public void setTraceDir(java.lang.String)
+
+class public org.ipro.telemetry.config.TraceSelfTest
+  implements org.springframework.boot.ApplicationRunner
+  ctor public(jakarta.persistence.EntityManagerFactory, org.springframework.transaction.PlatformTransactionManager, org.ipro.telemetry.api.Telemetry)
+  method public void run(org.springframework.boot.ApplicationArguments)
+
+class public org.ipro.telemetry.core.ExecutionTimeAspect
+  annotation org.aspectj.lang.annotation.Aspect
+  annotation org.springframework.core.annotation.Order
+  annotation org.springframework.stereotype.Component
+  ctor public(org.ipro.telemetry.core.OperationContext, boolean)
+  method public java.lang.Object around(org.aspectj.lang.ProceedingJoinPoint) throws java.lang.Throwable
+
+class public org.ipro.telemetry.core.Frame
+  ctor public(java.lang.String)
+  method public boolean isFailed()
+  method public int getSqlCount()
+  method public java.lang.String getName()
+  method public java.util.List<org.ipro.telemetry.core.Frame> getChildren()
+  method public java.util.List<org.ipro.telemetry.core.SqlRecord> getTraceSqls()
+  method public long elapsedNanos()
+  method public long getDurationNanos()
+  method public long getSqlMaxNanos()
+  method public long getSqlTotalNanos()
+  method public void addChild(org.ipro.telemetry.core.Frame)
+  method public void addSql(long)
+  method public void setDurationNanos(long)
+  method public void setFailed(boolean)
+  method public void traceSql(java.lang.String, long)
+
+class public org.ipro.telemetry.core.RetentionPurgeJob
+  ctor public(org.springframework.jdbc.core.JdbcTemplate, java.lang.String, int, int, int, int, int)
+  method public void purge()
+
+class public org.ipro.telemetry.core.TelemetryService
+  implements org.ipro.telemetry.api.Telemetry
+  annotation org.springframework.stereotype.Component
+  ctor public(org.ipro.telemetry.core.OperationContext)
+  method public org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String)
+  method public org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
+  method public void context(java.util.Map<java.lang.String, java.lang.String>)
+
+class public org.ipro.telemetry.core.TraceRequestFilter
+  extends org.springframework.web.filter.OncePerRequestFilter
+  ctor public(org.ipro.telemetry.api.TraceService)
+  method protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, jakarta.servlet.FilterChain) throws jakarta.servlet.ServletException, java.io.IOException
+
+class public org.ipro.telemetry.model.EntityChangeLogEntity
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.Table
+  ctor public()
+  method public java.lang.Integer getFieldCount()
+  method public java.lang.Long getId()
+  method public java.lang.String getChangeType()
+  method public java.lang.String getEntity()
+  method public java.lang.String getEntityId()
+  method public java.lang.String getPayload()
+  method public java.lang.String getTraceId()
+  method public java.lang.String getUserId()
+  method public java.time.Instant getChangedAt()
+  method public void setChangeType(java.lang.String)
+  method public void setChangedAt(java.time.Instant)
+  method public void setEntity(java.lang.String)
+  method public void setEntityId(java.lang.String)
+  method public void setFieldCount(java.lang.Integer)
+  method public void setPayload(java.lang.String)
+  method public void setTraceId(java.lang.String)
+  method public void setUserId(java.lang.String)
+
+class public org.ipro.telemetry.model.OperationLogEntity
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.Table
+  ctor public()
+  method public boolean isN1()
+  method public java.lang.Double getDurationMs()
+  method public java.lang.Double getSqlTotalMs()
+  method public java.lang.Integer getSqlCount()
+  method public java.lang.Long getId()
+  method public java.lang.String getEntity()
+  method public java.lang.String getEntityId()
+  method public java.lang.String getErrorMessage()
+  method public java.lang.String getLevel()
+  method public java.lang.String getOperation()
+  method public java.lang.String getPayload()
+  method public java.lang.String getSessionId()
+  method public java.lang.String getTraceId()
+  method public java.lang.String getUserId()
+  method public java.time.Instant getStartedAt()
+  method public org.ipro.telemetry.api.EventType getEventType()
+  method public void setDurationMs(java.lang.Double)
+  method public void setEntity(java.lang.String)
+  method public void setEntityId(java.lang.String)
+  method public void setErrorMessage(java.lang.String)
+  method public void setEventType(org.ipro.telemetry.api.EventType)
+  method public void setLevel(java.lang.String)
+  method public void setN1(boolean)
+  method public void setOperation(java.lang.String)
+  method public void setPayload(java.lang.String)
+  method public void setSessionId(java.lang.String)
+  method public void setSqlCount(java.lang.Integer)
+  method public void setSqlTotalMs(java.lang.Double)
+  method public void setStartedAt(java.time.Instant)
+  method public void setTraceId(java.lang.String)
+  method public void setUserId(java.lang.String)
+
+class public org.ipro.telemetry.model.PerfStatsEntity
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.Table
+  ctor public()
+  method public double getAvgMs()
+  method public double getMaxMs()
+  method public double getMinMs()
+  method public double getP95Ms()
+  method public double getTotalMs()
+  method public java.lang.Long getId()
+  method public java.lang.String getKey()
+  method public java.time.Instant getWindowStart()
+  method public long getCount()
+  method public void setAvgMs(double)
+  method public void setCount(long)
+  method public void setKey(java.lang.String)
+  method public void setMaxMs(double)
+  method public void setMinMs(double)
+  method public void setP95Ms(double)
+  method public void setTotalMs(double)
+  method public void setWindowStart(java.time.Instant)
+
+class public org.ipro.telemetry.model.TraceSettingsEntity
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.Table
+  ctor public()
+  method public java.lang.Long getId()
+  method public java.lang.String getCreatedBy()
+  method public java.lang.String getUserId()
+  method public java.time.Instant getCreatedAt()
+  method public java.time.Instant getTraceUntil()
+  method public void setCreatedAt(java.time.Instant)
+  method public void setCreatedBy(java.lang.String)
+  method public void setTraceUntil(java.time.Instant)
+  method public void setUserId(java.lang.String)
+
+class public static org.ipro.telemetry.config.TelemetryProperties$FieldAudit
+  ctor public()
+  method public java.lang.String getEntities()
+  method public java.lang.String getRedactFields()
+  method public void setEntities(java.lang.String)
+  method public void setRedactFields(java.lang.String)
+
+class public static org.ipro.telemetry.config.TelemetryProperties$Retention
+  ctor public()
+  method public int getEventsDays()
+  method public int getFieldAuditDays()
+  method public int getSecurityDays()
+  method public int getStatsDays()
+  method public int getTraceHours()
+  method public void setEventsDays(int)
+  method public void setFieldAuditDays(int)
+  method public void setSecurityDays(int)
+  method public void setStatsDays(int)
+  method public void setTraceHours(int)
+
+class public static org.ipro.telemetry.config.TelemetryProperties$Sql
+  ctor public()
+  method public java.lang.String getRedactFields()
+  method public void setRedactFields(java.lang.String)
+
+enum public final org.ipro.telemetry.api.EventType
+  extends java.lang.Enum<org.ipro.telemetry.api.EventType>
+  enum-constants [PERF_METHOD, PERF_SQL, ACTION, SECURITY, ERROR, APP, TRACE]
+  field public static final org.ipro.telemetry.api.EventType ACTION = enum-constant
+  field public static final org.ipro.telemetry.api.EventType APP = enum-constant
+  field public static final org.ipro.telemetry.api.EventType ERROR = enum-constant
+  field public static final org.ipro.telemetry.api.EventType PERF_METHOD = enum-constant
+  field public static final org.ipro.telemetry.api.EventType PERF_SQL = enum-constant
+  field public static final org.ipro.telemetry.api.EventType SECURITY = enum-constant
+  field public static final org.ipro.telemetry.api.EventType TRACE = enum-constant
+  method public static org.ipro.telemetry.api.EventType valueOf(java.lang.String)
+  method public static org.ipro.telemetry.api.EventType[] values()
+
+interface public abstract interface org.ipro.telemetry.api.DeclaredNameSource
+  annotation java.lang.FunctionalInterface
+  method public abstract java.lang.String declaredName(java.lang.Object)
+
+interface public abstract interface org.ipro.telemetry.api.EventSink
+  method public abstract void accept(org.ipro.telemetry.api.TelemetryEvent)
+  method public abstract void acceptDurable(org.ipro.telemetry.api.TelemetryEvent)
+  method public abstract void acceptStats(org.ipro.telemetry.api.AggregateStats)
+  method public abstract void flush()
+  method public boolean isNoop()
+  method public void acceptFieldChange(org.ipro.telemetry.api.FieldChangeRecord)
+  method public void acceptFieldChangeDurable(org.ipro.telemetry.api.FieldChangeRecord)
+
+interface public abstract interface org.ipro.telemetry.api.OperationScope
+  implements java.lang.AutoCloseable
+  method public abstract boolean isActive()
+  method public abstract void close()
+  method public abstract void fail(java.lang.Throwable)
+  method public static org.ipro.telemetry.api.OperationScope noop()
+
+interface public abstract interface org.ipro.telemetry.api.SqlStatementAudit
+  annotation java.lang.FunctionalInterface
+  method public abstract void audit(java.lang.String)
+
+interface public abstract interface org.ipro.telemetry.api.Telemetry
+  method public abstract org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String)
+  method public abstract org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
+  method public abstract void context(java.util.Map<java.lang.String, java.lang.String>)
+
+interface public abstract interface org.ipro.telemetry.api.TraceService
+  field public static final java.lang.String ALL_USERS = *
+  method public abstract boolean isTraceActive(java.lang.String)
+  method public abstract java.util.List<org.ipro.telemetry.api.TraceService$TraceWindow> activeTraces()
+  method public abstract void startTrace(java.lang.String, int)
+  method public abstract void startTraceForAll(int)
+  method public abstract void stopAllTraces()
+  method public abstract void stopTrace(java.lang.String)
+
+interface public abstract interface org.ipro.telemetry.api.UserContext
+  method public abstract java.lang.String currentUsername()
+  method public static org.ipro.telemetry.api.UserContext defaultInstance()
+
+interface public abstract interface org.ipro.telemetry.core.OperationCompletionHandler
+  method public abstract void onOperationComplete(org.ipro.telemetry.core.Operation)
+
+interface public abstract interface org.ipro.telemetry.repository.OperationLogRepository
+  implements org.springframework.data.jpa.repository.JpaRepository<org.ipro.telemetry.model.OperationLogEntity, java.lang.Long>
+  implements org.springframework.data.jpa.repository.JpaSpecificationExecutor<org.ipro.telemetry.model.OperationLogEntity>
+
+record public final org.ipro.telemetry.api.AggregateStats
+  extends java.lang.Record
+  ctor public(java.lang.String, long, double, double, double, double, double, java.time.Instant)
+  method public double avgMs()
+  method public double maxMs()
+  method public double minMs()
+  method public double p95Ms()
+  method public double totalMs()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String key()
+  method public java.time.Instant windowStart()
+  method public long count()
+
+record public final org.ipro.telemetry.api.FieldChangeRecord
+  extends java.lang.Record
+  ctor public(java.time.Instant, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, int, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int fieldCount()
+  method public java.lang.String changeType()
+  method public java.lang.String entity()
+  method public java.lang.String entityId()
+  method public java.lang.String payload()
+  method public java.lang.String traceId()
+  method public java.lang.String userId()
+  method public java.time.Instant changedAt()
+
+record public final org.ipro.telemetry.api.TelemetryEvent
+  extends java.lang.Record
+  ctor public(org.ipro.telemetry.api.EventType, java.lang.String, java.time.Instant, java.lang.Long, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, java.lang.Long, boolean, java.lang.String, java.lang.String)
+  method public boolean n1()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Integer sqlCount()
+  method public java.lang.Long durationMs()
+  method public java.lang.Long sqlTotalMs()
+  method public java.lang.String entity()
+  method public java.lang.String entityId()
+  method public java.lang.String errorMessage()
+  method public java.lang.String level()
+  method public java.lang.String operation()
+  method public java.lang.String payload()
+  method public java.lang.String sessionId()
+  method public java.lang.String traceId()
+  method public java.lang.String userId()
+  method public java.time.Instant startedAt()
+  method public org.ipro.telemetry.api.EventType type()
+
+record public final org.ipro.telemetry.core.FieldChange
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String field()
+  method public java.lang.String newValue()
+  method public java.lang.String oldValue()
+
+record public final org.ipro.telemetry.core.SqlRecord
+  extends java.lang.Record
+  ctor public(java.lang.String, long)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String sql()
+  method public long executionNanos()
+
+record public static final org.ipro.telemetry.api.TraceService$TraceWindow
+  extends java.lang.Record
+  ctor public(java.lang.String, java.time.Instant)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String userId()
+  method public java.time.Instant traceUntil()
+
+record public static final org.ipro.telemetry.core.AsyncEventSink$SinkState
+  extends java.lang.Record
+  ctor public(int, long, long, long, long, long, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int queueSize()
+  method public java.lang.String lastError()
+  method public long dropped()
+  method public long failedBatches()
+  method public long writtenEvents()
+  method public long writtenFieldChanges()
+  method public long writtenStats()
+
+record public static final org.ipro.telemetry.core.FieldAuditQueryService$ChangeFilter
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.time.Instant, java.time.Instant, int)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int limit()
+  method public java.lang.String entity()
+  method public java.lang.String entityId()
+  method public java.lang.String userId()
+  method public java.time.Instant from()
+  method public java.time.Instant to()
+
+record public static final org.ipro.telemetry.core.FieldAuditQueryService$ChangeRow
+  extends java.lang.Record
+  ctor public(long, java.time.Instant, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Integer)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Integer fieldCount()
+  method public java.lang.String changeType()
+  method public java.lang.String entity()
+  method public java.lang.String entityId()
+  method public java.lang.String traceId()
+  method public java.lang.String userId()
+  method public java.time.Instant changedAt()
+  method public long id()
+
+record public static final org.ipro.telemetry.core.JournalQueryService$AggRow
+  extends java.lang.Record
+  ctor public(java.lang.String, java.time.Instant, long, double, double, double, double, double)
+  method public double avgMs()
+  method public double maxMs()
+  method public double minMs()
+  method public double p95Ms()
+  method public double totalMs()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String statKey()
+  method public java.time.Instant windowStart()
+  method public long count()
+
+record public static final org.ipro.telemetry.core.JournalQueryService$EventFilter
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.time.Instant, java.time.Instant, java.lang.Long, boolean, java.lang.String, java.lang.String, int)
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.time.Instant, java.time.Instant, java.lang.Long, boolean, int)
+  method public boolean n1Only()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int limit()
+  method public java.lang.Long minDurationMs()
+  method public java.lang.String entity()
+  method public java.lang.String errorContains()
+  method public java.lang.String eventType()
+  method public java.lang.String level()
+  method public java.lang.String operation()
+  method public java.lang.String traceId()
+  method public java.lang.String userId()
+  method public java.time.Instant from()
+  method public java.time.Instant to()
+
+record public static final org.ipro.telemetry.core.JournalQueryService$EventRow
+  extends java.lang.Record
+  ctor public(long, java.lang.String, java.lang.String, java.time.Instant, java.lang.Long, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, java.lang.Long, boolean, java.lang.String)
+  method public boolean n1()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Integer sqlCount()
+  method public java.lang.Long durationMs()
+  method public java.lang.Long sqlTotalMs()
+  method public java.lang.String entity()
+  method public java.lang.String entityId()
+  method public java.lang.String errorMessage()
+  method public java.lang.String eventType()
+  method public java.lang.String level()
+  method public java.lang.String operation()
+  method public java.lang.String traceId()
+  method public java.lang.String userId()
+  method public java.time.Instant startedAt()
+  method public long id()
+
+record public static final org.ipro.telemetry.core.JournalQueryService$SinkHealth
+  extends java.lang.Record
+  ctor public(boolean, int, long, long, long, long, long, java.lang.String)
+  method public boolean active()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int queueSize()
+  method public java.lang.String lastError()
+  method public long dropped()
+  method public long failedBatches()
+  method public long writtenEvents()
+  method public long writtenFieldChanges()
+  method public long writtenStats()
+
+record public static final org.ipro.telemetry.core.JournalSearchService$ErrorGroupFilter
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.time.Instant, java.time.Instant)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String operation()
+  method public java.lang.String userId()
+  method public java.time.Instant from()
+  method public java.time.Instant to()
+
+record public static final org.ipro.telemetry.core.JournalSearchService$ErrorGroupRow
+  extends java.lang.Record
+  ctor public(long, long, java.time.Instant, java.time.Instant, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String errorFingerprint()
+  method public java.lang.String operation()
+  method public java.time.Instant firstSeen()
+  method public java.time.Instant lastSeen()
+  method public long count()
+  method public long distinctUsers()
+
+record public static final org.ipro.telemetry.core.PerfCounterStore$CounterSnapshot
+  extends java.lang.Record
+  ctor public(java.lang.String, long, double, double, double, double, double)
+  method public double avgMs()
+  method public double maxMs()
+  method public double minMs()
+  method public double p95Ms()
+  method public double totalMs()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String key()
+  method public long count()
+
+record public static final org.ipro.telemetry.core.PerfCounterStore$WindowSnapshot
+  extends java.lang.Record
+  ctor public(java.time.Instant, java.util.List<org.ipro.telemetry.core.PerfCounterStore$CounterSnapshot>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.time.Instant windowStart()
+  method public java.util.List<org.ipro.telemetry.core.PerfCounterStore$CounterSnapshot> snapshots()
+

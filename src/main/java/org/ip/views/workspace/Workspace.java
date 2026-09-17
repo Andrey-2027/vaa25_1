@@ -11,12 +11,15 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import org.ipro.form.Dirtyable;
+import org.ipro.form.Savable;
+import org.ipro.form.spi.WorkspaceGateway;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class Workspace extends VerticalLayout implements org.ipro.form.spi.WorkspaceGateway {
+public class Workspace extends VerticalLayout implements WorkspaceGateway {
 
     private final Span titleLabel = new Span();
     private final Div content = new Div();
@@ -93,12 +96,12 @@ public class Workspace extends VerticalLayout implements org.ipro.form.spi.Works
         Entry entry = entries.get(entryId);
         if (entry == null) return;
 
-        if (entry.getView() instanceof org.ipro.form.Dirtyable dirty && dirty.isDirty()) {
+        if (entry.getView() instanceof Dirtyable dirty && dirty.isDirty()) {
             ConfirmDialog dialog = new ConfirmDialog();
             dialog.setHeader("Несохранённые изменения");
             dialog.setText(dirty.getCloseConfirmMessage());
 
-            if (entry.getView() instanceof org.ipro.form.Savable savable) {
+            if (entry.getView() instanceof Savable savable) {
                 dialog.setConfirmButton("Сохранить и закрыть", e -> {
                     if (savable.doSave()) doClose(entryId);
                 });

@@ -8,6 +8,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.query.editor.ReportQueryEditor;
+import org.ipro.reportstudio.query.editor.QueryEditorAnalysis;
 
 /**
  * Модальное окно редактирования JPQL-запроса отчёта.
@@ -25,7 +26,7 @@ public class ReportQueryDialog extends Dialog {
     private final ReportQueryEditor editor;
     private final ReportTemplate template;
     private final Runnable onRefresh;
-    private final java.util.function.Consumer<org.ipro.reportstudio.query.editor.QueryEditorAnalysis> onApplied;
+    private final java.util.function.Consumer<QueryEditorAnalysis> onApplied;
     private final String snapshotJpql;
 
     public ReportQueryDialog(ReportQueryEditor editor, ReportTemplate template, Runnable onRefresh) {
@@ -33,7 +34,7 @@ public class ReportQueryDialog extends Dialog {
     }
 
     public ReportQueryDialog(ReportQueryEditor editor, ReportTemplate template, Runnable onRefresh,
-                             java.util.function.Consumer<org.ipro.reportstudio.query.editor.QueryEditorAnalysis> onApplied) {
+                             java.util.function.Consumer<QueryEditorAnalysis> onApplied) {
         this.editor = editor;
         this.template = template;
         this.onRefresh = onRefresh == null ? () -> { } : onRefresh;
@@ -69,7 +70,7 @@ public class ReportQueryDialog extends Dialog {
     }
 
     private void applyAndClose() {
-        org.ipro.reportstudio.query.editor.QueryEditorAnalysis analysis;
+        QueryEditorAnalysis analysis;
         try {
             analysis = editor.analyze();
             if (!analysis.guardResult().allowed()) {

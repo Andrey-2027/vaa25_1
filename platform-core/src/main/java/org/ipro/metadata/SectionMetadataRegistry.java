@@ -8,7 +8,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.ipro.metadata.annotation.TableSections;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,7 +27,7 @@ public final class SectionMetadataRegistry implements InitializingBean {
     private List<TableSectionMetadataInfo> sections = List.of();
 
     public SectionMetadataRegistry(
-            @Value("${platform.subsystem-scan-package}") String basePackage,
+            String basePackage,
             MetadataResolver metadataResolver) {
         this.basePackage = basePackage;
         this.metadataResolver = metadataResolver;

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-spring-boot-autoconfigure</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform spring-boot autoconfigure</name>
+    <description>
+        D3.4: авто-конфигурации backend-ядра платформы — metadata, CRUD, data access,
+        fetch/instance-name и global search core — в собственном sibling-модуле со своим
+        AutoConfiguration.imports. Модуль не содержит доменных типов (это platform-core),
+        только wiring: бины, условия, property bean. Запрещено: Vaadin (это platform-vaadin),
+        org.ip (приложение зависит от платформы) и component-scan — платформа регистрируется
+        только через auto-configuration, как в platform-events.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-core.version>1.0-SNAPSHOT</platform-core.version>
+        <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
+        <platform-events.version>1.0-SNAPSHOT</platform-events.version>
+        <platform-numbering.version>1.0-SNAPSHOT</platform-numbering.version>
+        <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
+    </properties>
+
+    <!--
+      Разрешённые compile-зависимости — reviewed, каждая строка закрывает конкретные пакеты
+      фактических импортов пяти перенесённых конфигураций:
+
+      1. platform-core — org.ipro.metadata/crud/data/fetch/search (типы и @Import-бины);
+      2. platform-contracts — org.ipro.lifecycle.EntityLifecycle (сигнатура
+         EventContourStartupCheck в DataAccessAutoConfiguration);
+      3. platform-events — org.ipro.events.EntityEventPublisher и
+         org.ipro.lifecycle.EntityLifecycleRegistry (Metadata/DataAccess);
+      4. platform-numbering — org.ipro.numbering.NumberingService и
+         NumberingAutoConfiguration (@AutoConfigureAfter в DataAccess);
+      5. platform-rls — RlsOwnedSectionLookup/RlsPolicyEnforcer (Metadata),
+         RlsCurrentUser/RlsFilterActivator/RlsReadGate (DataAccess, Search),
+         RlsDimensionValueLabelResolver (Fetch) и RlsAutoConfiguration
+         (@AutoConfigureAfter);
+
+      Запрещено: Vaadin, org.ip, platform-* домены без прямого импорта (settings/telemetry
+      сюда не входят — Read/WriteTelemetry живут в platform-core).
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-core</artifactId>
+            <version>${platform-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-contracts</artifactId>
+            <version>${platform-contracts.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-events</artifactId>
+            <version>${platform-events.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-numbering</artifactId>
+            <version>${platform-numbering.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rls</artifactId>
+            <version>${platform-rls.version}</version>
+        </dependency>
+
+        <!-- Spring: контейнер бинов (@Bean/@Import/ObjectProvider) и авто-конфигурация.
+             spring-boot нужен для @ConfigurationProperties/@EnableConfigurationProperties
+             (PlatformProperties, шаг D3.4). -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+        <!-- Bean-сигнатуры: EntityManager/EntityManagerFactory (Metadata, DataAccess)
+             и Validator (Metadata, DataAccess). -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
+        <!--
+          Тесты едут с модулем (прецедент platform-events): модуль публикуется отдельно,
+          и проверки его поведения обязаны запускаться вместе с ним — иначе wiring может
+          сломаться незамеченным. Здесь это ApplicationContextRunner для каждой из пяти
+          конфигураций.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

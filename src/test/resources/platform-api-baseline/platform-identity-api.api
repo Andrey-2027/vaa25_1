@@ -1,4 +1,4 @@
-# platform-identity-api: публичная поверхность (перезапись: -Dplatform.api.baseline.write=true)
+# platform-identity-api: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
 interface public abstract interface org.ipro.identity.IdentifiableEntity
   method public abstract java.lang.Long getId()
   method public abstract void setId(java.lang.Long)

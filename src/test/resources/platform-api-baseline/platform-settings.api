@@ -1,0 +1,127 @@
+# platform-settings: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+annotation public abstract interface org.ipro.settings.setting.Setting
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [FIELD]
+  method public abstract boolean secret() default false
+  method public abstract java.lang.Class<?> entityClass() default class java.lang.Void
+  method public abstract java.lang.String label() default 
+  method public abstract org.ipro.metadata.annotation.FieldType type() default AUTO
+
+annotation public abstract interface org.ipro.settings.setting.SettingsGroup
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.Class<?> subsystem()
+  method public abstract java.lang.String title() default 
+
+class public org.ipro.settings.SettingValue
+  extends org.ipro.crud.BaseEntity
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.Table
+  ctor protected()
+  ctor public(java.lang.String, java.lang.String, long)
+  method public java.lang.Boolean getBoolValue()
+  method public java.lang.Long getEntityRefId()
+  method public java.lang.Long getIntegerValue()
+  method public java.lang.String getEnumValue()
+  method public java.lang.String getScopeType()
+  method public java.lang.String getSettingKey()
+  method public java.lang.String getStringValue()
+  method public java.math.BigDecimal getDecimalValue()
+  method public java.time.LocalDate getDateValue()
+  method public java.time.LocalDateTime getDateTimeValue()
+  method public long getScopeId()
+  method public void setBoolValue(java.lang.Boolean)
+  method public void setDateTimeValue(java.time.LocalDateTime)
+  method public void setDateValue(java.time.LocalDate)
+  method public void setDecimalValue(java.math.BigDecimal)
+  method public void setEntityRefId(java.lang.Long)
+  method public void setEnumValue(java.lang.String)
+  method public void setIntegerValue(java.lang.Long)
+  method public void setScopeId(long)
+  method public void setScopeType(java.lang.String)
+  method public void setSettingKey(java.lang.String)
+  method public void setStringValue(java.lang.String)
+
+class public org.ipro.settings.SettingsRegistry
+  implements org.springframework.beans.factory.InitializingBean
+  ctor public(java.lang.String)
+  method public java.lang.String rlsDimensionOf(java.lang.Class<?>)
+  method public java.util.List<org.ipro.settings.SettingsRegistry$GroupInfo> groups()
+  method public java.util.Optional<org.ipro.settings.SettingsRegistry$FieldDescriptor> fieldOf(java.lang.Class<?>, java.lang.String)
+  method public java.util.Optional<org.ipro.settings.SettingsRegistry$GroupInfo> groupOf(java.lang.Class<?>)
+  method public void afterPropertiesSet()
+  method public void rebuild()
+
+class public org.ipro.settings.SettingsReverseReferenceSource
+  implements org.ipro.metadata.ReferenceIndex$ReverseReferenceSource
+  implements org.springframework.beans.factory.InitializingBean
+  ctor public(java.lang.String)
+  method public java.util.List<org.ipro.metadata.ReferenceIndex$ReverseReference> references()
+  method public void afterPropertiesSet()
+  method public void rebuild()
+
+class public org.ipro.settings.SettingsService
+  ctor public(org.ipro.settings.SettingsRegistry, org.ipro.settings.SettingValueRepository)
+  field public static final java.lang.String GLOBAL_SCOPE = GLOBAL
+  field public static final long GLOBAL_SCOPE_ID = 0
+  method public E getEnum(java.lang.Class<?>, java.lang.String, java.lang.Class<E>)
+  method public boolean getBoolean(java.lang.Class<?>, java.lang.String)
+  method public java.lang.Long getEntityRefId(java.lang.Class<?>, java.lang.String)
+  method public java.lang.Object get(java.lang.Class<?>, java.lang.String)
+  method public java.lang.String getString(java.lang.Class<?>, java.lang.String)
+  method public java.lang.String rlsDimensionOf(java.lang.Class<?>)
+  method public java.math.BigDecimal getBigDecimal(java.lang.Class<?>, java.lang.String)
+  method public java.time.LocalDate getLocalDate(java.lang.Class<?>, java.lang.String)
+  method public java.time.LocalDateTime getLocalDateTime(java.lang.Class<?>, java.lang.String)
+  method public long getLong(java.lang.Class<?>, java.lang.String)
+  method public void resetToDefault(java.lang.Class<?>, java.lang.String)
+  method public void set(java.lang.Class<?>, java.lang.String, java.lang.Object)
+
+class public org.ipro.settings.config.SettingsAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.persistence.autoconfigure.EntityScan
+  annotation org.springframework.data.jpa.repository.config.EnableJpaRepositories
+  ctor public()
+  method public org.ipro.settings.SettingsRegistry settingsRegistry(java.lang.String)
+  method public org.ipro.settings.SettingsReverseReferenceSource settingsReverseReferenceSource(java.lang.String)
+  method public org.ipro.settings.SettingsService settingsService(org.ipro.settings.SettingsRegistry, org.ipro.settings.SettingValueRepository)
+
+interface public abstract interface org.ipro.settings.SettingValueRepository
+  implements org.springframework.data.jpa.repository.JpaRepository<org.ipro.settings.SettingValue, java.lang.Long>
+  annotation org.springframework.stereotype.Repository
+  method public abstract java.util.List<org.ipro.settings.SettingValue> findByScopeTypeAndScopeId(java.lang.String, long)
+  method public abstract java.util.Optional<org.ipro.settings.SettingValue> findBySettingKeyAndScopeTypeAndScopeId(java.lang.String, java.lang.String, long)
+  method public abstract void deleteBySettingKeyAndScopeTypeAndScopeId(java.lang.String, java.lang.String, long)
+
+record public static final org.ipro.settings.SettingsRegistry$FieldDescriptor
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, org.ipro.metadata.annotation.FieldType, boolean, java.lang.reflect.Field, java.lang.Object)
+  method public boolean secret()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Object defaultValue()
+  method public java.lang.String label()
+  method public java.lang.String name()
+  method public java.lang.reflect.Field field()
+  method public org.ipro.metadata.annotation.FieldType type()
+
+record public static final org.ipro.settings.SettingsRegistry$GroupInfo
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.lang.String, java.lang.Class<?>, java.lang.String, java.lang.Object, java.util.List<org.ipro.settings.SettingsRegistry$FieldDescriptor>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> groupClass()
+  method public java.lang.Class<?> subsystemMarker()
+  method public java.lang.Object defaultsInstance()
+  method public java.lang.String rlsDimension()
+  method public java.lang.String title()
+  method public java.util.List<org.ipro.settings.SettingsRegistry$FieldDescriptor> fields()
+

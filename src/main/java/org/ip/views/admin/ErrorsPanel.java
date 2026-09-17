@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 import com.vaadin.flow.component.button.Button;
+import org.ipro.filtergrid.DateRangeFilter;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -73,7 +74,7 @@ final class ErrorsPanel extends VerticalLayout {
     }
 
     /** Мостик: пресеты не требуют полноценного DateRangeFilter — пишут в from. */
-    private static final class DateRangeBridge extends org.ipro.filtergrid.DateRangeFilter<Object> {
+    private static final class DateRangeBridge extends DateRangeFilter<Object> {
         @Override
         public HorizontalLayout getComponent() {
             return new HorizontalLayout();

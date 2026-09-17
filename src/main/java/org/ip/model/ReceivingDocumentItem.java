@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.ipro.metadata.annotation.RequiredMode;
+import org.ipro.metadata.annotation.SectionRlsPolicy;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.metadata.annotation.Lookup;
@@ -29,7 +30,7 @@ import java.math.BigDecimal;
     rowFormTitle = "Позиция накладной",
     lineNumberField = "lineNumber",
     minRows = 1,
-    rlsPolicy = org.ipro.metadata.annotation.SectionRlsPolicy.INHERIT_ROOT
+    rlsPolicy = SectionRlsPolicy.INHERIT_ROOT
 )
 public class ReceivingDocumentItem extends BaseEntity {
 

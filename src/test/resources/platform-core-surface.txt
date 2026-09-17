@@ -1,0 +1,169 @@
+# D3.3: семантическая классификация production-типов platform-core (FQN -> базовая роль).
+#
+# Формат: <role> <fqn>  и отдельно  test-usage <fqn> <файлы тестов приложения>
+# Роли (ровно одна на production-тип): APP_API | APP_SPI | MODULE_API | INTERNAL
+#   APP_API     — поддерживаемый API приложения: приложение называет тип, платформа не наследует.
+#   APP_SPI     — приложение реализует или расширяет тип; платформа вызывает обратно.
+#   MODULE_API  — контракт между platform-модулями: production-код будущих autoconfigure/Vaadin/
+#                 report-модулей (сегодня это платформенные классы, ещё лежащие в дереве).
+#   INTERNAL    — реализация без compatibility promise: менять и удалять можно свободно.
+#
+# Зачем второй реестр. D1-реестр (`platform-public-surface.txt`) описывает только потребление
+# приложением. Тип, который приложение не называет, не получал никакой роли: обещание «internal
+# можно менять свободно» нельзя было проверить, а 44 типа, образующих контракт между модулями,
+# не были зафиксированы вовсе. Здесь роль есть у каждого из 92 production-типов, и полнота
+# проверяется тестом `PlatformCoreSurfaceTest`, а не глазами.
+#
+# Роли — reviewed-решение, а не вывод теста: если бы список строил сам тест, проверялось бы то же
+# правило, которым он построен. Черновик воспроизводится скриптом
+# `node scripts/analyze-platform-surface.mjs --core-registry`, решения по спорным типам записаны
+# ниже явно.
+#
+# Правила классификации (в порядке применения):
+#   1. D1-роль API -> APP_API, SPI -> APP_SPI: текущие роли сохраняются.
+#   2. Явные решения по спорным типам — см. ниже.
+#   3. Тип, который называет production-код будущих autoconfigure/Vaadin/report-модулей -> MODULE_API.
+#   4. Остальные -> INTERNAL.
+#   5. Public nested type наследует роль owner-типа, если для него нет отдельной записи.
+#   6. Каждый новый production-тип обязан получить роль сразу — полнота проверяется тестом.
+#
+# Явные решения (механически не выводятся):
+#   NaturalKeyCreateSupport -> APP_API: generic механизм, намеренно используемый прикладными
+#       interned use cases. Роль legacy-internal не сходилась с употреблением.
+#   EntityDataAccess -> APP_API (значит, и его сигнатура входит в API closure).
+#   LookupService, ServiceLocator -> MODULE_API: контракт между core и будущим form/vaadin-слоем.
+#       Приложение называет их напрямую — это фиксирует legacy-запись D1-реестра, а не роль.
+#   JpaGlobalSearchProvider -> INTERNAL: реализация registry по умолчанию, выбирать её явно
+#       приложение не должно (временная legacy-ссылка в D1-реестре).
+#   CurrentUser -> удалён до D3.4 (§4 плана): единственный platform-потребитель
+#       (CanonicalReadExecutor) получает RlsCurrentUser через конструктор, прикладные потребители
+#       — Spring-бин RlsCurrentUser (SecurityRlsUser) или прямой чтением SecurityContext.
+#
+# Отклонение от механического среза ревью. Срез предполагал, что 13 типов, названных только
+# тестами приложения, останутся INTERNAL. Замер по production-источникам показал другое: 12 из них
+# называет production-код metadata/data/fetch-конфигураций и form/reportstudio-слоя, то есть по
+# правилу 3 они MODULE_API. Legacy-доступ от этого не меняется: приложение (main) их не называет,
+# а ссылки тестов заморожены отдельной записью test-usage и не превращают типы в API.
+#
+# test-usage overlay — ортогональная запись, а не пятая роль: тип может быть MODULE_API и
+# одновременно иметь замороженные ссылки из тестов приложения. Список только сокращается: снятая
+# ссылка обязана исчезнуть из реестра, новая ломает сборку.
+#
+# ---- APP_API (28)
+# Часть записей ниже — не решение о конкретном типе, а выполнение правила 2 (API closure): эти
+# типы стоят в публичных сигнатурах APP_API-типов, поэтому обязаны иметь тот же уровень. Иначе
+# internal был бы виден приложению через API, и обещание «internal можно менять свободно» ломается.
+#   EntityDescriptor        — EntityDataAccess, EntityDataAccessResolver
+#   SearchContext           — SearchRead
+#   FactOrigin, MetadataDiagnostic — FieldMetadataInfo
+#   MetadataCache           — MetadataResolver
+#   GlobalSearchMatchKind   — GlobalSearchMatch
+#   EntityCapabilities      — EntityDescriptor
+APP_API org.ipro.crud.NaturalKeyCreateSupport
+APP_API org.ipro.crud.ValidationException
+APP_API org.ipro.data.CanonicalEntityService
+APP_API org.ipro.data.EntityCapabilities
+APP_API org.ipro.data.EntityDataAccess
+APP_API org.ipro.data.EntityDataAccessResolver
+APP_API org.ipro.data.EntityDescriptor
+APP_API org.ipro.data.SearchRead
+APP_API org.ipro.data.SearchContext
+APP_API org.ipro.fetch.instance.InstanceName
+APP_API org.ipro.metadata.ColumnPath
+APP_API org.ipro.metadata.EntityMetadataInfo
+APP_API org.ipro.metadata.FieldMetadataInfo
+APP_API org.ipro.metadata.ManagedEntityCatalog
+APP_API org.ipro.metadata.FactOrigin
+APP_API org.ipro.metadata.MetadataAllowance
+APP_API org.ipro.metadata.MetadataCache
+APP_API org.ipro.metadata.MetadataDiagnostic
+APP_API org.ipro.metadata.MetadataDiagnosticCodes
+APP_API org.ipro.metadata.MetadataResolver
+APP_API org.ipro.metadata.RowMetadataInfo
+APP_API org.ipro.metadata.SubsystemNode
+APP_API org.ipro.metadata.SubsystemRegistry
+APP_API org.ipro.metadata.facet.FactSource
+APP_API org.ipro.search.GlobalSearchMatch
+APP_API org.ipro.search.GlobalSearchMatchKind
+APP_API org.ipro.search.GlobalSearchSource
+APP_API org.ipro.search.GlobalSearchable
+# ---- APP_SPI (4)
+APP_SPI org.ipro.crud.BaseService
+APP_SPI org.ipro.crud.InternedEntity
+APP_SPI org.ipro.metadata.HasDisplayName
+APP_SPI org.ipro.search.GlobalSearchProvider
+# ---- MODULE_API (44)
+MODULE_API org.ipro.crud.EntityCopyService
+MODULE_API org.ipro.crud.GenericOwnedSectionService
+MODULE_API org.ipro.crud.LookupService
+MODULE_API org.ipro.crud.MetadataDrivenAggregateSaveService
+MODULE_API org.ipro.crud.MetadataTableSectionService
+MODULE_API org.ipro.crud.ReferenceCheckService
+MODULE_API org.ipro.crud.ServiceLocator
+MODULE_API org.ipro.crud.TableSectionService
+MODULE_API org.ipro.crud.jpa.ValidatedJpaCrudService
+MODULE_API org.ipro.data.CanonicalEntityDataAccess
+MODULE_API org.ipro.data.CanonicalReadExecutor
+MODULE_API org.ipro.data.CanonicalWriteExecutor
+MODULE_API org.ipro.data.EntityDataPolicy
+MODULE_API org.ipro.data.EntityDescriptorCatalog
+MODULE_API org.ipro.data.EventContourStartupCheck
+MODULE_API org.ipro.data.ReadTelemetry
+MODULE_API org.ipro.data.ScenarioFetchGraphResolver
+MODULE_API org.ipro.data.WriteTelemetry
+MODULE_API org.ipro.data.grouping.GroupingValuesProviderFactory
+MODULE_API org.ipro.data.grouping.JpaGroupingValuesProviderFactory
+MODULE_API org.ipro.fetch.ManagedEntityTypes
+MODULE_API org.ipro.fetch.instance.InstanceNameBridge
+MODULE_API org.ipro.fetch.instance.InstanceNameBridgeInstaller
+MODULE_API org.ipro.fetch.instance.InstanceNameProvider
+MODULE_API org.ipro.fetch.instance.InstanceNameResolver
+MODULE_API org.ipro.fetch.plan.FetchPlanRegistry
+MODULE_API org.ipro.filter.ColumnPathFilterFieldResolver
+MODULE_API org.ipro.metadata.FilterSpec
+MODULE_API org.ipro.metadata.GridMetadata
+MODULE_API org.ipro.metadata.GridViewState
+MODULE_API org.ipro.metadata.MetadataConsistencyStartupCheck
+MODULE_API org.ipro.metadata.SectionMetadataRegistry
+MODULE_API org.ipro.metadata.TableSectionGridMetadata
+MODULE_API org.ipro.metadata.TableSectionMetadataInfo
+MODULE_API org.ipro.metadata.facet.FacetKey
+MODULE_API org.ipro.metadata.facet.FacetKind
+MODULE_API org.ipro.metadata.facet.FacetResolver
+MODULE_API org.ipro.metadata.facet.ResolvedValue
+MODULE_API org.ipro.search.GlobalSearchCatalog
+MODULE_API org.ipro.search.GlobalSearchProviderRegistry
+MODULE_API org.ipro.search.GlobalSearchRequest
+MODULE_API org.ipro.search.GlobalSearchResponse
+MODULE_API org.ipro.search.GlobalSearchResult
+MODULE_API org.ipro.search.GlobalSearchService
+# ---- INTERNAL (16)
+INTERNAL org.ipro.crud.AggregateSaveRollbackState
+INTERNAL org.ipro.crud.StandardCatalogEntity
+INTERNAL org.ipro.crud.StandardDocumentEntity
+INTERNAL org.ipro.data.CanonicalWriteDeniedException
+INTERNAL org.ipro.data.DetailRead
+INTERNAL org.ipro.data.ListRead
+INTERNAL org.ipro.data.LookupRead
+INTERNAL org.ipro.data.PageRead
+INTERNAL org.ipro.data.SearchFieldResolver
+INTERNAL org.ipro.data.SearchTerms
+INTERNAL org.ipro.fetch.plan.FetchPlan
+INTERNAL org.ipro.filter.FilterConditionCodec
+INTERNAL org.ipro.metadata.FetchGraphs
+INTERNAL org.ipro.metadata.InstanceNameSource
+INTERNAL org.ipro.metadata.MetadataConsistencyValidator
+INTERNAL org.ipro.search.JpaGlobalSearchProvider
+# ---- test-usage overlay (12)
+test-usage org.ipro.crud.GenericOwnedSectionService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/security/RlsServiceWriteBoundaryIT.java
+test-usage org.ipro.crud.MetadataDrivenAggregateSaveService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java
+test-usage org.ipro.crud.ReferenceCheckService org/ip/security/RlsIntegrationTest.java org/ip/service/SklNomOpaServiceTest.java
+test-usage org.ipro.data.CanonicalReadExecutor org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.data.CanonicalWriteExecutor org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.data.EntityDescriptorCatalog org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.data.EventContourStartupCheck org/ip/lifecycle/EventContourWiringIT.java
+test-usage org.ipro.data.ReadTelemetry org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java

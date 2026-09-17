@@ -11,7 +11,6 @@ import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.repository.UserRepository;
-import org.ipro.security.CurrentUser;
 import org.ip.security.UserRepositoryRlsRoleResolver;
 import org.ipro.reportstudio.dom.ReportBand;
 import org.ipro.reportstudio.dom.ReportBandKind;
@@ -90,25 +89,25 @@ class ReportExecutionIT {
         var accessService = new AccessService(accessGrantRepository,
             new UserRepositoryRlsRoleResolver(userRepository), registry);
         var cache = new RlsReadableIdsCache(accessService);
-        var activator = new RlsFilterActivator(registry, cache, () -> CurrentUser.username());
+        var activator = new RlsFilterActivator(registry, cache, () -> SecurityContextHolder.getContext().getAuthentication().getName());
         var readGate = new org.ipro.rls.RlsReadGate(accessService, registry);
 
         var analyzer = new org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer(entityManagerFactory);
         var guard = new org.ipro.reportstudio.query.ReportQueryGuard(analyzer, accessService, registry,
-            () -> CurrentUser.username(), entityManagerFactory);
+            () -> SecurityContextHolder.getContext().getAuthentication().getName(), entityManagerFactory);
         var executor = new org.ipro.reportstudio.query.ReportQueryExecutor(entityManager, activator);
         var refresher = new org.ipro.reportstudio.param.EntityParamRefresher(entityManager, activator,
-            readGate, () -> CurrentUser.username(),
+            readGate, () -> SecurityContextHolder.getContext().getAuthentication().getName(),
             entityManagerFactory.unwrap(org.hibernate.engine.spi.SessionFactoryImplementor.class));
         var resolver = new org.ipro.reportstudio.param.ReportParamResolver(refresher, accessService,
-            () -> CurrentUser.username(),
+            () -> SecurityContextHolder.getContext().getAuthentication().getName(),
             entityManagerFactory.unwrap(org.hibernate.engine.spi.SessionFactoryImplementor.class),
             new com.fasterxml.jackson.databind.ObjectMapper(), "BRANCH");
         ReportCompiler compiler = new JasperReportCompiler();
         var artifactCache = new ReportArtifactCache(4);
 
         service = new ReportExecutionService(guard, executor, resolver, refresher, compiler,
-            artifactCache, () -> CurrentUser.username(), new ReportTaskExecutor(Runnable::run));
+            artifactCache, () -> SecurityContextHolder.getContext().getAuthentication().getName(), new ReportTaskExecutor(Runnable::run));
 
         Journal journalA = new Journal();
         journalA.setCode("A");
@@ -302,7 +301,7 @@ class ReportExecutionIT {
     }
 
     private static String currentUser() {
-        return CurrentUser.username();
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     private void persistGrant(String subjectKey, String dimension, Long dimensionValueId, boolean read) {

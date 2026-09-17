@@ -34,7 +34,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * едет с ним, потому что {@code org.ipro.data} импортирует {@link org.ipro.security.CurrentUser}
  * и оставленный в дереве пакет превратил бы ребро в {@code core -> приложение}. Следом
  * переезжают {@code search} и {@code filter}: они зависят от цикла, но из цикла в них не
- * ссылается никто.</p>
+ * ссылается никто. Пакет {@code org.ipro.security} создан в модуле ради одного класса
+ * {@code CurrentUser} и удалён в том же этапе: единственный platform-потребитель
+ * ({@code CanonicalReadExecutor}) перешёл на {@link org.ipro.rls.RlsCurrentUser}.</p>
  *
  * <p>Авто-конфигурации сюда не входят: пакеты {@code org.ipro.*.config} остаются в дереве
  * приложения до D3.4, поэтому потеря модуля видна компилятору, а не только в рантайме.</p>
@@ -143,8 +145,7 @@ class CoreModuleCompositionTest {
         "org.ipro.search.GlobalSearchService",
         "org.ipro.search.GlobalSearchSource",
         "org.ipro.search.GlobalSearchable",
-        "org.ipro.search.JpaGlobalSearchProvider",
-        "org.ipro.security.CurrentUser");
+        "org.ipro.search.JpaGlobalSearchProvider");
 
     /**
      * Reviewed внешние package-префиксы, допустимые в исходниках модуля. Это не «всё, что

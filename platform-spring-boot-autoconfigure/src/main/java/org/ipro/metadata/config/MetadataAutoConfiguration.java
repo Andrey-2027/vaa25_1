@@ -7,6 +7,7 @@ import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.ReferenceIndex;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.metadata.SectionMetadataRegistry;
+import org.ipro.autoconfigure.PlatformProperties;
 import org.ipro.crud.GenericOwnedSectionService;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.crud.ServiceLocator;
@@ -16,10 +17,10 @@ import org.ipro.rls.RlsPolicyEnforcer;
 import jakarta.validation.Validator;
 import org.ipro.events.EntityEventPublisher;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.List;
  * т.к. сами аннотации стоят на классах приложения (org.ip.model, org.ip.subsystem).
  */
 @AutoConfiguration
+@EnableConfigurationProperties(PlatformProperties.class)
 public class MetadataAutoConfiguration {
 
     @Bean
@@ -54,24 +56,23 @@ public class MetadataAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ReferenceIndex referenceIndex(
-            @Value("${platform.subsystem-scan-package}") String basePackage) {
-        return new ReferenceIndex(basePackage);
+    public ReferenceIndex referenceIndex(PlatformProperties platformProperties) {
+        return new ReferenceIndex(platformProperties.requiredSubsystemScanPackage());
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public SubsystemRegistry subsystemRegistry(
-            @Value("${platform.subsystem-scan-package}") String basePackage) {
-        return new SubsystemRegistry(basePackage);
+    public SubsystemRegistry subsystemRegistry(PlatformProperties platformProperties) {
+        return new SubsystemRegistry(platformProperties.requiredSubsystemScanPackage());
     }
 
     @Bean
     @ConditionalOnMissingBean
     public SectionMetadataRegistry sectionMetadataRegistry(
-            @Value("${platform.subsystem-scan-package}") String basePackage,
+            PlatformProperties platformProperties,
             MetadataResolver metadataResolver) {
-        return new SectionMetadataRegistry(basePackage, metadataResolver);
+        return new SectionMetadataRegistry(
+            platformProperties.requiredSubsystemScanPackage(), metadataResolver);
     }
 
     /**

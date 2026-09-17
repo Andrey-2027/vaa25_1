@@ -8,7 +8,6 @@ import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.repository.UserRepository;
-import org.ipro.security.CurrentUser;
 import org.ip.security.UserRepositoryRlsRoleResolver;
 import org.ipro.reportstudio.data.ReportDataset;
 import org.ipro.reportstudio.dom.ReportComputedValue;
@@ -87,18 +86,18 @@ class ReportParamResolutionIT {
         var accessService = new AccessService(accessGrantRepository,
             new UserRepositoryRlsRoleResolver(userRepository), registry);
         var cache = new RlsReadableIdsCache(accessService);
-        activator = new RlsFilterActivator(registry, cache, () -> CurrentUser.username());
+        activator = new RlsFilterActivator(registry, cache, () -> SecurityContextHolder.getContext().getAuthentication().getName());
         var readGate = new RlsReadGate(accessService, registry);
 
         var analyzer = new SqmQuerySemanticAnalyzer(entityManagerFactory);
         guard = new ReportQueryGuard(analyzer, accessService, registry,
-            () -> CurrentUser.username(), entityManagerFactory);
+            () -> SecurityContextHolder.getContext().getAuthentication().getName(), entityManagerFactory);
         executor = new ReportQueryExecutor(entityManager, activator);
 
         var refresher = new EntityParamRefresher(entityManager, activator, readGate,
-            () -> CurrentUser.username(), entityManagerFactory
+            () -> SecurityContextHolder.getContext().getAuthentication().getName(), entityManagerFactory
             .unwrap(org.hibernate.engine.spi.SessionFactoryImplementor.class));
-        resolver = new ReportParamResolver(refresher, accessService, () -> CurrentUser.username(),
+        resolver = new ReportParamResolver(refresher, accessService, () -> SecurityContextHolder.getContext().getAuthentication().getName(),
             entityManagerFactory.unwrap(org.hibernate.engine.spi.SessionFactoryImplementor.class),
             new ObjectMapper(), "BRANCH");
 
@@ -135,7 +134,7 @@ class ReportParamResolutionIT {
         ReportParam journal = entityParam("journal", ReportParamKind.ENTITY, ReportParamSource.FORM, true);
 
         ResolvedParams resolved = resolver.resolve(List.of(journal),
-            ReportContext.empty(CurrentUser.username()), Map.of("journal", journalAId));
+            ReportContext.empty(SecurityContextHolder.getContext().getAuthentication().getName()), Map.of("journal", journalAId));
 
         assertThat(resolved.ok()).isTrue();
         Object value = resolved.bindings().get("journal");
@@ -149,7 +148,7 @@ class ReportParamResolutionIT {
         ReportParam journal = entityParam("journal", ReportParamKind.ENTITY, ReportParamSource.FORM, true);
 
         ResolvedParams resolved = resolver.resolve(List.of(journal),
-            ReportContext.empty(CurrentUser.username()), Map.of("journal", journalBId));
+            ReportContext.empty(SecurityContextHolder.getContext().getAuthentication().getName()), Map.of("journal", journalBId));
 
         assertThat(resolved.ok()).isFalse();
         assertThat(resolved.errors())
@@ -163,7 +162,7 @@ class ReportParamResolutionIT {
         ReportParam journal = entityParam("journal", ReportParamKind.ENTITY, ReportParamSource.FORM, true);
 
         ResolvedParams resolved = resolver.resolve(List.of(journal),
-            ReportContext.empty(CurrentUser.username()), Map.of("journal", journalBId));
+            ReportContext.empty(SecurityContextHolder.getContext().getAuthentication().getName()), Map.of("journal", journalBId));
 
         assertThat(resolved.ok()).isTrue();
         assertThat(((Journal) resolved.bindings().get("journal")).getId()).isEqualTo(journalBId);
@@ -176,7 +175,7 @@ class ReportParamResolutionIT {
         who.setComputed(ReportComputedValue.CURRENT_USER);
 
         ResolvedParams resolved = resolver.resolve(List.of(who),
-            ReportContext.empty(CurrentUser.username()), Map.of());
+            ReportContext.empty(SecurityContextHolder.getContext().getAuthentication().getName()), Map.of());
 
         assertThat(resolved.ok()).isTrue();
         assertThat(resolved.bindings()).containsEntry("who", "alice");
@@ -193,7 +192,7 @@ class ReportParamResolutionIT {
         assertThat(guardResult.allowed()).isTrue();
 
         ResolvedParams resolved = resolver.resolve(List.of(journal),
-            ReportContext.empty(CurrentUser.username()), Map.of("journal", journalAId));
+            ReportContext.empty(SecurityContextHolder.getContext().getAuthentication().getName()), Map.of("journal", journalAId));
         assertThat(resolved.ok()).isTrue();
 
         ReportDataset dataset = executor.execute(jpql, resolved.bindings(),
@@ -215,7 +214,7 @@ class ReportParamResolutionIT {
         assertThat(guardResult.allowed()).isTrue();
 
         ResolvedParams resolved = resolver.resolve(List.of(journal),
-            ReportContext.empty(CurrentUser.username()), Map.of("journal", journalBId));
+            ReportContext.empty(SecurityContextHolder.getContext().getAuthentication().getName()), Map.of("journal", journalBId));
 
         assertThat(resolved.ok()).isFalse();
         assertThat(resolved.errors()).anyMatch(e -> e.contains(":journal"));
@@ -228,7 +227,7 @@ class ReportParamResolutionIT {
             ReportParamSource.FORM, true);
 
         ResolvedParams resolved = resolver.resolve(List.of(journals),
-            ReportContext.empty(CurrentUser.username()),
+            ReportContext.empty(SecurityContextHolder.getContext().getAuthentication().getName()),
             Map.of("journals", List.of(journalAId, journalBId)));
 
         assertThat(resolved.ok()).isFalse();

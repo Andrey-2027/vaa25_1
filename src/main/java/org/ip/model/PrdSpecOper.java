@@ -3,7 +3,11 @@ package org.ip.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.ipro.metadata.annotation.*;
+import org.ipro.metadata.annotation.FieldMetadata;
+import org.ipro.metadata.annotation.FieldType;
+import org.ipro.metadata.annotation.GridColumn;
+import org.ipro.metadata.annotation.SectionRlsPolicy;
+import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.ipro.crud.BaseEntity;
 
 @Entity
@@ -15,7 +19,7 @@ import org.ipro.crud.BaseEntity;
         rowFormTitle = "Операция",
         lineNumberField = "order",
         minRows = 1,
-        rlsPolicy = org.ipro.metadata.annotation.SectionRlsPolicy.INHERIT_ROOT
+        rlsPolicy = SectionRlsPolicy.INHERIT_ROOT
 )
 public class PrdSpecOper extends BaseEntity {
 

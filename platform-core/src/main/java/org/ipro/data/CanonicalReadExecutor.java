@@ -17,10 +17,10 @@ import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.FieldType;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsReadGate;
-import org.ipro.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -78,6 +78,8 @@ public class CanonicalReadExecutor {
     private final RlsFilterActivator rlsFilterActivator;
     private final RlsReadGate rlsReadGate;
     private final RlsPolicyEnforcer rlsPolicyEnforcer;
+    /** Имя пользователя для gate-пути: тот же SPI, что у остальных RLS-коллабораторов. */
+    private final RlsCurrentUser currentUser;
     private final ReadTelemetry telemetry;
     private final SearchFieldResolver searchFieldResolver;
 
@@ -91,9 +93,10 @@ public class CanonicalReadExecutor {
                                  RlsFilterActivator rlsFilterActivator,
                                  RlsReadGate rlsReadGate,
                                  RlsPolicyEnforcer rlsPolicyEnforcer,
-                                 ReadTelemetry telemetry) {
+                                 ReadTelemetry telemetry,
+                                 RlsCurrentUser currentUser) {
         this(catalog, graphResolver, metadataResolver, rlsFilterActivator, rlsReadGate,
-            rlsPolicyEnforcer, telemetry, null);
+            rlsPolicyEnforcer, telemetry, null, currentUser);
     }
 
     public CanonicalReadExecutor(EntityDescriptorCatalog catalog,
@@ -103,7 +106,8 @@ public class CanonicalReadExecutor {
                                  RlsReadGate rlsReadGate,
                                  RlsPolicyEnforcer rlsPolicyEnforcer,
                                  ReadTelemetry telemetry,
-                                 InstanceNameResolver instanceNameResolver) {
+                                 InstanceNameResolver instanceNameResolver,
+                                 RlsCurrentUser currentUser) {
         this.catalog = Objects.requireNonNull(catalog, "catalog must not be null");
         this.graphResolver = Objects.requireNonNull(graphResolver, "graphResolver must not be null");
         this.metadataResolver = Objects.requireNonNull(metadataResolver, "metadataResolver must not be null");
@@ -112,6 +116,7 @@ public class CanonicalReadExecutor {
         // Optional: legacy/slice-контексты без policy enforcer используют gate напрямую.
         this.rlsPolicyEnforcer = rlsPolicyEnforcer;
         this.telemetry = telemetry == null ? ReadTelemetry.noop() : telemetry;
+        this.currentUser = Objects.requireNonNull(currentUser, "currentUser must not be null");
         this.searchFieldResolver = new SearchFieldResolver(metadataResolver, instanceNameResolver);
     }
 
@@ -129,7 +134,7 @@ public class CanonicalReadExecutor {
         if (rlsPolicyEnforcer != null) {
             return rlsPolicyEnforcer.prepareRead(type, entityManager);
         }
-        return rlsReadGate.canRead(type, CurrentUser.username());
+        return rlsReadGate.canRead(type, currentUser.username());
     }
 
     /** Paged list: content query + отдельный count query. */

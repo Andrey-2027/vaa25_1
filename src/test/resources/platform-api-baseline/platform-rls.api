@@ -1,0 +1,337 @@
+# platform-rls: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+annotation public abstract interface org.ipro.rls.RlsDimension
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Repeatable
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract boolean custom() default false
+  method public abstract boolean grantValues() default false
+  method public abstract boolean nullsNotApplicable() default false
+  method public abstract java.lang.String readCondition() default 
+  method public abstract java.lang.String value()
+  method public abstract java.lang.String[] valuePaths() default [id]
+  method public abstract org.ipro.rls.RlsDimensionKind kind() default FILTERABLE
+
+annotation public abstract interface org.ipro.rls.RlsDimensions
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract org.ipro.rls.RlsDimension[] value()
+
+class public final org.ipro.rls.AccessGrantVersion
+  method public static long current()
+  method public static void bump()
+
+class public final org.ipro.rls.RlsContext
+  method public static T callAsSystem(java.util.function.Supplier<T>)
+  method public static boolean isBypassed()
+  method public static void runAsSystem(java.lang.Runnable)
+
+class public final org.ipro.rls.RlsDimensionValueCatalog
+  ctor public(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsDimensionValueLabelResolver)
+  method public java.util.List<org.ipro.rls.RlsDimensionValueCatalog$Value> allIgnoringRls(java.lang.String)
+
+class public final org.ipro.rls.RlsHibernateWriteGuardInstaller
+  implements org.springframework.beans.factory.InitializingBean
+  ctor public(jakarta.persistence.EntityManagerFactory, org.ipro.rls.RlsDimensionRegistry)
+  method public void afterPropertiesSet()
+
+class public final org.ipro.rls.RlsPolicyDescriptor
+  ctor public(java.lang.Class<?>, boolean, java.util.Map<java.lang.String, org.ipro.rls.RlsDimensionKind>, java.util.Map<java.lang.String, org.ipro.rls.RlsPolicyDescriptor$ValueRule>)
+  method public boolean persistentEntity()
+  method public boolean protectedEntity()
+  method public java.lang.Class<?> entityClass()
+  method public java.util.Map<java.lang.String, java.util.List<org.ipro.rls.RlsCheckValue>> checksOf(java.lang.Object)
+  method public java.util.Map<java.lang.String, org.ipro.rls.RlsDimensionKind> dimensions()
+  method public java.util.Map<java.lang.String, org.ipro.rls.RlsPolicyDescriptor$ValueRule> valueRules()
+  method public java.util.Set<java.lang.String> checkOnlyDimensions()
+  method public java.util.Set<java.lang.String> filterableDimensions()
+
+class public final org.ipro.rls.RlsStatementGuard
+  implements org.ipro.telemetry.api.SqlStatementAudit
+  ctor public(org.ipro.rls.RlsDimensionRegistry, boolean)
+  method public static java.util.List<java.lang.String> violations()
+  method public static long violationCount()
+  method public static void beginConsent()
+  method public static void clearSession()
+  method public static void endConsent()
+  method public static void markProcessed(java.util.Set<java.lang.String>)
+  method public static void reset()
+  method public void audit(java.lang.String)
+
+class public final org.ipro.rls.RlsWriteEnforcementListener
+  implements org.hibernate.event.spi.PreDeleteEventListener
+  implements org.hibernate.event.spi.PreInsertEventListener
+  implements org.hibernate.event.spi.PreUpdateEventListener
+  ctor public()
+  method public boolean onPreDelete(org.hibernate.event.spi.PreDeleteEvent)
+  method public boolean onPreInsert(org.hibernate.event.spi.PreInsertEvent)
+  method public boolean onPreUpdate(org.hibernate.event.spi.PreUpdateEvent)
+
+class public final org.ipro.rls.RlsWriteGuardBridge
+  method public static void install(org.ipro.rls.RlsDimensionRegistry)
+
+class public org.ipro.rls.AccessGrant
+  extends org.ipro.crud.BaseEntity
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.EntityListeners
+  annotation jakarta.persistence.Table
+  ctor public()
+  method public boolean isCanDelete()
+  method public boolean isCanRead()
+  method public boolean isCanUpdate()
+  method public java.lang.Long getDimensionValueId()
+  method public java.lang.String getDimension()
+  method public java.lang.String getSubjectKey()
+  method public org.ipro.rls.AccessGrant$SubjectType getSubjectType()
+  method public void setCanDelete(boolean)
+  method public void setCanRead(boolean)
+  method public void setCanUpdate(boolean)
+  method public void setDimension(java.lang.String)
+  method public void setDimensionValueId(java.lang.Long)
+  method public void setSubjectKey(java.lang.String)
+  method public void setSubjectType(org.ipro.rls.AccessGrant$SubjectType)
+
+class public org.ipro.rls.AccessGrantChangeListener
+  ctor public()
+  method public void onChange(org.ipro.rls.AccessGrant)
+
+class public org.ipro.rls.AccessService
+  annotation org.springframework.stereotype.Service
+  ctor public(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver, org.ipro.rls.RlsDimensionRegistry)
+  field public static final long NO_ACCESS_SENTINEL = -1
+  method public boolean canDelete(java.lang.String, java.lang.Long, java.lang.String)
+  method public boolean canUpdate(java.lang.String, java.lang.Long, java.lang.String)
+  method public boolean hasAnyAccess(java.lang.String, java.lang.String)
+  method public java.util.List<java.lang.Long> getReadableIds(java.lang.String, java.lang.String)
+  method public org.ipro.rls.AccessService$EffectiveGrant effectiveGrants(java.lang.String, java.lang.String)
+  method public org.ipro.rls.AccessService$EffectiveGrant effectiveGrantsOfRole(java.lang.String, java.lang.String)
+
+class public org.ipro.rls.RlsAccessDeniedException
+  extends org.springframework.security.access.AccessDeniedException
+  ctor public(java.lang.String)
+
+class public org.ipro.rls.RlsDimensionRegistry
+  implements org.springframework.beans.factory.InitializingBean
+  annotation org.springframework.stereotype.Component
+  ctor public(java.lang.String)
+  method public java.lang.Class<?> grantValueType(java.lang.String)
+  method public java.util.Map<java.lang.String, java.util.Set<java.lang.String>> filterableDimensionsByTable()
+  method public java.util.Set<java.lang.String> dimensions()
+  method public java.util.Set<java.lang.String> dimensionsOf(java.lang.Class<?>)
+  method public java.util.Set<java.lang.String> grantValueDimensions()
+  method public org.ipro.rls.RlsDimensionKind kindOf(java.lang.String)
+  method public org.ipro.rls.RlsPolicyDescriptor policyOf(java.lang.Class<?>)
+  method public void afterPropertiesSet()
+  method public void rebuild()
+
+class public org.ipro.rls.RlsFilterActivator
+  annotation org.springframework.stereotype.Component
+  ctor public(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsReadableIdsCache, org.ipro.rls.RlsCurrentUser)
+  ctor public(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsReadableIdsCache, org.ipro.rls.RlsCurrentUser, org.ipro.rls.RlsBypassAudit)
+  method public T withDimensionAdministration(jakarta.persistence.EntityManager, java.lang.String, java.util.function.Supplier<T>)
+  method public T withReferenceIntegrityCheck(jakarta.persistence.EntityManager, java.util.function.Supplier<T>)
+  method public T withRlsDisabled(jakarta.persistence.EntityManager, java.util.function.Supplier<T>)
+  method public void ensureRlsEnabled(jakarta.persistence.EntityManager)
+
+class public org.ipro.rls.RlsGuardRequestFilter
+  extends org.springframework.web.filter.OncePerRequestFilter
+  ctor public()
+  method protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, jakarta.servlet.FilterChain) throws jakarta.servlet.ServletException, java.io.IOException
+
+class public org.ipro.rls.RlsPolicyEnforcer
+  ctor public(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsFilterActivator, org.ipro.rls.AccessService, org.ipro.rls.RlsCurrentUser)
+  ctor public(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsFilterActivator, org.ipro.rls.AccessService, org.ipro.rls.RlsCurrentUser, java.util.Optional<org.ipro.telemetry.core.SecurityEventLogger>)
+  method public boolean isProtected(java.lang.Class<?>)
+  method public boolean prepareRead(java.lang.Class<?>, jakarta.persistence.EntityManager)
+  method public void requireDelete(java.lang.Object)
+  method public void requireReadable(java.lang.Class<?>, jakarta.persistence.EntityManager)
+  method public void requireUpdate(java.lang.Object)
+
+class public org.ipro.rls.RlsReadGate
+  ctor public(org.ipro.rls.AccessService, org.ipro.rls.RlsDimensionRegistry)
+  method public boolean canRead(java.lang.Class<?>, java.lang.String)
+
+class public org.ipro.rls.RlsReadableIdsCache
+  annotation org.springframework.stereotype.Component
+  annotation org.springframework.web.context.annotation.SessionScope
+  ctor public(org.ipro.rls.AccessService)
+  method public synchronized java.util.List<java.lang.Long> getReadableIds(java.lang.String, java.lang.String)
+
+class public org.ipro.rls.RlsRepositoryEnforcementAspect
+  annotation org.aspectj.lang.annotation.Aspect
+  annotation org.springframework.core.annotation.Order
+  ctor public(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsPolicyEnforcer, org.ipro.rls.RlsOwnedSectionLookup, org.springframework.transaction.PlatformTransactionManager)
+  method public java.lang.Object enforce(org.aspectj.lang.ProceedingJoinPoint) throws java.lang.Throwable
+
+class public org.ipro.rls.RlsScopeResolver
+  implements org.ipro.numbering.NumberingScopeResolver
+  ctor public(org.ipro.rls.RlsDimensionRegistry)
+  method public boolean canResolve(java.lang.String)
+  method public java.lang.Long scopeValue(java.lang.String, java.lang.Object)
+
+class public org.ipro.rls.RlsUiGate
+  ctor public(org.ipro.rls.AccessService, org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsCurrentUser)
+  method public org.ipro.rls.RlsUiGate$AccessDecision canCreate(java.lang.Class<?>)
+  method public org.ipro.rls.RlsUiGate$AccessDecision canDelete(java.lang.Object)
+  method public org.ipro.rls.RlsUiGate$AccessDecision canUpdate(java.lang.Object)
+
+class public org.ipro.rls.config.RlsAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfigureBefore
+  ctor public()
+  method public org.ipro.numbering.NumberingScopeResolver numberingScopeResolver(org.ipro.rls.RlsDimensionRegistry)
+  method public org.ipro.rls.AccessService rlsAccessService(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver, org.ipro.rls.RlsDimensionRegistry)
+  method public org.ipro.rls.RlsBypassAudit rlsBypassAudit(org.springframework.beans.factory.ObjectProvider<org.ipro.telemetry.core.SecurityEventLogger>)
+  method public org.ipro.rls.RlsDimensionRegistry rlsDimensionRegistry(java.lang.String)
+  method public org.ipro.rls.RlsDimensionValueCatalog rlsDimensionValueCatalog(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsDimensionValueLabelResolver)
+  method public org.ipro.rls.RlsFilterActivator rlsFilterActivator(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsReadableIdsCache, org.ipro.rls.RlsCurrentUser, org.springframework.beans.factory.ObjectProvider<org.ipro.rls.RlsBypassAudit>)
+  method public org.ipro.rls.RlsHibernateWriteGuardInstaller rlsHibernateWriteGuardInstaller(jakarta.persistence.EntityManagerFactory, org.ipro.rls.RlsDimensionRegistry)
+  method public org.ipro.rls.RlsPolicyEnforcer rlsPolicyEnforcer(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsFilterActivator, org.ipro.rls.AccessService, org.ipro.rls.RlsCurrentUser, org.springframework.beans.factory.ObjectProvider<org.ipro.telemetry.core.SecurityEventLogger>)
+  method public org.ipro.rls.RlsReadGate rlsReadGate(org.ipro.rls.AccessService, org.ipro.rls.RlsDimensionRegistry)
+  method public org.ipro.rls.RlsReadableIdsCache rlsReadableIdsCache(org.ipro.rls.AccessService)
+  method public org.ipro.rls.RlsRepositoryEnforcementAspect rlsRepositoryEnforcementAspect(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsPolicyEnforcer, org.ipro.rls.RlsOwnedSectionLookup, org.springframework.transaction.PlatformTransactionManager)
+  method public org.ipro.rls.RlsStatementGuard rlsStatementGuard(org.ipro.rls.RlsDimensionRegistry, boolean)
+  method public org.ipro.rls.RlsUiGate rlsUiGate(org.ipro.rls.AccessService, org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsCurrentUser)
+  method public org.springframework.boot.web.servlet.FilterRegistrationBean<org.ipro.rls.RlsGuardRequestFilter> rlsGuardRequestFilter()
+
+class public org.ipro.rls.config.RlsPersistenceAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.persistence.autoconfigure.EntityScan
+  annotation org.springframework.data.jpa.repository.config.EnableJpaRepositories
+  ctor public()
+
+enum public final org.ipro.rls.RlsBypassScope
+  extends java.lang.Enum<org.ipro.rls.RlsBypassScope>
+  enum-constants [REFERENCE_INTEGRITY_CHECK, RLS_ADMINISTRATION]
+  field public static final org.ipro.rls.RlsBypassScope REFERENCE_INTEGRITY_CHECK = enum-constant
+  field public static final org.ipro.rls.RlsBypassScope RLS_ADMINISTRATION = enum-constant
+  method public static org.ipro.rls.RlsBypassScope valueOf(java.lang.String)
+  method public static org.ipro.rls.RlsBypassScope[] values()
+
+enum public final org.ipro.rls.RlsDimensionKind
+  extends java.lang.Enum<org.ipro.rls.RlsDimensionKind>
+  enum-constants [FILTERABLE, CHECK_ONLY]
+  field public static final org.ipro.rls.RlsDimensionKind CHECK_ONLY = enum-constant
+  field public static final org.ipro.rls.RlsDimensionKind FILTERABLE = enum-constant
+  method public static org.ipro.rls.RlsDimensionKind valueOf(java.lang.String)
+  method public static org.ipro.rls.RlsDimensionKind[] values()
+
+enum public static final org.ipro.rls.AccessGrant$SubjectType
+  extends java.lang.Enum<org.ipro.rls.AccessGrant$SubjectType>
+  enum-constants [USER, ROLE]
+  field public static final org.ipro.rls.AccessGrant$SubjectType ROLE = enum-constant
+  field public static final org.ipro.rls.AccessGrant$SubjectType USER = enum-constant
+  method public static org.ipro.rls.AccessGrant$SubjectType valueOf(java.lang.String)
+  method public static org.ipro.rls.AccessGrant$SubjectType[] values()
+
+interface public abstract interface org.ipro.rls.AccessGrantRepository
+  implements org.springframework.data.jpa.repository.JpaRepository<org.ipro.rls.AccessGrant, java.lang.Long>
+  implements org.springframework.data.jpa.repository.JpaSpecificationExecutor<org.ipro.rls.AccessGrant>
+  annotation org.springframework.stereotype.Repository
+  method public abstract java.util.List<org.ipro.rls.AccessGrant> findBySubjectTypeAndSubjectKeyAndDimension(org.ipro.rls.AccessGrant$SubjectType, java.lang.String, java.lang.String)
+  method public abstract java.util.List<org.ipro.rls.AccessGrant> findRoleGrants(java.lang.String, java.util.Collection<java.lang.String>)
+  method public abstract java.util.List<org.ipro.rls.AccessGrant> findUserGrants(java.lang.String, java.lang.String)
+  method public abstract long countByDimension(java.lang.String)
+
+interface public abstract interface org.ipro.rls.RlsBypassAudit
+  annotation java.lang.FunctionalInterface
+  method public abstract void record(org.ipro.rls.RlsBypassScope, java.lang.String, java.lang.String, boolean, java.lang.Throwable)
+  method public static org.ipro.rls.RlsBypassAudit loggingOnly()
+
+interface public abstract interface org.ipro.rls.RlsCheckValue
+  method public static org.ipro.rls.RlsCheckValue notApplicable()
+  method public static org.ipro.rls.RlsCheckValue of(java.lang.Long)
+
+interface public abstract interface org.ipro.rls.RlsCurrentUser
+  method public abstract java.lang.String username()
+  method public java.lang.String requireAuthenticatedUsername()
+
+interface public abstract interface org.ipro.rls.RlsDimensionValue
+  method public abstract java.util.Map<java.lang.String, java.util.List<org.ipro.rls.RlsCheckValue>> getRlsChecks()
+
+interface public abstract interface org.ipro.rls.RlsDimensionValueLabelResolver
+  annotation java.lang.FunctionalInterface
+  method public abstract org.ipro.rls.RlsDimensionValueLabelResolver$Labels resolve(java.lang.Class<?>, java.lang.Object)
+
+interface public abstract interface org.ipro.rls.RlsOwnedSectionLookup
+  annotation java.lang.FunctionalInterface
+  method public abstract java.util.Optional<java.lang.String> sectionKey(java.lang.Class<?>)
+
+interface public abstract interface org.ipro.rls.RlsRoleResolver
+  method public abstract java.util.List<java.lang.String> rolesOf(java.lang.String)
+
+record public static final org.ipro.rls.AccessService$EffectiveGrant
+  extends java.lang.Record
+  ctor public(boolean, boolean, boolean, boolean, java.util.List<java.lang.Long>, java.util.List<java.lang.String>)
+  method public boolean canDelete()
+  method public boolean canRead()
+  method public boolean canUpdate()
+  method public boolean unlimited()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<java.lang.Long> readableValueIds()
+  method public java.util.List<java.lang.String> sources()
+
+record public static final org.ipro.rls.RlsCheckValue$Check
+  extends java.lang.Record
+  implements org.ipro.rls.RlsCheckValue
+  ctor public(java.lang.Long)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Long id()
+
+record public static final org.ipro.rls.RlsCheckValue$NotApplicable
+  extends java.lang.Record
+  implements org.ipro.rls.RlsCheckValue
+  ctor public()
+  field public static final org.ipro.rls.RlsCheckValue$NotApplicable INSTANCE
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+
+record public static final org.ipro.rls.RlsDimensionValueCatalog$Value
+  extends java.lang.Record
+  ctor public(java.lang.Long, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Long id()
+  method public java.lang.String code()
+  method public java.lang.String name()
+
+record public static final org.ipro.rls.RlsDimensionValueLabelResolver$Labels
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String code()
+  method public java.lang.String name()
+
+record public static final org.ipro.rls.RlsPolicyDescriptor$ValueRule
+  extends java.lang.Record
+  ctor public(java.util.List<java.lang.String>, boolean, boolean)
+  method public boolean custom()
+  method public boolean nullsNotApplicable()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<java.lang.String> paths()
+
+record public static final org.ipro.rls.RlsUiGate$AccessDecision
+  extends java.lang.Record
+  ctor public(boolean, java.lang.String)
+  field public static final org.ipro.rls.RlsUiGate$AccessDecision ALLOWED
+  method public boolean allowed()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String reason()
+

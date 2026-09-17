@@ -12,6 +12,9 @@ import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.param.ReportContextFactory;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.jr.run.JrxmlExecutionService;
+import org.ipro.jr.service.JrxmlTemplateService;
+import org.ipro.ureport.service.UreportTemplateService;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -29,9 +32,9 @@ public class ReportPrintToolbarContributor implements ListFormToolbarContributor
     private final ReportExecutionService executionService;
     private final LookupService lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
-    private final org.ipro.ureport.service.UreportTemplateService ureportService;
-    private final org.ipro.jr.service.JrxmlTemplateService jrTemplateService;
-    private final org.ipro.jr.run.JrxmlExecutionService jrExecutionService;
+    private final UreportTemplateService ureportService;
+    private final JrxmlTemplateService jrTemplateService;
+    private final JrxmlExecutionService jrExecutionService;
     private final ReportContextFactory contextFactory;
 
     public ReportPrintToolbarContributor(
@@ -39,9 +42,9 @@ public class ReportPrintToolbarContributor implements ListFormToolbarContributor
             ReportExecutionService executionService,
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            org.ipro.ureport.service.UreportTemplateService ureportService,
-            org.ipro.jr.service.JrxmlTemplateService jrTemplateService,
-            org.ipro.jr.run.JrxmlExecutionService jrExecutionService,
+            UreportTemplateService ureportService,
+            JrxmlTemplateService jrTemplateService,
+            JrxmlExecutionService jrExecutionService,
             ReportContextFactory contextFactory) {
         this.templateService = templateService;
         this.executionService = executionService;

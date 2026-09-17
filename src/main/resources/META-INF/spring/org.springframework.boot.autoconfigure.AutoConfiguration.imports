@@ -1,13 +1,8 @@
-org.ipro.metadata.config.MetadataAutoConfiguration
 org.ipro.vaadin.explorer.config.EntityExplorerAutoConfiguration
-org.ipro.search.config.GlobalSearchAutoConfiguration
 org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration
-org.ipro.crud.config.CrudAutoConfiguration
 org.ipro.form.config.FormAutoConfiguration
 org.ipro.reportstudio.config.ReportStudioAutoConfiguration
 org.ipro.reportstudio.config.ReportStudioPersistenceAutoConfiguration
 org.ipro.ureport.config.UreportAutoConfiguration
 org.ipro.ureport.config.UreportPersistenceAutoConfiguration
 org.ipro.jr.config.JrAutoConfiguration
-org.ipro.fetch.config.FetchPlanInstanceNameAutoConfiguration
-org.ipro.data.config.DataAccessAutoConfiguration

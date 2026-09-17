@@ -1,14 +1,12 @@
 package org.ipro.search;
 
 import org.ipro.fetch.instance.InstanceNameResolver;
-import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.HasDisplayName;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /** Default result mapper for a globally searchable JPA entity. */
 public final class JpaGlobalSearchProvider<T> implements GlobalSearchProvider<T> {
@@ -64,46 +62,6 @@ public final class JpaGlobalSearchProvider<T> implements GlobalSearchProvider<T>
             return safeText(displayName.getDisplayName());
         }
         return entityClass.getSimpleName() + "#" + idOf(entity);
-    }
-
-    @Override
-    public GlobalSearchMatch classify(T entity, GlobalSearchSource source, String term) {
-        String normalizedTerm = normalize(term);
-        String firstSubstringField = null;
-        String firstPrefixField = null;
-        for (String fieldName : source.searchFields()) {
-            Object value = readPath(entity, fieldName);
-            if (value == null) {
-                continue;
-            }
-            String normalizedValue = normalize(String.valueOf(value));
-            if (normalizedValue.equals(normalizedTerm)) {
-                return new GlobalSearchMatch(GlobalSearchMatchKind.EXACT, fieldName);
-            }
-            if (firstPrefixField == null && normalizedValue.startsWith(normalizedTerm)) {
-                firstPrefixField = fieldName;
-            }
-            if (firstSubstringField == null && normalizedValue.contains(normalizedTerm)) {
-                firstSubstringField = fieldName;
-            }
-        }
-        if (firstPrefixField != null) {
-            return new GlobalSearchMatch(GlobalSearchMatchKind.PREFIX, firstPrefixField);
-        }
-        if (firstSubstringField != null) {
-            return new GlobalSearchMatch(GlobalSearchMatchKind.SUBSTRING, firstSubstringField);
-        }
-        // The row was filtered by the canonical DB query; this is a defensive fallback.
-        return new GlobalSearchMatch(GlobalSearchMatchKind.SUBSTRING,
-            source.searchFields().get(0));
-    }
-
-    private Object readPath(T entity, String path) {
-        return ColumnPath.resolve(entityClass, path).getValue(entity);
-    }
-
-    private static String normalize(String value) {
-        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
     private static String safeText(String value) {

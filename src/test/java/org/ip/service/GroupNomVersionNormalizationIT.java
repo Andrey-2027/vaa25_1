@@ -74,7 +74,8 @@ class GroupNomVersionNormalizationIT {
         when(readGate.canRead(any(), any())).thenReturn(true);
 
         CanonicalReadExecutor readExecutor = new CanonicalReadExecutor(catalog, graphResolver,
-            metadataResolver, rlsFilterActivator, readGate, null, ReadTelemetry.noop());
+            metadataResolver, rlsFilterActivator, readGate, null, ReadTelemetry.noop(),
+            () -> "test-user");
         ReflectionTestUtils.setField(readExecutor, "entityManager", entityManager);
 
         writeExecutor = new CanonicalWriteExecutor(catalog, readExecutor, entityManager,

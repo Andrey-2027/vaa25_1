@@ -12,7 +12,6 @@ import org.ipro.metadata.facet.FacetKey;
 import org.ipro.metadata.facet.FacetResolver;
 import org.ipro.search.GlobalSearchCatalog;
 import org.ipro.search.GlobalSearchService;
-import org.ipro.security.CurrentUser;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -53,7 +52,7 @@ class PlatformCoreModuleTest {
 
     /**
      * Reviewed-реестр состава: полный list типов, которые артефакт публикует сегодня. Те же
-     * 93 типа проверяет {@code CoreModuleCompositionTest} у себя — две стороны одной границы.
+     * 92 типа проверяет {@code CoreModuleCompositionTest} у себя — две стороны одной границы.
      */
     private static final Set<String> REVIEWED_TYPES = Set.of(
         "org.ipro.crud.AggregateSaveRollbackState",
@@ -147,8 +146,7 @@ class PlatformCoreModuleTest {
         "org.ipro.search.GlobalSearchService",
         "org.ipro.search.GlobalSearchSource",
         "org.ipro.search.GlobalSearchable",
-        "org.ipro.search.JpaGlobalSearchProvider",
-        "org.ipro.security.CurrentUser");
+        "org.ipro.search.JpaGlobalSearchProvider");
 
     /** Reviewed compile-поверхность модуля — то же, что проверяет его собственный тест. */
     private static final Set<String> REVIEWED_DEPENDENCIES = Set.of(
@@ -262,8 +260,7 @@ class PlatformCoreModuleTest {
         for (Class<?> type : List.of(FacetKey.class, FacetResolver.class, BaseService.class,
                 ServiceLocator.class, CanonicalEntityService.class, EntityDataAccessResolver.class,
                 FetchPlanRegistry.class, MetadataResolver.class, SectionMetadataRegistry.class,
-                GlobalSearchService.class, GlobalSearchCatalog.class, FilterConditionCodec.class,
-                CurrentUser.class)) {
+                GlobalSearchService.class, GlobalSearchCatalog.class, FilterConditionCodec.class)) {
             CodeSource codeSource = type.getProtectionDomain().getCodeSource();
             assertThat(codeSource).as("%s должен грузиться из артефакта", type.getName()).isNotNull();
             assertThat(codeSource.getLocation().toString())

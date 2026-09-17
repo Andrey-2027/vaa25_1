@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
+import org.ipro.telemetry.core.JournalQueryService;
 
 /** Общие хелперы UI диагностики: время, цвета уровней, диалог payload. */
 final class TelemetryUi {
@@ -45,7 +46,7 @@ final class TelemetryUi {
     }
 
     /** Диалог с деревом операции (переиспользует PayloadTreeView журнала). */
-    static void openPayloadDialog(org.ipro.telemetry.core.JournalQueryService journal, long id) {
+    static void openPayloadDialog(JournalQueryService journal, long id) {
         String payload = journal.payloadById(id);
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Дерево операции (id=" + id + ")");

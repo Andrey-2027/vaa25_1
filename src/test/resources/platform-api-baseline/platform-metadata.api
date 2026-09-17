@@ -1,0 +1,29 @@
+# platform-metadata: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+class public final org.ipro.metadata.AnnotationClassScanner
+  method public static java.util.List<java.lang.Class<?>> scanAnnotated(java.lang.String, java.lang.Class<? extends java.lang.annotation.Annotation>)
+
+class public org.ipro.metadata.ReferenceIndex
+  implements org.springframework.beans.factory.InitializingBean
+  ctor public(java.lang.String)
+  ctor public(java.lang.String, java.util.List<org.ipro.metadata.ReferenceIndex$ReverseReferenceSource>)
+  method public java.util.List<org.ipro.metadata.ReferenceIndex$ReverseReference> getReverseReferences(java.lang.Class<?>)
+  method public void afterPropertiesSet()
+  method public void rebuild()
+
+interface public abstract static interface org.ipro.metadata.ReferenceIndex$ReverseReferenceSource
+  method public abstract java.util.List<org.ipro.metadata.ReferenceIndex$ReverseReference> references()
+  method public abstract void rebuild()
+
+record public static final org.ipro.metadata.ReferenceIndex$ReverseReference
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.lang.Class<?>, java.lang.String, boolean)
+  ctor public(java.lang.Class<?>, java.lang.String)
+  method public boolean columnRef()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> referencingClass()
+  method public java.lang.Class<?> targetClass()
+  method public java.lang.String describe(long)
+  method public java.lang.String fieldName()
+

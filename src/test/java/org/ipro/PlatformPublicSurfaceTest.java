@@ -48,6 +48,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>Роль внутреннего типа — это долг, а не разрешение: запись в реестре означает «здесь
  * ссылка уже есть», а не «здесь ссылку можно добавлять».</p>
+ *
+ * <p><b>Почему ссылка распознаётся не только по {@code import}.</b> Первая версия этого забора
+ * измерения читала строки {@code import}, и этого оказалось мало: приложение пять раз писало тип
+ * fully-qualified ({@code implements org.ipro.form.spi.WorkspaceGateway}, {@code org.ipro.jr.run.JpqlDatasetRunner},
+ * {@code org.ipro.metadata.annotation.SectionRlsPolicy}, {@code org.ipro.jr.service.JrxmlTemplateService},
+ * {@code org.ipro.reportstudio.query.ServiceParams}), а четыре файла импортировали пакет
+ * wildcard-ом. Ни один из пяти типов не попадал в измерение, значит не попадал и в реестр — то
+ * есть правило «приложение не называет незарегистрированный тип» существовало только для тех,
+ * кто пишет импорты единообразно. Теперь ссылка распознаётся во всех трёх синтаксисах, а два из
+ * них ещё и запрещены отдельно: wildcard-импорт платформенного пакета скрывает набор типов, а
+ * fully-qualified ссылку нельзя перечислить в реестре, не разрешив её по classpath.</p>
  */
 class PlatformPublicSurfaceTest {
 
@@ -63,9 +74,18 @@ class PlatformPublicSurfaceTest {
      * увеличивать — только осознанным решением с объяснением, почему новый внутренний тип
      * обязан быть виден приложению.
      */
-    private static final int LEGACY_INTERNAL_BUDGET = 73;
+    /** Снятые по фазам ссылки: CurrentUser (4 файла) и JpaGlobalSearchProvider (1) — до D3.4,
+     *  LookupService/ServiceLocator — D3.5, report-типы — D3.7. */
+    private static final int LEGACY_INTERNAL_BUDGET = 72;
 
     private static final Pattern IMPORT = Pattern.compile("^import\\s+(org\\.ipro\\.[A-Za-z0-9_.]+);", Pattern.MULTILINE);
+
+    /** Wildcard-импорт пакета платформы: за ним скрыт неизвестный набор типов. */
+    private static final Pattern PLATFORM_WILDCARD =
+        Pattern.compile("^import\\s+(?:static\\s+)?org\\.ipro\\.[A-Za-z0-9_.]*\\*;", Pattern.MULTILINE);
+
+    /** Fully-qualified употребление типа платформы: импорт для него не требуется. */
+    private static final Pattern QUALIFIED = Pattern.compile("(?<![\\w.])org\\.ipro\\.[A-Za-z0-9_.]+");
 
     /** Строка замера в документе: {@code ключ=число}. */
     private static final Pattern MEASUREMENT = Pattern.compile("^\\s*([a-z-]+)\\s*=\\s*(\\d+)\\s*$");
@@ -83,8 +103,13 @@ class PlatformPublicSurfaceTest {
     void everyPlatformTypeTheApplicationNamesHasAReviewedRole() {
         Registry registry = readRegistry();
 
-        Set<String> unclassified = new TreeSet<>(namedPlatformTypes());
-        unclassified.removeAll(registry.roles().keySet());
+        Set<String> named = namedPlatformTypes();
+        Set<String> unclassified = new TreeSet<>();
+        for (String fqn : named) {
+            if (!registry.roles().keySet().stream().anyMatch(owner -> covers(owner, fqn))) {
+                unclassified.add(fqn);
+            }
+        }
 
         assertThat(unclassified)
             .as("приложение называет тип платформы, которого нет в reviewed-реестре. Пока роль"
@@ -97,8 +122,13 @@ class PlatformPublicSurfaceTest {
     void registryDoesNotCarryTypesTheApplicationNoLongerNames() {
         Registry registry = readRegistry();
 
-        Set<String> stale = new TreeSet<>(registry.roles().keySet());
-        stale.removeAll(namedPlatformTypes());
+        Set<String> named = namedPlatformTypes();
+        Set<String> stale = new TreeSet<>();
+        for (String fqn : registry.roles().keySet()) {
+            if (!named.contains(fqn) && named.stream().noneMatch(used -> covers(fqn, used))) {
+                stale.add(fqn);
+            }
+        }
 
         assertThat(stale)
             .as("реестр описывает тип, который приложение больше не называет: список обязан"
@@ -147,6 +177,99 @@ class PlatformPublicSurfaceTest {
         }
     }
 
+    /**
+     * Wildcard-импорт платформенного пакета запрещён отдельно.
+     *
+     * <p>Ссылка через {@code import org.ipro.metadata.annotation.*} видна реестру только как
+     * пакет: какой именно тип использован, знает компилятор, а не строка импорта. Пока такие
+     * импорты существуют, полнота реестра держится на догадке; после запрета — на синтаксисе.</p>
+     */
+    @Test
+    void applicationCodeDoesNotUsePlatformWildcardImports() {
+        Map<String, Set<String>> offenders = new TreeMap<>();
+        for (Path source : javaSources(APPLICATION_PACKAGE)) {
+            Matcher wildcard = PLATFORM_WILDCARD.matcher(withoutCommentsAndLiterals(read(source)));
+            while (wildcard.find()) {
+                offenders.computeIfAbsent(wildcard.group(), ignored -> new TreeSet<>())
+                    .add(APP_MAIN_SOURCES.relativize(source).toString().replace('\\', '/'));
+            }
+        }
+
+        assertThat(offenders)
+            .as("wildcard-импорт пакета платформы скрывает используемые типы: реестр видел бы"
+                + " пакет, а не типы, и полнота ролей перестала бы быть проверяемой. Замените его"
+                + " явными импортами")
+            .isEmpty();
+    }
+
+    /**
+     * Каждая ссылка {@code org.ipro.*} обязана разрешаться по classpath компиляции.
+     *
+     * <p>Если token не разрешается, значит он либо опечатка, либо package-префикс, вырванный из
+     * контекста, либо тип, которого нет в сборке. Во всех трёх случаях измерение молча теряет
+     * ссылку — ровно то, из-за чего пять production-типов не попали в реестр.</p>
+     */
+    @Test
+    void everyPlatformReferenceResolvesToATypeOnTheCompileClasspath() {
+        References references = platformReferences();
+
+        assertThat(references.unresolved())
+            .as("ссылка org.ipro.* не разрешается ни сама, ни одним из своих префиксов: ссылка"
+                + " невидима реестру, поэтому невидима и граница модуля. Исправьте ссылку или"
+                + " назовите тип явно через импорт")
+            .isEmpty();
+        assertThat(references.types())
+            .as("проверка не должна быть вакуумной")
+            .isNotEmpty();
+    }
+
+    /**
+     * Fully-qualified ссылка на платформу в прикладном коде запрещена.
+     *
+     * <p>Это не стилистика. Ссылка без импорта — тот самый синтаксис, которым реестр обходили: пока
+     * такие ссылки были, замер читал не всё, и пять production-типов жили вне классификации.
+     * Измерение теперь их видит, но правило «одна ссылка — один импорт» держит границу читаемой:
+     * что приложение берёт у платформы, видно в шапке файла, а не в середине метода.</p>
+     *
+     * <p>Текущий набор ссылок мигрирован на явные импорты (17 файлов, 39 ссылок), поэтому здесь
+     * проверяется не бюджет, а отсутствие: новая ссылка запрещена целиком.</p>
+     */
+    @Test
+    void applicationCodeDoesNotUseFullyQualifiedPlatformReferences() {
+        Map<String, Set<String>> offenders = new TreeMap<>();
+        for (Path source : javaSources(APPLICATION_PACKAGE)) {
+            Set<String> tokens = new TreeSet<>();
+            for (String line : withoutCommentsAndLiterals(read(source)).split("\n")) {
+                if (line.stripLeading().startsWith("import")) {
+                    continue;
+                }
+                Matcher qualified = QUALIFIED.matcher(line);
+                while (qualified.find()) {
+                    if (resolveAgainstClasspath(qualified.group()) != null) {
+                        tokens.add(qualified.group());
+                    }
+                }
+            }
+            if (!tokens.isEmpty()) {
+                offenders.put(APP_MAIN_SOURCES.relativize(source).toString().replace('\\', '/'), tokens);
+            }
+        }
+
+        assertThat(offenders)
+            .as("fully-qualified ссылка на платформу обходит и реестр, и импорт: тип виден в коде,"
+                + " но не в шапке файла. Замените её явным импортом — это и есть способ сделать"
+                + " зависимость от платформы проверяемой")
+            .isEmpty();
+    }
+
+    /**
+     * Владелец покрывает свой вложенный тип: роль вложенного public-типа наследуется, если для
+     * него нет отдельной записи (реестр ведётся именами, которые видны в коде).
+     */
+    private static boolean covers(String owner, String fqn) {
+        return fqn.equals(owner) || fqn.startsWith(owner + ".");
+    }
+
     @Test
     void registryIsWellFormedAndNonVacuous() {
         Registry registry = readRegistry();
@@ -163,16 +286,123 @@ class PlatformPublicSurfaceTest {
                 .collect(java.util.stream.Collectors.toSet()));
     }
 
-    /** Типы платформы, которые называет прикладной код: по импортам, как в методике D1 §1. */
-    private static Set<String> namedPlatformTypes() {
+    /**
+     * Ссылки прикладного кода на платформу: импорты плюс fully-qualified употребления.
+     *
+     * <p>{@code unresolved} — это ссылки {@code org.ipro.*}, для которых ни сам token, ни его
+     * префиксы не являются классом на classpath компиляции: опечатка либо ссылка на тип, который
+     * в сборку не попадает. Такие случаи нельзя молча проглотить: тогда ссылка просто исчезнет из
+     * измерения, а это и есть найденная дыра.</p>
+     */
+    private record References(Set<String> types, Map<String, Set<String>> unresolved) {
+    }
+
+    private static References platformReferences() {
         Set<String> types = new TreeSet<>();
+        Map<String, Set<String>> unresolved = new TreeMap<>();
         for (Path source : javaSources(APPLICATION_PACKAGE)) {
-            Matcher matcher = IMPORT.matcher(read(source));
-            while (matcher.find()) {
-                types.add(matcher.group(1));
+            String code = withoutCommentsAndLiterals(read(source));
+            Matcher imports = IMPORT.matcher(code);
+            while (imports.find()) {
+                types.add(imports.group(1));
+            }
+            for (String line : code.split("\n")) {
+                if (line.stripLeading().startsWith("import")) {
+                    continue;
+                }
+                Matcher qualified = QUALIFIED.matcher(line);
+                while (qualified.find()) {
+                    String token = qualified.group();
+                    String resolved = resolveAgainstClasspath(token);
+                    if (resolved == null) {
+                        unresolved.computeIfAbsent(token, ignored -> new TreeSet<>())
+                            .add(APP_MAIN_SOURCES.relativize(source).toString().replace('\\', '/'));
+                    } else {
+                        types.add(resolved);
+                    }
+                }
             }
         }
-        return types;
+        return new References(types, unresolved);
+    }
+
+    /** Разрешение fully-qualified ссылки по classpath компиляции: тип или его вложенный тип. */
+    private static String resolveAgainstClasspath(String token) {
+        ClassLoader loader = PlatformPublicSurfaceTest.class.getClassLoader();
+        String candidate = token;
+        while (candidate.lastIndexOf('.') > 0) {
+            if (isLoadable(candidate, loader)) {
+                return candidate;
+            }
+            int dot = candidate.lastIndexOf('.');
+            String nested = candidate.substring(0, dot) + '$' + candidate.substring(dot + 1);
+            if (isLoadable(nested, loader)) {
+                // Вложенный тип возвращается в нотации исходника: реестр ведётся именами,
+                // которые видны в коде, а не binary-именами JVM.
+                return candidate;
+            }
+            candidate = candidate.substring(0, dot);
+        }
+        return null;
+    }
+
+    private static boolean isLoadable(String className, ClassLoader loader) {
+        try {
+            Class.forName(className, false, loader);
+            return true;
+        } catch (ClassNotFoundException | LinkageError | SecurityException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Типы платформы, которые называет прикладной код. Заменяет методику D1 §1 «по импортам»:
+     * та не видела ни fully-qualified, ни wildcard-ссылок.
+     */
+    private static Set<String> namedPlatformTypes() {
+        return platformReferences().types();
+    }
+
+    /**
+     * Убирает комментарии и строковые литералы: {@code // ор.ipro.foo.Bar} в комментарии —
+     * не зависимость. Без этого шага отчёт о ссылках наполняется текстом документации.
+     */
+    private static String withoutCommentsAndLiterals(String text) {
+        StringBuilder out = new StringBuilder(text.length());
+        int index = 0;
+        while (index < text.length()) {
+            char current = text.charAt(index);
+            char next = index + 1 < text.length() ? text.charAt(index + 1) : '\0';
+            if (current == '/' && next == '/') {
+                while (index < text.length() && text.charAt(index) != '\n') {
+                    index++;
+                }
+            } else if (current == '/' && next == '*') {
+                index += 2;
+                while (index < text.length()
+                        && !(text.charAt(index) == '*' && index + 1 < text.length()
+                            && text.charAt(index + 1) == '/')) {
+                    index++;
+                }
+                index += 2;
+            } else if (current == '"') {
+                index++;
+                while (index < text.length() && text.charAt(index) != '"') {
+                    index += text.charAt(index) == '\\' ? 2 : 1;
+                }
+                index++;
+            } else if (current == '\'') {
+                index++;
+                while (index < text.length() && text.charAt(index) != '\'') {
+                    index += text.charAt(index) == '\\' ? 2 : 1;
+                }
+                index++;
+            } else {
+                out.append(current);
+                index++;
+            }
+        }
+        return out.toString();
     }
 
     /**
@@ -332,7 +562,10 @@ class PlatformPublicSurfaceTest {
                 .filter(Files::isDirectory)
                 .sorted()
                 .toList());
+            // Нейтральные leaf-контракты живут в реакторе соседнего crudui: их публикует не этот
+            // чекаут, но в измерении они участвуют наравне с остальными платформенными модулями.
             roots.add(Path.of("../crudui/platform-identity-api/src/main/java"));
+            roots.add(Path.of("../crudui/platform-crud-api/src/main/java"));
             for (Path root : roots) {
                 files += javaSources(root).size();
             }
@@ -376,8 +609,9 @@ class PlatformPublicSurfaceTest {
             .append("- `platform-artifact-files` — исходники вынесенных платформенных артефактов")
             .append(" (`platform-*` плюс нейтральные leaf-контракты `platform-identity-api`")
             .append(" и `platform-crud-api` соседнего реактора `crudui`);\n")
-            .append("- `named-platform-types` — типы платформы, которые называет приложение (методика")
-            .append(" D1 §1: по импортам);\n")
+            .append("- `named-platform-types` — типы платформы, которые называет приложение: импорты")
+            .append(" плюс fully-qualified ссылки, разрешённые по classpath (wildcard-импорты")
+            .append(" платформенных пакетов запрещены отдельной проверкой: они скрывали типы);\n")
             .append("- `api-types` / `spi-types` / `legacy-internal-types` — роли из reviewed-реестра")
             .append(" `platform-public-surface.txt`;\n")
             .append("- `legacy-internal-usage-links` — общее число зафиксированных ссылок приложения на")

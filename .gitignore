@@ -76,6 +76,7 @@ node_modules/
 # как источник истины, поэтому на чистом checkout они обязаны присутствовать: гейт, чьи
 # данные игнорируются VCS, защищает только машину автора.
 !src/test/resources/platform-public-surface.txt
+!src/test/resources/platform-core-surface.txt
 !src/test/resources/platform-package-matrix.txt
 
 # D2/D1: API/ABI baseline публичной поверхности вынесенных артефактов. PlatformApiBaselineTest
@@ -100,3 +101,6 @@ src/main/bundles/
 runcl.bat
 ### Runtime logs ###
 logs/
+
+### Local verification logs ###
+/*.log

@@ -34,6 +34,13 @@ import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
 import org.ipro.ureport.catalog.ReportCatalogItem;
 import org.ipro.ureport.catalog.ReportCatalogService;
 import org.ipro.ureport.catalog.ReportEngineType;
+import org.ipro.jr.dom.JrxmlTemplate;
+import org.ipro.jr.run.JrxmlExecutionService;
+import org.ipro.jr.service.JrxmlTemplateService;
+import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
+import org.ipro.ureport.dom.UreportTemplate;
+import org.ipro.ureport.params.UreportParamSpec;
+import org.ipro.ureport.service.UreportTemplateService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -51,8 +58,8 @@ public class ReportCatalogView extends HorizontalLayout {
     private final Grid<ReportCatalogItem> grid = new Grid<>(ReportCatalogItem.class, false);
     private final TextField search = new TextField();
     private final UreportTemplateServiceBridge ureportBridge;
-    private final org.ipro.jr.service.JrxmlTemplateService jrxmlTemplateService;
-    private final org.ipro.jr.run.JrxmlExecutionService jrxmlExecutionService;
+    private final JrxmlTemplateService jrxmlTemplateService;
+    private final JrxmlExecutionService jrxmlExecutionService;
     private final ReportExecutionService executionService;
     private final LookupService lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
@@ -61,9 +68,9 @@ public class ReportCatalogView extends HorizontalLayout {
             ReportTemplateService templateService,
             ReportTemplateTransferService transferService,
             ReportCatalogService catalogService,
-            org.ipro.ureport.service.UreportTemplateService ureportTemplateService,
-            org.ipro.jr.service.JrxmlTemplateService jrxmlTemplateService,
-            org.ipro.jr.run.JrxmlExecutionService jrxmlExecutionService,
+            UreportTemplateService ureportTemplateService,
+            JrxmlTemplateService jrxmlTemplateService,
+            JrxmlExecutionService jrxmlExecutionService,
             ReportQueryGuard guard,
             ReportPreviewService previewService,
             QueryEditorAnalysisService queryEditorAnalysisService,
@@ -72,7 +79,7 @@ public class ReportCatalogView extends HorizontalLayout {
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler,
             ReportQueryAssemblyService queryAssemblyService,
-            org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog) {
+            QueryBuilderMetadataCatalog visualCatalog) {
         this.templateService = templateService;
         this.transferService = transferService;
         this.catalogService = catalogService;
@@ -200,7 +207,7 @@ public class ReportCatalogView extends HorizontalLayout {
         Button create = new Button("Создать", event -> {
             if (name.getValue() == null || name.getValue().isBlank()) { showError("Укажите наименование"); return; }
             try {
-                org.ipro.jr.dom.JrxmlTemplate created =
+                JrxmlTemplate created =
                         jrxmlTemplateService.createTemplate(name.getValue(), description.getValue());
                 refreshCatalog();
                 dialog.close();
@@ -260,7 +267,7 @@ public class ReportCatalogView extends HorizontalLayout {
 
     private void runJr(ReportCatalogItem item) {
         try {
-            org.ipro.jr.dom.JrxmlTemplate template = jrxmlTemplateService.findById(item.id())
+            JrxmlTemplate template = jrxmlTemplateService.findById(item.id())
                     .orElseThrow(() -> new IllegalArgumentException("Шаблон JR не найден: " + item.id()));
             new org.ip.views.reports.JrxmlRunDialog(template, jrxmlExecutionService,
                     executionService).open();
@@ -277,7 +284,7 @@ public class ReportCatalogView extends HorizontalLayout {
 
     private void runUreport(ReportCatalogItem item) {
         try {
-            java.util.List<org.ipro.ureport.params.UreportParamSpec> specs = ureportBridge.loadParamSpecs(item.id());
+            java.util.List<UreportParamSpec> specs = ureportBridge.loadParamSpecs(item.id());
             new UreportParamsDialog(item.name(), designerFileOf(item), specs).open();
         } catch (RuntimeException ex) { showError("Не удалось открыть параметры UReport3: " + ex.getMessage()); }
     }
@@ -439,14 +446,14 @@ public class ReportCatalogView extends HorizontalLayout {
         return stem.isBlank() ? "report-template" : stem;
     }
 
-    public record UreportTemplateServiceBridge(org.ipro.ureport.service.UreportTemplateService service) {
+    public record UreportTemplateServiceBridge(UreportTemplateService service) {
         public ReportCatalogItem create(String name, String description) {
-            org.ipro.ureport.dom.UreportTemplate template = service.createTemplate(name, description);
-            return new ReportCatalogItem(template.getId(), ReportEngineType.UREPORT3, template.getName(), template.getDescription(), template.isEnabled(), org.ipro.ureport.service.UreportTemplateService.designerUrl(template.getFileName()), false);
+            UreportTemplate template = service.createTemplate(name, description);
+            return new ReportCatalogItem(template.getId(), ReportEngineType.UREPORT3, template.getName(), template.getDescription(), template.isEnabled(), UreportTemplateService.designerUrl(template.getFileName()), false);
         }
         public void delete(Long id) { service.delete(id); }
-        public java.util.List<org.ipro.ureport.params.UreportParamSpec> loadParamSpecs(Long id) {
-            org.ipro.ureport.dom.UreportTemplate template = service.findById(id)
+        public java.util.List<UreportParamSpec> loadParamSpecs(Long id) {
+            UreportTemplate template = service.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Шаблон UReport не найден: " + id));
             return service.loadParamSpecs(template.getFileName());
         }

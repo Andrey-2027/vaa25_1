@@ -1,0 +1,184 @@
+# platform-numbering: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+annotation public abstract interface org.ipro.numbering.annotation.Numbered
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [FIELD]
+  method public abstract boolean allowManual() default true
+  method public abstract java.lang.String dateField() default 
+  method public abstract java.lang.String pattern() default {seq:000000}
+  method public abstract java.lang.String prefix() default 
+  method public abstract java.lang.String[] scope() default []
+  method public abstract org.ipro.numbering.NumberingPeriod period() default NEVER
+  method public abstract org.ipro.numbering.annotation.NumberingRole role() default CUSTOM
+
+annotation public abstract interface org.ipro.numbering.annotation.NumberingPolicies
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Inherited
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract org.ipro.numbering.annotation.NumberingPolicy[] value()
+
+annotation public abstract interface org.ipro.numbering.annotation.NumberingPolicy
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Inherited
+  annotation java.lang.annotation.Repeatable
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract boolean allowManual() default true
+  method public abstract java.lang.String dateField() default 
+  method public abstract java.lang.String pattern() default {seq:000000}
+  method public abstract java.lang.String prefix() default 
+  method public abstract java.lang.String[] scope() default []
+  method public abstract org.ipro.numbering.NumberingPeriod period() default NEVER
+  method public abstract org.ipro.numbering.annotation.NumberingRole role()
+
+class public final org.ipro.numbering.NumberFormatter
+  method public static java.lang.String format(long, java.lang.String, java.lang.String, java.time.LocalDate)
+
+class public org.ipro.numbering.NumberingCounter
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.Table
+  ctor protected()
+  ctor public(java.lang.String, long)
+  method public java.lang.String getKey()
+  method public long getLastValue()
+  method public long getVersion()
+  method public void setLastValue(long)
+
+class public org.ipro.numbering.NumberingCounterService
+  ctor public()
+  ctor public(jakarta.persistence.EntityManager)
+  method public long allocate(java.lang.String, long)
+  method public long lastValue(java.lang.String)
+  method public void setCurrentValue(java.lang.String, long)
+
+class public org.ipro.numbering.NumberingMetadataRegistry
+  implements org.springframework.beans.factory.InitializingBean
+  ctor public(java.lang.String)
+  method public java.util.List<org.ipro.numbering.NumberingMetadataRegistry$NumberedFieldInfo> all()
+  method public java.util.List<org.ipro.numbering.NumberingMetadataRegistry$NumberedFieldInfo> forEntity(java.lang.Class<?>)
+  method public java.util.Optional<org.ipro.numbering.NumberingMetadataRegistry$NumberedFieldInfo> find(java.lang.Class<?>, java.lang.String)
+  method public void afterPropertiesSet()
+  method public void rebuild()
+
+class public org.ipro.numbering.NumberingRule
+  extends org.ipro.crud.BaseEntity
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.Table
+  ctor public()
+  method public boolean isManualInput()
+  method public java.lang.Long getInitialValue()
+  method public java.lang.String getEntityClass()
+  method public java.lang.String getFieldName()
+  method public java.lang.String getPattern()
+  method public java.lang.String getPrefix()
+  method public org.ipro.numbering.NumberingPeriod getPeriod()
+  method public void setEntityClass(java.lang.String)
+  method public void setFieldName(java.lang.String)
+  method public void setInitialValue(java.lang.Long)
+  method public void setManualInput(boolean)
+  method public void setPattern(java.lang.String)
+  method public void setPeriod(org.ipro.numbering.NumberingPeriod)
+  method public void setPrefix(java.lang.String)
+
+class public org.ipro.numbering.NumberingRuleService
+  ctor public(org.ipro.numbering.NumberingRuleRepository)
+  method public org.ipro.numbering.NumberingRule effectiveRule(java.lang.String, java.lang.String, org.ipro.numbering.NumberingDefinition)
+  method public org.ipro.numbering.NumberingRule effectiveRule(java.lang.String, java.lang.String, org.ipro.numbering.annotation.Numbered)
+  method public org.ipro.numbering.NumberingRule save(org.ipro.numbering.NumberingRule)
+  method public void delete(org.ipro.numbering.NumberingRule)
+
+class public org.ipro.numbering.NumberingService
+  implements org.springframework.beans.factory.InitializingBean
+  ctor public(org.ipro.numbering.NumberingRuleService, org.ipro.numbering.NumberingCounterService, org.ipro.numbering.NumberingScopeResolver, org.ipro.numbering.NumberingMetadataRegistry)
+  field public static final java.lang.String KEY_SEPARATOR = |
+  method public java.lang.String autoValue(java.lang.Object, java.lang.reflect.Field)
+  method public java.lang.String format(java.lang.Object, java.lang.reflect.Field, long)
+  method public long currentValue(java.lang.Object, java.lang.reflect.Field)
+  method public long next(java.lang.Object, java.lang.reflect.Field)
+  method public static org.ipro.numbering.NumberingScopeResolver globalOnlyDefault()
+  method public void afterPropertiesSet()
+  method public void assignAutoValues(java.lang.Object)
+  method public void setCurrentValue(java.lang.Object, java.lang.reflect.Field, long)
+
+class public org.ipro.numbering.config.NumberingAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.persistence.autoconfigure.EntityScan
+  annotation org.springframework.data.jpa.repository.config.EnableJpaRepositories
+  ctor public()
+  method public org.ipro.numbering.NumberingCounterService numberingCounterService()
+  method public org.ipro.numbering.NumberingMetadataRegistry numberingMetadataRegistry(java.lang.String)
+  method public org.ipro.numbering.NumberingRuleService numberingRuleService(org.ipro.numbering.NumberingRuleRepository)
+  method public org.ipro.numbering.NumberingService numberingService(org.ipro.numbering.NumberingRuleService, org.ipro.numbering.NumberingCounterService, org.springframework.beans.factory.ObjectProvider<org.ipro.numbering.NumberingScopeResolver>, org.ipro.numbering.NumberingMetadataRegistry)
+
+enum public final org.ipro.numbering.NumberingPeriod
+  extends java.lang.Enum<org.ipro.numbering.NumberingPeriod>
+  enum-constants [NEVER, YEAR, QUARTER, MONTH, DAY]
+  field public static final org.ipro.numbering.NumberingPeriod DAY = enum-constant
+  field public static final org.ipro.numbering.NumberingPeriod MONTH = enum-constant
+  field public static final org.ipro.numbering.NumberingPeriod NEVER = enum-constant
+  field public static final org.ipro.numbering.NumberingPeriod QUARTER = enum-constant
+  field public static final org.ipro.numbering.NumberingPeriod YEAR = enum-constant
+  method public java.lang.String keyFor(java.time.LocalDate)
+  method public static org.ipro.numbering.NumberingPeriod valueOf(java.lang.String)
+  method public static org.ipro.numbering.NumberingPeriod[] values()
+
+enum public final org.ipro.numbering.annotation.NumberingRole
+  extends java.lang.Enum<org.ipro.numbering.annotation.NumberingRole>
+  enum-constants [CUSTOM, CATALOG_CODE, DOCUMENT_NUMBER]
+  field public static final org.ipro.numbering.annotation.NumberingRole CATALOG_CODE = enum-constant
+  field public static final org.ipro.numbering.annotation.NumberingRole CUSTOM = enum-constant
+  field public static final org.ipro.numbering.annotation.NumberingRole DOCUMENT_NUMBER = enum-constant
+  method public static org.ipro.numbering.annotation.NumberingRole valueOf(java.lang.String)
+  method public static org.ipro.numbering.annotation.NumberingRole[] values()
+
+interface public abstract interface org.ipro.numbering.NumberingCounterRepository
+  implements org.springframework.data.jpa.repository.JpaRepository<org.ipro.numbering.NumberingCounter, java.lang.String>
+  annotation org.springframework.stereotype.Repository
+  method public abstract java.util.List<org.ipro.numbering.NumberingCounter> findByKeyStartingWith(java.lang.String)
+
+interface public abstract interface org.ipro.numbering.NumberingRuleRepository
+  implements org.springframework.data.jpa.repository.JpaRepository<org.ipro.numbering.NumberingRule, java.lang.Long>
+  annotation org.springframework.stereotype.Repository
+  method public abstract java.util.Optional<org.ipro.numbering.NumberingRule> findByEntityClassAndFieldName(java.lang.String, java.lang.String)
+
+interface public abstract interface org.ipro.numbering.NumberingScopeResolver
+  annotation java.lang.FunctionalInterface
+  method public abstract java.lang.Long scopeValue(java.lang.String, java.lang.Object)
+  method public boolean canResolve(java.lang.String)
+
+record public final org.ipro.numbering.NumberingDefinition
+  extends java.lang.Record
+  ctor public(org.ipro.numbering.annotation.NumberingRole, java.util.List<java.lang.String>, boolean, org.ipro.numbering.NumberingPeriod, java.lang.String, java.lang.String, java.lang.String)
+  method public boolean allowManual()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String dateField()
+  method public java.lang.String pattern()
+  method public java.lang.String prefix()
+  method public java.util.List<java.lang.String> scope()
+  method public org.ipro.numbering.NumberingPeriod period()
+  method public org.ipro.numbering.annotation.NumberingRole role()
+  method public static org.ipro.numbering.NumberingDefinition from(org.ipro.numbering.annotation.Numbered)
+  method public static org.ipro.numbering.NumberingDefinition from(org.ipro.numbering.annotation.Numbered, org.ipro.numbering.annotation.NumberingPolicy)
+
+record public static final org.ipro.numbering.NumberingMetadataRegistry$NumberedFieldInfo
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.lang.String, java.lang.reflect.Field, org.ipro.numbering.annotation.Numbered, org.ipro.numbering.NumberingDefinition)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> entityClass()
+  method public java.lang.String fieldName()
+  method public java.lang.String key()
+  method public java.lang.reflect.Field field()
+  method public org.ipro.numbering.NumberingDefinition definition()
+  method public org.ipro.numbering.annotation.Numbered annotation()
+

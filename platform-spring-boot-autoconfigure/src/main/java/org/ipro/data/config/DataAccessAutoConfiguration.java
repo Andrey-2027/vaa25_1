@@ -31,6 +31,7 @@ import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.ipro.numbering.NumberingService;
 import org.ipro.numbering.config.NumberingAutoConfiguration;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsReadGate;
@@ -126,7 +127,8 @@ public class DataAccessAutoConfiguration {
     /** Единая read-граница для standard list/detail/lookup и aggregate section reads. */
     @Bean
     @ConditionalOnBean({EntityDescriptorCatalog.class, ScenarioFetchGraphResolver.class,
-        MetadataResolver.class, RlsFilterActivator.class, RlsReadGate.class})
+        MetadataResolver.class, RlsFilterActivator.class, RlsReadGate.class,
+        RlsCurrentUser.class})
     @ConditionalOnMissingBean
     public CanonicalReadExecutor canonicalReadExecutor(
             EntityDescriptorCatalog entityDescriptorCatalog,
@@ -136,11 +138,12 @@ public class DataAccessAutoConfiguration {
             RlsReadGate rlsReadGate,
             ObjectProvider<RlsPolicyEnforcer> rlsPolicyEnforcer,
             ObjectProvider<ReadTelemetry> readTelemetry,
-            ObjectProvider<InstanceNameResolver> instanceNameResolver) {
+            ObjectProvider<InstanceNameResolver> instanceNameResolver,
+            RlsCurrentUser currentUser) {
         return new CanonicalReadExecutor(entityDescriptorCatalog, scenarioFetchGraphResolver,
             metadataResolver, rlsFilterActivator, rlsReadGate,
             rlsPolicyEnforcer.getIfAvailable(), readTelemetry.getIfAvailable(),
-            instanceNameResolver.getIfAvailable());
+            instanceNameResolver.getIfAvailable(), currentUser);
     }
 
     /**

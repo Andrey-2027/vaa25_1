@@ -35,6 +35,8 @@ import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
 import org.ipro.ureport.catalog.ReportCatalogItem;
 import org.ipro.ureport.catalog.ReportCatalogService;
 import org.ipro.ureport.catalog.ReportEngineType;
+import org.ipro.ureport.dom.UreportTemplate;
+import org.ipro.ureport.service.UreportTemplateService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,7 +59,7 @@ public class ReportCatalogViewStructured extends HorizontalLayout {
             ReportTemplateService templateService,
             ReportTemplateTransferService transferService,
             ReportCatalogService catalogService,
-            org.ipro.ureport.service.UreportTemplateService ureportTemplateService,
+            UreportTemplateService ureportTemplateService,
             ReportQueryGuard guard,
             ReportPreviewService previewService,
             QueryEditorAnalysisService queryEditorAnalysisService,
@@ -305,10 +307,10 @@ public class ReportCatalogViewStructured extends HorizontalLayout {
         return stem.isBlank() ? "report-template" : stem;
     }
 
-    public record UreportTemplateServiceBridge(org.ipro.ureport.service.UreportTemplateService service) {
+    public record UreportTemplateServiceBridge(UreportTemplateService service) {
         public ReportCatalogItem create(String name, String description) {
-            org.ipro.ureport.dom.UreportTemplate template = service.createTemplate(name, description);
-            return new ReportCatalogItem(template.getId(), ReportEngineType.UREPORT3, template.getName(), template.getDescription(), template.isEnabled(), org.ipro.ureport.service.UreportTemplateService.designerUrl(template.getFileName()), false);
+            UreportTemplate template = service.createTemplate(name, description);
+            return new ReportCatalogItem(template.getId(), ReportEngineType.UREPORT3, template.getName(), template.getDescription(), template.isEnabled(), UreportTemplateService.designerUrl(template.getFileName()), false);
         }
         public void delete(Long id) { service.delete(id); }
     }

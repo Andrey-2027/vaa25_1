@@ -187,7 +187,7 @@ function Get-SourceTreeFingerprint {
             continue
         }
         $previousPath = $relativePath
-        $fileHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $nameArray[$index]).Hash.ToLowerInvariant()
+        $fileHash = Get-FileSha256 $nameArray[$index]
         [void]$content.Append($relativePath).Append("`0").Append($fileHash).Append("`n")
         $fileCount++
     }
@@ -203,6 +203,21 @@ function Get-SourceTreeFingerprint {
     return [pscustomobject]@{
         FileCount = $fileCount
         Sha256 = $digest
+    }
+}
+
+function Get-FileSha256 {
+    param([string]$Path)
+
+    # Не используем Get-FileHash: он живёт в Microsoft.PowerShell.Utility и может быть
+    # недоступен в урезанной/изолированной PowerShell-сессии, хотя сам скрипт запускается.
+    $hasher = [System.Security.Cryptography.SHA256]::Create()
+    $stream = [System.IO.File]::OpenRead($Path)
+    try {
+        return [System.BitConverter]::ToString($hasher.ComputeHash($stream)).Replace('-', '').ToLowerInvariant()
+    } finally {
+        $stream.Dispose()
+        $hasher.Dispose()
     }
 }
 
@@ -452,25 +467,8 @@ if ($manifest.schemaVersion -ne 1) {
     throw "Unsupported manifest schema: $($manifest.schemaVersion)"
 }
 
-$resolvedMavenCommand = Resolve-IntellijMavenCommand $MavenCommand
-$expectedJavaMajor = [int]$manifest.toolchain.javaMajor
-$resolvedJavaHome = Resolve-JavaHome $JavaHome $expectedJavaMajor
-$env:JAVA_HOME = $resolvedJavaHome
-
-$javaVersionOutput = Get-JavaVersionOutput (Join-Path $resolvedJavaHome 'bin\java.exe')
-if ($javaVersionOutput -notmatch "version `"$expectedJavaMajor\.") {
-    throw "JDK $expectedJavaMajor is required. Detected: $javaVersionOutput"
-}
-
-$mavenVersionOutput = (& $resolvedMavenCommand -version 2>&1 | Out-String)
-if ($LASTEXITCODE -ne 0) {
-    throw "Unable to execute Maven: $resolvedMavenCommand"
-}
-$expectedMavenVersion = [string]$manifest.toolchain.testedMavenVersion
-if (-not $AllowToolchainDrift -and $mavenVersionOutput -notmatch "Apache Maven $([regex]::Escape($expectedMavenVersion))") {
-    throw "Maven $expectedMavenVersion is required by the manifest. Use -AllowToolchainDrift only for an intentional toolchain test."
-}
-
+# Инструментарий (JDK/Maven) здесь намеренно не проверяется: -ValidateOnly обязан работать
+# на машине без Maven. Разрешение toolchain перенесено за ветку -ValidateOnly.
 if ($FreshLocalRepository) {
     if ($Offline) {
         throw 'An empty local repository cannot be filled offline: drop -Offline, because the first build has to resolve third-party artifacts from a remote repository.'
@@ -504,12 +502,6 @@ if ($LocalRepository) {
     } else {
         New-Item -ItemType Directory -Path $resolvedLocalRepository | Out-Null
     }
-}
-
-Write-Host "Maven: $resolvedMavenCommand"
-Write-Host "Java:  $resolvedJavaHome"
-if ($resolvedLocalRepository) {
-    Write-Host "Repo:  $resolvedLocalRepository"
 }
 
 $workspaceArtifacts = Assert-PublishedCoordinatesAreUnique $manifest.projects
@@ -561,8 +553,35 @@ if ($ValidateOnly) {
     if ($resolvedLocalRepository) {
         Write-Host "OK local repository: $resolvedLocalRepository is empty"
     }
-    Write-Host 'Manifest, dependsOn graph, POM edges, published coordinates, workspace layout, source fingerprints and toolchain are valid.'
+    Write-Host 'Manifest, dependsOn graph, POM edges, published coordinates, workspace layout and source fingerprints are valid.'
+    Write-Host 'Toolchain (JDK/Maven) is not resolved in -ValidateOnly: this check runs on a machine without Maven.'
     exit 0
+}
+
+# --- Реальная сборка: только здесь нужны JDK и Maven. ---
+$resolvedMavenCommand = Resolve-IntellijMavenCommand $MavenCommand
+$expectedJavaMajor = [int]$manifest.toolchain.javaMajor
+$resolvedJavaHome = Resolve-JavaHome $JavaHome $expectedJavaMajor
+$env:JAVA_HOME = $resolvedJavaHome
+
+$javaVersionOutput = Get-JavaVersionOutput (Join-Path $resolvedJavaHome 'bin\java.exe')
+if ($javaVersionOutput -notmatch "version `"$expectedJavaMajor\.") {
+    throw "JDK $expectedJavaMajor is required. Detected: $javaVersionOutput"
+}
+
+$mavenVersionOutput = (& $resolvedMavenCommand -version 2>&1 | Out-String)
+if ($LASTEXITCODE -ne 0) {
+    throw "Unable to execute Maven: $resolvedMavenCommand"
+}
+$expectedMavenVersion = [string]$manifest.toolchain.testedMavenVersion
+if (-not $AllowToolchainDrift -and $mavenVersionOutput -notmatch "Apache Maven $([regex]::Escape($expectedMavenVersion))") {
+    throw "Maven $expectedMavenVersion is required by the manifest. Use -AllowToolchainDrift only for an intentional toolchain test."
+}
+
+Write-Host "Maven: $resolvedMavenCommand"
+Write-Host "Java:  $resolvedJavaHome"
+if ($resolvedLocalRepository) {
+    Write-Host "Repo:  $resolvedLocalRepository"
 }
 
 foreach ($projectId in $effectiveOrder) {

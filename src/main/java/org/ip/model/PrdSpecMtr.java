@@ -2,7 +2,13 @@ package org.ip.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import org.ipro.metadata.annotation.*;
+import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.FieldMetadata;
+import org.ipro.metadata.annotation.FieldType;
+import org.ipro.metadata.annotation.GridColumn;
+import org.ipro.metadata.annotation.Lookup;
+import org.ipro.metadata.annotation.SectionRlsPolicy;
+import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.ipro.crud.BaseEntity;
 
 import java.math.BigDecimal;

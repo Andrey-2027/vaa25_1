@@ -61,7 +61,7 @@ class CanonicalReadSortGuardTest {
         when(readGate.canRead(any(), any())).thenReturn(true);
         executor = new CanonicalReadExecutor(catalog, mock(ScenarioFetchGraphResolver.class),
             mock(MetadataResolver.class), mock(RlsFilterActivator.class), readGate, null,
-            ReadTelemetry.noop());
+            ReadTelemetry.noop(), () -> "test-user");
         ReflectionTestUtils.setField(executor, "entityManager", entityManager);
     }
 

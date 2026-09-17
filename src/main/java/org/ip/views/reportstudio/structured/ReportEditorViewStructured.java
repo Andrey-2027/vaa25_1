@@ -61,6 +61,7 @@ import org.ipro.filtergrid.filter.FilterTreeEditor;
 import org.ipro.filtergrid.filter.FilterTreeJson;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.reportstudio.run.ReportExecutionService;
+import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -92,7 +93,7 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
     private final QueryMetadataCatalogService catalogService;
     private final ReportPreviewService previewService;
     private final ReportQueryAssemblyService queryAssemblyService;
-    private final org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog;
+    private final QueryBuilderMetadataCatalog visualCatalog;
 
     private final TextField name = new TextField("Наименование отчёта");
     private final TextArea description = new TextArea("Описание");
@@ -142,7 +143,7 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
             LookupService lookupService,
             SelectionFormAssembler selectionFormAssembler,
             ReportQueryAssemblyService queryAssemblyService,
-            org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog) {
+            QueryBuilderMetadataCatalog visualCatalog) {
         this.templateService = templateService;
         this.executionService = executionService;
         this.lookupService = lookupService;

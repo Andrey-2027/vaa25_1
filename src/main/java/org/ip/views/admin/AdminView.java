@@ -19,6 +19,8 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 
 import org.ipro.rls.AccessGrant;
+import org.ipro.rls.AccessService.EffectiveGrant;
+import org.ipro.rls.RlsDimensionKind;
 import org.ip.service.AccessGrantAdminService;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -244,7 +246,7 @@ public class AdminView extends VerticalLayout {
         String subjectKey = accessSubjectKey.getValue();
 
         boolean checkOnly = dimension != null
-                && accessGrantAdminService.kindOf(dimension) == org.ipro.rls.RlsDimensionKind.CHECK_ONLY;
+                && accessGrantAdminService.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY;
         accessGrid.setVisible(!checkOnly);
         singleGrantRowLayout.setVisible(checkOnly);
 
@@ -288,7 +290,7 @@ public class AdminView extends VerticalLayout {
         accessSaveInProgress = true;
         saveAccessButton.setEnabled(false);
         try {
-            if (accessGrantAdminService.kindOf(dimension) == org.ipro.rls.RlsDimensionKind.CHECK_ONLY) {
+            if (accessGrantAdminService.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY) {
                 GrantFlags flags = new GrantFlags(
                         singleGrantRead.getValue(), singleGrantUpdate.getValue(), singleGrantDelete.getValue());
                 accessGrantAdminService.saveSingleGrant(dimension, accessSubjectType.getValue(), subjectKey, flags);
@@ -341,12 +343,12 @@ public class AdminView extends VerticalLayout {
             return;
         }
         AccessGrant.SubjectType subjectType = accessSubjectType.getValue();
-        Map<String, org.ipro.rls.AccessService.EffectiveGrant> effective =
+        Map<String, EffectiveGrant> effective =
                 accessGrantAdminService.collectEffective(subjectType, subjectKey);
 
         java.util.List<EffectiveRightsRow> rows = new java.util.ArrayList<>();
-        for (Map.Entry<String, org.ipro.rls.AccessService.EffectiveGrant> entry : effective.entrySet()) {
-            org.ipro.rls.AccessService.EffectiveGrant grant = entry.getValue();
+        for (Map.Entry<String, EffectiveGrant> entry : effective.entrySet()) {
+            EffectiveGrant grant = entry.getValue();
             rows.add(new EffectiveRightsRow(
                     entry.getKey(),
                     formatEffectiveValues(entry.getKey(), grant),
@@ -374,8 +376,8 @@ public class AdminView extends VerticalLayout {
     }
 
     /** Колонка «Записи»: "все" — wildcard-грант; "—" — CHECK_ONLY или нет прав на чтение; иначе коды записей. */
-    private String formatEffectiveValues(String dimension, org.ipro.rls.AccessService.EffectiveGrant grant) {
-        if (accessGrantAdminService.kindOf(dimension) == org.ipro.rls.RlsDimensionKind.CHECK_ONLY
+    private String formatEffectiveValues(String dimension, EffectiveGrant grant) {
+        if (accessGrantAdminService.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY
                 || !grant.canRead()) {
             return "—";
         }

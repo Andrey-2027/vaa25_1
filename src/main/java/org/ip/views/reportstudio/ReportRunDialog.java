@@ -16,7 +16,6 @@ import com.vaadin.flow.server.WrappedHttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.ipro.form.SelectionFormAssembler;
-import org.ipro.security.CurrentUser;
 import org.ipro.crud.LookupService;
 import org.ip.views.components.ReportParamForm;
 import org.ipro.reportstudio.dom.ReportTemplate;
@@ -105,7 +104,7 @@ public class ReportRunDialog extends Dialog {
         // Фоновый поток не наследует Spring request/session scope и SecurityContext.
         // Захватываем их здесь (в UI-потоке) и восстанавливаем вокруг executionService.run:
         // session-scoped RlsReadableIdsCache читает сессию через RequestContextHolder,
-        // RlsCurrentUser/CurrentUser — через SecurityContextHolder.
+        // RlsCurrentUser — через SecurityContextHolder.
         //
         // HttpSession берём напрямую из VaadinSession: в Vaadin 25 клик-события идут по
         // WebSocket, и HttpServletRequest из VaadinServletRequest может быть синтетическим,
@@ -169,8 +168,13 @@ public class ReportRunDialog extends Dialog {
     }
 
     private static ReportContext emptyContext() {
-        String username = CurrentUser.username();
-        if (username == null || username.isBlank() || "system".equals(username)) {
+        // Читаем Spring Security напрямую (та же конвенция, что у SecurityRlsUser):
+        // platform-класс CurrentUser удалён, а диалог создаётся через new —
+        // не Spring-бин.
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication == null ? null : authentication.getName();
+        if (username == null || username.isBlank() || "system".equals(username)
+            || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new RlsAccessDeniedException("Запуск отчёта требует аутентифицированного пользователя");
         }
         return ReportContext.of(null, null, List.of(), null, username, Instant.now());

@@ -1,5 +1,6 @@
 package org.ipro.vaadin.explorer.config;
 
+import org.ipro.autoconfigure.PlatformProperties;
 import org.ipro.form.registry.FormRegistry;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.ReferenceIndex;
@@ -9,7 +10,6 @@ import org.ipro.numbering.NumberingMetadataRegistry;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -48,7 +48,7 @@ public class EntityExplorerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EntitySummaryAssembler entitySummaryAssembler(
-            @Value("${platform.subsystem-scan-package}") String basePackage,
+            PlatformProperties platformProperties,
             MetadataResolver metadataResolver,
             FormRegistry formRegistry,
             ReferenceIndex referenceIndex,
@@ -56,7 +56,7 @@ public class EntityExplorerAutoConfiguration {
             SubsystemRegistry subsystemRegistry,
             FacetResolver facetResolver) {
         return new EntitySummaryAssembler(
-            basePackage, metadataResolver, formRegistry, referenceIndex,
-            numberingMetadataRegistry, subsystemRegistry, facetResolver);
+            platformProperties.requiredSubsystemScanPackage(), metadataResolver, formRegistry,
+            referenceIndex, numberingMetadataRegistry, subsystemRegistry, facetResolver);
     }
 }

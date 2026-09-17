@@ -3,7 +3,6 @@ package org.ipro.metadata;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.Subsystem;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -15,7 +14,7 @@ public class SubsystemRegistry implements InitializingBean {
     private List<SubsystemNode> roots = List.of();
 
     public SubsystemRegistry(
-            @Value("${platform.subsystem-scan-package}") String basePackage) {
+            String basePackage) {
         this.basePackage = basePackage;
     }
 

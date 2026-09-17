@@ -12,6 +12,7 @@ import org.ipro.reportstudio.data.EntityRef;
 import org.ipro.reportstudio.query.GuardResult;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.jr.run.JpqlDatasetRunner;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,7 +33,7 @@ import org.springframework.stereotype.Component;
  * </ul></p>
  */
 @Component
-public class JpqlRunService implements org.ipro.jr.run.JpqlDatasetRunner {
+public class JpqlRunService implements JpqlDatasetRunner {
 
     /** Ограничение размера выборки (защита от тяжёлых запросов из дизайнера/каталога). */
     public static final int MAX_ROWS = 10_000;

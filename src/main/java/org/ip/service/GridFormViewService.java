@@ -6,7 +6,7 @@ import org.ipro.crud.BaseService;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.data.EntityDataAccessResolver;
 import org.ipro.fetch.plan.FetchScenario;
-import org.ipro.security.CurrentUser;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.telemetry.api.Measured;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -40,13 +40,17 @@ public class GridFormViewService implements BaseService<GridFormView, Long> {
 
     private final GridFormViewRepository repository;
 
+    /** Имя текущего пользователя для ownership-запроса видов: тот же SPI, что у RLS. */
+    private final RlsCurrentUser currentUser;
+
     /** Стандартная поверхность: canonical boundary (ADR-0007 §1). */
     private final CanonicalEntityService<GridFormView> canonical;
 
     @Autowired
     public GridFormViewService(GridFormViewRepository repository,
-                               EntityDataAccessResolver dataAccessResolver) {
-        this(repository, canonicalHandle(dataAccessResolver));
+                               EntityDataAccessResolver dataAccessResolver,
+                               RlsCurrentUser currentUser) {
+        this(repository, canonicalHandle(dataAccessResolver), currentUser);
     }
 
     /**
@@ -54,9 +58,11 @@ public class GridFormViewService implements BaseService<GridFormView, Long> {
      * Намеренно package-private, чтобы Spring autowiring видел ровно одного кандидата.
      */
     GridFormViewService(GridFormViewRepository repository,
-                        CanonicalEntityService<GridFormView> canonical) {
+                        CanonicalEntityService<GridFormView> canonical,
+                        RlsCurrentUser currentUser) {
         this.repository = Objects.requireNonNull(repository, "repository must not be null");
         this.canonical = Objects.requireNonNull(canonical, "canonical must not be null");
+        this.currentUser = Objects.requireNonNull(currentUser, "currentUser must not be null");
     }
 
     private static CanonicalEntityService<GridFormView> canonicalHandle(
@@ -79,7 +85,7 @@ public class GridFormViewService implements BaseService<GridFormView, Long> {
 
     /** Виды, доступные текущему пользователю для конкретного formKey (общие + свои личные). */
     public List<GridFormView> findVisibleViews(String formKey) {
-        return repository.findVisibleViews(formKey, CurrentUser.username());
+        return repository.findVisibleViews(formKey, currentUser.username());
     }
 
     /** Создать новый вид от имени текущего пользователя (автор проставляется через @CreatedBy). */

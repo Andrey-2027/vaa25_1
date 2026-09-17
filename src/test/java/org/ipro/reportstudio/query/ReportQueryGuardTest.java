@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import org.ip.Application;
 import org.ip.model.Journal;
 import org.ip.repository.UserRepository;
-import org.ipro.security.CurrentUser;
 import org.ip.security.UserRepositoryRlsRoleResolver;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
@@ -61,7 +60,7 @@ class ReportQueryGuardTest {
         registry.rebuild();
         accessService = new AccessService(accessGrantRepository,
             new UserRepositoryRlsRoleResolver(userRepository), registry);
-        RlsCurrentUser currentUser = () -> CurrentUser.username();
+        RlsCurrentUser currentUser = () -> SecurityContextHolder.getContext().getAuthentication().getName();
 
         var analyzer = new org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer(entityManagerFactory);
         guard = new ReportQueryGuard(analyzer, accessService, registry, currentUser, entityManagerFactory);

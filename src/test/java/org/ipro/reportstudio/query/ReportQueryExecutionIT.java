@@ -7,7 +7,6 @@ import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.repository.UserRepository;
-import org.ipro.security.CurrentUser;
 import org.ip.security.UserRepositoryRlsRoleResolver;
 import org.ipro.reportstudio.data.EntityRef;
 import org.ipro.reportstudio.data.ReportDataset;
@@ -75,11 +74,11 @@ class ReportQueryExecutionIT {
         var accessService = new AccessService(accessGrantRepository,
             new UserRepositoryRlsRoleResolver(userRepository), registry);
         var cache = new RlsReadableIdsCache(accessService);
-        activator = new RlsFilterActivator(registry, cache, () -> CurrentUser.username());
+        activator = new RlsFilterActivator(registry, cache, () -> SecurityContextHolder.getContext().getAuthentication().getName());
 
         var analyzer = new SqmQuerySemanticAnalyzer(entityManagerFactory);
         guard = new ReportQueryGuard(analyzer, accessService, registry,
-            () -> CurrentUser.username(), entityManagerFactory);
+            () -> SecurityContextHolder.getContext().getAuthentication().getName(), entityManagerFactory);
         executor = new ReportQueryExecutor(entityManager, activator);
 
         Journal journalA = new Journal();

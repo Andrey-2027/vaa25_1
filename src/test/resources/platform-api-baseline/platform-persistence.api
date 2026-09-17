@@ -1,4 +1,4 @@
-# platform-persistence: публичная поверхность (перезапись: -Dplatform.api.baseline.write=true)
+# platform-persistence: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
 abstract-class public abstract org.ipro.crud.BaseEntity
   implements org.ipro.identity.IdentifiableEntity
   annotation jakarta.persistence.EntityListeners

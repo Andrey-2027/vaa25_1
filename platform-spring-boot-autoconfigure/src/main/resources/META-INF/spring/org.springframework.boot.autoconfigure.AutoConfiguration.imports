@@ -1,0 +1,5 @@
+org.ipro.crud.config.CrudAutoConfiguration
+org.ipro.metadata.config.MetadataAutoConfiguration
+org.ipro.fetch.config.FetchPlanInstanceNameAutoConfiguration
+org.ipro.data.config.DataAccessAutoConfiguration
+org.ipro.search.config.GlobalSearchAutoConfiguration

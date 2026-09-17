@@ -37,10 +37,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  *     {@code spring-context} (сканер и bean-контракт индекса);</li>
  * <li>внешние импорты — только разрешённые пакеты: реализация платформы в этом модуле
  *     означала бы, что подсистемы не смогут зависеть на него без цикла;</li>
- * <li>модуль <b>не несёт авто-конфигурации</b>: бин {@code ReferenceIndex} объявляет
- *     {@code MetadataAutoConfiguration} приложения, поэтому потеря артефакта ломает сборку,
- *     а не проявляется позже как «каталог молча пуст». Если модулю когда-нибудь
- *     понадобится своя авто-конфигурация, он обязан нести свой imports-файл — по образцу
+ * <li>модуль <b>не несёт авто-конфигурации</b>: wiring платформы живёт в
+ *     {@code platform-spring-boot-autoconfigure} (D3.4) со своим imports-файлом, а в дереве
+ *     приложения platform-конфигураций больше нет. Если этому модулю когда-нибудь понадобится
+ *     собственная авто-конфигурация, он обязан нести свой imports-файл — по образцу
  *     {@code platform-events} и {@code platform-persistence}.</li>
  * </ol>
  */
@@ -127,11 +127,15 @@ class PlatformMetadataModuleTest {
             .isEmpty();
     }
 
+    /**
+     * D3.4: wiring переехал в {@code platform-spring-boot-autoconfigure} со своим
+     * imports-файлом; дерево приложения больше не объявляет platform-конфигурации.
+     */
     @Test
-    void moduleCarriesNoAutoConfigurationAndTheApplicationStillDeclaresItsBean() {
+    void moduleCarriesNoAutoConfigurationAndWiringLivesInTheAutoconfigureModule() {
         assertThat(MODULE.resolve("src/main/resources/META-INF/spring/"
             + "org.springframework.boot.autoconfigure.AutoConfiguration.imports"))
-            .as("модуль не несёт авто-конфигурации: бин индекса объявляет приложение")
+            .as("модуль не несёт авто-конфигурации: wiring — отдельный артефакт D3.4")
             .doesNotExist();
         for (Path source : javaSources()) {
             assertThat(withoutComments(read(source)))
@@ -140,11 +144,16 @@ class PlatformMetadataModuleTest {
                 .doesNotContain("@AutoConfiguration");
         }
 
-        String applicationConfig =
-            read(Path.of("src/main/java/org/ipro/metadata/config/MetadataAutoConfiguration.java"));
-        assertThat(applicationConfig)
-            .as("провайдер бина остался в дереве: так потеря артефакта видна компилятору")
+        String wiring = read(Path.of(
+            "platform-spring-boot-autoconfigure/src/main/java/org/ipro/metadata/config/"
+                + "MetadataAutoConfiguration.java"));
+        assertThat(wiring)
+            .as("провайдер бина ReferenceIndex живёт в модуле wiring D3.4")
             .contains("public ReferenceIndex referenceIndex(");
+        assertThat(Path.of(
+                "src/main/java/org/ipro/metadata/config/MetadataAutoConfiguration.java"))
+            .as("дерево приложения больше не несёт platform-конфигурацию")
+            .doesNotExist();
     }
 
     @Test

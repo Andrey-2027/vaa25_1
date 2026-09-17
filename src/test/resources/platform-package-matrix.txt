@@ -27,7 +27,6 @@ org.ipro.data -> org.ipro.metadata
 org.ipro.data -> org.ipro.metadata.annotation
 org.ipro.data -> org.ipro.numbering
 org.ipro.data -> org.ipro.rls
-org.ipro.data -> org.ipro.security
 org.ipro.data.config -> org.ipro.crud
 org.ipro.data.config -> org.ipro.data
 org.ipro.data.config -> org.ipro.data.grouping
@@ -132,6 +131,7 @@ org.ipro.jr.service -> org.ipro.ureport.catalog
 org.ipro.lifecycle -> org.ipro.events
 org.ipro.metadata -> org.ipro.crud
 org.ipro.metadata -> org.ipro.metadata.annotation
+org.ipro.metadata.config -> org.ipro.autoconfigure
 org.ipro.metadata.config -> org.ipro.crud
 org.ipro.metadata.config -> org.ipro.events
 org.ipro.metadata.config -> org.ipro.lifecycle
@@ -246,6 +246,7 @@ org.ipro.ureport.service -> org.ipro.ureport
 org.ipro.ureport.service -> org.ipro.ureport.catalog
 org.ipro.ureport.service -> org.ipro.ureport.dom
 org.ipro.ureport.service -> org.ipro.ureport.params
+org.ipro.vaadin.explorer -> org.ipro.autoconfigure
 org.ipro.vaadin.explorer -> org.ipro.form.builder
 org.ipro.vaadin.explorer -> org.ipro.form.registry
 org.ipro.vaadin.explorer -> org.ipro.metadata

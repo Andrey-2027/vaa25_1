@@ -18,7 +18,6 @@ import org.ipro.rls.RlsCheckValue;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsPolicyDescriptor;
 import org.ipro.rls.RlsReadableIdsCache;
-import org.ipro.security.CurrentUser;
 import org.ipro.settings.config.SettingsAutoConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,7 +84,7 @@ class RlsIntegrationTest {
         accessService = new AccessService(accessGrantRepository,
             new UserRepositoryRlsRoleResolver(userRepository), registry);
         cache = new RlsReadableIdsCache(accessService);
-        activator = new RlsFilterActivator(registry, cache, () -> CurrentUser.username());
+        activator = new RlsFilterActivator(registry, cache, () -> SecurityContextHolder.getContext().getAuthentication().getName());
 
         Journal journalA = new Journal();
         journalA.setCode("A");

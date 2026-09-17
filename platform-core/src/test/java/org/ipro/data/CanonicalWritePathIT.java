@@ -20,6 +20,7 @@ import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.numbering.NumberingService;
 import org.ipro.rls.RlsAccessDeniedException;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsReadGate;
@@ -109,7 +110,7 @@ class CanonicalWritePathIT {
         readGate = mock(RlsReadGate.class);
         when(readGate.canRead(any(), any())).thenReturn(true);
         readExecutor = new CanonicalReadExecutor(catalog, graphResolver, metadataResolver,
-            rlsFilterActivator, readGate, null, ReadTelemetry.noop());
+            rlsFilterActivator, readGate, null, ReadTelemetry.noop(), () -> "test-user");
         ReflectionTestUtils.setField(readExecutor, "entityManager", entityManager);
 
         writeExecutor = new CanonicalWriteExecutor(catalog, readExecutor, entityManager,
@@ -432,7 +433,7 @@ class CanonicalWritePathIT {
             new ScenarioFetchGraphResolver(metadataResolver, null, null), metadataResolver,
             rlsFilterActivator, readGate, null,
             (operation, type, scenario, outcome, resultCount, durationNanos) ->
-                observed.add(operation));
+                observed.add(operation), () -> "test-user");
         ReflectionTestUtils.setField(measured, "entityManager", entityManager);
 
         measured.readSearch(new SearchRead<>(C4FixtureEntity.class, SearchContext.GLOBAL,
@@ -455,7 +456,7 @@ class CanonicalWritePathIT {
             new ScenarioFetchGraphResolver(new MetadataResolver(), null, null),
             new MetadataResolver(), rlsFilterActivator, readGate, null,
             (operation, type, scenario, outcome, resultCount, durationNanos) ->
-                observed.add(operation));
+                observed.add(operation), () -> "test-user");
         ReflectionTestUtils.setField(measured, "entityManager", entityManager);
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.setStatisticsEnabled(true);

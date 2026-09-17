@@ -16,6 +16,8 @@ import jakarta.servlet.http.HttpSession;
 import org.ipro.jr.dom.JrxmlTemplate;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.reportstudio.run.ReportExecutionService;
+import org.ipro.reportstudio.param.ReportContext;
+import org.ipro.reportstudio.query.ServiceParams;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
@@ -51,7 +53,7 @@ public class JrxmlRunDialog extends Dialog {
      */
     private final ReportExecutionService reportExecutionService;
     /** nullable: запуск из каталога — контекста реестра нет. */
-    private final org.ipro.reportstudio.param.ReportContext context;
+    private final ReportContext context;
     private final List<JrxmlExecutionService.JrxmlParamSpec> specs;
     private final Map<String, TextField> valueFields = new HashMap<>();
     private final Map<String, DatePicker> dateFields = new HashMap<>();
@@ -69,7 +71,7 @@ public class JrxmlRunDialog extends Dialog {
      */
     public JrxmlRunDialog(JrxmlTemplate template, JrxmlExecutionService executionService,
                           ReportExecutionService reportExecutionService,
-                          org.ipro.reportstudio.param.ReportContext context) {
+                          ReportContext context) {
         this.template = template;
         this.executionService = executionService;
         this.reportExecutionService = java.util.Objects.requireNonNull(
@@ -101,7 +103,7 @@ public class JrxmlRunDialog extends Dialog {
     private void addParameterField(VerticalLayout form,
                                    JrxmlExecutionService.JrxmlParamSpec spec) {
         // служебные параметры контекста в форму не выводятся — автозаполнение
-        if (org.ipro.reportstudio.query.ServiceParams.NAMES.contains(spec.name())) {
+        if (ServiceParams.NAMES.contains(spec.name())) {
             return;
         }
         if ("java.util.Date".equals(spec.valueClassName())
@@ -144,12 +146,12 @@ public class JrxmlRunDialog extends Dialog {
         // служебные параметры контекста реестра (та же конвенция, что у UDR)
         if (context != null) {
             for (JrxmlExecutionService.JrxmlParamSpec spec : specs) {
-                if (org.ipro.reportstudio.query.ServiceParams.ENTITY_ID.equals(spec.name())
+                if (ServiceParams.ENTITY_ID.equals(spec.name())
                         && context.entityId() != null
                         && isLongCompatible(spec.valueClassName())) {
                     parameters.put(spec.name(), context.entityId());
                 }
-                if (org.ipro.reportstudio.query.ServiceParams.ENTITY_IDS.equals(spec.name())
+                if (ServiceParams.ENTITY_IDS.equals(spec.name())
                         && context.selectedIds() != null && !context.selectedIds().isEmpty()) {
                     parameters.put(spec.name(),
                             List.copyOf(context.selectedIds()));

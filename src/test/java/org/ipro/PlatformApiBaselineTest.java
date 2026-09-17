@@ -1,5 +1,7 @@
 package org.ipro;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -51,20 +53,39 @@ class PlatformApiBaselineTest {
 
     private static final String WRITE_PROPERTY = "platform.api.baseline.write";
 
-    /**
-     * Reviewed перечень артефактов, чья поверхность зафиксирована. Он обязан совпадать с
-     * набором публикуемых модулей: артефакт, попавший в манифест и не попавший сюда, можно
-     * опубликовать, не заметив ни одного несовместимого изменения.
-     */
-    private static final List<Artifact> ARTIFACTS = List.of(
-        new Artifact("platform-contracts", Path.of("platform-contracts/src/main/java")),
-        new Artifact("platform-events", Path.of("platform-events/src/main/java")),
-        new Artifact("platform-persistence", Path.of("platform-persistence/src/main/java")),
-        new Artifact("platform-core", Path.of("platform-core/src/main/java")),
-        new Artifact("platform-identity-api",
-            Path.of("../crudui/platform-identity-api/src/main/java")));
-
     private static final Path BASELINE_DIRECTORY = Path.of("src/test/resources/platform-api-baseline");
+
+    private static final Path MANIFEST = Path.of("scripts/local-dependencies.json");
+
+    /** Реестр семантических ролей core: из него берётся, какие типы в baseline не попадают. */
+    private static final Path CORE_ROLE_REGISTRY = Path.of("src/test/resources/platform-core-surface.txt");
+
+    /**
+     * Артефакты, публикуемые реактором соседнего {@code crudui}. В этом манифесте их нет, потому что
+     * их собирает другой манифест, но публикуются они как платформенные и обязаны иметь baseline:
+     * перечисление здесь — явное, а не «сколько успели добавить».
+     */
+    private static final List<String> SIBLING_LEAF_ARTIFACTS =
+        List.of("platform-crud-api", "platform-identity-api");
+
+    /**
+     * Политика фиксации поверхности артефакта.
+     *
+     * <p>Первый вариант — не режим по умолчанию, а состояние миграции: до семантической
+     * классификации артефакта его public-поверхность приходится фиксировать целиком, включая
+     * реализацию. Пометка живёт в шапке baseline-файла, поэтому «временное» видно и в ревью
+     * диффа, а не только в этом коде.</p>
+     */
+    private enum Policy {
+        /** Только роли APP_API / APP_SPI / MODULE_API: semantic internal меняется свободно. */
+        SEMANTIC_ROLES,
+        /** TODO(D3.9): весь public/protected, пока классификации нет. */
+        TEMPORARY_ALL_PUBLIC
+    }
+
+    /** Артефакт, его исходники и политика фиксации. */
+    private record Artifact(String artifactId, Path sourceRoot, Policy policy) {
+    }
 
     @Test
     void artifactPublicSurfaceMatchesItsReviewedBaseline() {
@@ -72,7 +93,7 @@ class PlatformApiBaselineTest {
         List<String> problems = new ArrayList<>();
         int verified = 0;
 
-        for (Artifact artifact : ARTIFACTS) {
+        for (Artifact artifact : artifacts()) {
             if (!Files.isDirectory(artifact.sourceRoot())) {
                 continue;
             }
@@ -92,6 +113,11 @@ class PlatformApiBaselineTest {
                 problems.add(artifact.artifactId() + ": поверхность разошлась с baseline\n"
                     + firstDifference(reviewed, actual));
             }
+            assertThat(reviewed)
+                .as("политика фиксации обязана быть записана в самом baseline: иначе временный"
+                    + " режим TEMPORARY_ALL_PUBLIC неотличим от осознанно узкой поверхности, и его"
+                    + " никто не снимет")
+                .contains("policy: " + artifact.policy());
             verified++;
         }
 
@@ -101,8 +127,76 @@ class PlatformApiBaselineTest {
                 + " перезапишите baseline (%s=true) и объясните его в ревью", WRITE_PROPERTY)
             .isEmpty();
         assertThat(verified)
-            .as("проверка не должна быть вакуумной")
-            .isGreaterThanOrEqualTo(3);
+            .as("проверка не должна быть вакуумной: baseline есть у каждого опубликованного"
+                + " платформенного артефакта, чьи исходники есть в этой раскладке")
+            .isGreaterThanOrEqualTo(8);
+    }
+
+    /**
+     * Перечень baseline-артефактов связан с манифестом, а не написан руками.
+     *
+     * <p>Прежний список из пяти артефактов был именно руками — и уже разошёлся с поставкой:
+     * metadata, numbering, settings, telemetry, rls и оба leaf-контракта публиковались без
+     * фиксации поверхности. Артефакт, попавший в манифест и не попавший в baseline, можно
+     * выпустить, не заметив ни одного несовместимого изменения, а гейт об этом не скажет.</p>
+     */
+    @Test
+    void baselineCoversEveryPublishedPlatformArtifactAndNothingElse() {
+        Set<String> published = new TreeSet<>();
+        for (Artifact artifact : artifacts()) {
+            if (Files.isDirectory(artifact.sourceRoot())) {
+                published.add(artifact.artifactId());
+            }
+        }
+        Set<String> reviewed = new TreeSet<>();
+        for (Path file : baselineFiles()) {
+            reviewed.add(file.getFileName().toString().replace(".api", ""));
+        }
+
+        Set<String> unbaselined = new TreeSet<>(published);
+        unbaselined.removeAll(reviewed);
+        Set<String> orphaned = new TreeSet<>(reviewed);
+        orphaned.removeAll(published);
+
+        assertThat(unbaselined)
+            .as("платформенный артефакт публикуется без baseline: его поверхность можно сломать,"
+                + " не заметив этого ни в диффе, ни сборкой")
+            .isEmpty();
+        assertThat(orphaned)
+            .as("baseline описывает артефакт, которого в поставке больше нет: список должен"
+                + " совпадать в обе стороны")
+            .isEmpty();
+    }
+
+    /**
+     * Временный режим все-публичности — долг, и он обязан быть виден и сокращаться.
+     *
+     * <p>Семантическую классификацию прошёл пока только {@code platform-core}. Пока остальные
+     * артефакты зафиксированы целиком (TEMPORARY_ALL_PUBLIC), их реализацию нельзя менять
+     * свободно — это противоречит политике D1, и D3.9 обязан это снять. Тест превращает
+     * «когда-нибудь» в список: он печатает, кто ещё в этом режиме, и падает на новый артефакт,
+     * которого никто не классифицировал.</p>
+     */
+    @Test
+    void onlyTheSemanticallyClassifiedArtifactUsesRoleBasedBaseline() {
+        List<String> semantic = artifacts().stream()
+            .filter(artifact -> artifact.policy() == Policy.SEMANTIC_ROLES)
+            .map(Artifact::artifactId)
+            .sorted()
+            .toList();
+        List<String> temporary = artifacts().stream()
+            .filter(artifact -> artifact.policy() == Policy.TEMPORARY_ALL_PUBLIC)
+            .map(Artifact::artifactId)
+            .sorted()
+            .toList();
+
+        assertThat(semantic)
+            .as("артефакт с семантической классификацией пока один — platform-core: у остальных нет"
+                + " реестра ролей, и фиксировать их поверхность по ролям нечем")
+            .isEqualTo(List.of("platform-core"));
+        assertThat(temporary)
+            .as("долг D3.9: эти артефакты всё ещё заморожены целиком, включая реализацию")
+            .isNotEmpty();
     }
 
     /**
@@ -113,15 +207,84 @@ class PlatformApiBaselineTest {
      */
     private static String describe(Artifact artifact) {
         List<String> descriptions = new ArrayList<>();
+        Set<String> excluded = artifact.policy() == Policy.SEMANTIC_ROLES ? internalTypes() : Set.of();
         for (String className : artifactTypeNames(artifact)) {
+            if (excluded.contains(className)) {
+                continue;
+            }
             collectApiTypes(loadClass(className), descriptions);
         }
         descriptions.sort(Comparator.naturalOrder());
         StringBuilder text = new StringBuilder();
         text.append("# ").append(artifact.artifactId()).append(": публичная поверхность")
-            .append(" (перезапись: -D").append(WRITE_PROPERTY).append("=true)\n");
+            .append(" (policy: ").append(artifact.policy())
+            .append(", перезапись: -D").append(WRITE_PROPERTY).append("=true)\n");
         descriptions.forEach(description -> text.append(description).append('\n'));
         return text.toString();
+    }
+
+    /**
+     * Артефакты для проверки: платформенные проекты манифеста плюс leaf-контракты соседнего
+     * реактора. Источник — манифест, поэтому новый platform-модуль не может появиться без
+     * baseline: его поверхность не зафиксирует никто.
+     */
+    private static List<Artifact> artifacts() {
+        List<Artifact> artifacts = new ArrayList<>();
+        for (JsonNode project : readManifest().get("projects")) {
+            String relativePath = project.get("relativePath").asText();
+            for (JsonNode artifact : project.get("artifacts")) {
+                String[] parts = artifact.asText().split(":");
+                if (parts.length < 2 || !parts[1].startsWith("platform-")) {
+                    continue;
+                }
+                artifacts.add(new Artifact(parts[1],
+                    Path.of(relativePath).resolve("src/main/java"), policyFor(parts[1])));
+            }
+        }
+        for (String artifactId : SIBLING_LEAF_ARTIFACTS) {
+            artifacts.add(new Artifact(artifactId,
+                Path.of("../crudui").resolve(artifactId).resolve("src/main/java"), policyFor(artifactId)));
+        }
+        return artifacts;
+    }
+
+    private static Policy policyFor(String artifactId) {
+        return artifactId.equals("platform-core") ? Policy.SEMANTIC_ROLES : Policy.TEMPORARY_ALL_PUBLIC;
+    }
+
+    private static JsonNode readManifest() {
+        try {
+            return new ObjectMapper().readTree(Files.readString(MANIFEST, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static List<Path> baselineFiles() {
+        if (!Files.isDirectory(BASELINE_DIRECTORY)) {
+            return List.of();
+        }
+        try (Stream<Path> files = Files.list(BASELINE_DIRECTORY)) {
+            return files.filter(path -> path.toString().endsWith(".api")).sorted().toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /** Типы core с ролью INTERNAL: их реализация — не контракт, и в signature baseline не входит. */
+    private static Set<String> internalTypes() {
+        Set<String> internal = new TreeSet<>();
+        try {
+            for (String line : Files.readAllLines(CORE_ROLE_REGISTRY, StandardCharsets.UTF_8)) {
+                String trimmed = line.trim();
+                if (trimmed.startsWith("INTERNAL ")) {
+                    internal.add(trimmed.substring("INTERNAL ".length()).trim());
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return internal;
     }
 
     private static void collectApiTypes(Class<?> type, List<String> descriptions) {
@@ -379,9 +542,5 @@ class PlatformApiBaselineTest {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    /** Артефакт и его исходники. */
-    private record Artifact(String artifactId, Path sourceRoot) {
     }
 }
