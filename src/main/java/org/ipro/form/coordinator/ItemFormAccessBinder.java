@@ -1,7 +1,7 @@
 package org.ipro.form.coordinator;
 
 import org.ipro.form.builtin.ItemForm;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.rls.RlsUiGate;
 import org.ipro.rls.RlsUiGate.AccessDecision;
 import org.springframework.stereotype.Component;

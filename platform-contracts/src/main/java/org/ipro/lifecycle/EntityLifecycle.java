@@ -1,6 +1,6 @@
 package org.ipro.lifecycle;
 
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 
 /**
  * Типизированная прикладная точка lifecycle-поведения сущности.

@@ -5,14 +5,11 @@ import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.config.DataAccessAutoConfiguration;
 import org.ipro.fetch.config.FetchPlanInstanceNameAutoConfiguration;
 import org.ipro.fetch.instance.InstanceNameResolver;
-import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.config.RlsAutoConfiguration;
 import org.ipro.search.GlobalSearchCatalog;
-import org.ipro.search.GlobalSearchHeader;
-import org.ipro.search.GlobalSearchNavigationAdapter;
 import org.ipro.search.GlobalSearchProvider;
 import org.ipro.search.GlobalSearchProviderRegistry;
 import org.ipro.search.GlobalSearchService;
@@ -22,11 +19,17 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Scope;
 
 import java.util.List;
 
-/** Auto-configuration for modular global search over the canonical read boundary. */
+/**
+ * Ядро глобального поиска: каталог, провайдеры, сервис.
+ *
+ * <p>Здесь нет ни Vaadin, ни форм: шапка поиска и навигация к карточке переехали в
+ * {@code org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration}. Раньше UI и
+ * ядро жили в одном пакете и одной конфигурации, из-за чего «поиск» нельзя было вынести из
+ * приложения, не потянув за собой UI.</p>
+ */
 @AutoConfiguration
 @AutoConfigureAfter({MetadataAutoConfiguration.class, RlsAutoConfiguration.class,
     FetchPlanInstanceNameAutoConfiguration.class, DataAccessAutoConfiguration.class})
@@ -53,14 +56,6 @@ public class GlobalSearchAutoConfiguration {
         return new GlobalSearchProviderRegistry(providers, instanceNameResolver.getIfAvailable());
     }
 
-    @Bean
-    @ConditionalOnBean({GlobalSearchCatalog.class, FormCoordinator.class})
-    @ConditionalOnMissingBean(GlobalSearchNavigationAdapter.class)
-    public GlobalSearchNavigationAdapter globalSearchNavigationAdapter(
-            GlobalSearchCatalog catalog, FormCoordinator formCoordinator) {
-        return new GlobalSearchNavigationAdapter(catalog, formCoordinator);
-    }
-
     /**
      * Глобальный поиск создаётся только вместе с security-контуром: без
      * {@link RlsCurrentUser} бин не появляется, и поиск становится недоступен, а не
@@ -77,15 +72,5 @@ public class GlobalSearchAutoConfiguration {
             CanonicalReadExecutor readExecutor,
             RlsCurrentUser currentUser) {
         return new GlobalSearchService(catalog, providerRegistry, readExecutor, currentUser);
-    }
-
-    @Bean
-    @Scope("prototype")
-    @ConditionalOnBean({GlobalSearchService.class, GlobalSearchNavigationAdapter.class})
-    @ConditionalOnMissingBean(GlobalSearchHeader.class)
-    public GlobalSearchHeader globalSearchHeader(
-            GlobalSearchService searchService,
-            GlobalSearchNavigationAdapter navigationAdapter) {
-        return new GlobalSearchHeader(searchService, navigationAdapter);
     }
 }

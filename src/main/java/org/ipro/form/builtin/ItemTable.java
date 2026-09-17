@@ -24,7 +24,7 @@ import org.ipro.form.spi.GridView;
 import org.ipro.form.spi.GridViewStore;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.TableSectionService;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 
 import java.util.ArrayList;
 import java.lang.reflect.Field;

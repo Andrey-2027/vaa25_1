@@ -1,6 +1,6 @@
 package org.ipro.lifecycle;
 
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.events.EventContext;
 import org.ipro.events.EventSource;
 

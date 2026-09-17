@@ -1,5 +1,7 @@
 package org.ipro.crud;
 
+import org.ipro.identity.IdentifiableEntity;
+
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;

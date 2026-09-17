@@ -1,6 +1,6 @@
 package org.ipro.form.registry;
 
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

@@ -1,7 +1,7 @@
 package org.ipro.form;
 
 import org.ipro.form.builtin.ItemForm;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 
 /**
  * Обработчик сохранения формы (спецификация «Часть C.1»).

@@ -220,41 +220,12 @@ class PlatformSubsystemClosureTest {
         // нейтральными SPI (RlsDimensionValueLabelResolver, RlsOwnedSectionLookup),
         // поэтому пакет org.ipro.rls в дереве отсутствует и в реестре его нет.
 
+        // D3.3 (срез: crud/data/fetch/metadata/search/filter/security): 55 из 60 типов ушли в
+        // артефакт platform-core, поэтому замыкание reportstudio на дерево сократилось до
+        // org.ipro.form. Смысл изменения больше самой цифры: у подсистемы больше нет ни одной
+        // зависимости на platform backend — её остаток блокирует UI, а не backend. Реестр
+        // shrink-only, поэтому сокращение записано явно, а не оставлено как «висящий» замер.
         registry.put("org.ipro.reportstudio", Set.of(
-            "org.ipro.crud.BaseService",
-            "org.ipro.crud.LookupService",
-            "org.ipro.crud.ReferenceCheckService",
-            "org.ipro.crud.ServiceLocator",
-            "org.ipro.crud.StandardCatalogEntity",
-            "org.ipro.crud.StandardDocumentEntity",
-            "org.ipro.crud.TableSectionService",
-            "org.ipro.crud.ValidationException",
-            "org.ipro.crud.jpa.ValidatedJpaCrudService",
-            "org.ipro.data.CanonicalEntityService",
-            "org.ipro.data.CanonicalReadExecutor",
-            "org.ipro.data.DetailRead",
-            "org.ipro.data.EntityCapabilities",
-            "org.ipro.data.EntityDataAccess",
-            "org.ipro.data.EntityDataAccessResolver",
-            "org.ipro.data.EntityDataPolicy",
-            "org.ipro.data.EntityDescriptor",
-            "org.ipro.data.EntityDescriptorCatalog",
-            "org.ipro.data.ListRead",
-            "org.ipro.data.LookupRead",
-            "org.ipro.data.PageRead",
-            "org.ipro.data.ReadTelemetry",
-            "org.ipro.data.ScenarioFetchGraphResolver",
-            "org.ipro.data.SearchContext",
-            "org.ipro.data.SearchFieldResolver",
-            "org.ipro.data.SearchRead",
-            "org.ipro.data.SearchTerms",
-            "org.ipro.fetch.ManagedEntityTypes",
-            "org.ipro.fetch.instance.InstanceName",
-            "org.ipro.fetch.instance.InstanceNameBridge",
-            "org.ipro.fetch.instance.InstanceNameProvider",
-            "org.ipro.fetch.instance.InstanceNameResolver",
-            "org.ipro.fetch.plan.FetchPlan",
-            "org.ipro.fetch.plan.FetchPlanRegistry",
             "org.ipro.form.EntityField",
             "org.ipro.form.FieldRenderer",
             "org.ipro.form.FilterGridMoreMenu",
@@ -262,26 +233,7 @@ class PlatformSubsystemClosureTest {
             "org.ipro.form.SelectionForm",
             "org.ipro.form.SelectionFormAssembler",
             "org.ipro.form.SelectionFormFactory",
-            "org.ipro.form.SelectionGridCustomizer",
-            "org.ipro.metadata.ColumnPath",
-            "org.ipro.metadata.EntityMetadataInfo",
-            "org.ipro.metadata.FactOrigin",
-            "org.ipro.metadata.FetchGraphs",
-            "org.ipro.metadata.FieldMetadataInfo",
-            "org.ipro.metadata.FilterSpec",
-            "org.ipro.metadata.GridMetadata",
-            "org.ipro.metadata.GridViewState",
-            "org.ipro.metadata.HasDisplayName",
-            "org.ipro.metadata.InstanceNameSource",
-            "org.ipro.metadata.ManagedEntityCatalog",
-            "org.ipro.metadata.MetadataCache",
-            "org.ipro.metadata.MetadataDiagnostic",
-            "org.ipro.metadata.MetadataDiagnosticCodes",
-            "org.ipro.metadata.MetadataResolver",
-            "org.ipro.metadata.RowMetadataInfo",
-            "org.ipro.metadata.SectionMetadataRegistry",
-            "org.ipro.metadata.TableSectionMetadataInfo",
-            "org.ipro.security.CurrentUser"));
+            "org.ipro.form.SelectionGridCustomizer"));
 
         return registry;
     }

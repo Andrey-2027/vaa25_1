@@ -16,7 +16,7 @@ import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
 import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.form.registry.FormType;
 import org.ipro.metadata.annotation.EntityMetadata;
-import org.ipro.metadata.explorer.EntitySummary;
+import org.ipro.vaadin.explorer.EntitySummary;
 import org.ipro.metadata.facet.FactSource;
 
 import java.util.List;

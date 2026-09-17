@@ -1,5 +1,7 @@
 package org.ipro.crud;
 
+import org.ipro.identity.IdentifiableEntity;
+
 import org.ip.config.DataInitializer;
 import org.ip.model.Journal;
 import org.ip.model.Nomenclature;

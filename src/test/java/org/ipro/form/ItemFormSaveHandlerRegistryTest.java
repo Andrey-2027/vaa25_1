@@ -46,7 +46,7 @@ class ItemFormSaveHandlerRegistryTest {
             .hasMessageContaining(ReceivingDocument.class.getName());
     }
 
-    private static <T extends org.ipro.crud.IdentifiableEntity> ItemFormSaveHandler<T> handler(
+    private static <T extends org.ipro.identity.IdentifiableEntity> ItemFormSaveHandler<T> handler(
             Class<T> entityClass) {
         return new ItemFormSaveHandler<>() {
             @Override

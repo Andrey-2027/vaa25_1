@@ -13,18 +13,56 @@
   },
   "projects": [
     {
+      "id": "crudui",
+      "relativePath": "../crudui",
+      "dependsOn": [],
+      "source": {
+        "kind": "source-copy",
+        "gitCommit": null,
+        "state": "No local .git directory. Reactor also builds two neutral Java-only leaf artifacts: org.ipro:platform-identity-api (IdentifiableEntity) and org.ipro:platform-crud-api (CrudService). Both have owners on both sides - the platform backend and this UI library - so neither can live in either repository. That is why this is the first entry: platform-contracts, platform-persistence and platform-core depend on those artifacts and therefore must build after this project."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "4d576ad8ad2685479dbf110aeb271266228f3105b3d475c5095ebd77ff41dd23",
+        "fileCount": 13,
+        "inputs": [
+          "pom.xml",
+          "crudui-core/pom.xml",
+          "crudui-core/src",
+          "platform-identity-api/pom.xml",
+          "platform-identity-api/src",
+          "platform-crud-api/pom.xml",
+          "platform-crud-api/src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro.crudui:crudui-parent:1.0-SNAPSHOT",
+        "org.ipro.crudui:crudui-core:1.0-SNAPSHOT",
+        "org.ipro:platform-identity-api:1.0-SNAPSHOT",
+        "org.ipro:platform-crud-api:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "crudui-core", "-am", "clean", "install"]
+        }
+      ]
+    },
+    {
       "id": "platform-contracts",
       "relativePath": "platform-contracts",
-      "dependsOn": [],
+      "dependsOn": [
+        "crudui"
+      ],
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D2 extraction slice: contracts live in this checkout, but build independently of the application — the module has no dependency on org.ip, so javac cannot see application classes."
+        "state": "D2 extraction slice: contracts live in this checkout, but build independently of the application — the module has no dependency on org.ip, so javac cannot see application classes. Its only non-JDK edges are org.ipro:platform-identity-api (built by the crudui reactor) and slf4j-api, so the edge to crudui is a build-order requirement, not a UI dependency."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "d64f1bc5b4619755af4d7bb0e06b1dafa106511cb2d07bb9a1fc5a945cbe0541",
-        "fileCount": 35,
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "55e1093ed64e4ab71905900ada2e0ad3700e57b3617d920a735c6a5767f0b8fa",
+        "fileCount": 36,
         "inputs": [
           "pom.xml",
           "src"
@@ -36,7 +74,7 @@
       "buildSteps": [
         {
           "pom": "pom.xml",
-          "arguments": ["-DskipTests", "clean", "install"]
+          "arguments": ["clean", "install"]
         }
       ]
     },
@@ -52,9 +90,9 @@
         "state": "D2 runtime slice: the entity-lifecycle event contour (publisher, fail-fast registry, its own auto-configuration) builds as a separate artifact that depends on platform-contracts and is registered by its own META-INF/spring/...AutoConfiguration.imports, so the application needs no entry for it."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "77aad4fc08d2f3774819ef860c78c3b0e26e90b43539cdf234a1867a353d68df",
-        "fileCount": 5,
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "8f3b099108504a305f9fcb3d898ae9d41ef8d8a2ea59286d78967be904adc50b",
+        "fileCount": 9,
         "inputs": [
           "pom.xml",
           "src"
@@ -66,7 +104,7 @@
       "buildSteps": [
         {
           "pom": "pom.xml",
-          "arguments": ["-DskipTests", "clean", "install"]
+          "arguments": ["clean", "install"]
         }
       ]
     },
@@ -82,9 +120,9 @@
         "state": "D2 persistence slice: entity, repository and the entity base class together with the module's own @EntityScan/@EnableJpaRepositories. Depends on the published crudui-core artifact, so this is the first platform module with an edge to a workspace project."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "1909b4c217d8708d2132d38d4d9f36eba0e25e08bbc7244decb880e019538731",
-        "fileCount": 6,
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "2d5b3bd92dcccd9fbba6d5c31d635906fc14a5b616823b69451be2c140d52b09",
+        "fileCount": 9,
         "inputs": [
           "pom.xml",
           "src"
@@ -96,7 +134,7 @@
       "buildSteps": [
         {
           "pom": "pom.xml",
-          "arguments": ["-DskipTests", "clean", "install"]
+          "arguments": ["clean", "install"]
         }
       ]
     },
@@ -112,7 +150,7 @@
         "state": "D2 → D3 metadata spine: the classpath annotation scanner and the reverse-reference index, the only two tree types every subsystem's dependency closure pointed at. Carries no auto-configuration — its bean is declared by the application's MetadataAutoConfiguration, so losing the artifact breaks the build instead of silently disabling discovery."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "algorithm": "gitvaa-source-tree-sha256-v2",
         "sha256": "b91d1d0bd920402a3847cc74615eea2e1383abf677795ee4c941c37e3dcdcadc",
         "fileCount": 3,
         "inputs": [
@@ -144,8 +182,8 @@
         "state": "D2 → D3 first subsystem module: the whole numbering subsystem (annotations applied by the application, rules and counters, repositories, services, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Chosen first by measured dependency closure, and the first slice that carries entities, repositories, beans and reflection-based registration in one artifact."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "e99a2b04523402b1291a8bff9a333835aa328aea887f6a068a0ef4a0abaf4235",
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "88b9ca467011fdc16e147eab4138dee1e7bb4a57ae1725f03d0d80ed2ac274cc",
         "fileCount": 19,
         "inputs": [
           "pom.xml",
@@ -176,8 +214,8 @@
         "state": "D2 → D3 second subsystem module: the whole settings subsystem (markers @Setting/@SettingsGroup, the code-defaults catalog, service, its entity and repository, the reverse-reference source for platform-metadata, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Its value is not the extraction but the defect class it exposed: two @DataJpaTest slices imitated the module registration instead of importing it, which no test of the module itself could catch."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "5f85dccd50b8efba9819009e830ffb6272b48b6fc4a56be602aba660b126e37f",
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "1cfdfeb1a5c41c651bdfb647c79aebbe548a4a3520d13932d0e783107cfc6b55",
         "fileCount": 10,
         "inputs": [
           "pom.xml",
@@ -206,8 +244,8 @@
         "state": "D2 → D3 third subsystem module: the whole observation subsystem (telemetry API with the neutral SqlStatementAudit/DeclaredNameSource seams, core operations, field audit, journal, security events, SQL inspection, journal entities, repository, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Chosen third by measured dependency closure (empty after the step-8a cycle inversion with RLS); Vaadin adapters stay in the application tree (org.ip.telemetry.vaadin), the module has no UI dependency."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "1af838136c7ce7f9f30383e40f27745392aed54bb1b58f09f47660ae70aa57b7",
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "fadf6730544fea0b284570e49ec48bf23e6c0f818df1f6438ef9ae6557b15aa3",
         "fileCount": 70,
         "inputs": [
           "pom.xml",
@@ -238,8 +276,8 @@
         "state": "D2 → D3 fourth subsystem module: the whole Row-Level Security subsystem (dimensions and policies, read/write gates, Hibernate filters and enforcement aspect, SQL-leak canary, neutral SPIs RlsDimensionValueLabelResolver/RlsOwnedSectionLookup implemented by the application, AccessGrant entity with repository, two auto-configurations for beans and persistence registration). Direct metadata/fetch dependencies replaced by SPIs; consumes platform-telemetry as an artifact, provides platform-numbering with a scope resolver."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "f19c80e3305574009efad3385ecf04b450ee6da35513947cc5217bf02c34982f",
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "1d7c941a165a5ae956df7c92827fabf40235cd720bb072f3b5a7e50adfc4580f",
         "fileCount": 38,
         "inputs": [
           "pom.xml",
@@ -253,6 +291,77 @@
         {
           "pom": "pom.xml",
           "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "filtergrid",
+      "relativePath": "../FilterGrid",
+      "dependsOn": [],
+      "source": {
+        "kind": "git-unborn-worktree",
+        "gitCommit": null,
+        "branch": "master",
+        "state": "Repository has no HEAD commit; build inputs are untracked or staged."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "bfa65774d8090d8aac3f9da654cb96998060f39f64ee9ce1b494f4e61318e2be",
+        "fileCount": 160,
+        "inputs": [
+          "pom.xml",
+          "filtergrid-core/pom.xml",
+          "filtergrid-core/src",
+          "filtergrid-jpa/pom.xml",
+          "filtergrid-jpa/src",
+          "filtergrid-inmemory/pom.xml",
+          "filtergrid-inmemory/src",
+          "filtergrid-grouping/pom.xml",
+          "filtergrid-grouping/src",
+          "filtergrid-projection/pom.xml",
+          "filtergrid-projection/src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:FilterGrid:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-core:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-jpa:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-inmemory:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-grouping:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-projection:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "filtergrid-jpa,filtergrid-grouping,filtergrid-inmemory,filtergrid-projection", "-am", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-core",
+      "relativePath": "platform-core",
+      "dependsOn": ["crudui", "filtergrid", "platform-contracts", "platform-events", "platform-metadata", "platform-numbering", "platform-persistence", "platform-rls", "platform-telemetry"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.3 backend platform module: 93 types of generic CRUD/data/metadata/search/fetch/filter, no Vaadin, no org.ip. The first group could not be smaller than crud+data+fetch+metadata because those four packages reference each other (MetadataResolver -> crud.Standard*Entity, SectionMetadataRegistry -> crud.TableSectionService, and back), and a package cannot be moved partially: the same package in two artifacts is a split package. search and filter followed because nothing in the cycle references them. dependsOn carries real edges: crudui for the two neutral leaf contracts (platform-identity-api, platform-crud-api - the same artifacts the UI library consumes, which is why platform-core does not declare crudui-core), filtergrid for the condition tree and grouping providers, and the seven platform modules listed. It is installed with tests enabled: its composition gate lives in the module. That is deliberately not yet true for platform-metadata/numbering/settings/telemetry/rls, which still build with -DskipTests because no owner-side tests have been moved to them."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "eb36d3f9e0c9bdf42b5cb12dc3abd28c590e35efc969b8f513f825d9c70015b9",
+        "fileCount": 118,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-core:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
         }
       ]
     },
@@ -316,79 +425,6 @@
         {
           "pom": "pom.xml",
           "arguments": ["-DskipTests", "-pl", "reportui-core", "-am", "clean", "install"]
-        }
-      ]
-    },
-    {
-      "id": "filtergrid",
-      "relativePath": "../FilterGrid",
-      "dependsOn": [],
-      "source": {
-        "kind": "git-unborn-worktree",
-        "gitCommit": null,
-        "branch": "master",
-        "state": "Repository has no HEAD commit; build inputs are untracked or staged."
-      },
-      "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "bfa65774d8090d8aac3f9da654cb96998060f39f64ee9ce1b494f4e61318e2be",
-        "fileCount": 160,
-        "inputs": [
-          "pom.xml",
-          "filtergrid-core/pom.xml",
-          "filtergrid-core/src",
-          "filtergrid-jpa/pom.xml",
-          "filtergrid-jpa/src",
-          "filtergrid-inmemory/pom.xml",
-          "filtergrid-inmemory/src",
-          "filtergrid-grouping/pom.xml",
-          "filtergrid-grouping/src",
-          "filtergrid-projection/pom.xml",
-          "filtergrid-projection/src"
-        ]
-      },
-      "artifacts": [
-        "org.ipro:FilterGrid:1.0-SNAPSHOT",
-        "org.ipro:filtergrid-core:1.0-SNAPSHOT",
-        "org.ipro:filtergrid-jpa:1.0-SNAPSHOT",
-        "org.ipro:filtergrid-inmemory:1.0-SNAPSHOT",
-        "org.ipro:filtergrid-grouping:1.0-SNAPSHOT",
-        "org.ipro:filtergrid-projection:1.0-SNAPSHOT"
-      ],
-      "buildSteps": [
-        {
-          "pom": "pom.xml",
-          "arguments": ["-DskipTests", "-pl", "filtergrid-jpa,filtergrid-grouping,filtergrid-inmemory,filtergrid-projection", "-am", "clean", "install"]
-        }
-      ]
-    },
-    {
-      "id": "crudui",
-      "relativePath": "../crudui",
-      "dependsOn": [],
-      "source": {
-        "kind": "source-copy",
-        "gitCommit": null,
-        "state": "No local .git directory."
-      },
-      "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "7946b5e7b6ea1a9387d98146aa34d94d6211404d727f0932ac0f9b6d4d1db0bc",
-        "fileCount": 11,
-        "inputs": [
-          "pom.xml",
-          "crudui-core/pom.xml",
-          "crudui-core/src"
-        ]
-      },
-      "artifacts": [
-        "org.ipro.crudui:crudui-parent:1.0-SNAPSHOT",
-        "org.ipro.crudui:crudui-core:1.0-SNAPSHOT"
-      ],
-      "buildSteps": [
-        {
-          "pom": "pom.xml",
-          "arguments": ["-DskipTests", "-pl", "crudui-core", "-am", "clean", "install"]
         }
       ]
     },

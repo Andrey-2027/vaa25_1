@@ -1,0 +1,49 @@
+# platform-persistence: публичная поверхность (перезапись: -Dplatform.api.baseline.write=true)
+abstract-class public abstract org.ipro.crud.BaseEntity
+  implements org.ipro.identity.IdentifiableEntity
+  annotation jakarta.persistence.EntityListeners
+  annotation jakarta.persistence.MappedSuperclass
+  ctor public()
+  method public boolean equals(java.lang.Object)
+  method public int hashCode()
+  method public java.lang.Long getId()
+  method public java.lang.Long getVersion()
+  method public java.lang.String getCreatedBy()
+  method public java.lang.String getModifiedBy()
+  method public java.time.LocalDateTime getCreatedAt()
+  method public java.time.LocalDateTime getModifiedAt()
+  method public void setCreatedAt(java.time.LocalDateTime)
+  method public void setCreatedBy(java.lang.String)
+  method public void setId(java.lang.Long)
+  method public void setModifiedAt(java.time.LocalDateTime)
+  method public void setModifiedBy(java.lang.String)
+  method public void setVersion(java.lang.Long)
+
+class public org.ipro.jr.dom.JrxmlTemplate
+  extends org.ipro.crud.BaseEntity
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.Table
+  ctor public()
+  method public boolean isEnabled()
+  method public java.lang.String getDescription()
+  method public java.lang.String getFileName()
+  method public java.lang.String getName()
+  method public java.lang.String getTargetEntityClass()
+  method public void setDescription(java.lang.String)
+  method public void setEnabled(boolean)
+  method public void setFileName(java.lang.String)
+  method public void setName(java.lang.String)
+  method public void setTargetEntityClass(java.lang.String)
+
+class public org.ipro.persistence.config.PersistenceAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.persistence.autoconfigure.EntityScan
+  annotation org.springframework.data.jpa.repository.config.EnableJpaRepositories
+  ctor public()
+
+interface public abstract interface org.ipro.jr.JrxmlTemplateRepository
+  implements org.springframework.data.jpa.repository.JpaRepository<org.ipro.jr.dom.JrxmlTemplate, java.lang.Long>
+  method public abstract boolean existsByFileName(java.lang.String)
+  method public abstract boolean existsByName(java.lang.String)
+  method public abstract java.util.Optional<org.ipro.jr.dom.JrxmlTemplate> findByName(java.lang.String)
+

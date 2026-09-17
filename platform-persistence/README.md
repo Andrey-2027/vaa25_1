@@ -18,6 +18,11 @@ persistence-типы — и непонятно, упадёт ли это гро�
 Это первое, что выяснилось на срезе, — 44 файла дерева зависят от `BaseEntity`, и пока он
 оставался в приложении, модуль просто не компилировался.
 
+`BaseEntity` реализует `IdentifiableEntity`, и раньше это означало зависимость
+persistence-модуля платформы от UI-артефакта `crudui-core`. Теперь identifier живёт в
+`org.ipro:platform-identity-api` — Java-only модуле реактора `crudui` без Spring, JPA и Vaadin.
+В этом модуле UI не может появиться в принципе, а не «не течёт из-за `provided`-scope».
+
 ## Как модуль регистрируется
 
 ```java
@@ -51,10 +56,20 @@ public class PersistenceAutoConfiguration { }
 **объявления**, а не последствия — каждый `@Entity` обязан попадать в объявленный
 `@EntityScan`-пакет, каждый `JpaRepository` — в объявленный `@EnableJpaRepositories`-пакет.
 
+## Свои тесты
+
+`src/test` модуля держит то, что модуль может проверить сам: reviewed-состав, reviewed
+compile-зависимости (UI-артефакта среди них быть не может), собственные
+`@EntityScan`/`@EnableJpaRepositories` и **срез `@DataJpaTest`, который поднимает только
+автоконфигурацию модуля**: без приложения, без его конфигурации. Репозиторий существует как
+бин, entity входит в persistence unit, запись проходит. Кросс-артефактные свойства (три
+декларации не перекрываются, приложение не перечисляет чужие пакеты) остались в приложении —
+`PlatformPersistenceModuleTest`, `PersistenceRegistrationIT`.
+
 ## Зависимости
 
 ```
-application ──► platform-persistence ──► crudui-core (BaseEntity → IdentifiableEntity)
+application ──► platform-persistence ──► platform-identity-api (BaseEntity → IdentifiableEntity)
 ```
 
 Внешние: `crudui-core`, `jakarta.persistence-api`, `jakarta.validation-api`, `spring-data-jpa`,

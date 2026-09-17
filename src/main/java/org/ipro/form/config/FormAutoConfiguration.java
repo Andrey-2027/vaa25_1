@@ -1,7 +1,9 @@
 package org.ipro.form.config;
 
 import org.ipro.crud.EntityCopyService;
+import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.form.FieldFactory;
+import org.ipro.form.MetadataDrivenItemFormSaveAdapter;
 import org.ipro.form.ItemFormSaveHandler;
 import org.ipro.form.ItemFormSaveHandlerRegistry;
 import org.ipro.form.SelectionFormAssembler;
@@ -15,7 +17,10 @@ import org.ipro.form.coordinator.ItemFormWrapperView;
 import org.ipro.form.registry.FormRegistryConfiguration;
 import org.ipro.form.registry.FormResolver;
 import org.ipro.form.registry.ListCommandRegistry;
+import org.ipro.metadata.SectionMetadataRegistry;
+import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -29,6 +34,7 @@ import org.springframework.beans.factory.ObjectProvider;
  * (включая {@code @Scope("prototype")} у {@code ItemFormWrapperView}).</p>
  */
 @AutoConfiguration
+@AutoConfigureAfter(MetadataAutoConfiguration.class)
 @Import({
     SelectionFormAssembler.class,
     EntityCopyService.class,
@@ -56,5 +62,22 @@ public class FormAutoConfiguration {
     public ItemFormSaveHandlerRegistry itemFormSaveHandlerRegistry(
             ObjectProvider<ItemFormSaveHandler<?>> handlers) {
         return new ItemFormSaveHandlerRegistry(handlers.orderedStream().toList());
+    }
+
+    /**
+     * Адаптер сохранения item-формы через metadata-driven путь.
+     *
+     * <p>Бин принадлежит формовому слою, а не метаданным: он реализует контракт
+     * {@code ItemFormSaveHandler} и существует ровно там, где есть формы. Раньше его создавала
+     * {@code MetadataAutoConfiguration}, из-за чего ядро метаданных импортировало
+     * {@code org.ipro.form}: формально это был один бин, фактически — направление зависимости,
+     * из-за которого future {@code platform-core} не собирался без UI-слоя.</p>
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public MetadataDrivenItemFormSaveAdapter metadataDrivenItemFormSaveAdapter(
+            SectionMetadataRegistry sectionMetadataRegistry,
+            MetadataDrivenAggregateSaveService aggregateSaveService) {
+        return new MetadataDrivenItemFormSaveAdapter(sectionMetadataRegistry, aggregateSaveService);
     }
 }

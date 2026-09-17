@@ -6,7 +6,7 @@ import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.ipro.filtergrid.util.JpaPathUtil;

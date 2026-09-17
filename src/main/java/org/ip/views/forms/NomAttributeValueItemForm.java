@@ -9,7 +9,7 @@ import org.ip.model.AttributeValue;
 import org.ip.model.AttributeValueType;
 import org.ip.model.NomAttributeValue;
 import org.ip.service.AttributeValueService;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.crud.LookupService;
 import org.ipro.form.BindingDescriptor;
 import org.ipro.form.EntityField;

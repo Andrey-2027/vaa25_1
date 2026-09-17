@@ -9,7 +9,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.form.FieldRenderer;
 import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.ipro.telemetry.core.FieldAuditBridge;

@@ -1,7 +1,7 @@
 package org.ip.application.form;
 
 import org.ipro.crud.BaseService;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.form.FormSaveHandler;
 import org.ipro.form.FormSaveResult;

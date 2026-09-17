@@ -2,7 +2,7 @@ package org.ipro.form.registry;
 
 import org.ipro.form.builtin.ListForm;
 import org.ipro.form.coordinator.FormCoordinator;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 
 /**
  * Контекст выполнения команды списка.

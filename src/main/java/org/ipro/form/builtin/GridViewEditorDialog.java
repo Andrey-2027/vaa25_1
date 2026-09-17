@@ -30,7 +30,7 @@ import org.ipro.metadata.annotation.FieldType;
 import org.ipro.form.spi.GridView;
 import org.ipro.form.spi.GridViewStore;
 import org.ipro.crud.LookupService;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.filtergrid.filter.FilterTreeEditor;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.filter.FilterConditionNode;

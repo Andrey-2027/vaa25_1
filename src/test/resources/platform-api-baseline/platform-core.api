@@ -1,0 +1,1003 @@
+# platform-core: публичная поверхность (перезапись: -Dplatform.api.baseline.write=true)
+abstract-class public abstract org.ipro.crud.StandardCatalogEntity
+  extends org.ipro.crud.BaseEntity
+  implements org.ipro.metadata.HasDisplayName
+  annotation jakarta.persistence.MappedSuperclass
+  ctor public()
+  method public java.lang.String getCode()
+  method public java.lang.String getDisplayName()
+  method public java.lang.String getName()
+  method public java.lang.String toString()
+  method public void setCode(java.lang.String)
+  method public void setName(java.lang.String)
+
+abstract-class public abstract org.ipro.crud.StandardDocumentEntity
+  extends org.ipro.crud.BaseEntity
+  implements org.ipro.metadata.HasDisplayName
+  annotation jakarta.persistence.MappedSuperclass
+  ctor public()
+  method public java.lang.String getDisplayName()
+  method public java.lang.String getNumber()
+  method public java.lang.String toString()
+  method public java.time.LocalDate getDate()
+  method public void setDate(java.time.LocalDate)
+  method public void setNumber(java.lang.String)
+
+annotation public abstract interface org.ipro.fetch.instance.InstanceName
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.String separator() default  
+  method public abstract java.lang.String[] value() default []
+
+annotation public abstract interface org.ipro.search.GlobalSearchable
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract int order()
+
+class public final org.ipro.crud.MetadataTableSectionService
+  implements org.ipro.crud.TableSectionService<R, P>
+  type-parameter R
+  type-parameter P
+  ctor public(org.ipro.crud.GenericOwnedSectionService, org.ipro.metadata.TableSectionMetadataInfo)
+  method public R createNew(P)
+  method public java.util.List<R> findByParent(P)
+  method public java.util.List<R> findByParent(P, java.util.Collection<java.lang.String>)
+  method public java.util.List<java.lang.String> validateRows(P, java.util.List<R>)
+  method public void replaceAll(P, java.util.List<R>)
+
+class public final org.ipro.data.EntityDescriptorCatalog
+  ctor public(org.ipro.metadata.ManagedEntityCatalog, org.ipro.metadata.SectionMetadataRegistry, org.ipro.metadata.MetadataResolver, java.util.List<org.ipro.data.EntityExposureOverride>)
+  ctor public(org.ipro.metadata.ManagedEntityCatalog, org.ipro.metadata.SectionMetadataRegistry, org.ipro.metadata.MetadataResolver, java.util.List<org.ipro.data.EntityExposureOverride>, java.util.List<org.ipro.data.EntityCapabilityOverride>)
+  method public java.util.List<java.lang.Class<?>> managedTypes()
+  method public java.util.List<org.ipro.data.EntityDescriptor> all()
+  method public java.util.Optional<org.ipro.data.EntityDescriptor> find(java.lang.Class<?>)
+  method public org.ipro.data.EntityDescriptor descriptorOf(java.lang.Class<?>)
+
+class public final org.ipro.data.EventContourStartupCheck
+  ctor public(java.util.List<org.ipro.lifecycle.EntityLifecycle<?>>, org.springframework.beans.factory.ObjectProvider<org.ipro.lifecycle.EntityLifecycleRegistry>, org.springframework.beans.factory.ObjectProvider<org.ipro.events.EntityEventPublisher>)
+
+class public final org.ipro.data.ScenarioFetchGraphResolver
+  ctor public(org.ipro.metadata.MetadataResolver, org.ipro.fetch.plan.FetchPlanRegistry, org.ipro.fetch.instance.InstanceNameResolver)
+  method public jakarta.persistence.EntityGraph<T> resolve(jakarta.persistence.EntityManager, java.lang.Class<T>, org.ipro.fetch.plan.FetchScenario, java.util.Collection<java.lang.String>)
+  method public java.util.List<java.lang.String> resolvePaths(java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario, java.util.Collection<java.lang.String>)
+
+class public final org.ipro.data.SearchFieldResolver
+  ctor public(org.ipro.metadata.MetadataResolver)
+  ctor public(org.ipro.metadata.MetadataResolver, org.ipro.fetch.instance.InstanceNameResolver)
+  method public java.util.List<java.lang.String> resolve(java.lang.Class<?>, java.util.List<java.lang.String>)
+  method public java.util.List<java.lang.String> resolve(java.lang.Class<?>, java.util.List<java.lang.String>, boolean)
+  method public static java.lang.String idFieldName(java.lang.Class<?>)
+
+class public final org.ipro.data.SearchTerms
+  field public static final char LIKE_ESCAPE = \
+  method public static boolean isBlank(java.lang.String)
+  method public static java.lang.String containsPattern(java.lang.String)
+  method public static java.lang.String escape(java.lang.String)
+  method public static java.lang.String normalize(java.lang.String)
+  method public static java.lang.String prefixPattern(java.lang.String)
+
+class public final org.ipro.fetch.ManagedEntityTypes
+  ctor public(org.ipro.metadata.ManagedEntityCatalog)
+  method public java.util.List<java.lang.Class<?>> all()
+
+class public final org.ipro.fetch.instance.InstanceNameBridge
+  method public static boolean hasDeclaration(java.lang.Class<?>)
+  method public static java.lang.String declaredName(java.lang.Object)
+  method public static java.lang.String displayName(java.lang.Object)
+  method public static java.util.List<java.lang.String> instanceNameFetchPaths(java.lang.Class<?>)
+  method public static java.util.List<java.lang.String> instanceNamePaths(java.lang.Class<?>)
+  method public static org.ipro.fetch.instance.InstanceNameProvider installedProvider()
+  method public static org.ipro.fetch.instance.InstanceNameResolver installedAnalysis()
+  method public static void install(org.ipro.fetch.instance.InstanceNameProvider, org.ipro.fetch.instance.InstanceNameResolver)
+  method public static void install(org.ipro.fetch.instance.InstanceNameResolver)
+  method public static void uninstall(org.ipro.fetch.instance.InstanceNameProvider, org.ipro.fetch.instance.InstanceNameResolver)
+
+class public final org.ipro.fetch.instance.InstanceNameBridgeInstaller
+  implements org.springframework.beans.factory.DisposableBean
+  implements org.springframework.beans.factory.InitializingBean
+  ctor public(org.ipro.fetch.instance.InstanceNameResolver, org.springframework.beans.factory.ObjectProvider<org.ipro.fetch.instance.InstanceNameProvider>)
+  method public org.ipro.fetch.instance.InstanceNameProvider provider()
+  method public void afterPropertiesSet()
+  method public void destroy()
+
+class public final org.ipro.fetch.instance.InstanceNameResolver
+  implements org.ipro.fetch.instance.InstanceNameProvider
+  ctor public(java.util.Collection<java.lang.Class<?>>, org.ipro.metadata.MetadataResolver)
+  method public boolean canResolve(java.lang.Class<?>)
+  method public boolean hasDeclaration(java.lang.Class<?>)
+  method public java.lang.String declaredName(java.lang.Object)
+  method public java.lang.String resolve(java.lang.Object)
+  method public java.util.List<java.lang.String> instanceNameFetchPaths(java.lang.Class<?>)
+  method public java.util.List<java.lang.String> instanceNamePaths(java.lang.Class<?>)
+  method public static boolean declares(java.lang.Class<?>)
+  method public static java.lang.String compatibleDisplayName(java.lang.Object)
+
+class public final org.ipro.fetch.plan.FetchPlan
+  method public boolean isEmpty()
+  method public int size()
+  method public java.lang.Class<?> entityClass()
+  method public java.lang.String reasonFor(java.lang.String)
+  method public java.lang.String toString()
+  method public java.util.List<java.lang.String> paths()
+  method public java.util.List<java.lang.String> rawPaths()
+  method public org.ipro.fetch.plan.FetchScenario scenario()
+
+class public final org.ipro.fetch.plan.FetchPlanRegistry
+  ctor public(org.ipro.fetch.ManagedEntityTypes, org.ipro.metadata.MetadataResolver, org.ipro.fetch.instance.InstanceNameResolver)
+  method public jakarta.persistence.EntityGraph<T> entityGraph(jakarta.persistence.EntityManager, java.lang.Class<T>, org.ipro.fetch.plan.FetchScenario)
+  method public java.util.List<java.lang.String> paths(java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario)
+  method public java.util.List<java.lang.String> pathsWith(java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario, java.util.Collection<java.lang.String>)
+  method public org.ipro.fetch.plan.FetchPlan plan(java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario)
+
+class public final org.ipro.filter.ColumnPathFilterFieldResolver
+  implements org.ipro.filtergrid.filter.FilterFieldResolver
+  ctor public(java.util.List<org.ipro.metadata.ColumnPath>)
+  method public java.util.List<org.ipro.filtergrid.filter.FilterFieldResolver$ResolvedFilterField> fields()
+  method public org.ipro.filtergrid.filter.FilterFieldResolver$ResolvedFilterField resolve(java.lang.String)
+
+class public final org.ipro.filter.FilterConditionCodec
+  method public static org.ipro.filtergrid.filter.FilterCondition fromLegacy(org.ipro.metadata.FilterSpec, org.ipro.filtergrid.filter.FilterDataType)
+
+class public final org.ipro.metadata.ColumnPath
+  method public boolean isNested()
+  method public java.lang.Class<?> getJavaType()
+  method public java.lang.Object getValue(java.lang.Object)
+  method public java.lang.String getKey()
+  method public java.lang.String getLabel()
+  method public java.lang.reflect.Field getRootField()
+  method public java.util.List<java.lang.String> getFetchPaths()
+  method public java.util.Optional<org.ipro.metadata.FieldMetadataInfo> asFieldMetadata()
+  method public org.ipro.metadata.ColumnPath withLabel(java.lang.String)
+  method public org.ipro.metadata.annotation.FieldType getResolvedType()
+  method public static java.lang.String toJson(java.util.List<org.ipro.metadata.ColumnPath>, java.lang.Class<?>)
+  method public static java.util.List<org.ipro.metadata.ColumnPath> fromJson(java.lang.String, java.lang.Class<?>)
+  method public static org.ipro.metadata.ColumnPath fromField(org.ipro.metadata.FieldMetadataInfo)
+  method public static org.ipro.metadata.ColumnPath resolve(java.lang.Class<?>, java.lang.String)
+
+class public final org.ipro.metadata.EntityMetadataInfo
+  implements org.ipro.metadata.GridMetadata
+  ctor public(java.lang.Class<?>, org.ipro.metadata.annotation.EntityMetadata, org.ipro.metadata.annotation.EntityKind, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.ColumnPath>)
+  method public int getOrder()
+  method public java.lang.Class<?> getEntityClass()
+  method public java.lang.String getIcon()
+  method public java.lang.String getItemFormTitle()
+  method public java.lang.String getListFormTitle()
+  method public java.lang.String getSelectionFormTitle()
+  method public java.lang.String toString()
+  method public java.util.List<java.lang.String> getDisplaySortFields()
+  method public java.util.List<org.ipro.metadata.ColumnPath> getListColumnPaths()
+  method public java.util.List<org.ipro.metadata.ColumnPath> getSelectColumnPaths()
+  method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getAllAnnotatedFields()
+  method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getFormFields()
+  method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getGridFields()
+  method public org.ipro.metadata.FieldMetadataInfo getFieldByName(java.lang.String)
+  method public org.ipro.metadata.annotation.EntityKind getEntityKind()
+  method public org.ipro.metadata.annotation.EntityMetadata getAnnotation()
+
+class public final org.ipro.metadata.FetchGraphs
+  method public static jakarta.persistence.EntityGraph<T> fromPaths(jakarta.persistence.EntityManager, java.lang.Class<T>, java.util.Collection<java.lang.String>)
+  method public static java.util.List<java.lang.String> deepen(java.lang.Class<?>, java.util.Collection<java.lang.String>, org.ipro.metadata.MetadataResolver)
+  method public static java.util.List<java.lang.String> deepen(java.lang.Class<?>, java.util.Collection<java.lang.String>, org.ipro.metadata.MetadataResolver, org.ipro.metadata.InstanceNameSource)
+  method public static java.util.List<java.lang.String> entityReferencePaths(java.util.List<org.ipro.metadata.FieldMetadataInfo>)
+
+class public final org.ipro.metadata.FieldMetadataInfo
+  ctor public(java.lang.reflect.Field, org.ipro.metadata.annotation.FieldMetadata)
+  method public boolean hasLookup()
+  method public boolean isFilterEnabled()
+  method public boolean isGridSortable()
+  method public boolean isGridVisible()
+  method public boolean isHidden()
+  method public boolean isReadOnly()
+  method public boolean isRequired()
+  method public boolean isServerRequired()
+  method public int getGridFlexGrow()
+  method public int getGridOrder()
+  method public int getOrder()
+  method public java.lang.Class<?> getJavaType()
+  method public java.lang.Class<?> getLookupEntity()
+  method public java.lang.Object getValue(java.lang.Object)
+  method public java.lang.String getGridWidth()
+  method public java.lang.String getLabel()
+  method public java.lang.String getLookupVariant()
+  method public java.lang.String getName()
+  method public java.lang.String getPlaceholder()
+  method public java.lang.String toString()
+  method public java.lang.String[] getLookupColumns()
+  method public java.lang.String[] getLookupFetch()
+  method public java.lang.String[] getLookupSearchFields()
+  method public java.lang.reflect.Field getField()
+  method public java.util.List<org.ipro.metadata.MetadataDiagnostic> getDiagnostics()
+  method public org.ipro.metadata.FactOrigin getReferenceOrigin()
+  method public org.ipro.metadata.FactOrigin getRequiredOrigin()
+  method public org.ipro.metadata.FactOrigin getTypeOrigin()
+  method public org.ipro.metadata.annotation.FieldMetadata getAnnotation()
+  method public org.ipro.metadata.annotation.FieldType getResolvedType()
+  method public org.ipro.metadata.annotation.RequiredMode getRequiredMode()
+  method public void setValue(java.lang.Object, java.lang.Object)
+
+class public final org.ipro.metadata.ManagedEntityCatalog
+  ctor public(jakarta.persistence.EntityManagerFactory)
+  method public java.lang.Class<? extends T> resolve(java.lang.String, java.lang.Class<T>)
+  method public java.util.Set<java.lang.Class<?>> managedEntityClasses()
+
+class public final org.ipro.metadata.MetadataConsistencyStartupCheck
+  ctor public(org.ipro.metadata.ManagedEntityCatalog, org.ipro.metadata.MetadataResolver, java.util.List<org.ipro.metadata.MetadataAllowance>)
+  method public java.util.List<org.ipro.metadata.MetadataDiagnostic> diagnostics()
+
+class public final org.ipro.metadata.MetadataConsistencyValidator
+  method public static java.util.List<org.ipro.metadata.MetadataDiagnostic> validate(org.ipro.metadata.MetadataResolver, java.lang.Iterable<java.lang.Class<?>>, java.util.List<org.ipro.metadata.MetadataAllowance>)
+
+class public final org.ipro.metadata.MetadataDiagnosticCodes
+  field public static final java.lang.String DISALLOWED_ALLOWANCE = DISALLOWED_ALLOWANCE
+  field public static final java.lang.String FALLBACK_TYPE = FALLBACK_TYPE
+  field public static final java.lang.String REDUNDANT_LOOKUP_TARGET = REDUNDANT_LOOKUP_TARGET
+  field public static final java.lang.String REDUNDANT_REQUIRED = REDUNDANT_REQUIRED
+  field public static final java.lang.String REDUNDANT_TYPE = REDUNDANT_TYPE
+  field public static final java.lang.String REFERENCE_CONFLICT = REFERENCE_CONFLICT
+  field public static final java.lang.String REFERENCE_TARGET_NOT_METADATA = REFERENCE_TARGET_NOT_METADATA
+  field public static final java.lang.String STALE_ALLOWANCE = STALE_ALLOWANCE
+  field public static final java.lang.String TYPE_CONFLICT = TYPE_CONFLICT
+  field public static final java.lang.String UI_OPTIONAL_SERVER_REQUIRED = UI_OPTIONAL_SERVER_REQUIRED
+  field public static final java.lang.String UI_REQUIRED_SERVER_OPTIONAL = UI_REQUIRED_SERVER_OPTIONAL
+
+class public final org.ipro.metadata.RowMetadataInfo
+  ctor public(java.lang.Class<?>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>)
+  method public java.lang.Class<?> getRowClass()
+  method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getFormFields()
+  method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getGridFields()
+
+class public final org.ipro.metadata.SectionMetadataRegistry
+  implements org.springframework.beans.factory.InitializingBean
+  ctor public(java.lang.String, org.ipro.metadata.MetadataResolver)
+  method public java.util.List<org.ipro.metadata.TableSectionMetadataInfo> all()
+  method public java.util.List<org.ipro.metadata.TableSectionMetadataInfo> forOwner(java.lang.Class<?>)
+  method public java.util.Optional<org.ipro.metadata.TableSectionMetadataInfo> findByRow(java.lang.Class<?>)
+  method public void afterPropertiesSet()
+  method public void rebuild()
+
+class public final org.ipro.metadata.SubsystemNode
+  ctor public(java.lang.Class<?>, org.ipro.metadata.annotation.Subsystem)
+  method public boolean isRoot()
+  method public int getOrder()
+  method public java.lang.Class<?> getMarkerClass()
+  method public java.lang.String getIcon()
+  method public java.lang.String getTitle()
+  method public java.lang.String toString()
+  method public java.util.List<org.ipro.metadata.EntityMetadataInfo> getOwnEntities()
+  method public java.util.List<org.ipro.metadata.SubsystemNode$EntityGroup> getEntityGroupsRecursive()
+  method public java.util.List<org.ipro.metadata.SubsystemNode> getChildren()
+  method public org.ipro.metadata.SubsystemNode getParent()
+
+class public final org.ipro.metadata.TableSectionGridMetadata
+  implements org.ipro.metadata.GridMetadata
+  ctor public(org.ipro.metadata.TableSectionMetadataInfo)
+  method public java.lang.Class<?> getEntityClass()
+  method public java.lang.String getListFormTitle()
+  method public java.util.List<org.ipro.metadata.ColumnPath> getListColumnPaths()
+  method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getFormFields()
+  method public org.ipro.metadata.FieldMetadataInfo getFieldByName(java.lang.String)
+
+class public final org.ipro.metadata.TableSectionMetadataInfo
+  ctor public(java.lang.Class<?>, java.lang.Class<?>, org.ipro.metadata.annotation.TableSectionMetadata, java.lang.reflect.Field, java.lang.reflect.Field, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>)
+  method public boolean hasLineNumberField()
+  method public int getMinRows()
+  method public int getOrder()
+  method public java.lang.Class<?> getOwnerClass()
+  method public java.lang.Class<?> getParentEntityClass()
+  method public java.lang.Class<?> getRowClass()
+  method public java.lang.Class<?> getServiceClass()
+  method public java.lang.String getKey()
+  method public java.lang.String getLineNumberFieldName()
+  method public java.lang.String getParentFieldName()
+  method public java.lang.String getRowFormTitle()
+  method public java.lang.String getTitle()
+  method public java.lang.String toString()
+  method public java.lang.reflect.Field getLineNumberField()
+  method public java.lang.reflect.Field getParentField()
+  method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getFormFields()
+  method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getGridFields()
+  method public org.ipro.metadata.annotation.SectionPersistenceMode getPersistenceMode()
+  method public org.ipro.metadata.annotation.SectionRlsPolicy getRlsPolicy()
+  method public void linkToParent(T, P)
+  method public void setLineNumber(java.lang.Object, int)
+
+class public final org.ipro.search.GlobalSearchCatalog
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.metadata.MetadataResolver, org.ipro.fetch.instance.InstanceNameResolver, java.util.List<org.ipro.search.GlobalSearchProvider<?>>)
+  method public java.util.List<org.ipro.search.GlobalSearchSource> sources()
+  method public java.util.Optional<org.ipro.search.GlobalSearchSource> sourceOf(java.lang.Class<?>)
+  method public org.ipro.search.GlobalSearchSource requireSource(java.lang.Class<?>)
+
+class public final org.ipro.search.GlobalSearchProviderRegistry
+  ctor public(java.util.List<org.ipro.search.GlobalSearchProvider<?>>)
+  ctor public(java.util.List<org.ipro.search.GlobalSearchProvider<?>>, org.ipro.fetch.instance.InstanceNameResolver)
+  method public java.util.Map<java.lang.Class<?>, org.ipro.search.GlobalSearchProvider<?>> providers()
+  method public org.ipro.search.GlobalSearchProvider<T> providerOf(org.ipro.search.GlobalSearchSource)
+
+class public final org.ipro.search.JpaGlobalSearchProvider
+  implements org.ipro.search.GlobalSearchProvider<T>
+  type-parameter T
+  ctor public(java.lang.Class<T>)
+  ctor public(java.lang.Class<T>, org.ipro.fetch.instance.InstanceNameResolver)
+  method public java.lang.Class<T> entityClass()
+  method public java.lang.Object idOf(T)
+  method public java.lang.String displayValue(T, org.ipro.search.GlobalSearchSource)
+  method public org.ipro.search.GlobalSearchMatch classify(T, org.ipro.search.GlobalSearchSource, java.lang.String)
+
+class public final org.ipro.security.CurrentUser
+  method public static java.lang.String username()
+
+class public org.ipro.crud.EntityCopyService
+  annotation org.springframework.stereotype.Component
+  ctor public()
+  method public R copyRow(R, org.ipro.metadata.TableSectionMetadataInfo, P)
+  method public T copyEntity(T)
+
+class public org.ipro.crud.GenericOwnedSectionService
+  ctor public(jakarta.validation.Validator, org.ipro.metadata.MetadataResolver, org.ipro.metadata.SectionMetadataRegistry, org.ipro.rls.RlsPolicyEnforcer)
+  method public R createNew(P, org.ipro.metadata.TableSectionMetadataInfo)
+  method public java.util.List<R> findByParent(P, org.ipro.metadata.TableSectionMetadataInfo)
+  method public java.util.List<R> findByParent(P, org.ipro.metadata.TableSectionMetadataInfo, java.util.Collection<java.lang.String>)
+  method public java.util.List<java.lang.String> validateRows(P, java.util.List<R>, org.ipro.metadata.TableSectionMetadataInfo)
+  method public void deleteAll(P, org.ipro.metadata.TableSectionMetadataInfo)
+  method public void deleteAllOwnedSections(P)
+  method public void replaceAll(P, java.util.List<R>, org.ipro.metadata.TableSectionMetadataInfo)
+  method public void setFetchPlanRegistry(org.ipro.fetch.plan.FetchPlanRegistry)
+  method public void setScenarioFetchGraphResolver(org.ipro.data.ScenarioFetchGraphResolver)
+
+class public org.ipro.crud.LookupService
+  annotation org.springframework.stereotype.Service
+  ctor public(org.ipro.data.CanonicalReadExecutor)
+  method public java.util.List<T> findAll(java.lang.Class<T>)
+  method public java.util.List<T> search(java.lang.Class<T>, java.lang.String[], java.lang.String, int)
+  method public java.util.List<T> search(java.lang.Class<T>, java.lang.String[], java.lang.String, int, java.util.Collection<java.lang.String>)
+  method public java.util.Optional<T> findById(java.lang.Class<T>, java.lang.Object)
+  method public java.util.Optional<T> findById(java.lang.Class<T>, java.lang.Object, java.util.Collection<java.lang.String>)
+
+class public org.ipro.crud.MetadataDrivenAggregateSaveService
+  ctor public(org.ipro.crud.ServiceLocator, org.ipro.metadata.SectionMetadataRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.events.EntityEventPublisher)
+  ctor public(org.ipro.crud.ServiceLocator, org.ipro.metadata.SectionMetadataRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry)
+  method public org.ipro.crud.MetadataDrivenAggregateSaveService$AggregateSaveResult<P> save(P, java.util.List<org.ipro.crud.MetadataDrivenAggregateSaveService$SectionInput>, org.ipro.events.EventSource)
+
+class public org.ipro.crud.NaturalKeyCreateSupport
+  ctor public(org.springframework.transaction.PlatformTransactionManager)
+  method public T getOrCreate(java.lang.String, java.util.function.Supplier<java.util.Optional<T>>, java.util.function.Supplier<T>)
+
+class public org.ipro.crud.ReferenceCheckService
+  annotation org.springframework.stereotype.Service
+  ctor public(org.ipro.metadata.ReferenceIndex, org.ipro.rls.RlsFilterActivator)
+  method public void checkNoReferences(java.lang.Class<?>, java.lang.Object)
+
+class public org.ipro.crud.ServiceLocator
+  implements org.springframework.beans.factory.SmartInitializingSingleton
+  annotation org.springframework.stereotype.Component
+  ctor public(org.springframework.context.ApplicationContext, org.ipro.metadata.MetadataResolver, org.ipro.metadata.SectionMetadataRegistry)
+  method public org.ipro.crud.BaseService<T, ID> findService(java.lang.Class<T>)
+  method public void afterSingletonsInstantiated()
+  method public void setDataAccessResolver(org.ipro.data.EntityDataAccessResolver)
+
+class public org.ipro.crud.ValidationException
+  extends java.lang.RuntimeException
+  ctor public(java.lang.String)
+  ctor public(java.lang.String, java.lang.Throwable)
+
+class public org.ipro.crud.jpa.ValidatedJpaCrudService
+  implements org.ipro.crud.BaseService<T, java.lang.Long>
+  type-parameter T
+  annotation jakarta.transaction.Transactional
+  ctor protected(org.springframework.data.jpa.repository.JpaRepository<T, java.lang.Long>, jakarta.validation.Validator, org.ipro.crud.ReferenceCheckService)
+  field protected final org.springframework.data.jpa.repository.JpaRepository<T, java.lang.Long> repository
+  method protected java.lang.Class<T> domainClass()
+  method protected void publishDeleted(T)
+  method protected void publishDeleting(T)
+  method protected void publishSaved(T)
+  method protected void publishSaving(T)
+  method protected void publishUpdating(java.util.Optional<T>, T)
+  method protected void validate(T)
+  method public T create(T)
+  method public T save(T)
+  method public T update(T)
+  method public java.util.List<T> findAll()
+  method public java.util.List<T> search(java.lang.String)
+  method public java.util.Optional<T> findById(java.lang.Long)
+  method public org.springframework.data.domain.Page<T> findAll(org.springframework.data.domain.Pageable)
+  method public org.springframework.data.domain.Page<T> search(java.lang.String, org.springframework.data.domain.Pageable)
+  method public void delete(java.lang.Long)
+
+class public org.ipro.data.CanonicalEntityDataAccess
+  implements org.ipro.data.EntityDataAccess
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.CanonicalReadExecutor, org.ipro.data.CanonicalWriteExecutor, org.ipro.fetch.instance.InstanceNameResolver)
+  method public T create(java.lang.Class<T>, T)
+  method public T save(java.lang.Class<T>, T)
+  method public T update(java.lang.Class<T>, T)
+  method public java.util.List<T> lookup(java.lang.Class<T>, java.lang.String, int)
+  method public java.util.Optional<T> detail(java.lang.Class<T>, java.lang.Object)
+  method public org.ipro.data.EntityDescriptor descriptor(java.lang.Class<?>)
+  method public org.springframework.data.domain.Page<T> list(java.lang.Class<T>, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable)
+  method public org.springframework.data.domain.Page<T> search(java.lang.Class<T>, java.lang.String, org.springframework.data.domain.Pageable)
+  method public void delete(java.lang.Class<T>, java.lang.Object)
+
+class public org.ipro.data.CanonicalEntityService
+  implements org.ipro.crud.BaseService<T, java.lang.Long>
+  type-parameter T
+  ctor public(java.lang.Class<T>, org.ipro.data.CanonicalReadExecutor, org.ipro.data.EntityDataAccess)
+  method public T create(T)
+  method public T save(T)
+  method public T update(T)
+  method public java.lang.Class<T> entityType()
+  method public java.lang.Number sum(java.lang.String, org.springframework.data.jpa.domain.Specification<T>)
+  method public java.util.List<T> findAll()
+  method public java.util.List<T> search(java.lang.String)
+  method public java.util.Optional<T> findById(java.lang.Long)
+  method public org.springframework.data.domain.Page<T> findAll(org.springframework.data.domain.Pageable)
+  method public org.springframework.data.domain.Page<T> findAll(org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable)
+  method public org.springframework.data.domain.Page<T> findAll(org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+  method public org.springframework.data.domain.Page<T> findAllByScenario(org.ipro.fetch.plan.FetchScenario, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+  method public org.springframework.data.domain.Page<T> search(java.lang.String, org.springframework.data.domain.Pageable)
+  method public void delete(java.lang.Long)
+
+class public org.ipro.data.CanonicalReadExecutor
+  annotation org.springframework.transaction.annotation.Transactional
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.ScenarioFetchGraphResolver, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsPolicyEnforcer, org.ipro.data.ReadTelemetry)
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.ScenarioFetchGraphResolver, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsPolicyEnforcer, org.ipro.data.ReadTelemetry, org.ipro.fetch.instance.InstanceNameResolver)
+  method public boolean canRead(java.lang.Class<?>)
+  method public java.lang.Number readSum(java.lang.Class<?>, java.lang.String, org.springframework.data.jpa.domain.Specification<?>)
+  method public java.util.List<T> readAll(org.ipro.data.ListRead<T>)
+  method public java.util.List<T> readLookup(org.ipro.data.LookupRead<T>)
+  method public java.util.List<T> readSearchWindow(org.ipro.data.SearchRead<T>, int, int)
+  method public java.util.Optional<T> readDetail(org.ipro.data.DetailRead<T>)
+  method public org.ipro.data.EntityDescriptor descriptorOf(java.lang.Class<?>)
+  method public org.springframework.data.domain.Page<T> readPage(org.ipro.data.PageRead<T>)
+  method public org.springframework.data.domain.Page<T> readSearch(org.ipro.data.SearchRead<T>)
+
+class public org.ipro.data.CanonicalWriteDeniedException
+  extends java.lang.IllegalStateException
+  ctor public(org.ipro.data.WriteTelemetry$DenialKind, java.lang.String)
+  method public org.ipro.data.WriteTelemetry$DenialKind kind()
+
+class public org.ipro.data.CanonicalWriteExecutor
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.CanonicalReadExecutor, jakarta.persistence.EntityManager, jakarta.validation.Validator, org.ipro.rls.RlsPolicyEnforcer, org.ipro.numbering.NumberingService, org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.crud.ReferenceCheckService, org.ipro.metadata.SectionMetadataRegistry)
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.CanonicalReadExecutor, jakarta.persistence.EntityManager, jakarta.validation.Validator, org.ipro.rls.RlsPolicyEnforcer, org.ipro.numbering.NumberingService, org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.crud.ReferenceCheckService, org.ipro.metadata.SectionMetadataRegistry, org.ipro.data.WriteTelemetry)
+  method public T create(java.lang.Class<T>, T)
+  method public T save(java.lang.Class<T>, T)
+  method public T update(java.lang.Class<T>, T)
+  method public java.util.List<org.ipro.fetch.plan.FetchScenario> allowedReads(java.lang.Class<?>)
+  method public java.util.Set<org.ipro.data.DataOperation> allowedWrites(java.lang.Class<?>)
+  method public org.ipro.data.EntityDescriptor descriptorOf(java.lang.Class<?>)
+  method public void delete(java.lang.Class<T>, java.lang.Object)
+
+class public org.ipro.data.EntityDataAccessResolver
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.EntityDataAccess, org.ipro.data.CanonicalReadExecutor, java.util.List<org.ipro.data.EntityDataPolicy>)
+  method public java.lang.String resolutionReason(java.lang.Class<?>)
+  method public java.util.Optional<org.ipro.crud.BaseService<T, ID>> findService(java.lang.Class<T>)
+  method public java.util.Optional<org.ipro.data.EntityDataAccess> find(java.lang.Class<?>)
+  method public org.ipro.data.EntityDataAccess resolve(java.lang.Class<?>)
+  method public org.ipro.data.EntityDescriptor descriptor(java.lang.Class<?>)
+
+class public org.ipro.data.grouping.JpaGroupingValuesProviderFactory
+  implements org.ipro.data.grouping.GroupingValuesProviderFactory
+  ctor public(jakarta.persistence.EntityManager)
+  method public org.ipro.filtergrid.grouping.GroupValuesService<T> create(java.lang.Class<T>)
+
+class public org.ipro.metadata.MetadataCache
+  ctor public()
+  method public boolean contains(java.lang.Class<?>)
+  method public int size()
+  method public org.ipro.metadata.EntityMetadataInfo get(java.lang.Class<?>)
+  method public void clear()
+  method public void put(java.lang.Class<?>, org.ipro.metadata.EntityMetadataInfo)
+  method public void remove(java.lang.Class<?>)
+
+class public org.ipro.metadata.MetadataResolver
+  annotation org.springframework.stereotype.Component
+  ctor public()
+  ctor public(org.ipro.metadata.MetadataCache)
+  method public java.util.List<org.ipro.metadata.FieldMetadataInfo> resolveAllAnnotatedFields(java.lang.Class<?>)
+  method public java.util.List<org.ipro.metadata.TableSectionMetadataInfo> resolveTableSections(java.lang.Class<?>)
+  method public org.ipro.metadata.EntityMetadataInfo resolve(java.lang.Class<?>)
+  method public org.ipro.metadata.RowMetadataInfo resolveRowMetadata(java.lang.Class<?>)
+  method public void invalidate(java.lang.Class<?>)
+  method public void invalidateAll()
+
+class public org.ipro.metadata.SubsystemRegistry
+  implements org.springframework.beans.factory.InitializingBean
+  annotation org.springframework.stereotype.Component
+  ctor public(java.lang.String)
+  method public java.util.List<org.ipro.metadata.SubsystemNode> getRoots()
+  method public java.util.Optional<org.ipro.metadata.SubsystemNode> findByMarker(java.lang.Class<?>)
+  method public void afterPropertiesSet()
+  method public void rebuild()
+
+class public org.ipro.search.GlobalSearchService
+  ctor public(org.ipro.search.GlobalSearchCatalog, org.ipro.search.GlobalSearchProviderRegistry, org.ipro.data.CanonicalReadExecutor, org.ipro.rls.RlsCurrentUser)
+  field public static final int QUERY_TIMEOUT_MS = 2000
+  method public org.ipro.search.GlobalSearchResponse search(java.lang.String)
+  method public org.ipro.search.GlobalSearchResponse search(org.ipro.search.GlobalSearchRequest)
+  method public static org.ipro.search.GlobalSearchService withoutSecurityContextForTests(org.ipro.search.GlobalSearchCatalog, org.ipro.search.GlobalSearchProviderRegistry, org.ipro.data.CanonicalReadExecutor)
+
+enum public final org.ipro.data.SearchContext
+  extends java.lang.Enum<org.ipro.data.SearchContext>
+  enum-constants [LIST, LOOKUP, GLOBAL]
+  field public static final org.ipro.data.SearchContext GLOBAL = enum-constant
+  field public static final org.ipro.data.SearchContext LIST = enum-constant
+  field public static final org.ipro.data.SearchContext LOOKUP = enum-constant
+  method public boolean ranked()
+  method public boolean strictExplicitFields()
+  method public org.ipro.data.DataOperation operation()
+  method public org.ipro.fetch.plan.FetchScenario scenario()
+  method public static org.ipro.data.SearchContext valueOf(java.lang.String)
+  method public static org.ipro.data.SearchContext[] values()
+
+enum public final org.ipro.metadata.FactOrigin
+  extends java.lang.Enum<org.ipro.metadata.FactOrigin>
+  enum-constants [EXPLICIT, BEAN_VALIDATION, JPA_MAPPING, JAVA_TYPE, PLATFORM_DEFAULT]
+  field public static final org.ipro.metadata.FactOrigin BEAN_VALIDATION = enum-constant
+  field public static final org.ipro.metadata.FactOrigin EXPLICIT = enum-constant
+  field public static final org.ipro.metadata.FactOrigin JAVA_TYPE = enum-constant
+  field public static final org.ipro.metadata.FactOrigin JPA_MAPPING = enum-constant
+  field public static final org.ipro.metadata.FactOrigin PLATFORM_DEFAULT = enum-constant
+  method public static org.ipro.metadata.FactOrigin valueOf(java.lang.String)
+  method public static org.ipro.metadata.FactOrigin[] values()
+
+enum public final org.ipro.metadata.facet.FacetKind
+  extends java.lang.Enum<org.ipro.metadata.facet.FacetKind>
+  enum-constants [ENTITY_LIST_TITLE, ENTITY_ITEM_TITLE, ENTITY_SELECTION_TITLE, FIELD_LABEL, GRID_COLUMN_HEADER, CONTEXT_FILTER_LABEL, SUBSYSTEM_MEMBERSHIP, FIELD_STRUCTURE, TABLE_SECTION, LOOKUP_TARGET, REVERSE_REFERENCE, NUMBERING_DECL]
+  field public static final org.ipro.metadata.facet.FacetKind CONTEXT_FILTER_LABEL = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind ENTITY_ITEM_TITLE = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind ENTITY_LIST_TITLE = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind ENTITY_SELECTION_TITLE = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind FIELD_LABEL = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind FIELD_STRUCTURE = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind GRID_COLUMN_HEADER = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind LOOKUP_TARGET = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind NUMBERING_DECL = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind REVERSE_REFERENCE = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind SUBSYSTEM_MEMBERSHIP = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind TABLE_SECTION = enum-constant
+  method public boolean overridable()
+  method public static org.ipro.metadata.facet.FacetKind valueOf(java.lang.String)
+  method public static org.ipro.metadata.facet.FacetKind[] values()
+
+enum public final org.ipro.metadata.facet.FactSource
+  extends java.lang.Enum<org.ipro.metadata.facet.FactSource>
+  enum-constants [CODE, OVERRIDE]
+  field public static final org.ipro.metadata.facet.FactSource CODE = enum-constant
+  field public static final org.ipro.metadata.facet.FactSource OVERRIDE = enum-constant
+  method public static org.ipro.metadata.facet.FactSource valueOf(java.lang.String)
+  method public static org.ipro.metadata.facet.FactSource[] values()
+
+enum public final org.ipro.search.GlobalSearchMatchKind
+  extends java.lang.Enum<org.ipro.search.GlobalSearchMatchKind>
+  enum-constants [EXACT, PREFIX, SUBSTRING]
+  field public static final org.ipro.search.GlobalSearchMatchKind EXACT = enum-constant
+  field public static final org.ipro.search.GlobalSearchMatchKind PREFIX = enum-constant
+  field public static final org.ipro.search.GlobalSearchMatchKind SUBSTRING = enum-constant
+  method public static org.ipro.search.GlobalSearchMatchKind valueOf(java.lang.String)
+  method public static org.ipro.search.GlobalSearchMatchKind[] values()
+
+enum public static final org.ipro.data.ReadTelemetry$ReadOutcome
+  extends java.lang.Enum<org.ipro.data.ReadTelemetry$ReadOutcome>
+  enum-constants [SUCCESS, FAILED]
+  field public static final org.ipro.data.ReadTelemetry$ReadOutcome FAILED = enum-constant
+  field public static final org.ipro.data.ReadTelemetry$ReadOutcome SUCCESS = enum-constant
+  method public static org.ipro.data.ReadTelemetry$ReadOutcome valueOf(java.lang.String)
+  method public static org.ipro.data.ReadTelemetry$ReadOutcome[] values()
+
+enum public static final org.ipro.data.WriteTelemetry$DenialKind
+  extends java.lang.Enum<org.ipro.data.WriteTelemetry$DenialKind>
+  enum-constants [CAPABILITY, AGGREGATE_BOUNDARY, ACCESS]
+  field public static final org.ipro.data.WriteTelemetry$DenialKind ACCESS = enum-constant
+  field public static final org.ipro.data.WriteTelemetry$DenialKind AGGREGATE_BOUNDARY = enum-constant
+  field public static final org.ipro.data.WriteTelemetry$DenialKind CAPABILITY = enum-constant
+  method public static org.ipro.data.WriteTelemetry$DenialKind valueOf(java.lang.String)
+  method public static org.ipro.data.WriteTelemetry$DenialKind[] values()
+
+enum public static final org.ipro.metadata.MetadataDiagnostic$Severity
+  extends java.lang.Enum<org.ipro.metadata.MetadataDiagnostic$Severity>
+  enum-constants [ERROR, WARNING, INFO]
+  field public static final org.ipro.metadata.MetadataDiagnostic$Severity ERROR = enum-constant
+  field public static final org.ipro.metadata.MetadataDiagnostic$Severity INFO = enum-constant
+  field public static final org.ipro.metadata.MetadataDiagnostic$Severity WARNING = enum-constant
+  method public static org.ipro.metadata.MetadataDiagnostic$Severity valueOf(java.lang.String)
+  method public static org.ipro.metadata.MetadataDiagnostic$Severity[] values()
+
+interface public abstract interface org.ipro.crud.BaseService
+  implements org.ipro.crud.CrudService<T>
+  type-parameter T
+  type-parameter ID
+  method public abstract T create(T)
+  method public abstract T save(T)
+  method public abstract T update(T)
+  method public abstract java.util.List<T> findAll()
+  method public abstract java.util.List<T> search(java.lang.String)
+  method public abstract java.util.Optional<T> findById(ID)
+  method public abstract org.springframework.data.domain.Page<T> findAll(org.springframework.data.domain.Pageable)
+  method public abstract org.springframework.data.domain.Page<T> search(java.lang.String, org.springframework.data.domain.Pageable)
+  method public abstract void delete(ID)
+  method public java.lang.Number sum(java.lang.String, org.springframework.data.jpa.domain.Specification<T>)
+  method public org.springframework.data.domain.Page<T> findAll(org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable)
+  method public org.springframework.data.domain.Page<T> findAll(org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+  method public org.springframework.data.domain.Page<T> findAllByScenario(org.ipro.fetch.plan.FetchScenario, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+
+interface public abstract interface org.ipro.crud.InternedEntity
+  method public abstract java.lang.String interningKey()
+
+interface public abstract interface org.ipro.crud.TableSectionService
+  type-parameter T
+  type-parameter P
+  method public abstract T createNew(P)
+  method public abstract java.util.List<T> findByParent(P)
+  method public abstract java.util.List<java.lang.String> validateRows(P, java.util.List<T>)
+  method public abstract void replaceAll(P, java.util.List<T>)
+  method public java.util.List<T> findByParent(P, java.util.Collection<java.lang.String>)
+
+interface public abstract interface org.ipro.data.EntityDataAccess
+  method public abstract T create(java.lang.Class<T>, T)
+  method public abstract T save(java.lang.Class<T>, T)
+  method public abstract T update(java.lang.Class<T>, T)
+  method public abstract java.util.List<T> lookup(java.lang.Class<T>, java.lang.String, int)
+  method public abstract java.util.Optional<T> detail(java.lang.Class<T>, java.lang.Object)
+  method public abstract org.ipro.data.EntityDescriptor descriptor(java.lang.Class<?>)
+  method public abstract org.springframework.data.domain.Page<T> list(java.lang.Class<T>, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable)
+  method public abstract org.springframework.data.domain.Page<T> search(java.lang.Class<T>, java.lang.String, org.springframework.data.domain.Pageable)
+  method public abstract void delete(java.lang.Class<T>, java.lang.Object)
+
+interface public abstract interface org.ipro.data.EntityDataPolicy
+  method public abstract java.lang.Class<? extends org.ipro.identity.IdentifiableEntity> entityType()
+  method public abstract org.ipro.data.EntityDataAccess dataAccess()
+  method public java.lang.String reason()
+  method public org.ipro.data.EntityDataPolicy validate()
+
+interface public abstract interface org.ipro.data.ReadTelemetry
+  annotation java.lang.FunctionalInterface
+  method public abstract void completed(org.ipro.data.DataOperation, java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario, org.ipro.data.ReadTelemetry$ReadOutcome, int, long)
+  method public static org.ipro.data.ReadTelemetry noop()
+
+interface public abstract interface org.ipro.data.WriteTelemetry
+  method public abstract org.ipro.data.WriteTelemetry$WriteScope begin(org.ipro.data.DataOperation, java.lang.Class<?>)
+  method public static org.ipro.data.WriteTelemetry noop()
+
+interface public abstract interface org.ipro.data.grouping.GroupingValuesProviderFactory
+  method public abstract org.ipro.filtergrid.grouping.GroupValuesService<T> create(java.lang.Class<T>)
+
+interface public abstract interface org.ipro.fetch.instance.InstanceNameProvider
+  annotation java.lang.FunctionalInterface
+  method public abstract java.lang.String resolve(java.lang.Object)
+
+interface public abstract interface org.ipro.metadata.GridMetadata
+  method public abstract java.lang.Class<?> getEntityClass()
+  method public abstract java.lang.String getListFormTitle()
+  method public abstract java.util.List<org.ipro.metadata.ColumnPath> getListColumnPaths()
+  method public abstract java.util.List<org.ipro.metadata.FieldMetadataInfo> getFormFields()
+  method public abstract org.ipro.metadata.FieldMetadataInfo getFieldByName(java.lang.String)
+
+interface public abstract interface org.ipro.metadata.HasDisplayName
+  method public abstract java.lang.String getDisplayName()
+
+interface public abstract interface org.ipro.metadata.InstanceNameSource
+  annotation java.lang.FunctionalInterface
+  field public static final org.ipro.metadata.InstanceNameSource NONE
+  method public abstract java.util.List<java.lang.String> pathsOf(java.lang.Class<?>)
+
+interface public abstract interface org.ipro.metadata.facet.FacetResolver
+  method public abstract java.util.Optional<java.lang.String> findOverride(org.ipro.metadata.facet.FacetKey)
+  method public static org.ipro.metadata.facet.FacetResolver none()
+
+interface public abstract interface org.ipro.search.GlobalSearchProvider
+  type-parameter T
+  field public static final int DEFAULT_QUERY_TIMEOUT_MS = 2000
+  method public abstract java.lang.Class<T> entityClass()
+  method public abstract java.lang.Object idOf(T)
+  method public abstract java.lang.String displayValue(T, org.ipro.search.GlobalSearchSource)
+  method public abstract org.ipro.search.GlobalSearchMatch classify(T, org.ipro.search.GlobalSearchSource, java.lang.String)
+  method public int queryTimeoutMs()
+
+interface public abstract static interface org.ipro.data.WriteTelemetry$WriteScope
+  implements java.lang.AutoCloseable
+  method public abstract void close()
+  method public abstract void committed()
+  method public abstract void denied(org.ipro.data.WriteTelemetry$DenialKind, java.lang.String)
+  method public abstract void failed(java.lang.Throwable)
+  method public abstract void pipelineCompleted(int)
+  method public abstract void rolledBack(java.lang.String)
+  method public static org.ipro.data.WriteTelemetry$WriteScope noop()
+
+record public final org.ipro.data.DetailRead
+  extends java.lang.Record
+  type-parameter T
+  ctor public(java.lang.Class<T>, java.lang.Object, org.ipro.fetch.plan.FetchScenario, java.util.Collection<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<T> type()
+  method public java.lang.Object id()
+  method public java.util.Collection<java.lang.String> additionalPaths()
+  method public org.ipro.fetch.plan.FetchScenario scenario()
+  method public static org.ipro.data.DetailRead<T> lookup(java.lang.Class<T>, java.lang.Object, java.util.Collection<java.lang.String>)
+  method public static org.ipro.data.DetailRead<T> of(java.lang.Class<T>, java.lang.Object)
+
+record public final org.ipro.data.EntityCapabilities
+  extends java.lang.Record
+  ctor public(java.util.Set<org.ipro.fetch.plan.FetchScenario>, java.util.Set<org.ipro.data.DataOperation>, java.lang.String)
+  method public boolean allows(org.ipro.data.DataOperation)
+  method public boolean allows(org.ipro.fetch.plan.FetchScenario)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String reason()
+  method public java.util.Set<org.ipro.data.DataOperation> writes()
+  method public java.util.Set<org.ipro.fetch.plan.FetchScenario> readScenarios()
+
+record public final org.ipro.data.EntityDescriptor
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, org.ipro.data.EntityExposure, boolean, boolean, org.ipro.data.EntityCapabilities, java.lang.String)
+  method public boolean jpaManaged()
+  method public boolean metadataDriven()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> type()
+  method public java.lang.String reason()
+  method public org.ipro.data.EntityCapabilities capabilities()
+  method public org.ipro.data.EntityExposure exposure()
+
+record public final org.ipro.data.ListRead
+  extends java.lang.Record
+  type-parameter T
+  ctor public(java.lang.Class<T>, org.ipro.fetch.plan.FetchScenario, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<T> type()
+  method public java.util.Collection<java.lang.String> additionalPaths()
+  method public org.ipro.fetch.plan.FetchScenario scenario()
+  method public org.springframework.data.domain.Pageable sort()
+  method public org.springframework.data.jpa.domain.Specification<T> filter()
+  method public static org.ipro.data.ListRead<T> of(java.lang.Class<T>, org.ipro.fetch.plan.FetchScenario)
+
+record public final org.ipro.data.LookupRead
+  extends java.lang.Record
+  type-parameter T
+  ctor public(java.lang.Class<T>, java.util.List<java.lang.String>, java.lang.String, int, java.util.Collection<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int limit()
+  method public java.lang.Class<T> type()
+  method public java.lang.String term()
+  method public java.util.Collection<java.lang.String> additionalPaths()
+  method public java.util.List<java.lang.String> searchFields()
+  method public static org.ipro.data.LookupRead<T> of(java.lang.Class<T>, java.util.List<java.lang.String>, java.lang.String, int)
+
+record public final org.ipro.data.PageRead
+  extends java.lang.Record
+  type-parameter T
+  ctor public(java.lang.Class<T>, org.ipro.fetch.plan.FetchScenario, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<T> type()
+  method public java.util.Collection<java.lang.String> additionalPaths()
+  method public org.ipro.fetch.plan.FetchScenario scenario()
+  method public org.springframework.data.domain.Pageable pageable()
+  method public org.springframework.data.jpa.domain.Specification<T> filter()
+  method public static org.ipro.data.PageRead<T> of(java.lang.Class<T>, org.ipro.fetch.plan.FetchScenario, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable)
+
+record public final org.ipro.data.SearchRead
+  extends java.lang.Record
+  type-parameter T
+  ctor public(java.lang.Class<T>, org.ipro.data.SearchContext, java.lang.String, java.util.List<java.lang.String>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+  field public static final int DEFAULT_PAGE_SIZE = 100
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<T> type()
+  method public java.lang.String term()
+  method public java.util.Collection<java.lang.String> additionalPaths()
+  method public java.util.List<java.lang.String> searchFields()
+  method public org.ipro.data.SearchContext context()
+  method public org.ipro.data.SearchRead<T> withFields(java.util.List<java.lang.String>)
+  method public org.ipro.data.SearchRead<T> withPaths(java.util.Collection<java.lang.String>)
+  method public org.springframework.data.domain.Pageable pageable()
+  method public static org.ipro.data.SearchRead<T> of(java.lang.Class<T>, org.ipro.data.SearchContext, java.lang.String)
+  method public static org.ipro.data.SearchRead<T> of(java.lang.Class<T>, org.ipro.data.SearchContext, java.lang.String, org.springframework.data.domain.Pageable)
+  method public static org.springframework.data.domain.Pageable defaultPage()
+
+record public final org.ipro.metadata.FilterSpec
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String mode()
+  method public java.lang.String path()
+  method public java.lang.String value()
+  method public java.lang.String valueTo()
+
+record public final org.ipro.metadata.GridViewState
+  extends java.lang.Record
+  ctor public(java.util.List<org.ipro.metadata.ColumnPath$Spec>, java.util.List<org.ipro.metadata.FilterSpec>)
+  ctor public(java.util.List<org.ipro.metadata.ColumnPath$Spec>, java.util.List<org.ipro.metadata.FilterSpec>, org.ipro.filtergrid.filter.FilterNode, org.ipro.filtergrid.filter.FilterNode)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String toJson()
+  method public java.util.List<org.ipro.metadata.ColumnPath$Spec> columns()
+  method public java.util.List<org.ipro.metadata.FilterSpec> filters()
+  method public org.ipro.filtergrid.filter.FilterNode fixedFilter()
+  method public org.ipro.filtergrid.filter.FilterNode userFilter()
+  method public org.ipro.filtergrid.filter.FilterNode userFilterOrLegacy()
+  method public static org.ipro.metadata.GridViewState fromJson(java.lang.String)
+  method public static org.ipro.metadata.GridViewState of(java.util.List<org.ipro.metadata.ColumnPath>, java.lang.Class<?>, java.util.List<org.ipro.metadata.FilterSpec>)
+  method public static org.ipro.metadata.GridViewState of(java.util.List<org.ipro.metadata.ColumnPath>, java.lang.Class<?>, org.ipro.filtergrid.filter.FilterNode, org.ipro.filtergrid.filter.FilterNode)
+
+record public final org.ipro.metadata.MetadataAllowance
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+  field public static final java.util.Set<java.lang.String> ALLOWABLE_CODES
+  method public boolean isAllowable()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String code()
+  method public java.lang.String entity()
+  method public java.lang.String field()
+  method public java.lang.String reason()
+
+record public final org.ipro.metadata.MetadataDiagnostic
+  extends java.lang.Record
+  ctor public(org.ipro.metadata.MetadataDiagnostic$Severity, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String code()
+  method public java.lang.String entity()
+  method public java.lang.String field()
+  method public java.lang.String message()
+  method public java.lang.String render()
+  method public java.lang.String source()
+  method public org.ipro.metadata.MetadataDiagnostic$Severity severity()
+
+record public final org.ipro.metadata.facet.FacetKey
+  extends java.lang.Record
+  ctor public(org.ipro.metadata.facet.FacetKind, java.lang.Class<?>, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> entityClass()
+  method public java.lang.String fieldName()
+  method public java.lang.String variant()
+  method public org.ipro.metadata.facet.FacetKind kind()
+  method public static org.ipro.metadata.facet.FacetKey of(org.ipro.metadata.facet.FacetKind, java.lang.Class<?>)
+  method public static org.ipro.metadata.facet.FacetKey of(org.ipro.metadata.facet.FacetKind, java.lang.Class<?>, java.lang.String)
+  method public static org.ipro.metadata.facet.FacetKey of(org.ipro.metadata.facet.FacetKind, java.lang.Class<?>, java.lang.String, java.lang.String)
+
+record public final org.ipro.metadata.facet.ResolvedValue
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.metadata.facet.FactSource)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String value()
+  method public org.ipro.metadata.facet.FactSource source()
+  method public static org.ipro.metadata.facet.ResolvedValue code(java.lang.String)
+
+record public final org.ipro.search.GlobalSearchMatch
+  extends java.lang.Record
+  ctor public(org.ipro.search.GlobalSearchMatchKind, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String fieldName()
+  method public org.ipro.search.GlobalSearchMatchKind kind()
+
+record public final org.ipro.search.GlobalSearchRequest
+  extends java.lang.Record
+  ctor public(java.lang.String, int, int)
+  field public static final int DEFAULT_PER_SOURCE_LIMIT = 5
+  field public static final int DEFAULT_TOTAL_LIMIT = 20
+  field public static final int MAX_PER_SOURCE_LIMIT = 50
+  field public static final int MAX_TOTAL_LIMIT = 100
+  field public static final int MIN_TERM_LENGTH = 2
+  method public boolean isTooShort()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int perSourceLimit()
+  method public int totalLimit()
+  method public java.lang.String term()
+  method public static org.ipro.search.GlobalSearchRequest of(java.lang.String)
+
+record public final org.ipro.search.GlobalSearchResponse
+  extends java.lang.Record
+  ctor public(java.lang.String, boolean, boolean, java.util.List<org.ipro.search.GlobalSearchResult>)
+  method public boolean queryTooShort()
+  method public boolean totalLimitReached()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String term()
+  method public java.util.List<org.ipro.search.GlobalSearchResult> results()
+  method public static org.ipro.search.GlobalSearchResponse tooShort(java.lang.String)
+
+record public final org.ipro.search.GlobalSearchResult
+  extends java.lang.Record
+  ctor public(int, java.lang.String, java.lang.Class<?>, java.lang.Object, java.lang.String, org.ipro.search.GlobalSearchMatchKind, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int sourceOrder()
+  method public java.lang.Class<?> entityClass()
+  method public java.lang.Object entityId()
+  method public java.lang.String displayValue()
+  method public java.lang.String groupTitle()
+  method public java.lang.String matchedField()
+  method public org.ipro.search.GlobalSearchMatchKind matchKind()
+
+record public final org.ipro.search.GlobalSearchSource
+  extends java.lang.Record
+  ctor public(int, java.lang.Class<?>, java.util.List<java.lang.String>, java.lang.String, java.lang.String)
+  ctor public(int, java.lang.Class<?>, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int declarationOrder()
+  method public java.lang.Class<?> entityClass()
+  method public java.lang.String groupTitle()
+  method public java.lang.String idFieldName()
+  method public java.util.List<java.lang.String> additionalPaths()
+  method public java.util.List<java.lang.String> searchFields()
+
+record public static final org.ipro.crud.MetadataDrivenAggregateSaveService$AggregateSaveResult
+  extends java.lang.Record
+  type-parameter P
+  ctor public(P, java.util.List<org.ipro.crud.MetadataDrivenAggregateSaveService$SectionResult>)
+  method public P aggregate()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<org.ipro.crud.MetadataDrivenAggregateSaveService$SectionResult> sections()
+  method public java.util.Optional<org.ipro.crud.MetadataDrivenAggregateSaveService$SectionResult> section(java.lang.Class<?>)
+
+record public static final org.ipro.crud.MetadataDrivenAggregateSaveService$SectionInput
+  extends java.lang.Record
+  ctor public(java.lang.Class<? extends org.ipro.identity.IdentifiableEntity>, java.util.List<?>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<? extends org.ipro.identity.IdentifiableEntity> rowType()
+  method public java.util.List<?> rows()
+  method public static org.ipro.crud.MetadataDrivenAggregateSaveService$SectionInput attached(java.lang.Class<? extends org.ipro.identity.IdentifiableEntity>, java.util.List<?>)
+
+record public static final org.ipro.crud.MetadataDrivenAggregateSaveService$SectionResult
+  extends java.lang.Record
+  ctor public(java.lang.Class<? extends org.ipro.identity.IdentifiableEntity>, java.util.List<? extends org.ipro.identity.IdentifiableEntity>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<? extends org.ipro.identity.IdentifiableEntity> rowType()
+  method public java.util.List<? extends org.ipro.identity.IdentifiableEntity> rows()
+
+record public static final org.ipro.metadata.ColumnPath$Spec
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String label()
+  method public java.lang.String path()
+
+record public static final org.ipro.metadata.SubsystemNode$EntityGroup
+  extends java.lang.Record
+  ctor public(org.ipro.metadata.SubsystemNode, java.util.List<org.ipro.metadata.EntityMetadataInfo>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<org.ipro.metadata.EntityMetadataInfo> entities()
+  method public org.ipro.metadata.SubsystemNode node()
+

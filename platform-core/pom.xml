@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-core</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform core</name>
+    <description>
+        D3.3: backend платформы — generic CRUD, доступ к данным, метаданные, fetch-планы и
+        фильтры — без Vaadin и без кода приложения. «Core» здесь означает «без UI и без org.ip»,
+        а не «чистый Java»: Spring и JPA в этом модуле допустимы.
+
+        Группа из 74 классов переехала одним шагом, потому что иначе её нельзя: org.ipro.metadata,
+        org.ipro.crud, org.ipro.data и org.ipro.fetch образуют цикл, а пакет нельзя перенести
+        частично — типы одного пакета в двух артефактах это split package, который компилятор
+        различает по порядку classpath, а не по замыслу. org.ipro.security едет вместе с ними:
+        org.ipro.data импортирует CurrentUser, и оставленная в дереве security превратила бы
+        ребро в core -> приложение.
+
+        Второй заход — 19 классов вне цикла: org.ipro.search (12), org.ipro.filter (2) и
+        org.ipro.security (1, уже переехал в первом). search зависит от цикла, но из цикла в
+        search не ссылается никто; filter зависит только от метаданных.
+
+        Итого в модуле 93 типа. Пакеты приложения остаются здесь только как имя: ни один
+        исходник модуля не ссылается на org.ip — это проверяется гейтом.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
+        <platform-crud-api.version>1.0-SNAPSHOT</platform-crud-api.version>
+        <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
+        <platform-events.version>1.0-SNAPSHOT</platform-events.version>
+        <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
+        <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
+        <platform-numbering.version>1.0-SNAPSHOT</platform-numbering.version>
+        <platform-telemetry.version>1.0-SNAPSHOT</platform-telemetry.version>
+        <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
+        <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
+    </properties>
+
+    <!--
+      Разрешённые compile-зависимости — reviewed, проверяются CoreModuleCompositionTest (в модуле)
+      и PlatformCoreModuleTest (в приложении). Список выведен из фактических импортов группы, а не
+      из предположений: каждая строка ниже закрывает конкретные пакеты, перечисленные рядом.
+
+      Запрещено: Vaadin (это platform-vaadin) и org.ip (приложение зависит от платформы).
+      Авто-конфигурация здесь тоже отсутствует до D3.4: пакеты org.ipro.*.config остаются в дереве
+      приложения, поэтому потеря модуля видна компилятору, а не только в рантайме.
+    -->
+    <dependencies>
+        <!-- Контракты и низкоуровневые модули платформы: identity (IdentifiableEntity),
+             contracts (metadata.annotation, lifecycle, fetch.plan.FetchScenario),
+             events, persistence (crud.BaseEntity), metadata (AnnotationClassScanner,
+             ReferenceIndex), numbering, telemetry (api/core), rls. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-identity-api</artifactId>
+            <version>${platform-identity.version}</version>
+        </dependency>
+        <!-- org.ipro.crud.CrudService.
+
+             Единственный тип, который platform-core брал из UI-библиотеки: BaseService его
+             расширяет, а приложение кастует свой handle к нему (WorkshopListView). Держать его
+             в crudui-core нельзя было — backend зависел бы от UI-артефакта; переносить в
+             этот модуль тоже нельзя — crudui-core начал бы зависеть от платформы, а crudui
+             собирается первым и от GitVaa не зависит. Поэтому он живёт в отдельном Java-only
+             leaf-модуле реактора crudui, рядом с identity-api.
+
+             Проверка направления: этот POM не объявляет crudui-core, но объявляет
+             platform-crud-api — то есть модуль видит контракт и не видит UI-классов. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-crud-api</artifactId>
+            <version>${platform-crud-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-contracts</artifactId>
+            <version>${platform-contracts.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-events</artifactId>
+            <version>${platform-events.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-persistence</artifactId>
+            <version>${platform-persistence.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-metadata</artifactId>
+            <version>${platform-metadata.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-numbering</artifactId>
+            <version>${platform-numbering.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-telemetry</artifactId>
+            <version>${platform-telemetry.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rls</artifactId>
+            <version>${platform-rls.version}</version>
+        </dependency>
+
+        <!-- filtergrid-core: org.ipro.filtergrid.filter (дерево условий, кодек),
+             filtergrid-grouping: org.ipro.filtergrid.grouping (значения группировки). -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-core</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-grouping</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+
+        <!-- JPA/validation: сущности, критерии, валидация агрегатов (jakarta.persistence,
+             jakarta.persistence.criteria, jakarta.validation, jakarta.transaction). -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
+        </dependency>
+
+        <!-- Spring: beans/context (бины и scope), core, tx (транзакции и org.springframework.dao),
+             data-jpa + data-commons (domain/jpa.domain/annotation, репозитории),
+             security-core (org.springframework.security.access.AccessDeniedException). -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+
+        <!-- Hibernate: org.hibernate.proxy (ленивые прокси в проверках состояния).
+             Jackson: сериализация дерева условий в FilterConditionCodec (databind) и
+             TypeReference в org.ipro.metadata.ColumnPath/GridViewState (core). -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- Тесты едут с модулем: артефакт публикуется отдельно, и проверки его поведения
+             обязаны запускаться вместе с ним. Scope test: на compile-поверхность не влияет. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*IT.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,6 +1,6 @@
 package org.ipro.form.builtin;
 
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.junit.jupiter.api.Test;

@@ -43,7 +43,7 @@ import org.ipro.filtergrid.grouping.GroupValuesService;
 import org.ipro.filtergrid.grouping.GroupableJpaFilterGrid;
 import org.ipro.filtergrid.grouping.GroupField;
 import org.ipro.filtergrid.util.JpaPathUtil;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.rls.RlsUiGate;
 import org.ipro.rls.RlsUiGate.AccessDecision;
 import org.ipro.telemetry.api.OperationScope;

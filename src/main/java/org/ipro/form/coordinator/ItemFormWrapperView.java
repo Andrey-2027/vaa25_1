@@ -13,7 +13,7 @@ import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.form.Dirtyable;
 import org.ipro.form.Savable;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 

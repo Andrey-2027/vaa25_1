@@ -1,7 +1,7 @@
 package org.ipro.form;
 
 import org.ipro.form.builtin.ItemTable;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 
 import java.util.List;
 

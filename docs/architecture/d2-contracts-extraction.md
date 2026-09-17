@@ -62,10 +62,12 @@ Fingerprint посчитан их же алгоритмом (`gitvaa-source-tree
 
 **Почему именно они.** У всех 22 типов нет ни Spring, ни JPA, ни Vaadin: единственные внешние
 зависимости — `org.slf4j` (MDC для correlation id события) и нейтральный identifier
-`org.ipro.crud.IdentifiableEntity`, который уже опубликован в `crudui-core`. Все четыре пакета
-называют **обе стороны**: приложение — 14 файлов lifecycle-реализаций, аннотации на сущностях,
-`DataOperation`/`FetchScenario` в use case'ах; платформа — резолверы, executors, реестр и
-publisher.
+`org.ipro.crud.IdentifiableEntity`, который на тот момент был опубликован в `crudui-core`
+(после ревью D1/D2 он вынесен в отдельный Java-only артефакт
+`org.ipro:platform-identity-api` под именем `org.ipro.identity.IdentifiableEntity` — §12).
+Все четыре пакета называют **обе стороны**: приложение — 14 файлов lifecycle-реализаций,
+аннотации на сущностях, `DataOperation`/`FetchScenario` в use case'ах; платформа —
+резолверы, executors, реестр и publisher.
 
 **Что осталось в платформе и почему.** `EntityLifecycleRegistry` (Spring `@EventListener`) и
 `EntityEventPublisher` (`ApplicationEventPublisher` + `TransactionSynchronization`) — это
@@ -92,7 +94,7 @@ publisher.
 |---|---|
 | `org.ipro.events.EntityEventPublisher` | публикация событий и `EntityChangedEvent` — только после commit |
 | `org.ipro.lifecycle.EntityLifecycleRegistry` | fail-fast registry прикладных `EntityLifecycle`, `@EventListener` |
-| `org.ipro.events.config.EventsAutoConfiguration` | своя авто-конфигурация (создаёт publisher) |
+| `org.ipro.events.config.EventsAutoConfiguration` | своя авто-конфигурация: создаёт **и publisher, и registry** (второе добавлено после ревью D1/D2 — §12) |
 
 **Первая связка платформа→платформа.** `platform-events` зависит на `platform-contracts`
 (типы событий и lifecycle-контексты) и перечисляет эту зависимость в манифесте как
@@ -270,8 +272,11 @@ persistence-артефакт, что возможно только вместе 
 репозитория). Способность списка расти и сокращаться — прямое следствие того, что он
 зафиксирован в тесте, а не в тексте.
 
-`IdentifiableEntity` тоже должен переехать в контракты, но он в другом репозитории,
-поэтому зарегистрирован как задача D3.
+`IdentifiableEntity` тоже уехал, но не в контракты, а в отдельный Java-only артефакт
+`org.ipro:platform-identity-api` (реактор `crudui`) — §12. В `platform-contracts` его класть
+нельзя: тогда `crudui-core` начал бы зависеть от растущего набора GitVaa-контрактов, то есть
+появился бы цикл между репозиториями. Остаток долга — не identifier, а сам split package:
+`org.ipro.crud` делят дерево и `platform-persistence`.
 
 ## 11. Верификация
 
@@ -310,3 +315,133 @@ fingerprints полностью, сборки не выполняет.
 (`../DynamicReport7`, `../ureport3`) скрипт видит расхождение fingerprint с манифестом. Эти
 каталоги вне этого репозитория и не менялись этой работой — расхождение зафиксировано как
 факт наблюдения и не «исправлялось» обновлением чужого fingerprint'а.
+
+## 12. Ревью D1/D2 и его закрытие (2026-09-16)
+
+Ревью подтвердило, что физический вынос состоялся, но нашло два существенных пробела и
+несколько архитектурных долгов. Ниже — каждый пункт и то, чем он закрыт. Ни один пункт не
+закрыт абзацем: у каждого — тест или гейт, который падает при возврате дефекта.
+
+### 12.1. Чистый bootstrap не воспроизводился
+
+**Находка:** `platform-contracts` компилируется против `crudui-core`, а в манифесте
+`dependsOn: []`; `crudui` стоял двенадцатым; скрипт собирал проекты в порядке JSON и
+`dependsOn` для сортировки не использовал. На пустом локальном репозитории первый же build step
+не смог бы разрешить зависимость — то есть заявленная воспроизводимость не существовала.
+
+**Закрыто:**
+
+1. манифест читается сверху вниз: `dependsOn` исправлен (`platform-contracts → crudui`,
+   `platform-persistence → crudui`), порядок проектов — топологический;
+2. скрипт бутстрапа сортирует проекты по `dependsOn` (Kahn) и падает на неизвестном id или
+   цикле **до** первой сборки: ошибка манифеста, а не Maven;
+3. `WorkspaceManifestTest` проверяет на каждом `mvn verify` три свойства: fingerprints in-repo
+   проектов совпадают с записанными, `dependsOn` **точен** относительно реальных
+   workspace-рёбер pom'ов (включая модули реакторов), а порядок манифеста топологичен.
+
+**Отдельно про fingerprint'ы.** Ревью сообщило о расхождении у `platform-contracts`
+(`6c4ec80d` против `d64f1bc5`); в этом checkout значение совпадало. Зато нашлась
+системная причина возможных расхождений: скрипт сортировал пути culture-aware
+(`Sort-Object`), то есть результат зависел от культуры процесса — «fingerprint совпал»
+означало совпадение реализации проверяющего, а не файлов. Введён явный алгоритм
+`gitvaa-source-tree-sha256-v2` (ordinal-порядок путей); он обязателен для in-repo проектов, и
+его же независимо реализует `WorkspaceManifestTest`. Числа и состав входов манифеста
+пересмотрены намеренно (у `crudui` добавлен новый модуль `platform-identity-api`).
+
+### 12.2. `platform-events` — владелец класса без владельца wiring
+
+**Находка:** модуль создавал `EntityEventPublisher`, а `EntityLifecycleRegistry` —
+`MetadataAutoConfiguration` из дерева приложения. В полном приложении это работало и
+проверялось, поэтому дефект был невидим; самостоятельный потребитель модуля получал publisher
+без реестра.
+
+**Закрыто:** бин registry переехал в `EventsAutoConfiguration`, внешний
+`EventContourStartupCheck` остался защитой от потери самой автоконфигурации.
+`EventsAutoConfigurationTest` (внутри модуля) проверяет, что конфигурация поднимает оба бина,
+находит объявленные consumer'ом handler'ы и остаётся fail-fast на дублях;
+`EventContourWiringIT` продолжает проверять тот же контур в реальном контексте приложения.
+
+### 12.3. Тестовые гейты жили у приложения
+
+**Находка:** у трёх D2-модулей не было `src/test`, а манифест ставил их с `-DskipTests`:
+артефакт можно было опубликовать, не запустив ни одной его проверки. Reviewed-списки
+фиксировали имена типов, но не подписи.
+
+**Закрыто:**
+
+| Артефакт | Свои тесты | Что держат |
+|---|---|---|
+| `platform-contracts` | 4 | состав среза (34 типа), чистоту импортов, reviewed compile-зависимости, отсутствие `org.ip` |
+| `platform-events` | 27 | поведение publisher'а (включая fail-closed без транзакции), fail-fast реестра, провод автоконфигурации, состав и зависимости |
+| `platform-persistence` | 6 | состав, зависимости, собственные `@EntityScan`/`@EnableJpaRepositories` и срез `@DataJpaTest` **без приложения** |
+
+Манифест для этих трёх модулей ставит их без `-DskipTests`, то есть бутстрап запускает их
+тесты. Поведенческие тесты переехали к владельцам: `EntityEventPublisherTest` — из дерева
+приложения, `EntityLifecycleRegistryTest` — переписан на фикстуры модуля (раньше он требовал
+`org.ip.model.Nomenclature`, то есть проверка платформенного реестра не могла существовать
+без приложения). Кросс-артефактные свойства — «registration ровно один раз», «нет копии типа
+в дереве», «три декларации не перекрываются» — остались в приложении: их нельзя проверить,
+видя одну сторону.
+
+**`-DskipTests` у остальных платформенных модулей снят не был:** у них своих тестов пока нет,
+и делать вид, что гейт есть, хуже, чем записать его отсутствие. Это зарегистрировано как
+задача D3 (вместе с выносом тестов вынесенных подсистем).
+
+**API baseline.** `PlatformApiBaselineTest` фиксирует публичную поверхность четырёх
+артефактов (`platform-contracts`, `platform-events`, `platform-persistence`,
+`platform-identity-api`) в `src/test/resources/platform-api-baseline/`: вид типа,
+модификаторы, generic supertype/interfaces, конструкторы, методы, поля с константными
+значениями, константы enum'ов, annotation defaults и их `@Target`/`@Retention`. Обновление —
+явная команда (`-Dplatform.api.baseline.write=true`). Выбор собственного snapshot'а вместо
+`japicmp`/Revapi продиктован средой: сборка идёт offline (`-o`) из локального репозитория, а
+новый инструмент потребовал бы новых зависимостей и baseline- jar'а.
+
+### 12.4. `IdentifiableEntity` в UI-артефакте
+
+**Находка:** два нижних модуля платформы зависели от UI-библиотеки ради интерфейса с
+`getId/setId`; `provided`-scope Vaadin уменьшал транзитивный ущерб, но не исправлял
+направление владения и ломал порядок чистого bootstrap.
+
+**Закрыто:** новый артефакт `org.ipro:platform-identity-api` — Java-only (ни Spring, ни JPA,
+ни Vaadin), модуль реактора `crudui` с нейтральными координатами; тип переименован в
+`org.ipro.identity.IdentifiableEntity` (контракт `Long getId()`/`setId(Long)` сохранён,
+редизайна идентификаторов нет). Зависимости `platform-contracts → crudui-core` и
+`platform-persistence → crudui-core` сняты: теперь нижние модули зависят от Java-only
+артефакта, а не от UI-библиотеки. Цикла между репозиториями нет — `crudui` по-прежнему
+собирается первым и от GitVaa не зависит. Проверено: `ContractsModuleCompositionTest` и
+`PlatformPersistenceModuleTest` падают на `crudui-core` в зависимостях, а
+`PlatformContractsModuleTest` — если тип вернётся в старый дом или исчезнет из нового.
+
+Остаток долга назван честно: сам split package `org.ipro.crud` не устраняется переносом
+одного типа — в `platform-persistence` остаётся `BaseEntity`, в `crudui-core` — UI-база.
+Полное устранение — отдельная миграция пакетов.
+
+### 12.5. Документационные недочёты
+
+| Недочёт | Что сделано |
+|---|---|
+| Карта D1 смешала исторический baseline и текущее состояние (11 против 9; 194 против 200) | карта помечена как исторический снимок; актуальные замеры генерируются в `d1-surface-measurements.md` и сверяются тестом |
+| Реестр строковых связок в документе не совпадал с кодом (в коде он пуст) | §5 карты D1 приведён к факту: цепочка 13 → 11 → 0 с указанием, что снятие сделано кодом, а не переписыванием причины |
+| `JrxmlTemplateRepository` утверждал, что регистрируется централизованно через RLS | javadoc заменён: регистрирует `PersistenceAutoConfiguration` модуля |
+| «Комментарии `PlatformPersistenceModuleTest` повреждены кодировкой» | **замечание не подтвердилось**: файл валиден в UTF-8 (`file` → `UTF-8 text`), кракозябры — артефакт чтения в cp1251 на стороне читающего. Массовых перекодировок не делалось (правило `agent.md` §3) |
+
+### 12.6. Проверка после закрытия
+
+```text
+mvn -o -f ../crudui/pom.xml -pl crudui-core -am clean install   identity-api + crudui-core (SUCCESS)
+mvn -o -f platform-contracts/pom.xml clean install               4 теста модуля
+mvn -o -f platform-events/pom.xml clean install                 27 тестов модуля
+mvn -o -f platform-persistence/pom.xml clean install             6 тестов модуля (включая срез)
+mvn -o clean verify                                              см. гейты ниже
+bootstrap-local-dependencies.ps1 -ValidateOnly                   зависимость графа + fingerprints (in-repo)
+```
+
+Новые гейты и то, что они ловят при возврате дефекта:
+
+| Гейт | Ловит |
+|---|---|
+| `WorkspaceManifestTest` | расхождение fingerprint, `dependsOn`, не совпавший с pom-рёбрами, нетопологический порядок |
+| `PlatformPublicSurfaceTest` | новый тип в периметре без роли, новая ссылка приложения на internal-тип, рост бюджета internal, расхождение генерируемых чисел с документом |
+| `PlatformPackageDependencyMatrixTest` | любое новое направление «пакет → пакет», о котором не думало ни одно из 8 правил |
+| `PlatformApiBaselineTest` | изменение подписи, константы enum'а, annotation default или модификаторов |
+| тесты модулей | поведение и состав контура проверяются там, где артефакт публикуется |

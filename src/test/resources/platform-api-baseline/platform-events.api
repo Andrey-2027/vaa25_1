@@ -1,0 +1,34 @@
+# platform-events: публичная поверхность (перезапись: -Dplatform.api.baseline.write=true)
+class public final org.ipro.events.EntityEventPublisher
+  ctor public(org.springframework.context.ApplicationEventPublisher)
+  method public boolean isAggregateOperation(java.lang.Class<?>)
+  method public org.ipro.events.EntityEventPublisher$EventScope openAggregateOperation(org.ipro.events.EventContext)
+  method public org.ipro.events.EntityEventPublisher$EventScope openOperation(org.ipro.events.EventContext)
+  method public org.ipro.events.EventContext contextFor(java.lang.Class<?>, java.lang.Object, org.ipro.events.EventSource, java.lang.String)
+  method public void publishAggregateSaving(T, java.util.List<org.ipro.events.AggregateSection>, org.ipro.events.EventContext)
+  method public void publishChanged(T, org.ipro.events.EventContext)
+  method public void publishDeleted(T, org.ipro.events.EventContext)
+  method public void publishDeleting(T, org.ipro.events.EventContext)
+  method public void publishSaved(T, org.ipro.events.EventContext)
+  method public void publishSaving(T, org.ipro.events.EventContext)
+
+class public final org.ipro.lifecycle.EntityLifecycleRegistry
+  ctor public(java.util.List<org.ipro.lifecycle.EntityLifecycle<?>>)
+  method public java.util.Optional<org.ipro.lifecycle.EntityLifecycle<T>> find(java.lang.Class<T>)
+  method public void beforeAggregateSave(java.lang.Class<T>, T, java.util.List<org.ipro.events.AggregateSection>, org.ipro.events.EventContext)
+  method public void beforeDelete(java.lang.Class<T>, T, org.ipro.events.EventContext)
+  method public void beforeSave(java.lang.Class<T>, T, org.ipro.events.EventContext)
+  method public void beforeUpdate(java.lang.Class<T>, T, T, org.ipro.events.EventContext)
+  method public void onEntityChanged(org.ipro.events.EntityChangedEvent<?>)
+  method public void onSave(java.lang.Class<T>, T, org.ipro.events.EventContext)
+
+class public org.ipro.events.config.EventsAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  ctor public()
+  method public org.ipro.events.EntityEventPublisher entityEventPublisher(org.springframework.context.ApplicationEventPublisher)
+  method public org.ipro.lifecycle.EntityLifecycleRegistry entityLifecycleRegistry(java.util.List<org.ipro.lifecycle.EntityLifecycle<?>>)
+
+class public static final org.ipro.events.EntityEventPublisher$EventScope
+  implements java.lang.AutoCloseable
+  method public void close()
+

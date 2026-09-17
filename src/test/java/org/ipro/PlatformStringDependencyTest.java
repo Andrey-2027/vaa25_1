@@ -183,18 +183,26 @@ class PlatformStringDependencyTest {
      * Корни исходников платформенных артефактов. Обнаруживаются по имени каталога, а не
      * списком: забытый в перечислении новый модуль выпал бы из забора молча — ровно та
      * ошибка, против которой этот тест и написан.
+     *
+     * <p>Один платформенный артефакт живёт вне этого репозитория: {@code platform-identity-api}
+     * собирается реактором {@code crudui}, потому что его второй потребитель — сама UI-библиотека.
+     * Он назван явно и попадает в забор только если каталог существует: в чекауте без соседних
+     * проектов забор не должен падать из-за отсутствующего каталога — он должен работать там, где
+     * исходники есть.</p>
      */
     private static List<Path> artifactSources() {
+        List<Path> sources = new java.util.ArrayList<>();
+        sources.add(Path.of("../crudui/platform-identity-api/src/main/java"));
         try (Stream<Path> modules = Files.list(Path.of("."))) {
-            return modules
-                .filter(path -> path.getFileName().toString().startsWith("platform-"))
+            modules.filter(path -> path.getFileName().toString().startsWith("platform-"))
                 .map(path -> path.resolve("src/main/java"))
                 .filter(Files::isDirectory)
                 .sorted()
-                .toList();
+                .forEach(sources::add);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        return sources.stream().filter(Files::isDirectory).toList();
     }
 
     private static Set<String> literalsIn(String source) {

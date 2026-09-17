@@ -24,7 +24,7 @@ import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.form.spi.ListFormToolbarContributor;
 import org.ipro.form.spi.WorkspaceGateway;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.rls.RlsUiGate;
 import org.ipro.telemetry.api.OperationScope;
 import org.ipro.telemetry.core.MdcKeys;

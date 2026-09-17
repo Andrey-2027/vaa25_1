@@ -9,7 +9,7 @@ import org.ip.model.PrdSpec;
 import org.ip.model.ReceivingDocument;
 import org.ipro.form.FieldRenderer;
 import org.ipro.search.GlobalSearchCatalog;
-import org.ipro.search.GlobalSearchHeader;
+import org.ipro.vaadin.search.GlobalSearchHeader;
 import org.ipro.search.GlobalSearchProviderRegistry;
 import org.ipro.search.GlobalSearchService;
 import org.ipro.search.GlobalSearchSource;

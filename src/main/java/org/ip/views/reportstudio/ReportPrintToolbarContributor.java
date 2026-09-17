@@ -6,7 +6,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.form.builtin.ListForm;
 import org.ipro.crud.LookupService;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.form.spi.ListFormToolbarContributor;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.param.ReportContextFactory;

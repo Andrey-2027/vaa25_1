@@ -1,5 +1,9 @@
 target/
 .local-maven-repository/
+# D3.0: пустой локальный репозиторий для проверки бутстрапа с нуля
+# (bootstrap-local-dependencies.ps1 -FreshLocalRepository). Отдельный от тёплого кэша
+# .local-maven-repository, чтобы проверка воспроизводимости не стоила кэша.
+.local-maven-repository-fresh/
 /config/application-local.properties
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -61,20 +65,31 @@ node_modules/
 !src/test/resources/metadata/*.txt
 
 # C4.8 search-parity baseline — часть поставки: SearchFieldParitySnapshotTest сравнивает
-# поисковые поля standard roots с этим файлом, поэтому на чистом checkout он обязан
+# поисковые поля standard roots с этим файлом, поэтому на чистый checkout он обязан
 # присутствовать, а не создаваться локальным прогоном.
 !src/test/resources/search/
 !src/test/resources/search/*.txt
 
+# D1: reviewed-реестр периметра публичной поверхности (FQN → API / SPI / legacy-internal)
+# и матрица допустимых направлений «пакет → пакет» — часть поставки и предмет ревью, а не
+# артефакт прогона. PlatformPublicSurfaceTest и PlatformPackageDependencyMatrixTest читают их
+# как источник истины, поэтому на чистом checkout они обязаны присутствовать: гейт, чьи
+# данные игнорируются VCS, защищает только машину автора.
+!src/test/resources/platform-public-surface.txt
+!src/test/resources/platform-package-matrix.txt
+
+# D2/D1: API/ABI baseline публичной поверхности вынесенных артефактов. PlatformApiBaselineTest
+# сравнивает с ним подписи, поэтому на чистом checkout он обязан присутствовать.
+!src/test/resources/platform-api-baseline/
+!src/test/resources/platform-api-baseline/*.api
+
 # D2: README платформенных модулей — часть поставки: они объясняют, почему слой вынесен,
 # что в него не попадает и как модуль регистрирует себя контейнеру. Без них граница
 # читается только по коду.
-!platform-contracts/README.md
-!platform-events/README.md
-!platform-persistence/README.md
-!platform-metadata/README.md
-!platform-numbering/README.md
-!platform-settings/README.md
+# Шаблон, а не перечисление: перечисление уже дважды отставало — README модулей
+# platform-rls и platform-telemetry существовали, но в репозиторий не попадали, потому что
+# правило *.md выше их исключало, а исключения для них никто не добавил.
+!platform-*/README.md
 
 ### Vaadin generated ###
 src/main/frontend/generated/

@@ -1,0 +1,414 @@
+# platform-contracts: публичная поверхность (перезапись: -Dplatform.api.baseline.write=true)
+annotation public abstract interface org.ipro.data.SearchFields
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.String[] value()
+
+annotation public abstract interface org.ipro.metadata.annotation.EntityMetadata
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract int order() default 999
+  method public abstract java.lang.Class<?> subsystem() default interface org.ipro.metadata.annotation.Subsystem$NoSubsystem
+  method public abstract java.lang.String icon() default FILE
+  method public abstract java.lang.String itemFormTitle() default 
+  method public abstract java.lang.String listFormTitle() default 
+  method public abstract java.lang.String selectionFormTitle() default 
+  method public abstract java.lang.String[] displaySortFields() default []
+  method public abstract java.lang.String[] listColumns() default []
+  method public abstract java.lang.String[] selectColumns() default []
+  method public abstract org.ipro.metadata.annotation.EntityKind kind() default AUTO
+
+annotation public abstract interface org.ipro.metadata.annotation.FieldMetadata
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [FIELD]
+  method public abstract boolean filter() default true
+  method public abstract boolean hidden() default false
+  method public abstract boolean readOnly() default false
+  method public abstract int order() default 999
+  method public abstract java.lang.String label() default 
+  method public abstract java.lang.String placeholder() default 
+  method public abstract org.ipro.metadata.annotation.FieldType type() default AUTO
+  method public abstract org.ipro.metadata.annotation.GridColumn grid() default @org.ipro.metadata.annotation.GridColumn(flexGrow=0, order=999, sortable=true, visible=true, width=)
+  method public abstract org.ipro.metadata.annotation.Lookup lookup() default @org.ipro.metadata.annotation.Lookup(columns=[], entity=class java.lang.Void, fetch=[], searchFields=[], variant=)
+  method public abstract org.ipro.metadata.annotation.RequiredMode required() default AUTO
+
+annotation public abstract interface org.ipro.metadata.annotation.GridColumn
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [FIELD]
+  method public abstract boolean sortable() default true
+  method public abstract boolean visible() default true
+  method public abstract int flexGrow() default 0
+  method public abstract int order() default 999
+  method public abstract java.lang.String width() default 
+
+annotation public abstract interface org.ipro.metadata.annotation.Lookup
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [FIELD]
+  method public abstract java.lang.Class<?> entity() default class java.lang.Void
+  method public abstract java.lang.String variant() default 
+  method public abstract java.lang.String[] columns() default []
+  method public abstract java.lang.String[] fetch() default []
+  method public abstract java.lang.String[] searchFields() default []
+
+annotation public abstract interface org.ipro.metadata.annotation.Subsystem
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract int order() default 999
+  method public abstract java.lang.Class<?> parent() default interface org.ipro.metadata.annotation.Subsystem$NoSubsystem
+  method public abstract java.lang.String icon() default 
+  method public abstract java.lang.String title()
+
+annotation public abstract interface org.ipro.metadata.annotation.TableSectionMetadata
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract int minRows() default 0
+  method public abstract int order() default 999
+  method public abstract java.lang.Class<?> parentEntity()
+  method public abstract java.lang.Class<?> serviceClass() default void
+  method public abstract java.lang.String lineNumberField() default 
+  method public abstract java.lang.String parentField()
+  method public abstract java.lang.String rowFormTitle() default 
+  method public abstract java.lang.String title() default 
+  method public abstract org.ipro.metadata.annotation.SectionPersistenceMode persistence() default MUTABLE_REPLACE_ALL
+  method public abstract org.ipro.metadata.annotation.SectionRlsPolicy rlsPolicy() default INHERIT_ROOT
+
+annotation public abstract interface org.ipro.metadata.annotation.TableSections
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.Class<?>[] value()
+
+class public static final org.ipro.events.EventContext$Builder
+  method public org.ipro.events.EventContext build()
+  method public org.ipro.events.EventContext$Builder aggregateId(java.lang.Object)
+  method public org.ipro.events.EventContext$Builder attachSection(java.lang.Class<?>)
+  method public org.ipro.events.EventContext$Builder attachedSections(java.util.Collection<java.lang.Class<?>>)
+  method public org.ipro.events.EventContext$Builder correlationId(java.lang.String)
+  method public org.ipro.events.EventContext$Builder formVariant(java.lang.String)
+  method public org.ipro.events.EventContext$Builder operationName(java.lang.String)
+  method public org.ipro.events.EventContext$Builder source(org.ipro.events.EventSource)
+
+enum public final org.ipro.data.DataOperation
+  extends java.lang.Enum<org.ipro.data.DataOperation>
+  enum-constants [LIST, GLOBAL_SEARCH, DETAIL, LOOKUP, CREATE, UPDATE, DELETE]
+  field public static final org.ipro.data.DataOperation CREATE = enum-constant
+  field public static final org.ipro.data.DataOperation DELETE = enum-constant
+  field public static final org.ipro.data.DataOperation DETAIL = enum-constant
+  field public static final org.ipro.data.DataOperation GLOBAL_SEARCH = enum-constant
+  field public static final org.ipro.data.DataOperation LIST = enum-constant
+  field public static final org.ipro.data.DataOperation LOOKUP = enum-constant
+  field public static final org.ipro.data.DataOperation UPDATE = enum-constant
+  method public static org.ipro.data.DataOperation valueOf(java.lang.String)
+  method public static org.ipro.data.DataOperation[] values()
+
+enum public final org.ipro.data.EntityExposure
+  extends java.lang.Enum<org.ipro.data.EntityExposure>
+  enum-constants [STANDARD_ROOT, OWNED_ROW, INTERNAL_STORE, UNCLASSIFIED]
+  field public static final org.ipro.data.EntityExposure INTERNAL_STORE = enum-constant
+  field public static final org.ipro.data.EntityExposure OWNED_ROW = enum-constant
+  field public static final org.ipro.data.EntityExposure STANDARD_ROOT = enum-constant
+  field public static final org.ipro.data.EntityExposure UNCLASSIFIED = enum-constant
+  method public static org.ipro.data.EntityExposure valueOf(java.lang.String)
+  method public static org.ipro.data.EntityExposure[] values()
+
+enum public final org.ipro.events.EventSource
+  extends java.lang.Enum<org.ipro.events.EventSource>
+  enum-constants [UI, REST, IMPORT, JOB, SYSTEM]
+  field public static final org.ipro.events.EventSource IMPORT = enum-constant
+  field public static final org.ipro.events.EventSource JOB = enum-constant
+  field public static final org.ipro.events.EventSource REST = enum-constant
+  field public static final org.ipro.events.EventSource SYSTEM = enum-constant
+  field public static final org.ipro.events.EventSource UI = enum-constant
+  method public static org.ipro.events.EventSource valueOf(java.lang.String)
+  method public static org.ipro.events.EventSource[] values()
+
+enum public final org.ipro.fetch.plan.FetchScenario
+  extends java.lang.Enum<org.ipro.fetch.plan.FetchScenario>
+  enum-constants [LIST, DETAIL, LOOKUP, ROW]
+  field public static final org.ipro.fetch.plan.FetchScenario DETAIL = enum-constant
+  field public static final org.ipro.fetch.plan.FetchScenario LIST = enum-constant
+  field public static final org.ipro.fetch.plan.FetchScenario LOOKUP = enum-constant
+  field public static final org.ipro.fetch.plan.FetchScenario ROW = enum-constant
+  method public static org.ipro.fetch.plan.FetchScenario valueOf(java.lang.String)
+  method public static org.ipro.fetch.plan.FetchScenario[] values()
+
+enum public final org.ipro.metadata.annotation.EntityKind
+  extends java.lang.Enum<org.ipro.metadata.annotation.EntityKind>
+  enum-constants [AUTO, PLAIN, CATALOG, DOCUMENT, INFORMATION_REGISTER]
+  field public static final org.ipro.metadata.annotation.EntityKind AUTO = enum-constant
+  field public static final org.ipro.metadata.annotation.EntityKind CATALOG = enum-constant
+  field public static final org.ipro.metadata.annotation.EntityKind DOCUMENT = enum-constant
+  field public static final org.ipro.metadata.annotation.EntityKind INFORMATION_REGISTER = enum-constant
+  field public static final org.ipro.metadata.annotation.EntityKind PLAIN = enum-constant
+  method public static org.ipro.metadata.annotation.EntityKind valueOf(java.lang.String)
+  method public static org.ipro.metadata.annotation.EntityKind[] values()
+
+enum public final org.ipro.metadata.annotation.FieldType
+  extends java.lang.Enum<org.ipro.metadata.annotation.FieldType>
+  enum-constants [AUTO, TEXT, TEXT_AREA, INTEGER, DECIMAL, BOOLEAN, DATE, DATETIME, ENUM, ENTITY_REFERENCE, EMAIL, PASSWORD]
+  field public static final org.ipro.metadata.annotation.FieldType AUTO = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType BOOLEAN = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType DATE = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType DATETIME = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType DECIMAL = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType EMAIL = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType ENTITY_REFERENCE = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType ENUM = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType INTEGER = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType PASSWORD = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType TEXT = enum-constant
+  field public static final org.ipro.metadata.annotation.FieldType TEXT_AREA = enum-constant
+  method public static org.ipro.metadata.annotation.FieldType valueOf(java.lang.String)
+  method public static org.ipro.metadata.annotation.FieldType[] values()
+
+enum public final org.ipro.metadata.annotation.RequiredMode
+  extends java.lang.Enum<org.ipro.metadata.annotation.RequiredMode>
+  enum-constants [AUTO, REQUIRED, OPTIONAL]
+  field public static final org.ipro.metadata.annotation.RequiredMode AUTO = enum-constant
+  field public static final org.ipro.metadata.annotation.RequiredMode OPTIONAL = enum-constant
+  field public static final org.ipro.metadata.annotation.RequiredMode REQUIRED = enum-constant
+  method public static org.ipro.metadata.annotation.RequiredMode valueOf(java.lang.String)
+  method public static org.ipro.metadata.annotation.RequiredMode[] values()
+
+enum public final org.ipro.metadata.annotation.SectionPersistenceMode
+  extends java.lang.Enum<org.ipro.metadata.annotation.SectionPersistenceMode>
+  enum-constants [MUTABLE_REPLACE_ALL]
+  field public static final org.ipro.metadata.annotation.SectionPersistenceMode MUTABLE_REPLACE_ALL = enum-constant
+  method public static org.ipro.metadata.annotation.SectionPersistenceMode valueOf(java.lang.String)
+  method public static org.ipro.metadata.annotation.SectionPersistenceMode[] values()
+
+enum public final org.ipro.metadata.annotation.SectionRlsPolicy
+  extends java.lang.Enum<org.ipro.metadata.annotation.SectionRlsPolicy>
+  enum-constants [INHERIT_ROOT, STANDALONE]
+  field public static final org.ipro.metadata.annotation.SectionRlsPolicy INHERIT_ROOT = enum-constant
+  field public static final org.ipro.metadata.annotation.SectionRlsPolicy STANDALONE = enum-constant
+  method public static org.ipro.metadata.annotation.SectionRlsPolicy valueOf(java.lang.String)
+  method public static org.ipro.metadata.annotation.SectionRlsPolicy[] values()
+
+interface public abstract interface org.ipro.events.EntityEvent
+  type-parameter T
+  method public abstract T entity()
+  method public abstract org.ipro.events.EventContext context()
+
+interface public abstract interface org.ipro.lifecycle.EntityLifecycle
+  type-parameter T
+  method public abstract java.lang.Class<T> entityType()
+  method public void afterCommit(org.ipro.lifecycle.EntityChangedContext<T>)
+  method public void beforeAggregateSave(org.ipro.lifecycle.AggregateSaveContext<T>)
+  method public void beforeDelete(org.ipro.lifecycle.EntityDeleteContext<T>)
+  method public void beforeSave(org.ipro.lifecycle.EntitySaveContext<T>)
+  method public void beforeUpdate(org.ipro.lifecycle.EntityUpdateContext<T>)
+  method public void onSave(org.ipro.lifecycle.EntitySaveContext<T>)
+
+interface public abstract static interface org.ipro.metadata.annotation.Subsystem$NoSubsystem
+
+record public final org.ipro.data.EntityCapabilityOverride
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.util.Set<org.ipro.fetch.plan.FetchScenario>, java.util.Set<org.ipro.data.DataOperation>, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> type()
+  method public java.lang.String reason()
+  method public java.util.Set<org.ipro.data.DataOperation> writes()
+  method public java.util.Set<org.ipro.fetch.plan.FetchScenario> reads()
+
+record public final org.ipro.data.EntityExposureOverride
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, org.ipro.data.EntityExposure, java.lang.Class<?>, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> owner()
+  method public java.lang.Class<?> type()
+  method public java.lang.String reason()
+  method public org.ipro.data.EntityExposure exposure()
+
+record public final org.ipro.events.AggregateSavingEvent
+  extends java.lang.Record
+  type-parameter T
+  ctor public(T, java.util.List<org.ipro.events.AggregateSection>, org.ipro.events.EventContext)
+  method public T aggregate()
+  method public T entity()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<org.ipro.events.AggregateSection> sections()
+  method public org.ipro.events.EventContext context()
+
+record public final org.ipro.events.AggregateSection
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.util.List<?>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> rowType()
+  method public java.util.List<?> rows()
+  method public static org.ipro.events.AggregateSection attached(java.lang.Class<R>, java.util.List<R>)
+
+record public final org.ipro.events.EntityChangedEvent
+  extends java.lang.Record
+  implements org.ipro.events.EntityEvent<T>
+  type-parameter T
+  ctor public(T, org.ipro.events.EventContext)
+  method public T entity()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.events.EventContext context()
+
+record public final org.ipro.events.EntityDeletedEvent
+  extends java.lang.Record
+  implements org.ipro.events.EntityEvent<T>
+  type-parameter T
+  ctor public(T, org.ipro.events.EventContext)
+  method public T entity()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.events.EventContext context()
+
+record public final org.ipro.events.EntityDeletingEvent
+  extends java.lang.Record
+  implements org.ipro.events.EntityEvent<T>
+  type-parameter T
+  ctor public(T, org.ipro.events.EventContext)
+  method public T entity()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.events.EventContext context()
+
+record public final org.ipro.events.EntitySavedEvent
+  extends java.lang.Record
+  implements org.ipro.events.EntityEvent<T>
+  type-parameter T
+  ctor public(T, org.ipro.events.EventContext)
+  method public T entity()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.events.EventContext context()
+
+record public final org.ipro.events.EntitySavingEvent
+  extends java.lang.Record
+  implements org.ipro.events.EntityEvent<T>
+  type-parameter T
+  ctor public(T, org.ipro.events.EventContext)
+  method public T entity()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.events.EventContext context()
+
+record public final org.ipro.events.EventContext
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.events.EventSource, java.lang.Class<?>, java.lang.Object, java.lang.String, java.util.Set<java.lang.Class<?>>, java.lang.String)
+  method public boolean isSectionAttached(java.lang.Class<?>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> aggregateType()
+  method public java.lang.Object aggregateId()
+  method public java.lang.String correlationId()
+  method public java.lang.String formVariant()
+  method public java.lang.String operationName()
+  method public java.util.Set<java.lang.Class<?>> attachedSections()
+  method public org.ipro.events.EventContext withAggregateId(java.lang.Object)
+  method public org.ipro.events.EventContext withOperationName(java.lang.String)
+  method public org.ipro.events.EventSource source()
+  method public static java.lang.String currentOrNewCorrelationId()
+  method public static org.ipro.events.EventContext forEntity(java.lang.Class<?>, java.lang.Object, org.ipro.events.EventSource, java.lang.String)
+  method public static org.ipro.events.EventContext$Builder builder(java.lang.Class<?>)
+
+record public final org.ipro.lifecycle.AggregateSaveContext
+  extends java.lang.Record
+  type-parameter T
+  ctor public(T, java.util.List<org.ipro.events.AggregateSection>, org.ipro.events.EventContext)
+  method public T aggregate()
+  method public boolean isSectionAttached(java.lang.Class<?>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Object aggregateId()
+  method public java.util.List<R> section(java.lang.Class<R>)
+  method public java.util.List<org.ipro.events.AggregateSection> sections()
+  method public org.ipro.events.EventContext eventContext()
+  method public org.ipro.events.EventSource source()
+
+record public final org.ipro.lifecycle.EntityChangedContext
+  extends java.lang.Record
+  type-parameter T
+  ctor public(T, org.ipro.events.EventContext)
+  method public T entity()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Object entityId()
+  method public org.ipro.events.EventContext eventContext()
+  method public org.ipro.events.EventSource source()
+
+record public final org.ipro.lifecycle.EntityDeleteContext
+  extends java.lang.Record
+  type-parameter T
+  ctor public(T, org.ipro.events.EventContext)
+  method public T entity()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Object entityId()
+  method public org.ipro.events.EventContext eventContext()
+  method public org.ipro.events.EventSource source()
+
+record public final org.ipro.lifecycle.EntitySaveContext
+  extends java.lang.Record
+  type-parameter T
+  ctor public(T, org.ipro.events.EventContext)
+  method public T entity()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Object entityId()
+  method public org.ipro.events.EventContext eventContext()
+  method public org.ipro.events.EventSource source()
+
+record public final org.ipro.lifecycle.EntityUpdateContext
+  extends java.lang.Record
+  type-parameter T
+  ctor public(T, T, org.ipro.events.EventContext)
+  method public T original()
+  method public T updated()
+  method public boolean changed(java.util.function.Function<? super T, ?>)
+  method public boolean changedOrUnknown(java.util.function.Function<? super T, ?>)
+  method public boolean hasDistinctOriginal()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Object entityId()
+  method public java.lang.String operationName()
+  method public org.ipro.events.EventContext eventContext()
+  method public org.ipro.events.EventSource source()
+

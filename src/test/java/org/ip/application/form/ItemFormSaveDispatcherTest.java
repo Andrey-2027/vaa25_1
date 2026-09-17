@@ -4,7 +4,7 @@ import org.ip.model.PrdSpec;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.Workshop;
 import org.ipro.crud.BaseService;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.form.FormSaveResult;
 import org.ipro.form.ItemFormSaveHandler;

@@ -27,21 +27,24 @@
     <properties>
         <java.version>21</java.version>
         <maven.compiler.release>21</maven.compiler.release>
-        <crudui.version>1.0-SNAPSHOT</crudui.version>
+        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
     </properties>
 
     <!--
-      Зависимости persistence-модуля: нейтральная база сущностей (crudui-core), API JPA
-      и валидации, Spring Data JPA и точка авто-конфигурации. Реализации платформы
-      (metadata, data path, UI) здесь запрещены: модуль обязан оставаться ниже их, иначе
-      он не сможет быть вынесен без цикла. Набор зафиксирован ревью и проверяется
-      PlatformPersistenceModuleTest.
+      Зависимости persistence-модуля: нейтральный identifier
+      (org.ipro:platform-identity-api — Java-only артефакт реактора crudui, без
+      Spring/JPA/Vaadin), API JPA и валидации, Spring Data JPA и точка авто-конфигурации.
+      Реализации платформы (metadata, data path, UI) здесь запрещены: модуль обязан
+      оставаться ниже их, иначе он не сможет быть вынесен без цикла. Раньше здесь стоял
+      crudui-core — то есть persistence-модуль платформы зависел от UI-библиотеки ради
+      одного интерфейса; теперь UI в его потребителей не может попасть в принципе.
+      Набор зафиксирован ревью и проверяется PlatformPersistenceModuleTest.
     -->
     <dependencies>
         <dependency>
-            <groupId>org.ipro.crudui</groupId>
-            <artifactId>crudui-core</artifactId>
-            <version>${crudui.version}</version>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-identity-api</artifactId>
+            <version>${platform-identity.version}</version>
         </dependency>
         <dependency>
             <groupId>jakarta.persistence</groupId>
@@ -68,6 +71,28 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
+        </dependency>
+
+        <!--
+          Тесты модуля живут здесь, а не в приложении: артефакт публикуется отдельно,
+          и его регистрация в persistence unit обязана проверяться вместе с ним.
+          Scope test: срез @DataJpaTest поднимает только собственные объявления модуля,
+          ни приложения, ни его конфигурации в контексте нет.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

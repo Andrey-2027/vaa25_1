@@ -1,6 +1,6 @@
 package org.ipro.form;
 
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.form.builtin.ItemForm;
 
 

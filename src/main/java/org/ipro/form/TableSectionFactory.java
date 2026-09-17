@@ -10,7 +10,7 @@ import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.crud.GenericOwnedSectionService;
 import org.ipro.crud.MetadataTableSectionService;
 import org.ipro.crud.TableSectionService;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;

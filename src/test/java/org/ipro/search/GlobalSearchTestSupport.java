@@ -18,27 +18,35 @@ import java.util.Set;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-final class GlobalSearchTestSupport {
+/**
+ * Общая фикстура каталога поиска.
+ *
+ * <p>Публична не «на всякий случай»: каталог нужен тестам двух пакетов — ядра поиска
+ * ({@code org.ipro.search}) и UI-границы ({@code org.ipro.vaadin.search}), где живёт тест
+ * навигации к карточке. Тест навигации обязан лежать рядом с проверяемым классом, а не в
+ * пакете ядра; дублировать сборку каталога в двух местах хуже, чем сделать фикстуру общей.</p>
+ */
+public final class GlobalSearchTestSupport {
 
-    static final MetadataResolver METADATA_RESOLVER = new MetadataResolver();
-    static final List<Class<?>> APPLICATION_TYPES = List.of(
+    public static final MetadataResolver METADATA_RESOLVER = new MetadataResolver();
+    public static final List<Class<?>> APPLICATION_TYPES = List.of(
         Nomenclature.class, PrdSpec.class, ReceivingDocument.class);
 
     private GlobalSearchTestSupport() {
     }
 
-    static GlobalSearchCatalog catalog() {
+    public static GlobalSearchCatalog catalog() {
         return catalog(APPLICATION_TYPES, EntityExposure.STANDARD_ROOT,
             List.of(new PrdSpecGlobalSearchProvider()));
     }
 
-    static GlobalSearchCatalog catalog(List<Class<?>> discoveryOrder) {
+    public static GlobalSearchCatalog catalog(List<Class<?>> discoveryOrder) {
         return catalog(discoveryOrder, EntityExposure.STANDARD_ROOT,
             List.of(new PrdSpecGlobalSearchProvider()));
     }
 
-    static GlobalSearchCatalog catalog(List<Class<?>> discoveryOrder,
-                                       EntityExposure exposure,
+    public static GlobalSearchCatalog catalog(List<Class<?>> discoveryOrder,
+                                              EntityExposure exposure,
                                        List<GlobalSearchProvider<?>> providers) {
         EntityDescriptorCatalog descriptorCatalog = mock(EntityDescriptorCatalog.class);
         List<EntityDescriptor> descriptors = discoveryOrder.stream()

@@ -1,6 +1,6 @@
 package org.ipro.form.registry;
 
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 
 /**
  * Команда списка, зарегистрированная как Spring-бин для сущности.

@@ -21,6 +21,10 @@
         <vaadin.version>25.1.6</vaadin.version>
         <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
         <crudui.version>1.0-SNAPSHOT</crudui.version>
+        <!-- D1/D2-ревью: нейтральный identifier вынесен из crudui-core в Java-only модуль -->
+        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
+        <!-- D3.3: сервисный контракт CrudService вынесен из crudui-core тем же способом -->
+        <platform-crud-api.version>1.0-SNAPSHOT</platform-crud-api.version>
         <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
         <platform-events.version>1.0-SNAPSHOT</platform-events.version>
         <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
@@ -29,6 +33,8 @@
         <platform-settings.version>1.0-SNAPSHOT</platform-settings.version>
         <platform-telemetry.version>1.0-SNAPSHOT</platform-telemetry.version>
         <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
+        <!-- D3.3: backend платформы (generic CRUD/data/metadata/search/fetch/filter) -->
+        <platform-core.version>1.0-SNAPSHOT</platform-core.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
         <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
@@ -80,6 +86,35 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        <!--
+          Нейтральный identifier (org.ipro.identity.IdentifiableEntity): контракт, нужный и
+          UI-библиотеке crudui, и платформенным артефактам. Раньше он жил в crudui-core,
+          из-за чего platform-contracts и platform-persistence зависели от UI-артефакта, а
+          бутстрап не воспроизводился (crudui собирался позже них). Теперь он — отдельный
+          Java-only модуль реактора crudui (без Spring/JPA/Vaadin), а приложение объявляет
+          зависимость явно, потому что называет тип в своих классах.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-identity-api</artifactId>
+            <version>${platform-identity.version}</version>
+        </dependency>
+
+        <!--
+          org.ipro.crud.CrudService — минимальный сервисный контракт сущности
+          (save/delete/findById). Тот же тупик, что и у identifier, только с обратной стороны:
+          его расширяет платформенный BaseService (platform-core), а принимает UI-класс
+          AbstractCrudView (crudui-core). Пока тип жил в crudui-core, backend зависел от
+          UI-артефакта; если бы он уехал в platform-core, crudui-core начал бы зависеть от
+          платформы, а crudui обязан собираться первым. Поэтому — отдельный Java-only модуль
+          реактора crudui. FQN сохранён, поэтому прикладной код (WorkshopForm) не менялся.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-crud-api</artifactId>
+            <version>${platform-crud-api.version}</version>
+        </dependency>
+
         <!--
           D2: контракты платформы вынесены в собственный артефакт (platform-contracts).
           Пакеты сохранены, поэтому перенос не потребовал правок в коде; граница
@@ -182,6 +217,24 @@
             <groupId>org.ipro</groupId>
             <artifactId>platform-rls</artifactId>
             <version>${platform-rls.version}</version>
+        </dependency>
+
+        <!--
+          D3.3 (backend платформы): generic CRUD/data access, метаданные, поиск, fetch и filter —
+          без Vaadin и без кода приложения. Модуль вынесен как реализация, а не как авто-конфигурация:
+          пакеты org.ipro.*.config остаются в дереве до D3.4, поэтому потеря конфигурации ломает сборку,
+          а не проявляется тихо в рантайме.
+
+          Переезд шёл группой, которую нельзя разделить: org.ipro.metadata, org.ipro.crud,
+          org.ipro.data и org.ipro.fetch образуют цикл, а пакет нельзя перенести частично —
+          типы одного пакета в двух артефактах это split package. Пакеты org.ipro.*.config
+          остались в дереве до D3.4, поэтому потеря модуля ломает сборку, а не проявляется
+          тихо в рантайме.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-core</artifactId>
+            <version>${platform-core.version}</version>
         </dependency>
 
         <dependency>

@@ -15,16 +15,19 @@
 | `org.ipro.data` | 5 | нейтральные identifiers и декларации (`DataOperation`, `SearchFields`, exposure/capability overrides) |
 | `org.ipro.fetch.plan` | 1 | `FetchScenario` — часть ключа FetchPlan |
 
-Ни один из этих типов не знает Spring, JPA и Vaadin. Внешние зависимости модуля — ровно две,
-и обе объявлены в `pom.xml`:
+Ни один из этих типов не знает Spring, JPA и Vaadin. Внешние compile-зависимости модуля — ровно
+две, и обе объявлены в `pom.xml`:
 
 - `org.slf4j:slf4j-api` — внешний API-артефакт (`EventContext` читает `traceId` из MDC);
-- `org.ipro.crudui:crudui-core` — нейтральный identifier `org.ipro.crud.IdentifiableEntity`,
-  уже опубликованный в другом платформенном артефакте. `crudui-core` объявляет Vaadin как
-  `provided`, поэтому UI в потребителей контрактов не течёт.
+- `org.ipro:platform-identity-api` — нейтральный identifier
+  `org.ipro.identity.IdentifiableEntity`: Java-only артефакт, который собирает реактор `crudui`,
+  но владеют им обе стороны. Раньше этот тип лежал в `crudui-core`, и контракты зависели от
+  UI-библиотеки ради `Long getId()`: Vaadin не тёк только за счёт `provided`-scope, а
+  направление владения scope'ом не исправляется.
 
 Набор зависимостей и состав типов — reviewed: их сравнивает с зафиксированными списками
-`PlatformContractsModuleTest`, поэтому новая зависимость здесь не может появиться «по пути».
+`ContractsModuleCompositionTest` внутри модуля, поэтому новая зависимость здесь не может
+появиться «по пути».
 
 ## Зачем отдельный проект
 
@@ -39,20 +42,36 @@ D1 зафиксировал границу картой и исполняемы�
 `org.ipro.events` и `org.ipro.lifecycle` были разделены после срез 2, а после срез 3 ушли
 целиком — SPI остался здесь, а runtime уехал в `platform-events`.
 
-`IdentifiableEntity` тоже должен жить здесь, но он опубликован в другом репозитории
-(`crudui`), поэтому пока остаётся объявленной зависимостью.
+`IdentifiableEntity` — не здесь и не в `crudui-core`, а в отдельном Java-only модуле
+`org.ipro:platform-identity-api` внутри реактора `crudui`. Иначе либо контракты зависят от
+UI-артефакта, либо `crudui-core` начинает зависеть от растущего набора GitVaa-контрактов —
+первое неверно по владению, второе создаёт цикл между репозиториями.
+
+## Свои тесты
+
+`src/test` модуля держит то, что модуль может проверить сам: reviewed-состав среза, reviewed
+compile-зависимости, отсутствие spring/jakarta/vaadin импортов и отсутствие прикладного пакета
+`org.ip` — кодом и строкой. Раньше всё это делал тест приложения, а манифест ставил модуль с
+`-DskipTests`: артефакт можно было опубликовать, не запустив ни одной своей проверки. Свойства,
+которые требуют видеть обе стороны сразу (нет копии типа в дереве приложения, явный список
+разделённых пакетов), остались в приложении — `PlatformContractsModuleTest`.
+
+Поверхность артефакта дополнительно зафиксирована baseline'ом
+(`platform-api-baseline/platform-contracts.api`): состав типов ловит удаление класса, baseline —
+изменение подписи, значения по умолчанию или константы enum'а.
 
 ## Сборка и потребление
 
 ```bash
-mvn -o -f platform-contracts/pom.xml clean install   # артефакт в локальный репозиторий
+mvn -o -f platform-contracts/pom.xml clean install   # тесты модуля + артефакт в локальный репозиторий
 mvn -o verify                                        # приложение потребляет его как зависимость
 ```
 
 Порядок важен: `mvn verify` в корне артефакт не собирает, он его потребляет — так же, как
 уже потребляются `filtergrid-*` и `crudui-core`. Проект зарегистрирован в манифесте
-воркспейса `scripts/local-dependencies.json`, поэтому бутстрап-скрипт собирает его
-до сборки приложения.
+воркспейса `scripts/local-dependencies.json` (`dependsOn: crudui`, откуда приходит
+`platform-identity-api`), и порядок сборки считается по этому графу, а не по порядку строк
+в JSON.
 
 ## Где runtime
 

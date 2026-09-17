@@ -36,7 +36,7 @@ import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.form.EntityField;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.telemetry.api.OperationScope;
 import org.ipro.telemetry.core.TelemetryBridge;
 

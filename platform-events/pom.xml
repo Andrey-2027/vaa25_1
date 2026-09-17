@@ -65,5 +65,18 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
+
+        <!--
+          Поведенческие тесты контура живут здесь, а не в приложении: модуль
+          публикуется отдельно, и проверки его поведения обязаны ехать вместе с ним —
+          иначе его можно опубликовать, не запустив ни одной своей проверки.
+          Scope test: на compile-поверхность модуля это не влияет, и
+          EventsModuleCompositionTest считает только compile/provided зависимости.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

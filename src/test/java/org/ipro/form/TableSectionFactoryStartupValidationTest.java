@@ -5,7 +5,7 @@ import org.ipro.form.registry.FormRegistry;
 import org.ipro.form.registry.FormResolver;
 import org.ipro.metadata.MetadataResolver;
 import org.ip.model.PrdSpecMtr;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.ApplicationArguments;

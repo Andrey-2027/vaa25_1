@@ -1,6 +1,7 @@
 org.ipro.metadata.config.MetadataAutoConfiguration
-org.ipro.metadata.explorer.config.EntityExplorerAutoConfiguration
+org.ipro.vaadin.explorer.config.EntityExplorerAutoConfiguration
 org.ipro.search.config.GlobalSearchAutoConfiguration
+org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration
 org.ipro.crud.config.CrudAutoConfiguration
 org.ipro.form.config.FormAutoConfiguration
 org.ipro.reportstudio.config.ReportStudioAutoConfiguration

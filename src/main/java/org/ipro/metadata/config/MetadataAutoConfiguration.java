@@ -10,8 +10,6 @@ import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.crud.GenericOwnedSectionService;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.crud.ServiceLocator;
-import org.ipro.form.MetadataDrivenItemFormSaveAdapter;
-import org.ipro.lifecycle.EntityLifecycle;
 import org.ipro.lifecycle.EntityLifecycleRegistry;
 import org.ipro.rls.RlsOwnedSectionLookup;
 import org.ipro.rls.RlsPolicyEnforcer;
@@ -106,12 +104,14 @@ public class MetadataAutoConfiguration {
             allowances.orderedStream().toList());
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public EntityLifecycleRegistry entityLifecycleRegistry(
-            List<EntityLifecycle<?>> lifecycleHandlers) {
-        return new EntityLifecycleRegistry(lifecycleHandlers);
-    }
+    //
+    // EntityLifecycleRegistry здесь больше не создаётся: провод контура принадлежит модулю,
+    // который владеет его классами. Раньше registry объявлялся в этой конфигурации, и это
+    // делало platform-events владельцем класса без владения wiring — самостоятельный
+    // потребитель модуля получал publisher без реестра, а в полном приложении дефект был
+    // невидим. Теперь бин создаёт EventsAutoConfiguration самого модуля (см. его javadoc);
+    // защитой от потери автоконфигурации остаётся EventContourStartupCheck.
+    //
 
     @Bean
     @ConditionalOnMissingBean
@@ -135,13 +135,5 @@ public class MetadataAutoConfiguration {
         return new MetadataDrivenAggregateSaveService(
             serviceLocator, sectionMetadataRegistry, genericOwnedSectionService,
             entityEventPublisher, entityLifecycleRegistry);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public MetadataDrivenItemFormSaveAdapter metadataDrivenItemFormSaveAdapter(
-            SectionMetadataRegistry sectionMetadataRegistry,
-            MetadataDrivenAggregateSaveService aggregateSaveService) {
-        return new MetadataDrivenItemFormSaveAdapter(sectionMetadataRegistry, aggregateSaveService);
     }
 }

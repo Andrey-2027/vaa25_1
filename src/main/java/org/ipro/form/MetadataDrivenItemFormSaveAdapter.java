@@ -1,6 +1,6 @@
 package org.ipro.form;
 
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.form.builtin.ItemForm;
 import org.ipro.metadata.SectionMetadataRegistry;

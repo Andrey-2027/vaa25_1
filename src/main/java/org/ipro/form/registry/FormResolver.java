@@ -13,7 +13,7 @@ import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.RowMetadataInfo;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.filtergrid.grouping.GroupValuesService;
 import org.ipro.data.grouping.GroupingValuesProviderFactory;
 import org.springframework.context.ApplicationContext;

@@ -57,7 +57,7 @@ class ItemSectionHostPresenceTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static <R extends org.ipro.crud.IdentifiableEntity> ItemTable<R, TestDocument> tableFor(
+    private static <R extends org.ipro.identity.IdentifiableEntity> ItemTable<R, TestDocument> tableFor(
             Class<R> rowClass, List<R> rows) {
         ItemTable<R, TestDocument> table = mock(ItemTable.class);
         when(table.getElement()).thenReturn(new com.vaadin.flow.dom.Element("div"));

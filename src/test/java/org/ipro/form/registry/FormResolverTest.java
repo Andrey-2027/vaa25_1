@@ -14,7 +14,7 @@ import org.ipro.crud.BaseService;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.BaseEntity;
-import org.ipro.crud.IdentifiableEntity;
+import org.ipro.identity.IdentifiableEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;

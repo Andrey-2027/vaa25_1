@@ -14,7 +14,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinServletRequest;
 import jakarta.annotation.security.PermitAll;
 import org.ipro.form.coordinator.FormCoordinator;
-import org.ipro.search.GlobalSearchHeader;
+import org.ipro.vaadin.search.GlobalSearchHeader;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ip.views.admin.AdminView;
