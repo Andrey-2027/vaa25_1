@@ -14,6 +14,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class AttributeTypeFormConfig implements ItemFormCustomization {
 
+    private final AttributeValueService valueService;
+
+    public AttributeTypeFormConfig(AttributeValueService valueService) {
+        this.valueService = valueService;
+    }
+
     @Override
     public Class<?> entityClass() {
         return AttributeType.class;
@@ -23,8 +29,6 @@ public class AttributeTypeFormConfig implements ItemFormCustomization {
     public void configure(ItemFormVariants variants) {
         variants.addDefault(ctx -> {
             EntityMetadataInfo meta = ctx.metadataResolver().resolve(AttributeType.class);
-            AttributeValueService valueService =
-                ctx.applicationContext().getBean(AttributeValueService.class);
             return new AttributeTypeForm(meta, ctx.fieldFactory(), valueService);
         });
     }

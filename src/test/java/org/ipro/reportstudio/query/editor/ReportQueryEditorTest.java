@@ -2,7 +2,7 @@ package org.ipro.reportstudio.query.editor;
 
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.annotation.FieldType;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
 import org.ipro.reportstudio.dom.ReportTemplate;
@@ -20,7 +20,7 @@ class ReportQueryEditorTest {
                 mock(QueryEditorAnalysisService.class),
                 mock(QueryMetadataCatalogService.class),
                 mock(ReportPreviewService.class),
-                mock(LookupService.class),
+                mock(EntityLookup.class),
                 mock(SelectionFormAssembler.class),
                 mock(ReportQueryAssemblyService.class));
         editor.setTemplate(template);

@@ -31,10 +31,12 @@ import org.ipro.telemetry.core.MdcKeys;
 import org.ipro.telemetry.core.TelemetryBridge;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import com.vaadin.flow.spring.annotation.UIScope;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -62,9 +64,16 @@ import java.util.stream.Collectors;
  *     // callback после сохранения
  * });
  * </pre>
+ *
+ * <p>D3.5.3: бин живёт в UI-scope — {@code workspace} и режим открытия принадлежат
+ * конкретному Vaadin UI, а не всей JVM. Синглтоном с тем же mutable состоянием это был
+ * межсессионный дефект: параллельные пользователи перезаписывали чужой
+ * {@code Workspace} через {@code setWorkspace}. Публичный навигационный контракт —
+ * {@link FormNavigator}; сам координатор остаётся реализацией.</p>
  */
 @Component
-public class FormCoordinator {
+@UIScope
+public class FormCoordinator implements FormNavigator {
 
     private final MetadataResolver metadataResolver;
     private final FieldFactory fieldFactory;
@@ -79,10 +88,15 @@ public class FormCoordinator {
     private final org.ipro.crud.EntityCopyService entityCopyService;
     private final org.ipro.form.TableSectionFactory tableSectionFactory;
 
-    // Опциональная ссылка на Workspace для открытия форм в Tab (1С-стиль)
+    // Опциональная ссылка на Workspace для открытия форм в Tab (1С-стиль).
+    // UI-scoped состояние (см. шапку класса): каждое UI пишет сюда свой Workspace,
+    // чужой не затирается.
     private WorkspaceGateway workspace;
 
-    // Режим открытия форм элементов (по умолчанию — Dialog)
+    // Режим открытия форм элементов (по умолчанию — Dialog). UI-scoped состояние:
+    // оставлен мутабельным осознанно — удаление поля потребовало бы нового правила
+    // (например, presence workspace), которое молча переключило бы все ItemForm
+    // из диалогов во вкладки. Поведение не меняем в D3.5.
     private FormOpenMode itemFormOpenMode = FormOpenMode.DIALOG;
 
     public FormCoordinator(MetadataResolver metadataResolver,
@@ -96,15 +110,24 @@ public class FormCoordinator {
                             ItemFormAccessBinder itemFormAccessBinder,
                             org.ipro.crud.EntityCopyService entityCopyService,
                             org.ipro.form.TableSectionFactory tableSectionFactory,
-                            java.util.List<ListFormToolbarContributor> toolbarContributors) {
-        this.metadataResolver = metadataResolver;
-        this.fieldFactory = fieldFactory;
+                             java.util.List<ListFormToolbarContributor> toolbarContributors) {
+        // D3.5.3: обязательные коллабораторы — fail-fast с причиной, никаких permissive
+        // fallback (тихий null здесь превращался бы в «кнопки без прав» или формы без
+        // резолва). WorkspaceGateway/режим — единственное опциональное UI-состояние.
+        this.metadataResolver = Objects.requireNonNull(
+            metadataResolver, "metadataResolver must not be null");
+        this.fieldFactory = Objects.requireNonNull(
+            fieldFactory, "fieldFactory must not be null");
         this.applicationContext = applicationContext;
-        this.formResolver = formResolver;
-        this.serviceLocator = serviceLocator;
+        this.formResolver = Objects.requireNonNull(
+            formResolver, "formResolver must not be null");
+        this.serviceLocator = Objects.requireNonNull(
+            serviceLocator, "serviceLocator must not be null");
         this.formSettingsStore = formSettingsStore;
         this.gridViewStore = gridViewStore;
-        this.rlsUiGate = rlsUiGate;
+        this.rlsUiGate = Objects.requireNonNull(
+            rlsUiGate, "rlsUiGate must not be null: UI gate отражает серверное решение, "
+                + "работать без него — показывать действия без проверки прав");
         this.itemFormAccessBinder = itemFormAccessBinder;
         this.entityCopyService = entityCopyService;
         this.tableSectionFactory = tableSectionFactory;
@@ -115,6 +138,9 @@ public class FormCoordinator {
     /**
      * Установить Workspace для открытия форм в вкладках (1С-стиль).
      * Если не установлен — формы открываются в Dialog.
+     *
+     * <p>Безопасно при UI-scope: вызов из view пишет в координатор своего UI.
+     * Вызывается из {@code init(Workspace)} prototype-view один раз на UI.</p>
      */
     public void setWorkspace(WorkspaceGateway workspace) {
         this.workspace = workspace;
@@ -202,11 +228,10 @@ public class FormCoordinator {
             .parameters(parameters)
             .metadataResolver(metadataResolver)
             .fieldFactory(fieldFactory)
-            .lookupService(applicationContext != null
+            .entityLookup(applicationContext != null
                 ? applicationContext.getBean(org.ipro.crud.LookupService.class) : null)
-            .applicationContext(applicationContext)
+            .formNavigator(this)
             .parameter("variant", variant)
-            .parameter("coordinator", this)
             .build();
     }
 
@@ -274,6 +299,7 @@ public class FormCoordinator {
      * В отличие от {@link #openListForm(Class, String, Map)} не открывает Workspace-вкладку.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
     public <T extends IdentifiableEntity, ID> ListForm<T, ID> createListForm(
             Class<T> entityClass, String variant, Map<String, Object> parameters) {
         return createListForm(entityClass, variant, parameters, null);
@@ -509,6 +535,7 @@ public class FormCoordinator {
      * @param parameters  параметры открытия формы (могут быть null)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
     public <T extends IdentifiableEntity, ID> void openItemForm(Class<T> entityClass,
                                                                   String variant,
                                                                   ID id,

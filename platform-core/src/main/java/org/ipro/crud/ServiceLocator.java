@@ -35,7 +35,7 @@ import java.util.Objects;
  * в {@code FormResolver} и {@code FormCoordinator}.</p>
  */
 @Component
-public class ServiceLocator implements SmartInitializingSingleton {
+public class ServiceLocator implements SmartInitializingSingleton, EntityServiceResolver {
 
     private final ApplicationContext applicationContext;
     private final MetadataResolver metadataResolver;
@@ -101,6 +101,7 @@ public class ServiceLocator implements SmartInitializingSingleton {
     }
 
     @SuppressWarnings("unchecked")
+    @Override
     public <T extends IdentifiableEntity, ID> BaseService<T, ID> findService(Class<T> entityClass) {
         // Owned-строка секции не бывает самостоятельной сущностью: её чтение не может
         // выразить обязательный предикат владельца (доступ наследуется от агрегата),

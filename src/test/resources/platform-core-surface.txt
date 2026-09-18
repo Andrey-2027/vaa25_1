@@ -49,7 +49,7 @@
 # одновременно иметь замороженные ссылки из тестов приложения. Список только сокращается: снятая
 # ссылка обязана исчезнуть из реестра, новая ломает сборку.
 #
-# ---- APP_API (28)
+# ---- APP_API (30)
 # Часть записей ниже — не решение о конкретном типе, а выполнение правила 2 (API closure): эти
 # типы стоят в публичных сигнатурах APP_API-типов, поэтому обязаны иметь тот же уровень. Иначе
 # internal был бы виден приложению через API, и обещание «internal можно менять свободно» ломается.
@@ -59,6 +59,8 @@
 #   MetadataCache           — MetadataResolver
 #   GlobalSearchMatchKind   — GlobalSearchMatch
 #   EntityCapabilities      — EntityDescriptor
+APP_API org.ipro.crud.EntityLookup
+APP_API org.ipro.crud.EntityServiceResolver
 APP_API org.ipro.crud.NaturalKeyCreateSupport
 APP_API org.ipro.crud.ValidationException
 APP_API org.ipro.data.CanonicalEntityService

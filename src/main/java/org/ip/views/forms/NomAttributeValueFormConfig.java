@@ -27,6 +27,15 @@ public class NomAttributeValueFormConfig implements ItemFormCustomization {
     /** Ключ варианта формы строки, который выбирает табличная часть номенклатуры. */
     public static final String TYPE_DEPENDENT_VARIANT = "attributeValue";
 
+    private final AttributeValueService attributeValueService;
+    private final SelectionFormAssembler selectionFormAssembler;
+
+    public NomAttributeValueFormConfig(AttributeValueService attributeValueService,
+                                      SelectionFormAssembler selectionFormAssembler) {
+        this.attributeValueService = attributeValueService;
+        this.selectionFormAssembler = selectionFormAssembler;
+    }
+
     @Override
     public Class<?> entityClass() {
         return NomAttributeValue.class;
@@ -40,12 +49,8 @@ public class NomAttributeValueFormConfig implements ItemFormCustomization {
                 .getFormFields().stream()
                 .filter(field -> "attrType".equals(field.getName()))
                 .toList();
-            AttributeValueService attributeValueService =
-                ctx.applicationContext().getBean(AttributeValueService.class);
-            SelectionFormAssembler selectionFormAssembler =
-                ctx.applicationContext().getBean(SelectionFormAssembler.class);
             return new NomAttributeValueItemForm(fields, ctx.fieldFactory(),
-                attributeValueService, ctx.lookupService(), selectionFormAssembler);
+                attributeValueService, ctx.entityLookup(), selectionFormAssembler);
         });
     }
 }

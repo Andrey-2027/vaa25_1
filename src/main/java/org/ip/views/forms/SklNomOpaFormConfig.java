@@ -14,6 +14,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class SklNomOpaFormConfig implements ItemFormCustomization {
 
+    private final SklNomOpaService setService;
+
+    public SklNomOpaFormConfig(SklNomOpaService setService) {
+        this.setService = setService;
+    }
+
     @Override
     public Class<?> entityClass() {
         return SklNomOpa.class;
@@ -23,7 +29,6 @@ public class SklNomOpaFormConfig implements ItemFormCustomization {
     public void configure(ItemFormVariants variants) {
         variants.addDefault(ctx -> {
             EntityMetadataInfo meta = ctx.metadataResolver().resolve(SklNomOpa.class);
-            SklNomOpaService setService = ctx.applicationContext().getBean(SklNomOpaService.class);
             return new SklNomOpaForm(meta, ctx.fieldFactory(), setService);
         });
     }

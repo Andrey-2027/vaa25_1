@@ -1,10 +1,10 @@
 package org.ipro.form.registry;
 
+import org.ipro.crud.EntityLookup;
 import org.ipro.form.FieldFactory;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.crud.BaseService;
-import org.ipro.crud.LookupService;
-import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,39 +15,44 @@ import java.util.Map;
  * Инфраструктурные зависимости — обычные типизированные поля (не строковые ключи в карте):
  * опечатка в имени поля ловится компилятором, а не молчаливым NullPointerException
  * в рантайме. Карта {@code parameters} — только бизнес-параметры конкретного открытия
- * (например, "workshop"); исключение — ключ "coordinator", который подставляет сам
- * координатор: типизированное поле FormCoordinator здесь создало бы цикл
- * FormResolver → FormContext → FormCoordinator → FormResolver.
+ * (например, "workshop", "journalId").
+ *
+ * <p>D3.5.1: concrete {@code LookupService} заменён интерфейсом {@link EntityLookup},
+ * Spring {@code ApplicationContext} удалён (зависимости приходят в Spring-bean
+ * customization через конструктор, а не через {@code ctx.getBean(...)} внутри
+ * публичного UI API), строковый ключ {@code "coordinator"} заменён типизированным
+ * {@link FormNavigator} (его подставляет сам координатор; резолвер о координаторе
+ * не знает, поэтому цикла FormResolver → FormContext → FormCoordinator нет).</p>
  */
 public class FormContext {
     private final Class<?> entityClass;
     private final Object id;
     private final MetadataResolver metadataResolver;
     private final FieldFactory fieldFactory;
-    private final LookupService lookupService;
+    private final EntityLookup entityLookup;
     private final BaseService<?, ?> service;
-    private final ApplicationContext applicationContext;
+    private final FormNavigator formNavigator;
     private final Map<String, Object> parameters;
 
     public FormContext(Class<?> entityClass, Object id,
                        MetadataResolver metadataResolver, FieldFactory fieldFactory,
-                       LookupService lookupService,
+                       EntityLookup entityLookup,
                        Map<String, Object> parameters) {
-        this(entityClass, id, metadataResolver, fieldFactory, lookupService, null, null, parameters);
+        this(entityClass, id, metadataResolver, fieldFactory, entityLookup, null, null, parameters);
     }
 
     public FormContext(Class<?> entityClass, Object id,
                        MetadataResolver metadataResolver, FieldFactory fieldFactory,
-                       LookupService lookupService,
-                       BaseService<?, ?> service, ApplicationContext applicationContext,
+                       EntityLookup entityLookup,
+                       BaseService<?, ?> service, FormNavigator formNavigator,
                        Map<String, Object> parameters) {
         this.entityClass = entityClass;
         this.id = id;
         this.metadataResolver = metadataResolver;
         this.fieldFactory = fieldFactory;
-        this.lookupService = lookupService;
+        this.entityLookup = entityLookup;
         this.service = service;
-        this.applicationContext = applicationContext;
+        this.formNavigator = formNavigator;
         this.parameters = parameters != null ? new HashMap<>(parameters) : new HashMap<>();
     }
 
@@ -67,8 +72,8 @@ public class FormContext {
         return fieldFactory;
     }
 
-    public LookupService lookupService() {
-        return lookupService;
+    public EntityLookup entityLookup() {
+        return entityLookup;
     }
 
     /**
@@ -80,11 +85,11 @@ public class FormContext {
     }
 
     /**
-     * Spring-контекст (кладёт резолвер/координатор). Null, если недоступен
-     * (ручное создание вне Spring).
+     * Навигация форм (кладёт координатор). Null на путях, построенных резолвером
+     * без координатора, и при ручном создании вне Spring.
      */
-    public ApplicationContext applicationContext() {
-        return applicationContext;
+    public FormNavigator formNavigator() {
+        return formNavigator;
     }
 
     public Map<String, Object> getParameters() {
@@ -117,9 +122,9 @@ public class FormContext {
         private Object id;
         private MetadataResolver metadataResolver;
         private FieldFactory fieldFactory;
-        private LookupService lookupService;
+        private EntityLookup entityLookup;
         private BaseService<?, ?> service;
-        private ApplicationContext applicationContext;
+        private FormNavigator formNavigator;
         private Map<String, Object> parameters = new HashMap<>();
 
         private Builder(Class<?> entityClass) {
@@ -141,8 +146,8 @@ public class FormContext {
             return this;
         }
 
-        public Builder lookupService(LookupService lookupService) {
-            this.lookupService = lookupService;
+        public Builder entityLookup(EntityLookup entityLookup) {
+            this.entityLookup = entityLookup;
             return this;
         }
 
@@ -151,8 +156,8 @@ public class FormContext {
             return this;
         }
 
-        public Builder applicationContext(ApplicationContext applicationContext) {
-            this.applicationContext = applicationContext;
+        public Builder formNavigator(FormNavigator formNavigator) {
+            this.formNavigator = formNavigator;
             return this;
         }
 
@@ -169,8 +174,8 @@ public class FormContext {
         }
 
         public FormContext build() {
-            return new FormContext(entityClass, id, metadataResolver, fieldFactory, lookupService,
-                service, applicationContext, parameters);
+            return new FormContext(entityClass, id, metadataResolver, fieldFactory, entityLookup,
+                service, formNavigator, parameters);
         }
     }
 }

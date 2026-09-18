@@ -339,6 +339,70 @@ if (process.argv.includes('--fq-files')) {
     lines.push(`test-usage ${owner} ${hits.join(' ')}`);
   }
   console.log(lines.join('\n'));
+} else if (process.argv.includes('--vaadin-registry')) {
+/**
+ * Черновик семантического реестра будущего `platform-vaadin` (D3.5.0): production-типы
+ * `org.ipro.form`, `org.ipro.vaadin` и Vaadin-адаптера телеметрии, по одной базовой роли на тип.
+ * Правила и явные решения записаны в шапке `platform-vaadin-surface.txt`; скрипт воспроизводит
+ * механическую часть, а решения принимаются ревью — иначе проверялось бы то же правило, которым
+ * список построен.
+ */
+  const VAADIN_ROOTS = [
+    'src/main/java/org/ipro/form',
+    'src/main/java/org/ipro/vaadin',
+    'src/main/java/org/ip/telemetry/vaadin',
+  ];
+  const vaadinTypes = VAADIN_ROOTS
+    .flatMap((root) => javaFiles(root).map(({ full }) => fqnOf(full)))
+    .sort();
+
+  const d1 = new Map();
+  for (const line of fs.readFileSync(
+      path.join(PROJECT, 'src/test/resources/platform-public-surface.txt'), 'utf8').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const parts = trimmed.split(/\s+/);
+    d1.set(parts[1], parts[0]);
+  }
+  const d1Role = (fqn) => {
+    for (const [key, role] of d1) if (key === fqn || key.startsWith(fqn + '.')) return role;
+    return null;
+  };
+
+  // Явные решения ревью: механический срез их не выводит. Каждый legacy-internal тип обязан
+  // получить решение здесь, а не унаследовать его из правила.
+  const overrides = {
+    // Plan D3.5: координатор не замораживается как публичный API — он остаётся реализацией.
+    'org.ipro.form.coordinator.FormCoordinator': 'INTERNAL',
+  };
+
+  const moduleNamed = new Set(moduleReferences.keys());
+  const roles = new Map();
+  for (const fqn of vaadinTypes) {
+    if (overrides[fqn]) roles.set(fqn, overrides[fqn]);
+    else if (d1Role(fqn) === 'API') roles.set(fqn, 'APP_API');
+    else if (d1Role(fqn) === 'SPI') roles.set(fqn, 'APP_SPI');
+    else if (d1Role(fqn) === 'legacy-internal') roles.set(fqn, 'APP_API_DRAFT');
+    else roles.set(fqn, moduleNamed.has(fqn) ? 'MODULE_API' : 'INTERNAL');
+  }
+
+  const lines = [];
+  for (const role of ['APP_API', 'APP_SPI', 'MODULE_API', 'INTERNAL', 'APP_API_DRAFT']) {
+    const members = [...roles].filter(([, value]) => value === role).map(([fqn]) => fqn).sort();
+    lines.push(`# ---- ${role} (${members.length})`);
+    for (const fqn of members) lines.push(`${role} ${fqn}`);
+  }
+  console.log(lines.join('\n'));
+  console.log(`\n# всего типов: ${vaadinTypes.length}`);
+  console.log('# приложение (src/main, org/ip) называет:');
+  for (const fqn of vaadinTypes.filter((name) => appMain.found.has(name))) {
+    console.log(`  main ${fqn} (${d1Role(fqn) ?? 'нет в D1-реестре'})`);
+  }
+  console.log('# ни приложение, ни тесты не называют (кандидаты в INTERNAL):');
+  for (const fqn of vaadinTypes
+      .filter((name) => !appMain.found.has(name) && !appTest.found.has(name))) {
+    console.log(`  INTERNAL ${fqn}`);
+  }
 } else if (process.argv.includes('--delta')) {
   // Дельта к reviewed-реестру: чего в реестре нет, что в реестре лишнее. Именно этот вывод
   // превращает найденную дыру (приложение ссылается на тип, которого нет в реестре) в список

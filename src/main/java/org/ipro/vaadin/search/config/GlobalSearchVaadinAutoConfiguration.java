@@ -2,11 +2,13 @@ package org.ipro.vaadin.search.config;
 
 import org.ipro.form.config.FormAutoConfiguration;
 import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.search.GlobalSearchCatalog;
 import org.ipro.search.GlobalSearchService;
 import org.ipro.search.config.GlobalSearchAutoConfiguration;
 import org.ipro.vaadin.search.GlobalSearchHeader;
 import org.ipro.vaadin.search.GlobalSearchNavigationAdapter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -37,8 +39,8 @@ public class GlobalSearchVaadinAutoConfiguration {
     @ConditionalOnBean({GlobalSearchCatalog.class, FormCoordinator.class})
     @ConditionalOnMissingBean(GlobalSearchNavigationAdapter.class)
     public GlobalSearchNavigationAdapter globalSearchNavigationAdapter(
-            GlobalSearchCatalog catalog, FormCoordinator formCoordinator) {
-        return new GlobalSearchNavigationAdapter(catalog, formCoordinator);
+            GlobalSearchCatalog catalog, ObjectProvider<FormNavigator> navigators) {
+        return new GlobalSearchNavigationAdapter(catalog, navigators);
     }
 
     /**

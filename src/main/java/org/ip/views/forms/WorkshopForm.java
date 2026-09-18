@@ -10,7 +10,7 @@ import org.ipro.crud.AbstractEntityForm;
 import org.ipro.crud.FormBuilder;
 import org.ip.model.Workshop;
 import org.ipro.crud.CrudService;
-import org.ipro.crud.ServiceLocator;
+import org.ipro.crud.EntityServiceResolver;
 import org.ipro.form.Dirtyable;
 import org.ipro.form.Savable;
 
@@ -28,9 +28,9 @@ public class WorkshopForm extends AbstractEntityForm<Workshop> implements Dirtya
 
     /**
      * C4.6 волна C: у {@code Workshop} больше нет typed-сервиса, но карточке нужен тот же
-     * контракт сохранения/чтения — его даёт canonical-handle из {@link ServiceLocator}.
+     * контракт сохранения/чтения — его даёт canonical-handle из {@link EntityServiceResolver}.
      */
-    public WorkshopForm(ServiceLocator serviceLocator) {
+    public WorkshopForm(EntityServiceResolver serviceLocator) {
         super(Workshop.class);
         this.service = serviceLocator.findService(Workshop.class);
     }

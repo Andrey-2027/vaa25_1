@@ -5,7 +5,7 @@ import org.ip.model.ReceivingDocument;
 import org.ip.model.Workshop;
 import org.ipro.crud.BaseService;
 import org.ipro.identity.IdentifiableEntity;
-import org.ipro.crud.ServiceLocator;
+import org.ipro.crud.EntityServiceResolver;
 import org.ipro.form.FormSaveResult;
 import org.ipro.form.ItemFormSaveHandler;
 import org.ipro.form.ItemFormSaveHandlerRegistry;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 class ItemFormSaveDispatcherTest {
 
-    private final ServiceLocator serviceLocator = mock(ServiceLocator.class);
+    private final EntityServiceResolver serviceLocator = mock(EntityServiceResolver.class);
     private final MetadataDrivenItemFormSaveAdapter metadataAdapter =
         mock(MetadataDrivenItemFormSaveAdapter.class);
     private final ItemFormSaveDispatcher dispatcher = new ItemFormSaveDispatcher(

@@ -79,6 +79,12 @@ node_modules/
 !src/test/resources/platform-core-surface.txt
 !src/test/resources/platform-package-matrix.txt
 
+# D3.5.0: семантический реестр будущего модуля platform-vaadin. Тот же случай, что и в §2.8
+# (D3.3): широкое правило `*.txt` исключило бы reviewed-список из поставки, и гейт защищал бы
+# только машину автора — на чистом checkout файла просто нет, а тест читает его как источник
+# истины. PlatformVaadinSurfaceTest обязан находить его в репозитории.
+!src/test/resources/platform-vaadin-surface.txt
+
 # D2/D1: API/ABI baseline публичной поверхности вынесенных артефактов. PlatformApiBaselineTest
 # сравнивает с ним подписи, поэтому на чистом checkout он обязан присутствовать.
 !src/test/resources/platform-api-baseline/

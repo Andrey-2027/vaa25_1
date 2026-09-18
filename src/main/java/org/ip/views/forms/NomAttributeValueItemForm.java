@@ -10,7 +10,7 @@ import org.ip.model.AttributeValueType;
 import org.ip.model.NomAttributeValue;
 import org.ip.service.AttributeValueService;
 import org.ipro.identity.IdentifiableEntity;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.form.BindingDescriptor;
 import org.ipro.form.EntityField;
 import org.ipro.form.FieldFactory;
@@ -51,7 +51,7 @@ import java.util.function.Consumer;
 public class NomAttributeValueItemForm extends ItemForm<NomAttributeValue> {
 
     private final AttributeValueService attributeValueService;
-    private final LookupService lookupService;
+    private final EntityLookup lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
 
     private final EntityField<AttributeType> attrTypeField;
@@ -65,7 +65,7 @@ public class NomAttributeValueItemForm extends ItemForm<NomAttributeValue> {
     public NomAttributeValueItemForm(List<FieldMetadataInfo> formFields,
                                      FieldFactory fieldFactory,
                                      AttributeValueService attributeValueService,
-                                     LookupService lookupService,
+                                     EntityLookup lookupService,
                                      SelectionFormAssembler selectionFormAssembler) {
         super(NomAttributeValue.class, formFields, fieldFactory);
         this.attributeValueService = attributeValueService;
@@ -198,7 +198,7 @@ public class NomAttributeValueItemForm extends ItemForm<NomAttributeValue> {
                     return List.of();
                 }
                 return (List<HasDisplayName>) (List) lookupService.search(
-                    target, refSearchFields(target), term, 20);
+                    target, List.of(refSearchFields(target)), term, 20);
             });
             refValueField.setSelectionFormFactory(onSelect -> {
                 Class<?> target = refTargetClass;

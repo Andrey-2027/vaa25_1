@@ -4,7 +4,7 @@
 - Ветка: `main`
 - Baseline commit/tag: `3793165` / `c4.8-d1-baseline` — заморозка C4.0–C4.8 и D1 перед первым extraction slice (D2)
 - Рабочее дерево: чистое на момент заморозки; изменения этапов A0–A4, B3–B4, C1–C4.8 и D1 вошли в baseline commit
-- Текущий срез: D3 (D3.0–D3.4 закрыты: bootstrap, identity seam, разрыв core/UI-связок, `platform-core`, `platform-spring-boot-autoconfigure`; D3.5 — следующий этап)
+- Текущий срез: D3 (D3.0–D3.4 закрыты: bootstrap, identity seam, разрыв core/UI-связок, `platform-core`, `platform-spring-boot-autoconfigure`; замечание ревью D3.4 по заменяемости CRUD-бинов исправлено; D3.5 открыт шагом D3.5.0 — роли назначены всем 90 production-типам будущего `platform-vaadin`; следующий шаг — D3.5.1)
 
 > Разделы ниже сохраняют формулировки того среза, в котором были написаны. Если срез
 > помечен как исторический (C4.1–C4.7), его «в работе»/«pending»-формулировки описывают

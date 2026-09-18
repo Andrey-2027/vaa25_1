@@ -8,8 +8,12 @@ class public org.ipro.autoconfigure.PlatformProperties
 
 class public org.ipro.crud.config.CrudAutoConfiguration
   annotation org.springframework.boot.autoconfigure.AutoConfiguration
-  annotation org.springframework.context.annotation.Import
+  annotation org.springframework.boot.autoconfigure.AutoConfigureBefore
   ctor public()
+  method public org.ipro.crud.LookupService lookupService(org.ipro.data.CanonicalReadExecutor)
+  method public org.ipro.crud.NaturalKeyCreateSupport naturalKeyCreateSupport(org.springframework.transaction.PlatformTransactionManager)
+  method public org.ipro.crud.ReferenceCheckService referenceCheckService(org.ipro.metadata.ReferenceIndex, org.ipro.rls.RlsFilterActivator)
+  method public org.ipro.crud.ServiceLocator serviceLocator(org.springframework.context.ApplicationContext, org.ipro.metadata.MetadataResolver, org.ipro.metadata.SectionMetadataRegistry)
 
 class public org.ipro.data.config.DataAccessAutoConfiguration
   annotation org.springframework.boot.autoconfigure.AutoConfiguration

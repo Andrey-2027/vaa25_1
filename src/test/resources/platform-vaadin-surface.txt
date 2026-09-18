@@ -1,0 +1,173 @@
+# D3.5.0: семантическая классификация production-типов будущего модуля platform-vaadin.
+#
+# Формат: <role> <fqn>
+# Роли (ровно одна на production-тип): APP_API | APP_SPI | MODULE_API | INTERNAL
+#   APP_API    — поддерживаемый API приложения: приложение называет тип, платформа не наследует.
+#   APP_SPI    — приложение реализует или расширяет тип; платформа вызывает обратно.
+#   MODULE_API — контракт между platform-модулями: wiring модуля и будущий report-модуль.
+#   INTERNAL   — реализация без compatibility promise: менять и удалять можно свободно.
+#
+# Зачем реестр появился до самого модуля. Порядок «сначала перенести 83 public-класса, потом
+# разобраться» уже был опробован в D3.3 и дал `TEMPORARY_ALL_PUBLIC`: состав зафиксирован,
+# а решения о том, что именно является контрактом, не принято ни по одному типу. Здесь роли
+# назначаются до физического переноса, поэтому переезд не зацементирует текущую поверхность.
+#
+# Замер до изменений (D3.5.0): 90 production-типов — `org.ipro.form` 80, `org.ipro.vaadin` 7,
+# `org.ip.telemetry.vaadin` 3. D3.5.1: +`org.ipro.form.coordinator.FormNavigator` (APP_API) —
+# 91 тип. D3.5.2: +`org.ipro.form.LookupComboHelper` (INTERNAL, общий lazy-хелпер фильтров) —
+# 92 типа. Бюджет ролей: APP_API 29, APP_SPI 12, MODULE_API 0, INTERNAL 51.
+#
+# Забор — `PlatformVaadinSurfaceTest` в дереве приложения (до появления модуля): каждый
+# production-тип этих трёх корней обязан иметь ровно одну роль, лишняя запись так же ломает
+# сборку, как пропавшая. Полнота проверяется, а не подразумевается.
+#
+# Роли — reviewed-решение, а не вывод теста: если бы список строил сам тест, проверялось бы то же
+# правило, которым он построен. Черновик воспроизводится скриптом
+# `node scripts/analyze-platform-surface.mjs --vaadin-registry`, решения по спорным типам
+# записаны ниже явно.
+#
+# Правила классификации (в порядке применения):
+#   1. D1-роль API -> APP_API, SPI -> APP_SPI: текущее потребление приложением сохраняется.
+#   2. Явные решения по спорным типам — см. ниже.
+#   3. Тип, который называет production-код другого platform-модуля -> MODULE_API.
+#   4. Остальные -> INTERNAL.
+#   5. Public nested type наследует роль owner-типа, если для него нет отдельной записи.
+#   6. Каждый новый production-тип обязан получить роль сразу — полнота проверяется тестом.
+#
+# Явные решения (механически не выводятся):
+#
+#   * FormCoordinator -> INTERNAL. D1 зарегистрировал его как legacy-internal (13 файлов
+#     приложения), и это верный сигнал: класс несёт ApplicationContext, ServiceLocator,
+#     mutable Workspace и режим открытия. Повышение до APP_API заморозило бы именно ту
+#     поверхность, которую D3.5 обязан расчистить (D3.5.1: FormContext без ApplicationContext,
+#     D3.5.3: UI-scope). Публичным контрактом должен стать узкий типизированный
+#     FormNavigator/FormComposer, а сам координатор — реализацией.
+#
+#   * ItemTable -> APP_API. Приложение получает его из SPI-точки `TableSectionCustomization`
+#     и вызывает на нём `applyPersistedRows`/`markDirty`, а также использует nested
+#     `ItemTable.AddOption` (org/ip/views/forms/PrdSpecMtrTableCustomization.java:36-37).
+#     Тип, который платформа передаёт в SPI, обязан быть публичным API: иначе SPI не
+#     реализуем. Роль исправляет D1-запись legacy-internal: там измерялся reach-through,
+#     а здесь это осознанная точка расширения.
+#
+#   * ListForm -> APP_API. Приложение строит на нём свои list-views (12 файлов в D1-реестре),
+#     но не наследует его — то есть потребляет как компонент. Альтернатива (оставить INTERNAL)
+#     означала бы, что прикладные list-views опираются на незаявленный контракт: формально
+#     верно, практически — запрет пользоваться штатной формой списка. Узкий view-контракт
+#     для list-форм — предмет D3.6, а не повод не назначать роль сейчас.
+#
+#   * Explorer DTO и assemblers -> APP_API. `EntitySummary`/`EntitySummaryAssembler`/
+#     `SubsystemSummaryAssembler` читаются прикладными views (`EntityExplorerView`,
+#     `SubsystemStructureView`, `EntitySummaryPanel`, `JpqlRunService`). План D3.5 (D3.5.4)
+#     переносит весь `org.ipro.vaadin` в модуль, поэтому «оставить в дереве» не вариант:
+#     DTO обязан получить роль, и это роль API — приложение их только читает.
+#
+#   * MODULE_API пуст. Это измеренный факт, а не недосмотр: сегодня ни один из
+#     platform-модулей (`platform-*`) не называет тип из этих трёх корней. Единственный
+#     внешний потребитель будущего модуля — Report (`org.ipro.form.EntityField`,
+#     `org.ipro.form.SelectionFormAssembler`), и оба типа уже APP_API, поэтому отдельной
+#     роли не требуют. Если D3.7 выделит report-core и ему понадобится платформенный тип,
+#     которого нет в APP поверхностях, запись появится здесь и будет видна в диффе.
+
+# ---- APP_API (29)
+APP_API org.ipro.form.BindingDescriptor
+APP_API org.ipro.form.EntityField
+APP_API org.ipro.form.FieldFactory
+APP_API org.ipro.form.FormSaveResult
+APP_API org.ipro.form.ItemFormSaveHandler
+APP_API org.ipro.form.ItemFormSaveHandlerRegistry
+APP_API org.ipro.form.MetadataDrivenItemFormSaveAdapter
+APP_API org.ipro.form.SearchFunction
+APP_API org.ipro.form.SelectionForm
+APP_API org.ipro.form.SelectionFormAssembler
+APP_API org.ipro.form.builder.ContextFilterField
+APP_API org.ipro.form.builder.ItemFormVariants
+APP_API org.ipro.form.builder.ListFormVariants
+APP_API org.ipro.form.builder.layout.CustomNode
+APP_API org.ipro.form.builder.layout.DisplayNode
+APP_API org.ipro.form.builder.layout.FieldNode
+APP_API org.ipro.form.builder.layout.ItemFormLayout
+APP_API org.ipro.form.builtin.ItemTable
+APP_API org.ipro.form.builtin.ListForm
+APP_API org.ipro.form.coordinator.FormNavigator
+APP_API org.ipro.form.registry.FormContext
+APP_API org.ipro.form.registry.FormType
+APP_API org.ipro.form.registry.ListCommandContext
+APP_API org.ipro.form.registry.ListFormContext
+APP_API org.ipro.form.spi.GridView
+APP_API org.ipro.vaadin.explorer.EntitySummary
+APP_API org.ipro.vaadin.explorer.EntitySummaryAssembler
+APP_API org.ipro.vaadin.explorer.SubsystemSummaryAssembler
+APP_API org.ipro.vaadin.search.GlobalSearchHeader
+
+# ---- APP_SPI (12)
+APP_SPI org.ipro.form.Dirtyable
+APP_SPI org.ipro.form.FormSaveHandler
+APP_SPI org.ipro.form.Savable
+APP_SPI org.ipro.form.TableSectionCustomization
+APP_SPI org.ipro.form.builder.ItemFormCustomization
+APP_SPI org.ipro.form.builder.ListFormCustomization
+APP_SPI org.ipro.form.builtin.ItemForm
+APP_SPI org.ipro.form.registry.ListCommand
+APP_SPI org.ipro.form.spi.FormSettingsStore
+APP_SPI org.ipro.form.spi.GridViewStore
+APP_SPI org.ipro.form.spi.ListFormToolbarContributor
+APP_SPI org.ipro.form.spi.WorkspaceGateway
+
+# ---- MODULE_API (0)
+# Пусто намеренно: измеренный факт, причина — в разделе явных решений выше.
+
+# ---- INTERNAL (51)
+# ---- INTERNAL (51)
+INTERNAL org.ip.telemetry.vaadin.TelemetryErrorHandler
+INTERNAL org.ip.telemetry.vaadin.TelemetryVaadinConfiguration
+INTERNAL org.ip.telemetry.vaadin.TelemetryVaadinInitListener
+INTERNAL org.ipro.form.FieldRenderer
+INTERNAL org.ipro.form.FilterGridMoreMenu
+INTERNAL org.ipro.form.FormBinding
+INTERNAL org.ipro.form.FormBindingRegistry
+INTERNAL org.ipro.form.LookupComboHelper
+INTERNAL org.ipro.form.SectionPayload
+INTERNAL org.ipro.form.SectionPresence
+INTERNAL org.ipro.form.SelectionFormFactory
+INTERNAL org.ipro.form.SelectionGridCustomizer
+INTERNAL org.ipro.form.TableSectionFactory
+INTERNAL org.ipro.form.builder.ContextFilterControl
+INTERNAL org.ipro.form.builder.ContextFilterPanel
+INTERNAL org.ipro.form.builder.ItemFormCustomizationRegistrar
+INTERNAL org.ipro.form.builder.ItemFormCustomizer
+INTERNAL org.ipro.form.builder.ListFormCustomizationRegistrar
+INTERNAL org.ipro.form.builder.ListFormCustomizer
+INTERNAL org.ipro.form.builder.SelectionColumnResolver
+INTERNAL org.ipro.form.builder.SelectionContextFilters
+INTERNAL org.ipro.form.builder.SelectionFormCustomization
+INTERNAL org.ipro.form.builder.SelectionFormCustomizationRegistrar
+INTERNAL org.ipro.form.builder.SelectionFormVariants
+INTERNAL org.ipro.form.builder.layout.LayoutNode
+INTERNAL org.ipro.form.builder.layout.PanelNode
+INTERNAL org.ipro.form.builder.layout.TabDefinition
+INTERNAL org.ipro.form.builder.layout.TabSheetNode
+INTERNAL org.ipro.form.builtin.GridViewEditorDialog
+INTERNAL org.ipro.form.builtin.ItemHistory
+INTERNAL org.ipro.form.builtin.ItemSectionHost
+INTERNAL org.ipro.form.builtin.ListFormVisualFilterAdapter
+INTERNAL org.ipro.form.builtin.RowDraft
+INTERNAL org.ipro.form.builtin.ViewSelectorDialog
+INTERNAL org.ipro.form.config.FormAutoConfiguration
+INTERNAL org.ipro.form.coordinator.FormCoordinator
+INTERNAL org.ipro.form.coordinator.FormOpenMode
+INTERNAL org.ipro.form.coordinator.ItemFormAccessBinder
+INTERNAL org.ipro.form.coordinator.ItemFormWrapperView
+INTERNAL org.ipro.form.coordinator.ListFormWrapper
+INTERNAL org.ipro.form.registry.FormFactory
+INTERNAL org.ipro.form.registry.FormKey
+INTERNAL org.ipro.form.registry.FormRegistry
+INTERNAL org.ipro.form.registry.FormRegistryConfiguration
+INTERNAL org.ipro.form.registry.FormResolver
+INTERNAL org.ipro.form.registry.ListCommandRegistry
+INTERNAL org.ipro.form.registry.SelectionColumnsDef
+INTERNAL org.ipro.form.registry.SelectionFilter
+INTERNAL org.ipro.vaadin.explorer.config.EntityExplorerAutoConfiguration
+INTERNAL org.ipro.vaadin.search.GlobalSearchNavigationAdapter
+INTERNAL org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration
+

@@ -14,7 +14,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import org.ipro.form.SelectionFormAssembler;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;
@@ -52,7 +52,7 @@ public class ContextualReportLauncher extends Button {
     private final Supplier<ReportContext> contextSupplier;
     private final ReportTemplateService templateService;
     private final ReportExecutionService executionService;
-    private final LookupService lookupService;
+    private final EntityLookup lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
     /** nullable: без сервиса UReport3-ветка недоступна (обратная совместимость). */
     private final UreportTemplateService ureportService;
@@ -65,7 +65,7 @@ public class ContextualReportLauncher extends Button {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler) {
         this("Отчёты", () -> templateService.search(""), contextSupplier,
                 templateService, executionService, lookupService, selectionFormAssembler,
@@ -77,7 +77,7 @@ public class ContextualReportLauncher extends Button {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             UreportTemplateService ureportService) {
         this("Отчёты", () -> templateService.search(""), contextSupplier,
@@ -93,7 +93,7 @@ public class ContextualReportLauncher extends Button {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             UreportTemplateService ureportService,
             JrxmlTemplateService jrTemplateService) {
@@ -107,7 +107,7 @@ public class ContextualReportLauncher extends Button {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler) {
         this(caption, () -> templateService.search(""), contextSupplier,
                 templateService, executionService, lookupService, selectionFormAssembler,
@@ -120,7 +120,7 @@ public class ContextualReportLauncher extends Button {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler) {
         this(caption, templatesSupplier, contextSupplier, templateService,
                 executionService, lookupService, selectionFormAssembler, null);
@@ -135,7 +135,7 @@ public class ContextualReportLauncher extends Button {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             UreportTemplateService ureportService) {
         this(caption, templatesSupplier, contextSupplier, templateService,
@@ -154,7 +154,7 @@ public class ContextualReportLauncher extends Button {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             UreportTemplateService ureportService,
             JrxmlTemplateService jrTemplateService,

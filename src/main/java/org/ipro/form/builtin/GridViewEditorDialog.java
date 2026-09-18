@@ -101,6 +101,7 @@ public class GridViewEditorDialog extends Dialog {
     }
 
     private final org.ipro.metadata.GridMetadata metadata;
+    private final MetadataResolver metadataResolver;
     private final GridViewStore gridViewStore;
     private final LookupService lookupService;
     private final String formKey;
@@ -142,6 +143,7 @@ public class GridViewEditorDialog extends Dialog {
                                 Consumer<GridView> onSaved,
                                 org.ipro.filtergrid.filter.FilterEntitySelector entitySelector) {
         this.metadata = metadata;
+        this.metadataResolver = metadataResolver;
         this.gridViewStore = gridViewStore;
         this.lookupService = lookupService;
         this.formKey = formKey;
@@ -359,6 +361,9 @@ public class GridViewEditorDialog extends Dialog {
     private List<?> lookupFilterOptions(org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField field) {
         if (field == null || lookupService == null) return List.of();
         FieldMetadataInfo info = metadata.getFieldByName(field.path());
+        // D3.5.2-исключение — см. комментарий в ListForm#lookupFilterOptions: список питает
+        // дерево визуального фильтра и компилятор сохранённых видов (id/displayName
+        // round-trip). Решение следующим шагом D3.5.2b после characterization-теста.
         return info != null && info.hasLookup()
                 ? lookupService.findAll(info.getLookupEntity()) : List.of();
     }
@@ -459,16 +464,15 @@ public class GridViewEditorDialog extends Dialog {
             }
             case ENTITY_REFERENCE -> {
                 ComboBox combo = new ComboBox();
-                List items = lookupService.findAll(condition.field.getLookupEntity());
-                combo.setItems(items);
+                // D3.5.2: lazy autocomplete вместо findAll всей таблицы + точечная
+                // подгрузка сохранённого значения. Недоступное значение честно
+                // показывается helper-текстом, а не тихой пустотой.
+                org.ipro.form.LookupComboHelper.installSuggestItems(
+                    combo, condition.field.getLookupEntity(), lookupService, metadataResolver);
                 combo.setItemLabelGenerator(
                     org.ipro.fetch.instance.InstanceNameBridge::displayName);
-                if (condition.value != null) {
-                    items.stream()
-                        .filter(item -> condition.value.equals(String.valueOf(((IdentifiableEntity) item).getId())))
-                        .findFirst()
-                        .ifPresent(combo::setValue);
-                }
+                org.ipro.form.LookupComboHelper.restoreSavedSelection(
+                    combo, condition.field.getLookupEntity(), condition.value, lookupService);
                 combo.addValueChangeListener(e -> condition.value = e.getValue() != null
                     ? String.valueOf(((IdentifiableEntity) e.getValue()).getId()) : null);
                 combo.setWidthFull();

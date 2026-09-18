@@ -104,8 +104,9 @@ public class ContextFilterPanel extends HorizontalLayout {
     private ComboBox<Object> createLookupCombo(ContextFilterField field, Class<?> source) {
         ComboBox<Object> box = new ComboBox<>(displayLabel(field));
         if (lookupService != null && source != null) {
-            box.setItems(query -> lookupService.findAll((Class) source).stream()
-                .map(item -> (Object) item));
+            // D3.5.2: lazy autocomplete вместо findAll всей таблицы.
+            org.ipro.form.LookupComboHelper.installSuggestItems(
+                box, source, lookupService, metadataResolver);
         }
         box.setItemLabelGenerator(org.ipro.fetch.instance.InstanceNameBridge::displayName);
         box.addValueChangeListener(e -> onValue.accept(field.path(), e.getValue()));

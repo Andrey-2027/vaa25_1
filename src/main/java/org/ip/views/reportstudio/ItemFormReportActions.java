@@ -2,7 +2,7 @@ package org.ip.views.reportstudio;
 
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.form.builtin.ItemForm;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
@@ -28,7 +28,7 @@ public final class ItemFormReportActions {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler) {
         return addContextualLauncher(form, contextSupplier, templateService,
                 executionService, lookupService, selectionFormAssembler, null);
@@ -40,7 +40,7 @@ public final class ItemFormReportActions {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             UreportTemplateService ureportService) {
         return addContextualLauncher(form, contextSupplier, templateService,
@@ -54,7 +54,7 @@ public final class ItemFormReportActions {
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             UreportTemplateService ureportService,
             JrxmlTemplateService jrTemplateService) {

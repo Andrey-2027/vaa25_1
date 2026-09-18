@@ -17,7 +17,7 @@ import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ReferenceCheckService;
 import org.ipro.crud.ValidationException;
@@ -103,8 +103,8 @@ class SklNomOpaServiceTest {
 
     /** C4.6 волна E: тот же шов, что в {@code newSetService} — repository плюс canonical handle. */
     private AttributeValueService newValueService() {
-        LookupService lookupService = mock(LookupService.class);
-        when(lookupService.findById(any(Class.class), any())).thenAnswer(invocation -> {
+        EntityLookup lookupService = mock(EntityLookup.class);
+        when(lookupService.findSelectedById(any(Class.class), any())).thenAnswer(invocation -> {
             Class<?> entityClass = invocation.getArgument(0);
             Object id = invocation.getArgument(1);
             return java.util.Optional.ofNullable(entityManager.find(entityClass, id));

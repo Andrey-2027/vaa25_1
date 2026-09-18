@@ -4,7 +4,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.form.builtin.ListForm;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.crud.BaseEntity;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;
@@ -43,7 +43,7 @@ class ReportPrintToolbarContributorTest {
         return new ReportPrintToolbarContributor(
                 mock(ReportTemplateService.class),
                 mock(ReportExecutionService.class),
-                mock(LookupService.class),
+                mock(EntityLookup.class),
                 mock(SelectionFormAssembler.class),
                 mock(org.ipro.ureport.service.UreportTemplateService.class),
                 mock(org.ipro.jr.service.JrxmlTemplateService.class),

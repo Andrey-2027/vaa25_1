@@ -16,7 +16,7 @@ import com.vaadin.flow.server.WrappedHttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.ipro.form.SelectionFormAssembler;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ip.views.components.ReportParamForm;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.param.ReportContext;
@@ -56,7 +56,7 @@ public class ReportRunDialog extends Dialog {
     public ReportRunDialog(
             ReportTemplate template,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler) {
         this(template, emptyContext(), executionService, lookupService, selectionFormAssembler);
     }
@@ -65,7 +65,7 @@ public class ReportRunDialog extends Dialog {
             ReportTemplate template,
             ReportContext context,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler) {
         this.template = template;
         this.context = context;

@@ -277,13 +277,16 @@ class public org.ipro.crud.GenericOwnedSectionService
   method public void setScenarioFetchGraphResolver(org.ipro.data.ScenarioFetchGraphResolver)
 
 class public org.ipro.crud.LookupService
+  implements org.ipro.crud.EntityLookup
   annotation org.springframework.stereotype.Service
   ctor public(org.ipro.data.CanonicalReadExecutor)
   method public java.util.List<T> findAll(java.lang.Class<T>)
   method public java.util.List<T> search(java.lang.Class<T>, java.lang.String[], java.lang.String, int)
   method public java.util.List<T> search(java.lang.Class<T>, java.lang.String[], java.lang.String, int, java.util.Collection<java.lang.String>)
+  method public java.util.List<T> search(java.lang.Class<T>, java.util.Collection<java.lang.String>, java.lang.String, int)
   method public java.util.Optional<T> findById(java.lang.Class<T>, java.lang.Object)
   method public java.util.Optional<T> findById(java.lang.Class<T>, java.lang.Object, java.util.Collection<java.lang.String>)
+  method public java.util.Optional<T> findSelectedById(java.lang.Class<T>, java.lang.Object)
 
 class public org.ipro.crud.MetadataDrivenAggregateSaveService
   ctor public(org.ipro.crud.ServiceLocator, org.ipro.metadata.SectionMetadataRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.events.EntityEventPublisher)
@@ -300,6 +303,7 @@ class public org.ipro.crud.ReferenceCheckService
   method public void checkNoReferences(java.lang.Class<?>, java.lang.Object)
 
 class public org.ipro.crud.ServiceLocator
+  implements org.ipro.crud.EntityServiceResolver
   implements org.springframework.beans.factory.SmartInitializingSingleton
   annotation org.springframework.stereotype.Component
   ctor public(org.springframework.context.ApplicationContext, org.ipro.metadata.MetadataResolver, org.ipro.metadata.SectionMetadataRegistry)
@@ -544,6 +548,13 @@ interface public abstract interface org.ipro.crud.BaseService
   method public org.springframework.data.domain.Page<T> findAll(org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable)
   method public org.springframework.data.domain.Page<T> findAll(org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
   method public org.springframework.data.domain.Page<T> findAllByScenario(org.ipro.fetch.plan.FetchScenario, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+
+interface public abstract interface org.ipro.crud.EntityLookup
+  method public abstract java.util.List<T> search(java.lang.Class<T>, java.util.Collection<java.lang.String>, java.lang.String, int)
+  method public abstract java.util.Optional<T> findSelectedById(java.lang.Class<T>, java.lang.Object)
+
+interface public abstract interface org.ipro.crud.EntityServiceResolver
+  method public abstract org.ipro.crud.BaseService<T, ID> findService(java.lang.Class<T>)
 
 interface public abstract interface org.ipro.crud.InternedEntity
   method public abstract java.lang.String interningKey()

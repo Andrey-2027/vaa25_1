@@ -5,7 +5,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.form.builtin.ListForm;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.identity.IdentifiableEntity;
 import org.ipro.form.spi.ListFormToolbarContributor;
 import org.ipro.reportstudio.param.ReportContext;
@@ -30,7 +30,7 @@ public class ReportPrintToolbarContributor implements ListFormToolbarContributor
 
     private final ReportTemplateService templateService;
     private final ReportExecutionService executionService;
-    private final LookupService lookupService;
+    private final EntityLookup lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
     private final UreportTemplateService ureportService;
     private final JrxmlTemplateService jrTemplateService;
@@ -40,7 +40,7 @@ public class ReportPrintToolbarContributor implements ListFormToolbarContributor
     public ReportPrintToolbarContributor(
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             UreportTemplateService ureportService,
             JrxmlTemplateService jrTemplateService,

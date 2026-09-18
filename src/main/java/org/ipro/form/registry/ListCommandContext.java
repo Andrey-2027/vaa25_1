@@ -1,7 +1,7 @@
 package org.ipro.form.registry;
 
 import org.ipro.form.builtin.ListForm;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.identity.IdentifiableEntity;
 
 /**
@@ -13,7 +13,7 @@ import org.ipro.identity.IdentifiableEntity;
  */
 public record ListCommandContext<T extends IdentifiableEntity>(
         ListForm<T, ?> listForm,
-        FormCoordinator coordinator) {
+        FormNavigator coordinator) {
 
     /** Выбранная строка; может быть null для команды без обязательного выделения. */
     public T selectedItem() {

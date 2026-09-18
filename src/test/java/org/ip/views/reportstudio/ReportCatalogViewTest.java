@@ -1,7 +1,7 @@
 package org.ip.views.reportstudio;
 
 import org.ipro.form.SelectionFormAssembler;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
 import org.ipro.reportstudio.query.ReportQueryAssemblyService;
@@ -40,7 +40,7 @@ class ReportCatalogViewTest {
                 mock(ReportQueryGuard.class), mock(ReportPreviewService.class),
                 mock(QueryEditorAnalysisService.class), catalog,
                 mock(ReportExecutionService.class),
-                mock(LookupService.class), mock(SelectionFormAssembler.class),
+                mock(EntityLookup.class), mock(SelectionFormAssembler.class),
                 mock(ReportQueryAssemblyService.class), null);
 
         // единый каталог мёржит оба движка, а не только UDR

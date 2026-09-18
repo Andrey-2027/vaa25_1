@@ -1,7 +1,7 @@
 package org.ipro.vaadin.search;
 
 import org.ip.model.Nomenclature;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.search.GlobalSearchCatalog;
 import org.ipro.search.GlobalSearchMatchKind;
 import org.ipro.search.GlobalSearchResult;
@@ -15,17 +15,20 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class GlobalSearchNavigationAdapterTest {
 
-    private FormCoordinator formCoordinator;
+    private FormNavigator formNavigator;
     private GlobalSearchNavigationAdapter adapter;
 
     @BeforeEach
     void setUp() {
         GlobalSearchCatalog catalog = GlobalSearchTestSupport.catalog();
-        formCoordinator = mock(FormCoordinator.class);
-        adapter = new GlobalSearchNavigationAdapter(catalog, formCoordinator);
+        formNavigator = mock(FormNavigator.class);
+        org.springframework.beans.factory.ObjectProvider<FormNavigator> navigators = mock();
+        when(navigators.getObject()).thenReturn(formNavigator);
+        adapter = new GlobalSearchNavigationAdapter(catalog, navigators);
     }
 
     @Test
@@ -36,7 +39,7 @@ class GlobalSearchNavigationAdapterTest {
             source.declarationOrder(), source.groupTitle(), Nomenclature.class, 17L,
             "N-017 Гайка", GlobalSearchMatchKind.PREFIX, "code"));
 
-        verify(formCoordinator).openItemForm(Nomenclature.class, 17L, null);
+        verify(formNavigator).openItemForm(Nomenclature.class, null, 17L, null, null);
     }
 
     @Test

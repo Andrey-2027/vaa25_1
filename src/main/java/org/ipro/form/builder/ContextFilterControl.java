@@ -13,7 +13,7 @@ public enum ContextFilterControl {
      *  enum → ComboBox констант, дата → DatePicker, прочее → TextField. */
     AUTO,
 
-    /** ComboBox из записей справочника {@code lookupService.findAll(lookupSource)}. */
+    /** ComboBox справочника с lazy autocomplete (D3.5.2: без findAll всей таблицы). */
     LOOKUP,
 
     /** Сущность выбирается формой выбора (SelectionForm), а не комбобоксом со всем справочником

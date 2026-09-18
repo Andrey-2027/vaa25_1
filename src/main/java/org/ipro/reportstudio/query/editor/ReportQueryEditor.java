@@ -26,7 +26,7 @@ import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.HasDisplayName;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.form.EntityField;
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.data.ReportDataset;
@@ -113,7 +113,7 @@ public class ReportQueryEditor extends VerticalLayout {
     private final QueryMetadataCatalogService catalogService;
     private final ReportPreviewService previewService;
     private final ReportQueryAssemblyService queryAssemblyService;
-    private final LookupService lookupService;
+    private final EntityLookup lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
 
     private final TextField catalogFilter = new TextField();
@@ -168,7 +168,7 @@ public class ReportQueryEditor extends VerticalLayout {
     public ReportQueryEditor(QueryEditorAnalysisService analysisService,
                              QueryMetadataCatalogService catalogService,
                              ReportPreviewService previewService,
-                             LookupService lookupService,
+                             EntityLookup lookupService,
                              SelectionFormAssembler selectionFormAssembler) {
         this(analysisService, catalogService, previewService, lookupService,
                 selectionFormAssembler, null);
@@ -177,7 +177,7 @@ public class ReportQueryEditor extends VerticalLayout {
     public ReportQueryEditor(QueryEditorAnalysisService analysisService,
                              QueryMetadataCatalogService catalogService,
                              ReportPreviewService previewService,
-                             LookupService lookupService,
+                             EntityLookup lookupService,
                              SelectionFormAssembler selectionFormAssembler,
                              ReportQueryAssemblyService queryAssemblyService) {
         this.analysisService = Objects.requireNonNull(analysisService, "analysisService");
@@ -1246,7 +1246,7 @@ public class ReportQueryEditor extends VerticalLayout {
                 .filter(path -> path.getResolvedType() == FieldType.TEXT)
                 .map(ColumnPath::getKey)
                 .toArray(String[]::new);
-        EntityField field = new EntityField(param.name(), term -> lookupService.search(entityClass, searchFields, term, 20));
+        EntityField field = new EntityField(param.name(), term -> lookupService.search(entityClass, List.of(searchFields), term, 20));
         field.setWidthFull();
         field.setSelectionFormFactory(onSelect ->
                 selectionFormAssembler.assemble((Class) entityClass, (java.util.function.Consumer) onSelect));

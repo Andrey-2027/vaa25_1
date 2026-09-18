@@ -31,7 +31,9 @@ import org.springframework.beans.factory.ObjectProvider;
  *
  * <p>Регистрация через {@code @Import}: платформа исключена из component-scan
  * приложения, при этом сохраняется полная аннотационная обработка класса
- * (включая {@code @Scope("prototype")} у {@code ItemFormWrapperView}).</p>
+ * (включая {@code @Scope("prototype")} у {@code ItemFormWrapperView} и
+ * {@code @UIScope} у {@code FormCoordinator} — скоуп с класса подхватывается
+ * импортом, UI-state координатора изолировано по UI, см. D3.5.3).</p>
  */
 @AutoConfiguration
 @AutoConfigureAfter(MetadataAutoConfiguration.class)

@@ -523,6 +523,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private List<?> lookupFilterOptions(org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField field) {
         if (lookupService == null || field == null) return List.of();
         FieldMetadataInfo info = metadata.getFieldByName(field.path());
+        // D3.5.2-исключение (осознанное, не недосмотр): этот список питает компилятор
+        // сохранённых видов FilterGrid, который резолвит сохранённые значения сканированием
+        // (id/displayName round-trip без тестового покрытия). Менять источник под компилятором
+        // вслепую — ломать сохранённые виды; решение — следующим шагом D3.5.2b после
+        // characterization-теста round-trip. Интерактивные комбобоксы уже на lazy
+        // (createFilterForPath, ContextFilterPanel, GridViewEditorDialog#valueWidgetFor).
         return info != null && info.hasLookup()
                 ? lookupService.findAll(info.getLookupEntity()) : List.of();
     }
@@ -665,8 +671,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                 .filter(field -> field.hasLookup() && lookupService != null)
                 .<FieldFilter<?>>map(field -> {
                     ComboBoxFilter filter = new ComboBoxFilter<>(path.getLabel());
-                    List items = lookupService.findAll(field.getLookupEntity());
-                    filter.setItems(items);
+                    // D3.5.2: lazy autocomplete через компонент фильтра вместо findAll
+                    // всей таблицы. getComponent() — публичный API FilterGrid, сам
+                    // FilterGrid не меняется.
+                    org.ipro.form.LookupComboHelper.installSuggestItems(
+                        filter.getComponent(), field.getLookupEntity(),
+                        lookupService, metadataResolver);
                     filter.setItemLabelGenerator((com.vaadin.flow.function.SerializableFunction)
                         org.ipro.fetch.instance.InstanceNameBridge::displayName);
                     return filter;

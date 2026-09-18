@@ -6,13 +6,13 @@
 
 ```text
 app-source-files=164
-platform-tree-files=212
-platform-artifact-files=270
-named-platform-types=204
-api-types=105
+platform-tree-files=214
+platform-artifact-files=272
+named-platform-types=206
+api-types=107
 spi-types=26
-legacy-internal-types=72
-legacy-internal-usage-links=302
+legacy-internal-types=70
+legacy-internal-usage-links=278
 ```
 
 Расшифровка:

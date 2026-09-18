@@ -15,6 +15,8 @@
 # D3.7 (report-контракты).
 API org.ipro.crud.CrudService
 API org.ipro.crud.EditMode
+API org.ipro.crud.EntityLookup
+API org.ipro.crud.EntityServiceResolver
 API org.ipro.crud.FormBuilder
 API org.ipro.crud.NaturalKeyCreateSupport
 API org.ipro.crud.ValidationException
@@ -144,12 +146,10 @@ SPI org.ipro.rls.RlsCurrentUser
 SPI org.ipro.rls.RlsDimensionValue
 SPI org.ipro.rls.RlsRoleResolver
 SPI org.ipro.search.GlobalSearchProvider
-legacy-internal org.ipro.crud.LookupService org/ip/service/AttributeValueService.java org/ip/views/components/ReportParamForm.java org/ip/views/forms/NomAttributeValueItemForm.java org/ip/views/forms/NomenclatureForm.java org/ip/views/forms/NomenclatureItemFormConfig.java org/ip/views/forms/PrdSpecByJournalView.java org/ip/views/forms/UserFormConfig.java org/ip/views/reportstudio/ContextualReportLauncher.java org/ip/views/reportstudio/ItemFormReportActions.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/ReportPrintToolbarContributor.java org/ip/views/reportstudio/ReportRunDialog.java org/ip/views/reportstudio/compact/ReportCatalogViewCompact.java org/ip/views/reportstudio/compact/ReportEditorViewCompact.java org/ip/views/reportstudio/structured/ReportCatalogViewStructured.java org/ip/views/reportstudio/structured/ReportEditorViewStructured.java 
-legacy-internal org.ipro.crud.ServiceLocator org/ip/application/form/ItemFormSaveDispatcher.java org/ip/views/directory/WorkshopListView.java org/ip/views/forms/NomenclatureItemFormConfig.java org/ip/views/forms/UserFormConfig.java org/ip/views/forms/WorkshopForm.java 
 legacy-internal org.ipro.jr.service.JrxmlTemplateService org/ip/views/reportstudio/ContextualReportLauncher.java org/ip/views/reportstudio/ItemFormReportActions.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintToolbarContributor.java
 legacy-internal org.ipro.form.builtin.ItemTable org/ip/model/ReceivingDocument.java org/ip/views/document/ReceivingDocumentView.java org/ip/views/forms/NomAttributeValueTableCustomization.java org/ip/views/forms/PrdSpecMtrTableCustomization.java 
 legacy-internal org.ipro.form.builtin.ListForm org/ip/model/GridFormView.java org/ip/model/Role.java org/ip/views/directory/NomenclatureView.java org/ip/views/directory/UnitView.java org/ip/views/document/ReceivingDocumentView.java org/ip/views/forms/PrdSpecByJournalView.java org/ip/views/forms/PrdSpecListFormConfig.java org/ip/views/reportstudio/ReportPrintToolbarContributor.java org/ip/views/reportstudio/WithReportView.java org/ip/views/test/ReportQueryPreviewView.java org/ip/views/test/TestVariantsView.java org/ip/views/workspace/SubsystemHomeView.java 
-legacy-internal org.ipro.form.coordinator.FormCoordinator org/ip/model/GridFormView.java org/ip/views/MainLayout.java org/ip/views/admin/EntityExplorerView.java org/ip/views/admin/EntitySummaryPanel.java org/ip/views/admin/SubsystemStructureView.java org/ip/views/directory/NomenclatureView.java org/ip/views/directory/UnitView.java org/ip/views/document/ReceivingDocumentView.java org/ip/views/forms/PrdSpecByJournalView.java org/ip/views/forms/PrdSpecListFormConfig.java org/ip/views/forms/PrdSpecMaterialsOnlyCommand.java org/ip/views/test/TestVariantsView.java org/ip/views/workspace/SubsystemHomeView.java 
+legacy-internal org.ipro.form.coordinator.FormCoordinator org/ip/model/GridFormView.java org/ip/views/MainLayout.java org/ip/views/admin/EntityExplorerView.java org/ip/views/admin/EntitySummaryPanel.java org/ip/views/admin/SubsystemStructureView.java org/ip/views/directory/NomenclatureView.java org/ip/views/directory/UnitView.java org/ip/views/document/ReceivingDocumentView.java org/ip/views/forms/PrdSpecMaterialsOnlyCommand.java org/ip/views/test/TestVariantsView.java org/ip/views/workspace/SubsystemHomeView.java 
 legacy-internal org.ipro.vaadin.explorer.EntitySummary org/ip/views/admin/EntityExplorerView.java org/ip/views/admin/EntitySummaryPanel.java org/ip/views/admin/SubsystemStructureView.java 
 legacy-internal org.ipro.vaadin.explorer.EntitySummaryAssembler org/ip/views/admin/EntityExplorerView.java org/ip/views/admin/SubsystemStructureView.java 
 legacy-internal org.ipro.vaadin.explorer.EntitySummaryAssembler.EntityRef org/ip/config/JpqlRunService.java org/ip/views/admin/EntityExplorerView.java 

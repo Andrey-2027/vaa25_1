@@ -145,12 +145,13 @@ class FormResolverCustomizerTest {
     }
 
     /**
-     * Регрессия: кастомная ITEM-фабрика достаёт свои зависимости из ctx.applicationContext()
-     * (см. NomenclatureItemFormConfig). Раньше buildItemFormContext контекст без
-     * applicationContext не клал — открытие карточки падало с NullPointerException.
+     * D3.5.1: контекст больше не несёт ApplicationContext и concrete LookupService
+     * (см. NomAttributeValueFormConfig — зависимости приходят конструктором Spring-бина).
+     * Резолвер кладёт типизированные metadataResolver/fieldFactory/entityLookup;
+     * навигацию подставляет только координатор, поэтому здесь formNavigator — null.
      */
     @Test
-    void itemCustomFactoryReceivesApplicationContext() {
+    void itemCustomFactoryReceivesTypedContextWithoutServiceLocator() {
         List<FormContext> contexts = new ArrayList<>();
         registry.registerItemForm(Doc.class, (String) null, ctx -> {
             contexts.add(ctx);
@@ -161,10 +162,10 @@ class FormResolverCustomizerTest {
 
         assertThat(contexts).hasSize(1);
         FormContext ctx = contexts.get(0);
-        assertThat(ctx.applicationContext()).isSameAs(applicationContext);
         assertThat(ctx.metadataResolver()).isSameAs(metadataResolver);
         assertThat(ctx.fieldFactory()).isSameAs(fieldFactory);
-        assertThat(ctx.lookupService()).isSameAs(applicationContext.getBean(LookupService.class));
+        assertThat(ctx.entityLookup()).isSameAs(applicationContext.getBean(LookupService.class));
+        assertThat(ctx.formNavigator()).isNull();
         assertThat(ctx.getId()).isEqualTo(42L);
     }
 

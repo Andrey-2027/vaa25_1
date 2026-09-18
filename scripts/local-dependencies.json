@@ -344,12 +344,12 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D3.3 backend platform module: 92 types of generic CRUD/data/metadata/search/fetch/filter, no Vaadin, no org.ip. The first group could not be smaller than crud+data+fetch+metadata because those four packages reference each other (MetadataResolver -> crud.Standard*Entity, SectionMetadataRegistry -> crud.TableSectionService, and back), and a package cannot be moved partially: the same package in two artifacts is a split package. search and filter followed because nothing in the cycle references them. dependsOn carries real edges: crudui for the two neutral leaf contracts (platform-identity-api, platform-crud-api - the same artifacts the UI library consumes, which is why platform-core does not declare crudui-core), filtergrid for the condition tree and grouping providers, and the seven platform modules listed. It is installed with tests enabled: its composition gate lives in the module. That is deliberately not yet true for platform-metadata/numbering/settings/telemetry/rls, which still build with -DskipTests because no owner-side tests have been moved to them."
+        "state": "D3.3 backend platform module: 94 types of generic CRUD/data/metadata/search/fetch/filter, no Vaadin, no org.ip. The first group could not be smaller than crud+data+fetch+metadata because those four packages reference each other (MetadataResolver -> crud.Standard*Entity, SectionMetadataRegistry -> crud.TableSectionService, and back), and a package cannot be moved partially: the same package in two artifacts is a split package. search and filter followed because nothing in the cycle references them. dependsOn carries real edges: crudui for the two neutral leaf contracts (platform-identity-api, platform-crud-api - the same artifacts the UI library consumes, which is why platform-core does not declare crudui-core), filtergrid for the condition tree and grouping providers, and the seven platform modules listed. It is installed with tests enabled: its composition gate lives in the module. That is deliberately not yet true for platform-metadata/numbering/settings/telemetry/rls, which still build with -DskipTests because no owner-side tests have been moved to them."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "6317d355fa21c8cbd5865ca756e7e250e36fb0e5612963c1c300bc0f3bf54e8f",
-        "fileCount": 117,
+        "sha256": "4fcd248af0eefa3db7227f7028c336eedcf293ac1ada0df372667695cf2a5645",
+        "fileCount": 119,
         "inputs": [
           "pom.xml",
           "src"
@@ -376,7 +376,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "7ce36fa75e34274a1af119a35b21ca75a001c96fa0616575619c579014c3d9cf",
+        "sha256": "f8a4035e4aed6b66731978bd121c01370c0f7c055ec5b227b715e1ac11f21f8d",
         "fileCount": 15,
         "inputs": [
           "pom.xml",

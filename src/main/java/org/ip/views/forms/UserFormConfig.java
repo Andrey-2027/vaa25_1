@@ -4,8 +4,11 @@ import org.ipro.form.builder.ItemFormCustomization;
 import org.ipro.form.builder.ItemFormVariants;
 import org.ip.model.Role;
 import org.ip.model.User;
-import org.ipro.crud.ServiceLocator;
+import org.ipro.crud.EntityLookup;
+import org.ipro.form.LookupComboHelper;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Регистрирует {@link UserItemForm} как default-вариант для {@link User}. UI получает
@@ -13,17 +16,16 @@ import org.springframework.stereotype.Component;
  * поэтому форма не открывает ни параллельный repository entry point, ни типизированный
  * сервис ради одной списочной выдачи.
  *
- * <p>Волна E: резолв идёт через {@link ServiceLocator}, а не через {@code LookupService} —
- * кастомизация формы не зависит от класса, чей API начинается с «перечитать выбранное
- * значение по ID» (ADX-07, {@code ApplicationFormFetchBoundaryTest}).</p>
+ * <p>Волна E + D3.5.2: роли читаются bounded {@link EntityLookup#search} как маленький
+ * закрытый справочник (десятки записей, явный лимит), а не выгрузкой всей таблицы.</p>
  */
 @Component
 public class UserFormConfig implements ItemFormCustomization {
 
-    private final ServiceLocator serviceLocator;
+    private final EntityLookup lookupService;
 
-    public UserFormConfig(ServiceLocator serviceLocator) {
-        this.serviceLocator = serviceLocator;
+    public UserFormConfig(EntityLookup lookupService) {
+        this.lookupService = lookupService;
     }
 
     @Override
@@ -36,7 +38,8 @@ public class UserFormConfig implements ItemFormCustomization {
         variants.addDefault(ctx -> {
             var meta = ctx.metadataResolver().resolve(User.class);
             return new UserItemForm(meta, ctx.fieldFactory(),
-                serviceLocator.<Role, Long>findService(Role.class).findAll());
+                lookupService.search(Role.class, List.of("name"), "",
+                    LookupComboHelper.DICTIONARY_LIMIT));
         });
     }
 }

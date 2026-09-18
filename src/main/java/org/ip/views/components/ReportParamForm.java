@@ -19,7 +19,7 @@ import org.ipro.form.SearchFunction;
 import org.ipro.form.SelectionForm;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.annotation.FieldType;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
@@ -40,7 +40,7 @@ import java.util.function.Consumer;
  *     из контекста запуска), DEFAULT/COMPUTED — значения вычисляет резолвер, поле не нужно;</li>
  * <li>SCALAR — TextField/NumberField/Checkbox/DatePicker (эвристика по defaultValue);</li>
  * <li>PERIOD — два DatePicker ({@code nameFrom}/{@code nameTo});</li>
- * <li>ENTITY — существующий RLS-осведомлённый {@link EntityField} (LookupService +
+ * <li>ENTITY — существующий RLS-осведомлённый {@link EntityField} (EntityLookup +
  *     SelectionFormAssembler — те же компоненты, что в формах приложения);</li>
  * <li>ENTITY_LIST — повторяющийся EntityField (кнопки «+»/«−»).</li>
  * </ul>
@@ -52,7 +52,7 @@ public class ReportParamForm extends VerticalLayout {
     private final Map<String, FieldEntry> fields = new LinkedHashMap<>();
 
     public ReportParamForm(List<ReportParam> params, ReportContext context,
-                           LookupService lookupService, SelectionFormAssembler assembler) {
+                           EntityLookup lookupService, SelectionFormAssembler assembler) {
         setSpacing(false);
         setPadding(false);
         if (params == null) {
@@ -138,7 +138,7 @@ public class ReportParamForm extends VerticalLayout {
     // === сущностные поля (переиспользование RLS-осведомлённого EntityField) ===
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private EntityField createEntityField(ReportParam param, LookupService lookupService,
+    private EntityField createEntityField(ReportParam param, EntityLookup lookupService,
                                           SelectionFormAssembler assembler) {
         EntityField field = new EntityField(label(param), entitySearch(param, lookupService, assembler));
         field.setWidthFull();
@@ -161,7 +161,7 @@ public class ReportParamForm extends VerticalLayout {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private void addEntityListField(ReportParam param, LookupService lookupService,
+    private void addEntityListField(ReportParam param, EntityLookup lookupService,
                                     SelectionFormAssembler assembler) {
         VerticalLayout list = new VerticalLayout();
         list.setSpacing(true);
@@ -201,7 +201,7 @@ public class ReportParamForm extends VerticalLayout {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private SearchFunction entitySearch(ReportParam param, LookupService lookupService,
+    private SearchFunction entitySearch(ReportParam param, EntityLookup lookupService,
                                         SelectionFormAssembler assembler) {
         Class<?> entityClass = entityClassOf(param);
         SelectionFormAssembler.ResolvedSelection resolved = assembler.resolveColumns(entityClass);
@@ -209,7 +209,7 @@ public class ReportParamForm extends VerticalLayout {
             .filter(path -> path.getResolvedType() == FieldType.TEXT)
             .map(ColumnPath::getKey)
             .toArray(String[]::new);
-        return term -> lookupService.search(entityClass, searchFields, term, 20);
+        return term -> lookupService.search(entityClass, List.of(searchFields), term, 20);
     }
 
     private static Class<?> entityClassOf(ReportParam param) {

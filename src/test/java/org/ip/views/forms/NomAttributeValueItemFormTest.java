@@ -10,6 +10,7 @@ import org.ip.model.AttributeValueType;
 import org.ip.model.NomAttributeValue;
 import org.ip.model.Workshop;
 import org.ip.service.AttributeValueService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.crud.LookupService;
 import org.ipro.form.EntityField;
 import org.ipro.form.FieldFactory;
@@ -48,13 +49,17 @@ import static org.mockito.Mockito.when;
 class NomAttributeValueItemFormTest {
 
     private AttributeValueService attributeValueService;
-    private LookupService lookupService;
+    private EntityLookup lookupService;
+    private LookupService fieldFactoryLookup;
     private SelectionFormAssembler selectionFormAssembler;
 
     @BeforeEach
     void setUp() {
         attributeValueService = mock(AttributeValueService.class);
-        lookupService = mock(LookupService.class);
+        lookupService = mock(EntityLookup.class);
+        // FieldFactory — платформенная внутренность будущего platform-vaadin и остаётся
+        // на concrete LookupService: у формы и у фабрики полей разные швы чтения.
+        fieldFactoryLookup = mock(LookupService.class);
         selectionFormAssembler = mock(SelectionFormAssembler.class);
         // FieldFactory резолвит колонки lookup-поля сразу при создании EntityField.
         when(selectionFormAssembler.resolveColumns(AttributeType.class))
@@ -231,7 +236,7 @@ class NomAttributeValueItemFormTest {
         AttributeType enumType = type(22L, "E2", "Перечислимый 2", AttributeValueType.ENUM);
         AttributeValue option = value(enumType, "STEEL");
         when(attributeValueService.findByAttrType(enumType)).thenReturn(List.of(option));
-        when(lookupService.search(eq(AttributeType.class), any(String[].class), anyString(), anyInt()))
+        when(fieldFactoryLookup.search(eq(AttributeType.class), any(String[].class), anyString(), anyInt()))
             .thenReturn(List.of(enumType));
         NomAttributeValueItemForm form = form();
         form.setEntity(new NomAttributeValue(null, stringType, value(stringType, "XL")));
@@ -258,7 +263,7 @@ class NomAttributeValueItemFormTest {
 
     private NomAttributeValueItemForm form() {
         return new NomAttributeValueItemForm(attrTypeFields(),
-            new FieldFactory(lookupService, selectionFormAssembler),
+            new FieldFactory(fieldFactoryLookup, selectionFormAssembler),
             attributeValueService, lookupService, selectionFormAssembler);
     }
 

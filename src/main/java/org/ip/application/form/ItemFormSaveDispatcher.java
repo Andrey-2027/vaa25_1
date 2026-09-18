@@ -2,7 +2,7 @@ package org.ip.application.form;
 
 import org.ipro.crud.BaseService;
 import org.ipro.identity.IdentifiableEntity;
-import org.ipro.crud.ServiceLocator;
+import org.ipro.crud.EntityServiceResolver;
 import org.ipro.form.FormSaveHandler;
 import org.ipro.form.FormSaveResult;
 import org.ipro.form.ItemFormSaveHandler;
@@ -29,12 +29,12 @@ public class ItemFormSaveDispatcher implements FormSaveHandler<IdentifiableEntit
 
     private final ItemFormSaveHandlerRegistry handlerRegistry;
     private final MetadataDrivenItemFormSaveAdapter metadataDrivenAdapter;
-    private final ServiceLocator serviceLocator;
+    private final EntityServiceResolver serviceLocator;
 
     @Autowired
     public ItemFormSaveDispatcher(ItemFormSaveHandlerRegistry handlerRegistry,
                                   MetadataDrivenItemFormSaveAdapter metadataDrivenAdapter,
-                                  ServiceLocator serviceLocator) {
+                                  EntityServiceResolver serviceLocator) {
         this.handlerRegistry = Objects.requireNonNull(
             handlerRegistry, "handlerRegistry must not be null");
         this.metadataDrivenAdapter = metadataDrivenAdapter;

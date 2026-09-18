@@ -72,11 +72,20 @@ public class FormRegistry {
     /**
      * Регистрация с источником (FQN класса-декларанта) — для read-only перечисления
      * {@link #registrationsOf} (колонка «где явно» в Entity Explorer).
+     *
+     * <p>D3.5.3: повторная регистрация того же ключа — fail-fast, а не тихое
+     * last-wins. Два конфига на один вариант — это конфликт, который иначе виден
+     * только как «открылась не та форма».</p>
      */
     public void register(Class<?> entityClass, FormType formType, String variant,
                          FormFactory factory, String source) {
         FormKey key = new FormKey(entityClass, formType, variant);
-        forms.put(key, factory);
+        FormFactory previous = forms.putIfAbsent(key, factory);
+        if (previous != null) {
+            throw new IllegalStateException("Дубликат регистрации формы " + key
+                + ": было от " + registrationSources.getOrDefault(key, "<без источника>")
+                + ", повторно от " + (source == null ? "<без источника>" : source));
+        }
         putSource(key, source);
     }
 
@@ -250,7 +259,13 @@ public class FormRegistry {
     public void registerListFormView(Class<?> entityClass, String variant,
                                      Class<? extends Component> viewClass, String source) {
         FormKey key = new FormKey(entityClass, FormType.LIST, variant);
-        listFormViews.put(key, viewClass);
+        Class<? extends Component> previous = listFormViews.putIfAbsent(key, viewClass);
+        if (previous != null) {
+            throw new IllegalStateException("Дубликат регистрации ListForm-view " + key
+                + ": было " + previous.getName()
+                + ", повторно " + (viewClass == null ? null : viewClass.getName())
+                + " от " + (source == null ? "<без источника>" : source));
+        }
         putSource(key, source);
     }
 
@@ -263,7 +278,11 @@ public class FormRegistry {
     /** Регистрация составного View с источником-декларантом (см. {@link #register}). */
     public void registerListFormView(Class<?> entityClass, String variant, FormFactory factory, String source) {
         FormKey key = new FormKey(entityClass, FormType.LIST, variant);
-        listFormViewFactories.put(key, factory);
+        FormFactory previous = listFormViewFactories.putIfAbsent(key, factory);
+        if (previous != null) {
+            throw new IllegalStateException("Дубликат регистрации составного ListForm-view " + key
+                + " от " + (source == null ? "<без источника>" : source));
+        }
         putSource(key, source);
     }
 

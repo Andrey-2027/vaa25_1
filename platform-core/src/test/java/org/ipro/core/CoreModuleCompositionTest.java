@@ -57,6 +57,8 @@ class CoreModuleCompositionTest {
         "org.ipro.crud.AggregateSaveRollbackState",
         "org.ipro.crud.BaseService",
         "org.ipro.crud.EntityCopyService",
+        "org.ipro.crud.EntityLookup",
+        "org.ipro.crud.EntityServiceResolver",
         "org.ipro.crud.GenericOwnedSectionService",
         "org.ipro.crud.InternedEntity",
         "org.ipro.crud.LookupService",

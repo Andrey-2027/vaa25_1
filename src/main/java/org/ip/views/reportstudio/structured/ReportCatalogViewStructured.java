@@ -21,7 +21,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
 import org.ipro.form.SelectionFormAssembler;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryGuard;
@@ -65,7 +65,7 @@ public class ReportCatalogViewStructured extends HorizontalLayout {
             QueryEditorAnalysisService queryEditorAnalysisService,
             QueryMetadataCatalogService queryMetadataCatalogService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             ReportQueryAssemblyService queryAssemblyService,
             QueryBuilderMetadataCatalog queryBuilderMetadataCatalog) {

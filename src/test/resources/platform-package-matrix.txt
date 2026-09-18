@@ -14,6 +14,16 @@ org.ipro.crud -> org.ipro.rls
 org.ipro.crud -> org.ipro.telemetry.api
 org.ipro.crud -> org.ipro.telemetry.core
 org.ipro.crud.config -> org.ipro.crud
+# D3.4-fix: четыре CRUD-бина объявлены явными @Bean вместо @Import concrete-классов,
+# поэтому проводка конфигурации стала видимой: ServiceLocator берет MetadataResolver и
+# SectionMetadataRegistry (org.ipro.metadata), ReferenceCheckService — ReferenceIndex и
+# RlsFilterActivator (org.ipro.metadata / org.ipro.rls), LookupService — CanonicalReadExecutor
+# (org.ipro.data). Прежние ребра существовали и раньше — их скрывал @Import, который
+# называет только сам импортируемый класс; теперь измерение честное.
+org.ipro.crud.config -> org.ipro.data
+org.ipro.crud.config -> org.ipro.metadata
+org.ipro.crud.config -> org.ipro.metadata.config
+org.ipro.crud.config -> org.ipro.rls
 org.ipro.crud.jpa -> org.ipro.crud
 org.ipro.crud.jpa -> org.ipro.events
 org.ipro.crud.jpa -> org.ipro.lifecycle

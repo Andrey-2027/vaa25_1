@@ -25,14 +25,42 @@ import java.util.Optional;
  * через {@link CanonicalReadExecutor} — ту же границу, что и standard reads, с единым
  * правилом {@code scenario plan ∪ extras -> deepen once -> graph}, обязательным RLS gate
  * и проверкой экспозиции типа до SQL.</p>
+ *
+ * <p>D3.5.1: класс реализует APP_API {@link EntityLookup} и остается MODULE_API.
+ * Публичный стабильный контракт — методы интерфейса ({@code search} с
+ * {@code Collection<String>} и {@code findSelectedById} через сценарий {@code LOOKUP});
+ * overloads с {@code String[]} и произвольными fetch-путями сохранены для внутреннего
+ * использования form/report-слоем до завершения миграции потребителей.</p>
  */
 @Service
-public class LookupService {
+public class LookupService implements EntityLookup {
 
     private final CanonicalReadExecutor readExecutor;
 
     public LookupService(CanonicalReadExecutor readExecutor) {
         this.readExecutor = readExecutor;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> List<T> search(Class<T> entityClass, Collection<String> searchFields, String term,
+                              int limit) {
+        return readExecutor.readLookup(new LookupRead<>(entityClass,
+            searchFields == null ? List.of() : List.copyOf(searchFields), term, limit, null));
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Сценарий — {@code LOOKUP}, а не {@code DETAIL}: только план выбора несёт
+     * объявленные зависимости {@code @Lookup(fetch = ...)}. Делегирует
+     * {@link #findById(Class, Object)}.</p>
+     */
+    @Override
+    public <T> Optional<T> findSelectedById(Class<T> entityClass, Object id) {
+        return findById(entityClass, id);
     }
 
     /**

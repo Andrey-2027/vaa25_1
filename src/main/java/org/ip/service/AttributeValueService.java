@@ -9,7 +9,7 @@ import org.ip.repository.AttributeValueRepository;
 import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ipro.crud.BaseService;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ValidationException;
 import org.ipro.data.CanonicalEntityService;
@@ -72,7 +72,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
     private final AttributeTypeRepository attributeTypeRepository;
     private final SklNomOpaRepository sklNomOpaRepository;
     private final SklNomOpaValueRepository sklNomOpaValueRepository;
-    private final LookupService lookupService;
+    private final EntityLookup lookupService;
     private final ManagedEntityCatalog entityCatalog;
     /** Интернирование значения: гонка на создании разрешается общим механизмом платформы. */
     private final NaturalKeyCreateSupport createSupport;
@@ -87,7 +87,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
                                  AttributeTypeRepository attributeTypeRepository,
                                  SklNomOpaRepository sklNomOpaRepository,
                                  SklNomOpaValueRepository sklNomOpaValueRepository,
-                                 LookupService lookupService,
+                                 EntityLookup lookupService,
                                  ManagedEntityCatalog entityCatalog,
                                  NaturalKeyCreateSupport createSupport,
                                  PlatformTransactionManager transactionManager,
@@ -105,7 +105,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
                           AttributeTypeRepository attributeTypeRepository,
                           SklNomOpaRepository sklNomOpaRepository,
                           SklNomOpaValueRepository sklNomOpaValueRepository,
-                          LookupService lookupService,
+                          EntityLookup lookupService,
                           ManagedEntityCatalog entityCatalog,
                           NaturalKeyCreateSupport createSupport,
                           PlatformTransactionManager transactionManager,
@@ -186,7 +186,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
      * Найти или создать значение «Ссылки» (REF): {@code refId} + снапшот displayName
      * строки целевого словаря. Дедуп — по {@code (attrType, refId)}.
      *
-     * <p>Строка словаря загружается через RLS-aware {@link LookupService}: чужая
+     * <p>Строка словаря загружается через RLS-aware {@link EntityLookup}: чужая
      * (недоступная) строка неотличима от отсутствующей — единая доменная ошибка не
      * раскрывает существование записи из другой ветки.</p>
      */
@@ -196,7 +196,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
             throw new ValidationException("Для значения «Ссылка» обязателен id строки словаря.");
         }
         Class<? extends HasDisplayName> targetClass = resolveTargetDictionary(type);
-        HasDisplayName target = lookupService.findById(targetClass, refId)
+        HasDisplayName target = lookupService.findSelectedById(targetClass, refId)
             .orElseThrow(() -> new ValidationException(
                 "Строка словаря " + targetClass.getSimpleName() + " с id=" + refId
                     + " не найдена или недоступна."));
@@ -253,7 +253,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
      * Найти/создать ссылочное значение в текущей транзакции агрегата. Блокировка
      * типа сериализует создание одинаковых ссылочных строк в этом write-path.
      *
-     * <p>Строка словаря — через RLS-aware {@link LookupService} (см. {@link #getOrCreateRef}).</p>
+     * <p>Строка словаря — через RLS-aware {@link EntityLookup} (см. {@link #getOrCreateRef}).</p>
      */
     @Transactional
     public AttributeValue getOrCreateRefInCurrentTransaction(
@@ -264,7 +264,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
         }
         AttributeType managedType = lockAttributeType(type);
         Class<? extends HasDisplayName> targetClass = resolveTargetDictionary(managedType);
-        HasDisplayName target = lookupService.findById(targetClass, refId)
+        HasDisplayName target = lookupService.findSelectedById(targetClass, refId)
             .orElseThrow(() -> new ValidationException(
                 "Строка словаря " + targetClass.getSimpleName() + " с id=" + refId
                     + " не найдена или недоступна."));

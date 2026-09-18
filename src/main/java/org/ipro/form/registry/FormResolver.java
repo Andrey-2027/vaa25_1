@@ -317,17 +317,16 @@ public class FormResolver {
         return FormContext.builder(entityClass)
             .parameters(parameters)
             .metadataResolver(metadataResolver)
-            .lookupService(lookupService)
-            .applicationContext(applicationContext)
+            .entityLookup(lookupService)
             .service(service)
             .build();
     }
 
     /**
      * Контекст кастомной ITEM-формы: те же типизированные инфраструктурные поля, что
-     * и у LIST-контекста, плюс applicationContext — фабрики достают из него свои
-     * зависимости ({@code ctx.applicationContext().getBean(...)}). Без него открытие
-     * карточки такой сущности падало с NullPointerException.
+     * и у LIST-контекста. Зависимости фабрики приходят конструктором Spring-бина
+     * customization, а не из контекста: D3.5.1 убрал {@code ApplicationContext}
+     * из публичного UI API.
      */
     private <ID> FormContext buildItemFormContext(Class<?> entityClass, ID id, Map<String, Object> parameters) {
         return FormContext.builder(entityClass)
@@ -335,8 +334,7 @@ public class FormResolver {
             .parameters(parameters)
             .metadataResolver(metadataResolver)
             .fieldFactory(fieldFactory)
-            .lookupService(lookupService)
-            .applicationContext(applicationContext)
+            .entityLookup(lookupService)
             .build();
     }
 

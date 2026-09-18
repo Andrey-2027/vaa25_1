@@ -44,7 +44,7 @@ import org.ipro.form.Savable;
 import jakarta.annotation.security.PermitAll;
 import jakarta.validation.ValidationException;
 import org.ipro.form.SelectionFormAssembler;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.query.editor.QueryEditorAnalysis;
 import org.ipro.reportstudio.query.editor.QueryEditorAnalysisService;
 import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
@@ -87,7 +87,7 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
 
     private final ReportTemplateService templateService;
     private final ReportExecutionService executionService;
-    private final LookupService lookupService;
+    private final EntityLookup lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
     private final QueryEditorAnalysisService analysisService;
     private final QueryMetadataCatalogService catalogService;
@@ -140,7 +140,7 @@ public class ReportEditorViewStructured extends VerticalLayout implements Before
             QueryMetadataCatalogService queryMetadataCatalogService,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
-            LookupService lookupService,
+            EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             ReportQueryAssemblyService queryAssemblyService,
             QueryBuilderMetadataCatalog visualCatalog) {

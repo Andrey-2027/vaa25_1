@@ -3,7 +3,7 @@ package org.ip.views.components;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.annotation.FieldType;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
@@ -27,12 +27,12 @@ import static org.mockito.Mockito.when;
  */
 class ReportParamFormTest {
 
-    private LookupService lookupService;
+    private EntityLookup lookupService;
     private SelectionFormAssembler assembler;
 
     @BeforeEach
     void setUp() {
-        lookupService = mock(LookupService.class);
+        lookupService = mock(EntityLookup.class);
         assembler = mock(SelectionFormAssembler.class);
         ColumnPath codePath = mock(ColumnPath.class);
         when(codePath.getKey()).thenReturn("code");

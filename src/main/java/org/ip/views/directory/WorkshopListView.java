@@ -5,7 +5,7 @@ import com.vaadin.flow.data.provider.SortDirection;
 import org.ipro.crud.AbstractCrudView;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.EditMode;
-import org.ipro.crud.ServiceLocator;
+import org.ipro.crud.EntityServiceResolver;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.ip.model.Workshop;
@@ -16,25 +16,25 @@ import java.util.function.Consumer;
 
 /**
  * C4.6 волна C: у {@code Workshop} больше нет typed-сервиса, поэтому вид работает с
- * canonical-хэндлом, который отдаёт {@link ServiceLocator} — тот же handle, что получают
+ * canonical-хэндлом, который отдаёт {@link EntityServiceResolver} — тот же handle, что получают
  * generic list/detail/search. Агрегат футера считается read-границей
  * ({@link BaseService#sum}), а не отдельным запросом мимо RLS/FetchPlan.
  */
 public class WorkshopListView extends AbstractCrudView<Workshop> {
 
-    private final ServiceLocator serviceLocator;
+    private final EntityServiceResolver serviceLocator;
     private final BaseService<Workshop, Long> service;
     private Consumer<Long> onEdit;
 
-    public WorkshopListView(ServiceLocator serviceLocator) {
+    public WorkshopListView(EntityServiceResolver serviceLocator) {
         this(serviceLocator, serviceLocator.<Workshop, Long>findService(Workshop.class));
     }
 
-    private WorkshopListView(ServiceLocator serviceLocator, BaseService<Workshop, Long> service) {
+    private WorkshopListView(EntityServiceResolver serviceLocator, BaseService<Workshop, Long> service) {
         this(serviceLocator, service, new JpaFilterGrid<>(Workshop.class, service::findAll));
     }
 
-    private WorkshopListView(ServiceLocator serviceLocator, BaseService<Workshop, Long> service,
+    private WorkshopListView(EntityServiceResolver serviceLocator, BaseService<Workshop, Long> service,
                              JpaFilterGrid<Workshop> fg) {
         super(Workshop.class, service, fg.getGrid(), fg, EditMode.DIALOG);
         this.serviceLocator = serviceLocator;

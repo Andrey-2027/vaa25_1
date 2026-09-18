@@ -6,12 +6,12 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.ipro.form.builtin.ListForm;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.form.registry.FormContext;
 import org.ipro.form.registry.ListFormContext;
 import org.ip.model.Journal;
 import org.ip.model.PrdSpec;
-import org.ipro.crud.LookupService;
+import org.ipro.crud.EntityLookup;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,13 +19,13 @@ import java.util.Map;
 /** Составной вариант списка спецификаций с параметрами журнала и типа номенклатуры. */
 public class PrdSpecByJournalView extends VerticalLayout {
 
-    private final FormCoordinator coordinator;
-    private final LookupService lookupService;
+    private final FormNavigator coordinator;
+    private final EntityLookup lookupService;
     private final FormContext openingContext;
     private ListForm<PrdSpec, Long> listForm;
 
-    public PrdSpecByJournalView(FormCoordinator coordinator,
-                                LookupService lookupService,
+    public PrdSpecByJournalView(FormNavigator coordinator,
+                                EntityLookup lookupService,
                                 FormContext openingContext) {
         this.coordinator = coordinator;
         this.lookupService = lookupService;
@@ -54,7 +54,7 @@ public class PrdSpecByJournalView extends VerticalLayout {
 
     private HorizontalLayout contextHeader(Long journalId, String typeNom) {
         String journalName = journalId == null ? "не задан"
-            : lookupService.findById(Journal.class, journalId)
+            : lookupService.findSelectedById(Journal.class, journalId)
                 .map(Journal::getDisplayName).orElse("ID " + journalId);
         H4 title = new H4("Контекст спецификаций: Журнал — " + journalName
             + ", Тип — " + (typeNom == null ? "любой" : typeNom));
