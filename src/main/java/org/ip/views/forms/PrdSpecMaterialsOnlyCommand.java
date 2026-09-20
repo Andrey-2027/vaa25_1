@@ -1,6 +1,6 @@
 package org.ip.views.forms;
 
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.form.registry.ListCommand;
 import org.ipro.form.registry.ListCommandContext;
 import org.ip.model.PrdSpec;
@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 /**
  * Пилот механизма команд списка ({@link ListCommand}): row-команда «Только материалы»
  * в реестре Спецификаций. Открывает выбранную спецификацию в варианте {@code materials-only}
- * через {@link FormCoordinator} и получает контекст исходного списка через
+ * через {@link FormNavigator} (контракт команды отдаёт его, а не реализацию) и получает
+ * контекст исходного списка через
  * {@link ListCommandContext}.
  *
  * <p>Если команда понадобится только одному составному View, её предпочтительнее собрать

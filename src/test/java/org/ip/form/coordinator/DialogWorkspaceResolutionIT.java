@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.UUID;
@@ -25,8 +26,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@link ItemFormWrapperView#init} (Workspace-вкладку) должна давать одну и ту же
  * форму: тот же класс ItemForm (generic / кастомная), тот же набор табличных частей
  * и одинаковую инициализацию новой записи (id == null).
+ *
+ * <p>Тест намеренно регистрирует вариант <b>после</b> старта контекста, поэтому открывает
+ * замороженный реестр форм через {@code ipro.form.registry.allow-runtime-registration}. Это
+ * единственный такой потребитель: в приложении поздней регистрации нет, и свойство — сигнал
+ * «здесь тест, а не продакшн-путь».</p>
  */
 @SpringBootTest
+@TestPropertySource(properties = "ipro.form.registry.allow-runtime-registration=true")
 class DialogWorkspaceResolutionIT {
 
     @MockitoBean

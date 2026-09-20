@@ -78,4 +78,18 @@ public class Journal extends BaseEntity implements HasDisplayName {
         return code + " " + name;
     }
 
+    /**
+     * Стабильный строковый токен ссылки (D3.5.2b). Редактор условий отбора FilterGrid сохраняет
+     * значение ссылочного поля как {@code String.valueOf(entity)}, то есть через
+     * {@code toString()}, и при компиляции сопоставляет его с display-именем или toString
+     * любого из вариантов, которые ему вернул список. Без этого метода наследуется
+     * {@code Object.toString()} («org.ip.model.Journal@1a2b3c»): подпись в комбобоксе остаётся
+     * человеческой (она берётся из {@link #getDisplayName()}), а сохранённое условие перестаёт
+     * разрешаться сразу после перезапуска JVM.
+     */
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
 }

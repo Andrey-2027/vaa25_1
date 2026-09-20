@@ -9,7 +9,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.rls.AccessService;
@@ -23,16 +23,16 @@ import org.springframework.context.annotation.Scope;
 @Scope("prototype")
 public class SubsystemHomeView extends VerticalLayout {
 
-    private final FormCoordinator coordinator;
+    private final FormNavigator navigator;
     private final RlsDimensionRegistry dimensionRegistry;
     private final AccessService accessService;
     private final RlsCurrentUser currentUser;
 
-    public SubsystemHomeView(@Autowired FormCoordinator coordinator,
+    public SubsystemHomeView(@Autowired FormNavigator navigator,
                              @Autowired RlsDimensionRegistry dimensionRegistry,
                              @Autowired AccessService accessService,
                              @Autowired RlsCurrentUser currentUser) {
-        this.coordinator = coordinator;
+        this.navigator = navigator;
         this.dimensionRegistry = dimensionRegistry;
         this.accessService = accessService;
         this.currentUser = currentUser;
@@ -41,9 +41,12 @@ public class SubsystemHomeView extends VerticalLayout {
         setSpacing(true);
     }
 
-    public void init(SubsystemNode node, Workspace workspace) {
+    /**
+     * Заполняет вкладку подсистемы. Рабочая область не передаётся: она — UI-scoped бин, и
+     * координатор берёт её сам, а прикладной view не знает ни про вкладки, ни про чужой UI.
+     */
+    public void init(SubsystemNode node) {
         removeAll();
-        coordinator.setWorkspace(workspace);
 
         add(new H3(node.getTitle()));
 
@@ -68,7 +71,7 @@ public class SubsystemHomeView extends VerticalLayout {
 
             for (EntityMetadataInfo entity : group.entities()) {
                 if (isEntityVisible(entity)) {
-                    tiles.add(createTile(entity, workspace));
+                    tiles.add(createTile(entity));
                 }
             }
             add(tiles);
@@ -97,7 +100,7 @@ public class SubsystemHomeView extends VerticalLayout {
         return accessService.hasAnyAccess(dimension, currentUser.requireAuthenticatedUsername());
     }
 
-    private Button createTile(EntityMetadataInfo entity, Workspace workspace) {
+    private Button createTile(EntityMetadataInfo entity) {
         Icon icon;
         try {
             icon = VaadinIcon.valueOf(entity.getIcon()).create();
@@ -114,14 +117,14 @@ public class SubsystemHomeView extends VerticalLayout {
             .set("white-space", "normal")
             .set("text-align", "center");
 
-        tile.addClickListener(e -> openEntityList(entity, workspace));
+        tile.addClickListener(e -> openEntityList(entity));
         return tile;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private void openEntityList(EntityMetadataInfo entity, Workspace workspace) {
+    private void openEntityList(EntityMetadataInfo entity) {
         // Координатор выбирает generic ListForm или зарегистрированный variant-View
         // и передаёт ему контекст открытия единым способом.
-        coordinator.openListForm((Class) entity.getEntityClass(), null, null);
+        navigator.openListForm((Class) entity.getEntityClass(), null, null);
     }
 }

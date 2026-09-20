@@ -19,7 +19,7 @@ import org.ipro.data.SearchFields;
  *
  * formKey однозначно определяет, к какому ListForm (и, если применимо, варианту формы)
  * относится вид — тот же ключ, что раньше использовался в UserFormSettings
- * ("<EntityClass>[.<variant>]"), см. FormCoordinator.buildFormKey().
+ * ("<EntityClass>[.<variant>]") — ключ собирается формовым слоем при открытии списка.
  *
  * shared = true — вид общий: виден и редактируем ЛЮБЫМ пользователем.
  * shared = false — личный вид: виден и редактируем только автором

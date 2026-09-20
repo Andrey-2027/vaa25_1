@@ -1,5 +1,6 @@
 package org.ipro.crud.config;
 
+import org.ipro.crud.EntityCopyService;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ReferenceCheckService;
@@ -23,6 +24,11 @@ import static org.mockito.Mockito.when;
  * совместно с metadata-конфигурацией того же модуля. ReferenceCheckService требует
  * EntityManager (persistence-контекст), NaturalKeyCreateSupport — transaction manager;
  * оба приходят из полного приложения, поэтому здесь они замоканы.
+ *
+ * <p>D3.5.5: сюда же переехал {@code EntityCopyService} — сервис ядра, который раньше
+ * регистрировался формовым (UI) слоем. Здесь проверяется, что он приходит из backend-модуля и
+ * заменяется пользовательским бином: иначе сервис, заявленный в контракте {@code platform-core},
+ * оставался бы недоступен потребителю без UI-артефакта.</p>
  *
  * <p>Вторая половина набора — <b>заменяемость</b>. Auto-configuration обещает, что
  * приложение может подменить платформенный бин своим; до исправления D3.4 это обещание
@@ -74,6 +80,7 @@ class CrudAutoConfigurationTest {
                 assertThat(context).hasSingleBean(ReferenceCheckService.class);
                 assertThat(context).hasSingleBean(LookupService.class);
                 assertThat(context).hasSingleBean(NaturalKeyCreateSupport.class);
+                assertThat(context).hasSingleBean(EntityCopyService.class);
             });
     }
 
@@ -108,11 +115,13 @@ class CrudAutoConfigurationTest {
         ReferenceCheckService customReferenceCheckService = mock(ReferenceCheckService.class);
         NaturalKeyCreateSupport customNaturalKeyCreateSupport =
             mock(NaturalKeyCreateSupport.class);
+        EntityCopyService customEntityCopyService = mock(EntityCopyService.class);
 
         runner.withBean(ServiceLocator.class, () -> customServiceLocator)
             .withBean(LookupService.class, () -> customLookupService)
             .withBean(ReferenceCheckService.class, () -> customReferenceCheckService)
             .withBean(NaturalKeyCreateSupport.class, () -> customNaturalKeyCreateSupport)
+            .withBean(EntityCopyService.class, () -> customEntityCopyService)
             .run(context -> {
                 assertThat(context).hasNotFailed();
                 assertThat(context).hasSingleBean(ServiceLocator.class);
@@ -125,6 +134,9 @@ class CrudAutoConfigurationTest {
                 assertThat(context).hasSingleBean(NaturalKeyCreateSupport.class);
                 assertThat(context.getBean(NaturalKeyCreateSupport.class))
                     .isSameAs(customNaturalKeyCreateSupport);
+                assertThat(context).hasSingleBean(EntityCopyService.class);
+                assertThat(context.getBean(EntityCopyService.class))
+                    .isSameAs(customEntityCopyService);
             });
     }
 

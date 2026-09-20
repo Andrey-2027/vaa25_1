@@ -37,6 +37,8 @@
         <platform-core.version>1.0-SNAPSHOT</platform-core.version>
         <!-- D3.4: wiring backend-ядра — авто-конфигурации metadata/CRUD/data/fetch/search -->
         <platform-spring-boot-autoconfigure.version>1.0-SNAPSHOT</platform-spring-boot-autoconfigure.version>
+        <!-- D3.5.4: UI-слой платформы (form/vaadin/telemetry-vaadin) -->
+        <platform-vaadin.version>1.0-SNAPSHOT</platform-vaadin.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
         <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
@@ -201,7 +203,9 @@
           D2 → D3 (третий модуль-подсистема): наблюдение целиком — API, core, сущности
           журнала, репозиторий и своя авто-конфигурация с @EntityScan/@EnableJpaRepositories.
           Замыкание на дерево пусто после выворота цикла с RLS (шаг 8а). Vaadin-адаптеры
-          в модуль не входят — они живут в дереве приложения (org.ip.telemetry.vaadin).
+          в модуль не входят: D3.5.4 они уехали в platform-vaadin (org.ipro.vaadin.telemetry) —
+          наблюдение обязано работать без UI, поэтому Vaadin в этом POM остаётся запретом,
+          а не «пока не перенесли».
         -->
         <dependency>
             <groupId>org.ipro</groupId>
@@ -248,6 +252,26 @@
             <groupId>org.ipro</groupId>
             <artifactId>platform-spring-boot-autoconfigure</artifactId>
             <version>${platform-spring-boot-autoconfigure.version}</version>
+        </dependency>
+
+        <!--
+          D3.5.4: UI-слой платформы — form (builder/builtin/coordinator/registry/spi),
+          Entity Explorer, глобальный поиск в шапке и Vaadin-адаптер телеметрии.
+          Пакеты сохранены, поэтому прикладной код не менялся: 45 файлов приложения и
+          ReportQueryEditor остаются потребителями, как и было задумано.
+
+          Регистрация — imports-файлом модуля, а не приложения: раньше эти конфигурации
+          перечислял корневой imports-файл (а telemetry-адаптер спасал только component
+          scan пакета org.ip). Теперь владелец один, и его состав проверяет
+          PlatformAutoConfigurationRegistryTest.
+
+          Vaadin объявлен в модуле scope provided — приложение несёт UI-стек само
+          (vaadin-spring-boot-starter выше), поэтому транзитивного дубля не появляется.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-vaadin</artifactId>
+            <version>${platform-vaadin.version}</version>
         </dependency>
 
         <dependency>

@@ -11,14 +11,29 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
 import org.ipro.form.Dirtyable;
 import org.ipro.form.Savable;
 import org.ipro.form.spi.WorkspaceGateway;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * Рабочая область приложения: вкладки форм внутри одного UI.
+ *
+ * <p>D3.5.3-fix: бин UI-scoped, а не объект, созданный вручную в layout'е. Раньше
+ * {@code MainLayout} делал {@code new Workspace(manager)} и передавал его дальше вьюхам, а те
+ * вкладывали его в координатор. Теперь инстанс на UI даёт контейнер: у каждого UI своя область по
+ * построению, вкладки не могут переехать в чужой UI, а весь путь «layout → view → coordinator»
+ * с мутабельным {@code setWorkspace} исчез — он был тем самым состоянием, которое не принадлежало
+ * UI явно.</p>
+ */
+@SpringComponent
+@UIScope
 public class Workspace extends VerticalLayout implements WorkspaceGateway {
 
     private final Span titleLabel = new Span();
@@ -28,6 +43,7 @@ public class Workspace extends VerticalLayout implements WorkspaceGateway {
     private final WorkspaceManager manager;
     private String activeId;
 
+    @Autowired
     public Workspace(WorkspaceManager manager) {
         this.manager = manager;
         setSizeFull();

@@ -7,7 +7,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ip.model.Nomenclature;
 import org.ip.model.UnitOfMeasurement;
 
@@ -29,10 +29,10 @@ import org.ip.model.UnitOfMeasurement;
 @PageTitle("Test Form Variants")
 public class TestVariantsView extends VerticalLayout {
 
-    private final FormCoordinator coordinator;
+    private final FormNavigator navigator;
 
-    public TestVariantsView(FormCoordinator coordinator) {
-        this.coordinator = coordinator;
+    public TestVariantsView(FormNavigator navigator) {
+        this.navigator = navigator;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -51,15 +51,15 @@ public class TestVariantsView extends VerticalLayout {
         nomenclatureRow.add(new Paragraph("Nomenclature:"));
 
         Button nomenclatureDefault = new Button("default", e ->
-            coordinator.openListForm(Nomenclature.class, null, null)
+            navigator.openListForm(Nomenclature.class, null, null)
         );
 
         Button nomenclatureArchived = new Button("archived", e ->
-            coordinator.openListForm(Nomenclature.class, "archived", null)
+            navigator.openListForm(Nomenclature.class, "archived", null)
         );
 
         Button nomenclatureActive = new Button("active", e ->
-            coordinator.openListForm(Nomenclature.class, "active", null)
+            navigator.openListForm(Nomenclature.class, "active", null)
         );
 
         nomenclatureRow.add(nomenclatureDefault, nomenclatureArchived, nomenclatureActive);
@@ -72,11 +72,11 @@ public class TestVariantsView extends VerticalLayout {
         unitRow.add(new Paragraph("Unit:"));
 
         Button unitDefault = new Button("default", e ->
-            coordinator.openListForm(UnitOfMeasurement.class, null, null)
+            navigator.openListForm(UnitOfMeasurement.class, null, null)
         );
 
         Button unitCompact = new Button("compact", e ->
-            coordinator.openListForm(UnitOfMeasurement.class, "compact", null)
+            navigator.openListForm(UnitOfMeasurement.class, "compact", null)
         );
 
         unitRow.add(unitDefault, unitCompact);

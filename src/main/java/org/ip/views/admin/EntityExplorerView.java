@@ -16,11 +16,10 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.spring.annotation.SpringComponent;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.vaadin.explorer.EntitySummary;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler.EntityRef;
-import org.ip.views.workspace.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
@@ -70,7 +69,7 @@ public class EntityExplorerView extends VerticalLayout {
     }
 
     private final EntitySummaryAssembler assembler;
-    private final FormCoordinator coordinator;
+    private final FormNavigator navigator;
 
     private final TextField searchField = new TextField();
     private final TreeGrid<Item> tree = new TreeGrid<>(Item.class);
@@ -80,17 +79,16 @@ public class EntityExplorerView extends VerticalLayout {
     private List<Item> allRoots = List.of();
 
     public EntityExplorerView(@Autowired EntitySummaryAssembler assembler,
-                              @Autowired FormCoordinator coordinator) {
+                              @Autowired FormNavigator navigator) {
         this.assembler = assembler;
-        this.coordinator = coordinator;
+        this.navigator = navigator;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
     }
 
     /** Вызывается из MainLayout сразу после создания (initializer в workspace.open). */
-    public void init(Workspace workspace) {
-        coordinator.setWorkspace(workspace);
+    public void init() {
         removeAll();
         if (!isAdmin()) {
             add(new H3("Доступно только администратору"));
@@ -202,7 +200,7 @@ public class EntityExplorerView extends VerticalLayout {
 
         EntitySummary summary = assembler.summarize(entityClass);
         String tabTitle = summary.displayName().value() + "  (" + summary.simpleName() + ")";
-        EntitySummaryPanel panel = new EntitySummaryPanel(coordinator);
+        EntitySummaryPanel panel = new EntitySummaryPanel(navigator);
         panel.setStructureNavigator(this::openEntityTab);
         panel.show(summary);
 

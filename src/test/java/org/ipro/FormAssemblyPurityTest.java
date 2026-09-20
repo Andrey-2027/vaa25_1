@@ -62,7 +62,14 @@ class FormAssemblyPurityTest {
 
     // === Скан источников ===
 
-    private static final Path BUILTIN_DIR = Path.of("src/main/java/org/ipro/form/builtin");
+    /**
+     * D3.5.4: слой сборки уехал в {@code platform-vaadin}, но предмет проверки — исходники
+     * сборки, а не место хранения, поэтому путь ведёт в модуль. Правило ArchUnit
+     * ({@code assemblyDoesNotTouchResolutionMachinery}) видит те же классы из артефакта:
+     * {@code importPackages("org.ipro")} читает classpath, а не дерево исходников.
+     */
+    private static final Path BUILTIN_DIR =
+        Path.of("platform-vaadin/src/main/java/org/ipro/form/builtin");
 
     /** Сырой идентификатор варианта (слово целиком, lowerCamel; ButtonVariant не матчится). */
     private static final Pattern RAW_VARIANT = Pattern.compile("\\bvariant\\b");

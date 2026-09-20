@@ -13,7 +13,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.form.registry.FormType;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.vaadin.explorer.EntitySummary;
@@ -43,11 +43,11 @@ import java.util.function.Consumer;
  */
 public class EntitySummaryPanel extends VerticalLayout {
 
-    private final FormCoordinator coordinator;
+    private final FormNavigator navigator;
     private Consumer<Class<?>> structureNavigator;
 
-    public EntitySummaryPanel(FormCoordinator coordinator) {
-        this.coordinator = coordinator;
+    public EntitySummaryPanel(FormNavigator navigator) {
+        this.navigator = navigator;
         setSizeFull();
         setPadding(false);
         setSpacing(true);
@@ -318,7 +318,7 @@ public class EntitySummaryPanel extends VerticalLayout {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void navigateTo(Class<?> entityClass) {
-        coordinator.openListForm((Class) entityClass, null, null);
+        navigator.openListForm((Class) entityClass, null, null);
     }
 
     // ---------------------------------------------------------------- помощники

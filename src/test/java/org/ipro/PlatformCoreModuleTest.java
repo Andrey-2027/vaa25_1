@@ -52,12 +52,15 @@ class PlatformCoreModuleTest {
 
     /**
      * Reviewed-реестр состава: полный list типов, которые артефакт публикует сегодня. Те же
-     * 92 типа проверяет {@code CoreModuleCompositionTest} у себя — две стороны одной границы.
+     * 94 типа проверяет {@code CoreModuleCompositionTest} у себя — две стороны одной границы
+     * (расхождение этих двух списков и есть та ошибка, которую одна сторона не видит).
      */
     private static final Set<String> REVIEWED_TYPES = Set.of(
         "org.ipro.crud.AggregateSaveRollbackState",
         "org.ipro.crud.BaseService",
         "org.ipro.crud.EntityCopyService",
+        "org.ipro.crud.EntityLookup",
+        "org.ipro.crud.EntityServiceResolver",
         "org.ipro.crud.GenericOwnedSectionService",
         "org.ipro.crud.InternedEntity",
         "org.ipro.crud.LookupService",

@@ -18,7 +18,7 @@ import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.vaadin.explorer.EntitySummary;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler;
@@ -26,7 +26,6 @@ import org.ipro.vaadin.explorer.SubsystemSummaryAssembler.Catalog;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler.EntityFacet;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler.Group;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler.SubsystemRef;
-import org.ip.views.workspace.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
@@ -51,7 +50,7 @@ import java.util.Locale;
  * ({@code NoSubsystem}) — отдельным корнем «Без подсистемы».</p>
  *
  * <p>Навигация наружу: «открыть список» по строке сущности (через
- * {@link FormCoordinator}) и «структура» — диалог со сводкой сущности
+ * {@link FormNavigator}) и «структура» — диалог со сводкой сущности
  * (общая панель {@link EntitySummaryPanel}).</p>
  */
 @SpringComponent
@@ -78,7 +77,7 @@ public class SubsystemStructureView extends VerticalLayout {
 
     private final SubsystemSummaryAssembler assembler;
     private final EntitySummaryAssembler entityAssembler;
-    private final FormCoordinator coordinator;
+    private final FormNavigator navigator;
 
     private final TextField searchField = new TextField();
     private final TreeGrid<Item> tree = new TreeGrid<>(Item.class);
@@ -91,18 +90,17 @@ public class SubsystemStructureView extends VerticalLayout {
 
     public SubsystemStructureView(@Autowired SubsystemSummaryAssembler assembler,
                                   @Autowired EntitySummaryAssembler entityAssembler,
-                                  @Autowired FormCoordinator coordinator) {
+                                  @Autowired FormNavigator navigator) {
         this.assembler = assembler;
         this.entityAssembler = entityAssembler;
-        this.coordinator = coordinator;
+        this.navigator = navigator;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
     }
 
     /** Вызывается из MainLayout сразу после создания (initializer в workspace.open). */
-    public void init(Workspace workspace) {
-        coordinator.setWorkspace(workspace);
+    public void init() {
         removeAll();
         if (!isAdmin()) {
             add(new H3("Доступно только администратору"));
@@ -328,7 +326,7 @@ public class SubsystemStructureView extends VerticalLayout {
      */
     private void showStructureInDialog(Class<?> entityClass, Dialog dialog) {
         EntitySummary summary = entityAssembler.summarize(entityClass);
-        EntitySummaryPanel panel = new EntitySummaryPanel(coordinator);
+        EntitySummaryPanel panel = new EntitySummaryPanel(navigator);
         Dialog finalDialog = dialog;
         panel.setStructureNavigator(target -> showStructureInDialog(target, finalDialog));
         panel.show(summary);
@@ -349,7 +347,7 @@ public class SubsystemStructureView extends VerticalLayout {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void navigateTo(Class<?> entityClass) {
-        coordinator.openListForm((Class) entityClass, null, null);
+        navigator.openListForm((Class) entityClass, null, null);
     }
 
     // ---------------------------------------------------------------- помощники

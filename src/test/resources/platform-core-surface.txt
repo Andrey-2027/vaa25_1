@@ -11,8 +11,10 @@
 # Зачем второй реестр. D1-реестр (`platform-public-surface.txt`) описывает только потребление
 # приложением. Тип, который приложение не называет, не получал никакой роли: обещание «internal
 # можно менять свободно» нельзя было проверить, а 44 типа, образующих контракт между модулями,
-# не были зафиксированы вовсе. Здесь роль есть у каждого из 92 production-типов, и полнота
-# проверяется тестом `PlatformCoreSurfaceTest`, а не глазами.
+# не были зафиксированы вовсе. Здесь роль есть у каждого из 94 production-типов, и полнота
+# проверяется тестом `PlatformCoreSurfaceTest`, а не глазами. Бюджет разделов (30/4/44/16)
+# сверяется с числом записей под заголовком: расхождение — ошибка сборки, а не тема для
+# комментария. 92 -> 94 — D3.5.1: `EntityLookup` и `EntityServiceResolver` (APP_API 28 -> 30).
 #
 # Роли — reviewed-решение, а не вывод теста: если бы список строил сам тест, проверялось бы то же
 # правило, которым он построен. Черновик воспроизводится скриптом
@@ -156,8 +158,9 @@ INTERNAL org.ipro.metadata.FetchGraphs
 INTERNAL org.ipro.metadata.InstanceNameSource
 INTERNAL org.ipro.metadata.MetadataConsistencyValidator
 INTERNAL org.ipro.search.JpaGlobalSearchProvider
+
 # ---- test-usage overlay (12)
-test-usage org.ipro.crud.GenericOwnedSectionService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/security/RlsServiceWriteBoundaryIT.java
+test-usage org.ipro.crud.GenericOwnedSectionService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/security/RlsServiceWriteBoundaryIT.java
 test-usage org.ipro.crud.MetadataDrivenAggregateSaveService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java
 test-usage org.ipro.crud.ReferenceCheckService org/ip/security/RlsIntegrationTest.java org/ip/service/SklNomOpaServiceTest.java
 test-usage org.ipro.data.CanonicalReadExecutor org/ip/service/GroupNomVersionNormalizationIT.java
@@ -168,4 +171,4 @@ test-usage org.ipro.data.ReadTelemetry org/ip/service/GroupNomVersionNormalizati
 test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java
 test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java
 test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/service/GroupNomVersionNormalizationIT.java
-test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java
+test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/builtin/PrdSpecRowCancelAcceptanceTest.java

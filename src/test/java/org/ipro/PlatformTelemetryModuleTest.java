@@ -27,9 +27,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <ol>
  * <li>СЃРѕСЃС‚Р°РІ СЃСЂРµР·Р° вЂ” reviewed-Р±СЋРґР¶РµС‚: РїРѕРґСЃРёСЃС‚РµРјР° РІС‹РµС…Р°Р»Р° С†РµР»РёРєРѕРј (66 С‚РёРїРѕРІ: API, core,
  *     СЃСѓС‰РЅРѕСЃС‚Рё Р¶СѓСЂРЅР°Р»Р°, СЂРµРїРѕР·РёС‚РѕСЂРёР№, Р°РІС‚Рѕ-РєРѕРЅС„РёРіСѓСЂР°С†РёСЏ), Р° Vaadin-Р°РґР°РїС‚РµСЂС‹
- *     ({@code TelemetryVaadinInitListener}, {@code TelemetryErrorHandler}) СЃРѕР·РЅР°С‚РµР»СЊРЅРѕ
- *     РѕСЃС‚Р°Р»РёСЃСЊ РІ РґРµСЂРµРІРµ РїСЂРёР»РѕР¶РµРЅРёСЏ ({@code org.ip.telemetry.vaadin}) вЂ” РјРѕРґСѓР»СЊ РЅРµ Р·Р°РІРёСЃРёС‚
- *     РЅР° UI;</li>
+ *     ({@code TelemetryVaadinInitListener}, {@code TelemetryErrorHandler}) живут в UI-модуле
+ *     платформы: D3.5.4 они уехали в {@code platform-vaadin} со сменой пакета
+ *     ({@code org.ip.telemetry.vaadin} → {@code org.ipro.vaadin.telemetry} — пакет приложения
+ *     в платформенном артефакте нарушал бы границу). Модуль телеметрии при этом остаётся без
+ *     UI: адаптеры лишь живут в другом артефакте, а не рядом с наблюдением;</li>
  * <li>РѕР±СЉСЏРІР»РµРЅРЅС‹Рµ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё вЂ” reviewed: JPA/Hibernate, Spring Data/JDBC/TX/Web/Security,
  *     Jackson, Logback, РЅРѕ РЅРµ РІРІРµСЂС… Рє {@code data}/{@code form}/{@code rls}/{@code fetch}/
  *     {@code reportstudio} Рё РЅРµ Vaadin;</li>
@@ -183,9 +185,9 @@ class PlatformTelemetryModuleTest {
         assertThat(autoConfiguration).contains("\"org.ipro.telemetry.model\"");
         assertThat(autoConfiguration).contains("\"org.ipro.telemetry.repository\"");
         assertThat(autoConfiguration)
-            .as("Vaadin-Р°РґР°РїС‚РµСЂС‹ Р¶РёРІСѓС‚ РІ РїСЂРёР»РѕР¶РµРЅРёРё, Р° РЅРµ РІ РјРѕРґСѓР»Рµ: РЅРё РёРјРїРѕСЂС‚Р° Р°РґР°РїС‚РµСЂР°,"
-                + " РЅРё Vaadin-API")
-            .doesNotContain("import org.ip.telemetry.vaadin")
+            .as("Vaadin-адаптеры живут в platform-vaadin, а не в модуле: ни импорта адаптера,"
+                + " ни Vaadin-API")
+            .doesNotContain("import org.ipro.vaadin")
             .doesNotContain("import com.vaadin")
             .doesNotContain("com.vaadin");
 
@@ -214,10 +216,11 @@ class PlatformTelemetryModuleTest {
         assertThat(Path.of("src/main/java/org/ipro/telemetry/model/OperationLogEntity.java")).doesNotExist();
         assertThat(Path.of("src/main/java/org/ipro/telemetry/repository/OperationLogRepository.java"))
             .doesNotExist();
-        assertThat(Path.of("src/main/java/org/ipro/telemetry/core/TelemetryVaadinInitListener.java"))
-            .as("Vaadin-Р°РґР°РїС‚РµСЂ РїРµСЂРµРµС…Р°Р» РІ РґРµСЂРµРІРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ")
-            .doesNotExist();
         assertThat(Path.of("src/main/java/org/ip/telemetry/vaadin/TelemetryVaadinInitListener.java"))
+            .as("D3.5.4: Vaadin-адаптер уехал из дерева приложения в platform-vaadin")
+            .doesNotExist();
+        assertThat(Path.of("platform-vaadin/src/main/java/org/ipro/vaadin/telemetry"
+                + "/TelemetryVaadinInitListener.java"))
             .exists();
     }
 

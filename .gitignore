@@ -85,6 +85,12 @@ node_modules/
 # истины. PlatformVaadinSurfaceTest обязан находить его в репозитории.
 !src/test/resources/platform-vaadin-surface.txt
 
+# D3.5.7: reviewed-реестр шва Report → Form. Тот же случай, что и выше: широкое правило `*.txt`
+# исключило бы контракт шва из поставки, а ReportFormSeamTest читает его как источник истины.
+# Здесь это важнее обычного: предмет реестра — подготовка среза D3.6 (что именно уезжает
+# вместе со слоем), то есть данные, нужные не машине автора, а следующему шагу.
+!src/test/resources/report-form-seam.txt
+
 # D2/D1: API/ABI baseline публичной поверхности вынесенных артефактов. PlatformApiBaselineTest
 # сравнивает с ним подписи, поэтому на чистом checkout он обязан присутствовать.
 !src/test/resources/platform-api-baseline/

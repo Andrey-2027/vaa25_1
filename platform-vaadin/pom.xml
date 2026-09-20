@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-vaadin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform vaadin</name>
+    <description>
+        D3.5.4: UI-слой платформы — form (builder, builtin, coordinator, registry, spi),
+        Entity Explorer и глобальный поиск в шапке плюс Vaadin-адаптер телеметрии
+        (org.ipro.vaadin.telemetry). Роли типов назначены ДО физического переноса
+        (реестр platform-vaadin-surface.txt), поэтому модуль публикует не «всё, что
+        скомпилировалось», а reviewed поверхность. Регистрация — собственным
+        AutoConfiguration.imports: приложение не сканирует org.ipro, поэтому иначе
+        подсистема молча выключилась бы. Запрещено: org.ip (приложение зависит от
+        платформы), reportstudio/jr/ureport/dynamicreports (они остаются потребителями
+        и переезжают в D3.5.7) и component-scan как способ подключения.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <!-- Та же версия Vaadin, что в приложении: UI-слой платформы и приложение обязаны
+             собираться против одного стека, иначе перенос типов меняет не только границу. -->
+        <vaadin.version>25.1.6</vaadin.version>
+        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
+        <platform-core.version>1.0-SNAPSHOT</platform-core.version>
+        <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
+        <platform-events.version>1.0-SNAPSHOT</platform-events.version>
+        <platform-numbering.version>1.0-SNAPSHOT</platform-numbering.version>
+        <platform-telemetry.version>1.0-SNAPSHOT</platform-telemetry.version>
+        <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
+        <platform-spring-boot-autoconfigure.version>1.0-SNAPSHOT</platform-spring-boot-autoconfigure.version>
+        <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!--
+      Разрешённые compile-зависимости — reviewed, проверяются VaadinModuleCompositionTest:
+      каждая строка закрывает фактический импорт перенесённых типов, а не «на всякий случай».
+
+      1. platform-identity-api — org.ipro.identity.IdentifiableEntity (ключи форм и таблиц);
+      2. platform-core — org.ipro.metadata/crud/data/fetch/search: MetadataResolver,
+         SectionMetadataRegistry, EntityLookup, EntityServiceResolver, LookupService,
+         EntityCopyService, TableSectionService, GenericOwnedSectionService, поиск;
+      3. platform-metadata — org.ipro.metadata.AnnotationClassScanner и ReferenceIndex
+         (остальные metadata-типы живут в platform-core);
+      4. platform-events — EventSource (подписка форм на события сущностей);
+      5. platform-numbering — NumberingMetadataRegistry/NumberingPeriod (колонки и поля);
+      6. platform-telemetry — org.ipro.telemetry.api (EventSink) и telemetry.core
+         (TelemetryBridge, FieldAuditBridge, MdcKeys) для Vaadin-адаптера телеметрии;
+      7. platform-rls — RlsUiGate, RlsDimensionRegistry/Kind (гейт прав и колонки RLS);
+      8. platform-spring-boot-autoconfigure — PlatformProperties (Entity Explorer) и
+         @AutoConfigureAfter на MetadataAutoConfiguration/GlobalSearchAutoConfiguration:
+         порядок применения конфигураций — часть контракта, а не деталь;
+      9. filtergrid-core/grouping/jpa — FilterGrid/FilterTreeEditor/EntityOptionLabel,
+         группировка и JpaFilterGrid: список форм собирается поверх библиотеки грида;
+      10. Vaadin — flow-server/flow-data/... и vaadin-spring (SpringComponent, UIScope).
+
+      Vaadin объявлен scope provided осознанно (прецедент crudui-core с vaadin-core):
+      модуль не навязывает UI-стек потребителю, потому что потребитель и так несёт его
+      сам (приложение — vaadin-spring-boot-starter). provided остаётся доступен тестам
+      модуля, поэтому его собственный набор проверок запускается без потребителя.
+
+      Запрещено: org.ip, reportstudio/jr/ureport/dynamicreports, component-scan.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-identity-api</artifactId>
+            <version>${platform-identity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-core</artifactId>
+            <version>${platform-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-metadata</artifactId>
+            <version>${platform-metadata.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-events</artifactId>
+            <version>${platform-events.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-numbering</artifactId>
+            <version>${platform-numbering.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-telemetry</artifactId>
+            <version>${platform-telemetry.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rls</artifactId>
+            <version>${platform-rls.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-spring-boot-autoconfigure</artifactId>
+            <version>${platform-spring-boot-autoconfigure.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-core</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-grouping</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-jpa</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+
+        <!-- Vaadin Flow и его Spring-интеграция: компоненты, data provider, VaadinService
+             (адаптер телеметрии), @SpringComponent/@UIScope. -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-spring-boot-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Spring: контейнер бинов, события контекста, ObjectProvider, авто-конфигурация. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- Specification — сигнатуры выборок форм; ObjectOptimisticLockingFailureException —
+             конкурентная правка строки. -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+        </dependency>
+        <!-- Authentication/SecurityContextHolder — определение текущего пользователя в UI-гейте. -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+
+        <!-- Представление медиаплана сохранённого вида (JsonNode/ObjectMapper) и MDC телеметрии. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!--
+          Тесты едут с модулем (прецедент platform-core и platform-events): модуль
+          публикуется отдельно, поэтому его поведение обязано проверяться на его
+          собственном classpath — без приложения, которое даёт ему потребителя.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

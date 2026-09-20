@@ -264,7 +264,31 @@ org.ipro.vaadin.explorer -> org.ipro.metadata.annotation
 org.ipro.vaadin.explorer -> org.ipro.metadata.facet
 org.ipro.vaadin.explorer -> org.ipro.numbering
 org.ipro.vaadin.explorer -> org.ipro.rls
+# D3.5.5: explorer объявляет явный @AutoConfigureAfter вместо надежды на алфавитный порядок FQN.
+# Оба ребра — про порядок применения конфигураций, а не про использование типов в коде:
+# условие @ConditionalOnBean обязано оцениваться после регистрации метаданных и реестра форм.
+org.ipro.vaadin.explorer -> org.ipro.form.config
+org.ipro.vaadin.explorer -> org.ipro.metadata.config
 org.ipro.vaadin.search -> org.ipro.form.config
 org.ipro.vaadin.search -> org.ipro.form.coordinator
 org.ipro.vaadin.search -> org.ipro.search
 org.ipro.vaadin.search -> org.ipro.search.config
+# D3.5.5: формовая авто-конфигурация собирает бины явными @Bean, поэтому называет типы, которые
+# раньше подставлял контейнер через @Import: группировку значений, RLS-gate и SPI-швы
+# (сторы, вклад в панель инструментов, рабочую область). Все три пакета — свои платформенные
+# модули, уже объявленные в POM platform-vaadin; запретов это не пересекает.
+org.ipro.form.config -> org.ipro.data.grouping
+org.ipro.form.config -> org.ipro.form.spi
+org.ipro.form.config -> org.ipro.rls
+# D3.5.4: пакет org.ipro.vaadin.telemetry — бывший org.ip.telemetry.vaadin в дереве приложения.
+# Его рёбра не были видны матрице по построению: забор читает только org.ipro, а адаптеры
+# телеметрии жили в пакете приложения. После переезда связь стала честным платформенным ребром
+# (vaadin → telemetry), и это ожидаемое направление: адаптер UI пишет в наблюдение, а не наоборот.
+org.ipro.vaadin.telemetry -> org.ipro.telemetry.api
+org.ipro.vaadin.telemetry -> org.ipro.telemetry.core
+# D3.5.6: третье ребро к той же подсистеме — не использование типа, а порядок авто-конфигураций.
+# @ConditionalOnBean(EventSink) у UI-адаптера проверяется в момент применения конфигурации, и без
+# явного @AutoConfigureAfter(TelemetryAutoConfiguration) он держался бы на алфавите FQN через
+# границу артефакта: сначала UI-адаптер, потом подсистема — то есть условие оценивалось бы
+# до появления sink'а, и обработка ошибок UI выключалась бы молча.
+org.ipro.vaadin.telemetry -> org.ipro.telemetry.config

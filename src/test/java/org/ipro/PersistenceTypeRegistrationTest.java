@@ -43,7 +43,10 @@ class PersistenceTypeRegistrationTest {
         Path.of("platform-numbering/src/main/java"),
         Path.of("platform-settings/src/main/java"),
         Path.of("platform-telemetry/src/main/java"),
-        Path.of("platform-rls/src/main/java"));
+        Path.of("platform-rls/src/main/java"),
+        // D3.5.4: UI-модуль сущностей не несёт, но корень перечислен — иначе появление
+        // @Entity/@Repository здесь не увидел бы ни один забор этого файла.
+        Path.of("platform-vaadin/src/main/java"));
 
     /** Пакеты, которые обязаны быть объявлены в @EntityScan (reviewed). */
     private static final Set<String> REVIEWED_ENTITY_PACKAGES = Set.of(

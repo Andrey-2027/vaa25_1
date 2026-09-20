@@ -213,8 +213,9 @@ class PlatformSubsystemClosureTest {
         Map<String, Set<String>> registry = new TreeMap<>();
 
         // platform-telemetry вынесена целиком (срез 8а): нейтральные швы SqlStatementAudit
-        // и DeclaredNameSource вывернули цикл с RLS, Vaadin-адаптеры остались в org.ip,
-        // поэтому пакет org.ipro.telemetry в дереве отсутствует и в реестре его нет.
+        // и DeclaredNameSource вывернули цикл с RLS, поэтому пакет org.ipro.telemetry в дереве
+        // отсутствует и в реестре его нет. Vaadin-адаптеры, которые тогда остались в org.ip,
+        // уехали в platform-vaadin (D3.5.4 — org.ipro.vaadin.telemetry).
 
         // platform-rls вынесена целиком (срез 8б): зависимости на metadata/fetch заменены
         // нейтральными SPI (RlsDimensionValueLabelResolver, RlsOwnedSectionLookup),
@@ -225,15 +226,14 @@ class PlatformSubsystemClosureTest {
         // org.ipro.form. Смысл изменения больше самой цифры: у подсистемы больше нет ни одной
         // зависимости на platform backend — её остаток блокирует UI, а не backend. Реестр
         // shrink-only, поэтому сокращение записано явно, а не оставлено как «висящий» замер.
-        registry.put("org.ipro.reportstudio", Set.of(
-            "org.ipro.form.EntityField",
-            "org.ipro.form.FieldRenderer",
-            "org.ipro.form.FilterGridMoreMenu",
-            "org.ipro.form.SearchFunction",
-            "org.ipro.form.SelectionForm",
-            "org.ipro.form.SelectionFormAssembler",
-            "org.ipro.form.SelectionFormFactory",
-            "org.ipro.form.SelectionGridCustomizer"));
+        //
+        // D3.5.4: и этот остаток обнулился — все 8 типов уехали в platform-vaadin, поэтому
+        // в дереве приложения их больше нет и в замыкание они не попадают. Замер теперь читается
+        // так: у reportstudio не осталось ни одной ссылки на исходники дерева — она зависит
+        // от артефактов (platform-core, platform-vaadin) и приложения-домена. Это ровно та
+        // предпосылка, на которой стоит следующий срез D3.5.7 (report как потребитель UI-слоя),
+        // поэтому цифра снимается сознательно, а не потому что «тест покраснел».
+        registry.put("org.ipro.reportstudio", Set.of());
 
         return registry;
     }

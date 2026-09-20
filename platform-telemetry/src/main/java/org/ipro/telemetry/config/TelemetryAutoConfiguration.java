@@ -28,9 +28,11 @@ import org.ipro.telemetry.core.TraceDumpHandler;
 import org.ipro.telemetry.core.TraceRequestFilter;
 import org.ipro.telemetry.core.TraceServiceImpl;
 import org.ipro.telemetry.core.WindowReporter;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -59,7 +61,8 @@ import java.util.List;
  * владеет своими пакетами, приложение и платформенный хаб {@code RlsAutoConfiguration}
  * их больше не перечисляют. Vaadin-адаптеры ({@code TelemetryVaadinInitListener},
  * {@code TelemetryErrorHandler}) в модуль не входят — они живут в дереве приложения
- * ({@code org.ip.telemetry.vaadin}), модуль остаётся без зависимости на UI.</p>
+ * ({@code org.ipro.vaadin.telemetry} в platform-vaadin после D3.5.4), модуль остаётся без
+ * зависимости на UI.</p>
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "ipro.telemetry", name = "enabled",
@@ -87,23 +90,8 @@ public class TelemetryAutoConfiguration {
         return new PerfCounterStore(properties.getL0WindowSeconds());
     }
 
-    @Bean(destroyMethod = "close")
-    @ConditionalOnProperty(prefix = "ipro.telemetry", name = "db-journal",
-            havingValue = "true", matchIfMissing = true)
-    public EventSink telemetryEventSink(JdbcTemplate jdbcTemplate,
-                                        PlatformTransactionManager transactionManager) {
-        AsyncEventSink asyncEventSink = new AsyncEventSink(jdbcTemplate, transactionManager,
-                properties.getQueueSize());
-        TelemetryBridge.setSink(asyncEventSink);
-        return asyncEventSink;
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(EventSink.class)
-    public EventSink noopTelemetryEventSink() {
-        TelemetryBridge.setSink(NoopEventSink.INSTANCE);
-        return NoopEventSink.INSTANCE;
-    }
+    // Sink и владелец статического моста объявлены в SinkConfiguration ниже: у них отдельный
+    // предмет (lifecycle статической ячейки), и он проверяется контейнером отдельно от подсистемы.
 
     @Bean
     public OperationCompletionHandler operationCompletionHandler(EventSink eventSink) {
@@ -218,6 +206,78 @@ public class TelemetryAutoConfiguration {
                                                  Telemetry telemetry,
                                                  JdbcTemplate jdbcTemplate) {
         return new FieldAuditSelfTest(entityManagerFactory, transactionManager, telemetry, jdbcTemplate);
+    }
+
+    /**
+     * Sink подсистемы и владелец статического моста.
+     *
+     * <p><b>Почему это отдельная конфигурация (D3.5.6).</b> Здесь единственное место, которое
+     * пишет в {@link TelemetryBridge}, и единственное, которое обязано его освобождать. Пока
+     * установка жила в тех же {@code @Bean}-методах, что и создание sink'а, владение было неотделимо
+     * от побочного эффекта: ячейка заполнялась тем бином, который создали первым, и не очищалась
+     * никогда — после закрытия контекста мост указывал на закрытый {@code AsyncEventSink}, а события
+     * молча терялись. Отдельная конфигурация делает этот предмет проверяемым контейнером без
+     * подъёма всей подсистемы: JPA-репозитории требуют настоящей метамодели, поэтому полный
+     * контекст в тесте не поднимается.</p>
+     *
+     * <p><b>Member-класс, а не отдельный файл — тоже часть контракта.</b> Условие применимости
+     * подсистемы ({@code ipro.telemetry.enabled}) объявлено на внешнем классе, и member-класс
+     * пропускается вместе с ним. Вынесенный в отдельный файл, он поднимался бы при выключенной
+     * телеметрии.</p>
+     */
+    @Configuration(proxyBeanMethods = false)
+    static class SinkConfiguration {
+
+        /**
+         * {@code @ConditionalOnMissingBean} — потому что «default/custom» это обещание, а не
+         * пожелание. Без него пользовательский sink давал два бина одного типа, и исход зависел от
+         * направления инъекции: падение на неоднозначности либо (с {@code @Primary}) тихая работа
+         * с приёмником, на который мост не смотрел.
+         */
+        @Bean(destroyMethod = "close")
+        @ConditionalOnProperty(prefix = "ipro.telemetry", name = "db-journal",
+                havingValue = "true", matchIfMissing = true)
+        @ConditionalOnMissingBean(EventSink.class)
+        public EventSink telemetryEventSink(JdbcTemplate jdbcTemplate,
+                                            PlatformTransactionManager transactionManager,
+                                            TelemetryProperties properties) {
+            return new AsyncEventSink(jdbcTemplate, transactionManager,
+                    properties.getQueueSize());
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(EventSink.class)
+        public EventSink noopTelemetryEventSink() {
+            return NoopEventSink.INSTANCE;
+        }
+
+        /**
+         * Единственный владелец моста: устанавливает <b>разрешённый</b> sink (свой или
+         * пользовательский) и снимает его адресно при закрытии контекста.
+         */
+        @Bean
+        TelemetrySinkOwner telemetrySinkOwner(EventSink eventSink) {
+            return new TelemetrySinkOwner(eventSink);
+        }
+    }
+
+    /**
+     * Владелец статической ячейки моста. Непубличный: это деталь wiring'а, а не контракт модуля
+     * (публичный тип попал бы в baseline телеметрии и расширил бы известный долг D3.3).
+     */
+    static final class TelemetrySinkOwner implements DisposableBean {
+
+        private final EventSink installed;
+
+        TelemetrySinkOwner(EventSink eventSink) {
+            this.installed = eventSink;
+            TelemetryBridge.setSink(eventSink);
+        }
+
+        @Override
+        public void destroy() {
+            TelemetryBridge.clearSink(installed);
+        }
     }
 
     private static java.util.Set<String> csvSet(String value) {

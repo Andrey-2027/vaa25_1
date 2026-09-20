@@ -1,0 +1,4 @@
+org.ipro.vaadin.explorer.config.EntityExplorerAutoConfiguration
+org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration
+org.ipro.form.config.FormAutoConfiguration
+org.ipro.vaadin.telemetry.TelemetryVaadinConfiguration

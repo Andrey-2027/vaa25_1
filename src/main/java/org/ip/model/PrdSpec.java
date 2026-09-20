@@ -155,5 +155,17 @@ public class PrdSpec extends BaseEntity implements HasDisplayName {
         return codeSpec + (nomenclature != null ? " (" + nomenclature.getDisplayName() + ")" : "");
     }
 
+    /**
+     * Стабильный строковый токен ссылки (D3.5.2b): редактор условий отбора FilterGrid сохраняет
+     * значение ссылочного поля через {@code toString()}, поэтому без него наследуется
+     * {@code Object.toString()} («org.ip.model.PrdSpec@1a2b3c») и сохранённое условие перестаёт
+     * разрешаться после перезапуска JVM. Токен строится из {@code codeSpec} — код остаётся
+     * подстрокой, по которой значение находится ограниченным поиском.
+     */
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
     /** Доступ к PrdSpec наследуется от доступа к его Journal (см. бизнес-правило RLS) — не от собственного id. */
 }

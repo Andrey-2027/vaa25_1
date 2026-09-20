@@ -1,0 +1,85 @@
+# D3.5.7: reviewed-реестр шва Report → Form.
+#
+# Предмет: report-слой называет типы UI-платформы. Направление обязано быть односторонним и
+# узким — это предпосылка среза D3.6 (report переезжает в свой артефакт как ПОТРЕБИТЕЛЬ
+# platform-vaadin, а не наоборот).
+#
+# Односторонность физически держит VaadinModuleCompositionTest: platform-vaadin не знает ни
+# report, ни DR/JR/UReport. Здесь проверяется другая половина контракта, которую не держит
+# никто: report имеет право называть ТОЛЬКО опубликованные роли, и объявленный набор
+# держателей шва — это то, что переезжает вместе со слоем.
+#
+# Источник роли — platform-vaadin-surface.txt (единственное место, где роль записана).
+# Здесь роль не повторяется намеренно: два записанных решения об одном типе расходятся, а
+# сверка «тип шва обязан иметь APP_API/APP_SPI» — настоящая проверка, а не пересказ.
+#
+# Измерение идёт по ИСХОДНИКАМ слоя, а не по байткоду. Причина измерена, а не предположена:
+# org.ipro.form.SelectionForm попадает в шов только через каст
+# ((SelectionForm) assembler.assemble(...) в ReportParamForm), а проверка байткод-зависимостей
+# (ArchUnit getDirectDependenciesFromSelf) такой зависимости не видит — шов оказался бы
+# на тип уже. Комментарии и строковые литералы из текста снимаются, иначе упоминание типа
+# в javadoc считалось бы употреблением: ровно эта нестрогость чинится в D1 тем же шагом.
+#
+# Формат строк:
+#   layer <корень исходников слоя: каталог или файл>       — где искать слой (переезд правит эту строку)
+#   seam  <fqn платформенного типа> <fqn держателя> ...    — измеренный шов с держателями
+#   only  <fqn типа> <почему у типа нет потребителей вне шва>
+#
+# Держатели записаны FQN, а не путями файлов: D3.5.4 сохранил FQN при переносе, поэтому при
+# переезде слоя меняются только строки `layer`, и реестр не приходится переписывать целиком.
+
+# --- слой ---
+layer src/main/java/org/ipro/reportstudio
+layer src/main/java/org/ip/views/reportstudio
+# Отчётная форма параметров лежит в общем каталоге компонентов, а не в reportstudio: она
+# потребляет SelectionForm/EntityField/SearchFunction/SelectionFormAssembler, то есть держит
+# шов больше всех после SelectionFormAssembler. Отдельная строка вместо расширения слоя на
+# весь views/components — там generic-компоненты, к отчётам отношения не имеющие.
+layer src/main/java/org/ip/views/components/ReportParamForm.java
+
+# --- шов ---
+# D3.5.7 (замер): 9 типов, 5 ролей APP_API и 4 APP_SPI, ни одного INTERNAL.
+# Dirtyable/Savable — контракт «есть несохранённые изменения»: редактор структуры отчёта
+# встроен в UI-поток и обязан участвовать в общей защите от потери данных, поэтому берёт
+# интерфейсы формы, а не заводит свои.
+seam org.ipro.form.Dirtyable org.ip.views.reportstudio.structured.ReportEditorViewStructured
+seam org.ipro.form.Savable org.ip.views.reportstudio.structured.ReportEditorViewStructured
+# Описание поля и сборка формы выбора — то, чем параметр отчёта становится виджетом.
+seam org.ipro.form.EntityField org.ip.views.components.ReportParamForm org.ipro.reportstudio.query.editor.ReportQueryEditor
+seam org.ipro.form.SelectionForm org.ip.views.components.ReportParamForm
+seam org.ipro.form.SelectionFormAssembler org.ip.views.components.ReportParamForm org.ip.views.reportstudio.ContextualReportLauncher org.ip.views.reportstudio.ItemFormReportActions org.ip.views.reportstudio.ReportCatalogView org.ip.views.reportstudio.ReportEditorView org.ip.views.reportstudio.ReportPrintToolbarContributor org.ip.views.reportstudio.ReportRunDialog org.ip.views.reportstudio.compact.ReportCatalogViewCompact org.ip.views.reportstudio.compact.ReportEditorViewCompact org.ip.views.reportstudio.structured.ReportCatalogViewStructured org.ip.views.reportstudio.structured.ReportEditorViewStructured org.ipro.reportstudio.query.editor.ReportQueryEditor
+# Функция поиска значений для поля: у отчёта свой протокол подгрузки кандидатов.
+seam org.ipro.form.SearchFunction org.ip.views.components.ReportParamForm
+# Кнопки отчёта добавляются в панель инструментов формы: машинный шов «форма → отчёт».
+seam org.ipro.form.spi.ListFormToolbarContributor org.ip.views.reportstudio.ReportPrintToolbarContributor
+# Пункт меню ItemForm, через который отчёт открывается из карточки сущности, и сам ListForm,
+# который SPI получает параметром.
+seam org.ipro.form.builtin.ItemForm org.ip.views.reportstudio.ItemFormReportActions
+seam org.ipro.form.builtin.ListForm org.ip.views.reportstudio.ReportPrintToolbarContributor
+
+# --- типы, которых не касается никто, кроме шва ---
+# Приложение (всё, что не шов и не сам platform-vaadin) не должно тратить эти типы: пока это
+# так, шов можно переносить без последствий, и наоборот — новый потребитель означает, что у
+# типа начинается жизнь вне шва, и решение об этом надо принять явно, а не обнаружить при
+# переезде report.
+only org.ipro.form.SearchFunction держится швом: внутри платформы его знает только EntityField (сигнатура), вне шва потребителей нет
+only org.ipro.form.spi.ListFormToolbarContributor держится швом: внутри платформы его вызывают FormCoordinator и FormAutoConfiguration, вне шва потребителей нет
+
+# --- что обязан забрать с собой переезд слоя (D3.6) ---
+# Подготовка к срезу, снятая в D3.5.7, а не предположение:
+#
+# 1. Регистрация. Файл AutoConfiguration.imports приложения содержит сейчас ровно пять строк, и
+#    все они — не приложение: ReportStudioAutoConfiguration, ReportStudioPersistenceAutoConfiguration,
+#    UreportAutoConfiguration, UreportPersistenceAutoConfiguration, JrAutoConfiguration. У слоя
+#    есть и своя persistence-конфигурация (@EntityScan/@EnableJpaRepositories), то есть переезд
+#    меняет не только объявление бинов, но и область сканирования сущностей — а это не падает при
+#    старте, а меняет поведение. Прецедент рядом: в D3.5.4 Vaadin-адаптер телеметрии держался
+#    только на component scan пакета org.ip и исчез бы молча, поэтому там появился
+#    PlatformVaadinWiringIT, проверяющий живой контекст. Вывод для D3.6: переезд регистрации
+#    обязан проверяться бином в живом контексте, а не фактом наличия imports-файла.
+# 2. Замыкание. PlatformSubsystemClosureTest держит запись org.ipro.reportstudio -> пусто (D3.5.4)
+#    именно как предпосылку этого среза: когда пакет уедет в артефакт, запись снимается решением,
+#    а не потому что «тест покраснел».
+# 3. Заборы, читающие пути. D1-заборы читают src/main/java/org/ip, поэтому переезд обязан сдвинуть
+#    их APPLICATION_PACKAGE — иначе они станут вакуумными и останутся зелёными. Здесь пути не
+#    проблема: сдвигаются только строки `layer` выше, а измерения шва записаны FQN.

@@ -6,7 +6,6 @@ import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.numbering.annotation.Numbered;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -31,9 +30,15 @@ import java.util.List;
  *   <li>путь через точку и неизвестные поля здесь не поддерживаются — только прямые поля.</li>
  * </ul>
  *
- * Чистая рефлексия без Spring-зависимостей (кроме stereotype): работает и в тестах.
+ * Чистая рефлексия без Spring-зависимостей: работает и в тестах, и без контейнера.
+ *
+ * <p><b>D3.5.5: регистрация бина — в {@code CrudAutoConfiguration}, а не в UI-слое.</b>
+ * Сервис объявлен в ядре и заявлен в его контракте ({@code platform-core.api}), но раньше
+ * регистрировался только формовым слоем через {@code @Import}: backend-потребитель без
+ * UI-артефакта не мог получить сервис ядра, а удаление UI-слоя уносило его из контракта молча.
+ * Стереотип здесь не нужен и вреден: у бина должен быть ровно один владелец, и это модуль wiring.
+ * Реализацию можно заменить своим бином того же типа — правила копирования прикладные.</p>
  */
-@Component
 public class EntityCopyService {
 
     /**

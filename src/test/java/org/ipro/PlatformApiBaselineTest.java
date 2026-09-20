@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Stream;
@@ -56,9 +57,6 @@ class PlatformApiBaselineTest {
     private static final Path BASELINE_DIRECTORY = Path.of("src/test/resources/platform-api-baseline");
 
     private static final Path MANIFEST = Path.of("scripts/local-dependencies.json");
-
-    /** Реестр семантических ролей core: из него берётся, какие типы в baseline не попадают. */
-    private static final Path CORE_ROLE_REGISTRY = Path.of("src/test/resources/platform-core-surface.txt");
 
     /**
      * Артефакты, публикуемые реактором соседнего {@code crudui}. В этом манифесте их нет, потому что
@@ -171,11 +169,12 @@ class PlatformApiBaselineTest {
     /**
      * Временный режим все-публичности — долг, и он обязан быть виден и сокращаться.
      *
-     * <p>Семантическую классификацию прошёл пока только {@code platform-core}. Пока остальные
-     * артефакты зафиксированы целиком (TEMPORARY_ALL_PUBLIC), их реализацию нельзя менять
-     * свободно — это противоречит политике D1, и D3.9 обязан это снять. Тест превращает
-     * «когда-нибудь» в список: он печатает, кто ещё в этом режиме, и падает на новый артефакт,
-     * которого никто не классифицировал.</p>
+     * <p>Семантическую классификацию прошли {@code platform-core} (D3.3) и {@code platform-vaadin}
+     * (роли назначены в D3.5.0 — до физического переноса, поэтому переезд D3.5.4 не зацементировал
+     * текущую поверхность). Остальные артефакты зафиксированы целиком
+     * ({@code TEMPORARY_ALL_PUBLIC}), их реализацию нельзя менять свободно — это противоречит
+     * политике D1, и D3.9 обязан это снять. Тест превращает «когда-нибудь» в список: он печатает,
+     * кто ещё в этом режиме, и падает на новый артефакт, которого никто не классифицировал.</p>
      */
     @Test
     void onlyTheSemanticallyClassifiedArtifactUsesRoleBasedBaseline() {
@@ -191,9 +190,10 @@ class PlatformApiBaselineTest {
             .toList();
 
         assertThat(semantic)
-            .as("артефакт с семантической классификацией пока один — platform-core: у остальных нет"
-                + " реестра ролей, и фиксировать их поверхность по ролям нечем")
-            .isEqualTo(List.of("platform-core"));
+            .as("семантическую классификацию прошли platform-core (D3.3) и platform-vaadin"
+                + " (D3.5.0/D3.5.4: роли назначены до переноса). Новый артефакт без реестра ролей"
+                + " сюда попасть не может — иначе он тихо замерзает целиком, включая реализацию")
+            .isEqualTo(List.of("platform-core", "platform-vaadin"));
         assertThat(temporary)
             .as("долг D3.9: эти артефакты всё ещё заморожены целиком, включая реализацию")
             .isNotEmpty();
@@ -207,7 +207,8 @@ class PlatformApiBaselineTest {
      */
     private static String describe(Artifact artifact) {
         List<String> descriptions = new ArrayList<>();
-        Set<String> excluded = artifact.policy() == Policy.SEMANTIC_ROLES ? internalTypes() : Set.of();
+        Set<String> excluded = artifact.policy() == Policy.SEMANTIC_ROLES
+            ? internalTypes(artifact) : Set.of();
         for (String className : artifactTypeNames(artifact)) {
             if (excluded.contains(className)) {
                 continue;
@@ -248,8 +249,21 @@ class PlatformApiBaselineTest {
         return artifacts;
     }
 
+    /**
+     * Артефакты с семантическим baseline и reviewed-источником ролей.
+     *
+     * <p>{@code platform-vaadin} попал сюда сразу при появлении (D3.5.4), а не после разбора
+     * задним числом: роли 93 типов были приняты до физического переноса (D3.5.0), поэтому
+     * {@code TEMPORARY_ALL_PUBLIC} зафиксировал бы не решение, а согласие с любым текущим
+     * состоянием — ровно тот долг D3.3, который этот шаг должен был не повторить.</p>
+     */
+    private static final Map<String, Path> SEMANTIC_ROLE_REGISTRIES = Map.of(
+        "platform-core", Path.of("src/test/resources/platform-core-surface.txt"),
+        "platform-vaadin", Path.of("src/test/resources/platform-vaadin-surface.txt"));
+
     private static Policy policyFor(String artifactId) {
-        return artifactId.equals("platform-core") ? Policy.SEMANTIC_ROLES : Policy.TEMPORARY_ALL_PUBLIC;
+        return SEMANTIC_ROLE_REGISTRIES.containsKey(artifactId)
+            ? Policy.SEMANTIC_ROLES : Policy.TEMPORARY_ALL_PUBLIC;
     }
 
     private static JsonNode readManifest() {
@@ -271,11 +285,20 @@ class PlatformApiBaselineTest {
         }
     }
 
-    /** Типы core с ролью INTERNAL: их реализация — не контракт, и в signature baseline не входит. */
-    private static Set<String> internalTypes() {
+    /**
+     * Типы артефакта с ролью INTERNAL: их реализация — не контракт, и в signature baseline
+     * не входит. Роли читаются из reviewed-реестра того же артефакта, а не из копии списка
+     * здесь: иначе решение о роли жило бы в двух местах и расходилось бы (ровно так baseline
+     * и превращается в подтверждение текущего состояния).
+     */
+    private static Set<String> internalTypes(Artifact artifact) {
         Set<String> internal = new TreeSet<>();
+        Path registry = SEMANTIC_ROLE_REGISTRIES.get(artifact.artifactId());
+        if (registry == null) {
+            return internal;
+        }
         try {
-            for (String line : Files.readAllLines(CORE_ROLE_REGISTRY, StandardCharsets.UTF_8)) {
+            for (String line : Files.readAllLines(registry, StandardCharsets.UTF_8)) {
                 String trimmed = line.trim();
                 if (trimmed.startsWith("INTERNAL ")) {
                     internal.add(trimmed.substring("INTERNAL ".length()).trim());

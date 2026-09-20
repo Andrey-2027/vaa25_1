@@ -241,12 +241,12 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D2 → D3 third subsystem module: the whole observation subsystem (telemetry API with the neutral SqlStatementAudit/DeclaredNameSource seams, core operations, field audit, journal, security events, SQL inspection, journal entities, repository, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Chosen third by measured dependency closure (empty after the step-8a cycle inversion with RLS); Vaadin adapters stay in the application tree (org.ip.telemetry.vaadin), the module has no UI dependency."
+        "state": "D2 → D3 third subsystem module: the whole observation subsystem (telemetry API with the neutral SqlStatementAudit/DeclaredNameSource seams, core operations, field audit, journal, security events, SQL inspection, journal entities, repository, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Chosen third by measured dependency closure (empty after the step-8a cycle inversion with RLS). D3.5.4 moved the Vaadin adapters out of the application tree into platform-vaadin (org.ipro.vaadin.telemetry): an application package inside a platform artifact broke the boundary, and because the move kept the dependency one-way the module still has no UI dependency - UI writes into observation, never the other way. D3.5.6 gave the static bridge an owner. Until then the sink was installed from three places into one static cell (the two sink bean methods and the UI listener's constructor) and was never removed, so closing a context left the bridge pointing at a closed AsyncEventSink, the UI artifact was a precondition for the observation subsystem to work at all, and an application-defined EventSink produced two beans of the same type because the async sink lacked @ConditionalOnMissingBean - by-type injection either failed or quietly picked a receiver the bridge was not looking at. Sink and owner now live in a package-private member configuration, which keeps them under the subsystem's own ipro.telemetry.enabled gate (a separate configuration file would keep running with telemetry switched off), the owner installs the resolved sink and releases it with compare-and-clear on destroy (a blanket clear would disarm a neighbouring context in the same JVM), and bean creation no longer touches the bridge."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "fadf6730544fea0b284570e49ec48bf23e6c0f818df1f6438ef9ae6557b15aa3",
-        "fileCount": 70,
+        "sha256": "bb1cfd8fab896972515f104335b0a352693afd6358047c811817a37ec4b816cb",
+        "fileCount": 71,
         "inputs": [
           "pom.xml",
           "src"
@@ -344,12 +344,12 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D3.3 backend platform module: 94 types of generic CRUD/data/metadata/search/fetch/filter, no Vaadin, no org.ip. The first group could not be smaller than crud+data+fetch+metadata because those four packages reference each other (MetadataResolver -> crud.Standard*Entity, SectionMetadataRegistry -> crud.TableSectionService, and back), and a package cannot be moved partially: the same package in two artifacts is a split package. search and filter followed because nothing in the cycle references them. dependsOn carries real edges: crudui for the two neutral leaf contracts (platform-identity-api, platform-crud-api - the same artifacts the UI library consumes, which is why platform-core does not declare crudui-core), filtergrid for the condition tree and grouping providers, and the seven platform modules listed. It is installed with tests enabled: its composition gate lives in the module. That is deliberately not yet true for platform-metadata/numbering/settings/telemetry/rls, which still build with -DskipTests because no owner-side tests have been moved to them."
+        "state": "D3.3 backend platform module: 94 types of generic CRUD/data/metadata/search/fetch/filter, no Vaadin, no org.ip. The first group could not be smaller than crud+data+fetch+metadata because those four packages reference each other (MetadataResolver -> crud.Standard*Entity, SectionMetadataRegistry -> crud.TableSectionService, and back), and a package cannot be moved partially: the same package in two artifacts is a split package. search and filter followed because nothing in the cycle references them. dependsOn carries real edges: crudui for the two neutral leaf contracts (platform-identity-api, platform-crud-api - the same artifacts the UI library consumes, which is why platform-core does not declare crudui-core), filtergrid for the condition tree and grouping providers, and the seven platform modules listed. It is installed with tests enabled: its composition gate lives in the module. That is deliberately not yet true for platform-metadata/numbering/settings/telemetry/rls, which still build with -DskipTests because no owner-side tests have been moved to them; platform-telemetry and platform-vaadin, by contrast, install with tests enabled and keep their composition gates in the module. D3.5.5: EntityCopyService keeps its role in this contract but lost the @Component stereotype - the bean is now declared by platform-spring-boot-autoconfigure. Registering a core service from the UI artifact made the contract undeliverable to consumers without UI, and dropping the UI layer silently removed it from the core surface."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "4fcd248af0eefa3db7227f7028c336eedcf293ac1ada0df372667695cf2a5645",
-        "fileCount": 119,
+        "sha256": "39827f59b5992e29e5a7714a1288fb50761b9afed11087685e1709a7db387538",
+        "fileCount": 120,
         "inputs": [
           "pom.xml",
           "src"
@@ -372,11 +372,11 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D3.4 wiring module: the five backend auto-configurations (metadata, CRUD, data access, fetch/instance-name, global search core) moved here from the application tree together with their own AutoConfiguration.imports, so the application tree no longer registers platform backend wiring. Domain types stay in platform-core; this artifact only declares beans, conditions and PlatformProperties (the typed platform.subsystem-scan-package binding, fail-fast without a default). dependsOn carries the exact compile imports: platform-core (domain types of all five configs), platform-contracts (EntityLifecycle in EventContourStartupCheck signature), platform-events (publisher and lifecycle registry), platform-numbering and platform-rls (service types and the auto-configurations referenced by @AutoConfigureAfter). It installs with tests enabled: every configuration has an ApplicationContextRunner test in the module."
+        "state": "D3.4 wiring module: the five backend auto-configurations (metadata, CRUD, data access, fetch/instance-name, global search core) moved here from the application tree together with their own AutoConfiguration.imports, so the application tree no longer registers platform backend wiring. Domain types stay in platform-core; this artifact only declares beans, conditions and PlatformProperties (the typed platform.subsystem-scan-package binding, fail-fast without a default). dependsOn carries the exact compile imports: platform-core (domain types of all five configs), platform-contracts (EntityLifecycle in EventContourStartupCheck signature), platform-events (publisher and lifecycle registry), platform-numbering and platform-rls (service types and the auto-configurations referenced by @AutoConfigureAfter). It installs with tests enabled: every configuration has an ApplicationContextRunner test in the module. D3.5.5: this module now also owns the EntityCopyService bean, which used to come from the form layer's @Import inside the UI artifact."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "f8a4035e4aed6b66731978bd121c01370c0f7c055ec5b227b715e1ac11f21f8d",
+        "sha256": "fd4f56e97d26930124f00602337a6d279823e499d1882067aef4553d31bcf89b",
         "fileCount": 15,
         "inputs": [
           "pom.xml",
@@ -385,6 +385,34 @@
       },
       "artifacts": [
         "org.ipro:platform-spring-boot-autoconfigure:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-vaadin",
+      "relativePath": "platform-vaadin",
+      "dependsOn": ["crudui", "filtergrid", "platform-core", "platform-events", "platform-metadata", "platform-numbering", "platform-rls", "platform-spring-boot-autoconfigure", "platform-telemetry"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.5.4 UI platform module: the 93 types of the form/vaadin/telemetry-vaadin layer left the application tree. FQNs were preserved except the three telemetry adapters, which moved to org.ipro.vaadin.telemetry - an application package inside a platform artifact would have broken the boundary that PlatformArchitectureTest and PlatformCoreBoundaryTest hold. Semantic roles were assigned before the move (platform-vaadin-surface.txt, D3.5.0), so the artifact publishes a reviewed surface from day one; that is the difference from the D3.3 move, whose TEMPORARY_ALL_PUBLIC baseline had to be taken apart afterwards. dependsOn carries the real pom edges: platform-core (form/metadata/crud/data/search types), platform-metadata (AnnotationClassScanner, ReferenceIndex - the only two metadata types that live outside platform-core), platform-events (EventSource), platform-numbering, platform-rls (RlsUiGate), platform-telemetry (EventSink/TelemetryBridge/FieldAuditBridge for the Vaadin adapter), platform-spring-boot-autoconfigure (PlatformProperties plus the @AutoConfigureAfter order this module's configurations declare), filtergrid (core/grouping/jpa - FilterGrid, condition tree, grouping, JpaFilterGrid) and crudui (the neutral leaf contract platform-identity-api). Registration moved with the code: the three platform configurations were listed by the application's imports file and the telemetry adapter was only reachable through the component scan of package org.ip, so without the module's own AutoConfiguration.imports the UI subsystem would silently disappear rather than fail. Vaadin is declared with scope provided (the crudui-core precedent): the module does not push the UI stack onto its consumers. It is installed with tests enabled - VaadinModuleCompositionTest (composition, declared dependencies, forbidden app/report references) lives in the module, while PlatformVaadinModuleTest in the application checks that no type copy is left in the tree, that classes really come from the artifact, and that the telemetry module stays free of Vaadin. D3.5.5: FormAutoConfiguration no longer @Imports concrete classes - every bean is an explicit @Bean, with @ConditionalOnMissingBean only where replacement is meaningful (form assembly, field factory, form resolver, navigation) and fail-fast elsewhere (access gate, section factory, command and customization registries that aggregate application contributions). Scope annotations moved onto the factory methods, where the container actually reads them. Before the change a user bean of the same type coexisted with the imported definition - verified by experiment - so by-type injection was ambiguous and the promised replacement did not happen. D3.5.6: the telemetry adapter stopped owning the static bridge - the listener's constructor installed the EventSink, which made this artifact a precondition for the observation subsystem and made lifecycle a side effect of bean creation; that is now the subsystem's own concern and the listener only handles UI errors. The adapter also became a real auto-configuration with declared applicability (@ConditionalOnClass(VaadinService), since Vaadin is provided here; @ConditionalOnBean(EventSink); @AutoConfigureAfter(TelemetryAutoConfiguration)), because a conditional-on-bean is evaluated when a configuration is applied, and the previous order held only by FQN alphabet across an artifact boundary - a silent way to lose UI error handling. Duplicate suppression in the session error-handler chain compares by type: identity could never match a handler that is created per session, so re-initialising a session doubled every UI error record, and the chain's transient fields dropped the application's own handler on failover and left the bridge-less session with no error handling at all."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "553b3edd11e4a4027b108f9124a1ecf84869fcc5aec801b96d95b0461259920e",
+        "fileCount": 138,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-vaadin:1.0-SNAPSHOT"
       ],
       "buildSteps": [
         {

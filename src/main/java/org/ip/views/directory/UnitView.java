@@ -4,7 +4,7 @@ import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.SortDirection;
 import org.ipro.form.builtin.ListForm;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ip.model.Nomenclature;
 import org.ipro.crud.AbstractCrudView;
 import org.ipro.crud.EditMode;
@@ -18,13 +18,13 @@ import java.util.List;
 
 public class UnitView extends VerticalLayout {
 
-    public UnitView(FormCoordinator coordinator) {
+    public UnitView(FormNavigator navigator) {
         setSizeFull();
         setPadding(false);
         setSpacing(false);
 
         // Создаём ListForm через координатор
-        ListForm<UnitOfMeasurement, Long> listForm = coordinator.createListForm(UnitOfMeasurement.class);
+        ListForm<UnitOfMeasurement, Long> listForm = navigator.createListForm(UnitOfMeasurement.class);
 
         FilterGrid<UnitOfMeasurement> filterGrid = listForm.getFilterGrid();
         //filterGrid.getGrid().getColumnByKey("shortCode").getSortOrder(SortDirection.ASCENDING);

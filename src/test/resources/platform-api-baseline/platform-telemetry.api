@@ -222,6 +222,7 @@ class public final org.ipro.telemetry.core.TelemetryBridge
   method public static org.ipro.telemetry.api.EventSink getSink()
   method public static org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String)
   method public static org.ipro.telemetry.api.OperationScope beginOperation(java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
+  method public static void clearSink(org.ipro.telemetry.api.EventSink)
   method public static void set(org.ipro.telemetry.api.Telemetry)
   method public static void setSink(org.ipro.telemetry.api.EventSink)
 
@@ -277,8 +278,6 @@ class public org.ipro.telemetry.config.TelemetryAutoConfiguration
   annotation org.springframework.data.jpa.repository.config.EnableJpaRepositories
   annotation org.springframework.scheduling.annotation.EnableScheduling
   ctor public(org.ipro.telemetry.config.TelemetryProperties)
-  method public org.ipro.telemetry.api.EventSink noopTelemetryEventSink()
-  method public org.ipro.telemetry.api.EventSink telemetryEventSink(org.springframework.jdbc.core.JdbcTemplate, org.springframework.transaction.PlatformTransactionManager)
   method public org.ipro.telemetry.api.Telemetry telemetryService(org.ipro.telemetry.core.OperationContext)
   method public org.ipro.telemetry.api.TraceService traceService(org.springframework.jdbc.core.JdbcTemplate)
   method public org.ipro.telemetry.api.UserContext telemetryUserContext()

@@ -75,6 +75,17 @@ public class Branch extends BaseEntity implements HasDisplayName {
     }
 
     /**
+     * Стабильный строковый токен ссылки (D3.5.2b): редактор условий отбора FilterGrid сохраняет
+     * значение ссылочного поля через {@code toString()}, поэтому без него наследуется
+     * {@code Object.toString()} («org.ip.model.Branch@1a2b3c») и сохранённое условие перестаёт
+     * разрешаться после перезапуска JVM.
+     */
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    /**
      * Branch сам является измерением "BRANCH" — значение проверки = собственный id.
      * id == null (до insert) — пройдёт только у обладателя wildcard-гранта (см. Journal —
      * то же осознанное правило "новые справочники измерений создаёт только полный доступ").

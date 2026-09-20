@@ -65,4 +65,15 @@ public class Oper extends BaseEntity implements HasDisplayName {
     public String getDisplayName() {
         return code + " " + name;
     }
+
+    /**
+     * Стабильный строковый токен ссылки (D3.5.2b): редактор условий отбора FilterGrid сохраняет
+     * значение ссылочного поля через {@code toString()}, поэтому без него наследуется
+     * {@code Object.toString()} («org.ip.model.Oper@1a2b3c») и сохранённое условие перестаёт
+     * разрешаться после перезапуска JVM.
+     */
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
 }

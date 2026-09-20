@@ -75,8 +75,9 @@ class PlatformPublicSurfaceTest {
      * обязан быть виден приложению.
      */
     /** Снятые по фазам ссылки: CurrentUser (4 файла) и JpaGlobalSearchProvider (1) — до D3.4,
-     *  LookupService/ServiceLocator — D3.5, report-типы — D3.7. */
-    private static final int LEGACY_INTERNAL_BUDGET = 72;
+     *  LookupService (16) и ServiceLocator (4) — D3.5, роль которых не сходилась с употреблением
+     *  (ItemTable, ListForm и три типа explorer'а с вложенными) — D3.5.7, report-типы — D3.7. */
+    private static final int LEGACY_INTERNAL_BUDGET = 60;
 
     private static final Pattern IMPORT = Pattern.compile("^import\\s+(org\\.ipro\\.[A-Za-z0-9_.]+);", Pattern.MULTILINE);
 
@@ -409,6 +410,16 @@ class PlatformPublicSurfaceTest {
      * Фактические ссылки на внутренние типы: файл называется «называет тип», если имя типа
      * встречается в нём как отдельное слово. Критерий по имени, а не по импорту, намеренно:
      * fully-qualified ссылка в коде — такая же ссылка, а импорт можно и не писать.
+     *
+     * <p><b>Почему без комментариев и литералов (D3.5.7).</b> Здесь читался сырой текст, и
+     * упоминание типа в javadoc считалось употреблением: из четырёх замороженных файлов
+     * {@code ItemTable} два ({@code model/ReceivingDocument}, {@code views/document/ReceivingDocumentView})
+     * называли его только в комментарии. Забор при этом требовал держать их в списке, то есть
+     * фиксировал долг там, где его нет, а снятие комментария ломало сборку как «снятая ссылка».
+     * Теперь критерий тот же, что и у {@link #namedPlatformTypes()}: одно измерение — одно
+     * правило. Строковые литералы снимаются вместе с комментариями не по недосмотру: тип,
+     * названный строкой, виден по classpath и потому уже попадает в реестр отдельной проверкой
+     * ({@code PlatformStringDependencyTest} — про обратное направление).
      */
     private static Map<String, Set<String>> actualInternalUsages(Registry registry) {
         Map<String, Set<String>> usages = new TreeMap<>();
@@ -418,7 +429,7 @@ class PlatformPublicSurfaceTest {
             Pattern reference = Pattern.compile("\\b" + Pattern.quote(simpleName) + "\\b");
             Set<String> files = new TreeSet<>();
             for (Path source : sources) {
-                if (reference.matcher(read(source)).find()) {
+                if (reference.matcher(withoutCommentsAndLiterals(read(source))).find()) {
                     files.add(APP_MAIN_SOURCES.relativize(source).toString().replace('\\', '/'));
                 }
             }

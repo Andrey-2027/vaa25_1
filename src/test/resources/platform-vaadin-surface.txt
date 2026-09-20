@@ -4,7 +4,9 @@
 # Роли (ровно одна на production-тип): APP_API | APP_SPI | MODULE_API | INTERNAL
 #   APP_API    — поддерживаемый API приложения: приложение называет тип, платформа не наследует.
 #   APP_SPI    — приложение реализует или расширяет тип; платформа вызывает обратно.
-#   MODULE_API — контракт между platform-модулями: wiring модуля и будущий report-модуль.
+#   MODULE_API — контракт между platform-модулями (wiring модуля и будущий report-модуль),
+#                а также тип, публично видимый через сигнатуру API приложения: приложение его
+#                не называет сам, но менять его свободно уже нельзя (D3.5.8).
 #   INTERNAL   — реализация без compatibility promise: менять и удалять можно свободно.
 #
 # Зачем реестр появился до самого модуля. Порядок «сначала перенести 83 public-класса, потом
@@ -13,13 +15,29 @@
 # назначаются до физического переноса, поэтому переезд не зацементирует текущую поверхность.
 #
 # Замер до изменений (D3.5.0): 90 production-типов — `org.ipro.form` 80, `org.ipro.vaadin` 7,
-# `org.ip.telemetry.vaadin` 3. D3.5.1: +`org.ipro.form.coordinator.FormNavigator` (APP_API) —
-# 91 тип. D3.5.2: +`org.ipro.form.LookupComboHelper` (INTERNAL, общий lazy-хелпер фильтров) —
-# 92 типа. Бюджет ролей: APP_API 29, APP_SPI 12, MODULE_API 0, INTERNAL 51.
+# `org.ip.telemetry.vaadin` 3. D3.5.4 (физический перенос): три telemetry-типа переехали
+# в модуль со сменой пакета — `org.ip.telemetry.vaadin` → `org.ipro.vaadin.telemetry`
+# (пакет приложения в платформенном артефакте — нарушение границы, а не деталь адресации);
+# FQN в реестре обновлены, роли и бюджеты не изменились.
+# D3.5.1: +`org.ipro.form.coordinator.FormNavigator` (APP_API) —
+# 91 тип. D3.5.2: +`org.ipro.form.LookupComboHelper` — 92 типа. D3.5.2b: +`org.ipro.form.FilterLookupOptions`
+# (INTERNAL) — 93 типа. D3.5.3: `LookupComboHelper`
+# повышен с INTERNAL до APP_API — прикладные конфиги полей намеренно используют его лимиты и
+# autocomplete-хелпер, а INTERNAL-роль противоречила употреблению. Число типов не меняется,
+# бюджет — меняется.
+# D3.5.8: API closure измерен впервые — 14 из 42 типов APP_API/APP_SPI отдавали наружу
+# INTERNAL-тип (24 публичных члена, 12 различных типов: словарь DSL и wiring формы). Роли
+# приведены в соответствие с сигнатурами: эти 12 типов переведены INTERNAL -> MODULE_API,
+# потому что приложение их не называет (в D1-реестре ни одной такой строки, в `src/main`
+# приложения — ноль ссылок), но и свободными к изменению они уже не являются: прикладные
+# конфиги передают в них лямбды, то есть компилируются против этих сигнатур.
+# Бюджет ролей: APP_API 30, APP_SPI 12, MODULE_API 12, INTERNAL 39.
 #
-# Забор — `PlatformVaadinSurfaceTest` в дереве приложения (до появления модуля): каждый
-# production-тип этих трёх корней обязан иметь ровно одну роль, лишняя запись так же ломает
-# сборку, как пропавшая. Полнота проверяется, а не подразумевается.
+# Забор — `PlatformVaadinSurfaceTest` в дереве приложения: каждый production-тип модуля
+# `platform-vaadin` обязан иметь ровно одну роль, лишняя запись так же ломает сборку, как
+# пропавшая. Полнота проверяется, а не подразумевается. До D3.5.4 забор смотрел на три
+# каталога-кандидата в дереве, после переноса — на исходники самого модуля; состав проверяется
+# в обе стороны третьим забором — `PlatformVaadinModuleTest` (копий типов в дереве нет).
 #
 # Роли — reviewed-решение, а не вывод теста: если бы список строил сам тест, проверялось бы то же
 # правило, которым он построен. Черновик воспроизводится скриптом
@@ -33,6 +51,10 @@
 #   4. Остальные -> INTERNAL.
 #   5. Public nested type наследует роль owner-типа, если для него нет отдельной записи.
 #   6. Каждый новый production-тип обязан получить роль сразу — полнота проверяется тестом.
+#   7. D3.5.8: тип, стоящий в публичной сигнатуре типа с ролью APP_API/APP_SPI, не может быть
+#      INTERNAL — он получает MODULE_API (или APP_API, если его называет приложение). «INTERNAL
+#      можно менять свободно» в этой позиции означало бы скрытую ломку совместимости для тех,
+#      кто уже скомпилирован против сигнатуры.
 #
 # Явные решения (механически не выводятся):
 #
@@ -56,26 +78,37 @@
 #     верно, практически — запрет пользоваться штатной формой списка. Узкий view-контракт
 #     для list-форм — предмет D3.6, а не повод не назначать роль сейчас.
 #
+#   * LookupComboHelper -> APP_API. Прикладные конфиги полей (`UserFormConfig`,
+#     `NomenclatureItemFormConfig`) намеренно берут его `DICTIONARY_LIMIT` и lazy-автокомплит:
+#     INTERNAL сделал бы их зависимыми от незаявленного контракта, а дублирование лимита
+#     литералом в приложении разъехалось бы при первом изменении политики загрузки.
+#
 #   * Explorer DTO и assemblers -> APP_API. `EntitySummary`/`EntitySummaryAssembler`/
 #     `SubsystemSummaryAssembler` читаются прикладными views (`EntityExplorerView`,
 #     `SubsystemStructureView`, `EntitySummaryPanel`, `JpqlRunService`). План D3.5 (D3.5.4)
 #     переносит весь `org.ipro.vaadin` в модуль, поэтому «оставить в дереве» не вариант:
 #     DTO обязан получить роль, и это роль API — приложение их только читает.
 #
-#   * MODULE_API пуст. Это измеренный факт, а не недосмотр: сегодня ни один из
-#     platform-модулей (`platform-*`) не называет тип из этих трёх корней. Единственный
-#     внешний потребитель будущего модуля — Report (`org.ipro.form.EntityField`,
-#     `org.ipro.form.SelectionFormAssembler`), и оба типа уже APP_API, поэтому отдельной
-#     роли не требуют. Если D3.7 выделит report-core и ему понадобится платформенный тип,
-#     которого нет в APP поверхностях, запись появится здесь и будет видна в диффе.
+#   * MODULE_API был пуст до D3.5.8 — и это тоже был измеренный факт, а не недосмотр: ни один
+#     platform-модуль не называл тип из этих трёх корней, а Report пользовался `EntityField` и
+#     `SelectionFormAssembler`, которые уже APP_API. D3.5.8 добавил второе основание для роли:
+#     тип, публично видимый через сигнатуру APP_API/APP_SPI (правило 7). Список в разделе —
+#     результат замера, а не вкуса: 14 типов-владельцев отдают наружу 12 различных
+#     INTERNAL-типов. В MODULE_API, а не APP_API, они переведены по факту употребления:
+#     приложение их не называет, но прикладные конфиги передают в них лямбды и потому
+#     компилируются против этих сигнатур. Граница честная: это поверхность модуля, а не
+#     приглашение приложению её называть. Если D3.7 выделит report-core и ему понадобится
+#     платформенный тип, которого нет в APP поверхностях, запись появится здесь и будет видна
+#     в диффе.
 
-# ---- APP_API (29)
+# ---- APP_API (30)
 APP_API org.ipro.form.BindingDescriptor
 APP_API org.ipro.form.EntityField
 APP_API org.ipro.form.FieldFactory
 APP_API org.ipro.form.FormSaveResult
 APP_API org.ipro.form.ItemFormSaveHandler
 APP_API org.ipro.form.ItemFormSaveHandlerRegistry
+APP_API org.ipro.form.LookupComboHelper
 APP_API org.ipro.form.MetadataDrivenItemFormSaveAdapter
 APP_API org.ipro.form.SearchFunction
 APP_API org.ipro.form.SelectionForm
@@ -114,36 +147,40 @@ APP_SPI org.ipro.form.spi.GridViewStore
 APP_SPI org.ipro.form.spi.ListFormToolbarContributor
 APP_SPI org.ipro.form.spi.WorkspaceGateway
 
-# ---- MODULE_API (0)
-# Пусто намеренно: измеренный факт, причина — в разделе явных решений выше.
+# ---- MODULE_API (12)
+# D3.5.8: типы, публично видимые через сигнатуры APP_API/APP_SPI (правило 7). Приложение их
+# не называет — поэтому не APP_API; но менять их свободно уже нельзя — поэтому не INTERNAL.
+MODULE_API org.ipro.form.FormBindingRegistry
+MODULE_API org.ipro.form.SectionPayload
+MODULE_API org.ipro.form.SelectionFormFactory
+MODULE_API org.ipro.form.SelectionGridCustomizer
+MODULE_API org.ipro.form.builder.ContextFilterControl
+MODULE_API org.ipro.form.builder.ItemFormCustomizer
+MODULE_API org.ipro.form.builder.ListFormCustomizer
+MODULE_API org.ipro.form.builder.layout.LayoutNode
+MODULE_API org.ipro.form.registry.FormFactory
+MODULE_API org.ipro.form.registry.FormRegistry
+MODULE_API org.ipro.form.registry.FormResolver
+MODULE_API org.ipro.vaadin.search.GlobalSearchNavigationAdapter
 
-# ---- INTERNAL (51)
-# ---- INTERNAL (51)
-INTERNAL org.ip.telemetry.vaadin.TelemetryErrorHandler
-INTERNAL org.ip.telemetry.vaadin.TelemetryVaadinConfiguration
-INTERNAL org.ip.telemetry.vaadin.TelemetryVaadinInitListener
+# ---- INTERNAL (39)
+INTERNAL org.ipro.vaadin.telemetry.TelemetryErrorHandler
+INTERNAL org.ipro.vaadin.telemetry.TelemetryVaadinConfiguration
+INTERNAL org.ipro.vaadin.telemetry.TelemetryVaadinInitListener
 INTERNAL org.ipro.form.FieldRenderer
 INTERNAL org.ipro.form.FilterGridMoreMenu
+INTERNAL org.ipro.form.FilterLookupOptions
 INTERNAL org.ipro.form.FormBinding
-INTERNAL org.ipro.form.FormBindingRegistry
-INTERNAL org.ipro.form.LookupComboHelper
-INTERNAL org.ipro.form.SectionPayload
 INTERNAL org.ipro.form.SectionPresence
-INTERNAL org.ipro.form.SelectionFormFactory
-INTERNAL org.ipro.form.SelectionGridCustomizer
 INTERNAL org.ipro.form.TableSectionFactory
-INTERNAL org.ipro.form.builder.ContextFilterControl
 INTERNAL org.ipro.form.builder.ContextFilterPanel
 INTERNAL org.ipro.form.builder.ItemFormCustomizationRegistrar
-INTERNAL org.ipro.form.builder.ItemFormCustomizer
 INTERNAL org.ipro.form.builder.ListFormCustomizationRegistrar
-INTERNAL org.ipro.form.builder.ListFormCustomizer
 INTERNAL org.ipro.form.builder.SelectionColumnResolver
 INTERNAL org.ipro.form.builder.SelectionContextFilters
 INTERNAL org.ipro.form.builder.SelectionFormCustomization
 INTERNAL org.ipro.form.builder.SelectionFormCustomizationRegistrar
 INTERNAL org.ipro.form.builder.SelectionFormVariants
-INTERNAL org.ipro.form.builder.layout.LayoutNode
 INTERNAL org.ipro.form.builder.layout.PanelNode
 INTERNAL org.ipro.form.builder.layout.TabDefinition
 INTERNAL org.ipro.form.builder.layout.TabSheetNode
@@ -159,15 +196,54 @@ INTERNAL org.ipro.form.coordinator.FormOpenMode
 INTERNAL org.ipro.form.coordinator.ItemFormAccessBinder
 INTERNAL org.ipro.form.coordinator.ItemFormWrapperView
 INTERNAL org.ipro.form.coordinator.ListFormWrapper
-INTERNAL org.ipro.form.registry.FormFactory
 INTERNAL org.ipro.form.registry.FormKey
-INTERNAL org.ipro.form.registry.FormRegistry
 INTERNAL org.ipro.form.registry.FormRegistryConfiguration
-INTERNAL org.ipro.form.registry.FormResolver
 INTERNAL org.ipro.form.registry.ListCommandRegistry
 INTERNAL org.ipro.form.registry.SelectionColumnsDef
 INTERNAL org.ipro.form.registry.SelectionFilter
 INTERNAL org.ipro.vaadin.explorer.config.EntityExplorerAutoConfiguration
-INTERNAL org.ipro.vaadin.search.GlobalSearchNavigationAdapter
 INTERNAL org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration
+
+# ---- test-usage overlay (17)
+# D3.5.8: ссылки тестов приложения на не-API типы модуля. Формат: test-usage <fqn> <файлы тестов>.
+# Запись фиксирует точный набор файлов, поэтому новая ссылка ломает сборку, а снятая обязана
+# исчезнуть из реестра: overlay только сокращается. Роль типа ортогональна — overlay не делает
+# тип API и не заменяет решение о роли.
+#
+# Общий смысл записей: тест проверяет поведение, которого пока нет на публичной поверхности —
+# wiring, scope и регистрацию контейнера, либо сборку формы вручную. Снимается такая ссылка не
+# переписыванием движка, а появлением узкого публичного шва (D3.6/D3.8).
+#
+# FieldRenderer: пилот instance-name проверяет рендер ссылки вызовом renderer'а напрямую.
+test-usage org.ipro.form.FieldRenderer org/ipro/fetch/instance/InstanceNamePilotIT.java
+# TableSectionFactory: startup-валидация секций проверяется на реальной метаданных приложения.
+test-usage org.ipro.form.TableSectionFactory org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java
+# SelectionColumnResolver: архитектурный забор ссылается на тип в правиле ArchUnit.
+test-usage org.ipro.form.builder.SelectionColumnResolver org/ipro/FormAssemblyPurityTest.java
+# RowDraft снят из overlay в самом D3.5.8: тест переехал из пакета модуля в org.ip.form.builtin и
+# перестал обращаться к package-private типу. Запись снята вместе со ссылкой — overlay только
+# сокращается.
+# FormAutoConfiguration / FormCoordinator / FormOpenMode / ItemFormAccessBinder /
+# ItemFormWrapperView / ListFormWrapper: тесты проверяют, что конфигурация создаёт бины с нужным
+# scope и что навигация не течёт из UI (D3.5.3/D3.5.5). Это предмет узкого публичного шва, а не
+# вечной ссылки на реализацию.
+test-usage org.ipro.form.config.FormAutoConfiguration org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ipro/PlatformVaadinModuleTest.java
+test-usage org.ipro.form.coordinator.FormCoordinator org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorScopeGuardTest.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ipro/PlatformVaadinModuleTest.java
+test-usage org.ipro.form.coordinator.FormOpenMode org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java
+test-usage org.ipro.form.coordinator.ItemFormAccessBinder org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java
+test-usage org.ipro.form.coordinator.ItemFormWrapperView org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorScopeGuardTest.java
+test-usage org.ipro.form.coordinator.ListFormWrapper org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java
+# FormFactory / FormRegistry / FormResolver / SelectionColumnsDef / ListCommandRegistry: тесты
+# собирают реестр и резолвер вручную — прикладные конфиги и варианты формы без этого не
+# проверить. Снятие = проверка тех же свойств через собранную форму.
+test-usage org.ipro.form.registry.FormFactory org/ip/form/FormRegistryEnumVariantTest.java
+test-usage org.ipro.form.registry.FormRegistry org/ip/form/FormRegistryEnumVariantTest.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/SubsystemSummaryAssemblerTest.java org/ipro/FormAssemblyPurityTest.java org/ipro/PlatformVaadinModuleTest.java org/ipro/PlatformVaadinWiringIT.java
+test-usage org.ipro.form.registry.FormResolver org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/PrdSpecSectionCompositionTest.java org/ipro/FormAssemblyPurityTest.java
+test-usage org.ipro.form.registry.ListCommandRegistry org/ip/form/registry/ListCommandRegistryTest.java
+test-usage org.ipro.form.registry.SelectionColumnsDef org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java
+# GlobalSearchNavigationAdapter / TelemetryErrorHandler / TelemetryVaadinInitListener: проверяется,
+# что бин создан и приходит из артефакта (PlatformVaadinWiringIT), а не что приложение знает тип.
+test-usage org.ipro.vaadin.search.GlobalSearchNavigationAdapter org/ip/vaadin/search/GlobalSearchNavigationAdapterTest.java org/ipro/PlatformVaadinModuleTest.java org/ipro/PlatformVaadinWiringIT.java
+test-usage org.ipro.vaadin.telemetry.TelemetryErrorHandler org/ipro/PlatformVaadinModuleTest.java
+test-usage org.ipro.vaadin.telemetry.TelemetryVaadinInitListener org/ipro/PlatformVaadinWiringIT.java
 

@@ -12,8 +12,8 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinServletRequest;
+import com.vaadin.flow.spring.annotation.SpringComponent;
 import jakarta.annotation.security.PermitAll;
-import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.vaadin.search.GlobalSearchHeader;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.metadata.SubsystemRegistry;
@@ -27,34 +27,48 @@ import org.ip.views.preferences.UserPreferencesStore;
 import org.ip.views.forms.WorkshopForm;
 import org.ip.views.workspace.SubsystemHomeView;
 import org.ip.views.workspace.Workspace;
-import org.ip.views.workspace.WorkspaceManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
+/**
+ * Корневой layout приложения: шапка, боковое меню и рабочая область с вкладками.
+ *
+ * <p>D3.5.3-fix: scope объявлен явно — {@code prototype}, а не «как получится». Раньше класса не
+ * было среди бинов, и Vaadin создавал его через {@code AutowireCapableBeanFactory.createBean};
+ * «пер-навигация» была следствием фолбэка инстанциатора, а не контрактом. Достаточно было
+ * добавить {@code @SpringComponent} (как у остальных вьюх), чтобы layout молча стал синглтоном и
+ * захватил UI-scoped {@code WorkspaceManager} первого UI. Забор
+ * {@code FormCoordinatorScopeGuardTest} видит этот класс как бин и падает на такой правке.</p>
+ *
+ * <p>Навигационный контракт здесь больше не внедряется: он был не нужен — все переходы идут
+ * через {@code Workspace}, а навигацию открывает тот, кто владеет своим UI. Сама
+ * {@code Workspace} — UI-scoped бин (D3.5.3-fix), а не объект, созданный вручную: вкладки
+ * принадлежат UI, и передавать их куда-либо через сеттеры больше не нужно.</p>
+ */
 @Route("")
 @PageTitle("Vaa25_1")
 @PermitAll
+@SpringComponent
+@Scope("prototype")
 public class MainLayout extends AppLayout {
 
     private final Workspace workspace;
     private final SubsystemRegistry subsystemRegistry;
-    private final FormCoordinator coordinator;
     private final UserPreferencesStore preferencesStore;
     private final GlobalSearchHeader globalSearchHeader;
 
     @Autowired
-    public MainLayout(WorkspaceManager workspaceManager,
+    public MainLayout(Workspace workspace,
                       SubsystemRegistry subsystemRegistry,
-                      FormCoordinator coordinator,
                       UserPreferencesStore preferencesStore,
                       GlobalSearchHeader globalSearchHeader) {
         this.subsystemRegistry = subsystemRegistry;
-        this.coordinator = coordinator;
         this.preferencesStore = preferencesStore;
         this.globalSearchHeader = globalSearchHeader;
-        workspace = new Workspace(workspaceManager);
+        this.workspace = workspace;
         setContent(workspace);
         createHeader();
         createDrawer();
@@ -116,14 +130,14 @@ public class MainLayout extends AppLayout {
             explorerItem.setPrefixComponent(new Icon(VaadinIcon.SITEMAP));
             explorerItem.getElement().addEventListener("click", e ->
                     workspace.open(EntityExplorerView.class, "entity-explorer",
-                            "Структура сущностей", v -> v.init(workspace)));
+                            "Структура сущностей", v -> v.init()));
             nav.addItem(explorerItem);
 
             SideNavItem subsystemItem = new SideNavItem("Структура подсистем");
             subsystemItem.setPrefixComponent(new Icon(VaadinIcon.FILE_TREE));
             subsystemItem.getElement().addEventListener("click", e ->
                     workspace.open(SubsystemStructureView.class, "subsystem-structure",
-                            "Структура подсистем", v -> v.init(workspace)));
+                            "Структура подсистем", v -> v.init()));
             nav.addItem(subsystemItem);
         }
 
@@ -171,7 +185,7 @@ public class MainLayout extends AppLayout {
     private void openSubsystem(SubsystemNode node) {
         String tabId = "subsystem-" + node.getMarkerClass().getSimpleName();
         workspace.open(SubsystemHomeView.class, tabId, node.getTitle(),
-            (SubsystemHomeView v) -> v.init(node, workspace));
+            (SubsystemHomeView v) -> v.init(node));
     }
 
     private static boolean isAdmin() {

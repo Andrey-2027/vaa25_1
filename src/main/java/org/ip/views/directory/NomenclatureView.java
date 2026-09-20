@@ -1,12 +1,9 @@
 package org.ip.views.directory;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
 import org.ipro.form.builtin.ListForm;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ip.model.Nomenclature;
-import org.ip.views.MainLayout;
 
 /**
  * Представление списка номенклатуры.
@@ -14,13 +11,13 @@ import org.ip.views.MainLayout;
  */
 public class NomenclatureView extends VerticalLayout {
 
-    public NomenclatureView(FormCoordinator coordinator) {
+    public NomenclatureView(FormNavigator navigator) {
         setSizeFull();
         setPadding(false);
         setSpacing(false);
 
         // Создаём ListForm через координатор
-        ListForm<Nomenclature, Long> listForm = coordinator.createListForm(Nomenclature.class);
+        ListForm<Nomenclature, Long> listForm = navigator.createListForm(Nomenclature.class);
 
         add(listForm);
     }

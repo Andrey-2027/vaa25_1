@@ -259,7 +259,6 @@ class public final org.ipro.search.GlobalSearchProviderRegistry
   method public org.ipro.search.GlobalSearchProvider<T> providerOf(org.ipro.search.GlobalSearchSource)
 
 class public org.ipro.crud.EntityCopyService
-  annotation org.springframework.stereotype.Component
   ctor public()
   method public R copyRow(R, org.ipro.metadata.TableSectionMetadataInfo, P)
   method public T copyEntity(T)
@@ -550,6 +549,7 @@ interface public abstract interface org.ipro.crud.BaseService
   method public org.springframework.data.domain.Page<T> findAllByScenario(org.ipro.fetch.plan.FetchScenario, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
 
 interface public abstract interface org.ipro.crud.EntityLookup
+  field public static final int MAX_LIMIT = 1000
   method public abstract java.util.List<T> search(java.lang.Class<T>, java.util.Collection<java.lang.String>, java.lang.String, int)
   method public abstract java.util.Optional<T> findSelectedById(java.lang.Class<T>, java.lang.Object)
 

@@ -1,5 +1,6 @@
 package org.ipro.crud.config;
 
+import org.ipro.crud.EntityCopyService;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.NaturalKeyCreateSupport;
 import org.ipro.crud.ReferenceCheckService;
@@ -73,5 +74,24 @@ public class CrudAutoConfiguration {
     public NaturalKeyCreateSupport naturalKeyCreateSupport(
             PlatformTransactionManager transactionManager) {
         return new NaturalKeyCreateSupport(transactionManager);
+    }
+
+    /**
+     * Копирование шапки сущности и строк табличных частей.
+     *
+     * <p><b>D3.5.5: бин переехал сюда из UI-конфигурации ({@code FormAutoConfiguration}).</b>
+     * Причина — владение, а не удобство: сервис объявлен в {@code platform-core} и заявлен в его
+     * контракте, но регистрировался только формовым слоем через {@code @Import}. Значит потребитель
+     * без UI-артефакта сервис ядра получить не мог, а вынос UI-слоя уносил его из контракта ядра
+     * молча — без единого падения сборки. Стереотип {@code @Component} с класса снят: владелец
+     * регистрации ровно один.</p>
+     *
+     * <p>Точка расширения: правила копирования прикладные (что перенумеровать, что перепривязать к
+     * новому родителю), поэтому приложение вправе заменить сервис своим бином того же типа.</p>
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public EntityCopyService entityCopyService() {
+        return new EntityCopyService();
     }
 }

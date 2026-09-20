@@ -71,6 +71,13 @@ class PlatformCoreSurfaceTest {
 
     private static final Path APPLICATION_REGISTRY = Path.of("src/test/resources/platform-public-surface.txt");
 
+    /** Заголовок раздела: {@code # ---- APP_API (30)} либо {@code # ---- test-usage overlay (12)}. */
+    private static final Pattern SECTION_HEADER =
+        Pattern.compile("^#\\s*-+\\s*(.+?)\\s*\\((\\d+)\\)\\s*$");
+
+    /** Запись реестра: роль, FQN и (для overlay) файлы тестов приложения. */
+    private static final Pattern REGISTRY_ROW = Pattern.compile("^([\\w-]+)\\s+(\\S+)(?:\\s+.*)?$");
+
     private enum Role {
         APP_API, APP_SPI, MODULE_API, INTERNAL
     }
@@ -107,6 +114,56 @@ class PlatformCoreSurfaceTest {
         assertThat(productionTypes)
             .as("проверка не должна быть вакуумной")
             .hasSize(94);
+    }
+
+    /**
+     * Бюджет раздела в заголовке и число записей под ним обязаны совпадать.
+     *
+     * <p>Проза про «92 production-типа» в шапке реестра разошлась с фактом именно потому, что её
+     * никто не сверял с содержимым: число в комментарии — тоже обещание, и оно должно ломать
+     * сборку, когда перестаёт быть верным. Раздел {@code test-usage overlay} проверяется наравне
+     * с ролями: его бюджет — часть того же reviewed-решения.</p>
+     */
+    @Test
+    void registrySectionsAgreeWithTheirPerRoleBudget() {
+        Map<String, Integer> declared = new LinkedHashMap<>();
+        Map<String, Integer> actual = new LinkedHashMap<>();
+        Map<String, String> clashes = new LinkedHashMap<>();
+        String current = null;
+
+        for (String line : lines(CORE_REGISTRY)) {
+            Matcher header = SECTION_HEADER.matcher(line);
+            if (header.matches()) {
+                current = header.group(1);
+                declared.put(current, Integer.valueOf(header.group(2)));
+                continue;
+            }
+            if (line.startsWith("#")) {
+                continue;
+            }
+            Matcher row = REGISTRY_ROW.matcher(line);
+            if (!row.matches()) {
+                continue;
+            }
+            String role = row.group(1);
+            String section = role.equals("test-usage") ? "test-usage overlay" : role;
+            actual.merge(section, 1, Integer::sum);
+            if (current != null && !current.equals(section)) {
+                clashes.put(row.group(2), role + " под заголовком " + current);
+            }
+        }
+
+        assertThat(declared.keySet())
+            .as("разделы реестра обязаны называть ровно четыре роли плюс overlay test-usage")
+            .containsExactlyInAnyOrder("APP_API", "APP_SPI", "MODULE_API", "INTERNAL",
+                "test-usage overlay");
+        assertThat(clashes)
+            .as("запись под чужим заголовком: бюджет раздела перестаёт быть проверяемым числом")
+            .isEmpty();
+        assertThat(actual)
+            .as("число записей под заголовком обязано совпадать с бюджетом в нём: иначе число"
+                + " в комментарии живёт своей жизнью — ровно так 92 типа остались в шапке при 94")
+            .isEqualTo(declared);
     }
 
     /**

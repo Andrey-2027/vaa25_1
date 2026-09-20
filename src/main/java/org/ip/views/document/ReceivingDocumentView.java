@@ -2,7 +2,7 @@ package org.ip.views.document;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.ipro.form.builtin.ListForm;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ip.model.ReceivingDocument;
 
 /**
@@ -16,12 +16,12 @@ import org.ip.model.ReceivingDocument;
  */
 public class ReceivingDocumentView extends VerticalLayout {
 
-    public ReceivingDocumentView(FormCoordinator coordinator) {
+    public ReceivingDocumentView(FormNavigator navigator) {
         setSizeFull();
         setPadding(false);
         setSpacing(false);
 
-        ListForm<ReceivingDocument, Long> listForm = coordinator.createListForm(ReceivingDocument.class);
+        ListForm<ReceivingDocument, Long> listForm = navigator.createListForm(ReceivingDocument.class);
 
         add(listForm);
     }
