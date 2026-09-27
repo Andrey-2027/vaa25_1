@@ -1,7 +1,7 @@
 package org.ip;
 
 import jakarta.persistence.EntityManagerFactory;
-import org.ipro.persistence.config.PersistenceAutoConfiguration;
+import org.ipro.jr.config.JrPersistenceAutoConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -77,12 +77,12 @@ class PersistenceRegistrationIT {
     }
 
     @Test
-    void persistenceAutoConfigurationComesFromTheArtifact() {
-        assertThat(PersistenceAutoConfiguration.class.getProtectionDomain()
+    void jrPersistenceAutoConfigurationComesFromTheApplication() {
+        assertThat(JrPersistenceAutoConfiguration.class.getProtectionDomain()
             .getCodeSource().getLocation().toString())
-            .as("регистрация persistence-пакетов должна приходить из артефакта"
-                + " platform-persistence, а не из дерева приложения")
-            .contains("platform-persistence");
+            .as("регистрация JR persistence-пакетов должна приходить из артефакта приложения")
+            .isEqualTo(Application.class.getProtectionDomain().getCodeSource().getLocation()
+                .toString());
     }
 
     private static Map<String, Class<?>> repositoriesByDeclaration() {

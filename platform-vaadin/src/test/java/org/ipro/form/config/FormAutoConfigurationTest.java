@@ -6,6 +6,7 @@ import org.ipro.crud.LookupService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.config.CrudAutoConfiguration;
 import org.ipro.data.CanonicalReadExecutor;
+import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.grouping.GroupingValuesProviderFactory;
 import org.ipro.form.FieldFactory;
 import org.ipro.form.SelectionFormAssembler;
@@ -18,10 +19,14 @@ import org.ipro.form.spi.GridViewStore;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.ipro.rls.RlsUiGate;
 import org.junit.jupiter.api.Test;
+import org.ipro.form.spi.WorkspaceGateway;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.ArrayList;
@@ -29,7 +34,10 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * D3.5.5: формовый слой объявляет бины явными {@code @Bean}, а не {@code @Import} concrete-классов,
@@ -138,6 +146,19 @@ class FormAutoConfigurationTest {
      * Контекст обязан упасть и назвать причину. Молчаливое отсутствие gate дало бы UI, который
      * показывает данные, не прошедшие RLS-проверку, — то есть цена отказа выше цены падения старта.
      */
+    /**
+     * E1.3: каталог дескрипторов — обязательный вход решения о действиях. Без него провайдер
+     * «решил бы» без capability типа, то есть вернул бы CRUD, которого у типа нет.
+     */
+    @Test
+    void missingDescriptorCatalogFailsStartupWithNamedReason() {
+        runner(true, false).run(context -> {
+            assertThat(context).hasFailed();
+            assertThat(context.getStartupFailure())
+                .hasMessageContaining("EntityDescriptorCatalog");
+        });
+    }
+
     @Test
     void missingRlsUiGateFailsStartupWithNamedReason() {
         runner(false).run(context -> {
@@ -182,6 +203,53 @@ class FormAutoConfigurationTest {
     }
 
     /**
+     * Route host без рабочей области — ошибка старта, а не тихо неработающий адрес (E2.3).
+     *
+     * <p>Слушатель вызывается здесь напрямую, а не через раннер: {@code ApplicationReadyEvent}
+     * публикует {@code SpringApplication}, а {@code ApplicationContextRunner} только обновляет
+     * контекст — то есть через раннер этот отказ не воспроизвести вообще. Проверяется само решение,
+     * а проводку держит тот же список бинов конфигурации.</p>
+     */
+    @Test
+    void declaredRouteHostWithoutWorkspaceFailsStartupWithANamedReason() {
+        ListableBeanFactory beans = mock(ListableBeanFactory.class);
+        when(beans.getBeanNamesForType(WorkspaceGateway.class)).thenReturn(new String[0]);
+
+        ApplicationListener<ApplicationReadyEvent> check =
+            new FormAutoConfiguration().formRouteHostStartupCheck(beans, true);
+
+        assertThatThrownBy(() -> check.onApplicationEvent(null))
+            .as("ссылка открывается только в Workspace: без области каждая копия открывалась бы"
+                + " в «некуда» — это узнал бы пользователь, а не разработчик")
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("WorkspaceGateway")
+            .hasMessageContaining("route host");
+    }
+
+    /**
+     * Объявленный route host с рабочей областью и приложение без host — оба случая нормальны:
+     * проверка отвечает на вопрос «есть ли область», а не требует её наличия вообще.
+     */
+    @Test
+    void routeHostCheckPassesWithAWorkspaceAndIsOffWhenNotDeclared() {
+        ListableBeanFactory withWorkspace = mock(ListableBeanFactory.class);
+        when(withWorkspace.getBeanNamesForType(WorkspaceGateway.class))
+            .thenReturn(new String[] {"workspace"});
+        ListableBeanFactory withoutWorkspace = mock(ListableBeanFactory.class);
+        when(withoutWorkspace.getBeanNamesForType(WorkspaceGateway.class))
+            .thenReturn(new String[0]);
+
+        assertThatCode(() -> new FormAutoConfiguration()
+            .formRouteHostStartupCheck(withWorkspace, true).onApplicationEvent(null))
+            .doesNotThrowAnyException();
+        assertThatCode(() -> new FormAutoConfiguration()
+            .formRouteHostStartupCheck(withoutWorkspace, false).onApplicationEvent(null))
+            .as("приложение без route host не обязано предоставлять рабочую область: чужая"
+                + " проверка не имеет права ронять его старт")
+            .doesNotThrowAnyException();
+    }
+
+    /**
      * У формового слоя нет собственного владельца {@code EntityCopyService}: бин приходит из
      * backend-модуля ({@code CrudAutoConfiguration}), который здесь реально загружен. Проверка
      * держит обе стороны — сервис ядра остаётся доступен потребителю без UI, а UI-конфигурация
@@ -207,6 +275,15 @@ class FormAutoConfigurationTest {
      *                      конфигурации в backoff
      */
     private static ApplicationContextRunner runner(boolean withRlsUiGate) {
+        return runner(withRlsUiGate, true);
+    }
+
+    /**
+     * @param withDescriptorCatalog {@code false} — отсутствующий каталог дескрипторов: так
+     *                              проверяется, что провайдер входов решения обязан иметь capability
+     *                              типа и падает с названной причиной, а не собирается наполовину
+     */
+    private static ApplicationContextRunner runner(boolean withRlsUiGate, boolean withDescriptorCatalog) {
         ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(MetadataAutoConfiguration.class,
                 CrudAutoConfiguration.class, FormAutoConfiguration.class))
@@ -232,9 +309,13 @@ class FormAutoConfigurationTest {
                 () -> mock(GenericOwnedSectionService.class))
             .withBean(FormSettingsStore.class, () -> mock(FormSettingsStore.class))
             .withBean(GridViewStore.class, () -> mock(GridViewStore.class));
-        return withRlsUiGate
-            ? runner.withBean(RlsUiGate.class, () -> mock(RlsUiGate.class))
+        ApplicationContextRunner configured = withDescriptorCatalog
+            ? runner.withBean(EntityDescriptorCatalog.class,
+                () -> mock(EntityDescriptorCatalog.class))
             : runner;
+        return withRlsUiGate
+            ? configured.withBean(RlsUiGate.class, () -> mock(RlsUiGate.class))
+            : configured;
     }
 
     /** EMF замокан: {@code @PersistenceContext}-бины получают из него EntityManager, метамодель пуста. */

@@ -50,8 +50,8 @@ class SubsystemSummaryAssemblerTest {
         numbering.afterPropertiesSet();
         subsystems = new SubsystemRegistry("org.ip");
         subsystems.afterPropertiesSet();
-        entityAssembler = new EntitySummaryAssembler("org.ip", metadataResolver, formRegistry,
-            referenceIndex, numbering, subsystems, FacetResolver.none());
+        entityAssembler = EntitySummaryAssemblerTest.assembler("org.ip", metadataResolver,
+            formRegistry, referenceIndex, numbering, subsystems, FacetResolver.none());
         assembler = new SubsystemSummaryAssembler(entityAssembler, subsystems, rlsStub());
     }
 
@@ -162,7 +162,7 @@ class SubsystemSummaryAssemblerTest {
         numbering.afterPropertiesSet();
         ReferenceIndex referenceIndex = new ReferenceIndex("org.ip");
         referenceIndex.afterPropertiesSet();
-        EntitySummaryAssembler overriddenEntities = new EntitySummaryAssembler("org.ip",
+        EntitySummaryAssembler overriddenEntities = EntitySummaryAssemblerTest.assembler("org.ip",
             metadataResolver, formRegistry, referenceIndex, numbering, subsystems, resolver);
         SubsystemSummaryAssembler overridden =
             new SubsystemSummaryAssembler(overriddenEntities, subsystems, rlsStub());

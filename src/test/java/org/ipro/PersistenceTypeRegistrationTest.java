@@ -76,7 +76,7 @@ class PersistenceTypeRegistrationTest {
      * {@code @EnableJpaRepositories} сюда не попадёт и в проверке срезов участвовать не будет.
      */
     private static final Set<String> REVIEWED_SELF_REGISTERING_MODULES = Set.of(
-        "platform-persistence", "platform-numbering", "platform-settings", "platform-telemetry",
+        "platform-numbering", "platform-settings", "platform-telemetry",
         "platform-rls");
 
     private static final Pattern SLICE = Pattern.compile("^\\s*@DataJpaTest\\b", Pattern.MULTILINE);
@@ -314,11 +314,15 @@ class PersistenceTypeRegistrationTest {
     }
 
     @Test
-    void extractedPersistenceTypesLiveInTheModuleAndNotInTheTree() {
-        assertThat(Path.of("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).doesNotExist();
-        assertThat(Path.of("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).doesNotExist();
+    void jrPersistenceTypesLiveInTheApplicationWhileBaseEntityLivesInTheModule() {
+        assertThat(Path.of("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).exists();
+        assertThat(Path.of("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).exists();
+        assertThat(Path.of("platform-persistence/src/main/java/org/ipro/jr/dom/JrxmlTemplate.java"))
+            .doesNotExist();
+        assertThat(Path.of("platform-persistence/src/main/java/org/ipro/jr/JrxmlTemplateRepository.java"))
+            .doesNotExist();
         assertThat(Path.of("src/main/java/org/ipro/crud/BaseEntity.java"))
-            .as("база сущностей — часть persistence-капсулы: без неё entity не выносится")
+            .as("общая база сущностей остаётся в persistence-капсуле")
             .doesNotExist();
         assertThat(Path.of("platform-persistence/src/main/java/org/ipro/crud/BaseEntity.java"))
             .exists();

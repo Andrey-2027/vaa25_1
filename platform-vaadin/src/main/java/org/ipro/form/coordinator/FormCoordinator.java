@@ -13,16 +13,29 @@ import org.ipro.form.FormSaveResult;
 import org.ipro.form.builtin.ItemForm;
 import org.ipro.form.builtin.ListForm;
 import org.ipro.form.SelectionForm;
+import org.ipro.form.action.ActionContextProvider;
+import org.ipro.form.action.ActionHandlerRegistry;
+import org.ipro.form.action.ActionDecision;
+import org.ipro.form.action.ActionRegistry;
+import org.ipro.form.action.ActionResolver;
+import org.ipro.form.action.ActionSurface;
+import org.ipro.form.action.CrudAction;
+import org.ipro.form.action.ReadOnlyReason;
+import org.ipro.form.link.FormLinkService;
+import org.ipro.form.link.FormRoute;
+import org.ipro.form.link.FormRouteKind;
+import org.ipro.form.link.OpenResult;
 import org.ipro.form.coordinator.FormOpenMode;
 import org.ipro.form.registry.FormContext;
 import org.ipro.form.registry.FormRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.ipro.form.registry.FormResolver;
-import org.ipro.form.registry.ListCommand;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
-import org.ipro.form.spi.ListFormToolbarContributor;
+import org.ipro.form.host.FormRouteUrlBridge;
 import org.ipro.form.spi.WorkspaceGateway;
 import org.ipro.identity.IdentifiableEntity;
 import org.ipro.rls.RlsUiGate;
@@ -31,6 +44,7 @@ import org.ipro.telemetry.core.MdcKeys;
 import org.ipro.telemetry.core.TelemetryBridge;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Collection;
 import java.util.List;
@@ -80,6 +94,8 @@ import java.util.stream.Collectors;
  */
 public class FormCoordinator implements FormNavigator {
 
+    private static final Logger log = LoggerFactory.getLogger(FormCoordinator.class);
+
     private final MetadataResolver metadataResolver;
     private final FieldFactory fieldFactory;
     private final ApplicationContext applicationContext;
@@ -87,9 +103,12 @@ public class FormCoordinator implements FormNavigator {
     private final ServiceLocator serviceLocator;
     private final org.ipro.form.spi.FormSettingsStore formSettingsStore;
     private final org.ipro.form.spi.GridViewStore gridViewStore;
-    private final java.util.List<ListFormToolbarContributor> toolbarContributors;
     private final RlsUiGate rlsUiGate;
     private final ItemFormAccessBinder itemFormAccessBinder;
+    private final ActionRegistry actionRegistry;
+    private final ActionContextProvider actionContextProvider;
+    private final ActionHandlerRegistry actionHandlerRegistry;
+    private final FormLinkService formLinkService;
     private final org.ipro.crud.EntityCopyService entityCopyService;
     private final org.ipro.form.TableSectionFactory tableSectionFactory;
 
@@ -97,6 +116,11 @@ public class FormCoordinator implements FormNavigator {
     // открытия: координатор сам UI-scoped, поэтому провайдер всегда отдаёт область
     // текущего UI, а не первого записавшего.
     private final ObjectProvider<WorkspaceGateway> workspaceGateways;
+
+    // Мост адреса и вкладок (E2.3). Опционален по той же причине, что и рабочая область: он нужен
+    // только тому приложению, которое объявило route host. Без него вкладка открывается как
+    // обычно, а адрес не меняется — молчаливой подмены навигации нет.
+    private final ObjectProvider<FormRouteUrlBridge> routeUrlBridges;
 
     // Режим открытия форм элементов (по умолчанию — Dialog). UI-scoped состояние:
     // оставлен мутабельным осознанно — удаление поля потребовало бы нового правила
@@ -113,10 +137,13 @@ public class FormCoordinator implements FormNavigator {
                             org.ipro.form.spi.GridViewStore gridViewStore,
                             RlsUiGate rlsUiGate,
                             ItemFormAccessBinder itemFormAccessBinder,
-                            org.ipro.crud.EntityCopyService entityCopyService,
-                            org.ipro.form.TableSectionFactory tableSectionFactory,
-                             java.util.List<ListFormToolbarContributor> toolbarContributors,
-                             ObjectProvider<WorkspaceGateway> workspaceGateways) {
+                            ActionRegistry actionRegistry,
+                            ActionContextProvider actionContextProvider,
+                            ActionHandlerRegistry actionHandlerRegistry,
+                            FormLinkService formLinkService,
+                            org.ipro.crud.EntityCopyService entityCopyService,                             org.ipro.form.TableSectionFactory tableSectionFactory,
+                             ObjectProvider<WorkspaceGateway> workspaceGateways,
+                             ObjectProvider<FormRouteUrlBridge> routeUrlBridges) {
         // D3.5.3: обязательные коллабораторы — fail-fast с причиной, никаких permissive
         // fallback (тихий null здесь превращался бы в «кнопки без прав» или формы без
         // резолва). D3.5.3-fix: проверены не 5 из 12, а все обязательные — включая
@@ -128,8 +155,8 @@ public class FormCoordinator implements FormNavigator {
         this.fieldFactory = Objects.requireNonNull(
             fieldFactory, "fieldFactory must not be null");
         this.applicationContext = Objects.requireNonNull(applicationContext,
-            "applicationContext must not be null: через него разрешаются FormSaveHandler,"
-                + " LookupService и ListCommandRegistry — без него форма собирается частично");
+            "applicationContext must not be null: через него разрешаются FormSaveHandler"
+                + " и LookupService — без него форма собирается частично");
         this.formResolver = Objects.requireNonNull(
             formResolver, "formResolver must not be null");
         this.serviceLocator = Objects.requireNonNull(
@@ -146,14 +173,48 @@ public class FormCoordinator implements FormNavigator {
         this.itemFormAccessBinder = Objects.requireNonNull(itemFormAccessBinder,
             "itemFormAccessBinder must not be null: он решает, можно ли создавать и править"
                 + " запись, работать без него — показывать форму без проверки прав");
+        this.actionRegistry = Objects.requireNonNull(actionRegistry,
+            "actionRegistry must not be null: без него список не знает, какие действия ему"
+                + " объявлены, и обязан падать, а не показывать CRUD по догадке");
+        this.actionContextProvider = Objects.requireNonNull(actionContextProvider,
+            "actionContextProvider must not be null: он единственный собирает входы решения"
+                + " (capability типа и права), без него список вернулся бы к своей формуле прав");
+        // E1.6a: реестр исполнителей прикладных действий. Пустой — это состояние "приложение
+        // действий не объявляет", а не отсутствие модели: без обязательного реестра список
+        // молча терял бы прикладные кнопки, и именно этот дефект здесь и закрывается.
+        this.actionHandlerRegistry = Objects.requireNonNull(actionHandlerRegistry,
+            "actionHandlerRegistry must not be null: без него объявленные прикладные действия"
+                + " исчезают из списка молча, а не с причиной");
+        this.formLinkService = Objects.requireNonNull(formLinkService,
+            "formLinkService must not be null: без него формы, открытые координатором, остались бы"
+                + " без публичного адреса — а список и карточка обязаны вести себя одинаково");
         this.entityCopyService = Objects.requireNonNull(entityCopyService,
             "entityCopyService must not be null: копирование карточки со строками идёт через него");
         this.tableSectionFactory = Objects.requireNonNull(tableSectionFactory,
             "tableSectionFactory must not be null: подключение и копирование табличных частей идёт"
                 + " через него");
-        this.toolbarContributors =
-            toolbarContributors == null ? java.util.List.of() : toolbarContributors;
         this.workspaceGateways = workspaceGateways;
+        this.routeUrlBridges = routeUrlBridges;
+    }
+
+    /**
+     * Сообщить мосту адреса, что вкладка открывается по адресу — <b>до</b> активации вкладки.
+     *
+     * <p>Порядок здесь и есть смысл вызова: смена активной вкладки — событие, на которое мост уже
+     * обязан знать адрес. Записав адрес после открытия, получили бы в адресе {@code "/"} вместо
+     * формы и вторую запись в истории на один переход.</p>
+     *
+     * <p>Мост может отсутствовать: тогда адрес просто не меняется. Это не ошибка, а другая
+     * конфигурация — приложение без route host.</p>
+     */
+    private void registerRoutedTab(String entryId, FormRoute route) {
+        if (routeUrlBridges == null) {
+            return;
+        }
+        FormRouteUrlBridge bridge = routeUrlBridges.getIfAvailable();
+        if (bridge != null) {
+            bridge.routedTabOpened(entryId, route);
+        }
     }
 
     /**
@@ -228,6 +289,18 @@ public class FormCoordinator implements FormNavigator {
                 + " встраивает форму (это не ошибка конфигурации, а другая точка входа).");
         }
 
+        openListInWorkspace(entityClass, variant, parameters, entryId, title, workspace);
+    }
+
+    /**
+     * Открытие списка в уже найденной рабочей области: один путь для обычного вызова и для
+     * route-входа (E2.2). Вынесено затем, чтобы открытие по адресу не заводило вторую сборку
+     * формы со своими обходами custom view и wrapper'а.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T extends IdentifiableEntity, ID> void openListInWorkspace(
+            Class<T> entityClass, String variant, Map<String, Object> parameters,
+            String entryId, String title, WorkspaceGateway workspace) {
         Class<? extends com.vaadin.flow.component.Component> customViewClass =
             formResolver.getFormRegistry().getListFormViewClass(entityClass, variant);
         org.ipro.form.registry.FormFactory customViewFactory =
@@ -244,6 +317,19 @@ public class FormCoordinator implements FormNavigator {
                 wrapper.setContent(listForm);
             });
         }
+    }
+
+    /**
+     * Стабильный ключ вкладки карточки: один и тот же для обычного открытия и для адреса.
+     *
+     * <p>Ключ выведен из типа, варианта и id, а не из внешнего ключа адреса: иначе запись,
+     * открытая из списка и по ссылке, дала бы две вкладки одной и той же формы. Соответствие
+     * «адрес → класс» при этом однозначно и обеспечивается каталогом маршрутов.</p>
+     */
+    private static String itemEntryId(Class<?> entityClass, String variant, Object id) {
+        return "item-" + entityClass.getSimpleName().toLowerCase()
+            + (variant != null ? "-" + variant : "")
+            + (id != null ? "-" + id.toString() : "-new");
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -377,15 +463,11 @@ public class FormCoordinator implements FormNavigator {
 
         // Используем FormResolver для поиска формы (кастомная или generic)
         ListForm<T, ID> form = formResolver.resolveListForm(entityClass, variant, parameters);
-        // Сквозные добавки тулбара (печать, экспорт и т.п.): бины приложения,
-        // платформа знает только SPI. Составной View может не вызывать createListForm
-        // и тем самым не получить глобальные добавки — это осознанно.
-        for (ListFormToolbarContributor contributor : toolbarContributors) {
-            contributor.contribute(form, entityClass, variant);
-        }
 
-        // «Ещё» справа над гридом (общий поиск, условное форматирование) — после
-        // всех сквозных добавок, чтобы кнопка оставалась крайней справа.
+        // «Ещё» справа над гридом (общий поиск, условное форматирование) — крайняя кнопка
+        // тулбара. Предметные кнопки сюда больше не добавляет координатор (E1.6b): сквозной
+        // шов «форма → отчёт» удалён, объявленные действия рисует сама форма из решения, до
+        // разделителя, поэтому «Ещё» остаётся последней.
         form.installMoreMenu();
 
         // Включаем диалог "Настройка колонок" (нужен резолвер для полей связанных сущностей)
@@ -414,8 +496,17 @@ public class FormCoordinator implements FormNavigator {
         form.setViewSupport(gridViewStore, formSettingsStore,
             entityClass.getSimpleName() + (variant != null ? "." + variant : ""));
 
-        // RLS-права на кнопки (Фаза 3): «Создать»/«Изменить»/«Удалить» по RlsUiGate.
-        form.setRlsUiGate(rlsUiGate);
+        // Решения по действиям списка (E1.3): один решатель на список. Форма получает готовые
+        // решения и не считает права сама — раньше «Создать» смотрело только RLS, а capability
+        // типа не учитывалось вовсе, и кнопки могли обещать операцию, которой у типа нет.
+        ActionResolver resolver = listActionResolver(entityClass, variant);
+        form.setActionResolver(resolver);
+        // Ссылка на список (E2.1): адрес списка не зависит от выделенной строки, поэтому кнопка
+        // появляется так же, как остальные действия, — по решению, а не по предикату у кнопки.
+        form.setFormLinkService(formLinkService);
+        // Навигацию для объявленных действий даёт координатор: само действие её не ищет и
+        // ApplicationContext не знает (E1.6a).
+        form.setFormNavigator(this);
 
         // Панель контекст-фильтров списка: ряд варианта либо общий ряд сущности;
         // пусто — панели нет.
@@ -430,26 +521,14 @@ public class FormCoordinator implements FormNavigator {
         // контекст-значения (например, журнал) как начальные значения новой записи.
         form.setOnAdd(entity -> openItemForm(entityClass, null, null, saved -> form.refresh(),
             Map.of("initialValues", form.getRequiredContextValues())));
-        form.setOnEdit(entity -> openItemForm(entityClass, null, (ID) entity.getId(), saved -> form.refresh()));
+        form.setOnEdit(entity -> openRowAction(entityClass, entity, resolver,
+            saved -> form.refresh()));
         form.setOnDelete(entity -> form.refresh());
 
-        // Копирование объекта целиком (шапка + строки): только там, где доступно создание.
-        // Required-контекст копию не гейтит — у прототипа значения свои.
-        if (itemFormAccessBinder.blockReasonIfCannotCreate(entityClass) == null) {
-            Button copyButton = new Button("Копировать", VaadinIcon.COPY.create());
-            copyButton.setEnabled(false);
-            copyButton.setTooltipText("Копировать выбранную запись со строками");
-            form.getGrid().asSingleSelect().addValueChangeListener(
-                e -> copyButton.setEnabled(e.getValue() != null));
-            copyButton.addClickListener(e -> {
-                T selected = form.getSelectedItem();
-                if (selected != null && selected.getId() != null) {
-                    openCopyForm(entityClass, (ID) selected.getId(), saved -> form.refresh());
-                }
-            });
-            form.getToolbar().addComponentAtIndex(
-                form.getToolbar().indexOf(form.getAddButton()) + 1, copyButton);
-        }
+        // Копирование использует то же решение формы, что и остальные CRUD-действия:
+        // состояние кнопки и проверка при клике учитывают в том числе readOnly.
+        form.setOnCopy(selected -> openCopyForm(entityClass, (ID) selected.getId(),
+            saved -> form.refresh()));
 
         // Применяем кастомизацию ДО вызова build()
         if (configurator != null) {
@@ -457,53 +536,6 @@ public class FormCoordinator implements FormNavigator {
         }
 
         return form;
-    }
-
-    /** Навешивает зарегистрированные команды списка (row-команды) в тулбар ListForm. */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private <T extends IdentifiableEntity, ID> void applyListCommands(
-            ListForm<T, ID> form, Class<T> entityClass, String variant) {
-        applicationContext.getBeanProvider(org.ipro.form.registry.ListCommandRegistry.class).ifAvailable(registry -> {
-            for (org.ipro.form.registry.ListCommand<?> command : registry.byEntity(entityClass)) {
-                if (!command.appliesToVariant(variant)) {
-                    continue;
-                }
-
-                Button button = new Button(command.title());
-                if (command.iconName() != null) {
-                    try {
-                        button.setIcon(new Icon(VaadinIcon.valueOf(command.iconName())));
-                    } catch (IllegalArgumentException ignored) {
-                        // неверное имя иконки — просто без иконки
-                    }
-                }
-
-                org.ipro.form.registry.ListCommandContext initialContext = new org.ipro.form.registry.ListCommandContext(form, this);
-                boolean enabled = !command.requiresSelection()
-                    && command.isEnabled(initialContext);
-                button.setEnabled(enabled);
-                form.getGrid().asSingleSelect().addValueChangeListener(e -> {
-                    org.ipro.form.registry.ListCommandContext current = new org.ipro.form.registry.ListCommandContext(form, this);
-                    boolean hasSelection = !command.requiresSelection() || e.getValue() != null;
-                    button.setEnabled(hasSelection && command.isEnabled(current));
-                });
-                form.addContextChangeListener(ignored -> {
-                    org.ipro.form.registry.ListCommandContext current = new org.ipro.form.registry.ListCommandContext(form, this);
-                    boolean hasSelection = !command.requiresSelection()
-                        || current.selectedItem() != null;
-                    button.setEnabled(hasSelection && command.isEnabled(current));
-                });
-
-                button.addClickListener(e -> {
-                    org.ipro.form.registry.ListCommandContext current = new org.ipro.form.registry.ListCommandContext(form, this);
-                    if ((!command.requiresSelection() || current.selectedItem() != null)
-                            && command.isEnabled(current)) {
-                        command.execute(current);
-                    }
-                });
-                form.getToolbar().add(button);
-            }
-        });
     }
 
     /**
@@ -578,6 +610,58 @@ public class FormCoordinator implements FormNavigator {
     }
 
     /**
+     * Маркер открытия в режиме просмотра: карточка открывается без правки, потому что изменения
+     * не допускает само решение (E1.3), а не потому что RLS «отказала». Живёт рядом с остальными
+     * параметрами открытия ({@code presetEntity}, {@code initialValues}, {@code readOnlySections}).
+     */
+    public static final String READ_ONLY_PARAMETER = "readOnly";
+
+    /** Запрошен ли явный просмотр параметрами открытия. */
+    public static boolean isReadOnlyRequested(Map<String, Object> parameters) {
+        return parameters != null && Boolean.TRUE.equals(parameters.get(READ_ONLY_PARAMETER));
+    }
+
+    /**
+     * Решатель действий списка: тем же решателем проверяется «Создать» в тулбаре и открытие
+     * карточки создания. Карточка создания — продолжение действия списка, поэтому и решение
+     * берётся у списка, а не у подвала карточки.
+     */
+    private ActionResolver listActionResolver(Class<?> entityClass, String variant) {
+        return new ActionResolver(actionRegistry, actionContextProvider, actionHandlerRegistry,
+            ActionSurface.LIST_TOOLBAR, entityClass, variant);
+    }
+
+    /** Решатель действий карточки (E1.5): по нему решается, правится открытая запись или нет. */
+    private ActionResolver itemActionResolver(Class<?> entityClass, String variant) {
+        return new ActionResolver(actionRegistry, actionContextProvider, actionHandlerRegistry,
+            ActionSurface.ITEM_FOOTER, entityClass, variant);
+    }
+
+    /**
+     * Строковое открытие списка (E1.3): режим выбирается тем же решением, что показано на кнопках
+     * формы. Изменение — если оно доступно, иначе просмотр, иначе причина пользователю. Проверка
+     * идёт в момент клика, а не при сборке списка, поэтому устаревшее состояние кнопки не открывает
+     * недоступную строку.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T extends IdentifiableEntity, ID> void openRowAction(Class<T> entityClass, T entity,
+                                                                  ActionResolver resolver,
+                                                                  Consumer<T> onSaved) {
+        ActionDecision edit = resolver.decide(CrudAction.EDIT, entity, true);
+        if (edit.actionable()) {
+            openItemForm(entityClass, null, (ID) entity.getId(), onSaved);
+            return;
+        }
+        ActionDecision open = resolver.decide(CrudAction.OPEN, entity, true);
+        if (open.actionable()) {
+            openItemForm(entityClass, null, (ID) entity.getId(), onSaved,
+                Map.of(READ_ONLY_PARAMETER, Boolean.TRUE));
+            return;
+        }
+        showError(edit.message());
+    }
+
+    /**
      * Открывает ItemForm в диалоге (оригинальное поведение).
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -589,9 +673,11 @@ public class FormCoordinator implements FormNavigator {
         ItemForm<T> form = formResolver.resolveItemForm(entityClass, variant, id, parameters);
         form.setSaveHandler((FormSaveHandler) applicationContext.getBean(FormSaveHandler.class));
 
-        // Создание без права — форму не открываем вовсе (Фаза 4).
+        // Создание без права — форму не открываем вовсе (Фаза 4; с E1.5 это решение по
+        // crud.create, а не только RLS-проверка класса).
         if (id == null) {
-            String reason = itemFormAccessBinder.blockReasonIfCannotCreate(entityClass);
+            String reason = itemFormAccessBinder.blockReasonIfCannotCreate(
+                listActionResolver(entityClass, variant));
             if (reason != null) {
                 showError(reason);
                 return;
@@ -602,7 +688,8 @@ public class FormCoordinator implements FormNavigator {
             Optional<T> existing = service.findById(id);
             if (existing.isPresent()) {
                 form.setEntity(existing.get());
-                itemFormAccessBinder.applyReadOnlyIfCannotUpdate(form);
+                itemFormAccessBinder.applyReadOnlyIfCannotSave(form,
+                    itemActionResolver(entityClass, variant));
             } else {
                 showError("Запись не найдена: " + id);
                 return;
@@ -617,9 +704,16 @@ public class FormCoordinator implements FormNavigator {
             seedCopiedRows(form, parameters);
         }
 
+        if (isReadOnlyRequested(parameters)) {
+            // Явный просмотр: права не отказывают — режим запрошен решением списка (E1.3),
+            // поэтому карточка открывается без правки и без сообщения о правах.
+            form.setReadOnly(ReadOnlyReason.requested());
+        }
+
         Dialog dialog = new Dialog();
         String variantSuffix = variant != null ? " (" + variant + ")" : "";
-        dialog.setHeaderTitle((id == null ? "Создание: " : "Редактирование: ")
+        dialog.setHeaderTitle((isReadOnlyRequested(parameters) ? "Просмотр: "
+            : id == null ? "Создание: " : "Редактирование: ")
             + meta.getItemFormTitle() + variantSuffix);
         dialog.setWidth("800px");
         dialog.setHeight("600px");
@@ -651,15 +745,26 @@ public class FormCoordinator implements FormNavigator {
                 ConfirmDialog confirm = new ConfirmDialog();
                 confirm.setHeader("Несохранённые изменения");
                 confirm.setText(form.getCloseConfirmMessage());
-                confirm.setConfirmButton("Сохранить и закрыть", e -> form.doSave());
-                confirm.setCancelButton("Закрыть", e -> dialog.close());
-                confirm.setRejectButton("Отмена", e -> {});
+                if (!form.isReadOnly()) {
+                    confirm.setConfirmButton("Сохранить и закрыть", e -> form.doSave());
+                    confirm.setCancelButton("Закрыть", e -> dialog.close());
+                    confirm.setRejectButton("Отмена", e -> {});
+                } else {
+                    // Карточка просмотра не предлагает сохранение (E1.5): сохранять нечего, а
+                    // «Сохранить и закрыть» вело бы к отклонённому сервером записи.
+                    confirm.setConfirmButton("Закрыть", e -> dialog.close());
+                    confirm.setCancelButton("Отмена", e -> {});
+                }
                 confirm.open();
             } else {
                 dialog.close();
             }
         });
         form.withDefaultButtons();
+        // Ссылка на запись (E2.1). Перерисовывать после сохранения нечего: успешное сохранение
+        // закрывает диалог, а неуспешное адреса не создаёт.
+        ItemFormLinkAffordance.attach(form, formLinkService,
+            itemActionResolver(entityClass, variant), entityClass, variant);
 
         dialog.open();
     }
@@ -673,11 +778,24 @@ public class FormCoordinator implements FormNavigator {
             Class<T> entityClass, String variant, ID id, Consumer<T> onSaved, EntityMetadataInfo meta,
             Map<String, Object> parameters) {
 
-        // Создание без права — вкладку не открываем вовсе (Фаза 4).
+        T existing = null;
         if (id == null) {
-            String reason = itemFormAccessBinder.blockReasonIfCannotCreate(entityClass);
+            // Создание без права — вкладку не открываем вовсе (Фаза 4; с E1.5 — решение по crud.create).
+            String reason = itemFormAccessBinder.blockReasonIfCannotCreate(
+                listActionResolver(entityClass, variant));
             if (reason != null) {
                 showError(reason);
+                return;
+            }
+        } else {
+            // Preflight существования ДО открытия вкладки: нет строки (в том числе её скрыла
+            // row-level RLS) — вкладка не создаётся и пустая карточка не показывается. Раньше
+            // это выяснялось уже внутри wrapper'а, который всё равно добавлял форму, а
+            // ItemForm.getEntity() умел лениво создать новый объект — то есть отказ в чтении мог
+            // превратиться в создание записи.
+            existing = findService(entityClass).findById(id).orElse(null);
+            if (existing == null) {
+                showError("Запись не найдена: " + id);
                 return;
             }
         }
@@ -689,9 +807,7 @@ public class FormCoordinator implements FormNavigator {
                 + " Либо приложение предоставляет Workspace, либо режим открытия — DIALOG.");
         }
 
-        String entryId = "item-" + entityClass.getSimpleName().toLowerCase()
-            + (variant != null ? "-" + variant : "")
-            + (id != null ? "-" + id.toString() : "-new");
+        String entryId = itemEntryId(entityClass, variant, id);
 
         String variantSuffix = variant != null ? " (" + variant + ")" : "";
         String title = (id == null ? "Создание: " : "Редактирование: ")
@@ -703,9 +819,185 @@ public class FormCoordinator implements FormNavigator {
             if (onSaved != null) onSaved.accept(saved);
         };
 
-        workspace.open(ItemFormWrapperView.class, entryId, title, view -> {
-            view.init(entityClass, variant, id, tabOnSaved, () -> workspace.close(entryId), parameters);
-        });
+        // Прочитанная запись передаётся в сборку формы: wrapper не читает её повторно, поэтому
+        // окно гонки между preflight и инициализацией отсутствует. Catch — защита на случай,
+        // если запись всё же исчезнет; тогда WorkspaceManager не кеширует компонент, вкладка не
+        // добавляется, а пользователь видит сообщение вместо пустой карточки.
+        T loaded = existing;
+        try {
+            workspace.open(ItemFormWrapperView.class, entryId, title, view ->
+                view.init(entityClass, variant, id, loaded, tabOnSaved, () -> workspace.close(entryId),
+                    parameters));
+        } catch (ItemFormWrapperView.RecordUnavailableException race) {
+            showError(race.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Route-вход (E2.2, ADR-0009 §6)
+    //
+    // Эти два метода — единственное отличие «открытия по адресу» от обычной навигации: режим
+    // открытия задаётся формой входа, а не мутабельной настройкой, и отказ возвращается
+    // значением, а не сообщением. Ни уведомлений, ни исключений наружу: host рисует страницу
+    // состояния по исходу, а показ Java-исключения и молчаливый переход на home запрещены.
+    // ---------------------------------------------------------------------
+
+    /**
+     * Открыть существующую запись по адресу (ITEM) во вкладке Workspace.
+     *
+     * <p><b>Проверка до открытия.</b> Canonical чтение выполняется здесь и <b>до</b> создания
+     * вкладки: нет строки (в том числе её скрыла row-level RLS) — вкладки нет. Это тот же
+     * fail-closed preflight, что закрыт E2.0a для обычного открытия, но теперь его исход
+     * типизирован, а не показан сообщением.</p>
+     *
+     * <p><b>Повторная оценка при активации уже открытой вкладки.</b> Чтение выполняется на каждый
+     * вызов, даже если вкладка уже есть: права и видимость строки могли измениться за время
+     * сеанса, и активация вкладки с прошлого раза не должна считаться разрешением. Вкладка при
+     * повторном открытии не пересобирается — по тому же {@code entryId} активируется уже
+     * собранная форма, а отказ (403/404) возвращается без активации.</p>
+     *
+     * <p><b>Режим просмотра здесь не решается.</b> «Запись есть, {@code UPDATE} запрещён» — это
+     * {@code Opened} с read-only карточкой по правилам E1, а не отдельный исход: карточка
+     * собирается тем же путём и тем же binder'ом, что и при обычном открытии.</p>
+     *
+     * @param entityClass persistence-класс из записи каталога маршрутов (не из строки адреса)
+     * @param route       разобранный адрес: он же источник id и варианта, он же идентичность вкладки
+     */
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public OpenResult openRoutedRecord(Class<?> entityClass, FormRoute route) {
+        Objects.requireNonNull(entityClass, "entityClass must not be null");
+        Objects.requireNonNull(route, "route must not be null");
+        if (route.kind() != FormRouteKind.ITEM) {
+            throw new IllegalArgumentException("Запись открывается ITEM-адресом, а не " + route.kind()
+                + ": вид адреса выбирает вызывающий, и ошибаться в нём нельзя молча");
+        }
+        if (!IdentifiableEntity.class.isAssignableFrom(entityClass)) {
+            return OpenResult.invalidRoute("Тип " + entityClass.getSimpleName()
+                + " не имеет идентичности: адрес записи для него не публикуется");
+        }
+
+        EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
+        Long id = route.id();
+
+        Object existing;
+        try {
+            // Capability и RLS проверяются внутри canonical чтения: сценарий DETAIL объявлен
+            // каталогом, поэтому здесь остаётся только чтение — и оно идёт до вкладки.
+            existing = readExisting(entityClass, id);
+        } catch (AccessDeniedException denied) {
+            return OpenResult.forbidden(route, "Чтение " + entityClass.getSimpleName()
+                + " запрещено для текущего пользователя");
+        } catch (RuntimeException failure) {
+            // Детали остаются на сервере: сообщение страницы состояния стабильно и не рассказывает
+            // пользователю ни про драйвер, ни про конфигурацию (E2.2, ADR-0009 §6).
+            log.error("Чтение {} для route-входа завершилось ошибкой",
+                entityClass.getSimpleName(), failure);
+            return OpenResult.unavailable(route,
+                "Форму открыть не удалось: чтение записи завершилось ошибкой");
+        }
+        if (existing == null) {
+            return OpenResult.notFound(route);
+        }
+
+        WorkspaceGateway workspace = workspaceOrNull();
+        if (workspace == null) {
+            return OpenResult.unavailable(route, "В текущем UI нет рабочей области: прямой адрес"
+                + " всегда открывает форму в Workspace (ADR-0009 §3), а вкладку открывать некуда");
+        }
+
+        String entryId = itemEntryId(entityClass, route.variant(), id);
+        registerRoutedTab(entryId, route);
+        String title = "Редактирование: " + meta.getItemFormTitle()
+            + (route.variant() != null ? " (" + route.variant() + ")" : "");
+        Object loaded = existing;
+        try {
+            workspace.open(ItemFormWrapperView.class, entryId, title, view ->
+                initRouted(view, entityClass, route.variant(), id, loaded,
+                    () -> workspace.close(entryId)));
+        } catch (ItemFormWrapperView.RecordUnavailableException race) {
+            // Запись исчезла между preflight и сборкой: тот же 404, что и у отсутствующей строки
+            // (вкладка не добавлена и компонент не закеширован — см. E2.0a).
+            return OpenResult.notFound(route);
+        }
+        return OpenResult.opened(route);
+    }
+
+    /**
+     * Canonical чтение существующей записи для route-входа — тем же вызовом, что у обычного
+     * открытия карточки, а не похожим: у списка и у ссылки обязан быть один путь чтения, иначе
+     * «одна и та же строка» перестаёт быть одним и тем же.
+     *
+     * <p>Тип и id известны каталогу и адресу, но не компилятору, поэтому чтение живёт в обобщённой
+     * точке: без неё пришлось бы выбирать между двумя перегрузками {@code findById} по статическому
+     * типу аргумента, а это уже другой вызов.</p>
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T extends IdentifiableEntity, ID> T readExisting(Class<?> entityClass, ID id) {
+        BaseService<T, ID> service = findService((Class) entityClass);
+        return service.findById(id).orElse(null);
+    }
+
+    /**
+     * Инициализация вкладки по адресу: единственное место, где generic'и wrapper'а размыкаются.
+     *
+     * <p>Тип и id известны каталогу и адресу, но не компилятору: каталог отдаёт {@code Class<?>},
+     * потому что маршруты выводятся из метаданных, а не из типизированного вызова. Обратная
+     * проверка здесь не нужна и не делается повторно — вид формы подтвердил каталог, существование
+     * строки — preflight; остаётся только передать их в сборку без второго реестра.</p>
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static void initRouted(ItemFormWrapperView view, Class<?> entityClass, String variant,
+                                   Object id, Object loaded, Runnable closeCallback) {
+        view.init((Class) entityClass, variant, id, (IdentifiableEntity) loaded, null,
+            closeCallback, null);
+    }
+
+    /**
+     * Открыть самостоятельный список по адресу (LIST) во вкладке Workspace.
+     *
+     * <p>Список открывается тем же путём, что обычный вызов ({@code openListForm}), поэтому
+     * custom view, вариант и wrapper не дублируются. Обязательный контекст сюда не доходит:
+     * такой список не линкабелен (§5) и отсечён каталогом до чтения.</p>
+     */
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public OpenResult openRoutedList(Class<?> entityClass, FormRoute route) {
+        Objects.requireNonNull(entityClass, "entityClass must not be null");
+        Objects.requireNonNull(route, "route must not be null");
+        if (route.kind() != FormRouteKind.LIST) {
+            throw new IllegalArgumentException("Список открывается LIST-адресом, а не " + route.kind());
+        }
+        if (!IdentifiableEntity.class.isAssignableFrom(entityClass)) {
+            return OpenResult.invalidRoute("Тип " + entityClass.getSimpleName()
+                + " не имеет списка: адрес для него не публикуется");
+        }
+
+        EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
+        WorkspaceGateway workspace = workspaceOrNull();
+        if (workspace == null) {
+            return OpenResult.unavailable(route, "В текущем UI нет рабочей области: прямой адрес"
+                + " всегда открывает форму в Workspace (ADR-0009 §3), а вкладку открывать некуда");
+        }
+
+        String entryId = listEntryId(entityClass, route.variant(), null);
+        registerRoutedTab(entryId, route);
+        String title = meta.getListFormTitle()
+            + (route.variant() != null ? " (" + route.variant() + ")" : "");
+        try {
+            openListInWorkspace((Class) entityClass, route.variant(), null, entryId, title, workspace);
+        } catch (AccessDeniedException denied) {
+            return OpenResult.forbidden(route, "Чтение списка " + entityClass.getSimpleName()
+                + " запрещено для текущего пользователя");
+        } catch (RuntimeException failure) {
+            // Тот же контракт, что и у карточки: пользователю — стабильное сообщение, журналу —
+            // причина.
+            log.error("Открытие списка {} для route-входа завершилось ошибкой",
+                entityClass.getSimpleName(), failure);
+            return OpenResult.unavailable(route,
+                "Список открыть не удалось: чтение завершилось ошибкой");
+        }
+        return OpenResult.opened(route);
     }
 
     /**

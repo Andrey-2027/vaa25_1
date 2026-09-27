@@ -15,27 +15,19 @@ import java.util.regex.Pattern;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * D2 (persistence slice), прикладная сторона: приложение и платформенный хаб больше не владеют
- * чужими persistence-пакетами.
+ * Persistence ownership boundaries: shared BaseEntity stays in the platform module;
+ * JR feature persistence and its registration stay with the application.
  *
- * <p><b>Что здесь осталось.</b> Состав модуля, его compile-зависимости и собственные
- * {@code @EntityScan}/{@code @EnableJpaRepositories} переехали к владельцу —
- * {@code platform-persistence/src/test} (там же {@code @DataJpaTest}-срез, который доказывает
- * регистрацию <b>без</b> приложения). Здесь — только то, что видно с обеих сторон: приложение
- * перечисляет свои пакеты и не перечисляет чужие, модуль себя регистрирует сам, а вынесенные
- * типы исчезли из дерева приложения.</p>
+ * <p>Module composition is checked in {@code platform-persistence/src/test}; this cross-tree
+ * gate verifies ownership and the application-owned JR scan declaration.</p>
  *
  * <p>Динамическая часть о перекрытии деклараций живёт в
- * {@code org.ip.PersistenceRegistrationIT}: три независимые декларации
- * ({@code org.ip} приложения, хаб, модуль) не перекрывают друг друга — это свойство контекста,
- * а не файла.</p>
+ * {@code org.ip.PersistenceRegistrationIT}: scan declarations contribute repositories/entities
+ * to the runtime context.</p>
  */
 class PlatformPersistenceModuleTest {
 
     private static final Path MODULE = Path.of("platform-persistence");
-
-    private static final String IMPORTS_RESOURCE =
-        "META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports";
 
     private static final Pattern ANNOTATION = Pattern.compile(
         "^\\s*@(EntityScan|EnableJpaRepositories)\\b", Pattern.MULTILINE);
@@ -51,28 +43,41 @@ class PlatformPersistenceModuleTest {
     }
 
     @Test
-    void thePlatformRepositoryHubDoesNotOwnTheModulePackages() {
+    void thePlatformRepositoryHubDoesNotOwnJrPackages() {
         assertThat(read(Path.of("platform-rls/src/main/java/org/ipro/rls/config/RlsAutoConfiguration.java")))
-            .as("модуль RLS не владеет чужими пакетами: свои регистрирует"
-                + " RlsPersistenceAutoConfiguration, а пакеты persistence-модуля — сам модуль")
+            .as("JR persistence принадлежит приложению, а не платформенному RLS-хабу")
             .doesNotContain("\"org.ipro.jr\"");
     }
 
     @Test
-    void modulePresentsItselfToTheContainer() {
-        assertThat(lines(MODULE.resolve("src/main/resources").resolve(IMPORTS_RESOURCE)))
-            .as("регистрация модуля обязана быть его собственной: потеря imports-файла делает"
-                + " артефакт невидимым для контейнера")
-            .containsExactly("org.ipro.persistence.config.PersistenceAutoConfiguration");
+    void theApplicationOwnsJrPersistenceRegistration() {
+        Path configuration = Path.of(
+            "src/main/java/org/ipro/jr/config/JrPersistenceAutoConfiguration.java");
+        assertThat(configuration).exists();
+        String text = read(configuration);
+        assertThat(text).contains("@EntityScan(\"org.ipro.jr.dom\")");
+        assertThat(text).contains("@EnableJpaRepositories(\"org.ipro.jr\")");
+
+        assertThat(MODULE.resolve(
+            "src/main/java/org/ipro/persistence/config/PersistenceAutoConfiguration.java"))
+            .doesNotExist();
+        assertThat(MODULE.resolve("src/main/resources/META-INF/spring/"
+            + "org.springframework.boot.autoconfigure.AutoConfiguration.imports"))
+            .doesNotExist();
     }
 
     @Test
-    void persistenceTypesLeftTheApplicationTree() {
-        assertThat(Path.of("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).doesNotExist();
-        assertThat(Path.of("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).doesNotExist();
+    void jrTypesAreApplicationOwnedAndBaseEntityStaysInTheModule() {
+        assertThat(Path.of("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).exists();
+        assertThat(Path.of("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).exists();
+        assertThat(MODULE.resolve("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java"))
+            .doesNotExist();
+        assertThat(MODULE.resolve("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java"))
+            .doesNotExist();
+        assertThat(MODULE.resolve(
+            "src/main/java/org/ipro/crud/BaseEntity.java")).exists();
         assertThat(Path.of("src/main/java/org/ipro/crud/BaseEntity.java"))
-            .as("база сущностей входит в persistence-капсулу: без неё entity не компилируется"
-                + " вне дерева приложения")
+            .as("общая база сущностей остаётся в persistence-капсуле")
             .doesNotExist();
         assertThat(Path.of("src/main/java/org/ipro/identity/IdentifiableEntity.java"))
             .as("identifier живёт в Java-only артефакте, а не в дереве приложения")
@@ -86,17 +91,6 @@ class PlatformPersistenceModuleTest {
             annotations.add(matcher.group(1));
         }
         return annotations;
-    }
-
-    private static List<String> lines(Path path) {
-        try {
-            return Files.readAllLines(path, StandardCharsets.UTF_8).stream()
-                .map(String::trim)
-                .filter(line -> !line.isEmpty())
-                .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     private static String read(Path path) {

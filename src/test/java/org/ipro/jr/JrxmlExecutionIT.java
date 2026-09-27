@@ -8,7 +8,7 @@ import org.ip.config.JpqlRunService;
 import org.ipro.jr.dom.JrxmlTemplate;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
-import org.ipro.persistence.config.PersistenceAutoConfiguration;
+import org.ipro.jr.config.JrPersistenceAutoConfiguration;
 import org.ipro.reportstudio.query.ReportPreviewService;
 import org.ipro.reportstudio.query.ReportQueryExecutor;
 import org.ipro.reportstudio.query.ReportQueryGuard;
@@ -50,10 +50,9 @@ import static org.mockito.Mockito.mock;
  */
 @DataJpaTest
 // org.ip объявлен в Application#@EnableJpaRepositories (иначе дублирование бобов репозиториев в срезе).
-// Платформенный хаб даёт org.ipro.rls. Пакеты вынесенного persistence-артефакта срез больше не
-// перечисляет: @DataJpaTest отключает авто-конфигурации, поэтому модуль подключается явно —
-// так же, как это делало бы приложение, если бы полагалось на его авто-конфигурацию.
-@ImportAutoConfiguration({PersistenceAutoConfiguration.class, RlsPersistenceAutoConfiguration.class})
+// @DataJpaTest отключает авто-конфигурации, поэтому slice явно подключает владельцев
+// затрагиваемых persistence-пакетов: приложение (JR) и platform-rls.
+@ImportAutoConfiguration({JrPersistenceAutoConfiguration.class, RlsPersistenceAutoConfiguration.class})
 @ContextConfiguration(classes = Application.class)
 class JrxmlExecutionIT {
 

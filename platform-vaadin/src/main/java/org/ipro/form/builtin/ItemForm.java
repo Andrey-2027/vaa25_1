@@ -22,6 +22,7 @@ import org.ipro.form.FieldFactory;
 import org.ipro.form.FieldRenderer;
 import org.ipro.form.FormBinding;
 import org.ipro.form.FormBindingRegistry;
+import org.ipro.form.action.ReadOnlyReason;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.ipro.form.builder.layout.CustomNode;
 import org.ipro.form.builder.layout.DisplayNode;
@@ -87,8 +88,30 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     private final FormLayout formLayout; // null, если форма построена по кастомному ItemFormLayout
     private final HorizontalLayout footer = new HorizontalLayout();
 
-    /** Бейдж RLS "Только просмотр" (Фаза 4): причина запрета изменения, если запись открыта без прав. */
-    private final Span rlsReadOnlyNotice = new Span();
+    /**
+     * Режим, запрошенный через {@link #setReadOnly(boolean)} / {@link #setReadOnly(ReadOnlyReason)}.
+     * Хранится на форме, а не выводится из реестра биндингов: реестр без биндингов сообщает
+     * {@code false} даже после {@code setReadOnly(true)}, и кнопка сохранилась бы в read-only-форме
+     * без metadata-полей (E1.0a).
+     */
+    private boolean readOnlyMode;
+
+    /**
+     * Кнопки «Сохранить», созданные {@link #addSaveButton()}: единственный источник
+     * истины о том, какие кнопки обязаны подчиняться read-only. Определять их по
+     * тексту «Сохранить» нельзя — текст не является идентификатором действия.
+     */
+    private final List<Button> saveButtons = new ArrayList<>();
+
+    /**
+     * Причина текущего режима просмотра (E1.5, §2.5 плана E1): {@code null} в режиме редактирования.
+     * Типизированная, а не строка: бейдж о правах показывается только для отказа в правах, а не для
+     * типа, который просто не умеет менять запись.
+     */
+    private ReadOnlyReason readOnlyReason;
+
+    /** Бейдж "Только просмотр" (Фаза 4): текст причины, если запись открыта без прав. */
+    private final Span readOnlyNotice = new Span();
 
     // Read-only поля по пути через точку (см. renderDisplayField) — обновляются при setEntity(),
     // отдельно от FormBindingRegistry, т.к. FormBinding требует реального FieldMetadataInfo
@@ -234,10 +257,10 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         footer.setPadding(false);
         footer.setSpacing(true);
 
-        rlsReadOnlyNotice.getStyle().set("color", "var(--lumo-error-text-color)");
-        rlsReadOnlyNotice.getStyle().set("font-size", "var(--lumo-font-size-s)");
-        rlsReadOnlyNotice.setVisible(false);
-        add(rlsReadOnlyNotice);
+        readOnlyNotice.getStyle().set("color", "var(--lumo-error-text-color)");
+        readOnlyNotice.getStyle().set("font-size", "var(--lumo-font-size-s)");
+        readOnlyNotice.setVisible(false);
+        add(readOnlyNotice);
 
         history = new ItemHistory<>(entityClass, () -> entity, this::peekEntity,
             footer::addComponentAsFirst);
@@ -675,6 +698,13 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      * @return результат сохранения (успех/сообщения об ошибках)
      */
     public FormSaveResult<T> save() {
+        if (readOnlyMode) {
+            // Карточка открыта только для просмотра: сохранение — не отказ прав (серверный запрет
+            // остаётся последней линией), а отсутствующее действие. Программный клик по кнопке
+            // отсекает addSaveButton, но закрытие вкладки («Сохранить и закрыть») идёт другим
+            // путём — и не должно доходить до обработчика вовсе.
+            return new FormSaveResult.Failure<>(List.of(readOnlySaveMessage()), null);
+        }
         if (saveHandler == null) {
             return new FormSaveResult.Failure<>(
                 List.of("Не настроен обработчик сохранения (setSaveHandler)"), null);
@@ -740,8 +770,17 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      *
      * В режиме read-only:
      *   - Все поля становятся неизменяемыми
-     *   - Кнопка "Сохранить" скрывается (если она была добавлена)
-     *   - Кнопка "Отмена" остаётся видимой для закрытия формы
+     *   - Кнопки «Сохранить», созданные {@link #addSaveButton()}, не отображаются
+     *   - Кнопка «Отмена» остаётся видимой для закрытия формы
+     *
+     * <p>Порядок вызовов не важен: {@code setReadOnly(true)} до или после
+     * {@link #withDefaultButtons()} даёт один и тот же результат — видимой
+     * «Сохранить» в форме нет (E1.0a).</p>
+     *
+     * <p>Причина режима при этом нейтральная ({@link ReadOnlyReason#typeReadOnly()}): этот
+     * вызов означает «так попросил код», а не «права отказали». Когда причину знает host
+     * (права, тип без {@code UPDATE}, явный просмотр), он называет её через
+     * {@link #setReadOnly(ReadOnlyReason)}.</p>
      *
      * Пример использования:
      * <pre>
@@ -754,35 +793,54 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      * @param readOnly true = только просмотр, false = редактирование
      */
     public void setReadOnly(boolean readOnly) {
-        registry.setReadOnly(readOnly);
+        setReadOnly(readOnly ? ReadOnlyReason.typeReadOnly() : null);
+    }
 
-        // Скрываем/показываем кнопку "Сохранить" в footer
-        footer.getChildren()
-            .filter(component -> component instanceof Button)
-            .map(component -> (Button) component)
-            .filter(button -> "Сохранить".equals(button.getText()))
-            .forEach(button -> button.setVisible(!readOnly));
-
-        sections.setReadOnly(readOnly);
+    /**
+     * Режим просмотра с названной причиной (E1.5).
+     *
+     * <p>Причина — не подпись, а часть состояния формы: по ней host и тесты отличают отказ в
+     * правах от типа, который не умеет менять запись, и бейдж показывается только для отказа в
+     * правах ({@link ReadOnlyReason#showsNotice()}). Сообщение о правах там, где права никто не
+     * отказывал, — ложь в интерфейсе, а не осторожность.</p>
+     *
+     * @param reason причина режима просмотра; {@code null} — режим редактирования
+     */
+    public void setReadOnly(ReadOnlyReason reason) {
+        readOnlyMode = reason != null;
+        this.readOnlyReason = reason;
+        registry.setReadOnly(readOnlyMode);
+        saveButtons.forEach(button -> button.setVisible(!readOnlyMode));
+        sections.setReadOnly(readOnlyMode);
+        setReadOnlyNotice(reason == null ? "" : reason.noticeText());
     }
 
     /**
      * Проверить, находится ли форма в режиме read-only.
+     *
+     * <p>Учитывает и запрошенный режим, и состояние самого реестра биндингов: форма без полей
+     * сообщала {@code false} даже после {@code setReadOnly(true)} (E1.0a), из-за чего host,
+     * спрашивающий «карточка только для чтения?», получал противоположный ответ.</p>
      */
     public boolean isReadOnly() {
-        return registry.isReadOnly();
+        return readOnlyMode || registry.isReadOnly();
     }
 
     /**
-     * Бейдж RLS "Только просмотр" (Фаза 4): показывается вверху формы, когда запись
-     * открыта без права на изменение (read-only по правам, а не по коду). Причина —
-     * текст из {@code RlsUiGate.AccessDecision.reason()}, напр. «Только просмотр: нет
-     * прав на изменение (измерение ENTITY:ReceivingDocument)». null/пусто — бейдж
-     * скрывается.
+     * @return причина текущего режима просмотра либо {@code null}, если форма редактируется.
      */
-    public void setRlsReadOnlyNotice(String reason) {
-        rlsReadOnlyNotice.setText(reason == null ? "" : reason);
-        rlsReadOnlyNotice.setVisible(reason != null && !reason.isEmpty());
+    public ReadOnlyReason readOnlyReason() {
+        return readOnlyReason;
+    }
+
+    /**
+     * Бейдж "Только просмотр" (Фаза 4): текст вверху формы. Показывается только для причины
+     * {@link ReadOnlyReason.Kind#ACCESS_DENIED} — остальные виды режима просмотра нейтральны, и
+     * объяснять их правами значило бы сообщать пользователю то, чего не было.
+     */
+    private void setReadOnlyNotice(String text) {
+        readOnlyNotice.setText(text == null ? "" : text);
+        readOnlyNotice.setVisible(text != null && !text.isEmpty());
     }
 
     // === Доступ к внутренностям ===
@@ -936,12 +994,21 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
 
     /**
      * Добавить кнопку "Сохранить" в footer.
+     *
+     * <p>Кнопка подчиняется режиму формы: если read-only включён до добавления, кнопка
+     * создаётся невидимой, а её обработчик не запускается даже при программном клике
+     * (E1.0a).</p>
      */
     public Button addSaveButton() {
         Button btn = new Button("Сохранить", VaadinIcon.CHECK.create(), e -> {
+            if (readOnlyMode) {
+                return;
+            }
             if (onSave != null) onSave.run();
         });
         btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        btn.setVisible(!readOnlyMode);
+        saveButtons.add(btn);
         footer.add(btn);
         return btn;
     }
@@ -955,6 +1022,14 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
         });
         footer.add(btn);
         return btn;
+    }
+
+    /** Сообщение отказа сохранить в режиме просмотра — с названной причиной режима, если она есть. */
+    private String readOnlySaveMessage() {
+        String cause = readOnlyReason == null ? "" : readOnlyReason.message();
+        return cause.isEmpty()
+            ? "Форма открыта только для просмотра"
+            : "Форма открыта только для просмотра: " + cause;
     }
 
     /**

@@ -18,6 +18,8 @@ public final class EntityMetadataInfo implements GridMetadata {
     private final Class<?> entityClass;
     private final EntityMetadata annotation;
     private final EntityKind entityKind;
+    private final FactOrigin entityKindOrigin;
+    private final String entityKindSymbol;
     private final List<FieldMetadataInfo> allAnnotatedFields;
     private final List<FieldMetadataInfo> formFields;
     private final List<FieldMetadataInfo> gridFields;
@@ -32,12 +34,28 @@ public final class EntityMetadataInfo implements GridMetadata {
                               List<FieldMetadataInfo> gridFields,
                               List<ColumnPath> listColumnPaths,
                               List<ColumnPath> selectColumnPaths) {
+        this(entityClass, annotation, entityKind, FactOrigin.UNKNOWN, "", allAnnotatedFields,
+            formFields, gridFields, listColumnPaths, selectColumnPaths);
+    }
+
+    public EntityMetadataInfo(Class<?> entityClass,
+                              EntityMetadata annotation,
+                              EntityKind entityKind,
+                              FactOrigin entityKindOrigin,
+                              String entityKindSymbol,
+                              List<FieldMetadataInfo> allAnnotatedFields,
+                              List<FieldMetadataInfo> formFields,
+                              List<FieldMetadataInfo> gridFields,
+                              List<ColumnPath> listColumnPaths,
+                              List<ColumnPath> selectColumnPaths) {
         this.entityClass = entityClass;
         this.annotation = annotation;
         if (entityKind == EntityKind.AUTO) {
             throw new IllegalArgumentException("Resolved entity kind must not be AUTO");
         }
         this.entityKind = entityKind;
+        this.entityKindOrigin = entityKindOrigin == null ? FactOrigin.UNKNOWN : entityKindOrigin;
+        this.entityKindSymbol = entityKindSymbol == null ? "" : entityKindSymbol;
         this.allAnnotatedFields = List.copyOf(allAnnotatedFields);
         this.formFields = List.copyOf(formFields);
         this.gridFields = List.copyOf(gridFields);
@@ -56,6 +74,16 @@ public final class EntityMetadataInfo implements GridMetadata {
     /** Эффективный semantic kind; AUTO к моменту построения metadata уже разрешён. */
     public EntityKind getEntityKind() {
         return entityKind;
+    }
+
+    /** Происхождение разрешённого semantic kind. */
+    public FactOrigin getEntityKindOrigin() {
+        return entityKindOrigin;
+    }
+
+    /** Java-символ объявления kind; пуст для платформенного fallback. */
+    public String getEntityKindSymbol() {
+        return entityKindSymbol;
     }
 
     public String getListFormTitle() {

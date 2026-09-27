@@ -28,8 +28,6 @@ import org.ipro.vaadin.explorer.SubsystemSummaryAssembler.Group;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler.SubsystemRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -78,6 +76,7 @@ public class SubsystemStructureView extends VerticalLayout {
     private final SubsystemSummaryAssembler assembler;
     private final EntitySummaryAssembler entityAssembler;
     private final FormNavigator navigator;
+    private final EntityExplorerAccess access;
 
     private final TextField searchField = new TextField();
     private final TreeGrid<Item> tree = new TreeGrid<>(Item.class);
@@ -90,10 +89,12 @@ public class SubsystemStructureView extends VerticalLayout {
 
     public SubsystemStructureView(@Autowired SubsystemSummaryAssembler assembler,
                                   @Autowired EntitySummaryAssembler entityAssembler,
-                                  @Autowired FormNavigator navigator) {
+                                  @Autowired FormNavigator navigator,
+                                  @Autowired EntityExplorerAccess access) {
         this.assembler = assembler;
         this.entityAssembler = entityAssembler;
         this.navigator = navigator;
+        this.access = access;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -102,7 +103,7 @@ public class SubsystemStructureView extends VerticalLayout {
     /** Вызывается из MainLayout сразу после создания (initializer в workspace.open). */
     public void init() {
         removeAll();
-        if (!isAdmin()) {
+        if (!access.allows()) {
             add(new H3("Доступно только администратору"));
             return;
         }
@@ -360,9 +361,4 @@ public class SubsystemStructureView extends VerticalLayout {
         return value ? "да" : "—";
     }
 
-    private boolean isAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.getAuthorities().stream()
-            .anyMatch(g -> "ROLE_ADMIN".equals(g.getAuthority()));
-    }
 }

@@ -10,11 +10,11 @@ import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.form.coordinator.FormOpenMode;
 import org.ipro.form.coordinator.ItemFormAccessBinder;
 import org.ipro.form.coordinator.ListFormWrapper;
+import org.ipro.form.link.FormLinkService;
 import org.ipro.form.registry.FormRegistry;
 import org.ipro.form.registry.FormResolver;
 import org.ipro.form.spi.FormSettingsStore;
 import org.ipro.form.spi.GridViewStore;
-import org.ipro.form.spi.ListFormToolbarContributor;
 import org.ipro.form.spi.WorkspaceGateway;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
@@ -143,9 +143,15 @@ class FormCoordinatorUiIsolationTest {
             mock(GridViewStore.class),
             mock(RlsUiGate.class),
             mock(ItemFormAccessBinder.class),
+            mock(org.ipro.form.action.ActionRegistry.class),
+            mock(org.ipro.form.action.ActionContextProvider.class),
+            mock(org.ipro.form.action.ActionHandlerRegistry.class),
+            mock(FormLinkService.class),
             mock(EntityCopyService.class),
             mock(TableSectionFactory.class),
-            List.<ListFormToolbarContributor>of(),
-            workspaceGateways);
+            workspaceGateways,
+            // Мост адреса не участвует в проверке изоляции UI-состояния: этот тест про вкладки
+            // двух UI, а не про адрес.
+            null);
     }
 }

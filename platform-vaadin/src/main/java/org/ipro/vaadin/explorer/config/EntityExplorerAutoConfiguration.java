@@ -2,13 +2,19 @@ package org.ipro.vaadin.explorer.config;
 
 import org.ipro.autoconfigure.PlatformProperties;
 import org.ipro.form.config.FormAutoConfiguration;
+import org.ipro.form.link.FormRouteCatalog;
 import org.ipro.form.registry.FormRegistry;
+import org.ipro.data.EntityDescriptorCatalog;
+import org.ipro.data.config.DataAccessAutoConfiguration;
 import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.MetadataConsistencyStartupCheck;
 import org.ipro.metadata.ReferenceIndex;
+import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.ipro.metadata.facet.FacetResolver;
 import org.ipro.numbering.NumberingMetadataRegistry;
+import org.ipro.lifecycle.EntityLifecycleRegistry;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler;
@@ -17,6 +23,8 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.ObjectProvider;
+import org.ipro.events.config.EventsAutoConfiguration;
 
 /**
  * Auto-Configuration поверхности чтения метаданных — Entity Explorer
@@ -51,11 +59,16 @@ import org.springframework.context.annotation.Bean;
  * добавленные условия молча выключили бы всю подсистему: модуль на месте, функция отсутствует.</p>
  */
 @AutoConfiguration
-@AutoConfigureAfter({MetadataAutoConfiguration.class, FormAutoConfiguration.class})
+@AutoConfigureAfter({MetadataAutoConfiguration.class, FormAutoConfiguration.class,
+    DataAccessAutoConfiguration.class, EventsAutoConfiguration.class})
 @ConditionalOnBean({
     PlatformProperties.class,
     MetadataResolver.class,
     FormRegistry.class,
+    EntityDescriptorCatalog.class,
+    FormRouteCatalog.class,
+    EntityLifecycleRegistry.class,
+    SectionMetadataRegistry.class,
     ReferenceIndex.class,
     NumberingMetadataRegistry.class,
     SubsystemRegistry.class,
@@ -88,9 +101,16 @@ public class EntityExplorerAutoConfiguration {
             ReferenceIndex referenceIndex,
             NumberingMetadataRegistry numberingMetadataRegistry,
             SubsystemRegistry subsystemRegistry,
-            FacetResolver facetResolver) {
+            FacetResolver facetResolver,
+            EntityDescriptorCatalog descriptorCatalog,
+            FormRouteCatalog formRouteCatalog,
+            EntityLifecycleRegistry lifecycleRegistry,
+            SectionMetadataRegistry sectionMetadataRegistry,
+            ObjectProvider<MetadataConsistencyStartupCheck> startupCheck) {
         return new EntitySummaryAssembler(
             platformProperties.requiredSubsystemScanPackage(), metadataResolver, formRegistry,
-            referenceIndex, numberingMetadataRegistry, subsystemRegistry, facetResolver);
+            referenceIndex, numberingMetadataRegistry, subsystemRegistry, facetResolver,
+            descriptorCatalog, formRouteCatalog, lifecycleRegistry, sectionMetadataRegistry,
+            startupCheck.getIfAvailable());
     }
 }

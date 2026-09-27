@@ -1,5 +1,23 @@
 # Текущий engineering baseline
 
+## Вход в E (2026-09-23)
+
+E1 закрыт в объёме E1.0–E1.7; открыт только E1.2b (resource permissions), который ждёт
+серверной части C5, отсутствующей в дереве; остаток D3.6/D3.8, D3.9, D4 и C5 с критериями закрытия
+зафиксирован в [`JMIX_GitVaa_Roadmap_v2.md`](../../../JMIX_GitVaa_Roadmap_v2.md), §8/E0.
+Решение владельца: `D-R` ждёт высвобождения ресурсов и не является входным gate E1.
+Это не означает завершения D-core или готовности optional report add-on.
+
+## Актуальная дельта границы исходников (2026-09-23; Maven-проверка ожидает запуска)
+
+JR persistence теперь принадлежит приложению: `JrxmlTemplate`, `JrxmlTemplateRepository` и
+`JrPersistenceAutoConfiguration` находятся в app source; `platform-persistence` содержит только
+`BaseEntity` и нужные ей нейтральные compile-зависимости. JR auto-configuration и imports entry
+удалены из platform-модуля, обновлены его source fingerprint и API baseline, а focused registration
+test перенесён в приложение; source fingerprints затронутых `platform-persistence` и
+`platform-rls` обновлены. Maven и тестовые наборы для этой дельты не запускались, поэтому
+runtime-регистрация и итоговое замыкание starter остаются неподтверждёнными.
+
 - Дата общего baseline: 2026-09-13; адресная проверка C4.3/C4.4: 2026-09-14; D2 (два среза): 2026-09-15
 - Ветка: `main`
 - Baseline commit/tag: `3793165` / `c4.8-d1-baseline` — заморозка C4.0–C4.8 и D1 перед первым extraction slice (D2)
@@ -26,6 +44,7 @@
 | C3 FetchPlan + InstanceName | C3.0–C3.7 реализованы; адресные проверки C3.7 выполняются | Периметр C3.0; `@InstanceName` + резолвер (пилот `ReceivingDocument`, `Nomenclature`); `FetchPlanRegistry` со сценариями `LIST`/`DETAIL`/`LOOKUP`/`ROW` и декларацией `@Lookup(fetch)`; read-path выбирает сценарий внутри сервиса, явные пути расширяют план; `ItemTable` использует один section reload через `ROW`; `DETAIL`/`LIST` независимы, планы детерминированы. C3.7 включает раннюю write-авторизацию и единый lifecycle-managed `InstanceNameProvider`. Широкое распространение `@InstanceName` на остальные сущности остаётся отдельной миграцией |
 | C RLS enforcement | C1 завершён; реализация C2 согласованного scope выполнена, широкая проверка ещё не зелёная | `DAC-13`, `DAC-17` и `DAC-19` закрыты; checked duplication закреплён как конечное решение; detection-only production guard принят и вынесен в `A4-PREPROD-RLS-GUARD`; целевой набор C2 (53 теста) и random-order gate (156 тестов) зелёные. Полный random `verify` пока даёт ошибки жизненного цикла Spring test context в `AttributeValueServiceTest`/`AttributeTypeServiceTest`; `VisualQuerySubqueryIT` исключён по решению владельца и разбирается отдельно |
 | C4 Data-access facade | C4.0–C4.8 закрыты | Таксономия всех 37 persistence types, классификация service/repository/base слоя, baseline и пилоты зафиксированы в `c4-inventory.md`; решения — в `ADR-0007`. C4.1: единый canonical read executor, descriptor/capability catalog и правило `plan ∪ extras -> deepen once`; `AbstractBaseService`, `LookupService` и global search используют одну границу; row cancel без per-reference reads. C4.1 hardening: capability enforcement fail-closed, LOOKUP для lookup по id, SQL-bound lookup, paging count parity, `deepen once`. C4.2: tri-state `RequiredMode`, вывод `type`/`reference`/server-nullability/UI-required с `FactOrigin`, eager startup-валидация и `MetadataAllowance`; пилотная зачистка дублей сохранила effective values без diff. C4.2 hardening: snapshot-ресурсы в поставке, таблица совместимости Java-типа и `FieldType`, вывод server-required из JPA, дедупликация типов, негативный startup-тест и whitelist warning-кодов; global search получил capability-грань источника. C4.3 core: `EntityDataAccess`, единый `CanonicalWriteExecutor`, type-directed resolver, generic `CanonicalEntityService` и исполняемые запреты; `ValidatedJpaCrudService` ограничен internal-store. C4.3 hardening: intent задаёт точную JPA-операцию; UPDATE требует существующую доступную исходную строку и авторизует исходное и целевое состояния до валидации/hooks; `GridFormView` canonical handle ограничен `CREATE`. Полный порядок pipeline и ранний отказ покрыты тестами. Формальное закрытие C4.3 ожидало write-telemetry, первый production-каталог на canonical write path и form → write → audit acceptance; write-telemetry-seam заведён в C4.8 (остальное перенесено туда же). C4.4: canonical search builder и согласованные overloads на всех 16 стандартных корнях, literal escaping, deterministic ordering и bounded paging. C4.5: модульное участие через `@GlobalSearchable`, canonical secured query без count, удаление central config и Spring wiring; целевые тесты зелёные. C4.6 (закрыт): заборы миграции и aggregate-boundary guard, волна A (`Branch`/`Journal`/`Oper`/`Role`), волна B (`GroupNom`/`Nomenclature`/`ReceivingDocument`), волна C (`Workshop`/`UnitOfMeasurement` + снятый дубль `GridFormView`, `BaseService.sum` на canonical-поверхности). ADR-0008/ADX-13: интернированные сущности получили один механизм `NaturalKeyCreateSupport` вместо двух копий retry. Волна D: `ReceivingDocument` и report stores. Волна E: `AttributeType`/`AttributeValue`/`NomSklAttribute`/`SklNomOpa`/`User`/`PrdSpec` — домен остался, CRUD делегирован canonical handle, правила переехали в `EntityLifecycle`. Волна F: `GridFormView` — ownership в lifecycle, сужение handle снято; `UreportTemplate` — internal-store adapter, read-мост снят. C4.7: `AbstractBaseService` удалён, `serviceClass` удалён, резолв по имени бина заменён type-directed реестром. C4.8 (закрыт): write-telemetry с двухфазным исходом (pipeline → коммит), typed-классификация отказов, fail-closed глобальный поиск, отказ to-many-сортировки вместо distinct-эмуляции, точные наборы литералов в реестре строковых связок. Полный `mvn verify` — 1316/0/0, random-order gate — 1316/0/0 (seed `20260915`) |
+| E1 Declarative actions | E1.0–E1.7 закрыты; E1.2b открыт (внешняя зависимость: C5) | Единое решение об одном действии (capability + RLS + выделение + контекст) вместо доступности, считаемой в UI: объявление и исполнение — один бин `ActionHandler`, решение пересчитывается в момент клика, поэтому недоступное действие не запускается и программно. Легаси `ListCommand`/`ListCommandContext`/`ListCommandRegistry`/`ListCommandActionAdapter`, цикл `applyListCommands`, шов `ListFormToolbarContributor` и `@WithReportView` удалены; печать списка и «только материалы» — объявленные действия. Замеры — в разделе E1 ниже, руководство — `docs/architecture/actions-guide.md` |
 | D Physical modularity | D1 выполнен (карта и игровые правила); D2 выполнен (четыре extraction slice); мост D2 → D3 завершён (метаданные, нумерация и константы вынесены; цикл `telemetry` ↔ `rls` вывернут, телеметрия вынесена); D3.0–D3.5 закрыты, D3.6 — следующий | Проект остаётся одним Maven-модулем `Vaa25_1`, но платформа частично уже опубликована как внешние артефакты (`org.ipro:filtergrid-*`, `org.ipro.crudui:crudui-core`). D1 (`docs/architecture/d1-platform-boundary-map.md`): классификация API/SPI/internal, исполняемые правила направлений (`PlatformDependencyDirectionTest`, 8 правил) и shrink-only реестр строковых связок (`PlatformStringDependencyTest`). Результат D1 по строкам сформулирован точно: связки **выявлены, зарегистрированы по точным наборам литералов и запрещены к расширению**, а их снятие (13 файлов, 16 литералов) отнесено к D3. D2 (`docs/architecture/d2-contracts-extraction.md`): тремя срезами вынесены два артефакта. Контракты (`org.ipro:platform-contracts:1.0-SNAPSHOT`, **34 типа**): декларации метаданных (12) и event/lifecycle SPI с нейтральными identifiers (22). Runtime (`org.ipro:platform-events:1.0-SNAPSHOT`, **3 типа**): publisher, fail-fast registry и своя авто-конфигурация — первый срез с бинами и первая связка платформа→платформа (`dependsOn: platform-contracts`). Persistence (`org.ipro:platform-persistence:1.0-SNAPSHOT`, **4 типа**): сущность, Spring Data репозиторий, `BaseEntity` и своя регистрация в persistence unit и Spring Data (`dependsOn: crudui`). Риск §3.5 карты D1 (потеря entity/репозиториев при выносе) закрыт: модуль объявляет свои пакеты сам, две декларации `@EnableJpaRepositories` не перекрываются (проверено контекстом), а потеря регистрации в этой конфигурации падает громко (проверено двумя экспериментами). Граница доказана негативно на обоих артефактах (без них приложение не компилируется), владение проверено по байткоду, состав и зависимости — reviewed-списками в тестах; реестр авто-конфигураций проверяется по всем артефактам сразу (каждая зарегистрирована ровно один раз и именно своим артефактом). Ни одной новой обязательной регистрации в приложении: запись `EventsAutoConfiguration` убрана из imports-файла приложения, модуль несёт свой. Потеря контура больше не тихая: без саморегистрации модуля старт падает (проверено экспериментом), а диагностика названа `EventContourStartupCheck`. Мост D2 → D3 (`docs/architecture/d3-subsystem-extraction.md`): замер замыканий подсистем на дерево, срез 5 вынес `org.ipro:platform-metadata:1.0-SNAPSHOT` (2 типа — скан по аннотации и индекс ссылок: это и есть весь упор подсистем в метаданные, а не пакет целиком), срез 6 — `org.ipro:platform-numbering:1.0-SNAPSHOT` (17 типов, первая подсистема целиком: сущности, репозитории, бины, авто-конфигурация, аннотации, читаемые рефлексией с сущностей приложения). Приложение не потеряло и не приобрело ни одной регистрации; реестр строковых связок сократился с 13 файлов до 11 устранением двух мёртвых default-значений. Срез 7 вынес `org.ipro:platform-settings:1.0-SNAPSHOT` (8 типов — сущность константы с репозиторием, каталог, сервис, источник обратных ссылок, авто-конфигурация). Ценность среза — в найденном классе ошибки: ни один тест модуля не подтвердил вынос, а полный прогон нашёл два `@DataJpaTest`-среза, которые имитировали регистрацию модуля вместо её подключения; это стало общим правилом в `PersistenceTypeRegistrationTest` (модули выводятся из своих объявлений, срез обязан использовать регистрацию того модуля, чей persistence-тип он трогает). Гейты после D2: `mvn verify` — 1346/0/0, random-order — 1346/0/0 (seed `20260915`); после моста: `mvn verify` — 1367/0/0 (тот же seed). D3 (`docs/architecture/d3-core-extraction.md`): D3.0 — воспроизводимый bootstrap (граф по `dependsOn`, топосортировка, падение на цикле и на отсутствующем проекте, уникальность публикуемых GAV, сверка manifest-графа с POM-графом без сборки приложения, алгоритм fingerprints v2, прогон на пустом локальном репозитории; проверка манифеста больше не требует Maven). D3.1 — `platform-identity-api` (нейтральный `org.ipro.identity.IdentifiableEntity`), низкоуровневые модули больше не зависят от `crudui-core`, `EntityLifecycleRegistry` создаётся авто-конфигурацией `platform-events`. D3.2 — разорваны связки metadata↔form и search↔form: ownership бинов переехал в form-конфигурацию, explorer и global search UI — в `org.ipro.vaadin.*`, добавлены исполняемые гейты границ (`PlatformCoreBoundaryTest`). D3.3 — `platform-core`: 92 production-типа (78 классов одним шагом — `crud`/`data`/`fetch`/`metadata` образуют цикл и не разделяются), 116 собственных тестов, тестовое владение исполнено (24 тестовых файла и `BaseEntityEqualityTest` переехали к владельцам), семантический реестр ролей `platform-core-surface.txt` (APP_API 28 / APP_SPI 4 / MODULE_API 44 / INTERNAL 16) и гейты `PlatformCoreSurfaceTest`, `PlatformCoreModuleTest`. D3.4 — `platform-spring-boot-autoconfigure`: five backend auto-configurations moved into sibling module, module-owned `AutoConfiguration.imports`, typed `PlatformProperties` without a default for required `platform.subsystem-scan-package`, old application imports removed; module tests 28/0/0, D3.4 root gates 63/0/0, full random-order `verify` 1271/0/0. Доработки по ревью D1–D3: полнота D1-реестра (ссылки распознаются в импортах, fully-qualified и wildcard-синтаксисе; wildcard запрещён; пять пропущенных production-типов добавлены, бюджет legacy 73 → 75 как исправление измерения → 74 после повышения `NaturalKeyCreateSupport`); API baseline привязан к манифесту (11 артефактов вместо 5), `platform-core` фиксируется по ролям, остальные помечены `TEMPORARY_ALL_PUBLIC`; `platform-crud-api` учтён в измерении; тесты telemetry включены (`-DskipTests` снят). Открытые долги D3.9: owner-side тесты для metadata/numbering/settings/rls, снятие `TEMPORARY_ALL_PUBLIC`, overlay ссылок тестов для не-core модулей, опустошение legacy-overlay `platform-core` |
 
 ## Quality gate
@@ -1521,6 +1540,405 @@ bootstrap -ValidateOnly                                 OK fingerprint: восе
 внешних каталогов на конкретной машине, поэтому полный `bootstrap -ValidateOnly`
 зелёный только для in-repo модулей (8/8), а внешний хвост может отличаться.
 
+## E1: декларативные действия (закрыт, кроме E1.2b)
+
+Срезы с артефактами в `docs/plans/`: `e1.0-actions-inventory.md`, `e1.1-action-contract.md`,
+`e1.2a-decision-inputs.md`, `e1.2-pilot-rls-carrier.md`, `e1.3-list-actions.md`,
+`e1.4-interned-types.md`, `e1.5-item-card.md`, `e1.6a-row-actions.md`, `e1.6b-report-action.md`,
+`e1.7-cutover.md`; руководство для потребителя — `docs/architecture/actions-guide.md`.
+
+Фактические прогоны (2026-09-24, Maven 3.9.9 + JDK 21):
+
+- `platform-vaadin`, `mvn verify`, случайный порядок (seed `17052463098299`): **286 тестов, 0 падений, BUILD SUCCESS**.
+- приложение, `mvn verify`, случайный порядок (seed `17169459916700`): **1337 тестов, 1 падение** —
+  `ReportEditorConsolidationTest.canonicalStructureEditorRendersEveryAcceptedControl` (reportstudio, тема D-R).
+  Падение не связано с E1 и присутствует в прогонах до срезов E1.3–E1.7.
+- заборы в том же прогоне приложения: `PlatformVaadinSurfaceTest` 6/0, `PlatformCoreSurfaceTest` 6/0,
+  `PlatformPublicSurfaceTest` 10/0, `PlatformApiBaselineTest` 3/0, `PlatformPackageDependencyMatrixTest` 3/0,
+  `WorkspaceManifestTest` 4/0, `FormDeadApiTest` 1/0, `PlatformVaadinModuleTest` 7/0.
+
+Открыто по итогам этапа:
+
+- **E1.2b** (resource permissions) не начат: серверной части C5 в дереве нет, `ActionPermission`
+  описывает её как следующий вход. Формула `capability + resource/RLS + контекст` в полном виде
+  не выполнена и без C5 невыполнима; DoD §5.2 плана остаётся открытым.
+- **Ручной UI-смоук не проводился**: поведение подтверждено тестами и кодом, но не наблюдением.
+- **`D-R`** (optional report add-on) остаётся отдельным открытым обязательством владельца и
+  входным gate E1 не является.
+
+## E2: глубокие ссылки (E2.0a, E2.0, E2.1–E2.5 закрыты)
+
+Фактические прогоны (2026-09-25, Maven 3.9.9 + JDK 21):
+
+- **E2.0a — fail-closed открытие карточки в Workspace.** Preflight существования записи до
+  `Workspace.open` и отказ собирать форму в `ItemFormWrapperView`, если запись исчезла между
+  проверкой и инициализацией: без этого `ItemForm.getEntity()` мог создать новый объект, то
+  есть отказ чтения превращался в сохраняемую пустую карточку. Измерено: новый
+  `ItemFormWorkspaceOpenGuardTest` — **3/0**; `platform-vaadin` — **286/0**; адресные
+  прикладные тесты (`DialogWorkspaceResolutionIT`, `FormCoordinatorScopeGuardTest`,
+  `FormCoordinatorUiIsolationTest`, `PrdSpecSectionCompositionTest`,
+  `MetadataDrivenAggregateSaveServiceIT`, `GlobalSearchNavigationAdapterTest`,
+  `PlatformVaadinSurfaceTest`, `PlatformApiBaselineTest`, `FormDeadApiTest`,
+  `PlatformVaadinWiringIT`, `FormAssemblyPurityTest`) — 0 падений.
+- **E2.0 spike — host и синхронизация адреса.** Измерения вынесены в
+  [`e2-deep-link-host-spike.md`](../e2-deep-link-host-spike.md): route templates в
+  `@RouteAlias` на текущем `@Route("")` работают без пересоздания оболочки и без повторного
+  `openHome`; ручной `javascript history.pushState` теряет вкладки при Back, а Vaadin
+  `Page.getHistory().pushState` + `setHistoryStateChangeHandler` — нет; два UI — два
+  независимых `Workspace`. Инструментация удалена, `git diff` по `MainLayout` пуст.
+- **E2.0 шаг 3 — контракт и baseline.** Принят
+  [`ADR-0009`](../decisions/ADR-0009-deep-links.md): host, правила синхронизации истории,
+  грамматика `/records/{entityKey}/{id}` и `/lists/{entityKey}`, вывод alias, linkability,
+  матрица результата открытия и границы API. Baseline публичных адресов
+  (`src/test/resources/routes/deep-link-baseline.txt`) закреплён `DeepLinkRouteBaselineTest` —
+  **6/0**; `.gitignore` получил явное исключение для ресурса, иначе контракт не попал бы в
+  поставку.
+- **E2.1 — каталог адресов, грамматика и генерация ссылок.** Новый пакет
+  `org.ipro.form.link` в `platform-vaadin` — 10 типов: грамматика (`FormRouteKind`,
+  `FormRoute`, `FormRouteCodec` — единственное место, знающее синтаксис, с отказами вместо
+  «исправлений»), каталог публикуемых адресов от каталога форм и метаданных
+  (`PublishedFormRoute` с `Blockers`, `FormRouteCatalog`, `FormRouteAliasDeclaration`),
+  результат генерации и причины отказа (`FormLinkResult`, `NotLinkableReason`,
+  `FormRouteParseResult`) и генератор `FormLinkService` (порядок проверок — публикация →
+  грамматика → вариант → ограничения типа; данных записи сервис не читает). Адрес
+  остаётся относительным: origin — дело `@RouteAlias`-host'а (E2.3). Измерено:
+  `platform-vaadin` — **312/0** (было 286/0, +26: `FormRouteCodecTest` 6,
+  `FormRouteCatalogTest` 11, `FormLinkServiceTest` 9); в приложении
+  `DeepLinkCatalogBaselineIT` — **5/0** (реальный Spring-контекст: каталог собран из живых
+  метаданных и сверен с `src/test/resources/routes/deep-link-baseline.txt`) и
+  `DeepLinkRouteBaselineTest` — **6/0**. Страж состава модуля требует явного числа
+  production-типов: он обновлён до **115** вместе с реестром ролей
+  (`platform-vaadin-surface.txt`) и записью в тексте стража, а не подгонкой под факт;
+  `PlatformVaadinModuleTest`, `PlatformVaadinSurfaceTest`, `PlatformApiBaselineTest`,
+  `ReportFormSeamTest`, `VaadinModuleCompositionTest` — 0 падений.
+- **E2.1 — адресуемость как вход решения E1.** «Кнопка видна ровно тогда, когда ссылка построима»
+  выражено решением, а не предикатом в рендерере: `ActionContext` получил адресный вход
+  `RouteLinkability` (INTERNAL), `ActionRequirement` — флаг `linkableRequired`
+  (`ActionRequirement.linkable()`), `ActionDecision.Reason` — `NOT_LINKABLE`, а провайдер контекста
+  привязывает вид адреса (список → `lists`, карточка существующей записи → `records`,
+  несохранённая карточка → `MISSING_ID`). Порядок проверок в политике — подавление → тип/права →
+  выделение → права → обязательный контекст → адрес; вход ленивый. Измерено: `platform-vaadin` —
+  **319/0** (было 312/0; +7 в новом `RouteLinkabilityDecisionTest`, включая ленивость, приоритет
+  прав и контекста и тотальный текст отказа по каждой причине); в приложении стражи состава
+  обновлены до **116** production-типов, замер `platform-artifact-files` — **385**, адресные тесты
+  и `ActionPolicyConfigTest`/`RlsProtectedTypeActionDecisionTest` — 0 падений.
+- **E2.1, шаг 3 — affordance «скопировать ссылку».** `CrudAction.COPY_LINK` объявлен на двух
+  поверхностях (`LIST_TOOLBAR`, `ITEM_FOOTER`) с требованием `ActionRequirement.linkable()`,
+  поэтому кнопка существует ровно там, где ссылка построима, и её видимость — решение, а не
+  предикат. Сам affordance — `CopyLinkButton` (INTERNAL): он перерисовывает уже принятое решение,
+  а в момент клика спрашивает его заново (устаревшая кнопка или программный клик не отдают
+  адрес), пишет адрес в буфер через Browser Clipboard API и **деградирует** до выделяемого поля
+  там, где API недоступен (не-secure origin) или отказал: молчаливого «скопировано ничего» нет.
+  Адрес остаётся относительным, origin подставляет клиент в том же вызове — поэтому стенд не
+  попадает ни в контракт, ни в тесты. Встраивание в подвал карточки вынесено в один код
+  (`ItemFormLinkAffordance`) для вкладки Workspace и диалога: адрес открытой записи не должен
+  зависеть от того, каким путём её открыли. **Измерено:** `platform-vaadin` — **333/0** (было
+  319/0; +14: `CopyLinkButtonTest` и решения списка), адресный набор приложения
+  (`PlatformVaadin*SurfaceTest`/`ModuleTest`, `PlatformApiBaselineTest`, `PlatformPublicSurfaceTest`,
+  `DeepLink*`, `ActionPolicyConfigTest`, `RlsProtectedTypeActionDecisionTest`,
+  `FormCoordinatorUiIsolationTest`, `ItemFormWorkspaceOpenGuardTest`) — **59/0**; стражи состава
+  обновлены до 118 production-типов, api-baseline `platform-vaadin.api` перегенерирован, замер
+  `platform-artifact-files` — 387. **Не проверено наблюдением:** оба пути копирования
+  (буфер/выделяемое поле) в реальном браузере — покрыты решение и рендер, но не сам браузер; это
+  единственный пункт шага 3 плана, закрываемый ручным смоуком.
+- **E2.2 — типизированный исход открытия по адресу.** Route-вход отделён от генерации ссылки:
+  `FormRouteOpener` (APP_API) проверяет каталог (публикация → вид → вариант → запрет сценария) и
+  только потом отдаёт открытие навигатору — до этого момента ни одного обращения к данным и
+  ни одной созданной вкладки. `OpenResult` (APP_API) вместо «что-нибудь покажем»: `Opened`,
+  `NotFound` (hidden и missing не различаются), `Forbidden`, `InvalidRoute`, `NotLinkable`,
+  `Unavailable` плюс метка `outcome()` для route audit. Порядок §6 ADR реализован кодом: чтение
+  canonical всегда идёт **до** вкладки, повторное открытие перечитывает строку (права и
+  видимость перепроверяются и при уже открытой вкладке), отказ возвращается значением, а не
+  сообщением и не исключением. Прямой адрес всегда выбирает Workspace, не читая и не меняя
+  мутабельный режим открытия приложения. **Реализация потребовала двух форм, а не одной:**
+  `FormNavigator` (APP_API) расширен routed-методами, потому что подпись APP_API-типа не имеет
+  права называть INTERNAL-класс реализации (`FormCoordinator`) — иначе обещание платформы
+  зависело бы от класса, который можно менять свободно. **Измерено:** `platform-vaadin` —
+  **343/0** (+10 в новом `FormRouteOpenerTest`: неизвестный ключ/вариант, `default`, запрещённый
+  сценарий, обязательный контекст — все с проверкой «навигатор не тронут»);
+  `FormRouteOpenOutcomeTest` в приложении — **10/0** на настоящем координаторе (чтение до вкладки,
+  отказ без вкладки, 403 против 404, гонка после preflight, перепроверка на каждом входе,
+  Workspace независимо от настроенного режима); адресный набор приложения — 58/0; стражи состава —
+  **120** production-типов, замер `platform-artifact-files` — **389**.
+  **Уточнение, доказанное реализацией:** `AccessDeniedException` (в том числе
+  `RlsAccessDeniedException` от `RlsPolicyEnforcer`) отображается в `Forbidden` (403), но при
+  CHECK_ONLY-гейте без enforcer'а class-level deny даёт пустое чтение, то есть **404** — это
+  унаследованное поведение canonical read, а не выбор E2; направление отказа безопасное (hidden и
+  missing всё равно не различаются), но если владелец хочет гарантированный 403 на class deny,
+  это отдельное решение по гейту, а не по маршрутам.
+  **Уточнение по wiring'у, найденное регрессией:** ленивое построение каталога требовало
+  заморозки `FormRegistry`, а startup-проверка вызывается по `ApplicationReadyEvent` — то есть
+  стенд, осознанно включивший `ipro.form.registry.allow-runtime-registration`, падал на старте
+  собственным guard'ом каталога (`DialogWorkspaceResolutionIT`, 2 error). Требование теперь
+  снято тем же свойством, что и сама заморозка: `FormRouteCatalog.deferred(...)` получил
+  параметр `requireFrozenRegistry`, а бин каталога вычисляет его как
+  `!allowRuntimeRegistration`. Цена режима зафиксирована тестом
+  `runtimeRegistrationModeBuildsTheCatalogWhileTheRegistryStaysOpen`: вариант,
+  зарегистрированный после первого снимка, в адреса не попадает — это свойство выбранного
+  режима, а не дефект каталога. **Измерено:** `platform-vaadin` — **344/0** (+1),
+  `DialogWorkspaceResolutionIT` — **2/0** (было 2 error).
+- **Приложение, `mvn -o test`** — **1346 тестов, 1 падение** —
+  `ReportEditorConsolidationTest.canonicalStructureEditorRendersEveryAcceptedControl`
+  (тема D-R отчётов); падение присутствует в прогонах до срезов E2 и регрессией E2 не
+  является.
+- **Манифест воркспейса.** Fingerprint `platform-vaadin` обновлён намеренно
+  (`-Dplatform.manifest.write=true`): причина — правки E2.0a в самом модуле; после обновления
+  `WorkspaceManifestTest` — **4/0**. Манифест в рабочем дереве уже содержал незакоммиченные
+  правки других проектов (`platform-persistence`, `platform-bom`, starter'ы и др.), к E2 они
+  не относятся и не трогались.
+
+- **E2.3 — host адреса и мост с вкладками.** Адрес стал поведением приложения, а не только
+  генерацией ссылки. Host — `@RouteAlias`-шаблоны `/records/:entityKey/:id` и
+  `/lists/:entityKey` на существующем `MainLayout` (выбор E2.0 подтверждён реализацией):
+  `beforeEnter` разбирает адрес из окна и открывает форму либо показывает страницу состояния,
+  **не заводя вкладки** и не меняя адрес. Соответствие «видимое = адрес» удерживает новый
+  UI-scoped бин `FormRouteUrlBridge`: он знает адрес каждой открытой по адресу вкладки
+  (координатор записывает маршрут до активации вкладки), пишет адрес при переключении вкладок
+  через `History.pushState` и на Back/Forward входит по адресу <b>тем же путём</b>, что и
+  cold-загрузка, — то есть право доступа и существование строки перепроверяются, а не
+  наследуются от прошлого показа вкладки. Вкладка без адреса даёт `/`. `UI.navigate` для этой
+  задачи не годится: измерено в E2.0, что он запускает `BeforeEnter` на каждое изменение адреса.
+  Route host — объявленная конфигурация (`ipro.form.route-host.enabled`): объявив его без
+  UI-scoped `WorkspaceGateway`, приложение падает на старте с названной причиной, а приложение
+  без host'а стартует как прежде. Канал прямого URL зарегистрирован строкой `DAC-22` в
+  [`security-channel-matrix.md`](../security-channel-matrix.md). **Измерено:**
+  `platform-vaadin` — **362/0** (+18 к E2.2: `FormRouteUrlBridgeTest` 11, `RouteStatePageTest` 5,
+  плюс `FormAutoConfigurationTest` вырос до 10/0 — проверка route host без рабочей области);
+  адресный набор приложения (стражи состава и API, маршрутный baseline, координатор,
+  `WorkspaceRouteStateTest` 6/0, `DialogWorkspaceResolutionIT`, `WorkspaceManifestTest`) —
+  **77/0**; стражи состава — **123** production-типа и APP_API **50**; api-baseline
+  `platform-vaadin.api` перегенерирован (только он — `platform-persistence.api` не менялся);
+  замер `platform-artifact-files` — **392**.
+  **Переезд в baseline подтверждён тестом:** `planned /records/:entityKey/:id` и
+  `/lists/:entityKey` уехали в static-section тем же коммитом, что и шаблоны в исходниках;
+  тест переписан с «под reserved host нет ничего» на «под host'ом нет ничего чужого — ровно
+  шаблоны host'а».
+- **E2.3 подтверждён наблюдением на стенде** (PostgreSQL, профиль `dev`, вход `admin`):
+  cold-загрузка `/records/nomenclature/1` — redirect на `/login`, после входа тот же адрес
+  плюс `?continue`, форма открыта вкладкой Workspace; `/lists/nomenclature` — список вкладкой;
+  повторная загрузка того же адреса — та же вкладка и данные; реально отсутствующий id —
+  «Запись не найдена», **адрес не изменён и вкладка не создана**; нарушение грамматики
+  (`/records/Nomenclature/1`) — «Адрес не найден» с той же неизменностью адреса; переход на
+  вкладку без адреса меняет адрес на `/`; в журнале — метки исхода с traceId и пользователем.
+  **Наблюдением найден дефект, тестами не видимый:** `Location` из Vaadin отдаёт путь без
+  ведущего слэша, поэтому первая версия host'а отвечала «Адрес не найден» на каждой корректной
+  ссылке (отказ при этом не был обходом защиты — адрес не менялся и вкладка не создавалась).
+  Исправлено в host'е, измерение записано в
+  [`e2-deep-link-host-spike.md`](../e2-deep-link-host-spike.md) §6.
+- **Что осталось непроверенным наблюдением:** ветка `pushState` (переход между двумя
+  адресуемыми вкладками) — сегодня недостижима, одна загрузка страницы даёт не больше одной
+  routable-вкладки; клик по вкладке без адреса проверен, а Back/Forward при переходах между
+  загрузками — это обычная навигация документа, то есть тот же cold-путь. Отдельный маршрут
+  `/link-state` не заводился: 403/404 показывает host внутри рабочей области, не меняя адрес, и
+  в маршрутном baseline он остался `planned`.
+- **E2.4 — dirty-контракт на новых путях ухода.** Источник истины один и живёт в рабочей области
+  (`hasUnsavedChanges` / `unsavedEntryIds` / `unsavedChangesMessage` / `canSaveUnsavedChanges` /
+  `saveUnsavedChanges`), поэтому закрытие вкладки, уход по адресу и защита выгрузки отвечают
+  одним и тем же, а не каждый своим предикатом. Закрытие вкладки переиспользует существующий
+  `Workspace.close`; уход на **другой route target** перехватывает `BeforeLeaveObserver` на
+  host'е (`leavesTheHost`), предлагая «Сохранить и продолжить» / «Продолжить без сохранения» /
+  «Остаться», причём переход продолжается **только** после успешного сохранения
+  (`saveThenContinue`), и в режиме просмотра (E1.5) кнопка сохранения не предлагается. Вход по
+  адресу внутри host'а подтверждения не требует — там вкладки не уничтожаются.
+- **E2.4 — нативная защита выгрузки и способ её обновлять.** `beforeunload` ставится ровно тогда,
+  когда есть что терять, и снимается, когда терять нечего; наличие обработчика и есть флаг, иначе
+  предупреждение появлялось бы на чистых вкладках. Ввод доходит до сервера только с запросом,
+  поэтому о вводе сообщает клиент — **одна проба на ответ**, а решение остаётся серверным и
+  считается в конце того же запроса, когда ввод уже применён. Уточнения по настройке защиты
+  (`unloadGuardInstalled` / `unloadGuardRefreshQueued`, проба, решение никогда не переставляется
+  само) вынесены в ADR-0009 §10 вместе с двумя измеренными тупиками: само-переставляющееся
+  задание «перед каждым ответом» вешает UI (очередь вычерпывается до пустоты), а обработчик
+  запроса сессии до UIDL-запросов не доходит вовсе. Измерено на стенде: чистая вкладка —
+  обработчика нет; правка с подтверждением — поставлен, уход отменяется браузером при неизменных
+  адресе, вкладке и форме; успешное сохранение — снят, уход после него проходит. Контракт
+  держат три app-теста: `WorkspaceDirtyGuardTest` **13/0**, `MainLayoutLeaveGateTest` **5/0**,
+  `WorkspaceRouteStateTest` **9/0** (в записи стояло 8/0 — исправлено 2026-09-27: методов в тесте девять; числа — после доделок ревью E2, см. ниже). Стендовые сторожи (`platform-vaadin` + адресный набор
+  приложения) остались зелёными без правок состава: E2.4 не добавил ни одного production-типа
+  в платформе, менялись только app-классы и тесты.
+- **E2.5 — приёмка канала адреса и руководство для прикладных авторов.** Приёмка разделена по
+  способу проверки: правила и исходы — тестами, «что видит пользователь» — стендом.
+  `DeepLinkTwoUserAccessIT` (**12/0**, контекст приложения и настоящие гранты двум
+  пользователям) проходит матрицу §3/§4 в терминах адреса: ссылка → адрес → открытие тем же
+  canonical read; скрытая строка и отсутствующий `id` дают один исход и одно сообщение; тот же
+  адрес читается по праву каждого; отзыв права после успешного открытия закрывает вход без
+  второй вкладки; непубликуемый ключ до данных не доходит. **Отказ измерен в трёх режимах, и они
+  разные:** классовый запрет чтения (CHECK_ONLY-гейт) даёт пустое чтение → 404, как у
+  отсутствующей строки (при не-вакуумном контроле: тот же адрес у обладателя доступа
+  открывается); **без аутентификации — 403**, причём одинаковый для существующей и заведомо
+  отсутствующей строки (отказ про субъект, а не про запись); построчное право, отозванное после
+  открытия, снова закрывает вход. Строка `DAC-22` в матрице каналов приведена к измеренному
+  поведению: безопасность направления есть, гарантии 403 на классовом запрете платформа не даёт
+  (решение владельца гейта). Наблюдением на стенде
+  (две одновременные сессии) подтверждены / закреплены оба пути копирования: значение в буфере
+  измерено подменой `navigator.clipboard.writeText` и равно текущему адресу
+  (`/lists/journal` и `/records/journal/3`); скопированная ссылка на список, открытая второй
+  сессией, даёт вкладку и только те строки, на которые есть гранты; тот же адрес карточки у
+  пользователя без права на строку — «Запись не найдена» при неизменном адресе и без вкладки;
+  карточка из глобального поиска по-прежнему открывается политикой координатора (диалог), то
+  есть поиск не стал вторым входом по адресу. Границы живого UI названы, а не замалчиваются:
+  перечитывания при переключении вкладки в контракт не входит — перепроверка живёт на **входе**
+  и на **записи**. Приёмка «отзыв права при живом UI» проходит **через продукт**: экран
+  «Доступ (RLS)» в «Администрировании» (`AdminView` → `AccessGrantAdminService`) снимает
+  построчный грант, и адрес после этого снова закрывается
+  (`revokingThroughTheAdminScreenClosesTheAddressToo`). Здесь раньше стояло ложное утверждение
+  «экрана управления грантами в приложении нет» — экран есть, и он же делает приёмку живого UI
+  обычным прогоном, а не ожиданием будущей функциональности; открытым остаётся только отзыв
+  **внешним SQL** (не поднимает `AccessGrantVersion` и живому сеансу до перелогина не виден —
+  свойство кэша, а не дефект контракта). Прикладная сторона вынесена в
+  [`deep-links-guide.md`](../deep-links-guide.md)
+  (ссылка из `docs/architecture/README.md`). Прогоны E2.5: `platform-vaadin` **368/0**,
+  `DeepLinkTwoUserAccessIT` **12/0**, адресный/сторожевой набор приложения (baseline маршрутов,
+  `PlatformApiBaselineTest`, `PlatformPublicSurfaceTest`, `PlatformVaadinSurfaceTest`,
+  `PlatformVaadinModuleTest`, `FormRouteOpenOutcomeTest`, `FormDeadApiTest`,
+  `FormCoordinatorScopeGuardTest`, `WorkspaceRouteStateTest`, `WorkspaceDirtyGuardTest`,
+  `MainLayoutLeaveGateTest`) — **78/0**. Состав платформы вырос на один INTERNAL-тип доделками
+  ревью E2 (см. ниже): production-типов **124**, APP_API **50**.
+- **Доделки ревью E2 (закрыты).** Ревью E2 назвало шесть мест и одну границу; что с ними стало:
+  - **[P1] «Сохранить и продолжить» больше не пропускает грязную вкладку без сохранения.**
+    `canSaveUnsavedChanges` требует, чтобы сохранялись **все** грязные вкладки, а
+    `saveUnsavedChanges` отказывает **до первой записи**, если хоть одна грязная вкладка
+    несохраняема (режим просмотра), и отвечает `false`, если после сохранения что-то осталось
+    грязным: «хотя бы одну» было достаточно только в мире одной вкладки. Тесты:
+    `aDirtyTabThatCannotBeSavedStopsTheSaveBeforeTheFirstWrite`,
+    `aSaveThatLeavesTheTabDirtyDoesNotOpenTheWay`.
+  - **[P2] Возврат к вкладке после страницы состояния.** Общий путь повторного открытия,
+    активации и выбора — `Workspace.reveal`: он снимает страницу состояния, возвращает содержимое
+    и **повторяет уведомление об активной вкладке**, потому что пока был показан отказ, адрес в
+    окне описывал неудавшуюся ссылку, а не вкладку. Раньше «Главная» после ошибочной ссылки
+    возвращала экран ошибки: выбор той же вкладки события не порождает (измерено на стенде).
+  - **[P2] Мост ведёт учёт активной вкладки и во время перехода браузера.** `currentEntryId`
+    обновляется до проверки `applyingHistory`: после Back закрытие действительно активной вкладки
+    остаётся заменой записи, а не шагом истории (`closingTheActiveTabAfterABrowserBackReplacesTheAddressInsteadOfAddingAStep`).
+  - **[P2] Уход из host'а закрывает вкладки.** `Workspace.closeAll()` вызывается из
+    `saveThenContinue` (после успешной записи) и из `leaveWithoutSaving` — иначе бин UI-scope
+    переживал бы экран: глобальный `beforeunload` оставался бы стоять, а при следующем входе
+    вернулись бы вкладки с правками, от которых пользователь отказался
+    (`leavingTheHostClosesEveryTabAndRemovesTheGuard`,
+    `continuingWithoutSavingDiscardsTheTabsBeforeTheLeave`). Живой путь ухода из host'а в
+    продукте сегодня не достижим (ссылки на другой route target из host'а нет), поэтому диалог
+    проверен решением, а не наблюдением — это названная граница, а не умолчание.
+  - **[P2] Внутренний текст исключения больше не показывается.** Отказ route-входа
+    (`Unavailable`) даёт стабильное сообщение, а исключение уходит в журнал (`log.error`):
+    страница состояния не рассказывает про драйвер и конфигурацию.
+  - **[P3] Базовый путь развёртывания учтён.** `ApplicationBasePath` (INTERNAL) — один источник
+    для записи истории (`FormRouteUrlBridge.windowAddress`) и копирования ссылки
+    (`CopyLinkButton`); без него под `/app` ссылка и адресная строка указывали бы вне
+    приложения. Обратное направление тоже симметрично: адрес из окна канонизируется — база
+    снимается, ведущий слэш возвращается, пустое становится `/`.
+  - **Граница ревью: «Главная» или страница ошибки.** На главную ведёт только адрес **без
+    раздела формы**; ошибочный `/records/...` показывается страницей состояния
+    (`browserBackToAMalformedFormAddressShowsTheStatePageInsteadOfHome`).
+  - **Дефект, найденный наблюдением в ходе этих доделок.** Переход Back/Forward на адрес формы
+    возвращал на главную: `Location` из Vaadin отдаёт путь **без ведущего слэша**, кодек
+    отклонял его как адрес вне грамматики, а обработчик отправлял любой отклонённый адрес домой.
+    Измерено на стенде (Forward на `/records/journal/3` оставлял главную при адресе карточки,
+    без строки в журнале — отказ до `entryPoint`), исправлено канонизацией и правилом «домой —
+    только адрес без формы»; тот же прогон после правки открывает карточку
+    (`anAddressFromTheWindowWithoutTheLeadingSlashStillOpensTheForm`).
+  - **Дефект E2.4, найденный наблюдением.** Проба ввода через промис переставляла себя на каждом
+    ответе: счётчик в открытой вкладке формы показал **2977 UIDL-запросов за 10 с покоя** (3231 за
+    следующие 10) при полном отсутствии ввода. Заменена слушателем DOM-событий `input`/`change`
+    с задержкой 200 мс — клиент сообщает о вводе, а не об ответе, и серверный пересчёт остаётся
+    один на запрос. Проверено на стенде после правки: с открытой формой в покое — **2 запроса за
+    10 с** (счётчик в странице), правка с подтверждением ставит обработчик выгрузки
+    (`window.__vaa25UnsavedChanges` — функция), возврат значения к исходному снимает его.
+    Прогон: `platform-vaadin` **368/0** (было 362/0: +6 тестов моста).
+
+Измеренные факты контракта (проверяются baseline-тестом, а не комментарием): публикуемых
+корневых типов — **16**; `PrdSpec` — единственная сущность с обязательным контекст-фильтром
+списка (`journal`), поэтому её список не-linkable до объявленного `RouteContextCodec`;
+`UserFormSettings` — `INTERNAL_STORE` по факту (нет `@EntityMetadata`), адреса не получает;
+строка секции (включая `SklNomOpaValue`) самостоятельным маршрутом не становится.
+
+Открыто по итогам срезов (E2 как срез закрыт; ниже — то, что осталось за его границей):
+
+- **Диалог диагностики адреса (`/link-state`) не заводился** и остаётся `planned` в маршрутном
+  baseline. Понадобится, только если состояние адреса (404/403) потребуется показывать без
+  оболочки — это другое решение, а не доработка E2.
+- **Диагностика адресуемости в Entity Explorer отложена осознанно.** Дешёвой она не вышла:
+  строка сводки — это `FacetKey`, а значит новый `FacetKind` в `platform-core` со своей ролью,
+  api-baseline, замерами поверхности и закрытым словарём проводника (`EntitySummary`-guards).
+  Это правка инструментов E3, а не срез E2: ADR-0009 (шаг среза) разрешал делать её только
+  без переписывания tooling. Когда E3 дойдёт до Explorer, строка «Адрес» получит содержание
+  из `FormRouteCatalog` без нового знания.
+- **Приёмка «отзыв права и удаление записи при живом UI» через продукт.** Отзыв права закрыт:
+  экран «Доступ (RLS)» в «Администрировании» — та самая точка входа, и отзыв через него
+  закрывает повторный вход по адресу (`revokingThroughTheAdminScreenClosesTheAddressToo`).
+  Открытыми остаются два случая, и оба — не «нет точки входа», а свойства механизмов: правка
+  гранта **внешним SQL** не поднимает `AccessGrantVersion` и живому сеансу не видна до
+  перелогина, а **удаление записи** при открытой карточке не перечитывает показанное. Контракт
+  при этом проверен там, где он проверяем: вход по адресу перечитывает строку
+  (`DeepLinkTwoUserAccessIT`), запись закрывает write-guard (`RlsServiceWriteBoundaryIT`), отзыв
+  через JPA в том же процессе виден живому сеансу (`RlsIntegrationTest`).
+- **Показ диалога ухода** остаётся единственным непроверенным наблюдением в E2: у диалога
+  проверены правила (`leavesTheHost`, `saveThenContinue`, `leaveWithoutSaving`, режим просмотра),
+  сам рендер — нет, и живой путь к нему сегодня не достижим: в приложении нет ссылки на другой
+  route target, то есть уход из host'а клиентской навигацией не запускается (доделки ревью E2).
+  Оба пути копирования ссылки, ранее стоявшие в этом же пункте, закрыты в E2.5 (см. выше).
+- **`DAC-22` в матрице каналов приведён к измеренному поведению:** на классовом запрете чтения
+  адрес отвечает 404, а не 403 (CHECK_ONLY-гейт отдаёт пустое чтение) — направление отказа
+  безопасное, но гарантии 403 платформа не даёт; это решение владельца гейта, а не выбор E2.
+  Подробности и не-вакуумный контроль — в срезе E2.5 выше.
+- **Версия Vaadin в сборке расходится с объявлением**: `flow-server` резолвится как **25.1.7**,
+  тогда как `vaadin.version` = 25.1.6 в `pom.xml` приложения и `platform-bom`; дерево сборки
+  смешанное (`vaadin-spring-boot-starter` 25.1.6 с flow 25.1.7). Синхронизировать до ссылок на
+  версию в документах и тестах.
+- **`rerouteTo` и сохранение адреса** (404/403 без ухода с исходного URL) — по документации
+  Vaadin не измерялось. В E2.3 было выбрано решение, которому `rerouteTo` не нужен вовсе:
+  состояние показывается внутри рабочей области, адрес не трогается. Отсюда следствие, которое
+  стоит проверить наблюдением: после 404 адресная строка остаётся недоступной формой адресом,
+  и нажатие Refresh повторяет тот же вход.
+
+## E3.0: адрес типа и пробный путь (код и тесты закрыты; живая приёмка ожидает прогона)
+
+Фактические прогоны (2026-09-27, JDK 21, Maven offline, один запуск на команду):
+
+- **Шаг 1 — грамматика адреса типа.** `EntityExplorerAddress` (published-ключ, формат, заявка
+  раздела) и `EntityExplorerAddressTest` — **7/0**; `platform-vaadin` после шага — **375/0/0**
+  (было 368), поверхность 124 → **125 типов** (`platform-vaadin-surface.txt`,
+  `PlatformVaadinSurfaceTest`, `VaadinModuleCompositionTest`, `PlatformVaadinModuleTest`), API
+  baseline `platform-vaadin` перегенерирован намеренно.
+- **Шаг 3 — explorer-раздел моста.** `installExplorerEntryPoint`, `tabAddressed`,
+  `tabAddressChanged`, три ветки `historyChanged`; `FormRouteUrlBridgeTest` 17 → **25/0**,
+  `platform-vaadin` — **383/0/0**. В диффе `platform-vaadin.api` видны также незакоммиченные
+  изменения E1 другого потока (`ListCommand` → `ActionResolver`/`CopyLinkButton`): baseline в HEAD
+  отставал от исходников, регенерация возвращает guard в согласованное состояние.
+  `platform-persistence.api` (чужой модуль) откачен, повторной генерацией не тронут.
+- **Шаг 2 — гейт роли и единый отказ.** `EntityExplorerAccess` (единственное место правила),
+  `MainLayout.decideExplorerEntry`/`ExplorerEntry`; `EntityExplorerRouteGateTest` — **6/0**;
+  `FormCoordinatorScopeGuardTest` (Spring-контекст с новым бином) — **3/0**.
+- **Шаг 4 — ветка host'а.** `@RouteAlias("/entity-explorer/:entityKey")`, `applyExplorerEntry`,
+  UI-scoped вид с `init(type)`, слушателем выбора и строкой причины; `EntityExplorerAddressWiringTest`
+  — **4/0**; адресный набор приложения (гейт + wiring + baseline маршрутов + поверхность +
+  module + leave-gate + route-state + context) — **46/0**.
+- **Шаг 5 — baseline и ADR.** `reserved entity-explorer` и
+  `route /entity-explorer/:entityKey org.ip.views.MainLayout` — `DeepLinkRouteBaselineTest`
+  **6/0**; ADR-0010 записан, строка в `docs/architecture/README.md`; `PlatformApiBaselineTest`
+  красный только на `platform-persistence` — расхождение чужого незакоммиченного удаления
+  исходников, а не этого среза (файл возвращён в исходное состояние).
+
+- **Публичная поверхность и числовые реестры.** В `platform-public-surface.txt` добавлены роли API
+  для `EntityExplorerAddress`, `FormRouteCatalog`, `PublishedFormRoute`; роль `EntityKind`
+  назначена здесь же — `Nomenclature` называет тип с предыдущего среза, и guard был красный
+  независимо от E3.0 (строка не была в рабочем реестре). `PlatformPublicSurfaceTest` (с
+  регенерацией чисел) — **10/0**; `docs/architecture/d1-surface-measurements.md` —
+  app-source-files 156, platform-artifact-files 394, named-platform-types 213, api-types **125**.
+- **Манифест сборки.** Дрейф отпечатка `platform-vaadin` (186 → 189 файлов: два файла этого среза
+  плюс незакоммиченные файлы другого потока) выровнен намеренно
+  (`-Dplatform.manifest.write=true`); `WorkspaceManifestTest` — **4/0**. Чужие изменения
+  `scripts/` (BOM-импорт и запись persistence) не трогались.
+- **Полный прогон приложения** — **1411 тестов, 4 падения** на момент прогона; после обновления
+  манифеста остаётся **3**, и все три чужие: `ReportEditorConsolidationTest` (контроль `bands`
+  в reportstudio — незавершённая работа другого потока), `PlatformApiBaselineTest`
+  (`platform-persistence`: удалённые исходники, baseline откачен), `PlatformPackageDependencyMatrixTest`
+  (13 неразобранных рёбер пакетов `org.ipro.form.*` из чужой переработки E1). Проверочный набор
+  среза — **38 тестов, 3 падения (все чужие)**, собственная часть — 35/0.
+
+Живая приёмка §5 плана среза (admin/manager) — не выполнена на момент записи: пункты 1–11
+(не-ADMIN с существующим и несуществующим ключом, холодный адрес, refresh, Back/Forward,
+повторный вход в открытую вкладку, тип без ключа, закрытие вкладки, dirty-guard, legacy-ключ)
+остаются за прогоном на стенде.
+
 ## Неошибочные и блокирующие диагностики
 
 | Диагностика | Категория | Действие |
@@ -1532,3 +1950,25 @@ bootstrap -ValidateOnly                                 OK fingerprint: восе
 | Deprecated/unchecked compiler warnings | Технический долг | Исправлять адресно, не скрывать общей настройкой |
 
 Warnings не подавляются только ради зелёного лога. Security/schema diagnostics остаются видимыми, пока не закрыты соответствующим этапом.
+
+## E3.1 входной baseline (2026-09-27; до шага 1)
+
+- Команды выполнены на JDK 21 через Maven offline с явным локальным репозиторием `C:/Users/strim/.m2/repository`; без параметра Maven пытался создать `C:\.m2\repository` и останавливался до сборки.
+- `platform-core`: **120 тестов, 0 падений/ошибок**.
+- `platform-events`: **27/0/0**.
+- `platform-vaadin`: **384/0/0** (историческое значение E3.0 — 383; текущий baseline уже содержит последующие правки).
+- App-side `EntitySummaryAssemblerTest`: **10/0/0**.
+- Полный app suite: **1414 тестов, 4 падения, 12 ошибок**. Падения: `ReportEditorConsolidationTest` (accepted controls), `PlatformApiBaselineTest` (расхождение `platform-vaadin.api`), `PlatformPackageDependencyMatrixTest` (неразобранные package edges `org.ipro.form.*`), `WorkspaceManifestTest` (fingerprint `platform-vaadin` устарел: 189 файлов в манифесте против 204 в дереве). Ошибки: 12 `Failed to close extension context` из-за `AccessDeniedException` при удалении `%TEMP%\junit-*` в `JrxmlExecutionIT`, `JrxmlTemplateServiceTest`, `UreportTemplateServiceTest`.
+- Эти расхождения присутствовали до изменений E3.1; соответствующие app/report/matrix/manifest файлы не изменялись в шаге 1.
+- Шаг 1 E3.1: `FactOrigin` получил `REGISTRATION`, `DERIVED`, `UNKNOWN`; `ResolvedValue` хранит `value/source/origin/symbol`, сохраняя двухаргументный конструктор и старую фабрику `code(String)` через `UNKNOWN`/пустой symbol.
+- Проверки после изменения: `platform-core` **126/0/0**, `PlatformCoreModuleTest` **6/0/0**, app-side `EntitySummaryAssemblerTest` **10/0/0**. Установка `platform-core` в локальный Maven-репозиторий завершилась успешно.
+- API baseline writer: адресный `PlatformApiBaselineTest` **1/0/0**; обновлён только `platform-core.api`. `platform-vaadin.api` восстановлен до исходного SHA-256 после работы writer, поскольку там уже были изменения параллельной E1/E2 работы.
+
+## E3.1 шаг 2 — происхождение строк и effective facts (2026-09-27)
+
+- `platform-core`: полный набор **127/0/0**; проверены происхождение `EntityKind`, `ColumnPath` и заголовка табличной части, а также `EntityDescriptor.exposureOrigin/exposureSymbol`. `EntityExposureOverride` сохраняет `REGISTRATION`, пустой symbol и отдельную причину.
+- `platform-vaadin`: полный набор **386/0/0**; проверены маршрутные `keyOrigin/keyReason/keySymbol`, новый закрытый словарь строк `EntitySummary`, обязательное wiring каталога маршрутов и optional `MetadataConsistencyStartupCheck`.
+- App-side: `EntitySummaryAssemblerTest` **15/0/0**, `SubsystemSummaryAssemblerTest` **8/0/0**, `EntityExplorerAutoConfigurationTest` **4/0/0**. Проверены реальные `Nomenclature`, `ReceivingDocument`, `PrdSpecMtr`, inherited field symbol и инварианты classpath/origin/UNKNOWN.
+- Surface/API guards: выбранный набор **58/0/0**; `PlatformCoreModuleTest` **6/0/0**, `PlatformCoreSurfaceTest` **6/0/0**, `PlatformVaadinModuleTest` **7/0/0**, `PlatformVaadinSurfaceTest` **6/0/0**, `PlatformPublicSurfaceTest` **10/0/0**. Бюджет `APP_API` не вырос.
+- API writer: адресный тест **1/0/0**; обновлены `platform-core.api` и `platform-vaadin.api`. Vaadin baseline также фиксирует уже начатые E2 route-типы; прочие `.api` файлы восстановлены побайтно из копии до writer.
+- Полная проверка `PlatformApiBaselineTest` после обновления сообщает только дрейф `platform-persistence.api`; файлы реализации `platform-persistence` уже имеют отдельные незакоммиченные удаления и в шаге E3.1.2 не менялись. Core/vaadin baseline совпадают с текущей публичной поверхностью. Полный app suite на этом шаге не запускался.

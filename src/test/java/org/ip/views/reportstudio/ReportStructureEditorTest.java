@@ -12,6 +12,7 @@ import org.ipro.reportstudio.dom.ReportField;
 import org.ipro.reportstudio.dom.ReportFieldAggregation;
 import org.ipro.reportstudio.dom.ReportFieldAlignment;
 import org.ipro.reportstudio.dom.ReportFieldKind;
+import org.ipro.reportstudio.dom.ReportPageSize;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.query.ReconcileResult;
 import org.junit.jupiter.api.Test;
@@ -67,7 +68,7 @@ class ReportStructureEditorTest {
     }
 
     @Test
-    void nestedGroupingSetsParentOnBothBandsOfPair() {
+    void nestedGroupingLinksHeaderToTheEnclosingGroupAndFooterToItsOwnHeader() {
         ReportStructureEditor editor = newEditor();
         ReportTemplate template = new ReportTemplate();
         editor.setTemplate(template);
@@ -81,7 +82,16 @@ class ReportStructureEditorTest {
 
         assertThat(innerHeader.getGroupField()).isEqualTo("client.name");
         assertThat(innerHeader.getParent()).isSameAs(outerHeader);
-        assertThat(innerFooter.getParent()).isSameAs(outerHeader);
+        assertThat(innerFooter.getParent())
+                .as("F10: parent у бэндов пары асимметричен — у заголовка это объёмлющая группа, "
+                        + "у подвала собственный заголовок. По связи подвала JasperReportCompiler "
+                        + "выбирает группу для подытогов: пока она вела на заголовок родительской "
+                        + "группы, подытоги вложенной группы адресовались внешней, а своего подвала "
+                        + "у вложенной группы не оставалось вовсе — groupFooterOf искал его той же связью")
+                .isSameAs(innerHeader);
+        assertThat(groupFooter(template, "outer").getParent())
+                .as("соседняя пара не участвует в правке вложенной группы")
+                .isSameAs(groupHeader(template, "outer"));
     }
 
     @Test
@@ -161,6 +171,59 @@ class ReportStructureEditorTest {
             assertThat(field.getQueryField()).isEqualTo("code");
             assertThat(field.getPosition()).isZero();
         });
+    }
+
+    @Test
+    void addingTheSameColumnTwiceIsRefusedAndKeepsComposition() {
+        ReportStructureEditor editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.updateSchema(List.of(QueryField.scalar("code", String.class)));
+        ReportBand detail = template.getBands().get(0);
+        editor.selectBand(detail);
+
+        editor.addColumn("code");
+        editor.addColumn("code");
+
+        assertThat(detail.getFields())
+                .as("правило «одно поле — одна колонка» принадлежит модели: повтор — подсказка, а не вторая колонка")
+                .hasSize(1);
+    }
+
+    @Test
+    void reconcileCleanupRemovesSortingRulesOfGoneColumns() {
+        ReportStructureEditor editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.updateSchema(List.of(QueryField.scalar("kept", String.class)));
+        editor.selectBand(template.getBands().get(0));
+        editor.addColumn("kept");
+        editor.addSort("kept");
+        editor.addGroupPair("kept");
+        editor.updateSchema(List.of(QueryField.scalar("other", String.class)));
+
+        editor.removeMissingFields(editor.lastReconcile());
+
+        assertThat(template.getOrders())
+                .as("правило сортировки исчезнувшей колонки уходит вместе с ней: иначе отчёт"
+                        + " падает уже при выполнении запроса (алиас проверяется в рантайме)")
+                .isEmpty();
+        assertThat(template.getBands())
+                .allSatisfy(band -> assertThat(band.getGroupField()).isNull());
+    }
+
+    @Test
+    void loadingATemplateIsNotAnEdit() {
+        ReportStructureEditor editor = newEditor();
+        int[] changes = {0};
+        editor.setChangeListener(() -> changes[0]++);
+        ReportTemplate template = new ReportTemplate();
+
+        editor.setTemplate(template);
+
+        assertThat(changes[0])
+                .as("загрузка шаблона — это не правка пользователя")
+                .isZero();
     }
 
     @Test
@@ -609,6 +672,220 @@ class ReportStructureEditorTest {
 
         assertThat(field.getKind()).isEqualTo(ReportFieldKind.COLUMN);
         assertThat(field.getQueryField()).isEqualTo("code");
+    }
+
+    // ------------------------------------------------------------ шов D3.6.2
+
+    /**
+     * Семантика шва: каждая пользовательская мутация даёт ровно одно уведомление.
+     * Правка свойства поля идёт через воронку {@code afterFieldEdit}, поэтому проверяются
+     * оба класса мутаций — структурная и property-edit (иначе счёт «ровно один» не доказан).
+     */
+    @Test
+    void changeListenerFiresExactlyOncePerUserMutation() {
+        ReportStructureEditor editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.updateSchema(List.of(QueryField.scalar("code", String.class)));
+        java.util.concurrent.atomic.AtomicInteger calls =
+                new java.util.concurrent.atomic.AtomicInteger();
+        editor.setChangeListener(calls::incrementAndGet);
+
+        editor.addGroupPair("client");
+        assertThat(calls.get()).as("создание пары групп — одна мутация").isEqualTo(1);
+
+        ReportBand detail = template.getBands().get(0);
+        editor.selectBand(detail);
+        editor.addColumn("code");
+        assertThat(calls.get()).as("добавление колонки — одна мутация").isEqualTo(2);
+
+        ReportField field = detail.getFields().get(0);
+        editor.captionCell(field).setValue("Код");
+        assertThat(calls.get()).as("правка свойства поля — одна мутация").isEqualTo(3);
+
+        invokeBand(editor, "removeSelectedField", new Class<?>[0]);
+        assertThat(calls.get()).as("удаление поля — одна мутация").isEqualTo(4);
+
+        editor.applyGroupingValues(groupHeader(template, "client"), "client.name", null, false,
+                message -> { });
+        assertThat(calls.get()).as("применение группировки — одна мутация").isEqualTo(5);
+
+        com.vaadin.flow.component.combobox.ComboBox<ReportPageSize> pageSize =
+                editorField(editor, "pageSize");
+        pageSize.setValue(pageSize.getValue() == ReportPageSize.A4 ? ReportPageSize.A3
+                : ReportPageSize.A4);
+        assertThat(calls.get()).as("правка параметров страницы — одна мутация").isEqualTo(6);
+    }
+
+    /**
+     * Обратная половина контракта: выбор, загрузка и публикация схемы правкой не являются.
+     * Без этой проверки шов можно было бы «завесить» на что угодно и получить dirty от
+     * одного клика — именно этот класс ошибки и был в F2.
+     */
+    @Test
+    void changeListenerIgnoresSelectionLoadAndSchemaPublish() {
+        ReportStructureEditor editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        java.util.concurrent.atomic.AtomicInteger calls =
+                new java.util.concurrent.atomic.AtomicInteger();
+        editor.setChangeListener(calls::incrementAndGet);
+
+        editor.setTemplate(template);
+        editor.updateSchema(List.of(QueryField.scalar("code", String.class)));
+        editor.selectBand(template.getBands().get(0));
+        editor.selectField(null);
+
+        assertThat(calls.get())
+                .as("загрузка шаблона, публикация схемы и выбор не являются правкой отчёта")
+                .isZero();
+    }
+
+    // === управление бэндами: порядок и удаление ===
+    //
+    // Характеризация к слиянию редакторов (D3.6.4): порядок бэндов и правила их удаления —
+    // то, что при слиянии двух редакторов теряется тише всего. Методы приватные, поэтому
+    // дёргаются отражением: контракт проверяется без расширения production-видимости.
+
+    @Test
+    void movingBandSwapsItWithTheNeighbourAndNormalizesPositions() {
+        ReportStructureEditor editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.addGroupPair("alpha");
+        editor.addGroupPair("beta");
+        editor.selectBand(groupHeader(template, "beta"));
+
+        moveBand(editor, -1);
+
+        assertThat(template.getBands())
+                .as("бэнд меняется местами с соседом, а не уезжает в начало распорядка")
+                .extracting(ReportBand::getGroupField)
+                .containsExactly(null, "alpha", "beta", "alpha", "beta");
+        assertThat(template.getBands())
+                .as("позиции нормализуются вместе со списком")
+                .extracting(ReportBand::getPosition)
+                .containsExactly(0, 1, 2, 3, 4);
+    }
+
+    @Test
+    void movingBandBeyondTheEdgeChangesNothing() {
+        ReportStructureEditor editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.addGroupPair("alpha");
+        List<ReportBand> before = List.copyOf(template.getBands());
+
+        editor.selectBand(before.get(0));
+        moveBand(editor, -1);
+        assertThat(template.getBands()).as("первый бэнд выше не поднимается")
+                .containsExactlyElementsOf(before);
+
+        editor.selectBand(before.get(before.size() - 1));
+        moveBand(editor, 1);
+        assertThat(template.getBands()).as("последний бэнд ниже не опускается")
+                .containsExactlyElementsOf(before);
+
+        editor.selectBand(null);
+        moveBand(editor, 1);
+        assertThat(template.getBands()).as("без выбранного бэнда движение — no-op")
+                .containsExactlyElementsOf(before);
+    }
+
+    @Test
+    void removingTheDetailBandIsRefused() {
+        ReportStructureEditor editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.selectBand(bandOf(template, ReportBandKind.DETAIL));
+
+        invokeBandRemoval(editor);
+
+        assertThat(template.getBands())
+                .as("DETAIL обязателен: отчёт без него не соберётся")
+                .extracting(ReportBand::getKind)
+                .containsExactly(ReportBandKind.DETAIL);
+    }
+
+    @Test
+    void removingAGroupBandRemovesTheWholePair() {
+        ReportStructureEditor editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        editor.addGroupPair("alpha");
+        editor.addGroupPair("beta");
+        editor.selectBand(groupHeader(template, "alpha"));
+
+        invokeBandRemoval(editor);
+
+        assertThat(template.getBands())
+                .as("половина пары не остаётся в одиночестве")
+                .extracting(ReportBand::getGroupField)
+                .containsExactly(null, "beta", "beta");
+        // Дефект F5 закрыт в D3.6.4: раньше канонический редактор удалял пару сам и оставлял
+        // дыры в позициях (0,3,4), тогда как structured удалял через операции модели и
+        // перенумеровывал (0,1,2). Расхождение решено в пользу модели: удаление и нумерация —
+        // ReportLayoutOperations.removeGroup/renumberGroupPositions, редактор их не повторяет.
+        assertThat(template.getBands())
+                .as("после удаления пары позиции перенумерованы подряд")
+                .extracting(ReportBand::getPosition)
+                .containsExactly(0, 1, 2);
+    }
+
+    @Test
+    void removingASingleNonGroupBandRemovesOnlyIt() {
+        ReportStructureEditor editor = newEditor();
+        ReportTemplate template = new ReportTemplate();
+        editor.setTemplate(template);
+        addBand(editor, ReportBandKind.PAGE_HEADER);
+        editor.selectBand(bandOf(template, ReportBandKind.PAGE_HEADER));
+
+        invokeBandRemoval(editor);
+
+        assertThat(template.getBands())
+                .as("одиночный бэнд удаляется сам, без соседей")
+                .extracting(ReportBand::getKind)
+                .containsExactly(ReportBandKind.DETAIL);
+    }
+
+    private static ReportBand bandOf(ReportTemplate template, ReportBandKind kind) {
+        return template.getBands().stream()
+                .filter(band -> band.getKind() == kind)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private static void moveBand(ReportStructureEditor editor, int direction) {
+        invokeBand(editor, "moveSelectedBand", new Class<?>[]{int.class}, direction);
+    }
+
+    private static void addBand(ReportStructureEditor editor, ReportBandKind kind) {
+        invokeBand(editor, "addBand", new Class<?>[]{ReportBandKind.class}, kind);
+    }
+
+    private static void invokeBandRemoval(ReportStructureEditor editor) {
+        invokeBand(editor, "removeSelectedBand", new Class<?>[0]);
+    }
+
+    private static void invokeBand(ReportStructureEditor editor, String method,
+                                   Class<?>[] parameterTypes, Object... args) {
+        try {
+            java.lang.reflect.Method target = ReportStructureEditor.class.getDeclaredMethod(method, parameterTypes);
+            target.setAccessible(true);
+            target.invoke(editor, args);
+        } catch (ReflectiveOperationException ex) {
+            throw new AssertionError("не удалось вызвать " + method, ex);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T editorField(ReportStructureEditor editor, String name) {
+        try {
+            java.lang.reflect.Field field = ReportStructureEditor.class.getDeclaredField(name);
+            field.setAccessible(true);
+            return (T) field.get(editor);
+        } catch (ReflectiveOperationException ex) {
+            throw new AssertionError("не удалось прочитать поле " + name, ex);
+        }
     }
 
     private static ReportField column(String queryField) {

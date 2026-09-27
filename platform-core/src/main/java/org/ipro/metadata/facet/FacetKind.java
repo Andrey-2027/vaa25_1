@@ -52,7 +52,25 @@ public enum FacetKind {
     REVERSE_REFERENCE(false),
 
     /** Декларация нумеруемого поля (@Numbered). */
-    NUMBERING_DECL(false);
+    NUMBERING_DECL(false),
+
+    /** Эффективный semantic kind сущности. */
+    ENTITY_KIND(false),
+
+    /** Экспозиция сущности для стандартных операций платформы. */
+    ENTITY_EXPOSURE(false),
+
+    /** Внешний ключ Entity Explorer / Form Route. */
+    ENTITY_KEY(false),
+
+    /** Доступность ссылки на форму списка или элемента. */
+    LINKABILITY(false),
+
+    /** Наличие прикладного lifecycle handler. */
+    ENTITY_LIFECYCLE_HANDLER(false),
+
+    /** Отдельный lifecycle hook. */
+    ENTITY_LIFECYCLE_HOOK(false);
 
     private final boolean overridable;
 

@@ -33,11 +33,17 @@ class EntitySummaryClosedDictionaryTest {
             EntitySummary.SelectionRow.class,
             EntitySummary.ReferenceRow.class,
             EntitySummary.NumberingRow.class,
+            EntitySummary.LifecycleRow.class,
+            EntitySummary.DiagnosticRow.class,
             EntityRef.class,
             FacetKey.class,
             ResolvedValue.class));
         // Enum'ы словаря проверять нечего, но держим в списке осознанно.
         assertThat(FacetKind.values()).isNotEmpty();
+        assertThat(List.of(FacetKind.ENTITY_KIND, FacetKind.ENTITY_EXPOSURE,
+            FacetKind.ENTITY_KEY, FacetKind.LINKABILITY,
+            FacetKind.ENTITY_LIFECYCLE_HANDLER, FacetKind.ENTITY_LIFECYCLE_HOOK))
+            .allMatch(kind -> !kind.overridable());
         assertThat(FactSource.values()).isNotEmpty();
     }
 }

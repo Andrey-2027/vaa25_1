@@ -40,14 +40,16 @@ public final class ColumnPath {
     private final String label;
     private final FieldType resolvedType;
     private final FieldMetadataInfo backingField;
+    private final FactOrigin labelOrigin;
 
     private ColumnPath(String path, List<Field> chain, String label, FieldType resolvedType,
-                        FieldMetadataInfo backingField) {
+                        FieldMetadataInfo backingField, FactOrigin labelOrigin) {
         this.path = path;
         this.chain = chain;
         this.label = label;
         this.resolvedType = resolvedType;
         this.backingField = backingField;
+        this.labelOrigin = labelOrigin;
     }
 
     /**
@@ -57,7 +59,8 @@ public final class ColumnPath {
      */
     public static ColumnPath fromField(FieldMetadataInfo field) {
         return new ColumnPath(field.getName(), List.of(field.getField()), field.getLabel(),
-            field.getResolvedType(), field);
+            field.getResolvedType(), field, field.getAnnotation().label().isEmpty()
+                ? FactOrigin.PLATFORM_DEFAULT : FactOrigin.EXPLICIT);
     }
 
     /**
@@ -99,7 +102,10 @@ public final class ColumnPath {
             ? new FieldMetadataInfo(last, lastAnnotation)
             : null;
 
-        return new ColumnPath(path, List.copyOf(chain), label, resolvedType, backingField);
+        FactOrigin labelOrigin = chain.size() > 1 ? FactOrigin.DERIVED
+            : lastAnnotation != null && !lastAnnotation.label().isEmpty()
+                ? FactOrigin.EXPLICIT : FactOrigin.PLATFORM_DEFAULT;
+        return new ColumnPath(path, List.copyOf(chain), label, resolvedType, backingField, labelOrigin);
     }
 
     /** Подпись одного сегмента: label из @FieldMetadata, если есть, иначе имя поля. */
@@ -165,6 +171,11 @@ public final class ColumnPath {
         return label;
     }
 
+    /** Происхождение заголовка колонки: метаданные поля, составной путь или имя поля. */
+    public FactOrigin getLabelOrigin() {
+        return labelOrigin;
+    }
+
     public FieldType getResolvedType() {
         return resolvedType;
     }
@@ -195,7 +206,8 @@ public final class ColumnPath {
         if (customLabel == null || customLabel.isBlank() || customLabel.equals(label)) {
             return this;
         }
-        return new ColumnPath(path, chain, customLabel, resolvedType, backingField);
+        return new ColumnPath(path, chain, customLabel, resolvedType, backingField,
+            FactOrigin.REGISTRATION);
     }
 
     // === JSON-сериализация состава колонок вида (GridFormView.columns) ===

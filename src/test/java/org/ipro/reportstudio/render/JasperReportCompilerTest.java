@@ -342,6 +342,54 @@ class JasperReportCompilerTest {
             new JasperReportCompiler().compile(template, dataset), ReportExportFormat.PDF);
         assertThat(pdf.length).isGreaterThan(1_000);
     }
+    /**
+     * F10, первая половина: контракт связи подвала с группой. Подвал обязан указывать на
+     * <b>свой</b> заголовок пары — именно так {@code addGroupPair} и {@code addNestedGroup}
+     * строят пару, и именно по этой связи {@code groupOf} выбирает группу для подытогов.
+     * После починки F10 такую связь строит и {@code applyGrouping}, какой бы из двух бэндов пары
+     * ни выбирал пользователь: связь перестала быть декоративной для модели.
+     */
+    @Test
+    void nestedGroupFooterLinkedToItsOwnHeaderBindsToItsOwnGroup() throws Exception {
+        NestedCase nested = nestedGroups(true);
+        List<Object> bindings = bindingsOf(nested.template(), nestedDataset());
+
+        assertThat(groupOf(bindings, nested.innerFooter()))
+            .as("подвал вложенной пары, связанный со своим заголовком, обязан адресоваться своей группе")
+            .isSameAs(builderOfHeader(bindings, nested.innerHeader()))
+            .isNotSameAs(builderOfHeader(bindings, nested.outerHeader()));
+        assertThat(groupOf(bindings, nested.outerFooter()))
+            .as("подвал внешней пары адресуется внешней группе")
+            .isSameAs(builderOfHeader(bindings, nested.outerHeader()));
+    }
+
+    /**
+     * F10, вторая половина: <b>механизм дефекта</b>. Если подвал вложенной пары связан с заголовком
+     * родительской группы (так вела себя модель до починки F10, и так строил связь удалённый
+     * в D3.6.7 compact-вариант редактора), {@code groupOf} принимает связь буквально
+     * и отдаёт группу родителя. Следствие: подытоги вложенной группы адресуются подвалу
+     * родительской, а у вложенной группы подвала не остаётся вовсе.
+     *
+     * <p>Фиксируется как причина, по которой модель не имеет права такую связь создавать: компилятор
+     * здесь формально прав — он маршрутизирует по связи, которую ему дали. Правка идёт в модель,
+     * а этот тест остаётся доказательством, что связь не декоративна.</p>
+     */
+    @Test
+    void nestedGroupFooterLinkedToAGrandparentBindsToTheGrandparentGroup() throws Exception {
+        NestedCase nested = nestedGroups(false);
+        List<Object> bindings = bindingsOf(nested.template(), nestedDataset());
+
+        assertThat(groupOf(bindings, nested.innerFooter()))
+            .as("подвал вложенной пары, связанный с заголовком родительской группы, адресуется "
+                + "РОДИТЕЛЬСКОЙ группе — подытоги вложенной группы уезжают в родительский подвал")
+            .isSameAs(builderOfHeader(bindings, nested.outerHeader()))
+            .isNotSameAs(builderOfHeader(bindings, nested.innerHeader()));
+        assertThat(groupOf(bindings, nested.outerFooter()))
+            .as("при этом подвал родительской пары адресуется той же самой группе — две группы делят "
+                + "один подвал")
+            .isSameAs(groupOf(bindings, nested.innerFooter()));
+    }
+
 
     @Test
     void legacyTemplateWithNullKindsAndUnparentedGroupFooterStillRenders() throws Exception {
@@ -649,6 +697,83 @@ class JasperReportCompilerTest {
         return field;
     }
 
+
+    private record NestedCase(ReportTemplate template, ReportBand outerHeader, ReportBand outerFooter,
+                              ReportBand innerHeader, ReportBand innerFooter) { }
+
+    /** Вложенные группы: внешняя по журналу, внутренняя по спецификации. */
+    private static NestedCase nestedGroups(boolean linkInnerFooterToItsOwnHeader) {
+        ReportTemplate template = new ReportTemplate();
+        template.setName("Вложенные группы");
+
+        ReportBand detail = band(ReportBandKind.DETAIL, null, null);
+        detail.addField(field("journalCode", "Журнал", null));
+        detail.addField(field("codeSpec", "Спецификация", null));
+        template.addBand(detail);
+
+        ReportBand outerHeader = band(ReportBandKind.GROUP_HEADER, null, "journalCode");
+        template.addBand(outerHeader);
+        ReportBand outerFooter = band(ReportBandKind.GROUP_FOOTER, outerHeader, "journalCode");
+        outerFooter.addField(countField("codeSpec", "Итог по журналу"));
+        template.addBand(outerFooter);
+
+        ReportBand innerHeader = band(ReportBandKind.GROUP_HEADER, outerHeader, "codeSpec");
+        template.addBand(innerHeader);
+        ReportBand innerFooter = band(ReportBandKind.GROUP_FOOTER,
+                linkInnerFooterToItsOwnHeader ? innerHeader : outerHeader, "codeSpec");
+        innerFooter.addField(countField("codeSpec", "Итог по спецификации"));
+        template.addBand(innerFooter);
+
+        return new NestedCase(template, outerHeader, outerFooter, innerHeader, innerFooter);
+    }
+
+    private static ReportField countField(String queryField, String caption) {
+        ReportField counted = field(queryField, caption, null);
+        counted.setAggregation(ReportFieldAggregation.COUNT);
+        return counted;
+    }
+
+    private static ReportDataset nestedDataset() {
+        QueryField journal = new QueryField("journalCode", "", String.class, "Журнал", true, true, false);
+        QueryField spec = new QueryField("codeSpec", "", String.class, "Спецификация", true, true, true);
+        ReportRow[] rows = {
+            new ReportRow(new QueryField[]{journal, spec}, new Object[]{"A", "SPEC-1"}),
+            new ReportRow(new QueryField[]{journal, spec}, new Object[]{"A", "SPEC-1"}),
+            new ReportRow(new QueryField[]{journal, spec}, new Object[]{"A", "SPEC-2"}),
+            new ReportRow(new QueryField[]{journal, spec}, new Object[]{"B", "SPEC-3"})
+        };
+        return new ReportDataset(new QueryField[]{journal, spec}, rows);
+    }
+
+    /** Привязки групп так, как их строит сам компилятор: через продакшн-путь buildGroups. */
+    @SuppressWarnings("unchecked")
+    private static List<Object> bindingsOf(ReportTemplate template, ReportDataset dataset) throws Exception {
+        java.lang.reflect.Method buildGroups = JasperReportCompiler.class.getDeclaredMethod(
+                "buildGroups", ReportTemplate.class, ReportDataset.class, java.util.Map.class);
+        buildGroups.setAccessible(true);
+        return (List<Object>) buildGroups.invoke(null, template, dataset, new java.util.HashMap<>());
+    }
+
+    /** Группа, которую компилятор выберет для этого подвала. */
+    private static Object groupOf(List<Object> bindings, ReportBand footer) throws Exception {
+        java.lang.reflect.Method groupOf = JasperReportCompiler.class.getDeclaredMethod(
+                "groupOf", List.class, ReportBand.class);
+        groupOf.setAccessible(true);
+        return groupOf.invoke(null, bindings, footer);
+    }
+
+    private static Object builderOfHeader(List<Object> bindings, ReportBand header) throws Exception {
+        java.lang.reflect.Method headerAccessor = bindings.get(0).getClass().getDeclaredMethod("header");
+        java.lang.reflect.Method builderAccessor = bindings.get(0).getClass().getDeclaredMethod("builder");
+        headerAccessor.setAccessible(true);
+        builderAccessor.setAccessible(true);
+        for (Object binding : bindings) {
+            if (headerAccessor.invoke(binding) == header) {
+                return builderAccessor.invoke(binding);
+            }
+        }
+        throw new AssertionError("нет привязки группы для заголовка " + header.getGroupField());
+    }
     private static ReportBand band(ReportBandKind kind, ReportBand parent, String groupField) {
         ReportBand band = new ReportBand();
         band.setKind(kind);

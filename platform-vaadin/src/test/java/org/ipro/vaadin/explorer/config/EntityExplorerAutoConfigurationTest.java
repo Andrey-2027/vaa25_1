@@ -2,8 +2,12 @@ package org.ipro.vaadin.explorer.config;
 
 import org.ipro.autoconfigure.PlatformProperties;
 import org.ipro.form.registry.FormRegistry;
+import org.ipro.form.link.FormRouteCatalog;
+import org.ipro.data.EntityDescriptorCatalog;
+import org.ipro.lifecycle.EntityLifecycleRegistry;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.ReferenceIndex;
+import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.metadata.facet.FacetResolver;
 import org.ipro.numbering.NumberingMetadataRegistry;
@@ -43,6 +47,11 @@ class EntityExplorerAutoConfigurationTest {
             .withConfiguration(AutoConfigurations.of(EntityExplorerAutoConfiguration.class))
             .withBean(MetadataResolver.class, () -> mock(MetadataResolver.class))
             .withBean(FormRegistry.class, FormRegistry::new)
+            .withBean(EntityDescriptorCatalog.class, () -> mock(EntityDescriptorCatalog.class))
+            .withBean(FormRouteCatalog.class, () -> mock(FormRouteCatalog.class))
+            .withBean(EntityLifecycleRegistry.class,
+                () -> new EntityLifecycleRegistry(java.util.List.of()))
+            .withBean(SectionMetadataRegistry.class, () -> mock(SectionMetadataRegistry.class))
             .withBean(ReferenceIndex.class, () -> mock(ReferenceIndex.class))
             .withBean(NumberingMetadataRegistry.class,
                 () -> mock(NumberingMetadataRegistry.class))
@@ -84,6 +93,37 @@ class EntityExplorerAutoConfigurationTest {
             assertThat(context).hasSingleBean(EntitySummaryAssembler.class);
             assertThat(context).hasSingleBean(SubsystemSummaryAssembler.class);
         });
+    }
+
+    @Test
+    void missingRouteCatalogDisablesExplorerButMissingStartupCheckDoesNot() {
+        withCollaborators()
+            .run(context -> {
+                assertThat(context).hasNotFailed();
+                EntitySummaryAssembler assembler = context.getBean(EntitySummaryAssembler.class);
+                assertThat(assembler.unassignedDiagnostics())
+                    .singleElement()
+                    .satisfies(row -> assertThat(row.value().value())
+                        .isEqualTo("Стартовая проверка не подключена"));
+            });
+
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(EntityExplorerAutoConfiguration.class))
+            .withBean(MetadataResolver.class, () -> mock(MetadataResolver.class))
+            .withBean(FormRegistry.class, FormRegistry::new)
+            .withBean(EntityDescriptorCatalog.class, () -> mock(EntityDescriptorCatalog.class))
+            .withBean(EntityLifecycleRegistry.class,
+                () -> new EntityLifecycleRegistry(java.util.List.of()))
+            .withBean(SectionMetadataRegistry.class, () -> mock(SectionMetadataRegistry.class))
+            .withBean(ReferenceIndex.class, () -> mock(ReferenceIndex.class))
+            .withBean(NumberingMetadataRegistry.class, () -> mock(NumberingMetadataRegistry.class))
+            .withBean(SubsystemRegistry.class, () -> mock(SubsystemRegistry.class))
+            .withBean(RlsDimensionRegistry.class, () -> mock(RlsDimensionRegistry.class))
+            .withBean(PlatformProperties.class, () -> mock(PlatformProperties.class))
+            .run(context -> {
+                assertThat(context).hasNotFailed();
+                assertThat(context).doesNotHaveBean(EntitySummaryAssembler.class);
+            });
     }
 
     /** {@code FacetResolver} остаётся точкой расширения и при полном наборе коллабораторов. */

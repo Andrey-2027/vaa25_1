@@ -407,6 +407,7 @@ public class FormResolver {
     private <T extends IdentifiableEntity, ID> ListForm<T, ID> prepareListForm(
             Class<T> entityClass, String variant,
             ListForm<T, ID> form, Map<String, Object> parameters) {
+        form.setFormVariant(variant);
         form.setOpeningParameters(parameters);
         Map<String, Object> seedValues = new java.util.LinkedHashMap<>();
         Object rawFilters = parameters == null ? null : parameters.get("contextFilters");

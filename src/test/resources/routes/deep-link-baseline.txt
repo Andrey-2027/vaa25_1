@@ -1,0 +1,95 @@
+# E2.0 baseline публичных адресов глубокой ссылки (ADR-0009 §3–§5).
+#
+# Этот файл — версионируемая часть контракта E2, а не отчёт. Числа и имена здесь означают
+# обещание: опубликованный адрес не меняется без legacy-записи, а новый публичный адрес
+# появляется только вместе с записью в этом файле и проходящим `DeepLinkRouteBaselineTest`.
+#
+# Формат записи — поля `<key>=<value>` через пробел, порядок полей фиксирован.
+#
+# alias=<key>  внешний ключ маршрута: ASCII lower-kebab-case, выводится из имени класса
+#              один раз (§4). Ключ выведен, а не выбран: ручной ключ потребовал бы
+#              декларации на каждый тип.
+# class=<fqn>  persistence-класс. Источник истины публикации — ManagedEntityCatalog
+#              (@EntityMetadata и не @TableSectionMetadata), а не этот файл: файл лишь
+#              фиксирует результат и не может ввести тип, которого нет в каталоге.
+# item=<...>   разрешённые ITEM-variant ключи (ключи FormRegistry) через запятую;
+#              `default` — default-ветка (кастомная или generic), которая существует всегда.
+# list=<...>   то же для LIST-variant ключей.
+# context=<.>  обязательные контекст-фильтры СПИСКА этой сущности (ContextFilterField
+#              .requiredAuto/requiredLookup/requiredSelect) через запятую; `-` — нет.
+#              Непустое значение читается буквально: список этого типа не linkable до
+#              объявленного RouteContextCodec (ADR-0009 §5), сколько бы вариант ни был
+#              зарегистрирован. Item-маршрут поле не затрагивает: существующая запись
+#              открывается без контекста создания.
+# legacy=<.>   прежние ключи того же типа через запятую; `-` — переименований не было.
+#              Удаление legacy-ключа (при сохранении типа в каталоге) — сломанная ссылка,
+#              а не уборка.
+#
+# ---- published aliases (16 типов каталога, отсортировано по alias)
+alias=attribute-type class=org.ip.model.AttributeType item=default list=default context=- legacy=-
+alias=attribute-value class=org.ip.model.AttributeValue item=default list=default context=- legacy=-
+alias=branch class=org.ip.model.Branch item=default list=default context=- legacy=-
+alias=grid-form-view class=org.ip.model.GridFormView item=default list=default context=- legacy=-
+alias=group-nom class=org.ip.model.GroupNom item=default list=default context=- legacy=-
+alias=journal class=org.ip.model.Journal item=default list=default context=- legacy=-
+alias=nomenclature class=org.ip.model.Nomenclature item=default list=default context=- legacy=-
+alias=nom-skl-attribute class=org.ip.model.NomSklAttribute item=default list=default context=- legacy=-
+alias=oper class=org.ip.model.Oper item=default list=default context=- legacy=-
+alias=prd-spec class=org.ip.model.PrdSpec item=default,materials-only,full list=default,contextual context=journal legacy=-
+alias=receiving-document class=org.ip.model.ReceivingDocument item=default list=default context=- legacy=-
+alias=role class=org.ip.model.Role item=default list=default context=- legacy=-
+alias=skl-nom-opa class=org.ip.model.SklNomOpa item=default list=default context=- legacy=-
+alias=unit-of-measurement class=org.ip.model.UnitOfMeasurement item=default list=default context=- legacy=-
+alias=user class=org.ip.model.User item=default list=default context=- legacy=-
+alias=workshop class=org.ip.model.Workshop item=default list=default context=- legacy=-
+#
+# Не публикуются и в этом файле не появляются: OWNED_ROW (NomAttributeValue, PrdSpecMtr,
+# PrdSpecOper, ReceivingDocumentItem, SklNomOpaValue) — строка секции открывается только
+# внутри агрегата; INTERNAL_STORE (UserFormSettings, JrxmlTemplate, ReportTemplate, …) —
+# служебный storage без @EntityMetadata; типы вне каталога — UNCLASSIFIED (§4).
+#
+# ---- reserved top-level segments (ADR-0009 §3, ADR-0010)
+# Занятые первые сегменты URL. entityKey живёт под /records/ и /lists/, поэтому конфликта
+# с ними не создаёт, но новый статический @Route не может быть объявлен под reserved host.
+# entity-explorer добавлен в E3.0: сегмент занят host'ом адреса типа
+# (`/entity-explorer/{key}` объявлен @RouteAlias на MainLayout), поэтому alias сущности
+# с таким ключом не публикуется — иначе адрес типа и адрес формы столкнулись бы.
+reserved records
+reserved lists
+reserved entity-explorer
+reserved link-state
+reserved login
+reserved api
+reserved ureport
+reserved error
+reserved VAADIN
+#
+# ---- static routes (ADR-0009 §3)
+# Существующие адреса приложения и их владельцы: ровно один класс объявляет @Route/@RouteAlias
+# на путь. `/` — корневой @Route у MainLayout (корень остаётся home, а не host ссылки).
+#
+# С E2.3 host ссылки здесь: `@RouteAlias`-шаблоны на том же MainLayout. Шаблон — не сущность,
+# а форма адреса: какие типы под неё подходят, решает каталог адресов, а не таблица маршрутов.
+# E3.0 добавил третий шаблон — `/entity-explorer/:entityKey`: адрес типа (без id записи),
+# его отдельный обработчик и проверка роли живут в host'е (ADR-0010).
+route / org.ip.views.MainLayout
+route /entity-explorer/:entityKey org.ip.views.MainLayout
+route /lists/:entityKey org.ip.views.MainLayout
+route /login org.ip.views.login.LoginView
+route /records/:entityKey/:id org.ip.views.MainLayout
+route /report-catalog org.ip.views.reportstudio.ReportCatalogView
+route /report-catalog-compact org.ip.views.reportstudio.ReportCatalogView
+route /report-catalog-structured org.ip.views.reportstudio.ReportCatalogView
+route /report-editor org.ip.views.reportstudio.ReportEditorView
+route /report-editor-compact org.ip.views.reportstudio.ReportEditorView
+route /report-editor-structured org.ip.views.reportstudio.ReportEditorView
+route /reports-preview org.ip.views.test.ReportQueryPreviewView
+route /test-variants org.ip.views.test.TestVariantsView
+#
+# ---- planned deep-link host (ADR-0009 §1/§3)
+# Host реализован в E2.3: шаблоны `/records/:entityKey/:id` и `/lists/:entityKey` переехали
+# в static-section тем же коммитом, что и первый alias в исходниках, — как и требовалось.
+# Здесь остаётся только то, чего в исходниках ещё нет: отдельная страница состояния адреса
+# как самостоятельный маршрут. Пока её нет, 403/404 показывает host внутри рабочей области,
+# не меняя адрес; отдельный `/link-state` — вопрос следующего решения, а не недоделка.
+planned /link-state

@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -16,6 +17,16 @@ import org.ipro.form.FilterLookupOptions;
 import org.ipro.form.FieldRenderer;
 import org.ipro.form.FilterGridMoreMenu;
 import org.ipro.form.SelectionForm;
+import org.ipro.form.action.ActionDecision;
+import org.ipro.form.action.ActionDefinition;
+import org.ipro.form.action.ActionHandler;
+import org.ipro.form.action.ActionId;
+import org.ipro.form.action.ActionInvocation;
+import org.ipro.form.action.ActionResolver;
+import org.ipro.form.action.CopyLinkButton;
+import org.ipro.form.link.FormLinkService;
+import org.ipro.form.action.CrudAction;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.FieldMetadataInfo;
@@ -40,8 +51,6 @@ import org.ipro.filtergrid.grouping.GroupableJpaFilterGrid;
 import org.ipro.filtergrid.grouping.GroupField;
 import org.ipro.filtergrid.util.JpaPathUtil;
 import org.ipro.identity.IdentifiableEntity;
-import org.ipro.rls.RlsUiGate;
-import org.ipro.rls.RlsUiGate.AccessDecision;
 import org.ipro.telemetry.api.OperationScope;
 import org.ipro.telemetry.core.TelemetryBridge;
 import org.springframework.data.jpa.domain.Specification;
@@ -52,6 +61,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -64,7 +74,13 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private final org.ipro.filtergrid.FilterGrid<T> filterGrid;
     private final HorizontalLayout toolbar = new HorizontalLayout();
     private final Button addButton = new Button("Создать", VaadinIcon.PLUS.create());
+    private final Button copyButton = new Button("Копировать", VaadinIcon.COPY.create());
     private final Button editButton = new Button("Изменить", VaadinIcon.EDIT.create());
+    /**
+     * «Просмотр» — то же открытие строки, но для типа или строки без изменения: видимость и
+     * доступность решает общее решение (§2.2 плана E1), а не отдельная формула в форме.
+     */
+    private final Button openButton = new Button("Просмотр", VaadinIcon.EYE.create());
     private final Button deleteButton = new Button("Удалить", VaadinIcon.TRASH.create());
     private final Button refreshButton = new Button(VaadinIcon.REFRESH.create());
     private final Button viewsButton = new Button(VaadinIcon.LIST.create());
@@ -73,6 +89,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private List<ColumnPath> activeColumns;
 
     private Consumer<T> onAdd;
+    private Consumer<T> onCopy;
     private Consumer<T> onEdit;
     private Consumer<T> onDelete;
     private LookupService lookupService;
@@ -90,9 +107,47 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private org.ipro.form.spi.GridViewStore gridViewStore;
     private org.ipro.form.spi.FormSettingsStore formSettingsStore;
     private String formKey;
+    /** Вариант формы для действий; ключ сохранённых видов {@code formKey} имеет другой смысл. */
+    private String formVariant;
 
-    /** Решения "что разрешено" для кнопок (Фаза 3 RLS-плана); null — старое поведение без проверок. */
-    private RlsUiGate rlsUiGate;
+    /**
+     * Решатель действий (E1.3): единственный источник состояния generic-кнопок списка.
+     *
+     * <p>{@code null} — форма используется напрямую, без модели прав: тогда действует прежнее
+     * поведение (строковые действия ждут выделения, создание — обязательного контекста), а
+     * «Просмотр» остаётся недоступным, потому что его условие требует capability типа. Координатор
+     * ставит решатель всегда, поэтому списки приложения этого пути не проходят.</p>
+     */
+    private ActionResolver actionResolver;
+
+    /**
+     * Ссылка на список (E2.1): источник адреса для кнопки «Скопировать ссылку».
+     *
+     * <p>{@code null} — affordance нет вовсе. Это не «ссылка не построима», а «форма собрана без
+     * слоя адресов» (ручное создание в тестах): кнопки в этом случае не существует, и никакая
+     * вторая формула доступности не появляется.</p>
+     */
+    private FormLinkService formLinkService;
+
+    /** Кнопка адреса списка; {@code null}, пока сервис ссылок не поставлен. */
+    private CopyLinkButton copyLinkButton;
+
+    /**
+     * Объявленные действия списка (E1.6a): кнопка и решение по её объявлению.
+     *
+     * <p>Ключ — само объявление: у одного действия не может быть двух кнопок, и повторная
+     * отрисовка (решатель поставлен до сборки тулбара) не создаёт вторую.</p>
+     */
+    private final Map<ActionDefinition, Button> declaredActions = new LinkedHashMap<>();
+
+    /** Локальные действия составного view: без Spring-бина и центральной регистрации. */
+    private final Map<ActionId, ActionHandler> localActionHandlers = new LinkedHashMap<>();
+
+    /**
+     * Навигация для объявленных действий. Ставит координатор; без неё действие получает
+     * {@code navigator = null} — это явное состояние, а не «навигация по умолчанию».
+     */
+    private FormNavigator formNavigator;
 
     private Runnable afterColumnsConfigured;
 
@@ -100,8 +155,8 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     // для Спецификаций). Объявляется декларативно per-сущность; пусто — панели нет вовсе.
     // Контролы строит общий ContextFilterPanel (тот же, что в SelectionForm, — идентичность).
     private final Map<String, String> requiredContextLabels = new LinkedHashMap<>();
-    private boolean rlsCreateAllowed = true;
-    private String rlsCreateReason;
+    /** Режим только просмотра, запрошенный извне: при нём generic-действия не показываются. */
+    private boolean readOnly;
     private final Map<String, Object> openingParameters = new LinkedHashMap<>();
     private final Map<String, Object> openingContextFilterValues = new LinkedHashMap<>();
     private final Map<String, Object> contextFilterValues = new LinkedHashMap<>();
@@ -292,7 +347,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             ((GroupableJpaFilterGrid<T>) this.filterGrid).setContextSpecification(combined);
         }
         syncGroupingBaseSpecification();
-        updateCreateButtonState();
+        updateActionStates();
         refresh();
         notifyContextChanged();
     }
@@ -332,37 +387,279 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     }
 
     /**
-     * Подключение RLS-ui-гейта (Фаза 3): кнопка «Создать» сразу ставится по
-     * canCreate(entityClass) — неактивна с tooltip-причиной, если создание запрещено;
-     * кнопки «Изменить»/«Удалить» пересчитываются на каждое выделение строки в
-     * configureGridSelection. null — обратная совместимость (прежнее поведение).
+     * Подключение решателя действий (E1.3). С этого момента состояние generic-кнопок списка
+     * считается одним решением ({@link ActionResolver} → чистая политика), а не формулой прав
+     * внутри формы: раньше «Создать» смотрело только RLS и не знало capability типа вовсе.
+     *
+     * <p>Это замена, а не второй путь. Прежний {@code setRlsUiGate} удалён: его единственным
+     * потребителем был координатор, который с E1.3 ставит решатель, а держать рядом два правила
+     * видимости/доступности — ровно то, что E1 устраняет.</p>
      */
-    public void setRlsUiGate(RlsUiGate rlsUiGate) {
-        this.rlsUiGate = rlsUiGate;
-        if (rlsUiGate == null) {
-            return;
-        }
-        AccessDecision create = rlsUiGate.canCreate(metadata.getEntityClass());
-        rlsCreateAllowed = create.allowed();
-        rlsCreateReason = create.allowed() ? null : create.reason();
-        updateCreateButtonState();
+    public void setActionResolver(ActionResolver actionResolver) {
+        this.actionResolver = actionResolver;
+        installCopyLinkButton();
+        renderDeclaredActions();
+        updateActionStates();
     }
 
     /**
-     * Итоговое состояние кнопки «Создать»: разрешено RLS И выбраны обязательные
-     * контекст-значения. Грид при этом показывает всё (не выбранное = выбрано всё) —
-     * обязательность гейтит только создание (и «Выбрать» в диалоге выбора).
+     * Подключение ссылок на список (E2.1). Кнопка появляется только вместе с сервисом, а её
+     * видимость остаётся решением: адресуемость типа считает каталог адресов, а не форма.
      */
-    private void updateCreateButtonState() {
-        boolean allowed = rlsCreateAllowed && requiredContextFilled();
-        addButton.setEnabled(allowed);
-        if (!rlsCreateAllowed) {
-            addButton.setTooltipText(rlsCreateReason);
-        } else if (!requiredContextFilled()) {
-            addButton.setTooltipText("Сначала выберите: " + String.join(", ", missingRequiredLabels()));
-        } else {
-            addButton.setTooltipText(null);
+    public void setFormLinkService(FormLinkService formLinkService) {
+        this.formLinkService = formLinkService;
+        installCopyLinkButton();
+        if (copyLinkButton != null) {
+            copyLinkButton.refresh();
         }
+    }
+
+    /**
+     * Кнопка «Скопировать ссылку» (E2.1): создаётся ровно один раз и только тогда, когда известны
+     * и модель действий, и источник адреса.
+     *
+     * <p>Вызывается из трёх мест осознанно. Тулбар собирается при инициализации формы, а решатель
+     * и сервис ссылок ставит координатор уже после сборки — то есть порядок здесь обратный тому,
+     * который был бы при ленивой сборке тулбара. Ожидание «сервис поставят пораньше» держалось бы
+     * на порядке вызовов, ничем не закреплённом, и affordance однажды исчез бы молча.</p>
+     *
+     * <p>Кнопка встаёт сразу за «Обновить» и до «Виды»: это действие над самим списком, а не над
+     * строкой, и выделение ей не нужно.</p>
+     */
+    private void installCopyLinkButton() {
+        if (copyLinkButton != null || formLinkService == null || actionResolver == null) {
+            return;
+        }
+        copyLinkButton = CopyLinkButton.forList("Скопировать ссылку", formLinkService,
+            metadata.getEntityClass(), formVariant,
+            () -> decide(CrudAction.COPY_LINK, null), this::notifyBlocked);
+        copyLinkButton.setIcon(VaadinIcon.LINK.create());
+        int refreshPosition = toolbar.indexOf(refreshButton);
+        if (refreshPosition < 0) {
+            toolbar.add(copyLinkButton);
+        } else {
+            toolbar.addComponentAtIndex(refreshPosition + 1, copyLinkButton);
+        }
+    }
+
+    /**
+     * Навигация для объявленных действий. Ставится координатором при выдаче решателя: само действие
+     * навигацию не ищет и {@code ApplicationContext} не знает.
+     */
+    public void setFormNavigator(FormNavigator formNavigator) {
+        this.formNavigator = formNavigator;
+    }
+
+    /**
+     * Локальное действие одного составного view (E1.6a): объявление и исполнение без Spring-бина и
+     * без центральной регистрации. Идёт тем же путём, что и прикладное действие из реестра — то же
+     * решение, тот же инвариант «недоступное не исполняется», — поэтому «локальность» здесь означает
+     * только место объявления, а не другую формулу доступности.
+     */
+    public void addAction(ActionHandler handler) {
+        Objects.requireNonNull(handler, "handler must not be null");
+        ActionDefinition definition = Objects.requireNonNull(handler.definition(),
+            "declaration of the handler must not be null");
+        if (localActionHandlers.containsKey(definition.id())
+                || (actionResolver != null && actionResolver.definitions().stream()
+                    .anyMatch(declared -> declared.id().equals(definition.id())))
+                || declaredActions.keySet().stream()
+                    .anyMatch(declared -> declared.id().equals(definition.id()))) {
+            throw new IllegalStateException("Действие «" + definition.id()
+                + "» уже объявлено в этом списке: два действия с одним id неотличимы для решения");
+        }
+        renderDeclaredAction(definition, handler);
+        localActionHandlers.put(definition.id(), handler);
+    }
+
+    /** Пересчитать видимость, доступность и подсказки generic-кнопок из текущего решения. */
+    private void updateActionStates() {
+        T selected = getSelectedItem();
+        applyDecision(addButton, CrudAction.CREATE, null);
+        applyDecision(copyButton, CrudAction.COPY, selected);
+        applyDecision(editButton, CrudAction.EDIT, selected);
+        applyDecision(openButton, CrudAction.OPEN, selected);
+        applyDecision(deleteButton, CrudAction.DELETE, selected);
+        applyDecision(refreshButton, CrudAction.REFRESH, null);
+        if (copyLinkButton != null) {
+            copyLinkButton.refresh();
+        }
+        for (Map.Entry<ActionDefinition, Button> entry : declaredActions.entrySet()) {
+            ActionDecision decision = decisionOf(entry.getKey(), selected);
+            // Режим просмотра здесь не применяется: он — решение host'а о формax, а доступность
+            // прикладного действия выражается его требованием. Второе правило молча прятало бы
+            // действие с выполненным требованием и без названной причины.
+            entry.getValue().setVisible(decision.visible());
+            entry.getValue().setEnabled(decision.actionable());
+            entry.getValue().setTooltipText(tooltipFor(decision));
+        }
+    }
+
+    // === Объявленные действия (E1.6a) ===
+
+    /**
+     * Отрисовать объявленные действия: и прикладные из реестра, и локальные.
+     *
+     * <p>Выбор делается не по «знает ли рендерер это действие», а по объявлению: состав берётся из
+     * решателя ({@link ActionResolver#definitions()}). CRUD-действия пропускаются — у них уже есть
+     * собственная кнопка, и вторая кнопка того же действия была бы расхождением двух путей.</p>
+     */
+    private void renderDeclaredActions() {
+        if (actionResolver != null) {
+            for (ActionDefinition definition : actionResolver.definitions()) {
+                if (isCrudAction(definition.id())) {
+                    continue;
+                }
+                actionResolver.handler(definition)
+                    .ifPresent(handler -> renderDeclaredAction(definition, handler));
+            }
+        }
+        // Локальное действие несёт своё объявление само (определение — часть исполнителя), поэтому
+        // ему не нужен ни реестр объявлений, ни Spring-бин: иначе забытая регистрация молча
+        // означала бы отсутствие кнопки вместо ошибки.
+        for (ActionHandler local : localActionHandlers.values()) {
+            renderDeclaredAction(local.definition(), local);
+        }
+    }
+
+    private static boolean isCrudAction(ActionId id) {
+        for (CrudAction action : CrudAction.values()) {
+            if (action.id().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void renderDeclaredAction(ActionDefinition definition, ActionHandler handler) {
+        if (declaredActions.containsKey(definition)
+                || declaredActions.keySet().stream()
+                    .anyMatch(rendered -> rendered.id().equals(definition.id()))) {
+            return;
+        }
+        Button button = new Button(definition.title());
+        if (definition.iconName() != null) {
+            try {
+                button.setIcon(new Icon(VaadinIcon.valueOf(definition.iconName())));
+            } catch (IllegalArgumentException invalidIconName) {
+                // неверное имя иконки — просто без иконки, как и в легаси-командах
+            }
+        }
+        button.setEnabled(false);
+        button.addClickListener(event -> executeDeclaredAction(definition, handler));
+        declaredActions.put(definition, button);
+        // Предметная кнопка не встаёт правее разделителя: «Ещё» объявлена крайней справа
+        // (installMoreMenu), а объявленное действие рисуется после неё — решатель ставится
+        // координатором позже сборки тулбара.
+        if (moreMenuAnchor == null) {
+            toolbar.add(button);
+        } else {
+            toolbar.addComponentAtIndex(toolbar.indexOf(moreMenuAnchor), button);
+        }
+        updateActionStates();
+    }
+
+    /**
+     * Граница исполнения объявленного действия: решение пересчитывается в момент клика, поэтому ни
+     * устаревшее состояние кнопки, ни программный клик не запускают недоступное действие.
+     */
+    private void executeDeclaredAction(ActionDefinition definition, ActionHandler handler) {
+        T selected = getSelectedItem();
+        ActionDecision decision = decisionOf(definition, selected);
+        if (!decision.actionable()) {
+            notifyBlocked(decision);
+            return;
+        }
+        handler.execute(invocationOf(selected));
+    }
+
+    private ActionDecision decisionOf(ActionDefinition definition, T row) {
+        if (actionResolver == null) {
+            return ActionDecision.hidden(ActionDecision.Reason.NOT_APPLICABLE,
+                "Объявленное действие «" + definition.id()
+                    + "» требует модели действий: без решателя его доступность неизвестна");
+        }
+        return actionResolver.decide(definition, row, requiredContextFilled());
+    }
+
+    /** Снимок состояния списка для исполнителя: строка, вариант, эффективный контекст, навигация. */
+    private ActionInvocation invocationOf(T selected) {
+        ListFormContext snapshot = getContextSnapshot();
+        return new ActionInvocation(metadata.getEntityClass(), formVariant, selected, formNavigator,
+            this::refresh, snapshot.openingParameters(), snapshot.effectiveFilters());
+    }
+
+    /**
+     * Одно решение → одно состояние кнопки. Текст подсказки в решении не участвует и прав не даёт:
+     * он только объясняет уже принятое решение.
+     */
+    private void applyDecision(Button button, CrudAction action, T row) {
+        ActionDecision decision = decide(action, row);
+        button.setVisible(decision.visible());
+        button.setEnabled(decision.actionable());
+        button.setTooltipText(action == CrudAction.COPY && decision.actionable()
+            ? "Копировать выбранную запись со строками" : tooltipFor(decision));
+    }
+
+    /**
+     * Решение по действию: из решателя, если он подключён, иначе — поведение формы без модели
+     * прав (прямое использование формы и тесты). Оба пути возвращают одно и то же — типизированное
+     * решение, поэтому кнопка, включённая по одному из них, не становится сама по себе позволением.
+     */
+    private ActionDecision decide(CrudAction action, T row) {
+        // Один host-gate для состояния кнопки и для исполнения, включая двойной клик.
+        // Ссылка — не изменение: список, открытый только для просмотра, адрес сохраняет.
+        // Именно там ссылка и нужна — поделиться тем, что видишь, не меняя ничего.
+        if (readOnly && action != CrudAction.REFRESH && action != CrudAction.COPY_LINK) {
+            return ActionDecision.hidden(ActionDecision.Reason.NOT_APPLICABLE,
+                "Список открыт только для просмотра");
+        }
+        if (action == CrudAction.COPY && onCopy == null) {
+            return ActionDecision.hidden(ActionDecision.Reason.NOT_APPLICABLE,
+                "Копирование не подключено для этого списка");
+        }
+        if (actionResolver != null) {
+            return actionResolver.decide(action, row, requiredContextFilled());
+        }
+        return switch (action) {
+            case CREATE -> requiredContextFilled()
+                ? ActionDecision.allowed()
+                : ActionDecision.blocked(ActionDecision.Reason.CONTEXT_INCOMPLETE,
+                    "Сначала заполните обязательный контекст");
+            case REFRESH -> ActionDecision.allowed();
+            case OPEN -> ActionDecision.hidden(ActionDecision.Reason.NOT_APPLICABLE,
+                "Режим просмотра требует модели действий");
+            case EDIT, DELETE, COPY -> row != null
+                ? ActionDecision.allowed()
+                : ActionDecision.blocked(ActionDecision.Reason.NO_SELECTION,
+                    "Сначала выберите строку");
+            // Сохранение — действие карточки (E1.5): без решателя на поверхности списка оно
+            // не объявлено. Ветка названа явно, чтобы следующее действие enum'а снова
+            // потребовало решения, а не унаследовало чужое поведение.
+            case SAVE -> ActionDecision.hidden(ActionDecision.Reason.NOT_APPLICABLE,
+                "Действие сохранения относится к карточке, а не к списку");
+            // Без решателя адресуемость типа неизвестна: каталог адресов спрашивают через модель
+            // действий, и выдумывать здесь второе правило (по метаданным или по имени класса)
+            // значило бы получить ровно тот шов, который E1 устраняет.
+            case COPY_LINK -> ActionDecision.hidden(ActionDecision.Reason.NOT_APPLICABLE,
+                "Ссылка требует модели действий: без решателя адресуемость неизвестна");
+        };
+    }
+
+    /**
+     * Текст подсказки переводится из типизированной причины здесь: только форма знает имена
+     * незаполненных обязательных полей, поэтому «Сначала выберите: Журнал» остаётся конкретным,
+     * а причина — типизированной.
+     */
+    private String tooltipFor(ActionDecision decision) {
+        if (decision.actionable() || decision.message().isEmpty()) {
+            return null;
+        }
+        if (decision.reason() == ActionDecision.Reason.CONTEXT_INCOMPLETE
+                && !missingRequiredLabels().isEmpty()) {
+            return "Сначала выберите: " + String.join(", ", missingRequiredLabels());
+        }
+        return decision.message();
     }
 
     private boolean requiredContextFilled() {
@@ -476,7 +773,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             if (field.required()) requiredContextLabels.put(field.path(), field.label());
         }
         ensureContextFilterToggle(true);
-        updateCreateButtonState();
+        updateActionStates();
     }
 
     /** Положить значение панели (null — убрать) и пересобрать фильтр. */
@@ -719,25 +1016,50 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClickListener(e -> {
+            ActionDecision decision = decide(CrudAction.CREATE, null);
+            if (!decision.actionable()) {
+                notifyBlocked(decision);
+                return;
+            }
             if (onAdd != null) onAdd.accept(null);
         });
 
-        editButton.setEnabled(false);
-        editButton.addClickListener(e -> {
+        copyButton.setEnabled(false);
+        copyButton.addClickListener(e -> {
             T selected = getSelectedItem();
-            if (selected != null && onEdit != null) onEdit.accept(selected);
+            ActionDecision decision = decide(CrudAction.COPY, selected);
+            if (!decision.actionable()) {
+                notifyBlocked(decision);
+                return;
+            }
+            if (selected != null && selected.getId() != null && onCopy != null) {
+                onCopy.accept(selected);
+            }
         });
+
+        editButton.setEnabled(false);
+        editButton.addClickListener(e -> requestRowAction(CrudAction.EDIT));
+
+        openButton.setEnabled(false);
+        openButton.addClickListener(e -> requestRowAction(CrudAction.OPEN));
 
         deleteButton.setEnabled(false);
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         deleteButton.addClickListener(e -> {
             T selected = getSelectedItem();
+            ActionDecision decision = decide(CrudAction.DELETE, selected);
+            if (!decision.actionable()) {
+                notifyBlocked(decision);
+                return;
+            }
             if (selected != null) confirmAndDelete(selected, service);
         });
 
         refreshButton.addThemeVariants(ButtonVariant.LUMO_ICON);
         refreshButton.getElement().setAttribute("aria-label", "Обновить");
         refreshButton.addClickListener(e -> refresh());
+
+        installCopyLinkButton();
 
         viewsButton.addThemeVariants(ButtonVariant.LUMO_ICON);
         viewsButton.getElement().setAttribute("aria-label", "Виды");
@@ -750,7 +1072,9 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         compactButton.setTooltipText("Компактный вид");
         compactButton.addClickListener(e -> toggleCompact());
 
-        toolbar.add(addButton, editButton, deleteButton, refreshButton, viewsButton, compactButton);
+        toolbar.add(addButton, copyButton, editButton, openButton, deleteButton, refreshButton,
+            viewsButton, compactButton);
+        renderDeclaredActions();
     }
 
     private void openViewSelector() {
@@ -856,33 +1180,91 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     // === Selection ===
 
+    /**
+     * Строковое действие: решение вычисляется заново в момент клика. Это граница исполнения — то
+     * же решение, что показано на кнопке, проверяется ещё раз, поэтому устаревшее состояние кнопки
+     * или программный клик не открывают недоступную строку. Обе команды открытия — «Изменить» и
+     * «Просмотр» — идут через один host-обработчик: режим карточки решает host по тому же решению.
+     */
+    private void requestRowAction(CrudAction action) {
+        T selected = getSelectedItem();
+        ActionDecision decision = decide(action, selected);
+        if (!decision.actionable()) {
+            notifyBlocked(decision);
+            return;
+        }
+        if (onEdit != null) {
+            onEdit.accept(selected);
+        }
+    }
+
+    /**
+     * Причина недоступного действия — пользователю: она уже типизирована решением.
+     *
+     * <p>Вне UI (серверный вызов, тест) показывать некому, и Vaadin в этом случае падает: решение
+     * уже вернуло причину, поэтому отсутствие UI не превращается в ошибку исполнения.</p>
+     */
+    private void notifyBlocked(ActionDecision decision) {
+        if (decision.message() == null || decision.message().isEmpty()
+                || com.vaadin.flow.component.UI.getCurrent() == null) {
+            return;
+        }
+        Notification.show(decision.message(), 4000, Notification.Position.MIDDLE);
+    }
+
     private void configureGridSelection() {
         Grid<T> grid = filterGrid.getGrid();
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        grid.asSingleSelect().addValueChangeListener(e -> {
-            T item = e.getValue();
-            boolean has = item != null;
-            boolean editEnabled = has;
-            boolean deleteEnabled = has;
-            String editTooltip = null;
-            String deleteTooltip = null;
-            if (rlsUiGate != null && has) {
-                AccessDecision edit = rlsUiGate.canUpdate(item);
-                editEnabled = edit.allowed();
-                editTooltip = edit.allowed() ? null : edit.reason();
-                AccessDecision delete = rlsUiGate.canDelete(item);
-                deleteEnabled = delete.allowed();
-                deleteTooltip = delete.allowed() ? null : delete.reason();
+        grid.asSingleSelect().addValueChangeListener(e -> updateActionStates());
+        grid.addItemDoubleClickListener(e -> handleRowDoubleClick(e.getItem()));
+        updateActionStates();
+    }
+
+    /**
+     * Двойной клик по строке — тот же путь, что и открытие строки кнопкой: сначала изменение, если
+     * оно доступно, иначе просмотр, иначе причина пользователю. Раньше двойной клик открывал
+     * карточку в обход проверки прав — именно это расхождение между кнопкой и строкой нашёл E1.0.
+     *
+     * <p>Метод package-private, чтобы поведение проверялось без эмуляции событий Vaadin: решение и
+     * передача host'у — всё, что здесь есть.</p>
+     */
+    void handleRowDoubleClick(T item) {
+        if (item == null) {
+            return;
+        }
+        ActionDecision edit = decide(CrudAction.EDIT, item);
+        if (edit.actionable()) {
+            if (onEdit != null) {
+                onEdit.accept(item);
             }
-            editButton.setEnabled(editEnabled);
-            deleteButton.setEnabled(deleteEnabled);
-            editButton.setTooltipText(editTooltip);
-            deleteButton.setTooltipText(deleteTooltip);
-        });
-        grid.addItemDoubleClickListener(e -> {
-            T item = e.getItem();
-            if (item != null && onEdit != null) onEdit.accept(item);
-        });
+            return;
+        }
+        ActionDecision open = decide(CrudAction.OPEN, item);
+        if (open.actionable()) {
+            if (onEdit != null) {
+                onEdit.accept(item);
+            }
+            return;
+        }
+        notifyBlocked(blockedExplanation(edit, open));
+    }
+
+    /**
+     * Чем объясняется недоступная строка: применимым, но запрещённым действием, а не скрытым.
+     *
+     * <p><b>Почему не последним решением.</b> «Скрыто» — свойство <i>типа</i> (у него нет операции
+     * или действие к нему неприменимо), «видно, но недоступно» — свойство <i>строки и прав</i>.
+     * Поэтому у строки, изменение которой запрещено правами, объяснение обязано быть про права:
+     * «Просмотр» у типа с generic-изменением скрыт по построению (его условие — «{@code UPDATE}
+     * отсутствует»), и его причина рассказывала бы пользователю про тип вместо того, из-за чего
+     * строка действительно не открылась. Скрытое решение остаётся ответом только там, где
+     * применимого действия нет вовсе (например, тип без {@code DETAIL}).</p>
+     *
+     * <p>Правило чистое и статическое, потому что относится к выбору <i>объяснения</i>, а не к
+     * доступности: решения уже приняты политикой, здесь выбирается то, которое пользователь прочтёт.</p>
+     */
+    static ActionDecision blockedExplanation(ActionDecision edit, ActionDecision open) {
+        return edit.visible() ? edit : open;
     }
 
     // === Данные ===
@@ -948,6 +1330,17 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     // === Callbacks ===
 
     public void setOnAdd(Consumer<T> onAdd) { this.onAdd = onAdd; }
+
+    /** Копирование запускается тем же решением, что управляет кнопкой. */
+    public void setOnCopy(Consumer<T> onCopy) {
+        this.onCopy = onCopy;
+        updateActionStates();
+    }
+
+    /**
+     * Обработчик строкового открытия — и «Изменить», и «Просмотр». Режим карточки выбирает host по
+     * тому же решению: у формы нет второго правила, которое могло бы с ним разойтись.
+     */
     public void setOnEdit(Consumer<T> onEdit) { this.onEdit = onEdit; }
     public void setOnDelete(Consumer<T> onDelete) { this.onDelete = onDelete; }
 
@@ -1041,6 +1434,11 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         });
     }
 
+    /** Вариант списка для ActionInvocation; не зависит от ключа сохранённых видов. */
+    public void setFormVariant(String formVariant) {
+        this.formVariant = formVariant;
+    }
+
     private String compactKey() {
         return formKey != null ? "filtergrid.compact." + formKey : "filtergrid.compact";
     }
@@ -1091,18 +1489,25 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     private boolean moreMenuInstalled = false;
 
     /**
+     * Разделитель, перед которым встают предметные кнопки: держится затем, чтобы «Ещё» оставалась
+     * крайней справа. С E1.6b объявленные действия рисуются по решению уже после разделителя
+     * (решатель ставит координатор позже сборки тулбара), поэтому место вставки надо помнить.
+     */
+    private HorizontalLayout moreMenuAnchor;
+
+    /**
      * Кнопка «Ещё» справа над гридом (как в 1С): меню дополнительных действий
      * списка — общий поиск и условное форматирование (см. {@link FilterGridMoreMenu}).
      *
-     * <p>Вызывается координатором после сквозных добавок тулбара
-     * ({@code ListFormToolbarContributor}), чтобы «Ещё» оставалась крайней
-     * справа. Идемпотентно.</p>
+     * <p>Вызывается координатором после сборки тулбара, чтобы «Ещё» оставалась крайней
+     * справа; предметные кнопки вставляются перед разделителем. Идемпотентно.</p>
      */
     public void installMoreMenu() {
         if (moreMenuInstalled) return;
         moreMenuInstalled = true;
         HorizontalLayout spacer = new HorizontalLayout();
         spacer.setWidthFull();
+        moreMenuAnchor = spacer;
         toolbar.add(spacer, FilterGridMoreMenu.create(filterGrid));
         toolbar.setFlexGrow(1, spacer);
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -1110,16 +1515,21 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
     public Button getAddButton() { return addButton; }
     public Button getEditButton() { return editButton; }
+    public Button getOpenButton() { return openButton; }
     public Button getDeleteButton() { return deleteButton; }
     public Button getRefreshButton() { return refreshButton; }
 
+    /**
+     * Режим только просмотра списка: generic-действия не показываются. Режим хранится явно, а не
+     * выводится из видимости «Создать»: с E1.3 кнопка скрыта и тогда, когда создания нет у типа
+     * (нет capability), — это разные состояния, и производный признак врал бы.
+     */
     public void setReadOnly(boolean readOnly) {
-        addButton.setVisible(!readOnly);
-        editButton.setVisible(!readOnly);
-        deleteButton.setVisible(!readOnly);
+        this.readOnly = readOnly;
+        updateActionStates();
     }
 
     public boolean isReadOnly() {
-        return !addButton.isVisible();
+        return readOnly;
     }
 }

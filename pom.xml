@@ -18,27 +18,10 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- Vaadin Maven plugin uses plugin version, which dependency BOMs cannot manage. -->
         <vaadin.version>25.1.6</vaadin.version>
-        <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
+        <platform-bom.version>1.0-SNAPSHOT</platform-bom.version>
         <crudui.version>1.0-SNAPSHOT</crudui.version>
-        <!-- D1/D2-ревью: нейтральный identifier вынесен из crudui-core в Java-only модуль -->
-        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
-        <!-- D3.3: сервисный контракт CrudService вынесен из crudui-core тем же способом -->
-        <platform-crud-api.version>1.0-SNAPSHOT</platform-crud-api.version>
-        <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
-        <platform-events.version>1.0-SNAPSHOT</platform-events.version>
-        <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
-        <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
-        <platform-numbering.version>1.0-SNAPSHOT</platform-numbering.version>
-        <platform-settings.version>1.0-SNAPSHOT</platform-settings.version>
-        <platform-telemetry.version>1.0-SNAPSHOT</platform-telemetry.version>
-        <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
-        <!-- D3.3: backend платформы (generic CRUD/data/metadata/search/fetch/filter) -->
-        <platform-core.version>1.0-SNAPSHOT</platform-core.version>
-        <!-- D3.4: wiring backend-ядра — авто-конфигурации metadata/CRUD/data/fetch/search -->
-        <platform-spring-boot-autoconfigure.version>1.0-SNAPSHOT</platform-spring-boot-autoconfigure.version>
-        <!-- D3.5.4: UI-слой платформы (form/vaadin/telemetry-vaadin) -->
-        <platform-vaadin.version>1.0-SNAPSHOT</platform-vaadin.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
         <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
@@ -49,9 +32,9 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.vaadin</groupId>
-                <artifactId>vaadin-bom</artifactId>
-                <version>${vaadin.version}</version>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-bom</artifactId>
+                <version>${platform-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -59,10 +42,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-spring-boot-starter</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-dev</artifactId>
@@ -90,210 +69,28 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <!--
-          Нейтральный identifier (org.ipro.identity.IdentifiableEntity): контракт, нужный и
-          UI-библиотеке crudui, и платформенным артефактам. Раньше он жил в crudui-core,
-          из-за чего platform-contracts и platform-persistence зависели от UI-артефакта, а
-          бутстрап не воспроизводился (crudui собирался позже них). Теперь он — отдельный
-          Java-only модуль реактора crudui (без Spring/JPA/Vaadin), а приложение объявляет
-          зависимость явно, потому что называет тип в своих классах.
-        -->
+        <!-- D3.8: Vaadin starter уже приносит backend-замыкание через platform-vaadin. -->
         <dependency>
             <groupId>org.ipro</groupId>
-            <artifactId>platform-identity-api</artifactId>
-            <version>${platform-identity.version}</version>
+            <artifactId>platform-vaadin-starter</artifactId>
         </dependency>
 
-        <!--
-          org.ipro.crud.CrudService — минимальный сервисный контракт сущности
-          (save/delete/findById). Тот же тупик, что и у identifier, только с обратной стороны:
-          его расширяет платформенный BaseService (platform-core), а принимает UI-класс
-          AbstractCrudView (crudui-core). Пока тип жил в crudui-core, backend зависел от
-          UI-артефакта; если бы он уехал в platform-core, crudui-core начал бы зависеть от
-          платформы, а crudui обязан собираться первым. Поэтому — отдельный Java-only модуль
-          реактора crudui. FQN сохранён, поэтому прикладной код (WorkshopForm) не менялся.
-        -->
         <dependency>
             <groupId>org.ipro</groupId>
-            <artifactId>platform-crud-api</artifactId>
-            <version>${platform-crud-api.version}</version>
+            <artifactId>filtergrid-core</artifactId>
         </dependency>
-
-        <!--
-          D2: контракты платформы вынесены в собственный артефакт (platform-contracts).
-          Пакеты сохранены, поэтому перенос не потребовал правок в коде; граница
-          обеспечивается сборкой — у этого артефакта нет и не может быть зависимости на
-          приложение. Порядок сборки: platform-contracts install, затем verify приложения
-          (см. scripts/local-dependencies.json).
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-contracts</artifactId>
-            <version>${platform-contracts.version}</version>
-        </dependency>
-
-        <!--
-          D2 (runtime slice): платформенный контур entity lifecycle events — publisher,
-          fail-fast registry и своя авто-конфигурация. Модуль объявляет свою
-          авто-конфигурацию в собственном imports-файле, поэтому в приложении нет ни одной
-          строки про него (требование roadmap: extraction не увеличивает число обязательных
-          registrations). Зависит на platform-contracts; порядок сборки — contracts,
-          events, затем verify приложения (см. scripts/local-dependencies.json).
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-events</artifactId>
-            <version>${platform-events.version}</version>
-        </dependency>
-
-        <!--
-          D2 (persistence slice): entity и репозитории платформенных подсистем вместе со
-          своей регистрацией в persistence unit и Spring Data. Модуль объявляет свои
-          @EntityScan/@EnableJpaRepositories сам, поэтому приложение больше не перечисляет
-          его пакеты — ни в @EntityScan, ни в центральном хабе репозиториев.
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-persistence</artifactId>
-            <version>${platform-persistence.version}</version>
-        </dependency>
-
-        <!--
-          D2 → D3 (metadata spine): скан классов по аннотации и индекс обратных ссылок.
-          Замер замыкания подсистем на дерево показал, что весь их упор в метаданные — это
-          ровно эти два типа, поэтому именно они, а не весь пакет org.ipro.metadata,
-          выносятся первыми: numbering (1 тип) и settings (2 типа) после этого перестают
-          тянуться в дерево. Авто-конфигурации модуль не несёт — бин ReferenceIndex
-          объявляет MetadataAutoConfiguration приложения, поэтому потеря модуля ломает
-          сборку, а не проявляется тихо в рантайме.
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-metadata</artifactId>
-            <version>${platform-metadata.version}</version>
-        </dependency>
-
-        <!--
-          D2 → D3 (первый модуль-подсистема): нумерация целиком — аннотации, сущности,
-          репозитории, сервисы и своя авто-конфигурация с @EntityScan/@EnableJpaRepositories.
-          Выбран первым по замеру замыкания: после выноса позвоночника метаданных у него не
-          осталось ссылок на дерево приложения. Механизм здесь проверяется на том, чего не
-          было в предыдущих срезах: сущности, репозитории, бины и reflection-регистрация в
-          одном артефакте; приложение не перечисляет его пакеты нигде.
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-numbering</artifactId>
-            <version>${platform-numbering.version}</version>
-        </dependency>
-
-        <!--
-          D2 → D3 (второй модуль-подсистема): константы целиком — маркеры, каталог значений
-          по умолчанию, сервис с сущностью и репозиторием, обратные ссылки для индекса
-          метаданных и своя авто-конфигурация. Приложение больше не перечисляет его пакеты
-          ни в @EntityScan, ни в хабе репозиториев.
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-settings</artifactId>
-            <version>${platform-settings.version}</version>
-        </dependency>
-
-        <!--
-          D2 → D3 (третий модуль-подсистема): наблюдение целиком — API, core, сущности
-          журнала, репозиторий и своя авто-конфигурация с @EntityScan/@EnableJpaRepositories.
-          Замыкание на дерево пусто после выворота цикла с RLS (шаг 8а). Vaadin-адаптеры
-          в модуль не входят: D3.5.4 они уехали в platform-vaadin (org.ipro.vaadin.telemetry) —
-          наблюдение обязано работать без UI, поэтому Vaadin в этом POM остаётся запретом,
-          а не «пока не перенесли».
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-telemetry</artifactId>
-            <version>${platform-telemetry.version}</version>
-        </dependency>
-
-        <!--
-          D2 → D3 (четвёртый модуль-подсистема): Row-Level Security целиком — измерения,
-          гейты, enforcement-аспект, канарейка SQL, нейтральные SPI, сущность грантов
-          и две авто-конфигурации (бины + persistence-регистрация). Зависимости на
-          metadata/fetch заменены SPI, которые реализует приложение.
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-rls</artifactId>
-            <version>${platform-rls.version}</version>
-        </dependency>
-
-        <!--
-          D3.3 (backend платформы): generic CRUD/data access, метаданные, поиск, fetch и filter —
-          без Vaadin и без кода приложения.
-
-          Переезд шёл группой, которую нельзя разделить: org.ipro.metadata, org.ipro.crud,
-          org.ipro.data и org.ipro.fetch образуют цикл, а пакет нельзя перенести частично —
-          типы одного пакета в двух артефактах это split package.
-
-          D3.4: авто-конфигурации org.ipro.*.config уехали в platform-spring-boot-autoconfigure
-          (со своим AutoConfiguration.imports), поэтому потеря wiring больше не видна компилятору —
-          её ловит реестр авто-конфигураций и ApplicationContextRunner-тесты модуля.
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-core</artifactId>
-            <version>${platform-core.version}</version>
-        </dependency>
-
-        <!--
-          D3.4: авто-конфигурации backend-ядра платформы. Приложение не регистрирует их
-          в своём AutoConfiguration.imports — модуль публикует собственный imports-файл,
-          как platform-events; состав реестра закреплён тестом модуля.
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-spring-boot-autoconfigure</artifactId>
-            <version>${platform-spring-boot-autoconfigure.version}</version>
-        </dependency>
-
-        <!--
-          D3.5.4: UI-слой платформы — form (builder/builtin/coordinator/registry/spi),
-          Entity Explorer, глобальный поиск в шапке и Vaadin-адаптер телеметрии.
-          Пакеты сохранены, поэтому прикладной код не менялся: 45 файлов приложения и
-          ReportQueryEditor остаются потребителями, как и было задумано.
-
-          Регистрация — imports-файлом модуля, а не приложения: раньше эти конфигурации
-          перечислял корневой imports-файл (а telemetry-адаптер спасал только component
-          scan пакета org.ip). Теперь владелец один, и его состав проверяет
-          PlatformAutoConfigurationRegistryTest.
-
-          Vaadin объявлен в модуле scope provided — приложение несёт UI-стек само
-          (vaadin-spring-boot-starter выше), поэтому транзитивного дубля не появляется.
-        -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-vaadin</artifactId>
-            <version>${platform-vaadin.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>filtergrid-jpa</artifactId>
-            <version>${filtergrid.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>filtergrid-grouping</artifactId>
-            <version>${filtergrid.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>filtergrid-inmemory</artifactId>
-            <version>${filtergrid.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>filtergrid-projection</artifactId>
-            <version>${filtergrid.version}</version>
         </dependency>
 
         <dependency>

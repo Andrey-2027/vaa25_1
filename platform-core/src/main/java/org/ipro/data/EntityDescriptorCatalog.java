@@ -3,6 +3,7 @@ package org.ipro.data;
 import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.FactOrigin;
 import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
 
@@ -122,7 +123,7 @@ public final class EntityDescriptorCatalog {
         }
         return new EntityDescriptor(type, EntityExposure.UNCLASSIFIED, false, false,
             capabilities(EntityExposure.UNCLASSIFIED),
-            "not present in ManagedEntityCatalog");
+            "not present in ManagedEntityCatalog", FactOrigin.PLATFORM_DEFAULT, "");
     }
 
     /** Все управляемые типы в стабильном (по имени класса) порядке. */
@@ -145,25 +146,36 @@ public final class EntityDescriptorCatalog {
 
         EntityExposure exposure;
         String reason;
+        FactOrigin exposureOrigin;
+        String exposureSymbol;
         if (exposureOverride != null) {
             exposure = exposureOverride.exposure();
             reason = exposureOverride.reason();
+            exposureOrigin = FactOrigin.REGISTRATION;
+            exposureSymbol = "";
         } else if (section.isPresent()) {
             exposure = EntityExposure.OWNED_ROW;
             reason = "declared owned section " + section.get().getKey();
+            exposureOrigin = FactOrigin.DERIVED;
+            exposureSymbol = section.get().getRowClass().getName();
         } else if (metadataDriven) {
             exposure = EntityExposure.STANDARD_ROOT;
             reason = "metadata-driven root";
+            exposureOrigin = FactOrigin.DERIVED;
+            exposureSymbol = type.getName();
         } else {
             exposure = EntityExposure.INTERNAL_STORE;
             reason = "no @EntityMetadata and not an owned section";
+            exposureOrigin = FactOrigin.DERIVED;
+            exposureSymbol = type.getName();
         }
 
         EntityCapabilities capabilities = capabilityOverride == null
             ? capabilities(exposure)
             : new EntityCapabilities(capabilityOverride.reads(), capabilityOverride.writes(),
                 capabilityOverride.reason());
-        return new EntityDescriptor(type, exposure, true, metadataDriven, capabilities, reason);
+        return new EntityDescriptor(type, exposure, true, metadataDriven, capabilities, reason,
+            exposureOrigin, exposureSymbol);
     }
 
     private static boolean isMetadataDriven(Class<?> type, MetadataResolver metadataResolver) {

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-bom</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>GitVaa platform BOM</name>
+    <description>
+        D3.8: версии платформенных артефактов и согласованного семейства FilterGrid.
+        Report-библиотеки в BOM намеренно не входят.
+    </description>
+
+    <properties>
+        <vaadin.version>25.1.6</vaadin.version>
+        <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-identity-api</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-crud-api</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-contracts</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-events</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-persistence</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-metadata</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-numbering</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-settings</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-telemetry</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-rls</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-core</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-spring-boot-autoconfigure</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-vaadin</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-backend-starter</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-vaadin-starter</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
+            <!-- FilterGrid публикуется соседним проектом, но является общей платформенной
+                 compile-зависимостью backend, UI и report-кода приложения; версии идут вместе. -->
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>filtergrid-core</artifactId>
+                <version>${filtergrid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>filtergrid-grouping</artifactId>
+                <version>${filtergrid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>filtergrid-jpa</artifactId>
+                <version>${filtergrid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>filtergrid-inmemory</artifactId>
+                <version>${filtergrid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>filtergrid-projection</artifactId>
+                <version>${filtergrid.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

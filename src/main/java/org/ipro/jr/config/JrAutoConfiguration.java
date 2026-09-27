@@ -14,8 +14,8 @@ import org.springframework.context.annotation.Bean;
 
 /**
  * Auto-Configuration движка JR (.jrxml). Пакеты org.ipro.jr.* не попадают
- * в component-scan приложения (базовый пакет org.ip) — бины регистрируются
- * здесь, репозиторий — централизованно в RlsAutoConfiguration (basePackages).
+ * в component-scan приложения (базовый пакет org.ip) — сервисные бины регистрируются
+ * здесь, entity и repository — отдельной app-owned {@code JrPersistenceAutoConfiguration}.
  *
  * <p>Хранилище файлов — отдельное свойство {@code jrxml.fileStoreDir}
  * (не переиспользуется ureport.fileStoreDir — жизненные циклы движков

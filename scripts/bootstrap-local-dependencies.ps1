@@ -275,8 +275,12 @@ function Get-PomReferencedWorkspaceProjects {
             continue
         }
         $text = Get-Content -Raw -Encoding UTF8 -LiteralPath $pomPath
+        $dependencyManagementBlocks = [regex]::Matches($text,
+            '<dependencyManagement>(.*?)</dependencyManagement>',
+            [System.Text.RegularExpressions.RegexOptions]::Singleline)
         # dependencyManagement — это объявление версий, а не зависимость: BOM-родитель дал бы
-        # рёбра, которых в сборке нет.
+        # рёбра, которых в сборке нет. Исключение — импорт BOM: Maven должен разрешить его при
+        # построении модели, поэтому это реальное build-order ребро для локального артефакта.
         $dependencies = [regex]::Replace($text, '<dependencyManagement>.*?</dependencyManagement>', ' ',
             [System.Text.RegularExpressions.RegexOptions]::Singleline)
 
@@ -288,6 +292,17 @@ function Get-PomReferencedWorkspaceProjects {
         foreach ($match in [regex]::Matches($text, '<parent>(.*?)</parent>',
                 [System.Text.RegularExpressions.RegexOptions]::Singleline)) {
             $blocks.Add($match.Groups[1].Value)
+        }
+        foreach ($management in $dependencyManagementBlocks) {
+            foreach ($match in [regex]::Matches($management.Groups[1].Value,
+                    '<dependency>(.*?)</dependency>',
+                    [System.Text.RegularExpressions.RegexOptions]::Singleline)) {
+                $block = $match.Groups[1].Value
+                if ([regex]::IsMatch($block, '<type>\s*pom\s*</type>') -and
+                    [regex]::IsMatch($block, '<scope>\s*import\s*</scope>')) {
+                    $blocks.Add($block)
+                }
+            }
         }
 
         foreach ($block in $blocks) {

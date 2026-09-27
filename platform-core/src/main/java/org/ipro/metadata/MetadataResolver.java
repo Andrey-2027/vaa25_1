@@ -152,7 +152,7 @@ public class MetadataResolver {
                 "Add @EntityMetadata annotation to enable metadata-driven form generation.");
         }
 
-        EntityKind entityKind = resolveEntityKind(entityClass, annotation.kind());
+        ResolvedEntityKind resolvedKind = resolveEntityKind(entityClass, annotation.kind());
 
         List<FieldMetadataInfo> allFields = scanFields(entityClass);
         List<FieldMetadataInfo> allAnnotatedFields = allFields.stream()
@@ -176,7 +176,8 @@ public class MetadataResolver {
         }
 
         return new EntityMetadataInfo(
-            entityClass, annotation, entityKind, allAnnotatedFields, formFields, gridFields,
+            entityClass, annotation, resolvedKind.kind(), resolvedKind.origin(),
+            resolvedKind.symbol(), allAnnotatedFields, formFields, gridFields,
             listColumnPaths, selectColumnPaths);
     }
 
@@ -185,16 +186,24 @@ public class MetadataResolver {
      * разрешён только если совпадает с выводимым: противоречие является ошибкой
      * конфигурации, а не скрытым override.
      */
-    private EntityKind resolveEntityKind(Class<?> entityClass, EntityKind declaredKind) {
+    private record ResolvedEntityKind(EntityKind kind, FactOrigin origin, String symbol) {
+    }
+
+    private ResolvedEntityKind resolveEntityKind(Class<?> entityClass, EntityKind declaredKind) {
         EntityKind inferredKind = null;
+        Class<?> inferredFrom = null;
         if (StandardCatalogEntity.class.isAssignableFrom(entityClass)) {
             inferredKind = EntityKind.CATALOG;
+            inferredFrom = StandardCatalogEntity.class;
         } else if (StandardDocumentEntity.class.isAssignableFrom(entityClass)) {
             inferredKind = EntityKind.DOCUMENT;
+            inferredFrom = StandardDocumentEntity.class;
         }
 
         if (declaredKind == EntityKind.AUTO) {
-            return inferredKind != null ? inferredKind : EntityKind.PLAIN;
+            return inferredKind != null
+                ? new ResolvedEntityKind(inferredKind, FactOrigin.DERIVED, inferredFrom.getName())
+                : new ResolvedEntityKind(EntityKind.PLAIN, FactOrigin.PLATFORM_DEFAULT, "");
         }
         if (inferredKind != null && declaredKind != inferredKind) {
             throw new IllegalArgumentException(
@@ -202,7 +211,7 @@ public class MetadataResolver {
                 declaredKind + ", but base class implies " + inferredKind + ". " +
                 "Remove explicit kind or make it match the standard base class.");
         }
-        return declaredKind;
+        return new ResolvedEntityKind(declaredKind, FactOrigin.EXPLICIT, entityClass.getName());
     }
 
     /**

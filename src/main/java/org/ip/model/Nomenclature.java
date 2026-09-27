@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
@@ -19,6 +20,7 @@ import org.ipro.search.GlobalSearchable;
 @Table(name = "nomenclature")
 @GlobalSearchable(order = 100)
 @EntityMetadata(
+    kind = EntityKind.CATALOG,
     listFormTitle = "Номенклатура",
     itemFormTitle = "Элемент номенклатуры",
     selectionFormTitle = "Выбор номенклатуры",

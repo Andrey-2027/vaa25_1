@@ -6,6 +6,7 @@ import org.ipro.crud.GenericOwnedSectionService;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.crud.ServiceLocator;
+import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.grouping.GroupingValuesProviderFactory;
 import org.ipro.form.FieldFactory;
 import org.ipro.form.ItemFormSaveHandler;
@@ -13,6 +14,10 @@ import org.ipro.form.ItemFormSaveHandlerRegistry;
 import org.ipro.form.MetadataDrivenItemFormSaveAdapter;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.form.TableSectionCustomization;
+import org.ipro.form.action.ActionContextProvider;
+import org.ipro.form.action.ActionDefinition;
+import org.ipro.form.action.ActionRegistry;
+import org.ipro.form.action.CrudAction;
 import org.ipro.form.TableSectionFactory;
 import org.ipro.form.builder.ItemFormCustomization;
 import org.ipro.form.builder.ItemFormCustomizationRegistrar;
@@ -24,14 +29,17 @@ import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.form.coordinator.ItemFormAccessBinder;
 import org.ipro.form.coordinator.ItemFormWrapperView;
+import org.ipro.form.host.FormRouteUrlBridge;
+import org.ipro.form.link.FormLinkService;
+import org.ipro.form.link.FormRouteAliasDeclaration;
+import org.ipro.form.link.FormRouteCatalog;
+import org.ipro.form.link.FormRouteCodec;
+import org.ipro.form.link.FormRouteOpener;
 import org.ipro.form.registry.FormRegistry;
 import org.ipro.form.registry.FormRegistryConfiguration;
 import org.ipro.form.registry.FormResolver;
-import org.ipro.form.registry.ListCommand;
-import org.ipro.form.registry.ListCommandRegistry;
 import org.ipro.form.spi.FormSettingsStore;
 import org.ipro.form.spi.GridViewStore;
-import org.ipro.form.spi.ListFormToolbarContributor;
 import org.ipro.form.spi.WorkspaceGateway;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.SectionMetadataRegistry;
@@ -40,8 +48,12 @@ import org.ipro.rls.RlsUiGate;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
@@ -157,13 +169,153 @@ public class FormAutoConfiguration {
                                            GridViewStore gridViewStore,
                                            RlsUiGate rlsUiGate,
                                            ItemFormAccessBinder itemFormAccessBinder,
+                                           ActionRegistry actionRegistry,
+                                           ActionContextProvider actionContextProvider,
+                                           org.ipro.form.action.ActionHandlerRegistry actionHandlerRegistry,
+                                           FormLinkService formLinkService,
                                            EntityCopyService entityCopyService,
                                            TableSectionFactory tableSectionFactory,
-                                           List<ListFormToolbarContributor> toolbarContributors,
-                                           ObjectProvider<WorkspaceGateway> workspaceGateways) {
+                                           ObjectProvider<WorkspaceGateway> workspaceGateways,
+                                           ObjectProvider<FormRouteUrlBridge> routeUrlBridges) {
         return new FormCoordinator(metadataResolver, fieldFactory, applicationContext, formResolver,
             serviceLocator, formSettingsStore, gridViewStore, rlsUiGate, itemFormAccessBinder,
-            entityCopyService, tableSectionFactory, toolbarContributors, workspaceGateways);
+            actionRegistry, actionContextProvider, actionHandlerRegistry, formLinkService,
+            entityCopyService, tableSectionFactory,
+            workspaceGateways, routeUrlBridges);
+    }
+
+    /**
+     * Мост адреса и вкладок (E2.3, ADR-0009 §7).
+     *
+     * <p>{@code @UIScope} по тому же факту, что и у координатора: адрес относится к вкладкам
+     * текущего UI, а вкладки — состояние UI. Синглтон смешал бы адрес одного окна с содержимым
+     * другого (измерено в E2.0: два UI имеют независимые области).</p>
+     *
+     * <p>Бин регистрируется безусловно и безвреден: до {@code install(...)} он не подписан ни на
+     * что и не меняет адрес. Условность здесь означала бы, что координатор обязан спрашивать,
+     * «включён ли route host», прежде чем записать адрес вкладки, — то есть второе место,
+     * знающее про режим приложения.</p>
+     */
+    @Bean
+    @UIScope
+    @ConditionalOnMissingBean
+    public FormRouteUrlBridge formRouteUrlBridge(FormRouteCodec formRouteCodec,
+                                                 ObjectProvider<WorkspaceGateway> workspaceGateways) {
+        return new FormRouteUrlBridge(formRouteCodec, workspaceGateways);
+    }
+
+    /**
+     * Кодек адреса глубокой ссылки (E2.1): единственное место, знающее грамматику маршрута.
+     * Точка расширения намеренно оставлена: прикладной host может подменить нормализацию,
+     * не переписывая каталог.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public FormRouteCodec formRouteCodec() {
+        return new FormRouteCodec();
+    }
+
+    /**
+     * Каталог публикуемых маршрутов (E2.1, ADR-0009 §4).
+     *
+     * <p>Строится <b>лениво</b> ({@link FormRouteCatalog#deferred}) намеренно: регистраторы
+     * вариантов — такие же бины, и порядок их создания контейнером не определён. Снимок до их
+     * работы зафиксировал бы неполный набор вариантов молча; здесь раннее обращение — отказ.
+     * Декларации приложения ({@link FormRouteAliasDeclaration}) приходят списком: пустой список
+     * означает «все ключи выведены из имён классов» и является нормальным состоянием.</p>
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public FormRouteCatalog formRouteCatalog(
+            EntityDescriptorCatalog descriptorCatalog,
+            FormRegistry formRegistry,
+            ObjectProvider<FormRouteAliasDeclaration> declarations,
+            @Value("${ipro.form.registry.allow-runtime-registration:false}")
+            boolean allowRuntimeRegistration) {
+        // ObjectProvider, а не List: у приложения обычно нет ни одной декларации, и отсутствие
+        // вкладов — норма, а не отсутствующая зависимость.
+        //
+        // Требование заморозки реестра снимается вместе с тем же свойством, что и сама заморозка
+        // (FormRegistryConfiguration): просить завершённую композицию там, где реестр намеренно
+        // открыт для рантайм-регистраций, — это запрет выбранного режима, а не проверка.
+        return FormRouteCatalog.deferred(() -> descriptorCatalog, () -> formRegistry,
+            declarations.stream().toList(), !allowRuntimeRegistration);
+    }
+
+    /** Генерация ссылок: каталог плюс кодек (E2.1, ADR-0009 §5/§7). */
+    @Bean
+    @ConditionalOnMissingBean
+    public FormLinkService formLinkService(FormRouteCatalog formRouteCatalog,
+                                           FormRouteCodec formRouteCodec) {
+        return new FormLinkService(formRouteCatalog, formRouteCodec);
+    }
+
+    /**
+     * Route-вход: открытие формы по адресу (E2.2, ADR-0009 §6).
+     *
+     * <p>{@code @UIScope} — не копия скоупа координатора, а следствие того же факта: открытие
+     * по адресу заканчивается вкладкой в рабочей области текущего UI, а она — состояние UI, а не
+     * приложения. Синглтон здесь держал бы навигатора первого пользователя: у {@code @UIScope}
+     * нет scoped-proxy, поэтому внедрение UI-scoped бина в синглтон забор
+     * {@code FormCoordinatorScopeGuardTest} справедливо запрещает.</p>
+     */
+    @Bean
+    @UIScope
+    @ConditionalOnMissingBean
+    public FormRouteOpener formRouteOpener(FormRouteCatalog formRouteCatalog,
+                                           FormRouteCodec formRouteCodec,
+                                           FormNavigator formNavigator) {
+        return new FormRouteOpener(formRouteCatalog, formRouteCodec, formNavigator);
+    }
+
+    /**
+     * Startup-проверка композиции адресов: коллизии ключей и декларации для непубликуемых
+     * типов обязаны ронять старт, а не открываться первым пользователем как битая ссылка.
+     *
+     * <p>{@code ApplicationReadyEvent}, а не {@code ContextRefreshedEvent}: регистраторы форм
+     * завершаются к моменту инициализации синглтонов, и первое обращение к каталогу обязано
+     * увидеть замороженный реестр — иначе ленивое построение откажет по собственному guard'у.</p>
+     */
+    @Bean
+    public ApplicationListener<ApplicationReadyEvent> formRouteCatalogStartupCheck(
+            FormRouteCatalog formRouteCatalog) {
+        return event -> formRouteCatalog.validate();
+    }
+
+    /**
+     * Проверка конфигурации route host (E2.3): объявленный host без рабочей области — ошибка
+     * старта, а не тихо неработающий адрес.
+     *
+     * <p>Host умеет показывать форму по адресу только через Workspace (ADR §3: прямой адрес всегда
+     * открывает Workspace). Если приложение объявило host и не предоставило UI-scoped
+     * {@code WorkspaceGateway}, каждая скопированная ссылка открывалась бы в состояние «некуда»,
+     * причём у пользователя, а не у разработчика. Поэтому отказ выдаётся на старте и с причиной.</p>
+     *
+     * <p><b>Объявление — свойство, а не догадка.</b> «Есть шаблоны маршрутов» из бинов не видно:
+     * {@code @RouteAlias} — аннотация класса, а не бин. Приложение, у которого host'а нет, не должно
+     * страдать от чужой проверки, поэтому проверка включается явно
+     * ({@code ipro.form.route-host.enabled}) и по умолчанию выключена.</p>
+     *
+     * <p>Смотрим объявления бинов, а не сам бин: {@code WorkspaceGateway} — UI-scoped, и получить
+     * его экземпляр на старте нельзя (активного UI ещё нет). Проверка типом отвечает на нужный
+     * вопрос — «предоставило ли приложение область», — не создавая её.</p>
+     */
+    @Bean
+    public ApplicationListener<ApplicationReadyEvent> formRouteHostStartupCheck(
+            ListableBeanFactory beans,
+            @Value("${ipro.form.route-host.enabled:false}") boolean routeHostEnabled) {
+        return event -> {
+            if (!routeHostEnabled) {
+                return;
+            }
+            if (beans.getBeanNamesForType(WorkspaceGateway.class).length == 0) {
+                throw new IllegalStateException("Приложение объявило route host"
+                    + " (ipro.form.route-host.enabled=true), но не предоставило UI-scoped бин"
+                    + " WorkspaceGateway: прямой адрес всегда открывает форму в Workspace"
+                    + " (ADR-0009 §3), поэтому каждая ссылка открывалась бы в «открывать некуда»."
+                    + " Либо приложение предоставляет рабочую область, либо route host не объявляется.");
+            }
+        };
     }
 
     // ---------------------------------------------------------------------
@@ -171,10 +323,55 @@ public class FormAutoConfiguration {
     // поэтому конфликт с пользовательским бином обязан быть громким.
     // ---------------------------------------------------------------------
 
-    /** Обязательный gate доступа: без него форма показывает данные в обход RLS-проверки. */
+    /**
+     * Обязательный gate доступа: без него форма показывает данные в обход проверки доступа.
+     *
+     * <p>С E1.5 у binder'а нет своих коллабораторов: он переводит в форму готовое решение по
+     * действию, а входы решения (capability типа и права) собирает {@link ActionContextProvider}.
+     * Своя формула прав здесь больше не живёт — раньше именно тут проверялся один только RLS, и
+     * тип без generic {@code UPDATE} открывался редактируемым.</p>
+     */
     @Bean
-    public ItemFormAccessBinder itemFormAccessBinder(RlsUiGate rlsUiGate) {
-        return new ItemFormAccessBinder(rlsUiGate);
+    public ItemFormAccessBinder itemFormAccessBinder() {
+        return new ItemFormAccessBinder();
+    }
+
+    /**
+     * Реестр действий (E1.3/E1.5): платформенный состав тулбара списка и подвала карточки плюс
+     * предметные вклады приложения.
+     *
+     * <p>Без условий, как и остальные инварианты: реестр — не опция «если приложение захочет».
+     * Расширяется он через сами {@link ActionDefinition}-бины, а не через отсутствие реестра;
+     * дубликат ключа без явного override роняет старт здесь же, а не молча выбирает одно из двух.</p>
+     */
+    @Bean
+    public ActionRegistry actionRegistry(List<ActionDefinition> overrides,
+                                        org.ipro.form.action.ActionHandlerRegistry handlerRegistry) {
+        // Объявления прикладных действий — регистрации, а не override'ы: это новые действия типа,
+        // и правило «override обязан найти цель» к ним не применяется. Состав действий остаётся
+        // одним: и платформенные defaults, и прикладные объявления проходят через один реестр,
+        // поэтому решение о них считает та же политика.
+        List<ActionDefinition> declared = new java.util.ArrayList<>(CrudAction.platformDefaults());
+        declared.addAll(handlerRegistry.definitions());
+        return new ActionRegistry(declared, overrides);
+    }
+
+    /**
+     * Провайдер входов решения (E1.3): capability типа из дескрипторов C4, права из RLS-гейта и
+     * адресуемость формы из каталога адресов (E2.1).
+     *
+     * <p>Обязательный коллаборатор: без него у списка либо нет решения вовсе, либо он вынужден
+     * считать права сам — именно то, что устраняет E1.</p>
+     *
+     * <p>Каталог адресов передаётся всегда, хотя он ленив: подключить его «когда понадобится»
+     * значило бы получить второй способ собирать контекст — с адресами и без, — и действие,
+     * требующее ссылку, падало бы на одном из них.</p>
+     */
+    @Bean
+    public ActionContextProvider actionContextProvider(EntityDescriptorCatalog descriptorCatalog,
+                                                       RlsUiGate rlsUiGate,
+                                                       FormRouteCatalog formRouteCatalog) {
+        return new ActionContextProvider(descriptorCatalog, rlsUiGate, formRouteCatalog);
     }
 
     @Bean
@@ -188,9 +385,18 @@ public class FormAutoConfiguration {
             genericSectionService, formResolverProvider, customizations);
     }
 
+    /**
+     * Реестр исполнителей прикладных действий (E1.6a).
+     *
+     * <p>Бин обязательный, а не условный: он собирает вклады приложения, и его подмена означала бы
+     * потерю прикладных действий (то же правило D3.5.5, по которому обязательным был и снятый
+     * в E1.7 реестр легаси-команд). Дубликат ключа роняет старт здесь же, а не выбирает одно
+     * из двух по порядку бинов.</p>
+     */
     @Bean
-    public ListCommandRegistry listCommandRegistry(List<ListCommand<?>> commands) {
-        return new ListCommandRegistry(commands);
+    public org.ipro.form.action.ActionHandlerRegistry actionHandlerRegistry(
+            List<org.ipro.form.action.ActionHandler> handlers) {
+        return new org.ipro.form.action.ActionHandlerRegistry(handlers);
     }
 
     @Bean
@@ -229,9 +435,14 @@ public class FormAutoConfiguration {
     public ItemFormWrapperView itemFormWrapperView(ApplicationContext applicationContext,
                                                    FormResolver formResolver,
                                                    ServiceLocator serviceLocator,
-                                                   ItemFormAccessBinder itemFormAccessBinder) {
+                                                   ItemFormAccessBinder itemFormAccessBinder,
+                                                   ActionRegistry actionRegistry,
+                                                   ActionContextProvider actionContextProvider,
+                                                   org.ipro.form.action.ActionHandlerRegistry actionHandlerRegistry,
+                                                   FormLinkService formLinkService) {
         return new ItemFormWrapperView(applicationContext, formResolver, serviceLocator,
-            itemFormAccessBinder);
+            itemFormAccessBinder, actionRegistry, actionContextProvider, actionHandlerRegistry,
+            formLinkService);
     }
 
     /**

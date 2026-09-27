@@ -20,12 +20,63 @@ class public final org.ipro.form.MetadataDrivenItemFormSaveAdapter
   method public org.ipro.form.FormSaveResult<T> save(org.ipro.form.builtin.ItemForm<T>)
   method public void apply(org.ipro.form.builtin.ItemForm<T>, org.ipro.crud.MetadataDrivenAggregateSaveService$AggregateSaveResult<T>)
 
+class public final org.ipro.form.action.ActionResolver
+  ctor public(org.ipro.form.action.ActionRegistry, org.ipro.form.action.ActionContextProvider, org.ipro.form.action.ActionHandlerRegistry, org.ipro.form.action.ActionSurface, java.lang.Class<?>, java.lang.String)
+  method public java.util.List<org.ipro.form.action.ActionDefinition> definitions()
+  method public java.util.Optional<org.ipro.form.action.ActionDefinition> definition(org.ipro.form.action.CrudAction)
+  method public java.util.Optional<org.ipro.form.action.ActionHandler> handler(org.ipro.form.action.ActionDefinition)
+  method public org.ipro.form.action.ActionContext context(java.lang.Object, boolean)
+  method public org.ipro.form.action.ActionDecision decide(org.ipro.form.action.ActionDefinition, java.lang.Object, boolean)
+  method public org.ipro.form.action.ActionDecision decide(org.ipro.form.action.CrudAction, java.lang.Object, boolean)
+
+class public final org.ipro.form.action.CopyLinkButton
+  extends com.vaadin.flow.component.button.Button
+  method public static org.ipro.form.action.CopyLinkButton forList(java.lang.String, org.ipro.form.link.FormLinkService, java.lang.Class<?>, java.lang.String, java.util.function.Supplier<org.ipro.form.action.ActionDecision>, java.util.function.Consumer<org.ipro.form.action.ActionDecision>)
+  method public static org.ipro.form.action.CopyLinkButton forRecord(java.lang.String, org.ipro.form.link.FormLinkService, java.lang.Class<?>, java.lang.String, java.util.function.Supplier<java.lang.Long>, java.util.function.Supplier<org.ipro.form.action.ActionDecision>, java.util.function.Consumer<org.ipro.form.action.ActionDecision>)
+  method public void refresh()
+
 class public final org.ipro.form.builder.ItemFormVariants
   ctor public()
   method public org.ipro.form.builder.ItemFormVariants add(java.lang.String, org.ipro.form.registry.FormFactory)
   method public org.ipro.form.builder.ItemFormVariants addDefault(org.ipro.form.registry.FormFactory)
   method public org.ipro.form.builder.ItemFormVariants customize(java.lang.String, org.ipro.form.builder.ItemFormCustomizer)
   method public org.ipro.form.builder.ItemFormVariants customizeDefault(org.ipro.form.builder.ItemFormCustomizer)
+
+class public final org.ipro.form.link.EntityExplorerAddress
+  field public static final java.lang.String ROOT_SEGMENT = entity-explorer
+  method public static boolean claims(java.lang.String)
+  method public static java.lang.String format(java.lang.String)
+  method public static java.util.Optional<java.lang.String> keyOf(java.lang.String)
+
+class public final org.ipro.form.link.FormRouteCatalog
+  method public int size()
+  method public java.util.List<org.ipro.form.link.PublishedFormRoute> all()
+  method public java.util.Optional<org.ipro.form.link.PublishedFormRoute> find(java.lang.Class<?>)
+  method public java.util.Optional<org.ipro.form.link.PublishedFormRoute> find(java.lang.String)
+  method public java.util.Optional<org.ipro.form.link.PublishedFormRoute> find(org.ipro.form.link.FormRoute)
+  method public org.ipro.form.link.NotLinkableReason notLinkable(java.lang.Class<?>, org.ipro.form.link.FormRouteKind, java.lang.String)
+  method public static org.ipro.form.link.FormRouteCatalog build(org.ipro.data.EntityDescriptorCatalog, org.ipro.form.registry.FormRegistry, java.util.List<org.ipro.form.link.FormRouteAliasDeclaration>)
+  method public static org.ipro.form.link.FormRouteCatalog deferred(java.util.function.Supplier<org.ipro.data.EntityDescriptorCatalog>, java.util.function.Supplier<org.ipro.form.registry.FormRegistry>, java.util.List<org.ipro.form.link.FormRouteAliasDeclaration>)
+  method public static org.ipro.form.link.FormRouteCatalog deferred(java.util.function.Supplier<org.ipro.data.EntityDescriptorCatalog>, java.util.function.Supplier<org.ipro.form.registry.FormRegistry>, java.util.List<org.ipro.form.link.FormRouteAliasDeclaration>, boolean)
+  method public void validate()
+
+class public final org.ipro.form.link.FormRouteOpener
+  ctor public(org.ipro.form.link.FormRouteCatalog, org.ipro.form.link.FormRouteCodec, org.ipro.form.coordinator.FormNavigator)
+  method public org.ipro.form.link.OpenResult open(org.ipro.form.link.FormRoute)
+  method public org.ipro.form.link.OpenResult open(org.ipro.form.link.FormRouteParseResult)
+  method public org.ipro.form.link.OpenResult openAddress(java.lang.String)
+
+class public final org.ipro.form.link.PublishedFormRoute
+  method public boolean supports(org.ipro.form.link.FormRouteKind, java.lang.String)
+  method public java.lang.Class<?> entityClass()
+  method public java.lang.String entityKey()
+  method public java.lang.String keyReason()
+  method public java.lang.String keySymbol()
+  method public java.util.List<java.lang.String> keys()
+  method public java.util.List<java.lang.String> legacyKeys()
+  method public java.util.Optional<org.ipro.form.link.NotLinkableReason> notLinkable(org.ipro.form.link.FormRouteKind, java.lang.String)
+  method public java.util.Set<java.lang.String> variants(org.ipro.form.link.FormRouteKind)
+  method public org.ipro.metadata.FactOrigin keyOrigin()
 
 class public final org.ipro.vaadin.search.GlobalSearchNavigationAdapter
   ctor public(org.ipro.search.GlobalSearchCatalog, org.springframework.beans.factory.ObjectProvider<org.ipro.form.coordinator.FormNavigator>)
@@ -141,6 +192,7 @@ class public org.ipro.form.builtin.ItemForm
   method public org.ipro.form.FormBindingRegistry getBindingRegistry()
   method public org.ipro.form.FormSaveResult<T> save()
   method public org.ipro.form.SectionPayload<R> sectionPayload(java.lang.Class<R>)
+  method public org.ipro.form.action.ReadOnlyReason readOnlyReason()
   method public org.ipro.form.builtin.ItemForm<T> bindExternal(org.ipro.form.BindingDescriptor, com.vaadin.flow.component.Component, java.util.function.Function<T, V>, java.util.function.BiConsumer<T, V>, java.util.function.Supplier<V>, java.util.function.Consumer<V>, java.util.function.Predicate<V>, java.util.function.Consumer<java.lang.Boolean>)
   method public org.ipro.form.builtin.ItemForm<T> withDefaultButtons()
   method public org.ipro.form.builtin.ItemTable<R, T> tableSection(java.lang.Class<R>)
@@ -154,8 +206,8 @@ class public org.ipro.form.builtin.ItemForm
   method public void setOnCancel(java.lang.Runnable)
   method public void setOnSave(java.lang.Runnable)
   method public void setReadOnly(boolean)
+  method public void setReadOnly(org.ipro.form.action.ReadOnlyReason)
   method public void setReadOnlySections(java.util.Collection<java.lang.Class<?>>)
-  method public void setRlsReadOnlyNotice(java.lang.String)
   method public void setSaveHandler(org.ipro.form.FormSaveHandler<T>)
   method public void setSectionFilter(java.util.Collection<java.lang.Class<?>>)
 
@@ -189,6 +241,7 @@ class public org.ipro.form.builtin.ListForm
   method public com.vaadin.flow.component.button.Button getAddButton()
   method public com.vaadin.flow.component.button.Button getDeleteButton()
   method public com.vaadin.flow.component.button.Button getEditButton()
+  method public com.vaadin.flow.component.button.Button getOpenButton()
   method public com.vaadin.flow.component.button.Button getRefreshButton()
   method public com.vaadin.flow.component.grid.Grid<T> getGrid()
   method public com.vaadin.flow.component.orderedlayout.HorizontalLayout getToolbar()
@@ -202,6 +255,7 @@ class public org.ipro.form.builtin.ListForm
   method public org.ipro.form.registry.ListFormContext getContextSnapshot()
   method public org.ipro.metadata.EntityMetadataInfo getMetadata()
   method public org.springframework.data.jpa.domain.Specification<T> getVisualFilter()
+  method public void addAction(org.ipro.form.action.ActionHandler)
   method public void addContextChangeListener(java.util.function.Consumer<org.ipro.form.registry.ListFormContext>)
   method public void clearContextFilter()
   method public void clearContextFilter(java.lang.String)
@@ -209,6 +263,7 @@ class public org.ipro.form.builtin.ListForm
   method public void installMoreMenu()
   method public void refresh()
   method public void resetActiveColumns()
+  method public void setActionResolver(org.ipro.form.action.ActionResolver)
   method public void setActiveColumns(java.util.List<org.ipro.metadata.ColumnPath>)
   method public void setAfterColumnsConfigured(java.lang.Runnable)
   method public void setContextFilter(java.lang.String, java.lang.Object)
@@ -217,20 +272,50 @@ class public org.ipro.form.builtin.ListForm
   method public void setContextVisualFilter(org.ipro.filtergrid.filter.FilterNode)
   method public void setEntitySelector(org.ipro.filtergrid.filter.FilterEntitySelector)
   method public void setFixedFilter(org.ipro.filtergrid.filter.FilterNode)
+  method public void setFormLinkService(org.ipro.form.link.FormLinkService)
+  method public void setFormNavigator(org.ipro.form.coordinator.FormNavigator)
+  method public void setFormVariant(java.lang.String)
   method public void setLookupService(org.ipro.crud.LookupService)
   method public void setMetadataResolver(org.ipro.metadata.MetadataResolver)
   method public void setOnAdd(java.util.function.Consumer<T>)
+  method public void setOnCopy(java.util.function.Consumer<T>)
   method public void setOnDelete(java.util.function.Consumer<T>)
   method public void setOnEdit(java.util.function.Consumer<T>)
   method public void setOpeningContextFilter(java.lang.String, java.lang.Object)
   method public void setOpeningContextFilters(java.util.Map<java.lang.String, java.lang.Object>)
   method public void setOpeningParameters(java.util.Map<java.lang.String, java.lang.Object>)
   method public void setReadOnly(boolean)
-  method public void setRlsUiGate(org.ipro.rls.RlsUiGate)
   method public void setSelectionFormProvider(org.ipro.form.builtin.ListForm$SelectionFormProvider)
   method public void setUserFilter(org.ipro.filtergrid.filter.FilterNode)
   method public void setViewSupport(org.ipro.form.spi.GridViewStore, org.ipro.form.spi.FormSettingsStore, java.lang.String)
   method public void setVisualFilter(org.ipro.filtergrid.filter.FilterDefinition)
+
+class public org.ipro.form.host.FormRouteUrlBridge
+  ctor public(org.ipro.form.link.FormRouteCodec, org.springframework.beans.factory.ObjectProvider<org.ipro.form.spi.WorkspaceGateway>)
+  method public void install(java.lang.String, java.util.function.Function<java.lang.String, org.ipro.form.link.OpenResult>)
+  method public void installExplorerEntryPoint(java.util.function.Consumer<java.lang.String>)
+  method public void routedTabOpened(java.lang.String, org.ipro.form.link.FormRoute)
+  method public void tabAddressChanged(java.lang.String, java.lang.String)
+  method public void tabAddressed(java.lang.String, java.lang.String)
+
+class public org.ipro.form.host.RouteStatePage
+  extends com.vaadin.flow.component.orderedlayout.VerticalLayout
+  ctor public(org.ipro.form.link.OpenResult)
+  method public java.lang.String outcome()
+  method public org.ipro.form.link.OpenResult result()
+
+class public org.ipro.form.link.FormLinkService
+  ctor public(org.ipro.form.link.FormRouteCatalog, org.ipro.form.link.FormRouteCodec)
+  method public org.ipro.form.link.FormLinkResult link(org.ipro.form.link.FormRouteKind, java.lang.Class<?>, java.lang.Long, java.lang.String)
+  method public org.ipro.form.link.FormLinkResult linkToList(java.lang.Class<?>)
+  method public org.ipro.form.link.FormLinkResult linkToList(java.lang.Class<?>, java.lang.String)
+  method public org.ipro.form.link.FormLinkResult linkToRecord(java.lang.Class<?>, java.lang.Long)
+  method public org.ipro.form.link.FormLinkResult linkToRecord(java.lang.Class<?>, java.lang.Long, java.lang.String)
+
+class public org.ipro.form.link.FormRouteCodec
+  ctor public()
+  method public java.lang.String format(org.ipro.form.link.FormRoute)
+  method public org.ipro.form.link.FormRouteParseResult parse(java.lang.String)
 
 class public org.ipro.form.registry.FormContext
   ctor public(java.lang.Class<?>, java.lang.Object, org.ipro.metadata.MetadataResolver, org.ipro.form.FieldFactory, org.ipro.crud.EntityLookup, java.util.Map<java.lang.String, java.lang.Object>)
@@ -315,7 +400,9 @@ class public org.ipro.form.registry.FormResolver
 
 class public org.ipro.vaadin.explorer.EntitySummaryAssembler
   ctor public(java.lang.String, org.ipro.metadata.MetadataResolver, org.ipro.form.registry.FormRegistry, org.ipro.metadata.ReferenceIndex, org.ipro.numbering.NumberingMetadataRegistry, org.ipro.metadata.SubsystemRegistry, org.ipro.metadata.facet.FacetResolver)
+  ctor public(java.lang.String, org.ipro.metadata.MetadataResolver, org.ipro.form.registry.FormRegistry, org.ipro.metadata.ReferenceIndex, org.ipro.numbering.NumberingMetadataRegistry, org.ipro.metadata.SubsystemRegistry, org.ipro.metadata.facet.FacetResolver, org.ipro.data.EntityDescriptorCatalog, org.ipro.form.link.FormRouteCatalog, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.metadata.SectionMetadataRegistry, org.ipro.metadata.MetadataConsistencyStartupCheck)
   method public java.util.List<java.lang.String> tableSectionRowNames(java.lang.Class<?>)
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow> unassignedDiagnostics()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummaryAssembler$EntityRef> entities()
   method public org.ipro.vaadin.explorer.EntitySummary summarize(java.lang.Class<?>)
 
@@ -339,6 +426,34 @@ class public static org.ipro.form.registry.FormContext$Builder
   method public org.ipro.form.registry.FormContext$Builder parameters(java.util.Map<java.lang.String, java.lang.Object>)
   method public org.ipro.form.registry.FormContext$Builder service(org.ipro.crud.BaseService<?, ?>)
 
+enum public final org.ipro.form.action.ActionSurface
+  extends java.lang.Enum<org.ipro.form.action.ActionSurface>
+  enum-constants [LIST_TOOLBAR, ITEM_FOOTER, ITEM_MENU]
+  field public static final org.ipro.form.action.ActionSurface ITEM_FOOTER = enum-constant
+  field public static final org.ipro.form.action.ActionSurface ITEM_MENU = enum-constant
+  field public static final org.ipro.form.action.ActionSurface LIST_TOOLBAR = enum-constant
+  method public static org.ipro.form.action.ActionSurface valueOf(java.lang.String)
+  method public static org.ipro.form.action.ActionSurface[] values()
+
+enum public final org.ipro.form.action.CrudAction
+  extends java.lang.Enum<org.ipro.form.action.CrudAction>
+  enum-constants [CREATE, COPY, EDIT, OPEN, DELETE, REFRESH, COPY_LINK, SAVE]
+  field public static final org.ipro.form.action.CrudAction COPY = enum-constant
+  field public static final org.ipro.form.action.CrudAction COPY_LINK = enum-constant
+  field public static final org.ipro.form.action.CrudAction CREATE = enum-constant
+  field public static final org.ipro.form.action.CrudAction DELETE = enum-constant
+  field public static final org.ipro.form.action.CrudAction EDIT = enum-constant
+  field public static final org.ipro.form.action.CrudAction OPEN = enum-constant
+  field public static final org.ipro.form.action.CrudAction REFRESH = enum-constant
+  field public static final org.ipro.form.action.CrudAction SAVE = enum-constant
+  method public org.ipro.form.action.ActionId id()
+  method public org.ipro.form.action.ActionRequirement requirement()
+  method public static java.util.List<org.ipro.form.action.ActionDefinition> itemFooterDefaults()
+  method public static java.util.List<org.ipro.form.action.ActionDefinition> listToolbarDefaults()
+  method public static java.util.List<org.ipro.form.action.ActionDefinition> platformDefaults()
+  method public static org.ipro.form.action.CrudAction valueOf(java.lang.String)
+  method public static org.ipro.form.action.CrudAction[] values()
+
 enum public final org.ipro.form.builder.ContextFilterControl
   extends java.lang.Enum<org.ipro.form.builder.ContextFilterControl>
   enum-constants [AUTO, LOOKUP, SELECT]
@@ -348,6 +463,29 @@ enum public final org.ipro.form.builder.ContextFilterControl
   method public static org.ipro.form.builder.ContextFilterControl valueOf(java.lang.String)
   method public static org.ipro.form.builder.ContextFilterControl[] values()
 
+enum public final org.ipro.form.link.FormRouteKind
+  extends java.lang.Enum<org.ipro.form.link.FormRouteKind>
+  enum-constants [ITEM, LIST]
+  field public static final org.ipro.form.link.FormRouteKind ITEM = enum-constant
+  field public static final org.ipro.form.link.FormRouteKind LIST = enum-constant
+  method public java.lang.String segment()
+  method public static java.util.Optional<org.ipro.form.link.FormRouteKind> ofSegment(java.lang.String)
+  method public static org.ipro.form.link.FormRouteKind valueOf(java.lang.String)
+  method public static org.ipro.form.link.FormRouteKind[] values()
+
+enum public final org.ipro.form.link.NotLinkableReason
+  extends java.lang.Enum<org.ipro.form.link.NotLinkableReason>
+  enum-constants [NOT_PUBLISHED, SCENARIO_NOT_ALLOWED, REQUIRED_CONTEXT, MISSING_ID, INVALID_ID, UNEXPECTED_ID, UNKNOWN_VARIANT]
+  field public static final org.ipro.form.link.NotLinkableReason INVALID_ID = enum-constant
+  field public static final org.ipro.form.link.NotLinkableReason MISSING_ID = enum-constant
+  field public static final org.ipro.form.link.NotLinkableReason NOT_PUBLISHED = enum-constant
+  field public static final org.ipro.form.link.NotLinkableReason REQUIRED_CONTEXT = enum-constant
+  field public static final org.ipro.form.link.NotLinkableReason SCENARIO_NOT_ALLOWED = enum-constant
+  field public static final org.ipro.form.link.NotLinkableReason UNEXPECTED_ID = enum-constant
+  field public static final org.ipro.form.link.NotLinkableReason UNKNOWN_VARIANT = enum-constant
+  method public static org.ipro.form.link.NotLinkableReason valueOf(java.lang.String)
+  method public static org.ipro.form.link.NotLinkableReason[] values()
+
 enum public final org.ipro.form.registry.FormType
   extends java.lang.Enum<org.ipro.form.registry.FormType>
   enum-constants [LIST, ITEM, SELECTION]
@@ -356,6 +494,38 @@ enum public final org.ipro.form.registry.FormType
   field public static final org.ipro.form.registry.FormType SELECTION = enum-constant
   method public static org.ipro.form.registry.FormType valueOf(java.lang.String)
   method public static org.ipro.form.registry.FormType[] values()
+
+enum public static final org.ipro.form.action.ActionDecision$Reason
+  extends java.lang.Enum<org.ipro.form.action.ActionDecision$Reason>
+  enum-constants [NONE, NOT_APPLICABLE, TYPE_NOT_SUPPORTED, NO_SELECTION, CONTEXT_INCOMPLETE, ACCESS_DENIED, NOT_LINKABLE]
+  field public static final org.ipro.form.action.ActionDecision$Reason ACCESS_DENIED = enum-constant
+  field public static final org.ipro.form.action.ActionDecision$Reason CONTEXT_INCOMPLETE = enum-constant
+  field public static final org.ipro.form.action.ActionDecision$Reason NONE = enum-constant
+  field public static final org.ipro.form.action.ActionDecision$Reason NOT_APPLICABLE = enum-constant
+  field public static final org.ipro.form.action.ActionDecision$Reason NOT_LINKABLE = enum-constant
+  field public static final org.ipro.form.action.ActionDecision$Reason NO_SELECTION = enum-constant
+  field public static final org.ipro.form.action.ActionDecision$Reason TYPE_NOT_SUPPORTED = enum-constant
+  method public static org.ipro.form.action.ActionDecision$Reason valueOf(java.lang.String)
+  method public static org.ipro.form.action.ActionDecision$Reason[] values()
+
+enum public static final org.ipro.form.action.ActionRequirement$Level
+  extends java.lang.Enum<org.ipro.form.action.ActionRequirement$Level>
+  enum-constants [REQUIRED, FORBIDDEN, UNAVAILABLE, ANY]
+  field public static final org.ipro.form.action.ActionRequirement$Level ANY = enum-constant
+  field public static final org.ipro.form.action.ActionRequirement$Level FORBIDDEN = enum-constant
+  field public static final org.ipro.form.action.ActionRequirement$Level REQUIRED = enum-constant
+  field public static final org.ipro.form.action.ActionRequirement$Level UNAVAILABLE = enum-constant
+  method public static org.ipro.form.action.ActionRequirement$Level valueOf(java.lang.String)
+  method public static org.ipro.form.action.ActionRequirement$Level[] values()
+
+enum public static final org.ipro.form.action.ReadOnlyReason$Kind
+  extends java.lang.Enum<org.ipro.form.action.ReadOnlyReason$Kind>
+  enum-constants [TYPE_READ_ONLY, ACCESS_DENIED, REQUESTED]
+  field public static final org.ipro.form.action.ReadOnlyReason$Kind ACCESS_DENIED = enum-constant
+  field public static final org.ipro.form.action.ReadOnlyReason$Kind REQUESTED = enum-constant
+  field public static final org.ipro.form.action.ReadOnlyReason$Kind TYPE_READ_ONLY = enum-constant
+  method public static org.ipro.form.action.ReadOnlyReason$Kind valueOf(java.lang.String)
+  method public static org.ipro.form.action.ReadOnlyReason$Kind[] values()
 
 enum public static final org.ipro.form.registry.FormRegistry$RegistrationKind
   extends java.lang.Enum<org.ipro.form.registry.FormRegistry$RegistrationKind>
@@ -388,6 +558,7 @@ interface public abstract interface org.ipro.form.ItemFormSaveHandler
 
 interface public abstract interface org.ipro.form.Savable
   method public abstract boolean doSave()
+  method public boolean isReadOnly()
 
 interface public abstract interface org.ipro.form.SearchFunction
   type-parameter T
@@ -408,6 +579,10 @@ interface public abstract interface org.ipro.form.TableSectionCustomization
   method public abstract java.lang.Class<T> rowClass()
   method public abstract void configure(org.ipro.form.builtin.ItemTable<T, ?>)
   method public java.util.List<java.lang.String> declaredRowVariants()
+
+interface public abstract interface org.ipro.form.action.ActionHandler
+  method public abstract org.ipro.form.action.ActionDefinition definition()
+  method public abstract void execute(org.ipro.form.action.ActionInvocation)
 
 interface public abstract interface org.ipro.form.builder.ItemFormCustomization
   method public abstract java.lang.Class<?> entityClass()
@@ -430,23 +605,42 @@ interface public abstract interface org.ipro.form.builder.layout.LayoutNode
 
 interface public abstract interface org.ipro.form.coordinator.FormNavigator
   method public abstract org.ipro.form.builtin.ListForm<T, ID> createListForm(java.lang.Class<T>, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>)
+  method public abstract org.ipro.form.link.OpenResult openRoutedList(java.lang.Class<?>, org.ipro.form.link.FormRoute)
+  method public abstract org.ipro.form.link.OpenResult openRoutedRecord(java.lang.Class<?>, org.ipro.form.link.FormRoute)
   method public abstract void openItemForm(java.lang.Class<T>, java.lang.String, ID, java.util.function.Consumer<T>, java.util.Map<java.lang.String, java.lang.Object>)
   method public abstract void openListForm(java.lang.Class<T>, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>)
   method public org.ipro.form.builtin.ListForm<T, ID> createListForm(java.lang.Class<T>)
 
+interface public abstract interface org.ipro.form.link.FormLinkResult
+  method public boolean isLinkable()
+  method public java.util.Optional<java.lang.String> linkPath()
+  method public java.util.Optional<org.ipro.form.link.FormRoute> linkedRoute()
+  method public java.util.Optional<org.ipro.form.link.NotLinkableReason> notLinkableReason()
+  method public static org.ipro.form.link.FormLinkResult linkable(org.ipro.form.link.FormRoute, java.lang.String)
+  method public static org.ipro.form.link.FormLinkResult notLinkable(org.ipro.form.link.NotLinkableReason)
+
+interface public abstract interface org.ipro.form.link.FormRouteParseResult
+  method public boolean isParsed()
+  method public java.util.Optional<java.lang.String> rejection()
+  method public java.util.Optional<org.ipro.form.link.FormRoute> parsedRoute()
+  method public static org.ipro.form.link.FormRouteParseResult parsed(org.ipro.form.link.FormRoute)
+  method public static org.ipro.form.link.FormRouteParseResult rejected(java.lang.String)
+
+interface public abstract interface org.ipro.form.link.OpenResult
+  method public abstract java.lang.String message()
+  method public abstract java.lang.String outcome()
+  method public boolean opened()
+  method public java.util.Optional<org.ipro.form.link.FormRoute> resultRoute()
+  method public static org.ipro.form.link.OpenResult forbidden(org.ipro.form.link.FormRoute, java.lang.String)
+  method public static org.ipro.form.link.OpenResult invalidRoute(java.lang.String)
+  method public static org.ipro.form.link.OpenResult notFound(org.ipro.form.link.FormRoute)
+  method public static org.ipro.form.link.OpenResult notLinkable(org.ipro.form.link.FormRoute, org.ipro.form.link.NotLinkableReason)
+  method public static org.ipro.form.link.OpenResult opened(org.ipro.form.link.FormRoute)
+  method public static org.ipro.form.link.OpenResult unavailable(org.ipro.form.link.FormRoute, java.lang.String)
+
 interface public abstract interface org.ipro.form.registry.FormFactory
   annotation java.lang.FunctionalInterface
   method public abstract com.vaadin.flow.component.Component create(org.ipro.form.registry.FormContext)
-
-interface public abstract interface org.ipro.form.registry.ListCommand
-  type-parameter T
-  method public abstract java.lang.Class<T> entityClass()
-  method public abstract java.lang.String title()
-  method public abstract void execute(org.ipro.form.registry.ListCommandContext<T>)
-  method public boolean appliesToVariant(java.lang.String)
-  method public boolean isEnabled(org.ipro.form.registry.ListCommandContext<T>)
-  method public boolean requiresSelection()
-  method public java.lang.String iconName()
 
 interface public abstract interface org.ipro.form.spi.FormSettingsStore
   method public abstract java.util.Optional<java.lang.String> get(java.lang.String)
@@ -460,13 +654,15 @@ interface public abstract interface org.ipro.form.spi.GridViewStore
   method public abstract org.ipro.form.spi.GridView updateView(org.ipro.form.spi.GridView)
   method public abstract void deleteView(java.lang.Long)
 
-interface public abstract interface org.ipro.form.spi.ListFormToolbarContributor
-  method public abstract void contribute(org.ipro.form.builtin.ListForm<?, ?>, java.lang.Class<?>, java.lang.String)
-
 interface public abstract interface org.ipro.form.spi.WorkspaceGateway
+  method public abstract java.lang.String activeEntryId()
+  method public abstract void activate(java.lang.String)
+  method public abstract void addActiveEntryListener(java.util.function.Consumer<java.lang.String>)
+  method public abstract void addEntryClosedListener(java.util.function.Consumer<java.lang.String>)
   method public abstract void close(java.lang.String)
   method public abstract void open(java.lang.Class<T>, java.lang.String, java.lang.String, java.util.function.Consumer<T>)
   method public abstract void openComponent(com.vaadin.flow.component.Component, java.lang.String, java.lang.String)
+  method public abstract void showTransientContent(com.vaadin.flow.component.Component)
 
 interface public abstract static interface org.ipro.form.builtin.ListForm$SelectionFormProvider
   annotation java.lang.FunctionalInterface
@@ -501,6 +697,108 @@ record public final org.ipro.form.SectionPayload
   method public org.ipro.form.SectionPresence presence()
   method public static org.ipro.form.SectionPayload<R> absent()
   method public static org.ipro.form.SectionPayload<R> attached(java.util.List<R>)
+
+record public final org.ipro.form.action.ActionDecision
+  extends java.lang.Record
+  ctor public(boolean, boolean, org.ipro.form.action.ActionDecision$Reason, java.lang.String)
+  method public boolean actionable()
+  method public boolean enabled()
+  method public boolean visible()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String message()
+  method public org.ipro.form.action.ActionDecision$Reason reason()
+  method public static org.ipro.form.action.ActionDecision allowed()
+  method public static org.ipro.form.action.ActionDecision blocked(org.ipro.form.action.ActionDecision$Reason, java.lang.String)
+  method public static org.ipro.form.action.ActionDecision hidden(org.ipro.form.action.ActionDecision$Reason, java.lang.String)
+
+record public final org.ipro.form.action.ActionDefinition
+  extends java.lang.Record
+  ctor public(org.ipro.form.action.ActionId, org.ipro.form.action.ActionSurface, java.lang.String, java.lang.String, java.lang.Class<?>, java.lang.String, int, org.ipro.form.action.ActionRequirement, boolean)
+  method public boolean visible()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int order()
+  method public java.lang.Class<?> entityType()
+  method public java.lang.String iconName()
+  method public java.lang.String title()
+  method public java.lang.String variant()
+  method public org.ipro.form.action.ActionDefinition withOrder(int)
+  method public org.ipro.form.action.ActionDefinition withVariant(java.lang.String)
+  method public org.ipro.form.action.ActionDefinition withVisible(boolean)
+  method public org.ipro.form.action.ActionId id()
+  method public org.ipro.form.action.ActionRequirement requirement()
+  method public org.ipro.form.action.ActionSurface surface()
+  method public static org.ipro.form.action.ActionDefinition forEntity(org.ipro.form.action.ActionId, org.ipro.form.action.ActionSurface, java.lang.Class<?>, java.lang.String, java.lang.String, int, org.ipro.form.action.ActionRequirement)
+  method public static org.ipro.form.action.ActionDefinition platformDefault(org.ipro.form.action.CrudAction, org.ipro.form.action.ActionSurface, java.lang.String, java.lang.String, int)
+  method public static org.ipro.form.action.ActionDefinition suppress(org.ipro.form.action.CrudAction, org.ipro.form.action.ActionSurface, java.lang.Class<?>)
+
+record public final org.ipro.form.action.ActionId
+  extends java.lang.Record
+  ctor public(java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public java.lang.String toString()
+  method public java.lang.String value()
+  method public static org.ipro.form.action.ActionId of(java.lang.String)
+
+record public final org.ipro.form.action.ActionInvocation
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.lang.String, org.ipro.identity.IdentifiableEntity, org.ipro.form.coordinator.FormNavigator, java.lang.Runnable, java.util.Map<java.lang.String, java.lang.Object>, java.util.Map<java.lang.String, java.lang.Object>)
+  method public boolean canRefresh()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> entityType()
+  method public java.lang.Object contextFilter(java.lang.String)
+  method public java.lang.Object parameter(java.lang.String)
+  method public java.lang.Runnable refresh()
+  method public java.lang.String variant()
+  method public java.util.Map<java.lang.String, java.lang.Object> contextFilters()
+  method public java.util.Map<java.lang.String, java.lang.Object> openingParameters()
+  method public java.util.Optional<T> selectionAs(java.lang.Class<T>)
+  method public org.ipro.form.coordinator.FormNavigator navigator()
+  method public org.ipro.identity.IdentifiableEntity selected()
+
+record public final org.ipro.form.action.ActionRequirement
+  extends java.lang.Record
+  ctor public(org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, boolean, boolean, boolean, boolean)
+  method public boolean linkableRequired()
+  method public boolean requiredContextRequired()
+  method public boolean requiresLinkable()
+  method public boolean requiresRequiredContext()
+  method public boolean requiresSelection()
+  method public boolean rowStateSelectsOperation()
+  method public boolean selectionRequired()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.form.action.ActionRequirement$Level create()
+  method public org.ipro.form.action.ActionRequirement$Level delete()
+  method public org.ipro.form.action.ActionRequirement$Level detail()
+  method public org.ipro.form.action.ActionRequirement$Level update()
+  method public static org.ipro.form.action.ActionRequirement byRowState(org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, boolean, boolean)
+  method public static org.ipro.form.action.ActionRequirement linkable()
+  method public static org.ipro.form.action.ActionRequirement none()
+  method public static org.ipro.form.action.ActionRequirement of(org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, boolean, boolean)
+  method public static org.ipro.form.action.ActionRequirement selectionOnly()
+
+record public final org.ipro.form.action.ReadOnlyReason
+  extends java.lang.Record
+  ctor public(org.ipro.form.action.ReadOnlyReason$Kind, java.lang.String)
+  method public boolean showsNotice()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String message()
+  method public java.lang.String noticeText()
+  method public org.ipro.form.action.ReadOnlyReason$Kind kind()
+  method public static org.ipro.form.action.ReadOnlyReason accessDenied(java.lang.String)
+  method public static org.ipro.form.action.ReadOnlyReason requested()
+  method public static org.ipro.form.action.ReadOnlyReason typeReadOnly()
+  method public static org.ipro.form.action.ReadOnlyReason typeReadOnly(java.lang.String)
 
 record public final org.ipro.form.builder.ContextFilterField
   extends java.lang.Record
@@ -562,21 +860,31 @@ record public final org.ipro.form.builder.layout.ItemFormLayout
   method public final java.lang.String toString()
   method public java.util.List<org.ipro.form.builder.layout.LayoutNode> nodes()
 
-record public final org.ipro.form.registry.ListCommandContext
+record public final org.ipro.form.link.FormRoute
   extends java.lang.Record
-  type-parameter T
-  ctor public(org.ipro.form.builtin.ListForm<T, ?>, org.ipro.form.coordinator.FormNavigator)
-  method public T selectedItem()
-  method public V contextFilter(java.lang.String, java.lang.Class<V>)
-  method public V parameter(java.lang.String, java.lang.Class<V>)
+  ctor public(org.ipro.form.link.FormRouteKind, java.lang.String, java.lang.Long, java.lang.String)
+  method public boolean defaultVariant()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
-  method public java.lang.Object contextFilter(java.lang.String)
-  method public java.lang.Object parameter(java.lang.String)
-  method public org.ipro.form.builtin.ListForm<T, ?> listForm()
-  method public org.ipro.form.coordinator.FormNavigator coordinator()
-  method public org.ipro.form.registry.ListFormContext formContext()
+  method public java.lang.Long id()
+  method public java.lang.String entityKey()
+  method public java.lang.String variant()
+  method public org.ipro.form.link.FormRouteKind kind()
+  method public static org.ipro.form.link.FormRoute list(java.lang.String)
+  method public static org.ipro.form.link.FormRoute record(java.lang.String, long)
+
+record public final org.ipro.form.link.FormRouteAliasDeclaration
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.lang.String, java.util.List<java.lang.String>, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> type()
+  method public java.lang.String entityKey()
+  method public java.lang.String reason()
+  method public java.util.List<java.lang.String> legacyKeys()
+  method public static org.ipro.form.link.FormRouteAliasDeclaration legacyKeys(java.lang.Class<?>, java.util.List<java.lang.String>, java.lang.String)
 
 record public final org.ipro.form.registry.ListFormContext
   extends java.lang.Record
@@ -611,6 +919,7 @@ record public final org.ipro.form.spi.GridView
 record public final org.ipro.vaadin.explorer.EntitySummary
   extends java.lang.Record
   ctor public(java.lang.Class<?>, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow>)
+  ctor public(java.lang.Class<?>, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$LifecycleRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow>)
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
@@ -618,10 +927,12 @@ record public final org.ipro.vaadin.explorer.EntitySummary
   method public java.lang.String simpleName()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow> listColumns()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow> selectColumns()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow> diagnostics()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow> fieldsForm()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow> fieldsGrid()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow> contextFilters()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow> forms()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$LifecycleRow> lifecycle()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow> numbering()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow> overview()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow> references()
@@ -683,6 +994,109 @@ record public static final org.ipro.form.builtin.ItemTable$AddOption
   method public java.lang.String label()
   method public java.util.function.Consumer<T> rowInitializer()
 
+record public static final org.ipro.form.link.FormLinkResult$Linkable
+  extends java.lang.Record
+  implements org.ipro.form.link.FormLinkResult
+  ctor public(org.ipro.form.link.FormRoute, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String path()
+  method public org.ipro.form.link.FormRoute route()
+
+record public static final org.ipro.form.link.FormLinkResult$NotLinkable
+  extends java.lang.Record
+  implements org.ipro.form.link.FormLinkResult
+  ctor public(org.ipro.form.link.NotLinkableReason)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.form.link.NotLinkableReason reason()
+
+record public static final org.ipro.form.link.FormRouteParseResult$Parsed
+  extends java.lang.Record
+  implements org.ipro.form.link.FormRouteParseResult
+  ctor public(org.ipro.form.link.FormRoute)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.form.link.FormRoute route()
+
+record public static final org.ipro.form.link.FormRouteParseResult$Rejected
+  extends java.lang.Record
+  implements org.ipro.form.link.FormRouteParseResult
+  ctor public(java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String reason()
+
+record public static final org.ipro.form.link.OpenResult$Forbidden
+  extends java.lang.Record
+  implements org.ipro.form.link.OpenResult
+  ctor public(org.ipro.form.link.FormRoute, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String message()
+  method public java.lang.String outcome()
+  method public org.ipro.form.link.FormRoute route()
+
+record public static final org.ipro.form.link.OpenResult$InvalidRoute
+  extends java.lang.Record
+  implements org.ipro.form.link.OpenResult
+  ctor public(java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String message()
+  method public java.lang.String outcome()
+
+record public static final org.ipro.form.link.OpenResult$NotFound
+  extends java.lang.Record
+  implements org.ipro.form.link.OpenResult
+  ctor public(org.ipro.form.link.FormRoute)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String message()
+  method public java.lang.String outcome()
+  method public org.ipro.form.link.FormRoute route()
+
+record public static final org.ipro.form.link.OpenResult$NotLinkable
+  extends java.lang.Record
+  implements org.ipro.form.link.OpenResult
+  ctor public(org.ipro.form.link.FormRoute, org.ipro.form.link.NotLinkableReason)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String message()
+  method public java.lang.String outcome()
+  method public org.ipro.form.link.FormRoute route()
+  method public org.ipro.form.link.NotLinkableReason reason()
+
+record public static final org.ipro.form.link.OpenResult$Opened
+  extends java.lang.Record
+  implements org.ipro.form.link.OpenResult
+  ctor public(org.ipro.form.link.FormRoute)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String message()
+  method public java.lang.String outcome()
+  method public org.ipro.form.link.FormRoute route()
+
+record public static final org.ipro.form.link.OpenResult$Unavailable
+  extends java.lang.Record
+  implements org.ipro.form.link.OpenResult
+  ctor public(org.ipro.form.link.FormRoute, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String message()
+  method public java.lang.String outcome()
+  method public org.ipro.form.link.FormRoute route()
+
 record public static final org.ipro.form.registry.FormRegistry$Registration
   extends java.lang.Record
   ctor public(org.ipro.form.registry.FormType, java.lang.String, org.ipro.form.registry.FormRegistry$RegistrationKind, java.lang.String)
@@ -698,20 +1112,38 @@ record public static final org.ipro.vaadin.explorer.EntitySummary$ColumnRow
   extends java.lang.Record
   implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
   ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.lang.String, boolean)
+  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.lang.String, boolean, java.lang.String)
   method public boolean nested()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
+  method public java.lang.String note()
   method public java.lang.String path()
   method public java.lang.String typeLabel()
   method public org.ipro.metadata.facet.FacetKey key()
   method public org.ipro.metadata.facet.FacetKind kind()
   method public org.ipro.metadata.facet.ResolvedValue value()
 
+record public static final org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow
+  extends java.lang.Record
+  ctor public(org.ipro.metadata.MetadataDiagnostic$Severity, java.lang.String, java.lang.String, java.lang.String, java.lang.String, org.ipro.metadata.facet.FacetKey, org.ipro.metadata.facet.ResolvedValue, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String caption()
+  method public java.lang.String code()
+  method public java.lang.String entityFqn()
+  method public java.lang.String fieldName()
+  method public java.lang.String source()
+  method public org.ipro.metadata.MetadataDiagnostic$Severity severity()
+  method public org.ipro.metadata.facet.FacetKey key()
+  method public org.ipro.metadata.facet.ResolvedValue value()
+
 record public static final org.ipro.vaadin.explorer.EntitySummary$FieldRow
   extends java.lang.Record
   implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
   ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, java.lang.String, org.ipro.metadata.facet.ResolvedValue, boolean, boolean, java.lang.String, java.lang.Class<?>)
+  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, java.lang.String, org.ipro.metadata.facet.ResolvedValue, boolean, boolean, java.lang.String, java.lang.Class<?>, org.ipro.metadata.FactOrigin, org.ipro.metadata.FactOrigin)
   method public boolean readOnly()
   method public boolean required()
   method public final boolean equals(java.lang.Object)
@@ -721,6 +1153,8 @@ record public static final org.ipro.vaadin.explorer.EntitySummary$FieldRow
   method public java.lang.String lookupTarget()
   method public java.lang.String name()
   method public java.lang.String typeLabel()
+  method public org.ipro.metadata.FactOrigin requiredOrigin()
+  method public org.ipro.metadata.FactOrigin typeOrigin()
   method public org.ipro.metadata.facet.FacetKey key()
   method public org.ipro.metadata.facet.FacetKind kind()
   method public org.ipro.metadata.facet.ResolvedValue value()
@@ -745,14 +1179,28 @@ record public static final org.ipro.vaadin.explorer.EntitySummary$FilterRow
 record public static final org.ipro.vaadin.explorer.EntitySummary$FormRow
   extends java.lang.Record
   ctor public(org.ipro.form.registry.FormType, java.lang.String, java.lang.String, boolean, java.lang.String)
+  ctor public(org.ipro.form.registry.FormType, java.lang.String, java.lang.String, boolean, java.lang.String, org.ipro.metadata.FactOrigin, java.lang.String)
   method public boolean platformDefault()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.String registrationKind()
   method public java.lang.String source()
+  method public java.lang.String symbol()
   method public java.lang.String variant()
   method public org.ipro.form.registry.FormType formType()
+  method public org.ipro.metadata.FactOrigin origin()
+
+record public static final org.ipro.vaadin.explorer.EntitySummary$LifecycleRow
+  extends java.lang.Record
+  ctor public(java.lang.String, boolean, org.ipro.metadata.facet.ResolvedValue, java.lang.String)
+  method public boolean declared()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String hook()
+  method public java.lang.String note()
+  method public org.ipro.metadata.facet.ResolvedValue value()
 
 record public static final org.ipro.vaadin.explorer.EntitySummary$NumberingRow
   extends java.lang.Record
@@ -773,10 +1221,12 @@ record public static final org.ipro.vaadin.explorer.EntitySummary$OverviewRow
   extends java.lang.Record
   implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
   ctor public(java.lang.String, org.ipro.metadata.facet.FacetKey, org.ipro.metadata.facet.ResolvedValue)
+  ctor public(java.lang.String, org.ipro.metadata.facet.FacetKey, org.ipro.metadata.facet.ResolvedValue, java.lang.String)
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.String caption()
+  method public java.lang.String detail()
   method public org.ipro.metadata.facet.FacetKey key()
   method public org.ipro.metadata.facet.FacetKind kind()
   method public org.ipro.metadata.facet.ResolvedValue value()

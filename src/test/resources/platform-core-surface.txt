@@ -165,10 +165,10 @@ test-usage org.ipro.crud.MetadataDrivenAggregateSaveService org/ip/application/c
 test-usage org.ipro.crud.ReferenceCheckService org/ip/security/RlsIntegrationTest.java org/ip/service/SklNomOpaServiceTest.java
 test-usage org.ipro.data.CanonicalReadExecutor org/ip/service/GroupNomVersionNormalizationIT.java
 test-usage org.ipro.data.CanonicalWriteExecutor org/ip/service/GroupNomVersionNormalizationIT.java
-test-usage org.ipro.data.EntityDescriptorCatalog org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.data.EntityDescriptorCatalog org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java
 test-usage org.ipro.data.EventContourStartupCheck org/ip/lifecycle/EventContourWiringIT.java
 test-usage org.ipro.data.ReadTelemetry org/ip/service/GroupNomVersionNormalizationIT.java
 test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java
 test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java
-test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java
 test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/builtin/PrdSpecRowCancelAcceptanceTest.java

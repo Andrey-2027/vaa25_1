@@ -3,6 +3,8 @@ package org.ipro.vaadin.explorer;
 import org.ipro.metadata.facet.FacetKey;
 import org.ipro.metadata.facet.FacetKind;
 import org.ipro.metadata.facet.ResolvedValue;
+import org.ipro.metadata.MetadataDiagnostic;
+import org.ipro.metadata.FactOrigin;
 
 import java.util.List;
 
@@ -35,7 +37,22 @@ public record EntitySummary(
         List<FilterRow> contextFilters,
         List<SelectionRow> selections,
         List<ReferenceRow> references,
-        List<NumberingRow> numbering) {
+        List<NumberingRow> numbering,
+        List<LifecycleRow> lifecycle,
+        List<DiagnosticRow> diagnostics) {
+
+    /** Совместимый конструктор сводки до появления lifecycle и диагностики. */
+    public EntitySummary(Class<?> entityClass, String simpleName, ResolvedValue displayName,
+                         List<OverviewRow> overview, List<FieldRow> fieldsForm,
+                         List<FieldRow> fieldsGrid, List<ColumnRow> listColumns,
+                         List<ColumnRow> selectColumns, List<SectionRow> tableSections,
+                         List<FormRow> forms, List<FilterRow> contextFilters,
+                         List<SelectionRow> selections, List<ReferenceRow> references,
+                         List<NumberingRow> numbering) {
+        this(entityClass, simpleName, displayName, overview, fieldsForm, fieldsGrid,
+            listColumns, selectColumns, tableSections, forms, contextFilters, selections,
+            references, numbering, List.of(), List.of());
+    }
 
     public EntitySummary {
         overview = List.copyOf(overview);
@@ -49,6 +66,8 @@ public record EntitySummary(
         selections = List.copyOf(selections);
         references = List.copyOf(references);
         numbering = List.copyOf(numbering);
+        lifecycle = List.copyOf(lifecycle);
+        diagnostics = List.copyOf(diagnostics);
     }
 
     /** Общая поверхность любой показываемой строки: вид грани + ключ + эффективное значение. */
@@ -61,7 +80,16 @@ public record EntitySummary(
     }
 
     /** Строка «Обзора»: подсистема, заголовки форм. caption — стабильная подпись строки. */
-    public record OverviewRow(String caption, FacetKey key, ResolvedValue value) implements FacetRow {
+    public record OverviewRow(String caption, FacetKey key, ResolvedValue value,
+                              String detail) implements FacetRow {
+        public OverviewRow(String caption, FacetKey key, ResolvedValue value) {
+            this(caption, key, value, "");
+        }
+
+        public OverviewRow {
+            detail = detail == null ? "" : detail;
+        }
+
         @Override
         public FacetKind kind() {
             return key.kind();
@@ -82,7 +110,16 @@ public record EntitySummary(
             boolean required,
             boolean readOnly,
             String lookupTarget,
-            Class<?> lookupEntityClass) implements FacetRow {
+            Class<?> lookupEntityClass,
+            FactOrigin requiredOrigin,
+            FactOrigin typeOrigin) implements FacetRow {
+        public FieldRow(FacetKey key, String name, String typeLabel, ResolvedValue value,
+                        boolean required, boolean readOnly, String lookupTarget,
+                        Class<?> lookupEntityClass) {
+            this(key, name, typeLabel, value, required, readOnly, lookupTarget,
+                lookupEntityClass, FactOrigin.UNKNOWN, FactOrigin.UNKNOWN);
+        }
+
         @Override
         public FacetKind kind() {
             return key.kind();
@@ -98,7 +135,17 @@ public record EntitySummary(
             String path,
             ResolvedValue value,
             String typeLabel,
-            boolean nested) implements FacetRow {
+            boolean nested,
+            String note) implements FacetRow {
+        public ColumnRow(FacetKey key, String path, ResolvedValue value,
+                         String typeLabel, boolean nested) {
+            this(key, path, value, typeLabel, nested, "");
+        }
+
+        public ColumnRow {
+            note = note == null ? "" : note;
+        }
+
         @Override
         public FacetKind kind() {
             return key.kind();
@@ -131,7 +178,18 @@ public record EntitySummary(
             String variant,
             String registrationKind,
             boolean platformDefault,
-            String source) {
+            String source,
+            FactOrigin origin,
+            String symbol) {
+        public FormRow(org.ipro.form.registry.FormType formType, String variant,
+                       String registrationKind, boolean platformDefault, String source) {
+            this(formType, variant, registrationKind, platformDefault, source,
+                platformDefault ? FactOrigin.PLATFORM_DEFAULT : FactOrigin.REGISTRATION, "");
+        }
+
+        public FormRow {
+            symbol = symbol == null ? "" : symbol;
+        }
     }
 
     /**
@@ -186,6 +244,25 @@ public record EntitySummary(
         @Override
         public FacetKind kind() {
             return key.kind();
+        }
+    }
+
+    /** Срез прикладного lifecycle handler; состав hooks заполняется на шаге E3.1.4. */
+    public record LifecycleRow(String hook, boolean declared, ResolvedValue value, String note) {
+        public LifecycleRow {
+            note = note == null ? "" : note;
+        }
+    }
+
+    /** Адресуемая диагностическая запись; key пуст только для уровня сущности/системы. */
+    public record DiagnosticRow(MetadataDiagnostic.Severity severity, String code,
+                                String entityFqn, String fieldName, String caption,
+                                FacetKey key, ResolvedValue value, String source) {
+        public DiagnosticRow {
+            entityFqn = entityFqn == null ? "" : entityFqn;
+            fieldName = fieldName == null ? "" : fieldName;
+            caption = caption == null ? "" : caption;
+            source = source == null ? "" : source;
         }
     }
 }

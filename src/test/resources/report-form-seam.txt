@@ -1,7 +1,7 @@
 # D3.5.7: reviewed-реестр шва Report → Form.
 #
 # Предмет: report-слой называет типы UI-платформы. Направление обязано быть односторонним и
-# узким — это предпосылка среза D3.6 (report переезжает в свой артефакт как ПОТРЕБИТЕЛЬ
+# узким — это предпосылка среза D3.7 (report переезжает в свой артефакт как ПОТРЕБИТЕЛЬ
 # platform-vaadin, а не наоборот).
 #
 # Односторонность физически держит VaadinModuleCompositionTest: platform-vaadin не знает ни
@@ -38,24 +38,41 @@ layer src/main/java/org/ip/views/reportstudio
 layer src/main/java/org/ip/views/components/ReportParamForm.java
 
 # --- шов ---
-# D3.5.7 (замер): 9 типов, 5 ролей APP_API и 4 APP_SPI, ни одного INTERNAL.
-# Dirtyable/Savable — контракт «есть несохранённые изменения»: редактор структуры отчёта
-# встроен в UI-поток и обязан участвовать в общей защите от потери данных, поэтому берёт
-# интерфейсы формы, а не заводит свои.
-seam org.ipro.form.Dirtyable org.ip.views.reportstudio.structured.ReportEditorViewStructured
-seam org.ipro.form.Savable org.ip.views.reportstudio.structured.ReportEditorViewStructured
+# E1.6b (замер): 13 типов, 10 ролей APP_API и 3 APP_SPI, ни одного INTERNAL.
+#
+# Срез E1.6b сделал два встречных движения, и оба записаны здесь:
+#   шаг вниз — сквозной SPI тулбара ListFormToolbarContributor и сам ListForm, который он получал
+#     параметром, удалены: печать в списке стала объявленным действием (ReportPrintAction) и идёт
+#     через решение, а не через шов формы. Девять типов D3.5.7 → семь;
+#   шаг вверх — тот же срез перевёл печать на контракт действия, и report-слой теперь называет
+#     машину действий: ActionHandler (реализует), ActionDefinition/ActionId/ActionRequirement/
+#     ActionInvocation/ActionSurface (объявляет). Это не утечка реализации, а решение §4 плана E1:
+#     оболочка действия — общая и приложение называет её контракт поимённо, поэтому роли
+#     APP_API/APP_SPI, и при переезде report-слоя в свой артефакт эта зависимость уезжает вместе
+#     с ним. Семь → тринадцать.
+# Dirtyable/Savable — контракт «есть несохранённые изменения»: редактор отчёта встроен в UI-поток
+# и обязан участвовать в общей защите от потери данных, поэтому берёт интерфейсы формы, а не
+# заводит свои. После D3.6.4 контракт остаётся только у канонического ReportEditorView.
+seam org.ipro.form.Dirtyable org.ip.views.reportstudio.ReportEditorView
+seam org.ipro.form.Savable org.ip.views.reportstudio.ReportEditorView
 # Описание поля и сборка формы выбора — то, чем параметр отчёта становится виджетом.
 seam org.ipro.form.EntityField org.ip.views.components.ReportParamForm org.ipro.reportstudio.query.editor.ReportQueryEditor
 seam org.ipro.form.SelectionForm org.ip.views.components.ReportParamForm
-seam org.ipro.form.SelectionFormAssembler org.ip.views.components.ReportParamForm org.ip.views.reportstudio.ContextualReportLauncher org.ip.views.reportstudio.ItemFormReportActions org.ip.views.reportstudio.ReportCatalogView org.ip.views.reportstudio.ReportEditorView org.ip.views.reportstudio.ReportPrintToolbarContributor org.ip.views.reportstudio.ReportRunDialog org.ip.views.reportstudio.compact.ReportCatalogViewCompact org.ip.views.reportstudio.compact.ReportEditorViewCompact org.ip.views.reportstudio.structured.ReportCatalogViewStructured org.ip.views.reportstudio.structured.ReportEditorViewStructured org.ipro.reportstudio.query.editor.ReportQueryEditor
+seam org.ipro.form.SelectionFormAssembler org.ip.views.components.ReportParamForm org.ip.views.reportstudio.ContextualReportLauncher org.ip.views.reportstudio.ItemFormReportActions org.ip.views.reportstudio.ReportCatalogView org.ip.views.reportstudio.ReportEditorView org.ip.views.reportstudio.ReportPrintAction org.ip.views.reportstudio.ReportPrintDialog org.ip.views.reportstudio.ReportRunDialog org.ipro.reportstudio.query.editor.ReportQueryEditor
 # Функция поиска значений для поля: у отчёта свой протокол подгрузки кандидатов.
 seam org.ipro.form.SearchFunction org.ip.views.components.ReportParamForm
-# Кнопки отчёта добавляются в панель инструментов формы: машинный шов «форма → отчёт».
-seam org.ipro.form.spi.ListFormToolbarContributor org.ip.views.reportstudio.ReportPrintToolbarContributor
-# Пункт меню ItemForm, через который отчёт открывается из карточки сущности, и сам ListForm,
-# который SPI получает параметром.
+# Пункт меню ItemForm, через который отчёт открывается из карточки сущности. Печать в СПИСКЕ
+# сюда не входит: она объявлена действием (report.print) и шва не держит.
 seam org.ipro.form.builtin.ItemForm org.ip.views.reportstudio.ItemFormReportActions
-seam org.ipro.form.builtin.ListForm org.ip.views.reportstudio.ReportPrintToolbarContributor
+
+# Машина действий (E1.6b): объявление и исполнение печати списка. Держатель один — само действие;
+# диалог выбора печатной формы машину действий не знает и получает уже принятое решение.
+seam org.ipro.form.action.ActionHandler org.ip.views.reportstudio.ReportPrintAction
+seam org.ipro.form.action.ActionDefinition org.ip.views.reportstudio.ReportPrintAction
+seam org.ipro.form.action.ActionId org.ip.views.reportstudio.ReportPrintAction
+seam org.ipro.form.action.ActionInvocation org.ip.views.reportstudio.ReportPrintAction
+seam org.ipro.form.action.ActionRequirement org.ip.views.reportstudio.ReportPrintAction
+seam org.ipro.form.action.ActionSurface org.ip.views.reportstudio.ReportPrintAction
 
 # --- типы, которых не касается никто, кроме шва ---
 # Приложение (всё, что не шов и не сам platform-vaadin) не должно тратить эти типы: пока это
@@ -63,19 +80,19 @@ seam org.ipro.form.builtin.ListForm org.ip.views.reportstudio.ReportPrintToolbar
 # типа начинается жизнь вне шва, и решение об этом надо принять явно, а не обнаружить при
 # переезде report.
 only org.ipro.form.SearchFunction держится швом: внутри платформы его знает только EntityField (сигнатура), вне шва потребителей нет
-only org.ipro.form.spi.ListFormToolbarContributor держится швом: внутри платформы его вызывают FormCoordinator и FormAutoConfiguration, вне шва потребителей нет
 
-# --- что обязан забрать с собой переезд слоя (D3.6) ---
+# --- что обязан забрать с собой переезд слоя (D3.7; временно отложен до появления ресурса) ---
 # Подготовка к срезу, снятая в D3.5.7, а не предположение:
 #
-# 1. Регистрация. Файл AutoConfiguration.imports приложения содержит сейчас ровно пять строк, и
-#    все они — не приложение: ReportStudioAutoConfiguration, ReportStudioPersistenceAutoConfiguration,
-#    UreportAutoConfiguration, UreportPersistenceAutoConfiguration, JrAutoConfiguration. У слоя
+# 1. Регистрация. Файл AutoConfiguration.imports приложения содержит сейчас шесть строк с
+#    report-owned конфигурациями в пакетах org.ipro: ReportStudioAutoConfiguration,
+#    ReportStudioPersistenceAutoConfiguration, UreportAutoConfiguration,
+#    UreportPersistenceAutoConfiguration, JrPersistenceAutoConfiguration, JrAutoConfiguration. У слоя
 #    есть и своя persistence-конфигурация (@EntityScan/@EnableJpaRepositories), то есть переезд
 #    меняет не только объявление бинов, но и область сканирования сущностей — а это не падает при
 #    старте, а меняет поведение. Прецедент рядом: в D3.5.4 Vaadin-адаптер телеметрии держался
 #    только на component scan пакета org.ip и исчез бы молча, поэтому там появился
-#    PlatformVaadinWiringIT, проверяющий живой контекст. Вывод для D3.6: переезд регистрации
+#    PlatformVaadinWiringIT, проверяющий живой контекст. Вывод для D3.7: переезд регистрации
 #    обязан проверяться бином в живом контексте, а не фактом наличия imports-файла.
 # 2. Замыкание. PlatformSubsystemClosureTest держит запись org.ipro.reportstudio -> пусто (D3.5.4)
 #    именно как предпосылку этого среза: когда пакет уедет в артефакт, запись снимается решением,

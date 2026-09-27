@@ -11,6 +11,9 @@
 | [`c3-fetchplan-instance-name-plan.md`](c3-fetchplan-instance-name-plan.md) | Детальный план пилота C3: FetchPlan, InstanceName, миграция ручного fetch-кода и приёмочные gates |
 | [`c4-data-access-facade-plan.md`](c4-data-access-facade-plan.md) | Детальный план C4: type capabilities, canonical data path, standard CRUD/search defaults, effective metadata, миграция и hardening |
 | [`c4-inventory.md`](c4-inventory.md) | C4.0: проверяемая таксономия 37 persistence types, классификация service/repository/base слоя, consumers, baseline и пилоты |
+| [`d-stage-fast-close-report-return-plan.md`](d-stage-fast-close-report-return-plan.md) | Ускоренное закрытие D-core с временно открытым D3.7 и обязательным возвратом к report add-on |
+| [`d-r-report-addon-inventory.md`](d-r-report-addon-inventory.md) | Статический инвентарь исходников, регистраций, ресурсов и внешних зависимостей для D-R; фиксирует app-owned границу JR persistence |
+| [`f-integration-erp-plan.md`](f-integration-erp-plan.md) | Принятый порядок будущих работ E1/F: capability-aware UI, внешние read models, владельцы, неизменяемые композиции, бизнес-факты и ledger |
 | [`security-channel-matrix.md`](security-channel-matrix.md) | C1: карта каналов доступа, владельцев enforcement и допустимых privileged bypass |
 | [`decisions/ADR-0001-platform-roadmap-stages.md`](decisions/ADR-0001-platform-roadmap-stages.md) | Принятое разделение Engineering Baseline, RLS enforcement и физической модульности |
 | [`decisions/ADR-0002-lifecycle-event-semantics.md`](decisions/ADR-0002-lifecycle-event-semantics.md) | Семантика Saving/Saved/Changed/Deleting/Deleted и граница транзакции |
@@ -20,6 +23,11 @@
 | [`decisions/ADR-0006-fetchplan-and-instance-name.md`](decisions/ADR-0006-fetchplan-and-instance-name.md) | Сценарные FetchPlan и единый InstanceName: границы API/SPI/internal, `ManagedEntityCatalog` как единственный источник сущностей |
 | [`decisions/ADR-0007-canonical-data-access-path.md`](decisions/ADR-0007-canonical-data-access-path.md) | C4: canonical `EntityDataAccess`, таксономия экспозиции типов, судьба generic CRUD-баз, search semantics, telemetry policy и compatibility milestones |
 | [`decisions/ADR-0008-interned-entities.md`](decisions/ADR-0008-interned-entities.md) | Интернированные сущности: натуральный ключ как capability, поведенческий маркер `InternedEntity`, один механизм `NaturalKeyCreateSupport` и граница с обычным справочником |
+| [`decisions/ADR-0009-deep-links.md`](decisions/ADR-0009-deep-links.md) | E2: адрес формы как контракт — host и синхронизация истории, грамматика `/records`/`/lists`, вывод alias и baseline, linkability, матрица результата открытия и границы API |
+| [`decisions/ADR-0010-explorer-type-address.md`](decisions/ADR-0010-explorer-type-address.md) | E3.0: адрес типа как published-ключ, отдельная ветка host'а, гейт роли с неразличимым отказом, резерв первых сегментов и безадресность типа без ключа |
+| [`e2-deep-link-host-spike.md`](e2-deep-link-host-spike.md) | Измеренный результат E2.0: route templates на текущей оболочке, поведение Back/Forward при `pushState`, сохранение `Workspace` и границы проверенного |
+| [`actions-guide.md`](actions-guide.md) | Руководство прикладного разработчика по декларативным действиям форм (E1): два примера, требования, suppression, проверки и антипримеры |
+| [`deep-links-guide.md`](deep-links-guide.md) | Руководство прикладного разработчика по глубоким ссылкам (E2): когда адрес появляется сам, как объявить ключ и прежние адреса, как получить ссылку программно и что из этого хрупко |
 | [`status/current-baseline.md`](status/current-baseline.md) | Проверяемое состояние сборки и этапов |
 | [`status/wip-inventory.md`](status/wip-inventory.md) | Состав незавершённого save/events среза |
 | [`build/local-dependency-workspace.md`](build/local-dependency-workspace.md) | Воспроизводимая сборка соседних fork/SNAPSHOT-проектов |

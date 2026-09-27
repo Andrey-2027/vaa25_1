@@ -179,7 +179,7 @@ gate и физическая модульность. Они не блокиру�
 ### 2.4. AppDev-first debt register
 
 Living audit `docs/architecture/appdev-first-audit.md` является обязательным входом
-для этапов B–E. Текущие группы долга:
+для этапов B–I. Текущие группы долга:
 
 - `B3`: semantic entity model migration remains (`ADX-01`); domain switch/two-phase
   save и пустая section wiring (`ADX-02`–`ADX-03`) закрыты в текущем scope;
@@ -193,8 +193,9 @@ Living audit `docs/architecture/appdev-first-audit.md` является обяз
   InstanceName и global-search defaults (`ADX-04`, `ADX-05`, `ADX-07`–`ADX-10`);
 - `D`: доказательство defaults через starter/reference application без скрытой
   зависимости от component scan монолита;
-- `E3`: form authoring, typed diagnostics и окончательное закрытие центральных
-  registrations (`ADX-10`, `ADX-11`).
+- `E3.1`–`E3.2` (после нарезки 2026-09-27): runtime-диагностики и факты аспектов
+  Explorer; центральные registrations (`ADX-10`, `ADX-11`) закрываются отдельным
+  срезом долга после E3.2. Ядро генератора и IDE Studio ведутся этапами G/I.
 
 Этап не считается завершённым, если относящийся к нему `ADX-*` закрыт только cleanup-ом
 без behavioural/architecture test и измеримого уменьшения обязательного application wiring.
@@ -1143,7 +1144,23 @@ application: существующие defaults подключаются чере
 
 ---
 
-## 8. Этап E — UI platform experience (`LATER`)
+## 8. Этап E — UI platform experience (`PREPARATION`)
+
+### E0. Точка входа и открытые gates (2026-09-23)
+
+Решение владельца: физический перенос отчётов `D-R` отложен до высвобождения ресурсов.
+Он остаётся обязательной отдельной задачей, но не блокирует E1; нельзя называть optional
+report add-on готовым. Перед production-переключением E1 остаётся подтвердить:
+
+| Gate | Остаток | Условие закрытия |
+| --- | --- | --- |
+| D3.6/D3.8 | Последний зафиксированный полный `clean verify` был красным; после адресных исправлений повторного общего прогона нет | Закрыть дефекты report UI/состава starter и выполнить общий verification package, включая адресные gates и random-order прогон |
+| D3.9 | Публичная поверхность и границы starter-поставки не закрыты; последний `PlatformPublicSurfaceTest` расходился с реестром | Сверить API/SPI, dependency closure, отсутствие platform → app/report связок и закрепить результат тестами/документацией |
+| D4 | Независимое reference application не поставлено | Проверить отдельным потребителем BOM/starters, list/detail/selection, RLS и aggregate save без зависимостей от root app и отчётов |
+| C5 | Resource permissions на entity/action и effective `blockReason` остаются открытыми | Дать E1 серверное решение о правах; до этого не объявлять gate `capability + resource/RLS + context` полностью реализованным |
+
+Подготовку контракта и изолированный пилот E1 можно вести параллельно закрытию gates.
+Финальное переключение стандартных форм и объявление этапа E завершённым требуют их проверки.
 
 ### E1. Декларативные действия
 
@@ -1160,6 +1177,28 @@ execute(ActionContext)
 Стандартный CRUD-набор создаётся платформой автоматически; прикладной код объявляет
 новые действия либо переопределяет только отличающиеся свойства/условия.
 
+Состояние стандартного действия выводится из единого gate: capability типа +
+resource/RLS decision + обязательный контекст. `CREATE` управляет созданием и копированием,
+`UPDATE` — редактированием, `DELETE` — удалением; при `DETAIL` без `UPDATE` форма открывается
+read-only действием `Открыть`. Недоступность кнопки не заменяет server-side проверку.
+Этот срез является UI-предпосылкой внешних read models и ERP-типов этапа F.
+
+Первый UI-пилот — обычная изменяемая сущность с реальной list/item-формой
+(`Nomenclature`) и контрольный read-only тип (`SklNomOpa`): у последнего есть `DETAIL`,
+но нет generic `CREATE`/`UPDATE`/`DELETE`, поэтому список предлагает `Открыть` без
+редактирования. `AttributeValue` не является первым UI-пилотом: у него есть metadata для
+стандартной list-формы, но нет отдельного прикладного ListView; рабочий сценарий создаёт
+значения через `getOrCreate` при редактировании атрибутов.
+
+Интернированные/неизменяемые типы входят в E1 как проверка границы действий. Маркер
+`InternedEntity` сам по себе не выдаёт кнопку `Создать`: автоматический CRUD следует
+effective capabilities, а `findOrCreate` может появиться только как явно объявленное
+предметное действие со своим контекстом и серверной проверкой. E1 не переносит саму
+канонизацию или create-once owned-секции из F-ERP-2. Для `AttributeValue` отдельно
+определить UI-политику: backend допускает generic `CREATE`, а основной пользовательский
+сценарий идёт через `getOrCreate`; автоматическую кнопку `Создать` нельзя выводить только
+из этой backend capability без проверки предметного способа создания.
+
 ### E2. Deep-linking
 
 - стабильный route по entity/id/variant;
@@ -1170,17 +1209,90 @@ execute(ActionContext)
 
 ### E3. Диагностика и tooling
 
-- Entity Explorer показывает формы, варианты, plans, actions, RLS dimensions и handlers;
-- Entity Explorer показывает effective entity kind, inherited defaults, source каждого
-  override и открытые `ADX-*` diagnostics;
-- startup validation собирает ошибки конфигурации;
-- шаблон добавления новой сущности;
-- шаблон стандартного документа не генерирует пустые handler/adapter/use-case классы;
-- form/search customizations являются self-describing contributors и не требуют
-  wrapper-регистратора либо правки центрального application config;
-- structural field/variant/parameter errors не подавляются silent fallback;
-- custom form не получает infrastructure через raw `ApplicationContext`;
-- machine-readable registry для будущего designer/tooling.
+Срез разложен на E3.0/E3.1/E3.2 (2026-09-27): адрес типа и пробный путь, происхождение
+фактов и lifecycle, факты аспектов и единая карточка. Генератор и плагин IDEA — отдельные
+последующие этапы G и I (см. ниже), в gate E3 не входят. `ADX-10`/`ADX-11` остаются
+открытым долгом до отдельного среза после E3.2; gate карточки их не закрывает.
+
+#### E3.0. Адрес типа и пробный путь
+
+- Из стандартного реестра и формы элемента прикладной разработчик может перейти в
+  Entity Explorer сразу к структуре соответствующей сущности и скопировать ссылку на неё.
+  Это адрес **типа**, без ID записи и данных формы; для `Nomenclature` ожидаемый вид —
+  `/entity-explorer/nomenclature`. Ключ берётся из каталога публичных alias E2, а не из
+  Java FQCN. Маршрут Explorer имеет собственную проверку доступа и не подменяет
+  `/lists/**` или `/records/**`;
+- cold URL, refresh, Back/Forward и повторный вход в уже открытую вкладку; выбор типа без
+  опубликованного ключа даёт честную безадресную вкладку с причиной, а не фиктивный адрес;
+- ответ для не-ADMIN не различает существующий и несуществующий ключ; ключ не попадает в
+  журнал; резерв сегмента `entity-explorer` в baseline маршрутов и ADR по адресу типа;
+- dirty-contract E2: открытие Explorer несохранённые правки сохраняет; подтверждение — при
+  закрытии вкладки, уходе из host и выгрузке страницы.
+
+#### E3.1. Происхождение фактов и lifecycle
+
+- Entity Explorer показывает effective entity kind, inherited defaults и источники фактов:
+  слой (`FactSource`) и происхождение кодового значения (`FactOrigin`, включая
+  `REGISTRATION`/`DERIVED`/`UNKNOWN`) показаны раздельно. Точный Java-символ хранится,
+  когда он известен; путь к `.java` и наличие исходника в runtime не предполагаются;
+- В открытой по ссылке сводке видны effective метаданные, форма/вариант, ключ типа,
+  exposure и причины `NotLinkable`. Каталоги сохраняют типизированную ветку происхождения
+  ключа и exposure: явное значение не определяется сравнением с вычисленным;
+- Существующие startup-диагностики читаются из одного snapshot: запись поля привязывается
+  по коду к грани, запись строки секции показывается у root-владельца, оставшиеся видны
+  в общем списке. Отсутствие бина startup check не выключает Explorer;
+- lifecycle: hooks из реестра, без делегатов; «handler не зарегистрирован» и «hook на
+  default-методе» различаются; делегированное правило не публикуется без явной декларации;
+  проверка переопределения устойчива к Spring proxy. Другие listeners не анализируются.
+
+#### E3.2. Факты аспектов, единая карточка, дерево и переходы
+
+- Entity Explorer добавляет plans, actions и RLS dimensions к фактам E3.1 и показывает их
+  вместе с формами, вариантами и handlers в одной карточке с вкладками аспектов,
+  деревом по resolved kind, поиском и якорями;
+- startup validation для новых аспектов уточняется, обзор карточки сводит ошибки перед
+  решением; секция открывается внутри карточки root, а не отдельной карточкой.
+
+#### Отдельный срез после E3.2: `ADX-10`/`ADX-11`
+
+- form/search customizations становятся self-describing contributors без wrapper-регистратора
+  и правки центрального application config; structural field/variant/parameter errors не
+  подавляются silent fallback; custom form не получает infrastructure через raw
+  `ApplicationContext`; machine-readable registry поддерживает будущий designer/tooling.
+- Закрытие каждого `ADX-*` требует behavioural/architecture test и измеримого уменьшения
+  обязательного application wiring. Этот срез не входит в gate карточки Explorer E3.
+
+**Единая карточка сущности E3.2.** Explorer и генератор используют одну организацию
+информации: обзор, поля, owned-секции, формы/действия, доступ/поведение, источники и
+диагностика. В Explorer карточка показывает effective конфигурацию существующего типа
+и происхождение значений; в генераторе — проект новой конфигурации, незаполненные
+решения, ошибки и preview файлов. Прикладной разработчик переходит между сущностью
+и её секциями через дерево; свойства выбранного узла сгруппированы во вкладках.
+Обычный сценарий не должен требовать двух уровней вкладок «сущности × свойства»:
+дерево выбирает сущность, вкладки выбирают аспект; сравнение нескольких сущностей
+можно открыть отдельным явным режимом при подтверждённой потребности.
+Вкладки показывают ошибки и предупреждения, а итоговый обзор собирает их перед
+генерацией. Семантика разделов и названия свойств общие; runtime `EntitySummary`
+остаётся immutable read model, черновик генератора — отдельной редактируемой моделью.
+UI не должен выдавать предполагаемое значение черновика за effective факт приложения
+или редактировать исходный Java-код через Explorer.
+
+**Gate единой карточки (E3.2):** один и тот же поддерживаемый аспект имеет одинаковый смысл
+и место в Explorer и генераторе; для существующего типа виден его effective источник,
+для нового — проектируемый источник и ещё не принятые решения. Ошибку во вкладке
+можно найти из итогового обзора, включая ошибки вложенной секции.
+
+**Gate E3.0 (адрес и доступ):** действие доступно только роли, которой разрешена диагностика;
+из реестра и из карточки оно выбирает одну и ту же сущность независимо от ID записи.
+Скопированный адрес открывает эту сущность после cold start/refresh и корректно обрабатывает
+отказ в доступе, не различая существующий и несуществующий ключ. Переход из формы с
+несохранёнными изменениями сохраняет действующий dirty contract.
+
+**Gate E3.1 (источники и lifecycle):** колонка «Источник» различает явную регистрацию,
+кодовые метаданные и платформенный default; пустой Java-символ не скрывает известное
+происхождение; каталог не теряет ветку явного ключа и exposure; диагностики startup snapshot
+не теряются и не дублируются. Lifecycle различает отсутствующий handler и платформенный
+default-hook; делегаты и другие listeners явно обозначены как не исследованные.
 
 ---
 
@@ -1201,6 +1313,23 @@ execute(ActionContext)
 
 Не открывать generic entity REST до завершения этапа C.
 
+#### F-INT-1. Внешние read models
+
+Первый пилот — read-only данные T-FLEX через локальную реплику либо отдельный JPA
+persistence unit поверх существующего `ProjectionFilterGrid`. Добавить projection list/selection
+forms, стабильный составной ключ и локальную `ExternalObjectRef` с небольшим snapshot.
+Транспорт внешнего источника не входит в идентичность ссылки и предметную модель.
+
+Entity forms и projection forms остаются параллельными поверхностями: общий UX, дерево
+фильтра и сохранённые виды не требуют общего persistence API.
+
+#### F-INT-2. Storage-neutral projection API
+
+Только при появлении второго реального backend отделить schema/row/read request от HQL и
+`jakarta.persistence.Tuple`; компиляция `FilterNode` принадлежит source/provider. Порядок
+адаптеров: совместимый HQL → JDBC → REST. Каждый provider объявляет поддерживаемые фильтры,
+paging и sort; REST не выводится автоматически из HQL-возможностей.
+
 ### ERP
 
 Следующие platform-driving сценарии:
@@ -1213,15 +1342,107 @@ execute(ActionContext)
 - ресурсы, календари и мощности;
 - traceability и costing.
 
+Ближайшие проверяемые срезы:
+
+1. **F-ERP-1 — owner capability:** обязательный типизированный владелец, owner-scoped
+   numbering/uniqueness, fixed context и server-side dependent reference constraints;
+   владение не подменяет RLS и не включает cascade delete по умолчанию.
+2. **F-ERP-2 — immutable interned composition:** create-once owned-секции, предметная
+   канонизация, конкурентный `findOrCreate` и copy-on-write на пилоте
+   `НаборРаспространений`, без generic update/delete.
+3. **F-ERP-3 — business fact:** связь Операция–КК как `INTERNAL_STORE` и типизированный
+   идемпотентный attach/detach/replace API. Общий information-register kind появляется
+   только после второго production-примера с той же семантикой.
+4. **F-ERP-4 — posting/ledger:** posting batches, неизменяемые движения, post/unpost/repost,
+   command id, `effectiveAt`/`recordedAt`, остатки/обороты и RLS до агрегации. Ledger имеет
+   собственный descriptor/engine и не становится generic entity CRUD.
+
 Каждый ERP-сценарий сначала формулирует недостающий платформенный контракт, затем реализует предметную функцию. ERP-класс не добавляется в platform module.
 
 Создание стандартного ERP-документа опирается на metadata-driven aggregate save.
 Прикладные классы добавляются для проведения, движений, расчётов и иных предметных
 правил, но не для повторения стандартной транзакционной механики формы.
 
+Детальная граница и порядок срезов зафиксированы в
+[`docs/architecture/f-integration-erp-plan.md`](docs/architecture/f-integration-erp-plan.md).
+
 ---
 
-## 10. Reports policy
+## 10. Этап G — генератор сущностей (`PLANNED`, после E3)
+
+Матрица поддерживаемых рецептов и границы выпуска — в
+`docs/plans/e3-configuration-studio-plan.md` §5; обязательные gates сохраняются.
+
+#### G1. Ядро и CLI
+
+- независимый версионируемый модуль Java без Vaadin, Spring-контекста, IntelliJ API и
+  классов `org.ip`: `EntityDraft`, каталог поддержанных рецептов, один validator,
+  `GenerationPlan`, детерминированные шаблоны; сборочный/CLI adapter выполняет файловый
+  ввод-вывод, ядро возвращает план изменений и диагностику;
+- направляемый генератор новой сущности по версии матрицы поддерживаемых рецептов:
+  `CATALOG`, `DOCUMENT` и `PLAIN`; с нулём или несколькими owned-секциями, с обычным или
+  ограниченным профилем записи, без lifecycle либо с явно заданными предметными правилами.
+  Интернирование (`InternedEntity`/`findOrCreate`) — отдельная ось выбора, а не новый
+  `EntityKind`;
+- шаблон стандартного документа не генерирует пустые handler/adapter/use-case классы.
+
+**Контракт генератора.** Прикладной разработчик выбирает поддерживаемый рецепт, описывает
+поля и связи либо загружает существующую схему таблиц как черновик. Генератор показывает
+проект изменений до записи файлов, создаёт минимальные JPA/metadata-классы, обе стороны
+owned-секции и необходимые декларации доступа/ограничений. Владение, RLS и предметные
+правила разработчик задаёт явно: одних колонок БД для их вывода недостаточно. Для
+уже существующей схемы генератор проверяет соответствие колонок, ключей и связей,
+не меняя её автоматически. При отсутствии таблиц миграция предлагается отдельно.
+Одна модель входных данных и один валидатор должны обслуживать оба способа ввода.
+
+Матрица рецептов строится по фактически реализованным контрактам, а не по декартову
+произведению переключателей. `OWNED_ROW` создаётся только вместе с владельцем; текущий
+стандартный режим секции — `MUTABLE_REPLACE_ALL`. Неизменяемый root получает явные
+capabilities и гарантию уникальности в БД; для `findOrCreate` разработчик задаёт
+предметный ключ и канонизацию, генератор подключает общий механизм разрешения гонки.
+Lifecycle-класс появляется лишь при описанном правиле. `INTERNAL_STORE` требует отдельного
+owner-managed рецепта без generic форм и маршрутов. `INFORMATION_REGISTER`, create-once/
+immutable/write-through секции и другие ещё не реализованные режимы показываются с причиной
+недоступности и добавляются в генератор вместе с соответствующим platform contract,
+а не через заглушку.
+
+#### G2. Импорт существующей схемы
+
+- импорт таблиц, колонок и FK в тот же `EntityDraft`; kind, owner, RLS, write profile,
+  natural key и lifecycle из SQL не угадываются — бизнес-решения вводятся явно;
+- сверка колонок, ключей и связей без автоматического изменения БД; отсутствующая схема
+  получает отдельно просматриваемую миграцию.
+
+**Gate генератора:** для каждого предлагаемого рецепта сгенерированный пример собирается,
+проходит startup validation и профильные проверки чтения/записи, секций, доступа и
+идентичности; отсутствуют пустые repository/service/handler/adapter и ручные правки
+центральной конфигурации. Генерация повторным запуском не затирает изменения разработчика.
+Для неподдерживаемого сочетания возвращается точная причина и требуемый platform contract,
+а не компилирующийся, но неработающий каркас.
+
+---
+
+## 11. Этап I — IDE Studio (`PLANNED`, после G)
+
+#### I1. Дерево и навигация
+
+- tool window и дерево локального проекта, declared-карточка в структуре вкладок E3,
+  подключаемый effective snapshot (или честная пометка «по исходникам») и переход к
+  классу/полю/hook.
+
+#### I2. Draft и diff
+
+- редактор черновика в той же структуре вкладок, ошибки ядра, native diff/preview,
+  контролируемый apply и build action; UI не выдаёт значение черновика за effective факт
+  и не редактирует исходный Java-код через Explorer.
+
+**Gate IDE Studio:** CLI и IDEA дают одинаковый план; конфликт файлов блокирует применение;
+после rebuild Explorer показывает результат; плагин проходит Plugin Verifier для выбранных
+версий IDEA.
+
+---
+
+## 12. Reports policy
 
 Ближайшая цель — не функциональный паритет с JMIX Reports, а консолидация:
 
@@ -1239,7 +1460,7 @@ execute(ActionContext)
 
 ---
 
-## 11. Порядок PR
+## 13. Порядок PR
 
 ```text
 A-0  Versioned docs + ADR/status split
@@ -1266,8 +1487,26 @@ D-2  Spring/Vaadin module extraction
 D-3  Optional reports add-on
 D-4  Reference application + compatibility TestKit
 
-E-*  Actions, deep links, diagnostics
-F-*  Integration and ERP capabilities by demand
+E-1  Capability-aware actions (type capability + resource/RLS + required context)
+E-2  Deep links
+E-3  Diagnostics and tooling
+E-3.0  Explorer type address (published key, role gate, history)
+E-3.1  Fact origins and lifecycle
+E-3.2  Aspect facts, single card, tree and form transitions
+E-ADX  Separate central registrations debt slice (ADX-10/ADX-11)
+
+F-INT-1  External read-model pilot on ProjectionFilterGrid
+F-INT-2  Storage-neutral projection API when a second backend appears
+F-ERP-1  Owner capability and dependent reference constraints
+F-ERP-2  Immutable interned compositions
+F-ERP-3  Typed business facts without generic CRUD
+F-ERP-4  Posting, immutable movements, balances and turnover
+
+G-1  Independent generator core + CLI (recipe catalog, validator, plan, dry-run/apply)
+G-2  Existing schema import into the same draft
+
+I-1  IDEA plugin: project tree, declared card, effective snapshot, code jump
+I-2  IDEA plugin: draft editor, diff/preview, controlled apply
 ```
 
 Правила мержа:
@@ -1286,7 +1525,7 @@ F-*  Integration and ERP capabilities by demand
 
 ---
 
-## 12. Ближайшее решение
+## 14. Ближайшее решение
 
 Текущий приоритет:
 

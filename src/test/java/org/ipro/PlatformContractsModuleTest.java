@@ -145,12 +145,19 @@ class PlatformContractsModuleTest {
 
     @Test
     void theApplicationConsumesTheContractsAsAnArtifact() {
-        Set<String> declared = declaredArtifactIds(read(Path.of("pom.xml")));
+        Set<String> applicationArtifacts = declaredArtifactIds(read(Path.of("pom.xml")));
+        Set<String> vaadinStarterArtifacts = declaredArtifactIds(
+            read(Path.of("platform-vaadin-starter/pom.xml")));
+        Set<String> coreArtifacts = declaredArtifactIds(read(Path.of("platform-core/pom.xml")));
 
-        assertThat(declared)
-            .as("границу держит сборка: у модуля нет класса приложения на пути компиляции."
-                + " Если приложение перестанет объявлять зависимость, типы контрактов просто"
-                + " исчезнут, а соблазн вернуть их в дерево станет нормой")
+        assertThat(applicationArtifacts)
+            .as("приложение использует платформенный starter как фасад своей зависимости")
+            .contains("platform-vaadin-starter");
+        assertThat(vaadinStarterArtifacts)
+            .as("Vaadin starter включает platform-vaadin в потребительское замыкание")
+            .contains("platform-vaadin");
+        assertThat(coreArtifacts)
+            .as("контракты остаются отдельным артефактом в платформенном dependency closure")
             .contains("platform-contracts");
     }
 

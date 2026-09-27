@@ -67,6 +67,7 @@ RLS policy: доступ наследуется от aggregate root, и это �
 | `DAC-19` | Startup/bootstrap/schema compatibility | Infrastructure owner | `DataInitializer` регистрируется только при `dev`/`demo`/`test` без `prod` и `app.demo-data.enabled=true` | Startup-only scope | **Закрыт для demo initializer.** Шесть независимо обнаруживаемых profile/property integration tests проверяют отсутствие/наличие бина и идемпотентность |
 | `DAC-20` | REST JPQL preview: `POST /api/report-jpql/preview` | Integration/report boundary | `hasAnyAccess("REPORTS:JPQL_PREVIEW")` → 403, затем общий `JpqlRunService` (guard → RLS → limits) под учёткой вызвавшего | Named service account с минимальным report scope | **Покрыт.** Тест: `ReportJpqlPreviewControllerIT` |
 | `DAC-21` | Будущие import, messaging, external integrations и новые REST adapters | Будущий integration boundary | Контракт не менялся: вход только через secured application API | Только named service account с минимальным scope | **Зарезервирован.** Новый adapter не допускается к repository/EM |
+| `DAC-22` | Прямой адрес формы (глубокая ссылка): `GET /records/{entityKey}/{id}`, `GET /lists/{entityKey}` → `FormRouteOpener` → `FormNavigator` | Platform route boundary; UI показывает только исход | Адрес сначала проходит каталог публикации (тип, вид формы, вариант, разрешённый сценарий), затем тот же canonical read, что у списка и карточки (`BaseService.findById`), — адрес **не добавляет своего пути к данным**. Построчный RLS и capability проверяются внутри этого чтения: отказ исключением (`RlsAccessDeniedException` от enforcer'а) → `Forbidden` (403); скрытая и отсутствующая строка → один и тот же `NotFound` (404) без различения; **классовый запрет чтения (CHECK_ONLY-гейт, `RlsReadGate.canRead == false`) даёт пустое чтение, то есть тоже 404**, а не 403 (измерено в E2.5 на двух пользователях — направление безопасное: строка не раскрывается вместе с её существованием). Без аутентификации канал отказывает **403**: отказ приходит от границы «субъект обязателен», а не от чтения, и поэтому одинаков для существующей и отсутствующей строки (измерено: те же два адреса дают один исход и одно сообщение) — то есть и этот отказ строки не раскрывает. Отказ не меняет адрес и не создаёт вкладку; право перепроверяется на каждом входе, включая повторный, отзыв права и переход Back/Forward | Не допускается | **Покрыт.** Двухпользовательская приёмка — `DeepLinkTwoUserAccessIT` (ссылка → адрес → открытие; скрытая строка и отсутствующий id дают один исход и одно сообщение; тот же адрес читается по праву каждого; отзыв права после открытия закрывает вход и не добавляет второй вкладки; классовый гейт deny → 404 при не-вакуумной паре с обладателем доступа → Opened; без аутентификации — 403, одинаковый для существующей и отсутствующей строки; непубликуемый ключ до данных не доходит). Плюс `FormRouteOpenOutcomeTest` (чтение до вкладки, 403 против 404, гонка после preflight, перепроверка на каждом входе), `FormRouteOpenerTest`, `FormRouteUrlBridgeTest`, `DeepLinkCatalogBaselineIT` |
 
 ## Реестр существующих обходов
 
@@ -143,7 +144,8 @@ RLS policy: доступ наследуется от aggregate root, и это �
 
 ## Обязательный test grid для C2
 
-Каждый защищённый тип проверяется через применимые каналы `DAC-01`–`DAC-13` и `DAC-20`.
+Каждый защищённый тип проверяется через применимые каналы `DAC-01`–`DAC-13`, `DAC-20` и
+`DAC-22`.
 Статус — по инвентарю тестовых классов на момент переоценки.
 
 | Проверка | Состояние |

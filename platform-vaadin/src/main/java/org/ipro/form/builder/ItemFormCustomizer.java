@@ -11,7 +11,7 @@ import org.ipro.form.registry.FormContext;
  * после сборки формы (generic или кастомной фабрики), но ДО подключения табличных
  * частей ({@code TableSectionFactory}): структурные изменения набора полей —
  * по-прежнему делом фабрики, кастомайзер — про поведение
- * ({@code setReadOnly}, {@code setSectionFilter}, {@code setRlsReadOnlyNotice},
+ * ({@code setReadOnly}, {@code setSectionFilter},
  * свои кнопки в {@code getFooter()}).
  *
  * Порядок: сначала default-кастомайзеры сущности (variant = null), затем — вариантные.

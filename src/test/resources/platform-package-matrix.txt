@@ -14,12 +14,6 @@ org.ipro.crud -> org.ipro.rls
 org.ipro.crud -> org.ipro.telemetry.api
 org.ipro.crud -> org.ipro.telemetry.core
 org.ipro.crud.config -> org.ipro.crud
-# D3.4-fix: четыре CRUD-бина объявлены явными @Bean вместо @Import concrete-классов,
-# поэтому проводка конфигурации стала видимой: ServiceLocator берет MetadataResolver и
-# SectionMetadataRegistry (org.ipro.metadata), ReferenceCheckService — ReferenceIndex и
-# RlsFilterActivator (org.ipro.metadata / org.ipro.rls), LookupService — CanonicalReadExecutor
-# (org.ipro.data). Прежние ребра существовали и раньше — их скрывал @Import, который
-# называет только сам импортируемый класс; теперь измерение честное.
 org.ipro.crud.config -> org.ipro.data
 org.ipro.crud.config -> org.ipro.metadata
 org.ipro.crud.config -> org.ipro.metadata.config
@@ -80,6 +74,24 @@ org.ipro.form -> org.ipro.form.spi
 org.ipro.form -> org.ipro.metadata
 org.ipro.form -> org.ipro.metadata.annotation
 org.ipro.form -> org.ipro.numbering.annotation
+# E1.1–E1.6: машина действий (`org.ipro.form.action`). Её рёбра — не новая свобода, а те же
+# входы, что раньше читал UI по месту: capability и сценарии чтения (`org.ipro.data`,
+# `org.ipro.fetch.plan`), права (`org.ipro.rls` — гейт остаётся единственным входом прав),
+# навигация и снимок списка (`org.ipro.form.coordinator`). Обратные рёбра
+# (`builtin/config/coordinator -> action`) — чтение решения там, где раньше была своя формула
+# доступности: список, карточка, координатор.
+# E1.4: снято ребро `form.builtin -> rls` — список больше не читает RLS-гейт сам.
+# E1.6b: снято ребро `form.spi -> form.builtin` — оно держалось единственным типом
+# `ListFormToolbarContributor`, снятым вместе с переводом печати на объявленное действие.
+# E1.7: четыре типа легаси-команд сняты (ListCommand, его контекст, реестр и переходный
+# адаптер); рёбер матрицы это не изменило — те же направления держат оставшиеся типы
+# пакета `form.registry`.
+# Внимание: `-Dplatform.matrix.write=true` перезаписывает список рёбер и НЕ сохраняет эти
+# пояснения — после перезаписи их восстанавливают вручную.
+org.ipro.form.action -> org.ipro.data
+org.ipro.form.action -> org.ipro.fetch.plan
+org.ipro.form.action -> org.ipro.form.coordinator
+org.ipro.form.action -> org.ipro.rls
 org.ipro.form.builder -> org.ipro.crud
 org.ipro.form.builder -> org.ipro.fetch.instance
 org.ipro.form.builder -> org.ipro.form
@@ -87,27 +99,46 @@ org.ipro.form.builder -> org.ipro.form.builtin
 org.ipro.form.builder -> org.ipro.form.registry
 org.ipro.form.builder -> org.ipro.metadata
 org.ipro.form.builder -> org.ipro.metadata.annotation
+# D3.4-fix: четыре CRUD-бина объявлены явными @Bean вместо @Import concrete-классов,
+# поэтому проводка конфигурации стала видимой: ServiceLocator берет MetadataResolver и
+# SectionMetadataRegistry (org.ipro.metadata), ReferenceCheckService — ReferenceIndex и
+# RlsFilterActivator (org.ipro.metadata / org.ipro.rls), LookupService — CanonicalReadExecutor
+# (org.ipro.data). Прежние ребра существовали и раньше — их скрывал @Import, который
+# называет только сам импортируемый класс; теперь измерение честное.
 org.ipro.form.builtin -> org.ipro.crud
 org.ipro.form.builtin -> org.ipro.fetch.instance
 org.ipro.form.builtin -> org.ipro.filter
 org.ipro.form.builtin -> org.ipro.form
+org.ipro.form.builtin -> org.ipro.form.action
 org.ipro.form.builtin -> org.ipro.form.builder
+org.ipro.form.builtin -> org.ipro.form.coordinator
 org.ipro.form.builtin -> org.ipro.form.registry
 org.ipro.form.builtin -> org.ipro.form.spi
 org.ipro.form.builtin -> org.ipro.metadata
 org.ipro.form.builtin -> org.ipro.metadata.annotation
-org.ipro.form.builtin -> org.ipro.rls
 org.ipro.form.builtin -> org.ipro.telemetry.api
 org.ipro.form.builtin -> org.ipro.telemetry.core
+# D3.5.5: формовая авто-конфигурация собирает бины явными @Bean, поэтому называет типы, которые
+# раньше подставлял контейнер через @Import: группировку значений, RLS-gate и SPI-швы
+# (сторы, вклад в панель инструментов, рабочую область). Все три пакета — свои платформенные
+# модули, уже объявленные в POM platform-vaadin; запретов это не пересекает.
+# Вклад в панель инструментов снят в E1.6b (печать стала объявленным действием); ребро
+# `form.config -> form.spi` держат сторы и рабочая область.
 org.ipro.form.config -> org.ipro.crud
+org.ipro.form.config -> org.ipro.data
+org.ipro.form.config -> org.ipro.data.grouping
 org.ipro.form.config -> org.ipro.form
+org.ipro.form.config -> org.ipro.form.action
 org.ipro.form.config -> org.ipro.form.builder
 org.ipro.form.config -> org.ipro.form.coordinator
 org.ipro.form.config -> org.ipro.form.registry
+org.ipro.form.config -> org.ipro.form.spi
 org.ipro.form.config -> org.ipro.metadata
 org.ipro.form.config -> org.ipro.metadata.config
+org.ipro.form.config -> org.ipro.rls
 org.ipro.form.coordinator -> org.ipro.crud
 org.ipro.form.coordinator -> org.ipro.form
+org.ipro.form.coordinator -> org.ipro.form.action
 org.ipro.form.coordinator -> org.ipro.form.builtin
 org.ipro.form.coordinator -> org.ipro.form.registry
 org.ipro.form.coordinator -> org.ipro.form.spi
@@ -123,7 +154,6 @@ org.ipro.form.registry -> org.ipro.form.builtin
 org.ipro.form.registry -> org.ipro.form.coordinator
 org.ipro.form.registry -> org.ipro.metadata
 org.ipro.form.registry -> org.ipro.metadata.annotation
-org.ipro.form.spi -> org.ipro.form.builtin
 org.ipro.jr -> org.ipro.jr.dom
 org.ipro.jr.config -> org.ipro.crud
 org.ipro.jr.config -> org.ipro.jr
@@ -256,39 +286,32 @@ org.ipro.ureport.service -> org.ipro.ureport
 org.ipro.ureport.service -> org.ipro.ureport.catalog
 org.ipro.ureport.service -> org.ipro.ureport.dom
 org.ipro.ureport.service -> org.ipro.ureport.params
-org.ipro.vaadin.explorer -> org.ipro.autoconfigure
-org.ipro.vaadin.explorer -> org.ipro.form.builder
-org.ipro.vaadin.explorer -> org.ipro.form.registry
-org.ipro.vaadin.explorer -> org.ipro.metadata
-org.ipro.vaadin.explorer -> org.ipro.metadata.annotation
-org.ipro.vaadin.explorer -> org.ipro.metadata.facet
-org.ipro.vaadin.explorer -> org.ipro.numbering
-org.ipro.vaadin.explorer -> org.ipro.rls
 # D3.5.5: explorer объявляет явный @AutoConfigureAfter вместо надежды на алфавитный порядок FQN.
 # Оба ребра — про порядок применения конфигураций, а не про использование типов в коде:
 # условие @ConditionalOnBean обязано оцениваться после регистрации метаданных и реестра форм.
+org.ipro.vaadin.explorer -> org.ipro.autoconfigure
+org.ipro.vaadin.explorer -> org.ipro.form.builder
 org.ipro.vaadin.explorer -> org.ipro.form.config
+org.ipro.vaadin.explorer -> org.ipro.form.registry
+org.ipro.vaadin.explorer -> org.ipro.metadata
+org.ipro.vaadin.explorer -> org.ipro.metadata.annotation
 org.ipro.vaadin.explorer -> org.ipro.metadata.config
+org.ipro.vaadin.explorer -> org.ipro.metadata.facet
+org.ipro.vaadin.explorer -> org.ipro.numbering
+org.ipro.vaadin.explorer -> org.ipro.rls
 org.ipro.vaadin.search -> org.ipro.form.config
 org.ipro.vaadin.search -> org.ipro.form.coordinator
 org.ipro.vaadin.search -> org.ipro.search
 org.ipro.vaadin.search -> org.ipro.search.config
-# D3.5.5: формовая авто-конфигурация собирает бины явными @Bean, поэтому называет типы, которые
-# раньше подставлял контейнер через @Import: группировку значений, RLS-gate и SPI-швы
-# (сторы, вклад в панель инструментов, рабочую область). Все три пакета — свои платформенные
-# модули, уже объявленные в POM platform-vaadin; запретов это не пересекает.
-org.ipro.form.config -> org.ipro.data.grouping
-org.ipro.form.config -> org.ipro.form.spi
-org.ipro.form.config -> org.ipro.rls
 # D3.5.4: пакет org.ipro.vaadin.telemetry — бывший org.ip.telemetry.vaadin в дереве приложения.
 # Его рёбра не были видны матрице по построению: забор читает только org.ipro, а адаптеры
 # телеметрии жили в пакете приложения. После переезда связь стала честным платформенным ребром
 # (vaadin → telemetry), и это ожидаемое направление: адаптер UI пишет в наблюдение, а не наоборот.
-org.ipro.vaadin.telemetry -> org.ipro.telemetry.api
-org.ipro.vaadin.telemetry -> org.ipro.telemetry.core
 # D3.5.6: третье ребро к той же подсистеме — не использование типа, а порядок авто-конфигураций.
 # @ConditionalOnBean(EventSink) у UI-адаптера проверяется в момент применения конфигурации, и без
 # явного @AutoConfigureAfter(TelemetryAutoConfiguration) он держался бы на алфавите FQN через
 # границу артефакта: сначала UI-адаптер, потом подсистема — то есть условие оценивалось бы
 # до появления sink'а, и обработка ошибок UI выключалась бы молча.
+org.ipro.vaadin.telemetry -> org.ipro.telemetry.api
 org.ipro.vaadin.telemetry -> org.ipro.telemetry.config
+org.ipro.vaadin.telemetry -> org.ipro.telemetry.core

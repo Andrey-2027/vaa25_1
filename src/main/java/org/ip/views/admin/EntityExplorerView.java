@@ -1,5 +1,6 @@
 package org.ip.views.admin;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H3;
@@ -16,20 +17,20 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
 import org.ipro.form.coordinator.FormNavigator;
+import org.ipro.form.link.FormRouteCatalog;
 import org.ipro.vaadin.explorer.EntitySummary;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler.EntityRef;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Entity Explorer — каталог сущностей (read-only «поверхность чтения»). Левая панель —
@@ -41,9 +42,17 @@ import java.util.Map;
  *
  * <p>Принцип: объединять поверхность чтения, а не владение фактами. Сам каталог ничего
  * не хранит и не пишет; вся сводка — {@link EntitySummaryPanel} поверх {@link EntitySummary}.</p>
+ *
+ * <p>E3.0: доступ спрашивается у {@link EntityExplorerAccess} — того же правила, что у route
+ * и пункта меню: копия проверки в этом классе расходилась бы с ними молча.</p>
+ *
+ * <p>E3.0: владелец вида — host: вкладка открывается {@code openComponent}, а не создаётся
+ * заново на каждый вход, поэтому повторный вход по адресу применяет ключ к уже открытой вкладке.
+ * Скоуп — {@code @UIScope}: один вид на UI, иначе адрес менял бы одну вкладку, а показывалась бы
+ * другая.</p>
  */
 @SpringComponent
-@Scope("prototype")
+@UIScope
 public class EntityExplorerView extends VerticalLayout {
 
     /** Узел дерева: сущность (с детьми-табчастями) либо строка табличной части. */
@@ -70,6 +79,8 @@ public class EntityExplorerView extends VerticalLayout {
 
     private final EntitySummaryAssembler assembler;
     private final FormNavigator navigator;
+    private final EntityExplorerAccess access;
+    private final FormRouteCatalog catalog;
 
     private final TextField searchField = new TextField();
     private final TreeGrid<Item> tree = new TreeGrid<>(Item.class);
@@ -78,23 +89,79 @@ public class EntityExplorerView extends VerticalLayout {
 
     private List<Item> allRoots = List.of();
 
+    /** Видимое дерево после фильтра: в данных провайдера лежат копии, а не {@link #allRoots}. */
+    private List<Item> visibleRoots = List.of();
+
+    /** Кто отвечает за адрес вкладки при выборе типа: host, а не вид (E3.0). */
+    private Consumer<Class<?>> typeSelectionListener = type -> {
+    };
+
+    /** Идёт программный выбор узла при входе по адресу: это не выбор пользователя. */
+    private boolean applyingEntry;
+
     public EntityExplorerView(@Autowired EntitySummaryAssembler assembler,
-                              @Autowired FormNavigator navigator) {
+                              @Autowired FormNavigator navigator,
+                              @Autowired EntityExplorerAccess access,
+                              @Autowired FormRouteCatalog catalog) {
         this.assembler = assembler;
         this.navigator = navigator;
+        this.access = access;
+        this.catalog = catalog;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        searchField.addValueChangeListener(e -> {
+            if (!applyingEntry) {
+                applyFilter();
+            }
+        });
+        tree.addSelectionListener(e -> e.getFirstSelectedItem().ifPresent(this::openStructure));
+        tabSheet.addSelectedChangeListener(e -> {
+            if (!applyingEntry) {
+                typeSelectionListener.accept(typeOfTab(e.getSelectedTab()));
+            }
+        });
     }
 
-    /** Вызывается из MainLayout сразу после создания (initializer в workspace.open). */
+    /** Вход из меню: выбор сбрасывается, адрес вкладки до первого выбора остаётся безадресным. */
     public void init() {
-        removeAll();
-        if (!isAdmin()) {
-            add(new H3("Доступно только администратору"));
-            return;
+        init(null);
+    }
+
+    /**
+     * Вход по адресу Explorer (E3.0): тот же вид получает новый ключ, второй вид не открывается.
+     *
+     * <p>Программный выбор узла адрес не пишет: адрес уже стоит в окне (ADR-0010), и повторная
+     * запись добавила бы шаг истории на вход по ссылке. За адрес при выборе пользователя отвечает
+     * host — {@link #setTypeSelectionListener(Consumer)}.</p>
+     */
+    public void init(Class<?> type) {
+        applyingEntry = true;
+        try {
+            removeAll();
+            searchField.clear();
+            tree.deselectAll();
+            boolean allowed = access.allows();
+            if (type == null || !allowed) {
+                clearEntityTabs();
+            }
+            if (!allowed) {
+                add(new H3("Доступно только администратору"));
+                return;
+            }
+            buildUi();
+            if (type != null) {
+                selectType(type);
+            }
+        } finally {
+            applyingEntry = false;
         }
-        buildUi();
+    }
+
+    /** Кто отвечает за адрес вкладки при выборе типа: host, а не вид (E3.0). */
+    public void setTypeSelectionListener(Consumer<Class<?>> listener) {
+        this.typeSelectionListener = listener == null ? type -> {
+        } : listener;
     }
 
     private void buildUi() {
@@ -122,13 +189,11 @@ public class EntityExplorerView extends VerticalLayout {
         searchField.setPlaceholder("Поиск по имени…");
         searchField.setClearButtonVisible(true);
         searchField.setWidthFull();
-        searchField.addValueChangeListener(e -> applyFilter());
 
         tree.setWidthFull();
         tree.setHeightFull();
         tree.addHierarchyColumn(Item::label).setHeader("Сущности").setResizable(true).setFlexGrow(1);
         tree.setSelectionMode(com.vaadin.flow.component.grid.Grid.SelectionMode.SINGLE);
-        tree.addSelectionListener(e -> e.getFirstSelectedItem().ifPresent(this::openStructure));
 
         VerticalLayout panel = new VerticalLayout(searchField, tree);
         panel.setSizeFull();
@@ -161,6 +226,7 @@ public class EntityExplorerView extends VerticalLayout {
         for (Item root : allRoots) {
             collectMatching(root, query, visibleRoots);
         }
+        this.visibleRoots = visibleRoots;
         TreeData<Item> data = new TreeData<>();
         data.addItems(visibleRoots, item -> item.children);
         tree.setDataProvider(new TreeDataProvider<>(data));
@@ -190,6 +256,49 @@ public class EntityExplorerView extends VerticalLayout {
         openEntityTab(item.entity().entityClass());
     }
 
+    /**
+     * Выбрать узел типа при входе по адресу. Ищем по <b>видимому</b> дереву, а не по исходному
+     * списку: после фильтра в данных лежат копии, и выделение оригинала не нашло бы строку.
+     * Тип вне дерева — не ошибка адреса: карточку откроет выбор пользователя.
+     */
+    private void selectType(Class<?> type) {
+        Item match = findRoot(visibleRoots, type);
+        if (match != null) {
+            tree.select(match);
+        }
+        // Адрес уже разрешён каталогом. Карточка должна открыться и при отсутствии узла в
+        // текущем дереве, иначе URL укажет на новый тип, а справа останется прежний.
+        openEntityTab(type);
+    }
+
+    private Class<?> typeOfTab(Tab tab) {
+        if (tab == null) {
+            return null;
+        }
+        for (Map.Entry<Class<?>, Tab> entry : openTabs.entrySet()) {
+            if (entry.getValue() == tab) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    private void clearEntityTabs() {
+        for (Tab tab : List.copyOf(openTabs.values())) {
+            tabSheet.remove(tab);
+        }
+        openTabs.clear();
+    }
+
+    private static Item findRoot(List<Item> roots, Class<?> type) {
+        for (Item root : roots) {
+            if (type.equals(root.entity().entityClass())) {
+                return root;
+            }
+        }
+        return null;
+    }
+
     /** Открыть (или сфокусировать) вкладку сущности внутри этого вида. */
     private void openEntityTab(Class<?> entityClass) {
         Tab existing = openTabs.get(entityClass);
@@ -205,9 +314,29 @@ public class EntityExplorerView extends VerticalLayout {
         panel.show(summary);
 
         Tab tab = createClosableTab(tabTitle, entityClass);
-        tabSheet.add(tab, panel);
         openTabs.put(entityClass, tab);
+        tabSheet.add(tab, addressedContent(panel, entityClass));
         tabSheet.setSelectedTab(tab);
+    }
+
+    /**
+     * Содержимое вкладки: карточка плюс, при отсутствии опубликованного ключа, строка о причине
+     * (E3.0). Без неё вкладка выглядела бы безадресной без объяснения, а на вопрос «почему у типа
+     * нет ссылки» отвечает каталог, а не карточка: перестраивать её здесь незачем — это E3.2.
+     */
+    private Component addressedContent(EntitySummaryPanel panel, Class<?> entityClass) {
+        if (catalog.find(entityClass).isPresent()) {
+            return panel;
+        }
+        Span hint = new Span("У этого типа нет публичного адреса: ключ не опубликован каталогом "
+            + "маршрутов, поэтому ссылка на него не выдаётся.");
+        hint.getStyle().set("color", "var(--lumo-secondary-text-color)")
+            .set("padding", "var(--lumo-space-s) var(--lumo-space-m)");
+        VerticalLayout content = new VerticalLayout(hint, panel);
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.setSizeFull();
+        return content;
     }
 
     /** Вкладка «как в приложении»: заголовок + маленькая «×» для закрытия. */
@@ -237,15 +366,19 @@ public class EntityExplorerView extends VerticalLayout {
             return;
         }
         boolean wasSelected = tab == tabSheet.getSelectedTab();
-        tabSheet.remove(tab);
-        if (wasSelected && !openTabs.isEmpty()) {
-            tabSheet.setSelectedTab(openTabs.values().iterator().next());
+        boolean previousApplyingEntry = applyingEntry;
+        applyingEntry = true;
+        try {
+            tabSheet.remove(tab);
+            if (wasSelected && !openTabs.isEmpty()) {
+                tabSheet.setSelectedTab(openTabs.values().iterator().next());
+            }
+        } finally {
+            applyingEntry = previousApplyingEntry;
+        }
+        if (wasSelected && !applyingEntry) {
+            typeSelectionListener.accept(typeOfTab(tabSheet.getSelectedTab()));
         }
     }
 
-    private boolean isAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.getAuthorities().stream()
-                .anyMatch(g -> "ROLE_ADMIN".equals(g.getAuthority()));
-    }
 }

@@ -91,6 +91,14 @@ node_modules/
 # вместе со слоем), то есть данные, нужные не машине автора, а следующему шагу.
 !src/test/resources/report-form-seam.txt
 
+# E2.0: baseline публичных адресов глубокой ссылки (ADR-0009). Тот же случай, что у
+# metadata/search выше: DeepLinkRouteBaselineTest читает файл как источник истины, поэтому
+# широкое правило `*.txt` исключило бы контракт из поставки и гейт защищал бы только машину
+# автора. Предмет файла — обещание совместимости адресов, то есть данные для читателя, а не
+# артефакт прогона.
+!src/test/resources/routes/
+!src/test/resources/routes/*.txt
+
 # D2/D1: API/ABI baseline публичной поверхности вынесенных артефактов. PlatformApiBaselineTest
 # сравнивает с ним подписи, поэтому на чистом checkout он обязан присутствовать.
 !src/test/resources/platform-api-baseline/

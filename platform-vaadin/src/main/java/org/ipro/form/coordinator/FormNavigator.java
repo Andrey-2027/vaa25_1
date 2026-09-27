@@ -1,6 +1,8 @@
 package org.ipro.form.coordinator;
 
 import org.ipro.form.builtin.ListForm;
+import org.ipro.form.link.FormRoute;
+import org.ipro.form.link.OpenResult;
 import org.ipro.identity.IdentifiableEntity;
 
 import java.util.Map;
@@ -66,4 +68,23 @@ public interface FormNavigator {
      */
     <T extends IdentifiableEntity, ID> void openListForm(Class<T> entityClass, String variant,
                                                          Map<String, Object> parameters);
+
+    /**
+     * Открыть существующую запись по разобранному адресу (E2.2, ADR-0009 §6) и вернуть исход.
+     *
+     * <p>Отличие от {@link #openItemForm} — не удобство, а другой контракт: режим открытия задаёт
+     * сама форма входа (адрес всегда открывает Workspace), отказ возвращается значением
+     * ({@code NotFound}/{@code Forbidden}/{@code Unavailable}), а мутабельная настройка открытия
+     * приложения не читается и не меняется. Вызывающему, открывающему форму «как обычно», нужен
+     * {@link #openItemForm}, а не этот метод.</p>
+     *
+     * <p>{@code entityClass} — persistence-класс из каталога маршрутов: снаружи адрес известен
+     * ключом, а не типом, и переводит его в класс именно каталог.</p>
+     *
+     * @param route адрес ITEM-вида: источник id и варианта
+     */
+    OpenResult openRoutedRecord(Class<?> entityClass, FormRoute route);
+
+    /** Открыть самостоятельный список по разобранному адресу (LIST) и вернуть исход. */
+    OpenResult openRoutedList(Class<?> entityClass, FormRoute route);
 }

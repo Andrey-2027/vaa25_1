@@ -19,8 +19,12 @@ class EntityKindResolutionTest {
         EntityMetadataInfo meta = resolver.resolve(Catalog.class);
 
         assertThat(meta.getEntityKind()).isEqualTo(EntityKind.CATALOG);
+        assertThat(meta.getEntityKindOrigin()).isEqualTo(FactOrigin.DERIVED);
+        assertThat(meta.getEntityKindSymbol()).isEqualTo(StandardCatalogEntity.class.getName());
         assertThat(meta.getFormFields()).extracting(FieldMetadataInfo::getName)
             .containsExactly("code", "name");
+        assertThat(meta.getFieldByName("code").getField().getDeclaringClass())
+            .isEqualTo(StandardCatalogEntity.class);
     }
 
     @Test
@@ -28,19 +32,26 @@ class EntityKindResolutionTest {
         EntityMetadataInfo meta = resolver.resolve(Document.class);
 
         assertThat(meta.getEntityKind()).isEqualTo(EntityKind.DOCUMENT);
+        assertThat(meta.getEntityKindOrigin()).isEqualTo(FactOrigin.DERIVED);
+        assertThat(meta.getEntityKindSymbol()).isEqualTo(StandardDocumentEntity.class.getName());
         assertThat(meta.getFormFields()).extracting(FieldMetadataInfo::getName)
             .containsExactly("number", "date");
     }
 
     @Test
     void directBaseEntityDefaultsToPlain() {
-        assertThat(resolver.resolve(Plain.class).getEntityKind()).isEqualTo(EntityKind.PLAIN);
+        EntityMetadataInfo meta = resolver.resolve(Plain.class);
+        assertThat(meta.getEntityKind()).isEqualTo(EntityKind.PLAIN);
+        assertThat(meta.getEntityKindOrigin()).isEqualTo(FactOrigin.PLATFORM_DEFAULT);
+        assertThat(meta.getEntityKindSymbol()).isEmpty();
     }
 
     @Test
     void directBaseEntityCanDeclareNonStandardKind() {
-        assertThat(resolver.resolve(Register.class).getEntityKind())
-            .isEqualTo(EntityKind.INFORMATION_REGISTER);
+        EntityMetadataInfo meta = resolver.resolve(Register.class);
+        assertThat(meta.getEntityKind()).isEqualTo(EntityKind.INFORMATION_REGISTER);
+        assertThat(meta.getEntityKindOrigin()).isEqualTo(FactOrigin.EXPLICIT);
+        assertThat(meta.getEntityKindSymbol()).isEqualTo(Register.class.getName());
     }
 
     @Test

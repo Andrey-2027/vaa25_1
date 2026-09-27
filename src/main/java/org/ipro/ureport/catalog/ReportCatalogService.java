@@ -89,18 +89,16 @@ public class ReportCatalogService {
         return items;
     }
 
+    /**
+     * Строка UDR-отчёта. Сборка — в {@link ReportCatalogItemFactory}: каталог, копия
+     * и импорт обязаны собирать одну и ту же запись одним кодом (D3.6).
+     */
     private ReportCatalogItem udrItem(ReportTemplate template) {
-        // "включён" для UDR = опубликован (DRAFT/PUBLISHED - модель состояний reportstudio)
-        boolean enabled = template.getState() == org.ipro.reportstudio.dom.ReportTemplateState.PUBLISHED;
-        return new ReportCatalogItem(template.getId(), ReportEngineType.UDR,
-                template.getName(), template.getDescription(), enabled,
-                null, false);
+        return ReportCatalogItemFactory.of(template);
     }
 
     private ReportCatalogItem ureportItem(UreportTemplate template) {
-        return new ReportCatalogItem(template.getId(), ReportEngineType.UREPORT3,
-                template.getName(), template.getDescription(), template.isEnabled(),
-                UreportTemplateService.designerUrl(template.getFileName()),
+        return ReportCatalogItemFactory.of(template,
                 !ureportTemplateService.fileExists(template.getFileName()));
     }
 
@@ -115,9 +113,8 @@ public class ReportCatalogService {
     }
 
     private ReportCatalogItem jrItem(JrxmlTemplate template) {
-        return new ReportCatalogItem(template.getId(), ReportEngineType.JR,
-                template.getName(), template.getDescription(), template.isEnabled(),
-                null, !jrxmlTemplateService.fileExists(template.getFileName()));
+        return ReportCatalogItemFactory.of(template,
+                !jrxmlTemplateService.fileExists(template.getFileName()));
     }
 
     private String currentUsername() {

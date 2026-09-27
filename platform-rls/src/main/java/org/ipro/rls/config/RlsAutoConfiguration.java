@@ -43,7 +43,8 @@ import org.springframework.web.context.annotation.SessionScope;
  *
  * Репозитории и persistence unit объявляет {@code RlsPersistenceAutoConfiguration}
  * этого же модуля — здесь только бины принуждения. Хаб чужих пакетов упразднён на
- * шаге 8б: reportstudio и ureport регистрируют свои пакеты сами.</p>
+ * шаге 8б: reportstudio и ureport регистрируют свои пакеты сами, JR persistence принадлежит
+ * приложению.</p>
  */
 @AutoConfiguration
 @AutoConfigureBefore(org.ipro.numbering.config.NumberingAutoConfiguration.class)

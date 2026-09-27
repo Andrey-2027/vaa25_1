@@ -2,4 +2,5 @@ org.ipro.reportstudio.config.ReportStudioAutoConfiguration
 org.ipro.reportstudio.config.ReportStudioPersistenceAutoConfiguration
 org.ipro.ureport.config.UreportAutoConfiguration
 org.ipro.ureport.config.UreportPersistenceAutoConfiguration
+org.ipro.jr.config.JrPersistenceAutoConfiguration
 org.ipro.jr.config.JrAutoConfiguration

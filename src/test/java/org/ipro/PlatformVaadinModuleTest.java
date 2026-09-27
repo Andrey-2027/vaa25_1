@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *     оставаться без Vaadin: обратной зависимости быть не должно.</li>
  * </ol>
  *
- * <p>Семантические роли 93 типов и их бюджет держит D1-реестр
+ * <p>Семантические роли production-типов и их бюджет держит D1-реестр
  * {@code platform-vaadin-surface.txt} ({@code PlatformVaadinSurfaceTest}) — здесь роли
  * не дублируются, иначе решение жило бы в двух местах и расходилось.</p>
  */
@@ -127,8 +127,24 @@ class PlatformVaadinModuleTest {
         }
 
         assertThat(types)
-            .as("забор не должен быть вакуумным: модуль обязан публиковать 93 типа (D3.5.4)")
-            .isEqualTo(93);
+            .as("забор не должен быть вакуумным: 93 типа перенесла D3.5.4, ещё 16 добавила машина"
+                + " действий E1.1-E1.6a (контракт и требование, чистое решение, реестр с ключом,"
+                + " провайдер входов, резолвер, типизированная причина просмотра, исполнитель"
+                + " прикладного действия, его реестр и снимок списка); E1.6b убрала сквозной SPI"
+                + " тулбара (ListFormToolbarContributor), E1.7 — четыре типа легаси-команд"
+                + " (ListCommand, его контекст, реестр и переходный адаптер); E2.1 добавила 10 типов"
+                + " `org.ipro.form.link` — грамматику адреса (вид маршрута, сам маршрут, кодек),"
+                + " каталог опубликованных адресов с причинами неадресуемости, генератор ссылок"
+                + " и результат генерации; E2.1 добавила также адресный вход решения"
+                + " (`RouteLinkability`) в `org.ipro.form.action`, affordance «скопировать ссылку»"
+                + " (`CopyLinkButton`) и один код его встраивания в подвал карточки"
+                + " (`ItemFormLinkAffordance`); E2.2 добавила исход открытия по адресу"
+                + " (`OpenResult`) и сам route-вход (`FormRouteOpener`); E2.3 добавила host адреса"
+                + " и его мост с вкладками (`RouteStatePage`, `FormRouteUrlBridge`) вместе с"
+                + " швом для проверки моста без браузера (`BrowserHistory`); доделки ревью E2"
+                + " добавили базовый путь развёртывания (`ApplicationBasePath`); E3.0 добавила адрес"
+                + " типа Explorer (`EntityExplorerAddress`) — итого 125")
+            .isEqualTo(125);
         assertThat(copies)
             .as("тип есть и в модуле, и в дереве приложения — это split package: компилятор"
                 + " различает такие копии по порядку classpath, а не по замыслу, поэтому"
@@ -224,16 +240,15 @@ class PlatformVaadinModuleTest {
     }
 
     @Test
-    void applicationDeclaresTheModuleAsADependency() {
-        Set<String> declared = new TreeSet<>();
-        Matcher matcher = ARTIFACT_ID.matcher(read(Path.of("pom.xml")));
-        while (matcher.find()) {
-            declared.add(matcher.group(1));
-        }
+    void applicationConsumesVaadinThroughThePlatformStarter() {
+        Set<String> applicationArtifacts = declaredArtifacts(Path.of("pom.xml"));
+        Set<String> starterArtifacts = declaredArtifacts(Path.of("platform-vaadin-starter/pom.xml"));
 
-        assertThat(declared)
-            .as("модуль обязан быть объявлен приложением явно: иначе типы попадают в classpath"
-                + " транзитивно, и объявленная граница существует только в манифесте")
+        assertThat(applicationArtifacts)
+            .as("приложение явно выбирает платформенный starter, а не набор внутренних модулей")
+            .contains("platform-vaadin-starter");
+        assertThat(starterArtifacts)
+            .as("платформенный Vaadin starter явно включает модуль с Vaadin-интеграцией")
             .contains("platform-vaadin");
     }
 

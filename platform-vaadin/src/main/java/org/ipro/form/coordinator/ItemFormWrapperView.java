@@ -5,6 +5,14 @@ import org.ipro.form.FormSaveHandler;
 import org.ipro.form.FormSaveResult;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import org.ipro.form.action.ActionContextProvider;
+import org.ipro.form.action.ActionHandlerRegistry;
+import org.ipro.form.action.CopyLinkButton;
+import org.ipro.form.link.FormLinkService;
+import org.ipro.form.action.ActionRegistry;
+import org.ipro.form.action.ActionResolver;
+import org.ipro.form.action.ActionSurface;
+import org.ipro.form.action.ReadOnlyReason;
 import org.ipro.form.builtin.ItemForm;
 import org.ipro.form.registry.FormResolver;
 import org.ipro.crud.BaseService;
@@ -16,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -48,19 +55,34 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     private final FormResolver formResolver;
     private final ServiceLocator serviceLocator;
     private final ItemFormAccessBinder itemFormAccessBinder;
+    private final ActionRegistry actionRegistry;
+    private final ActionContextProvider actionContextProvider;
+    private final ActionHandlerRegistry actionHandlerRegistry;
+    private final FormLinkService formLinkService;
 
     private ItemForm<?> itemForm;
     private Consumer<IdentifiableEntity> savedCallback;
+
+    /** Кнопка «Скопировать ссылку» открытой карточки; перерисовывается после сохранения. */
+    private CopyLinkButton copyLinkButton;
 
     public ItemFormWrapperView(
             @Autowired ApplicationContext applicationContext,
             @Autowired FormResolver formResolver,
             @Autowired ServiceLocator serviceLocator,
-            @Autowired ItemFormAccessBinder itemFormAccessBinder) {
+            @Autowired ItemFormAccessBinder itemFormAccessBinder,
+            @Autowired ActionRegistry actionRegistry,
+            @Autowired ActionContextProvider actionContextProvider,
+            @Autowired ActionHandlerRegistry actionHandlerRegistry,
+            @Autowired FormLinkService formLinkService) {
         this.applicationContext = applicationContext;
         this.formResolver = formResolver;
         this.serviceLocator = serviceLocator;
         this.itemFormAccessBinder = itemFormAccessBinder;
+        this.actionRegistry = actionRegistry;
+        this.actionContextProvider = actionContextProvider;
+        this.actionHandlerRegistry = actionHandlerRegistry;
+        this.formLinkService = formLinkService;
         setSizeFull();
         setPadding(false);
         setSpacing(false);
@@ -104,22 +126,57 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
             Consumer<T> onSaved,
             Runnable closeCallback,
             Map<String, Object> parameters) {
+        init(entityClass, variant, id, null, onSaved, closeCallback, parameters);
+    }
+
+    /**
+     * То же открытие, но с уже прочитанной записью: canonical read выполняет вызывающий
+     * (preflight до открытия вкладки). Это убирает второе чтение и окно гонки между проверкой
+     * и сборкой формы.
+     *
+     * <p><b>Fail-closed.</b> Если {@code id != null}, а записи нет (строки нет либо её скрыла
+     * row-level RLS), форма НЕ собирается и НЕ добавляется: выбрасывается
+     * {@link RecordUnavailableException}. {@code WorkspaceManager} не кеширует компонент, а
+     * {@code Workspace} не добавляет вкладку. Раньше пустая форма всё равно добавлялась, а
+     * {@code ItemForm.getEntity()} лениво создавал новый объект — то есть отказ в чтении мог
+     * превратиться в создание записи.</p>
+     *
+     * @param loadedEntity уже прочитанная запись для {@code id} либо {@code null}, если её должен
+     *                     прочитать сам wrapper (или {@code id == null})
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T extends IdentifiableEntity, ID> void init(
+            Class<T> entityClass,
+            String variant,
+            ID id,
+            T loadedEntity,
+            Consumer<T> onSaved,
+            Runnable closeCallback,
+            Map<String, Object> parameters) {
 
         removeAll();
+
+        // Fail-closed до сборки формы: недоступная или исчезнувшая запись прекращает открытие,
+        // а не открывает пустую карточку, из которой можно сохранить новый объект.
+        T existing = null;
+        if (id != null) {
+            existing = loadedEntity != null ? loadedEntity : loadExisting(entityClass, id);
+            if (existing == null) {
+                throw new RecordUnavailableException(entityClass, id);
+            }
+        }
 
         ItemForm<T> form = formResolver.resolveItemForm(entityClass, variant, id, parameters);
         form.setSaveHandler((FormSaveHandler) applicationContext.getBean(FormSaveHandler.class));
         this.savedCallback = (Consumer) onSaved;
 
         // Загружаем существующую запись или инициализируем несохранённую для новой
-        if (id != null) {
-            BaseService<T, ID> service = serviceLocator.findService(entityClass);
-            Optional<T> existing = service.findById(id);
-            if (existing.isPresent()) {
-                form.setEntity(existing.get());
-                // Без права на изменение — форма в режиме только просмотра (Фаза 4).
-                itemFormAccessBinder.applyReadOnlyIfCannotUpdate(form);
-            }
+        if (existing != null) {
+            form.setEntity(existing);
+            // Запись нельзя сохранить — форма в режиме просмотра с названной причиной (E1.5).
+            // Тем же путём, что и диалог: один binder, одно решение.
+            itemFormAccessBinder.applyReadOnlyIfCannotSave(form,
+                itemActionResolver(entityClass, variant));
         } else {
             Object preset = parameters == null ? null : parameters.get("presetEntity");
             if (preset != null) {
@@ -128,6 +185,12 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
             }
             form.initializeNewEntity(FormCoordinator.initialValuesOf(parameters));
             FormCoordinator.seedCopiedRows(form, parameters);
+        }
+
+        if (id != null && FormCoordinator.isReadOnlyRequested(parameters)) {
+            // Явный просмотр (E1.3): решение списка не допускает изменения — карточка открывается
+            // без правки. Это не отказ в правах, поэтому бейдж о правах здесь не показывается.
+            form.setReadOnly(ReadOnlyReason.requested());
         }
 
         // Отмена → закрываем вкладку
@@ -145,9 +208,55 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
         });
 
         form.withDefaultButtons();
+        // Ссылка на запись (E2.1): тот же код, что у диалога, — адрес не должен зависеть от
+        // того, каким путём открыли карточку. Кнопка скрыта, пока решения нет.
+        this.copyLinkButton = ItemFormLinkAffordance.attach(form, formLinkService,
+            itemActionResolver(entityClass, variant), entityClass, variant);
         add(form);
         setFlexGrow(1, form);
         this.itemForm = form;
+    }
+
+    /** Решатель действий карточки: по нему решается, правится открытая запись или нет (E1.5). */
+    private ActionResolver itemActionResolver(Class<?> entityClass, String variant) {
+        return new ActionResolver(actionRegistry, actionContextProvider, actionHandlerRegistry,
+            ActionSurface.ITEM_FOOTER, entityClass, variant);
+    }
+
+    /** Canonical чтение записи для открытия вкладки — тот же путь, что у диалога. */
+    private <T extends IdentifiableEntity, ID> T loadExisting(Class<T> entityClass, ID id) {
+        BaseService<T, ID> service = serviceLocator.findService(entityClass);
+        return service.findById(id).orElse(null);
+    }
+
+    /**
+     * Запись недоступна в момент открытия вкладки: строки нет либо её скрыла row-level RLS.
+     *
+     * <p>Unchecked намеренно: исключение летит через инициализатор {@code Workspace.open} в
+     * {@code WorkspaceManager.getOrCreate} ({@code computeIfAbsent}) — при броске компонент не
+     * кешируется, а вкладка не добавляется. Вызывающий ({@code FormCoordinator}) ловит его и
+     * показывает сообщение, поэтому пользователь не видит стек.</p>
+     */
+    public static class RecordUnavailableException extends RuntimeException {
+
+        private final Class<?> entityClass;
+        private final Object id;
+
+        public RecordUnavailableException(Class<?> entityClass, Object id) {
+            super("Запись не найдена: " + id);
+            this.entityClass = entityClass;
+            this.id = id;
+        }
+
+        /** Тип, для которого не нашлась запись (для диагностики и route-маппинга). */
+        public Class<?> entityClass() {
+            return entityClass;
+        }
+
+        /** Идентификатор, по которому читалась запись. */
+        public Object id() {
+            return id;
+        }
     }
 
     // === Dirtyable / Savable — делегируем к ItemForm ===
@@ -155,6 +264,15 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     @Override
     public boolean isDirty() {
         return itemForm != null && itemForm.isDirty();
+    }
+
+    /**
+     * Режим просмотра карточки (E1.5): Workspace по нему решает, предлагать ли закрытие с
+     * сохранением. Без открытой формы режим просмотра не заявлен — нечего сохранять.
+     */
+    @Override
+    public boolean isReadOnly() {
+        return itemForm != null && itemForm.isReadOnly();
     }
 
     @Override
@@ -186,6 +304,11 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     private FormSaveResult saveNow(ItemForm<?> form) {
         FormSaveResult result = form.save();
         if (result.success()) {
+            // У только что сохранённой записи появился id: ссылка стала построимой, и кнопка
+            // обязана это увидеть, не дожидаясь переоткрытия вкладки (E2.1).
+            if (copyLinkButton != null) {
+                copyLinkButton.refresh();
+            }
             if (savedCallback != null) {
                 savedCallback.accept(((FormSaveResult.Success) result).saved());
             }

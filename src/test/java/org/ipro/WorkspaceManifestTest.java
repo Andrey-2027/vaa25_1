@@ -91,8 +91,12 @@ class WorkspaceManifestTest {
     private static final Pattern MODULE_ENTRY = Pattern.compile("<module>([^<]+)</module>");
     private static final Pattern DEPENDENCY_MANAGEMENT =
         Pattern.compile("<dependencyManagement>.*?</dependencyManagement>", Pattern.DOTALL);
+    private static final Pattern DEPENDENCY_MANAGEMENT_BLOCK =
+        Pattern.compile("<dependencyManagement>(.*?)</dependencyManagement>", Pattern.DOTALL);
     private static final Pattern DEPENDENCY_BLOCK =
         Pattern.compile("<dependency>(.*?)</dependency>", Pattern.DOTALL);
+    private static final Pattern IMPORTED_POM_TYPE = Pattern.compile("<type>\\s*pom\\s*</type>");
+    private static final Pattern IMPORT_SCOPE = Pattern.compile("<scope>\\s*import\\s*</scope>");
     private static final Pattern PARENT_BLOCK =
         Pattern.compile("<parent>(.*?)</parent>", Pattern.DOTALL);
     private static final Pattern COORDINATES =
@@ -380,12 +384,28 @@ class WorkspaceManifestTest {
             if (!Files.isRegularFile(pom)) {
                 continue;
             }
-            // dependencyManagement — это не зависимость, а объявление версий: вырезаем,
-            // иначе родительские BOM'ы дали бы рёбра, которых в сборке нет.
-            String text = DEPENDENCY_MANAGEMENT.matcher(read(pom)).replaceAll(" ");
+            String pomText = read(pom);
+            Matcher managementBlocks = DEPENDENCY_MANAGEMENT_BLOCK.matcher(pomText);
+            List<String> importedBoms = new ArrayList<>();
+            while (managementBlocks.find()) {
+                Matcher managedDependencies = DEPENDENCY_BLOCK.matcher(managementBlocks.group(1));
+                while (managedDependencies.find()) {
+                    String block = managedDependencies.group(1);
+                    if (IMPORTED_POM_TYPE.matcher(block).find() && IMPORT_SCOPE.matcher(block).find()) {
+                        importedBoms.add(block);
+                    }
+                }
+            }
+            // dependencyManagement обычно только объявляет версии. Импорт BOM — исключение:
+            // Maven разрешает его при построении модели, поэтому для локального BOM это
+            // build-order ребро, которое должно совпасть с dependsOn.
+            String text = DEPENDENCY_MANAGEMENT.matcher(pomText).replaceAll(" ");
             Matcher dependencies = DEPENDENCY_BLOCK.matcher(text);
             while (dependencies.find()) {
                 collect(dependencies.group(1), workspaceArtifacts, projectId, referenced);
+            }
+            for (String importedBom : importedBoms) {
+                collect(importedBom, workspaceArtifacts, projectId, referenced);
             }
             Matcher parents = PARENT_BLOCK.matcher(text);
             while (parents.find()) {

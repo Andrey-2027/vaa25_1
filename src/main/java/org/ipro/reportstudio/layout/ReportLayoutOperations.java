@@ -41,23 +41,53 @@ public final class ReportLayoutOperations {
         return openGroups.isEmpty() ? null : openGroups.peek();
     }
 
+    /**
+     * Расставляет позиции бэндов по их иерархии и приводит порядок списка к порядку позиций.
+     *
+     * <p>Позиция — авторитетное место бэнда в отчёте: компилятор отчёта строит иерархию групп
+     * именно по ней, а {@code @OrderBy("position ASC, id ASC")} на списке бэндов перечитывает
+     * шаблон в порядке позиций. Сама эта функция список не переупорядочивала, поэтому в памяти
+     * порядок задавался списком, а после перечитывания — позициями: расхождение было видно как
+     * «в редакторе одна структура, после перезагрузки другая». Теперь список следует за
+     * позициями (см. {@link #normalizeOrder}), и оба представления — одно состояние.</p>
+     *
+     * <p>Негрупповые бэнды (DETAIL, PAGE_*, REPORT_*, NO_DATA) компилятор находит по виду, а не
+     * по месту, поэтому их порядок в распорядке — оформительский; группы же нумеруются после них,
+     * чтобы поддерево каждой группы оставалось непрерывным (именно на непрерывность опирается
+     * {@link #resolveScopeAt}).</p>
+     */
     public static void renumberGroupPositions(ReportTemplate template) {
         List<ReportBand> headers = template.getBands().stream()
                 .filter(b -> b.getKind() == ReportBandKind.GROUP_HEADER)
                 .toList();
-        if (headers.isEmpty()) {
-            return;
+        if (!headers.isEmpty()) {
+            List<ReportBand> topLevel = headers.stream()
+                    .filter(b -> b.getParent() == null)
+                    .sorted(Comparator.comparingInt(ReportBand::getPosition))
+                    .toList();
+            int base = template.getBands().stream()
+                    .filter(b -> !b.getKind().isGroupBand())
+                    .mapToInt(ReportBand::getPosition).max().orElse(-1) + 1;
+            int[] next = {base};
+            for (ReportBand root : topLevel) {
+                renumberGroupSubtree(template, root, headers, next, new ArrayList<>());
+            }
         }
-        List<ReportBand> topLevel = headers.stream()
-                .filter(b -> b.getParent() == null)
-                .sorted(Comparator.comparingInt(ReportBand::getPosition))
-                .toList();
-        int base = template.getBands().stream()
-                .filter(b -> !b.getKind().isGroupBand())
-                .mapToInt(ReportBand::getPosition).max().orElse(-1) + 1;
-        int[] next = {base};
-        for (ReportBand root : topLevel) {
-            renumberGroupSubtree(template, root, headers, next, new ArrayList<>());
+        normalizeOrder(template);
+    }
+
+    /**
+     * Упорядочивает список по позициям и нумерует подряд, чтобы список и позиции не разъехались.
+     *
+     * <p>Порядок применяется через {@code List.sort} (перестановка {@code set}), а не через
+     * {@code clear}+{@code addAll}: список бэндов — управляемая JPA-коллекция, и удаление с
+     * повторной вставкой тех же сущностей в одной транзакции было бы ложным изменением состава.</p>
+     */
+    private static void normalizeOrder(ReportTemplate template) {
+        List<ReportBand> bands = template.getBands();
+        bands.sort(Comparator.comparingInt(ReportBand::getPosition));
+        for (int i = 0; i < bands.size(); i++) {
+            bands.get(i).setPosition(i);
         }
     }
 
@@ -199,19 +229,35 @@ public final class ReportLayoutOperations {
         if (template == null || band == null || !band.getKind().isGroupBand()) return false;
         boolean header = band.getKind() == ReportBandKind.GROUP_HEADER;
         String current = band.getGroupField();
+        // F10: parent у бэндов пары асимметричен, и синхронизировать его нельзя. У заголовка это
+        // объёмлющая группа, у подвала — собственный заголовок пары: именно по этой связи
+        // JasperReportCompiler.groupOf выбирает группу для подытогов, а groupFooterOf находит
+        // подвал своего заголовка для иерархической нумерации. Пока обе связи вели на nextParent,
+        // подытоги вложенной группы адресовались подвалу родительской.
+        ReportBand pairHeader = header ? band : null;
+        if (pairHeader == null) {
+            for (ReportBand candidate : template.getBands()) {
+                if (candidate.getKind() == ReportBandKind.GROUP_HEADER
+                        && Objects.equals(current, candidate.getGroupField())) {
+                    pairHeader = candidate;
+                    break;
+                }
+            }
+        }
         for (ReportBand candidate : List.copyOf(template.getBands())) {
             if (candidate.getKind().isGroupBand()
                     && (candidate == band || Objects.equals(current, candidate.getGroupField()))) {
                 candidate.setGroupField(nextField);
-                if (header && nextParent != null) candidate.setParent(nextParent);
                 if (candidate.getKind() == ReportBandKind.GROUP_HEADER) {
+                    candidate.setParent(nextParent);
                     candidate.setStartNewPage(startNewPage);
                     candidate.setTitleWidth(titleWidth);
                     candidate.setHeaderLayout(headerLayout);
+                } else {
+                    candidate.setParent(pairHeader);
                 }
             }
         }
-        band.setParent(header ? nextParent : null);
         renumberGroupPositions(template);
         return true;
     }

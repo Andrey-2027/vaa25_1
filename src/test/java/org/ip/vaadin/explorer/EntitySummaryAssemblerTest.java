@@ -4,13 +4,22 @@ import org.ipro.form.builder.ContextFilterField;
 import org.ipro.form.registry.FormRegistry;
 import org.ipro.form.registry.FormType;
 import org.ipro.form.registry.SelectionColumnsDef;
+import org.ipro.form.link.FormRouteCatalog;
+import org.ipro.data.EntityDescriptorCatalog;
+import org.ipro.lifecycle.EntityLifecycleRegistry;
+import org.ipro.metadata.AnnotationClassScanner;
+import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.ReferenceIndex;
+import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.SubsystemRegistry;
+import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.facet.FacetKey;
 import org.ipro.metadata.facet.FacetKind;
 import org.ipro.metadata.facet.FacetResolver;
 import org.ipro.metadata.facet.FactSource;
+import org.ipro.metadata.facet.ResolvedValue;
+import org.ipro.metadata.FactOrigin;
 import org.ipro.numbering.NumberingMetadataRegistry;
 import org.ipro.settings.SettingsReverseReferenceSource;
 import org.ipro.vaadin.explorer.EntitySummary;
@@ -22,9 +31,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Юнит-тест {@link EntitySummaryAssembler} (срез 1 Entity Explorer): сводка сущности
@@ -47,7 +60,7 @@ class EntitySummaryAssemblerTest {
         numbering.afterPropertiesSet();
         SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
         subsystems.afterPropertiesSet();
-        assembler = new EntitySummaryAssembler("org.ip", metadataResolver, formRegistry,
+        assembler = assembler("org.ip", metadataResolver, formRegistry,
                 referenceIndex, numbering, subsystems, FacetResolver.none());
     }
 
@@ -83,7 +96,9 @@ class EntitySummaryAssemblerTest {
             "Подсистема".equals(r.caption()) && !r.value().value().isBlank());
         assertThat(summary.overview())
             .extracting(r -> r.key().kind())
-            .allMatch(FacetKind::overridable);
+            .contains(FacetKind.ENTITY_KIND, FacetKind.ENTITY_EXPOSURE,
+                FacetKind.ENTITY_KEY, FacetKind.LINKABILITY)
+            .contains(FacetKind.ENTITY_ITEM_TITLE, FacetKind.ENTITY_SELECTION_TITLE);
 
         // Поля обеих проекций.
         assertThat(summary.fieldsForm()).isNotEmpty();
@@ -98,6 +113,8 @@ class EntitySummaryAssemblerTest {
         // Табличная часть ReceivingDocumentItem.
         assertThat(summary.tableSections()).anyMatch(r ->
             "ReceivingDocumentItem".equals(r.rowClass()) && !r.value().value().isBlank());
+        assertThat(summary.lifecycle()).isEmpty();
+        assertThat(summary.diagnostics()).isEmpty();
 
         // Нумерация: number, scope JOURNAL, период YEAR.
         assertThat(summary.numbering()).anyMatch(r ->
@@ -111,6 +128,199 @@ class EntitySummaryAssemblerTest {
             .filteredOn(EntitySummary.FormRow::platformDefault)
             .extracting(r -> r.formType())
             .containsExactlyInAnyOrder(FormType.LIST, FormType.ITEM, FormType.SELECTION);
+    }
+
+    @Test
+    void effectiveFactsRetainOriginAndCheckedJavaSymbols() {
+        EntitySummary nomenclature = assembler.summarize(Nomenclature.class);
+        assertThat(nomenclature.displayName().origin()).isEqualTo(FactOrigin.EXPLICIT);
+        assertThat(nomenclature.displayName().symbol()).isEqualTo(Nomenclature.class.getName());
+        assertThat(assembler.entities())
+            .filteredOn(ref -> ref.entityClass() == Nomenclature.class)
+            .singleElement()
+            .satisfies(ref -> assertThat(ref.displayName().origin()).isEqualTo(FactOrigin.EXPLICIT));
+
+        assertThat(nomenclature.overview())
+            .filteredOn(row -> row.key().kind() == FacetKind.ENTITY_KIND)
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.EXPLICIT);
+                assertThat(row.value().symbol()).isEqualTo(Nomenclature.class.getName());
+            });
+        assertThat(nomenclature.overview())
+            .filteredOn(row -> row.key().kind() == FacetKind.SUBSYSTEM_MEMBERSHIP)
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.REGISTRATION);
+                assertThat(row.value().symbol()).isEqualTo(
+                    org.ip.subsystem.Subsystems.Directories.class.getName());
+            });
+
+        assertThat(nomenclature.fieldsForm())
+            .filteredOn(row -> row.name().equals("code"))
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.EXPLICIT);
+                assertThat(row.value().symbol()).isEqualTo(Nomenclature.class.getName() + "#code");
+                assertThat(row.requiredOrigin()).isIn(FactOrigin.EXPLICIT,
+                    FactOrigin.BEAN_VALIDATION, FactOrigin.JPA_MAPPING);
+                assertThat(row.typeOrigin()).isIn(FactOrigin.JAVA_TYPE, FactOrigin.EXPLICIT);
+            });
+
+        EntitySummary prdSpecMtr = assembler.summarize(org.ip.model.PrdSpecMtr.class);
+        assertThat(prdSpecMtr.overview())
+            .filteredOn(row -> row.key().kind() == FacetKind.ENTITY_SELECTION_TITLE)
+            .singleElement()
+            .satisfies(row -> assertThat(row.value().origin()).isEqualTo(FactOrigin.DERIVED));
+        assertThat(prdSpecMtr.overview())
+            .filteredOn(row -> row.key().kind() == FacetKind.ENTITY_KEY)
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.PLATFORM_DEFAULT);
+                assertThat(row.value().value()).isEmpty();
+            });
+        assertThat(prdSpecMtr.overview())
+            .filteredOn(row -> row.key().kind() == FacetKind.LINKABILITY)
+            .allSatisfy(row -> {
+                assertThat(row.value().value()).isEqualTo("Недоступна");
+                assertThat(row.detail()).isEqualTo("NOT_PUBLISHED");
+            });
+
+        EntitySummary receiving = assembler.summarize(ReceivingDocument.class);
+        assertThat(receiving.listColumns())
+            .filteredOn(row -> row.path().equals("journal.code"))
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.DERIVED);
+                assertThat(row.value().symbol()).isEmpty();
+            });
+        assertThat(receiving.listColumns())
+            .filteredOn(row -> row.path().equals("number"))
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.EXPLICIT);
+                assertThat(row.value().symbol()).isEqualTo(ReceivingDocument.class.getName() + "#number");
+            });
+        assertThat(receiving.listColumns())
+            .filteredOn(row -> row.path().equals("id"))
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.PLATFORM_DEFAULT);
+                assertThat(row.value().symbol())
+                    .isEqualTo(org.ipro.crud.BaseEntity.class.getName() + "#id");
+            });
+        assertThat(receiving.selectColumns())
+            .allSatisfy(row -> assertThat(row.note()).isEqualTo("использует колонки списка"));
+        assertThat(receiving.tableSections())
+            .filteredOn(row -> row.rowClass().equals("ReceivingDocumentItem"))
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.EXPLICIT);
+                assertThat(row.value().symbol()).isEqualTo(
+                    org.ip.model.ReceivingDocumentItem.class.getName());
+            });
+
+        EntitySummary inherited = assembler.summarize(InheritedCatalogFixture.class);
+        assertThat(inherited.overview())
+            .filteredOn(row -> row.key().kind() == FacetKind.ENTITY_KIND)
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.DERIVED);
+                assertThat(row.value().symbol())
+                    .isEqualTo(org.ipro.crud.StandardCatalogEntity.class.getName());
+            });
+        assertThat(inherited.fieldsForm())
+            .filteredOn(row -> row.name().equals("code"))
+            .singleElement()
+            .satisfies(row -> assertThat(row.value().symbol())
+                .isEqualTo(org.ipro.crud.StandardCatalogEntity.class.getName() + "#code"));
+    }
+
+    @Test
+    void missingStartupCheckIsVisibleAsAnUnassignedServiceDiagnostic() {
+        assertThat(assembler.unassignedDiagnostics())
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.code()).isEqualTo("DIAGNOSTICS_UNAVAILABLE");
+                assertThat(row.value().value()).isEqualTo("Стартовая проверка не подключена");
+                assertThat(row.key()).isNull();
+            });
+    }
+
+    @Test
+    void nonEmptySymbolsResolveToClassesAndFieldsOnTheClasspath() throws Exception {
+        List<ResolvedValue> facts = new java.util.ArrayList<>();
+        facts.addAll(facts(assembler.summarize(Nomenclature.class)));
+        facts.addAll(facts(assembler.summarize(ReceivingDocument.class)));
+        facts.addAll(facts(assembler.summarize(InheritedCatalogFixture.class)));
+
+        for (ResolvedValue fact : facts) {
+            if (fact.symbol().isBlank()) {
+                continue;
+            }
+            String[] parts = fact.symbol().split("#", 2);
+            Class<?> owner = Class.forName(parts[0]);
+            if (parts.length == 2) {
+                assertThat(owner.getDeclaredField(parts[1])).isNotNull();
+            }
+        }
+    }
+
+    @Test
+    void knownRegistrationOriginDoesNotRequireARegistrationSymbol() {
+        FormRegistry forms = new FormRegistry();
+        forms.register(Nomenclature.class, FormType.ITEM, "no-source", context -> null);
+        MetadataResolver metadataResolver = new MetadataResolver();
+        ReferenceIndex references = new ReferenceIndex("org.ip");
+        references.afterPropertiesSet();
+        NumberingMetadataRegistry numbering = new NumberingMetadataRegistry("org.ip");
+        numbering.afterPropertiesSet();
+        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
+        subsystems.afterPropertiesSet();
+        EntitySummaryAssembler local = assembler("org.ip", metadataResolver, forms,
+            references, numbering, subsystems, FacetResolver.none());
+
+        assertThat(local.summarize(Nomenclature.class).forms())
+            .filteredOn(row -> "no-source".equals(row.variant()))
+            .singleElement()
+            .satisfies(row -> {
+                assertThat(row.origin()).isEqualTo(FactOrigin.REGISTRATION);
+                assertThat(row.symbol()).isEmpty();
+            });
+    }
+
+    @Test
+    void unknownOriginIsLimitedToCompatibilityFactories() {
+        assertThat(ResolvedValue.code("legacy").origin()).isEqualTo(FactOrigin.UNKNOWN);
+        assertThat(new ResolvedValue("legacy", FactSource.CODE).origin())
+            .isEqualTo(FactOrigin.UNKNOWN);
+
+        List<ResolvedValue> facts = facts(assembler.summarize(Nomenclature.class));
+        assertThat(facts).allSatisfy(fact ->
+            assertThat(fact.origin()).isNotEqualTo(FactOrigin.UNKNOWN));
+        assertThat(assembler.summarize(Nomenclature.class).fieldsForm())
+            .allSatisfy(row -> {
+                assertThat(row.requiredOrigin()).isNotEqualTo(FactOrigin.UNKNOWN);
+                assertThat(row.typeOrigin()).isNotEqualTo(FactOrigin.UNKNOWN);
+            });
+    }
+
+    private static List<ResolvedValue> facts(EntitySummary summary) {
+        List<ResolvedValue> values = new java.util.ArrayList<>();
+        values.add(summary.displayName());
+        summary.overview().forEach(row -> values.add(row.value()));
+        summary.fieldsForm().forEach(row -> values.add(row.value()));
+        summary.fieldsGrid().forEach(row -> values.add(row.value()));
+        summary.listColumns().forEach(row -> values.add(row.value()));
+        summary.selectColumns().forEach(row -> values.add(row.value()));
+        summary.tableSections().forEach(row -> values.add(row.value()));
+        summary.contextFilters().forEach(row -> values.add(row.value()));
+        summary.selections().forEach(row -> values.add(row.value()));
+        summary.references().forEach(row -> values.add(row.value()));
+        summary.numbering().forEach(row -> values.add(row.value()));
+        summary.lifecycle().forEach(row -> values.add(row.value()));
+        summary.diagnostics().forEach(row -> values.add(row.value()));
+        return values;
     }
 
     @Test
@@ -244,7 +454,7 @@ class EntitySummaryAssemblerTest {
         numbering.afterPropertiesSet();
         SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
         subsystems.afterPropertiesSet();
-        EntitySummaryAssembler custom = new EntitySummaryAssembler("org.ip", metadataResolver,
+        EntitySummaryAssembler custom = assembler("org.ip", metadataResolver,
             formRegistry, index, numbering, subsystems, FacetResolver.none());
         return custom.summarize(entityClass);
     }
@@ -325,8 +535,35 @@ class EntitySummaryAssemblerTest {
         numbering.afterPropertiesSet();
         SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
         subsystems.afterPropertiesSet();
-        EntitySummaryAssembler custom = new EntitySummaryAssembler("org.ip", metadataResolver,
+        EntitySummaryAssembler custom = assembler("org.ip", metadataResolver,
             formRegistry, referenceIndex, numbering, subsystems, resolver);
         return custom.summarize(entityClass);
+    }
+
+    static EntitySummaryAssembler assembler(
+            String basePackage,
+            MetadataResolver metadataResolver,
+            FormRegistry formRegistry,
+            ReferenceIndex referenceIndex,
+            NumberingMetadataRegistry numbering,
+            SubsystemRegistry subsystems,
+            FacetResolver facetResolver) {
+        SectionMetadataRegistry sections = new SectionMetadataRegistry(basePackage, metadataResolver);
+        sections.afterPropertiesSet();
+        Set<Class<?>> managedTypes = new LinkedHashSet<>(
+            AnnotationClassScanner.scanAnnotated(basePackage, EntityMetadata.class));
+        sections.all().forEach(section -> managedTypes.add(section.getRowClass()));
+        ManagedEntityCatalog managed = mock(ManagedEntityCatalog.class);
+        when(managed.managedEntityClasses()).thenReturn(managedTypes);
+        EntityDescriptorCatalog descriptors = new EntityDescriptorCatalog(
+            managed, sections, metadataResolver, List.of(), List.of());
+        FormRouteCatalog routes = FormRouteCatalog.build(descriptors, formRegistry, List.of());
+        return new EntitySummaryAssembler(basePackage, metadataResolver, formRegistry,
+            referenceIndex, numbering, subsystems, facetResolver, descriptors, routes,
+            new EntityLifecycleRegistry(List.of()), sections, null);
+    }
+
+    @EntityMetadata(listFormTitle = "Унаследованный справочник")
+    static class InheritedCatalogFixture extends org.ipro.crud.StandardCatalogEntity {
     }
 }

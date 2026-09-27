@@ -76,6 +76,11 @@ public final class TableSectionMetadataInfo {
         return annotation.title().isEmpty() ? rowClass.getSimpleName() : annotation.title();
     }
 
+    /** Происхождение заголовка табличной части. */
+    public FactOrigin getTitleOrigin() {
+        return annotation.title().isEmpty() ? FactOrigin.PLATFORM_DEFAULT : FactOrigin.EXPLICIT;
+    }
+
     public String getRowFormTitle() {
         return annotation.rowFormTitle().isEmpty() ? getTitle() : annotation.rowFormTitle();
     }

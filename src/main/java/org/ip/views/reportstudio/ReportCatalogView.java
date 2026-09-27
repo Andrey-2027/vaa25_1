@@ -18,6 +18,7 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
 import org.ipro.form.SelectionFormAssembler;
@@ -32,8 +33,9 @@ import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
 import org.ipro.ureport.catalog.ReportCatalogItem;
+import org.ipro.ureport.catalog.ReportCatalogItemFactory;
 import org.ipro.ureport.catalog.ReportCatalogService;
-import org.ipro.ureport.catalog.ReportEngineType;
+import org.ipro.ureport.catalog.ReportEngineCapabilities;
 import org.ipro.jr.dom.JrxmlTemplate;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
@@ -47,6 +49,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Route("report-catalog")
+@RouteAlias("report-catalog-compact")
+@RouteAlias("report-catalog-structured")
 @PageTitle("Каталог отчётов")
 @PermitAll
 public class ReportCatalogView extends HorizontalLayout {
@@ -165,18 +169,14 @@ public class ReportCatalogView extends HorizontalLayout {
     }
 
     private String typeLabel(ReportCatalogItem item) {
-        return switch (item.type()) {
-            case UDR -> "UDR";
-            case UREPORT3 -> "UReport3";
-            case JR -> "JR";
-        };
+        return ReportEngineCapabilities.of(item.type()).label();
     }
 
     private void showCreateTypeDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Новый отчёт: выберите тип");
         dialog.setWidth("460px");
-        Button udr = new Button("UDR — конструктор", event -> { dialog.close(); editor.newTemplate(); });
+        Button udr = new Button("UDR — конструктор", event -> { dialog.close(); editor.requestNewTemplate(); });
         udr.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         udr.setWidthFull();
         Button ureport = new Button("UReport3 — веб-дизайнер", event -> { dialog.close(); showCreateUreportDialog(); });
@@ -301,10 +301,11 @@ public class ReportCatalogView extends HorizontalLayout {
 
     private void openItem(ReportCatalogItem item) {
         if (item.fileMissing()) { showError("Файл шаблона отсутствует"); return; }
-        switch (item.type()) {
-            case UDR -> openUdrTemplate(item);
-            case UREPORT3 -> openDesigner(item);
-            case JR -> openJrInfo(item);
+        // Цель открытия — решение движка (матрица); эффект цели свой у каждой точки входа.
+        switch (ReportEngineCapabilities.of(item.type()).openTarget()) {
+            case EDITOR -> openUdrTemplate(item);
+            case DESIGNER -> openDesigner(item);
+            case INFO -> openJrInfo(item);
         }
     }
 
@@ -323,7 +324,7 @@ public class ReportCatalogView extends HorizontalLayout {
     private void openUdrTemplate(ReportCatalogItem item) {
         try {
             ReportTemplate template = templateService.loadTemplate(item.id());
-            editor.editTemplate(template);
+            editor.requestEditTemplate(template);
         } catch (RuntimeException ex) { showError("Не удалось открыть шаблон: " + ex.getMessage()); }
     }
 
@@ -335,12 +336,17 @@ public class ReportCatalogView extends HorizontalLayout {
     private void copySelected() {
         ReportCatalogItem selected = grid.asSingleSelect().getValue();
         if (selected == null) { notifySelectionRequired(); return; }
-        if (selected.type() != ReportEngineType.UDR) { showError("Копирование только для UDR"); return; }
+        // Доступность — решение движка (матрица); формулировка — пользовательская.
+        if (!ReportEngineCapabilities.of(selected.type()).copy()) {
+            showError("Копирование только для UDR");
+            return;
+        }
         try {
             ReportTemplate copy = templateService.copyTemplate(selected.id());
             refreshCatalog();
-            grid.select(catalogItemOf(selected.type(), copy.getId()));
-            editor.editTemplate(copy);
+            // Строку собирает тот же узел, что и список: второго чтения каталога нет.
+            grid.select(ReportCatalogItemFactory.of(copy));
+            editor.requestEditTemplate(copy);
             Notification.show("Создана копия «" + copy.getName() + "»", 3_000, Notification.Position.MIDDLE);
         } catch (RuntimeException ex) { showError("Не удалось создать копию: " + ex.getMessage()); }
     }
@@ -348,7 +354,10 @@ public class ReportCatalogView extends HorizontalLayout {
     private void exportSelected() {
         ReportCatalogItem selected = grid.asSingleSelect().getValue();
         if (selected == null) { notifySelectionRequired(); return; }
-        if (selected.type() != ReportEngineType.UDR) { showError("Экспорт JSON только для UDR"); return; }
+        if (!ReportEngineCapabilities.of(selected.type()).exportJson()) {
+            showError("Экспорт JSON только для UDR");
+            return;
+        }
         try {
             ReportTemplate template = templateService.loadTemplate(selected.id());
             String json = transferService.exportTemplate(template);
@@ -380,8 +389,8 @@ public class ReportCatalogView extends HorizontalLayout {
             String json = new String(buffer.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             ReportTemplate imported = transferService.importTemplate(json);
             refreshCatalog();
-            grid.select(catalogItemOf(ReportEngineType.UDR, imported.getId()));
-            editor.editTemplate(imported);
+            grid.select(ReportCatalogItemFactory.of(imported));
+            editor.requestEditTemplate(imported);
             Notification.show("Импортирован «" + imported.getName() + "»", 4_000, Notification.Position.MIDDLE);
         } catch (IOException io) { showError("Не удалось прочитать файл: " + io.getMessage()); }
         catch (RuntimeException ex) { showError("Импорт отклонён: " + ex.getMessage()); }
@@ -390,10 +399,27 @@ public class ReportCatalogView extends HorizontalLayout {
     private void deleteSelected() {
         ReportCatalogItem selected = grid.asSingleSelect().getValue();
         if (selected == null) { notifySelectionRequired(); return; }
-        switch (selected.type()) {
-            case UDR -> showError("Удаление UDR в каталоге не поддерживается");
-            case UREPORT3 -> confirmDeleteUreport(selected);
-            case JR -> confirmDeleteJr(selected);
+        ReportEngineCapabilities.Capabilities capabilities =
+                ReportEngineCapabilities.of(selected.type());
+        if (!capabilities.deleteInCatalog()) {
+            showError("Удаление " + capabilities.label() + " в каталоге не поддерживается");
+            return;
+        }
+        confirmDelete(selected);
+    }
+
+    /**
+     * Эффект удаления свой у каждого движка (разные сервисы и тексты подтверждения).
+     *
+     * <p>{@code default} здесь — детектор расхождения: если матрица объявит движок
+     * удаляемым, а диалога для него не появится, расхождение не пройдёт молча.</p>
+     */
+    private void confirmDelete(ReportCatalogItem item) {
+        switch (item.type()) {
+            case UREPORT3 -> confirmDeleteUreport(item);
+            case JR -> confirmDeleteJr(item);
+            default -> throw new IllegalStateException(
+                    "Движок " + item.type() + " объявлен удаляемым в каталоге, но диалога нет");
         }
     }
 
@@ -426,11 +452,6 @@ public class ReportCatalogView extends HorizontalLayout {
         confirm.open();
     }
 
-    private ReportCatalogItem catalogItemOf(ReportEngineType type, Long id) {
-        return catalogService.findAll(null, true).stream().filter(i -> i.type() == type && i.id().equals(id)).findFirst()
-                .orElseGet(() -> new ReportCatalogItem(id, type, "?", null, true, null, false));
-    }
-
     private void notifySelectionRequired() {
         Notification notification = Notification.show("Выберите отчёт в каталоге", 3_000, Notification.Position.MIDDLE);
         notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
@@ -449,7 +470,8 @@ public class ReportCatalogView extends HorizontalLayout {
     public record UreportTemplateServiceBridge(UreportTemplateService service) {
         public ReportCatalogItem create(String name, String description) {
             UreportTemplate template = service.createTemplate(name, description);
-            return new ReportCatalogItem(template.getId(), ReportEngineType.UREPORT3, template.getName(), template.getDescription(), template.isEnabled(), UreportTemplateService.designerUrl(template.getFileName()), false);
+            // Сборка — общий узел: у только что созданного шаблона файл на месте, отсюда fileMissing=false.
+            return ReportCatalogItemFactory.of(template, false);
         }
         public void delete(Long id) { service.delete(id); }
         public java.util.List<UreportParamSpec> loadParamSpecs(Long id) {

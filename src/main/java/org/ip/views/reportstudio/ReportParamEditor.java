@@ -10,6 +10,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -144,7 +145,12 @@ public class ReportParamEditor extends VerticalLayout {
         grid.addComponentColumn(param -> new Span(param.isRequired() ? "Да" : "Нет")).setHeader("Обязательный").setAutoWidth(true);
         grid.addComponentColumn(param -> new Span(param.isShowOnForm() ? "Да" : "Нет")).setHeader("На форме").setAutoWidth(true);
         grid.setWidthFull();
-        grid.setHeight("200px");
+        // D3.6.5: тема списка перенесена из compact/structured-копий (обе удалены). Высота —
+        // базовая, а не фиксированная: панель растягивает список через setFlexGrow, поэтому
+        // в четырёхвкладочном макете список занимает свободное место вкладки, а не обрезается.
+        grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES,
+                GridVariant.LUMO_NO_BORDER);
+        grid.setHeight("150px");
         grid.asSingleSelect().addValueChangeListener(event -> onParamSwitch(event.getValue()));
     }
 

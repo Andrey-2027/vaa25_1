@@ -102,6 +102,7 @@ class public final org.ipro.metadata.ColumnPath
   method public java.util.List<java.lang.String> getFetchPaths()
   method public java.util.Optional<org.ipro.metadata.FieldMetadataInfo> asFieldMetadata()
   method public org.ipro.metadata.ColumnPath withLabel(java.lang.String)
+  method public org.ipro.metadata.FactOrigin getLabelOrigin()
   method public org.ipro.metadata.annotation.FieldType getResolvedType()
   method public static java.lang.String toJson(java.util.List<org.ipro.metadata.ColumnPath>, java.lang.Class<?>)
   method public static java.util.List<org.ipro.metadata.ColumnPath> fromJson(java.lang.String, java.lang.Class<?>)
@@ -111,8 +112,10 @@ class public final org.ipro.metadata.ColumnPath
 class public final org.ipro.metadata.EntityMetadataInfo
   implements org.ipro.metadata.GridMetadata
   ctor public(java.lang.Class<?>, org.ipro.metadata.annotation.EntityMetadata, org.ipro.metadata.annotation.EntityKind, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.ColumnPath>)
+  ctor public(java.lang.Class<?>, org.ipro.metadata.annotation.EntityMetadata, org.ipro.metadata.annotation.EntityKind, org.ipro.metadata.FactOrigin, java.lang.String, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.ColumnPath>)
   method public int getOrder()
   method public java.lang.Class<?> getEntityClass()
+  method public java.lang.String getEntityKindSymbol()
   method public java.lang.String getIcon()
   method public java.lang.String getItemFormTitle()
   method public java.lang.String getListFormTitle()
@@ -124,6 +127,7 @@ class public final org.ipro.metadata.EntityMetadataInfo
   method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getAllAnnotatedFields()
   method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getFormFields()
   method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getGridFields()
+  method public org.ipro.metadata.FactOrigin getEntityKindOrigin()
   method public org.ipro.metadata.FieldMetadataInfo getFieldByName(java.lang.String)
   method public org.ipro.metadata.annotation.EntityKind getEntityKind()
   method public org.ipro.metadata.annotation.EntityMetadata getAnnotation()
@@ -241,6 +245,7 @@ class public final org.ipro.metadata.TableSectionMetadataInfo
   method public java.lang.reflect.Field getParentField()
   method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getFormFields()
   method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getGridFields()
+  method public org.ipro.metadata.FactOrigin getTitleOrigin()
   method public org.ipro.metadata.annotation.SectionPersistenceMode getPersistenceMode()
   method public org.ipro.metadata.annotation.SectionRlsPolicy getRlsPolicy()
   method public void linkToParent(T, P)
@@ -459,25 +464,34 @@ enum public final org.ipro.data.SearchContext
 
 enum public final org.ipro.metadata.FactOrigin
   extends java.lang.Enum<org.ipro.metadata.FactOrigin>
-  enum-constants [EXPLICIT, BEAN_VALIDATION, JPA_MAPPING, JAVA_TYPE, PLATFORM_DEFAULT]
+  enum-constants [EXPLICIT, BEAN_VALIDATION, JPA_MAPPING, JAVA_TYPE, PLATFORM_DEFAULT, REGISTRATION, DERIVED, UNKNOWN]
   field public static final org.ipro.metadata.FactOrigin BEAN_VALIDATION = enum-constant
+  field public static final org.ipro.metadata.FactOrigin DERIVED = enum-constant
   field public static final org.ipro.metadata.FactOrigin EXPLICIT = enum-constant
   field public static final org.ipro.metadata.FactOrigin JAVA_TYPE = enum-constant
   field public static final org.ipro.metadata.FactOrigin JPA_MAPPING = enum-constant
   field public static final org.ipro.metadata.FactOrigin PLATFORM_DEFAULT = enum-constant
+  field public static final org.ipro.metadata.FactOrigin REGISTRATION = enum-constant
+  field public static final org.ipro.metadata.FactOrigin UNKNOWN = enum-constant
   method public static org.ipro.metadata.FactOrigin valueOf(java.lang.String)
   method public static org.ipro.metadata.FactOrigin[] values()
 
 enum public final org.ipro.metadata.facet.FacetKind
   extends java.lang.Enum<org.ipro.metadata.facet.FacetKind>
-  enum-constants [ENTITY_LIST_TITLE, ENTITY_ITEM_TITLE, ENTITY_SELECTION_TITLE, FIELD_LABEL, GRID_COLUMN_HEADER, CONTEXT_FILTER_LABEL, SUBSYSTEM_MEMBERSHIP, FIELD_STRUCTURE, TABLE_SECTION, LOOKUP_TARGET, REVERSE_REFERENCE, NUMBERING_DECL]
+  enum-constants [ENTITY_LIST_TITLE, ENTITY_ITEM_TITLE, ENTITY_SELECTION_TITLE, FIELD_LABEL, GRID_COLUMN_HEADER, CONTEXT_FILTER_LABEL, SUBSYSTEM_MEMBERSHIP, FIELD_STRUCTURE, TABLE_SECTION, LOOKUP_TARGET, REVERSE_REFERENCE, NUMBERING_DECL, ENTITY_KIND, ENTITY_EXPOSURE, ENTITY_KEY, LINKABILITY, ENTITY_LIFECYCLE_HANDLER, ENTITY_LIFECYCLE_HOOK]
   field public static final org.ipro.metadata.facet.FacetKind CONTEXT_FILTER_LABEL = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind ENTITY_EXPOSURE = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind ENTITY_ITEM_TITLE = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind ENTITY_KEY = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind ENTITY_KIND = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind ENTITY_LIFECYCLE_HANDLER = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind ENTITY_LIFECYCLE_HOOK = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind ENTITY_LIST_TITLE = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind ENTITY_SELECTION_TITLE = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind FIELD_LABEL = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind FIELD_STRUCTURE = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind GRID_COLUMN_HEADER = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind LINKABILITY = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind LOOKUP_TARGET = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind NUMBERING_DECL = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind REVERSE_REFERENCE = enum-constant
@@ -649,15 +663,18 @@ record public final org.ipro.data.EntityCapabilities
 record public final org.ipro.data.EntityDescriptor
   extends java.lang.Record
   ctor public(java.lang.Class<?>, org.ipro.data.EntityExposure, boolean, boolean, org.ipro.data.EntityCapabilities, java.lang.String)
+  ctor public(java.lang.Class<?>, org.ipro.data.EntityExposure, boolean, boolean, org.ipro.data.EntityCapabilities, java.lang.String, org.ipro.metadata.FactOrigin, java.lang.String)
   method public boolean jpaManaged()
   method public boolean metadataDriven()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.Class<?> type()
+  method public java.lang.String exposureSymbol()
   method public java.lang.String reason()
   method public org.ipro.data.EntityCapabilities capabilities()
   method public org.ipro.data.EntityExposure exposure()
+  method public org.ipro.metadata.FactOrigin exposureOrigin()
 
 record public final org.ipro.data.SearchRead
   extends java.lang.Record
@@ -751,12 +768,17 @@ record public final org.ipro.metadata.facet.FacetKey
 record public final org.ipro.metadata.facet.ResolvedValue
   extends java.lang.Record
   ctor public(java.lang.String, org.ipro.metadata.facet.FactSource)
+  ctor public(java.lang.String, org.ipro.metadata.facet.FactSource, org.ipro.metadata.FactOrigin, java.lang.String)
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
+  method public java.lang.String symbol()
   method public java.lang.String value()
+  method public org.ipro.metadata.FactOrigin origin()
   method public org.ipro.metadata.facet.FactSource source()
   method public static org.ipro.metadata.facet.ResolvedValue code(java.lang.String)
+  method public static org.ipro.metadata.facet.ResolvedValue code(java.lang.String, org.ipro.metadata.FactOrigin)
+  method public static org.ipro.metadata.facet.ResolvedValue fact(java.lang.String, org.ipro.metadata.FactOrigin, java.lang.String)
 
 record public final org.ipro.search.GlobalSearchMatch
   extends java.lang.Record

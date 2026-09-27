@@ -138,6 +138,92 @@ class ReportLayoutOperationsTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    // === правило позиций (D3.6.4): позиция авторитетна, список следует за ней ===
+
+    @Test
+    void renumberingKeepsTheListOrderEqualToThePositionOrder() {
+        ReportTemplate template = templateWithDetail();
+        group(template, "region", null, 1);
+        ReportBand pageFooter =
+                ReportLayoutOperations.createBand(template, ReportBandKind.PAGE_FOOTER, null);
+        assertThat(pageFooter.getPosition())
+                .as("бэнд, добавленный после групп, получает наибольшую позицию")
+                .isGreaterThan(3);
+
+        ReportLayoutOperations.renumberGroupPositions(template);
+
+        assertThat(template.getBands())
+                .as("порядок списка обязан совпадать с порядком позиций: иначе после перечитывания "
+                        + "(@OrderBy(\"position ASC, id ASC\")) редактор показал бы другую структуру, "
+                        + "чем в черновике")
+                .containsExactlyElementsOf(ordered(template));
+        assertThat(template.getBands()).extracting(ReportBand::getPosition)
+                .containsExactly(0, 1, 2, 3);
+        // Негрупповые бэнды компилятор находит по виду, поэтому группа нумеруется после них:
+        // так поддерево группы остаётся непрерывным, а на это опирается resolveScopeAt.
+        assertThat(template.getBands()).extracting(ReportBand::getKind)
+                .containsExactly(ReportBandKind.DETAIL, ReportBandKind.PAGE_FOOTER,
+                        ReportBandKind.GROUP_HEADER, ReportBandKind.GROUP_FOOTER);
+    }
+
+    @Test
+    void reparentingKeepsTheSubtreeInsideItsParentSpan() {
+        ReportTemplate template = templateWithDetail();
+        ReportBand outer = group(template, "outer", null, 1);
+        ReportBand inner = group(template, "inner", null, 2);
+        ReportLayoutOperations.renumberGroupPositions(template);
+
+        assertThat(ReportLayoutOperations.reparentGroup(template, inner, outer)).isTrue();
+
+        assertThat(template.getBands()).extracting(ReportBand::getGroupField)
+                .as("поддерево вложенной группы стоит между заголовком и подвалом родителя")
+                .containsExactly(null, "outer", "inner", "inner", "outer");
+        assertThat(template.getBands()).extracting(ReportBand::getPosition)
+                .containsExactly(0, 1, 2, 3, 4);
+        assertThat(template.getBands())
+                .as("и после переноса список остаётся в порядке позиций")
+                .containsExactlyElementsOf(ordered(template));
+    }
+
+    @Test
+    void removingAGroupLeavesContiguousPositions() {
+        ReportTemplate template = templateWithDetail();
+        group(template, "alpha", null, 1);
+        group(template, "beta", null, 2);
+        ReportLayoutOperations.renumberGroupPositions(template);
+
+        ReportLayoutOperations.removeGroup(template, header(template, "alpha"));
+
+        assertThat(template.getBands()).extracting(ReportBand::getGroupField)
+                .containsExactly(null, "beta", "beta");
+        assertThat(template.getBands()).extracting(ReportBand::getPosition)
+                .as("после удаления группы позиции остаются подряд, без дыр")
+                .containsExactly(0, 1, 2);
+    }
+
+    @Test
+    void removingAPageBandRenumbersEvenWhenThereAreNoGroups() {
+        ReportTemplate template = templateWithDetail();
+        ReportBand pageFooter =
+                ReportLayoutOperations.createBand(template, ReportBandKind.PAGE_FOOTER, null);
+        ReportLayoutOperations.createBand(template, ReportBandKind.REPORT_FOOTER, null);
+
+        ReportLayoutOperations.removeBand(template, pageFooter);
+
+        assertThat(template.getBands()).extracting(ReportBand::getPosition)
+                .as("нормализация позиций не зависит от наличия групп")
+                .containsExactly(0, 1);
+        assertThat(template.getBands()).extracting(ReportBand::getKind)
+                .containsExactly(ReportBandKind.DETAIL, ReportBandKind.REPORT_FOOTER);
+    }
+
+    private static ReportBand header(ReportTemplate template, String field) {
+        return template.getBands().stream()
+                .filter(b -> b.getKind() == ReportBandKind.GROUP_HEADER)
+                .filter(b -> field.equals(b.getGroupField()))
+                .findFirst().orElseThrow();
+    }
+
     private static ReportTemplate templateWithDetail() {
         ReportTemplate template = new ReportTemplate();
         ReportBand detail = new ReportBand();

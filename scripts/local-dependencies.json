@@ -117,12 +117,12 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D2 persistence slice: entity, repository and the entity base class together with the module's own @EntityScan/@EnableJpaRepositories. Depends on the published crudui-core artifact, so this is the first platform module with an edge to a workspace project."
+        "state": "Shared persistence foundation: only BaseEntity remains in the artifact; feature entities, repositories, and persistence registration stay with their owners. Compile dependencies are neutral identity API, Jakarta Persistence/Validation, Spring Data JPA, and Hibernate. Depends on the sibling crudui reactor only for platform-identity-api."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "2d5b3bd92dcccd9fbba6d5c31d635906fc14a5b616823b69451be2c140d52b09",
-        "fileCount": 9,
+        "sha256": "619b6c496d3e89e4877240922b14ea61669e4c245edbfe0a79e877891b691be5",
+        "fileCount": 4,
         "inputs": [
           "pom.xml",
           "src"
@@ -277,7 +277,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "1d7c941a165a5ae956df7c92827fabf40235cd720bb072f3b5a7e50adfc4580f",
+        "sha256": "ced60e33f39ece23a96567aec77e76794c24ce214755ab2a2fe38641e6109aae",
         "fileCount": 38,
         "inputs": [
           "pom.xml",
@@ -404,8 +404,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "553b3edd11e4a4027b108f9124a1ecf84869fcc5aec801b96d95b0461259920e",
-        "fileCount": 138,
+        "sha256": "b2e0b4bf382630ec88d67d11ab84c2c2256cb98ea9b35b2b07296a2aae84bd19",
+        "fileCount": 189,
         "inputs": [
           "pom.xml",
           "src"
@@ -413,6 +413,93 @@
       },
       "artifacts": [
         "org.ipro:platform-vaadin:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-bom",
+      "relativePath": "platform-bom",
+      "dependsOn": [],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.8 platform BOM: manages every platform artifact plus the shared FilterGrid module versions and imports the Vaadin BOM. It intentionally contains no report coordinates. It is listed before starters because they import it while Maven constructs their models."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "d71d2e307ccda57f955127ca50f7debe0b5f1483aaa771d11f51384123794668",
+        "fileCount": 1,
+        "inputs": [
+          "pom.xml"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-bom:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-backend-starter",
+      "relativePath": "platform-backend-starter",
+      "dependsOn": [
+        "platform-bom",
+        "platform-spring-boot-autoconfigure"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.8 backend starter facade: depends on backend auto-configuration, whose transitive closure supplies backend platform modules. It deliberately does not add Vaadin or report libraries; Spring Boot JPA/security/validation runtime starters remain application-owned."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "bc4a628be00a155b9ae520e547081691a52c062db23eeefc64327919adb78341",
+        "fileCount": 1,
+        "inputs": [
+          "pom.xml"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-backend-starter:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-vaadin-starter",
+      "relativePath": "platform-vaadin-starter",
+      "dependsOn": [
+        "platform-bom",
+        "platform-vaadin"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.8 Vaadin starter facade: supplies platform-vaadin and vaadin-spring-boot-starter as compile/runtime dependencies. Report libraries are intentionally excluded."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "2a10c959b3e23952a00613b436912ffdb7e3ed527017c3fab25567cd515d9eff",
+        "fileCount": 1,
+        "inputs": [
+          "pom.xml"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-vaadin-starter:1.0-SNAPSHOT"
       ],
       "buildSteps": [
         {

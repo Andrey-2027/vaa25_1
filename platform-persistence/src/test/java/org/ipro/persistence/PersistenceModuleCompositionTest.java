@@ -17,42 +17,32 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * D2 (persistence slice): модуль проверяет свой состав и свою регистрацию сам.
+ * D2 (persistence slice): модуль проверяет свой узкий общий persistence-контракт.
  *
  * <p>Раньше это делал тест приложения, а манифест ставил модуль с {@code -DskipTests}. Разбор
  * D1/D2 назвал разрыв: артефакт можно было опубликовать, не запустив ни одной проверки. Здесь —
- * то, что артефакт видит сам: reviewed-состав, reviewed compile-зависимости и собственные
- * объявления {@code @EntityScan}/{@code @EnableJpaRepositories}. Кросс-артефактные свойства
- * (три декларации не перекрываются, приложение не перечисляет чужие пакеты) остались в
- * приложении — они требуют видеть все три стороны сразу.</p>
+ * то, что артефакт видит сам: reviewed-состав и reviewed compile-зависимости. Feature-specific
+ * entity/repository registration belongs to its feature owner, not this shared module.</p>
  */
 class PersistenceModuleCompositionTest {
 
     private static final Path MODULE = Path.of("").toAbsolutePath();
 
     private static final Set<String> REVIEWED_TYPES = Set.of(
-        "org.ipro.crud.BaseEntity",
-        "org.ipro.jr.JrxmlTemplateRepository",
-        "org.ipro.jr.dom.JrxmlTemplate",
-        "org.ipro.persistence.config.PersistenceAutoConfiguration");
+        "org.ipro.crud.BaseEntity");
 
-    /** Reviewed compile-поверхность: нейтральный identifier + API JPA/валидации/Spring Data. */
+    /** Reviewed compile-поверхность: нейтральный identifier + API JPA/валидации/Spring Data/Hibernate. */
     private static final Set<String> REVIEWED_COMPILE_DEPENDENCIES = Set.of(
         "platform-identity-api",
         "jakarta.persistence-api",
         "jakarta.validation-api",
         "spring-data-jpa",
-        "spring-boot-autoconfigure",
-        "spring-boot-persistence",
         "hibernate-core");
 
     private static final Pattern PACKAGE = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);
     private static final Pattern ARTIFACT_ID = Pattern.compile("<artifactId>([^<]+)</artifactId>");
     private static final Pattern DEPENDENCY_BLOCK = Pattern.compile("<dependency>(.*?)</dependency>", Pattern.DOTALL);
     private static final Pattern PARENT_BLOCK = Pattern.compile("<parent>(.*?)</parent>", Pattern.DOTALL);
-    private static final Pattern ANNOTATION = Pattern.compile(
-        "^\\s*@(EntityScan|EnableJpaRepositories)\\b", Pattern.MULTILINE);
-
     @Test
     void moduleCarriesExactlyTheReviewedPersistenceTypes() {
         Set<String> actual = new TreeSet<>();
@@ -85,22 +75,13 @@ class PersistenceModuleCompositionTest {
     }
 
     @Test
-    void moduleDeclaresItsOwnScanPackages() {
-        String autoConfiguration = read(MODULE
-            .resolve("src/main/java/org/ipro/persistence/config/PersistenceAutoConfiguration.java"));
-        Matcher matcher = ANNOTATION.matcher(autoConfiguration);
-        List<String> declared = new java.util.ArrayList<>();
-        while (matcher.find()) {
-            declared.add(matcher.group(1));
-        }
-
-        assertThat(declared)
-            .as("модуль обязан объявлять и persistence unit, и Spring Data: иначе его типы"
-                + " остаются в артефакте без регистрации, и заметить это в полном приложении"
-                + " почти невозможно")
-            .containsExactlyInAnyOrder("EntityScan", "EnableJpaRepositories");
-        assertThat(autoConfiguration).contains("\"org.ipro.jr.dom\"");
-        assertThat(autoConfiguration).contains("\"org.ipro.jr\"");
+    void moduleDoesNotOwnFeatureSpecificPersistenceRegistration() {
+        assertThat(MODULE.resolve(
+            "src/main/java/org/ipro/persistence/config/PersistenceAutoConfiguration.java"))
+            .doesNotExist();
+        assertThat(MODULE.resolve("src/main/resources/META-INF/spring/"
+            + "org.springframework.boot.autoconfigure.AutoConfiguration.imports"))
+            .doesNotExist();
     }
 
     /** Зависимости вне test-scope: только они попадают в публикуемый артефакт. */

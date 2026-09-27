@@ -18,10 +18,9 @@
 
     <name>GitVaa platform persistence</name>
     <description>
-        D2 (persistence slice): persistence-типы платформенных подсистем вместе со своей
-        регистрацией в persistence unit (@EntityScan) и в Spring Data
-        (@EnableJpaRepositories). Отвечает на риск D1 §3.5 — может ли артефакт потерять
-        свои entity/репозитории молча.
+        D2 persistence slice: shared BaseEntity superclass and its neutral persistence
+        dependencies. Feature-specific entities, repositories and package registration
+        remain with their owning application or platform modules.
     </description>
 
     <properties>
@@ -33,7 +32,7 @@
     <!--
       Зависимости persistence-модуля: нейтральный identifier
       (org.ipro:platform-identity-api — Java-only артефакт реактора crudui, без
-      Spring/JPA/Vaadin), API JPA и валидации, Spring Data JPA и точка авто-конфигурации.
+      Spring/JPA/Vaadin), API JPA и валидации и Spring Data JPA.
       Реализации платформы (metadata, data path, UI) здесь запрещены: модуль обязан
       оставаться ниже их, иначе он не сможет быть вынесен без цикла. Раньше здесь стоял
       crudui-core — то есть persistence-модуль платформы зависел от UI-библиотеки ради
@@ -58,40 +57,17 @@
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-jpa</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <!-- @EntityScan в Boot 4 живёт в отдельном модуле, а не в autoconfigure. -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-persistence</artifactId>
-        </dependency>
         <!-- База сущностей (@MappedSuperclass) использует деталь прокси-модели Hibernate. -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
         </dependency>
 
-        <!--
-          Тесты модуля живут здесь, а не в приложении: артефакт публикуется отдельно,
-          и его регистрация в persistence unit обязана проверяться вместе с ним.
-          Scope test: срез @DataJpaTest поднимает только собственные объявления модуля,
-          ни приложения, ни его конфигурации в контексте нет.
-        -->
+        <!-- Module-local tests verify BaseEntity's shared behavior; feature persistence
+             registration is tested by the owning application/module. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

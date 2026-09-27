@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Гейт владельца, а не потребителя — по образцу {@code CoreModuleCompositionTest}
  * и {@code AutoconfigureModuleCompositionTest}. Артефакт публикуется отдельно, поэтому его
  * состав, его compile-поверхность и его чистота обязаны проверяться здесь, на его собственном
- * classpath: тесты приложения этого не увидят, потому что для приложения все 93 типа выглядят
+ * classpath: тесты приложения этого не увидят, потому что для приложения все 104 типа выглядят
  * как обычные импортируемые классы.</p>
  *
  * <p><b>Почему состав зафиксирован списком, а не «всё, что скомпилировалось».</b> Роли типов
@@ -41,9 +41,14 @@ class VaadinModuleCompositionTest {
     private static final Path MODULE = Path.of("").toAbsolutePath();
 
     /**
-     * Reviewed-реестр состава: 93 типа, перенесённых D3.5.4 (form 83, vaadin 7, telemetry 3 —
+     * Reviewed-реестр состава: 104 типа — 93 перенесённых D3.5.4 (form 83, vaadin 7, telemetry 3,
      * последние три переехали вместе со сменой пакета {@code org.ip.telemetry.vaadin} →
-     * {@code org.ipro.vaadin.telemetry}).
+     * {@code org.ipro.vaadin.telemetry}) и 11 типов контракта действий E1.1
+     * ({@code org.ipro.form.action.*}).
+     *
+     * <p>С E2 состав растёт срезами (адрес формы E2.1, route-вход E2.2, host и его мост E2.3) —
+     * каждый новый тип добавляется здесь строкой, чтобы его появление было видно в диффе, а не
+     * обнаруживалось расширением публичной поверхности «само собой».</p>
      *
      * <p>Расширять можно только вместе с переездом названной группы плана D3.5. Пропавшая строка
      * означает, что тип вернулся в дерево приложения — и тогда обе стороны файловых проверок
@@ -75,6 +80,24 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.SelectionGridCustomizer",
         "org.ipro.form.TableSectionCustomization",
         "org.ipro.form.TableSectionFactory",
+        "org.ipro.form.action.ActionContext",
+        "org.ipro.form.action.ActionContextProvider",
+        "org.ipro.form.action.ActionDecision",
+        "org.ipro.form.action.ActionDefinition",
+        "org.ipro.form.action.ActionHandler",
+        "org.ipro.form.action.ActionHandlerRegistry",
+        "org.ipro.form.action.ActionId",
+        "org.ipro.form.action.ActionInvocation",
+        "org.ipro.form.action.ActionPermission",
+        "org.ipro.form.action.ActionPolicy",
+        "org.ipro.form.action.ActionRegistry",
+        "org.ipro.form.action.ActionResolver",
+        "org.ipro.form.action.ActionRequirement",
+        "org.ipro.form.action.ActionSurface",
+        "org.ipro.form.action.CrudAction",
+        "org.ipro.form.action.CopyLinkButton",
+        "org.ipro.form.action.ReadOnlyReason",
+        "org.ipro.form.action.RouteLinkability",
         "org.ipro.form.builder.ContextFilterControl",
         "org.ipro.form.builder.ContextFilterField",
         "org.ipro.form.builder.ContextFilterPanel",
@@ -113,8 +136,26 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.coordinator.FormNavigator",
         "org.ipro.form.coordinator.FormOpenMode",
         "org.ipro.form.coordinator.ItemFormAccessBinder",
+        "org.ipro.form.coordinator.ItemFormLinkAffordance",
         "org.ipro.form.coordinator.ItemFormWrapperView",
         "org.ipro.form.coordinator.ListFormWrapper",
+        "org.ipro.form.host.BrowserHistory",
+        "org.ipro.form.host.FormRouteUrlBridge",
+        "org.ipro.form.host.RouteStatePage",
+        "org.ipro.form.link.ApplicationBasePath",
+        "org.ipro.form.link.EntityExplorerAddress",
+        "org.ipro.form.link.FormLinkResult",
+        "org.ipro.form.link.FormLinkService",
+        "org.ipro.form.link.FormRoute",
+        "org.ipro.form.link.FormRouteAliasDeclaration",
+        "org.ipro.form.link.FormRouteCatalog",
+        "org.ipro.form.link.FormRouteCodec",
+        "org.ipro.form.link.FormRouteKind",
+        "org.ipro.form.link.FormRouteOpener",
+        "org.ipro.form.link.FormRouteParseResult",
+        "org.ipro.form.link.NotLinkableReason",
+        "org.ipro.form.link.OpenResult",
+        "org.ipro.form.link.PublishedFormRoute",
         "org.ipro.form.registry.FormContext",
         "org.ipro.form.registry.FormFactory",
         "org.ipro.form.registry.FormKey",
@@ -122,16 +163,12 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.registry.FormRegistryConfiguration",
         "org.ipro.form.registry.FormResolver",
         "org.ipro.form.registry.FormType",
-        "org.ipro.form.registry.ListCommand",
-        "org.ipro.form.registry.ListCommandContext",
-        "org.ipro.form.registry.ListCommandRegistry",
         "org.ipro.form.registry.ListFormContext",
         "org.ipro.form.registry.SelectionColumnsDef",
         "org.ipro.form.registry.SelectionFilter",
         "org.ipro.form.spi.FormSettingsStore",
         "org.ipro.form.spi.GridView",
         "org.ipro.form.spi.GridViewStore",
-        "org.ipro.form.spi.ListFormToolbarContributor",
         "org.ipro.form.spi.WorkspaceGateway",
         "org.ipro.vaadin.explorer.EntitySummary",
         "org.ipro.vaadin.explorer.EntitySummaryAssembler",
@@ -148,13 +185,21 @@ class VaadinModuleCompositionTest {
      * Reviewed внешние корни импорта. {@code org.ipro} здесь означает «другой платформенный
      * модуль или этот же»; {@code com.vaadin} — собственная технология модуля (в отличие от
      * platform-core, где Vaadin запрещён именно потому, что UI выделен сюда).
+     *
+     * <p>{@code tools.jackson} (Jackson 3) добавлен вместе с E2.3 и он <b>назван отдельно</b>,
+     * а не спрятан за {@code com.fasterxml.jackson}: {@code History} из Vaadin принимает узел
+     * состояния именно Jackson 3, тогда как приложение живёт на Jackson 2. Два Jackson'а в одном
+     * артефакте — реальность, которую нужно видеть в ревью, а не выводить из названия корня;
+     * поэтому запрет на протекание типа в приложение держит не этот список, а то, что импорт
+     * стоит в одном классе — {@code FormRouteUrlBridge.PageHistory}.</p>
      */
     private static final Set<String> ALLOWED_EXTERNAL_IMPORTS = Set.of(
         "com.fasterxml.jackson",
         "com.vaadin",
         "org.ipro",
         "org.slf4j",
-        "org.springframework");
+        "org.springframework",
+        "tools.jackson");
 
     /**
      * Reviewed compile-поверхность: ровно то, что объявлено в POM вне test-scope. Для
@@ -236,9 +281,14 @@ class VaadinModuleCompositionTest {
                 + " стороны файловых проверок при этом остаются зелёными")
             .isEqualTo(new TreeSet<>(REVIEWED_TYPES));
         assertThat(actualTypes())
-            .as("забор не должен быть вакуумным: 93 типа — это замер D3.5.0/1/2/2b плюс перенос"
-                + " D3.5.4 (form 83, vaadin 7, telemetry 3), а не догадка")
-            .hasSize(93);
+            .as("забор не должен быть вакуумным: 104 типа — это замер D3.5.0/1/2/2b плюс перенос"
+                + " D3.5.4 (form 83, vaadin 7, telemetry 3) плюс контракт действий E1.1/E1.5,"
+                + " app-facing исполнитель E1.6a, адрес формы E2.1, адресный вход решения и"
+                + " affordance «скопировать ссылку» E2.1, исход открытия по адресу и сам"
+                + " route-вход E2.2, host адреса и его мост с вкладками E2.3, базовый путь"
+                + " развёртывания из доделок ревью E2, а не догадка; E3.0 добавила адрес типа"
+                + " Explorer (`EntityExplorerAddress`) — итого 125")
+            .hasSize(125);
     }
 
     @Test
