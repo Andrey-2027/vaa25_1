@@ -1,10 +1,16 @@
 package org.ipro;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
@@ -15,6 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /** Static D3.8 contract for the consumer-facing BOM and starter dependency boundaries. */
 class PlatformStarterCompositionTest {
+
+    private static final Path RESOLVED_RUNTIME_TREE =
+        Path.of("target/application-runtime-dependency-tree.json");
 
     private static final Pattern DEPENDENCY_MANAGEMENT =
         Pattern.compile("<dependencyManagement>.*?</dependencyManagement>", Pattern.DOTALL);
@@ -92,7 +101,8 @@ class PlatformStarterCompositionTest {
             "org.vaadin.reports:reportui-core");
         assertThat(applicationDependencies)
             .noneMatch(coordinate -> coordinate.startsWith("org.ipro:platform-")
-                && !coordinate.equals("org.ipro:platform-vaadin-starter"));
+                && !coordinate.equals("org.ipro:platform-vaadin-starter")
+                && !coordinate.equals("org.ipro:platform-rest"));
         assertThat(applicationDependencies)
             .doesNotContain("com.vaadin:vaadin-spring-boot-starter");
         assertThat(applicationDependencies)
@@ -104,9 +114,72 @@ class PlatformStarterCompositionTest {
             .contains("org.ipro.jr.config.JrPersistenceAutoConfiguration");
     }
 
+    @Test
+    void resolvedStarterRuntimeClasspathDoesNotPullTheOptionalRestApi() {
+        JsonNode root = readResolvedRuntimeTree();
+        assertThat(root.path("artifactId").asText()).isEqualTo("Vaa25_1");
+
+        JsonNode vaadinStarter = directChildren(root).stream()
+            .filter(node -> "org.ipro".equals(node.path("groupId").asText()))
+            .filter(node -> "platform-vaadin-starter".equals(node.path("artifactId").asText()))
+            .findFirst()
+            .orElse(null);
+        assertThat(vaadinStarter)
+            .as("проверка должна видеть starter в разрешённом Maven runtime-графе приложения")
+            .isNotNull();
+
+        Set<String> starterClosure = new TreeSet<>();
+        collectArtifactIds(vaadinStarter, starterClosure);
+        assertThat(starterClosure)
+            .as("проверяется разрешённое транзитивное замыкание starter, включая platform-модули")
+            .contains("platform-vaadin", "platform-spring-boot-autoconfigure")
+            .doesNotContain("platform-rest");
+
+        List<String> directRestDependencies = directChildren(root).stream()
+            .filter(node -> "org.ipro".equals(node.path("groupId").asText()))
+            .filter(node -> "platform-rest".equals(node.path("artifactId").asText()))
+            .map(node -> node.path("groupId").asText() + ":" + node.path("artifactId").asText())
+            .toList();
+        assertThat(directRestDependencies)
+            .as("REST API разрешён приложением как отдельная прямая опция, а не через starter")
+            .containsExactly("org.ipro:platform-rest");
+    }
+
+    private static JsonNode readResolvedRuntimeTree() {
+        try {
+            return new ObjectMapper().readTree(Files.readString(RESOLVED_RUNTIME_TREE,
+                StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Не удалось прочитать разрешённый Maven runtime-граф "
+                + RESOLVED_RUNTIME_TREE, e);
+        }
+    }
+
+    private static List<JsonNode> directChildren(JsonNode node) {
+        List<JsonNode> children = new ArrayList<>();
+        JsonNode value = node.path("children");
+        if (value.isArray()) value.forEach(children::add);
+        return children;
+    }
+
+    private static void collectArtifactIds(JsonNode node, Set<String> result) {
+        result.add(node.path("artifactId").asText());
+        directChildren(node).forEach(child -> collectArtifactIds(child, result));
+    }
+
     private static Set<String> directDependencies(Path pom) {
         String text = DEPENDENCY_MANAGEMENT.matcher(read(pom)).replaceAll(" ");
-        return dependencyCoordinates(text);
+        Set<String> coordinates = new TreeSet<>();
+        Matcher dependencies = DEPENDENCY_BLOCK.matcher(text);
+        while (dependencies.find()) {
+            String dependency = dependencies.group(1);
+            if (dependency.contains("<scope>test</scope>")) continue;
+            Matcher coordinate = COORDINATES.matcher(dependency);
+            if (coordinate.find()) {
+                coordinates.add(coordinate.group(1) + ":" + coordinate.group(2));
+            }
+        }
+        return coordinates;
     }
 
     private static Set<String> dependencyCoordinates(Path pom) {

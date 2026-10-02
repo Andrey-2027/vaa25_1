@@ -77,6 +77,7 @@ node_modules/
 # данные игнорируются VCS, защищает только машину автора.
 !src/test/resources/platform-public-surface.txt
 !src/test/resources/platform-core-surface.txt
+!src/test/resources/platform-rest-surface.txt
 !src/test/resources/platform-package-matrix.txt
 
 # D3.5.0: семантический реестр будущего модуля platform-vaadin. Тот же случай, что и в §2.8

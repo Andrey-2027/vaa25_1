@@ -75,6 +75,12 @@
             <artifactId>platform-vaadin-starter</artifactId>
         </dependency>
 
+        <!-- The REST declaration API is an opt-in add-on and is not pulled in by either starter. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rest</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>filtergrid-core</artifactId>
@@ -193,6 +199,25 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.9.0</version>
+                <executions>
+                    <execution>
+                        <id>resolved-application-runtime-dependency-tree</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>tree</goal>
+                        </goals>
+                        <configuration>
+                            <scope>runtime</scope>
+                            <outputType>json</outputType>
+                            <outputFile>${project.build.directory}/application-runtime-dependency-tree.json</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

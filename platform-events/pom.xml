@@ -36,7 +36,11 @@
 
       1. platform-contracts — типы событий и lifecycle-контексты (единственная связка
          платформа→платформа, направление "runtime → contracts");
-      2. spring-context / spring-tx / spring-boot-autoconfigure — контейнер и авто-конфигурация;
+      2. spring-context / spring-tx / spring-aop / spring-boot-autoconfigure — контейнер
+         и авто-конфигурация; spring-aop объявлен явно, потому что модуль-владелец реестра
+         обязан сам объявлять то, чем пользуется: инспекция lifecycle разворачивает
+         Spring-proxy через AopUtils, и транзитивная (необъявленная) зависимость сделала бы
+         эту границу невидимой;
       3. slf4j-api — логирование.
 
       Реализации платформы (executors, metadata, UI) здесь запрещены: контур событий —
@@ -56,6 +60,11 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
+        </dependency>
+        <!-- Разворачивание proxy в EntityLifecycleInspection (AopUtils): явно, а не транзитивно. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

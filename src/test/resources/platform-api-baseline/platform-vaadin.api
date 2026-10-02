@@ -20,6 +20,28 @@ class public final org.ipro.form.MetadataDrivenItemFormSaveAdapter
   method public org.ipro.form.FormSaveResult<T> save(org.ipro.form.builtin.ItemForm<T>)
   method public void apply(org.ipro.form.builtin.ItemForm<T>, org.ipro.crud.MetadataDrivenAggregateSaveService$AggregateSaveResult<T>)
 
+class public final org.ipro.form.action.ActionHandlerRegistry
+  ctor public(java.util.List<org.ipro.form.action.ActionHandler>)
+  method public java.util.List<org.ipro.form.action.ActionDefinition> definitions()
+  method public java.util.List<org.ipro.form.action.ActionHandler> handlers()
+  method public java.util.Optional<org.ipro.form.action.ActionHandler> handlerOf(org.ipro.form.action.ActionSurface, java.lang.Class<?>, java.lang.String, org.ipro.form.action.ActionId)
+  method public static org.ipro.form.action.ActionHandlerRegistry empty()
+
+class public final org.ipro.form.action.ActionProvenanceCatalog
+  ctor public(java.util.Map<org.ipro.form.action.ActionRegistry$Key, org.ipro.form.action.ActionProvenance>, java.util.Map<org.ipro.form.action.ActionRegistry$Key, org.ipro.form.action.ActionProvenance>)
+  method public org.ipro.form.action.ActionProvenance declarationOf(org.ipro.form.action.ActionRegistry$Key)
+  method public org.ipro.form.action.ActionProvenance executorOf(org.ipro.form.action.ActionRegistry$Key)
+  method public static org.ipro.form.action.ActionProvenanceCatalog ofBeans(org.ipro.form.action.ActionRegistry, java.util.Map<java.lang.String, org.ipro.form.action.ActionDefinition>, org.ipro.form.action.ActionHandlerRegistry, org.springframework.beans.factory.config.ConfigurableListableBeanFactory)
+
+class public final org.ipro.form.action.ActionRegistry
+  ctor public(java.util.List<org.ipro.form.action.ActionDefinition>, java.util.List<org.ipro.form.action.ActionDefinition>)
+  method public java.util.List<org.ipro.form.action.ActionDefinition> registrations()
+  method public java.util.List<org.ipro.form.action.ActionDefinition> resolve(org.ipro.form.action.ActionSurface, java.lang.Class<?>, java.lang.String)
+  method public java.util.List<org.ipro.form.action.ActionRegistry$Registration> registrationsOf(org.ipro.form.action.ActionSurface, java.lang.Class<?>, java.lang.String)
+  method public java.util.List<org.ipro.form.action.ActionRegistry$Registration> registrationsWithKeys()
+  method public java.util.Optional<org.ipro.form.action.ActionDefinition> resolve(org.ipro.form.action.ActionSurface, java.lang.Class<?>, java.lang.String, org.ipro.form.action.ActionId)
+  method public java.util.Optional<org.ipro.form.action.ActionRegistry$Registration> registration(org.ipro.form.action.ActionSurface, java.lang.Class<?>, java.lang.String, org.ipro.form.action.ActionId)
+
 class public final org.ipro.form.action.ActionResolver
   ctor public(org.ipro.form.action.ActionRegistry, org.ipro.form.action.ActionContextProvider, org.ipro.form.action.ActionHandlerRegistry, org.ipro.form.action.ActionSurface, java.lang.Class<?>, java.lang.String)
   method public java.util.List<org.ipro.form.action.ActionDefinition> definitions()
@@ -33,6 +55,7 @@ class public final org.ipro.form.action.CopyLinkButton
   extends com.vaadin.flow.component.button.Button
   method public static org.ipro.form.action.CopyLinkButton forList(java.lang.String, org.ipro.form.link.FormLinkService, java.lang.Class<?>, java.lang.String, java.util.function.Supplier<org.ipro.form.action.ActionDecision>, java.util.function.Consumer<org.ipro.form.action.ActionDecision>)
   method public static org.ipro.form.action.CopyLinkButton forRecord(java.lang.String, org.ipro.form.link.FormLinkService, java.lang.Class<?>, java.lang.String, java.util.function.Supplier<java.lang.Long>, java.util.function.Supplier<org.ipro.form.action.ActionDecision>, java.util.function.Consumer<org.ipro.form.action.ActionDecision>)
+  method public static void copyAddress(java.lang.String)
   method public void refresh()
 
 class public final org.ipro.form.builder.ItemFormVariants
@@ -46,6 +69,8 @@ class public final org.ipro.form.link.EntityExplorerAddress
   field public static final java.lang.String ROOT_SEGMENT = entity-explorer
   method public static boolean claims(java.lang.String)
   method public static java.lang.String format(java.lang.String)
+  method public static java.lang.String format(java.lang.String, java.lang.String)
+  method public static java.util.Optional<java.lang.String> anchorOf(java.lang.String)
   method public static java.util.Optional<java.lang.String> keyOf(java.lang.String)
 
 class public final org.ipro.form.link.FormRouteCatalog
@@ -77,6 +102,19 @@ class public final org.ipro.form.link.PublishedFormRoute
   method public java.util.Optional<org.ipro.form.link.NotLinkableReason> notLinkable(org.ipro.form.link.FormRouteKind, java.lang.String)
   method public java.util.Set<java.lang.String> variants(org.ipro.form.link.FormRouteKind)
   method public org.ipro.metadata.FactOrigin keyOrigin()
+
+class public final org.ipro.vaadin.explorer.ExplorerSnapshot
+  method public boolean diagnosticsAvailable()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow> unassignedDiagnostics()
+  method public java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$Entry> entries()
+  method public java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$Entry> ownedRows()
+  method public java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$Entry> roots()
+  method public java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$OwnedSection> ownersOf(java.lang.Class<?>)
+  method public java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$OwnedSection> sectionsOf(java.lang.Class<?>)
+  method public java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$SearchTerm> searchTerms()
+  method public java.util.Optional<org.ipro.vaadin.explorer.EntitySummary> summaryOf(java.lang.Class<?>)
+  method public java.util.Optional<org.ipro.vaadin.explorer.ExplorerSnapshot$Entry> entryOf(java.lang.Class<?>)
+  method public org.ipro.vaadin.explorer.ExplorerSnapshot$BuildStats stats()
 
 class public final org.ipro.vaadin.search.GlobalSearchNavigationAdapter
   ctor public(org.ipro.search.GlobalSearchCatalog, org.springframework.beans.factory.ObjectProvider<org.ipro.form.coordinator.FormNavigator>)
@@ -292,6 +330,7 @@ class public org.ipro.form.builtin.ListForm
 
 class public org.ipro.form.host.FormRouteUrlBridge
   ctor public(org.ipro.form.link.FormRouteCodec, org.springframework.beans.factory.ObjectProvider<org.ipro.form.spi.WorkspaceGateway>)
+  method public static java.lang.String addressOf(com.vaadin.flow.router.Location)
   method public void install(java.lang.String, java.util.function.Function<java.lang.String, org.ipro.form.link.OpenResult>)
   method public void installExplorerEntryPoint(java.util.function.Consumer<java.lang.String>)
   method public void routedTabOpened(java.lang.String, org.ipro.form.link.FormRoute)
@@ -401,10 +440,14 @@ class public org.ipro.form.registry.FormResolver
 class public org.ipro.vaadin.explorer.EntitySummaryAssembler
   ctor public(java.lang.String, org.ipro.metadata.MetadataResolver, org.ipro.form.registry.FormRegistry, org.ipro.metadata.ReferenceIndex, org.ipro.numbering.NumberingMetadataRegistry, org.ipro.metadata.SubsystemRegistry, org.ipro.metadata.facet.FacetResolver)
   ctor public(java.lang.String, org.ipro.metadata.MetadataResolver, org.ipro.form.registry.FormRegistry, org.ipro.metadata.ReferenceIndex, org.ipro.numbering.NumberingMetadataRegistry, org.ipro.metadata.SubsystemRegistry, org.ipro.metadata.facet.FacetResolver, org.ipro.data.EntityDescriptorCatalog, org.ipro.form.link.FormRouteCatalog, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.metadata.SectionMetadataRegistry, org.ipro.metadata.MetadataConsistencyStartupCheck)
+  ctor public(java.lang.String, org.ipro.metadata.MetadataResolver, org.ipro.form.registry.FormRegistry, org.ipro.metadata.ReferenceIndex, org.ipro.numbering.NumberingMetadataRegistry, org.ipro.metadata.SubsystemRegistry, org.ipro.metadata.facet.FacetResolver, org.ipro.data.EntityDescriptorCatalog, org.ipro.form.link.FormRouteCatalog, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.metadata.SectionMetadataRegistry, org.ipro.metadata.MetadataConsistencyStartupCheck, org.ipro.form.action.ActionRegistry, org.ipro.form.action.ActionHandlerRegistry, org.ipro.form.action.ActionProvenanceCatalog)
+  ctor public(java.lang.String, org.ipro.metadata.MetadataResolver, org.ipro.form.registry.FormRegistry, org.ipro.metadata.ReferenceIndex, org.ipro.numbering.NumberingMetadataRegistry, org.ipro.metadata.SubsystemRegistry, org.ipro.metadata.facet.FacetResolver, org.ipro.data.EntityDescriptorCatalog, org.ipro.form.link.FormRouteCatalog, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.metadata.SectionMetadataRegistry, org.ipro.metadata.MetadataConsistencyStartupCheck, org.ipro.form.action.ActionRegistry, org.ipro.form.action.ActionHandlerRegistry, org.ipro.form.action.ActionProvenanceCatalog, org.ipro.data.FetchPlanInspection)
+  ctor public(java.lang.String, org.ipro.metadata.MetadataResolver, org.ipro.form.registry.FormRegistry, org.ipro.metadata.ReferenceIndex, org.ipro.numbering.NumberingMetadataRegistry, org.ipro.metadata.SubsystemRegistry, org.ipro.metadata.facet.FacetResolver, org.ipro.data.EntityDescriptorCatalog, org.ipro.form.link.FormRouteCatalog, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.metadata.SectionMetadataRegistry, org.ipro.metadata.MetadataConsistencyStartupCheck, org.ipro.form.action.ActionRegistry, org.ipro.form.action.ActionHandlerRegistry, org.ipro.form.action.ActionProvenanceCatalog, org.ipro.data.FetchPlanInspection, org.ipro.rls.RlsDimensionRegistry)
   method public java.util.List<java.lang.String> tableSectionRowNames(java.lang.Class<?>)
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow> unassignedDiagnostics()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummaryAssembler$EntityRef> entities()
   method public org.ipro.vaadin.explorer.EntitySummary summarize(java.lang.Class<?>)
+  method public org.ipro.vaadin.explorer.ExplorerSnapshot explorerSnapshot()
 
 class public org.ipro.vaadin.explorer.SubsystemSummaryAssembler
   ctor public(org.ipro.vaadin.explorer.EntitySummaryAssembler, org.ipro.metadata.SubsystemRegistry, org.ipro.rls.RlsDimensionRegistry)
@@ -537,6 +580,23 @@ enum public static final org.ipro.form.registry.FormRegistry$RegistrationKind
   method public static org.ipro.form.registry.FormRegistry$RegistrationKind valueOf(java.lang.String)
   method public static org.ipro.form.registry.FormRegistry$RegistrationKind[] values()
 
+enum public static final org.ipro.vaadin.explorer.ExplorerSnapshot$EntryState
+  extends java.lang.Enum<org.ipro.vaadin.explorer.ExplorerSnapshot$EntryState>
+  enum-constants [READY, BUILD_FAILED]
+  field public static final org.ipro.vaadin.explorer.ExplorerSnapshot$EntryState BUILD_FAILED = enum-constant
+  field public static final org.ipro.vaadin.explorer.ExplorerSnapshot$EntryState READY = enum-constant
+  method public static org.ipro.vaadin.explorer.ExplorerSnapshot$EntryState valueOf(java.lang.String)
+  method public static org.ipro.vaadin.explorer.ExplorerSnapshot$EntryState[] values()
+
+enum public static final org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind
+  extends java.lang.Enum<org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind>
+  enum-constants [TYPE, FIELD, SECTION]
+  field public static final org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind FIELD = enum-constant
+  field public static final org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind SECTION = enum-constant
+  field public static final org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind TYPE = enum-constant
+  method public static org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind valueOf(java.lang.String)
+  method public static org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind[] values()
+
 interface public abstract interface org.ipro.form.Dirtyable
   method public abstract boolean isDirty()
   method public abstract java.lang.String getCloseConfirmMessage()
@@ -611,6 +671,11 @@ interface public abstract interface org.ipro.form.coordinator.FormNavigator
   method public abstract void openListForm(java.lang.Class<T>, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>)
   method public org.ipro.form.builtin.ListForm<T, ID> createListForm(java.lang.Class<T>)
 
+interface public abstract interface org.ipro.form.link.EntityStructureNavigation
+  method public abstract java.util.Optional<java.lang.String> link(java.lang.Class<?>)
+  method public abstract org.ipro.form.link.EntityStructureNavigation$Availability availability(java.lang.Class<?>)
+  method public abstract org.ipro.form.link.EntityStructureNavigation$OpenResult open(java.lang.Class<?>, java.lang.String)
+
 interface public abstract interface org.ipro.form.link.FormLinkResult
   method public boolean isLinkable()
   method public java.util.Optional<java.lang.String> linkPath()
@@ -667,6 +732,8 @@ interface public abstract interface org.ipro.form.spi.WorkspaceGateway
 interface public abstract static interface org.ipro.form.builtin.ListForm$SelectionFormProvider
   annotation java.lang.FunctionalInterface
   method public abstract org.ipro.form.SelectionForm selectionForm(java.lang.Class, java.util.function.Consumer)
+
+interface public abstract static interface org.ipro.form.link.EntityStructureNavigation$OpenResult
 
 interface public abstract static interface org.ipro.vaadin.explorer.EntitySummary$FacetRow
   method public abstract org.ipro.metadata.facet.FacetKey key()
@@ -761,6 +828,20 @@ record public final org.ipro.form.action.ActionInvocation
   method public java.util.Optional<T> selectionAs(java.lang.Class<T>)
   method public org.ipro.form.coordinator.FormNavigator navigator()
   method public org.ipro.identity.IdentifiableEntity selected()
+
+record public final org.ipro.form.action.ActionProvenance
+  extends java.lang.Record
+  ctor public(org.ipro.metadata.FactOrigin, java.lang.String, java.lang.String)
+  method public boolean hasSymbol()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String note()
+  method public java.lang.String symbol()
+  method public org.ipro.metadata.FactOrigin origin()
+  method public static org.ipro.form.action.ActionProvenance platformDefault(java.lang.String, java.lang.String)
+  method public static org.ipro.form.action.ActionProvenance registration(java.lang.String, java.lang.String)
+  method public static org.ipro.form.action.ActionProvenance unattributed(java.lang.String)
 
 record public final org.ipro.form.action.ActionRequirement
   extends java.lang.Record
@@ -920,11 +1001,19 @@ record public final org.ipro.vaadin.explorer.EntitySummary
   extends java.lang.Record
   ctor public(java.lang.Class<?>, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow>)
   ctor public(java.lang.Class<?>, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$LifecycleRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow>)
+  ctor public(java.lang.Class<?>, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$LifecycleRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ActionRow>)
+  ctor public(java.lang.Class<?>, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$LifecycleRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ActionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReadPlanRow>)
+  ctor public(java.lang.Class<?>, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$LifecycleRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ActionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReadPlanRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$AccessRow>)
+  ctor public(java.lang.Class<?>, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$LifecycleRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ActionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReadPlanRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$AccessRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$LookupRow>)
+  ctor public(java.lang.Class<?>, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$LifecycleRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ActionRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReadPlanRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$AccessRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$LookupRow>, boolean)
+  method public boolean readPlanInspectionAvailable()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.Class<?> entityClass()
   method public java.lang.String simpleName()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$AccessRow> accessRows()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$ActionRow> actions()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow> listColumns()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$ColumnRow> selectColumns()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow> diagnostics()
@@ -933,8 +1022,10 @@ record public final org.ipro.vaadin.explorer.EntitySummary
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$FilterRow> contextFilters()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$FormRow> forms()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$LifecycleRow> lifecycle()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$LookupRow> lookupTargets()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$NumberingRow> numbering()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$OverviewRow> overview()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReadPlanRow> readPlans()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$ReferenceRow> references()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$SectionRow> tableSections()
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow> selections()
@@ -984,6 +1075,27 @@ record public static final org.ipro.form.SelectionFormAssembler$ResolvedSelectio
   method public java.lang.String title()
   method public java.util.List<org.ipro.metadata.ColumnPath> columns()
 
+record public static final org.ipro.form.action.ActionRegistry$Key
+  extends java.lang.Record
+  ctor public(org.ipro.form.action.ActionSurface, java.lang.Class<?>, java.lang.String, org.ipro.form.action.ActionId)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> entityType()
+  method public java.lang.String variant()
+  method public org.ipro.form.action.ActionId id()
+  method public org.ipro.form.action.ActionSurface surface()
+  method public static org.ipro.form.action.ActionRegistry$Key of(org.ipro.form.action.ActionDefinition)
+
+record public static final org.ipro.form.action.ActionRegistry$Registration
+  extends java.lang.Record
+  ctor public(org.ipro.form.action.ActionRegistry$Key, org.ipro.form.action.ActionDefinition)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.form.action.ActionDefinition definition()
+  method public org.ipro.form.action.ActionRegistry$Key key()
+
 record public static final org.ipro.form.builtin.ItemTable$AddOption
   extends java.lang.Record
   type-parameter T
@@ -993,6 +1105,36 @@ record public static final org.ipro.form.builtin.ItemTable$AddOption
   method public final java.lang.String toString()
   method public java.lang.String label()
   method public java.util.function.Consumer<T> rowInitializer()
+
+record public static final org.ipro.form.link.EntityStructureNavigation$Availability
+  extends java.lang.Record
+  ctor public(boolean, java.lang.String)
+  method public boolean available()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String reason()
+  method public static org.ipro.form.link.EntityStructureNavigation$Availability allowed()
+  method public static org.ipro.form.link.EntityStructureNavigation$Availability unavailable(java.lang.String)
+
+record public static final org.ipro.form.link.EntityStructureNavigation$OpenResult$Opened
+  extends java.lang.Record
+  implements org.ipro.form.link.EntityStructureNavigation$OpenResult
+  ctor public(java.lang.Class<?>, java.util.Optional<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> type()
+  method public java.util.Optional<java.lang.String> address()
+
+record public static final org.ipro.form.link.EntityStructureNavigation$OpenResult$Unavailable
+  extends java.lang.Record
+  implements org.ipro.form.link.EntityStructureNavigation$OpenResult
+  ctor public(java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String reason()
 
 record public static final org.ipro.form.link.FormLinkResult$Linkable
   extends java.lang.Record
@@ -1108,6 +1250,55 @@ record public static final org.ipro.form.registry.FormRegistry$Registration
   method public org.ipro.form.registry.FormRegistry$RegistrationKind kind()
   method public org.ipro.form.registry.FormType formType()
 
+record public static final org.ipro.vaadin.explorer.EntitySummary$AccessRow
+  extends java.lang.Record
+  implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
+  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, org.ipro.rls.RlsDimensionKind, boolean, org.ipro.metadata.facet.ResolvedValue, java.lang.String, java.util.List<org.ipro.vaadin.explorer.EntitySummary$AccessRuleRow>)
+  method public boolean grantCatalog()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String dimension()
+  method public java.lang.String note()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$AccessRuleRow> rules()
+  method public org.ipro.metadata.facet.FacetKey key()
+  method public org.ipro.metadata.facet.FacetKind kind()
+  method public org.ipro.metadata.facet.ResolvedValue value()
+  method public org.ipro.rls.RlsDimensionKind dimensionKind()
+
+record public static final org.ipro.vaadin.explorer.EntitySummary$AccessRuleRow
+  extends java.lang.Record
+  implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
+  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, java.lang.String, boolean, org.ipro.metadata.facet.ResolvedValue)
+  method public boolean nullsNotApplicable()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String dimension()
+  method public java.lang.String path()
+  method public org.ipro.metadata.facet.FacetKey key()
+  method public org.ipro.metadata.facet.FacetKind kind()
+  method public org.ipro.metadata.facet.ResolvedValue value()
+
+record public static final org.ipro.vaadin.explorer.EntitySummary$ActionRow
+  extends java.lang.Record
+  implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
+  ctor public(org.ipro.metadata.facet.FacetKey, org.ipro.form.action.ActionSurface, java.lang.String, java.lang.String, int, boolean, boolean, boolean, org.ipro.metadata.facet.ResolvedValue, java.lang.String)
+  method public boolean applicableToAnyType()
+  method public boolean executorFound()
+  method public boolean visible()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int order()
+  method public java.lang.String actionId()
+  method public java.lang.String note()
+  method public java.lang.String title()
+  method public org.ipro.form.action.ActionSurface surface()
+  method public org.ipro.metadata.facet.FacetKey key()
+  method public org.ipro.metadata.facet.FacetKind kind()
+  method public org.ipro.metadata.facet.ResolvedValue value()
+
 record public static final org.ipro.vaadin.explorer.EntitySummary$ColumnRow
   extends java.lang.Record
   implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
@@ -1142,15 +1333,12 @@ record public static final org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow
 record public static final org.ipro.vaadin.explorer.EntitySummary$FieldRow
   extends java.lang.Record
   implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
-  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, java.lang.String, org.ipro.metadata.facet.ResolvedValue, boolean, boolean, java.lang.String, java.lang.Class<?>)
-  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, java.lang.String, org.ipro.metadata.facet.ResolvedValue, boolean, boolean, java.lang.String, java.lang.Class<?>, org.ipro.metadata.FactOrigin, org.ipro.metadata.FactOrigin)
+  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, java.lang.String, org.ipro.metadata.facet.ResolvedValue, boolean, boolean, org.ipro.metadata.FactOrigin, org.ipro.metadata.FactOrigin)
   method public boolean readOnly()
   method public boolean required()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
-  method public java.lang.Class<?> lookupEntityClass()
-  method public java.lang.String lookupTarget()
   method public java.lang.String name()
   method public java.lang.String typeLabel()
   method public org.ipro.metadata.FactOrigin requiredOrigin()
@@ -1193,13 +1381,29 @@ record public static final org.ipro.vaadin.explorer.EntitySummary$FormRow
 
 record public static final org.ipro.vaadin.explorer.EntitySummary$LifecycleRow
   extends java.lang.Record
-  ctor public(java.lang.String, boolean, org.ipro.metadata.facet.ResolvedValue, java.lang.String)
+  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, boolean, org.ipro.metadata.facet.ResolvedValue, java.lang.String)
   method public boolean declared()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.String hook()
   method public java.lang.String note()
+  method public org.ipro.metadata.facet.FacetKey key()
+  method public org.ipro.metadata.facet.ResolvedValue value()
+
+record public static final org.ipro.vaadin.explorer.EntitySummary$LookupRow
+  extends java.lang.Record
+  implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
+  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, org.ipro.metadata.facet.ResolvedValue, java.lang.Class<?>, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> targetType()
+  method public java.lang.String fieldName()
+  method public java.lang.String note()
+  method public java.lang.String variant()
+  method public org.ipro.metadata.facet.FacetKey key()
+  method public org.ipro.metadata.facet.FacetKind kind()
   method public org.ipro.metadata.facet.ResolvedValue value()
 
 record public static final org.ipro.vaadin.explorer.EntitySummary$NumberingRow
@@ -1227,6 +1431,36 @@ record public static final org.ipro.vaadin.explorer.EntitySummary$OverviewRow
   method public final java.lang.String toString()
   method public java.lang.String caption()
   method public java.lang.String detail()
+  method public org.ipro.metadata.facet.FacetKey key()
+  method public org.ipro.metadata.facet.FacetKind kind()
+  method public org.ipro.metadata.facet.ResolvedValue value()
+
+record public static final org.ipro.vaadin.explorer.EntitySummary$PathRow
+  extends java.lang.Record
+  implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
+  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, java.lang.String, java.lang.String, org.ipro.metadata.facet.ResolvedValue)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String attributePath()
+  method public java.lang.String reason()
+  method public java.lang.String scenario()
+  method public org.ipro.metadata.facet.FacetKey key()
+  method public org.ipro.metadata.facet.FacetKind kind()
+  method public org.ipro.metadata.facet.ResolvedValue value()
+
+record public static final org.ipro.vaadin.explorer.EntitySummary$ReadPlanRow
+  extends java.lang.Record
+  implements org.ipro.vaadin.explorer.EntitySummary$FacetRow
+  ctor public(org.ipro.metadata.facet.FacetKey, java.lang.String, boolean, int, org.ipro.metadata.facet.ResolvedValue, java.lang.String, java.util.List<org.ipro.vaadin.explorer.EntitySummary$PathRow>)
+  method public boolean allowed()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int pathCount()
+  method public java.lang.String note()
+  method public java.lang.String scenario()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$PathRow> paths()
   method public org.ipro.metadata.facet.FacetKey key()
   method public org.ipro.metadata.facet.FacetKind kind()
   method public org.ipro.metadata.facet.ResolvedValue value()
@@ -1281,6 +1515,77 @@ record public static final org.ipro.vaadin.explorer.EntitySummaryAssembler$Entit
   method public java.lang.Class<?> entityClass()
   method public java.lang.String simpleName()
   method public org.ipro.metadata.facet.ResolvedValue displayName()
+
+record public static final org.ipro.vaadin.explorer.ExplorerSnapshot$BuildStats
+  extends java.lang.Record
+  ctor public(int, int, int, long)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int summarizeAttempts()
+  method public int summarizeFailures()
+  method public int typeCount()
+  method public long buildNanos()
+
+record public static final org.ipro.vaadin.explorer.ExplorerSnapshot$Entry
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.lang.String, java.lang.String, org.ipro.metadata.facet.ResolvedValue, org.ipro.metadata.annotation.EntityKind, org.ipro.data.EntityDescriptor, java.util.Optional<org.ipro.vaadin.explorer.ExplorerSnapshot$SubsystemRef>, java.util.Optional<java.lang.String>, java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$OwnedSection>, org.ipro.vaadin.explorer.ExplorerSnapshot$EntryState, java.lang.String, java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow>, int, int, boolean)
+  method public boolean countsKnown()
+  method public boolean rootCandidate()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int errorCount()
+  method public int warningCount()
+  method public java.lang.Class<?> type()
+  method public java.lang.String failureReason()
+  method public java.lang.String simpleName()
+  method public java.lang.String typeFqn()
+  method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$DiagnosticRow> diagnostics()
+  method public java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$OwnedSection> ownedSections()
+  method public java.util.Optional<java.lang.String> publishedKey()
+  method public java.util.Optional<org.ipro.vaadin.explorer.ExplorerSnapshot$SubsystemRef> subsystem()
+  method public org.ipro.data.EntityDescriptor descriptor()
+  method public org.ipro.metadata.annotation.EntityKind kind()
+  method public org.ipro.metadata.facet.ResolvedValue displayName()
+  method public org.ipro.vaadin.explorer.ExplorerSnapshot$EntryState state()
+
+record public static final org.ipro.vaadin.explorer.ExplorerSnapshot$OwnedSection
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.lang.String, java.lang.String, java.lang.Class<?>, java.lang.String, java.lang.String, org.ipro.metadata.facet.ResolvedValue, int)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int order()
+  method public java.lang.Class<?> ownerType()
+  method public java.lang.Class<?> rowType()
+  method public java.lang.String id()
+  method public java.lang.String ownerFqn()
+  method public java.lang.String rowClassFqn()
+  method public java.lang.String rowSimpleName()
+  method public java.lang.String sectionField()
+  method public org.ipro.metadata.facet.ResolvedValue label()
+
+record public static final org.ipro.vaadin.explorer.ExplorerSnapshot$SearchTerm
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind, java.lang.String, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> rootType()
+  method public java.lang.String fieldName()
+  method public java.lang.String sectionId()
+  method public java.lang.String term()
+  method public org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind kind()
+
+record public static final org.ipro.vaadin.explorer.ExplorerSnapshot$SubsystemRef
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.metadata.facet.ResolvedValue)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String id()
+  method public org.ipro.metadata.facet.ResolvedValue label()
 
 record public static final org.ipro.vaadin.explorer.SubsystemSummaryAssembler$Catalog
   extends java.lang.Record

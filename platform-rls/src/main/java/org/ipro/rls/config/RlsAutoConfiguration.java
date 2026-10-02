@@ -115,6 +115,16 @@ public class RlsAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public org.ipro.rls.c5.C5PermissionEvaluator c5PermissionEvaluator(
+            AccessGrantRepository grantRepository,
+            RlsRoleResolver roleResolver,
+            ObjectProvider<RlsDimensionRegistry> dimensionRegistry) {
+        return new org.ipro.rls.c5.DefaultC5PermissionEvaluator(
+            grantRepository, roleResolver, dimensionRegistry.getIfAvailable());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public org.ipro.rls.RlsDimensionValueCatalog rlsDimensionValueCatalog(
             RlsDimensionRegistry dimensionRegistry,
             RlsFilterActivator filterActivator,

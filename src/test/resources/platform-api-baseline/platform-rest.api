@@ -1,0 +1,159 @@
+# platform-rest: публичная поверхность (policy: SEMANTIC_ROLES, перезапись: -Dplatform.api.baseline.write=true)
+class public final org.ipro.rest.api.RestResourceBuilder
+  type-parameter T
+  field public static final int PLATFORM_MAX_PAGE_SIZE = 200
+  method public org.ipro.rest.api.RestResourceBuilder<T> defaultSort(java.lang.String, org.ipro.rest.api.RestSortDirection)
+  method public org.ipro.rest.api.RestResourceBuilder<T> field(java.lang.String, org.ipro.rest.api.RestFieldType, org.ipro.rest.api.RestFieldFormat, org.ipro.rest.api.RestPropertyPath, org.ipro.rest.api.RestNullability)
+  method public org.ipro.rest.api.RestResourceBuilder<T> field(java.lang.String, org.ipro.rest.api.RestFieldType, org.ipro.rest.api.RestPropertyPath, org.ipro.rest.api.RestNullability)
+  method public org.ipro.rest.api.RestResourceBuilder<T> filter(java.lang.String, org.ipro.rest.api.RestFilterOperator, org.ipro.rest.api.RestFieldType, org.ipro.rest.api.RestPropertyPath)
+  method public org.ipro.rest.api.RestResourceBuilder<T> pageSize(int, int)
+  method public org.ipro.rest.api.RestResourceDefinition<T> build()
+  method public transient org.ipro.rest.api.RestResourceBuilder<T> detailDefaultFields(java.lang.String[])
+  method public transient org.ipro.rest.api.RestResourceBuilder<T> detailFields(java.lang.String[])
+  method public transient org.ipro.rest.api.RestResourceBuilder<T> listDefaultFields(java.lang.String[])
+  method public transient org.ipro.rest.api.RestResourceBuilder<T> listFields(java.lang.String[])
+  method public transient org.ipro.rest.api.RestResourceBuilder<T> sortBy(java.lang.String[])
+
+class public final org.ipro.rest.api.RestResourceDeclarationException
+  extends java.lang.IllegalArgumentException
+  method public java.lang.String element()
+  method public java.lang.String resourceKey()
+  method public org.ipro.rest.api.RestResourceDeclarationException$Code code()
+
+class public final org.ipro.rest.api.RestResourceDefinition
+  type-parameter T
+  method public int defaultPageSize()
+  method public int majorVersion()
+  method public int maxPageSize()
+  method public java.lang.Class<T> resourceType()
+  method public java.lang.String resourceKey()
+  method public java.util.List<java.lang.String> detailDefaultFields()
+  method public java.util.List<java.lang.String> detailFields()
+  method public java.util.List<java.lang.String> listDefaultFields()
+  method public java.util.List<java.lang.String> listFields()
+  method public java.util.List<java.lang.String> sortFields()
+  method public java.util.Map<java.lang.String, org.ipro.rest.api.RestResourceDefinition$Field> fields()
+  method public java.util.Map<java.lang.String, org.ipro.rest.api.RestResourceDefinition$Filter> filters()
+  method public java.util.Optional<org.ipro.rest.api.RestResourceDefinition$Sort> defaultSort()
+
+class public final org.ipro.rest.api.RestResources
+  method public static org.ipro.rest.api.RestPropertyPath path(java.lang.String)
+  method public static org.ipro.rest.api.RestResourceBuilder<T> publish(java.lang.String, int, java.lang.Class<T>)
+
+enum public final org.ipro.rest.api.RestFieldFormat
+  extends java.lang.Enum<org.ipro.rest.api.RestFieldFormat>
+  enum-constants [NONE, UUID, DATE, DATE_TIME]
+  field public static final org.ipro.rest.api.RestFieldFormat DATE = enum-constant
+  field public static final org.ipro.rest.api.RestFieldFormat DATE_TIME = enum-constant
+  field public static final org.ipro.rest.api.RestFieldFormat NONE = enum-constant
+  field public static final org.ipro.rest.api.RestFieldFormat UUID = enum-constant
+  method public static org.ipro.rest.api.RestFieldFormat valueOf(java.lang.String)
+  method public static org.ipro.rest.api.RestFieldFormat[] values()
+
+enum public final org.ipro.rest.api.RestFieldType
+  extends java.lang.Enum<org.ipro.rest.api.RestFieldType>
+  enum-constants [STRING, BOOLEAN, INTEGER, LONG, DECIMAL]
+  field public static final org.ipro.rest.api.RestFieldType BOOLEAN = enum-constant
+  field public static final org.ipro.rest.api.RestFieldType DECIMAL = enum-constant
+  field public static final org.ipro.rest.api.RestFieldType INTEGER = enum-constant
+  field public static final org.ipro.rest.api.RestFieldType LONG = enum-constant
+  field public static final org.ipro.rest.api.RestFieldType STRING = enum-constant
+  method public static org.ipro.rest.api.RestFieldType valueOf(java.lang.String)
+  method public static org.ipro.rest.api.RestFieldType[] values()
+
+enum public final org.ipro.rest.api.RestFilterOperator
+  extends java.lang.Enum<org.ipro.rest.api.RestFilterOperator>
+  enum-constants [EQUALS]
+  field public static final org.ipro.rest.api.RestFilterOperator EQUALS = enum-constant
+  method public static org.ipro.rest.api.RestFilterOperator valueOf(java.lang.String)
+  method public static org.ipro.rest.api.RestFilterOperator[] values()
+
+enum public final org.ipro.rest.api.RestNullability
+  extends java.lang.Enum<org.ipro.rest.api.RestNullability>
+  enum-constants [NOT_NULL, NULLABLE]
+  field public static final org.ipro.rest.api.RestNullability NOT_NULL = enum-constant
+  field public static final org.ipro.rest.api.RestNullability NULLABLE = enum-constant
+  method public static org.ipro.rest.api.RestNullability valueOf(java.lang.String)
+  method public static org.ipro.rest.api.RestNullability[] values()
+
+enum public final org.ipro.rest.api.RestSortDirection
+  extends java.lang.Enum<org.ipro.rest.api.RestSortDirection>
+  enum-constants [ASC, DESC]
+  field public static final org.ipro.rest.api.RestSortDirection ASC = enum-constant
+  field public static final org.ipro.rest.api.RestSortDirection DESC = enum-constant
+  method public static org.ipro.rest.api.RestSortDirection valueOf(java.lang.String)
+  method public static org.ipro.rest.api.RestSortDirection[] values()
+
+enum public static final org.ipro.rest.api.RestResourceDeclarationException$Code
+  extends java.lang.Enum<org.ipro.rest.api.RestResourceDeclarationException$Code>
+  enum-constants [INVALID_RESOURCE_KEY, INVALID_MAJOR_VERSION, RESOURCE_TYPE_REQUIRED, INVALID_FIELD_NAME, DUPLICATE_FIELD, FIELD_TYPE_REQUIRED, FIELD_NULLABILITY_REQUIRED, INVALID_PROPERTY_PATH, INCOMPATIBLE_FIELD_FORMAT, INVALID_FILTER_NAME, DUPLICATE_FILTER, RESERVED_FILTER_NAME, FILTER_OPERATOR_REQUIRED, FILTER_VALUE_TYPE_REQUIRED, FILTER_FIELD_TYPE_MISMATCH, INVALID_FILTER_PATH, DUPLICATE_CONFIGURATION, EMPTY_FIELD_SET, UNKNOWN_FIELD, DEFAULT_FIELDS_NOT_SUBSET, MISSING_ID_FIELD, ID_NOT_IN_MAX_FIELDS, ID_NOT_IN_DEFAULT_FIELDS, DUPLICATE_SORT_FIELD, UNSORTABLE_FIELD, INVALID_DEFAULT_SORT, INVALID_PAGE_SIZE]
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code DEFAULT_FIELDS_NOT_SUBSET = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code DUPLICATE_CONFIGURATION = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code DUPLICATE_FIELD = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code DUPLICATE_FILTER = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code DUPLICATE_SORT_FIELD = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code EMPTY_FIELD_SET = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code FIELD_NULLABILITY_REQUIRED = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code FIELD_TYPE_REQUIRED = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code FILTER_FIELD_TYPE_MISMATCH = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code FILTER_OPERATOR_REQUIRED = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code FILTER_VALUE_TYPE_REQUIRED = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code ID_NOT_IN_DEFAULT_FIELDS = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code ID_NOT_IN_MAX_FIELDS = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code INCOMPATIBLE_FIELD_FORMAT = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code INVALID_DEFAULT_SORT = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code INVALID_FIELD_NAME = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code INVALID_FILTER_NAME = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code INVALID_FILTER_PATH = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code INVALID_MAJOR_VERSION = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code INVALID_PAGE_SIZE = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code INVALID_PROPERTY_PATH = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code INVALID_RESOURCE_KEY = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code MISSING_ID_FIELD = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code RESERVED_FILTER_NAME = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code RESOURCE_TYPE_REQUIRED = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code UNKNOWN_FIELD = enum-constant
+  field public static final org.ipro.rest.api.RestResourceDeclarationException$Code UNSORTABLE_FIELD = enum-constant
+  method public static org.ipro.rest.api.RestResourceDeclarationException$Code valueOf(java.lang.String)
+  method public static org.ipro.rest.api.RestResourceDeclarationException$Code[] values()
+
+record public final org.ipro.rest.api.RestPropertyPath
+  extends java.lang.Record
+  ctor public(java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String value()
+
+record public static final org.ipro.rest.api.RestResourceDefinition$Field
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.rest.api.RestFieldType, org.ipro.rest.api.RestNullability, org.ipro.rest.api.RestFieldFormat, org.ipro.rest.api.RestPropertyPath)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String name()
+  method public org.ipro.rest.api.RestFieldFormat format()
+  method public org.ipro.rest.api.RestFieldType type()
+  method public org.ipro.rest.api.RestNullability nullability()
+  method public org.ipro.rest.api.RestPropertyPath source()
+
+record public static final org.ipro.rest.api.RestResourceDefinition$Filter
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.rest.api.RestFilterOperator, org.ipro.rest.api.RestFieldType, org.ipro.rest.api.RestPropertyPath)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String name()
+  method public org.ipro.rest.api.RestFieldType valueType()
+  method public org.ipro.rest.api.RestFilterOperator operator()
+  method public org.ipro.rest.api.RestPropertyPath source()
+
+record public static final org.ipro.rest.api.RestResourceDefinition$Sort
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.rest.api.RestSortDirection)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String field()
+  method public org.ipro.rest.api.RestSortDirection direction()
+

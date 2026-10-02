@@ -42,12 +42,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <ul>
  * <li>обещание «semantic internal можно менять свободно» нельзя было проверить — не существовало
  *     списка типов, к которым оно относится;</li>
- * <li>44 типа, образующие контракт между модулями (metadata/data/fetch/search внутри платформы),
+ * <li>43 типа, образующие контракт между модулями (metadata/data/fetch/search внутри платформы),
  *     не были зафиксированы вовсе, хотя их изменение ломает соседний модуль так же, как ломает
  *     приложение.</li>
  * </ul>
  *
- * <p>Здесь роль есть у каждого из 94 production-типов {@code platform-core}: {@code APP_API},
+ * <p>Здесь роль есть у каждого из 95 production-типов {@code platform-core}: {@code APP_API},
  * {@code APP_SPI}, {@code MODULE_API} или {@code INTERNAL}. Роль — reviewed-решение, записанное
  * рядом с FQN, а не вывод теста: иначе проверялось бы то же правило, которым список построен.</p>
  *
@@ -113,7 +113,7 @@ class PlatformCoreSurfaceTest {
             .containsAll(List.of(Role.values()));
         assertThat(productionTypes)
             .as("проверка не должна быть вакуумной")
-            .hasSize(94);
+            .hasSize(95);
     }
 
     /**

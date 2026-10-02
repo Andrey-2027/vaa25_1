@@ -25,8 +25,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * имени класса) и забор по <b>рантайму</b> ({@code DeepLinkCatalogBaselineIT} — каталог,
  * построенный поверх настоящих дескрипторов и реестра форм). Формат файла должен читаться
  * ровно одинаково, иначе две проверки разойдутся и перестанут подтверждать одну поверхность.</p>
+ *
+ * <p>Публичный он потому, что тем же единственным чтением пользуется забор словаря якоря
+ * ({@code org.ip.views.admin.CardAnchorTest}, записи {@code view=}): у формата файла одно место,
+ * а не по читателю на раздел.</p>
  */
-final class DeepLinkBaseline {
+public final class DeepLinkBaseline {
 
     /** Ровно те поля, которые обязана нести запись alias: опечатка в имени поля — ошибка, а не пропуск. */
     private static final Set<String> ALIAS_FIELDS =
@@ -38,20 +42,24 @@ final class DeepLinkBaseline {
     private final Set<String> reserved;
     private final Map<String, String> routes;
     private final Set<String> planned;
+    private final List<String> views;
 
     private DeepLinkBaseline(List<Alias> aliases, Set<String> reserved,
-                             Map<String, String> routes, Set<String> planned) {
+                             Map<String, String> routes, Set<String> planned,
+                             Set<String> views) {
         this.aliases = List.copyOf(aliases);
         this.reserved = Set.copyOf(reserved);
         this.routes = Map.copyOf(routes);
         this.planned = Set.copyOf(planned);
+        this.views = List.copyOf(views);
     }
 
-    static DeepLinkBaseline read(Path file) {
+    public static DeepLinkBaseline read(Path file) {
         List<Alias> aliases = new ArrayList<>();
         Set<String> reserved = new LinkedHashSet<>();
         Map<String, String> routes = new TreeMap<>();
         Set<String> planned = new LinkedHashSet<>();
+        Set<String> views = new LinkedHashSet<>();
         for (String raw : lines(file)) {
             String line = raw.trim();
             if (line.isEmpty() || line.startsWith("#")) {
@@ -73,11 +81,15 @@ final class DeepLinkBaseline {
                 assertThat(planned.add(line.substring("planned ".length()).trim()))
                     .as("planned-адрес '%s' объявлен дважды", line)
                     .isTrue();
+            } else if (line.startsWith("view=")) {
+                assertThat(views.add(line.substring("view=".length()).trim()))
+                    .as("якорь '%s' объявлен дважды: у одного места карточки один адрес", line)
+                    .isTrue();
             } else {
                 aliases.add(alias(line));
             }
         }
-        return new DeepLinkBaseline(aliases, reserved, routes, planned);
+        return new DeepLinkBaseline(aliases, reserved, routes, planned, views);
     }
 
     private static Alias alias(String line) {
@@ -127,6 +139,14 @@ final class DeepLinkBaseline {
     /** Объявленные, но ещё не реализованные адреса хоста ссылки. */
     Set<String> planned() {
         return planned;
+    }
+
+    /**
+     * Публичные якоря карточки типа ({@code ?view=}): вкладки и разделы в порядке словаря. Порядок
+     * хранится потому, что этот список — публикация словаря, и её читают глазами.
+     */
+    public List<String> views() {
+        return views;
     }
 
     /** Запись alias: ключ, класс, варианты по видам формы, контекст и прежние ключи. */

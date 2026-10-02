@@ -1,0 +1,2 @@
+org.ipro.rest.config.RestResourceCatalogAutoConfiguration
+org.ipro.rest.config.RestReadAutoConfiguration

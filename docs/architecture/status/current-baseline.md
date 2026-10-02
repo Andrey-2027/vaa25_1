@@ -1562,6 +1562,9 @@ bootstrap -ValidateOnly                                 OK fingerprint: восе
 - **E1.2b** (resource permissions) не начат: серверной части C5 в дереве нет, `ActionPermission`
   описывает её как следующий вход. Формула `capability + resource/RLS + контекст` в полном виде
   не выполнена и без C5 невыполнима; DoD §5.2 плана остаётся открытым.
+  Планируемый [F-REST-READ-3 Gate 3B](../rest-read-api-stage3-security-read-plan.md) должен предоставить
+  серверный C5 read-контур как зависимость для возобновления E1.2b; он сам по себе не закрывает
+  action/UI acceptance E1.2b.
 - **Ручной UI-смоук не проводился**: поведение подтверждено тестами и кодом, но не наблюдением.
 - **`D-R`** (optional report add-on) остаётся отдельным открытым обязательством владельца и
   входным gate E1 не является.
@@ -1889,7 +1892,7 @@ bootstrap -ValidateOnly                                 OK fingerprint: восе
   стоит проверить наблюдением: после 404 адресная строка остаётся недоступной формой адресом,
   и нажатие Refresh повторяет тот же вход.
 
-## E3.0: адрес типа и пробный путь (код и тесты закрыты; живая приёмка ожидает прогона)
+## E3.0: адрес типа и пробный путь (код и тесты закрыты; живая приёмка начата 2026-09-28)
 
 Фактические прогоны (2026-09-27, JDK 21, Maven offline, один запуск на команду):
 
@@ -1934,10 +1937,26 @@ bootstrap -ValidateOnly                                 OK fingerprint: восе
   (13 неразобранных рёбер пакетов `org.ipro.form.*` из чужой переработки E1). Проверочный набор
   среза — **38 тестов, 3 падения (все чужие)**, собственная часть — 35/0.
 
-Живая приёмка §5 плана среза (admin/manager) — не выполнена на момент записи: пункты 1–11
-(не-ADMIN с существующим и несуществующим ключом, холодный адрес, refresh, Back/Forward,
-повторный вход в открытую вкладку, тип без ключа, закрытие вкладки, dirty-guard, legacy-ключ)
-остаются за прогоном на стенде.
+Живая приёмка §5 плана среза (admin/manager) — начата 2026-09-28 на стенде
+(`spring-boot:run -Dspring-boot.run.profiles=dev`, локальный PostgreSQL, порт 8080): подтверждены
+холодный адрес `/entity-explorer/nomenclature` под admin (вкладка создаётся, дерево и разделы на
+месте) и неразличимый отказ не-ADMIN — `manager` видит тот же «Адрес не найден» и не имеет
+пункта «Структура сущностей» в меню.
+
+**Дефект, найденный на приёмке, и его закрытие (2026-09-28).** Вход в систему приземляет на
+запрошенный адрес с инфраструктурным `?continue` (`/entity-explorer/nomenclature?continue`), а
+`EntityExplorerAddress.keyOf` отклонял любой query — значит **ссылка на тип, открытая до входа,
+после входа карточку не открывала** (тот же путь ломал Back/Forward: мост передаёт обработчику
+сырой `target`). Правило заимствовано у адреса формы (`FormRouteCodec`): переносится только
+параметр входа, любой другой query остаётся отказом; адрес вкладки записывается без параметров,
+иначе `?continue` уезжал бы в копируемую ссылку и адрес карточки существовал бы в двух формах.
+`EntityExplorerAddressTest` 7 → **9/0**, `FormRouteUrlBridgeTest` **26/0**, `platform-vaadin`
+**35/0/0** с переустановкой артефакта; приложение — `EntityExplorerAddressWiringTest` 4 → **5/0**,
+`DeepLinkRouteBaselineTest` **6/0**. На стенде после перезапуска: адрес становится
+`/entity-explorer/nomenclature`, карточка открыта, отказ в журнал не пишется.
+
+Остаются за прогоном: refresh и Back/Forward, повторный вход в открытую вкладку, тип без ключа,
+закрытие вкладки, dirty-guard, legacy-ключ.
 
 ## Неошибочные и блокирующие диагностики
 
@@ -1972,3 +1991,572 @@ Warnings не подавляются только ради зелёного ло
 - Surface/API guards: выбранный набор **58/0/0**; `PlatformCoreModuleTest` **6/0/0**, `PlatformCoreSurfaceTest` **6/0/0**, `PlatformVaadinModuleTest` **7/0/0**, `PlatformVaadinSurfaceTest` **6/0/0**, `PlatformPublicSurfaceTest` **10/0/0**. Бюджет `APP_API` не вырос.
 - API writer: адресный тест **1/0/0**; обновлены `platform-core.api` и `platform-vaadin.api`. Vaadin baseline также фиксирует уже начатые E2 route-типы; прочие `.api` файлы восстановлены побайтно из копии до writer.
 - Полная проверка `PlatformApiBaselineTest` после обновления сообщает только дрейф `platform-persistence.api`; файлы реализации `platform-persistence` уже имеют отдельные незакоммиченные удаления и в шаге E3.1.2 не менялись. Core/vaadin baseline совпадают с текущей публичной поверхностью. Полный app suite на этом шаге не запускался.
+
+## E3.1 шаг 3 — адресуемые диагностики (2026-09-28)
+
+- `EntitySummaryAssembler` проецирует сохранённый snapshot `MetadataConsistencyStartupCheck` без повторного запуска валидатора. `UI_*`, `REDUNDANT_REQUIRED`, `*_TYPE` и `FALLBACK_TYPE` адресуются к `FIELD_STRUCTURE`; коды целей ссылок — к `LOOKUP_TARGET`. Политические/неизвестные коды сохраняются с исходными entity/field без выдуманного `FacetKey`.
+- Диагностики типов строк из `SectionMetadataRegistry` попадают в карточку root-владельца, при этом `DiagnosticRow.entityFqn/fieldName/source` сохраняют адрес строки. Если карточку или владельца определить нельзя, запись остаётся в общем списке. Служебная строка при отсутствии startup-check не смешивается с диагностическими записями snapshot.
+- Проверки: полный `platform-vaadin` **386/0/0**; app-side `EntitySummaryAssemblerTest` **16/0/0**, `SubsystemSummaryAssemblerTest` **8/0/0**. Проверены mapping обязательности/типа/lookup, перенос `ReceivingDocumentItem` к `ReceivingDocument`, неизвестный код без `FacetKey`, непривязанная запись и сохранение общего количества snapshot-записей.
+- Surface guards: `PlatformCoreSurfaceTest` **6/0/0**, `PlatformVaadinSurfaceTest` **6/0/0**; публичная поверхность не менялась, API-baseline writer не запускался. Полный app suite не запускался.
+
+## E3.1 шаг 4 — lifecycle без делегатов (2026-09-28)
+
+- `EntityLifecycleInspection` (`platform-events`, пакет `org.ipro.lifecycle`) — инспекция прикладного handler'а: целевой класс после `AopUtils.getTargetClass` и `declared` по каждому из шести хуков контракта. Порядок хуков фиксирован явным списком, незнакомое имя — fail-fast при загрузке класса, а набор имён в ответе проверен guard-тестом на set-равенство с публичными методами `EntityLifecycle` без `entityType` — новый хук в контракте не может появиться в UI молча. `Optional.empty()` — Java-proxy, созданный вне Spring: «переопределение не подтверждено» вместо «все хуки default».
+- `spring-aop` объявлен в `platform-events` явно: reviewed-бюджет модуля — типы 3 → 4 (`EventsModuleCompositionTest`), compile-зависимости 5 → 6. Разворачивание Spring-proxy — исполнение, а не деталь реализации, и держаться на транзитивной зависимости не должно.
+- `EntitySummary.LifecycleRow` получил `FacetKey` (ломающее изменение опубликованной записи): handler-строка несёт `ENTITY_LIFECYCLE_HANDLER`, строка хука — `ENTITY_LIFECYCLE_HOOK` с `fieldName` = имя хука. Javadoc `FacetKey` фиксирует состав ключей всех шести граней E3.1 (javadoc-only, `.api` ядра не менялся, модуль переустановлен).
+- `EntitySummaryAssembler.lifecycleRows` публикует четыре состояния, различимые текстом и происхождением, и ни одно из них не читается как «правил нет»: handler развёрнут (`REGISTRATION`, symbol = FQN целевого класса, шесть строк хуков со symbol `FQN_handler#hook` для `EXPLICIT` и `org.ipro.lifecycle.EntityLifecycle#hook` для `PLATFORM_DEFAULT`); handler есть, класс не развёрнут (`PLATFORM_DEFAULT`, строк хуков нет); handler не зарегистрирован (`PLATFORM_DEFAULT`); тип не `IdentifiableEntity` (`DERIVED`, symbol = FQN класса сущности). Оговорка «другие listeners и делегаты не анализируются» стоит один раз — в строке handler'а.
+- Пятое состояние — «реестр lifecycle не подключён»: совместимый конструктор сборщика (7 аргументов) передаёт `null`, и без этой ветки `summarize` падал бы на NPE. План шага его не описывал; состояние отличимо по тексту и не выдаётся ни за «handler не зарегистрирован», ни за «все хуки default».
+- Числа прогонов: `platform-events` **27 → 34/0/0** (адресный набор шага **19/0/0**, включая новый `EntityLifecycleInspectionTest` **7/0/0**); `platform-core` адресный набор **16/0/0**; полный `platform-vaadin` **386/0/0**; app-side `EntitySummaryAssemblerTest` **16 → 20/0/0** (Nomenclature + `NomenclatureLifecycle`, пустой реестр против handler'а без переопределений, тип вне identity-контракта, неразрывность диагностик). *Исправлено 2026-09-28 при закрытии среза: здесь стояло «26 → 30» — в классе 20 тестовых методов, и шаг 4 добавил ровно четыре к шестнадцати шага 3 (см. раздел «шаг 5»).*
+- Guard'ы публикации: `PlatformPublicSurfaceTest` **10/0/0** (без изменений в `platform-public-surface.txt` — реестр измеряет ссылки приложения, а новый тип называется только внутри `platform-vaadin`), `PlatformVaadinSurfaceTest` **6/0/0**, `DeepLinkRouteBaselineTest` **6/0/0**, `WorkspaceManifestTest` **4/0/0**; writer'ы запускались намеренно: `platform-events.api` (+3 записи: класс и два вложенных record'а), `platform-vaadin.api` (только `LifecycleRow`: новый компонент `FacetKey`), `d1-surface-measurements.md` `platform-artifact-files` 394 → 395 (роли не менялись: `api-types` 125). `platform-persistence.api` после writer'а возвращён в исходное состояние — расхождение чужое (в HEAD исходники `JrxmlTemplate`/`PlatformPersistenceAutoConfiguration` удалены, baseline не обновлён).
+- Манифест `scripts/local-dependencies.json` обновлён намеренно (`-Dplatform.manifest.write=true`, ровно три fingerprint'а, форматирование не тронуто): `platform-events` 9 → 11 файлов (файлы среза), `platform-vaadin` — тот же count, новый hash (два изменённых файла), `platform-core` 120 → 122 — дрейф, который уже зафиксирован в HEAD другим потоком (в HEAD 121 файл под `src`, манифест отставал).
+- Скрытый долг среза закрыт полным прогоном: `EffectiveMetadataSnapshotTest` (baseline origin'ов не знал `REGISTRATION`/`DERIVED`/`UNKNOWN` — следствие шага 1; распределение не изменилось, добавлены девять нулевых строк) и `NumberingMetadataRegistryTest` (в каталог `org.ip` попадает унаследованное `@Numbered code` фикстуры `InheritedCatalogFixture` из тестов шага 2 — ожидание обновлено с пояснением, это измеренное поведение скана).
+- Полный app suite: **1424 теста, 3 падения, 0 ошибок**. Падения чужие и совпадают с входным baseline среза: `PlatformApiBaselineTest` (`platform-persistence`), `PlatformPackageDependencyMatrixTest` (неразобранные package edges), `ReportEditorConsolidationTest` (контрол `bands` reportstudio). Двенадцать ошибок входного baseline (`Failed to close extension context`) в этом прогоне не воспроизвелись.
+
+## E3.1 шаг 5 — карточка: происхождение, диагностика, lifecycle (2026-09-28)
+
+- Колонка «Источник» больше не печатает путь к `.java`-файлу сущности: ячейка собирается из трёх
+  признаков `ResolvedValue` — слоя, подписи происхождения и Java-символа. `OVERRIDE` показывается как
+  «переопределение (код: <происхождение>)» — иначе «действует переопределение» и «действует
+  платформенный дефолт» читались бы одинаково; пустой символ оставляет пустое место. Подписи восьми
+  `FactOrigin` — текст для человека: «явно», «bean-валидация», «JPA-маппинг», «тип Java»,
+  «платформа», «регистрация», «выведено», «происхождение неизвестно».
+- Сверх формулировки §3 «Шаг 5» добавлено то, что публиковали шаги 1–4 и что иначе оставалось бы
+  невидимым: колонка «Тип» (`typeLabel · typeOrigin`), происхождение обязательности в ячейке
+  «Обязат.» («да · bean-валидация»; у необязательного поля происхождение не рисуется — это был бы
+  ответ на незаданный вопрос), «Примечание» из `OverviewRow.detail` и `ColumnRow.note`
+  («metadata-driven root», «выведены из полей грида»), происхождение в наборах выбора, а в разделе
+  «Контекст-фильтры» путь декларанта сначала был назван «Регистрация», и «Источник» стал
+  происхождением подписи. *Исправлено при закрытии среза: колонка переименована в «Файл декларанта» —
+  в ячейке путь к `.java`-конфигу, и подпись «Регистрация» читалась бы как «регистрацией и является
+  файл»; вид регистрации несёт «Источник» («регистрация · `<FQN>`»).*
+- Новые разделы карточки: «Диагностика» (уровень, код, адрес `FQN#field`, текст, источник;
+  `caption` отдельной колонкой не рисуется — он составлен из уровня и кода, которые в той же строке
+  уже есть) и «Lifecycle» (хук или `handler`, значение, источник, примечание; оговорка о делегатах
+  видна ровно в строке handler'а).
+- `EntityExplorerView`: локальная строка причины снята вместе с зависимостью от `FormRouteCatalog`
+  (конструктор стал на аргумент короче) — причина приходит строками `ENTITY_KEY`/`LINKABILITY` и у неё
+  один владелец. Общий список неадресованных диагностик стал разделом каталога: свёрнутый `Details`
+  с числом записей, который рисуется только при непустом списке и не зависит от выбранной карточки.
+- Числа: `EntitySummaryPanelTextTest` **12/0/0** (новый), `EntityExplorerViewAddressTest` **3/0/0**
+  (без аргумента-каталога), app-side `EntitySummaryAssemblerTest` **20/0/0**; адресный набор шага —
+  **35/0/0**.
+- Правка записи шага 4 (см. выше): app-side `EntitySummaryAssemblerTest` **16 → 20/0/0**. Шаг 4
+  добавил ровно четыре теста к шестнадцати шага 3, что и видно в классе из 20 методов.
+- Полный прогон после шага 5: **1437 тестов, 6 падений, 0 ошибок** (после шага 4 — 1424/3/0; тринадцать
+  новых тестов — двенадцать панели и один вида). Три падения оказались **своими** и закрыты в шаге 6:
+  `PlatformPublicSurfaceTest` дважды (карточка назвала `FactOrigin`, `MetadataDiagnostic` и
+  `ResolvedValue`, у которых не было роли в D1-реестре; замер `named-platform-types` 213 против 216) и
+  `WorkspaceManifestTest` (отпечаток `platform-vaadin` разошёлся после правки адреса `?continue` при том
+  же числе файлов — 189). Чужие три те же, что на входе среза.
+- Живая проверка на стенде (`admin`, вход по ссылке на тип): адрес `/entity-explorer/nomenclature`
+  открывается, вкладка одна; «Подсистема» = `регистрация · org.ip.subsystem.Subsystems$Directories`,
+  «Тип сущности» = `явно · org.ip.model.Nomenclature`, «Экспозиция» =
+  `выведено · org.ip.model.Nomenclature` с примечанием `metadata-driven root`, «Внешний ключ» =
+  `выведено · org.ip.model.Nomenclature` с `generated from class simple name`; поля — `TEXT · тип Java`,
+  `да · bean-валидация`, `явно · org.ip.model.Nomenclature#code`; раздел «Lifecycle» — handler
+  `NomenclatureLifecycle`, `beforeAggregateSave` переопределён, остальные пять хуков default с символом
+  контракта  `org.ipro.lifecycle.EntityLifecycle#<hook>`, оговорка о делегатах один раз. Это приёмка §6
+  п.7, которая до шага 5 была непроверяемой на UI.
+
+## E3.1 — срез закрыт (2026-09-28)
+
+Запись сделана после приёмки, а не вместо неё: сначала пройдены пункты §6 на стенде, потом записан
+этот раздел — и непройденное названо с причиной, а не выдано за успех. Основания:
+`docs/plans/e3-1-detailed-plan.md` (шаги 1–6 и их уточнения),
+`docs/plans/e3-1-step4-plan.md`/`e3-1-step5-result.md`/`e3-1-step6-plan.md` (отклонения),
+`ADR-0011` (почему модель такая).
+
+- **Полный прогон — финал среза: `Tests run: 1437, Failures: 3, Errors: 0`** (`BUILD FAILURE` ровно по
+  чужой трём; лог — `target/e3-1-step6-full.log`). Падения поимённо и все три — из входного baseline
+  среза: `ReportEditorConsolidationTest.canonicalStructureEditorRendersEveryAcceptedControl`
+  (контрол `bands`, reportstudio), `PlatformApiBaselineTest.artifactPublicSurfaceMatchesItsReviewedBaseline`
+  (`platform-persistence.api` в HEAD отстал от исходников своего модуля — расхождение чужое,
+  возвращается `git checkout --` после writer'а, а не регенерируется «походя»),
+  `PlatformPackageDependencyMatrixTest.everyRepositoryPackageEdgeIsReviewed` (неразобранные package
+  edges). Ни одного падения в области среза. Динамика по срезу: **1414/4/12** на входе → **1424/3/0**
+  после шага 4 → **1437/6/0** после шага 5 (три красных guard'а были своими) → **1437/3/0** здесь;
+  двенадцать ошибок входа (`Failed to close extension context`, `%TEMP%\junit-*`) в этих прогонах не
+  воспроизводились вовсе.
+- **Приёмка §6 — по пунктам, с фактическим текстом карточки** (стенд `spring-boot:run` профиль `dev`,
+  `admin`):
+  1. *Холодный адрес и роль* — **пройдено**: `/entity-explorer/nomenclature` открывает карточку и ровно
+     одну вкладку; `manager` получает «Адрес не найден» и с `?continue`, и без него, а пункта «Структура
+     сущностей» в его меню нет — отказ неотличим от несуществующего адреса.
+  2. *Происхождение `kind`* — **пройдено на наблюдаемых ветвях**: `Nomenclature` даёт «Тип сущности
+     CATALOG | явно · org.ip.model.Nomenclature», `PrdSpec`/`PrdSpecMtr` — платформенный дефолт
+     («PLAIN | платформа»). Ветка «выведено из стандартного базового класса» на этом стенде
+     **ненаблюдаема**: ни одна `@EntityMetadata`-сущность приложения не наследует
+     `StandardCatalogEntity`/`StandardDocumentEntity` (единственный явный `kind` в приложении —
+     `Nomenclature`). Ветку держит тест `EntityKindResolutionTest` (`platform-core`) — так и записано:
+     «покрыто тестом», а не «проверено живьём».
+  3. *«Источник» и путь класса* — **пройдено**: на карточках `Nomenclature`, `AttributeType`,
+     `ReceivingDocument`, `PrdSpec`, `PrdSpecMtr` ни одна ячейка не содержит `org/ip/**/*.java`.
+     Единственный путь в карточке — колонка контекст-фильтров с путём к `.java`-конфигу; до приёмки она
+     называлась «Регистрация», и это была подпись не по факту (вид регистрации несёт «Источник»:
+     «регистрация · `<FQN>`»), поэтому колонка переименована в «Файл декларанта».
+  4. *Fallback-пример и тип без адреса* — **пройдено**: карточка `PrdSpecMtr` открывается из левого
+     списка, её «Заголовок формы выбора» = «Компоненты спецификации | выведено · org.ip.model.PrdSpecMtr»
+     (заголовок выведен из заголовка списка и показан выведенным, символ не выдуман), «Внешний ключ» =
+     «— | платформа», «Экспозиция» = «OWNED_ROW | выведено · org.ip.model.PrdSpecMtr».
+     `/entity-explorer/prd-spec-mtr` даёт «Адрес не найден», и вкладка типа без ключа адреса не
+     публикует.
+  5. *Поля* — **пройдено**: у `ReceivingDocument` унаследованное `id` показано как
+     `платформа · org.ipro.crud.BaseEntity#id`, обязательность — «да · bean-валидация», составная
+     колонка `journal.code` — «выведено» без символа (точное место у составной подписи не заявляется)
+     с примечанием «использует колонки списка».
+  6. *Диагностики* — **пройдено**: носители нашлись там, где у пилота E3.0 их не было.
+     `ReceivingDocument` показывает 12 записей, включая три адресованные `ReceivingDocumentItem#…`:
+     строка секции видна у root-владельца; `AttributeType` — адресуемая `…/AttributeType#active` и
+     прочие, совпадающие со строками стартового скана; `PrdSpec` — `org.ip.model.PrdSpecMtr#qt` и
+     `#typeMtr`. Неадресованных записей в карточках нет, общий список — раздел каталога, а не карточки.
+     «Сумма без дублей» держится устройством, а не наблюдением: общий список — это `unassigned()`
+     сборщика, дополнение к адресованным записям того же snapshot.
+  7. *Lifecycle* — **пройдено на шаге 5** (handler `NomenclatureLifecycle`, `beforeAggregateSave`
+     переопределён, пять хуков default, оговорка о делегатах один раз; тип без handler'а отличим от
+     «все хуки default»).
+  8. *Ось `OVERRIDE`* — **подтверждена тестом, в UI не подделана**: продуктивная конфигурация
+     (`EntityExplorerAutoConfiguration`) отдаёт `FacetResolver.none()`, поэтому переопределений на
+     стенде нет; тест `EntitySummaryAssemblerTest.overridableFacetsResolveThroughFacetResolver`
+     проверяет и `source = OVERRIDE` у переопределённой грани, и `CODE` у той же грани без
+     переопределения.
+  9. *Guard'ы и диффы* — **пройдено**: зелёные `PlatformPublicSurfaceTest` **10/0/0**,
+     `PlatformVaadinSurfaceTest` **6/0/0**, `PlatformCoreSurfaceTest` **6/0/0**, `WorkspaceManifestTest`
+     **4/0/0** (на входе среза падал как чужой — отпечаток `platform-vaadin` разошёлся после правки
+     адреса `?continue`, регенерация намеренная), `DeepLinkRouteBaselineTest` **6/0/0**.
+     Диффы относительно закоммиченного baseline — только ожидаемые и только в области среза:
+     `platform-public-surface.txt` (+9: три D1-роли), `platform-core-surface.txt` (+13/−4:
+     `ResolvedValue` `MODULE_API` → `APP_API`, бюджет 30/4/44/16 → 31/4/43/16), `platform-events.api`
+     (+21: `EntityLifecycleInspection` и её два record'а), `platform-vaadin.api` (конструктор
+     `LifecycleRow` с `FacetKey` + `key()`), `d1-surface-measurements.md` (`api-types` 125 → 128,
+     `named-platform-types` 213 → 216, `platform-artifact-files` 394 → 395),
+     `scripts/local-dependencies.json` (файлы среза). `platform-core.api` остался без изменений —
+     замер, а не предположение.
+- **Непройденное с причиной**: ветка `kind` из стандартного базового класса и состояние
+  «переопределение не подтверждено» (Java-proxy, созданный вне Spring) на стенде ненаблюдаемы — их
+  держат тесты `EntityKindResolutionTest` и `EntityLifecycleInspectionTest`; ось `OVERRIDE` в UI
+  намеренно не подделана. Ни одно из трёх не записано как «пройдено живьём».
+- **Текст планов.** `JMIX_GitVaa_Roadmap_v2.md` (блок `#### E3.1`) приведён к пяти состояниям handler'а.
+  Тело `docs/plans/e3-1-detailed-plan.md` **не перезаписано**: файл лежит под `.gitignore`, поэтому
+  правится только полной записью (55 КБ), а такие записи дважды обрывались на транспорте; его шесть
+  расхождений с кодом собраны готовыми фрагментами в `docs/plans/e3-1-corrections.md`. Это
+  единственный пункт §7 плана шага 6, помеченный как выполненный не «в теле»; решение — записать код
+  как измеренное, а текст заменить механически, а не переписывать 271 строку вслепую.
+- **Вне среза:** `ADX-10`/`ADX-11` и центральные registrations этим срезом не закрыты — карточка E3
+  остаётся поверхностью чтения, а не редактором; действия, планы, RLS-факты, дерево по resolved kind,
+  вкладки аспектов и переходы — E3.2 (`docs/plans/e3-configuration-studio-plan.md` §6).
+
+## E3.2.0 шаг 1 — действия как факт (2026-09-29)
+
+- План шага: `docs/plans/e3-2-step1-plan.md`; итог — `docs/plans/e3-2-step1-result.md`; ход и
+  расхождения — `docs/plans/e3-2-step1-progress.md`. Изменения — в рабочем дереве, без коммитов.
+- **Код.** `ActionProvenance` (род записи, символ места объявления, примечание) и
+  `ActionProvenanceCatalog` (происхождение по ключу регистрации, сверка состава с реестром на
+  старте) рядом с реестром действий; `ActionRegistry.Registration`/`Key.of`; `FacetKind` +`ACTION`,
+  +`ACTION_HANDLER`; `EntitySummary` — 17-й компонент `actions` и record `ActionRow`; сборщик
+  сводки — три обязательных коллаборатора действий и `actionRows`. Раздел действий в карточке шаг
+  **не** добавляет: секции аспектов в `EntitySummaryPanel` — работа шага 5 среза (он владелец
+  компоновки), а строки живут в сводке и покрыты прикладными пилотами.
+  Нового ADR шаг не пишет: `ADR-0011` — документ среза E3.1, а факты аспектов целиком
+  (действия, сценарии чтения, доступ, связи) планируются одним `ADR-0012` на шаге 5.
+- **Числа.** `platform-vaadin`: до шага **386/0/0**, после — **413/0/0** (`target/e32-vaadin-full2.log`).
+  Приложение адресно — **51/0/0** (`target/e32-app-radius.log`). Заборы публикации — **29/0/0**
+  (`target/e32-guards4.log`: Core 6, Public 10, VaadinModule 7, VaadinSurface 6). Писатели — `.api`
+  и d1 **13/0/0** (`e32-writers.log`), манифест **4/0/0** (`e32-manifest-write.log`).
+- **Полный прогон приложения** — **1445 тестов, 3 падения, 0 ошибок** (`target/e32-full-app2.log`).
+  Вход под-среза (E3.1 шаг 6, `e3-1-step6-full.log`) — **1437/3/0** с теми же тремя падающими
+  классами, то есть шаг добавил ровно 8 прикладных тестов и ни одного падения. Чужие падения:
+  `ReportEditorConsolidationTest` (контейнер `bands`), `PlatformApiBaselineTest` (расхождение
+  baseline только у `platform-persistence`; файл возвращён после регенерации),
+  `PlatformPackageDependencyMatrixTest` (20 неразобранных рёбер пакетов — набор побайтово совпал
+  с прогоном до шага).
+- **Заборы и реестры (диффом по области).** `platform-vaadin-surface.txt`: два новых типа —
+  `MODULE_API` (приложение их не называет, но они стоят в публичной сигнатуре `EntitySummaryAssembler`),
+  `ActionRegistry`/`ActionHandlerRegistry` переведены INTERNAL → MODULE_API правилом 7; бюджет
+  разделов **51/11/19/46 = 127**, overlay `test-usage` 22 → 23. `platform-core-surface.txt`: в overlay
+  добавлен прикладной тест пилотов для трёх типов (тот же род ссылки, что у соседей).
+  `platform-core.api` +3/−1 (константы `FacetKind`), `platform-vaadin.api` +81/−1 (два типа,
+  `ActionRow`, `Key.of`, конструктор сборщика), `platform-events.api` +21 — наследие E3.1.
+- **D1-числа.** `d1-surface-measurements.md` изменился одним замером: `platform-artifact-files`
+  395 → **397** (два новых исходника модуля). `named-platform-types` 216 и `api-types` 128 не
+  двинулись — приложение новых платформенных типов не называет. Reviewed-типов модуля 125 → **127**
+  (три забора: `PlatformVaadinSurfaceTest`, `PlatformVaadinModuleTest`, `VaadinModuleCompositionTest`).
+- **Три новых ребра матрицы пакетов** (замер сравнением с прогоном до шага):
+  `form.action -> metadata`, `vaadin.explorer -> form.action`, `vaadin.explorer -> fetch.plan`.
+  Направления те же, что уже разрешены у соседей, поэтому записаны в reviewed allow-list вручную;
+  `-Dplatform.matrix.write=true` не применялся — он заодно узаконил бы 20 чужих рёбер.
+  Финальная сверка после этой правки (и последняя запись в дереве): 39 тестов, 33 зелёных
+  (пять заборов 29 + манифест 4) и те же два чужих падения — `PlatformApiBaselineTest`
+  (`platform-persistence`, текст падения посимвольно совпадает с прогоном E3.1 шаг 6) и
+  `PlatformPackageDependencyMatrixTest` (лог `target/e32-guards-final.log`).
+- **Манифест локальных зависимостей** обновлён намеренно по показанному дрейфу:
+  `platform-events` (файлы E3.1), `platform-core` 120 → 122, `platform-vaadin` 189 → 194 файлов.
+  Первый полный прогон падал на нём, финальный — нет.
+- **Отклонения.** Новых публичных типов два, а не один (каталог — отдельный тип); d1 изменился
+  вопреки ожиданию «без изменений» (два новых файла — факт замера); секция действий объявляет
+  локальные `ListForm#addAction` границей и не показывает права пользователя и решение по строке.
+- **Не сделано шагом:** сценарии чтения, доступ/RLS и связи (шаги 2–4 под-среза), вкладки аспектов и
+  переходы (E3.2.1/E3.2.2).
+
+## E3.2.0 шаг 2 — сценарии чтения как факт (2026-09-29)
+
+- План шага: `docs/plans/e3-2-step2-plan.md`; итог — `docs/plans/e3-2-step2-result.md`; ход и
+  расхождения — `docs/plans/e3-2-step2-progress.md`. Изменения — в рабочем дереве, без коммитов.
+- **Код.** `EntityDescriptor` +`capabilitiesOrigin`/`capabilitiesSymbol` (происхождение набора
+  сценариев — своя ось рядом с `exposureOrigin`, заполняется в `EntityDescriptorCatalog.classify`:
+  `REGISTRATION` при прикладном `EntityCapabilityOverride`, иначе `PLATFORM_DEFAULT`; символ
+  прикладного объявления пуст — названная граница, ядро строится без Spring); `FetchPlanInspection`
+  в `org.ipro.data` — публичный владелец факта: строки сценариев (`allowed`, происхождение и символ
+  набора, пути) и вложенная запись `Path` с причиной, собранные из `FetchPlanRegistry` и каталога;
+  внутренний `FetchPlan` наружу не выходит. `FacetKind` +`FETCH_PLAN`, +`FETCH_PLAN_PATH` (обе
+  структурные; javadoc `FacetKey` фиксирует ключ `<SCENARIO>` / `<SCENARIO>/<path>`, `variant` пуст —
+  план кэшируется по паре «класс + сценарий»); `EntitySummary` — 18-й компонент `readPlans` с
+  записями `ReadPlanRow`/`PathRow`; `EntitySummaryAssembler.readPlanRows` берёт состав и порядок у
+  владельца и добавляет только ключ грани и примечание; `EntityExplorerAutoConfiguration` требует
+  инспекцию обязательно. Раздел «Сценарии чтения» в карточке шаг **не** пишет — по плану среза это
+  работа шага 5 (компоновка и вкладки), шаг доводит факт до сводки и покрывает пилотами.
+- **Числа.** `platform-vaadin` полностью — **422/0/0** (`target/e32s2-vaadin-full.log`), ядро —
+  **137/0/0** (`target/e32s2-core-full2.log`); до шага было 413 и 127. Приложение адресно —
+  **50/0/0** (`target/e32s2-app-radius2.log`: пилоты плана 5, замер 5, пилоты действий 8, сборщик 20,
+  текст карточки 12). Писатели — `.api` 3/0/0 (`e32s2-api-write.log`), d1 10/0/0 (`e32s2-d1-write.log`),
+  манифест 4/0/0 (`e32s2-manifest-write2.log`).
+- **Полный прогон приложения** — **1455 тестов, 3 падения, 0 ошибок** (`target/e32s2-full-app.log`).
+  Вход шага (после шага 1) — **1445/3/0** с теми же тремя падающими классами: шаг добавил ровно 10
+  прикладных тестов (замер 5 + пилоты 5) и ни одного падения. Чужие падения те же:
+  `ReportEditorConsolidationTest` (контейнер `bands`), `PlatformApiBaselineTest` (расхождение baseline
+  только у `platform-persistence`; файл возвращён после регенерации),
+  `PlatformPackageDependencyMatrixTest` (**20** неразобранных рёбер пакетов — набор совпал с прогоном
+  до шага, ни одного нового ребра шаг не добавил).
+- **Заборы и реестры (диффом по области).** `platform-core-surface.txt`: `FetchPlanInspection` —
+  `MODULE_API` (называют production-код формы и сборка контекста, приложение — нет), бюджет
+  **31/4/44/16**, проза шапки 94 → **95** типов, overlay `test-usage` 12 → 13 записей (ссылки
+  прикладного пилота ещё на три типа). `PlatformCoreSurfaceTest` — `hasSize(94)` → **95**,
+  `PlatformCoreModuleTest` и `CoreModuleCompositionTest` — тип в reviewed-составе модуля.
+  `platform-vaadin-surface.txt` — только overlay (пилот называет `FormRegistry`). `platform-core.api`
+  — новый тип, вложенные записи, компоненты дескриптора и четыре константы `FacetKind` (две из шага
+  1); `platform-spring-boot-autoconfigure.api` +1 (бин инспекции); `platform-vaadin.api` — строки сводки
+  и конструктор сборщика. Чужие `.api` (в частности `platform-persistence.api`) возвращены
+  `git checkout --` сразу после регенерации.
+- **D1-числа.** Изменился один замер: `platform-artifact-files` 397 → **398** (новый исходник ядра).
+  `named-platform-types` 216 и `api-types` 128 не двинулись — приложение новых платформенных типов не
+  называет, строки собирает сборщик. Reviewed-типов модуля формы 127 — без изменений.
+- **Матрица пакетов — без новых рёбер.** Замер сравнением с прогоном шага 1: набор из **20** чужих
+  рёбер побайтово тот же (в прогоне до правки allow-list их было 23 — вместе с тремя рёбрами шага 1).
+  Ребро `data -> fetch.plan` уже разрешено матрицей, поэтому инспекция живёт в `org.ipro.data`:
+  обратное направление создало бы цикл пакетов и новую строку reviewed-списка.
+  `-Dplatform.matrix.write=true` не применялся — он заодно узаконил бы эти 20 рёбер.
+- **Манифест локальных зависимостей** обновлён намеренно по показанному дрейфу: `platform-events`
+  (файлы E3.1), `platform-core` → **124** файла, `platform-spring-boot-autoconfigure` (тот же состав,
+  изменилось содержимое), `platform-vaadin` → **195** файлов. Обновлялся дважды: после правки реестра
+  ролей и после правки reviewed-состава модульного теста ядра.
+- **Финальная сверка заборов** (`target/e32s2-guards5.log`): 39 тестов, 37 зелёных (шесть заборов:
+  CoreSurface 6, CoreModule 6, PublicSurface 10, VaadinModule 7, VaadinSurface 6, Manifest 4) и те же два
+  чужих падения — `PlatformApiBaselineTest` (`platform-persistence`) и
+  `PlatformPackageDependencyMatrixTest` (20 рёбер).
+- **Правка более ранних записей.** В записях шага 1 стояло «карточка показывает строки действий» —
+  шаг 1 раздела не добавлял (по плану среза это шаг 5); формулировки приведены к факту в
+  `e3-2-step1-result.md`, `e3-2-step1-progress.md` и в разделе «E3.2.0 шаг 1» выше. Там же исправлено
+  число чужих рёбер матрицы: **20**, а не 19 (пересчёт по прогонам 23 − 3 моих = 20).
+- **Отклонения.** Инспекция плана живёт в `org.ipro.data` (ребро `data -> fetch.plan` уже разрешено,
+  обратное дало бы цикл); оба входа инспекции обязательны; строки сценариев — союз «допущено ∪ план
+  непуст», поэтому у типа не в каталоге тоже видны строки плана с `allowed=false`; `Value` строки —
+  признак допуска, а не имя сценария; замер дважды опроверг ожидания тестов (план `ROW` непуст у
+  обычного metadata-типа; «допущен, но путей нет» — реальная ветвь), и оба раза правился тест.
+- **Не сделано шагом:** доступ/RLS и связи (шаги 3–4 под-среза), разделы аспектов в карточке и
+  переходы (E3.2.1/E3.2.2), `ADR-0012` — на шаге 5.
+
+## E3.2.0 шаг 3 — доступ (RLS) как факт (2026-09-29)
+
+- План шага: `docs/plans/e3-2-step3-plan.md`; итог — `docs/plans/e3-2-step3-result.md`; ход и
+  расхождения — `docs/plans/e3-2-step3-progress.md`. Изменения — в рабочем дереве, без коммитов.
+- **Код.** Нового публичного типа шаг **не** завёл: владелец факта (`RlsDimensionRegistry`, роль
+  `API`) уже публикует род измерения, правила значения, каталог грантов и место объявления, а модуль
+  формы уже читает реестр напрямую (`SubsystemSummaryAssembler`). `FacetKind` +`RLS_DIMENSION`,
+  +`RLS_VALUE_RULE` (обе структурные; javadoc `FacetKey` фиксирует ключ `<dimension>` /
+  `<dimension>/<path>`, `variant` пуст); `EntitySummary` — 19-й компонент `accessRows` с записями
+  `AccessRow` (правила вложены списком, как пути плана в строку сценария) и `AccessRuleRow`;
+  `EntitySummaryAssembler` — 16-й коллаборатор `RlsDimensionRegistry` (только его публичные
+  аксессоры, `RlsPolicyDescriptor` — локальная величина), сортировка строк по имени измерения на
+  стороне сборщика (владелец порядок не гарантирует: `Set.copyOf` поверх `TreeSet`), а отказ
+  регистрации измерения даёт диагностику `RLS_SCAN`, а не пустую секцию и не падение карточки;
+  подключение — в `EntityExplorerAutoConfiguration`. Раздел «Доступ» в карточке шаг **не** пишет —
+  по плану среза это шаг 5.
+- **Новое, что нашлось кодом и правит план среза.** (1) Измерение всегда объявлено аннотацией на
+  классе-носителе (`@Target(TYPE)`, без `@Inherited`) — «измерения, выведенного из `valuePaths`», и
+  ветки `DERIVED` в этом аспекте не существует; у маркерных измерений носитель — вложенный интерфейс
+  (`Subsystems.*`, `ReportRights.JpqlPreview`), и карточке сущности такой факт не принадлежит.
+  (2) У сложной политики (`custom = true`) запись правила всё равно несёт дефолт
+  `valuePaths = {"id"}`, который enforcement игнорирует (фильтрация идёт по `readCondition`, значения —
+  из `getRlsChecks`): аспект его **не** публикует, иначе недействующий атрибут читался бы как правило
+  фильтрации. (3) CHECK_ONLY-измерений шесть, а не пять: кроме `SETTINGS:*` и `REPORTS:*` воротами
+  является и `ENTITY:ReceivingDocument`. (4) Компонент рода измерения нельзя назвать `kind` — этот
+  аксессор занят общим `FacetRow.kind()`; он называется `dimensionKind`.
+- **Числа.** Ядро полностью — **140/0/0** (`target/e32s3-core-full.log`; было 137, +3 теста
+  `FacetKindStructuralTest`); модуль формы — **430/0/0** (`target/e32s3-vaadin-full.log`; было 422,
+  +8 тестов `EntitySummaryAccessRowsTest`). Приложение адресно — **63/0/0**
+  (`target/e32s3-app-radius.log`: замер 11, пилоты доступа 7, пилоты действий 8, пилоты сценариев 5,
+  сборщик 20, текст карточки 12).
+- **Полный прогон приложения** — **1473 теста, 3 падения, 0 ошибок** (`target/e32s3-full-app2.log`).
+  Вход шага (после шага 2) — **1455/3/0** с теми же тремя падающими классами: шаг добавил ровно 18
+  прикладных тестов (замер 11 + пилоты 7) и ни одного падения. Чужие падения те же:
+  `ReportEditorConsolidationTest` (контейнер `bands`), `PlatformApiBaselineTest` (расхождение baseline
+  только у `platform-persistence`; файл возвращён после регенерации),
+  `PlatformPackageDependencyMatrixTest` (те же **20** неразобранных рёбер — набор совпал с шагами 1–2,
+  новых рёбер шаг не добавил). Первый полный прогон этого шага (`target/e32s3-full-app.log`,
+  1473/5/0) показал ещё два падения — overlay `test-usage`: новые прикладные пилоты называют
+  `SectionMetadataRegistry` и `FormRegistry`; записи добавлены, повторный прогон это подтвердил.
+- **Заборы и реестры (диффом по области).** `platform-core.api` — ровно две константы `FacetKind`;
+  `platform-vaadin.api` — 17-аргументный конструктор сборщика, 19-компонентный конструктор сводки,
+  `accessRows()`, записи `AccessRow`/`AccessRuleRow`. Новых reviewed-типов нет: бюджет ядра не
+  менялся, модуль формы — те же 127 типов, `platform-rls` не тронут вовсе. Overlay `test-usage`:
+  число записей не изменилось, но состав файлов у `SectionMetadataRegistry` и `FormRegistry`
+  расширен двумя прикладными пилотами. Чужие `.api` (в частности `platform-persistence.api`)
+  возвращены `git checkout --` сразу после регенерации.
+- **D1-числа — без изменений.** `platform-artifact-files`, `named-platform-types`, `api-types`,
+  `spi-types`, `legacy-internal-types` не двинулись: новых исходников и новых публичных типов
+  платформы шаг не создал (новые файлы — только тесты платформенных модулей). Писатель d1 не
+  запускался, и это замер, а не ожидание: дифф документа пуст.
+- **Матрица пакетов — без новых рёбер.** Набор из **20** чужих рёбер тот же, что в шагах 1–2; ребро
+  `org.ipro.vaadin.explorer -> org.ipro.rls` разрешено матрицей раньше (`SubsystemSummaryAssembler`).
+  `-Dplatform.matrix.write=true` не применялся.
+- **Манифест локальных зависимостей** обновлён намеренно по показанному дрейфу (`platform-core` —
+  новый тестовый файл ядра, `platform-vaadin` — правки сборщика и сводки). Его числа отражают всё
+  дерево, включая чужие незакоммиченные правки (E2, `org.ipro.form.link`), поэтому шагу целиком не
+  приписываются.
+- **Финальная сверка заборов** (`target/e32s3-guards5.log`): 37 тестов, 35 зелёных (CoreSurface 6,
+  PublicSurface 10, RlsModule 5, VaadinSurface 6, Manifest 4) и те же два чужих падения —
+  `PlatformApiBaselineTest` (`platform-persistence`) и `PlatformPackageDependencyMatrixTest`.
+- **Отклонения.** Ветка `DERIVED` для измерений и правил: срез её описывал, а в коде её нет — оба
+  факта `EXPLICIT`; аксессор в модуле-владельце не потребовался вовсе; раздел «Доступ» в панели и
+  его формулировки — шаг 5. Javadoc `FacetKind` ссылается на контракт-тест
+  `EntityExplorerFacetContractTest`, которого в дереве нет (ссылка от П5); часть контракта теперь
+  держит `FacetKindStructuralTest`.
+- **Не сделано шагом:** связи/lookup-цель (шаг 4 под-среза), разделы аспектов в карточке и вкладки
+  (E3.2.1), `ADR-0012` — на шаге 5; `ADX-10`/`ADX-11` и генератор (G/I) в срез не входят.
+
+## E3.2.0 шаг 4 — связи и переходы как факт (2026-09-29)
+
+- План шага: `docs/plans/e3-2-step4-plan.md`; итог — `docs/plans/e3-2-step4-result.md`; ход и
+  отклонения — `docs/plans/e3-2-step4-progress.md`. Изменения — в рабочем дереве, без коммитов.
+- **Код.** Нового публичного типа и нового коллаборатора шаг **не** завёл: цель выбора уже есть у
+  владельца метаданных (`FieldMetadataInfo.hasLookup()/getLookupEntity()/getReferenceOrigin()`),
+  который у сборщика и так есть. `EntitySummary` — 20-й компонент `lookupTargets` с записью
+  `LookupRow` (ключ `LOOKUP_TARGET` + имя поля, `variant` ключа пуст) и **снятием второго источника
+  цели**: `FieldRow` больше не несёт ни текста цели, ни её класса; прежний 19-аргументный конструктор
+  сохранён делегирующим. `EntitySummaryAssembler.lookupRows` строит строки из
+  `getAllAnnotatedFields()` (одна строка на поле, а не на проекцию формы/грида), сортирует по имени
+  поля (владелец порядок не обещает) и даёт примечание только об избыточном объявлении; прежний
+  метод `lookupTarget(field)` удалён. Панель (`EntitySummaryPanel.lookupCellText`) показывает цель,
+  вариант формы выбора и **происхождение** («явно» / «JPA-маппинг» / «тип Java»), а по `targetType`
+  строки открывает структуру цели. Раздел «Связи» в карточке шаг **не** пишет — по плану среза это
+  шаг 5.
+- **Замер площадки (`LookupTargetFactsIT`, отчёт `[E3.2.0-4.1]`).** 17 полей с целью в 8 типах из 20;
+  происхождение — `EXPLICIT` 7, `JPA_MAPPING` 10, `JAVA_TYPE` **0**; вариантов формы выбора 0; целей
+  вне метаданных 0. Все **семь** объявленных целей совпадают с типом ссылки, то есть `@Lookup` в
+  этом приложении объявляет сценарий выбора, а не цель, и примечание об избыточности — обычное
+  состояние реестра. Ветка `JAVA_TYPE` достижима только у поля, объявленного `ENTITY_REFERENCE`
+  поверх не-ассоциации, и требует у владельца `TYPE_CONFLICT` (`ERROR`), поэтому в здоровом
+  приложении происхождений ровно два — словарь владельца, а не догадка UI.
+- **Новое, что нашлось замером и правит план среза.** (1) Ветка «выведено» из среза распалась на
+  `JPA_MAPPING` и `JAVA_TYPE`, и вторая в приложении не встречается. (2) У поля может быть цель, но
+  не быть самого поля: `SklNomOpa.nomenclature` объявляет `@Lookup(entity = Nomenclature)`, но не
+  `@FieldMetadata`, в реестр полей не входит — ни строки поля, ни строки цели (связь есть, а
+  показать её нечем: это факт приложения, а не потеря аспекта). (3) Вариант формы выбора — компонент
+  строки, а не приклеенный текст: `Journal [short] · явно` читается как три раздельных признака.
+  (4) Ошибки цели (`REFERENCE_CONFLICT`, `REFERENCE_TARGET_NOT_METADATA`) примечанием не
+  пересказываются — они приходят каналом диагностик той же грани; строка при этом не прячется.
+- **Числа.** Модуль формы полностью — **437/0/0** (`platform-vaadin/target/e32s4-vaadin-full.log`;
+  было 430, +7 тестов `EntitySummaryLookupRowsTest` на пробах `lookupfixture`). Ядро шагом не
+  тронуто (последний полный прогон — 140/0/0). Приложение адресно — **63/0/0**
+  (`target/e32s4-app-radius.log`: замер 8, текст карточки 15, сборщик 20, пилоты сценариев 5,
+  доступа 7, действий 8).
+- **Полный прогон приложения** — **1484 теста, 3 падения, 0 ошибок** (`target/e32s4-full-app.log`).
+  Вход шага (после шага 3) — **1473/3/0** с теми же тремя падающими классами: шаг добавил ровно 11
+  прикладных тестов (замер 8 + текст карточки 3) и ни одного падения. Чужие падения те же:
+  `ReportEditorConsolidationTest` (контейнер `bands`), `PlatformApiBaselineTest` (расхождение только
+  у `platform-persistence`; файл возвращён после регенерации), `PlatformPackageDependencyMatrixTest`.
+- **Заборы и реестры (диффом по области).** `platform-vaadin.api` — запись `LookupRow`,
+  `lookupTargets()` и два конструктора (`EntitySummary` на 20 компонентов, `FieldRow` без цели);
+  `platform-spring-boot-autoconfigure.api` — бин `fetchPlanInspection` (наследие шага 2). Новых
+  reviewed-типов нет: модуль формы — те же 127 типов, ядро не тронуто. Overlay `test-usage`:
+  состав записей тот же, но у `SectionMetadataRegistry` и `FormRegistry` расширен новым прикладным
+  замером. Чужие `.api` (в частности `platform-persistence.api`) возвращены `git checkout --`.
+- **Манифест локальных зависимостей** обновлён намеренно по показанному дрейфу (`platform-events`
+  9→11, `platform-core` 120→125, `platform-vaadin` 189→205). Его числа отражают всё дерево, включая
+  чужие незакоммиченные правки (E2, `org.ipro.form.link`) и предыдущие шаги 1–3, поэтому шагу
+  целиком не приписываются.
+- **D1-числа — без изменений, и это замер.** Писатель запущен намеренно
+  (`-Dplatform.measurements.write=true`): файл `docs/architecture/d1-surface-measurements.md`
+  побайтово не изменился (md5 до и после совпал) — вложенная запись `LookupRow` в этих числах не
+  учитывается, новых исходников шага в артефактах нет. Дифф документа — наследие шага 2.
+- **Матрица пакетов — без новых рёбер, и это тоже замер:** набор рёбер в прогоне шага 4 совпал с
+  набором шагов 2–3 по хешу (те же 20 неразобранных рёбер, из них 15 — чужие правки `form.link`),
+  `-Dplatform.matrix.write=true` не применялся.
+- **Финальная сверка заборов** (`target/e32s4-guards2.log`): 39 тестов, 37 зелёных (CoreSurface 6,
+  PublicSurface 10, VaadinSurface 6, VaadinModule 7, Manifest 4, ApiBaseline и Matrix — по 2 из 3) и
+  те же два чужих падения — `PlatformApiBaselineTest` (`platform-persistence`) и
+  `PlatformPackageDependencyMatrixTest`. Первый прогон заборов (`target/e32s4-guards1.log`, 34
+  зелёных) требовал двух записей: новый замер называет `SectionMetadataRegistry` и `FormRegistry`.
+- **Не сделано шагом:** раздел «Связи» в карточке и вкладки (шаг 5 среза / E3.2.1), `ADR-0012` —
+  шаг 5; `ADX-10`/`ADX-11` и генератор (G/I) в срез не входят.
+
+## E3.2.0 шаг 5 — семь разделов аспектов в карточке (2026-09-30)
+
+- План шага: `docs/plans/e3-2-step5-plan.md`; итог — `docs/plans/e3-2-step5-result.md`; ход и
+  отклонения — `docs/plans/e3-2-step5-progress.md`; ADR — `docs/architecture/decisions/ADR-0012-aspect-facts.md`
+  (+ строка в `docs/architecture/README.md`). Изменения — в рабочем дереве, без коммитов.
+- **Код.** Семь новых секций панели (`EntitySummaryPanel`): «Действия», «Действия — исполнители»,
+  «Сценарии чтения», «Сценарии чтения — пути», «Доступ», «Доступ — правила значений», «Связи» — по
+  две на аспект там, где владелец различает два вида факта с несовместимыми столбцами (объявление и
+  исполнитель, сценарий и путь, измерение и правило значения); порядок — действия, сценарии чтения,
+  доступ, связи (порядок компонентов сводки). Строки деталей флаттенятся из вложенных записей
+  (`ReadPlanRow.paths()`, `AccessRow.rules()`); «Источник» — существующий `sourceText`; новых
+  механизмов шаг не завёл, из помощников добавились только текстовые (допуск сценария, счётчик
+  путей, причина пути, род измерения, маркер грантов, «Null»), а «Связи» целиком собраны на
+  существующей `lookupCell`/`lookupCellText` с кнопкой перехода по `targetType`. За 5.1–5.4 не
+  заведено ни одного публичного типа платформы.
+- **Живая приёмка (§6 среза, п.1–5) — стенд PostgreSQL, профиль `dev`, 8080, вход `admin`.**
+  1. **Действия.** `AttributeValue`: `crud.copy`/`crud.create` показаны строкой регистрации —
+     «Предлагается» пусто, источник «регистрация · org.ip.config.ActionPolicyConfig», примечание
+     «подавлено приложением; capability типа запись допускает»; `crud.edit` — «да» и «платформа ·
+     org.ipro.form.action.CrudAction», «…capability типа изменение не допускает». Исполнители —
+     «не найден», «платформа», «исполнитель не зарегистрирован»: определение без handler'а и
+     действие без объявления читаются по-разному.
+  2. **Сценарии чтения.** `AttributeValue`: набор отдан владельцем с происхождением «регистрация» и
+     причиной политики приложения («значение атрибута бессмертно …»); `LOOKUP` допущен с **0 путей** —
+     «допущен, путей нет» читается счётчиком. `Nomenclature`: набор выведен из экспозиции
+     (`STANDARD_ROOT`), `ROW` **не допущен** с примечанием «canonical path сценарий не допускает»;
+     пути — с причинами `metadata:*`, `lookup:PrdSpecMtr.nomenclature`, у `ReceivingDocument` —
+     `reference-name:receivingWorkshop`.
+  3. **Доступ.** `Workshop`: BRANCH «фильтруемое», «Гранты» да, примечание «…значения — данные
+     пользователя и в карточке не показываются», правило `branch.id` с «Null = измерение не
+     применимо». `ReceivingDocument`: BRANCH «фильтруемое», `ENTITY:ReceivingDocument`
+     «проверяемое», JOURNAL «фильтруемое», у всех трёх «явно · org.ip.model.ReceivingDocument» и
+     примечание о сложной политике; **раздела правил нет** — записанный дефолт `id` не выдан за
+     правило. `PrdSpec`: то же измерение JOURNAL со своим местом объявления
+     («явно · org.ip.model.PrdSpec») и правилом `journal.id`.
+  4. **Связи.** `AttributeValue.attrType` — «AttributeType · явно» с примечанием об избыточности
+     объявления; `PrdSpec.journal`/`nomenclature` и `Nomenclature.groupNom`/`unitOfMeasurement` —
+     «JPA-маппинг»; у полей без цели строк нет.
+  5. **Происхождение и пустота.** Источник у каждой строки («явно · …», «выведено», «платформа»,
+     «регистрация · …»); на карточке `ReceivingDocument` — 0 вхождений `.java` на 974 ячейки
+     (единственное вхождение на `PrdSpec` — колонка «Файл декларанта» раздела «Контекст-фильтры»,
+     существовавшая до шага и названная своим именем); пустое место остаётся пустым.
+- **Числа.** Текст карточки — **31/0/0** (было 15 до шага); пилоты аспектов — действия 9, чтение 6,
+  доступ 9, связи 9; адресный набор приложения — **84/0/0** (`target/e32s5-radius6.log`; вход
+  набора перед шагом — 69). Модули ядра и формы шагом не тронуты (последние полные прогоны: ядро
+  140/0/0, форма 437/0/0).
+- **Полный прогон приложения** — **1505 тестов, 3 падения, 0 ошибок** (`target/e32s5-full-app.log`).
+  Вход шага (после шага 4) — **1484/3/0** с теми же тремя падающими классами: шаг добавил ровно 21
+  прикладной тест (16 текстовых карточки, 5 панельных пилотов) и ни одного падения.
+- **Заборы** (`target/e32s5-guards6.log`): 39 тестов, **37 зелёных**; набор рёбер матрицы совпал с
+  шагами 2–4 по хешу (`c4f639bf6745d0aaa03acd0ab6965c2f`), манифест не двигался
+  (`WorkspaceManifestTest` 4/0/0). Собственный дрейф шага один и ролевой: `FacetKind` **MODULE_API →
+  APP_API** (бюджет ядра 32/4/43/16) с D1-числами 216→**217** / 128→**129**; остальные записи
+  `.api` — аддитивные, сделанные в шагах 2–4. Чужие падения те же: baseline артефакта
+  `platform-persistence` и матрица (те же 20 неразобранных рёбер).
+- **Что не сделано шагом:** вкладки аспектов и якоря — `E3.2.1`; дерево, поиск и переходы из форм —
+  `E3.2.2`; дыра «колонка → помощник» (ячейки рендерит клиент) названа в ADR-0012 и остаётся
+  открытой; `ADX-10`/`ADX-11` и генератор (G/I) в срез не входят.
+
+## E3.2.1 — вкладки, разделы и якоря карточки (закрыт, 2026-10-01)
+
+- **Словарь композиции.** `CardTab` (7 вкладок) и `CardSection` (20 разделов одним списком `ALL`:
+  вкладка, id, заголовок, примечание, источник строк) — единственное место, решающее состав карточки
+  и адрес места. Панель рисует вкладки и разделы по словарю; пустая вкладка не рисуется; строки
+  раздела берутся у его источника, и тест состава сверяет нарисованные строки с источником.
+- **«Где» и переход из обзора.** Колонка «Где» в «Диагностике» называет место текстом («уровень
+  сущности», «вид не размещён», `<вкладка>`, `<вкладка> · <раздел>`) и даёт кнопку перехода только
+  туда, где вкладка и раздел нарисованы этой же сводкой; переход выбирает вкладку, раскрывает раздел
+  и прокручивает к нему. Узел табличной части дерева ведёт в ту же карточку и фокусирует раздел,
+  который показывает эту часть (второй карточки типа не появляется).
+- **Якорь адреса `?view=<tab>[/<section>]`.** Форму знает платформа
+  (`EntityExplorerAddress.anchorOf/format`), смысл — словарь карточки (`CardAnchor`); неизвестный
+  якорь получает тот же единый отказ, что неизвестный ключ (порядок «роль → ключ → каталог → якорь»).
+  Якорь применяется после отрисовки; вкладка без раздела открывает первую нарисованную секцию.
+  Новый якорь появляется только с записью в `deep-link-baseline.txt` и сверяется `CardAnchorTest`.
+- **Провод и точное место (8.3/8.3a).** Пользовательский переход сообщает host'у место целиком:
+  «Где» и узел секции — `<вкладка>/<раздел>`, ручная смена вкладки — вкладочный якорь, применение
+  якоря адреса молчит (одно сообщение — один шаг истории). Адрес окна для разбора собирает
+  `FormRouteUrlBridge.addressOf(Location)` из разобранных частей, а не из
+  `getPathWithQueryParameters()` (тот кодирует `/` в значении query, и разделовый якорь не доходил до
+  словаря); тем же источником пользуется Back/Forward.
+- **Приёмка §6 п.6–8.** Вкладки: ReceivingDocument 7 вкладок / 16 разделов из 20 (пустые не
+  нарисованы), Nomenclature 6 (вкладки «Доступ» нет — её единственный раздел пуст), каждый раздел
+  ровно на одной вкладке. «Где» из обзора: 12 диагностик, FIELD_STRUCTURE ведёт на вкладку без
+  раздела (поле в обеих проекциях), LOOKUP_TARGET — на «Связи». Якоря на стенде:
+  `?view=reading/paths` и `?view=access/rules` открывают вкладку и раздел на холодном входе, refresh
+  и Back/Forward сохраняют место; «Где» записывает `?view=links/targets`, узел секции —
+  `?view=fields/table-sections` одним шагом; неизвестный якорь и роль не-ADMIN дают неразличимый
+  отказ (`outcome=invalid-route`).
+- **Числа.** Набор карточки + адресные тесты — **129/0/0** (`target/e323b-set.log`), широкий радиус —
+  **150/0/0**, `platform-vaadin` — **444/0/0**, заборы — **78, 76 зелёных** (два чужих), полный
+  прогон приложения — **1550/3/0** (`target/e323b-full-app.log`). Три чужих падения те же:
+  `ReportEditorConsolidationTest`, `PlatformApiBaselineTest` (только артефакт `platform-persistence`),
+  `PlatformPackageDependencyMatrixTest`.
+- **Дрейф.** `platform-vaadin.api` +1 публичный метод (`FormRouteUrlBridge.addressOf(Location)`),
+  манифест `platform-vaadin` `487479fb…` → `bc7b9e98…` в `scripts/local-dependencies.json`
+  (`fileCount` 205 без изменений), `app-source-files` остаётся **159** — `d1-surface-measurements.md`
+  не переписывался.
+- **Что не сделано под-срезом:** дерево по виду грани, поиск и переходы из форм — `E3.2.2`; привязка
+  «колонка → помощник» (`ADR-0012`) и точность `FIELD_STRUCTURE` для поля в обеих проекциях остаются
+  названными дырами.
+
+## E3.2.2 — дерево, поиск и точные места: 9.3–9.4 (2026-10-02)
+
+Шаги 9.0–9.4 реализованы; **9.3–9.4 закрыты в коде и автоматических проверках**. Полный gate
+E3.2.2/E3 остаётся открытым: **10.1–10.2 также реализованы и проверены автоматически**,
+следующие шаги — живая матрица и полный app-прогон 11.1, затем итог 11.2. Подробный ход работ —
+`docs/plans/e3-2-e322-progress.md`.
+
+- Исправлена компиляция адресных тестов. Выбор секции другого типа сохраняет правильный тип и
+  сообщает host один итоговый адрес; owned-id остаётся id дерева, переход идёт по существующему
+  `fields/table-sections`. Возврат A → B → A согласует место карточки с адресом.
+- Меню сохраняет фильтры и выбор текущего UI; очистка поиска возвращает ручные раскрытия, скрытые
+  фильтром узлы сохраняют состояние. Смена пользователя/ролей/локали при входе очищает снимок,
+  панели и состояние. Новый UI независим. Поиск и фильтры новых сборок фактов не делают.
+- Снимок читает источники независимо: ошибка секций/метаданных/сводки сохраняет доступные факты,
+  показывает ERROR и неизвестные счётчики. Отсутствующий/неоднозначный владелец owned-строки
+  показан явно; списки владельцев неизменяемы; повторы не удваивают сборку и диагностику.
+- Известное отсутствующее место показывает статус и «Открыть обзор», сохраняя запрошенный адрес
+  до выбора пользователя. Диагностика поля в форме/гриде предлагает оба перехода и считается один
+  раз; owned-поле определяется по полному FQN и ведёт в свою табличную часть. Пустой план показывает
+  «0 путей загрузки»; отсутствие инспекции чтения опубликовано отдельно. Правила — ADR-0010/0012.
+- Проверки: 173 теста приложения подтверждены целевыми прогонами (96 итоговых UI + 77 сборщик/
+  host/Workspace); полный platform-vaadin — 458/0/0, последние правки отдельно — снимок 13/0/0,
+  инспекция 8/0/0. На инвентаре 20 типов 62 повторные операции дали ноль дополнительных сборок,
+  фасетов и вызовов metadata resolver; до выбора панелей нет, после двух выборов их две.
+- API baseline platform-vaadin дополнен boolean-конструктором/accessor EntitySummary; прежние
+  конструкторы сохранены. Снята устаревшая legacy-ссылка Explorer на EntityRef, обновлён только
+  fingerprint platform-vaadin. API/роли/бюджеты Vaadin и маршруты подтверждены 22 проверками;
+  архитектурные границы и направление зависимостей — ещё 10.
+- Общие guard'ы остаются незелёными из-за неустановленного C5-класса, классификации новых core
+  типов, неревьюенных package edges и дрейфа исходников/агрегатных D1-чисел во время параллельной
+  работы REST/C5. В последнем manifest-падении platform-vaadin отсутствует. Это не закрытие общего
+  gate и не изменение статусов C5/E1.2b, D-R, ADX-10/ADX-11, G/I/F.
+
+## E3.2.2 — общий переход к структуре: 10.1–10.2 (2026-10-02)
+
+Шаги закрыты в коде и автоматических проверках. `EntityExplorerNavigation` реализует optional
+`EntityStructureNavigation` в UI scope, проверяет ADMIN до снимка и при открытии, ведёт через
+существующий MainLayout host в одну вкладку Explorer. Root без ключа открывается программно;
+owned-класс нормализуется по подтверждённым секциям того же снимка к root и `fields/table-sections`.
+Отсутствующий host и неоднозначный owner дают явный отказ.
+
+Общий helper меню «Разработка» подключён к default/custom и встроенным ListForm, к ItemForm
+в Workspace и диалоговом пути. Копирование — ссылка типа без id/варианта; диалоговый переход
+отправляет опубликованный адрес в отдельную вкладку браузера. Без ключа он отключён с причиной.
+Структура подсистем использует тот же SPI и сохраняет свой поиск/выбор. Реальные ItemForm,
+owned-таблица и Workspace проверены на возврате к черновику, read-only, отмене закрытия и
+последующем сохранении через обычный dirty-guard; сам переход не сохраняет и не закрывает форму.
+
+Проверки: полный platform-vaadin 468/0/0, финальный набор подключения форм 31/0/0 с двумя
+дополнительными тестами; итоговый UI-набор 45/0/0. Реальный Spring/VaadinUIScope проверен
+на двух UI одной сессии. API baseline Vaadin дополнен только `CopyLinkButton.copyAddress(String)`;
+новый helper — INTERNAL, всего 130 типов. App public surface получил SPI; D1: 163 app-файла,
+224 называемых платформенных типа и 26 SPI. Fingerprint изменён только у platform-vaadin
+(`fd70d0e3…`, 211 файлов), freeze overlay тестов не расширен.
+
+D1/Vaadin/API guards проходят. Общий manifest guard ещё сообщает drift core/rls/autoconfigure/rest
+параллельного REST/C5-среза. Живая матрица, история, browser tab/clipboard и полный app-прогон —
+11.1; итог/закрытие — 11.2. Документация custom-форм: `deep-links-guide.md` §7; правила —
+ADR-0010 §12; подробные логи и результаты — `docs/plans/e3-2-e322-progress.md`.

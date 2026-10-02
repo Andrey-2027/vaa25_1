@@ -50,6 +50,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -59,6 +60,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Бины формообразующего слоя платформы (org.ipro.form).
@@ -354,6 +356,28 @@ public class FormAutoConfiguration {
         List<ActionDefinition> declared = new java.util.ArrayList<>(CrudAction.platformDefaults());
         declared.addAll(handlerRegistry.definitions());
         return new ActionRegistry(declared, overrides);
+    }
+
+    /**
+     * Происхождение действий (E3.2.0): где объявлено определение и кто его исполняет.
+     *
+     * <p>Бин собирается там же, где реестр, и <b>после</b> него: только у площадки сборки есть три
+     * источника сразу — платформенные defaults, прикладные {@code ActionHandler}-бины и
+     * определения-бины приложения с их именами. Каталог на входе сверяет свой состав с составом
+     * реестра, поэтому расхождение источников роняет старт, а не прячется в карточке.</p>
+     *
+     * <p>Имена нужны отдельно от списка: класс-объявление {@code @Bean}-метода не виден в самом
+     * определении, и без имени бина место оставалось бы неназванным — а угадывать его карточка не
+     * имеет права.</p>
+     */
+    @Bean
+    public org.ipro.form.action.ActionProvenanceCatalog actionProvenanceCatalog(
+            ActionRegistry actionRegistry,
+            Map<String, ActionDefinition> definitions,
+            org.ipro.form.action.ActionHandlerRegistry handlerRegistry,
+            ConfigurableListableBeanFactory beanFactory) {
+        return org.ipro.form.action.ActionProvenanceCatalog.ofBeans(
+            actionRegistry, definitions, handlerRegistry, beanFactory);
     }
 
     /**

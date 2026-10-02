@@ -1,4 +1,4 @@
-# Глубокие ссылки: руководство прикладного разработчика (E2)
+# Глубокие ссылки: руководство прикладного разработчика (E2/E3)
 
 Короткое практическое дополнение к контракту
 [ADR-0009](decisions/ADR-0009-deep-links.md). Здесь — что нужно сделать прикладному
@@ -119,3 +119,48 @@ OpenResult outcome = opener.openAddress(path);   // Opened | NotFound | Forbidde
    в причине `NotLinkable`, а не в отсутствии строки baseline.
 5. Ссылка проверена на двух пользователях с разным доступом: адрес не должен ничего
    рассказывать о чужих строках (приёмка — `DeepLinkTwoUserAccessIT`).
+
+## 7. Структура типа из формы — EntityStructureNavigation
+
+Стандартные ListForm и ItemForm автоматически получают меню «Разработка» при подключённом
+`EntityStructureNavigation` и доступе ADMIN. В списке и Workspace-карточке «Открыть в Entity
+Explorer» активирует одну вкладку текущей рабочей области. Исходная форма, её черновик и строки
+табличных частей сохраняются. Диалоговая карточка открывает опубликованный адрес в отдельной
+вкладке браузера, сохраняя исходный диалог. Без опубликованного ключа этот пункт отключён с причиной.
+Копирование доступно при опубликованном ключе и не требует id записи или варианта формы.
+
+В custom-форме SPI можно получить через optional provider и использовать при клике:
+
+```java
+// Поле custom-формы; ObjectProvider внедряется её конструктором.
+private final ObjectProvider<EntityStructureNavigation> structureNavigations;
+
+private void openStructure(Class<?> type) {
+    EntityStructureNavigation navigation = structureNavigations.getIfAvailable();
+    if (navigation == null) {
+        Notification.show("Переход в Entity Explorer не подключён");
+        return;
+    }
+    EntityStructureNavigation.OpenResult result = navigation.open(type, null);
+    if (result instanceof EntityStructureNavigation.OpenResult.Unavailable failure) {
+        Notification.show(failure.reason());
+    }
+}
+```
+
+- `availability(type)` возвращает доступность и причину. Используйте её при показе действия;
+  исполнение `open` повторно проверяет ADMIN перед открытием.
+- `link(type)` возвращает `Optional<String>` с адресом относительно приложения. Для копирования
+  используйте `CopyLinkButton.copyAddress(path)`: он добавляет текущие origin и context path.
+  Для отдельной вкладки браузера добавьте к пути `ApplicationBasePath.current()`.
+- `open(type, anchor)` возвращает `Opened(type, address)` или `Unavailable(reason)`. Пустой
+  `address` у успеха означает программное открытие типа без опубликованного ключа. Переданный
+  якорь должен принадлежать словарю карточки, например `reading/paths`; `null` открывает начало.
+- Owned-тип нормализуется по снимку Explorer к подтверждённому root и `fields/table-sections`;
+  секция уточняется подписью. Если root неоднозначен или не найден, возвращается отказ.
+- Без UI-host `open` возвращает явный отказ. SPI хранит привязку host в Vaadin UI scope;
+  provider разрешайте в действующем UI, например в обработчике кнопки.
+
+Не собирайте Explorer-ссылку из FQN, id записи или варианта формы: опубликованный ключ и общая
+owned-нормализация принадлежат реализации SPI. Нестандартный View, созданный в обход сборки
+ListForm/ItemForm, подключает свои действия через этот же контракт.

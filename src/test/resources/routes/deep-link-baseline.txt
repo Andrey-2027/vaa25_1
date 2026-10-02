@@ -64,6 +64,45 @@ reserved ureport
 reserved error
 reserved VAADIN
 #
+# ---- view anchors карточки типа (ADR-0010 §10, E3.2.1)
+# Значения `?view=` адреса типа (`/entity-explorer/{key}?view=<anchor>`): вкладка карточки
+# (`<tab>`) или раздел внутри вкладки (`<tab>/<section>`). Источник списка — словарь композиции
+# карточки (CardTab/CardSection приложения), и забор сверяет файл со словарём: вкладка или
+# раздел, не записанные здесь, публичным якорем не являются.
+# Неизвестный якорь — это неизвестный адрес: host отвечает тем же единым отказом, что и на
+# неизвестный ключ типа, а не открывает «ближайшую» вкладку. Новый якорь появляется только
+# вместе с записью здесь, а якорь существующего адреса не переименовывается: это была бы
+# сломанная ссылка, а не уборка. Имя параметра одно — `view`; `?tab=` остаётся отказом.
+# Порядок записей — порядок словаря: вкладки по порядку вкладок, внутри вкладки — разделы по
+# порядку разделов.
+view=overview
+view=overview/summary
+view=overview/diagnostics
+view=fields
+view=fields/form
+view=fields/grid
+view=fields/list-columns
+view=fields/select-columns
+view=fields/table-sections
+view=forms
+view=forms/formats
+view=forms/filters
+view=forms/selections
+view=forms/actions
+view=forms/executors
+view=reading
+view=reading/scenarios
+view=reading/paths
+view=access
+view=access/dimensions
+view=access/rules
+view=links
+view=links/targets
+view=links/references
+view=behavior
+view=behavior/numbering
+view=behavior/lifecycle
+#
 # ---- static routes (ADR-0009 §3)
 # Существующие адреса приложения и их владельцы: ровно один класс объявляет @Route/@RouteAlias
 # на путь. `/` — корневой @Route у MainLayout (корень остаётся home, а не host ссылки).

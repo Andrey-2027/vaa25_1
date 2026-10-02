@@ -137,8 +137,12 @@ class PlatformVaadinSurfaceTest {
                 + " и его мост с вкладками (`RouteStatePage`, `FormRouteUrlBridge`) вместе с"
                 + " швом для проверки моста без браузера (`BrowserHistory`); доделки ревью E2"
                 + " добавили базовый путь развёртывания (`ApplicationBasePath`); E3.0 добавила адрес"
-                + " типа Explorer (`EntityExplorerAddress`) — итого 125")
-            .hasSize(125);
+                + " типа Explorer (`EntityExplorerAddress`) — итого 125; E3.2.0 шаг 1 добавила"
+                + " происхождение действий (`ActionProvenance`, `ActionProvenanceCatalog`) — итого 127;"
+                + " E3.2.2 §9.1 добавила снимок каталога Explorer (`ExplorerSnapshot`); E3.2.2 §10.1"
+                + " добавила SPI перехода к структуре (`EntityStructureNavigation`); §10.2 — внутренний helper меню форм"
+                + " (`FormStructureAffordance`) — итого 130")
+            .hasSize(130);
         assertThat(withoutRole)
             .as("тип будущего platform-vaadin без роли: классификация — решение, которое нужно"
                 + " принять до переноса, а не после него")

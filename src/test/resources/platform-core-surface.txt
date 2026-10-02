@@ -11,10 +11,16 @@
 # Зачем второй реестр. D1-реестр (`platform-public-surface.txt`) описывает только потребление
 # приложением. Тип, который приложение не называет, не получал никакой роли: обещание «internal
 # можно менять свободно» нельзя было проверить, а 44 типа, образующих контракт между модулями,
-# не были зафиксированы вовсе. Здесь роль есть у каждого из 94 production-типов, и полнота
-# проверяется тестом `PlatformCoreSurfaceTest`, а не глазами. Бюджет разделов (30/4/44/16)
+# не были зафиксированы вовсе. Здесь роль есть у каждого из 95 production-типов, и полнота
+# проверяется тестом `PlatformCoreSurfaceTest`, а не глазами. Бюджет разделов (32/4/43/16)
 # сверяется с числом записей под заголовком: расхождение — ошибка сборки, а не тема для
 # комментария. 92 -> 94 — D3.5.1: `EntityLookup` и `EntityServiceResolver` (APP_API 28 -> 30).
+# 94 -> 95 — E3.2.0 шаг 2: `FetchPlanInspection` (MODULE_API 43 -> 44) — владелец плана
+# публикует сценарии и пути наружу, потому что `FetchPlan` в этом реестре INTERNAL.
+# 95 -> 95 — E3.2.0 шаг 5.1: `FacetKind` MODULE_API -> APP_API (APP_API 31 -> 32, MODULE_API
+# 44 -> 43): карточка рисует строки фактов аспектов и делит их по видам факта, а вид строки
+# возвращает `FacetRow.kind()`. Роль MODULE_API расходилась с употреблением так же, как раньше у
+# `ResolvedValue`: соседние типы того же словаря (`FactSource`, `ResolvedValue`) уже APP_API.
 #
 # Роли — reviewed-решение, а не вывод теста: если бы список строил сам тест, проверялось бы то же
 # правило, которым он построен. Черновик воспроизводится скриптом
@@ -33,6 +39,16 @@
 #   NaturalKeyCreateSupport -> APP_API: generic механизм, намеренно используемый прикладными
 #       interned use cases. Роль legacy-internal не сходилась с употреблением.
 #   EntityDataAccess -> APP_API (значит, и его сигнатура входит в API closure).
+#   ResolvedValue -> APP_API: карточка Explorer показывает происхождение факта, а значение
+#       приходит этим типом из опубликованной `EntitySummary` (platform-vaadin). Прежняя роль
+#       MODULE_API расходилась с D1-реестром и была устаревшим решением: приложение называет
+#       тип, а его собственный компонент `source` (`FactSource`) уже APP_API. Правило 1.
+#       Шаг 5 E3.1 сделал происхождение видимым — вместе с ним видимой стала и эта граница.
+#   FacetKind -> APP_API: карточка делит строки аспекта по видам факта (объявление/исполнитель,
+#       сценарий/путь, измерение/правило), поэтому называет сам словарь видов. Прежняя роль
+#       MODULE_API расходилась с употреблением: вид строки возвращает публичный `FacetRow.kind()`
+#       из APP_API-типа `EntitySummary`. Роль SPI не подходит — это словарь, который карточка
+#       читает, а не механизм, который она подстраивает. Правило 1.
 #   LookupService, ServiceLocator -> MODULE_API: контракт между core и будущим form/vaadin-слоем.
 #       Приложение называет их напрямую — это фиксирует legacy-запись D1-реестра, а не роль.
 #   JpaGlobalSearchProvider -> INTERNAL: реализация registry по умолчанию, выбирать её явно
@@ -51,7 +67,7 @@
 # одновременно иметь замороженные ссылки из тестов приложения. Список только сокращается: снятая
 # ссылка обязана исчезнуть из реестра, новая ломает сборку.
 #
-# ---- APP_API (30)
+# ---- APP_API (32)
 # Часть записей ниже — не решение о конкретном типе, а выполнение правила 2 (API closure): эти
 # типы стоят в публичных сигнатурах APP_API-типов, поэтому обязаны иметь тот же уровень. Иначе
 # internal был бы виден приложению через API, и обещание «internal можно менять свободно» ломается.
@@ -87,6 +103,8 @@ APP_API org.ipro.metadata.RowMetadataInfo
 APP_API org.ipro.metadata.SubsystemNode
 APP_API org.ipro.metadata.SubsystemRegistry
 APP_API org.ipro.metadata.facet.FactSource
+APP_API org.ipro.metadata.facet.FacetKind
+APP_API org.ipro.metadata.facet.ResolvedValue
 APP_API org.ipro.search.GlobalSearchMatch
 APP_API org.ipro.search.GlobalSearchMatchKind
 APP_API org.ipro.search.GlobalSearchSource
@@ -96,7 +114,7 @@ APP_SPI org.ipro.crud.BaseService
 APP_SPI org.ipro.crud.InternedEntity
 APP_SPI org.ipro.metadata.HasDisplayName
 APP_SPI org.ipro.search.GlobalSearchProvider
-# ---- MODULE_API (44)
+# ---- MODULE_API (43)
 MODULE_API org.ipro.crud.EntityCopyService
 MODULE_API org.ipro.crud.GenericOwnedSectionService
 MODULE_API org.ipro.crud.LookupService
@@ -111,6 +129,11 @@ MODULE_API org.ipro.data.CanonicalReadExecutor
 MODULE_API org.ipro.data.CanonicalWriteExecutor
 MODULE_API org.ipro.data.EntityDataPolicy
 MODULE_API org.ipro.data.EntityDescriptorCatalog
+#   FetchPlanInspection -> MODULE_API: публичная инспекция плана выборки. Называет production-код
+#       формы (`EntitySummaryAssembler`, `EntityExplorerAutoConfiguration`) и сборка контекста
+#       (`DataAccessAutoConfiguration`); приложение тип не называет (строки собирает сборщик).
+#       Правило 3. Внутренний `FetchPlan` остаётся INTERNAL: наружу выходят строки, а не план.
+MODULE_API org.ipro.data.FetchPlanInspection
 MODULE_API org.ipro.data.EventContourStartupCheck
 MODULE_API org.ipro.data.ReadTelemetry
 MODULE_API org.ipro.data.ScenarioFetchGraphResolver
@@ -132,9 +155,7 @@ MODULE_API org.ipro.metadata.SectionMetadataRegistry
 MODULE_API org.ipro.metadata.TableSectionGridMetadata
 MODULE_API org.ipro.metadata.TableSectionMetadataInfo
 MODULE_API org.ipro.metadata.facet.FacetKey
-MODULE_API org.ipro.metadata.facet.FacetKind
 MODULE_API org.ipro.metadata.facet.FacetResolver
-MODULE_API org.ipro.metadata.facet.ResolvedValue
 MODULE_API org.ipro.search.GlobalSearchCatalog
 MODULE_API org.ipro.search.GlobalSearchProviderRegistry
 MODULE_API org.ipro.search.GlobalSearchRequest
@@ -159,16 +180,17 @@ INTERNAL org.ipro.metadata.InstanceNameSource
 INTERNAL org.ipro.metadata.MetadataConsistencyValidator
 INTERNAL org.ipro.search.JpaGlobalSearchProvider
 
-# ---- test-usage overlay (12)
+# ---- test-usage overlay (13)
 test-usage org.ipro.crud.GenericOwnedSectionService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/security/RlsServiceWriteBoundaryIT.java
 test-usage org.ipro.crud.MetadataDrivenAggregateSaveService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java
 test-usage org.ipro.crud.ReferenceCheckService org/ip/security/RlsIntegrationTest.java org/ip/service/SklNomOpaServiceTest.java
 test-usage org.ipro.data.CanonicalReadExecutor org/ip/service/GroupNomVersionNormalizationIT.java
 test-usage org.ipro.data.CanonicalWriteExecutor org/ip/service/GroupNomVersionNormalizationIT.java
-test-usage org.ipro.data.EntityDescriptorCatalog org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java
+test-usage org.ipro.data.EntityDescriptorCatalog org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
 test-usage org.ipro.data.EventContourStartupCheck org/ip/lifecycle/EventContourWiringIT.java
+test-usage org.ipro.data.FetchPlanInspection org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
 test-usage org.ipro.data.ReadTelemetry org/ip/service/GroupNomVersionNormalizationIT.java
 test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java
-test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java
-test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java
+test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
+test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java
 test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/builtin/PrdSpecRowCancelAcceptanceTest.java

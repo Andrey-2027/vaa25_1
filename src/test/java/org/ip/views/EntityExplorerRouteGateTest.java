@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,12 +29,18 @@ class EntityExplorerRouteGateTest {
     private final Function<String, Optional<Class<?>>> catalog = key ->
         "nomenclature".equals(key) ? Optional.of(Nomenclature.class) : Optional.empty();
 
+    /**
+     * Словарь якоря-заглушка: мест нет ни у одного адреса, но у адресов этого теста якоря и нет —
+     * если он появится, тест упадёт, а не молча пройдёт с чужой фикстурой.
+     */
+    private final Predicate<String> anchors = anchor -> false;
+
     @Test
     void theAnswerIsTheSameForAnExistingAndAnUnknownKeyWithoutTheRole() {
         MainLayout.ExplorerEntry existing =
-            MainLayout.decideExplorerEntry(false, "/entity-explorer/nomenclature", catalog);
+            MainLayout.decideExplorerEntry(false, "/entity-explorer/nomenclature", catalog, anchors);
         MainLayout.ExplorerEntry unknown =
-            MainLayout.decideExplorerEntry(false, "/entity-explorer/nope", catalog);
+            MainLayout.decideExplorerEntry(false, "/entity-explorer/nope", catalog, anchors);
 
         assertThat(existing)
             .as("ответ не должен зависеть от того, есть ли ключ: иначе адрес становится проверкой"
@@ -52,8 +59,8 @@ class EntityExplorerRouteGateTest {
             return Optional.of(Nomenclature.class);
         };
 
-        MainLayout.decideExplorerEntry(false, "/entity-explorer/nomenclature", counting);
-        MainLayout.decideExplorerEntry(false, "/entity-explorer/nope", counting);
+        MainLayout.decideExplorerEntry(false, "/entity-explorer/nomenclature", counting, anchors);
+        MainLayout.decideExplorerEntry(false, "/entity-explorer/nope", counting, anchors);
 
         assertThat(calls)
             .as("каталог без роли не спрашивают вовсе: проверка идёт до разбора ключа")
@@ -63,7 +70,7 @@ class EntityExplorerRouteGateTest {
     @Test
     void anUnknownKeyIsDeniedWithoutEnumeratingKeys() {
         MainLayout.ExplorerEntry.Denied denied = (MainLayout.ExplorerEntry.Denied)
-            MainLayout.decideExplorerEntry(true, "/entity-explorer/nope", catalog);
+            MainLayout.decideExplorerEntry(true, "/entity-explorer/nope", catalog, anchors);
 
         assertThat(denied.refusal().message())
             .as("отказ не перечисляет похожие ключи и не содержит запрошенный")
@@ -75,21 +82,21 @@ class EntityExplorerRouteGateTest {
     @Test
     void aMalformedAddressIsDeniedTheSameWay() {
         MainLayout.ExplorerEntry withoutKey =
-            MainLayout.decideExplorerEntry(true, "/entity-explorer", catalog);
+            MainLayout.decideExplorerEntry(true, "/entity-explorer", catalog, anchors);
         MainLayout.ExplorerEntry withExtraSegment =
-            MainLayout.decideExplorerEntry(true, "/entity-explorer/nomenclature/extra", catalog);
+            MainLayout.decideExplorerEntry(true, "/entity-explorer/nomenclature/extra", catalog, anchors);
 
         assertThat(withoutKey)
             .as("адрес, заявленный как Explorer, но без разбираемого ключа, получает тот же отказ")
             .isEqualTo(withExtraSegment);
         assertThat(withoutKey)
-            .isEqualTo(MainLayout.decideExplorerEntry(true, "/entity-explorer/nope", catalog));
+            .isEqualTo(MainLayout.decideExplorerEntry(true, "/entity-explorer/nope", catalog, anchors));
     }
 
     @Test
     void anExistingKeyResolvesToTheType() {
         MainLayout.ExplorerEntry entry =
-            MainLayout.decideExplorerEntry(true, "/entity-explorer/nomenclature", catalog);
+            MainLayout.decideExplorerEntry(true, "/entity-explorer/nomenclature", catalog, anchors);
 
         assertThat(entry).isInstanceOfSatisfying(MainLayout.ExplorerEntry.Resolved.class, resolved -> {
             assertThat(resolved.type()).isEqualTo(Nomenclature.class);
@@ -97,6 +104,9 @@ class EntityExplorerRouteGateTest {
             assertThat(resolved.address())
                 .as("адрес остаётся запрошенным: legacy-ключ не канонизируется на входе")
                 .isEqualTo("/entity-explorer/nomenclature");
+            assertThat(resolved.anchor())
+                .as("адрес без якоря места не называет; карточка открывается как раньше")
+                .isNull();
         });
     }
 

@@ -231,6 +231,21 @@ public class RlsDimensionRegistry implements InitializingBean {
         return dimensions.keySet();
     }
 
+    /** Регистрирует измерение, которое не привязано к классу сущности (например, REST API гранты). */
+    public void registerDynamicDimension(String dimension, RlsDimensionKind kind) {
+        // Мы используем копии (Map.copyOf) в rebuild(), поэтому нужно их заменить на изменяемые, либо просто пересоздать карту.
+        // Но так как метод вызывается при старте, пересоздадим только одну карту.
+        if (dimensions.containsKey(dimension)) {
+            if (dimensions.get(dimension) != kind) {
+                throw new IllegalStateException("Dynamic dimension " + dimension + " already registered with different kind");
+            }
+            return;
+        }
+        Map<String, RlsDimensionKind> newDimensions = new LinkedHashMap<>(dimensions);
+        newDimensions.put(dimension, kind);
+        this.dimensions = Map.copyOf(newDimensions);
+    }
+
     public RlsDimensionKind kindOf(String dimension) {
         RlsDimensionKind kind = dimensions.get(dimension);
         if (kind == null) {

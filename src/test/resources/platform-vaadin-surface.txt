@@ -62,7 +62,25 @@
 # касается). Приложение адресный вход не собирает — его привязывает провайдер, — а объявить
 # действие, которому нужна ссылка, можно требованием `ActionRequirement.linkable()` без нового типа.
 #
-# Бюджет ролей: APP_API 51, APP_SPI 11, MODULE_API 15, INTERNAL 48.
+# E3.2.0 шаг 1: +2 MODULE_API-типа (`ActionProvenance` — происхождение записи действия:
+# род записи, класс-объявление и примечание; `ActionProvenanceCatalog` — карта происхождения по
+# ключу регистрации, собираемая там же, где реестр). Роль MODULE_API, а не INTERNAL, по правилу 7:
+# каталог — обязательный коллаборатор `EntitySummaryAssembler` (APP_API), то есть тип стоит в
+# публичной сигнатуре; INTERNAL в этой позиции означал бы скрытую ломку совместимости. И не
+# APP_API: приложение их не называет — место объявления читает сборщик сводки, а карточка видит
+# уже `ResolvedValue`.
+#
+# E3.2.0 шаг 1.3: +2 INTERNAL -> MODULE_API (`ActionRegistry`, `ActionHandlerRegistry`).
+# Шаг 1.3 сделал их обязательными коллабораторами `EntitySummaryAssembler` (APP_API): состав
+# действий берётся у реестра, а «исполнитель найден» — у реестра исполнителей, потому что каждый
+# факт обязан приходить от своего владельца, а не выводиться в UI по имени конфигурации. Правило 7
+# (APP_API-сигнатура не называет INTERNAL-тип) переводит их в MODULE_API — тем же решением, что
+# `ActionResolver` в E1.3 и `ReadOnlyReason` в E1.5: тип, видимый через сигнатуру APP_API-типа,
+# свободно меняться больше не может. App-facing роль при этом не присваивается: прикладной код их не
+# конструирует, а прикладные тесты ссылались на них и раньше (записи overlay ниже).
+#
+# E3.2.2 §10.1–10.2: optional SPI навигации и внутренний helper общего меню форм.
+# Бюджет ролей: APP_API 52, APP_SPI 12, MODULE_API 19, INTERNAL 47.
 #
 # Забор — `PlatformVaadinSurfaceTest` в дереве приложения: каждый production-тип модуля
 # `platform-vaadin` обязан иметь ровно одну роль, лишняя запись так же ломает сборку, как
@@ -137,7 +155,9 @@
 # `ActionHandler` — SPI: его реализует приложение. Остальные три — часть той же подписи (id,
 # требование и снимок списка обязано называть всякое объявление), поэтому они APP_API, а не
 # MODULE_API: прежняя роль была верна лишь до появления первого потребителя. `ActionHandlerRegistry`
-# — INTERNAL: приложение в него ничего не кладёт и его не называет.
+# здесь ещё INTERNAL: приложение в него ничего не кладёт и его не называет. Правило 7 переведёт его
+# в MODULE_API в E3.2.0 шаг 1.3 — когда реестр исполнителей станет коллаборатором
+# `EntitySummaryAssembler` (APP_API) — см. решение ниже.
 #
 # E1.4: +3 APP_API (`ActionDefinition`, `ActionSurface`, `CrudAction`) — первый потребитель
 # app-facing контракта: приложение объявляет предметный override платформенного действия
@@ -191,7 +211,7 @@
 # сегмент, а резерв первого сегмента — политика приложения (список `reserved` в baseline
 # маршрутов), не свойство URL. Baseline `.api` обновлён этим же срезом.
 
-# ---- APP_API (51)
+# ---- APP_API (52)
 APP_API org.ipro.form.BindingDescriptor
 APP_API org.ipro.form.EntityField
 APP_API org.ipro.form.FieldFactory
@@ -241,10 +261,14 @@ APP_API org.ipro.form.registry.ListFormContext
 APP_API org.ipro.form.spi.GridView
 APP_API org.ipro.vaadin.explorer.EntitySummary
 APP_API org.ipro.vaadin.explorer.EntitySummaryAssembler
+# E3.2.2 §9.1: +1 APP_API (`ExplorerSnapshot`) — типизированный снимок каталога Explorer
+# (записи, сводки, индексы секций и поиска). Роль APP_API: дерево и карточка приложения
+# читают готовые факты снимка; платформа обратно через него не вызывает.
+APP_API org.ipro.vaadin.explorer.ExplorerSnapshot
 APP_API org.ipro.vaadin.explorer.SubsystemSummaryAssembler
 APP_API org.ipro.vaadin.search.GlobalSearchHeader
 
-# ---- APP_SPI (11)
+# ---- APP_SPI (12)
 APP_SPI org.ipro.form.Dirtyable
 APP_SPI org.ipro.form.FormSaveHandler
 APP_SPI org.ipro.form.Savable
@@ -253,14 +277,22 @@ APP_SPI org.ipro.form.action.ActionHandler
 APP_SPI org.ipro.form.builder.ItemFormCustomization
 APP_SPI org.ipro.form.builder.ListFormCustomization
 APP_SPI org.ipro.form.builtin.ItemForm
+# E3.2.2 §10.1: переход к структуре типа — контракт платформы, реализация приложения
+# (ADMIN, опубликованный ключ, открытие одной Workspace-вкладки Explorer); формы и структура
+# подсистем ходят одним SPI, и без реализации пункт меню не появляется.
+APP_SPI org.ipro.form.link.EntityStructureNavigation
 APP_SPI org.ipro.form.spi.FormSettingsStore
 APP_SPI org.ipro.form.spi.GridViewStore
 APP_SPI org.ipro.form.spi.WorkspaceGateway
 
-# ---- MODULE_API (15)
+# ---- MODULE_API (19)
 # D3.5.8: типы, публично видимые через сигнатуры APP_API/APP_SPI (правило 7). Приложение их
 # не называет — поэтому не APP_API; но менять их свободно уже нельзя — поэтому не INTERNAL.
 MODULE_API org.ipro.form.action.ActionDecision
+MODULE_API org.ipro.form.action.ActionHandlerRegistry
+MODULE_API org.ipro.form.action.ActionProvenance
+MODULE_API org.ipro.form.action.ActionProvenanceCatalog
+MODULE_API org.ipro.form.action.ActionRegistry
 MODULE_API org.ipro.form.action.ActionResolver
 MODULE_API org.ipro.form.action.ReadOnlyReason
 MODULE_API org.ipro.form.FormBindingRegistry
@@ -276,7 +308,7 @@ MODULE_API org.ipro.form.registry.FormRegistry
 MODULE_API org.ipro.form.registry.FormResolver
 MODULE_API org.ipro.vaadin.search.GlobalSearchNavigationAdapter
 
-# ---- INTERNAL (48)
+# ---- INTERNAL (47)
 INTERNAL org.ipro.vaadin.telemetry.TelemetryErrorHandler
 INTERNAL org.ipro.vaadin.telemetry.TelemetryVaadinConfiguration
 INTERNAL org.ipro.vaadin.telemetry.TelemetryVaadinInitListener
@@ -287,11 +319,9 @@ INTERNAL org.ipro.form.FormBinding
 INTERNAL org.ipro.form.SectionPresence
 INTERNAL org.ipro.form.TableSectionFactory
 INTERNAL org.ipro.form.action.ActionContext
-INTERNAL org.ipro.form.action.ActionHandlerRegistry
 INTERNAL org.ipro.form.action.ActionContextProvider
 INTERNAL org.ipro.form.action.ActionPermission
 INTERNAL org.ipro.form.action.ActionPolicy
-INTERNAL org.ipro.form.action.ActionRegistry
 INTERNAL org.ipro.form.action.RouteLinkability
 INTERNAL org.ipro.form.builder.ContextFilterPanel
 INTERNAL org.ipro.form.host.BrowserHistory
@@ -313,6 +343,7 @@ INTERNAL org.ipro.form.builtin.RowDraft
 INTERNAL org.ipro.form.builtin.ViewSelectorDialog
 INTERNAL org.ipro.form.config.FormAutoConfiguration
 INTERNAL org.ipro.form.coordinator.FormCoordinator
+INTERNAL org.ipro.form.coordinator.FormStructureAffordance
 INTERNAL org.ipro.form.coordinator.ItemFormLinkAffordance
 INTERNAL org.ipro.form.coordinator.FormOpenMode
 INTERNAL org.ipro.form.coordinator.ItemFormAccessBinder
@@ -326,7 +357,7 @@ INTERNAL org.ipro.form.registry.SelectionFilter
 INTERNAL org.ipro.vaadin.explorer.config.EntityExplorerAutoConfiguration
 INTERNAL org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration
 
-# ---- test-usage overlay (22)
+# ---- test-usage overlay (23)
 # D3.5.8: ссылки тестов приложения на не-API типы модуля. Формат: test-usage <fqn> <файлы тестов>.
 # Запись фиксирует точный набор файлов, поэтому новая ссылка ломает сборку, а снятая обязана
 # исчезнуть из реестра: overlay только сокращается. Роль типа ортогональна — overlay не делает
@@ -356,8 +387,12 @@ test-usage org.ipro.form.coordinator.FormOpenMode org/ip/form/coordinator/FormCo
 # E1.3 координатору нужен решатель действий. Это ссылка того же рода, что и записи выше: предмет
 # узкого публичного шва, а не вечного доступа к реализации.
 test-usage org.ipro.form.action.ActionContextProvider org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java
-test-usage org.ipro.form.action.ActionHandlerRegistry org/ip/config/ActionPolicyConfigTest.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/views/reportstudio/ReportPrintActionTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java
-test-usage org.ipro.form.action.ActionRegistry org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/views/reportstudio/ReportPrintActionTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java
+test-usage org.ipro.form.action.ActionHandlerRegistry org/ip/config/ActionPolicyConfigTest.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/views/reportstudio/ReportPrintActionTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java
+test-usage org.ipro.form.action.ActionRegistry org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/views/reportstudio/ReportPrintActionTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java
+# ActionProvenanceCatalog: прикладной тест пилотов собирает сборщик сводки вручную, а каталог —
+# его обязательный коллаборатор (решение E3.2.0 шаг 1.3 выше). Ссылка того же рода, что у
+# ActionRegistry рядом: предмет узкого публичного шва, а не вечного доступа к реализации.
+test-usage org.ipro.form.action.ActionProvenanceCatalog org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java
 # E1.4: тот же прикладной тест проверяет состав действий по типу, поэтому собирает решатель сам.
 # Вызов ActionResolver не новый по природе — он тот же, что у координатора, — но фиксируется здесь
 # так же строго: новый файл обязан быть назван в overlay, а снятый — исчезнуть.
@@ -374,7 +409,7 @@ test-usage org.ipro.form.coordinator.ListFormWrapper org/ip/form/coordinator/For
 # проверка тех же свойств через собранную форму. (Запись про `ListCommandRegistry` снята в E1.7
 # вместе с самим реестром.)
 test-usage org.ipro.form.registry.FormFactory org/ip/form/FormRegistryEnumVariantTest.java
-test-usage org.ipro.form.registry.FormRegistry org/ip/config/ActionPolicyConfigTest.java org/ip/form/FormRegistryEnumVariantTest.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/SubsystemSummaryAssemblerTest.java org/ipro/FormAssemblyPurityTest.java org/ipro/PlatformVaadinModuleTest.java org/ipro/PlatformVaadinWiringIT.java
+test-usage org.ipro.form.registry.FormRegistry org/ip/config/ActionPolicyConfigTest.java org/ip/form/FormRegistryEnumVariantTest.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/vaadin/explorer/SubsystemSummaryAssemblerTest.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java org/ipro/FormAssemblyPurityTest.java org/ipro/PlatformVaadinModuleTest.java org/ipro/PlatformVaadinWiringIT.java
 test-usage org.ipro.form.registry.FormResolver org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/form/coordinator/PrdSpecSectionCompositionTest.java org/ipro/FormAssemblyPurityTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java
 test-usage org.ipro.form.registry.SelectionColumnsDef org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java
 # GlobalSearchNavigationAdapter / TelemetryErrorHandler / TelemetryVaadinInitListener: проверяется,

@@ -54,6 +54,8 @@ class PlatformApiBaselineTest {
 
     private static final String WRITE_PROPERTY = "platform.api.baseline.write";
 
+    private static final String ARTIFACT_FILTER_PROPERTY = "platform.api.baseline.artifact";
+
     private static final Path BASELINE_DIRECTORY = Path.of("src/test/resources/platform-api-baseline");
 
     private static final Path MANIFEST = Path.of("scripts/local-dependencies.json");
@@ -90,8 +92,15 @@ class PlatformApiBaselineTest {
         boolean write = Boolean.getBoolean(WRITE_PROPERTY);
         List<String> problems = new ArrayList<>();
         int verified = 0;
+        String artifactFilter = System.getProperty(ARTIFACT_FILTER_PROPERTY);
+        List<Artifact> selectedArtifacts = artifacts().stream()
+            .filter(artifact -> artifactFilter == null || artifact.artifactId().equals(artifactFilter))
+            .toList();
+        assertThat(selectedArtifacts)
+            .as("запрошенный артефакт baseline должен присутствовать в опубликованном манифесте")
+            .isNotEmpty();
 
-        for (Artifact artifact : artifacts()) {
+        for (Artifact artifact : selectedArtifacts) {
             if (!Files.isDirectory(artifact.sourceRoot())) {
                 continue;
             }
@@ -127,7 +136,7 @@ class PlatformApiBaselineTest {
         assertThat(verified)
             .as("проверка не должна быть вакуумной: baseline есть у каждого опубликованного"
                 + " платформенного артефакта, чьи исходники есть в этой раскладке")
-            .isGreaterThanOrEqualTo(8);
+            .isGreaterThanOrEqualTo(artifactFilter == null ? 8 : 1);
     }
 
     /**
@@ -169,9 +178,9 @@ class PlatformApiBaselineTest {
     /**
      * Временный режим все-публичности — долг, и он обязан быть виден и сокращаться.
      *
-     * <p>Семантическую классификацию прошли {@code platform-core} (D3.3) и {@code platform-vaadin}
-     * (роли назначены в D3.5.0 — до физического переноса, поэтому переезд D3.5.4 не зацементировал
-     * текущую поверхность). Остальные артефакты зафиксированы целиком
+     * <p>Семантическую классификацию прошли {@code platform-core} (D3.3), {@code platform-vaadin}
+     * (роли назначены в D3.5.0 до физического переноса) и {@code platform-rest} (F-REST-READ-1).
+     * Остальные артефакты зафиксированы целиком
      * ({@code TEMPORARY_ALL_PUBLIC}), их реализацию нельзя менять свободно — это противоречит
      * политике D1, и D3.9 обязан это снять. Тест превращает «когда-нибудь» в список: он печатает,
      * кто ещё в этом режиме, и падает на новый артефакт, которого никто не классифицировал.</p>
@@ -190,10 +199,9 @@ class PlatformApiBaselineTest {
             .toList();
 
         assertThat(semantic)
-            .as("семантическую классификацию прошли platform-core (D3.3) и platform-vaadin"
-                + " (D3.5.0/D3.5.4: роли назначены до переноса). Новый артефакт без реестра ролей"
-                + " сюда попасть не может — иначе он тихо замерзает целиком, включая реализацию")
-            .isEqualTo(List.of("platform-core", "platform-vaadin"));
+            .as("семантическую классификацию прошли platform-core, platform-rest и platform-vaadin;"
+                + " новый артефакт без реестра ролей не должен тихо замерзать целиком, включая реализацию")
+            .isEqualTo(List.of("platform-core", "platform-rest", "platform-vaadin"));
         assertThat(temporary)
             .as("долг D3.9: эти артефакты всё ещё заморожены целиком, включая реализацию")
             .isNotEmpty();
@@ -259,6 +267,7 @@ class PlatformApiBaselineTest {
      */
     private static final Map<String, Path> SEMANTIC_ROLE_REGISTRIES = Map.of(
         "platform-core", Path.of("src/test/resources/platform-core-surface.txt"),
+        "platform-rest", Path.of("src/test/resources/platform-rest-surface.txt"),
         "platform-vaadin", Path.of("src/test/resources/platform-vaadin-surface.txt"));
 
     private static Policy policyFor(String artifactId) {

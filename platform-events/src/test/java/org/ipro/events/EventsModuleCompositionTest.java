@@ -30,15 +30,26 @@ class EventsModuleCompositionTest {
 
     private static final Path MODULE = Path.of("").toAbsolutePath();
 
-    /** Reviewed состав runtime-среза: три типа, каждый — исполнение, а не декларация. */
+    /**
+     * Reviewed состав runtime-среза: четыре типа, каждый — исполнение, а не декларация.
+     * {@code EntityLifecycleInspection} добавлен E3.1 шагом 4: знание о составе хуков контракта
+     * и о разворачивании proxy принадлежит модулю-владельцу реестра, а не потребителю
+     * ({@code platform-vaadin}) и не контрактам без Spring.
+     */
     private static final Set<String> REVIEWED_TYPES = Set.of(
         "org.ipro.events.EntityEventPublisher",
         "org.ipro.events.config.EventsAutoConfiguration",
+        "org.ipro.lifecycle.EntityLifecycleInspection",
         "org.ipro.lifecycle.EntityLifecycleRegistry");
 
-    /** Reviewed compile-поверхность: контракты платформы + API фреймворка. */
+    /**
+     * Reviewed compile-поверхность: контракты платформы + API фреймворка.
+     * {@code spring-aop} объявлен явно (E3.1 шаг 4): разворачивание Spring-proxy — исполнение,
+     * а не деталь реализации, и держаться на транзитивной зависимости оно не должно.
+     */
     private static final Set<String> REVIEWED_COMPILE_DEPENDENCIES = Set.of(
-        "platform-contracts", "spring-context", "spring-tx", "spring-boot-autoconfigure", "slf4j-api");
+        "platform-contracts", "spring-context", "spring-tx", "spring-aop",
+        "spring-boot-autoconfigure", "slf4j-api");
 
     /** Пакеты, которых в модуле быть не может: приложение и UI-слои. */
     private static final Set<String> FORBIDDEN_IMPORTS =

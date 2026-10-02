@@ -25,6 +25,7 @@ import org.ipro.form.link.FormLinkService;
 import org.ipro.form.link.FormRoute;
 import org.ipro.form.link.FormRouteKind;
 import org.ipro.form.link.OpenResult;
+import org.ipro.form.link.EntityStructureNavigation;
 import org.ipro.form.coordinator.FormOpenMode;
 import org.ipro.form.registry.FormContext;
 import org.ipro.form.registry.FormRegistry;
@@ -111,6 +112,13 @@ public class FormCoordinator implements FormNavigator {
     private final FormLinkService formLinkService;
     private final org.ipro.crud.EntityCopyService entityCopyService;
     private final org.ipro.form.TableSectionFactory tableSectionFactory;
+    private EntityStructureNavigation structureNavigation;
+
+    /** Optional SPI: отсутствие адаптера приложения не добавляет пунктов разработки. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setEntityStructureNavigation(EntityStructureNavigation structureNavigation) {
+        this.structureNavigation = structureNavigation;
+    }
 
     // Рабочая область (1С-стиль) — UI-scoped бин приложения. Берётся лениво, в момент
     // открытия: координатор сам UI-scoped, поэтому провайдер всегда отдаёт область
@@ -535,6 +543,7 @@ public class FormCoordinator implements FormNavigator {
             form.setAfterColumnsConfigured(() -> configurator.accept(form));
         }
 
+        FormStructureAffordance.attach(form.getToolbar(), entityClass, structureNavigation, false);
         return form;
     }
 
@@ -765,6 +774,8 @@ public class FormCoordinator implements FormNavigator {
         // закрывает диалог, а неуспешное адреса не создаёт.
         ItemFormLinkAffordance.attach(form, formLinkService,
             itemActionResolver(entityClass, variant), entityClass, variant);
+
+        FormStructureAffordance.attach(form.getFooter(), entityClass, structureNavigation, true);
 
         dialog.open();
     }

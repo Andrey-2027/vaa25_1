@@ -82,6 +82,7 @@ public class CanonicalReadExecutor {
     private final RlsCurrentUser currentUser;
     private final ReadTelemetry telemetry;
     private final SearchFieldResolver searchFieldResolver;
+    private final org.ipro.rls.c5.C5PermissionEvaluator c5PermissionEvaluator;
 
     /**
      * Без C3-границы InstanceName: поля поиска выводятся из metadata-колонок. Hand-built
@@ -96,7 +97,7 @@ public class CanonicalReadExecutor {
                                  ReadTelemetry telemetry,
                                  RlsCurrentUser currentUser) {
         this(catalog, graphResolver, metadataResolver, rlsFilterActivator, rlsReadGate,
-            rlsPolicyEnforcer, telemetry, null, currentUser);
+            rlsPolicyEnforcer, telemetry, null, currentUser, null);
     }
 
     public CanonicalReadExecutor(EntityDescriptorCatalog catalog,
@@ -108,6 +109,20 @@ public class CanonicalReadExecutor {
                                  ReadTelemetry telemetry,
                                  InstanceNameResolver instanceNameResolver,
                                  RlsCurrentUser currentUser) {
+        this(catalog, graphResolver, metadataResolver, rlsFilterActivator, rlsReadGate,
+            rlsPolicyEnforcer, telemetry, instanceNameResolver, currentUser, null);
+    }
+
+    public CanonicalReadExecutor(EntityDescriptorCatalog catalog,
+                                 ScenarioFetchGraphResolver graphResolver,
+                                 MetadataResolver metadataResolver,
+                                 RlsFilterActivator rlsFilterActivator,
+                                 RlsReadGate rlsReadGate,
+                                 RlsPolicyEnforcer rlsPolicyEnforcer,
+                                 ReadTelemetry telemetry,
+                                 InstanceNameResolver instanceNameResolver,
+                                 RlsCurrentUser currentUser,
+                                 org.ipro.rls.c5.C5PermissionEvaluator c5PermissionEvaluator) {
         this.catalog = Objects.requireNonNull(catalog, "catalog must not be null");
         this.graphResolver = Objects.requireNonNull(graphResolver, "graphResolver must not be null");
         this.metadataResolver = Objects.requireNonNull(metadataResolver, "metadataResolver must not be null");
@@ -118,6 +133,7 @@ public class CanonicalReadExecutor {
         this.telemetry = telemetry == null ? ReadTelemetry.noop() : telemetry;
         this.currentUser = Objects.requireNonNull(currentUser, "currentUser must not be null");
         this.searchFieldResolver = new SearchFieldResolver(metadataResolver, instanceNameResolver);
+        this.c5PermissionEvaluator = c5PermissionEvaluator;
     }
 
     /** Descriptor типа — для диагностики и вызывающих, которым нужна причина. */
@@ -131,10 +147,32 @@ public class CanonicalReadExecutor {
      * predicates.
      */
     public boolean canRead(Class<?> type) {
+        String username = currentUser != null ? currentUser.username() : null;
+        if (c5PermissionEvaluator != null && username != null && !username.isBlank()) {
+            if (!c5PermissionEvaluator.isEntityReadPermitted(username, type)) {
+                return false;
+            }
+        }
         if (rlsPolicyEnforcer != null) {
             return rlsPolicyEnforcer.prepareRead(type, entityManager);
         }
-        return rlsReadGate.canRead(type, currentUser.username());
+        return rlsReadGate != null && currentUser != null
+            && rlsReadGate.canRead(type, currentUser.username());
+    }
+
+    /**
+     * Строгий C5 и RLS read gate для REST API чтений (F-REST-READ-3).
+     * Проверяет обязательное наличие C5 провайдера, C5 Entity Read грант ("ENTITY:<Type>") и RLS политики.
+     */
+    public boolean canReadApi(Class<?> type) {
+        String username = currentUser != null ? currentUser.username() : null;
+        if (username == null || username.isBlank()) {
+            return false;
+        }
+        if (c5PermissionEvaluator == null) {
+            return false;
+        }
+        return canRead(type);
     }
 
     /** Paged list: content query + отдельный count query. */
@@ -229,6 +267,63 @@ public class CanonicalReadExecutor {
                     Map.of(FETCHGRAPH_HINT, graph)));
             }
             return Optional.ofNullable(entityManager.find(request.type(), request.id()));
+        });
+    }
+
+    /**
+     * Paged list для API (F-REST-READ-3): фиксированный профиль без UI scenario union.
+     */
+    public <T> Page<T> readApiPage(ApiPageRead<T> request) {
+        Objects.requireNonNull(request, "request must not be null");
+        return measured(DataOperation.LIST, request.type(), FetchScenario.LIST, () -> {
+            requireScenario(request.type(), FetchScenario.LIST);
+            if (!canReadApi(request.type())) {
+                throw new org.ipro.rls.RlsAccessDeniedException("Read access denied for entity: " + request.type().getName());
+            }
+            requireSortWithoutCollection(request.type(), request.pageable());
+            rlsFilterActivator.ensureRlsEnabled(entityManager);
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<T> dataQuery = cb.createQuery(request.type());
+            Root<T> root = dataQuery.from(request.type());
+            dataQuery.select(root);
+            applySpec(request.filter(), root, dataQuery, cb);
+            applySort(request.pageable(), root, dataQuery, cb);
+
+            TypedQuery<T> typedQuery = entityManager.createQuery(dataQuery);
+            EntityGraph<T> graph = graphResolver.resolveRestFetchGraph(entityManager, request.type(), request.fixedFetchPaths());
+            typedQuery.setHint(FETCHGRAPH_HINT, graph);
+
+            Pageable pageable = request.pageable();
+            if (pageable.isPaged()) {
+                typedQuery.setFirstResult((int) pageable.getOffset());
+                typedQuery.setMaxResults(pageable.getPageSize());
+            }
+            List<T> content = typedQuery.getResultList();
+
+            CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+            Root<T> countRoot = countQuery.from(request.type());
+            applySpec(request.filter(), countRoot, countQuery, cb);
+            countQuery.select(countQuery.isDistinct()
+                ? cb.countDistinct(countRoot) : cb.count(countRoot));
+            long total = entityManager.createQuery(countQuery).getSingleResult();
+            return new PageImpl<>(content, pageable, total);
+        });
+    }
+
+    /**
+     * Detail read для API (F-REST-READ-3): фиксированный профиль без UI scenario union.
+     */
+    public <T> Optional<T> readApiDetail(ApiDetailRead<T> request) {
+        Objects.requireNonNull(request, "request must not be null");
+        return measured(DataOperation.DETAIL, request.type(), FetchScenario.DETAIL, () -> {
+            requireScenario(request.type(), FetchScenario.DETAIL);
+            if (!canReadApi(request.type())) {
+                throw new org.ipro.rls.RlsAccessDeniedException("Read access denied for entity: " + request.type().getName());
+            }
+            rlsFilterActivator.ensureRlsEnabled(entityManager);
+            EntityGraph<T> graph = graphResolver.resolveRestFetchGraph(entityManager, request.type(), request.fixedFetchPaths());
+            return Optional.ofNullable(entityManager.find(request.type(), request.id(),
+                Map.of(FETCHGRAPH_HINT, graph)));
         });
     }
 

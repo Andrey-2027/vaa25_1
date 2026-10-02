@@ -167,6 +167,25 @@ class WorkspaceRouteStateTest {
         assertThat(home.isVisible()).isTrue();
     }
 
+    /**
+     * E3.2.2 §4.4: после закрытия вкладки Explorer меню открывает её заново — активация обязана
+     * прозвучать снова, иначе host не восстановит адрес, а мост не узнает адреса новой вкладки.
+     */
+    @Test
+    void reopeningAClosedTabReportsItsActivationAgain() {
+        workspace.addActiveEntryListener(activeChanges::add);
+        workspace.openComponent(new Div(), "entity-explorer", "Explorer");
+        workspace.close("entity-explorer");
+        activeChanges.clear();
+
+        workspace.openComponent(new Div(), "entity-explorer", "Explorer");
+
+        assertThat(activeChanges)
+            .as("вкладка, открытая заново после закрытия, — новая вкладка: активация обязана"
+                + " прозвучать, иначе адрес сохранённого выбора не восстановится")
+            .containsExactly("entity-explorer");
+    }
+
     @Test
     void routeStateIsNotATab() {
         workspace.openComponent(new Div(), "first", "Первая");

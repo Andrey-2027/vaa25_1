@@ -1,10 +1,14 @@
 package org.ipro.vaadin.explorer.config;
 
 import org.ipro.autoconfigure.PlatformProperties;
+import org.ipro.form.action.ActionHandlerRegistry;
+import org.ipro.form.action.ActionProvenanceCatalog;
+import org.ipro.form.action.ActionRegistry;
 import org.ipro.form.config.FormAutoConfiguration;
 import org.ipro.form.link.FormRouteCatalog;
 import org.ipro.form.registry.FormRegistry;
 import org.ipro.data.EntityDescriptorCatalog;
+import org.ipro.data.FetchPlanInspection;
 import org.ipro.data.config.DataAccessAutoConfiguration;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.MetadataConsistencyStartupCheck;
@@ -72,7 +76,17 @@ import org.ipro.events.config.EventsAutoConfiguration;
     ReferenceIndex.class,
     NumberingMetadataRegistry.class,
     SubsystemRegistry.class,
-    RlsDimensionRegistry.class
+    RlsDimensionRegistry.class,
+    // Аспект действий (E3.2.0): без состава, исполнителей и происхождения карточка типа
+    // молчала бы о том, что на типе действительно есть. Все три бина объявлены
+    // FormAutoConfiguration — единственным местом, где видны три источника сборки.
+    ActionRegistry.class,
+    ActionHandlerRegistry.class,
+    ActionProvenanceCatalog.class,
+    // Аспект сценариев чтения (E3.2.0 шаг 2): план и его пути — факт модуля-владельца
+    // (platform-core). Без инспекции карточка показывала бы тип без единого сценария —
+    // то есть утверждала бы, что читать его нельзя, а не что факт не подключён.
+    FetchPlanInspection.class
 })
 public class EntityExplorerAutoConfiguration {
 
@@ -106,11 +120,17 @@ public class EntityExplorerAutoConfiguration {
             FormRouteCatalog formRouteCatalog,
             EntityLifecycleRegistry lifecycleRegistry,
             SectionMetadataRegistry sectionMetadataRegistry,
-            ObjectProvider<MetadataConsistencyStartupCheck> startupCheck) {
+            ObjectProvider<MetadataConsistencyStartupCheck> startupCheck,
+            ActionRegistry actionRegistry,
+            ActionHandlerRegistry actionHandlerRegistry,
+            ActionProvenanceCatalog actionProvenanceCatalog,
+            FetchPlanInspection fetchPlanInspection,
+            RlsDimensionRegistry rlsDimensionRegistry) {
         return new EntitySummaryAssembler(
             platformProperties.requiredSubsystemScanPackage(), metadataResolver, formRegistry,
             referenceIndex, numberingMetadataRegistry, subsystemRegistry, facetResolver,
             descriptorCatalog, formRouteCatalog, lifecycleRegistry, sectionMetadataRegistry,
-            startupCheck.getIfAvailable());
+            startupCheck.getIfAvailable(), actionRegistry, actionHandlerRegistry,
+            actionProvenanceCatalog, fetchPlanInspection, rlsDimensionRegistry);
     }
 }

@@ -9,6 +9,7 @@ import org.ipro.form.action.ActionContextProvider;
 import org.ipro.form.action.ActionHandlerRegistry;
 import org.ipro.form.action.CopyLinkButton;
 import org.ipro.form.link.FormLinkService;
+import org.ipro.form.link.EntityStructureNavigation;
 import org.ipro.form.action.ActionRegistry;
 import org.ipro.form.action.ActionResolver;
 import org.ipro.form.action.ActionSurface;
@@ -59,6 +60,12 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     private final ActionContextProvider actionContextProvider;
     private final ActionHandlerRegistry actionHandlerRegistry;
     private final FormLinkService formLinkService;
+    private EntityStructureNavigation structureNavigation;
+
+    @Autowired(required = false)
+    public void setEntityStructureNavigation(EntityStructureNavigation structureNavigation) {
+        this.structureNavigation = structureNavigation;
+    }
 
     private ItemForm<?> itemForm;
     private Consumer<IdentifiableEntity> savedCallback;
@@ -212,6 +219,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
         // того, каким путём открыли карточку. Кнопка скрыта, пока решения нет.
         this.copyLinkButton = ItemFormLinkAffordance.attach(form, formLinkService,
             itemActionResolver(entityClass, variant), entityClass, variant);
+        FormStructureAffordance.attach(form.getFooter(), entityClass, structureNavigation, false);
         add(form);
         setFlexGrow(1, form);
         this.itemForm = form;

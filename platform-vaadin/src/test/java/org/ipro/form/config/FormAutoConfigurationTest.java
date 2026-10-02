@@ -10,6 +10,12 @@ import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.grouping.GroupingValuesProviderFactory;
 import org.ipro.form.FieldFactory;
 import org.ipro.form.SelectionFormAssembler;
+import org.ipro.form.action.ActionDefinition;
+import org.ipro.form.action.ActionProvenance;
+import org.ipro.form.action.ActionProvenanceCatalog;
+import org.ipro.form.action.ActionRegistry;
+import org.ipro.form.action.ActionSurface;
+import org.ipro.form.action.CrudAction;
 import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.form.coordinator.ItemFormWrapperView;
 import org.ipro.form.registry.FormRegistry;
@@ -69,6 +75,36 @@ import static org.mockito.Mockito.when;
 class FormAutoConfigurationTest {
 
     @Test
+    void optionalStructureNavigationIsInjectedIntoBothFormAssemblyPaths() {
+        var navigation = mock(org.ipro.form.link.EntityStructureNavigation.class);
+        runner(true)
+            .withInitializer(context -> context.getBeanFactory().registerScope("vaadin-ui",
+                new org.springframework.context.support.SimpleThreadScope()))
+            .withBean(org.ipro.form.link.EntityStructureNavigation.class, () -> navigation)
+            .run(context -> {
+                assertThat(context).hasNotFailed();
+                assertThat(org.springframework.test.util.ReflectionTestUtils.getField(
+                    context.getBean(FormCoordinator.class), "structureNavigation")).isSameAs(navigation);
+                assertThat(org.springframework.test.util.ReflectionTestUtils.getField(
+                    context.getBean(ItemFormWrapperView.class), "structureNavigation")).isSameAs(navigation);
+            });
+    }
+
+    @Test
+    void formsCanBeCreatedWhenStructureNavigationIsNotProvided() {
+        runner(true)
+            .withInitializer(context -> context.getBeanFactory().registerScope("vaadin-ui",
+                new org.springframework.context.support.SimpleThreadScope()))
+            .run(context -> {
+                assertThat(context).hasNotFailed();
+                assertThat(org.springframework.test.util.ReflectionTestUtils.getField(
+                    context.getBean(FormCoordinator.class), "structureNavigation")).isNull();
+                assertThat(org.springframework.test.util.ReflectionTestUtils.getField(
+                    context.getBean(ItemFormWrapperView.class), "structureNavigation")).isNull();
+            });
+    }
+
+    @Test
     void registersFormBeansOfTheLayer() {
         runner(true).run(context -> {
             assertThat(context).hasNotFailed();
@@ -79,6 +115,47 @@ class FormAutoConfigurationTest {
             assertThat(definitionsOfType(context, FormCoordinator.class)).hasSize(1);
             assertThat(definitionsOfType(context, ItemFormWrapperView.class)).hasSize(1);
         });
+    }
+
+    /**
+     * E3.2.0: каталог происхождения собирается той же площадкой, что и реестр, и называет
+     * класс-объявление прикладного определения.
+     *
+     * <p>Проверяется живая проводка, а не её описание: каталог получает определения-бины
+     * <b>вместе с именами</b>, иначе место оставалось бы неназванным, и обязан покрыть состав
+     * реестра целиком — расхождение источников роняет старт, а не карточку.</p>
+     */
+    @Test
+    void actionProvenanceComesFromTheSameSiteAsTheRegistry() {
+        runner(true).withUserConfiguration(SuppressedActionConfiguration.class).run(context -> {
+            assertThat(context).hasNotFailed();
+            ActionProvenanceCatalog catalog = context.getBean(ActionProvenanceCatalog.class);
+            ActionRegistry registry = context.getBean(ActionRegistry.class);
+
+            ActionRegistry.Registration suppression = registry
+                .registration(ActionSurface.LIST_TOOLBAR,
+                    SuppressedActionConfiguration.ENTITY, null, CrudAction.CREATE.id())
+                .orElseThrow();
+
+            assertThat(suppression.definition().visible()).isFalse();
+            assertThat(catalog.declarationOf(suppression.key()))
+                .isEqualTo(ActionProvenance.registration(
+                    SuppressedActionConfiguration.class.getName(), ""));
+            assertThat(catalog.executorOf(suppression.key()).note())
+                .isEqualTo("исполнитель не зарегистрирован");
+        });
+    }
+
+    /** Подавление стандартного действия — определение-бин приложения: так объявляет `ActionPolicyConfig`. */
+    @org.springframework.context.annotation.Configuration
+    static class SuppressedActionConfiguration {
+
+        static final Class<?> ENTITY = SuppressedActionConfiguration.class;
+
+        @org.springframework.context.annotation.Bean
+        ActionDefinition suppressedCreate() {
+            return ActionDefinition.suppress(CrudAction.CREATE, ActionSurface.LIST_TOOLBAR, ENTITY);
+        }
     }
 
     /**

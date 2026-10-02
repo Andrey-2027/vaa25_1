@@ -2,7 +2,7 @@ package org.ip.views.admin;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H3;
@@ -19,8 +19,8 @@ import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
 import org.ipro.form.coordinator.FormNavigator;
-import org.ipro.vaadin.explorer.EntitySummary;
-import org.ipro.vaadin.explorer.EntitySummaryAssembler;
+import org.ipro.form.link.EntityStructureNavigation;
+import org.springframework.beans.factory.ObjectProvider;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler.Catalog;
 import org.ipro.vaadin.explorer.SubsystemSummaryAssembler.EntityFacet;
@@ -48,8 +48,8 @@ import java.util.Locale;
  * ({@code NoSubsystem}) — отдельным корнем «Без подсистемы».</p>
  *
  * <p>Навигация наружу: «открыть список» по строке сущности (через
- * {@link FormNavigator}) и «структура» — диалог со сводкой сущности
- * (общая панель {@link EntitySummaryPanel}).</p>
+ * {@link FormNavigator}) и «структура» — общая вкладка Entity Explorer через
+ * {@link EntityStructureNavigation}. Поиск и выбор подсистемы остаются в этом компоненте.</p>
  */
 @SpringComponent
 @Scope("prototype")
@@ -74,7 +74,7 @@ public class SubsystemStructureView extends VerticalLayout {
     }
 
     private final SubsystemSummaryAssembler assembler;
-    private final EntitySummaryAssembler entityAssembler;
+    private final ObjectProvider<EntityStructureNavigation> structureNavigations;
     private final FormNavigator navigator;
     private final EntityExplorerAccess access;
 
@@ -88,11 +88,11 @@ public class SubsystemStructureView extends VerticalLayout {
 
 
     public SubsystemStructureView(@Autowired SubsystemSummaryAssembler assembler,
-                                  @Autowired EntitySummaryAssembler entityAssembler,
+                                  @Autowired ObjectProvider<EntityStructureNavigation> structureNavigations,
                                   @Autowired FormNavigator navigator,
                                   @Autowired EntityExplorerAccess access) {
         this.assembler = assembler;
-        this.entityAssembler = entityAssembler;
+        this.structureNavigations = structureNavigations;
         this.navigator = navigator;
         this.access = access;
         setSizeFull();
@@ -305,7 +305,7 @@ public class SubsystemStructureView extends VerticalLayout {
     private Button structureAction(EntityFacet facet) {
         Button open = new Button("структура", new Icon(VaadinIcon.LIST_UL));
         open.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
-        open.addClickListener(e -> openStructureDialog(facet));
+        open.addClickListener(e -> openStructure(facet));
         return open;
     }
 
@@ -316,34 +316,18 @@ public class SubsystemStructureView extends VerticalLayout {
         return open;
     }
 
-    /** Диалог со сводкой сущности (общая панель EntitySummaryPanel — тот же рендер, что в Explorer). */
-    private void openStructureDialog(EntityFacet facet) {
-        showStructureInDialog(facet.entityClass(), null);
-    }
-
-    /**
-     * Показывает сводку сущности в диалоге (или перерисовывает существующий при навигации
-     * из Lookup/обратных ссылок внутри панели: одна панель сменяется другой в том же диалоге).
-     */
-    private void showStructureInDialog(Class<?> entityClass, Dialog dialog) {
-        EntitySummary summary = entityAssembler.summarize(entityClass);
-        EntitySummaryPanel panel = new EntitySummaryPanel(navigator);
-        Dialog finalDialog = dialog;
-        panel.setStructureNavigator(target -> showStructureInDialog(target, finalDialog));
-        panel.show(summary);
-
-        if (dialog == null) {
-            dialog = new Dialog();
-            dialog.setWidth("1100px");
-            dialog.setHeight("85%");
-            dialog.setResizable(true);
-        } else {
-            dialog.removeAll();
+    private void openStructure(EntityFacet facet) {
+        if (!access.allows()) {
+            Notification.show(EntityExplorerAccess.REFUSAL_TEXT);
+            return;
         }
-        dialog.setHeaderTitle("Структура сущности: " + summary.displayName().value()
-            + " (" + summary.simpleName() + ")");
-        dialog.add(panel);
-        dialog.open();
+        EntityStructureNavigation navigation = structureNavigations.getIfAvailable();
+        if (navigation == null) {
+            Notification.show("Переход в Entity Explorer не подключён");
+        } else if (navigation.open(facet.entityClass(), null)
+                instanceof EntityStructureNavigation.OpenResult.Unavailable failure) {
+            Notification.show(failure.reason());
+        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

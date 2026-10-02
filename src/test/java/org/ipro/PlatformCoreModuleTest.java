@@ -87,6 +87,7 @@ class PlatformCoreModuleTest {
         "org.ipro.data.EntityDescriptor",
         "org.ipro.data.EntityDescriptorCatalog",
         "org.ipro.data.EventContourStartupCheck",
+        "org.ipro.data.FetchPlanInspection",
         "org.ipro.data.ListRead",
         "org.ipro.data.LookupRead",
         "org.ipro.data.PageRead",

@@ -2,6 +2,7 @@ package org.ipro.form.host;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.History;
+import com.vaadin.flow.router.Location;
 import com.vaadin.flow.router.NavigationTrigger;
 import org.ipro.form.link.ApplicationBasePath;
 import org.ipro.form.link.EntityExplorerAddress;
@@ -350,6 +351,72 @@ public class FormRouteUrlBridge {
     }
 
     /**
+     * Адрес окна из разобранного {@link Location} — в той форме, которую читают грамматики адреса
+     * ({@link FormRouteCodec}, {@link EntityExplorerAddress}).
+     *
+     * <p>Собирается из частей, а не берётся у {@code Location#getPathWithQueryParameters()}: тот
+     * отдаёт query в кодированном виде и кодирует {@code /} в значении
+     * ({@code ?view=reading%2Fpaths} — измерено на стенде, E3.2.1 §8.3), а грамматика якоря
+     * кодирование отвергает — разделовый якорь не доходил бы до словаря карточки. Vaadin query уже
+     * разобрал, поэтому значения берутся разобранными; разделители параметров экранируются
+     * обратно, чтобы границы пар не съезжали, а {@code /} в значении остаётся собой.</p>
+     *
+     * <p>Второго чтения адреса окна нет: этот метод — один источник и для {@code beforeEnter}
+     * host'а, и для Back/Forward. Адрес отдаётся без ведущего слэша, как его отдаёт сам
+     * {@code Location}; каноническую форму даёт {@link #canonicalAddress(String)}.</p>
+     */
+    public static String addressOf(Location location) {
+        StringBuilder address = new StringBuilder(location.getPath());
+        StringBuilder query = new StringBuilder();
+        location.getQueryParameters().getParameters().forEach((name, values) -> {
+            if (values.isEmpty()) {
+                appendParameter(query, name, null);
+                return;
+            }
+            for (String value : values) {
+                appendParameter(query, name, value);
+            }
+        });
+        return query.length() == 0 ? address.toString() : address.append('?').append(query).toString();
+    }
+
+    /**
+     * Пара {@code имя} либо {@code имя=значение}. Пустое значение остаётся параметром без
+     * {@code =}: так его отдаёт и {@code Location#getPathWithQueryParameters()}, и переносимый вход
+     * приходит именно так — второй формы у него не появляется.
+     */
+    private static void appendParameter(StringBuilder query, String name, String value) {
+        if (query.length() > 0) {
+            query.append('&');
+        }
+        query.append(escape(name));
+        if (value == null || value.isEmpty()) {
+            return;
+        }
+        query.append('=').append(escape(value));
+    }
+
+    /**
+     * Экранируются только символы, меняющие разбор адреса ({@code %}, {@code &}, {@code =},
+     * {@code #}, {@code ?}): значение вне грамматики обязано остаться отказом, а не превратиться в
+     * другой адрес.
+     */
+    private static String escape(String value) {
+        StringBuilder escaped = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char character = value.charAt(i);
+            if ("%&=#?".indexOf(character) < 0) {
+                escaped.append(character);
+                continue;
+            }
+            escaped.append('%')
+                .append(Character.toUpperCase(Character.forDigit((character >> 4) & 0xF, 16)))
+                .append(Character.toUpperCase(Character.forDigit(character & 0xF, 16)));
+        }
+        return escaped.toString();
+    }
+
+    /**
      * Адрес из окна в канонической форме: базовый путь снят, ведущий слэш есть, пустое — «/».
      *
      * <p>Обе части — не косметика. Без снятия базы адрес под контекстом разбирался бы как адрес
@@ -413,7 +480,7 @@ public class FormRouteUrlBridge {
                 if (event.getTrigger() != NavigationTrigger.HISTORY) {
                     return;
                 }
-                handler.accept(event.getLocation().getPathWithQueryParameters());
+                handler.accept(addressOf(event.getLocation()));
             });
         }
 

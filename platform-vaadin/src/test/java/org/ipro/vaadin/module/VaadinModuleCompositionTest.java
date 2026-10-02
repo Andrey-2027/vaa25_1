@@ -90,6 +90,8 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.action.ActionInvocation",
         "org.ipro.form.action.ActionPermission",
         "org.ipro.form.action.ActionPolicy",
+        "org.ipro.form.action.ActionProvenance",
+        "org.ipro.form.action.ActionProvenanceCatalog",
         "org.ipro.form.action.ActionRegistry",
         "org.ipro.form.action.ActionResolver",
         "org.ipro.form.action.ActionRequirement",
@@ -137,6 +139,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.coordinator.FormOpenMode",
         "org.ipro.form.coordinator.ItemFormAccessBinder",
         "org.ipro.form.coordinator.ItemFormLinkAffordance",
+        "org.ipro.form.coordinator.FormStructureAffordance",
         "org.ipro.form.coordinator.ItemFormWrapperView",
         "org.ipro.form.coordinator.ListFormWrapper",
         "org.ipro.form.host.BrowserHistory",
@@ -144,6 +147,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.host.RouteStatePage",
         "org.ipro.form.link.ApplicationBasePath",
         "org.ipro.form.link.EntityExplorerAddress",
+        "org.ipro.form.link.EntityStructureNavigation",
         "org.ipro.form.link.FormLinkResult",
         "org.ipro.form.link.FormLinkService",
         "org.ipro.form.link.FormRoute",
@@ -172,6 +176,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.spi.WorkspaceGateway",
         "org.ipro.vaadin.explorer.EntitySummary",
         "org.ipro.vaadin.explorer.EntitySummaryAssembler",
+        "org.ipro.vaadin.explorer.ExplorerSnapshot",
         "org.ipro.vaadin.explorer.SubsystemSummaryAssembler",
         "org.ipro.vaadin.explorer.config.EntityExplorerAutoConfiguration",
         "org.ipro.vaadin.search.GlobalSearchHeader",
@@ -287,8 +292,12 @@ class VaadinModuleCompositionTest {
                 + " affordance «скопировать ссылку» E2.1, исход открытия по адресу и сам"
                 + " route-вход E2.2, host адреса и его мост с вкладками E2.3, базовый путь"
                 + " развёртывания из доделок ревью E2, а не догадка; E3.0 добавила адрес типа"
-                + " Explorer (`EntityExplorerAddress`) — итого 125")
-            .hasSize(125);
+                + " Explorer (`EntityExplorerAddress`) — итого 125; E3.2.0 добавила происхождение"
+                + " действий (`ActionProvenance` и его каталог) — итого 127; E3.2.2 §9.1 добавила"
+                + " типизированный снимок каталога Explorer (`ExplorerSnapshot`); E3.2.2 §10.1"
+                + " добавила SPI перехода к структуре (`EntityStructureNavigation`); §10.2 — внутренний helper меню форм"
+                + " (`FormStructureAffordance`) — итого 130")
+            .hasSize(130);
     }
 
     @Test

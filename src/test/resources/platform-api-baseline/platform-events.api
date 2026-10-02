@@ -12,6 +12,9 @@ class public final org.ipro.events.EntityEventPublisher
   method public void publishSaved(T, org.ipro.events.EventContext)
   method public void publishSaving(T, org.ipro.events.EventContext)
 
+class public final org.ipro.lifecycle.EntityLifecycleInspection
+  method public static java.util.Optional<org.ipro.lifecycle.EntityLifecycleInspection$Assessment> of(org.ipro.lifecycle.EntityLifecycle<?>)
+
 class public final org.ipro.lifecycle.EntityLifecycleRegistry
   ctor public(java.util.List<org.ipro.lifecycle.EntityLifecycle<?>>)
   method public java.util.Optional<org.ipro.lifecycle.EntityLifecycle<T>> find(java.lang.Class<T>)
@@ -31,4 +34,22 @@ class public org.ipro.events.config.EventsAutoConfiguration
 class public static final org.ipro.events.EntityEventPublisher$EventScope
   implements java.lang.AutoCloseable
   method public void close()
+
+record public static final org.ipro.lifecycle.EntityLifecycleInspection$Assessment
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.util.List<org.ipro.lifecycle.EntityLifecycleInspection$Hook>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> handlerType()
+  method public java.util.List<org.ipro.lifecycle.EntityLifecycleInspection$Hook> hooks()
+
+record public static final org.ipro.lifecycle.EntityLifecycleInspection$Hook
+  extends java.lang.Record
+  ctor public(java.lang.String, boolean)
+  method public boolean declared()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String name()
 

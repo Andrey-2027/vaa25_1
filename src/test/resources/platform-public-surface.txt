@@ -166,6 +166,22 @@ API org.ipro.metadata.SubsystemRegistry
 # E3.0: `Nomenclature` называет `EntityKind` (`kind = CATALOG`) — роль API назначена этим
 # срезом, иначе guard публичной поверхности красный на типе, который приложение уже использует.
 API org.ipro.metadata.annotation.EntityKind
+# E3.1: карточка Entity Explorer рисует происхождение факта и его место, а также показывает
+# диагностики — значит приложение называет сами типы модели: происхождение (`FactOrigin`),
+# значение с происхождением (`ResolvedValue`) и диагностическую запись (`MetadataDiagnostic`).
+# Роль API, а не SPI: это словарь, который карточка показывает, а не механизм, который она
+# подстраивает. Раньше карточка называла только `FactSource` (слой), поэтому три типа и не
+# попадали в реестр; шаг 5 E3.1 сделал происхождение видимым, и граница стала видимой тоже.
+# E3.2.0 шаг 5.1: карточка рисует строки фактов аспектов (действия, сценарии чтения, доступ,
+# связи) и делит их по видам факта — объявление против исполнителя, сценарий против пути,
+# измерение против правила значения. Вид строки возвращает публичный `FacetRow.kind()`, поэтому
+# приложение называет сам словарь видов — `FacetKind`. Роль API, а не SPI: это словарь, который
+# карточка читает у строки, а не механизм, который она подстраивает; соседние типы того же
+# словаря (`FactSource`, `ResolvedValue`) уже API по той же причине.
+API org.ipro.metadata.facet.FacetKind
+API org.ipro.metadata.FactOrigin
+API org.ipro.metadata.MetadataDiagnostic
+API org.ipro.metadata.facet.ResolvedValue
 API org.ipro.metadata.annotation.EntityMetadata
 API org.ipro.metadata.annotation.FieldMetadata
 API org.ipro.metadata.annotation.FieldType
@@ -194,8 +210,15 @@ API org.ipro.rls.RlsDimension
 API org.ipro.rls.RlsDimensionKind
 API org.ipro.rls.RlsDimensionRegistry
 API org.ipro.rls.RlsDimensionValueCatalog
+API org.ipro.rest.api.RestFieldType
+API org.ipro.rest.api.RestFilterOperator
+API org.ipro.rest.api.RestNullability
+API org.ipro.rest.api.RestResourceDefinition
+API org.ipro.rest.api.RestResources
+API org.ipro.rest.api.RestSortDirection
 API org.ipro.vaadin.explorer.EntitySummary
 API org.ipro.vaadin.explorer.EntitySummaryAssembler
+API org.ipro.vaadin.explorer.ExplorerSnapshot
 API org.ipro.vaadin.explorer.SubsystemSummaryAssembler
 API org.ipro.vaadin.search.GlobalSearchHeader
 API org.ipro.search.GlobalSearchMatch
@@ -228,6 +251,7 @@ SPI org.ipro.form.builtin.ItemForm
 SPI org.ipro.form.spi.FormSettingsStore
 SPI org.ipro.form.spi.GridViewStore
 SPI org.ipro.form.spi.WorkspaceGateway
+SPI org.ipro.form.link.EntityStructureNavigation
 SPI org.ipro.identity.IdentifiableEntity
 SPI org.ipro.jr.run.JpqlDatasetRunner
 SPI org.ipro.lifecycle.EntityLifecycle
@@ -237,7 +261,7 @@ SPI org.ipro.rls.RlsDimensionValue
 SPI org.ipro.rls.RlsRoleResolver
 SPI org.ipro.search.GlobalSearchProvider
 legacy-internal org.ipro.jr.service.JrxmlTemplateService org/ip/views/reportstudio/ContextualReportLauncher.java org/ip/views/reportstudio/ItemFormReportActions.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintAction.java org/ip/views/reportstudio/ReportPrintDialog.java
-legacy-internal org.ipro.reportstudio.data.EntityRef org/ip/config/JpqlRunService.java org/ip/views/admin/EntityExplorerView.java
+legacy-internal org.ipro.reportstudio.data.EntityRef org/ip/config/JpqlRunService.java
 legacy-internal org.ipro.reportstudio.data.QueryField org/ip/config/JpqlRunService.java org/ip/views/reportstudio/ReconcileDialog.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/ReportStructureEditor.java org/ip/views/reportstudio/ReportUserLayoutEditor.java org/ip/views/test/ReportQueryPreviewView.java org/ip/web/ReportJpqlPreviewController.java
 legacy-internal org.ipro.reportstudio.data.ReportDataset org/ip/config/JpqlRunService.java org/ip/views/test/ReportQueryPreviewView.java org/ip/web/ReportJpqlPreviewController.java
 legacy-internal org.ipro.reportstudio.data.ReportRow org/ip/config/JpqlRunService.java org/ip/views/test/ReportQueryPreviewView.java

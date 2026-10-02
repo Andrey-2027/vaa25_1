@@ -31,6 +31,27 @@ import org.mockito.MockedConstruction;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationContext;
 
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentEvent;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.textfield.TextField;
+import org.ipro.crud.BaseEntity;
+import org.ipro.crud.TableSectionService;
+import org.ipro.form.FormSaveHandler;
+import org.ipro.form.FormSaveResult;
+import org.ipro.form.builtin.ItemForm;
+import org.ipro.form.builtin.ItemTable;
+import org.ipro.form.link.EntityStructureNavigation;
+import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.TableSectionMetadataInfo;
+import org.ip.views.workspace.Workspace;
+import org.ip.views.workspace.WorkspaceManager;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -41,10 +62,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -207,4 +231,152 @@ class ItemFormWorkspaceOpenGuardTest {
         when(service.findById(id)).thenReturn(result);
         doReturn(service).when(serviceLocator).findService(entityClass);
     }
+
+    // E3.2.2 §10.2: переход к структуре сохраняет экземпляр формы, owned-строки и dirty-guard.
+    public static class Document extends BaseEntity { String title = ""; }
+    public static class Row extends BaseEntity { int quantity; }
+
+    @AfterEach void clearUi() { UI.setCurrent(null); }
+
+    private static final class Fixture {
+        final Workspace workspace = new Workspace(mock(WorkspaceManager.class));
+        final ItemForm<Document> form = new ItemForm<>(Document.class, List.of(), mock(FieldFactory.class));
+        final TextField title;
+        final ItemTable<Row, Document> table;
+        final EntityStructureNavigation navigation = mock(EntityStructureNavigation.class);
+        final ItemFormWrapperView wrapper;
+        final FormSaveHandler<Document> saveHandler;
+        final Runnable closed = mock(Runnable.class);
+        final Div explorer = new Div();
+
+        @SuppressWarnings({"unchecked", "rawtypes"}) Fixture(boolean existing, boolean readOnly) {
+            UI.setCurrent(new UI());
+            FieldMetadataInfo titleMeta = mock(FieldMetadataInfo.class);
+            when(titleMeta.getName()).thenReturn("title");
+            when(titleMeta.getLabel()).thenReturn("Наименование");
+            when(titleMeta.getResolvedType()).thenReturn(org.ipro.metadata.annotation.FieldType.TEXT);
+            when(titleMeta.getPlaceholder()).thenReturn("");
+            when(titleMeta.getValue(any())).thenAnswer(call -> ((Document) call.getArgument(0)).title);
+            doAnswer(call -> { ((Document) call.getArgument(0)).title = call.getArgument(1); return null; })
+                .when(titleMeta).setValue(any(), any());
+            title = (TextField) new FieldFactory(null, null).createField(titleMeta, form.getBindingRegistry());
+            TableSectionMetadataInfo section = mock(TableSectionMetadataInfo.class);
+            when(section.getRowClass()).thenReturn((Class) Row.class);
+            when(section.getGridFields()).thenReturn(List.of());
+            when(section.getFormFields()).thenReturn(List.of());
+            table = new ItemTable<>(section, mock(FieldFactory.class), mock(TableSectionService.class),
+                mock(MetadataResolver.class), null, null, null, () -> null);
+            form.addTableSection("Строки", table);
+
+            FormResolver resolver = mock(FormResolver.class);
+            doReturn(form).when(resolver).resolveItemForm(eq(Document.class), any(), any(), any());
+            ApplicationContext context = mock(ApplicationContext.class);
+            saveHandler = mock(FormSaveHandler.class);
+            when(context.getBean(FormSaveHandler.class)).thenReturn(saveHandler);
+            wrapper = new ItemFormWrapperView(context, resolver, mock(ServiceLocator.class),
+                mock(ItemFormAccessBinder.class), mock(ActionRegistry.class), mock(ActionContextProvider.class),
+                mock(ActionHandlerRegistry.class), mock(FormLinkService.class));
+            when(navigation.availability(Document.class)).thenReturn(EntityStructureNavigation.Availability.allowed());
+            when(navigation.link(Document.class)).thenReturn(Optional.of("/entity-explorer/documents"));
+            when(navigation.open(Document.class, null)).thenAnswer(call -> {
+                workspace.openComponent(explorer, "entity-explorer", "Структура сущностей");
+                return new EntityStructureNavigation.OpenResult.Opened(Document.class,
+                    Optional.of("/entity-explorer/documents"));
+            });
+            wrapper.setEntityStructureNavigation(navigation);
+            Document loaded = new Document();
+            if (existing) loaded.setId(42L);
+            wrapper.init(Document.class, "custom", existing ? 42L : null, existing ? loaded : null,
+                saved -> {}, closed, null);
+            if (readOnly) form.setReadOnly(true);
+            workspace.openComponent(wrapper, "source", "Документ");
+        }
+
+        void openExplorer() {
+            MenuBar menu = form.getFooter().getChildren().filter(MenuBar.class::isInstance)
+                .map(MenuBar.class::cast).findFirst().orElseThrow();
+            MenuItem item = menu.getItems().get(0).getSubMenu().getItems().get(0);
+            ComponentUtil.fireEvent(item, new ClickEvent<>(item, true, 0, 0, 0, 0, 1, 0,
+                false, false, false, false));
+        }
+
+        Row edit() {
+            title.setValue("Изменённое наименование");
+            Row row = new Row();
+            row.quantity = 1;
+            table.applyPersistedRows(form.peekEntity(), List.of(row));
+            row.quantity = 2;
+            table.markDirty();
+            return row;
+        }
+    }
+
+    @Test void aNewDirtyFormAndOwnedRowSurviveRepeatedOpeningAndReturn() {
+        Fixture f = new Fixture(false, false);
+        Document draft = f.form.peekEntity();
+        Row row = f.edit();
+        f.openExplorer();
+        f.openExplorer();
+        assertThat(f.workspace.activeEntryId()).isEqualTo("entity-explorer");
+        f.workspace.activate("source");
+        assertThat(f.workspace.activeEntryId()).isEqualTo("source");
+        assertThat(f.wrapper.getItemForm()).isSameAs(f.form);
+        assertThat(f.form.peekEntity()).isSameAs(draft);
+        assertThat(draft.getId()).isNull();
+        assertThat(f.title.getValue()).isEqualTo("Изменённое наименование");
+        assertThat(f.table.getRows()).containsExactly(row);
+        assertThat(row.quantity).isEqualTo(2);
+        assertThat(f.wrapper.isDirty()).isTrue();
+        assertThat(f.workspace.unsavedEntryIds()).containsExactly("source");
+        verifyNoInteractions(f.saveHandler, f.closed);
+    }
+
+    @Test void cancellingCloseAndThenSavingUseTheOriginalDirtyGuardAndDraft() {
+        Fixture f = new Fixture(false, false);
+        Row row = f.edit();
+        f.openExplorer();
+        f.workspace.activate("source");
+        try (var dialogs = mockConstruction(ConfirmDialog.class)) {
+            f.workspace.close("source");
+            fire(dialogs.constructed().get(0), "setRejectButton", ConfirmDialog.RejectEvent.class);
+            assertThat(f.workspace.activeEntryId()).isEqualTo("source");
+            assertThat(f.wrapper.isDirty()).isTrue();
+            verifyNoInteractions(f.saveHandler);
+            when(f.saveHandler.save(f.form)).thenAnswer(call -> {
+                Document saved = f.form.getEntity();
+                assertThat(saved.title).isEqualTo("Изменённое наименование");
+                assertThat(f.table.getRows()).containsExactly(row);
+                assertThat(row.quantity).isEqualTo(2);
+                saved.setId(77L);
+                f.form.applyPersistedEntity(saved);
+                f.table.applyPersistedRows(saved, List.of(row));
+                return new FormSaveResult.Success<>(saved);
+            });
+            f.workspace.close("source");
+            fire(dialogs.constructed().get(1), "setConfirmButton", ConfirmDialog.ConfirmEvent.class);
+        }
+        verify(f.saveHandler).save(f.form);
+        assertThat(f.workspace.unsavedEntryIds()).isEmpty();
+        assertThat(f.workspace.activeEntryId()).isEqualTo("entity-explorer");
+        verifyNoInteractions(f.closed);
+    }
+
+    @Test void aReadOnlyCardCanOpenItsTypeWithoutSaving() {
+        Fixture f = new Fixture(true, true);
+        Document entity = f.form.peekEntity();
+        f.openExplorer();
+        f.workspace.activate("source");
+        assertThat(f.form.peekEntity()).isSameAs(entity);
+        assertThat(f.wrapper.isReadOnly()).isTrue();
+        verify(f.navigation).open(Document.class, null);
+        verifyNoInteractions(f.saveHandler, f.closed);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void fire(ConfirmDialog dialog, String method, Class<? extends ComponentEvent> event) {
+        var call = mockingDetails(dialog).getInvocations().stream()
+            .filter(invocation -> invocation.getMethod().getName().equals(method)).findFirst().orElseThrow();
+        ((ComponentEventListener) call.getArgument(1)).onComponentEvent(mock(event));
+    }
+
 }

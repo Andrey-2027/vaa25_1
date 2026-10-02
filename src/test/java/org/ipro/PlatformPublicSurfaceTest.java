@@ -81,6 +81,10 @@ class PlatformPublicSurfaceTest {
 
     private static final Pattern IMPORT = Pattern.compile("^import\\s+(org\\.ipro\\.[A-Za-z0-9_.]+);", Pattern.MULTILINE);
 
+    /** Владелец static import тоже является названием публичного типа платформы. */
+    private static final Pattern STATIC_IMPORT = Pattern.compile(
+        "^import\\s+static\\s+(org\\.ipro\\.[A-Za-z0-9_.$]+);", Pattern.MULTILINE);
+
     /** Wildcard-импорт пакета платформы: за ним скрыт неизвестный набор типов. */
     private static final Pattern PLATFORM_WILDCARD =
         Pattern.compile("^import\\s+(?:static\\s+)?org\\.ipro\\.[A-Za-z0-9_.]*\\*;", Pattern.MULTILINE);
@@ -289,7 +293,7 @@ class PlatformPublicSurfaceTest {
     }
 
     /**
-     * Ссылки прикладного кода на платформу: импорты плюс fully-qualified употребления.
+     * Ссылки прикладного кода на платформу: обычные/static imports плюс fully-qualified употребления.
      *
      * <p>{@code unresolved} — это ссылки {@code org.ipro.*}, для которых ни сам token, ни его
      * префиксы не являются классом на classpath компиляции: опечатка либо ссылка на тип, который
@@ -307,6 +311,17 @@ class PlatformPublicSurfaceTest {
             Matcher imports = IMPORT.matcher(code);
             while (imports.find()) {
                 types.add(imports.group(1));
+            }
+            Matcher staticImports = STATIC_IMPORT.matcher(code);
+            while (staticImports.find()) {
+                String importedMember = staticImports.group(1);
+                String owner = resolveAgainstClasspath(importedMember);
+                if (owner == null) {
+                    unresolved.computeIfAbsent(importedMember, ignored -> new TreeSet<>())
+                        .add(APP_MAIN_SOURCES.relativize(source).toString().replace('\\', '/'));
+                } else {
+                    types.add(owner);
+                }
             }
             for (String line : code.split("\n")) {
                 if (line.stripLeading().startsWith("import")) {

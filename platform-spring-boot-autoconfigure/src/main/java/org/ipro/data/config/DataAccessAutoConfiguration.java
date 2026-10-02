@@ -5,14 +5,17 @@ import jakarta.validation.Validator;
 import org.ipro.crud.GenericOwnedSectionService;
 import org.ipro.crud.ReferenceCheckService;
 import org.ipro.data.CanonicalEntityDataAccess;
+import org.ipro.data.CanonicalEntityReadAccess;
 import org.ipro.data.CanonicalReadExecutor;
 import org.ipro.data.CanonicalWriteExecutor;
 import org.ipro.data.EntityCapabilityOverride;
 import org.ipro.data.EntityDataAccess;
 import org.ipro.data.EntityDataAccessResolver;
 import org.ipro.data.EntityDataPolicy;
+import org.ipro.data.EntityReadAccess;
 import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.EntityExposureOverride;
+import org.ipro.data.FetchPlanInspection;
 import org.ipro.data.ReadTelemetry;
 import org.ipro.data.EventContourStartupCheck;
 import org.ipro.data.ScenarioFetchGraphResolver;
@@ -98,6 +101,22 @@ public class DataAccessAutoConfiguration {
             fetchPlanRegistry.getIfAvailable(), instanceNameResolver.getIfAvailable());
     }
 
+    /**
+     * Факты чтения типа для карточки Explorer (E3.2.0 шаг 2): какие сценарии у типа, откуда
+     * пришёл набор и какие пути несёт план каждого сценария.
+     *
+     * <p>Оба входа обязательны по существу: без плана «путей нет» не отличить от «план не
+     * спросили», а без каталога неизвестен набор сценариев и его происхождение. Частичный
+     * контекст получает отсутствие бина, а не пустую выдачу.</p>
+     */
+    @Bean
+    @ConditionalOnBean({EntityDescriptorCatalog.class, FetchPlanRegistry.class})
+    @ConditionalOnMissingBean
+    public FetchPlanInspection fetchPlanInspection(EntityDescriptorCatalog entityDescriptorCatalog,
+                                                   FetchPlanRegistry fetchPlanRegistry) {
+        return new FetchPlanInspection(fetchPlanRegistry, entityDescriptorCatalog);
+    }
+
     /** Default telemetry seam — noop (ADR-0007 §8); приложение может заменить бин. */
     @Bean
     @ConditionalOnMissingBean
@@ -139,11 +158,13 @@ public class DataAccessAutoConfiguration {
             ObjectProvider<RlsPolicyEnforcer> rlsPolicyEnforcer,
             ObjectProvider<ReadTelemetry> readTelemetry,
             ObjectProvider<InstanceNameResolver> instanceNameResolver,
-            RlsCurrentUser currentUser) {
+            RlsCurrentUser currentUser,
+            ObjectProvider<org.ipro.rls.c5.C5PermissionEvaluator> c5PermissionEvaluator) {
         return new CanonicalReadExecutor(entityDescriptorCatalog, scenarioFetchGraphResolver,
             metadataResolver, rlsFilterActivator, rlsReadGate,
             rlsPolicyEnforcer.getIfAvailable(), readTelemetry.getIfAvailable(),
-            instanceNameResolver.getIfAvailable(), currentUser);
+            instanceNameResolver.getIfAvailable(), currentUser,
+            c5PermissionEvaluator.getIfAvailable());
     }
 
     /**
@@ -217,5 +238,14 @@ public class DataAccessAutoConfiguration {
             ObjectProvider<EntityDataPolicy> policies) {
         return new EntityDataAccessResolver(entityDescriptorCatalog, entityDataAccess,
             canonicalReadExecutor, policies.orderedStream().toList());
+    }
+
+    /** Узкий межмодульный read-контракт для REST и интеграций (F-REST-READ-3). */
+    @Bean
+    @ConditionalOnBean(CanonicalReadExecutor.class)
+    @ConditionalOnMissingBean
+    public EntityReadAccess entityReadAccess(CanonicalReadExecutor canonicalReadExecutor,
+                                             ObjectProvider<EntityDataAccessResolver> resolverProvider) {
+        return new CanonicalEntityReadAccess(canonicalReadExecutor, resolverProvider.getIfAvailable());
     }
 }

@@ -191,7 +191,7 @@ public final class CopyLinkButton extends Button {
                 "Ссылка не построена: адрес формы недоступен в этой сессии"));
             return;
         }
-        copy(path.get());
+        copyAddress(path.get());
     }
 
     /**
@@ -200,7 +200,8 @@ public final class CopyLinkButton extends Button {
      * <p>Без активного UI операция невозможна (запись в буфер — действие браузера), поэтому это
      * названный отказ, а не тихий no-op: вызов вне UI-потока означает ошибку вызывающего.</p>
      */
-    private void copy(String path) {
+    public static void copyAddress(String path) {
+        Objects.requireNonNull(path, "path must not be null");
         UI ui = UI.getCurrent();
         if (ui == null) {
             throw new IllegalStateException("Скопировать ссылку можно только в UI-потоке:"

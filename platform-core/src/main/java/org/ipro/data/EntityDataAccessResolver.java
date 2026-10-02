@@ -57,6 +57,10 @@ public class EntityDataAccessResolver {
     }
 
     /** Descriptor типа — read-only таксономия и capabilities. */
+        public boolean hasCustomPolicy(Class<?> type) {
+        return policies.containsKey(type);
+    }
+
     public EntityDescriptor descriptor(Class<?> type) {
         return catalog.descriptorOf(type);
     }

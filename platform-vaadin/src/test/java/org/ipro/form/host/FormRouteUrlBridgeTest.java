@@ -1,6 +1,9 @@
 package org.ipro.form.host;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.router.Location;
+import com.vaadin.flow.router.QueryParameters;
+import org.ipro.form.link.EntityExplorerAddress;
 import org.ipro.form.link.FormRoute;
 import org.ipro.form.link.FormRouteCodec;
 import org.ipro.form.link.FormRouteKind;
@@ -348,6 +351,84 @@ class FormRouteUrlBridgeTest {
     }
 
     @Test
+    void anAnchoredExplorerAddressFromTheWindowReachesTheExplorerEntryPoint() {
+        workspace.active = "home";
+        bridge.install("/", this::enter);
+
+        history.goBackOrForward("/entity-explorer/nomenclature?view=access/rules");
+
+        assertThat(explorerEntries)
+            .as("якорь — часть адреса Explorer: мост передаёт его входу как есть, а не срезает")
+            .containsExactly("/entity-explorer/nomenclature?view=access/rules");
+        assertThat(entries).as("у Explorer свой вход — якорь не переключает его на формный").isEmpty();
+        assertThat(workspace.activated)
+            .as("на главную ведёт адрес, который ничего не просит")
+            .isEmpty();
+        assertThat(history.pushed).isEmpty();
+        assertThat(history.replaced).isEmpty();
+    }
+
+    /**
+     * Измерено на стенде (E3.2.1 §8.3): {@code Location#getPathWithQueryParameters()} кодирует
+     * {@code /} в значении, и разделовый якорь не доходил до host'а. Адрес собирается из
+     * разобранных частей, поэтому {@code /} остаётся собой, параметр без значения — параметром без
+     * значения, а повтор параметра — повтором (на нём стоит отказ грамматики, а не слияние).
+     */
+    @Test
+    void theWindowAddressIsAssembledFromTheParsedLocation() {
+        assertThat(FormRouteUrlBridge.addressOf(new Location("entity-explorer/nomenclature",
+                QueryParameters.fromString("view=reading/paths"))))
+            .as("разделовый якорь: '/' в значении не кодируется, иначе грамматика отвергнет адрес")
+            .isEqualTo("entity-explorer/nomenclature?view=reading/paths");
+        assertThat(FormRouteUrlBridge.addressOf(
+                new Location("entity-explorer/nomenclature?view=reading")))
+            .isEqualTo("entity-explorer/nomenclature?view=reading");
+        assertThat(FormRouteUrlBridge.addressOf(
+                new Location("entity-explorer/nomenclature?view=reading&continue")))
+            .as("переносимый вход остаётся параметром без значения")
+            .isEqualTo("entity-explorer/nomenclature?view=reading&continue");
+        assertThat(FormRouteUrlBridge.addressOf(
+                new Location("entity-explorer/nomenclature?view=a&view=b")))
+            .as("повтор параметра сохраняется — грамматика обязана отвергнуть его, а не выбрать один")
+            .isEqualTo("entity-explorer/nomenclature?view=a&view=b");
+    }
+
+    @Test
+    void aSectionAnchorFromTheWindowReachesTheExplorerGrammar() {
+        String address = FormRouteUrlBridge.addressOf(new Location("entity-explorer/nomenclature",
+            QueryParameters.fromString("view=access/rules")));
+
+        assertThat(EntityExplorerAddress.keyOf(address)).contains("nomenclature");
+        assertThat(EntityExplorerAddress.anchorOf(address)).contains("access/rules");
+    }
+
+    @Test
+    void changingThePlaceOfTheExplorerCardKeepsTheAnchorInTheHistoryStep() {
+        workspace.active = "home";
+        bridge.install("/entity-explorer/nomenclature?view=access", this::enter);
+        bridge.tabAddressed("entity-explorer", "/entity-explorer/nomenclature?view=access");
+        workspace.becomeActive("entity-explorer");
+        assertThat(history.pushed)
+            .as("адрес с якорем уже стоит в окне: вход его не перезаписывает")
+            .isEmpty();
+        history.forgetWhatHappenedWhilePreparingTheCase();
+
+        bridge.tabAddressChanged("entity-explorer", "/entity-explorer/nomenclature?view=links");
+
+        assertThat(history.pushed)
+            .as("смена места карточки — шаг истории с якорем: Back обязан вернуть прежнее место")
+            .containsExactly("/entity-explorer/nomenclature?view=links");
+        history.forgetWhatHappenedWhilePreparingTheCase();
+
+        history.goBackOrForward("/entity-explorer/nomenclature?view=access");
+
+        assertThat(explorerEntries)
+            .as("возврат браузером входит тем же путём и с тем же якорем")
+            .containsExactly("/entity-explorer/nomenclature?view=access");
+        assertThat(history.pushed).as("переход браузера адреса не пишет").isEmpty();
+    }
+
+    @Test
     void theExplorerTabWritesItsTypeAddressOnce() {
         workspace.active = "home";
         bridge.install("/entity-explorer/nomenclature", this::enter);
@@ -422,6 +503,29 @@ class FormRouteUrlBridgeTest {
         assertThat(history.pushed)
             .as("новая пустая вкладка с тем же entryId не наследует адрес закрытой карточки")
             .isEmpty();
+    }
+
+    /**
+     * E3.2.2 §4.4: закрытие вкладки не забывает выбор текущего UI — повторное меню регистрирует
+     * актуальный адрес заново до активации вкладки. Иначе восстановленный Explorer открывался бы
+     * безадресно, хотя сохранённый тип известен.
+     */
+    @Test
+    void reopeningTheExplorerTabRegistersTheRestoredAddressAgain() {
+        workspace.active = "home";
+        bridge.install("/", this::enter);
+        bridge.tabAddressed("entity-explorer", "/entity-explorer/nomenclature");
+        workspace.becomeActive("entity-explorer");
+        workspace.close("entity-explorer");
+        history.forgetWhatHappenedWhilePreparingTheCase();
+
+        bridge.tabAddressed("entity-explorer", "/entity-explorer/nomenclature");
+        workspace.becomeActive("entity-explorer");
+
+        assertThat(history.pushed)
+            .as("повторное меню заново регистрирует адрес до активации: вместо карточки не"
+                + " записывается «/»")
+            .containsExactly("/entity-explorer/nomenclature");
     }
 
     @Test

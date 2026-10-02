@@ -32,9 +32,14 @@ class NumberingMetadataRegistryTest {
 
         List<NumberingMetadataRegistry.NumberedFieldInfo> all = registry.all();
 
+        // Скан идёт по basePackage org.ip, поэтому в каталог попадает и унаследованное
+        // @Numbered-поле синтетического типа из тестов E3.1 (EntitySummaryAssemblerTest
+        // .InheritedCatalogFixture наследует code от StandardCatalogEntity) — это измеренное
+        // поведение скана, а не список прикладных сущностей.
         assertThat(all).extracting(NumberingMetadataRegistry.NumberedFieldInfo::key)
             .containsExactly(
                 "AttributeType.code",
+                "InheritedCatalogFixture.code",
                 "Nomenclature.code",
                 "Oper.code",
                 "ReceivingDocument.number");

@@ -41,6 +41,14 @@ import java.util.Set;
  * переведён на owner-специфичную реализацию. Такое исключение должно быть названо
  * причиной, а не выведено из факта присутствия в metamodel.</p>
  *
+ * <p><b>Происхождение набора сценариев (E3.2.0 шаг 2).</b> Оба решения классификации несут
+ * своё происхождение: экспозиция — {@code exposureOrigin}/{@code exposureSymbol} (E3.1),
+ * набор read-сценариев и write-намерений — {@code capabilitiesOrigin}/{@code
+ * capabilitiesSymbol}. Прикладной override даёт {@link FactOrigin#REGISTRATION}, правило
+ * экспозиции — {@link FactOrigin#PLATFORM_DEFAULT}; совпадение набора с правилом
+ * происхождение <b>не</b> меняет, потому что override заменяет выведенное, а не дополняет
+ * его. Символ у обоих пуст — см. {@link EntityDescriptor}.</p>
+ *
  * <p>Компонент immutable после построения и потокобезопасен.</p>
  */
 public final class EntityDescriptorCatalog {
@@ -123,7 +131,8 @@ public final class EntityDescriptorCatalog {
         }
         return new EntityDescriptor(type, EntityExposure.UNCLASSIFIED, false, false,
             capabilities(EntityExposure.UNCLASSIFIED),
-            "not present in ManagedEntityCatalog", FactOrigin.PLATFORM_DEFAULT, "");
+            "not present in ManagedEntityCatalog", FactOrigin.PLATFORM_DEFAULT, "",
+            FactOrigin.PLATFORM_DEFAULT, "");
     }
 
     /** Все управляемые типы в стабильном (по имени класса) порядке. */
@@ -170,12 +179,25 @@ public final class EntityDescriptorCatalog {
             exposureSymbol = type.getName();
         }
 
-        EntityCapabilities capabilities = capabilityOverride == null
-            ? capabilities(exposure)
-            : new EntityCapabilities(capabilityOverride.reads(), capabilityOverride.writes(),
+        // Происхождение набора сценариев — отдельная ось (E3.2.0 шаг 2): платформенное правило
+        // экспозиции против прикладной policy типа. Символ пуст у обоих по решению: у правила
+        // места объявления нет (правило названо причиной), а прикладной override собирается
+        // списком бинов, и класса-объявления ядро не знает (та же граница, что у exposureSymbol).
+        EntityCapabilities capabilities;
+        FactOrigin capabilitiesOrigin;
+        if (capabilityOverride == null) {
+            capabilities = capabilities(exposure);
+            capabilitiesOrigin = FactOrigin.PLATFORM_DEFAULT;
+        } else {
+            // Набор передаётся целиком и заменяет выведенный, поэтому origin — REGISTRATION
+            // даже когда набор совпадает с правилом: объявление читается решением, а не
+            // сравнением значений.
+            capabilities = new EntityCapabilities(capabilityOverride.reads(), capabilityOverride.writes(),
                 capabilityOverride.reason());
+            capabilitiesOrigin = FactOrigin.REGISTRATION;
+        }
         return new EntityDescriptor(type, exposure, true, metadataDriven, capabilities, reason,
-            exposureOrigin, exposureSymbol);
+            exposureOrigin, exposureSymbol, capabilitiesOrigin, "");
     }
 
     private static boolean isMetadataDriven(Class<?> type, MetadataResolver metadataResolver) {

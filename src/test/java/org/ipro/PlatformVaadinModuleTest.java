@@ -143,8 +143,12 @@ class PlatformVaadinModuleTest {
                 + " и его мост с вкладками (`RouteStatePage`, `FormRouteUrlBridge`) вместе с"
                 + " швом для проверки моста без браузера (`BrowserHistory`); доделки ревью E2"
                 + " добавили базовый путь развёртывания (`ApplicationBasePath`); E3.0 добавила адрес"
-                + " типа Explorer (`EntityExplorerAddress`) — итого 125")
-            .isEqualTo(125);
+                + " типа Explorer (`EntityExplorerAddress`); E3.2.0 шаг 1 добавила происхождение"
+                + " действий (`ActionProvenance`, `ActionProvenanceCatalog`); E3.2.2 §9.1 добавила"
+                + " типизированный снимок каталога Explorer (`ExplorerSnapshot`); E3.2.2 §10.1"
+                + " добавила SPI перехода к структуре (`EntityStructureNavigation`); §10.2 — внутренний helper меню форм"
+                + " (`FormStructureAffordance`) — итого 130")
+            .isEqualTo(130);
         assertThat(copies)
             .as("тип есть и в модуле, и в дереве приложения — это split package: компилятор"
                 + " различает такие копии по порядку classpath, а не по замыслу, поэтому"

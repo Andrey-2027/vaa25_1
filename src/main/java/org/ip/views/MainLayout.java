@@ -33,9 +33,11 @@ import org.ipro.vaadin.search.GlobalSearchHeader;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ip.views.admin.AdminView;
+import org.ip.views.admin.CardAnchor;
 import org.ip.views.admin.DiagnosticsView;
 import org.ip.views.admin.EntityExplorerAccess;
 import org.ip.views.admin.EntityExplorerView;
+import org.ip.views.admin.EntityExplorerNavigation;
 import org.ip.views.admin.SubsystemStructureView;
 import org.ip.views.directory.WorkshopListView;
 import org.ip.views.preferences.DensityToggle;
@@ -53,8 +55,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Корневой layout приложения: шапка, боковое меню и рабочая область с вкладками.
@@ -107,6 +111,14 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     /** Заголовок вкладки Explorer: один и тот же на обоих входах. */
     private static final String EXPLORER_TAB_TITLE = "Структура сущностей";
 
+    /**
+     * Переносимый параметр входа ({@code ?continue}): адресом вкладки он не делится, потому что
+     * в него входят, а не им делятся. Имя одно и то же, что у грамматики адреса
+     * ({@code EntityExplorerAddress}): здесь оно нужно только чтобы срезать параметр из адреса
+     * вкладки, а переносит его грамматика.
+     */
+    private static final String LOGIN_PARAMETER = "continue";
+
     private final Workspace workspace;
     private final SubsystemRegistry subsystemRegistry;
     private final UserPreferencesStore preferencesStore;
@@ -116,6 +128,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     private final EntityExplorerAccess explorerAccess;
     private final FormRouteCatalog routeCatalog;
     private final ObjectProvider<EntityExplorerView> explorerViews;
+    private final EntityExplorerNavigation structureNavigation;
 
     @Autowired
     public MainLayout(Workspace workspace,
@@ -126,7 +139,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
                       FormRouteUrlBridge routeUrlBridge,
                       EntityExplorerAccess explorerAccess,
                       FormRouteCatalog routeCatalog,
-                      ObjectProvider<EntityExplorerView> explorerViews) {
+                      ObjectProvider<EntityExplorerView> explorerViews,
+                      EntityExplorerNavigation structureNavigation) {
         this.subsystemRegistry = subsystemRegistry;
         this.preferencesStore = preferencesStore;
         this.globalSearchHeader = globalSearchHeader;
@@ -136,6 +150,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
         this.explorerAccess = explorerAccess;
         this.routeCatalog = routeCatalog;
         this.explorerViews = explorerViews;
+        this.structureNavigation = structureNavigation;
+        structureNavigation.bindHost(this, this::openExplorerProgrammatically);
+        addAttachListener(event -> structureNavigation.bindHost(this, this::openExplorerProgrammatically));
+        addDetachListener(event -> structureNavigation.unbindHost(this));
         setContent(workspace);
         createHeader();
         createDrawer();
@@ -212,13 +230,19 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
      * адрес Explorer стал бы инструментом проверки существования типов. По той же причине
      * неразбираемый адрес и неизвестный ключ дают ровно один отказ — тот же, что и роль.</p>
      *
+     * <p><b>Якорь спрашивают последним (E3.2.1 §8.2).</b> Порядок «роль → ключ → каталог → якорь»:
+     * якорь не участвует в решении о роли и ключе, а его существование знает словарь карточки
+     * ({@code anchorKnown}) — платформа отвечает только за форму якоря. Неизвестный якорь даёт
+     * тот же единый отказ: «ближайшей» вкладки, куда можно было бы повести, нет (ADR-0010 §10).</p>
+     *
      * <p><b>Успех не выражается {@code OpenResult}.</b> У карточки типа нет {@code FormRoute}, и
      * изображать её формой значило бы завести фиктивный маршрут; host открывает вкладку своим
      * путём. Результат называет тип, ключ и <b>запрошенный</b> адрес: legacy-ключ остаётся тем, по
      * которому пришли (ADR-0010).</p>
      */
     static ExplorerEntry decideExplorerEntry(boolean admin, String address,
-                                             Function<String, Optional<Class<?>>> resolver) {
+                                             Function<String, Optional<Class<?>>> resolver,
+                                             Predicate<String> anchorKnown) {
         if (!admin) {
             return ExplorerEntry.refused();
         }
@@ -227,9 +251,14 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
             return ExplorerEntry.refused();
         }
         Optional<Class<?>> type = resolver.apply(key.get());
-        return type.isPresent()
-            ? new ExplorerEntry.Resolved(type.get(), key.get(), address)
-            : ExplorerEntry.refused();
+        if (type.isEmpty()) {
+            return ExplorerEntry.refused();
+        }
+        Optional<String> anchor = EntityExplorerAddress.anchorOf(address);
+        if (anchor.isPresent() && !anchorKnown.test(anchor.get())) {
+            return ExplorerEntry.refused();
+        }
+        return new ExplorerEntry.Resolved(type.get(), key.get(), address, anchor.orElse(null));
     }
 
     /** Результат решения: успех с типом либо единый отказ, не различающий роль и неизвестный ключ. */
@@ -239,8 +268,12 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
         record Denied(OpenResult refusal) implements ExplorerEntry {
         }
 
-        /** Тип найден: ключ канонический, адрес — запрошенный (может быть legacy). */
-        record Resolved(Class<?> type, String key, String address) implements ExplorerEntry {
+        /**
+         * Тип найден: ключ канонический, адрес — запрошенный (может быть legacy), якорь — место
+         * карточки ({@code null} — адрес места не называет).
+         */
+        record Resolved(Class<?> type, String key, String address, String anchor)
+            implements ExplorerEntry {
         }
 
         static ExplorerEntry refused() {
@@ -312,6 +345,12 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     /**
      * Адрес окна в канонической форме — с ведущим слэшем.
      *
+     * <p>Сборку адреса из разобранного {@link Location} делает мост
+     * ({@link FormRouteUrlBridge#addressOf(Location)}): {@code getPathWithQueryParameters()}
+     * кодирует {@code /} в значении, и разделовый якорь не доходил бы до словаря карточки
+     * (измерено на стенде, E3.2.1 §8.3). Второй сборки у host'а не появляется — здесь только
+     * форма адреса host'а.</p>
+     *
      * <p>Ведущий слэш добавляет host, а не кодек, и это измеренный факт, а не удобство:
      * {@code Location} из Vaadin отдаёт путь <b>без</b> него ({@code records/nomenclature/1}),
      * а адрес формы — относительный путь, начинающийся с {@code /}. Замерено на стенде: без
@@ -321,9 +360,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
      * <p>Больше ничего в адресе не нормализуется: регистр ключа, ведущие нули id и лишние
      * query-параметры остаются причиной отказа (ADR §3).</p>
      */
-    private static String addressOf(Location location) {
-        String path = location.getPathWithQueryParameters();
-        return path.startsWith("/") ? path : "/" + path;
+    static String addressOf(Location location) {
+        String address = FormRouteUrlBridge.addressOf(location);
+        return address.startsWith("/") ? address : "/" + address;
     }
 
     /**
@@ -354,8 +393,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
      */
     private void enterExplorerAddress(String address) {
         applyExplorerEntry(
-            decideExplorerEntry(explorerAccess.allows(), address, this::explorerTypeOfKey),
-            recorded -> routeUrlBridge.tabAddressed(EXPLORER_ENTRY_ID, recorded),
+            decideExplorerEntry(explorerAccess.allows(), address, this::explorerTypeOfKey,
+                MainLayout::explorerAnchorKnown),
+            recorded -> routeUrlBridge.tabAddressed(EXPLORER_ENTRY_ID, explorerTabAddress(recorded)),
             this::openExplorerTab,
             refusal -> {
                 workspace.showTransientContent(new RouteStatePage(refusal));
@@ -370,7 +410,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
      */
     static void applyExplorerEntry(ExplorerEntry entry,
                                    Consumer<String> recordAddress,
-                                   Consumer<Class<?>> openType,
+                                   BiConsumer<Class<?>, String> openPlace,
                                    Consumer<OpenResult> showRefusal) {
         if (entry instanceof ExplorerEntry.Denied denied) {
             showRefusal.accept(denied.refusal());
@@ -378,34 +418,120 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
         }
         ExplorerEntry.Resolved resolved = (ExplorerEntry.Resolved) entry;
         recordAddress.accept(resolved.address());
-        openType.accept(resolved.type());
+        openPlace.accept(resolved.type(), resolved.anchor());
     }
 
     private Optional<Class<?>> explorerTypeOfKey(String key) {
         return routeCatalog.find(key).map(PublishedFormRoute::entityClass);
     }
 
-    /** Открыть вкладку Explorer и применить к ней ключ: повторный вход — тот же вид, не второй. */
-    private void openExplorerTab(Class<?> type) {
-        if (type == null) {
-            // Меню открывает пустой Explorer. Сбросить адрес до активации: UI-scoped вид и
-            // запись моста переживают повторное открытие этой вкладки.
-            routeUrlBridge.tabAddressChanged(EXPLORER_ENTRY_ID, null);
+    /**
+     * Причина входа в Explorer (E3.2.2 §4.4). {@code type == null} больше не означает
+     * одновременно «меню» и «сбросить карточку»: меню восстанавливает сохранённый выбор
+     * текущего UI, а адрес и программный запрос применяют названный тип.
+     */
+    enum ExplorerEnterReason {
+        MENU,
+        ADDRESS,
+        PROGRAMMATIC
+    }
+
+    /** Вход из меню: восстановить последний выбор текущего UI либо открыть пустую карточку. */
+    private void openExplorerFromMenu() {
+        openExplorerTab(null, null, ExplorerEnterReason.MENU);
+    }
+
+    /**
+     * Программное открытие структуры из формы/подсистемы (E3.2.2 §10.1): названный тип и место
+     * имеют приоритет над сохранённым выбором; опубликованный ключ даёт вкладке адрес, тип без
+     * ключа открывается безадресно — чужой ключ не подставляется.
+     */
+    private boolean openExplorerProgrammatically(Class<?> type, String anchor) {
+        if (!explorerAccess.allows() || type == null || anchor != null && CardAnchor.of(anchor).isEmpty()) {
+            return false;
         }
+        openExplorerTab(type, anchor, ExplorerEnterReason.PROGRAMMATIC);
+        return true;
+    }
+
+    /** Вход по адресу Explorer: тот же вид, не второй; якорь применяется к нему (E3.2.1 §8.2). */
+    private void openExplorerTab(Class<?> type, String anchor) {
+        openExplorerTab(type, anchor, ExplorerEnterReason.ADDRESS);
+    }
+
+    private void openExplorerTab(Class<?> type, String anchor, ExplorerEnterReason reason) {
         EntityExplorerView view = explorerViews.getObject();
-        view.setTypeSelectionListener(this::explorerTypeSelected);
-        view.init(type);
+        view.setSelectionListener(this::explorerPlaceSelected);
+        switch (reason) {
+            case MENU -> registerRestoredExplorerEntry(view);
+            case ADDRESS -> view.init(type, anchor);
+            case PROGRAMMATIC -> {
+                view.init(type, anchor);
+                String address = explorerAddressOf(
+                    routeCatalog.find(type).map(PublishedFormRoute::entityKey), anchor);
+                if (address == null) {
+                    // У выбора адреса нет: вкладка безадресна, как при выборе непубликуемого типа
+                    // в дереве, — выдуманная ссылка открыла бы чужую карточку.
+                    routeUrlBridge.tabAddressChanged(EXPLORER_ENTRY_ID, null);
+                } else {
+                    routeUrlBridge.tabAddressed(EXPLORER_ENTRY_ID, address);
+                }
+            }
+        }
         workspace.openComponent(view, EXPLORER_ENTRY_ID, EXPLORER_TAB_TITLE);
     }
 
     /**
-     * Пользователь выбрал тип в дереве: адрес вкладки меняет host, а не вид. У типа без
-     * опубликованного ключа адреса нет — «/» вместо выдуманной ссылки.
+     * Восстановленный выбор меню: адрес регистрируется до активации вкладки, чтобы мост в момент
+     * открытия уже знал ссылку (иначе первая смена активности записала бы «/»). Пустой выбор и тип
+     * без ключа дают действующую безадресную семантику.
      */
-    private void explorerTypeSelected(Class<?> type) {
+    private void registerRestoredExplorerEntry(EntityExplorerView view) {
+        Optional<String> address =
+            explorerMenuAddress(view.applyMenuEntry(), this::explorerPublishedKey);
+        if (address.isPresent()) {
+            routeUrlBridge.tabAddressed(EXPLORER_ENTRY_ID, address.orElseThrow());
+        } else {
+            routeUrlBridge.tabAddressChanged(EXPLORER_ENTRY_ID, null);
+        }
+    }
+
+    /** Опубликованный ключ типа: ключ спрашивается у каталога маршрутов, а не у класса. */
+    private Optional<String> explorerPublishedKey(Class<?> type) {
+        return routeCatalog.find(type).map(PublishedFormRoute::entityKey);
+    }
+
+    /**
+     * Адрес, под которым меню повторно открывает сохранённый выбор. Сохранённый тип без
+     * опубликованного ключа адреса не получает: безадресный Explorer — действующая семантика,
+     * а выдуманный ключ подставил бы чужую карточку. Пустой выбор — первый вход из меню.
+     */
+    static Optional<String> explorerMenuAddress(
+            Optional<EntityExplorerView.RestoredSelection> restored,
+            Function<Class<?>, Optional<String>> keyOf) {
+        return restored.flatMap(selection -> Optional.ofNullable(
+            explorerAddressOf(keyOf.apply(selection.type()), selection.anchor())));
+    }
+
+    /**
+     * Знает ли словарь карточек это место (E3.2.1 §8.2). Грамматика адреса отвечает только за форму
+     * якоря, а «существует ли место» — вопрос словаря карточки: неизвестный якорь получает тот же
+     * отказ, что неизвестный ключ типа (ADR-0010 §10).
+     */
+    static boolean explorerAnchorKnown(String anchor) {
+        return CardAnchor.of(anchor).isPresent();
+    }
+
+    /**
+     * Пользователь выбрал место: тип или раздел в дереве либо вкладку карточки. Адрес вкладки
+     * меняет host, а не вид. У типа без опубликованного ключа адреса нет — «/» вместо выдуманной
+     * ссылки; место карточки добавляется к адресу якорем ({@code ?view=}).
+     */
+    private void explorerPlaceSelected(Class<?> type, String anchor) {
         routeUrlBridge.tabAddressChanged(EXPLORER_ENTRY_ID,
             type == null ? null
-                : explorerAddressOf(routeCatalog.find(type).map(PublishedFormRoute::entityKey)));
+                : explorerAddressOf(routeCatalog.find(type).map(PublishedFormRoute::entityKey),
+                    anchor));
     }
 
     /**
@@ -413,7 +539,49 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
      * {@code null} — «у выбора адреса нет» (owned-строка или непубликуемый тип).
      */
     static String explorerAddressOf(Optional<String> publishedKey) {
-        return publishedKey.map(EntityExplorerAddress::format).orElse(null);
+        return explorerAddressOf(publishedKey, null);
+    }
+
+    /**
+     * Тот же адрес с якорем места: якорь собирается словарём карточки ({@code CardAnchor.value()}),
+     * а форму адреса знает один {@code EntityExplorerAddress.format} — второй сборки адреса в
+     * приложении не появляется.
+     */
+    static String explorerAddressOf(Optional<String> publishedKey, String anchor) {
+        return publishedKey.map(key -> EntityExplorerAddress.format(key, anchor)).orElse(null);
+    }
+
+    /**
+     * Адрес вкладки — путь с якорем места, но без переносимого параметра входа: адресом карточки
+     * делятся, а параметром входа входят. Переносимый {@code ?continue} (см.
+     * {@link EntityExplorerAddress}) обязан перестать быть частью адреса, иначе он попадал бы в
+     * копируемую ссылку и уезжал в следующий вход, то есть адрес карточки существовал бы в двух
+     * формах. Якорь адреса, наоборот, остаётся: это часть адреса, а не след входа (E3.2.1 §8.2).
+     * Ключ при этом остаётся запрошенным: legacy-ключ сохраняется тем, по которому пришли
+     * (ADR-0010).
+     */
+    static String explorerTabAddress(String requested) {
+        if (requested == null) {
+            return null;
+        }
+        int question = requested.indexOf('?');
+        if (question < 0) {
+            return requested;
+        }
+        String path = requested.substring(0, question);
+        StringBuilder kept = new StringBuilder();
+        for (String parameter : requested.substring(question + 1).split("&", -1)) {
+            int equals = parameter.indexOf('=');
+            String name = equals < 0 ? parameter : parameter.substring(0, equals);
+            if (LOGIN_PARAMETER.equals(name)) {
+                continue;
+            }
+            if (kept.length() > 0) {
+                kept.append('&');
+            }
+            kept.append(parameter);
+        }
+        return kept.length() == 0 ? path : path + "?" + kept;
     }
 
     private void createHeader() {
@@ -469,7 +637,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
         if (explorerAccess.allows()) {
             SideNavItem explorerItem = new SideNavItem(EXPLORER_TAB_TITLE);
             explorerItem.setPrefixComponent(new Icon(VaadinIcon.SITEMAP));
-            explorerItem.getElement().addEventListener("click", e -> openExplorerTab(null));
+            explorerItem.getElement().addEventListener("click", e -> openExplorerFromMenu());
             nav.addItem(explorerItem);
         }
 

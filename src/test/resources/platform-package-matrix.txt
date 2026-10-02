@@ -88,9 +88,13 @@ org.ipro.form -> org.ipro.numbering.annotation
 # пакета `form.registry`.
 # Внимание: `-Dplatform.matrix.write=true` перезаписывает список рёбер и НЕ сохраняет эти
 # пояснения — после перезаписи их восстанавливают вручную.
+# E3.2.0 шаг 1: происхождение факта. `ActionProvenance` читает `FactOrigin` — то же
+# направление, что уже разрешено у `form.link` (там происхождение строк читается теми же
+# тремя источниками).
 org.ipro.form.action -> org.ipro.data
 org.ipro.form.action -> org.ipro.fetch.plan
 org.ipro.form.action -> org.ipro.form.coordinator
+org.ipro.form.action -> org.ipro.metadata
 org.ipro.form.action -> org.ipro.rls
 org.ipro.form.builder -> org.ipro.crud
 org.ipro.form.builder -> org.ipro.fetch.instance
@@ -289,7 +293,12 @@ org.ipro.ureport.service -> org.ipro.ureport.params
 # D3.5.5: explorer объявляет явный @AutoConfigureAfter вместо надежды на алфавитный порядок FQN.
 # Оба ребра — про порядок применения конфигураций, а не про использование типов в коде:
 # условие @ConditionalOnBean обязано оцениваться после регистрации метаданных и реестра форм.
+# E3.2.0 шаг 1: строки действий в карточке. Реестр объявлений (`form.action` — то же
+# направление, что у `builtin/config/coordinator`) и сценарий чтения (`fetch.plan` — тот же
+# вход capability, что и у `form.action`); новых входов у explorer не появилось.
 org.ipro.vaadin.explorer -> org.ipro.autoconfigure
+org.ipro.vaadin.explorer -> org.ipro.fetch.plan
+org.ipro.vaadin.explorer -> org.ipro.form.action
 org.ipro.vaadin.explorer -> org.ipro.form.builder
 org.ipro.vaadin.explorer -> org.ipro.form.config
 org.ipro.vaadin.explorer -> org.ipro.form.registry

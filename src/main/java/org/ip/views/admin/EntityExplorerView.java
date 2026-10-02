@@ -1,384 +1,778 @@
 package org.ip.views.admin;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
 import org.ipro.form.coordinator.FormNavigator;
-import org.ipro.form.link.FormRouteCatalog;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.vaadin.explorer.EntitySummary;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler;
-import org.ipro.vaadin.explorer.EntitySummaryAssembler.EntityRef;
+import org.ipro.vaadin.explorer.ExplorerSnapshot;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 /**
- * Entity Explorer — каталог сущностей (read-only «поверхность чтения»). Левая панель —
- * дерево: сущность → её табличные части (строки {@code @TableSectionMetadata}) как дети.
- * Клик по узлу открывает структуру сущности во <b>вкладке внутри этого вида</b>
- * ({@link TabSheet} справа): одна сущность — одна вкладка, повторный клик фокусирует
- * существующую, навигация из Lookup/обратных ссылок открывает новую вкладку здесь же.
- * Вкладки закрываемые — маленькая «×» справа (как вкладки приложения).
+ * Entity Explorer — каталог сущностей (read-only «поверхность чтения»). Слева дерево,
+ * построенное {@link ExplorerTreeModel} по immutable снимку {@link ExplorerSnapshot}: группы
+ * (по видам сущностей либо по подсистемам), типы, их аспекты, разделы, поля и owned-секции.
+ * Справа — <b>одна</b> карточка выбранного типа ({@link EntitySummaryPanel}): вкладки сущностей
+ * как отдельные вкладки не открываются, узел раздела фокусирует существующее место той же
+ * карточки.
  *
- * <p>Принцип: объединять поверхность чтения, а не владение фактами. Сам каталог ничего
- * не хранит и не пишет; вся сводка — {@link EntitySummaryPanel} поверх {@link EntitySummary}.</p>
+ * <p>E3.2.2 §9.2: карточка создаётся по выбору из готовой сводки снимка и кешируется на UI; у
+ * кешированной панели при подключении заново задаются актуальные {@code placeListener} и
+ * {@code structureNavigator} — старые колбэки не накапливаются. Повторный выбор активного типа
+ * сохраняет его аспект и раскрытые разделы. Прямой адрес с якорем всегда применяется к карточке
+ * и имеет приоритет над сохранённым местом.</p>
+ *
+ * <p>E3.2.2 §9.3: поиск идёт по индексу снимка ({@link ExplorerSnapshot#searchTerms()}), а не по
+ * подписи узла; фильтры (вид, подсистема, экспозиция, «только ошибки», служебные типы)
+ * комбинируются пересечением и применяются к типам/root'ам до группировки; счётчики
+ * ERROR/WARNING агрегируются снизу вверх. Раскрытия и выбор сохраняются по стабильным id узлов —
+ * объекты-копии отфильтрованного дерева идентичностью не являются.</p>
+ *
+ * <p>E3.2.2 §4.4: {@link #applyMenuEntry()} — вход из меню. Вид хранит последний выбор текущего
+ * UI ({@link ExplorerUiState}) и восстанавливает его тип, место, поиск, фильтры и раскрытия;
+ * первый вход показывает пустую карточку. Прямой адрес и программный вход ({@link #init(Class,
+ * String)}) сбрасывают мешающие фильтры и раскрывают путь к названному типу. Причина входа
+ * различается host'ом явно: {@code type == null} больше не означает одновременно «меню» и
+ * «сбросить карточку».</p>
  *
  * <p>E3.0: доступ спрашивается у {@link EntityExplorerAccess} — того же правила, что у route
- * и пункта меню: копия проверки в этом классе расходилась бы с ними молча.</p>
+ * и пункта меню; владелец вида — host: вкладка открывается {@code openComponent}, а не
+ * создаётся заново на каждый вход. Скоуп — {@code @UIScope}: один вид на UI, иначе адрес менял
+ * бы одну вкладку, а показывалась бы другая.</p>
  *
- * <p>E3.0: владелец вида — host: вкладка открывается {@code openComponent}, а не создаётся
- * заново на каждый вход, поэтому повторный вход по адресу применяет ключ к уже открытой вкладке.
- * Скоуп — {@code @UIScope}: один вид на UI, иначе адрес менял бы одну вкладку, а показывалась бы
- * другая.</p>
+ * <p>Принцип: объединять поверхность чтения, а не владение фактами. Снимок каталога строится
+ * один раз на контекст UI после проверки ADMIN. При входе проверяются пользователь, роли и
+ * локаль: их смена очищает снимок, кеш панелей и состояние того же вида. Новый UI начинает
+ * с пустым состоянием; изменённый инвентарь применяется после перезапуска приложения/нового UI.
+ * Поиск, фильтры и повторный вход из меню
+ * новых попыток {@code summarize()} не делают: они читают тот же снимок.</p>
  */
 @SpringComponent
 @UIScope
 public class EntityExplorerView extends VerticalLayout {
 
-    /** Узел дерева: сущность (с детьми-табчастями) либо строка табличной части. */
-    private static final class Item {
-        private final EntityRef ref;
-        private final boolean section;
-        private final String label;
-        private final List<Item> children = new ArrayList<>();
-
-        Item(EntityRef ref, boolean section, String label) {
-            this.ref = ref;
-            this.section = section;
-            this.label = label;
-        }
-
-        String label() {
-            return label;
-        }
-
-        EntityRef entity() {
-            return ref;
-        }
+    /** Каталог, собранный для этого UI: проекция дерева и общие диагностики без карточки. */
+    private record Catalog(ExplorerTreeModel.CatalogView view,
+                           List<EntitySummary.DiagnosticRow> diagnostics) {
     }
 
-    private final EntitySummaryAssembler assembler;
+    private record CatalogContext(String principal, List<String> authorities, Locale locale) {
+    }
+
+    /** Восстановленный входом из меню выбор: тип и место карточки; адрес собирает host. */
+    public record RestoredSelection(Class<?> type, String anchor) {
+    }
+
+    private final Supplier<Catalog> catalogSource;
     private final FormNavigator navigator;
     private final EntityExplorerAccess access;
-    private final FormRouteCatalog catalog;
 
     private final TextField searchField = new TextField();
-    private final TreeGrid<Item> tree = new TreeGrid<>(Item.class);
-    private final TabSheet tabSheet = new TabSheet();
-    private final Map<Class<?>, Tab> openTabs = new LinkedHashMap<>();
+    private final Select<ExplorerTreeModel.GroupMode> groupMode = new Select<>();
+    private final Select<EntityKind> kindFilter = new Select<>();
+    private final Select<ExplorerSnapshot.SubsystemRef> subsystemFilter = new Select<>();
+    private final Select<String> exposureFilter = new Select<>();
+    private final Checkbox onlyErrorsFilter = new Checkbox("Только ошибки");
+    private final Checkbox serviceTypesFilter = new Checkbox("Служебные типы");
+    private final Span emptyResult = new Span("Ничего не найдено");
+    private final TreeGrid<ExplorerTreeModel.Node> tree =
+        new TreeGrid<>(ExplorerTreeModel.Node.class);
+    private final VerticalLayout cardHost = new VerticalLayout();
+    private final Map<Class<?>, EntitySummaryPanel> panels = new LinkedHashMap<>();
 
-    private List<Item> allRoots = List.of();
+    /** Последний выбор текущего UI — единственный владелец сохранённого типа и места. */
+    private final ExplorerUiState state = new ExplorerUiState();
 
-    /** Видимое дерево после фильтра: в данных провайдера лежат копии, а не {@link #allRoots}. */
-    private List<Item> visibleRoots = List.of();
+    private Catalog catalog;
+    private CatalogContext catalogContext;
+    private List<ExplorerTreeModel.Node> allRoots = List.of();
+    private List<ExplorerTreeModel.Node> visibleRoots = List.of();
 
-    /** Кто отвечает за адрес вкладки при выборе типа: host, а не вид (E3.0). */
-    private Consumer<Class<?>> typeSelectionListener = type -> {
+    /** Тип карточки, показанной сейчас; {@code null} — карточки нет. */
+    private Class<?> selectedType;
+
+    /**
+     * Кто отвечает за адрес при выборе пользователя: host, а не вид (E3.0). Выбор несёт тип
+     * и место карточки — якорь выбранного аспекта/раздела либо {@code null} — «место не названо».
+     */
+    private BiConsumer<Class<?>, String> selectionListener = (type, anchor) -> {
     };
 
-    /** Идёт программный выбор узла при входе по адресу: это не выбор пользователя. */
+    /** Идёт программное применение входа: это не выбор пользователя. */
     private boolean applyingEntry;
+
+    /** Следующее построение дерева раскрывает всё заново: так прямой вход раскрывает путь к типу. */
+    private boolean resetExpansions;
+    private boolean filterOptionsInitialized;
+    private String displayedQuery = "";
 
     public EntityExplorerView(@Autowired EntitySummaryAssembler assembler,
                               @Autowired FormNavigator navigator,
-                              @Autowired EntityExplorerAccess access,
-                              @Autowired FormRouteCatalog catalog) {
-        this.assembler = assembler;
+                              @Autowired EntityExplorerAccess access) {
+        this(() -> {
+            ExplorerSnapshot snapshot = assembler.explorerSnapshot();
+            return new Catalog(ExplorerTreeModel.CatalogView.of(snapshot),
+                snapshot.unassignedDiagnostics());
+        }, navigator, access);
+    }
+
+    /** Пакетный шов для тестов: тот же вид поверх уже собранного каталога, без сборщика. */
+    EntityExplorerView(ExplorerTreeModel.CatalogView view,
+                       List<EntitySummary.DiagnosticRow> diagnostics,
+                       FormNavigator navigator, EntityExplorerAccess access) {
+        this(() -> new Catalog(view, diagnostics), navigator, access);
+    }
+
+    private EntityExplorerView(Supplier<Catalog> catalogSource, FormNavigator navigator,
+                               EntityExplorerAccess access) {
+        this.catalogSource = catalogSource;
         this.navigator = navigator;
         this.access = access;
-        this.catalog = catalog;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        configureOnce();
         searchField.addValueChangeListener(e -> {
             if (!applyingEntry) {
                 applyFilter();
             }
         });
-        tree.addSelectionListener(e -> e.getFirstSelectedItem().ifPresent(this::openStructure));
-        tabSheet.addSelectedChangeListener(e -> {
+        groupMode.addValueChangeListener(e -> {
             if (!applyingEntry) {
-                typeSelectionListener.accept(typeOfTab(e.getSelectedTab()));
+                rebuildTree();
             }
+        });
+        kindFilter.addValueChangeListener(e -> {
+            if (!applyingEntry) {
+                rebuildTree();
+            }
+        });
+        subsystemFilter.addValueChangeListener(e -> {
+            if (!applyingEntry) {
+                rebuildTree();
+            }
+        });
+        exposureFilter.addValueChangeListener(e -> {
+            if (!applyingEntry) {
+                rebuildTree();
+            }
+        });
+        onlyErrorsFilter.addValueChangeListener(e -> {
+            if (!applyingEntry) {
+                rebuildTree();
+            }
+        });
+        serviceTypesFilter.addValueChangeListener(e -> {
+            if (!applyingEntry) {
+                rebuildTree();
+            }
+        });
+        tree.addSelectionListener(e -> {
+            if (applyingEntry) {
+                return;
+            }
+            e.getFirstSelectedItem().ifPresent(this::onTreeSelection);
         });
     }
 
-    /** Вход из меню: выбор сбрасывается, адрес вкладки до первого выбора остаётся безадресным. */
-    public void init() {
-        init(null);
+    /**
+     * Настройка, принадлежащая виду, а не входу: колонка дерева, поиск, фильтры и режим выбора
+     * создаются один раз на UI-скоуп, а входы только применяют состояние. Иначе повторный вход
+     * добавлял бы к тому же дереву вторую колонку и вторую копию настройки (E3.2.2 §9.0).
+     */
+    private void configureOnce() {
+        searchField.setLabel("Сущности");
+        searchField.setPlaceholder("Поиск по подписи, ключу, полю…");
+        searchField.setClearButtonVisible(true);
+        searchField.setWidthFull();
+
+        groupMode.setLabel("Группировка");
+        groupMode.setItems(ExplorerTreeModel.GroupMode.values());
+        groupMode.setItemLabelGenerator(mode -> mode == ExplorerTreeModel.GroupMode.KIND
+            ? "По видам сущностей" : "По подсистемам");
+        groupMode.setValue(ExplorerTreeModel.GroupMode.KIND);
+        groupMode.setWidthFull();
+
+        kindFilter.setLabel("Вид");
+        kindFilter.setPlaceholder("Все виды");
+        kindFilter.setEmptySelectionAllowed(true);
+        kindFilter.setEmptySelectionCaption("Все виды");
+        kindFilter.setItemLabelGenerator(kind -> kind == null ? "Все виды" : ExplorerTreeModel.kindFilterTitle(kind));
+        kindFilter.setWidthFull();
+
+        subsystemFilter.setLabel("Подсистема");
+        subsystemFilter.setPlaceholder("Все подсистемы");
+        subsystemFilter.setEmptySelectionAllowed(true);
+        subsystemFilter.setEmptySelectionCaption("Все подсистемы");
+        subsystemFilter.setItemLabelGenerator(ref -> ref == null ? "Все подсистемы" : ref.label().value());
+        subsystemFilter.setWidthFull();
+
+        exposureFilter.setLabel("Экспозиция");
+        exposureFilter.setPlaceholder("Любая экспозиция");
+        exposureFilter.setEmptySelectionAllowed(true);
+        exposureFilter.setEmptySelectionCaption("Любая экспозиция");
+        exposureFilter.setItemLabelGenerator(value -> value == null ? "Любая экспозиция"
+            : ExplorerTreeModel.exposureLabel(value));
+        exposureFilter.setWidthFull();
+
+        onlyErrorsFilter.getStyle().set("margin-top", "0");
+        serviceTypesFilter.getStyle().set("margin-top", "0");
+
+        emptyResult.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        emptyResult.setVisible(false);
+
+        tree.setWidthFull();
+        tree.setHeightFull();
+        // Узел — record: конструктор TreeGrid(Class) автогенерирует колонки по компонентам.
+        // Дереву нужна одна колонка подписи, второй набор колонок не заводится.
+        tree.removeAllColumns();
+        tree.addHierarchyColumn(ExplorerTreeModel.Node::label)
+            .setHeader("Сущности").setResizable(true).setFlexGrow(1);
+        tree.setSelectionMode(Grid.SelectionMode.SINGLE);
     }
 
     /**
-     * Вход по адресу Explorer (E3.0): тот же вид получает новый ключ, второй вид не открывается.
-     *
-     * <p>Программный выбор узла адрес не пишет: адрес уже стоит в окне (ADR-0010), и повторная
-     * запись добавила бы шаг истории на вход по ссылке. За адрес при выборе пользователя отвечает
-     * host — {@link #setTypeSelectionListener(Consumer)}.</p>
+     * Вход из меню (E3.2.2 §4.4): восстановить последний выбор текущего UI либо показать
+     * пустую карточку. Место, поиск, фильтры и раскрытия не сбрасываются — их выбирал
+     * пользователь; адрес вкладки host регистрирует по возвращённому выбору до активации.
      */
-    public void init(Class<?> type) {
+    public Optional<RestoredSelection> applyMenuEntry() {
         applyingEntry = true;
         try {
             removeAll();
-            searchField.clear();
-            tree.deselectAll();
-            boolean allowed = access.allows();
-            if (type == null || !allowed) {
-                clearEntityTabs();
-            }
-            if (!allowed) {
+            if (!access.allows()) {
+                clearCard();
                 add(new H3("Доступно только администратору"));
-                return;
+                return Optional.empty();
             }
+            ensureCatalogContext();
+            Optional<ExplorerUiState.Selection> restored = state.restore(this::selectableType);
             buildUi();
-            if (type != null) {
-                selectType(type);
+            if (restored.isEmpty()) {
+                clearCard();
+                if (state.lastRestoreFailed()) {
+                    showRestoreFailure();
+                }
+                return Optional.empty();
             }
+            ExplorerUiState.Selection selection = restored.orElseThrow();
+            selectType(selection.type(), selection.anchor());
+            return Optional.of(new RestoredSelection(selection.type(), selection.anchor()));
         } finally {
             applyingEntry = false;
         }
     }
 
-    /** Кто отвечает за адрес вкладки при выборе типа: host, а не вид (E3.0). */
-    public void setTypeSelectionListener(Consumer<Class<?>> listener) {
-        this.typeSelectionListener = listener == null ? type -> {
+    /** Прежний вход из меню: тот же путь, что {@link #applyMenuEntry()}, результат не нужен. */
+    public void init() {
+        applyMenuEntry();
+    }
+
+    /** Вход по адресу Explorer без якоря: тот же вид получает новый ключ. */
+    public void init(Class<?> type) {
+        init(type, null);
+    }
+
+    /**
+     * Прямой вход — по адресу Explorer (E3.0) с якорем места (E3.2.1 §8.2) либо программный
+     * запрос из формы/подсистемы (E3.2.2 §4.4): тот же вид получает названный тип, второй вид не
+     * открывается, а мешающие фильтры снимаются — прямой вход всегда раскрывает путь к типу.
+     * Программный выбор узла адрес не пишет: адрес уже стоит в окне (ADR-0010), за адрес при
+     * выборе пользователя отвечает host — {@link #setSelectionListener(BiConsumer)}.
+     */
+    public void init(Class<?> type, String anchor) {
+        if (type == null) {
+            // «Меню» и «сбросить карточку» — разные вещи: без типа вход идёт путём меню.
+            applyMenuEntry();
+            return;
+        }
+        applyingEntry = true;
+        try {
+            removeAll();
+            if (!access.allows()) {
+                clearCard();
+                add(new H3("Доступно только администратору"));
+                return;
+            }
+            ensureCatalogContext();
+            resetFilters();
+            clearCard();
+            state.remember(type, anchor);
+            if (ExplorerTreeModel.isServiceType(catalog().view, type)) {
+                // Служебный тип — названный, а не «случайно показанный»: путь к нему обязан быть.
+                serviceTypesFilter.setValue(true);
+            }
+            buildUi();
+            selectType(type, anchor);
+        } finally {
+            applyingEntry = false;
+        }
+    }
+
+    /**
+     * Кто отвечает за адрес при выборе пользователя: host, а не вид (E3.0). Выбор несёт тип и
+     * место карточки: якорь выбранного аспекта/раздела либо {@code null} — «место не названо».
+     */
+    public void setSelectionListener(BiConsumer<Class<?>, String> listener) {
+        this.selectionListener = listener == null ? (type, anchor) -> {
         } : listener;
     }
 
     private void buildUi() {
         add(new H3("Entity Explorer — структура сущностей"));
 
-        Span hint = new Span("Read-only каталог: выберите сущность — вкладка справа покажет её " +
-                "метаданные (поля, колонки, формы, фильтры, обратные ссылки, нумерация). " +
-                "Одна сущность — одна вкладка, вкладки закрываются «×». Ничего не сохраняется " +
-                "и не переопределяется. Табличные части показаны детьми главной сущности.");
+        Span hint = new Span("Read-only каталог: слева дерево — группы, типы и их разделы; справа "
+            + "одна карточка выбранного типа с вкладками аспектов. Клик по разделу дерева "
+            + "открывает то же место карточки, второй карточки не появляется. Ничего не "
+            + "сохраняется и не переопределяется.");
         hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
         add(hint);
+        addUnassignedDiagnostics(catalog().diagnostics());
 
-        HorizontalLayout split = new HorizontalLayout(buildTreePanel(), tabSheet);
+        cardHost.setSizeFull();
+        cardHost.setPadding(false);
+        cardHost.setSpacing(false);
+        HorizontalLayout split = new HorizontalLayout(buildTreePanel(), cardHost);
         split.setSizeFull();
         split.setPadding(false);
         split.setSpacing(true);
         split.setFlexGrow(0, split.getComponentAt(0));
-        split.setFlexGrow(1, tabSheet);
+        split.setFlexGrow(1, cardHost);
         add(split);
         setFlexGrow(1, split);
     }
 
+    /** Панель дерева: собранные один раз компоненты плюс данные, построенные для этого входа. */
     private VerticalLayout buildTreePanel() {
-        searchField.setLabel("Сущности");
-        searchField.setPlaceholder("Поиск по имени…");
-        searchField.setClearButtonVisible(true);
-        searchField.setWidthFull();
-
-        tree.setWidthFull();
-        tree.setHeightFull();
-        tree.addHierarchyColumn(Item::label).setHeader("Сущности").setResizable(true).setFlexGrow(1);
-        tree.setSelectionMode(com.vaadin.flow.component.grid.Grid.SelectionMode.SINGLE);
-
-        VerticalLayout panel = new VerticalLayout(searchField, tree);
+        VerticalLayout panel = new VerticalLayout(searchField, groupMode, kindFilter,
+            subsystemFilter, exposureFilter, onlyErrorsFilter, serviceTypesFilter, tree, emptyResult);
         panel.setSizeFull();
         panel.setPadding(false);
         panel.setSpacing(true);
         panel.setFlexGrow(1, tree);
         panel.setWidth("360px");
 
-        allRoots = buildItems();
+        refreshFilterOptions();
+        allRoots = ExplorerTreeModel.roots(catalog().view, groupMode.getValue(), currentFilter());
         applyFilter();
         return panel;
     }
 
-    private List<Item> buildItems() {
-        List<Item> roots = new ArrayList<>();
-        for (EntityRef ref : assembler.entities()) {
-            String entityLabel = ref.displayName().value() + "  (" + ref.simpleName() + ")";
-            Item entity = new Item(ref, false, entityLabel);
-            for (String section : assembler.tableSectionRowNames(ref.entityClass())) {
-                entity.children.add(new Item(ref, true, "  ⤷ " + section));
-            }
-            roots.add(entity);
-        }
-        return roots;
-    }
-
-    private void applyFilter() {
-        String query = searchField.getValue() == null ? "" : searchField.getValue().trim().toLowerCase(Locale.ROOT);
-        List<Item> visibleRoots = new ArrayList<>();
-        for (Item root : allRoots) {
-            collectMatching(root, query, visibleRoots);
-        }
-        this.visibleRoots = visibleRoots;
-        TreeData<Item> data = new TreeData<>();
-        data.addItems(visibleRoots, item -> item.children);
-        tree.setDataProvider(new TreeDataProvider<>(data));
-        tree.expand(visibleRoots);
-    }
-
-    /** Оставляет совпавшие узлы и их предков (копии с отфильтрованными детьми). */
-    private boolean collectMatching(Item item, String query, List<Item> out) {
-        boolean self = query.isEmpty() || item.label().toLowerCase(Locale.ROOT).contains(query);
-        List<Item> keptChildren = new ArrayList<>();
-        boolean anyChild = false;
-        for (Item child : item.children) {
-            if (collectMatching(child, query, keptChildren)) {
-                anyChild = true;
-            }
-        }
-        if (self || anyChild) {
-            Item copy = new Item(item.entity(), item.section, item.label());
-            copy.children.addAll(keptChildren);
-            out.add(copy);
-            return true;
-        }
-        return false;
-    }
-
-    private void openStructure(Item item) {
-        openEntityTab(item.entity().entityClass());
-    }
-
     /**
-     * Выбрать узел типа при входе по адресу. Ищем по <b>видимому</b> дереву, а не по исходному
-     * списку: после фильтра в данных лежат копии, и выделение оригинала не нашло бы строку.
-     * Тип вне дерева — не ошибка адреса: карточку откроет выбор пользователя.
+     * Снимок строится лениво после проверки ADMIN, один раз на контекст пользователя/ролей/локали.
+     * Повторное открытие Workspace-вкладки в том же контексте использует готовый снимок.
      */
-    private void selectType(Class<?> type) {
-        Item match = findRoot(visibleRoots, type);
-        if (match != null) {
-            tree.select(match);
+    private Catalog catalog() {
+        if (catalog == null) {
+            catalog = catalogSource.get();
         }
-        // Адрес уже разрешён каталогом. Карточка должна открыться и при отсутствии узла в
-        // текущем дереве, иначе URL укажет на новый тип, а справа останется прежний.
-        openEntityTab(type);
+        return catalog;
     }
 
-    private Class<?> typeOfTab(Tab tab) {
-        if (tab == null) {
-            return null;
-        }
-        for (Map.Entry<Class<?>, Tab> entry : openTabs.entrySet()) {
-            if (entry.getValue() == tab) {
-                return entry.getKey();
-            }
-        }
-        return null;
+    /** Общая нормализация формы/подсистемы читает тот же UI snapshot; второй сборки фактов нет. */
+    ExplorerTreeModel.CatalogView structureCatalog() {
+        ensureCatalogContext();
+        return catalog().view;
     }
 
-    private void clearEntityTabs() {
-        for (Tab tab : List.copyOf(openTabs.values())) {
-            tabSheet.remove(tab);
+    void showStructureDetail(String detail) {
+        EntitySummaryPanel panel = panels.get(selectedType);
+        if (panel != null) {
+            panel.showStructureDetail(detail);
         }
-        openTabs.clear();
     }
 
-    private static Item findRoot(List<Item> roots, Class<?> type) {
-        for (Item root : roots) {
-            if (type.equals(root.entity().entityClass())) {
-                return root;
-            }
+    private void ensureCatalogContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CatalogContext current = new CatalogContext(authentication == null ? "" : authentication.getName(),
+            authentication == null ? List.of() : authentication.getAuthorities().stream()
+                .map(authority -> authority.getAuthority()).sorted().toList(), getLocale());
+        if (catalogContext != null && !catalogContext.equals(current)) {
+            catalog = null;
+            panels.clear();
+            state.clear();
+            clearCard();
+            resetFilters();
+            groupMode.setValue(ExplorerTreeModel.GroupMode.KIND);
+            filterOptionsInitialized = false;
         }
-        return null;
+        catalogContext = current;
     }
 
-    /** Открыть (или сфокусировать) вкладку сущности внутри этого вида. */
-    private void openEntityTab(Class<?> entityClass) {
-        Tab existing = openTabs.get(entityClass);
-        if (existing != null) {
-            tabSheet.setSelectedTab(existing);
+    // ------------------------------------------------------------------ фильтры и поиск
+
+    /** Выбранный фильтр: {@code null} в поле — «не выбрано»; условия комбинируются пересечением. */
+    private ExplorerTreeModel.Filter currentFilter() {
+        ExplorerSnapshot.SubsystemRef subsystem = subsystemFilter.getValue();
+        return new ExplorerTreeModel.Filter(kindFilter.getValue(),
+            subsystem == null ? null : subsystem.id(), exposureFilter.getValue(),
+            Boolean.TRUE.equals(onlyErrorsFilter.getValue()),
+            Boolean.TRUE.equals(serviceTypesFilter.getValue()));
+    }
+
+    /** Варианты фильтров — из текущего снимка; переключатель служебных типов — по инвентарю. */
+    private void refreshFilterOptions() {
+        if (filterOptionsInitialized) {
             return;
         }
-
-        EntitySummary summary = assembler.summarize(entityClass);
-        String tabTitle = summary.displayName().value() + "  (" + summary.simpleName() + ")";
-        EntitySummaryPanel panel = new EntitySummaryPanel(navigator);
-        panel.setStructureNavigator(this::openEntityTab);
-        panel.show(summary);
-
-        Tab tab = createClosableTab(tabTitle, entityClass);
-        openTabs.put(entityClass, tab);
-        tabSheet.add(tab, addressedContent(panel, entityClass));
-        tabSheet.setSelectedTab(tab);
-    }
-
-    /**
-     * Содержимое вкладки: карточка плюс, при отсутствии опубликованного ключа, строка о причине
-     * (E3.0). Без неё вкладка выглядела бы безадресной без объяснения, а на вопрос «почему у типа
-     * нет ссылки» отвечает каталог, а не карточка: перестраивать её здесь незачем — это E3.2.
-     */
-    private Component addressedContent(EntitySummaryPanel panel, Class<?> entityClass) {
-        if (catalog.find(entityClass).isPresent()) {
-            return panel;
+        ExplorerTreeModel.CatalogView view = catalog().view;
+        kindFilter.setItems(ExplorerTreeModel.presentKinds(view));
+        subsystemFilter.setItems(ExplorerTreeModel.presentSubsystems(view));
+        exposureFilter.setItems(ExplorerTreeModel.presentExposures(view));
+        boolean hasServiceTypes = ExplorerTreeModel.hasServiceTypes(view);
+        serviceTypesFilter.setVisible(hasServiceTypes);
+        if (!hasServiceTypes) {
+            serviceTypesFilter.setValue(false);
         }
-        Span hint = new Span("У этого типа нет публичного адреса: ключ не опубликован каталогом "
-            + "маршрутов, поэтому ссылка на него не выдаётся.");
-        hint.getStyle().set("color", "var(--lumo-secondary-text-color)")
-            .set("padding", "var(--lumo-space-s) var(--lumo-space-m)");
-        VerticalLayout content = new VerticalLayout(hint, panel);
-        content.setPadding(false);
-        content.setSpacing(false);
-        content.setSizeFull();
-        return content;
+        filterOptionsInitialized = true;
     }
 
-    /** Вкладка «как в приложении»: заголовок + маленькая «×» для закрытия. */
-    private Tab createClosableTab(String title, Class<?> entityClass) {
-        Span label = new Span(title);
-        label.getStyle().set("white-space", "nowrap");
-
-        Button close = new Button(new Icon(VaadinIcon.CLOSE_SMALL));
-        close.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
-        close.getStyle().set("margin", "0").set("padding", "0");
-        close.setWidth("16px");
-        close.setHeight("16px");
-        close.getElement().setAttribute("aria-label", "Закрыть вкладку: " + title);
-        close.addClickListener(e -> closeTab(entityClass));
-
-        HorizontalLayout layout = new HorizontalLayout(label, close);
-        layout.setSpacing(false);
-        layout.setPadding(false);
-        layout.setAlignItems(FlexComponent.Alignment.CENTER);
-        return new Tab(layout);
+    /** Прямой вход снимает мешающие фильтры и возвращает раскрытия к состоянию по умолчанию. */
+    private void resetFilters() {
+        searchField.clear();
+        kindFilter.clear();
+        subsystemFilter.clear();
+        exposureFilter.clear();
+        onlyErrorsFilter.setValue(false);
+        serviceTypesFilter.setValue(false);
+        resetExpansions = true;
     }
 
-    /** Закрыть вкладку сущности; при закрытии активной — активируется соседняя. */
-    private void closeTab(Class<?> entityClass) {
-        Tab tab = openTabs.remove(entityClass);
-        if (tab == null) {
-            return;
-        }
-        boolean wasSelected = tab == tabSheet.getSelectedTab();
-        boolean previousApplyingEntry = applyingEntry;
+    /** Смена фильтра — другое дерево того же снимка; выбранный тип сохраняется по stable id. */
+    private void rebuildTree() {
+        boolean previous = applyingEntry;
         applyingEntry = true;
         try {
-            tabSheet.remove(tab);
-            if (wasSelected && !openTabs.isEmpty()) {
-                tabSheet.setSelectedTab(openTabs.values().iterator().next());
-            }
+            allRoots = ExplorerTreeModel.roots(catalog().view, groupMode.getValue(), currentFilter());
+            applyFilter();
         } finally {
-            applyingEntry = previousApplyingEntry;
-        }
-        if (wasSelected && !applyingEntry) {
-            typeSelectionListener.accept(typeOfTab(tabSheet.getSelectedTab()));
+            applyingEntry = previous;
         }
     }
 
+    /**
+     * Применить поиск к текущему дереву: совпадения ищутся по индексу снимка, выбор
+     * восстанавливается по stable id, раскрытия — по id, а не по объектам-копиям.
+     */
+    private void applyFilter() {
+        if (resetExpansions) {
+            state.clearExpansions();
+        } else if (displayedQuery.isEmpty()) {
+            // Автоматическое раскрытие выдачи поиска не заменяет выбор пользователя.
+            // Скрытые фильтром узлы сохраняются в памяти до возвращения в дерево.
+            state.rememberExpansions(snapshotExpansions());
+        }
+        Map<String, Boolean> saved = state.expansions();
+        resetExpansions = false;
+        String query = searchField.getValue() == null
+            ? "" : searchField.getValue().trim();
+        List<ExplorerTreeModel.Node> visible = ExplorerTreeModel.withQuery(allRoots, catalog().view, query);
+        this.visibleRoots = visible;
+        TreeData<ExplorerTreeModel.Node> data = new TreeData<>();
+        data.addItems(visible, ExplorerTreeModel.Node::children);
+        tree.setDataProvider(new TreeDataProvider<>(data));
+        restoreExpansions(saved, query);
+        displayedQuery = query;
+        emptyResult.setVisible(visible.isEmpty());
+        if (selectedType != null) {
+            syncTreeSelection(selectedType);
+        }
+    }
+
+    /** Раскрытия текущего дерева по id: снимок берётся до смены данных, а не после. */
+    private Map<String, Boolean> snapshotExpansions() {
+        TreeData<ExplorerTreeModel.Node> data = dataOf(tree);
+        if (data == null) {
+            return Map.of();
+        }
+        Map<String, Boolean> expanded = new LinkedHashMap<>();
+        collectExpanded(data.getRootItems(), expanded);
+        return expanded;
+    }
+
+    private void collectExpanded(List<ExplorerTreeModel.Node> nodes, Map<String, Boolean> out) {
+        for (ExplorerTreeModel.Node node : nodes) {
+            if (!node.children().isEmpty()) {
+                out.put(node.id(), tree.isExpanded(node));
+                collectExpanded(node.children(), out);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static TreeData<ExplorerTreeModel.Node> dataOf(
+            TreeGrid<ExplorerTreeModel.Node> tree) {
+        DataProvider<ExplorerTreeModel.Node, ?> provider = tree.getDataProvider();
+        if (!(provider instanceof TreeDataProvider<?>)) {
+            return null;
+        }
+        return ((TreeDataProvider<ExplorerTreeModel.Node>) provider).getTreeData();
+    }
+
+    /**
+     * Раскрытия после смены данных. При поиске раскрываются предки найденного — иначе результат
+     * был бы скрыт; без поиска восстанавливается выбор пользователя, а новые узлы по умолчанию
+     * раскрыты (так же выглядит дерево при первом входе).
+     */
+    private void restoreExpansions(Map<String, Boolean> saved, String query) {
+        List<ExplorerTreeModel.Node> parents = new ArrayList<>();
+        collectParents(visibleRoots, parents);
+        if (parents.isEmpty()) {
+            return;
+        }
+        if (!query.isEmpty()) {
+            tree.expand(parents);
+            return;
+        }
+        tree.collapse(parents);
+        List<ExplorerTreeModel.Node> expand = new ArrayList<>();
+        for (ExplorerTreeModel.Node parent : parents) {
+            if (saved.getOrDefault(parent.id(), true)) {
+                expand.add(parent);
+            }
+        }
+        if (!expand.isEmpty()) {
+            tree.expand(expand);
+        }
+    }
+
+    private static void collectParents(List<ExplorerTreeModel.Node> nodes,
+                                       List<ExplorerTreeModel.Node> out) {
+        for (ExplorerTreeModel.Node node : nodes) {
+            if (!node.children().isEmpty()) {
+                out.add(node);
+                collectParents(node.children(), out);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ выбор и места
+
+    /**
+     * Выбор узла дерева. Группа карточку не открывает и адрес не меняет. Узел типа открывает
+     * карточку типа; при смене типа host получает сохранённое место этой карточки.
+     * Узел аспекта/раздела/поля фокусирует место карточки: панель сообщает host'у
+     * место целиком одним сообщением — {@code <вкладка>} или {@code <вкладка>/<раздел>}.
+     */
+    private void onTreeSelection(ExplorerTreeModel.Node node) {
+        if (node.kind() == ExplorerTreeModel.NodeKind.GROUP || node.type() == null) {
+            return;
+        }
+        Class<?> type = node.type();
+        boolean switched = !type.equals(selectedType);
+        EntitySummaryPanel panel = cardFor(type);
+        if (switched) {
+            cardHost.removeAll();
+            cardHost.add(panel);
+            selectedType = type;
+            state.remember(type, state.placeOf(type));
+        }
+        if (node.kind() == ExplorerTreeModel.NodeKind.TYPE) {
+            if (switched) {
+                selectionListener.accept(type, state.placeOf(type));
+            }
+            return;
+        }
+        if (node.kind() == ExplorerTreeModel.NodeKind.DIAGNOSTIC) {
+            if (switched) {
+                selectionListener.accept(type, state.placeOf(type));
+            }
+            return;
+        }
+        focusNodePlace(panel, node);
+    }
+
+    /** Место узла дерева у словаря карточки: вкладка либо вкладка с разделом. */
+    private static void focusNodePlace(EntitySummaryPanel panel, ExplorerTreeModel.Node node) {
+        if (node.kind() == ExplorerTreeModel.NodeKind.OWNED_SECTION) {
+            panel.focus(new CardSection.Location(CardTab.FIELDS,
+                CardSection.section("table-sections"), true, node.label()));
+            return;
+        }
+        if (node.tabId() == null) {
+            return;
+        }
+        String anchor = node.sectionId() == null
+            ? node.tabId() : node.tabId() + "/" + node.sectionId();
+        CardAnchor.of(anchor).ifPresent(place -> panel.focus(place.location()));
+    }
+
+    /**
+     * Выбрать узел типа при входе по адресу: ищем по <b>видимому</b> дереву, а не по исходному
+     * списку — после фильтра в данных лежат копии. Тип вне дерева — не ошибка адреса: карточку
+     * открывает выбор пользователя.
+     */
+    private void selectType(Class<?> type, String anchor) {
+        EntitySummaryPanel panel = cardFor(type);
+        if (!type.equals(selectedType)) {
+            cardHost.removeAll();
+            cardHost.add(panel);
+            selectedType = type;
+        }
+        state.remember(type, anchor);
+        panel.focusAnchor(anchor);
+        syncTreeSelection(type);
+    }
+
+    /** Переход по ссылке из карточки: та же карточка Explorer, без цепочки новых диалогов. */
+    private void openFromCard(Class<?> type) {
+        boolean switched = !type.equals(selectedType);
+        EntitySummaryPanel panel = cardFor(type);
+        if (switched) {
+            cardHost.removeAll();
+            cardHost.add(panel);
+            selectedType = type;
+            state.remember(type, state.placeOf(type));
+        }
+        syncTreeSelection(type);
+        if (switched) {
+            selectionListener.accept(type, state.placeOf(type));
+        }
+    }
+
+    /**
+     * Карточка типа: панель создаётся один раз из готовой сводки снимка и кешируется на UI.
+     * При каждом подключении панель получает актуальные колбэки — замена полей, а не
+     * добавление слушателей: у кешированной панели слушателей не прибывает.
+     */
+    private EntitySummaryPanel cardFor(Class<?> type) {
+        EntitySummaryPanel panel = panels.get(type);
+        if (panel == null) {
+            panel = new EntitySummaryPanel(navigator);
+            Optional<EntitySummary> summary = catalog().view.summaryOf(type);
+            if (summary.isPresent()) {
+                panel.show(summary.orElseThrow());
+            } else {
+                String reason = catalog().view.roots().stream()
+                    .filter(entry -> entry.type().equals(type))
+                    .map(ExplorerSnapshot.Entry::failureReason).findFirst()
+                    .filter(value -> !value.isBlank()).orElse("Тип отсутствует в каталоге");
+                panel.showUnavailable(reason);
+            }
+            panels.put(type, panel);
+        }
+        panel.setStructureNavigator(this::openFromCard);
+        panel.setPlaceListener(place -> {
+            if (type.equals(selectedType) && !applyingEntry) {
+                state.remember(type, place);
+                selectionListener.accept(type, place);
+            }
+        });
+        return panel;
+    }
+
+    /** Убрать видимую карточку; кеш панелей сохраняет их состояние для повторного выбора типа. */
+    private void clearCard() {
+        cardHost.removeAll();
+        selectedType = null;
+    }
+
+    /** Тип есть в текущем снимке: сохранённый выбор восстанавливается только тогда. */
+    private boolean selectableType(Class<?> type) {
+        return catalog().view.roots().stream().anyMatch(entry -> entry.type().equals(type));
+    }
+
+    /** Сохранённый тип исчез из снимка: причина называется, дерево остаётся доступным. */
+    private void showRestoreFailure() {
+        Span message = new Span(
+            "Сохранённый выбор недоступен: тип отсутствует в текущем каталоге.");
+        message.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        cardHost.add(message);
+    }
+
+    /** Синхронизация выбора дерева с карточкой по стабильному id: выбираем узел типа. */
+    private void syncTreeSelection(Class<?> type) {
+        ExplorerTreeModel.Node match = findTypeNode(visibleRoots, type);
+        boolean previous = applyingEntry;
+        applyingEntry = true;
+        try {
+            if (match != null) {
+                tree.select(match);
+            } else {
+                tree.deselectAll();
+            }
+        } finally {
+            applyingEntry = previous;
+        }
+    }
+
+    private static ExplorerTreeModel.Node findTypeNode(List<ExplorerTreeModel.Node> nodes,
+                                                       Class<?> type) {
+        for (ExplorerTreeModel.Node node : nodes) {
+            if (node.kind() == ExplorerTreeModel.NodeKind.TYPE && type.equals(node.type())) {
+                return node;
+            }
+            ExplorerTreeModel.Node child = findTypeNode(node.children(), type);
+            if (child != null) {
+                return child;
+            }
+        }
+        return null;
+    }
+
+    // ------------------------------------------------------------------ диагностики
+
+    /**
+     * Общий список неадресованных диагностик (E3.1): записи стартового скана, которым не нашлось
+     * карточки. Список не зависит от выбранного типа — иначе такая запись исчезала бы вместе с
+     * очисткой карточки, а очистка карточки не меняет конфигурацию.
+     *
+     * <p>Пустой список раздел не рисует: «записей нет» и «раздел не открыт» — разные состояния,
+     * и второе не выдаётся за первое. Свёрнут по умолчанию: это справка о каталоге, а не
+     * содержимое карточки.</p>
+     */
+    private void addUnassignedDiagnostics(List<EntitySummary.DiagnosticRow> rows) {
+        if (rows.isEmpty()) {
+            return;
+        }
+        InMemoryFilterGrid<EntitySummary.DiagnosticRow> grid =
+            new InMemoryFilterGrid<>(EntitySummary.DiagnosticRow.class, rows);
+        grid.addColumn("severity", "Уровень", r -> EntitySummaryPanel.severityLabel(r.severity()))
+            .setResizable(true).setWidth("140px").setFlexGrow(0);
+        grid.addColumn("code", "Код", EntitySummary.DiagnosticRow::code)
+            .setResizable(true).setWidth("260px").setFlexGrow(0);
+        grid.addColumn("address", "Адрес", EntitySummaryPanel::diagnosticAddress)
+            .setResizable(true).setFlexGrow(1);
+        grid.addColumn("value", "Текст", r -> r.value().value())
+            .setResizable(true).setFlexGrow(2);
+        grid.setWidthFull();
+        grid.setHeight(null);
+        grid.setCompact(true);
+        grid.getGrid().setAllRowsVisible(true);
+        grid.build();
+
+        H4 title = new H4("Неадресованные диагностики (" + rows.size() + ")");
+        title.getStyle().set("margin", "0");
+        Details details = new Details(title, grid);
+        details.setOpened(false);
+        details.setWidthFull();
+        add(details);
+    }
 }

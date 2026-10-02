@@ -38,6 +38,11 @@ class public final org.ipro.data.EntityDescriptorCatalog
 class public final org.ipro.data.EventContourStartupCheck
   ctor public(java.util.List<org.ipro.lifecycle.EntityLifecycle<?>>, org.springframework.beans.factory.ObjectProvider<org.ipro.lifecycle.EntityLifecycleRegistry>, org.springframework.beans.factory.ObjectProvider<org.ipro.events.EntityEventPublisher>)
 
+class public final org.ipro.data.FetchPlanInspection
+  ctor public(org.ipro.fetch.plan.FetchPlanRegistry, org.ipro.data.EntityDescriptorCatalog)
+  method public java.util.List<org.ipro.data.FetchPlanInspection$Path> pathsOf(java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario)
+  method public java.util.List<org.ipro.data.FetchPlanInspection$Scenario> scenariosOf(java.lang.Class<?>)
+
 class public final org.ipro.data.ScenarioFetchGraphResolver
   ctor public(org.ipro.metadata.MetadataResolver, org.ipro.fetch.plan.FetchPlanRegistry, org.ipro.fetch.instance.InstanceNameResolver)
   method public jakarta.persistence.EntityGraph<T> resolve(jakarta.persistence.EntityManager, java.lang.Class<T>, org.ipro.fetch.plan.FetchScenario, java.util.Collection<java.lang.String>)
@@ -478,7 +483,9 @@ enum public final org.ipro.metadata.FactOrigin
 
 enum public final org.ipro.metadata.facet.FacetKind
   extends java.lang.Enum<org.ipro.metadata.facet.FacetKind>
-  enum-constants [ENTITY_LIST_TITLE, ENTITY_ITEM_TITLE, ENTITY_SELECTION_TITLE, FIELD_LABEL, GRID_COLUMN_HEADER, CONTEXT_FILTER_LABEL, SUBSYSTEM_MEMBERSHIP, FIELD_STRUCTURE, TABLE_SECTION, LOOKUP_TARGET, REVERSE_REFERENCE, NUMBERING_DECL, ENTITY_KIND, ENTITY_EXPOSURE, ENTITY_KEY, LINKABILITY, ENTITY_LIFECYCLE_HANDLER, ENTITY_LIFECYCLE_HOOK]
+  enum-constants [ENTITY_LIST_TITLE, ENTITY_ITEM_TITLE, ENTITY_SELECTION_TITLE, FIELD_LABEL, GRID_COLUMN_HEADER, CONTEXT_FILTER_LABEL, SUBSYSTEM_MEMBERSHIP, FIELD_STRUCTURE, TABLE_SECTION, LOOKUP_TARGET, REVERSE_REFERENCE, NUMBERING_DECL, ENTITY_KIND, ENTITY_EXPOSURE, ENTITY_KEY, LINKABILITY, ENTITY_LIFECYCLE_HANDLER, ENTITY_LIFECYCLE_HOOK, ACTION, ACTION_HANDLER, FETCH_PLAN, FETCH_PLAN_PATH, RLS_DIMENSION, RLS_VALUE_RULE]
+  field public static final org.ipro.metadata.facet.FacetKind ACTION = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind ACTION_HANDLER = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind CONTEXT_FILTER_LABEL = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind ENTITY_EXPOSURE = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind ENTITY_ITEM_TITLE = enum-constant
@@ -488,6 +495,8 @@ enum public final org.ipro.metadata.facet.FacetKind
   field public static final org.ipro.metadata.facet.FacetKind ENTITY_LIFECYCLE_HOOK = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind ENTITY_LIST_TITLE = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind ENTITY_SELECTION_TITLE = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind FETCH_PLAN = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind FETCH_PLAN_PATH = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind FIELD_LABEL = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind FIELD_STRUCTURE = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind GRID_COLUMN_HEADER = enum-constant
@@ -495,6 +504,8 @@ enum public final org.ipro.metadata.facet.FacetKind
   field public static final org.ipro.metadata.facet.FacetKind LOOKUP_TARGET = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind NUMBERING_DECL = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind REVERSE_REFERENCE = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind RLS_DIMENSION = enum-constant
+  field public static final org.ipro.metadata.facet.FacetKind RLS_VALUE_RULE = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind SUBSYSTEM_MEMBERSHIP = enum-constant
   field public static final org.ipro.metadata.facet.FacetKind TABLE_SECTION = enum-constant
   method public boolean overridable()
@@ -664,16 +675,19 @@ record public final org.ipro.data.EntityDescriptor
   extends java.lang.Record
   ctor public(java.lang.Class<?>, org.ipro.data.EntityExposure, boolean, boolean, org.ipro.data.EntityCapabilities, java.lang.String)
   ctor public(java.lang.Class<?>, org.ipro.data.EntityExposure, boolean, boolean, org.ipro.data.EntityCapabilities, java.lang.String, org.ipro.metadata.FactOrigin, java.lang.String)
+  ctor public(java.lang.Class<?>, org.ipro.data.EntityExposure, boolean, boolean, org.ipro.data.EntityCapabilities, java.lang.String, org.ipro.metadata.FactOrigin, java.lang.String, org.ipro.metadata.FactOrigin, java.lang.String)
   method public boolean jpaManaged()
   method public boolean metadataDriven()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.Class<?> type()
+  method public java.lang.String capabilitiesSymbol()
   method public java.lang.String exposureSymbol()
   method public java.lang.String reason()
   method public org.ipro.data.EntityCapabilities capabilities()
   method public org.ipro.data.EntityExposure exposure()
+  method public org.ipro.metadata.FactOrigin capabilitiesOrigin()
   method public org.ipro.metadata.FactOrigin exposureOrigin()
 
 record public final org.ipro.data.SearchRead
@@ -875,6 +889,28 @@ record public static final org.ipro.crud.MetadataDrivenAggregateSaveService$Sect
   method public final java.lang.String toString()
   method public java.lang.Class<? extends org.ipro.identity.IdentifiableEntity> rowType()
   method public java.util.List<? extends org.ipro.identity.IdentifiableEntity> rows()
+
+record public static final org.ipro.data.FetchPlanInspection$Path
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String attributePath()
+  method public java.lang.String reason()
+
+record public static final org.ipro.data.FetchPlanInspection$Scenario
+  extends java.lang.Record
+  ctor public(java.lang.String, boolean, org.ipro.metadata.FactOrigin, java.lang.String, java.util.List<org.ipro.data.FetchPlanInspection$Path>)
+  method public boolean allowed()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int pathCount()
+  method public java.lang.String scenario()
+  method public java.lang.String symbol()
+  method public java.util.List<org.ipro.data.FetchPlanInspection$Path> paths()
+  method public org.ipro.metadata.FactOrigin origin()
 
 record public static final org.ipro.metadata.ColumnPath$Spec
   extends java.lang.Record

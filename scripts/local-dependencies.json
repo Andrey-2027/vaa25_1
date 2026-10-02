@@ -91,8 +91,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "8f3b099108504a305f9fcb3d898ae9d41ef8d8a2ea59286d78967be904adc50b",
-        "fileCount": 9,
+        "sha256": "6e1489274d12b618312e0faff5cbbd3959eaa919f336f36a81b8a5879059be94",
+        "fileCount": 11,
         "inputs": [
           "pom.xml",
           "src"
@@ -348,8 +348,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "39827f59b5992e29e5a7714a1288fb50761b9afed11087685e1709a7db387538",
-        "fileCount": 120,
+        "sha256": "23191224be4e358cad88fb6613d811b6487188dea9b9660af5d38f216345f8a3",
+        "fileCount": 125,
         "inputs": [
           "pom.xml",
           "src"
@@ -376,7 +376,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "fd4f56e97d26930124f00602337a6d279823e499d1882067aef4553d31bcf89b",
+        "sha256": "e6db3e66e380308413919b956c211780cc544404cf3fa2264b6e603d414037ec",
         "fileCount": 15,
         "inputs": [
           "pom.xml",
@@ -404,8 +404,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "b2e0b4bf382630ec88d67d11ab84c2c2256cb98ea9b35b2b07296a2aae84bd19",
-        "fileCount": 189,
+        "sha256": "fd70d0e3f15f8052b007c25b8e62b2c9d9e02827467abd9f978fbb077e788b27",
+        "fileCount": 211,
         "inputs": [
           "pom.xml",
           "src"
@@ -413,6 +413,34 @@
       },
       "artifacts": [
         "org.ipro:platform-vaadin:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-rest",
+      "relativePath": "platform-rest",
+      "dependsOn": ["platform-core", "platform-spring-boot-autoconfigure"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "F-REST-READ-2: optional explicit resource declarations plus an immutable startup catalog validated against one Hibernate-backed JPA metamodel and EntityDescriptorCatalog. The rest.api builder remains Java-only; the module owns auto-configuration and has no HTTP routes or Vaadin dependency."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "e4c08dcad2c0666b6c09cc47b0c58da45f76e05010c02e360eecb0b7ac35beec",
+        "fileCount": 30,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-rest:1.0-SNAPSHOT"
       ],
       "buildSteps": [
         {
@@ -432,7 +460,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "d71d2e307ccda57f955127ca50f7debe0b5f1483aaa771d11f51384123794668",
+        "sha256": "b6d5e50105a3113a56950d6e76ba932d91b7f764d13e82f10fbcebac8970b528",
         "fileCount": 1,
         "inputs": [
           "pom.xml"
@@ -458,14 +486,15 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D3.8 backend starter facade: depends on backend auto-configuration, whose transitive closure supplies backend platform modules. It deliberately does not add Vaadin or report libraries; Spring Boot JPA/security/validation runtime starters remain application-owned."
+        "state": "D3.8 backend starter facade: depends on backend auto-configuration, whose transitive closure supplies backend platform modules. Its Maven-resolved runtime tree is checked to keep platform-rest out transitively. It deliberately does not add Vaadin or report libraries; Spring Boot JPA/security/validation runtime starters remain application-owned."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "bc4a628be00a155b9ae520e547081691a52c062db23eeefc64327919adb78341",
-        "fileCount": 1,
+        "sha256": "cceb9af2ecdaa3922e7b27e8e8a2b8ce0aefcbf8b7804eb93af3249c07b59668",
+        "fileCount": 2,
         "inputs": [
-          "pom.xml"
+          "pom.xml",
+          "src/test"
         ]
       },
       "artifacts": [
@@ -488,14 +517,15 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D3.8 Vaadin starter facade: supplies platform-vaadin and vaadin-spring-boot-starter as compile/runtime dependencies. Report libraries are intentionally excluded."
+        "state": "D3.8 Vaadin starter facade: supplies platform-vaadin and vaadin-spring-boot-starter as compile/runtime dependencies. Its Maven-resolved runtime tree is checked to keep platform-rest out transitively. Report libraries are intentionally excluded."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "2a10c959b3e23952a00613b436912ffdb7e3ed527017c3fab25567cd515d9eff",
-        "fileCount": 1,
+        "sha256": "9976e779eb79218a92bb9ad185b46c298f14396350f0f2e0517df83608c5f54a",
+        "fileCount": 2,
         "inputs": [
-          "pom.xml"
+          "pom.xml",
+          "src/test"
         ]
       },
       "artifacts": [

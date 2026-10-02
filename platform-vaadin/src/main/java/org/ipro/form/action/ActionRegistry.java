@@ -44,6 +44,17 @@ public final class ActionRegistry {
             Objects.requireNonNull(id, "id must not be null");
         }
 
+        /**
+         * Ключ регистрации определения — тот же, что строится при регистрации и в реестре
+         * исполнителей. Единственная точка вывода ключа из определения: два независимых вывода
+         * разошлись бы при первой же правке набора компонентов.
+         */
+        public static Key of(ActionDefinition definition) {
+            Objects.requireNonNull(definition, "definition must not be null");
+            return new Key(definition.surface(), definition.entityType(), definition.variant(),
+                definition.id());
+        }
+
         /** Конкретность ключа: чем больше, тем специфичнее. */
         int specificity() {
             int value = 0;
@@ -54,6 +65,22 @@ public final class ActionRegistry {
                 value |= 1;
             }
             return value;
+        }
+    }
+
+    /**
+     * Регистрация: ключ, по которому определение записано, и само определение.
+     *
+     * <p>Ключ нужен потребителям происхождения (E3.2.0): происхождение принадлежит <b>записи</b>,
+     * а не значению определения. {@link CrudAction#platformDefaults()} создаёт новые объекты на
+     * каждом вызове, поэтому карта «по инстансу» была бы ложной, а ключи уникальны — дубликат
+     * роняет старт, — поэтому {@code Key → происхождение} точен.</p>
+     */
+    public record Registration(Key key, ActionDefinition definition) {
+
+        public Registration {
+            Objects.requireNonNull(key, "key must not be null");
+            Objects.requireNonNull(definition, "definition must not be null");
         }
     }
 
@@ -83,24 +110,47 @@ public final class ActionRegistry {
         return List.copyOf(registrations.values());
     }
 
-    /** Действие, применимое к типу и варианту: наиболее конкретная регистрация по id. */
-    public Optional<ActionDefinition> resolve(ActionSurface surface, Class<?> entityType,
-                                              String variant, ActionId id) {
+    /**
+     * Все регистрации вместе с их ключами, в порядке добавления: ключ — вход происхождения факта
+     * (E3.2.0). Состав тот же, что у {@link #registrations()}.
+     */
+    public List<Registration> registrationsWithKeys() {
+        List<Registration> result = new ArrayList<>(registrations.size());
+        for (Map.Entry<Key, ActionDefinition> entry : registrations.entrySet()) {
+            result.add(new Registration(entry.getKey(), entry.getValue()));
+        }
+        return List.copyOf(result);
+    }
+
+    /**
+     * Победившая регистрация по {@code (surface, id)} для типа и варианта: наиболее конкретный
+     * ключ. Единственный алгоритм разрешения в реестре — {@link #resolve} делегирует сюда, поэтому
+     * «эффективное действие» и «место его объявления» не могут разойтись.
+     */
+    public Optional<Registration> registration(ActionSurface surface, Class<?> entityType,
+                                               String variant, ActionId id) {
         return registrations.entrySet().stream()
             .filter(entry -> entry.getKey().surface() == surface)
             .filter(entry -> entry.getKey().id().equals(id))
             .filter(entry -> matches(entry.getKey().entityType(), entityType))
             .filter(entry -> matches(entry.getKey().variant(), variant))
             .max(Comparator.comparingInt(entry -> entry.getKey().specificity()))
-            .map(Map.Entry::getValue);
+            .map(entry -> new Registration(entry.getKey(), entry.getValue()));
+    }
+
+    /** Действие, применимое к типу и варианту: наиболее конкретная регистрация по id. */
+    public Optional<ActionDefinition> resolve(ActionSurface surface, Class<?> entityType,
+                                              String variant, ActionId id) {
+        return registration(surface, entityType, variant, id).map(Registration::definition);
     }
 
     /**
-     * Все действия поверхности, применимые к типу и варианту, — по одному на id
-     * (наиболее конкретная регистрация), отсортированные по порядку, затем по id.
+     * Все победившие регистрации поверхности, применимые к типу и варианту, — по одной на id
+     * (наиболее конкретный ключ), отсортированные по порядку, затем по id.
      */
-    public List<ActionDefinition> resolve(ActionSurface surface, Class<?> entityType, String variant) {
-        Map<ActionId, ActionDefinition> best = new LinkedHashMap<>();
+    public List<Registration> registrationsOf(ActionSurface surface, Class<?> entityType,
+                                              String variant) {
+        Map<ActionId, Registration> best = new LinkedHashMap<>();
         for (Map.Entry<Key, ActionDefinition> entry : registrations.entrySet()) {
             Key key = entry.getKey();
             if (key.surface() != surface) {
@@ -109,15 +159,25 @@ public final class ActionRegistry {
             if (!matches(key.entityType(), entityType) || !matches(key.variant(), variant)) {
                 continue;
             }
-            ActionDefinition current = best.get(key.id());
-            if (current == null || specificity(key) > specificity(current)) {
-                best.put(key.id(), entry.getValue());
+            Registration current = best.get(key.id());
+            if (current == null || specificity(key) > specificity(current.key())) {
+                best.put(key.id(), new Registration(key, entry.getValue()));
             }
         }
-        List<ActionDefinition> resolved = new ArrayList<>(best.values());
-        resolved.sort(Comparator.comparingInt(ActionDefinition::order)
-            .thenComparing(definition -> definition.id().value()));
+        List<Registration> resolved = new ArrayList<>(best.values());
+        resolved.sort(Comparator.comparingInt((Registration registration) -> registration.definition().order())
+            .thenComparing(registration -> registration.definition().id().value()));
         return List.copyOf(resolved);
+    }
+
+    /**
+     * Все действия поверхности, применимые к типу и варианту, — по одному на id
+     * (наиболее конкретная регистрация), отсортированные по порядку, затем по id.
+     */
+    public List<ActionDefinition> resolve(ActionSurface surface, Class<?> entityType, String variant) {
+        return registrationsOf(surface, entityType, variant).stream()
+            .map(Registration::definition)
+            .toList();
     }
 
     private static void register(Map<Key, ActionDefinition> collected, ActionDefinition definition) {
@@ -160,8 +220,7 @@ public final class ActionRegistry {
     }
 
     private static Key keyOf(ActionDefinition definition) {
-        return new Key(definition.surface(), definition.entityType(), definition.variant(),
-            definition.id());
+        return Key.of(definition);
     }
 
     private static boolean matches(Class<?> registered, Class<?> requested) {
@@ -174,10 +233,6 @@ public final class ActionRegistry {
 
     private static int specificity(Key key) {
         return key.specificity();
-    }
-
-    private static int specificity(ActionDefinition definition) {
-        return keyOf(definition).specificity();
     }
 
     private static String describe(Key key) {

@@ -1,6 +1,10 @@
 package org.ipro.vaadin.explorer.config;
 
 import org.ipro.autoconfigure.PlatformProperties;
+import org.ipro.form.action.ActionHandlerRegistry;
+import org.ipro.data.FetchPlanInspection;
+import org.ipro.form.action.ActionProvenanceCatalog;
+import org.ipro.form.action.ActionRegistry;
 import org.ipro.form.registry.FormRegistry;
 import org.ipro.form.link.FormRouteCatalog;
 import org.ipro.data.EntityDescriptorCatalog;
@@ -57,7 +61,11 @@ class EntityExplorerAutoConfigurationTest {
                 () -> mock(NumberingMetadataRegistry.class))
             .withBean(SubsystemRegistry.class, () -> mock(SubsystemRegistry.class))
             .withBean(RlsDimensionRegistry.class, () -> mock(RlsDimensionRegistry.class))
-            .withBean(PlatformProperties.class, () -> mock(PlatformProperties.class));
+            .withBean(PlatformProperties.class, () -> mock(PlatformProperties.class))
+            .withBean(ActionRegistry.class, () -> mock(ActionRegistry.class))
+            .withBean(ActionHandlerRegistry.class, () -> mock(ActionHandlerRegistry.class))
+            .withBean(ActionProvenanceCatalog.class, () -> mock(ActionProvenanceCatalog.class))
+            .withBean(FetchPlanInspection.class, () -> mock(FetchPlanInspection.class));
     }
 
     /**
@@ -120,6 +128,10 @@ class EntityExplorerAutoConfigurationTest {
             .withBean(SubsystemRegistry.class, () -> mock(SubsystemRegistry.class))
             .withBean(RlsDimensionRegistry.class, () -> mock(RlsDimensionRegistry.class))
             .withBean(PlatformProperties.class, () -> mock(PlatformProperties.class))
+            .withBean(ActionRegistry.class, () -> mock(ActionRegistry.class))
+            .withBean(ActionHandlerRegistry.class, () -> mock(ActionHandlerRegistry.class))
+            .withBean(ActionProvenanceCatalog.class, () -> mock(ActionProvenanceCatalog.class))
+            .withBean(FetchPlanInspection.class, () -> mock(FetchPlanInspection.class))
             .run(context -> {
                 assertThat(context).hasNotFailed();
                 assertThat(context).doesNotHaveBean(EntitySummaryAssembler.class);
@@ -127,6 +139,66 @@ class EntityExplorerAutoConfigurationTest {
     }
 
     /** {@code FacetResolver} остаётся точкой расширения и при полном наборе коллабораторов. */
+    /**
+     * Аспект действий обязателен (E3.2.0): без состава, исполнителей и происхождения подсистема
+     * отступает, а не показывает карточку без действий. Отсутствие любого из трёх — не «действий
+     * нет», а неполная проводка.
+     */
+    @Test
+    void missingActionCollaboratorsDisableTheWholeSubsystem() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(EntityExplorerAutoConfiguration.class))
+            .withBean(MetadataResolver.class, () -> mock(MetadataResolver.class))
+            .withBean(FormRegistry.class, FormRegistry::new)
+            .withBean(EntityDescriptorCatalog.class, () -> mock(EntityDescriptorCatalog.class))
+            .withBean(FormRouteCatalog.class, () -> mock(FormRouteCatalog.class))
+            .withBean(EntityLifecycleRegistry.class,
+                () -> new EntityLifecycleRegistry(java.util.List.of()))
+            .withBean(SectionMetadataRegistry.class, () -> mock(SectionMetadataRegistry.class))
+            .withBean(ReferenceIndex.class, () -> mock(ReferenceIndex.class))
+            .withBean(NumberingMetadataRegistry.class, () -> mock(NumberingMetadataRegistry.class))
+            .withBean(SubsystemRegistry.class, () -> mock(SubsystemRegistry.class))
+            .withBean(RlsDimensionRegistry.class, () -> mock(RlsDimensionRegistry.class))
+            .withBean(PlatformProperties.class, () -> mock(PlatformProperties.class))
+            .withBean(ActionRegistry.class, () -> mock(ActionRegistry.class))
+            .withBean(ActionHandlerRegistry.class, () -> mock(ActionHandlerRegistry.class))
+            .withBean(FetchPlanInspection.class, () -> mock(FetchPlanInspection.class))
+            .run(context -> {
+                assertThat(context).hasNotFailed();
+                assertThat(context).doesNotHaveBean(EntitySummaryAssembler.class);
+            });
+    }
+
+    /**
+     * Аспект сценариев чтения обязателен (E3.2.0 шаг 2): без инспекции плана подсистема отступает,
+     * а не показывает тип без единого сценария. Пустая секция здесь читалась бы как «тип нельзя
+     * прочитать», хотя это была бы всего лишь неполная проводка.
+     */
+    @Test
+    void missingFetchPlanInspectionDisablesTheWholeSubsystem() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(EntityExplorerAutoConfiguration.class))
+            .withBean(MetadataResolver.class, () -> mock(MetadataResolver.class))
+            .withBean(FormRegistry.class, FormRegistry::new)
+            .withBean(EntityDescriptorCatalog.class, () -> mock(EntityDescriptorCatalog.class))
+            .withBean(FormRouteCatalog.class, () -> mock(FormRouteCatalog.class))
+            .withBean(EntityLifecycleRegistry.class,
+                () -> new EntityLifecycleRegistry(java.util.List.of()))
+            .withBean(SectionMetadataRegistry.class, () -> mock(SectionMetadataRegistry.class))
+            .withBean(ReferenceIndex.class, () -> mock(ReferenceIndex.class))
+            .withBean(NumberingMetadataRegistry.class, () -> mock(NumberingMetadataRegistry.class))
+            .withBean(SubsystemRegistry.class, () -> mock(SubsystemRegistry.class))
+            .withBean(RlsDimensionRegistry.class, () -> mock(RlsDimensionRegistry.class))
+            .withBean(PlatformProperties.class, () -> mock(PlatformProperties.class))
+            .withBean(ActionRegistry.class, () -> mock(ActionRegistry.class))
+            .withBean(ActionHandlerRegistry.class, () -> mock(ActionHandlerRegistry.class))
+            .withBean(ActionProvenanceCatalog.class, () -> mock(ActionProvenanceCatalog.class))
+            .run(context -> {
+                assertThat(context).hasNotFailed();
+                assertThat(context).doesNotHaveBean(EntitySummaryAssembler.class);
+            });
+    }
+
     @Test
     void applicationFacetResolverReplacesTheNoOpDefault() {
         FacetResolver custom = mock(FacetResolver.class);

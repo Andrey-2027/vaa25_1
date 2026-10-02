@@ -2,6 +2,8 @@
 
 - Статус: принято; C4.0–C4.8 закрыты (C4.8 — hardening и закрытие этапа)
 - Дата: 2026-09-13
+- Дополнение: 2026-10-02 — принят контракт независимого REST fetch profile (§4.1);
+  его реализация относится к планируемому F-REST-READ-3 и не включена в закрытые C4 gates
 - Область: platform API/SPI, type exposure taxonomy, read/write pipeline, search defaults,
   effective metadata, telemetry policy, compatibility lifecycle
 - Связанные документы: [`JMIX_GitVaa_Roadmap_v2.md`, C4](../../../JMIX_GitVaa_Roadmap_v2.md#c4-узкий-data-access-facade),
@@ -59,7 +61,9 @@ public interface EntityDataAccess {
 - facade **не владеет policy**: RLS, FetchPlan, InstanceName, effective metadata и telemetry
   остаются отдельными компонентами, вызываемыми изнутри;
 - пользователь API не передаёт `EntityGraph`, Hibernate session, RLS predicate и telemetry
-  scope; дополнительные fetch paths динамического вида могут только расширять scenario plan;
+  scope; дополнительные fetch paths динамического вида могут только расширять scenario plan.
+  Независимый REST profile (§4.1) передаётся отдельной межмодульной read-границей и не
+  трактуется как extras или возможность заменить UI plan через прикладной API;
 - имена intent-методов и их минимальная поверхность могут быть уточнены в C4.1, но разделение
   обязанностей и границы public/SPI/internal фиксируются здесь.
 
@@ -139,8 +143,10 @@ descriptor'ом независимо от наличия `SklNomOpaValueReposito
 1. получить descriptor для JPA-managed type;
 2. проверить capability операции и допустимость сценария;
 3. применить read gate и активировать RLS;
-4. разрешить `scenario plan ∪ additional paths`, валидировать и **углубить union ровно один
-   раз**;
+4. разрешить fetch profile в единственной canonical graph boundary: для scenario-based
+   reads — `scenario plan ∪ additional paths`, validation и **display deepen ровно один
+   раз**; для независимого REST profile — validation/normalization полных paths и
+   explicit graph без UI union/display deepen (§4.1);
 5. построить content query и отдельный count query при paging (fetch joins не попадают в
    count);
 6. выполнить запрос;
@@ -148,12 +154,57 @@ descriptor'ом независимо от наличия `SklNomOpaValueReposito
 
 Пункт 4 устраняет текущую асимметрию: `AbstractBaseService.buildFetchGraph` углубляет
 объединение (`FetchGraphs.deepen`), а `LookupService.entityGraph` строит graph из union без
-углубления. Правило «plan ∪ extras → validate → deepen once → graph» вычисляется **в одном
-компоненте**; построение scenario-graph вне этого resolver'а запрещено architecture test.
+углубления. Правило «plan ∪ extras → validate → deepen once → graph» для scenario-based
+reads и fixed-profile правило §4.1 вычисляются **в одном компоненте**; построение
+graph в REST/bridge или иной query boundary запрещено architecture test.
 
 `LookupService` как самостоятельная query boundary удаляется: lookup идёт через тот же
 executor. `RowDraft.restore` не выполняет per-reference reads: ссылка восстанавливается из
 захваченного состояния без SQL либо одним bounded/batch canonical read.
+
+<a id="rest-fixed-fetch-profile"></a>
+
+#### 4.1. Независимый REST fetch profile (дополнение 2026-10-02)
+
+Optional REST adapter использует тот же canonical executor, capability/read gates,
+C5/RLS, content/count, telemetry и transaction. `LIST`/`DETAIL` остаются operation
+intent; фиксированный источник загрузки — отдельное решение, выбираемое доверенным
+межмодульным bridge. Клиент не выбирает profile, scenario или raw persistent paths;
+новый `FetchScenario.API` не вводится.
+
+Для каждой REST-операции профиль выводится при startup из всех maximum-полей
+существующего каталога: берутся полные persistent source paths root scalars и
+reference scalar/id terminals, включая обязательный root id. Клиентские `fields`,
+filters и sort не изменяют профиль. Association-only summary каталога не является
+полным fetch contract. Дубли paths и общие prefixes объединяются детерминированно.
+
+Canonical graph boundary выполняет
+`fixed source paths → validate/normalize → explicit graph` без UI scenario union,
+`@Lookup.fetch`, InstanceName, select/display columns и их `FetchGraphs.deepen`.
+Нормализация добавляет только структурные subgraph nodes объявленных paths, а не
+новые бизнес-зависимости. Каждая выбранная to-one имеет explicit subgraph до
+terminal, в том числе `journal.id`; голый association node с default graph цели
+не подменяет этот контракт. Collections/owned expansion остаются запрещёнными.
+
+Scalar-only/id-only ресурс получает явный root graph; отсутствие ассоциаций не
+означает `null`-граф. Content и detail всегда используют `jakarta.persistence.fetchgraph`;
+count не получает fetch graph. Пустой/невалидный полный profile отклоняется до data
+query без UI/default fallback. Core строит graph для текущего чтения; REST и bridge
+не создают `EntityGraph` и не вводят второй каталог или query engine.
+
+Graph описывает required state, а не точный список SQL columns и не права доступа.
+JPA допускает дополнительную загрузку; сохранение независимости от UI metadata
+проверяется отдельно от фактического Hibernate loaded state и SQL. Runtime fixtures
+включают незаявленные EAGER-связи и коллекции в fresh context/cold cache; выявленная
+незаявленная association/collection загрузка оставляет REST runtime gate открытым
+до исправления mapping/fetch strategy. C5/reference/RLS checks обязательны независимо
+от graph; attribute use-vs-load policy определяется общим C5 контрактом.
+
+Точная Java-сигнатура, internal request representation, surface roles и архитектурные
+guards фиксируются API-review F-REST-READ-3. Существующие scenario/UI/compatibility
+callers сохраняют union/deepen semantics и проходят regression. Принятие дополнения
+не означает реализацию нового режима, завершение C5 или разрешение HTTP-публикации.
+Детали, примеры и приёмка: [F-REST-READ-3, §4.2.1–§4.2.3](../rest-read-api-stage3-security-read-plan.md).
 
 ### 5. Единый write pipeline
 
