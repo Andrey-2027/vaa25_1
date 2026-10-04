@@ -14,6 +14,11 @@ public class RestReadException extends RuntimeException {
         this.outcome = Objects.requireNonNull(outcome, "outcome must not be null");
     }
 
+    public RestReadException(RestReadOutcome outcome, String message, Throwable cause) {
+        super(String.format("[%s] %s", outcome, message), cause);
+        this.outcome = Objects.requireNonNull(outcome, "outcome must not be null");
+    }
+
     public RestReadOutcome outcome() {
         return outcome;
     }

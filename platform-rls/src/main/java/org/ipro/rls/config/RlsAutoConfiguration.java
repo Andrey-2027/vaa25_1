@@ -113,14 +113,27 @@ public class RlsAutoConfiguration {
         return new RlsReadGate(accessService, dimensionRegistry);
     }
 
+    /** Explicit C5 read definitions registered by entity/REST registrars (F-REST-READ-3, З2). */
+    @Bean
+    @ConditionalOnMissingBean
+    public org.ipro.rls.c5.C5ReadPermissionRegistry c5ReadPermissionRegistry() {
+        return new org.ipro.rls.c5.C5ReadPermissionRegistry();
+    }
+
+    /** Single exact/global/read decision shared by the server evaluator and the grant admin. */
+    @Bean
+    @ConditionalOnMissingBean
+    public org.ipro.rls.c5.C5ReadDecisionService c5ReadDecisionService(
+            AccessGrantRepository grantRepository,
+            RlsRoleResolver roleResolver) {
+        return new org.ipro.rls.c5.C5ReadDecisionService(grantRepository, roleResolver);
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public org.ipro.rls.c5.C5PermissionEvaluator c5PermissionEvaluator(
-            AccessGrantRepository grantRepository,
-            RlsRoleResolver roleResolver,
-            ObjectProvider<RlsDimensionRegistry> dimensionRegistry) {
-        return new org.ipro.rls.c5.DefaultC5PermissionEvaluator(
-            grantRepository, roleResolver, dimensionRegistry.getIfAvailable());
+            org.ipro.rls.c5.C5ReadDecisionService decisionService) {
+        return new org.ipro.rls.c5.DefaultC5PermissionEvaluator(decisionService);
     }
 
     @Bean

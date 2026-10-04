@@ -349,7 +349,25 @@ n     * (кэш на вызов) тем же ParameterContext — нумерац
         }
     }
     private static String compileOn(JoinCondition condition, Map<String, QueryBuilderMetadataCatalog.Entity> aliases, QueryBuilderMetadataCatalog catalog) { if (condition instanceof JoinCondition.Group group) { String op = group.operator() == JoinLogicalOperator.OR ? " OR " : " AND "; return "(" + group.children().stream().map(c -> compileOn(c, aliases, catalog)).collect(Collectors.joining(op)) + ")"; } JoinCondition.Predicate p = (JoinCondition.Predicate) condition; QueryBuilderMetadataCatalog.Field l = validateFieldReference(p.leftPath(), aliases, catalog), r = validateFieldReference(p.rightPath(), aliases, catalog); if (catalog != null && !sameComparableType(l.javaType(), r.javaType())) throw new IllegalArgumentException("Несовместимые типы полей в ON"); return p.leftPath() + (p.operator() == JoinCondition.Operator.EQ ? " = " : " <> ") + p.rightPath(); }
-    private static QueryBuilderMetadataCatalog.Field validateFieldReference(String value, Map<String, QueryBuilderMetadataCatalog.Entity> aliases, QueryBuilderMetadataCatalog catalog) { if (value == null || !value.matches("[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*")) throw new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value); String alias = value.substring(0, value.indexOf('.')); String name = value.substring(value.indexOf('.') + 1); if ("id".equals(name)) return new QueryBuilderMetadataCatalog.Field("id", "Идентификатор записи", Long.class, true); QueryBuilderMetadataCatalog.Entity entity = aliases.get(alias); if (!aliases.containsKey(alias) || catalog != null && !hasField(entity, name)) throw new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value); return catalog == null ? new QueryBuilderMetadataCatalog.Field(name, name, Object.class, false) : entity.fields().stream().filter(f -> f.name().equals(name)).findFirst().orElseThrow(); }
+    private static QueryBuilderMetadataCatalog.Field validateFieldReference(String value,
+            Map<String, QueryBuilderMetadataCatalog.Entity> aliases, QueryBuilderMetadataCatalog catalog) {
+        if (value == null || !value.matches("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+"))
+            throw new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value);
+        String[] parts = value.split("\\.");
+        if (!aliases.containsKey(parts[0])) throw new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value);
+        String name = parts[parts.length - 1];
+        if (catalog == null) return new QueryBuilderMetadataCatalog.Field(name, name, Object.class, false);
+        QueryBuilderMetadataCatalog.Entity entity = aliases.get(parts[0]);
+        for (int i = 1; i < parts.length - 1; i++) {
+            String segment = parts[i];
+            var association = entity.associations().stream().filter(a -> a.name().equals(segment)).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value));
+            entity = findEntity(catalog, association.targetType());
+        }
+        if ("id".equals(name)) return new QueryBuilderMetadataCatalog.Field("id", "Идентификатор записи", Long.class, true);
+        return entity.fields().stream().filter(f -> f.name().equals(name)).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Недопустимая ссылка поля в ON: " + value));
+    }
     private static boolean sameComparableType(Class<?> a, Class<?> b) { return a.equals(b) || Number.class.isAssignableFrom(a) && Number.class.isAssignableFrom(b); }
     private static String resolveExpression(String path, String rootAlias, Map<String, QueryBuilderMetadataCatalog.Entity> aliases, QueryBuilderMetadataCatalog catalog) { String[] s = path.split("\\."); if (s.length == 1) { if (catalog != null && !hasSelectable(aliases.get(rootAlias), s[0])) throw new IllegalArgumentException("Поле не разрешено: " + path); return rootAlias + "." + s[0]; } if (!aliases.containsKey(s[0])) throw new IllegalArgumentException("Неизвестный путь: " + path); if (catalog != null && !hasSelectablePath(aliases, s, catalog)) throw new IllegalArgumentException("Поле не разрешено: " + path); return path; }
     /** Путь «alias.assoc.assoc.field» — JPQL-traversal: промежуточные сегменты — ассоциации, последний — селектируемое поле. */

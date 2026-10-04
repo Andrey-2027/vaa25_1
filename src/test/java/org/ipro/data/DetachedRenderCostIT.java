@@ -13,6 +13,7 @@ import org.ipro.crud.BaseService;
 import org.ipro.fetch.instance.InstanceNameBridge;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.RlsTestFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,6 +84,7 @@ class DetachedRenderCostIT {
         wildcard.setCanUpdate(true);
         wildcard.setCanDelete(true);
         accessGrantRepository.saveAndFlush(wildcard);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, username, Nomenclature.class);
     }
 
     @Test

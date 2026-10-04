@@ -102,7 +102,8 @@ class SearchFieldParitySnapshotTest {
                 throw new IllegalStateException("Отсутствует ресурс снимка " + path
                     + " — сгенерируйте его через -Dsearch.snapshot.write=true");
             }
-            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            // Windows checkout может хранить CRLF; renderer всегда использует LF.
+            return new String(stream.readAllBytes(), StandardCharsets.UTF_8).replace("\r\n", "\n");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

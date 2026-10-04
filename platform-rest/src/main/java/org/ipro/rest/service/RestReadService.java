@@ -12,7 +12,10 @@ import org.ipro.rest.catalog.RestResourceProjection;
 import org.ipro.rest.security.RestReferenceAuthorizationValidator;
 import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.c5.C5AccessDeniedException;
 import org.ipro.rls.c5.C5PermissionEvaluator;
+import org.ipro.rls.c5.C5PermissionConfigurationException;
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +36,9 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class RestReadService {
 
+    /** Server default for the exclusive end of a requested page; total may exceed it. */
+    public static final int DEFAULT_MAX_WINDOW = 10_000;
+
     private static final int MAX_PAGE_SIZE = 200;
 
     private final RestResourceCatalog catalog;
@@ -40,17 +46,40 @@ public class RestReadService {
     private final C5PermissionEvaluator c5Evaluator;
     private final RlsCurrentUser currentUser;
     private final RestReferenceAuthorizationValidator referenceValidator;
+    private final int maxWindow;
 
     public RestReadService(RestResourceCatalog catalog,
                            EntityReadAccess readAccess,
                            C5PermissionEvaluator c5Evaluator,
                            RlsCurrentUser currentUser,
                            RestReferenceAuthorizationValidator referenceValidator) {
+        this(catalog, readAccess, c5Evaluator, currentUser, referenceValidator, DEFAULT_MAX_WINDOW);
+    }
+
+    public RestReadService(RestResourceCatalog catalog,
+                           EntityReadAccess readAccess,
+                           C5PermissionEvaluator c5Evaluator,
+                           RlsCurrentUser currentUser,
+                           RestReferenceAuthorizationValidator referenceValidator,
+                           int maxWindow) {
+        if (maxWindow <= 0) {
+            throw new IllegalArgumentException("Property 'platform.rest.read.max-window' must be positive: " + maxWindow);
+        }
         this.catalog = Objects.requireNonNull(catalog, "catalog must not be null");
-        this.readAccess = Objects.requireNonNull(readAccess, "readAccess must not be null");
-        this.c5Evaluator = Objects.requireNonNull(c5Evaluator, "c5Evaluator must not be null");
-        this.currentUser = Objects.requireNonNull(currentUser, "currentUser must not be null");
-        this.referenceValidator = Objects.requireNonNull(referenceValidator, "referenceValidator must not be null");
+        for (ResolvedRestResource resource : catalog.resources()) {
+            if (resource.definition().defaultPageSize() > maxWindow) {
+                throw new IllegalArgumentException("Property 'platform.rest.read.max-window' (" + maxWindow
+                    + ") is smaller than the default page size for " + resource.key()
+                    + ": " + resource.definition().defaultPageSize());
+            }
+        }
+        this.maxWindow = maxWindow;
+        boolean executable = !catalog.resources().isEmpty();
+        this.readAccess = executable ? Objects.requireNonNull(readAccess, "readAccess must not be null") : readAccess;
+        this.c5Evaluator = executable ? Objects.requireNonNull(c5Evaluator, "c5Evaluator must not be null") : c5Evaluator;
+        this.currentUser = executable ? Objects.requireNonNull(currentUser, "currentUser must not be null") : currentUser;
+        this.referenceValidator = executable
+            ? Objects.requireNonNull(referenceValidator, "referenceValidator must not be null") : referenceValidator;
     }
 
     public RestPageResult list(RestListQuery query) {
@@ -74,7 +103,7 @@ public class RestReadService {
         Class<?> rootType = resource.definition().resourceType();
         if (!c5Evaluator.isEntityReadPermitted(username, rootType)) {
             throw new RestReadException(RestReadOutcome.FORBIDDEN,
-                "Access denied for entity: ENTITY:" + rootType.getSimpleName());
+                "Access denied for entity: " + C5PermissionKeys.entityRead(rootType));
         }
 
         // 4. Р’Р°Р»РёРґРёСЂРѕРІР°С‚СЊ РїРѕР»СЏ Рё РѕРїРµСЂР°С†РёСЋ
@@ -82,26 +111,40 @@ public class RestReadService {
         List<String> effectiveAliases = determineEffectiveAliases(query.fields(), projection);
 
         // Р’Р°Р»РёРґР°С†РёСЏ paging СЃ СѓС‡С‘С‚РѕРј resource-specific maxPageSize
-        int effectivePageSize = (query.size() <= 0) ? resource.definition().defaultPageSize() : query.size();
+        if (query.size() < 0) {
+            throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
+                "Page size must not be negative: " + query.size());
+        }
+        int effectivePageSize = query.size() == 0 ? resource.definition().defaultPageSize() : query.size();
         validatePaging(resource, query.page(), effectivePageSize);
 
+        Pageable pageable = compilePageable(resource, query.page(), effectivePageSize,
+            query.sortBy(), query.sortDirection());
+
         // 5. РџСЂРѕРІРµСЂРёС‚СЊ C5 РЅР° С„Р°РєС‚РёС‡РµСЃРєРё РёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ Р°С‚СЂРёР±СѓС‚С‹
-        authorizeAttributes(username, rootType, resource, effectiveAliases, query.filters(), query.sortBy());
+        authorizeAttributes(username, rootType, resource, effectiveAliases, query.filters(), pageable.getSort());
 
         // 6. РџСЂРёРјРµРЅРёС‚СЊ reference rules Рє Р°СЃСЃРѕС†РёР°С†РёСЏРј
-        authorizeReferences(username, rootType, resource, effectiveAliases, query.filters());
+        authorizeReferences(username, rootType, resource, effectiveAliases, query.filters(), pageable.getSort());
 
         // РџРѕР»СѓС‡РёС‚СЊ РїРѕР»РЅС‹Р№ fixed profile РёР· РєР°С‚Р°Р»РѕРіР°
         List<String> fixedFetchPaths = resource.fixedFetchPaths(RestReadOperation.LIST);
 
         // 7. РЎРєРѕРјРїРёР»РёСЂРѕРІР°С‚СЊ С„РёР»СЊС‚СЂС‹ Рё СЃРѕСЂС‚РёСЂРѕРІРєСѓ
         Specification<Object> spec = RestFilterSpecificationCompiler.compile(resource, query.filters());
-        Pageable pageable = compilePageable(resource, query.page(), effectivePageSize, query.sortBy(), query.sortDirection());
-
         // Р’С‹РїРѕР»РЅРёС‚СЊ РєР°РЅРѕРЅРёС‡РµСЃРєРѕРµ С‡С‚РµРЅРёРµ РїРѕРґ RLS
         @SuppressWarnings("unchecked")
         Class<Object> targetType = (Class<Object>) rootType;
-        Page<Object> pageResult = readAccess.list(targetType, spec, pageable, fixedFetchPaths);
+        Page<Object> pageResult;
+        try {
+            pageResult = readAccess.list(targetType, spec, pageable, fixedFetchPaths);
+        } catch (C5AccessDeniedException denied) {
+            throw new RestReadException(RestReadOutcome.FORBIDDEN,
+                "Entity read permission was revoked before canonical list execution", denied);
+        } catch (C5PermissionConfigurationException unavailable) {
+            throw new RestReadException(RestReadOutcome.SECURITY_UNAVAILABLE,
+                "Canonical C5 read enforcement is unavailable", unavailable);
+        }
 
         // 8. РЎРєР°Р»СЏСЂРЅР°СЏ РїСЂРѕРµРєС†РёСЏ
         List<Map<String, Object>> projectedContent = new ArrayList<>();
@@ -124,30 +167,6 @@ public class RestReadService {
             .orElseThrow(() -> new RestReadException(RestReadOutcome.RESOURCE_NOT_FOUND,
                 "Resource not found: " + query.resource() + " v" + query.major()));
 
-        // РџСЂРѕРІРµСЂРёС‚СЊ id РЅР° null Рё С‚РёРї РґРѕ РѕР±СЂР°С‰РµРЅРёСЏ Рє JPA
-        if (query.id() == null) {
-            throw new RestReadException(RestReadOutcome.INVALID_REQUEST, "Detail id must not be null");
-        }
-        ResolvedRestField idField = resource.fields().get("id");
-        if (idField != null) {
-            Class<?> idType = idField.source().terminalType();
-            if (idType == Long.class && !(query.id() instanceof Long)) {
-                if (!(query.id() instanceof Number)) {
-                    if (query.id() instanceof String str) {
-                        try {
-                            Long.parseLong(str);
-                        } catch (NumberFormatException e) {
-                            throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
-                                "Invalid id format for resource " + resource.key() + ": expected Long, got " + query.id());
-                        }
-                    } else {
-                        throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
-                            "Invalid id format for resource " + resource.key() + ": expected Long, got " + query.id().getClass().getSimpleName());
-                    }
-                }
-            }
-        }
-
         // 3. РџСЂРѕРІРµСЂРёС‚СЊ API grant
         if (!c5Evaluator.isApiPermitted(username, query.resource(), query.major(), "DETAIL")) {
             throw new RestReadException(RestReadOutcome.FORBIDDEN,
@@ -158,8 +177,12 @@ public class RestReadService {
         Class<?> rootType = resource.definition().resourceType();
         if (!c5Evaluator.isEntityReadPermitted(username, rootType)) {
             throw new RestReadException(RestReadOutcome.FORBIDDEN,
-                "Access denied for entity: ENTITY:" + rootType.getSimpleName());
+                "Access denied for entity: " + C5PermissionKeys.entityRead(rootType));
         }
+
+        // The internal contract receives typed ids. Parse text in the later HTTP adapter,
+        // after authorization, and reject any coercion that could hide malformed input.
+        Object typedId = validateDetailId(resource, query.id());
 
         // 4. Р’Р°Р»РёРґРёСЂРѕРІР°С‚СЊ РїРѕР»СЏ
         RestResourceProjection projection = resource.projection(RestReadOperation.DETAIL);
@@ -169,7 +192,7 @@ public class RestReadService {
         authorizeAttributes(username, rootType, resource, effectiveAliases, Map.of(), null);
 
         // 6. РџСЂРёРјРµРЅРёС‚СЊ reference rules Рє Р°СЃСЃРѕС†РёР°С†РёСЏРј
-        authorizeReferences(username, rootType, resource, effectiveAliases, Map.of());
+        authorizeReferences(username, rootType, resource, effectiveAliases, Map.of(), Sort.unsorted());
 
         // РџРѕР»СѓС‡РёС‚СЊ РїРѕР»РЅС‹Р№ fixed profile
         List<String> fixedFetchPaths = resource.fixedFetchPaths(RestReadOperation.DETAIL);
@@ -177,7 +200,16 @@ public class RestReadService {
         // 7. Р’С‹РїРѕР»РЅРёС‚СЊ С‡С‚РµРЅРёРµ
         @SuppressWarnings("unchecked")
         Class<Object> targetType = (Class<Object>) rootType;
-        Optional<Object> entityOpt = readAccess.detail(targetType, query.id(), fixedFetchPaths);
+        Optional<Object> entityOpt;
+        try {
+            entityOpt = readAccess.detail(targetType, typedId, fixedFetchPaths);
+        } catch (C5AccessDeniedException denied) {
+            throw new RestReadException(RestReadOutcome.FORBIDDEN,
+                "Entity read permission was revoked before canonical detail execution", denied);
+        } catch (C5PermissionConfigurationException unavailable) {
+            throw new RestReadException(RestReadOutcome.SECURITY_UNAVAILABLE,
+                "Canonical C5 read enforcement is unavailable", unavailable);
+        }
 
         if (entityOpt.isEmpty()) {
             throw new RestReadException(RestReadOutcome.DETAIL_NOT_FOUND,
@@ -193,6 +225,10 @@ public class RestReadService {
         if (RlsContext.isBypassed()) {
             throw new RestReadException(RestReadOutcome.FORBIDDEN,
                 "Privileged RLS bypass is not permitted for REST read operations");
+        }
+        if (currentUser == null) {
+            throw new RestReadException(RestReadOutcome.UNAUTHENTICATED,
+                "Authenticated subject is unavailable for REST read");
         }
         String username = currentUser.username();
         if (username == null || username.isBlank() || "system".equalsIgnoreCase(username) || "anonymous".equalsIgnoreCase(username)) {
@@ -239,10 +275,39 @@ public class RestReadService {
         if (offset > Integer.MAX_VALUE - size) {
             throw new RestReadException(RestReadOutcome.INVALID_REQUEST, "Page offset overflow");
         }
+        long windowEnd = offset + size;
+        if (windowEnd > maxWindow) {
+            throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
+                "Page end exceeds the configured window: " + windowEnd + " > " + maxWindow);
+        }
+    }
+
+    private Object validateDetailId(ResolvedRestResource resource, Object id) {
+        ResolvedRestField idField = resource.fields().get("id");
+        if (id == null || idField == null) {
+            throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
+                "Detail id must be a typed value matching the published id field for " + resource.key());
+        }
+        Class<?> expected = boxed(idField.source().terminalType());
+        if (!expected.isInstance(id)) {
+            throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
+                "Invalid id type for resource " + resource.key() + ": expected "
+                    + expected.getSimpleName() + ", got " + id.getClass().getSimpleName());
+        }
+        return id;
+    }
+
+    private Class<?> boxed(Class<?> type) {
+        if (type == long.class) return Long.class;
+        if (type == int.class) return Integer.class;
+        if (type == boolean.class) return Boolean.class;
+        if (type == short.class) return Short.class;
+        return type;
     }
 
     private void authorizeAttributes(String username, Class<?> rootType, ResolvedRestResource resource,
-                                     List<String> effectiveAliases, Map<String, Object> filters, String sortBy) {
+                                     List<String> effectiveAliases, Map<String, Object> filters,
+                                     Sort effectiveSort) {
         for (String alias : effectiveAliases) {
             ResolvedRestField field = resource.fields().get(alias);
             if (field != null) {
@@ -267,20 +332,31 @@ public class RestReadService {
             }
         }
 
-        if (sortBy != null && !sortBy.isBlank()) {
-            ResolvedRestPath path = resource.sorts().get(sortBy);
-            if (path != null) {
-                String firstSegment = path.segments().getFirst().name();
-                if (!c5Evaluator.isAttributeReadPermitted(username, rootType, firstSegment)) {
-                    throw new RestReadException(RestReadOutcome.FORBIDDEN,
-                        "Attribute read denied on sort: " + firstSegment);
+        for (Sort.Order order : effectiveSort == null ? Sort.unsorted() : effectiveSort) {
+            ResolvedRestPath path = resource.sorts().values().stream()
+                .filter(candidate -> candidate.source().equals(order.getProperty()))
+                .findFirst().orElse(null);
+            if (path == null) {
+                ResolvedRestField idField = resource.fields().get("id");
+                if (idField != null && idField.source().source().equals(order.getProperty())) {
+                    path = idField.source();
                 }
+            }
+            if (path == null) {
+                throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
+                    "Effective sort path is not present in the REST catalog: " + order.getProperty());
+            }
+            String persistentAttribute = path.segments().getFirst().name();
+            if (!c5Evaluator.isAttributeReadPermitted(username, rootType, persistentAttribute)) {
+                throw new RestReadException(RestReadOutcome.FORBIDDEN,
+                    "Attribute read denied on sort: " + persistentAttribute);
             }
         }
     }
 
     private void authorizeReferences(String username, Class<?> rootType, ResolvedRestResource resource,
-                                     List<String> effectiveAliases, Map<String, Object> filters) {
+                                     List<String> effectiveAliases, Map<String, Object> filters,
+                                     Sort effectiveSort) {
         for (String alias : effectiveAliases) {
             ResolvedRestField field = resource.fields().get(alias);
             if (field != null && field.source().segments().size() > 1) {
@@ -300,6 +376,23 @@ public class RestReadService {
                             "Reference authorization denied for filter: " + filterName);
                     }
                 }
+            }
+        }
+
+        for (Sort.Order order : effectiveSort == null ? Sort.unsorted() : effectiveSort) {
+            ResolvedRestPath path = resource.sorts().values().stream()
+                .filter(candidate -> candidate.source().equals(order.getProperty()))
+                .findFirst().orElse(null);
+            if (path == null) {
+                ResolvedRestField idField = resource.fields().get("id");
+                if (idField != null && idField.source().source().equals(order.getProperty())) {
+                    path = idField.source();
+                }
+            }
+            if (path != null && path.segments().size() > 1
+                && !referenceValidator.authorizeReferencePath(username, rootType, path)) {
+                throw new RestReadException(RestReadOutcome.FORBIDDEN,
+                    "Reference authorization denied for sort: " + order.getProperty());
             }
         }
     }
@@ -323,7 +416,11 @@ public class RestReadService {
         } else if (resource.definition().defaultSort().isPresent()) {
             RestResourceDefinition.Sort defSort = resource.definition().defaultSort().get();
             ResolvedRestPath path = resource.sorts().get(defSort.field());
-            String sortProperty = path != null ? path.source() : defSort.field();
+            if (path == null) {
+                throw new RestReadException(RestReadOutcome.SECURITY_UNAVAILABLE,
+                    "Default sort field '" + defSort.field() + "' is not present in the resolved REST catalog");
+            }
+            String sortProperty = path.source();
             Sort.Direction direction = (defSort.direction() == RestSortDirection.DESC)
                 ? Sort.Direction.DESC : Sort.Direction.ASC;
             sort = Sort.by(direction, sortProperty);

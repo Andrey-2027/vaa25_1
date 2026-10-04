@@ -1305,6 +1305,12 @@ effective capabilities, а `findOrCreate` может появиться толь
 Живая матрица и полный app-прогон 11.1, итог 11.2 и общие guard-расхождения остаются открытыми;
 gate E3.2.2/E3 не объявлен закрытым. Детали — `docs/plans/e3-2-e322-progress.md`.
 
+Детализация 11.1–11.2 от 2026-10-03 — [локальный план приёмки и закрытия](docs/plans/e3-2-e322-acceptance-plan.md):
+фиксация актуального входа с параллельными изменениями, решение kind ReceivingDocument,
+регрессия и guard'ы, единый полный `verify`, живая матрица и замеры, затем итог и сверка
+родительских критериев E3.2/E3. Шаги 11.1–11.2 остаются открытыми; общий app gate и
+остаток этапа E фиксируются отдельно от функциональной приёмки Explorer.
+
 - Entity Explorer добавляет plans, actions и RLS dimensions к фактам E3.1 и показывает их
   вместе с формами, вариантами и handlers в одной карточке с вкладками аспектов,
   деревом по resolved kind, поиском и якорями;
@@ -1373,7 +1379,7 @@ default-hook; делегаты и другие listeners явно обознач
 
 Не открывать generic entity REST до завершения этапа C.
 
-#### F-REST-READ. Входящий API чтения локальных сущностей (границы на согласовании)
+#### F-REST-READ. Входящий API чтения локальных сущностей (этап 3 — завершение приёмки)
 
 Отдельный условный срез для явно опубликованных `GET list/detail`, описанный в
 [`docs/architecture/rest-read-api-plan.md`](docs/architecture/rest-read-api-plan.md).
@@ -1393,11 +1399,37 @@ REST-пилота.
 Подробный третий срез — общий C5 read-контур, canonical read contract,
 защищённые ссылки, транзакционная проекция и приёмка итогового графа/SQL:
 [`docs/architecture/rest-read-api-stage3-security-read-plan.md`](docs/architecture/rest-read-api-stage3-security-read-plan.md).
-Его план подготовлен; реализация не начата. Контракт независимого REST fetch profile
+Реализация третьего среза и corrective pass выполнены; в повторной проверке 2026-10-03
+прошли C5 entity-key registration, REST пилот и общий canonical-read/UI набор (65/65).
+Gate 3B остаётся открытым: количественные LIST/DETAIL budgets для обоих ресурсов,
+стоимость предельного offset/window, согласование C5/admin decision и реальная ролевая
+операционная grant policy требуют завершения; owner API/surface
+проверки прошли 13/13, owner module verify прошёл для `platform-rls`, `platform-core`,
+`platform-rest` и autoconfigure. Strict/bootstrap acceptance остаётся открытым из-за
+sibling drift и ошибки очистки JAR в соседнем `crudui` (запись 2026-10-03 в плане).
+Подробный остаток и порядок закрытия этапа зафиксированы в
+[`docs/architecture/rest-read-api-stage3-completion-plan.md`](docs/architecture/rest-read-api-stage3-completion-plan.md):
+inputs/SQL baseline → окно страниц → C5/admin parity → реальные роли и UI/service
+callers → бюджеты SQL/графов → strict bootstrap и финальные gates. Рабочий default
+окна 10 000 строк реализован; окончательная приёмка стоимости остаётся в З4.
+З0 выполнен: текущие owner JAR установлены и сверены, REST app pilot прошёл 7/7;
+SQL trace объясняет 20/16 отдельным RLS ids cache, C5 остаётся 14 queries в каждом
+измеренном PrdSpec LIST. UI LIST/REST graphs и SQL baseline обоих roots записаны в
+[`docs/architecture/rest-read-api-stage3-completion-evidence.md`](docs/architecture/rest-read-api-stage3-completion-evidence.md).
+З1 выполнен: `platform.rest.read.max-window`, fail-fast configuration и проверки
+границ; owner REST verify — 91/91, root REST/API/surface checks — 21/21. На H2
+с 10 001 видимой строкой каждого ресурса последняя разрешённая страница полная,
+total не обрезается, следующий запрос отклоняется без business SQL.
+Следующий пакет — З2; эта запись не закрывает Gate 3B или strict bootstrap.
+Контракт независимого REST fetch profile
 принят в [ADR-0007 §4.1](docs/architecture/decisions/ADR-0007-canonical-data-access-path.md#rest-fixed-fetch-profile):
 полные maximum source paths, explicit subgraphs и fetchgraph без UI union/display deepen.
 Read-подмножество C5 в этом срезе
 не заменяет завершение всего C5 и gate C; HTTP-адаптер следует отдельным этапом.
+Его контракт и изолированные части можно готовить параллельно приёмке 3B;
+приёмка сквозного HTTP-чтения требует закрытых 3A/3B. PostgreSQL не является
+условием завершения третьего среза: реальные JPA/Hibernate-проверки допускаются
+на H2, проверка выбранной серверной СУБД остаётся отдельным gate развёртывания.
 
 #### F-INT-1. Внешние read models
 

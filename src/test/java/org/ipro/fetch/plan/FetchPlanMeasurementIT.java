@@ -30,6 +30,7 @@ import org.ipro.metadata.FetchGraphs;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.RlsTestFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -126,6 +127,8 @@ class FetchPlanMeasurementIT {
         wildcard.setCanUpdate(true);
         wildcard.setCanDelete(true);
         accessGrantRepository.saveAndFlush(wildcard);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, username,
+            ReceivingDocument.class, PrdSpec.class, Nomenclature.class);
     }
 
     /**

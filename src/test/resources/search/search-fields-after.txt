@@ -6,6 +6,7 @@ org.ip.model.GroupNom global=false fields=code,name
 org.ip.model.Journal global=false fields=code,name
 org.ip.model.NomSklAttribute global=false fields=
 org.ip.model.Nomenclature global=true fields=code,name
+org.ip.model.NomenclaturePrice global=false fields=
 org.ip.model.Oper global=false fields=code,name
 org.ip.model.PrdSpec global=true fields=codeSpec,draft
 org.ip.model.ReceivingDocument global=true fields=number

@@ -9,6 +9,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class VisualQueryCompilerJoinTest {
     @Test
+    void rejectsUnknownAliasEvenWhenOnFieldIsId() {
+        var definition = new VisualQueryDefinition(3, "Product", "p",
+            List.of(new VisualQueryDefinition.SelectField("id", "id")),
+            List.of(new VisualQueryDefinition.Join(null, "Journal", "j", VisualQueryDefinition.JoinKind.INNER,
+                new JoinCondition.Predicate("unknown.id", JoinCondition.Operator.EQ, "j.id"))),
+            List.of(), List.of(), null);
+        assertThatThrownBy(() -> VisualQueryCompiler.compile(definition))
+            .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("ON");
+    }
+    @Test
     void definitionRoundTripSupportsJoin() throws Exception {
         var source = new VisualQueryDefinition(1, "PrdSpec", "s",
                 List.of(new VisualQueryDefinition.SelectField("codeSpec", "code")),

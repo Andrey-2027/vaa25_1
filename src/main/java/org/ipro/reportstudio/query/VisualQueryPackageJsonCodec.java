@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /** JSON-кодек пакета визуальных запросов. Старый одиночный JSON читается как пакет без CTE. */
 public final class VisualQueryPackageJsonCodec {
     private final ObjectMapper mapper = new ObjectMapper();
-    private final VisualQueryDefinitionJsonCodec definitionCodec = new VisualQueryDefinitionJsonCodec(mapper);
+    private final VisualQueryDefinitionJsonCodec definitionCodec = new VisualQueryDefinitionJsonCodec();
 
     public VisualQueryPackage read(String json) {
         if (json == null || json.isBlank()) throw new IllegalArgumentException("JSON пакета обязателен");

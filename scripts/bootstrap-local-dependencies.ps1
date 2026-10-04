@@ -498,7 +498,11 @@ if ($FreshLocalRepository) {
 
 $resolvedLocalRepository = $null
 if ($LocalRepository) {
-    $resolvedLocalRepository = [System.IO.Path]::GetFullPath((Join-Path $projectDirectory $LocalRepository))
+    if ([System.IO.Path]::IsPathRooted($LocalRepository)) {
+        $resolvedLocalRepository = [System.IO.Path]::GetFullPath($LocalRepository)
+    } else {
+        $resolvedLocalRepository = [System.IO.Path]::GetFullPath((Join-Path $projectDirectory $LocalRepository))
+    }
     $applicationTarget = [System.IO.Path]::GetFullPath((Join-Path $projectDirectory 'target'))
     $targetPrefix = $applicationTarget.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
     if ($resolvedLocalRepository -eq $applicationTarget -or $resolvedLocalRepository.StartsWith(

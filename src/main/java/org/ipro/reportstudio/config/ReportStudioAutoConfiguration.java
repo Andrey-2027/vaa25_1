@@ -45,6 +45,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class ReportStudioAutoConfiguration {
 
     @Bean
+    public org.ipro.reportstudio.query.ReportReadAuthorizer reportReadAuthorizer(
+            EntityManagerFactory factory, org.ipro.rls.c5.C5PermissionEvaluator permissions,
+            RlsCurrentUser currentUser, java.util.List<org.ipro.reportstudio.query.ReportReadPolicy> policies,
+            AccessService accessService, RlsDimensionRegistry dimensionRegistry) {
+        return new org.ipro.reportstudio.query.ReportReadAuthorizer(factory, permissions, currentUser, policies,
+            accessService, dimensionRegistry);
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     public QuerySemanticAnalyzer reportQuerySemanticAnalyzer(EntityManagerFactory entityManagerFactory) {
         return new SqmQuerySemanticAnalyzer(entityManagerFactory);
@@ -56,17 +65,19 @@ public class ReportStudioAutoConfiguration {
                                              AccessService accessService,
                                              RlsDimensionRegistry dimensionRegistry,
                                              RlsCurrentUser currentUser,
-                                             EntityManagerFactory entityManagerFactory) {
+                                             EntityManagerFactory entityManagerFactory,
+                                             org.ipro.reportstudio.query.ReportReadAuthorizer authorizer) {
         return new ReportQueryGuard(analyzer, accessService, dimensionRegistry,
-            currentUser, entityManagerFactory);
+            currentUser, entityManagerFactory, authorizer);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public ReportQueryExecutor reportQueryExecutor(EntityManager entityManager,
                                                    RlsFilterActivator rlsFilterActivator,
-                                                   RlsCurrentUser currentUser) {
-        return new ReportQueryExecutor(entityManager, rlsFilterActivator, currentUser);
+                                                   RlsCurrentUser currentUser, ReportQueryGuard guard,
+                                                   org.ipro.reportstudio.query.ReportReadAuthorizer authorizer) {
+        return new ReportQueryExecutor(entityManager, rlsFilterActivator, currentUser, guard, authorizer);
     }
 
     @Bean

@@ -75,6 +75,18 @@ class public final org.ipro.rls.RlsWriteEnforcementListener
 class public final org.ipro.rls.RlsWriteGuardBridge
   method public static void install(org.ipro.rls.RlsDimensionRegistry)
 
+class public final org.ipro.rls.c5.C5AccessDeniedException
+  extends org.springframework.security.access.AccessDeniedException
+  ctor public(java.lang.String)
+
+class public final org.ipro.rls.c5.C5PermissionConfigurationException
+  extends java.lang.IllegalStateException
+  ctor public(java.lang.String)
+
+class public final org.ipro.rls.c5.C5PermissionKeys
+  method public static java.lang.String attributeRead(java.lang.Class<?>, java.lang.String)
+  method public static java.lang.String entityRead(java.lang.Class<?>)
+
 class public org.ipro.rls.AccessGrant
   extends org.ipro.crud.BaseEntity
   annotation jakarta.persistence.Entity
@@ -128,6 +140,7 @@ class public org.ipro.rls.RlsDimensionRegistry
   method public org.ipro.rls.RlsPolicyDescriptor policyOf(java.lang.Class<?>)
   method public void afterPropertiesSet()
   method public void rebuild()
+  method public void registerDynamicDimension(java.lang.String, org.ipro.rls.RlsDimensionKind)
 
 class public org.ipro.rls.RlsFilterActivator
   annotation org.springframework.stereotype.Component
@@ -180,6 +193,27 @@ class public org.ipro.rls.RlsUiGate
   method public org.ipro.rls.RlsUiGate$AccessDecision canDelete(java.lang.Object)
   method public org.ipro.rls.RlsUiGate$AccessDecision canUpdate(java.lang.Object)
 
+class public org.ipro.rls.c5.C5ReadDecisionService
+  ctor public(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver)
+  method public boolean isReadGranted(java.lang.String, java.lang.String)
+  method public org.ipro.rls.c5.C5ReadDecisionService$C5ReadDecision decide(java.lang.String, org.ipro.rls.AccessGrant$SubjectType, java.lang.String)
+
+class public org.ipro.rls.c5.C5ReadPermissionRegistry
+  ctor public()
+  method public boolean isRegisteredReadKey(java.lang.String)
+  method public java.util.Set<java.lang.String> registeredKeys()
+  method public void registerReadKey(java.lang.String)
+
+class public org.ipro.rls.c5.DefaultC5PermissionEvaluator
+  implements org.ipro.rls.c5.C5PermissionEvaluator
+  annotation org.springframework.stereotype.Component
+  ctor public(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver)
+  ctor public(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver, org.ipro.rls.RlsDimensionRegistry)
+  ctor public(org.ipro.rls.c5.C5ReadDecisionService)
+  method public boolean isApiPermitted(java.lang.String, java.lang.String, int, java.lang.String)
+  method public boolean isAttributeReadPermitted(java.lang.String, java.lang.Class<?>, java.lang.String)
+  method public boolean isEntityReadPermitted(java.lang.String, java.lang.Class<?>)
+
 class public org.ipro.rls.config.RlsAutoConfiguration
   annotation org.springframework.boot.autoconfigure.AutoConfiguration
   annotation org.springframework.boot.autoconfigure.AutoConfigureBefore
@@ -197,6 +231,9 @@ class public org.ipro.rls.config.RlsAutoConfiguration
   method public org.ipro.rls.RlsRepositoryEnforcementAspect rlsRepositoryEnforcementAspect(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsPolicyEnforcer, org.ipro.rls.RlsOwnedSectionLookup, org.springframework.transaction.PlatformTransactionManager)
   method public org.ipro.rls.RlsStatementGuard rlsStatementGuard(org.ipro.rls.RlsDimensionRegistry, boolean)
   method public org.ipro.rls.RlsUiGate rlsUiGate(org.ipro.rls.AccessService, org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsCurrentUser)
+  method public org.ipro.rls.c5.C5PermissionEvaluator c5PermissionEvaluator(org.ipro.rls.c5.C5ReadDecisionService)
+  method public org.ipro.rls.c5.C5ReadDecisionService c5ReadDecisionService(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver)
+  method public org.ipro.rls.c5.C5ReadPermissionRegistry c5ReadPermissionRegistry()
   method public org.springframework.boot.web.servlet.FilterRegistrationBean<org.ipro.rls.RlsGuardRequestFilter> rlsGuardRequestFilter()
 
 class public org.ipro.rls.config.RlsPersistenceAutoConfiguration
@@ -234,6 +271,7 @@ interface public abstract interface org.ipro.rls.AccessGrantRepository
   implements org.springframework.data.jpa.repository.JpaSpecificationExecutor<org.ipro.rls.AccessGrant>
   annotation org.springframework.stereotype.Repository
   method public abstract java.util.List<org.ipro.rls.AccessGrant> findBySubjectTypeAndSubjectKeyAndDimension(org.ipro.rls.AccessGrant$SubjectType, java.lang.String, java.lang.String)
+  method public abstract java.util.List<org.ipro.rls.AccessGrant> findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(org.ipro.rls.AccessGrant$SubjectType, java.lang.String, java.lang.String)
   method public abstract java.util.List<org.ipro.rls.AccessGrant> findRoleGrants(java.lang.String, java.util.Collection<java.lang.String>)
   method public abstract java.util.List<org.ipro.rls.AccessGrant> findUserGrants(java.lang.String, java.lang.String)
   method public abstract long countByDimension(java.lang.String)
@@ -264,6 +302,11 @@ interface public abstract interface org.ipro.rls.RlsOwnedSectionLookup
 
 interface public abstract interface org.ipro.rls.RlsRoleResolver
   method public abstract java.util.List<java.lang.String> rolesOf(java.lang.String)
+
+interface public abstract interface org.ipro.rls.c5.C5PermissionEvaluator
+  method public abstract boolean isApiPermitted(java.lang.String, java.lang.String, int, java.lang.String)
+  method public abstract boolean isAttributeReadPermitted(java.lang.String, java.lang.Class<?>, java.lang.String)
+  method public abstract boolean isEntityReadPermitted(java.lang.String, java.lang.Class<?>)
 
 record public static final org.ipro.rls.AccessService$EffectiveGrant
   extends java.lang.Record
@@ -334,4 +377,15 @@ record public static final org.ipro.rls.RlsUiGate$AccessDecision
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.String reason()
+
+record public static final org.ipro.rls.c5.C5ReadDecisionService$C5ReadDecision
+  extends java.lang.Record
+  ctor public(boolean, boolean, java.util.List<java.lang.String>)
+  method public boolean direct()
+  method public boolean granted()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<java.lang.String> roles()
+  method public static org.ipro.rls.c5.C5ReadDecisionService$C5ReadDecision deny()
 

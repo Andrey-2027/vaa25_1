@@ -94,6 +94,7 @@ API org.ipro.crud.ValidationException
 API org.ipro.data.CanonicalEntityService
 API org.ipro.data.DataOperation
 API org.ipro.data.EntityCapabilityOverride
+API org.ipro.data.EntityDataAccess
 API org.ipro.data.EntityDataAccessResolver
 API org.ipro.data.EntityExposure
 API org.ipro.data.EntityExposureOverride
@@ -210,6 +211,8 @@ API org.ipro.rls.RlsDimension
 API org.ipro.rls.RlsDimensionKind
 API org.ipro.rls.RlsDimensionRegistry
 API org.ipro.rls.RlsDimensionValueCatalog
+API org.ipro.rls.c5.C5ReadDecisionService
+API org.ipro.rls.c5.C5ReadPermissionRegistry
 API org.ipro.rest.api.RestFieldType
 API org.ipro.rest.api.RestFilterOperator
 API org.ipro.rest.api.RestNullability
@@ -292,6 +295,7 @@ legacy-internal org.ipro.reportstudio.query.ReconcileResult org/ip/views/reports
 legacy-internal org.ipro.reportstudio.query.ReportPreviewService org/ip/config/JpqlRunService.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/test/ReportQueryPreviewView.java
 legacy-internal org.ipro.reportstudio.query.ReportQueryAssemblyService org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java
 legacy-internal org.ipro.reportstudio.query.ReportQueryGuard org/ip/config/JpqlRunService.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java org/ip/views/test/ReportQueryPreviewView.java
+SPI org.ipro.reportstudio.query.ReportReadPolicy
 legacy-internal org.ipro.reportstudio.query.ServiceParams org/ip/views/reports/JrxmlRunDialog.java
 legacy-internal org.ipro.reportstudio.query.editor.QueryEditorAnalysis org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/ReportQueryDialog.java
 legacy-internal org.ipro.reportstudio.query.editor.QueryEditorAnalysisService org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportEditorView.java

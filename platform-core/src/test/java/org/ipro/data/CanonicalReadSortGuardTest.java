@@ -10,6 +10,7 @@ import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
+import org.ipro.rls.c5.C5PermissionEvaluator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
@@ -61,7 +62,7 @@ class CanonicalReadSortGuardTest {
         when(readGate.canRead(any(), any())).thenReturn(true);
         executor = new CanonicalReadExecutor(catalog, mock(ScenarioFetchGraphResolver.class),
             mock(MetadataResolver.class), mock(RlsFilterActivator.class), readGate, null,
-            ReadTelemetry.noop(), () -> "test-user");
+            ReadTelemetry.noop(), null, () -> "test-user", allowAllC5());
         ReflectionTestUtils.setField(executor, "entityManager", entityManager);
     }
 
@@ -109,5 +110,11 @@ class CanonicalReadSortGuardTest {
         when(attribute.getName()).thenReturn(name);
         when(managed.getAttributes()).thenReturn(Set.of(attribute));
         when(metamodel.managedType(C4FixtureEntity.class)).thenReturn(managed);
+    }
+
+    private C5PermissionEvaluator allowAllC5() {
+        C5PermissionEvaluator evaluator = mock(C5PermissionEvaluator.class);
+        when(evaluator.isEntityReadPermitted("test-user", C4FixtureEntity.class)).thenReturn(true);
+        return evaluator;
     }
 }

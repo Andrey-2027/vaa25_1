@@ -199,6 +199,7 @@ org.ipro.reportstudio.config -> org.ipro.reportstudio.run
 org.ipro.reportstudio.config -> org.ipro.reportstudio.service
 org.ipro.reportstudio.config -> org.ipro.reportstudio.transfer
 org.ipro.reportstudio.config -> org.ipro.rls
+org.ipro.reportstudio.config -> org.ipro.rls.c5
 org.ipro.reportstudio.dom -> org.ipro.crud
 org.ipro.reportstudio.dom -> org.ipro.reportstudio.render
 org.ipro.reportstudio.dto -> org.ipro.reportstudio.dom
@@ -217,6 +218,7 @@ org.ipro.reportstudio.query -> org.ipro.reportstudio.dom
 org.ipro.reportstudio.query -> org.ipro.reportstudio.param
 org.ipro.reportstudio.query -> org.ipro.reportstudio.run
 org.ipro.reportstudio.query -> org.ipro.rls
+org.ipro.reportstudio.query -> org.ipro.rls.c5
 org.ipro.reportstudio.render -> org.ipro.reportstudio.data
 org.ipro.reportstudio.render -> org.ipro.reportstudio.dom
 org.ipro.reportstudio.run -> org.ipro.reportstudio.dom

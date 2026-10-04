@@ -14,6 +14,7 @@ import org.ipro.rest.catalog.RestResourceKey;
 import org.ipro.rest.security.RestReferenceAuthorizationValidator;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.c5.C5PermissionEvaluator;
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -146,7 +147,7 @@ class RestReadGate3ASecurityAcceptanceTest {
         assertThatThrownBy(() -> service.list(query))
             .isInstanceOf(RestReadException.class)
             .hasFieldOrPropertyWithValue("outcome", RestReadOutcome.FORBIDDEN)
-            .hasMessageContaining("ENTITY:SampleEntity");
+            .hasMessageContaining(C5PermissionKeys.entityRead(SampleEntity.class));
     }
 
     @Test

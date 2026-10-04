@@ -1,35 +1,38 @@
 package org.ipro.rls.c5;
 
-import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsRoleResolver;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
  * Default implementation of C5 permission evaluator.
- * Queries AccessGrant store using STRICT exact matching on dimension (excluding RLS '*' wildcard).
+ * Queries the grant store through {@link C5ReadDecisionService} using STRICT exact matching
+ * on dimension (excluding the RLS {@code "*"} wildcard) and only global {@code canRead} grants,
+ * so the server decision is the same one shown by the grant admin (F-REST-READ-3, З2).
  */
 @Component
 public class DefaultC5PermissionEvaluator implements C5PermissionEvaluator {
 
-    private final AccessGrantRepository grantRepository;
-    private final RlsRoleResolver roleResolver;
-    private final org.ipro.rls.RlsDimensionRegistry dimensionRegistry;
+    private final C5ReadDecisionService decisionService;
 
     public DefaultC5PermissionEvaluator(AccessGrantRepository grantRepository,
                                         RlsRoleResolver roleResolver) {
-        this(grantRepository, roleResolver, null);
+        this(new C5ReadDecisionService(grantRepository, roleResolver));
     }
 
+    /** Kept for binary compatibility; C5 keys no longer derive from the RLS dimension registry. */
     public DefaultC5PermissionEvaluator(AccessGrantRepository grantRepository,
                                         RlsRoleResolver roleResolver,
-                                        org.ipro.rls.RlsDimensionRegistry dimensionRegistry) {
-        this.grantRepository = Objects.requireNonNull(grantRepository, "grantRepository must not be null");
-        this.roleResolver = Objects.requireNonNull(roleResolver, "roleResolver must not be null");
-        this.dimensionRegistry = dimensionRegistry;
+                                        RlsDimensionRegistry ignoredDimensionRegistry) {
+        this(grantRepository, roleResolver);
+    }
+
+    /** Production constructor: the shared read decision service owned by platform-rls. */
+    public DefaultC5PermissionEvaluator(C5ReadDecisionService decisionService) {
+        this.decisionService = Objects.requireNonNull(decisionService, "decisionService must not be null");
     }
 
     @Override
@@ -39,7 +42,7 @@ public class DefaultC5PermissionEvaluator implements C5PermissionEvaluator {
         Objects.requireNonNull(operation, "operation must not be null");
 
         String key = String.format("REST:%s:v%d:%s", resourceKey, major, operation);
-        return hasExactGrant(key, username);
+        return decisionService.isReadGranted(key, username);
     }
 
     @Override
@@ -47,22 +50,7 @@ public class DefaultC5PermissionEvaluator implements C5PermissionEvaluator {
         Objects.requireNonNull(username, "username must not be null");
         Objects.requireNonNull(entityType, "entityType must not be null");
 
-        if (dimensionRegistry != null) {
-            org.ipro.rls.RlsPolicyDescriptor policy = dimensionRegistry.policyOf(entityType);
-            for (String dim : policy.checkOnlyDimensions()) {
-                if (dim.startsWith("ENTITY:") && hasExactGrant(dim, username)) {
-                    return true;
-                }
-            }
-        }
-
-        String fqnKey = "ENTITY:" + entityType.getName();
-        if (hasExactGrant(fqnKey, username)) {
-            return true;
-        }
-
-        String key = "ENTITY:" + entityType.getSimpleName();
-        return hasExactGrant(key, username);
+        return decisionService.isReadGranted(C5PermissionKeys.entityRead(entityType), username);
     }
 
     @Override
@@ -71,33 +59,7 @@ public class DefaultC5PermissionEvaluator implements C5PermissionEvaluator {
         Objects.requireNonNull(entityType, "entityType must not be null");
         Objects.requireNonNull(persistentPath, "persistentPath must not be null");
 
-        String fqnKey = "ATTR:" + entityType.getName() + ":" + persistentPath;
-        if (hasExactGrant(fqnKey, username)) {
-            return true;
-        }
-
-        String key = "ATTR:" + entityType.getSimpleName() + ":" + persistentPath;
-        return hasExactGrant(key, username);
-    }
-
-    private boolean hasExactGrant(String dimension, String username) {
-        // Direct user grants with exact dimension
-        List<AccessGrant> userGrants = grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
-            AccessGrant.SubjectType.USER, username, dimension);
-        if (userGrants.stream().anyMatch(AccessGrant::isCanRead)) {
-            return true;
-        }
-
-        // Role grants with exact dimension
-        List<String> roles = roleResolver.rolesOf(username);
-        for (String role : roles) {
-            List<AccessGrant> roleGrants = grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
-                AccessGrant.SubjectType.ROLE, role, dimension);
-            if (roleGrants.stream().anyMatch(AccessGrant::isCanRead)) {
-                return true;
-            }
-        }
-
-        return false;
+        return decisionService.isReadGranted(
+            C5PermissionKeys.attributeRead(entityType, persistentPath), username);
     }
 }

@@ -1,5 +1,6 @@
 package org.ipro.rls;
 
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,5 +58,20 @@ public final class RlsTestFixture {
         wildcard.setCanDelete(true);
         grants.saveAndFlush(wildcard);
         return username;
+    }
+
+    /** Add explicit read grants for canonical-read tests; an RLS wildcard is a separate permission. */
+    public static void grantC5EntityRead(AccessGrantRepository grants, String username,
+                                         Class<?>... entityTypes) {
+        for (Class<?> entityType : entityTypes) {
+            AccessGrant entityRead = new AccessGrant();
+            entityRead.setSubjectType(AccessGrant.SubjectType.USER);
+            entityRead.setSubjectKey(username);
+            entityRead.setDimension(C5PermissionKeys.entityRead(entityType));
+            entityRead.setDimensionValueId(null);
+            entityRead.setCanRead(true);
+            grants.save(entityRead);
+        }
+        grants.flush();
     }
 }

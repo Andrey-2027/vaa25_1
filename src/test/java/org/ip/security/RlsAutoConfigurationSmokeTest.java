@@ -3,6 +3,7 @@ package org.ip.security;
 import org.ip.config.DataInitializer;
 import org.ip.model.Branch;
 import org.ip.model.Journal;
+import org.ip.model.Nomenclature;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.User;
 import org.ip.model.Workshop;
@@ -21,6 +22,7 @@ import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadableIdsCache;
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -373,6 +375,15 @@ class RlsAutoConfigurationSmokeTest {
         assertThat(effective.get("ENTITY:ReceivingDocument").canUpdate()).isTrue();
         assertThat(effective.get("JOURNAL").canRead()).isFalse();
         assertThat(effective.get("JOURNAL").sources()).isEmpty();
+    }
+
+    @Test
+    void c5EntityReadKeysAreAvailableToTheExistingGrantAdmin() {
+        authenticateAdmin();
+
+        assertThat(accessGrantAdminService.availableDimensions())
+            .contains(C5PermissionKeys.entityRead(Nomenclature.class),
+                C5PermissionKeys.entityRead(ReceivingDocument.class));
     }
 
     @Test

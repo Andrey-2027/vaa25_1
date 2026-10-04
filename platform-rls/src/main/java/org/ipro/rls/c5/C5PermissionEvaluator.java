@@ -14,13 +14,13 @@ public interface C5PermissionEvaluator {
 
     /**
      * Checks if the given subject has C5 read permission for the entity type.
-     * The permission key is formatted as: ENTITY:{entityType.getSimpleName()}
+     * The permission key is formatted as ENTITY:{entityType.getName()}.
      */
     boolean isEntityReadPermitted(String username, Class<?> entityType);
 
     /**
      * Checks if the given subject has C5 read permission for a specific attribute of the entity.
-     * The permission key is formatted as: ATTR:{entityType.getSimpleName()}:{persistentPath}
+     * The permission key is formatted as ATTR:{entityType.getName()}:{persistentPath}.
      */
     boolean isAttributeReadPermitted(String username, Class<?> entityType, String persistentPath);
 }

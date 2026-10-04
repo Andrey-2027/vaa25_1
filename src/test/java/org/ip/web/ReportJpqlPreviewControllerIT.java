@@ -89,6 +89,12 @@ class ReportJpqlPreviewControllerIT {
             createUser(ALLOWED_USER, "dave-pass");
             persistGrant(ALLOWED_USER, "REPORTS:JPQL_PREVIEW", null);
             persistGrant(ALLOWED_USER, "JOURNAL", null);
+            Class<?> type = org.ip.model.Journal.class;
+            persistGrant(ALLOWED_USER, org.ipro.rls.c5.C5PermissionKeys.entityRead(type), null);
+            for (var attribute : entityManager.getMetamodel().entity(type).getAttributes()) {
+                persistGrant(ALLOWED_USER,
+                        org.ipro.rls.c5.C5PermissionKeys.attributeRead(type, attribute.getName()), null);
+            }
             // bob: право на эндпоинт есть, RLS-грантов на JOURNAL нет
             persistGrant(DENIED_USER, "REPORTS:JPQL_PREVIEW", null);
             entityManager.flush();
@@ -158,6 +164,22 @@ class ReportJpqlPreviewControllerIT {
                 .andExpect(jsonPath("$.error").isNotEmpty())
                 .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         assertThat(content).contains("отклонён");
+    }
+
+    @Test
+    void rlsAndPreviewPermissionDoNotReplaceC5EntityRead() throws Exception {
+        txTemplate().executeWithoutResult(status -> {
+            createUser(GRANTLESS_USER, "carol-pass");
+            persistGrant(GRANTLESS_USER, "REPORTS:JPQL_PREVIEW", null);
+            persistGrant(GRANTLESS_USER, "JOURNAL", null);
+        });
+        String content = mockMvc.perform(post(URL)
+                        .header("Authorization", basic(GRANTLESS_USER, "carol-pass"))
+                        .contentType("application/json")
+                        .content("{\"jpql\":\"select j.id as id from Journal j\"}"))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertThat(content).contains("ENTITY-read");
     }
 
     private static String basic(String user, String password) {

@@ -16,6 +16,7 @@ import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
+import org.ipro.rls.c5.C5PermissionEvaluator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +76,7 @@ class GroupNomVersionNormalizationIT {
 
         CanonicalReadExecutor readExecutor = new CanonicalReadExecutor(catalog, graphResolver,
             metadataResolver, rlsFilterActivator, readGate, null, ReadTelemetry.noop(),
-            () -> "test-user");
+            null, () -> "test-user", allowAllC5());
         ReflectionTestUtils.setField(readExecutor, "entityManager", entityManager);
 
         writeExecutor = new CanonicalWriteExecutor(catalog, readExecutor, entityManager,
@@ -110,5 +111,11 @@ class GroupNomVersionNormalizationIT {
         entityManager.clear();
         assertThat(entityManager.find(GroupNom.class, saved.getId()).getName())
             .isEqualTo("Тест версии (изменено)");
+    }
+
+    private C5PermissionEvaluator allowAllC5() {
+        C5PermissionEvaluator evaluator = mock(C5PermissionEvaluator.class);
+        when(evaluator.isEntityReadPermitted(any(), any())).thenReturn(true);
+        return evaluator;
     }
 }

@@ -35,6 +35,43 @@ import static org.mockito.Mockito.when;
 class ItemFormSaveFlowTest {
 
     @Test
+    void duplicateKeyShowsAFriendlyMessageAndPreservesTheCause() {
+        ItemForm<TestDocument> form = formWithMetadata();
+        RuntimeException error = new IllegalStateException("technical SQL",
+            new java.sql.SQLException("unique index details", "23505"));
+        form.setSaveHandler(ignored -> { throw error; });
+
+        FormSaveResult.Failure<TestDocument> result = (FormSaveResult.Failure<TestDocument>) form.save();
+
+        assertThat(result.messages()).containsExactly(
+            "Запись с такими ключевыми значениями уже существует. Измените ключ или откройте существующую запись.");
+        assertThat(result.cause()).isSameAs(error);
+    }
+
+    @Test
+    void springDuplicateKeyTranslationAlsoShowsAFriendlyMessage() {
+        ItemForm<TestDocument> form = formWithMetadata();
+        form.setSaveHandler(ignored -> { throw new org.springframework.dao.DuplicateKeyException("SQL"); });
+
+        FormSaveResult.Failure<TestDocument> result = (FormSaveResult.Failure<TestDocument>) form.save();
+
+        assertThat(result.messages()).singleElement().asString().contains("уже существует");
+    }
+
+    @Test
+    void notNullViolationIsNotMisclassifiedAsADuplicate() {
+        ItemForm<TestDocument> form = formWithMetadata();
+        RuntimeException error = new IllegalStateException("required column",
+            new java.sql.SQLException("not null", "23502"));
+        form.setSaveHandler(ignored -> { throw error; });
+
+        FormSaveResult.Failure<TestDocument> result = (FormSaveResult.Failure<TestDocument>) form.save();
+
+        assertThat(result.messages()).containsExactly("Ошибка сохранения: required column");
+        assertThat(result.cause()).isSameAs(error);
+    }
+
+    @Test
     void saveWithoutHandlerReturnsFailureWithMessage() {
         ItemForm<TestDocument> form = formWithMetadata();
 

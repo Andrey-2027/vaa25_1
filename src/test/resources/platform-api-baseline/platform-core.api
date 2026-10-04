@@ -46,6 +46,7 @@ class public final org.ipro.data.FetchPlanInspection
 class public final org.ipro.data.ScenarioFetchGraphResolver
   ctor public(org.ipro.metadata.MetadataResolver, org.ipro.fetch.plan.FetchPlanRegistry, org.ipro.fetch.instance.InstanceNameResolver)
   method public jakarta.persistence.EntityGraph<T> resolve(jakarta.persistence.EntityManager, java.lang.Class<T>, org.ipro.fetch.plan.FetchScenario, java.util.Collection<java.lang.String>)
+  method public jakarta.persistence.EntityGraph<T> resolveRestFetchGraph(jakarta.persistence.EntityManager, java.lang.Class<T>, java.util.Collection<java.lang.String>)
   method public java.util.List<java.lang.String> resolvePaths(java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario, java.util.Collection<java.lang.String>)
 
 class public final org.ipro.fetch.ManagedEntityTypes
@@ -361,6 +362,13 @@ class public org.ipro.data.CanonicalEntityDataAccess
   method public org.springframework.data.domain.Page<T> search(java.lang.Class<T>, java.lang.String, org.springframework.data.domain.Pageable)
   method public void delete(java.lang.Class<T>, java.lang.Object)
 
+class public org.ipro.data.CanonicalEntityReadAccess
+  implements org.ipro.data.EntityReadAccess
+  ctor public(org.ipro.data.CanonicalReadExecutor)
+  ctor public(org.ipro.data.CanonicalReadExecutor, org.ipro.data.EntityDataAccessResolver)
+  method public java.util.Optional<T> detail(java.lang.Class<T>, java.lang.Object, java.util.Collection<java.lang.String>)
+  method public org.springframework.data.domain.Page<T> list(java.lang.Class<T>, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+
 class public org.ipro.data.CanonicalEntityService
   implements org.ipro.crud.BaseService<T, java.lang.Long>
   type-parameter T
@@ -383,14 +391,18 @@ class public org.ipro.data.CanonicalEntityService
 class public org.ipro.data.CanonicalReadExecutor
   annotation org.springframework.transaction.annotation.Transactional
   ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.ScenarioFetchGraphResolver, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsPolicyEnforcer, org.ipro.data.ReadTelemetry, org.ipro.fetch.instance.InstanceNameResolver, org.ipro.rls.RlsCurrentUser)
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.ScenarioFetchGraphResolver, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsPolicyEnforcer, org.ipro.data.ReadTelemetry, org.ipro.fetch.instance.InstanceNameResolver, org.ipro.rls.RlsCurrentUser, org.ipro.rls.c5.C5PermissionEvaluator)
   ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.ScenarioFetchGraphResolver, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsPolicyEnforcer, org.ipro.data.ReadTelemetry, org.ipro.rls.RlsCurrentUser)
   method public boolean canRead(java.lang.Class<?>)
+  method public boolean canReadApi(java.lang.Class<?>)
   method public java.lang.Number readSum(java.lang.Class<?>, java.lang.String, org.springframework.data.jpa.domain.Specification<?>)
   method public java.util.List<T> readAll(org.ipro.data.ListRead<T>)
   method public java.util.List<T> readLookup(org.ipro.data.LookupRead<T>)
   method public java.util.List<T> readSearchWindow(org.ipro.data.SearchRead<T>, int, int)
+  method public java.util.Optional<T> readApiDetail(org.ipro.data.ApiDetailRead<T>)
   method public java.util.Optional<T> readDetail(org.ipro.data.DetailRead<T>)
   method public org.ipro.data.EntityDescriptor descriptorOf(java.lang.Class<?>)
+  method public org.springframework.data.domain.Page<T> readApiPage(org.ipro.data.ApiPageRead<T>)
   method public org.springframework.data.domain.Page<T> readPage(org.ipro.data.PageRead<T>)
   method public org.springframework.data.domain.Page<T> readSearch(org.ipro.data.SearchRead<T>)
 
@@ -407,11 +419,19 @@ class public org.ipro.data.CanonicalWriteExecutor
 
 class public org.ipro.data.EntityDataAccessResolver
   ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.data.EntityDataAccess, org.ipro.data.CanonicalReadExecutor, java.util.List<org.ipro.data.EntityDataPolicy>)
+  method public boolean hasCustomPolicy(java.lang.Class<?>)
   method public java.lang.String resolutionReason(java.lang.Class<?>)
   method public java.util.Optional<org.ipro.crud.BaseService<T, ID>> findService(java.lang.Class<T>)
   method public java.util.Optional<org.ipro.data.EntityDataAccess> find(java.lang.Class<?>)
   method public org.ipro.data.EntityDataAccess resolve(java.lang.Class<?>)
   method public org.ipro.data.EntityDescriptor descriptor(java.lang.Class<?>)
+
+class public org.ipro.data.RestGraphException
+  extends java.lang.RuntimeException
+  ctor public(org.ipro.data.RestGraphException$Code, java.lang.Class<?>, java.lang.String, java.lang.String)
+  method public java.lang.Class<?> entityType()
+  method public java.lang.String path()
+  method public org.ipro.data.RestGraphException$Code code()
 
 class public org.ipro.data.grouping.JpaGroupingValuesProviderFactory
   implements org.ipro.data.grouping.GroupingValuesProviderFactory
@@ -537,6 +557,17 @@ enum public static final org.ipro.data.ReadTelemetry$ReadOutcome
   method public static org.ipro.data.ReadTelemetry$ReadOutcome valueOf(java.lang.String)
   method public static org.ipro.data.ReadTelemetry$ReadOutcome[] values()
 
+enum public static final org.ipro.data.RestGraphException$Code
+  extends java.lang.Enum<org.ipro.data.RestGraphException$Code>
+  enum-constants [MISSING_PATHS, MISSING_IDENTIFIER_PATH, BARE_ASSOCIATION_NOT_ALLOWED, COLLECTION_PATH_NOT_SUPPORTED, INVALID_PERSISTENT_PATH]
+  field public static final org.ipro.data.RestGraphException$Code BARE_ASSOCIATION_NOT_ALLOWED = enum-constant
+  field public static final org.ipro.data.RestGraphException$Code COLLECTION_PATH_NOT_SUPPORTED = enum-constant
+  field public static final org.ipro.data.RestGraphException$Code INVALID_PERSISTENT_PATH = enum-constant
+  field public static final org.ipro.data.RestGraphException$Code MISSING_IDENTIFIER_PATH = enum-constant
+  field public static final org.ipro.data.RestGraphException$Code MISSING_PATHS = enum-constant
+  method public static org.ipro.data.RestGraphException$Code valueOf(java.lang.String)
+  method public static org.ipro.data.RestGraphException$Code[] values()
+
 enum public static final org.ipro.data.WriteTelemetry$DenialKind
   extends java.lang.Enum<org.ipro.data.WriteTelemetry$DenialKind>
   enum-constants [CAPABILITY, AGGREGATE_BOUNDARY, ACCESS]
@@ -610,6 +641,10 @@ interface public abstract interface org.ipro.data.EntityDataPolicy
   method public java.lang.String reason()
   method public org.ipro.data.EntityDataPolicy validate()
 
+interface public abstract interface org.ipro.data.EntityReadAccess
+  method public abstract java.util.Optional<T> detail(java.lang.Class<T>, java.lang.Object, java.util.Collection<java.lang.String>)
+  method public abstract org.springframework.data.domain.Page<T> list(java.lang.Class<T>, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+
 interface public abstract interface org.ipro.data.ReadTelemetry
   annotation java.lang.FunctionalInterface
   method public abstract void completed(org.ipro.data.DataOperation, java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario, org.ipro.data.ReadTelemetry$ReadOutcome, int, long)
@@ -658,6 +693,31 @@ interface public abstract static interface org.ipro.data.WriteTelemetry$WriteSco
   method public abstract void pipelineCompleted(int)
   method public abstract void rolledBack(java.lang.String)
   method public static org.ipro.data.WriteTelemetry$WriteScope noop()
+
+record public final org.ipro.data.ApiDetailRead
+  extends java.lang.Record
+  type-parameter T
+  ctor public(java.lang.Class<T>, java.lang.Object, java.util.Collection<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<T> type()
+  method public java.lang.Object id()
+  method public java.util.Collection<java.lang.String> fixedFetchPaths()
+  method public static org.ipro.data.ApiDetailRead<T> of(java.lang.Class<T>, java.lang.Object, java.util.Collection<java.lang.String>)
+
+record public final org.ipro.data.ApiPageRead
+  extends java.lang.Record
+  type-parameter T
+  ctor public(java.lang.Class<T>, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<T> type()
+  method public java.util.Collection<java.lang.String> fixedFetchPaths()
+  method public org.springframework.data.domain.Pageable pageable()
+  method public org.springframework.data.jpa.domain.Specification<T> filter()
+  method public static org.ipro.data.ApiPageRead<T> of(java.lang.Class<T>, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
 
 record public final org.ipro.data.EntityCapabilities
   extends java.lang.Record

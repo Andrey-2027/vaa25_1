@@ -9,7 +9,9 @@ import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsReadGate;
 import org.ipro.rls.c5.C5PermissionEvaluator;
+import org.ipro.rls.c5.C5ReadPermissionRegistry;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,22 +27,25 @@ import org.springframework.context.annotation.Bean;
 public class RestReadAutoConfiguration {
 
     @Bean
-    @ConditionalOnBean({C5PermissionEvaluator.class, RlsDimensionRegistry.class})
+    @ConditionalOnBean({C5PermissionEvaluator.class, RlsDimensionRegistry.class, RestResourceCatalog.class})
     @ConditionalOnMissingBean
     public RestReferenceAuthorizationValidator restReferenceAuthorizationValidator(
             C5PermissionEvaluator c5Evaluator,
             RlsDimensionRegistry dimensionRegistry,
-            ObjectProvider<RlsReadGate> readGateProvider) {
-        return new RestReferenceAuthorizationValidator(c5Evaluator, dimensionRegistry, readGateProvider.getIfAvailable());
+            ObjectProvider<RlsReadGate> readGateProvider,
+            RestResourceCatalog catalog) {
+        return new RestReferenceAuthorizationValidator(c5Evaluator, dimensionRegistry,
+            readGateProvider.getIfAvailable(), catalog);
     }
 
     @Bean
-    @ConditionalOnBean({RestResourceCatalog.class, RlsDimensionRegistry.class})
+    @ConditionalOnBean({RestResourceCatalog.class, RlsDimensionRegistry.class, C5ReadPermissionRegistry.class})
     @ConditionalOnMissingBean
     public C5RestOperationRegistrar c5RestOperationRegistrar(
             RestResourceCatalog catalog,
-            RlsDimensionRegistry dimensionRegistry) {
-        return new C5RestOperationRegistrar(catalog, dimensionRegistry);
+            RlsDimensionRegistry dimensionRegistry,
+            C5ReadPermissionRegistry readPermissionRegistry) {
+        return new C5RestOperationRegistrar(catalog, dimensionRegistry, readPermissionRegistry);
     }
 
     @Bean
@@ -50,7 +55,8 @@ public class RestReadAutoConfiguration {
             ObjectProvider<EntityReadAccess> readAccessProvider,
             ObjectProvider<C5PermissionEvaluator> c5EvaluatorProvider,
             ObjectProvider<RlsCurrentUser> currentUserProvider,
-            ObjectProvider<RestReferenceAuthorizationValidator> referenceValidatorProvider) {
+            ObjectProvider<RestReferenceAuthorizationValidator> referenceValidatorProvider,
+            @Value("${platform.rest.read.max-window:" + RestReadService.DEFAULT_MAX_WINDOW + "}") int maxWindow) {
 
         EntityReadAccess readAccess = readAccessProvider.getIfAvailable();
         C5PermissionEvaluator c5Evaluator = c5EvaluatorProvider.getIfAvailable();
@@ -71,6 +77,6 @@ public class RestReadAutoConfiguration {
                 throw new IllegalStateException("REST read is enabled and catalog has registered resources, but RestReferenceAuthorizationValidator backend is missing");
             }
         }
-        return new RestReadService(catalog, readAccess, c5Evaluator, currentUser, referenceValidator);
+        return new RestReadService(catalog, readAccess, c5Evaluator, currentUser, referenceValidator, maxWindow);
     }
 }

@@ -1,0 +1,48 @@
+F-REST-READ-3 / Z0 SQL trace, 2026-10-03
+Source: RestReadPipelinePilotIT, Maven test run finished 2026-10-03 19:32:20 Europe/Moscow.
+JDK 21.0.11; Maven 3.9.9; Hibernate 7.2.12.Final; H2 2.4.240; OSIV=false; L2=false.
+Repeated identical SQL templates are grouped only within each measured call.
+SQL has JDBC placeholders; bound values and fixture setup statements are excluded.
+C5_GRANT = exact global grant query; RLS_GRANT = RLS dimension/wildcard query.
+ROLE_RESOLUTION = application user/role storage query; CONTENT/COUNT = root business reads.
+
+REST-Z0 GRAPH specifications UI-LIST=[journal, nomenclature] REST-LIST=[id, codeSpec, draft, nomenclature.code] REST-DETAIL=[id, codeSpec, draft, comment, journal.id, nomenclature.code]
+REST-Z0 GRAPH nomenclature UI-LIST=[groupNom, unitOfMeasurement] REST-LIST=[id, code, name, typeNom] REST-DETAIL=[id, code, name, typeNom]
+REST-Z0 SQL PrdSpec UI LIST size=1 RLS-ids-already-resolved total=3 C5=1 RLS=0 roles=0 content=1 count=1 other=0
+1x REST-Z0 C5_GRANT select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+1x REST-Z0 CONTENT select ps1_0.id,ps1_0.code_spec,ps1_0.comment,ps1_0.created_at,ps1_0.created_by,ps1_0.draft,ps1_0.journal_id,j1_0.id,j1_0.code,j1_0.created_at,j1_0.created_by,j1_0.modified_at,j1_0.modified_by,j1_0.name,j1_0.version,ps1_0.modified_at,ps1_0.modified_by,ps1_0.nomenclature_id,n1_0.id,n1_0.code,n1_0.created_at,n1_0.created_by,n1_0.group_nom_id,n1_0.modified_at,n1_0.modified_by,n1_0.name,n1_0.type_nom,n1_0.unit_id,n1_0.version,ps1_0.version from prd_spec ps1_0 join journal j1_0 on j1_0.id=ps1_0.journal_id and j1_0.id in (?) join nomenclature n1_0 on n1_0.id=ps1_0.nomenclature_id where ps1_0.journal_id in (?) and ps1_0.journal_id=? order by ps1_0.id offset ? rows fetch first ? rows only
+1x REST-Z0 COUNT select count(ps1_0.id) from prd_spec ps1_0 where ps1_0.journal_id in (?) and ps1_0.journal_id=?
+
+REST-Z0 SQL PrdSpec REST LIST size=1 RLS-ids-already-resolved total=16 C5=14 RLS=0 roles=0 content=1 count=1 other=0
+14x REST-Z0 C5_GRANT select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+1x REST-Z0 CONTENT select ps1_0.id,ps1_0.code_spec,ps1_0.comment,ps1_0.created_at,ps1_0.created_by,ps1_0.draft,ps1_0.journal_id,ps1_0.modified_at,ps1_0.modified_by,ps1_0.nomenclature_id,n1_0.id,n1_0.code,n1_0.created_at,n1_0.created_by,n1_0.group_nom_id,n1_0.modified_at,n1_0.modified_by,n1_0.name,n1_0.type_nom,n1_0.unit_id,n1_0.version,ps1_0.version from prd_spec ps1_0 join nomenclature n1_0 on n1_0.id=ps1_0.nomenclature_id where ps1_0.journal_id in (?) and ps1_0.journal_id=? order by ps1_0.id offset ? rows fetch first ? rows only
+1x REST-Z0 COUNT select count(ps1_0.id) from prd_spec ps1_0 where ps1_0.journal_id in (?) and ps1_0.journal_id=?
+
+REST-Z0 UI PrdSpec loaded journal=true nomenclature=true materials=false operations=false
+REST-Z0 SQL Nomenclature UI LIST size=1 RLS-ids-already-resolved total=3 C5=1 RLS=0 roles=0 content=1 count=1 other=0
+1x REST-Z0 C5_GRANT select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+1x REST-Z0 CONTENT select n1_0.id,n1_0.code,n1_0.created_at,n1_0.created_by,gn1_0.id,gn1_0.code,gn1_0.created_at,gn1_0.created_by,gn1_0.modified_at,gn1_0.modified_by,gn1_0.name,gn1_0.version,n1_0.modified_at,n1_0.modified_by,n1_0.name,n1_0.type_nom,n1_0.unit_id,uom1_0.id,uom1_0.code,uom1_0.created_at,uom1_0.created_by,uom1_0.modified_at,uom1_0.modified_by,uom1_0.name,uom1_0.short_code,uom1_0.version,n1_0.version from nomenclature n1_0 left join group_nom gn1_0 on gn1_0.id=n1_0.group_nom_id join unit_of_measurement uom1_0 on uom1_0.id=n1_0.unit_id where n1_0.type_nom=? order by n1_0.code,n1_0.id offset ? rows fetch first ? rows only
+1x REST-Z0 COUNT select count(n1_0.id) from nomenclature n1_0 where n1_0.type_nom=?
+
+REST-Z0 SQL Nomenclature REST LIST size=1 RLS-ids-already-resolved total=12 C5=10 RLS=0 roles=0 content=1 count=1 other=0
+10x REST-Z0 C5_GRANT select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+1x REST-Z0 CONTENT select n1_0.id,n1_0.code,n1_0.created_at,n1_0.created_by,n1_0.group_nom_id,n1_0.modified_at,n1_0.modified_by,n1_0.name,n1_0.type_nom,n1_0.unit_id,n1_0.version from nomenclature n1_0 where n1_0.type_nom=? order by n1_0.code,n1_0.id offset ? rows fetch first ? rows only
+1x REST-Z0 COUNT select count(n1_0.id) from nomenclature n1_0 where n1_0.type_nom=?
+
+REST-Z0 UI Nomenclature loaded unitOfMeasurement=true groupNom=true
+REST-Z0 SQL PrdSpec REST first LIST size=1 total=20 C5=14 RLS=2 roles=2 content=1 count=1 other=0
+14x REST-Z0 C5_GRANT select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+1x REST-Z0 CONTENT select ps1_0.id,ps1_0.code_spec,ps1_0.comment,ps1_0.created_at,ps1_0.created_by,ps1_0.draft,ps1_0.journal_id,ps1_0.modified_at,ps1_0.modified_by,ps1_0.nomenclature_id,n1_0.id,n1_0.code,n1_0.created_at,n1_0.created_by,n1_0.group_nom_id,n1_0.modified_at,n1_0.modified_by,n1_0.name,n1_0.type_nom,n1_0.unit_id,n1_0.version,ps1_0.version from prd_spec ps1_0 join nomenclature n1_0 on n1_0.id=ps1_0.nomenclature_id where ps1_0.journal_id in (?) and ps1_0.journal_id=? order by ps1_0.id offset ? rows fetch first ? rows only
+1x REST-Z0 COUNT select count(ps1_0.id) from prd_spec ps1_0 where ps1_0.journal_id in (?) and ps1_0.journal_id=?
+2x REST-Z0 RLS_GRANT select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+2x REST-Z0 ROLE_RESOLUTION select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+
+REST-Z0 SQL PrdSpec REST repeated LIST size=1 total=16 C5=14 RLS=0 roles=0 content=1 count=1 other=0
+14x REST-Z0 C5_GRANT select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+1x REST-Z0 CONTENT select ps1_0.id,ps1_0.code_spec,ps1_0.comment,ps1_0.created_at,ps1_0.created_by,ps1_0.draft,ps1_0.journal_id,ps1_0.modified_at,ps1_0.modified_by,ps1_0.nomenclature_id,n1_0.id,n1_0.code,n1_0.created_at,n1_0.created_by,n1_0.group_nom_id,n1_0.modified_at,n1_0.modified_by,n1_0.name,n1_0.type_nom,n1_0.unit_id,n1_0.version,ps1_0.version from prd_spec ps1_0 join nomenclature n1_0 on n1_0.id=ps1_0.nomenclature_id where ps1_0.journal_id in (?) and ps1_0.journal_id=? order by ps1_0.id offset ? rows fetch first ? rows only
+1x REST-Z0 COUNT select count(ps1_0.id) from prd_spec ps1_0 where ps1_0.journal_id in (?) and ps1_0.journal_id=?
+
+REST-Z0 SQL PrdSpec REST repeated LIST size=50 total=16 C5=14 RLS=0 roles=0 content=1 count=1 other=0
+14x REST-Z0 C5_GRANT select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+1x REST-Z0 CONTENT select ps1_0.id,ps1_0.code_spec,ps1_0.comment,ps1_0.created_at,ps1_0.created_by,ps1_0.draft,ps1_0.journal_id,ps1_0.modified_at,ps1_0.modified_by,ps1_0.nomenclature_id,n1_0.id,n1_0.code,n1_0.created_at,n1_0.created_by,n1_0.group_nom_id,n1_0.modified_at,n1_0.modified_by,n1_0.name,n1_0.type_nom,n1_0.unit_id,n1_0.version,ps1_0.version from prd_spec ps1_0 join nomenclature n1_0 on n1_0.id=ps1_0.nomenclature_id where ps1_0.journal_id in (?) and ps1_0.journal_id=? order by ps1_0.id offset ? rows fetch first ? rows only
+1x REST-Z0 COUNT select count(ps1_0.id) from prd_spec ps1_0 where ps1_0.journal_id in (?) and ps1_0.journal_id=?

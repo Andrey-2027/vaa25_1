@@ -76,6 +76,8 @@ class GlobalSearchAutoConfigurationTest {
             .withBean(org.ipro.rls.RlsReadGate.class,
                 () -> mock(org.ipro.rls.RlsReadGate.class))
             .withBean(RlsCurrentUser.class, () -> mock(RlsCurrentUser.class))
+            .withBean(org.ipro.rls.c5.C5PermissionEvaluator.class,
+                () -> mock(org.ipro.rls.c5.C5PermissionEvaluator.class))
             .run(context -> {
                 assertThat(context).hasNotFailed();
                 assertThat(context).hasSingleBean(GlobalSearchCatalog.class);

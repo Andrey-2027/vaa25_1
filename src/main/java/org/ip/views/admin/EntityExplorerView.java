@@ -133,9 +133,10 @@ public class EntityExplorerView extends VerticalLayout {
     private boolean filterOptionsInitialized;
     private String displayedQuery = "";
 
-    public EntityExplorerView(@Autowired EntitySummaryAssembler assembler,
-                              @Autowired FormNavigator navigator,
-                              @Autowired EntityExplorerAccess access) {
+    @Autowired
+    public EntityExplorerView(EntitySummaryAssembler assembler,
+                              FormNavigator navigator,
+                              EntityExplorerAccess access) {
         this(() -> {
             ExplorerSnapshot snapshot = assembler.explorerSnapshot();
             return new Catalog(ExplorerTreeModel.CatalogView.of(snapshot),

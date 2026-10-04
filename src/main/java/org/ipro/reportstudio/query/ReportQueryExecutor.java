@@ -43,6 +43,8 @@ public class ReportQueryExecutor {
     private final RlsFilterActivator rlsFilterActivator;
     /** Nullable only for source-compatible hand-built tests; Spring wiring is fail-closed. */
     private final RlsCurrentUser currentUser;
+    private final ReportQueryGuard executionGuard;
+    private final ReportReadAuthorizer readAuthorizer;
 
     public ReportQueryExecutor(EntityManager entityManager, RlsFilterActivator rlsFilterActivator) {
         this(entityManager, rlsFilterActivator, null);
@@ -54,6 +56,19 @@ public class ReportQueryExecutor {
         this.entityManager = entityManager;
         this.rlsFilterActivator = rlsFilterActivator;
         this.currentUser = currentUser;
+        this.executionGuard = null;
+        this.readAuthorizer = null;
+    }
+
+    /** Полный report path: повторный допуск итогового HQL непосредственно перед SQL. */
+    public ReportQueryExecutor(EntityManager entityManager, RlsFilterActivator rlsFilterActivator,
+                               RlsCurrentUser currentUser, ReportQueryGuard executionGuard,
+                               ReportReadAuthorizer readAuthorizer) {
+        this.entityManager = Objects.requireNonNull(entityManager);
+        this.rlsFilterActivator = Objects.requireNonNull(rlsFilterActivator);
+        this.currentUser = Objects.requireNonNull(currentUser);
+        this.executionGuard = Objects.requireNonNull(executionGuard);
+        this.readAuthorizer = Objects.requireNonNull(readAuthorizer, "ReportReadAuthorizer is required");
     }
 
     /**
@@ -79,6 +94,14 @@ public class ReportQueryExecutor {
         if (currentUser != null && !RlsContext.isBypassed()) {
             currentUser.requireAuthenticatedUsername();
         }
+        if (readAuthorizer != null) {
+            readAuthorizer.requireAllowed(jpql);
+            GuardResult checked = executionGuard.guard(jpql,
+                bindings == null ? Set.of() : bindings.keySet(), Map.of(), Math.max(MAX_EXECUTION_COLUMNS, fields.size()));
+            if (!checked.allowed()) {
+                throw new IllegalArgumentException("Отказ: " + String.join("; ", checked.errors()));
+            }
+        }
         rlsFilterActivator.ensureRlsEnabled(entityManager);
         applyServerStatementTimeout(timeoutMs);
         Query query = entityManager.createQuery(jpql, Tuple.class);
@@ -93,6 +116,8 @@ public class ReportQueryExecutor {
             .getPersistenceUnitUtil();
         return toDataset(schema, tuples, persistenceUnitUtil);
     }
+
+    private static final int MAX_EXECUTION_COLUMNS = ReportQueryGuard.MAX_COLUMNS;
 
     /**
      * Серверный statement_timeout (PostgreSQL): помимо JDBC-hint это ограничивает

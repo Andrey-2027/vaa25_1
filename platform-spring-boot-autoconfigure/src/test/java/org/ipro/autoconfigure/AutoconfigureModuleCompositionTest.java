@@ -52,6 +52,7 @@ class AutoconfigureModuleCompositionTest {
         "org.ipro.metadata.config.MetadataAutoConfiguration",
         "org.ipro.fetch.config.FetchPlanInstanceNameAutoConfiguration",
         "org.ipro.data.config.DataAccessAutoConfiguration",
+        "org.ipro.data.config.C5EntityReadPermissionRegistrar",
         "org.ipro.search.config.GlobalSearchAutoConfiguration");
 
     /**

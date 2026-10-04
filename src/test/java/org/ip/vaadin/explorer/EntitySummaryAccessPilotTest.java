@@ -269,13 +269,23 @@ class EntitySummaryAccessPilotTest {
     @Test
     void theCardDrawsBothAccessSectionsForTheWorkshopPilot() {
         EntitySummaryPanel workshop = new EntitySummaryPanel(null);
-        workshop.show(summary(Workshop.class));
+        EntitySummary workshopSummary = summary(Workshop.class);
+        workshop.show(workshopSummary);
         assertThat(sectionTitles(workshop))
             .as("измерение и его правило значения — два раздела")
             .contains("Доступ", "Доступ — правила значений");
         assertThat(sectionTitles(workshop))
-            .as("аспекты без владельца факта разделов не рисуют")
-            .doesNotContain("Действия", "Сценарии чтения");
+            .as("для отсутствующих объявлений действий раздел не рисуется")
+            .doesNotContain("Действия");
+        assertThat(workshopSummary.readPlanInspectionAvailable()).isFalse();
+        assertThat(workshopSummary.readPlans()).isEmpty();
+        for (String title : List.of("Сценарии чтения", "Сценарии чтения — пути")) {
+            var section = CardSections.details(workshop, title);
+            assertThat(section).as("недоступная инспекция имеет явный раздел: %s", title).isNotNull();
+            assertThat(CardSections.textIn(section))
+                .contains("Инспекция планов чтения не подключена; число путей неизвестно.")
+                .doesNotContain("0 путей загрузки");
+        }
 
         EntitySummaryPanel noDeclarations = new EntitySummaryPanel(null);
         noDeclarations.show(summary(Nomenclature.class));

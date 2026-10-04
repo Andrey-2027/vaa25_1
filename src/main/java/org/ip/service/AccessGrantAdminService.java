@@ -10,11 +10,14 @@ import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsDimensionValueCatalog;
+import org.ipro.rls.c5.C5ReadDecisionService;
+import org.ipro.rls.c5.C5ReadPermissionRegistry;
 import org.ipro.telemetry.api.Measured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,19 +59,25 @@ public class AccessGrantAdminService {
     private final RlsDimensionRegistry dimensionRegistry;
     private final AccessService accessService;
     private final RlsDimensionValueCatalog valueCatalog;
+    private final C5ReadPermissionRegistry c5ReadPermissionRegistry;
+    private final C5ReadDecisionService c5ReadDecisionService;
 
     public AccessGrantAdminService(AccessGrantRepository accessGrantRepository,
                                    UserRepository userRepository,
                                    RoleRepository roleRepository,
                                    RlsDimensionRegistry dimensionRegistry,
                                    AccessService accessService,
-                                   RlsDimensionValueCatalog valueCatalog) {
+                                   RlsDimensionValueCatalog valueCatalog,
+                                   C5ReadPermissionRegistry c5ReadPermissionRegistry,
+                                   C5ReadDecisionService c5ReadDecisionService) {
         this.accessGrantRepository = accessGrantRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.dimensionRegistry = dimensionRegistry;
         this.accessService = accessService;
         this.valueCatalog = valueCatalog;
+        this.c5ReadPermissionRegistry = c5ReadPermissionRegistry;
+        this.c5ReadDecisionService = c5ReadDecisionService;
     }
 
     /**
@@ -88,6 +97,15 @@ public class AccessGrantAdminService {
 
     public RlsDimensionKind kindOf(String dimension) {
         return dimensionRegistry.kindOf(dimension);
+    }
+
+    /**
+     * Зарегистрированный C5 read key (entity/API/attribute, см. C5ReadPermissionRegistry).
+     * Такие измерения редактируются только флагом чтения и без dimension value; распознаются
+     * по явной регистрации, а не по префиксу, CHECK_ONLY или wildcard (F-REST-READ-3, З2).
+     */
+    public boolean isC5ReadDimension(String dimension) {
+        return c5ReadPermissionRegistry.isRegisteredReadKey(dimension);
     }
 
     public List<String> allUsernames() {
@@ -129,6 +147,10 @@ public class AccessGrantAdminService {
     @Transactional
     public void saveGrants(String dimension, AccessGrant.SubjectType subjectType, String subjectKey,
                            Map<Long, GrantFlags> desiredByValueId) {
+        if (isC5ReadDimension(dimension)) {
+            throw new IllegalArgumentException("C5 read permission '" + dimension
+                + "' has no value-scoped grants; edit its read flag with saveSingleGrant");
+        }
         Map<Long, AccessGrant> existingByValueId = new HashMap<>();
         for (AccessGrant grant : accessGrantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
                 subjectType, subjectKey, dimension)) {
@@ -167,6 +189,15 @@ public class AccessGrantAdminService {
      * только сам факт доступа (dimensionValueId всегда null, см. RlsDimensionKind).
      */
     public GrantFlags currentSingleGrant(String dimension, AccessGrant.SubjectType subjectType, String subjectKey) {
+        if (isC5ReadDimension(dimension)) {
+            boolean read = accessGrantRepository
+                .findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+                    subjectType, subjectKey, dimension)
+                .stream()
+                .anyMatch(AccessGrant::isCanRead);
+            // C5 read поддерживает только чтение: update/delete не являются рабочими C5-правами.
+            return new GrantFlags(read, false, false);
+        }
         return accessGrantRepository.findBySubjectTypeAndSubjectKeyAndDimension(subjectType, subjectKey, dimension)
             .stream()
             .findFirst()
@@ -178,6 +209,10 @@ public class AccessGrantAdminService {
     @Transactional
     public void saveSingleGrant(String dimension, AccessGrant.SubjectType subjectType, String subjectKey,
                                 GrantFlags flags) {
+        if (isC5ReadDimension(dimension)) {
+            saveSingleC5ReadGrant(dimension, subjectType, subjectKey, flags);
+            return;
+        }
         List<AccessGrant> existing = accessGrantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
             subjectType, subjectKey, dimension);
         boolean noAccess = !flags.read() && !flags.update() && !flags.delete();
@@ -199,6 +234,35 @@ public class AccessGrantAdminService {
     }
 
     /**
+     * C5 read: редактируется только exact global строка (dimensionValueId == null) и только
+     * поддерживаемый флаг чтения; update/delete на серверной границе отвергаются, value-scoped
+     * исторические строки не меняются и не удаляются (F-REST-READ-3, З2).
+     */
+    private void saveSingleC5ReadGrant(String dimension, AccessGrant.SubjectType subjectType,
+                                       String subjectKey, GrantFlags flags) {
+        if (flags.update() || flags.delete()) {
+            throw new IllegalArgumentException("C5 read permission '" + dimension
+                + "' supports only the read flag; update/delete are not C5 read rights");
+        }
+        List<AccessGrant> global = accessGrantRepository
+            .findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+                subjectType, subjectKey, dimension);
+        if (!flags.read()) {
+            global.forEach(accessGrantRepository::delete);
+            return;
+        }
+        AccessGrant grant = global.stream().findFirst().orElseGet(AccessGrant::new);
+        grant.setSubjectType(subjectType);
+        grant.setSubjectKey(subjectKey);
+        grant.setDimension(dimension);
+        grant.setDimensionValueId(null);
+        grant.setCanRead(true);
+        grant.setCanUpdate(false);
+        grant.setCanDelete(false);
+        accessGrantRepository.save(grant);
+    }
+
+    /**
      * Эффективные права субъекта по ВСЕМ настраиваемым измерениям (см.
      * {@link #availableDimensions()}) — свёртка прямых грантов и ролей (для
      * пользователя) или собственных грантов (для роли), с учётом wildcard "*".
@@ -208,11 +272,39 @@ public class AccessGrantAdminService {
                                                                       String subjectKey) {
         Map<String, AccessService.EffectiveGrant> result = new LinkedHashMap<>();
         for (String dimension : availableDimensions()) {
+            if (isC5ReadDimension(dimension)) {
+                result.put(dimension, c5EffectiveGrant(dimension, subjectType, subjectKey));
+                continue;
+            }
             AccessService.EffectiveGrant grant = subjectType == AccessGrant.SubjectType.USER
                 ? accessService.effectiveGrants(dimension, subjectKey)
                 : accessService.effectiveGrantsOfRole(dimension, subjectKey);
             result.put(dimension, grant);
         }
         return result;
+    }
+
+    /**
+     * C5 read решение для админ-экрана строится общей C5 read-границей, а не AccessService:
+     * wildcard "*" и value-scoped строки не являются глобальным C5 read, write/delete не
+     * являются рабочими C5-правами. Источники сохраняют формат EffectiveGrant
+     * ("прямой", "роль: X") — поэтому показанное решение совпадает с серверным.
+     */
+    private AccessService.EffectiveGrant c5EffectiveGrant(String dimension,
+                                                          AccessGrant.SubjectType subjectType,
+                                                          String subjectKey) {
+        C5ReadDecisionService.C5ReadDecision decision =
+            c5ReadDecisionService.decide(dimension, subjectType, subjectKey);
+        List<String> sources = new ArrayList<>();
+        if (subjectType == AccessGrant.SubjectType.USER) {
+            if (decision.direct()) {
+                sources.add("прямой");
+            }
+            decision.roles().forEach(role -> sources.add("роль: " + role));
+        } else if (decision.granted()) {
+            sources.add("роль: " + subjectKey);
+        }
+        return new AccessService.EffectiveGrant(decision.granted(), false, false, false,
+            List.of(), List.copyOf(sources));
     }
 }

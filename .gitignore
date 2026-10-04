@@ -58,6 +58,10 @@ node_modules/
 !docs/architecture/
 !docs/architecture/**/*.md
 
+# REST stage 3 SQL evidence accompanies the versioned completion report.
+!docs/architecture/evidence/rest-read-stage3-z0-sql-20261003.txt
+!docs/architecture/evidence/rest-read-stage3-z1-sql-20261003.txt
+
 # C4.2 snapshot-ресурсы тестов метаданных — часть поставки: EffectiveMetadataSnapshotTest
 # сравнивает текущие effective-факты с этими файлами, поэтому на чистом checkout они
 # обязаны присутствовать, а не создаваться локальным прогоном.

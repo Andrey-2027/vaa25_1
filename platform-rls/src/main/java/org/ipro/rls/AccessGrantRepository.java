@@ -37,6 +37,10 @@ public interface AccessGrantRepository
     List<AccessGrant> findBySubjectTypeAndSubjectKeyAndDimension(
         AccessGrant.SubjectType subjectType, String subjectKey, String dimension);
 
+    /** C5 grants are global permission definitions, never value-scoped RLS grants. */
+    List<AccessGrant> findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+        AccessGrant.SubjectType subjectType, String subjectKey, String dimension);
+
     /**
      * Сколько грантов вообще существует по измерению (без "*") — для bootstrap-правила
      * AccessService.isNewDimensionValueAllowed: "разметка измерения ещё не началась".

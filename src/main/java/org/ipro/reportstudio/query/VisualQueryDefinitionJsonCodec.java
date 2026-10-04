@@ -18,7 +18,23 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 public final class VisualQueryDefinitionJsonCodec {
     private final ObjectMapper mapper;
     public VisualQueryDefinitionJsonCodec() { this(configuredMapper()); }
-    public VisualQueryDefinitionJsonCodec(ObjectMapper mapper) { this.mapper = mapper; }
+    public VisualQueryDefinitionJsonCodec(ObjectMapper mapper) {
+        this.mapper = mapper.copy();
+        SimpleModule filters = new SimpleModule();
+        filters.addSerializer(org.ipro.filtergrid.filter.FilterNode.class, new JsonSerializer<>() {
+            @Override public void serialize(org.ipro.filtergrid.filter.FilterNode node, JsonGenerator gen,
+                                            SerializerProvider provider) throws java.io.IOException {
+                gen.writeTree(org.ipro.filtergrid.filter.FilterTreeJson.write(node));
+            }
+        });
+        filters.addDeserializer(org.ipro.filtergrid.filter.FilterNode.class, new JsonDeserializer<>() {
+            @Override public org.ipro.filtergrid.filter.FilterNode deserialize(JsonParser parser,
+                    DeserializationContext context) throws java.io.IOException {
+                return org.ipro.filtergrid.filter.FilterTreeJson.read(parser.getCodec().readTree(parser));
+            }
+        });
+        this.mapper.registerModule(filters);
+    }
 
     private static ObjectMapper configuredMapper() {
         ObjectMapper mapper = new ObjectMapper();

@@ -114,7 +114,11 @@ APP_SPI org.ipro.crud.BaseService
 APP_SPI org.ipro.crud.InternedEntity
 APP_SPI org.ipro.metadata.HasDisplayName
 APP_SPI org.ipro.search.GlobalSearchProvider
-# ---- MODULE_API (43)
+# F-REST-READ-3: пять типов уже приняты owner-тестом CoreModuleCompositionTest.
+# EntityReadAccess/RestGraphException — контракт с REST; Api*Read — запросы к
+# MODULE_API CanonicalReadExecutor; CanonicalEntityReadAccess создаёт autoconfigure.
+# Рост 95 -> 100, MODULE_API 43 -> 48; прикладной APP_API не расширяется.
+# ---- MODULE_API (48)
 MODULE_API org.ipro.crud.EntityCopyService
 MODULE_API org.ipro.crud.GenericOwnedSectionService
 MODULE_API org.ipro.crud.LookupService
@@ -125,6 +129,11 @@ MODULE_API org.ipro.crud.ServiceLocator
 MODULE_API org.ipro.crud.TableSectionService
 MODULE_API org.ipro.crud.jpa.ValidatedJpaCrudService
 MODULE_API org.ipro.data.CanonicalEntityDataAccess
+MODULE_API org.ipro.data.ApiDetailRead
+MODULE_API org.ipro.data.ApiPageRead
+MODULE_API org.ipro.data.CanonicalEntityReadAccess
+MODULE_API org.ipro.data.EntityReadAccess
+MODULE_API org.ipro.data.RestGraphException
 MODULE_API org.ipro.data.CanonicalReadExecutor
 MODULE_API org.ipro.data.CanonicalWriteExecutor
 MODULE_API org.ipro.data.EntityDataPolicy
@@ -190,7 +199,8 @@ test-usage org.ipro.data.EntityDescriptorCatalog org/ip/config/ActionPolicyConfi
 test-usage org.ipro.data.EventContourStartupCheck org/ip/lifecycle/EventContourWiringIT.java
 test-usage org.ipro.data.FetchPlanInspection org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
 test-usage org.ipro.data.ReadTelemetry org/ip/service/GroupNomVersionNormalizationIT.java
-test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java
+# REST pilot проверяет независимость fixed REST graph от UI scenario через настоящий resolver.
+test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java org/ip/rest/RestReadPipelinePilotIT.java
 test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
 test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java
-test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/builtin/PrdSpecRowCancelAcceptanceTest.java
+test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/builtin/PrdSpecRowCancelAcceptanceTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java

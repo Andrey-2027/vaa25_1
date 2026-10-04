@@ -132,8 +132,18 @@ class PlatformStarterCompositionTest {
         collectArtifactIds(vaadinStarter, starterClosure);
         assertThat(starterClosure)
             .as("проверяется разрешённое транзитивное замыкание starter, включая platform-модули")
-            .contains("platform-vaadin", "platform-spring-boot-autoconfigure")
+            .contains("platform-vaadin")
             .doesNotContain("platform-rest");
+
+        // Maven places a shared dependency at its nearest winner. With direct platform-rest,
+        // core/autoconfigure appear under REST and are omitted from the starter subtree.
+        // Check the declared starter path and the resolved application classpath separately.
+        // The standalone starter closure is also checked by VaadinStarterResolvedDependenciesTest.
+        assertThat(directDependencies(Path.of("platform-vaadin/pom.xml")))
+            .contains("org.ipro:platform-spring-boot-autoconfigure");
+        Set<String> applicationClosure = new TreeSet<>();
+        collectArtifactIds(root, applicationClosure);
+        assertThat(applicationClosure).contains("platform-spring-boot-autoconfigure");
 
         List<String> directRestDependencies = directChildren(root).stream()
             .filter(node -> "org.ipro".equals(node.path("groupId").asText()))

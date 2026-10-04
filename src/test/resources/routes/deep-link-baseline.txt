@@ -25,7 +25,7 @@
 #              Удаление legacy-ключа (при сохранении типа в каталоге) — сломанная ссылка,
 #              а не уборка.
 #
-# ---- published aliases (16 типов каталога, отсортировано по alias)
+# ---- published aliases (17 типов каталога, отсортировано по alias)
 alias=attribute-type class=org.ip.model.AttributeType item=default list=default context=- legacy=-
 alias=attribute-value class=org.ip.model.AttributeValue item=default list=default context=- legacy=-
 alias=branch class=org.ip.model.Branch item=default list=default context=- legacy=-
@@ -33,6 +33,7 @@ alias=grid-form-view class=org.ip.model.GridFormView item=default list=default c
 alias=group-nom class=org.ip.model.GroupNom item=default list=default context=- legacy=-
 alias=journal class=org.ip.model.Journal item=default list=default context=- legacy=-
 alias=nomenclature class=org.ip.model.Nomenclature item=default list=default context=- legacy=-
+alias=nomenclature-price class=org.ip.model.NomenclaturePrice item=default list=default context=- legacy=-
 alias=nom-skl-attribute class=org.ip.model.NomSklAttribute item=default list=default context=- legacy=-
 alias=oper class=org.ip.model.Oper item=default list=default context=- legacy=-
 alias=prd-spec class=org.ip.model.PrdSpec item=default,materials-only,full list=default,contextual context=journal legacy=-

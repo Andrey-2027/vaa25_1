@@ -66,6 +66,34 @@ class BootstrapScriptContractTest {
     }
 
     @Test
+    void validateOnlyKeepsAnAbsoluteLocalRepositoryPathAbsolute(
+            @org.junit.jupiter.api.io.TempDir Path tempDir) throws IOException {
+        assumeWindowsWithPowerShell();
+        Path localRepository = tempDir.resolve("absolute local repository");
+        // Предмет этого теста — путь репозитория; соседние проекты ему не нужны.
+        Path fixtureScripts = Files.createDirectories(tempDir.resolve("fixture/scripts"));
+        Path fixtureScript = fixtureScripts.resolve(SCRIPT.getFileName());
+        Files.copy(SCRIPT, fixtureScript);
+        Files.writeString(fixtureScripts.resolve("local-dependencies.json"), """
+            {"schemaVersion": 1, "projects": []}
+            """, StandardCharsets.UTF_8);
+
+        ProcessResult result = run("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+            "-File", fixtureScript.toString(),
+            "-ValidateOnly",
+            "-MavenCommand", MISSING_MAVEN,
+            "-LocalRepository", localRepository.toString());
+
+        assertThat(result.exitCode())
+            .as("абсолютный путь Maven-репозитория не должен присоединяться к каталогу проекта.%n%s",
+                result.output())
+            .isZero();
+        assertThat(result.output())
+            .contains("OK local repository: " + localRepository);
+        assertThat(Files.isDirectory(localRepository)).isTrue();
+    }
+
+    @Test
     void aRealBuildStillRequiresMaven() {
         assumeWindowsWithPowerShell();
 

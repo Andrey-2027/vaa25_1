@@ -52,6 +52,8 @@ public class AdminView extends VerticalLayout {
     private final Checkbox singleGrantRead = new Checkbox("");
     private final Checkbox singleGrantUpdate = new Checkbox("");
     private final Checkbox singleGrantDelete = new Checkbox("");
+    private final Span singleGrantUpdateLabel = new Span("Изменение:");
+    private final Span singleGrantDeleteLabel = new Span("Удаление:");
     private HorizontalLayout singleGrantRowLayout;
     private final Button saveAccessButton = new Button("Сохранить", new Icon(VaadinIcon.CHECK), e -> saveAccessMatrix());
     private final Button effectiveRightsButton = new Button("Эффективные права",
@@ -184,8 +186,8 @@ public class AdminView extends VerticalLayout {
         });
         HorizontalLayout singleGrantRow = new HorizontalLayout(
                 new Span("Доступ:"), singleGrantRead,
-                new Span("Изменение:"), singleGrantUpdate,
-                new Span("Удаление:"), singleGrantDelete);
+                singleGrantUpdateLabel, singleGrantUpdate,
+                singleGrantDeleteLabel, singleGrantDelete);
         singleGrantRow.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
         singleGrantRow.setSpacing(true);
 
@@ -257,14 +259,25 @@ public class AdminView extends VerticalLayout {
         }
 
         if (checkOnly) {
+            // C5 read (entity/API/attribute) поддерживает только чтение — update/delete
+            // не являются рабочими C5-правами и не предлагаются (F-REST-READ-3, З2).
+            boolean c5Read = accessGrantAdminService.isC5ReadDimension(dimension);
+            singleGrantUpdateLabel.setVisible(!c5Read);
+            singleGrantUpdate.setVisible(!c5Read);
+            singleGrantDeleteLabel.setVisible(!c5Read);
+            singleGrantDelete.setVisible(!c5Read);
             GrantFlags flags = accessGrantAdminService.currentSingleGrant(dimension, accessSubjectType.getValue(), subjectKey);
             singleGrantRead.setValue(flags.read());
             singleGrantUpdate.setValue(flags.update());
-            singleGrantUpdate.setEnabled(flags.read());
+            singleGrantUpdate.setEnabled(!c5Read && flags.read());
             singleGrantDelete.setValue(flags.delete());
-            singleGrantDelete.setEnabled(flags.read());
+            singleGrantDelete.setEnabled(!c5Read && flags.read());
             return;
         }
+        singleGrantUpdateLabel.setVisible(true);
+        singleGrantUpdate.setVisible(true);
+        singleGrantDeleteLabel.setVisible(true);
+        singleGrantDelete.setVisible(true);
 
         accessRows.clear();
         Map<Long, GrantFlags> current = accessGrantAdminService.currentGrantsByDimensionValue(
@@ -291,8 +304,10 @@ public class AdminView extends VerticalLayout {
         saveAccessButton.setEnabled(false);
         try {
             if (accessGrantAdminService.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY) {
-                GrantFlags flags = new GrantFlags(
-                        singleGrantRead.getValue(), singleGrantUpdate.getValue(), singleGrantDelete.getValue());
+                GrantFlags flags = accessGrantAdminService.isC5ReadDimension(dimension)
+                        ? new GrantFlags(singleGrantRead.getValue(), false, false)
+                        : new GrantFlags(singleGrantRead.getValue(), singleGrantUpdate.getValue(),
+                                singleGrantDelete.getValue());
                 accessGrantAdminService.saveSingleGrant(dimension, accessSubjectType.getValue(), subjectKey, flags);
             } else {
                 Map<Long, GrantFlags> desired = new java.util.HashMap<>();

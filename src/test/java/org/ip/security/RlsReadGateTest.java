@@ -16,6 +16,8 @@ import org.ipro.crud.ServiceLocator;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.RlsTestFixture;
+import org.ipro.rls.c5.C5AccessDeniedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Строгий read-гейт CHECK_ONLY (Фаза 5 RLS-плана) на реальных сервисах полного
@@ -129,9 +132,8 @@ class RlsReadGateTest {
     }
 
     /**
-     * План Ф5: «нет ENTITY-гранта → findById/findAll пусты, даже если строки проходят
-     * по JOURNAL/BRANCH» — dave читает Журнал и Филиал документа (обоих!), но без
-     * "ENTITY:ReceivingDocument" список и запись пусты.
+     * Старый RLS entity-gate остаётся независимым от C5: при наличии exact C5 entity-read
+     * grant, но без legacy RLS ENTITY dimension, RLS продолжает возвращать пустой результат.
      */
     /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
     private CanonicalEntityService<ReceivingDocument> documents() {
@@ -140,7 +142,7 @@ class RlsReadGateTest {
     }
 
     @Test
-    void noEntityGrantMakesReadsEmptyEvenWhenRowsPassJournalAndBranchFilters() {
+    void legacyRlsEntityGateStillFiltersRowsWhenC5GrantExists() {
         bootstrapProtectedWrites();
         Branch branch = branch("RG-B");
         Workshop receiver = workshop("RG-W1", branch);
@@ -150,6 +152,7 @@ class RlsReadGateTest {
 
         grant("dave", "JOURNAL", journal.getId(), true, false, false);
         grant("dave", "BRANCH", branch.getId(), true, false, false);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, "dave", ReceivingDocument.class);
         loginAs("dave");
 
         assertThat(documents().findAll()).isEmpty();
@@ -157,7 +160,7 @@ class RlsReadGateTest {
         assertThat(documents().findById(doc.getId())).isEmpty();
     }
 
-    /** План Ф5 (контр-проверка): ENTITY-грант снимает блокировку — те же строки видны. */
+    /** У чтения нужны обе независимые проверки: C5 entity read и legacy RLS ENTITY. */
     @Test
     void entityGrantUnblocksReads() {
         bootstrapProtectedWrites();
@@ -170,6 +173,7 @@ class RlsReadGateTest {
         grant("dave", "JOURNAL", journal.getId(), true, false, false);
         grant("dave", "BRANCH", branch.getId(), true, false, false);
         grant("dave", "ENTITY:ReceivingDocument", null, true, false, false);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, "dave", ReceivingDocument.class);
         loginAs("dave");
 
         assertThat(documents().findAll()).extracting(ReceivingDocument::getNumber)
@@ -177,7 +181,7 @@ class RlsReadGateTest {
         assertThat(documents().findById(doc.getId())).isPresent();
     }
 
-    /** План Ф5: lookup-путь (автокомплит/SelectionForm) подчиняется гейту — симметрично сервису. */
+    /** Lookup-путь подчиняется C5 и отдельному legacy RLS entity gate. */
     @Test
     void lookupServiceHonorsReadGate() {
         bootstrapProtectedWrites();
@@ -189,6 +193,7 @@ class RlsReadGateTest {
 
         grant("dave", "JOURNAL", journal.getId(), true, false, false);
         grant("dave", "BRANCH", branch.getId(), true, false, false);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, "dave", ReceivingDocument.class);
         loginAs("dave");
 
         assertThat(lookupService.findAll(ReceivingDocument.class)).isEmpty();
@@ -202,10 +207,11 @@ class RlsReadGateTest {
         assertThat(lookupService.findById(ReceivingDocument.class, doc.getId())).isPresent();
     }
 
-    /** Сущности без CHECK_ONLY-измерений гейтом не затрагиваются вовсе. */
+    /** C5 entity-read обязателен и для типа без CHECK_ONLY RLS policy. */
     @Test
     void entitiesWithoutCheckOnlyDimensionsAreUnaffected() {
         loginAs("mallory");
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, "mallory", Nomenclature.class);
         UnitOfMeasurement uom = new UnitOfMeasurement("шт", "Штука", "RG-UOM");
         unitOfMeasurementRepository.save(uom);
         Nomenclature nomenclature = new Nomenclature("RG-N", "Номенклатура без RLS", uom);
@@ -213,6 +219,26 @@ class RlsReadGateTest {
 
         assertThat(nomenclatures().findAll()).extracting(Nomenclature::getId)
             .contains(saved.getId());
+    }
+
+    @Test
+    void missingC5EntityReadGrantIsDeniedBeforeLegacyRlsEvaluation() {
+        bootstrapProtectedWrites();
+        Branch branch = branch("C5-B");
+        Workshop receiver = workshop("C5-W1", branch);
+        Workshop deliverer = workshop("C5-W2", branch);
+        Journal journal = journal("C5-J");
+        document("C5-1", journal, receiver, deliverer);
+
+        grant("dave", "JOURNAL", journal.getId(), true, false, false);
+        grant("dave", "BRANCH", branch.getId(), true, false, false);
+        grant("dave", "ENTITY:ReceivingDocument", null, true, false, false);
+        loginAs("dave");
+
+        assertThatThrownBy(() -> documents().findAll())
+            .isInstanceOf(C5AccessDeniedException.class);
+        assertThatThrownBy(() -> lookupService.findAll(ReceivingDocument.class))
+            .isInstanceOf(C5AccessDeniedException.class);
     }
 
     private void bootstrapProtectedWrites() {

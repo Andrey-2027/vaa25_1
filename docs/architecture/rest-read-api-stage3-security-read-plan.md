@@ -1,12 +1,15 @@
 # F-REST-READ-3: серверные права и canonical read contract — подробный план
 
-- Статус: проект для согласования; реализация третьего этапа не начата
-- Дата: 2026-10-02
+- Статус: реализация и corrective pass выполнены; Gate 3A подтверждён прогонами
+  2026-10-03; пакеты З0–З2 плана завершения выполнены (З2 — 2026-10-04), Gate 3B и
+  общая приёмка этапа остаются открытыми
+- Дата: 2026-10-03
 - Архитектурное решение: независимый REST fetch profile зафиксирован в
   [ADR-0007, §4.1](decisions/ADR-0007-canonical-data-access-path.md#rest-fixed-fetch-profile);
-  это решение о контракте, а не подтверждение реализации третьего этапа
+  evidence реализации записан в §14–§15, remaining work — в плане завершения
 - Родительский план: [`rest-read-api-plan.md`](rest-read-api-plan.md)
 - Предыдущий срез: [`rest-read-api-stage2-catalog-plan.md`](rest-read-api-stage2-catalog-plan.md)
+- План завершения: [`rest-read-api-stage3-completion-plan.md`](rest-read-api-stage3-completion-plan.md)
 - Результат: проверяемое серверное чтение опубликованного ресурса через общий C5 и
   canonical path, с фиксированными требованиями загрузки и подготовкой скалярного результата
 - Зависимости: исправления ревью второго этапа, контракт C5.0, серверный read-контур C5.1,
@@ -67,11 +70,11 @@ JDBC mapping, converter/JSON отклоняются, а root и association id �
 
 Текущая запись module `clean verify` и прикладных пилотов приведена в §10 плана
 второго этапа. Перед использованием их как evidence следует установить текущие owner
-artifacts принятым bootstrap-порядком. Общий surface gate по-прежнему имеет два отказа
-(бюджет ссылок `EntityExplorerView` и измерение 423/415), стандартный bootstrap —
-source drift FilterGrid 160/177. `-AllowSourceDrift` даёт только диагностический
-результат. Эти общие gates остаются отдельной зависимостью приёмки и не считаются
-закрытыми исправлением mapping-кода.
+artifacts принятым bootstrap-порядком. Исторические входные отказы при подготовке
+плана: surface budget ссылок `EntityExplorerView`, измерение 423/415 и source drift
+FilterGrid 160/177. Текущее состояние этих gates записано в §15; прежние отказы
+не являются списком текущих препятствий. `-AllowSourceDrift` даёт только
+диагностический результат. Общие gates не закрываются исправлением mapping-кода.
 
 Приёмка третьего этапа не может опираться на неподдерживаемый mapping или зелёный
 тест, который случайно использует прежний установленный JAR. Перед app-проверками
@@ -298,6 +301,14 @@ REST alias не становится именем persistent permission. Клю�
 C5 registry и не выводится из URL формы или REST-ресурса. Для inherited attribute
 фиксируется правило нормализации, одинаковое для UI и REST.
 
+Формат ключа entity/attribute фиксирован как `ENTITY:<fully-qualified-class-name>` и
+`ATTR:<fully-qualified-class-name>:<persistent-path>`. Простые имена класса больше не
+принимаются: одноимённые типы из разных пакетов должны иметь независимые гранты.
+Перед включением C5 enforcement существующие grants со старыми ключами вида
+`ENTITY:<SimpleName>` и `ATTR:<SimpleName>:<path>` нужно перенести на новые ключи;
+автоматический fallback на старое имя запрещён, поскольку он снова создаёт коллизии.
+Это миграция грантов/seed-данных C5, а не REST alias migration.
+
 При активации read-контура startup регистрирует определения прав и проверяет коллизии.
 Декларация ресурса
 и присутствие permission definition никому не выдают grant.
@@ -405,7 +416,10 @@ Class RLS deny для list сохраняет пустую страницу, а 
 - Нет unpaged-входа; `size` ограничен ресурсом и платформенным максимумом 200.
   Проверяются знак, переполнение `page * size + size`, выбранный offset window
   и безопасное преобразование offset в `int`, используемый нынешним canonical executor.
-  Численный window фиксируется после пилотного измерения, до приёмки исполнения.
+  Реализован default window 10 000 строк, server property
+  `platform.rest.read.max-window` (positive int, не меньше resource default size).
+  Границы подтверждены в З1 на H2 с 10 001 строкой каждого ресурса; итоговая
+  приёмка стоимости maximum graphs/roles относится к З4.
 - Простой String/Integer/Long id передаётся типизированно. Полноценный HTTP id codec
   относится к следующему этапу и не выводится из `toString()` arbitrary object.
 - Projection работает только с выбранными aliases и подтверждёнными scalar types.
@@ -419,6 +433,9 @@ Class RLS deny для list сохраняет пустую страницу, а 
 Проверяются поля actual request, включая defaults и id, активные filters и sort.
 Один запрещённый alias не удаляется молча: операция получает FORBIDDEN. Запрос
 разрешённых полей не требует права на остальные maximum aliases.
+Для nested reference, используемого в sort, дополнительно выполняются те же entity,
+terminal attribute, reference-policy и target class-gate проверки, что для output и
+filter; сортировка сама по себе может раскрывать порядок защищённых значений.
 
 Для этого среза принимается политика C5: attribute read разрешает использование
 значения в ответе и запросе по нему, но не регулирует внутреннюю загрузку fixed superset.
@@ -511,10 +528,19 @@ root/filter/page-size наборе. Перед приёмкой записыва
 формулировка «не должно быть дорого» gate не закрывает. Если cost не проходит,
 меняется fetch/read контракт или профиль ресурса, а пределы не повышаются без причины.
 
-H2 нужен для быстрых fixtures. Для окончательного SQL/cost gate текущего приложения
-выполняется тот же набор на PostgreSQL и используемой версии Hibernate; разрешённый
-mapping и отсутствие SQL regression не выводятся только из H2. Отсутствие такой
-проверки отмечается как открытый gate, а не как успешная production-приёмка.
+Приёмка третьего этапа не привязана к конкретной серверной СУБД. Вся матрица прав,
+reference visibility, content/count, transaction и loaded-state/SQL выполняется
+через настоящий JPA/Hibernate на текущей поддерживаемой тестовой СУБД; H2 допускается
+для этой приёмки. Mock executor или stubbed C5 не заменяют такие проверки. Версии
+Hibernate/СУБД, численные budgets и результаты фиксируются в измерительной записи.
+Фильтры, RLS и read path используют переносимые JPA-контракты; принятие этапа не
+обосновывает добавление SQL или функций, специфичных для PostgreSQL.
+
+Перед развёртыванием тот же набор проверяется на фактически выбранной серверной
+СУБД и её Hibernate dialect, включая schema/grant migrations, content/count,
+loaded state и SQL/cost. Эта проверка — отдельный gate развёртывания, а не условие
+закрытия F-REST-READ-3 или разработки HTTP-адаптера. При смене СУБД она повторяется.
+Измерения H2 не подтверждают планы выполнения и время запросов на другой СУБД.
 
 ## 9. Wiring и отказ при неполном контексте
 
@@ -590,7 +616,7 @@ Unit-тесты проверяют normalizer/compiler/порядок collaborat
 | 3.4a | Reference profile без row RLS | `Nomenclature.code`, C5 target/attribute checks, fixed REST graph и named отказ для неподдержанного пути. |
 | 3.4b | Reference profile с row RLS | `PrdSpec -> Journal`, доказательство policy compatibility, единая identity/allowed values, class gates и реальный SQL. |
 | 3.5 | Внутренний REST read pipeline | Typed request, required-field/access selection, EQUALS/sort/paging, read + scalar projection; отрицательные сценарии до SQL. |
-| 3.6 | Реальные пилоты и cost | Два субъекта, list/detail, content/count parity, 1/50 строк, OSIV off, PostgreSQL; UI LIST baseline, объяснённая graph delta и численные бюджеты. |
+| 3.6 | Реальные пилоты и cost | Настоящий JPA/Hibernate на поддерживаемой тестовой СУБД (H2 допускается): два субъекта, list/detail, content/count parity, 1/50 строк, OSIV off; UI LIST baseline, объяснённая graph delta и численные бюджеты. |
 | 3.7 | Auto-configuration и модульные guards | Матрица §9, зависимости/imports/roles/signatures/manifest, starter runtime closure и architecture rule публичной REST-поверхности. |
 | 3.8 | Общая приёмка и передача | Доказательства gates, перечень остатка полного C5 и контракт передачи HTTP-этапу. |
 
@@ -623,7 +649,8 @@ Reference 3.4a может приниматься отдельно до 3.4b. П�
   direct/role grants, отсутствие grant и отзыв; C5/RLS identity едина.
 - Direct canonical read без entity C5 grant запрещён; access не зависит от REST-only gate.
 - Reference stage 3.4b `PrdSpec -> Journal` проходит policy proof, class/row RLS,
-  two-subject visibility и PostgreSQL content/count checks.
+  two-subject visibility и реальные JPA content/count checks на поддерживаемой
+  тестовой СУБД; конкретная серверная СУБД не является условием этого gate.
 - E1.2b получает проверенную серверную C5 read-зависимость; его собственные action/UI
   acceptance criteria остаются открыты до отдельной приёмки E1.2b.
 
@@ -646,8 +673,9 @@ Reference 3.4a может приниматься отдельно до 3.4b. П�
   отсутствующий detail неразличимы по внешнему исходу; count считает только видимое.
 - Transaction охватывает чтение и scalar projection, результат безопасен после её
   окончания и работает при выключенном OSIV. Нет entity serialization/owned expansion.
-- Итоговый REST graph и SQL проверены на H2 и PostgreSQL; graph limits, SQL budgets и
-  offset window имеют численные значения с UI LIST baseline и объяснёнными REST deltas.
+- Итоговый REST graph и SQL проверены на настоящем JPA/Hibernate с поддерживаемой
+  тестовой СУБД (H2 допускается); graph limits, SQL budgets и offset window имеют
+  численные значения с UI LIST baseline и объяснёнными REST deltas.
   Fresh-context/cold-cache fixtures подтверждают actual loaded state, включая
   незаявленные EAGER dependencies; N+1, незаявленная association/collection загрузка
   и paged collection fetch отсутствуют.
@@ -672,6 +700,14 @@ security boundary дополнительно требует общего про�
 
 ## 13. Передача четвёртому этапу
 
+Подготовка HTTP-контракта и реализация изолированных частей адаптера (parsing/codecs,
+wire envelope, Problem Details, OpenAPI) могут идти параллельно завершению 3B после
+стабилизации read API. Их тесты с contract-faithful provider не закрывают 3B. Приёмка
+четвёртого этапа и подтверждение сквозного HTTP-чтения требуют закрытых 3A и 3B и
+передачи результатов ниже. Для завершения третьего этапа и разработки четвёртого
+не требуется завершать write/action/UI/admin остаток C5, собственную action/UI
+приёмку E1.2b или выбирать серверную СУБД. Эти работы сохраняют свои отдельные gates.
+
 HTTP-адаптер получает:
 
 1. Версионированный metadata catalog и проверенный executable read profile.
@@ -686,3 +722,146 @@ unknown resource; новая chain не перехватывает сущест�
 `/api/report-jpql/**`. Выбор authentication transport и настройка CSRF/session policy
 согласуются до создания этой chain. Внешняя публикация остаётся отдельным gate:
 полный C5, этап C, REST-пилот и согласование контракта с первым потребителем.
+
+## 14. Запись corrective pass 2026-10-03
+
+Исправлены замечания к реализации security/read pipeline: canonical entity C5 deny
+отделён от class-RLS deny; API list/detail сохраняют пустой list и скрытый detail при
+class-RLS deny; C5 использует точные FQN entity/attribute keys и только глобальные
+гранты без dimension value; проверки атрибутов включают default sort и его tie-breaker;
+reference sort проходит target authorization; filter coercion и detail id больше не
+теряют некорректные значения; отрицательный page size отклоняется; catalog без ресурсов
+запускается без execution collaborators, а неполный включённый execution падает явно.
+Защищённый reference profile теперь проверяет source-FK/target-id rule equivalence,
+все target FILTERABLE dimensions и CHECK_ONLY gate, а production validator делает это
+при создании bean.
+
+Проверка на JDK 21.0.11, Hibernate ORM 7.2.12.Final и H2 2.4.240: reactor
+`target/review-f3/pom.xml verify` завершился успешно; запущены 12 тестов RLS, 147 core,
+31 autoconfigure и 65 REST. Реальная H2 JPA-проверка C5 покрыла user/role grants, отсутствие grant,
+отзыв и отказ от value-scoped grant. `PlatformApiBaselineTest` прошёл отдельно для
+`platform-core`, `platform-rls`, `platform-rest` и `platform-spring-boot-autoconfigure`.
+Отдельный targeted test подтвердил регистрацию REST permission keys.
+
+Gate 3B по результатам этого прогона не закрыт: не завершена сквозная приёмка двух
+прикладных ресурсов с настоящим C5 provider/storage, reference visibility,
+content/count и graph/SQL измерениями. Миграционная политика существующих UI/service
+callers и их C5 entity grants требует проверки на прикладном пилоте; в E1.2b передаётся
+серверная read-зависимость, его собственная action/UI приёмка остаётся отдельной.
+Во время corrective pass корневой `compile` также остановился
+на незавершённом Vaadin API: `CardSection` и `EntitySummaryPanel` вызывали отсутствующий
+`EntitySummary.readPlanInspectionAvailable()`. Общий `PlatformApiBaselineTest` и
+`PlatformPublicSurfaceTest` дополнительно выявили текущие расхождения `platform-vaadin`
+и документа D1; их не следует считать проверкой REST/C5. Root `RestReadPipelinePilotIT`
+также не стартовал в прямом Surefire запуске: Spring Boot не смог загрузить metadata
+`org.ipro.jr.config.JrAutoConfiguration` из текущего root test classpath.
+
+По уточнению 2026-10-03 PostgreSQL исключён из обязательных условий третьего этапа;
+проверка выбранной серверной СУБД перенесена в gate развёртывания (§8). Остаток
+приёмки третьего этапа:
+
+1. Запустить прикладные LIST/DETAIL пилоты `PrdSpec` и `Nomenclature` на согласованной
+   сборке с настоящим C5 provider/storage: два субъекта, API/entity/attribute права,
+   grants/revoke, скрытый/отсутствующий id, class/row RLS и защищённые ссылки.
+2. На настоящем JPA/Hibernate подтвердить content/count parity, независимый LIST/DETAIL
+   graph, fresh-context/cold-cache loaded state, OSIV off и scalar результат после
+   transaction; записать budgets и SQL для 1/50 строк, detail и предельного offset.
+3. Зафиксировать и проверить C5 migration/grant policy для существующих UI/service
+   callers, отсутствие permissive fallback и регрессий общего canonical read path.
+4. Повторить применимые module/app, API/surface и bootstrap gates на текущих artifacts;
+   приложить команды, фактически запущенные tests и измерения. Расхождения общей
+   сборки классифицировать по владельцам, не скрывая их успешным REST-only прогоном.
+
+## 15. Повторная проверка после регистрации C5 entity-read keys — 2026-10-03
+
+Причина прежнего красного app-прогона устранена: root-тесты загружали старый
+`platform-spring-boot-autoconfigure` из Maven-кэша. Текущие `platform-rls`,
+`platform-core` и `platform-spring-boot-autoconfigure` собраны и установлены в
+проектный `.local-maven-repository`; приложение проверялось с тем же репозиторием.
+Полный dependency bootstrap не завершился: его `clean` не смог удалить артефакт
+в соседнем `crudui/platform-identity-api/target`. Каталог не изменялся вручную.
+
+В DataAccess auto-configuration добавлен регистратор точных `ENTITY:<FQN>` C5
+entity-read dimensions для типов каталога с canonical root read capability. Они
+помечаются `CHECK_ONLY`: существующий grant admin может выдать по ним явный grant,
+но auto-configuration не создаёт grants. Старый ключ RLS
+`ENTITY:ReceivingDocument` и C5 ключ `ENTITY:org.ip.model.ReceivingDocument` —
+разные измерения. Обычный bootstrap ролей не расширялся и permissive fallback не
+добавлен. Для существующих UI/service callers политика остаётся явной: перед
+включением canonical read права администратор проверяет назначение FQN entity
+grants по ролям существующих UI/service callers. REST дополнительно требует API и
+attribute grants; автоматическая массовая выдача здесь не допускается.
+
+Проверки на JDK 21.0.11, Hibernate ORM 7.2.12.Final и H2 2.4.240:
+
+- `DataAccessAutoConfigurationTest,C5EntityReadPermissionRegistrarTest` — 4/4;
+- `RestReadPipelinePilotIT,RlsAutoConfigurationSmokeTest,RlsReadGateTest,RlsDimensionFactsIT` — 39/39;
+- общий canonical-read/UI/RLS набор вместе с REST pilot — 65/65. Он включает
+  `CanonicalReadBoundaryIT`, `CanonicalReadTransactionBoundaryIT`,
+  `FetchPlanReadBoundaryIT`, `FetchPlanMeasurementIT`, `DetachedRenderCostIT`,
+  три `EntitySummary*PilotTest`, `RestReadPipelinePilotIT` и `RlsReadGateTest`.
+
+REST pilot на настоящем C5 provider/storage и Hibernate/H2 проверяет API/entity
+deny, Nomenclature list/detail, два субъекта с разными JOURNAL row grants для
+PrdSpec, count/видимые строки, скрытый и отсутствующий detail id, scalar результат
+после transaction и независимые LIST/DETAIL loaded graphs при OSIV и Hibernate
+second-level cache off. Для PrdSpec LIST зафиксировано 20 SQL statements при
+первом вызове и 16 statements при повторных вызовах для page size 1 и 50, при
+50 совпавших content/count строках. Это число подготовленных statements всего
+вызова, включая проверки grants; оно не является переносимым latency SLO.
+Кеша решений в `DefaultC5PermissionEvaluator` нет: разницу 20/16 объяснил последующий
+SQL trace З0 — отдельный RLS ids cache снимает 2 RLS grant и 2 user/role queries;
+14 C5 и 2 business-data queries сохраняются в каждом вызове.
+Результат записан в [completion evidence, §3](rest-read-api-stage3-completion-evidence.md).
+
+Применимые surface checks после изменений: `PlatformApiBaselineTest` — 3/3,
+`PlatformPublicSurfaceTest` — 10/10; измерение `platform-artifact-files` в D1
+обновлено с 446 до 447 исходников. Новый артефакт auto-configuration проходит
+`DataAccessAutoConfigurationTest` и `C5EntityReadPermissionRegistrarTest` — 4/4.
+`bootstrap-local-dependencies.ps1 -ValidateOnly -AllowSourceDrift` успешно
+проверяет граф и локальные fingerprints, но сообщает drift sibling `dynamicreports`
+и `ureport3`; поэтому это diagnostic validation, не strict bootstrap acceptance.
+
+Gate 3A и wiring entity-read keys подтверждены этими прогонами. Gate 3B остаётся
+открытым до завершения количественной приёмки обоих ресурсов: сейчас есть полный
+1/50 SQL budget только для PrdSpec LIST; не записаны отдельные detail budgets,
+Nomenclature LIST 1/50, предельный offset/window и максимальный граф. Нужна также
+финальная проверка операционной grant policy существующих UI/service ролей на
+прикладном наборе. Все изменённые owner modules прошли `verify`: `platform-rls`
+12/12, `platform-core` 147/147, `platform-rest` 66/66,
+`platform-spring-boot-autoconfigure` 32/32. Общий app canonical-read/UI набор —
+65/65, API baseline + public surface — 13/13. Diagnostic bootstrap validation
+проходит с `-AllowSourceDrift`, но strict fingerprint gate остаётся открытым из-за
+drift в sibling `dynamicreports` и `ureport3`. Полный bootstrap запуск остановился
+на `clean` sibling `crudui/platform-identity-api/target`, где Maven не смог удалить
+старый JAR; этот путь не удалялся вручную. PostgreSQL условием этих пунктов не является.
+
+## 16. План окончательного завершения — 2026-10-03
+
+Оставшиеся работы и условия полного закрытия сведены в
+[`rest-read-api-stage3-completion-plan.md`](rest-read-api-stage3-completion-plan.md).
+Он конкретизирует §12 и актуальный остаток §15: конечное окно страниц,
+согласование exact/global C5 read decision с действующим grant admin, реальные
+роли и переход UI/service callers, численные SQL/graph budgets обоих ресурсов,
+strict bootstrap и итоговая регрессия. Исторические записи §14–§15 сохраняют
+результаты своих прогонов; они не заменяют финальную приёмку изменённого кода.
+
+Рабочий default окна — 10 000 строк; окончательный предел фиксируется после
+проверки стоимости на достаточной fixture. Graph budgets задаются точными maximum
+paths нынешних прикладных деклараций. Полный этап остаётся открытым до выполнения
+контрольного списка плана завершения; подготовка этого документа не закрывает gates.
+
+З0 плана завершения выполнен: установлены текущие owner artifacts с SHA-256 parity,
+app pilot прошёл 7/7, зафиксированы UI LIST/REST profiles и SQL categories двух
+ресурсов. Strict validation по-прежнему отклоняет два sibling fingerprints;
+полный bootstrap и причина прежнего clean failure остаются в З5.
+З1 также выполнен: `platform.rest.read.max-window` ограничивает конец страницы,
+owner REST verify прошёл 91/91, root REST/API/surface checks — 21/21. На 10 001
+видимой строке каждого ресурса последняя разрешённая страница полная, total не
+обрезается, следующая страница отклоняется без business SQL. Подробности —
+[completion evidence, §8](rest-read-api-stage3-completion-evidence.md#8-з1--конечное-окно-страниц-2026-10-03).
+З2 выполнен 2026-10-04: определения C5 read keys регистрируются явно, сервер и admin
+используют общую exact/global/read-границу `C5ReadDecisionService`; app IT и owner
+проверки зелёные, surface baseline обновлён. Следующий пакет — З3, реальные роли и
+политика существующих UI/service callers. Новые результаты не заменяют финальные
+owner/app/starter gates.

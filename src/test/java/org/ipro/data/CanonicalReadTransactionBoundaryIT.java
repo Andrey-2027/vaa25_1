@@ -10,6 +10,7 @@ import org.ipro.crud.ServiceLocator;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsTestFixture;
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +105,7 @@ class CanonicalReadTransactionBoundaryIT {
         grant.setDimensionValueId(allowed.getId());
         grant.setCanRead(true);
         accessGrantRepository.saveAndFlush(grant);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, username, Workshop.class);
 
         return new Fixture(username, own, foreignWorkshop, foreign, allowed);
     }
@@ -112,6 +114,9 @@ class CanonicalReadTransactionBoundaryIT {
         accessGrantRepository.deleteAll(accessGrantRepository
             .findBySubjectTypeAndSubjectKeyAndDimension(
                 AccessGrant.SubjectType.USER, fixture.username(), "BRANCH"));
+        accessGrantRepository.deleteAll(accessGrantRepository
+            .findBySubjectTypeAndSubjectKeyAndDimension(
+                AccessGrant.SubjectType.USER, fixture.username(), C5PermissionKeys.entityRead(Workshop.class)));
         accessGrantRepository.flush();
         workshopRepository.deleteAll(List.of(fixture.ownWorkshop(), fixture.foreignWorkshop()));
         branchRepository.deleteAll(List.of(fixture.foreignBranch(), fixture.allowedBranch()));

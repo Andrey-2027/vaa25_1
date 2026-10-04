@@ -80,7 +80,15 @@ class PlatformRlsModuleTest {
         "org.ipro.rls.RlsUiGate",
         "org.ipro.rls.RlsWriteAuthorization",
         "org.ipro.rls.RlsWriteEnforcementListener",
-        "org.ipro.rls.RlsWriteGuardBridge");
+        "org.ipro.rls.RlsWriteGuardBridge",
+        // Общий C5 для canonical, REST и report; зависит только от нижнего RLS grants слоя.
+        "org.ipro.rls.c5.C5AccessDeniedException",
+        "org.ipro.rls.c5.C5PermissionConfigurationException",
+        "org.ipro.rls.c5.C5PermissionEvaluator",
+        "org.ipro.rls.c5.C5PermissionKeys",
+        "org.ipro.rls.c5.C5ReadDecisionService",
+        "org.ipro.rls.c5.C5ReadPermissionRegistry",
+        "org.ipro.rls.c5.DefaultC5PermissionEvaluator");
 
     private static final Set<String> REVIEWED_DEPENDENCIES = Set.of(
         "platform-persistence",
@@ -98,7 +106,10 @@ class PlatformRlsModuleTest {
         "aspectjweaver",
         "jakarta.servlet-api",
         "slf4j-api",
-        "spring-boot-starter-test");
+        "spring-boot-starter-test",
+        // Только test scope: интеграционная проверка настоящего JPA repository/evaluator.
+        "spring-boot-starter-data-jpa-test",
+        "h2");
 
     private static final Pattern ARTIFACT_ID = Pattern.compile("<artifactId>([^<]+)</artifactId>");
     private static final Pattern PACKAGE = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);

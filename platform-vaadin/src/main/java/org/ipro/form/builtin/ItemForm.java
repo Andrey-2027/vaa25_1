@@ -725,8 +725,21 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
                     + "и повторите сохранение."), ex);
         } catch (RuntimeException ex) {
             return new FormSaveResult.Failure<>(
-                List.of("Ошибка сохранения: " + ex.getMessage()), ex);
+                List.of(saveFailureMessage(ex)), ex);
         }
+    }
+
+    private static String saveFailureMessage(RuntimeException error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            // 23505 — unique violation в PostgreSQL/H2. Другие integrity errors,
+            // например NOT NULL (23502), не должны называться дублированием ключа.
+            if (cause instanceof org.springframework.dao.DuplicateKeyException
+                    || cause instanceof java.sql.SQLException sql && "23505".equals(sql.getSQLState())) {
+                return "Запись с такими ключевыми значениями уже существует. "
+                    + "Измените ключ или откройте существующую запись.";
+            }
+        }
+        return "Ошибка сохранения: " + error.getMessage();
     }
 
     @Override

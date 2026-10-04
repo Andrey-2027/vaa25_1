@@ -35,6 +35,7 @@ import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.ipro.numbering.NumberingService;
 import org.ipro.numbering.config.NumberingAutoConfiguration;
 import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsReadGate;
@@ -84,6 +85,19 @@ public class DataAccessAutoConfiguration {
         return new EntityDescriptorCatalog(managedEntityCatalog, sectionMetadataRegistry,
             metadataResolver, overrides.orderedStream().toList(),
             capabilityOverrides.orderedStream().toList());
+    }
+
+    /** Register the exact C5 read keys that administrators need to grant canonical readers. */
+    @Bean
+    @ConditionalOnBean({EntityDescriptorCatalog.class, RlsDimensionRegistry.class,
+        org.ipro.rls.c5.C5ReadPermissionRegistry.class})
+    @ConditionalOnMissingBean
+    C5EntityReadPermissionRegistrar c5EntityReadPermissionRegistrar(
+            EntityDescriptorCatalog entityDescriptorCatalog,
+            RlsDimensionRegistry rlsDimensionRegistry,
+            org.ipro.rls.c5.C5ReadPermissionRegistry c5ReadPermissionRegistry) {
+        return new C5EntityReadPermissionRegistrar(entityDescriptorCatalog, rlsDimensionRegistry,
+            c5ReadPermissionRegistry);
     }
 
     /**
@@ -147,7 +161,7 @@ public class DataAccessAutoConfiguration {
     @Bean
     @ConditionalOnBean({EntityDescriptorCatalog.class, ScenarioFetchGraphResolver.class,
         MetadataResolver.class, RlsFilterActivator.class, RlsReadGate.class,
-        RlsCurrentUser.class})
+        RlsCurrentUser.class, org.ipro.rls.c5.C5PermissionEvaluator.class})
     @ConditionalOnMissingBean
     public CanonicalReadExecutor canonicalReadExecutor(
             EntityDescriptorCatalog entityDescriptorCatalog,
@@ -159,12 +173,12 @@ public class DataAccessAutoConfiguration {
             ObjectProvider<ReadTelemetry> readTelemetry,
             ObjectProvider<InstanceNameResolver> instanceNameResolver,
             RlsCurrentUser currentUser,
-            ObjectProvider<org.ipro.rls.c5.C5PermissionEvaluator> c5PermissionEvaluator) {
+            org.ipro.rls.c5.C5PermissionEvaluator c5PermissionEvaluator) {
         return new CanonicalReadExecutor(entityDescriptorCatalog, scenarioFetchGraphResolver,
             metadataResolver, rlsFilterActivator, rlsReadGate,
             rlsPolicyEnforcer.getIfAvailable(), readTelemetry.getIfAvailable(),
             instanceNameResolver.getIfAvailable(), currentUser,
-            c5PermissionEvaluator.getIfAvailable());
+            c5PermissionEvaluator);
     }
 
     /**

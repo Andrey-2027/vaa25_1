@@ -10,12 +10,13 @@ import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.FilterDefs;
 import org.hibernate.annotations.ParamDef;
 import org.ip.subsystem.Subsystems;
-import org.ipro.metadata.annotation.RequiredMode;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.metadata.annotation.Lookup;
+import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.TableSections;
 import org.ipro.rls.RlsDimension;
 import org.ipro.rls.RlsCheckValue;
@@ -78,6 +79,7 @@ import java.time.LocalDate;
     @Filter(name = "BRANCH", condition = ReceivingDocument.BRANCH_READ_CONDITION)
 })
 @EntityMetadata(
+    kind = EntityKind.DOCUMENT,
     listFormTitle = "Приёмно-сдаточные накладные",
     itemFormTitle = "Накладная",
     selectionFormTitle = "Выбор накладной",

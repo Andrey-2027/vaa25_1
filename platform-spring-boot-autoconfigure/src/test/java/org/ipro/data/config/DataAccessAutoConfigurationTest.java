@@ -12,6 +12,7 @@ import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsReadGate;
+import org.ipro.rls.c5.C5PermissionEvaluator;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -79,6 +80,7 @@ class DataAccessAutoConfigurationTest {
             .withBean(RlsFilterActivator.class, () -> mock(RlsFilterActivator.class))
             .withBean(RlsReadGate.class, () -> mock(RlsReadGate.class))
             .withBean(RlsCurrentUser.class, () -> mock(RlsCurrentUser.class))
+            .withBean(C5PermissionEvaluator.class, () -> mock(C5PermissionEvaluator.class))
             .run(context -> {
                 assertThat(context).hasNotFailed();
                 assertThat(context).hasSingleBean(EntityDescriptorCatalog.class);

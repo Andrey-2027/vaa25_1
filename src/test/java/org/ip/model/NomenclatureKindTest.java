@@ -13,4 +13,10 @@ class NomenclatureKindTest {
         assertThat(new MetadataResolver().resolve(Nomenclature.class).getEntityKind())
             .isEqualTo(EntityKind.CATALOG);
     }
+
+    @Test
+    void receivingDocumentIsResolvedAsDocument() {
+        assertThat(new MetadataResolver().resolve(ReceivingDocument.class).getEntityKind())
+            .isEqualTo(EntityKind.DOCUMENT);
+    }
 }

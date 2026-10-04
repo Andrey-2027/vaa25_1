@@ -336,8 +336,8 @@ class EntitySummaryActionPilotTest {
      * не как отсутствие действия (приёмка §6 п.1).
      *
      * <p><b>Что проверено здесь и что — не здесь.</b> Здесь — что сводка приложения действительно
-     * доходит до карточки и даёт оба раздела (объявление и исполнитель), а аспекты без владельца
-     * разделов не рисуют. Текст ячеек проверяется помощниками панели в
+     * доходит до карточки и даёт оба раздела (объявление и исполнитель), а недоступная инспекция
+     * чтения показана явно. Текст ячеек проверяется помощниками панели в
      * {@code EntitySummaryPanelTextTest}: ячейки рендерит клиент, и «текст на экране» здесь
      * подменить нечем. Привязка «колонка → помощник» тестом пока не покрыта — это предмет забора
      * на состав разделов карточки.</p>
@@ -345,15 +345,25 @@ class EntitySummaryActionPilotTest {
     @Test
     void theCardDrawsBothActionSectionsForTheSuppressedCreatePilot() {
         EntitySummaryPanel panel = new EntitySummaryPanel(null);
+        EntitySummary summary = assembler.summarize(AttributeValue.class);
 
-        panel.show(assembler.summarize(AttributeValue.class));
+        panel.show(summary);
 
         assertThat(sectionTitles(panel))
             .as("сводка приложения доходит до карточки: у объявления и исполнителя свои разделы")
             .contains("Действия", "Действия — исполнители");
         assertThat(sectionTitles(panel))
-            .as("аспекты без владельца факта разделов не рисуют")
-            .doesNotContain("Сценарии чтения", "Доступ");
+            .as("для отсутствующих объявлений доступа раздел не рисуется")
+            .doesNotContain("Доступ");
+        assertThat(summary.readPlanInspectionAvailable()).isFalse();
+        assertThat(summary.readPlans()).isEmpty();
+        for (String title : List.of("Сценарии чтения", "Сценарии чтения — пути")) {
+            var section = CardSections.details(panel, title);
+            assertThat(section).as("недоступная инспекция имеет явный раздел: %s", title).isNotNull();
+            assertThat(CardSections.textIn(section))
+                .contains("Инспекция планов чтения не подключена; число путей неизвестно.")
+                .doesNotContain("0 путей загрузки");
+        }
     }
 
     private static List<String> sectionTitles(Component root) {

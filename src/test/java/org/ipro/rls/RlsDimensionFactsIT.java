@@ -11,6 +11,10 @@ import org.ip.model.Workshop;
 import org.ip.reports.ReportRights;
 import org.ip.subsystem.Subsystems;
 import org.hibernate.annotations.Filter;
+import org.ipro.data.EntityDescriptor;
+import org.ipro.data.EntityDescriptorCatalog;
+import org.ipro.fetch.plan.FetchScenario;
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,13 +56,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = org.ip.Application.class)
 class RlsDimensionFactsIT {
 
-    /** Измерения приложения: восемь имён, объявленных двенадцатью аннотациями. */
+    /** RLS dimensions, объявленные приложением: восемь имён и двенадцать сайтов-аннотаций. */
     private static final Set<String> DIMENSIONS = Set.of(
         "BRANCH", "JOURNAL", "ENTITY:ReceivingDocument", "REPORTS:JPQL_PREVIEW",
         "SETTINGS:Directories", "SETTINGS:Documents", "SETTINGS:ProductionDocuments",
         "SETTINGS:Production");
 
-    /** CHECK_ONLY — измерения-ворота, а не фильтры: их шесть (четыре SETTINGS:*, REPORTS:* и ENTITY:*). */
+    /** Аннотированные CHECK_ONLY RLS dimensions: четыре SETTINGS:*, REPORTS:* и legacy ENTITY. */
     private static final Set<String> CHECK_ONLY = Set.of(
         "ENTITY:ReceivingDocument", "REPORTS:JPQL_PREVIEW", "SETTINGS:Directories",
         "SETTINGS:Documents", "SETTINGS:ProductionDocuments", "SETTINGS:Production");
@@ -68,6 +72,9 @@ class RlsDimensionFactsIT {
 
     @Autowired
     private RlsDimensionRegistry dimensions;
+
+    @Autowired
+    private EntityDescriptorCatalog entityDescriptors;
 
     /**
      * Измерение не приходит на класс извне: аннотация объявляется только на типе
@@ -85,12 +92,14 @@ class RlsDimensionFactsIT {
             .containsExactly(ElementType.TYPE);
     }
 
-    /** Реестр знает ровно восемь измерений, и набор reviewed: новое имя — осознанная правка. */
+    /** Аннотированные RLS dimensions плюс динамические FQN C5 entity-read keys. */
     @Test
-    void applicationDeclaresEightDimensions() {
+    void applicationHasEightAnnotatedDimensionsAndC5EntityReadKeys() {
+        Set<String> expected = new TreeSet<>(DIMENSIONS);
+        expected.addAll(canonicalEntityReadKeys());
         assertThat(dimensions.dimensions())
-            .as("набор измерений приложения — reviewed, а не «сколько получилось»")
-            .containsExactlyInAnyOrderElementsOf(DIMENSIONS);
+            .as("реестр содержит reviewed @RlsDimension и ключи canonical C5 entity read")
+            .containsExactlyInAnyOrderElementsOf(expected);
         reportDimensions();
     }
 
@@ -214,17 +223,19 @@ class RlsDimensionFactsIT {
             .containsEntry("BRANCH", "(branch_id is null or branch_id in (:allowedIds))");
     }
 
-    /** CHECK_ONLY отличается от фильтруемого измерением рода, а не отсутствием объявления. */
+    /** C5 keys also use CHECK_ONLY storage; they have no filter or record-value catalog. */
     @Test
-    void sixDimensionsAreCheckOnlyAndTheRestAreFilterable() {
+    void annotatedRlsAndDynamicC5DimensionsHaveTheExpectedKinds() {
         Map<String, RlsDimensionKind> kinds = new TreeMap<>();
         for (String dimension : dimensions.dimensions()) {
             kinds.put(dimension, dimensions.kindOf(dimension));
         }
+        Set<String> expectedCheckOnly = new TreeSet<>(CHECK_ONLY);
+        expectedCheckOnly.addAll(canonicalEntityReadKeys());
         assertThat(kinds.entrySet().stream()
                 .filter(entry -> entry.getValue() == RlsDimensionKind.CHECK_ONLY)
                 .map(Map.Entry::getKey).toList())
-            .containsExactlyInAnyOrderElementsOf(CHECK_ONLY);
+            .containsExactlyInAnyOrderElementsOf(expectedCheckOnly);
         assertThat(kinds.entrySet().stream()
                 .filter(entry -> entry.getValue() == RlsDimensionKind.FILTERABLE)
                 .map(Map.Entry::getKey).toList())
@@ -292,6 +303,17 @@ class RlsDimensionFactsIT {
         }
         report(dimensions.dimensionsOf(ReceivingDocument.class), ReceivingDocument.class);
         return sites;
+    }
+
+    private Set<String> canonicalEntityReadKeys() {
+        Set<FetchScenario> canonicalReads = Set.of(
+            FetchScenario.LIST, FetchScenario.DETAIL, FetchScenario.LOOKUP);
+        return entityDescriptors.all().stream()
+            .filter(descriptor -> descriptor.capabilities().readScenarios().stream()
+                .anyMatch(canonicalReads::contains))
+            .map(EntityDescriptor::type)
+            .map(C5PermissionKeys::entityRead)
+            .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
     }
 
     /** Десять типов-носителей: пять сущностей и пять вложенных маркеров. */

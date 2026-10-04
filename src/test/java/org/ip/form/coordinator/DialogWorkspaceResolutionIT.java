@@ -1,5 +1,8 @@
 package org.ip.form.coordinator;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.server.VaadinSessionState;
 import org.ip.config.DataInitializer;
 import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.form.coordinator.ItemFormWrapperView;
@@ -9,6 +12,7 @@ import org.ipro.form.registry.FormResolver;
 import org.ipro.form.registry.FormType;
 import org.ip.model.Workshop;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +20,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 /**
  * Паритет Dialog / Workspace (PR-0.5): одна и та же (entityClass, variant) через
@@ -49,12 +57,38 @@ class DialogWorkspaceResolutionIT {
     private ObjectProvider<ItemFormWrapperView> viewProvider;
 
     private String registeredVariant;
+    private UI previousUi;
+    private VaadinSession previousSession;
+
+    @BeforeEach
+    void bindUiScope() {
+        // Workspace-форма получает UI-scoped навигацию структуры через настоящий Spring scope.
+        previousUi = UI.getCurrent();
+        previousSession = VaadinSession.getCurrent();
+        VaadinSession session = mock(VaadinSession.class);
+        when(session.getState()).thenReturn(VaadinSessionState.OPEN);
+        when(session.hasLock()).thenReturn(true);
+        when(session.getLockInstance()).thenReturn(new ReentrantLock());
+        Map<Class<?>, Object> attributes = new HashMap<>();
+        when(session.getAttribute(any(Class.class))).thenAnswer(call -> attributes.get(call.getArgument(0)));
+        doAnswer(call -> { attributes.put(call.getArgument(0), call.getArgument(1)); return null; })
+            .when(session).setAttribute(any(Class.class), any());
+        UI ui = new UI();
+        ui.getInternals().setSession(session);
+        VaadinSession.setCurrent(session);
+        UI.setCurrent(ui);
+    }
 
     @AfterEach
     void cleanup() {
-        if (registeredVariant != null) {
-            formRegistry.unregister(Workshop.class, FormType.ITEM, registeredVariant);
-            registeredVariant = null;
+        try {
+            if (registeredVariant != null) {
+                formRegistry.unregister(Workshop.class, FormType.ITEM, registeredVariant);
+                registeredVariant = null;
+            }
+        } finally {
+            UI.setCurrent(previousUi);
+            VaadinSession.setCurrent(previousSession);
         }
     }
 

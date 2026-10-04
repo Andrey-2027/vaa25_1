@@ -148,31 +148,41 @@ public class CanonicalReadExecutor {
      */
     public boolean canRead(Class<?> type) {
         String username = currentUser != null ? currentUser.username() : null;
-        if (c5PermissionEvaluator != null && username != null && !username.isBlank()) {
-            if (!c5PermissionEvaluator.isEntityReadPermitted(username, type)) {
-                return false;
-            }
-        }
+        requireC5EntityRead(type, username);
+        return canReadRls(type, username);
+    }
+
+    private boolean canReadRls(Class<?> type, String username) {
         if (rlsPolicyEnforcer != null) {
             return rlsPolicyEnforcer.prepareRead(type, entityManager);
         }
-        return rlsReadGate != null && currentUser != null
-            && rlsReadGate.canRead(type, currentUser.username());
+        return rlsReadGate != null && rlsReadGate.canRead(type, username);
+    }
+
+    private void requireC5EntityRead(Class<?> type, String username) {
+        if (c5PermissionEvaluator == null) {
+            throw new org.ipro.rls.c5.C5PermissionConfigurationException(
+                "Canonical read requires a C5PermissionEvaluator; no provider is configured");
+        }
+        if (username == null || username.isBlank()) {
+            throw new org.ipro.rls.c5.C5PermissionConfigurationException(
+                "Canonical read requires an authenticated C5 subject");
+        }
+        if (!c5PermissionEvaluator.isEntityReadPermitted(username, type)) {
+            throw new org.ipro.rls.c5.C5AccessDeniedException(
+                "Entity C5 read denied for " + type.getName());
+        }
     }
 
     /**
      * Строгий C5 и RLS read gate для REST API чтений (F-REST-READ-3).
-     * Проверяет обязательное наличие C5 провайдера, C5 Entity Read грант ("ENTITY:<Type>") и RLS политики.
+     * Проверяет обязательное наличие C5 провайдера, FQN entity-read grant по
+     * {@code C5PermissionKeys.entityRead(type)} и RLS политики.
      */
     public boolean canReadApi(Class<?> type) {
         String username = currentUser != null ? currentUser.username() : null;
-        if (username == null || username.isBlank()) {
-            return false;
-        }
-        if (c5PermissionEvaluator == null) {
-            return false;
-        }
-        return canRead(type);
+        requireC5EntityRead(type, username);
+        return canReadRls(type, username);
     }
 
     /** Paged list: content query + отдельный count query. */
@@ -278,7 +288,7 @@ public class CanonicalReadExecutor {
         return measured(DataOperation.LIST, request.type(), FetchScenario.LIST, () -> {
             requireScenario(request.type(), FetchScenario.LIST);
             if (!canReadApi(request.type())) {
-                throw new org.ipro.rls.RlsAccessDeniedException("Read access denied for entity: " + request.type().getName());
+                return Page.empty(request.pageable());
             }
             requireSortWithoutCollection(request.type(), request.pageable());
             rlsFilterActivator.ensureRlsEnabled(entityManager);
@@ -318,7 +328,7 @@ public class CanonicalReadExecutor {
         return measured(DataOperation.DETAIL, request.type(), FetchScenario.DETAIL, () -> {
             requireScenario(request.type(), FetchScenario.DETAIL);
             if (!canReadApi(request.type())) {
-                throw new org.ipro.rls.RlsAccessDeniedException("Read access denied for entity: " + request.type().getName());
+                return Optional.empty();
             }
             rlsFilterActivator.ensureRlsEnabled(entityManager);
             EntityGraph<T> graph = graphResolver.resolveRestFetchGraph(entityManager, request.type(), request.fixedFetchPaths());

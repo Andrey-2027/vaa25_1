@@ -10,6 +10,8 @@ import org.hibernate.stat.Statistics;
 import org.ipro.data.fixture.C4FixtureEntity;
 import org.ipro.data.fixture.C4FixtureJpaConfiguration;
 import org.ipro.data.fixture.C4NoTextFixtureEntity;
+import org.ipro.data.ApiDetailRead;
+import org.ipro.data.ApiPageRead;
 import org.ipro.crud.ValidationException;
 import org.ipro.events.EntityEventPublisher;
 import org.ipro.fetch.plan.FetchScenario;
@@ -24,6 +26,8 @@ import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsReadGate;
+import org.ipro.rls.c5.C5AccessDeniedException;
+import org.ipro.rls.c5.C5PermissionEvaluator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,7 +114,8 @@ class CanonicalWritePathIT {
         readGate = mock(RlsReadGate.class);
         when(readGate.canRead(any(), any())).thenReturn(true);
         readExecutor = new CanonicalReadExecutor(catalog, graphResolver, metadataResolver,
-            rlsFilterActivator, readGate, null, ReadTelemetry.noop(), () -> "test-user");
+            rlsFilterActivator, readGate, null, ReadTelemetry.noop(), null,
+            () -> "test-user", allowAllC5());
         ReflectionTestUtils.setField(readExecutor, "entityManager", entityManager);
 
         writeExecutor = new CanonicalWriteExecutor(catalog, readExecutor, entityManager,
@@ -164,6 +169,39 @@ class CanonicalWritePathIT {
         service.delete(created.getId());
         assertThat(service.findById(created.getId())).isEmpty();
         assertThat(service.findAll()).isEmpty();
+    }
+
+    @Test
+    void directCanonicalReadRejectsMissingEntityC5GrantBeforeRlsOrSql() {
+        C5PermissionEvaluator denyC5 = mock(C5PermissionEvaluator.class);
+        when(denyC5.isEntityReadPermitted("test-user", C4FixtureEntity.class)).thenReturn(false);
+        CanonicalReadExecutor denied = new CanonicalReadExecutor(catalog,
+            new ScenarioFetchGraphResolver(metadataResolver, null, null), metadataResolver,
+            rlsFilterActivator, readGate, null, ReadTelemetry.noop(), null,
+            () -> "test-user", denyC5);
+        ReflectionTestUtils.setField(denied, "entityManager", entityManager);
+
+        assertThatThrownBy(() -> denied.readAll(new ListRead<>(C4FixtureEntity.class,
+            FetchScenario.LIST, null, PageRequest.of(0, 10), List.of())))
+            .isInstanceOf(C5AccessDeniedException.class);
+        org.mockito.Mockito.verifyNoInteractions(rlsFilterActivator);
+    }
+
+    @Test
+    void apiReadsMapClassRlsDenialToEmptyListAndMissingDetail() {
+        when(readGate.canRead(C4FixtureEntity.class, "test-user")).thenReturn(false);
+        ApiPageRead<C4FixtureEntity> pageRequest = ApiPageRead.of(C4FixtureEntity.class, null,
+            PageRequest.of(0, 10), List.of("id"));
+        ApiDetailRead<C4FixtureEntity> detailRequest = ApiDetailRead.of(C4FixtureEntity.class,
+            999L, List.of("id"));
+
+        Page<C4FixtureEntity> page = readExecutor.readApiPage(pageRequest);
+        Optional<C4FixtureEntity> detail = readExecutor.readApiDetail(detailRequest);
+
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isZero();
+        assertThat(detail).isEmpty();
+        org.mockito.Mockito.verifyNoInteractions(rlsFilterActivator);
     }
 
     @Test
@@ -433,7 +471,7 @@ class CanonicalWritePathIT {
             new ScenarioFetchGraphResolver(metadataResolver, null, null), metadataResolver,
             rlsFilterActivator, readGate, null,
             (operation, type, scenario, outcome, resultCount, durationNanos) ->
-                observed.add(operation), () -> "test-user");
+                observed.add(operation), null, () -> "test-user", allowAllC5());
         ReflectionTestUtils.setField(measured, "entityManager", entityManager);
 
         measured.readSearch(new SearchRead<>(C4FixtureEntity.class, SearchContext.GLOBAL,
@@ -456,7 +494,7 @@ class CanonicalWritePathIT {
             new ScenarioFetchGraphResolver(new MetadataResolver(), null, null),
             new MetadataResolver(), rlsFilterActivator, readGate, null,
             (operation, type, scenario, outcome, resultCount, durationNanos) ->
-                observed.add(operation), () -> "test-user");
+                observed.add(operation), null, () -> "test-user", allowAllC5());
         ReflectionTestUtils.setField(measured, "entityManager", entityManager);
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.setStatisticsEnabled(true);
@@ -732,5 +770,11 @@ class CanonicalWritePathIT {
                 }
             };
         }
+    }
+
+    private C5PermissionEvaluator allowAllC5() {
+        C5PermissionEvaluator evaluator = mock(C5PermissionEvaluator.class);
+        when(evaluator.isEntityReadPermitted(any(), any())).thenReturn(true);
+        return evaluator;
     }
 }

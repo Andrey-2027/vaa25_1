@@ -93,9 +93,17 @@ class ReportExecutionIT {
         var readGate = new org.ipro.rls.RlsReadGate(accessService, registry);
 
         var analyzer = new org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer(entityManagerFactory);
+        org.ipro.rls.RlsCurrentUser currentSubject =
+            () -> SecurityContextHolder.getContext().getAuthentication().getName();
+        var authorizer = new org.ipro.reportstudio.query.ReportReadAuthorizer(entityManagerFactory,
+            new org.ipro.rls.c5.DefaultC5PermissionEvaluator(accessGrantRepository,
+                new UserRepositoryRlsRoleResolver(userRepository)), currentSubject,
+            List.of(new org.ip.application.register.RegisterReportReadPolicy(entityManagerFactory, registry)),
+            accessService, registry);
         var guard = new org.ipro.reportstudio.query.ReportQueryGuard(analyzer, accessService, registry,
-            () -> SecurityContextHolder.getContext().getAuthentication().getName(), entityManagerFactory);
-        var executor = new org.ipro.reportstudio.query.ReportQueryExecutor(entityManager, activator);
+            currentSubject, entityManagerFactory, authorizer);
+        var executor = new org.ipro.reportstudio.query.ReportQueryExecutor(entityManager, activator,
+            currentSubject, guard, authorizer);
         var refresher = new org.ipro.reportstudio.param.EntityParamRefresher(entityManager, activator,
             readGate, () -> SecurityContextHolder.getContext().getAuthentication().getName(),
             entityManagerFactory.unwrap(org.hibernate.engine.spi.SessionFactoryImplementor.class));
@@ -117,6 +125,13 @@ class ReportExecutionIT {
         journalAId = journalA.getId();
 
         persistGrant("admin", "*", null, true);
+        for (Class<?> type : List.of(PrdSpec.class, Journal.class)) {
+            persistGrant("admin", org.ipro.rls.c5.C5PermissionKeys.entityRead(type), null, true);
+            for (var attribute : entityManager.getMetamodel().entity(type).getAttributes()) {
+                persistGrant("admin", org.ipro.rls.c5.C5PermissionKeys.attributeRead(type, attribute.getName()),
+                    null, true);
+            }
+        }
         entityManager.flush();
 
         createPrdSpec(journalA, "SPEC-1");

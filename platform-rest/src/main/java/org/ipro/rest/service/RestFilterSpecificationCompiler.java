@@ -6,7 +6,6 @@ import org.ipro.rest.catalog.ResolvedRestResource;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Compiles a safe JPA Specification from declared REST filters (F-REST-READ-3 В§6.3).
@@ -55,36 +54,24 @@ public final class RestFilterSpecificationCompiler {
     }
 
     private static Object coerceAndValidate(Object value, Class<?> targetType, String filterName) {
-        if (targetType.isInstance(value)) {
+        Class<?> expectedType = boxed(targetType);
+        if (expectedType.isInstance(value)) {
             return value;
         }
-        if (value instanceof String str) {
-            try {
-                if (targetType == Long.class || targetType == long.class) {
-                    return Long.valueOf(str);
-                } else if (targetType == Integer.class || targetType == int.class) {
-                    return Integer.valueOf(str);
-                } else if (targetType == Short.class || targetType == short.class) {
-                    return Short.valueOf(str);
-                } else if (targetType == Boolean.class || targetType == boolean.class) {
-                    return Boolean.valueOf(str);
-                } else if (targetType == UUID.class) {
-                    return UUID.fromString(str);
-                }
-            } catch (Exception ex) {
-                throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
-                    "Invalid value format for filter '" + filterName + "': cannot convert '" + str + "' to " + targetType.getSimpleName());
-            }
-        }
-        if (Number.class.isAssignableFrom(targetType) && value instanceof Number num) {
-            if (targetType == Long.class) return num.longValue();
-            if (targetType == Integer.class) return num.intValue();
-            if (targetType == Short.class) return num.shortValue();
-            if (targetType == Double.class) return num.doubleValue();
-            if (targetType == Float.class) return num.floatValue();
-        }
         throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
-            "Type mismatch for filter '" + filterName + "': expected " + targetType.getSimpleName()
+            "Type mismatch for filter '" + filterName + "': expected " + expectedType.getSimpleName()
             + ", got " + value.getClass().getSimpleName());
+    }
+
+    private static Class<?> boxed(Class<?> type) {
+        if (type == boolean.class) return Boolean.class;
+        if (type == byte.class) return Byte.class;
+        if (type == short.class) return Short.class;
+        if (type == int.class) return Integer.class;
+        if (type == long.class) return Long.class;
+        if (type == float.class) return Float.class;
+        if (type == double.class) return Double.class;
+        if (type == char.class) return Character.class;
+        return type;
     }
 }

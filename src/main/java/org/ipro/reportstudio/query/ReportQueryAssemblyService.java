@@ -125,15 +125,17 @@ public class ReportQueryAssemblyService {
     }
 
     private Map<String, Class<?>> visualParameterEntityClasses(ReportTemplate template) {
-        if (template.getVisualQueryJson() == null) return Map.of();
-        String json = template.getVisualQueryJson();
-        VisualQueryDefinition definition = json.contains("\"ctes\"")
-                ? new VisualQueryPackageJsonCodec().read(json).main()
-                : new VisualQueryDefinitionJsonCodec().read(json);
         Map<String, Class<?>> result = new HashMap<>();
-        for (VisualQueryDefinition.Parameter parameter : definition.parameters()) {
-            // Visual-параметры пока не несут отдельного имени Java-класса;
-            // entity bindings остаются ответственностью обычных ReportParam.
+        for (var parameter : template.getParams()) {
+            String className = parameter.getEntityClass();
+            if (className == null || className.isBlank()) continue;
+            try {
+                result.put(parameter.getName(), Class.forName(className, false,
+                    Thread.currentThread().getContextClassLoader()));
+            } catch (ClassNotFoundException error) {
+                throw new IllegalArgumentException("Неизвестный entityClass параметра "
+                    + parameter.getName() + ": " + className, error);
+            }
         }
         return result;
     }

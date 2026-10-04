@@ -14,6 +14,9 @@ import static org.mockito.Mockito.when;
 
 class DefaultC5PermissionEvaluatorTest {
 
+    static class FirstPackage { static class Model { } }
+    static class SecondPackage { static class Model { } }
+
     private AccessGrantRepository grantRepository;
     private RlsRoleResolver roleResolver;
     private DefaultC5PermissionEvaluator evaluator;
@@ -31,7 +34,7 @@ class DefaultC5PermissionEvaluatorTest {
         AccessGrant grant = new AccessGrant();
         grant.setCanRead(true);
 
-        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
             AccessGrant.SubjectType.USER, "john", key))
             .thenReturn(List.of(grant));
 
@@ -44,11 +47,11 @@ class DefaultC5PermissionEvaluatorTest {
         AccessGrant grant = new AccessGrant();
         grant.setCanRead(true);
 
-        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
             AccessGrant.SubjectType.USER, "john", key))
             .thenReturn(List.of());
         when(roleResolver.rolesOf("john")).thenReturn(List.of("ROLE_ENGINEER"));
-        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
             AccessGrant.SubjectType.ROLE, "ROLE_ENGINEER", key))
             .thenReturn(List.of(grant));
 
@@ -59,11 +62,11 @@ class DefaultC5PermissionEvaluatorTest {
     void isApiPermitted_whenNoGrant_returnsFalse() {
         String key = "REST:specifications:v1:LIST";
 
-        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
             AccessGrant.SubjectType.USER, "john", key))
             .thenReturn(List.of());
         when(roleResolver.rolesOf("john")).thenReturn(List.of("ROLE_ENGINEER"));
-        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
             AccessGrant.SubjectType.ROLE, "ROLE_ENGINEER", key))
             .thenReturn(List.of());
 
@@ -78,10 +81,10 @@ class DefaultC5PermissionEvaluatorTest {
         AccessGrant grantV1 = new AccessGrant();
         grantV1.setCanRead(true);
 
-        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
             AccessGrant.SubjectType.USER, "john", keyV1))
             .thenReturn(List.of(grantV1));
-        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
             AccessGrant.SubjectType.USER, "john", keyV2))
             .thenReturn(List.of());
         when(roleResolver.rolesOf("john")).thenReturn(List.of());
@@ -92,11 +95,11 @@ class DefaultC5PermissionEvaluatorTest {
 
     @Test
     void isEntityReadPermitted_checksExactEntityTypeKey() {
-        String key = "ENTITY:String";
+        String key = "ENTITY:java.lang.String";
         AccessGrant grant = new AccessGrant();
         grant.setCanRead(true);
 
-        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
             AccessGrant.SubjectType.USER, "john", key))
             .thenReturn(List.of(grant));
 
@@ -106,15 +109,51 @@ class DefaultC5PermissionEvaluatorTest {
 
     @Test
     void isAttributeReadPermitted_checksExactAttributePathKey() {
-        String key = "ATTR:String:length";
+        String key = "ATTR:java.lang.String:length";
         AccessGrant grant = new AccessGrant();
         grant.setCanRead(true);
 
-        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
             AccessGrant.SubjectType.USER, "john", key))
             .thenReturn(List.of(grant));
 
         assertThat(evaluator.isAttributeReadPermitted("john", String.class, "length")).isTrue();
         assertThat(evaluator.isAttributeReadPermitted("john", String.class, "bytes")).isFalse();
+    }
+
+    @Test
+    void simpleNameGrantDoesNotAuthorizeCollidingEntityTypes() {
+        AccessGrant legacySimpleNameGrant = new AccessGrant();
+        legacySimpleNameGrant.setCanRead(true);
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, "john", "ENTITY:Model"))
+            .thenReturn(List.of(legacySimpleNameGrant));
+
+        assertThat(evaluator.isEntityReadPermitted("john", FirstPackage.Model.class)).isFalse();
+        assertThat(evaluator.isEntityReadPermitted("john", SecondPackage.Model.class)).isFalse();
+    }
+
+    @Test
+    void fullyQualifiedEntityGrantIsIsolatedToItsType() {
+        AccessGrant grant = new AccessGrant();
+        grant.setCanRead(true);
+        String firstKey = "ENTITY:" + FirstPackage.Model.class.getName();
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, "john", firstKey)).thenReturn(List.of(grant));
+
+        assertThat(evaluator.isEntityReadPermitted("john", FirstPackage.Model.class)).isTrue();
+        assertThat(evaluator.isEntityReadPermitted("john", SecondPackage.Model.class)).isFalse();
+    }
+
+    @Test
+    void simpleNameAttributeGrantDoesNotAuthorizeCollidingEntityTypes() {
+        AccessGrant legacySimpleNameGrant = new AccessGrant();
+        legacySimpleNameGrant.setCanRead(true);
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, "john", "ATTR:Model:id"))
+            .thenReturn(List.of(legacySimpleNameGrant));
+
+        assertThat(evaluator.isAttributeReadPermitted("john", FirstPackage.Model.class, "id")).isFalse();
+        assertThat(evaluator.isAttributeReadPermitted("john", SecondPackage.Model.class, "id")).isFalse();
     }
 }

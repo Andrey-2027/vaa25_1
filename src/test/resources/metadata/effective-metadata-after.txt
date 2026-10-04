@@ -27,6 +27,9 @@ org.ip.model.Nomenclature#groupNom required=false type=ENTITY_REFERENCE referenc
 org.ip.model.Nomenclature#name required=true type=TEXT reference=-
 org.ip.model.Nomenclature#typeNom required=false type=TEXT reference=-
 org.ip.model.Nomenclature#unitOfMeasurement required=true type=ENTITY_REFERENCE reference=org.ip.model.UnitOfMeasurement
+org.ip.model.NomenclaturePrice#nomenclature required=true type=ENTITY_REFERENCE reference=org.ip.model.Nomenclature
+org.ip.model.NomenclaturePrice#period required=true type=DATE reference=-
+org.ip.model.NomenclaturePrice#price required=true type=DECIMAL reference=-
 org.ip.model.Oper#code required=true type=TEXT reference=-
 org.ip.model.Oper#name required=true type=TEXT reference=-
 org.ip.model.PrdSpec#codeSpec required=true type=TEXT reference=-

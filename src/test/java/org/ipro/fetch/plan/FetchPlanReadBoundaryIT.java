@@ -24,6 +24,7 @@ import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.RlsTestFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -117,6 +118,8 @@ class FetchPlanReadBoundaryIT {
         wildcard.setCanUpdate(true);
         wildcard.setCanDelete(true);
         accessGrantRepository.saveAndFlush(wildcard);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, username,
+            ReceivingDocument.class, Workshop.class);
     }
 
     /** C4.6 волна B: у {@code ReceivingDocument} нет typed-сервиса — резолв идёт canonical handle. */
@@ -234,6 +237,7 @@ class FetchPlanReadBoundaryIT {
         readAllowedBranchOnly.setDimensionValueId(allowedBranch.getId());
         readAllowedBranchOnly.setCanRead(true);
         accessGrantRepository.saveAndFlush(readAllowedBranchOnly);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, username, Workshop.class);
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(username, "n/a", List.of()));
 

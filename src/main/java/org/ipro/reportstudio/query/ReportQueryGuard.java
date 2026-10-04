@@ -46,15 +46,25 @@ public class ReportQueryGuard {
     private final RlsDimensionRegistry dimensionRegistry;
     private final RlsCurrentUser currentUser;
     private final org.hibernate.engine.spi.SessionFactoryImplementor sessionFactory;
+    private final ReportReadAuthorizer readAuthorizer;
 
     public ReportQueryGuard(QuerySemanticAnalyzer analyzer, AccessService accessService,
                             RlsDimensionRegistry dimensionRegistry, RlsCurrentUser currentUser,
                             jakarta.persistence.EntityManagerFactory entityManagerFactory) {
+        this(analyzer, accessService, dimensionRegistry, currentUser, entityManagerFactory, null);
+    }
+
+    /** Production wiring supplies the mandatory C5 authorizer; old constructor is a structural-test adapter. */
+    public ReportQueryGuard(QuerySemanticAnalyzer analyzer, AccessService accessService,
+                            RlsDimensionRegistry dimensionRegistry, RlsCurrentUser currentUser,
+                            jakarta.persistence.EntityManagerFactory entityManagerFactory,
+                            ReportReadAuthorizer readAuthorizer) {
         this.analyzer = analyzer;
         this.accessService = accessService;
         this.dimensionRegistry = dimensionRegistry;
         this.currentUser = currentUser;
         this.sessionFactory = entityManagerFactory.unwrap(org.hibernate.engine.spi.SessionFactoryImplementor.class);
+        this.readAuthorizer = readAuthorizer;
     }
 
     public GuardResult guard(String jpql, Set<String> templateParamNames) {
@@ -119,6 +129,9 @@ public class ReportQueryGuard {
 
         List<String> rlsErrors = checkRls(analysis, declared, paramEntityClasses);
         errors.addAll(rlsErrors);
+        if (readAuthorizer != null) {
+            errors.addAll(readAuthorizer.violations(jpql, paramEntityClasses));
+        }
 
         return new GuardResult(errors.isEmpty(), errors, warnings, analysis);
     }

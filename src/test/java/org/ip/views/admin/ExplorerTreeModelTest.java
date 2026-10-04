@@ -54,6 +54,37 @@ class ExplorerTreeModelTest {
     static class ServiceStore {
     }
 
+    /** Приёмка 11.1: no-List проверяется фикстурой, а не пилотом с list=default. */
+    static class NoListRoot {
+    }
+
+    @Test
+    void aRootWithoutListFormsRemainsVisibleInBothGroupingsAndSearch() {
+        EntitySummary noForms = summary(NoListRoot.class, List.of(), List.of());
+        assertThat(noForms.forms()).isEmpty();
+        ExplorerSnapshot.Entry root = entry(NoListRoot.class, "Тип без списка",
+            EntityKind.PLAIN, EntityExposure.STANDARD_ROOT);
+        assertThat(root.publishedKey()).isEmpty();
+        List<ExplorerSnapshot.SearchTerm> terms = List.of(new ExplorerSnapshot.SearchTerm(
+            NoListRoot.class, ExplorerSnapshot.SearchKind.TYPE, "тип без списка", "", ""));
+        ExplorerTreeModel.CatalogView view = view(List.of(root),
+            Map.of(NoListRoot.class, noForms), Map.of(), terms);
+
+        for (ExplorerTreeModel.GroupMode mode : ExplorerTreeModel.GroupMode.values()) {
+            List<ExplorerTreeModel.Node> groups = ExplorerTreeModel.roots(view, mode);
+            assertThat(groups).singleElement().satisfies(group ->
+                assertThat(group.children()).singleElement().satisfies(node -> {
+                    assertThat(node.kind()).isEqualTo(ExplorerTreeModel.NodeKind.TYPE);
+                    assertThat(node.type()).isEqualTo(NoListRoot.class);
+                    assertThat(node.id()).isEqualTo("type:" + NoListRoot.class.getName());
+                }));
+            assertThat(ExplorerTreeModel.withQuery(groups, terms, "тип без списка"))
+                .singleElement().satisfies(group ->
+                    assertThat(group.children()).extracting(ExplorerTreeModel.Node::type)
+                        .containsExactly(NoListRoot.class));
+        }
+    }
+
     @Test
     void kindModeGroupsTypesUnderTheReviewedTitles() {
         ExplorerTreeModel.CatalogView view = view(

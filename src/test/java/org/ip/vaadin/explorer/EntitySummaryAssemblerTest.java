@@ -846,14 +846,14 @@ class EntitySummaryAssemblerTest {
         assertThat(catalog.state()).isEqualTo(ExplorerSnapshot.EntryState.READY);
         assertThat(catalog.countsKnown()).isTrue();
 
-        // Пилот документов: тип берётся у resolver'а, а не из имени класса. Сегодня
-        // ReceivingDocument резолвится как PLAIN — приложение не объявляет DOCUMENT и не
-        // наследует стандартный базовый класс; матрица §6 ждёт DOCUMENT, и это отдельное
-        // решение о метаданных приложения, а не факт read-model (зафиксировано в прогрессе 9.1).
+        // Пилот документов: тип берётся у resolver'а, а не выводится из имени класса.
         ExplorerSnapshot.Entry document = snapshot.entryOf(ReceivingDocument.class).orElseThrow();
         assertThat(document.kind())
             .isEqualTo(wiring.metadata().resolve(ReceivingDocument.class).getEntityKind())
-            .isNotEqualTo(EntityKind.AUTO);
+            .isEqualTo(EntityKind.DOCUMENT);
+        assertThat(snapshot.entries())
+            .as("AUTO остаётся только значением декларации и не становится effective kind")
+            .noneMatch(entry -> entry.kind() == EntityKind.AUTO);
         assertThat(document.publishedKey())
             .contains(wiring.routes().find(ReceivingDocument.class).orElseThrow().entityKey());
     }
