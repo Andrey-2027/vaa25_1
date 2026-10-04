@@ -277,8 +277,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "797d5b34f6a97f2c7368f8faab624c8c218ef546b96678c08bec33a57b17e116",
-        "fileCount": 45,
+        "sha256": "5ca95045ee21369623bd1e7596c65c5caa3beb4b71385280a0522f91f8d9f67c",
+        "fileCount": 49,
         "inputs": [
           "pom.xml",
           "src"
@@ -376,7 +376,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "ea1b5dbf98164fb19b97a7d5b2574d06ab1b7d89ad474246a7cb5ed9aad95d49",
+        "sha256": "a19f336c72ac1d2beeaa7acd6f6435267fdee20dc74f4fed142dc436de5c4e5b",
         "fileCount": 17,
         "inputs": [
           "pom.xml",
@@ -432,7 +432,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "a89b2dc6cf44406e2adfa8e11620fdaf8c7957a8b3e4a3197cbc14db78be0193",
+        "sha256": "a6c33812be37254d8227043a74599c4b38a59e9429fcbc8466934ba8afb38e24",
         "fileCount": 50,
         "inputs": [
           "pom.xml",

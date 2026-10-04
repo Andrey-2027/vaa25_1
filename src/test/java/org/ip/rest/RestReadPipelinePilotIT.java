@@ -2,21 +2,29 @@ package org.ip.rest;
 
 import org.ip.Application;
 import org.ip.config.DataInitializer;
+import org.ip.model.GroupNom;
 import org.ip.model.Journal;
 import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
+import org.ip.model.Role;
 import org.ip.model.UnitOfMeasurement;
+import org.ip.model.User;
 import org.ip.repository.JournalRepository;
 import org.ip.repository.NomenclatureRepository;
 import org.ip.repository.PrdSpecRepository;
+import org.ip.repository.RoleRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
+import org.ip.repository.UserRepository;
 import org.ipro.rest.catalog.RestResourceCatalog;
 import org.ipro.rest.catalog.RestReadOperation;
+import org.ipro.data.CanonicalWriteExecutor;
 import org.ipro.data.EntityReadAccess;
 import org.ipro.data.EntityDataAccessResolver;
 import org.ipro.data.ScenarioFetchGraphResolver;
 import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.rest.service.RestDetailQuery;
+import org.ipro.rest.service.RestDetailResult;
+import org.ipro.rest.service.RestDetailResult;
 import org.ipro.rest.service.RestListQuery;
 import org.ipro.rest.service.RestPageResult;
 import org.ipro.rest.service.RestReadOutcome;
@@ -48,6 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 import jakarta.persistence.EntityManagerFactory;
@@ -124,6 +133,15 @@ class RestReadPipelinePilotIT {
     @Autowired
     private PrdSpecRepository prdSpecRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private CanonicalWriteExecutor writeExecutor;
+
     private String subject;
 
     @BeforeEach
@@ -196,7 +214,6 @@ class RestReadPipelinePilotIT {
         });
         assertReturnedOutsideTransaction(page.content());
 
-        grant(subject, "REST:nomenclature:v1:DETAIL");
         var detail = readService.detail(new RestDetailQuery("nomenclature", 1,
             List.of("id", "code", "name"), fixture.nomenclatureId()));
         assertThat(detail.data()).containsEntry("id", fixture.nomenclatureId())
@@ -380,6 +397,304 @@ class RestReadPipelinePilotIT {
         var loadedNom = uiNom.result().getContent().getFirst();
         System.out.printf("REST-STAGE3 UI Nomenclature loaded unitOfMeasurement=%s groupNom=%s%n",
             persistence.isLoaded(loadedNom, "unitOfMeasurement"), persistence.isLoaded(loadedNom, "groupNom"));
+    }
+
+    @Test
+    @DisplayName("З4: LIST-бюджеты обоих ресурсов стабильны по проекции, фильтру и size 1/50/200")
+    void z4ListBudgetsAcrossProjectionsAndSizes() {
+        Fixture fixture = persistFixture();
+        addSpecificationsForJournal(fixture, 199);
+        addNomenclaturesForType(fixture, 199);
+        grantPrdSpecRead(subject, fixture.journalAId());
+        grantNomenclatureRead(subject);
+        // Прогрев session RLS ids: измеряемые вызовы идут в свежих persistence context.
+        readService.list(new RestListQuery("specifications", 1, List.of("id"), Map.of(), null, null, 0, 1));
+        readService.list(new RestListQuery("nomenclature", 1, List.of("id"), Map.of(), null, null, 0, 1));
+
+        List<Long> specDefaultC5 = new ArrayList<>();
+        List<Long> specMaxC5 = new ArrayList<>();
+        List<Long> nomDefaultC5 = new ArrayList<>();
+        List<Long> nomMaxC5 = new ArrayList<>();
+        List<Long> nomDefaultTotals = new ArrayList<>();
+        for (int size : List.of(1, 50, 200)) {
+            SqlRead<RestPageResult> specDefault = recordSql("Z4 PrdSpec LIST default size=" + size, () ->
+                readService.list(new RestListQuery("specifications", 1, List.of(), Map.of(), null, null, 0, size)));
+            assertDirectListBudget(specDefault, size, size, 200L, "PrdSpec default LIST");
+            specDefaultC5.add(specDefault.count(SqlKind.C5_GRANT));
+
+            SqlRead<RestPageResult> specMax = recordSql("Z4 PrdSpec LIST max+filter size=" + size, () ->
+                readService.list(specMaxQuery(fixture, size)));
+            assertDirectListBudget(specMax, size, size, 200L, "PrdSpec max LIST");
+            assertThat(specMax.result().content()).allSatisfy(row ->
+                assertThat(row).containsKeys("id", "codeSpec", "draft", "nomenclatureCode"));
+            specMaxC5.add(specMax.count(SqlKind.C5_GRANT));
+
+            SqlRead<RestPageResult> nomDefault = recordSql("Z4 Nomenclature LIST default size=" + size, () ->
+                readService.list(new RestListQuery("nomenclature", 1, List.of(), Map.of(), null, null, 0, size)));
+            // Unfiltered Nomenclature total зависит от остальных данных общей H2: ниже
+            // проверяются консистентность total по size и нижняя граница, не точное число.
+            assertDirectListBudget(nomDefault, size, size, null, "Nomenclature default LIST");
+            nomDefaultTotals.add(nomDefault.result().totalElements());
+            nomDefaultC5.add(nomDefault.count(SqlKind.C5_GRANT));
+
+            SqlRead<RestPageResult> nomMax = recordSql("Z4 Nomenclature LIST max+filter size=" + size, () ->
+                readService.list(nomMaxQuery(fixture, size)));
+            assertDirectListBudget(nomMax, size, size, 200L, "Nomenclature max LIST");
+            assertThat(nomMax.result().content()).allSatisfy(row ->
+                assertThat(row).containsKeys("id", "code", "name", "typeNom"));
+            nomMaxC5.add(nomMax.count(SqlKind.C5_GRANT));
+        }
+        assertConstantSecurityBudget("PrdSpec default LIST", specDefaultC5);
+        assertConstantSecurityBudget("PrdSpec max LIST", specMaxC5);
+        assertConstantSecurityBudget("Nomenclature default LIST", nomDefaultC5);
+        assertConstantSecurityBudget("Nomenclature max LIST", nomMaxC5);
+        assertThat(nomDefaultTotals).as("unfiltered Nomenclature total не зависит от size")
+            .allMatch(total -> total.equals(nomDefaultTotals.get(0)));
+        assertThat(nomDefaultTotals.get(0)).as("fixture даёт минимум 200 строк")
+            .isGreaterThanOrEqualTo(200L);
+
+        // Объявленный фильтр на скрытую/пустую цель не расширяет доступ и не меняет бизнес-бюджет.
+        SqlRead<RestPageResult> hiddenSpec = recordSql("Z4 PrdSpec LIST hidden target filter", () ->
+            readService.list(new RestListQuery("specifications", 1, List.of("id", "codeSpec"),
+                Map.of("journalId", fixture.journalBId()), null, null, 0, 50)));
+        assertThat(hiddenSpec.result().totalElements()).isZero();
+        assertDirectListBudget(hiddenSpec, 0, 50, 0L, "PrdSpec hidden target LIST");
+
+        SqlRead<RestPageResult> noMatchNom = recordSql("Z4 Nomenclature LIST no-match filter", () ->
+            readService.list(new RestListQuery("nomenclature", 1, List.of("id", "code"),
+                Map.of("typeNom", "ZZ" + UUID.randomUUID().toString().substring(0, 8)),
+                null, null, 0, 50)));
+        assertThat(noMatchNom.result().totalElements()).isZero();
+        assertDirectListBudget(noMatchNom, 0, 50, 0L, "Nomenclature no-match LIST");
+    }
+
+    @Test
+    @DisplayName("З4: DETAIL-бюджеты обоих ресурсов, hidden/missing и 0 SQL после scalar")
+    void z4DetailBudgetsAndScalarConsumptionForBothResources() {
+        Fixture fixture = persistFixture();
+        grantPrdSpecRead(subject, fixture.journalAId());
+        grantNomenclatureRead(subject);
+        readService.detail(new RestDetailQuery("specifications", 1, List.of("id"), fixture.specAId()));
+        readService.detail(new RestDetailQuery("nomenclature", 1, List.of("id"), fixture.nomenclatureId()));
+
+        SqlRead<RestDetailResult> specDefault = recordSql("Z4 PrdSpec DETAIL default", () ->
+            readService.detail(new RestDetailQuery("specifications", 1, List.of(), fixture.specAId())));
+        assertDetailBudget(specDefault, List.of("id", "codeSpec", "draft", "comment"),
+            "PrdSpec default DETAIL");
+
+        SqlRead<RestDetailResult> specMax = recordSql("Z4 PrdSpec DETAIL max", () ->
+            readService.detail(new RestDetailQuery("specifications", 1,
+                List.of("id", "codeSpec", "draft", "comment", "journalId", "nomenclatureCode"),
+                fixture.specAId())));
+        assertDetailBudget(specMax,
+            List.of("id", "codeSpec", "draft", "comment", "journalId", "nomenclatureCode"),
+            "PrdSpec max DETAIL");
+        assertThat(specMax.result().data()).containsEntry("journalId", fixture.journalAId())
+            .containsEntry("nomenclatureCode", fixture.nomenclatureCode());
+
+        SqlRead<Throwable> hidden = recordSql("Z4 PrdSpec DETAIL hidden", () -> catchThrowable(() ->
+            readService.detail(new RestDetailQuery("specifications", 1, List.of("id"), fixture.specBId()))));
+        assertThat(hidden.result()).isInstanceOf(org.ipro.rest.service.RestReadException.class)
+            .hasFieldOrPropertyWithValue("outcome", RestReadOutcome.DETAIL_NOT_FOUND);
+        assertDetailLookupBudget(hidden, "PrdSpec hidden DETAIL");
+
+        SqlRead<Throwable> missing = recordSql("Z4 PrdSpec DETAIL missing", () -> catchThrowable(() ->
+            readService.detail(new RestDetailQuery("specifications", 1, List.of("id"), Long.MAX_VALUE))));
+        assertThat(missing.result()).isInstanceOf(org.ipro.rest.service.RestReadException.class)
+            .hasFieldOrPropertyWithValue("outcome", RestReadOutcome.DETAIL_NOT_FOUND);
+        assertDetailLookupBudget(missing, "PrdSpec missing DETAIL");
+
+        SqlRead<RestDetailResult> nomDefault = recordSql("Z4 Nomenclature DETAIL default", () ->
+            readService.detail(new RestDetailQuery("nomenclature", 1, List.of(), fixture.nomenclatureId())));
+        assertDetailBudget(nomDefault, List.of("id", "code", "name"), "Nomenclature default DETAIL");
+
+        SqlRead<RestDetailResult> nomMax = recordSql("Z4 Nomenclature DETAIL max", () ->
+            readService.detail(new RestDetailQuery("nomenclature", 1,
+                List.of("id", "code", "name", "typeNom"), fixture.nomenclatureId())));
+        assertDetailBudget(nomMax, List.of("id", "code", "name", "typeNom"), "Nomenclature max DETAIL");
+        assertThat(nomMax.result().data()).containsEntry("typeNom", fixture.nomenclatureTypeNom());
+
+        SqlRead<Throwable> nomMissing = recordSql("Z4 Nomenclature DETAIL missing", () -> catchThrowable(() ->
+            readService.detail(new RestDetailQuery("nomenclature", 1, List.of("id"), Long.MAX_VALUE))));
+        assertThat(nomMissing.result()).isInstanceOf(org.ipro.rest.service.RestReadException.class)
+            .hasFieldOrPropertyWithValue("outcome", RestReadOutcome.DETAIL_NOT_FOUND);
+        assertDetailLookupBudget(nomMissing, "Nomenclature missing DETAIL");
+
+        // Чтение scalar-результата вне транзакции не выполняет SQL.
+        SqlRead<Object> consumeDetail = recordSql("Z4 scalar DETAIL consumption", () -> {
+            assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
+            specMax.result().data().forEach((key, value) -> { });
+            return null;
+        });
+        assertThat(consumeDetail.statements()).isEmpty();
+
+        SqlRead<RestPageResult> page = recordSql("Z4 LIST page for scalar consumption", () ->
+            readService.list(new RestListQuery("specifications", 1,
+                List.of("id", "codeSpec", "nomenclatureCode"),
+                Map.of("journalId", fixture.journalAId()), null, null, 0, 50)));
+        SqlRead<Object> consumeList = recordSql("Z4 scalar LIST consumption", () -> {
+            page.result().content().forEach(row -> row.forEach((key, value) -> { }));
+            return null;
+        });
+        assertThat(consumeList.statements()).isEmpty();
+        assertReturnedOutsideTransaction(page.result().content());
+    }
+
+    @Test
+    @DisplayName("З4: ролевые grants — short-circuit, бюджет не зависит от size и числа ролей")
+    void z4RoleGrantBudgetsShortCircuitAndMultiRole() {
+        Fixture fixture = persistFixture();
+        addSpecificationsForJournal(fixture, 49);
+        addNomenclaturesForType(fixture, 49);
+
+        // Прямой эталон.
+        grantPrdSpecRead(subject, fixture.journalAId());
+        grantNomenclatureRead(subject);
+        readService.list(specMaxQuery(fixture, 1));
+        readService.list(nomMaxQuery(fixture, 1));
+        SqlRead<RestPageResult> directSpec = recordSql("Z4 direct PrdSpec LIST",
+            () -> readService.list(specMaxQuery(fixture, 50)));
+        SqlRead<RestPageResult> directNom = recordSql("Z4 direct Nomenclature LIST",
+            () -> readService.list(nomMaxQuery(fixture, 50)));
+        assertDirectListBudget(directSpec, 50, 50, 50L, "direct PrdSpec LIST");
+        assertDirectListBudget(directNom, 50, 50, 50L, "direct Nomenclature LIST");
+        assertThat(directSpec.count(SqlKind.ROLE_RESOLUTION)).isZero();
+        assertThat(directNom.count(SqlKind.ROLE_RESOLUTION)).isZero();
+
+        // Прямая выдача короткозамыкает до запроса ролей: роль заведена и выдана, но не спрашивается.
+        String directWinsUser = "rest-z4-direct-" + token();
+        Role directWinsRole = createRole("z4-direct-role-" + token());
+        assignRoles(directWinsUser, directWinsRole);
+        grantPrdSpecRead(directWinsUser, fixture.journalAId());
+        grantNomenclatureRead(directWinsUser);
+        grantRoleRead(directWinsRole.getName(), fixture.journalAId());
+        loginAs(directWinsUser);
+        readService.list(specMaxQuery(fixture, 1));
+        readService.list(nomMaxQuery(fixture, 1));
+        SqlRead<RestPageResult> directWinsSpec = recordSql("Z4 direct+role PrdSpec LIST",
+            () -> readService.list(specMaxQuery(fixture, 50)));
+        SqlRead<RestPageResult> directWinsNom = recordSql("Z4 direct+role Nomenclature LIST",
+            () -> readService.list(nomMaxQuery(fixture, 50)));
+        assertDirectListBudget(directWinsSpec, 50, 50, 50L, "direct+role PrdSpec LIST");
+        assertDirectListBudget(directWinsNom, 50, 50, 50L, "direct+role Nomenclature LIST");
+        assertThat(directWinsSpec.count(SqlKind.ROLE_RESOLUTION))
+            .as("USER grant short-circuit").isZero();
+        assertThat(directWinsNom.count(SqlKind.ROLE_RESOLUTION)).isZero();
+        assertThat(directWinsSpec.count(SqlKind.C5_GRANT)).isEqualTo(directSpec.count(SqlKind.C5_GRANT));
+        assertThat(directWinsNom.count(SqlKind.C5_GRANT)).isEqualTo(directNom.count(SqlKind.C5_GRANT));
+
+        // Роль без прямых грантов.
+        String roleUser = "rest-z4-role-" + token();
+        Role grantingRole = createRole("z4-grant-role-" + token());
+        assignRoles(roleUser, grantingRole);
+        grantRoleRead(grantingRole.getName(), fixture.journalAId());
+        loginAs(roleUser);
+        readService.list(specMaxQuery(fixture, 1));
+        readService.list(nomMaxQuery(fixture, 1));
+        SqlRead<RestPageResult> oneRoleSpecSize1 = recordSql("Z4 role PrdSpec LIST size=1",
+            () -> readService.list(specMaxQuery(fixture, 1)));
+        SqlRead<RestPageResult> oneRoleSpecSize50 = recordSql("Z4 role PrdSpec LIST size=50",
+            () -> readService.list(specMaxQuery(fixture, 50)));
+        SqlRead<RestPageResult> oneRoleNom = recordSql("Z4 role Nomenclature LIST",
+            () -> readService.list(nomMaxQuery(fixture, 50)));
+        assertListBudget(oneRoleSpecSize1, 1, 1, 50L, "role PrdSpec LIST size 1");
+        assertListBudget(oneRoleSpecSize50, 50, 50, 50L, "role PrdSpec LIST size 50");
+        assertListBudget(oneRoleNom, 50, 50, 50L, "role Nomenclature LIST");
+        assertThat(oneRoleSpecSize1.count(SqlKind.C5_GRANT))
+            .isEqualTo(oneRoleSpecSize50.count(SqlKind.C5_GRANT));
+        assertThat(oneRoleSpecSize50.count(SqlKind.ROLE_RESOLUTION)).isPositive();
+        assertThat(oneRoleSpecSize50.count(SqlKind.C5_GRANT))
+            .isGreaterThan(directSpec.count(SqlKind.C5_GRANT));
+
+        // Вторая разрешающая роль: short-circuit на первой — бюджет не удваивается.
+        Role secondRole = createRole("z4-grant-role-2-" + token());
+        grantRoleRead(secondRole.getName(), fixture.journalAId());
+        assignRoles(roleUser, grantingRole, secondRole);
+        loginAs(roleUser);
+        // Сохранение grant инвалидирует session RLS ids: прогреваем кеш до измерения.
+        readService.list(specMaxQuery(fixture, 1));
+        readService.list(nomMaxQuery(fixture, 1));
+        SqlRead<RestPageResult> twoRolesSpec = recordSql("Z4 two roles PrdSpec LIST",
+            () -> readService.list(specMaxQuery(fixture, 50)));
+        SqlRead<RestPageResult> twoRolesNom = recordSql("Z4 two roles Nomenclature LIST",
+            () -> readService.list(nomMaxQuery(fixture, 50)));
+        assertListBudget(twoRolesSpec, 50, 50, 50L, "two roles PrdSpec LIST");
+        assertListBudget(twoRolesNom, 50, 50, 50L, "two roles Nomenclature LIST");
+        assertThat(twoRolesSpec.count(SqlKind.C5_GRANT))
+            .as("short-circuit на первой разрешающей роли")
+            .isEqualTo(oneRoleSpecSize50.count(SqlKind.C5_GRANT));
+        assertThat(twoRolesNom.count(SqlKind.C5_GRANT)).isEqualTo(oneRoleNom.count(SqlKind.C5_GRANT));
+    }
+
+    @Test
+    @DisplayName("З4: maximum graph LIST/DETAIL обоих roots без незаявленной загрузки")
+    void z4MaximumGraphLoadsOnlyDeclaredAssociations() {
+        Fixture fixture = persistFixture();
+        Long groupNomId = RlsTestFixture.callAsSuperuser(accessGrantRepository, () -> {
+            String groupToken = token();
+            GroupNom group = writeExecutor.save(GroupNom.class,
+                new GroupNom("G" + groupToken, "Group " + groupToken));
+            Nomenclature nomenclature = nomenclatureRepository.findById(fixture.nomenclatureId()).orElseThrow();
+            nomenclature.setGroupNom(group);
+            nomenclatureRepository.saveAndFlush(nomenclature);
+            return group.getId();
+        });
+        assertThat(groupNomId).isNotNull();
+        grantPrdSpecRead(subject, fixture.journalAId());
+        grantNomenclatureRead(subject);
+
+        var specifications = catalog.find("specifications", 1).orElseThrow();
+        var nomenclatureResource = catalog.find("nomenclature", 1).orElseThrow();
+        assertThat(specifications.fixedFetchPaths(RestReadOperation.LIST))
+            .containsExactly("id", "codeSpec", "draft", "nomenclature.code");
+        assertThat(specifications.fixedFetchPaths(RestReadOperation.DETAIL))
+            .containsExactly("id", "codeSpec", "draft", "comment", "journal.id", "nomenclature.code");
+        assertThat(nomenclatureResource.fixedFetchPaths(RestReadOperation.LIST))
+            .containsExactly("id", "code", "name", "typeNom");
+        assertThat(nomenclatureResource.fixedFetchPaths(RestReadOperation.DETAIL))
+            .containsExactly("id", "code", "name", "typeNom");
+
+        SpecGraph listGraph = inspectSpecGraph(fixture.specAId(), RestReadOperation.LIST);
+        System.out.printf("REST-STAGE3 GRAPH-LOAD PrdSpec LIST %s%n", listGraph);
+        assertThat(listGraph.idLoaded()).isTrue();
+        assertThat(listGraph.nomenclatureLoaded()).isTrue();
+        assertThat(listGraph.nomenclatureCodeLoaded()).isTrue();
+        assertThat(listGraph.nomenclatureUnitLoaded())
+            .as("unitOfMeasurement цели не заявлен maximum LIST").isFalse();
+        assertThat(listGraph.nomenclatureGroupNomLoaded())
+            .as("groupNom цели не заявлен maximum LIST").isFalse();
+        assertThat(listGraph.journalLoaded()).as("journal не заявлен maximum LIST").isFalse();
+        assertThat(listGraph.materialsLoaded()).isFalse();
+        assertThat(listGraph.operationsLoaded()).isFalse();
+
+        // journal.id — explicit subgraph с terminal id: association инициализируется, а
+        // дополнительная материализация скалярных колонок joined-строки разрешена ADR-0007
+        // (граф описывает required state, не список SQL columns); своих associations у
+        // Journal нет вовсе, поэтому loaded-state gate проверяется по nomenclature-цели.
+        SpecGraph detailGraph = inspectSpecGraph(fixture.specAId(), RestReadOperation.DETAIL);
+        System.out.printf("REST-STAGE3 GRAPH-LOAD PrdSpec DETAIL %s%n", detailGraph);
+        assertThat(detailGraph.idLoaded()).isTrue();
+        assertThat(detailGraph.journalLoaded()).as("journal.id terminal").isTrue();
+        assertThat(detailGraph.journalIdLoaded()).isTrue();
+        assertThat(detailGraph.journalIdValue()).as("identity journal").isEqualTo(fixture.journalAId());
+        assertThat(detailGraph.nomenclatureLoaded()).isTrue();
+        assertThat(detailGraph.nomenclatureCodeLoaded()).isTrue();
+        assertThat(detailGraph.nomenclatureUnitLoaded()).isFalse();
+        assertThat(detailGraph.nomenclatureGroupNomLoaded()).isFalse();
+        assertThat(detailGraph.materialsLoaded()).isFalse();
+        assertThat(detailGraph.operationsLoaded()).isFalse();
+
+        NomGraph nomListGraph = inspectNomGraph(fixture.nomenclatureId(), RestReadOperation.LIST);
+        System.out.printf("REST-STAGE3 GRAPH-LOAD Nomenclature LIST %s%n", nomListGraph);
+        assertThat(nomListGraph.idLoaded()).isTrue();
+        assertThat(nomListGraph.unitLoaded()).isFalse();
+        assertThat(nomListGraph.groupNomLoaded()).as("groupNom непустой, но не заявлен").isFalse();
+
+        NomGraph nomDetailGraph = inspectNomGraph(fixture.nomenclatureId(), RestReadOperation.DETAIL);
+        System.out.printf("REST-STAGE3 GRAPH-LOAD Nomenclature DETAIL %s%n", nomDetailGraph);
+        assertThat(nomDetailGraph.idLoaded()).isTrue();
+        assertThat(nomDetailGraph.unitLoaded()).isFalse();
+        assertThat(nomDetailGraph.groupNomLoaded()).isFalse();
     }
 
     @Test
@@ -607,51 +922,234 @@ class RestReadPipelinePilotIT {
         });
     }
 
+    private static RestListQuery specMaxQuery(Fixture fixture, int size) {
+        return new RestListQuery("specifications", 1,
+            List.of("id", "codeSpec", "draft", "nomenclatureCode"),
+            Map.of("journalId", fixture.journalAId()), null, null, 0, size);
+    }
+
+    private static RestListQuery nomMaxQuery(Fixture fixture, int size) {
+        return new RestListQuery("nomenclature", 1,
+            List.of("id", "code", "name", "typeNom"),
+            Map.of("typeNom", fixture.nomenclatureTypeNom()), null, null, 0, size);
+    }
+
+    /** Bulk fixture DML (H2-only) keeps setup outside the measured Hibernate read path. */
+    private void addNomenclaturesForType(Fixture fixture, int amount) {
+        String token = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        new TransactionTemplate(transactionManager).executeWithoutResult(transaction ->
+            assertThat(jdbcTemplate.update("""
+                insert into nomenclature (code, name, type_nom, unit_id, version)
+                select concat(?, cast(x as varchar)), 'Budget fixture', ?, ?, 0 from system_range(1, ?)
+                """, "ZN" + token, fixture.nomenclatureTypeNom(), fixture.unitOfMeasurementId(), amount))
+                .isEqualTo(amount));
+    }
+
+    /**
+     * LIST business budget: ровно один content. Count — не более одного и обязателен на
+     * полной странице: Spring Data пропускает count для неполной страницы, но total в
+     * этом случае совпадает с content. Когда total контролируется фикстурой, он сверяется
+     * ({@code expectedTotal}); для неконтролируемого общего количества передаётся null.
+     */
+    private void assertListBudget(SqlRead<RestPageResult> read, int expectedRows, int requestedSize,
+                                  Long expectedTotal, String label) {
+        assertThat(read.result().content()).as(label).hasSize(expectedRows);
+        if (expectedTotal != null) {
+            assertThat(read.result().totalElements()).as(label).isEqualTo(expectedTotal);
+        }
+        assertThat(read.count(SqlKind.CONTENT)).as(label).isEqualTo(1);
+        long countQueries = read.count(SqlKind.COUNT);
+        assertThat(countQueries).as(label + " count").isBetween(0L, 1L);
+        if (expectedRows == requestedSize) {
+            assertThat(countQueries).as(label + " full page выполняет count").isEqualTo(1);
+        }
+        assertThat(read.count(SqlKind.OTHER)).as(label).isZero();
+        assertThat(read.count(SqlKind.RLS_GRANT)).as(label).isZero();
+        assertReturnedOutsideTransaction(read.result().content());
+    }
+
+    /** Direct-грант не должен разрешать роли: отдельная ветка бюджета для USER-грантов. */
+    private void assertDirectListBudget(SqlRead<RestPageResult> read, int expectedRows, int requestedSize,
+                                        Long expectedTotal, String label) {
+        assertListBudget(read, expectedRows, requestedSize, expectedTotal, label);
+        assertThat(read.count(SqlKind.ROLE_RESOLUTION)).as(label).isZero();
+    }
+
+    private void assertConstantSecurityBudget(String label, List<Long> c5Counts) {
+        assertThat(c5Counts).as(label).hasSize(3);
+        assertThat(c5Counts.get(0)).as(label + " C5 queries").isPositive();
+        assertThat(c5Counts.get(1)).as(label + " size 50 не меняет C5").isEqualTo(c5Counts.get(0));
+        assertThat(c5Counts.get(2)).as(label + " size 200 не меняет C5").isEqualTo(c5Counts.get(0));
+    }
+
+    private void assertDetailBudget(SqlRead<RestDetailResult> read, List<String> expectedKeys,
+                                    String label) {
+        assertThat(read.result().data().keySet()).as(label).containsExactlyElementsOf(expectedKeys);
+        assertThat(read.count(SqlKind.CONTENT)).as(label).isEqualTo(1);
+        assertThat(read.count(SqlKind.COUNT)).as(label).isZero();
+        assertThat(read.count(SqlKind.OTHER)).as(label).isZero();
+        assertThat(read.count(SqlKind.RLS_GRANT)).as(label).isZero();
+        assertThat(read.count(SqlKind.ROLE_RESOLUTION)).as(label).isZero();
+        assertReturnedOutsideTransaction(List.of(read.result().data()));
+    }
+
+    private void assertDetailLookupBudget(SqlRead<Throwable> read, String label) {
+        assertThat(read.count(SqlKind.CONTENT)).as(label).isEqualTo(1);
+        assertThat(read.count(SqlKind.COUNT)).as(label).isZero();
+        assertThat(read.count(SqlKind.OTHER)).as(label).isZero();
+        assertThat(read.count(SqlKind.RLS_GRANT)).as(label).isZero();
+        assertThat(read.count(SqlKind.ROLE_RESOLUTION)).as(label).isZero();
+    }
+
+    private SpecGraph inspectSpecGraph(Long specId, RestReadOperation operation) {
+        var resource = catalog.find("specifications", 1).orElseThrow();
+        TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+        return transaction.execute(status -> {
+            Specification<PrdSpec> byId = (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("id"), specId);
+            PrdSpec entity;
+            if (operation == RestReadOperation.LIST) {
+                entity = entityReadAccess.list(PrdSpec.class, byId, PageRequest.of(0, 1),
+                    resource.fixedFetchPaths(operation)).getContent().getFirst();
+            } else {
+                entity = entityReadAccess.detail(PrdSpec.class, specId, resource.fixedFetchPaths(operation))
+                    .orElseThrow();
+            }
+            PersistenceUnitUtil persistence = entityManagerFactory.getPersistenceUnitUtil();
+            boolean nomenclatureLoaded = persistence.isLoaded(entity, "nomenclature");
+            boolean journalLoaded = persistence.isLoaded(entity, "journal");
+            boolean journalIdLoaded = false;
+            boolean journalCodeLoaded = false;
+            Long journalIdValue = null;
+            if (journalLoaded) {
+                journalIdLoaded = persistence.isLoaded(entity.getJournal(), "id");
+                journalCodeLoaded = persistence.isLoaded(entity.getJournal(), "code");
+                journalIdValue = entity.getJournal().getId();
+            }
+            return new SpecGraph(persistence.isLoaded(entity, "id"),
+                nomenclatureLoaded,
+                nomenclatureLoaded && persistence.isLoaded(entity.getNomenclature(), "code"),
+                nomenclatureLoaded && persistence.isLoaded(entity.getNomenclature(), "unitOfMeasurement"),
+                nomenclatureLoaded && persistence.isLoaded(entity.getNomenclature(), "groupNom"),
+                journalLoaded, journalIdLoaded, journalCodeLoaded, journalIdValue,
+                persistence.isLoaded(entity, "materials"),
+                persistence.isLoaded(entity, "operations"));
+        });
+    }
+
+    private NomGraph inspectNomGraph(Long id, RestReadOperation operation) {
+        var resource = catalog.find("nomenclature", 1).orElseThrow();
+        TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+        return transaction.execute(status -> {
+            Specification<Nomenclature> byId = (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("id"), id);
+            Nomenclature entity;
+            if (operation == RestReadOperation.LIST) {
+                entity = entityReadAccess.list(Nomenclature.class, byId, PageRequest.of(0, 1),
+                    resource.fixedFetchPaths(operation)).getContent().getFirst();
+            } else {
+                entity = entityReadAccess.detail(Nomenclature.class, id, resource.fixedFetchPaths(operation))
+                    .orElseThrow();
+            }
+            PersistenceUnitUtil persistence = entityManagerFactory.getPersistenceUnitUtil();
+            return new NomGraph(persistence.isLoaded(entity, "id"),
+                persistence.isLoaded(entity, "unitOfMeasurement"),
+                persistence.isLoaded(entity, "groupNom"));
+        });
+    }
+
+    private static String token() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
     private void loginAs(String username) {
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(username, "n/a", List.of()));
     }
 
     private void grantNomenclatureRead(String username) {
-        grant(username, "REST:nomenclature:v1:LIST",
-            C5PermissionKeys.entityRead(Nomenclature.class),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "id"),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "code"),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "name"),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "typeNom"));
+        grantForSubject(AccessGrant.SubjectType.USER, username, nomenclatureReadKeys());
     }
 
     private void grantPrdSpecRead(String username, Long journalId) {
-        grant(username, "REST:specifications:v1:LIST", "REST:specifications:v1:DETAIL",
+        grantForSubject(AccessGrant.SubjectType.USER, username, prdSpecReadKeys());
+        grantRow(AccessGrant.SubjectType.USER, username, journalId);
+    }
+
+    /** Полный read-набор роли для обоих ресурсов: те же ключи, что у прямых грантов предмета. */
+    private void grantRoleRead(String roleName, Long journalId) {
+        grantForSubject(AccessGrant.SubjectType.ROLE, roleName, prdSpecReadKeys());
+        grantForSubject(AccessGrant.SubjectType.ROLE, roleName, nomenclatureReadKeys());
+        grantRow(AccessGrant.SubjectType.ROLE, roleName, journalId);
+    }
+
+    private static String[] prdSpecReadKeys() {
+        return new String[]{
+            "REST:specifications:v1:LIST", "REST:specifications:v1:DETAIL",
             C5PermissionKeys.entityRead(PrdSpec.class),
             C5PermissionKeys.attributeRead(PrdSpec.class, "id"),
             C5PermissionKeys.attributeRead(PrdSpec.class, "codeSpec"),
+            C5PermissionKeys.attributeRead(PrdSpec.class, "draft"),
+            C5PermissionKeys.attributeRead(PrdSpec.class, "comment"),
             C5PermissionKeys.attributeRead(PrdSpec.class, "nomenclature"),
             C5PermissionKeys.attributeRead(PrdSpec.class, "journal"),
             C5PermissionKeys.entityRead(Nomenclature.class),
             C5PermissionKeys.attributeRead(Nomenclature.class, "code"),
             C5PermissionKeys.entityRead(Journal.class),
-            C5PermissionKeys.attributeRead(Journal.class, "id"));
-        AccessGrant rowGrant = new AccessGrant();
-        rowGrant.setSubjectType(AccessGrant.SubjectType.USER);
-        rowGrant.setSubjectKey(username);
-        rowGrant.setDimension("JOURNAL");
-        rowGrant.setDimensionValueId(journalId);
-        rowGrant.setCanRead(true);
-        accessGrantRepository.saveAndFlush(rowGrant);
+            C5PermissionKeys.attributeRead(Journal.class, "id")};
+    }
+
+    private static String[] nomenclatureReadKeys() {
+        return new String[]{
+            "REST:nomenclature:v1:LIST",
+            "REST:nomenclature:v1:DETAIL",
+            C5PermissionKeys.entityRead(Nomenclature.class),
+            C5PermissionKeys.attributeRead(Nomenclature.class, "id"),
+            C5PermissionKeys.attributeRead(Nomenclature.class, "code"),
+            C5PermissionKeys.attributeRead(Nomenclature.class, "name"),
+            C5PermissionKeys.attributeRead(Nomenclature.class, "typeNom")};
     }
 
     private void grant(String username, String... dimensions) {
+        grantForSubject(AccessGrant.SubjectType.USER, username, dimensions);
+    }
+
+    private void grantForSubject(AccessGrant.SubjectType subjectType, String subjectKey,
+                                 String... dimensions) {
         for (String dimension : dimensions) {
             AccessGrant grant = new AccessGrant();
-            grant.setSubjectType(AccessGrant.SubjectType.USER);
-            grant.setSubjectKey(username);
+            grant.setSubjectType(subjectType);
+            grant.setSubjectKey(subjectKey);
             grant.setDimension(dimension);
             grant.setDimensionValueId(null);
             grant.setCanRead(true);
             accessGrantRepository.save(grant);
         }
         accessGrantRepository.flush();
+    }
+
+    private void grantRow(AccessGrant.SubjectType subjectType, String subjectKey, Long journalId) {
+        AccessGrant rowGrant = new AccessGrant();
+        rowGrant.setSubjectType(subjectType);
+        rowGrant.setSubjectKey(subjectKey);
+        rowGrant.setDimension("JOURNAL");
+        rowGrant.setDimensionValueId(journalId);
+        rowGrant.setCanRead(true);
+        accessGrantRepository.saveAndFlush(rowGrant);
+    }
+
+    private Role createRole(String name) {
+        return RlsTestFixture.callAsSuperuser(accessGrantRepository, () ->
+            roleRepository.saveAndFlush(new Role(name)));
+    }
+
+    private void assignRoles(String username, Role... roles) {
+        RlsTestFixture.callAsSuperuser(accessGrantRepository, () -> {
+            User user = userRepository.findByUsername(username)
+                .orElseGet(() -> new User(username, "password"));
+            user.setRoles(Set.of(roles));
+            return userRepository.saveAndFlush(user);
+        });
     }
 
     private record Fixture(Long nomenclatureId, String nomenclatureCode, String nomenclatureName,
@@ -662,5 +1160,14 @@ class RestReadPipelinePilotIT {
 
     private record LoadedAssociations(boolean nomenclatureLoaded, boolean nomenclatureCodeLoaded,
                                       boolean journalLoaded, boolean journalIdLoaded) {
+    }
+
+    private record SpecGraph(boolean idLoaded, boolean nomenclatureLoaded, boolean nomenclatureCodeLoaded,
+                             boolean nomenclatureUnitLoaded, boolean nomenclatureGroupNomLoaded,
+                             boolean journalLoaded, boolean journalIdLoaded, boolean journalCodeLoaded,
+                             Long journalIdValue, boolean materialsLoaded, boolean operationsLoaded) {
+    }
+
+    private record NomGraph(boolean idLoaded, boolean unitLoaded, boolean groupNomLoaded) {
     }
 }

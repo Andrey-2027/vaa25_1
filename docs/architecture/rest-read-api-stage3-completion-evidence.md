@@ -1,7 +1,7 @@
 # F-REST-READ-3: evidence завершения
 
 - Дата: 2026-10-03, Europe/Moscow.
-- Статус: З0–З2 выполнены; З3–З5 и полная приёмка этапа остаются открытыми.
+- Статус: З0–З4 выполнены; З5 и полная приёмка этапа остаются открытыми.
 - План: [`rest-read-api-stage3-completion-plan.md`](rest-read-api-stage3-completion-plan.md).
 - Контракт: [`rest-read-api-stage3-security-read-plan.md`](rest-read-api-stage3-security-read-plan.md).
 - SQL trace: [`evidence/rest-read-stage3-z0-sql-20261003.txt`](evidence/rest-read-stage3-z0-sql-20261003.txt).
@@ -453,3 +453,274 @@ exact/global запросом, поэтому SQL-бюджеты REST-пилот
 и подтверждены повторным `RestReadPipelinePilotIT` 8/8. Существующие value-scoped строки
 не мигрировались и не удалялись. Межзапросный кеш решений не вводился. З2 завершён;
 следующий пакет — З3, реальные роли и политика UI/service callers.
+
+## 10. З3 — реальные роли и политика UI/service callers, 2026-10-04
+
+### 10.1. Что проверено
+
+Прикладной IT `src/test/java/org/ip/rest/RestReadRoleMatrixIT.java` (8/8) работает на
+полном контексте `Application`. Фикстуры — настоящие `User`/`Role`/назначения
+(`UserRepository`/`RoleRepository`); гранты ролей сохраняются действующим
+`AccessGrantAdminService` (`saveSingleGrant` для entity/API/ATTR, `saveGrants` для
+построчных JOURNAL/BRANCH и legacy CHECK_ONLY), а прямой пользователь-эталон parity-
+теста — тем же `AccessGrant`-хранилищем. Production-механизмы не подменяются:
+`UserRepositoryRlsRoleResolver`, `C5ReadDecisionService`,
+`DefaultC5PermissionEvaluator`, `C5ReadPermissionRegistry`, Hibernate RLS/фильтры и
+`RlsReadGate` — настоящие; единственная тестовая подмена — `DataInitializer`.
+Условия прогона те же, что у пилота: `spring.jpa.open-in-view=false`, Hibernate
+second-level cache off, `platform.rest.read.max-window=10000`; публичная поверхность
+и API baseline в З3 не менялись (новых типов нет).
+Приложение в З3 не пересобиралось: изменён только app-тест и документация.
+
+### 10.2. Матрица §7 плана
+
+| Пункт §7 плана | Проверка в `RestReadRoleMatrixIT` |
+| --- | --- |
+| 1. Реальные fixtures, production resolver/provider не мокать | все 8 тестов: роли/пользователи/назначения, гранты через admin service, production `UserRepositoryRlsRoleResolver` и C5-контур |
+| 2. API/entity/output/filter/sort/id и reference-требования через роль | `roleGrantsMatchDirectGrantsForEqualPermissions`; `missingSinglePermissionDeniesBeforeAnyBusinessData` (API, entity, output `comment`, filter `journal`, default sort `code`, reference target, `id`) |
+| 3. Direct vs role parity; два субъекта с разными JOURNAL | `roleGrantsMatchDirectGrantsForEqualPermissions` (одинаковые данные/total); `differentJournalRolesSeeDifferentRowsAndHiddenDetailsStayHidden` (каждый — только своя строка; скрытый и отсутствующий detail — `DETAIL_NOT_FOUND`; FK-фильтр на скрытую цель пуст) |
+| 4. Отзыв/снятие роли в свежем вызове, без переноса решений | `revocationAndRoleChangesTakeEffectWithoutRestart` (отзыв `REST:...:LIST` при живом `DETAIL`, отзыв `ENTITY:PrdSpec`, снятие и возврат назначения; witness-субъект всё время видит только свою строку) |
+| 5. Отсутствие одного права — deny до business data; fixed fetch superset не требует лишнего гранта | `missingSinglePermissionDeniesBeforeAnyBusinessData` (SQL-аудит: ни одного `from prd_spec`/`from nomenclature`/`from journal`); `unrequestedProjectionFieldNeedsNoGrantDespiteFixedFetchSuperset` (LIST `id/codeSpec` и DETAIL `id/codeSpec/journalId` без грантов Nomenclature проходят, хотя LIST/DETAIL maximum paths содержат `nomenclature.code`; запрошенный `nomenclatureCode` в той же роли отказывает) |
+| 6. Anonymous/system/bypass, несовпадение identity, скрытый/отсутствующий detail, FK-фильтр | `anonymousSystemAndPrivilegedBypassAreRejected` (UNAUTHENTICATED для отсутствующей аутентификации, `system`, `anonymous` — без SQL; `RlsContext`-bypass через `withDimensionAdministration` — FORBIDDEN без business SQL); identity mismatch — `differentJournalRoles...` (пользователь без назначенной роли deny, роли с грантами существуют); скрытый/отсутствующий detail и FK-фильтр — `differentJournalRoles...`; отказ provider — owner-тест З2 `C5ReadDecisionServiceTest.storageFailurePropagatesInsteadOfAllowOrEmptySuccess` (мокать production provider в app IT §7.1 запрещает) |
+| 7. UI list/detail, app service read, запрещённый caller, class/row RLS | `uiAndServiceCallersUseRoleEntityGrantsWhileRestNeedsApiGrants` (`EntityDataAccessResolver` list/detail и `CanonicalEntityService<PrdSpec>` по `ENTITY:PrdSpec` работают без REST-ключей; REST тем же субъектом — FORBIDDEN до явной выдачи API/ATTR; caller без entity — `C5AccessDeniedException`); `legacyClassAndRowRlsStillApplyToRoleReaders` (C5 + `ENTITY:ReceivingDocument` CHECK_ONLY + JOURNAL/BRANCH построчно; отзыв CHECK_ONLY — пустое чтение, отзыв C5 — исключение, отзыв BRANCH — строка скрыта) |
+
+### 10.3. Прогоны
+
+| Набор | Результат |
+| --- | --- |
+| `RestReadRoleMatrixIT` (новый) | 8/8, BUILD SUCCESS (`target/rest-stage3-z3/run03.log`) |
+| `RestReadRoleMatrixIT,RestReadPipelinePilotIT,C5GrantAdminParityIT,RlsAutoConfigurationSmokeTest,CanonicalReadBoundaryIT,CanonicalReadTransactionBoundaryIT,FetchPlanReadBoundaryIT,FetchPlanMeasurementIT,DetachedRenderCostIT,EntitySummaryAccessPilotTest,EntitySummaryActionPilotTest,EntitySummaryReadPlanPilotTest,RlsReadGateTest` | 99/99, BUILD SUCCESS (`target/rest-stage3-z3/run04-canonical-set.log`) |
+
+Пилот-8/8 в общем наборе подтверждает прежние C5/RLS SQL-бюджеты (14 C5 + 2 data
+queries на вызов PrdSpec, 10 C5 для Nomenclature) на неизменных production-классах.
+Owner-модули в З3 не пересобирались: их код не менялся с проверенного в З2 набора.
+
+### 10.4. Политика перехода UI/service callers
+
+Фактические canonical read callers приложения, для которых действует entity C5:
+
+| Caller | Путь | Что требуется для чтения |
+| --- | --- | --- |
+| UI list/detail форм (`FormCoordinator`, `ItemFormWrapperView`, `SelectionFormAssembler`, `FormResolver` через `ServiceLocator`/`EntityDataAccessResolver`) | canonical `readPage`/`readDetail` | `ENTITY:<FQN>` роли или прямо пользователя + действующие class/row RLS-гранты |
+| App services `UserService`, `SklNomOpaService`, `NomSklAttributeService`, `AttributeValueService`, `GridFormViewService` и прямые UI-вызовы (`WorkshopListView` и т. п.) | canonical handle (`CanonicalEntityService`/`EntityDataAccess`) | то же `ENTITY:<FQN>` |
+| `LookupService` (lookup/list по id) | canonical secured query | `ENTITY:<FQN>` |
+| Global search (`GlobalSearchService`) | canonical search | `ENTITY:<FQN>` |
+| REST чтение (`RestReadService`) | canonical `EntityReadAccess` | `ENTITY:<FQN>` **и** API L/D **и** `ATTR:<FQN>:<segment>` запрошенных полей/фильтров/сортировки **и** entity/attr связанных to-one целей |
+
+`DataInitializer` создаёт роли `ADMIN`/`MANAGER`/`VIEWER`, но **не создаёт ни одного
+`AccessGrant`**; startup registrars (`C5EntityReadPermissionRegistrar`,
+`C5RestOperationRegistrar`) только регистрируют определения ключей и тоже не выдают
+гранты. Поэтому переход существующих читателей — явное действие администратора:
+ключ → роль → причина → проверочный caller → ожидаемый отказ до выдачи → успех после.
+
+| Ключ/грант роли | Причина | Проверочный caller | Отказ до выдачи | Успех после выдачи |
+| --- | --- | --- | --- | --- |
+| `ENTITY:org.ip.model.PrdSpec` + `JOURNAL` (id журнала) | UI list/detail спецификаций этой роли | `EntityDataAccessResolver.resolve(PrdSpec.class).list/detail`, `CanonicalEntityService<PrdSpec>.findAll/findById` | `C5AccessDeniedException` (caller без entity-гранта в том же IT) | total = 1 и строка журнала A; строка журнала B и её detail скрыты |
+| `REST:specifications:v1:LIST`, `:DETAIL`, `ATTR:...PrdSpec:id/codeSpec/draft/comment`, `ATTR:...PrdSpec:journal`, `ENTITY:org.ip.model.Journal`, `ATTR:...Journal:id`, `ATTR:...PrdSpec:nomenclature`, `ENTITY:org.ip.model.Nomenclature`, `ATTR:...Nomenclature:code` | серверное REST-чтение спецификаций | `RestReadService.list/detail` | `FORBIDDEN` на API-гранте (до выдачи) / attribute / filter / sort / reference — каждая ветка отдельно | те же строки и total, что у прямого пользователя с тем же набором |
+| `ENTITY:org.ip.model.Nomenclature` (+ `REST:nomenclature:v1:LIST`, `ATTR:id/code/name/typeNom`) | UI/REST справочника номенклатуры | UI canonical handle / `RestReadService` | `C5AccessDeniedException` / `FORBIDDEN` | list/detail справочника; без RLS-строк (у типа нет FILTERABLE-измерений) |
+| `ENTITY:org.ip.model.ReceivingDocument` + legacy `ENTITY:ReceivingDocument` + `JOURNAL` + `BRANCH` | UI list/detail накладных этой роли | `CanonicalEntityService<ReceivingDocument>` | без C5 — `C5AccessDeniedException`; без CHECK_ONLY — пустое чтение; без BRANCH-строки — строка скрыта | накладная видна в list/detail |
+
+Выдача — per key и per role, не массовая по каталогу: роль получает только те FQN,
+которые действительно читают её callers. Тестовые роли/гранты фикстур не являются
+production seed или migration script и создаются только в БД теста.
+
+### 10.5. Границы
+
+- Отказ provider (ошибка хранилища) не повторён в app IT намеренно: §7.1 запрещает
+  мокать production provider; поведение deny/error зафиксировано owner-тестом З2
+  `C5ReadDecisionServiceTest.storageFailurePropagatesInsteadOfAllowOrEmptySuccess` и
+  веткой `SECURITY_UNAVAILABLE` серверного REST read (platform-rest tests).
+- Привилегированный bypass проверен через действующий `withDimensionAdministration`;
+  этот scope по дизайну `RlsStatementGuard` не допускает строковых чтений, поэтому
+  REST-вызов внутри него отказывает до SQL — реальный business-read под bypass
+  невозможен и не эмулируется.
+- Attribute-права проверяются только для запрошенных полей/фильтров/сортировки;
+  присутствие пути в fixed fetch superset (например `nomenclature.code` в LIST
+  спецификаций) не требует гранта — подтверждено SQL-успехом без грантов Nomenclature.
+- `RlsReadableIdsCache` инвалидируется по версии грантов; снятие назначения роли
+  проверяется свежим C5-решением (роль резолвится на каждом вызове), а не кешем.
+
+| Файл | SHA-256 |
+| --- | --- |
+| `src/test/java/org/ip/rest/RestReadRoleMatrixIT.java` | `17f3040b76c6296c7fd3550726be1b18ce1a0e41b19ca166a04cf8d3653b2d5f` |
+| `docs/architecture/rest-read-api-stage3-completion-plan.md` | `118442ec196ab0112bd27ee79d11bd58262a8326c826fd3975eb56c2a50f2fc9` |
+| `docs/architecture/rest-read-api-stage3-security-read-plan.md` | `5ad1c6a0d26ab9dd7bf24b35a6b6f2b958067c3e49c52f0eff444e586f01c7cc` |
+| `docs/architecture/README.md` | `62c260fd4334fcf0e36a7ec9ac5e7aeaae27b4229750b6627bc2dad00e0c6113` |
+
+З3 завершён; следующий пакет — З4, численные SQL/graph budgets обоих ресурсов.
+
+## 11. З4 — численные SQL/graph/window бюджеты, 2026-10-04
+
+Измерения выполнены app-пилотом `RestReadPipelinePilotIT` (12/12, BUILD SUCCESS,
+`target/rest-stage3-z4/run03.log`) на настоящих JPA/Hibernate: OSIV и L2 выключены,
+каждый замер идёт в свежем persistence context, session-scoped `RlsReadableIdsCache`
+прогревается до измерения, SQL категоризируется мостом `SqlStatementAuditBridge`
+(`C5_GRANT`, `RLS_GRANT`, `ROLE_RESOLUTION`, `CONTENT`, `COUNT`, `OTHER`). Прямой
+субъект — USER-грант без ролей; ролевой субъект — реальные `Role`/`User` через
+репозитории. `count` может отсутствовать на неполной странице (Spring Data) — это
+допустимо, total проверен отдельно; в текущем H2 наблюдался 1 count на всех
+сценариях. RLS predicate входит в content/count и не является отдельным запросом.
+
+### 11.1. LIST — прямые гранты, RLS-кеш прогрет
+
+| Сценарий | size | statements | C5 | RLS | roles | content | count | other | total |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `PrdSpec` default `id,codeSpec,draft` | 1/50/200 | 9 | 7 | 0 | 0 | 1 | 1 | 0 | 200 |
+| `PrdSpec` max `+nomenclatureCode`, фильтр `journalId` | 1/50/200 | 17 | 15 | 0 | 0 | 1 | 1 | 0 | 200 |
+| `Nomenclature` default `id,code,name` | 1/50/200 | 10 | 8 | 0 | 0 | 1 | 1 | 0 | ≥200 |
+| `Nomenclature` max `+typeNom`, фильтр `typeNom` | 1/50/200 | 12 | 10 | 0 | 0 | 1 | 1 | 0 | 200 |
+| `PrdSpec` фильтр на скрытый журнал (невидимая цель) | 50 | 12 | 10 | 0 | 0 | 1 | 1 | 0 | 0 |
+| `Nomenclature` фильтр без совпадений | 50 | 10 | 8 | 0 | 0 | 1 | 1 | 0 | 0 |
+
+Числа не меняются от size 1/50/200: бизнес-SQL и security-SQL не зависят от числа
+строк (проверено ассертами). Unfiltered Nomenclature total зависит от общего
+наполнения H2; проверены его консистентность по size и нижняя граница 200.
+
+### 11.2. DETAIL
+
+| Сценарий | statements | C5 | RLS | roles | content | count | other |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `PrdSpec` default `id,codeSpec,draft,comment` | 8 | 7 | 0 | 0 | 1 | 0 | 0 |
+| `PrdSpec` max `+journalId,nomenclatureCode` | 16 | 15 | 0 | 0 | 1 | 0 | 0 |
+| `PrdSpec` RLS-скрытый id → `DETAIL_NOT_FOUND` | 5 | 4 | 0 | 0 | 1 | 0 | 0 |
+| `PrdSpec` отсутствующий id → `DETAIL_NOT_FOUND` | 5 | 4 | 0 | 0 | 1 | 0 | 0 |
+| `Nomenclature` default `id,code,name` | 7 | 6 | 0 | 0 | 1 | 0 | 0 |
+| `Nomenclature` max `+typeNom` | 8 | 7 | 0 | 0 | 1 | 0 | 0 |
+| `Nomenclature` отсутствующий id → `DETAIL_NOT_FOUND` | 5 | 4 | 0 | 0 | 1 | 0 | 0 |
+| Scalar-consume DETAIL и LIST вне транзакции | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+### 11.3. Роли: short-circuit и независимость от size
+
+| Сценарий (max-проекция, size 50) | `PrdSpec`: statements / C5 / roles | `Nomenclature`: statements / C5 / roles |
+| --- | --- | --- |
+| Прямой USER-грант | 17 / 15 / 0 | 12 / 10 / 0 |
+| USER-грант + выданная роль (short-circuit USER) | 17 / 15 / 0 | 12 / 10 / 0 |
+| Одна разрешающая роль, size 1 | 48 / 30 / 16 | — |
+| Одна разрешающая роль, size 50 | 48 / 30 / 16 | 33 / 20 / 11 |
+| Две разрешающие роли (short-circuit первой) | 48 / 30 / 16 | 33 / 20 / 11 |
+
+Роль резолвится на каждом вызове; второй разрешающий грант роли не удваивает SQL.
+После сохранения grant кеш RLS прогревается; отзыв/снятие роли проверены в З3.
+Числа — фактические пределы нынешнего C5-контура; межзапросный кеш решений не вводится.
+
+### 11.4. Край окна и финальный W
+
+`seedWindowRows` — 10 000 W-строк поверх фикстуры (итого 10 001 видимая строка
+каждого ресурса). Успешные страницы у края: `page=199 size=50` (offset+size =
+10 000) и `page=49 size=200` (offset+size = 10 000) — полные, total = 10 001;
+statements: `PrdSpec` 16 (14 C5 + content + count; первый вызов 20 = 2 RLS + 2 roles
+сверх прогретого), `Nomenclature` 12 (10 C5 + content + count). Следующая страница
+(`page=200 size=50`, `page=50 size=200`, `page=200 size=0`) отклоняется как
+`INVALID_REQUEST` за 2 statements (2 C5), без content/count. **Финальный W =
+10 000** (default size 50, max 200) принят по этому измерению.
+
+### 11.5. Графы: maximum paths и фактическая загрузка
+
+| Ресурс/операция | Maximum paths (paths/prefix/глубина) | Загружено (fresh context) |
+| --- | --- | --- |
+| `PrdSpec` LIST | `id,codeSpec,draft,nomenclature.code` (4/1/2) | root id; nomenclature + code; **не** unitOfMeasurement, groupNom, journal, materials, operations |
+| `PrdSpec` DETAIL | `id,codeSpec,draft,comment,journal.id,nomenclature.code` (6/2/2) | root id; journal (explicit subgraph, terminal id; identity = журнал фикстуры); nomenclature + code; **не** unitOfMeasurement, groupNom, materials, operations |
+| `Nomenclature` LIST/DETAIL | `id,code,name,typeNom` (4/0/1) | root id; **не** unitOfMeasurement/groupNom (groupNom в фикстуре непустой) |
+
+Скалярные колонки joined-строки (`journal.code`) материализуются to-one join'ом —
+это разрешённая ADR-0007 дополнительная загрузка (граф описывает required state, не
+список SQL columns); своих associations у `Journal` нет. `materials`/`operations`
+не загружаются; коллекций/N+1 нет; scalar DTO не содержит entities/proxies (проверено
+consume-шагом вне транзакции). UI LIST comparator на той же строке: UI paths
+`[journal, nomenclature]`, SQL 3 (1 C5 + content + count), loaded journal/nomenclature/
+UOM/groupNom=true; REST 16/12 с независимым фиксированным профилем — delta объяснена
+отсутствием UI union/deepen и дополнительными attribute/reference C5 проверками.
+
+### 11.6. Итог и файлы
+
+Исторические 20/16 согласуются с §3: первый вызов 20 = 14 C5 + 2 RLS + 2 roles +
+content + count; повторный 16 = 14 C5 + content + count. Записанные пределы:
+LIST — ≤ 1 content, ≤ 1 count, 0 OTHER/RLS, C5 не растёт с size; DETAIL — ≤ 1 content,
+0 count/OTHER/RLS; после scalar — 0 SQL.
+
+Хеши файлов на момент записи §11:
+
+| Файл | SHA-256 |
+| --- | --- |
+| `src/test/java/org/ip/rest/RestReadPipelinePilotIT.java` | `4d7e8134117254ef1de1ab51a1d5e6b6c271cc299b08210a60c62a5452a565eb` |
+| `docs/architecture/rest-read-api-stage3-completion-plan.md` | `3e5c6f4ff39b80e8a6a4448e84c915974d2e3d06c528c2c415d9dc1691076437` |
+| `docs/architecture/rest-read-api-stage3-security-read-plan.md` | `eed2e9fb9e40fbae2aa9402342182401e4762647c18cdd4cf46b53ee2b63b626` |
+| `docs/architecture/README.md` | `eb6061e683db8bdee3dbbcd16f7a226941fe46ca3551fae3055858fde5d4f602` |
+
+З4 завершён; следующий пакет — З5, воспроизводимость и итоговые gates.
+
+## 12. З5 — воспроизводимость: статус и открытый gate, 2026-10-04
+
+### 12.1. Что проверено
+
+| Проверка | Команда | Результат |
+| --- | --- | --- |
+| Owner install (verify) | `mvn -o -Dmaven.repo.local=.local-maven-repository -f platform-<модуль>/pom.xml install` | rls 23/23, core 147/147, autoconfigure 32/32, rest 91/91 |
+| Starter verify | `... -f platform-backend-starter/pom.xml verify`, `... platform-vaadin-starter` | backend 1/1, vaadin 1/1 |
+| Strict `-ValidateOnly` | `bootstrap-local-dependencies.ps1 -LocalRepository .local-maven-repository -ValidateOnly` | зелёный: 22 fingerprint'а (включая siblings), build order, координаты, workspace |
+| Dependency bootstrap | `... -Offline -SkipApplication` | 23/23 BUILD SUCCESS, exit 0 |
+| Полный bootstrap (application clean verify) | `... -Offline` | **FAILURE**: exit 1; app 1757 тестов, 20 failures + 22 errors в 14 классах |
+| Root set canonical (13 классов) | `-Dtest=RestReadRoleMatrixIT,RestReadPipelinePilotIT,C5GrantAdminParityIT,RlsAutoConfigurationSmokeTest,CanonicalReadBoundaryIT,CanonicalReadTransactionBoundaryIT,FetchPlanReadBoundaryIT,FetchPlanMeasurementIT,DetachedRenderCostIT,EntitySummaryAccessPilotTest,EntitySummaryActionPilotTest,EntitySummaryReadPlanPilotTest,RlsReadGateTest test` | 103/103 BUILD SUCCESS |
+| Root set surface (6 классов) | `-Dtest=RlsAutoConfigurationSmokeTest,RlsDimensionFactsIT,PlatformApiBaselineTest,PlatformPublicSurfaceTest,PlatformStarterCompositionTest,BootstrapScriptContractTest test` | 49/49 BUILD SUCCESS |
+
+Числа owner/starter/strict/dependency получены до финального bootstrap; их логи
+лежали в `target/rest-stage3-z5/`, который удаляется application clean-фазой
+(bootstrap включает `mvn clean` приложения). Финальные логи:
+`target/rest-stage3-z5/bootstrap-full.log`, `root-set-canonical.log`,
+`root-set-surface.log`, `app-verify-failing-classes.txt`.
+
+### 12.2. Application clean verify: 14 красных классов, внешний C5
+
+| Класс | Failures/Errors |
+| --- | --- |
+| `AttributeValueRefRlsIT` | 1/1 |
+| `NomenclatureAttributesIT` | 0/3 |
+| `PrdSpecMetadataAggregateIT` | 1/1 |
+| `ReceivingDocumentRulesIT` | 1/1 |
+| `DeepLinkTwoUserAccessIT` | 8/0 |
+| `RlsServiceWriteBoundaryIT` | 4/3 |
+| `RlsStatementGuardTest` | 0/2 |
+| `RlsUnauthenticatedAccessIT` | 3/0 |
+| `ReportEditorConsolidationTest` | 1/0 |
+| `MetadataDrivenAggregateSaveServiceIT` | 0/1 |
+| `CanonicalWriteBoundaryIT` | 1/0 |
+| `CharacterizationStandardPathIT` | 0/7 |
+| `FetchPlanLookupHydrationIT` | 0/2 |
+| `NumberingEngineIT` | 0/1 |
+
+Доминирующая причина — `C5AccessDenied Entity C5 read denied for org.ip.model.*`:
+приложение уже требует entity C5 на чтение в write/lookup/канонических путях, а эти
+тесты не выдавали таких грантов. Это состояние параллельного полного C5-rollout —
+внешний gate из §9.3 («полный C5»), а не дефект F-REST-READ-3: application verify
+падает на классах, не входящих ни в один Stage-3 набор, а все изменённые этапом
+файлы (пилот, декларации REST, документация) в root-наборах зелёные.
+
+### 12.3. Открытый gate и условие закрытия
+
+По §9.1 «полный этап при открытом обязательном gate не закрывать»: обязательный
+стандартный bootstrap включает application clean verify, и он красный. Быстрый путь:
+в рамках полного C5 обновить 14 тест-классов (гранты/ожидания), повторить полный
+bootstrap и root-наборы; после зелёного — отметить З5 `[x]`, обновить заголовок и
+roadmap, опубликовать финальный evidence. Всё остальное из §9.2 зелёное.
+
+Strict `-ValidateOnly` выполнен после двух намеренных правок манифеста:
+`platform-spring-boot-autoconfigure` `ea1b5dbf…`→`a19f336c…` и `platform-rest`
+`a89b2dc6…`→`a6c33812…`. Записанные значения не воспроизводились ни из одного
+git-состояния модулей (ни CRLF-дерево, ни LF-blob, ни комбинации переводов строк),
+при этом модули чисты в git и их owner-тесты зелёные; приняты хеши committed-снапшота.
+Хеш `platform-rls` (`797d5b34…`→`5ca95045…`) был исправлен тем же принципом раньше —
+после добавления owner-тестов З2/З3; strict-прогон с ним зелёный.
+
+Хеши на момент записи §12:
+
+| Файл | SHA-256 |
+| --- | --- |
+| `src/test/java/org/ip/rest/RestReadPipelinePilotIT.java` | `4d7e8134117254ef1de1ab51a1d5e6b6c271cc299b08210a60c62a5452a565eb` |
+| `docs/architecture/rest-read-api-stage3-completion-plan.md` | `261bc2b48d186560d0fc3cca27c5504222a2ed2a2599d158ba442179da7344cd` |
+| `docs/architecture/rest-read-api-stage3-security-read-plan.md` | `eed2e9fb9e40fbae2aa9402342182401e4762647c18cdd4cf46b53ee2b63b626` |
+
+`docs/architecture/README.md` не входит в коммит З5: рабочая копия содержит смешанные
+незакоммиченные правки соседнего потока (информационный регистр), включая строку
+evidence; его текущий хеш `eb6061e683db8bdee3dbbcd16f7a226941fe46ca3551fae3055858fde5d4f602`.
+
+З5 остаётся открытым до зелёного application clean verify; это внешний gate полного C5.

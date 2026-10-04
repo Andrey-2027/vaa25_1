@@ -1,7 +1,7 @@
 # F-REST-READ-3: план завершения и окончательной приёмки
 
-- Статус: З0–З2 выполнены; З3–З5 и полная приёмка этапа открыты.
-- Дата: 2026-10-03; З2 фактически выполнен 2026-10-04.
+- Статус: З0–З4 выполнены; З5 и полная приёмка этапа открыты.
+- Дата: 2026-10-03; З2 фактически выполнен 2026-10-04, З3 — 2026-10-04, З4 — 2026-10-04, З5 — частично 2026-10-04.
 - Основной контракт: [`rest-read-api-stage3-security-read-plan.md`](rest-read-api-stage3-security-read-plan.md).
 - Родительский план: [`rest-read-api-plan.md`](rest-read-api-plan.md).
 - Архитектура загрузки: [ADR-0007, §4.1](decisions/ADR-0007-canonical-data-access-path.md#rest-fixed-fetch-profile).
@@ -264,6 +264,34 @@ Owner JPA tests с подменённым role resolver полезны для м
 DoD: реальная ролевая матрица проходит; переход существующих read callers описан
 и проверен без скрытой массовой выдачи. Write/actions остаются отдельным C5 backlog.
 
+### 7.1. Результат З3 (2026-10-04)
+
+Прикладной IT `RestReadRoleMatrixIT` (8/8) проверяет матрицу на настоящих
+`User`/`Role`/назначениях, production `UserRepositoryRlsRoleResolver`, грантах ролей,
+сохранённых через действующий `AccessGrantAdminService`, и действующих class/row
+RLS; подменён только `DataInitializer`. Покрыты: parity прямого гранта и гранта роли
+(данные и total совпадают); два субъекта с разными JOURNAL-грантами ролей видят
+разные строки, чужой и отсутствующий detail дают `DETAIL_NOT_FOUND`, FK-фильтр на
+скрытую цель пуст; отзыв гранта и снятие роли действуют в свежем вызове без
+перезапуска, решения и видимость не переносятся между субъектами; отсутствие одного
+права (API, entity, output/filter attribute, default sort/tie-breaker, reference
+target) отказывает до business SQL; поле вне запрошенной проекции не требует гранта
+из-за фиксированного fetch superset; UI list/detail и canonical app service читаются
+по entity-гранту роли, REST дополнительно требует API и attribute/reference grants;
+legacy class/row RLS (CHECK_ONLY, JOURNAL, BRANCH) сохраняется для ролевых читателей;
+anonymous/system и привилегированный bypass отклоняются. Отказ provider остаётся
+проверенным owner-тестом З2: §7.1 запрещает мокать production provider в app IT.
+
+Политика выдачи: startup registrar только регистрирует определения и не выдаёт
+гранты; роли `ADMIN`/`MANAGER`/`VIEWER` из `DataInitializer` не получают грантов
+автоматически. Администратор выдаёт `ENTITY:<FQN>` явно по каждой роли и каждому
+типу, который её UI/service callers действительно читают (не массово по каталогу);
+для REST дополнительно выдаются `REST:<resource>:v1:LIST/DETAIL` и `ATTR:<FQN>:<segment>`
+включая target-гранты to-one ссылок; построчные JOURNAL/BRANCH и legacy CHECK_ONLY
+сохраняют прежнюю семантику. Проверочные callers, ожидаемый отказ до выдачи и
+успех после — в [evidence, §10](rest-read-api-stage3-completion-evidence.md#10-з3--реальные-роли-и-политика-uiservice-callers-2026-10-04).
+Тестовые фикстуры ролей/грантов не являются production seed или migration script.
+
 ## 8. З4 — количественная приёмка SQL и графов
 
 ### 8.1. Единая методика
@@ -351,6 +379,14 @@ EAGER associations/collections root и target через loaded state и SQL.
 DoD: заполнена численная таблица, все строки матрицы проверены настоящим
 JPA/Hibernate, отсутствуют N+1/collection fetch/незаявленная загрузка, scalar DTO
 не содержит entities, proxies или persistent collections.
+
+Итог З4 (2026-10-04): численная таблица заполнена app-пилотом
+`RestReadPipelinePilotIT` (12/12, `target/rest-stage3-z4/run03.log`); LIST обоих
+ресурсов — ≤ 1 content и ≤ 1 count, C5 не растёт с size 1/50/200; DETAIL —
+≤ 1 content и 0 count; после scalar — 0 SQL; direct/role short-circuit и
+независимость от size зафиксированы; край окна пройден, финальный W = 10 000;
+loaded-state — только заявленные associations. Детали —
+[completion evidence, §11](rest-read-api-stage3-completion-evidence.md#11-з4--численные-sqlgraphwindow-бюджеты-2026-10-04).
 
 ## 9. З5 — воспроизводимость и итоговые gates
 
@@ -441,9 +477,9 @@ F-REST-READ-3 завершён, перечисленные внешние gates 
 - [x] З0: проверяются текущие исходники/JAR; разница SQL 20/16 объяснена trace, UI LIST baseline записан.
 - [x] З1: конечное окно задано, включая численные границы и fail-fast configuration; H2 pilot проверил оба ресурса на 10 001 видимой строке.
 - [x] З2: admin/server C5 parity и сохранение read grants проверены (C5GrantAdminParityIT 7/7, smoke 17/17, owner 23+32+91, surface 24/24).
-- [ ] З3: реальные роли/отзыв и политика UI/service callers подтверждены.
-- [ ] З4: обе сущности покрыты LIST/DETAIL, SQL/graph/window budgets заполнены и проходят.
-- [ ] З5: owner/app/starter checks, strict validation и стандартный bootstrap проходят.
+- [x] З3: реальные роли/отзыв и политика UI/service callers подтверждены (RestReadRoleMatrixIT 8/8; общий app canonical-read/UI/RLS набор с ним — 99/99).
+- [x] З4: обе сущности покрыты LIST/DETAIL, SQL/graph/window budgets заполнены и проходят (RestReadPipelinePilotIT 12/12; evidence §11).
+- [ ] З5: owner/app/starter checks, strict validation и стандартный bootstrap проходят. Owner/starter/strict/dependency-bootstrap зелёные; application clean verify красный из-за внешнего полного C5 (14 тест-классов, evidence §12).
 - [ ] Итоговый evidence опубликован в versioned документации; основной план и roadmap согласованы.
 
 Главные риски ограничены этими пакетами: слишком дорогое глубокое чтение,

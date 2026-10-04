@@ -862,6 +862,15 @@ owner REST verify прошёл 91/91, root REST/API/surface checks — 21/21. Н
 [completion evidence, §8](rest-read-api-stage3-completion-evidence.md#8-з1--конечное-окно-страниц-2026-10-03).
 З2 выполнен 2026-10-04: определения C5 read keys регистрируются явно, сервер и admin
 используют общую exact/global/read-границу `C5ReadDecisionService`; app IT и owner
-проверки зелёные, surface baseline обновлён. Следующий пакет — З3, реальные роли и
-политика существующих UI/service callers. Новые результаты не заменяют финальные
-owner/app/starter gates.
+проверки зелёные, surface baseline обновлён. З3 выполнен 2026-10-04: прикладной IT
+`RestReadRoleMatrixIT` (8/8) подтвердил parity прямого гранта и гранта роли, разные
+JOURNAL-гранты ролей, отзыв гранта/снятие роли без перезапуска, отказ до business
+SQL при отсутствии одного права, независимость гранта от fixed fetch superset,
+чтение UI/service callers по entity-гранту роли (REST дополнительно требует API и
+attribute/reference grants) и сохранение legacy class/row RLS; политика выдачи
+описана в [completion evidence, §10](rest-read-api-stage3-completion-evidence.md#10-з3--реальные-роли-и-политика-uiservice-callers-2026-10-04).
+З4 выполнен 2026-10-04: численные SQL/graph/window бюджеты обоих ресурсов записаны
+app-пилотом `RestReadPipelinePilotIT` (12/12), финальный W = 10 000; детали —
+[completion evidence, §11](rest-read-api-stage3-completion-evidence.md#11-з4--численные-sqlgraphwindow-бюджеты-2026-10-04).
+Следующий пакет — З5, воспроизводимость и итоговые gates. Новые результаты
+не заменяют финальные owner/app/starter gates.
