@@ -61,8 +61,10 @@ Swagger UI, публичный каталог и HTTP endpoint документ�
 HTTP/H2 security/SQL pilots реализованы в 4.6: 12 reviewed wire cases проверяются
 через настоящий socket, int64 > 2^53 — через storage/HTTP/client parser.
 [Evidence 4.6](../../rest-read-api-stage4-46-evidence-20261005.md),
-[инструкция клиента](../../rest-read-api-client.md). Итоговая приёмка 4.7 и внешнее
-включение по общему gate C5/C остаются открытыми.
+[инструкция клиента](../../rest-read-api-client.md). Итоговая приёмка 4.7 остаётся
+открытой; внешнее включение ждёт не C5 (он закрыт в объёме операций 2026-10-10,
+[план C5](../../c5-operation-permissions-plan.md)), а общий verification package этапа D
+(D3.6/D3.8) и PostgreSQL-приёмку.
 
 Нормативные источники: [OpenAPI 3.1.1](https://spec.openapis.org/oas/v3.1.1.html),
 [план этапа 4](../../rest-read-api-stage4-http-plan.md).
