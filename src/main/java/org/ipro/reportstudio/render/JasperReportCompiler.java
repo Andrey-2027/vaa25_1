@@ -474,6 +474,21 @@ public class JasperReportCompiler implements ReportCompiler {
                 throw new ReportRenderException("Неизвестное поле: " + field.getQueryField());
             }
             column = columnOrNew(qf, columnsByField);
+            if (!isBlank(field.getCaption())) column.setTitle(field.getCaption());
+            if ((qf.javaType() == java.time.LocalDate.class || qf.javaType() == java.time.LocalDateTime.class)
+                    && !isBlank(field.getFormat())) {
+                String pattern = field.getFormat();
+                boolean dateTime = qf.javaType() == java.time.LocalDateTime.class;
+                java.time.format.DateTimeFormatter.ofPattern(pattern);
+                column.setValueFormatter(new net.sf.dynamicreports.report.base.expression.AbstractValueFormatter<String, Object>() {
+                    @Override public String format(Object value, net.sf.dynamicreports.report.definition.ReportParameters parameters) {
+                        if (value == null || value.toString().isBlank()) return "";
+                        var formatter = java.time.format.DateTimeFormatter.ofPattern(pattern);
+                        return dateTime ? java.time.LocalDateTime.parse(value.toString()).format(formatter)
+                            : java.time.LocalDate.parse(value.toString()).format(formatter);
+                    }
+                });
+            }
         }
         if (field.getBorder() != null) {
             column.setStyle(bodyStyle(fontSize, field.getBorder()));

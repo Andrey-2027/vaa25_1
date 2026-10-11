@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 public record ActionInvocation(Class<?> entityType,
                                String variant,
-                               IdentifiableEntity selected,
+                               IdentifiableEntity<?> selected,
                                FormNavigator navigator,
                                Runnable refresh,
                                Map<String, Object> openingParameters,
@@ -52,7 +52,7 @@ public record ActionInvocation(Class<?> entityType,
     }
 
     /** Выбранная строка, приведённая к типу действия. */
-    public <T extends IdentifiableEntity> Optional<T> selectionAs(Class<T> type) {
+    public <T extends IdentifiableEntity<?>> Optional<T> selectionAs(Class<T> type) {
         Objects.requireNonNull(type, "type must not be null");
         return type.isInstance(selected) ? Optional.of(type.cast(selected)) : Optional.empty();
     }

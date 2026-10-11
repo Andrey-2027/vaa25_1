@@ -212,8 +212,12 @@ public class NomAttributeValueItemForm extends ItemForm<NomAttributeValue> {
             bindExternal(new BindingDescriptor("enteredRefId", "Значение", false), refValueField,
                 row -> snapshot(row.getAttrValue()),
                 (row, value) -> {
-                    if (value instanceof IdentifiableEntity entity) {
-                        row.setEnteredRefId(entity.getId());
+                    if (value instanceof IdentifiableEntity<?> entity) {
+                        Object id = entity.getId();
+                        if (id != null && !(id instanceof Long)) {
+                            throw new IllegalArgumentException("Ссылочный атрибут требует Long id");
+                        }
+                        row.setEnteredRefId(Long.class.cast(id));
                     } else {
                         // очистка поля — снять и прежнее значение строки;
                         // «тихого» сохранения старого значения быть не должно
@@ -332,7 +336,7 @@ public class NomAttributeValueItemForm extends ItemForm<NomAttributeValue> {
     }
 
     /** Отображаемая строка словаря для уже сохранённого ссылочного значения (без lazy load). */
-    private static final class RefSnapshot implements HasDisplayName, IdentifiableEntity {
+    private static final class RefSnapshot implements HasDisplayName, IdentifiableEntity<Long> {
 
         private Long id;
         private final String displayName;

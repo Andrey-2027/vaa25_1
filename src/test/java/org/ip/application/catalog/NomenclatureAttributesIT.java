@@ -8,7 +8,6 @@ import org.ip.model.NomAttributeValue;
 import org.ip.model.Nomenclature;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.model.Workshop;
-import org.ip.repository.AttributeTypeRepository;
 import org.ip.repository.AttributeValueRepository;
 import org.ip.repository.UnitOfMeasurementRepository;
 import org.ip.repository.WorkshopRepository;
@@ -17,6 +16,7 @@ import org.ipro.crud.ServiceLocator;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.crud.ValidationException;
+import org.ipro.data.EntityDataAccess;
 import org.ipro.events.EventSource;
 import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
@@ -60,7 +60,7 @@ class NomenclatureAttributesIT {
     private UnitOfMeasurementRepository unitRepository;
 
     @Autowired
-    private AttributeTypeRepository attributeTypeRepository;
+    private EntityDataAccess access;
 
     @Autowired
     private AttributeValueRepository attributeValueRepository;
@@ -81,6 +81,9 @@ class NomenclatureAttributesIT {
     void aggregateRootSavesThroughCanonicalHandleWithoutTypedService() {
         String suffix = UUID.randomUUID().toString().substring(0, 6);
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                Nomenclature.class, Workshop.class);
             assertThat(serviceLocator.findService(Nomenclature.class))
                 .as("у Nomenclature нет application service — только canonical handle")
                 .isInstanceOf(CanonicalEntityService.class);
@@ -118,6 +121,9 @@ class NomenclatureAttributesIT {
     @Test
     void savesHeaderAndResolvesTypedAttributeValuesInOneTransaction() {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                Nomenclature.class, Workshop.class);
             String suffix = suffix();
             Nomenclature nomenclature = nomenclature(suffix);
             AttributeType color = stringType("COLOR-" + suffix, "Цвет " + suffix);
@@ -154,6 +160,9 @@ class NomenclatureAttributesIT {
     @Test
     void resolvesReferenceValueThroughTargetDictionary() {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                Nomenclature.class, Workshop.class);
             String suffix = suffix();
             Workshop workshop = workshopRepository.save(
                 new Workshop("W-" + suffix, "Цех " + suffix));
@@ -181,6 +190,9 @@ class NomenclatureAttributesIT {
     @Test
     void attachedEmptySectionClearsValuesAndAbsentSectionKeepsThem() {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                Nomenclature.class, Workshop.class);
             String suffix = suffix();
             AttributeType color = stringType("COLOR-" + suffix, "Цвет " + suffix);
 
@@ -216,6 +228,9 @@ class NomenclatureAttributesIT {
     @Test
     void replacesRowForTheSameAttributeTypeWithinOneSave() {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                Nomenclature.class, Workshop.class);
             String suffix = suffix();
             AttributeType color = stringType("COLOR-" + suffix, "Цвет " + suffix);
 
@@ -249,6 +264,9 @@ class NomenclatureAttributesIT {
     @Test
     void rejectsDuplicateAttributeRows() {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                Nomenclature.class, Workshop.class);
             String suffix = suffix();
             AttributeType color = stringType("COLOR-" + suffix, "Цвет " + suffix);
 
@@ -268,6 +286,9 @@ class NomenclatureAttributesIT {
     @Test
     void rejectsValueOfAnotherTypeAndInactiveType() {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                Nomenclature.class, Workshop.class);
             String suffix = suffix();
             AttributeType color = stringType("COLOR-" + suffix, "Цвет " + suffix);
             AttributeType size = stringType("SIZE-" + suffix, "Размер " + suffix);
@@ -287,7 +308,7 @@ class NomenclatureAttributesIT {
 
             AttributeType inactive = stringType("OLD-" + suffix, "Старый " + suffix);
             inactive.setActive(false);
-            attributeTypeRepository.save(inactive);
+            updateType(inactive);
             NomAttributeValue inactiveRow = row(inactive, "значение");
 
             assertThatThrownBy(() -> aggregateSaveService.save(nomenclature(suffix),
@@ -302,6 +323,9 @@ class NomenclatureAttributesIT {
     @Test
     void rejectsRowWithoutValue() {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                Nomenclature.class, Workshop.class);
             String suffix = suffix();
             AttributeType color = stringType("COLOR-" + suffix, "Цвет " + suffix);
             NomAttributeValue empty = new NomAttributeValue();
@@ -350,19 +374,40 @@ class NomenclatureAttributesIT {
     }
 
     private AttributeType stringType(String code, String name) {
-        return attributeTypeRepository.save(
-            new AttributeType(code, name, AttributeValueType.STRING));
+        return createType(new AttributeType(code, name, AttributeValueType.STRING));
     }
 
     private AttributeType numberType(String code, String name) {
-        return attributeTypeRepository.save(
-            new AttributeType(code, name, AttributeValueType.NUMBER));
+        return createType(new AttributeType(code, name, AttributeValueType.NUMBER));
     }
 
     private AttributeType refType(String code, String name, String targetDictionary) {
         AttributeType type = new AttributeType(code, name, AttributeValueType.REF);
         type.setTargetDictionary(targetDictionary);
-        return attributeTypeRepository.save(type);
+        return createType(type);
+    }
+
+    /**
+     * Фикстуры типа атрибута идут canonical path: прямая запись repository — ровно тот вход,
+     * который закрывает финальная граница (ADR-0017 §9). Операции субъект уже получил
+     * (см. {@link RlsTestFixture#runAsSuperuser}), а read-ключ выдаётся здесь же: без него не
+     * проходит ни чтение исходного состояния для update, ни диагностика отказа.
+     */
+    private AttributeType createType(AttributeType type) {
+        grantTypeReadKey();
+        return access.create(AttributeType.class, type);
+    }
+
+    private AttributeType updateType(AttributeType type) {
+        grantTypeReadKey();
+        return access.update(AttributeType.class, type);
+    }
+
+    private void grantTypeReadKey() {
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+            org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getName(),
+            AttributeType.class);
     }
 
     private static String suffix() {

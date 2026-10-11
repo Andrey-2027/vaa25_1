@@ -124,7 +124,22 @@ public class FieldFactory {
 
     // === Числовые поля ===
 
-    private IntegerField createIntegerField(FieldMetadataInfo info, FormBindingRegistry registry) {
+    private com.vaadin.flow.component.Component createIntegerField(FieldMetadataInfo info, FormBindingRegistry registry) {
+        if (info.getJavaType() == Long.class || info.getJavaType() == long.class) {
+            // IntegerField stores 32-bit values. BigDecimalField preserves every Long digit
+            // and exact conversion rejects fractions/overflow instead of truncating ids.
+            BigDecimalField field = new BigDecimalField(info.getLabel());
+            applyCommonSettings(field, info);
+            registry.add(new FormBinding(info, field,
+                entity -> entity == null ? null : info.getValue(entity),
+                (entity, value) -> info.setValue(entity, value == null ? null
+                    : ((java.math.BigDecimal) value).longValueExact()),
+                field::getValue,
+                value -> field.setValue(value == null ? null : java.math.BigDecimal.valueOf((Long) value)),
+                value -> value == null,
+                readOnly -> { field.setReadOnly(readOnly); field.setEnabled(!readOnly); }));
+            return field;
+        }
         IntegerField field = new IntegerField(info.getLabel());
         applyCommonSettings(field, info);
         registerSimpleBinding(info, field, registry);
@@ -156,8 +171,10 @@ public class FieldFactory {
         return field;
     }
 
-    private DateTimePicker createDateTimeField(FieldMetadataInfo info, FormBindingRegistry registry) {
+    private com.vaadin.flow.component.Component createDateTimeField(
+            FieldMetadataInfo info, FormBindingRegistry registry) {
         DateTimePicker field = new DateTimePicker(info.getLabel());
+        field.setStep(java.time.Duration.ofMillis(1));
         applyCommonSettings(field, info);
         registerSimpleBinding(info, field, registry);
         return field;
@@ -346,6 +363,7 @@ public class FieldFactory {
                 return false;
             },
             readOnly -> {
+                field.setReadOnly(readOnly);
                 if (field instanceof com.vaadin.flow.component.HasEnabled he) {
                     he.setEnabled(!readOnly);
                 }

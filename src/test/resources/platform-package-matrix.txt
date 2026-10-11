@@ -128,6 +128,9 @@ org.ipro.form.builtin -> org.ipro.telemetry.core
 # модули, уже объявленные в POM platform-vaadin; запретов это не пересекает.
 # Вклад в панель инструментов снят в E1.6b (печать стала объявленным действием); ребро
 # `form.config -> form.spi` держат сторы и рабочая область.
+# E1.2b: `form.config -> rls.c5` — авто-конфигурация регистрирует адаптер права на операцию
+# (`OperationPermissionSource`) поверх того же C5-движка, которым отвечает серверная граница;
+# ребро направлено вниз (UI → модель прав), обратного быть не должно.
 org.ipro.form.config -> org.ipro.crud
 org.ipro.form.config -> org.ipro.data
 org.ipro.form.config -> org.ipro.data.grouping
@@ -140,6 +143,7 @@ org.ipro.form.config -> org.ipro.form.spi
 org.ipro.form.config -> org.ipro.metadata
 org.ipro.form.config -> org.ipro.metadata.config
 org.ipro.form.config -> org.ipro.rls
+org.ipro.form.config -> org.ipro.rls.c5
 org.ipro.form.coordinator -> org.ipro.crud
 org.ipro.form.coordinator -> org.ipro.form
 org.ipro.form.coordinator -> org.ipro.form.action
@@ -326,3 +330,124 @@ org.ipro.vaadin.search -> org.ipro.search.config
 org.ipro.vaadin.telemetry -> org.ipro.telemetry.api
 org.ipro.vaadin.telemetry -> org.ipro.telemetry.config
 org.ipro.vaadin.telemetry -> org.ipro.telemetry.core
+
+# Р0 closure review: C5 owner is platform-rls; canonical and report consumers call
+# the shared evaluator, while RLS configuration publishes it. No report/UI dependency below RLS.
+org.ipro.data -> org.ipro.rls.c5
+org.ipro.data.config -> org.ipro.rls.c5
+org.ipro.rls.c5 -> org.ipro.rls
+org.ipro.rls.config -> org.ipro.rls.c5
+# Existing typed route/host contracts (ADR-0009): actions/openers know published
+# addresses; hosts implement navigation SPI; route catalog uses descriptors and
+# declarations. These are internal UI package cycles, not new backend -> UI edges.
+org.ipro.form.action -> org.ipro.form.link
+org.ipro.form.builtin -> org.ipro.form.link
+org.ipro.form.config -> org.ipro.form.host
+org.ipro.form.config -> org.ipro.form.link
+org.ipro.form.coordinator -> org.ipro.form.host
+org.ipro.form.coordinator -> org.ipro.form.link
+org.ipro.form.host -> org.ipro.form.link
+org.ipro.form.host -> org.ipro.form.spi
+org.ipro.form.link -> org.ipro.data
+org.ipro.form.link -> org.ipro.fetch.plan
+org.ipro.form.link -> org.ipro.form.builder
+org.ipro.form.link -> org.ipro.form.coordinator
+org.ipro.form.link -> org.ipro.form.registry
+org.ipro.form.link -> org.ipro.metadata
+# ResolvedValue carries FactOrigin, a metadata value, within the same core owner.
+org.ipro.metadata.facet -> org.ipro.metadata
+# Optional REST adapter: catalog consumes descriptors/fetch scenarios; configuration
+# assembles catalog, service and RLS/C5 admission; read service uses EntityReadAccess
+# and reference validators. Backend owners never depend on the REST adapter.
+org.ipro.rest.catalog -> org.ipro.data
+org.ipro.rest.catalog -> org.ipro.fetch.plan
+org.ipro.rest.catalog -> org.ipro.rest.api
+org.ipro.rest.config -> org.ipro.data
+org.ipro.rest.config -> org.ipro.data.config
+org.ipro.rest.config -> org.ipro.rest.api
+org.ipro.rest.config -> org.ipro.rest.catalog
+org.ipro.rest.config -> org.ipro.rest.gateway
+org.ipro.rest.config -> org.ipro.rest.security
+org.ipro.rest.config -> org.ipro.rest.service
+org.ipro.rest.config -> org.ipro.rls
+org.ipro.rest.config -> org.ipro.rls.c5
+# F-REST-READ-4 4.2: gateway читает reviewed рёбра api/catalog/service/rls/c5; HTTP-адаптер остаётся в platform-rest-web.
+org.ipro.rest.gateway -> org.ipro.rest.api
+org.ipro.rest.gateway -> org.ipro.rest.catalog
+org.ipro.rest.gateway -> org.ipro.rest.service
+org.ipro.rest.gateway -> org.ipro.rls
+org.ipro.rest.gateway -> org.ipro.rls.c5
+org.ipro.rest.security -> org.ipro.rest.api
+org.ipro.rest.security -> org.ipro.rest.catalog
+org.ipro.rest.security -> org.ipro.rls
+org.ipro.rest.security -> org.ipro.rls.c5
+org.ipro.rest.service -> org.ipro.data
+org.ipro.rest.service -> org.ipro.rest.api
+org.ipro.rest.service -> org.ipro.rest.catalog
+org.ipro.rest.service -> org.ipro.rest.security
+org.ipro.rest.service -> org.ipro.rls
+org.ipro.rest.service -> org.ipro.rls.c5
+# F-REST-READ-4 4.1/4.2: HTTP-адаптер знает порядок read-автоконфигурации, вход read pipeline,
+# reviewed schema facts и MODULE_API read gateway; каталог и канонические гейты остаются
+# внутри platform-rest и адаптеру не видны.
+org.ipro.rest.web -> org.ipro.rest.api
+org.ipro.rest.web -> org.ipro.rest.config
+org.ipro.rest.web -> org.ipro.rest.gateway
+org.ipro.rest.web -> org.ipro.rest.service
+# F-REST-READ-4 4.3: request-scoped RLS seam и порядок RlsAutoConfiguration:
+# адаптер читает resolver/AccessService/RlsCurrentUser, поэтому у web-слоя появляется
+# ребро в org.ipro.rls (и в его config для @AutoConfigureBefore). Остальные новые
+# зависимости (gateway.resolve, Problem writer, request-контекст) остаются внутри
+# org.ipro.rest.web того же уровня и новых рёбер матрицы не создают.
+org.ipro.rest.web -> org.ipro.rls
+org.ipro.rest.web -> org.ipro.rls.config
+# Explorer publishes route/read/lifecycle facts and declares data/events ordering.
+# Inspection depends on backend contracts; no lifecycle -> explorer dependency is added.
+org.ipro.vaadin.explorer -> org.ipro.data
+org.ipro.vaadin.explorer -> org.ipro.data.config
+org.ipro.vaadin.explorer -> org.ipro.events.config
+org.ipro.vaadin.explorer -> org.ipro.form.link
+org.ipro.vaadin.explorer -> org.ipro.lifecycle
+# Р4: neutral register declarations use the canonical data port and existing managed catalog.
+# Report adapter consumes descriptors; register infrastructure never imports reportstudio.
+org.ipro.register -> org.ipro.data
+org.ipro.register -> org.ipro.events
+org.ipro.register -> org.ipro.lifecycle
+org.ipro.register -> org.ipro.telemetry.api
+org.ipro.register -> org.ipro.rls
+org.ipro.register -> org.ipro.metadata
+# Entry bases of neutral register slices extend the canonical CRUD base entity and use metadata
+# annotations; these stay the only platform entry points of the register declarations.
+org.ipro.register -> org.ipro.crud
+org.ipro.register -> org.ipro.metadata.annotation
+# Регистровый persistence-слой того же потока живёт в собственном подпакете модуля.
+org.ipro.register -> org.ipro.register.persistence
+org.ipro.register.config -> org.ipro.register
+org.ipro.register.config -> org.ipro.crud
+org.ipro.register.config -> org.ipro.data
+org.ipro.register.config -> org.ipro.events
+org.ipro.register.config -> org.ipro.lifecycle
+org.ipro.register.config -> org.ipro.telemetry.api
+org.ipro.register.config -> org.ipro.rls
+org.ipro.register.config -> org.ipro.metadata
+org.ipro.reportstudio.config -> org.ipro.register
+org.ipro.reportstudio.query -> org.ipro.register
+
+# Р8: общий сервис подписей читает через canonical read и метаданные; отчёты используют его API.
+org.ipro.data.presentation -> org.ipro.data
+org.ipro.data.presentation -> org.ipro.fetch.instance
+org.ipro.data.presentation -> org.ipro.metadata
+org.ipro.data.presentation -> org.ipro.metadata.annotation
+org.ipro.data.config -> org.ipro.data.presentation
+org.ipro.reportstudio.query -> org.ipro.data.presentation
+
+org.ipro.reportstudio.config -> org.ipro.data.presentation
+
+# IG0 baseline review: form action/navigation facades are shared with route hosts;
+# C5 authorizes document navigation, recorder commands and CHECK_ONLY entity reads.
+org.ipro.form -> org.ipro.form.coordinator
+org.ipro.form.coordinator -> org.ipro.rls.c5
+org.ipro.form.host -> org.ipro.form.coordinator
+org.ipro.register -> org.ipro.rls.c5
+org.ipro.register.config -> org.ipro.rls.c5
+org.ipro.rls -> org.ipro.rls.c5

@@ -1,0 +1,134 @@
+{
+  "400" : {
+    "contentType" : "application/problem+json",
+    "status" : 400,
+    "headers" : {
+      "Cache-Control" : "no-store"
+    },
+    "body" : {
+      "type" : "about:blank",
+      "title" : "Invalid request",
+      "status" : 400,
+      "detail" : "Page size is outside the published range",
+      "instance" : "/api/v1/items",
+      "code" : "invalid_request",
+      "param" : "size",
+      "reason" : "invalid_size",
+      "traceId" : "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  "401" : {
+    "contentType" : "application/problem+json",
+    "status" : 401,
+    "headers" : {
+      "Cache-Control" : "no-store",
+      "WWW-Authenticate" : "Basic realm=\"rest-read\""
+    },
+    "body" : {
+      "type" : "about:blank",
+      "title" : "Unauthorized",
+      "status" : 401,
+      "detail" : "Authentication is required for the REST read API",
+      "instance" : "/api/v1/items",
+      "code" : "unauthenticated",
+      "traceId" : "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  "403" : {
+    "contentType" : "application/problem+json",
+    "status" : 403,
+    "headers" : {
+      "Cache-Control" : "no-store"
+    },
+    "body" : {
+      "type" : "about:blank",
+      "title" : "Forbidden",
+      "status" : 403,
+      "detail" : "Access to the requested resource is denied",
+      "instance" : "/api/v1/items",
+      "code" : "forbidden",
+      "traceId" : "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  "404" : {
+    "contentType" : "application/problem+json",
+    "status" : 404,
+    "headers" : {
+      "Cache-Control" : "no-store"
+    },
+    "body" : {
+      "type" : "about:blank",
+      "title" : "Not Found",
+      "status" : 404,
+      "detail" : "Resource not found",
+      "instance" : "/api/v1/items",
+      "code" : "not_found",
+      "traceId" : "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  "405" : {
+    "contentType" : "application/problem+json",
+    "status" : 405,
+    "headers" : {
+      "Allow" : "GET",
+      "Cache-Control" : "no-store"
+    },
+    "body" : {
+      "type" : "about:blank",
+      "title" : "Method Not Allowed",
+      "status" : 405,
+      "detail" : "Only GET is supported for the REST read API",
+      "instance" : "/api/v1/items",
+      "code" : "method_not_allowed",
+      "traceId" : "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  "406" : {
+    "contentType" : "application/problem+json",
+    "status" : 406,
+    "headers" : {
+      "Cache-Control" : "no-store"
+    },
+    "body" : {
+      "type" : "about:blank",
+      "title" : "Not Acceptable",
+      "status" : 406,
+      "detail" : "Requested representation is not available",
+      "instance" : "/api/v1/items",
+      "code" : "not_acceptable",
+      "traceId" : "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  "500" : {
+    "contentType" : "application/problem+json",
+    "status" : 500,
+    "headers" : {
+      "Cache-Control" : "no-store"
+    },
+    "body" : {
+      "type" : "about:blank",
+      "title" : "Internal Server Error",
+      "status" : 500,
+      "detail" : "Unexpected error",
+      "instance" : "/api/v1/items",
+      "code" : "internal_error",
+      "traceId" : "00000000-0000-4000-8000-000000000001"
+    }
+  },
+  "503" : {
+    "contentType" : "application/problem+json",
+    "status" : 503,
+    "headers" : {
+      "Cache-Control" : "no-store"
+    },
+    "body" : {
+      "type" : "about:blank",
+      "title" : "Service Unavailable",
+      "status" : 503,
+      "detail" : "Security enforcement is unavailable",
+      "instance" : "/api/v1/items",
+      "code" : "security_unavailable",
+      "traceId" : "00000000-0000-4000-8000-000000000001"
+    }
+  }
+}

@@ -19,7 +19,7 @@ import org.ipro.form.builtin.ItemForm;
  * {@code FormSaveHandler} — иначе {@code getBean(FormSaveHandler.class)} у
  * координатора стал бы неоднозначным.</p>
  */
-public interface ItemFormSaveHandler<T extends IdentifiableEntity> {
+public interface ItemFormSaveHandler<T extends IdentifiableEntity<Long>> {
 
     /**
      * Единственный явно объявленный тип, для которого предназначен handler.

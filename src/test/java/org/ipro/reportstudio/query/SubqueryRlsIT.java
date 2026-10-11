@@ -37,7 +37,13 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = SubqueryRlsIT.TestApplication.class)
 class SubqueryRlsIT {
     @SpringBootApplication
-    static class TestApplication { }
+    static class TestApplication {
+        @org.springframework.context.annotation.Bean
+        org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes persistenceManagedTypes() {
+            return org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes.of(
+                SubOuter.class.getName(), SubInner.class.getName());
+        }
+    }
 
     /** Внешняя сущность запроса — без RLS-фильтра. */
     @Entity(name = "SubOuter")

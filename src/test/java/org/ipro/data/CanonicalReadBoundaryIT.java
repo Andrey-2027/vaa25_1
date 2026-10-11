@@ -65,9 +65,9 @@ class CanonicalReadBoundaryIT {
 
         assertThat(roots + ownedRows + internalStores)
             .as("каждый тип org.ip.model классифицирован ровно один раз")
-            .isEqualTo(23);
-        assertThat(roots).isEqualTo(17);
-        assertThat(ownedRows).isEqualTo(5);
+            .isEqualTo(29);
+        assertThat(roots).isEqualTo(21);
+        assertThat(ownedRows).isEqualTo(7);
         assertThat(internalStores).isEqualTo(1);
 
         assertThat(catalog.all()).allSatisfy(descriptor ->

@@ -59,6 +59,7 @@ public class RlsDimensionRegistry implements InitializingBean {
     private Map<Class<?>, Set<String>> classDimensions = Map.of();
     private Map<Class<?>, RlsPolicyDescriptor> policies = Map.of();
     private Map<String, Class<?>> grantValueTypes = Map.of();
+    private Set<Class<?>> writeGovernedTypes = Set.of();
 
     public RlsDimensionRegistry(@Value("${rls.dimension-scan-package}") String basePackage) {
         this.basePackage = basePackage;
@@ -244,6 +245,38 @@ public class RlsDimensionRegistry implements InitializingBean {
         Map<String, RlsDimensionKind> newDimensions = new LinkedHashMap<>(dimensions);
         newDimensions.put(dimension, kind);
         this.dimensions = Map.copyOf(newDimensions);
+    }
+
+    /**
+     * Называет тип предметом финальной границы canonical write: его запись обязана предъявить
+     * зафиксированную авторизацию на Hibernate flush (ADR-0017 §9).
+     *
+     * <p>Регистрация ничего не разрешает и никого не закрывает: она говорит только, что
+     * границей записи этого типа владеет не RLS, а canonical path, поэтому безусловная
+     * финальная проверка существует и для типов без измерений. Источник факта — тот же
+     * descriptor write-capability, что даёт операционные ключи C5, поэтому регистратор один:
+     * {@code C5EntityOperationPermissionRegistrar}. Тип без canonical handle
+     * ({@code OWNED_ROW}, {@code INTERNAL_STORE}) остаётся вне границы — его пишет владелец
+     * через свой агрегат.</p>
+     */
+    public void registerWriteGovernedType(Class<?> entityType) {
+        Objects.requireNonNull(entityType, "entityType");
+        if (writeGovernedTypes.contains(entityType)) {
+            return;
+        }
+        Set<Class<?>> merged = new HashSet<>(writeGovernedTypes);
+        merged.add(entityType);
+        this.writeGovernedTypes = Set.copyOf(merged);
+    }
+
+    /**
+     * Тип ведётся canonical write — то есть его flush обязан предъявить зафиксированную
+     * авторизацию. {@code false} означает «у типа нет canonical write handle»: запись либо
+     * защищена RLS-политикой, либо идёт путём владельца (агрегат, внутренний store).
+     */
+    public boolean isWriteGoverned(Class<?> entityType) {
+        Objects.requireNonNull(entityType, "entityType");
+        return writeGovernedTypes.contains(entityType);
     }
 
     public RlsDimensionKind kindOf(String dimension) {

@@ -91,8 +91,7 @@ private final ReportQueryGuard guard;
         } catch (IllegalArgumentException error) {
             throw new ReportRunException(error.getMessage(), error);
         }
-        ReportDataset dataset = executor.execute(assembled.jpql(), assembled.bindings(),
-            assembled.fields(),
+        ReportDataset dataset = executor.execute(assembled,
             template.getMaxRows() > 0 ? template.getMaxRows() : ReportTemplate.DEFAULT_MAX_ROWS,
             template.getTimeoutMs() > 0 ? template.getTimeoutMs() : ReportTemplate.DEFAULT_TIMEOUT_MS);
 

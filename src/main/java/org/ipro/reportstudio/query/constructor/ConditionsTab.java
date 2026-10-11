@@ -57,9 +57,11 @@ final class ConditionsTab extends VerticalLayout {
             return;
         }
         hint.setText("");
+        var availableParameters = new java.util.LinkedHashSet<>(parameterNames);
+        availableParameters.addAll(draft.parameterNames());
         String signature = tables.stream()
                 .map(table -> table.alias() + "=" + table.entity().entityName())
-                .collect(java.util.stream.Collectors.joining("|"));
+                .collect(java.util.stream.Collectors.joining("|")) + ";parameters=" + availableParameters;
         if (!signature.equals(structure)) {
             structure = signature;
             container.removeAll();
@@ -68,7 +70,7 @@ final class ConditionsTab extends VerticalLayout {
                         draft.setWhere(value);
                         changed();
                     },
-                    parameterNames);
+                    List.copyOf(availableParameters));
             container.add(editor);
         } else if (editor != null && !Objects.equals(draft.where(), editor.getValue())) {
             // WHERE изменили другие вкладки (удаление таблиц, переименование alias):

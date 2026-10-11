@@ -70,7 +70,7 @@ public class ReportRunDialog extends Dialog {
         this.template = template;
         this.context = context;
         this.executionService = executionService;
-        this.paramForm = new ReportParamForm(template.getParams(), context, lookupService, selectionFormAssembler);
+        this.paramForm = new ReportParamForm(template, context, lookupService, selectionFormAssembler);
 
         setHeaderTitle("Запуск отчёта: " + template.getName());
         setWidth("min(980px, 95vw)");

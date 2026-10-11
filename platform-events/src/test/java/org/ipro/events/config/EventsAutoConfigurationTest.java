@@ -98,7 +98,7 @@ class EventsAutoConfigurationTest {
         }
     }
 
-    static class FixtureEntity implements IdentifiableEntity {
+    static class FixtureEntity implements IdentifiableEntity<Long> {
         private Long id;
 
         @Override

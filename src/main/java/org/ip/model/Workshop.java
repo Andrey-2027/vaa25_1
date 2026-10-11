@@ -7,6 +7,7 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
@@ -31,6 +32,7 @@ import org.ipro.metadata.HasDisplayName;
     applyToLoadByKey = true)
 @Filter(name = "BRANCH", condition = "(branch_id is null or branch_id in (:allowedIds))")
 @EntityMetadata(
+    kind = EntityKind.CATALOG,
     listFormTitle = "Цеха",
     itemFormTitle = "Цех",
     selectionFormTitle = "Выбор цеха",

@@ -16,6 +16,10 @@ import static org.ipro.reportstudio.query.constructor.QueryConstructorDraftTest.
 /** Тесты вкладки «Таблицы и поля»: авто-JOIN через ассоциации, дубликаты, каскадное удаление. */
 class TablesAndFieldsTabTest {
 
+    private static List<ConstructorTreeNode> sourceEntities(TablesAndFieldsTab tab) {
+        return tab.databaseRoots().stream().flatMap(group -> group.children().stream()).toList();
+    }
+
     @Test
     void associationNodeAddsEntityReferenceFieldWithoutJoin() {
         var draft = new QueryConstructorDraft();
@@ -24,14 +28,15 @@ class TablesAndFieldsTabTest {
         var tab = new TablesAndFieldsTab(draft, changes::incrementAndGet);
         tab.refreshFromDraft();
 
-        List<ConstructorTreeNode> roots = tab.databaseRoots();
+        List<ConstructorTreeNode> roots = sourceEntities(tab);
         assertThat(roots).hasSize(2);
 
-        tab.addNode(roots.get(0)); // Product
+        var productRoot = roots.stream().filter(node -> node.entity().entityName().equals(product().entityName())).findFirst().orElseThrow();
+        tab.addNode(productRoot); // Product
         assertThat(draft.hasRoot()).isTrue();
         assertThat(draft.tables()).hasSize(1);
 
-        var associationNode = roots.get(0).children().stream()
+        var associationNode = productRoot.children().stream()
                 .filter(child -> child.kind() == ConstructorTreeNode.Kind.ASSOCIATION)
                 .findFirst().orElseThrow();
         tab.addNode(associationNode);
@@ -44,6 +49,18 @@ class TablesAndFieldsTabTest {
         assertThat(changes.get()).isGreaterThanOrEqualTo(2);
     }
 
+    @Test void addsEntityAndAssociationPresentationsWithoutCreatingJoins() {
+        var draft = new QueryConstructorDraft(); draft.setCatalog(catalog(product(), category()));
+        var tab = new TablesAndFieldsTab(draft, () -> { }); tab.refreshFromDraft();
+        var root = sourceEntities(tab).stream().filter(node -> node.entity().entityName().equals("Product")).findFirst().orElseThrow();
+        tab.addPresentation(root);
+        tab.addPresentation(root.children().stream().filter(node -> node.kind() == ConstructorTreeNode.Kind.ASSOCIATION).findFirst().orElseThrow());
+        assertThat(draft.expressions()).hasSize(2);
+        assertThat(draft.joins()).isEmpty();
+        assertThat(draft.compile().ok()).as(draft.compile().error()).isTrue();
+        assertThat(draft.compile().fields()).allSatisfy(field -> assertThat(field.javaType()).isEqualTo(String.class));
+    }
+
     @Test
     void fieldNodeThroughAssociationGetsPathWithJoin() {
         var draft = new QueryConstructorDraft();
@@ -51,7 +68,7 @@ class TablesAndFieldsTabTest {
         var tab = new TablesAndFieldsTab(draft, () -> { });
         tab.refreshFromDraft();
 
-        var productNode = tab.databaseRoots().get(0);
+        var productNode = sourceEntities(tab).stream().filter(node -> node.entity().entityName().equals(product().entityName())).findFirst().orElseThrow();
         var associationNode = productNode.children().stream()
                 .filter(child -> child.kind() == ConstructorTreeNode.Kind.ASSOCIATION)
                 .findFirst().orElseThrow();
@@ -75,7 +92,7 @@ class TablesAndFieldsTabTest {
         var tab = new TablesAndFieldsTab(draft, () -> { });
         tab.refreshFromDraft();
 
-        var productNode = tab.databaseRoots().get(0);
+        var productNode = sourceEntities(tab).stream().filter(node -> node.entity().entityName().equals(product().entityName())).findFirst().orElseThrow();
         var codeNode = productNode.children().stream()
                 .filter(child -> child.kind() == ConstructorTreeNode.Kind.PROPERTY)
                 .filter(child -> child.field().name().equals("code"))
@@ -94,7 +111,7 @@ class TablesAndFieldsTabTest {
         var tab = new TablesAndFieldsTab(draft, () -> { });
         tab.refreshFromDraft();
 
-        var productNode = tab.databaseRoots().get(0);
+        var productNode = sourceEntities(tab).stream().filter(node -> node.entity().entityName().equals(product().entityName())).findFirst().orElseThrow();
         tab.addAllFields(productNode);
 
         assertThat(draft.selections()).hasSize(product().fields().size());
@@ -107,7 +124,7 @@ class TablesAndFieldsTabTest {
         var tab = new TablesAndFieldsTab(draft, () -> { });
         tab.refreshFromDraft();
 
-        var productNode = tab.databaseRoots().get(0);
+        var productNode = sourceEntities(tab).stream().filter(node -> node.entity().entityName().equals(product().entityName())).findFirst().orElseThrow();
         var associationNode = productNode.children().stream()
                 .filter(child -> child.kind() == ConstructorTreeNode.Kind.ASSOCIATION)
                 .findFirst().orElseThrow();
@@ -135,7 +152,7 @@ class TablesAndFieldsTabTest {
         draft.setCatalog(catalog(product()));
         var tab = new TablesAndFieldsTab(draft, () -> { });
         tab.refreshFromDraft();
-        var productNode = tab.databaseRoots().get(0);
+        var productNode = sourceEntities(tab).stream().filter(node -> node.entity().entityName().equals(product().entityName())).findFirst().orElseThrow();
         tab.addNode(productNode.children().stream()
                 .filter(child -> child.kind() == ConstructorTreeNode.Kind.PROPERTY)
                 .findFirst().orElseThrow());
@@ -153,7 +170,7 @@ class TablesAndFieldsTabTest {
         var tab = new TablesAndFieldsTab(draft, () -> { });
         tab.refreshFromDraft();
 
-        var productNode = tab.databaseRoots().get(0);
+        var productNode = sourceEntities(tab).stream().filter(node -> node.entity().entityName().equals(product().entityName())).findFirst().orElseThrow();
         var idNode = productNode.children().stream()
                 .filter(child -> child.kind() == ConstructorTreeNode.Kind.PROPERTY)
                 .filter(child -> child.field().name().equals("id"))
@@ -185,7 +202,7 @@ class TablesAndFieldsTabTest {
         AtomicInteger changes = new AtomicInteger();
         var tab = new TablesAndFieldsTab(draft, changes::incrementAndGet);
         tab.refreshFromDraft();
-        tab.addNode(tab.databaseRoots().get(0)); // корень Product
+        tab.addNode(sourceEntities(tab).stream().filter(node -> node.entity().entityName().equals(product().entityName())).findFirst().orElseThrow()); // корень Product
 
         var dialog = tab.computedFieldEditorFor(null);
         dialog.expressionField().setValue("product.amount * 2");
@@ -203,7 +220,7 @@ class TablesAndFieldsTabTest {
         draft.setCatalog(catalog(product()));
         var tab = new TablesAndFieldsTab(draft, () -> { });
         tab.refreshFromDraft();
-        tab.addNode(tab.databaseRoots().get(0));
+        tab.addNode(sourceEntities(tab).stream().filter(node -> node.entity().entityName().equals(product().entityName())).findFirst().orElseThrow());
 
         tab.clearAllTables();
 

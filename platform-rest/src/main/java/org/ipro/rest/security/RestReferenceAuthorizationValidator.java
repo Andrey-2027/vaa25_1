@@ -97,7 +97,8 @@ public class RestReferenceAuthorizationValidator {
 
     /**
      * Authorizes a to-one association path under the executable 3.4a/3.4b profile.
-     * C5 grants are checked for every participating entity and persistent segment.
+     * C5 entity read and effective target RLS remain mandatory. Published paths
+     * do not require separate attribute grants.
      */
     public boolean authorizeReferencePath(String username, Class<?> rootType, ResolvedRestPath path) {
         Objects.requireNonNull(username, "username must not be null");
@@ -106,11 +107,8 @@ public class RestReferenceAuthorizationValidator {
         validateReferencePath(rootType, path);
 
         ResolvedRestPath.Segment association = path.segments().getFirst();
-        ResolvedRestPath.Segment terminal = path.segments().getLast();
         Class<?> targetType = association.javaType();
-        if (!c5Evaluator.isAttributeReadPermitted(username, rootType, association.name())
-            || !c5Evaluator.isEntityReadPermitted(username, targetType)
-            || !c5Evaluator.isAttributeReadPermitted(username, targetType, terminal.name())) {
+        if (!c5Evaluator.isEntityReadPermitted(username, targetType)) {
             return false;
         }
 

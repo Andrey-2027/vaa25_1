@@ -85,6 +85,76 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 })
 class RestReadPipelinePilotIT {
 
+    @Autowired
+    private org.ipro.rest.gateway.RestReadGateway readGateway;
+
+    @Test
+    @DisplayName("4.5: OpenAPI and normalized wire snapshots track the validated application catalog")
+    void openApiAndWireSnapshotsMatchValidatedApplicationCatalog() throws Exception {
+        var json = tools.jackson.databind.json.JsonMapper.builder().build();
+        byte[] openApi = new org.ipro.rest.web.openapi.RestOpenApiGenerator().generate(readGateway);
+        var document = json.readTree(openApi);
+        assertThat(document.path("paths").size()).isEqualTo(4);
+        snapshot("openapi-v1.json", openApi);
+        Fixture fixture = persistFixture();
+        grantPrdSpecRead(subject, fixture.journalAId());
+        grantNomenclatureRead(subject);
+        var codec = new org.ipro.rest.web.codec.RestJsonCodec(json);
+        var parser = new org.ipro.rest.web.query.RestQueryParser();
+        Map<String, Object> cases = new java.util.LinkedHashMap<>();
+        for (var resource : readGateway.publishedResources()) {
+            String base = "/api/v1/" + resource.resource();
+            boolean spec = resource.resource().equals("specifications");
+            String id = Long.toString(spec ? fixture.specAId() : fixture.nomenclatureId());
+            Map<String, String[]> filter = spec
+                ? Map.of("journalId", new String[]{Long.toString(fixture.journalAId())})
+                : Map.of("typeNom", new String[]{fixture.nomenclatureTypeNom()});
+            for (String selection : List.of("default", "id", "maximum")) {
+                Map<String, String[]> listParameters = new java.util.LinkedHashMap<>(filter);
+                Map<String, String[]> detailParameters = new java.util.LinkedHashMap<>();
+                if (!selection.equals("default")) {
+                    String listFields = selection.equals("id") ? "id" : String.join(",", resource.list().maximumFields().stream().map(org.ipro.rest.gateway.RestFieldFact::alias).toList());
+                    String detailFields = selection.equals("id") ? "id" : String.join(",", resource.detail().maximumFields().stream().map(org.ipro.rest.gateway.RestFieldFact::alias).toList());
+                    listParameters.put("fields", new String[]{listFields});
+                    detailParameters.put("fields", new String[]{detailFields});
+                }
+                var list = readGateway.list(resource.resource(), 1, contract -> parser.parseList(contract, listParameters));
+                assertThat(list.content()).hasSize(1);
+                assertThat(list.totalElements()).isEqualTo(1);
+                var detail = readGateway.detail(resource.resource(), 1, contract -> parser.parseDetail(contract, detailParameters, id));
+                cases.put(base + "#" + selection, normalizedWire(json, codec.writeList(list)));
+                cases.put(base + "/{id}#" + selection, normalizedWire(json, codec.writeDetail(detail)));
+            }
+        }
+        snapshot("wire-v1.json", (json.writerWithDefaultPrettyPrinter().writeValueAsString(cases) + "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private static Object normalizedWire(tools.jackson.databind.json.JsonMapper json, byte[] wire) {
+        // Normalize only fixture identity/content. Presence, nulls, types and envelope are retained.
+        var body = json.readTree(wire);
+        var rows = body.has("data") ? List.of(body.path("data")) : body.path("content");
+        for (var row : rows) {
+            var object = (tools.jackson.databind.node.ObjectNode) row;
+            for (var property : new java.util.ArrayList<>(object.properties())) {
+                if (property.getValue().isString()) object.put(property.getKey(), "example");
+                else if (property.getKey().equals("id") || property.getKey().equals("journalId")) object.put(property.getKey(), 1L);
+            }
+        }
+        return body;
+    }
+
+    private static void snapshot(String filename, byte[] actual) throws Exception {
+        actual = new String(actual, java.nio.charset.StandardCharsets.UTF_8).replace("\r\n", "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var path = java.nio.file.Path.of("docs/architecture/contracts/rest-read", filename);
+        if (Boolean.getBoolean("rest.contract.write")) {
+            java.nio.file.Files.createDirectories(path.getParent());
+            java.nio.file.Files.write(path, actual);
+        }
+        assertThat(java.nio.file.Files.exists(path)).as("reviewed contract %s", path).isTrue();
+        assertThat(java.nio.file.Files.readString(path).replace("\r\n", "\n"))
+            .as("v1 drift requires contract/version review: %s", path).isEqualTo(new String(actual, java.nio.charset.StandardCharsets.UTF_8));
+    }
+
     @MockitoBean
     private DataInitializer dataInitializer;
 
@@ -142,6 +212,10 @@ class RestReadPipelinePilotIT {
     @Autowired
     private CanonicalWriteExecutor writeExecutor;
 
+    /** Canonical write handle для governed-фикстур (`Role`/`User`): тот же preflight, что у приложения. */
+    @Autowired
+    private org.ipro.data.EntityDataAccess access;
+
     private String subject;
 
     @BeforeEach
@@ -164,9 +238,10 @@ class RestReadPipelinePilotIT {
             "REST:nomenclature:v1:LIST",
             "REST:nomenclature:v1:DETAIL",
             C5PermissionKeys.entityRead(PrdSpec.class),
-            C5PermissionKeys.entityRead(Nomenclature.class),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "codeSpec")
+            C5PermissionKeys.entityRead(Nomenclature.class)
         );
+        assertThat(dimensionRegistry.dimensions()).doesNotContain(
+            C5PermissionKeys.attributeRead(PrdSpec.class, "codeSpec"));
         assertThat(environment.getProperty("spring.jpa.open-in-view", Boolean.class)).isFalse();
     }
 
@@ -302,7 +377,8 @@ class RestReadPipelinePilotIT {
         long firstReadSql = statistics.getPrepareStatementCount();
         assertThat(firstRead.result().totalElements()).isEqualTo(50);
         assertThat(firstRead.result().content()).hasSize(1);
-        assertThat(firstReadSql).as("first PrdSpec LIST page-size 1 SQL budget").isEqualTo(20);
+        // ADR-0016 removes nine attribute-grant lookups for this query; entity/RLS checks remain.
+        assertThat(firstReadSql).as("first PrdSpec LIST page-size 1 SQL budget").isEqualTo(11);
         assertThat(firstRead.statements()).hasSize((int) firstReadSql);
 
         // Fresh persistence contexts and L2-off do not reset the separate session-scoped
@@ -328,9 +404,9 @@ class RestReadPipelinePilotIT {
         assertThat(fiftyRows.content()).hasSize(50);
         assertReturnedOutsideTransaction(fiftyRows.content());
         assertThat(statistics.getPrepareStatementCount()).isEqualTo(fiftyRowSql);
-        assertThat(oneRowSql).isEqualTo(16)
+        assertThat(oneRowSql).isEqualTo(7)
             .as("repeated PrdSpec LIST page-size 1 SQL budget");
-        assertThat(fiftyRowSql).isEqualTo(16)
+        assertThat(fiftyRowSql).isEqualTo(7)
             .as("repeated PrdSpec LIST page-size 50 SQL budget");
         assertThat(fiftyRowSql).isEqualTo(oneRowSql)
             .as("SQL statement count is independent of REST page row count");
@@ -1087,27 +1163,15 @@ class RestReadPipelinePilotIT {
         return new String[]{
             "REST:specifications:v1:LIST", "REST:specifications:v1:DETAIL",
             C5PermissionKeys.entityRead(PrdSpec.class),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "id"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "codeSpec"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "draft"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "comment"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "nomenclature"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "journal"),
             C5PermissionKeys.entityRead(Nomenclature.class),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "code"),
-            C5PermissionKeys.entityRead(Journal.class),
-            C5PermissionKeys.attributeRead(Journal.class, "id")};
+            C5PermissionKeys.entityRead(Journal.class)};
     }
 
     private static String[] nomenclatureReadKeys() {
         return new String[]{
             "REST:nomenclature:v1:LIST",
             "REST:nomenclature:v1:DETAIL",
-            C5PermissionKeys.entityRead(Nomenclature.class),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "id"),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "code"),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "name"),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "typeNom")};
+            C5PermissionKeys.entityRead(Nomenclature.class)};
     }
 
     private void grant(String username, String... dimensions) {
@@ -1140,15 +1204,18 @@ class RestReadPipelinePilotIT {
 
     private Role createRole(String name) {
         return RlsTestFixture.callAsSuperuser(accessGrantRepository, () ->
-            roleRepository.saveAndFlush(new Role(name)));
+            access.create(Role.class, new Role(name)));
     }
 
     private void assignRoles(String username, Role... roles) {
-        RlsTestFixture.callAsSuperuser(accessGrantRepository, () -> {
+        RlsTestFixture.callAsSuperuserWithRead(accessGrantRepository, new Class<?>[] {User.class}, () -> {
             User user = userRepository.findByUsername(username)
                 .orElseGet(() -> new User(username, "password"));
             user.setRoles(Set.of(roles));
-            return userRepository.saveAndFlush(user);
+            // Назначение ролей меняет governed-сущность: repository.save мимо preflight отказал бы.
+            return user.getId() == null
+                ? access.create(User.class, user)
+                : access.update(User.class, user);
         });
     }
 

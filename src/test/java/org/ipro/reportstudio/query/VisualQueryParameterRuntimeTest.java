@@ -8,6 +8,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class VisualQueryParameterRuntimeTest {
     @Test
+    void dateTimeBoundaryPreservesNanosecondsAndRejectsDatesAndText() {
+        var definitions = List.of(new VisualQueryDefinition.Parameter("asOf", "DATETIME", true, null));
+        var time = java.time.LocalDateTime.of(2026, 1, 1, 15, 20, 30, 123456789);
+        assertThat(VisualQueryParameterRuntime.resolve(definitions, Map.of("asOf", time)))
+            .containsEntry("asOf", time);
+        for (var invalid : List.of(time.toLocalDate(), time.toString())) {
+            assertThatThrownBy(() -> VisualQueryParameterRuntime.resolve(definitions, Map.of("asOf", invalid)))
+                .hasMessageContaining("LocalDateTime");
+        }
+    }
+
+    @Test
     void resolvesSuppliedAndDefaultValues() {
         var result = VisualQueryParameterRuntime.resolve(List.of(
                 new VisualQueryDefinition.Parameter("rate", "DECIMAL", true, null),

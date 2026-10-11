@@ -31,7 +31,12 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = CteHibernateFilterIT.TestApplication.class)
 class CteHibernateFilterIT {
     @SpringBootApplication
-    static class TestApplication { }
+    static class TestApplication {
+        @org.springframework.context.annotation.Bean
+        org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes persistenceManagedTypes() {
+            return org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes.of(FilteredCteRow.class.getName());
+        }
+    }
 
     @jakarta.persistence.Entity(name = "FilteredCteRow")
     @Table(name = "filtered_cte_row")

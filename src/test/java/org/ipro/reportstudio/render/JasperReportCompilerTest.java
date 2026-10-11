@@ -28,6 +28,24 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class JasperReportCompilerTest {
 
     @Test
+    void dateTimePatternKeepsNanosecondsInPdf() throws Exception {
+        var time = java.time.LocalDateTime.of(2026, 10, 5, 14, 20, 30, 123456789);
+        var queryField = new QueryField("period", "", java.time.LocalDateTime.class, "Период", true, false, false);
+        var fields = new QueryField[]{queryField};
+        var dataset = new ReportDataset(fields, new ReportRow[]{new ReportRow(fields, new Object[]{time})});
+        var template = new ReportTemplate(); template.setName("Timestamp");
+        var detail = band(ReportBandKind.DETAIL, null, null);
+        var column = field("period", "Период", 400);
+        column.setFormat("dd.MM.yyyy HH:mm:ss.SSSSSSSSS");
+        detail.addField(column); template.addBand(detail);
+        var compiler = new JasperReportCompiler();
+        var pdf = compiler.export(compiler.compile(template, dataset), ReportExportFormat.PDF);
+        try (var document = Loader.loadPDF(pdf)) {
+            assertThat(new PDFTextStripper().getText(document)).contains("05.10.2026 14:20:30.123456789");
+        }
+    }
+
+    @Test
     void compileGroupedReportToAllFormats() throws Exception {
         QueryField journal = new QueryField("journalCode", "", String.class, "Журнал", true, true, false);
         QueryField code = new QueryField("codeSpec", "", String.class, "Код спецификации", true, true, true);

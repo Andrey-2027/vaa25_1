@@ -30,7 +30,8 @@ final class TablesAndFieldsTab extends VerticalLayout {
     private final QueryConstructorDraft draft;
     private final Runnable onChange;
 
-    private final TreeGrid<ConstructorTreeNode> databaseTree = new TreeGrid<>();
+    private final org.ipro.reportstudio.query.catalog.QuerySourceTree<ConstructorTreeNode> databaseTree = new org.ipro.reportstudio.query.catalog.QuerySourceTree<>();
+    private final TextField catalogSearch = new TextField();
     private final TreeGrid<ConstructorTreeNode> tablesTree = new TreeGrid<>();
     private final Grid<VisualQueryDefinition.SelectField> fieldsGrid = new Grid<>();
     /** Вычисляемые поля (CASE/арифметика/функции) — восстановленные из текста, без редактора. */
@@ -39,6 +40,10 @@ final class TablesAndFieldsTab extends VerticalLayout {
     private List<ConstructorTreeNode> databaseRoots = List.of();
     private List<ConstructorTreeNode> tableRoots = List.of();
     private List<ConstructorTreeNode> cteRoots = List.of();
+    private org.ipro.reportstudio.query.register.RegisterSliceReportTemplates sliceRecipes;
+    private java.util.function.BiConsumer<String, String> addSlice;
+    private java.util.function.Consumer<String> editSlice;
+    private final Button sliceSettings = new Button("Настроить срез");
 
     TablesAndFieldsTab(QueryConstructorDraft draft, Runnable onChange) {
         this.draft = draft;
@@ -50,13 +55,10 @@ final class TablesAndFieldsTab extends VerticalLayout {
         setHeightFull();
         getStyle().set("min-height", "0");
 
-        databaseTree.addHierarchyColumn(ConstructorTreeNode::caption).setHeader("База данных")
-                .setFlexGrow(1).setResizable(true);
-        // Русское имя из описания метаданных («Номенклатура», «Код спецификации»);
-        // для виртуальных CTE — имя этапа.
-        databaseTree.addColumn(this::displayName).setHeader("Имя").setFlexGrow(1).setResizable(true);
-        databaseTree.addColumn(this::kindLabel).setHeader("Вид").setAutoWidth(true).setFlexGrow(0);
-        databaseTree.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
+        databaseTree.configure(CatalogTreeModel::label, CatalogTreeModel::name, CatalogTreeModel::category, CatalogTreeModel::dataType);
+        catalogSearch.setPlaceholder("Сущность или поле"); catalogSearch.setClearButtonVisible(true);
+        catalogSearch.setValueChangeMode(com.vaadin.flow.data.value.ValueChangeMode.EAGER);
+        catalogSearch.addValueChangeListener(event -> refreshFromDraft());
         databaseTree.addItemDoubleClickListener(event -> addNode(event.getItem()));
 
         // Русское имя таблицы в иерархии («Спецификации»), техническое — отдельной колонкой.
@@ -100,6 +102,13 @@ final class TablesAndFieldsTab extends VerticalLayout {
         expressionsGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
 
         VerticalLayout left = panel("База данных", databaseTree);
+        left.addComponentAtIndex(1, catalogSearch);
+        var presentation = new Button("Добавить представление", event -> {
+            var node = tablesTree.asSingleSelect().getValue();
+            if (node == null) node = databaseTree.asSingleSelect().getValue();
+            addPresentation(node);
+        });
+        left.addComponentAtIndex(2, presentation);
         VerticalLayout center = panel("Таблицы", tablesTree);
         VerticalLayout right = new VerticalLayout(new Span("Поля"), fieldsGrid, computedHeader, expressionsGrid);
         right.setPadding(false);
@@ -135,7 +144,26 @@ final class TablesAndFieldsTab extends VerticalLayout {
         content.setHeightFull();
         content.setFlexGrow(1, left, center, right);
         content.getStyle().set("min-height", "0");
-        add(content);
+        sliceSettings.setVisible(false);
+        sliceSettings.addClickListener(event -> {
+            var selected = tablesTree.asSingleSelect().getValue();
+            if (selected != null && selected.entity() != null && editSlice != null)
+                editSlice.accept(selected.entity().entityName());
+        });
+        tablesTree.asSingleSelect().addValueChangeListener(event -> {
+            var selected = event.getValue();
+            sliceSettings.setEnabled(selected != null && selected.entity() != null
+                && draft.slices().stream().anyMatch(slice -> slice.name().equals(selected.entity().entityName())));
+        });
+        add(sliceSettings, content);
+        setFlexGrow(1, content);
+    }
+
+    void setSliceSupport(org.ipro.reportstudio.query.register.RegisterSliceReportTemplates recipes,
+                         java.util.function.BiConsumer<String, String> add,
+                         java.util.function.Consumer<String> edit) {
+        sliceRecipes = recipes; addSlice = add; editSlice = edit;
+        sliceSettings.setVisible(recipes != null); sliceSettings.setEnabled(false);
     }
 
     /** Доступ для тестов. */
@@ -175,15 +203,16 @@ final class TablesAndFieldsTab extends VerticalLayout {
     }
 
     void refreshFromDraft() {
-        databaseRoots = CatalogTreeModel.catalogRoots(draft.roots());
+        databaseRoots = CatalogTreeModel.sourceRoots(draft.roots(), sliceRecipes, catalogSearch.getValue());
         cteRoots = draft.availableCteEntities().stream()
                 .map(entity -> new ConstructorTreeNode(ConstructorTreeNode.Kind.CTE,
-                        entity.entityName() + " (Временная таблица)", entity, null, null,
+                        entity.caption(), entity, null, null,
                         entity.fields().stream().map(field -> new ConstructorTreeNode(
-                                ConstructorTreeNode.Kind.PROPERTY, field.name(), entity, field, null, List.of())).toList()))
-                .toList();
+                                ConstructorTreeNode.Kind.PROPERTY, field.caption(), entity, field, null, List.of())).toList()))
+                .map(node -> CatalogTreeModel.filter(node, catalogSearch.getValue())).filter(java.util.Objects::nonNull).toList();
         databaseRoots = new java.util.ArrayList<>(databaseRoots);
-        databaseRoots.addAll(cteRoots);
+        if (!cteRoots.isEmpty()) databaseRoots.add(new ConstructorTreeNode(ConstructorTreeNode.Kind.GROUP,
+            "Источники запроса", null, null, null, cteRoots));
         databaseTree.setItems(databaseRoots, ConstructorTreeNode::children);
         // Сущности не раскрываются автоматически: каталог компактный, поля
         // раскрывает пользователь двойным кликом по сущности.
@@ -200,12 +229,19 @@ final class TablesAndFieldsTab extends VerticalLayout {
 
     void addNode(ConstructorTreeNode node) {
         if (node == null) return;
+        var sliceNode = sliceOwner(node);
+        if (sliceNode != null && addSlice != null) {
+            addSlice.accept(sliceNode.entity().entityName(), node.kind() == ConstructorTreeNode.Kind.PROPERTY ? node.field().name() : null);
+            return;
+        }
+        if (node.field() != null && node.field().name().equals("recorder")) { addPresentation(node); return; }
         switch (node.kind()) {
             case ENTITY -> draft.addTable(node.entity());
             // Виртуальный CTE: без корня — становится корнем этапа; при уже
             // выбранном корне — добавляется независимым JOIN, построение
             // запроса не затирается.
             case CTE -> draft.addCteTable(node.entity().entityName());
+            case SLICE, GROUP -> { }
             // Ассоциация как поле-ссылка (s.nomenclature) — как в 1С; JOIN по ней
             // не создаётся, а цепочка ассоциаций НАД узлом (если есть) создаётся.
             case ASSOCIATION -> draft.addField(node.ownerEntity().entity(),
@@ -226,11 +262,41 @@ final class TablesAndFieldsTab extends VerticalLayout {
         changed();
     }
 
+    void addPresentation(ConstructorTreeNode node) {
+        if (node == null || node.kind() == ConstructorTreeNode.Kind.GROUP) return;
+        var slice = sliceOwner(node);
+        if (slice != null) {
+            if (addSlice != null && node.field() != null && (node.field().referenceType() != null || node.field().name().equals("recorder"))) addSlice.accept(slice.entity().entityName(), "@presentation:" + node.field().name());
+            return;
+        }
+        var owner = node.ownerEntity();
+        var cte = cteOwnerOf(node);
+        if (owner == null && cte == null) return;
+        String alias = cte != null ? draft.addCteTable(cte.entity().entityName()) : draft.addTable(owner.entity());
+        var path = new StringBuilder(alias);
+        if (node.kind() != ConstructorTreeNode.Kind.ENTITY && node.kind() != ConstructorTreeNode.Kind.CTE) {
+            var parts = new java.util.ArrayList<String>();
+            for (var current = node; current != owner && current != cte && current != null; current = current.parent()) {
+                if (current.association() != null) parts.addFirst(current.association().name());
+                else if (current.field() != null) parts.addFirst(current.field().name());
+            }
+            for (var part : parts) path.append('.').append(part);
+        }
+        draft.addExpression("presentation", new org.ipro.reportstudio.query.VisualQueryExpression.FunctionCall("Представление", List.of(new org.ipro.reportstudio.query.VisualQueryExpression.FieldRef(path.toString()))));
+        changed();
+    }
+
     /** Узел-виртуальная таблица (CTE), владеющий полем; для обычных сущностей — null. */
     private static ConstructorTreeNode cteOwnerOf(ConstructorTreeNode node) {
         ConstructorTreeNode current = node;
         while (current != null && current.kind() != ConstructorTreeNode.Kind.CTE) current = current.parent();
         return current;
+    }
+
+    private static ConstructorTreeNode sliceOwner(ConstructorTreeNode node) {
+        for (var current = node; current != null; current = current.parent())
+            if (current.kind() == ConstructorTreeNode.Kind.SLICE) return current;
+        return null;
     }
 
     private void addSelectedFromDatabase() {
@@ -240,6 +306,8 @@ final class TablesAndFieldsTab extends VerticalLayout {
     /** Добавляет все прямые поля сущности/связи (ассоциативная цепочка создаётся автоматически). */
     void addAllFields(ConstructorTreeNode node) {
         if (node == null) return;
+        var sliceNode = sliceOwner(node);
+        if (sliceNode != null && addSlice != null) { addSlice.accept(sliceNode.entity().entityName(), "*"); return; }
         if (node.kind() == ConstructorTreeNode.Kind.ENTITY) {
             for (var field : node.entity().fields()) {
                 draft.addField(node.entity(), List.of(), field.name());
@@ -359,13 +427,17 @@ final class TablesAndFieldsTab extends VerticalLayout {
             case ENTITY -> "Таблица";
             case PROPERTY -> node.field() == null ? "Поле" : node.field().javaType().getSimpleName();
             case ASSOCIATION -> "Связь";
-            case CTE -> "Временная таблица";
+            case CTE -> draft.slices().stream().anyMatch(source -> source.name().equals(node.entity().entityName())) ? "Срез последних" : "Временная таблица";
+            case SLICE -> "Срез последних";
+            case GROUP -> "";
         };
     }
 
     /** Русское имя узла из описания метаданных; техническое имя — как fallback. */
     private String displayName(ConstructorTreeNode node) {
         return switch (node.kind()) {
+            case SLICE -> "Срез последних";
+            case GROUP -> "";
             case ENTITY, CTE -> {
                 String caption = node.entity() == null ? null : node.entity().caption();
                 yield caption == null || caption.isBlank() ? node.caption() : caption;

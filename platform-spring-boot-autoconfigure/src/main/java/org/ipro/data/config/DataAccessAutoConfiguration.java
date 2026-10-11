@@ -6,8 +6,10 @@ import org.ipro.crud.GenericOwnedSectionService;
 import org.ipro.crud.ReferenceCheckService;
 import org.ipro.data.CanonicalEntityDataAccess;
 import org.ipro.data.CanonicalEntityReadAccess;
+import org.ipro.data.CanonicalDeleteParticipant;
 import org.ipro.data.CanonicalReadExecutor;
 import org.ipro.data.CanonicalWriteExecutor;
+import org.ipro.data.CanonicalWritePropertyPolicy;
 import org.ipro.data.EntityCapabilityOverride;
 import org.ipro.data.EntityDataAccess;
 import org.ipro.data.EntityDataAccessResolver;
@@ -41,6 +43,7 @@ import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsReadGate;
 import org.ipro.rls.config.RlsAutoConfiguration;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -98,6 +101,48 @@ public class DataAccessAutoConfiguration {
             org.ipro.rls.c5.C5ReadPermissionRegistry c5ReadPermissionRegistry) {
         return new C5EntityReadPermissionRegistrar(entityDescriptorCatalog, rlsDimensionRegistry,
             c5ReadPermissionRegistry);
+    }
+
+    /**
+     * Register the exact C5 operation definitions derived from canonical write capabilities.
+     *
+     * <p>Вооружение финальной границы записи пошаговое: признак {@code enforced} накрывает все
+     * типы с canonical write handle (состояние окончания миграции), а список
+     * {@code enforced-types} — ровно названные типы, в которые граница уже переехала. Пустой
+     * список — обычное снятое состояние, а не ошибка.</p>
+     */
+    @Bean
+    @ConditionalOnBean({EntityDescriptorCatalog.class, RlsDimensionRegistry.class,
+        org.ipro.rls.c5.C5OperationPermissionRegistry.class})
+    @ConditionalOnMissingBean
+    C5EntityOperationPermissionRegistrar c5EntityOperationPermissionRegistrar(
+            EntityDescriptorCatalog entityDescriptorCatalog,
+            RlsDimensionRegistry rlsDimensionRegistry,
+            org.ipro.rls.c5.C5OperationPermissionRegistry c5OperationPermissionRegistry,
+            @Value("${rls.write-boundary.enforced:false}") boolean writeBoundaryEnforced,
+            @Value("${rls.write-boundary.enforced-types:}") String writeBoundaryEnforcedTypes) {
+        return new C5EntityOperationPermissionRegistrar(entityDescriptorCatalog, rlsDimensionRegistry,
+            c5OperationPermissionRegistry, writeBoundaryEnforced,
+            namedTypes(writeBoundaryEnforcedTypes));
+    }
+
+    /**
+     * Список типов из свойства: полные имена классов через запятую. Пустые элементы терпимы
+     * (свойство часто оставляют с хвостовой запятой), а неизвестное имя перестаёт быть молчаливым:
+     * регистратор сверяет его с типами, у которых есть canonical write handle.
+     */
+    private static java.util.Set<String> namedTypes(String declared) {
+        if (declared == null || declared.isBlank()) {
+            return java.util.Set.of();
+        }
+        java.util.Set<String> names = new java.util.TreeSet<>();
+        for (String candidate : declared.split(",")) {
+            String name = candidate.trim();
+            if (!name.isEmpty()) {
+                names.add(name);
+            }
+        }
+        return java.util.Set.copyOf(names);
     }
 
     /**
@@ -201,13 +246,18 @@ public class DataAccessAutoConfiguration {
             ObjectProvider<GenericOwnedSectionService> ownedSectionService,
             ObjectProvider<ReferenceCheckService> referenceCheckService,
             ObjectProvider<SectionMetadataRegistry> sectionMetadataRegistry,
-            ObjectProvider<WriteTelemetry> writeTelemetry) {
+             ObjectProvider<WriteTelemetry> writeTelemetry,
+             List<CanonicalDeleteParticipant> deleteParticipants,
+             RlsCurrentUser rlsCurrentUser,
+             ObjectProvider<org.ipro.rls.c5.C5PermissionDecisionService> c5PermissionDecisionService,
+             ObjectProvider<CanonicalWritePropertyPolicy> propertyPolicy) {
         return new CanonicalWriteExecutor(entityDescriptorCatalog, canonicalReadExecutor,
             entityManager, validator, rlsPolicyEnforcer.getIfAvailable(),
             numberingService.getIfAvailable(), eventPublisher.getIfAvailable(),
             lifecycleRegistry.getIfAvailable(), ownedSectionService.getIfAvailable(),
             referenceCheckService.getIfAvailable(), sectionMetadataRegistry.getIfAvailable(),
-            writeTelemetry.getIfAvailable());
+            writeTelemetry.getIfAvailable(), deleteParticipants, rlsCurrentUser,
+            c5PermissionDecisionService.getIfAvailable(), propertyPolicy.getIfAvailable());
     }
 
     /**
@@ -262,4 +312,14 @@ public class DataAccessAutoConfiguration {
                                              ObjectProvider<EntityDataAccessResolver> resolverProvider) {
         return new CanonicalEntityReadAccess(canonicalReadExecutor, resolverProvider.getIfAvailable());
     }
+    @Bean
+    @ConditionalOnBean({EntityReadAccess.class, EntityDataAccessResolver.class, InstanceNameResolver.class, org.ipro.metadata.MetadataResolver.class})
+    @ConditionalOnMissingBean
+    public org.ipro.data.presentation.EntityPresentationService entityPresentationService(
+            org.ipro.data.EntityReadAccess reads, org.ipro.data.EntityDataAccessResolver policies,
+            org.ipro.fetch.instance.InstanceNameResolver names, MetadataResolver metadata) {
+        return new org.ipro.data.presentation.EntityPresentationService(reads, policies, names, metadata);
+    }
+
+
 }

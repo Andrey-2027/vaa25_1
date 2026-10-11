@@ -51,6 +51,14 @@ public class RouteStatePage extends VerticalLayout {
         message.addClassName("route-state-message");
 
         add(title, message);
+        if (result instanceof OpenResult.Forbidden forbidden) {
+            add(org.ipro.form.coordinator.AccessDenialPresentation.copyMessageButton(message.getText()));
+            var details = org.ipro.form.coordinator.AccessDenialPresentation.details(
+                forbidden.administrativeDetails());
+            if (details != null) {
+                add(details);
+            }
+        }
     }
 
     /** Исход, который показывает страница: он же метка route audit. */

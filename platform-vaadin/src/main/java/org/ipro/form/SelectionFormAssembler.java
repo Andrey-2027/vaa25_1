@@ -70,13 +70,13 @@ public class SelectionFormAssembler {
             ? meta.getSelectionFormTitle() : meta.getListFormTitle();
     }
 
-    public <T extends IdentifiableEntity, ID> SelectionForm<T> assemble(
+    public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> assemble(
             Class<T> entityClass, Consumer<T> onSelect) {
         return assemble(entityClass, onSelect, Map.of());
     }
 
     /** Собирает выбор с фиксированными фильтрами path → value. */
-    public <T extends IdentifiableEntity, ID> SelectionForm<T> assemble(
+    public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> assemble(
             Class<T> entityClass, Consumer<T> onSelect, Map<String, Object> filters) {
         return assemble(entityClass, onSelect, filters, resolveColumns(entityClass), null);
     }
@@ -89,7 +89,7 @@ public class SelectionFormAssembler {
      *                {@link SelectionGridCustomizer#supports} / {@code customize}
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> SelectionForm<T> assemble(
+    public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> assemble(
             Class<T> entityClass, Consumer<T> onSelect, Map<String, Object> filters,
             ResolvedSelection resolved, String variant) {
         BaseService<T, ID> service = serviceLocator.findService(entityClass);

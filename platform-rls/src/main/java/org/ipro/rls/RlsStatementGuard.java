@@ -45,6 +45,13 @@ import java.util.regex.Pattern;
  */
 public final class RlsStatementGuard implements SqlStatementAudit {
 
+    private static final Pattern FROM_TABLE = Pattern.compile("\\bfrom\\s+((?:[\\w\\\"`]+\\.)?[\\w\\\"`]+)",
+        Pattern.CASE_INSENSITIVE);
+    private static final Pattern RECORDER_TYPE_PARAMETER = Pattern.compile(
+        "(?:[\\w]+\\.)?[\\\"`]?recorder_type[\\\"`]?\\s*=\\s*\\?", Pattern.CASE_INSENSITIVE);
+    private static final Pattern RECORDER_ID_PARAMETER = Pattern.compile(
+        "(?:[\\w]+\\.)?[\\\"`]?recorder_id[\\\"`]?\\s*=\\s*\\?", Pattern.CASE_INSENSITIVE);
+
     private static final Logger log = LoggerFactory.getLogger(RlsStatementGuard.class);
 
     /** Измерения, обработанные активатором для текущей сессии потока (включён фильтр ИЛИ
@@ -176,7 +183,59 @@ public final class RlsStatementGuard implements SqlStatementAudit {
             }
             return;
         }
+        if (scope == RlsBypassScope.DEPENDENT_ROW_CLEANUP
+                || scope == RlsBypassScope.RECORDER_SET_REPLACEMENT) {
+            validateRecorderSetRead(sql, normalized);
+            return;
+        }
         throw new RlsAccessDeniedException("Unknown RLS bypass scope");
+    }
+
+    private static void validateRecorderSetRead(String sql, String normalized) {
+        if (!normalized.startsWith("select ") || normalized.contains(" join ")
+                || normalized.contains(" union ") || normalized.contains("; ")
+                || normalized.indexOf("select") != normalized.lastIndexOf("select")) {
+            throw new RlsAccessDeniedException(
+                "Recorder-set RLS scope permits one direct SELECT only");
+        }
+        Set<String> approvedTables = RlsContext.currentApprovedTables();
+        if (approvedTables.isEmpty()) {
+            throw new RlsAccessDeniedException(
+                "Recorder-set RLS scope requires an approved register table");
+        }
+        var from = FROM_TABLE.matcher(normalized);
+        if (!from.find()) {
+            throw new RlsAccessDeniedException("Recorder-set SELECT must identify its source table");
+        }
+        String tableReference = from.group(1);
+        if (from.find()) {
+            throw new RlsAccessDeniedException("Recorder-set SELECT cannot read multiple tables");
+        }
+        String table = tableReference.substring(tableReference.lastIndexOf('.') + 1)
+            .replace("\"", "").replace("`", "").toLowerCase(Locale.ROOT);
+        if (!approvedTables.contains(table)) {
+            throw new RlsAccessDeniedException("Recorder-set SELECT used unapproved table " + table);
+        }
+        int whereStart = normalized.indexOf(" where ");
+        if (whereStart < 0) {
+            throw new RlsAccessDeniedException("Recorder-set SELECT requires an exact recorder predicate");
+        }
+        String where = normalized.substring(whereStart + 7);
+        int orderStart = where.indexOf(" order by ");
+        if (orderStart >= 0) where = where.substring(0, orderStart);
+        if (where.contains(" or ")) {
+            throw new RlsAccessDeniedException("Recorder-set SELECT cannot broaden its recorder predicate");
+        }
+        boolean hasType = false;
+        boolean hasId = false;
+        for (String conjunct : where.split("\\s+and\\s+")) {
+            hasType |= RECORDER_TYPE_PARAMETER.matcher(conjunct).find();
+            hasId |= RECORDER_ID_PARAMETER.matcher(conjunct).find();
+        }
+        if (!hasType || !hasId) {
+            throw new RlsAccessDeniedException(
+                "Recorder-set SELECT must bind recorder_type and recorder_id separately");
+        }
     }
 
     private void report(String table, String dimension, String sql) {

@@ -18,6 +18,7 @@ import org.ipro.form.action.ActionContextProvider;
 import org.ipro.form.action.ActionDefinition;
 import org.ipro.form.action.ActionRegistry;
 import org.ipro.form.action.CrudAction;
+import org.ipro.form.action.OperationPermissionSource;
 import org.ipro.form.TableSectionFactory;
 import org.ipro.form.builder.ItemFormCustomization;
 import org.ipro.form.builder.ItemFormCustomizationRegistrar;
@@ -44,7 +45,14 @@ import org.ipro.form.spi.WorkspaceGateway;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
+import org.ipro.data.DataOperation;
+import org.ipro.rls.RlsAccessDeniedException;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsUiGate;
+import org.ipro.rls.c5.C5DecisionReason;
+import org.ipro.rls.c5.C5Operation;
+import org.ipro.rls.c5.C5PermissionDecision;
+import org.ipro.rls.c5.C5PermissionDecisionService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -148,10 +156,13 @@ public class FormAutoConfiguration {
                                      SelectionFormAssembler selectionFormAssembler,
                                      ServiceLocator serviceLocator,
                                      GroupingValuesProviderFactory groupingValuesProviderFactory,
-                                     ObjectProvider<FormNavigator> formNavigators) {
-        return new FormResolver(formRegistry, metadataResolver, fieldFactory, applicationContext,
+                                     ObjectProvider<FormNavigator> formNavigators,
+                                     List<org.ipro.form.builder.FormTypeCustomization> typeCustomizations) {
+        FormResolver resolver = new FormResolver(formRegistry, metadataResolver, fieldFactory, applicationContext,
             tableSectionFactory, selectionFormAssembler, serviceLocator,
             groupingValuesProviderFactory, formNavigators);
+        resolver.setTypeCustomizations(typeCustomizations);
+        return resolver;
     }
 
     /**
@@ -394,8 +405,59 @@ public class FormAutoConfiguration {
     @Bean
     public ActionContextProvider actionContextProvider(EntityDescriptorCatalog descriptorCatalog,
                                                        RlsUiGate rlsUiGate,
+                                                       OperationPermissionSource operationPermissionSource,
                                                        FormRouteCatalog formRouteCatalog) {
-        return new ActionContextProvider(descriptorCatalog, rlsUiGate, formRouteCatalog);
+        return new ActionContextProvider(descriptorCatalog, rlsUiGate, operationPermissionSource,
+            formRouteCatalog);
+    }
+
+    /**
+     * Право на операцию типа для слоя действий (E1.2b): тот же ответ, что спрашивает серверная
+     * граница, — {@code C5PermissionDecisionService} для текущего субъекта (ADR-0017 §3).
+     *
+     * <p>Спрашивается именно <b>операция типа</b> ({@code ENTITY:<Имя>}: CREATE/UPDATE/DELETE),
+     * а не чтение и не построчное измерение: чтение сущности живёт на отдельном C5 read-ключе
+     * {@code ENTITY:<FQN>} (RlsReadGate), а строку решает RLS. Так кнопка, форма и серверный
+     * preflight отвечают одним движком, и «серая кнопка» перестаёт быть единственным основанием
+     * отказа, о котором знает UI.</p>
+     *
+     * <p>Неаутентифицированный субъект отказывается здесь, а не ниже, и той же формулировкой, что у
+     * C5 ({@link C5DecisionReason#UNAUTHENTICATED}): право получает грант, а не аноним, и текст
+     * отказа остаётся безопасным. Неявный {@code system} — не субъект прав, поэтому спрашивается
+     * {@link RlsCurrentUser#requireAuthenticatedUsername()} — она же точка, которой пользуется
+     * RLS-гейт, а не собственное чтение {@code username()} здесь.</p>
+     */
+    @Bean
+    public OperationPermissionSource operationPermissionSource(
+            C5PermissionDecisionService c5PermissionDecisionService,
+            RlsCurrentUser currentUser) {
+        return (entityType, operation) -> {
+            String username;
+            try {
+                username = currentUser.requireAuthenticatedUsername();
+            } catch (RlsAccessDeniedException unauthenticated) {
+                return C5DecisionReason.UNAUTHENTICATED.message();
+            }
+            if (username == null || username.isBlank()) {
+                // Реализация вправе не бросать, а ответить «субъекта нет»: пустое имя отказывается
+                // здесь, а не превращается в запрос грантов о null-субъекте.
+                return C5DecisionReason.UNAUTHENTICATED.message();
+            }
+            C5PermissionDecision decision = c5PermissionDecisionService.decideEntity(
+                username, entityType, c5Operation(operation));
+            return decision.allowed() ? null : decision.message();
+        };
+    }
+
+    /** Операция записи слоя действий в терминах C5: чтение операцией не является. */
+    private static C5Operation c5Operation(DataOperation operation) {
+        return switch (operation) {
+            case CREATE -> C5Operation.CREATE;
+            case UPDATE -> C5Operation.UPDATE;
+            case DELETE -> C5Operation.DELETE;
+            default -> throw new IllegalArgumentException("Не операция записи: " + operation
+                + "; чтение решает C5 read-ключ, а не право на операцию");
+        };
     }
 
     @Bean

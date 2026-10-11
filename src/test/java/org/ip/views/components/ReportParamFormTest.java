@@ -41,6 +41,68 @@ class ReportParamFormTest {
             .thenReturn(new SelectionFormAssembler.ResolvedSelection(List.of(codePath), "Журналы"));
     }
 
+    enum Mode { FIRST, SECOND }
+    @Test @SuppressWarnings("unchecked")
+    void visualScalarTypesUseNumberBooleanAndEnumControls() {
+        var template = new org.ipro.reportstudio.dom.ReportTemplate(); template.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
+        var declarations = List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("count", Long.class.getName(), true, null),
+            new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("amount", java.math.BigDecimal.class.getName(), true, null),
+            new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("enabled", Boolean.class.getName(), true, null),
+            new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("mode", Mode.class.getName(), true, null));
+        var definition = new org.ipro.reportstudio.query.VisualQueryDefinition(3, "Product", "p", List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.SelectField("id", "id")),
+            List.of(), List.of(), List.of(), List.of(), null, null, declarations);
+        template.setVisualQueryJson(new org.ipro.reportstudio.query.VisualQueryPackageJsonCodec().write(new org.ipro.reportstudio.query.VisualQueryPackage(List.of(), definition)));
+        for (var declaration : declarations) template.addParam(scalar(declaration.name(), declaration.name(), null));
+        var form = new ReportParamForm(template, ReportContext.empty("alice"), lookupService, assembler);
+        var children = form.getChildren().toList(); assertThat(form.values()).isEmpty();
+        ((com.vaadin.flow.component.textfield.NumberField) children.get(0)).setValue(12.0);
+        ((com.vaadin.flow.component.textfield.NumberField) children.get(1)).setValue(34.5);
+        ((com.vaadin.flow.component.combobox.ComboBox<Boolean>) children.get(2)).setValue(false);
+        ((com.vaadin.flow.component.combobox.ComboBox<Object>) children.get(3)).setValue(Mode.SECOND);
+        assertThat(form.values()).containsEntry("count", 12L).containsEntry("amount", new java.math.BigDecimal("34.5"))
+            .containsEntry("enabled", false).containsEntry("mode", Mode.SECOND);
+    }
+
+    @Test
+    void visualDateTimeDeclarationCreatesTypedBoundaryWithoutDefaultHint() {
+        var template = new org.ipro.reportstudio.dom.ReportTemplate();
+        template.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
+        var definition = new org.ipro.reportstudio.query.VisualQueryDefinition(3, "Product", "p",
+            List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.SelectField("id", "id")),
+            List.of(), List.of(), List.of(), List.of(), null, null,
+            List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("asOf", "DATETIME", true, null)));
+        template.setVisualQueryJson(new org.ipro.reportstudio.query.VisualQueryPackageJsonCodec().write(
+            new org.ipro.reportstudio.query.VisualQueryPackage(List.of(), definition)));
+        template.addParam(scalar("asOf", "Момент", null));
+        var form = new ReportParamForm(template, ReportContext.empty("alice"), lookupService, assembler);
+        var picker = (com.vaadin.flow.component.datetimepicker.DateTimePicker) form.getChildren().findFirst().orElseThrow();
+        assertThat(picker.getValue()).isNull();
+        var time = java.time.LocalDateTime.of(2026, 1, 1, 15, 20, 30, 123000000);
+        picker.setValue(time);
+        assertThat(form.values()).containsEntry("asOf", time);
+        picker.setInvalid(true);
+        org.assertj.core.api.Assertions.assertThatThrownBy(form::values).hasMessageContaining("asOf");
+        assertThat(picker.isInvalid()).isTrue();
+    }
+
+    @Test
+    void visualDateDeclarationCreatesDatePickerWithoutDefaultHint() {
+        var template = new org.ipro.reportstudio.dom.ReportTemplate();
+        template.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
+        var definition = new org.ipro.reportstudio.query.VisualQueryDefinition(3, "Product", "p",
+            List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.SelectField("id", "id")),
+            List.of(), List.of(), List.of(), List.of(), null, null,
+            List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("asOf", "DATE", true, null)));
+        template.setVisualQueryJson(new org.ipro.reportstudio.query.VisualQueryPackageJsonCodec().write(
+            new org.ipro.reportstudio.query.VisualQueryPackage(List.of(), definition)));
+        template.addParam(scalar("asOf", "Дата", null));
+        var form = new ReportParamForm(template, ReportContext.empty("alice"), lookupService, assembler);
+        var picker = (com.vaadin.flow.component.datepicker.DatePicker) form.getChildren().findFirst().orElseThrow();
+        assertThat(picker.getValue()).isNull();
+        picker.setValue(LocalDate.of(2026, 1, 1));
+        assertThat(form.values()).containsEntry("asOf", LocalDate.of(2026, 1, 1));
+    }
+
     @Test
     void scalarValueReadsBack() {
         ReportParamForm form = new ReportParamForm(List.of(

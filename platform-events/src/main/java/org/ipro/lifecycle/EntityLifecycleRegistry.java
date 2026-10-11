@@ -40,38 +40,38 @@ public final class EntityLifecycleRegistry {
         this.handlers = Map.copyOf(index);
     }
 
-    public <T extends IdentifiableEntity>
+    public <T extends IdentifiableEntity<?>>
     Optional<EntityLifecycle<T>> find(Class<T> entityType) {
         Objects.requireNonNull(entityType, "entityType must not be null");
         return Optional.ofNullable(lookup(entityType));
     }
 
-    public <T extends IdentifiableEntity> void beforeSave(
+    public <T extends IdentifiableEntity<?>> void beforeSave(
             Class<T> entityType, T entity, EventContext context) {
         find(entityType).ifPresent(handler -> handler.beforeSave(
             new EntitySaveContext<>(entity, context)));
     }
 
-    public <T extends IdentifiableEntity> void beforeUpdate(
+    public <T extends IdentifiableEntity<?>> void beforeUpdate(
             Class<T> entityType, T original, T updated, EventContext context) {
         find(entityType).ifPresent(handler -> handler.beforeUpdate(
             new EntityUpdateContext<>(original, updated, context)));
     }
 
-    public <T extends IdentifiableEntity> void beforeAggregateSave(
+    public <T extends IdentifiableEntity<?>> void beforeAggregateSave(
             Class<T> entityType, T aggregate, List<AggregateSection> sections,
             EventContext context) {
         find(entityType).ifPresent(handler -> handler.beforeAggregateSave(
             new AggregateSaveContext<>(aggregate, sections, context)));
     }
 
-    public <T extends IdentifiableEntity> void beforeDelete(
+    public <T extends IdentifiableEntity<?>> void beforeDelete(
             Class<T> entityType, T entity, EventContext context) {
         find(entityType).ifPresent(handler -> handler.beforeDelete(
             new EntityDeleteContext<>(entity, context)));
     }
 
-    public <T extends IdentifiableEntity> void onSave(
+    public <T extends IdentifiableEntity<?>> void onSave(
             Class<T> entityType, T entity, EventContext context) {
         find(entityType).ifPresent(handler -> handler.onSave(
             new EntitySaveContext<>(entity, context)));
@@ -80,24 +80,26 @@ public final class EntityLifecycleRegistry {
     /** EntityEventPublisher доставляет EntityChangedEvent только после commit. */
     @EventListener
     public void onEntityChanged(EntityChangedEvent<?> event) {
-        if (!(event.entity() instanceof IdentifiableEntity)) {
+        if (!(event.entity() instanceof IdentifiableEntity<?> entity)) {
             return;
         }
         Class<?> entityType = event.context().aggregateType();
-        dispatchAfterCommit(entityType, event.entity(), event.context());
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private void dispatchAfterCommit(
-            Class<?> entityType, Object entity, EventContext context) {
-        EntityLifecycle handler = handlers.get(entityType);
+        EntityLifecycle<?> handler = handlers.get(entityType);
         if (handler != null) {
-            handler.afterCommit(new EntityChangedContext((IdentifiableEntity) entity, context));
+            dispatchAfterCommit(handler, entity, event.context());
         }
     }
 
+    private <T extends IdentifiableEntity<?>> void dispatchAfterCommit(
+            EntityLifecycle<T> handler, IdentifiableEntity<?> entity, EventContext context) {
+        // Capture the handler's entity type; Class.cast checks the runtime boundary.
+        T typedEntity = handler.entityType().cast(entity);
+        handler.afterCommit(new EntityChangedContext<>(typedEntity, context));
+    }
+
     @SuppressWarnings("unchecked")
-    private <T extends IdentifiableEntity> EntityLifecycle<T> lookup(Class<T> entityType) {
+    private <T extends IdentifiableEntity<?>> EntityLifecycle<T> lookup(Class<T> entityType) {
+        // Construction indexes each handler by its own Class<T> entityType.
         return (EntityLifecycle<T>) handlers.get(entityType);
     }
 }

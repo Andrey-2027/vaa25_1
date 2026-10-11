@@ -217,7 +217,8 @@ class ActionPolicyConfigTest {
      */
     private ActionContextProvider provider() {
         EntityDescriptorCatalog descriptors = catalog();
-        return new ActionContextProvider(descriptors, allowedGate(),
+        // Право на операцию разрешено: тест проверяет capability и адресуемость, а не C5 (E1.2b).
+        return new ActionContextProvider(descriptors, allowedGate(), (entityType, operation) -> null,
             FormRouteCatalog.build(descriptors, new FormRegistry(), List.of()));
     }
 

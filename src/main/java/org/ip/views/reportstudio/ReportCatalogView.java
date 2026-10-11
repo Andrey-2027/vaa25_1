@@ -67,6 +67,10 @@ public class ReportCatalogView extends HorizontalLayout {
     private final ReportExecutionService executionService;
     private final EntityLookup lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
+    private final org.ip.application.register.NomenclaturePriceReport priceReport;
+    private org.ip.unidr.store.UniDrFileStore uniDrFiles;
+    @org.springframework.beans.factory.annotation.Autowired(required=false)
+    void useUniDrFiles(org.ip.unidr.store.UniDrFileStore files) { this.uniDrFiles=files; }
 
     public ReportCatalogView(
             ReportTemplateService templateService,
@@ -83,7 +87,9 @@ public class ReportCatalogView extends HorizontalLayout {
             EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
             ReportQueryAssemblyService queryAssemblyService,
-            QueryBuilderMetadataCatalog visualCatalog) {
+            QueryBuilderMetadataCatalog visualCatalog,
+            org.ip.application.register.NomenclaturePriceReport priceReport) {
+        this.priceReport = priceReport;
         this.templateService = templateService;
         this.transferService = transferService;
         this.catalogService = catalogService;
@@ -137,7 +143,18 @@ public class ReportCatalogView extends HorizontalLayout {
         Button copy = new Button("Создать копию", event -> copySelected());
         Button export = new Button("Экспорт JSON", event -> exportSelected());
         Button delete = new Button("Удалить", event -> deleteSelected());
-        HorizontalLayout actions = new HorizontalLayout(create, open, run, copy, export, delete);
+        Button prices = new Button("Создать отчёт о ценах", event -> {
+            try {
+                var draft = priceReport.createDraft();
+                draft.setName(templateService.nextImportedName(draft.getName()));
+                var saved = templateService.saveTemplate(draft);
+                refreshCatalog();
+                editor.requestEditTemplate(saved);
+            } catch (RuntimeException error) {
+                Notification.show(error.getMessage()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+        });
+        HorizontalLayout actions = new HorizontalLayout(create, prices, open, run, copy, export, delete);
         actions.setWrap(true);
 
         MemoryBuffer importBuffer = new MemoryBuffer();
@@ -189,6 +206,10 @@ public class ReportCatalogView extends HorizontalLayout {
                 + "JR: макет .jrxml из Jaspersoft Studio, источник jpql:");
         hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
         dialog.add(new VerticalLayout(udr, ureport, jr, hint));
+        if(uniDrFiles!=null) {
+            Button unidr=new Button("UniDR — универсальный отчёт",event->{dialog.close();getUI().ifPresent(ui->ui.navigate("unidr"));});
+            unidr.setWidthFull();dialog.add(unidr);
+        }
         dialog.open();
     }
 
@@ -262,6 +283,7 @@ public class ReportCatalogView extends HorizontalLayout {
             case UDR -> runUdr(selected);
             case UREPORT3 -> runUreport(selected);
             case JR -> runJr(selected);
+            case UNIDR -> openUniDr(selected);
         }
     }
 
@@ -306,7 +328,11 @@ public class ReportCatalogView extends HorizontalLayout {
             case EDITOR -> openUdrTemplate(item);
             case DESIGNER -> openDesigner(item);
             case INFO -> openJrInfo(item);
+            case UNIDR_EDITOR -> openUniDr(item);
         }
+    }
+    private void openUniDr(ReportCatalogItem item) {
+        getUI().ifPresent(ui->ui.navigate("unidr",com.vaadin.flow.router.QueryParameters.simple(java.util.Map.of("id",String.valueOf(item.id())))));
     }
 
     private void openJrInfo(ReportCatalogItem item) {

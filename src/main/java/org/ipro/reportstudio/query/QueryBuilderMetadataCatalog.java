@@ -12,6 +12,7 @@ import org.ipro.reportstudio.data.QueryField;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsContext;
 import org.ipro.rls.RlsReadGate;
+import org.ipro.register.RecordedRegisterEntry;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -74,11 +75,20 @@ public final class QueryBuilderMetadataCatalog {
     private Entity describe(String entityName, Class<?> type, List<FieldMetadataInfo> formFields,
                             List<ColumnPath> listColumnPaths) {
         Map<String, List<String>> columnAliases = gridHeaderAliases(listColumnPaths);
-        List<Field> fields = formFields.stream()
+        List<Field> fields = new ArrayList<>(formFields.stream()
                 .filter(f -> !f.isHidden() && f.getResolvedType() != FieldType.ENTITY_REFERENCE)
                 .map(f -> new Field(f.getName(), f.getLabel(), f.getJavaType(), false,
                         columnAliases.getOrDefault(f.getName(), List.of())))
-                .toList();
+                .toList());
+        // Recorder identity and winner tie-breakers are data stored on the register row.
+        // Expose them under the register's read gate; never resolve a document or inherit
+        // that document's read permission just to project these scalar columns.
+        if (RecordedRegisterEntry.class.isAssignableFrom(type)) {
+            fields.add(new Field("recorder.typeCode", "Тип регистратора", String.class, true));
+            fields.add(new Field("recorder.id", "Идентификатор регистратора", Long.class, true));
+            fields.add(new Field("recordingOrder", "Порядок записи", Long.class, true));
+            fields.add(new Field("lineNumber", "Номер строки", Integer.class, true));
+        }
         List<Association> associations = new ArrayList<>(formFields.stream()
                 .filter(f -> !f.isHidden() && f.getResolvedType() == FieldType.ENTITY_REFERENCE)
                 .map(f -> new Association(f.getName(), f.getLabel(), associationType(f), associationTarget(f)))
@@ -98,7 +108,12 @@ public final class QueryBuilderMetadataCatalog {
         String caption = section != null && section.title() != null && !section.title().isBlank()
                 ? section.title()
                 : metadataResolver.resolve(type).getListFormTitle();
-        return new Entity(entityName, type, fields, List.copyOf(associations), caption);
+        String category = type.isAnnotationPresent(org.ipro.register.RegisterMetadata.class) ? "Регистр"
+            : section != null ? "Табличная часть" : switch (metadataResolver.resolve(type).getEntityKind()) {
+                case CATALOG -> "Справочник"; case DOCUMENT -> "Документ"; case INFORMATION_REGISTER -> "Регистр"; default -> "Прочее";
+            };
+        return new Entity(entityName, type, fields, List.copyOf(associations), caption, category,
+            section == null ? null : section.parentEntity());
     }
 
     private static JoinType associationType(FieldMetadataInfo field) {
@@ -152,7 +167,7 @@ public final class QueryBuilderMetadataCatalog {
      * CTE — имя этапа. Совместимый 4-арг конструктор подставляет техническое имя.
      */
     public record Entity(String entityName, Class<?> javaType, List<Field> fields,
-                         List<Association> associations, String caption) {
+                         List<Association> associations, String caption, String category, Class<?> sectionOwner) {
         public Entity {
             caption = caption == null || caption.isBlank() ? entityName : caption;
         }
@@ -161,9 +176,13 @@ public final class QueryBuilderMetadataCatalog {
                       List<Association> associations) {
             this(entityName, javaType, fields, associations, entityName);
         }
+        public Entity(String entityName, Class<?> javaType, List<Field> fields, List<Association> associations, String caption) {
+            this(entityName, javaType, fields, associations, caption, "Прочее", null);
+        }
     }
     public record Field(String name, String caption, Class<?> javaType, boolean technical,
-                        List<String> aliases) {
+                        List<String> aliases, Class<?> referenceType) {
+        public Field(String name, String caption, Class<?> javaType, boolean technical, List<String> aliases) { this(name, caption, javaType, technical, aliases, null); }
         public Field(String name, String caption, Class<?> javaType, boolean technical) {
             this(name, caption, javaType, technical, List.of());
         }

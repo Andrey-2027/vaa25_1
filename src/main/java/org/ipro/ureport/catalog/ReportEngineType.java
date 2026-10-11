@@ -11,5 +11,7 @@ public enum ReportEngineType {
     /** UReport3 — веб-дизайнер (UreportTemplate + XML в файловом хранилище). */
     UREPORT3,
     /** JR — шаблоны JasperReports .jrxml (JrxmlTemplate, дизайн в Jaspersoft Studio). */
-    JR
+    JR,
+    /** UniDR — simple report recipe stored as JSON. */
+    UNIDR
 }

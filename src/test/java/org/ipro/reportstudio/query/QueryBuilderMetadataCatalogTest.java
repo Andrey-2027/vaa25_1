@@ -35,7 +35,8 @@ class QueryBuilderMetadataCatalogTest {
         registry.rebuild();
         var access = new AccessService(grants, new UserRepositoryRlsRoleResolver(users), registry);
         catalog = new QueryBuilderMetadataCatalog(emf, new org.ipro.metadata.MetadataResolver(),
-                new RlsReadGate(access, registry), () -> "admin");
+                new RlsReadGate(org.ipro.rls.RlsTestFixture.allowingC5ReadEvaluator(), registry),
+                () -> "admin");
     }
 
     @Test
@@ -46,6 +47,13 @@ class QueryBuilderMetadataCatalogTest {
         assertThat(root.associations()).extracting(QueryBuilderMetadataCatalog.Association::name)
                 .contains("journal", "nomenclature");
         assertThat(root.associations()).allMatch(a -> a.targetType() != null);
+    }
+
+    @Test
+    void existingDictionariesDeclareTheirCatalogCategory() {
+        for (String name : java.util.List.of("Workshop", "Journal", "UnitOfMeasurement", "GroupNom", "Branch", "AttributeType", "AttributeValue")) {
+            assertThat(catalog.root(name).category()).as(name).isEqualTo("Справочник");
+        }
     }
 
     @Test

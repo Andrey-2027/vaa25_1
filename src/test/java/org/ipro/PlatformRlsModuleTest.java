@@ -72,6 +72,8 @@ class PlatformRlsModuleTest {
         "org.ipro.rls.RlsPolicyDescriptor",
         "org.ipro.rls.RlsPolicyEnforcer",
         "org.ipro.rls.RlsReadableIdsCache",
+        // F-REST-READ-4 4.3: узкий seam readable-ids; default реализация — session cache.
+        "org.ipro.rls.RlsReadableIdsResolver",
         "org.ipro.rls.RlsReadGate",
         "org.ipro.rls.RlsRepositoryEnforcementAspect",
         "org.ipro.rls.RlsRoleResolver",
@@ -83,6 +85,13 @@ class PlatformRlsModuleTest {
         "org.ipro.rls.RlsWriteGuardBridge",
         // Общий C5 для canonical, REST и report; зависит только от нижнего RLS grants слоя.
         "org.ipro.rls.c5.C5AccessDeniedException",
+        // ADR-0017 / C5.5: единое решение по операциям (CREATE/UPDATE/DELETE/EXECUTE) рядом с read.
+        "org.ipro.rls.c5.C5DecisionReason",
+        "org.ipro.rls.c5.C5Operation",
+        "org.ipro.rls.c5.C5OperationPermissionRegistry",
+        "org.ipro.rls.c5.C5PermissionDecision",
+        "org.ipro.rls.c5.C5PermissionDecisionService",
+        "org.ipro.rls.c5.C5PermissionDefinition",
         "org.ipro.rls.c5.C5PermissionConfigurationException",
         "org.ipro.rls.c5.C5PermissionEvaluator",
         "org.ipro.rls.c5.C5PermissionKeys",

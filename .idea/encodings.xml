@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/platform-backend-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-build/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-build/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-contracts/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-events/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-metadata/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-numbering/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-persistence/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-rest-web/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-rest/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-rls/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-settings/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-spring-boot-autoconfigure/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-telemetry/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-vaadin-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/platform-vaadin/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

@@ -157,6 +157,27 @@ class NomAttributeValueItemFormTest {
     }
 
     @Test
+    void refFieldRejectsANonLongIdentityBeforeChangingTheDraft() {
+        AttributeType type = type(17L, "BAD_REF", "Wrong identity", AttributeValueType.REF);
+        type.setTargetDictionary(Workshop.class.getName());
+        doReturn(Workshop.class).when(attributeValueService).resolveTargetDictionary(type);
+        NomAttributeValueItemForm form = form();
+        NomAttributeValue draft = new NomAttributeValue(null, type, null);
+        form.setEntity(draft);
+        form.entityField("enteredRefId").setValue(new ForeignReference());
+        assertThatThrownBy(form::getEntity).isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Long id");
+        assertThat(draft.getEnteredRefId()).isNull();
+    }
+
+    private static final class ForeignReference implements org.ipro.metadata.HasDisplayName,
+            org.ipro.identity.IdentifiableEntity<String> {
+        public String getId() { return "7"; }
+        public void setId(String id) { }
+        public String getDisplayName() { return "Foreign reference"; }
+    }
+
+    @Test
     void clearingRefFieldDropsBothDraftIdAndStoredValue() {
         AttributeType type = type(16L, "MAT_CLEAR", "Материал (очистка)", AttributeValueType.REF);
         type.setTargetDictionary(Workshop.class.getName());

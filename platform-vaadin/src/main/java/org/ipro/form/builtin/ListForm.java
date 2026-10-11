@@ -54,6 +54,9 @@ import org.ipro.identity.IdentifiableEntity;
 import org.ipro.telemetry.api.OperationScope;
 import org.ipro.telemetry.core.TelemetryBridge;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,7 +71,141 @@ import java.util.function.Function;
 /**
  * Универсальная форма списка. Генерируется из EntityMetadataInfo и использует FilterGrid.
  */
-public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
+public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLayout {
+    private ListPageReader<T> pageReader;
+    private java.util.function.Supplier<Map<String, String>> viewOptions = Map::of;
+    private Consumer<Map<String, String>> restoreViewOptions = options -> { };
+    private final Map<String, com.vaadin.flow.data.renderer.Renderer<T>> columnRenderers = new LinkedHashMap<>();
+
+    public void setPageReader(ListPageReader<T> reader) { this.pageReader = reader; }
+
+    public void setViewOptions(java.util.function.Supplier<Map<String, String>> capture,
+                               Consumer<Map<String, String>> restore) {
+        viewOptions = Objects.requireNonNull(capture);
+        restoreViewOptions = Objects.requireNonNull(restore);
+    }
+
+    public void setColumnRenderer(String path, com.vaadin.flow.data.renderer.Renderer<T> renderer) {
+        columnRenderers.put(path, renderer);
+        var column = getGrid().getColumnByKey(path);
+        if (column != null) column.setRenderer(renderer);
+    }
+
+    public Specification<T> compileFilter(org.ipro.filtergrid.filter.FilterNode filter) {
+        if (filter == null) return null;
+        var resolver = new org.ipro.filtergrid.filter.LookupFilterFieldResolver(
+            new org.ipro.filter.ColumnPathFilterFieldResolver(filterableColumns()), optionsForTree(filter));
+        // Keep the library's complete validation. Hibernate cannot SQL-cast mapped values to the Comparable interface.
+        org.ipro.filtergrid.jpa.filter.JpaFilterConditionCompiler.compile(filter, resolver);
+        return compileTypedComparisons(filter, resolver);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Specification<T> compileTypedComparisons(FilterNode node, org.ipro.filtergrid.filter.FilterFieldResolver resolver) {
+        if (node instanceof org.ipro.filtergrid.filter.FilterGroup group) {
+            var children = group.children().stream().map(child -> compileTypedComparisons(child, resolver)).toList();
+            return (root, query, cb) -> {
+                var predicates = children.stream().map(child -> child.toPredicate(root, query, cb))
+                    .toArray(jakarta.persistence.criteria.Predicate[]::new);
+                return group.operator() == org.ipro.filtergrid.filter.LogicalOperator.OR ? cb.or(predicates) : cb.and(predicates);
+            };
+        }
+        var condition = ((org.ipro.filtergrid.filter.FilterConditionNode) node).condition();
+        var field = resolver.resolve(condition.path());
+        var operator = condition.operator();
+        if (field.dataType() == org.ipro.filtergrid.filter.FilterDataType.ENTITY_REFERENCE ||
+            !java.util.Set.of(org.ipro.filtergrid.filter.FilterOperator.GT, org.ipro.filtergrid.filter.FilterOperator.GE,
+                org.ipro.filtergrid.filter.FilterOperator.LT, org.ipro.filtergrid.filter.FilterOperator.LE,
+                org.ipro.filtergrid.filter.FilterOperator.BETWEEN).contains(operator))
+            return org.ipro.filtergrid.jpa.filter.JpaFilterConditionCompiler.compile(node, resolver);
+        Comparable value = (Comparable) org.ipro.filtergrid.filter.FilterValueCodec.decode(condition.value(), field);
+        Comparable upper = (Comparable) org.ipro.filtergrid.filter.FilterValueCodec.decode(condition.valueTo(), field);
+        return (root, query, cb) -> {
+            jakarta.persistence.criteria.Expression path = org.ipro.filtergrid.util.JpaPathUtil.resolve(root, condition.path());
+            return switch (operator) {
+                case GT -> cb.greaterThan(path, value);
+                case GE -> cb.greaterThanOrEqualTo(path, value);
+                case LT -> cb.lessThan(path, value);
+                case LE -> cb.lessThanOrEqualTo(path, value);
+                case BETWEEN -> cb.between(path, value, upper);
+                default -> throw new IllegalStateException("Unsupported comparison: " + operator);
+            };
+        };
+    }
+
+    private List<ColumnPath> filterableColumns() {
+        List<ColumnPath> columns = new ArrayList<>(activeColumns.stream()
+            .filter(path -> !columnRenderers.containsKey(path.getKey())).toList());
+        for (ColumnPath column : List.copyOf(columns)) {
+            if (column.getResolvedType() == FieldType.ENTITY_REFERENCE)
+                columns.add(ColumnPath.resolve(metadata.getEntityClass(), column.getKey() + ".id"));
+        }
+        return columns;
+    }
+
+    private org.ipro.filtergrid.filter.FilterNode currentFilterTree() {
+        var gridTree = filterGrid instanceof ListFormJpaFilterGrid<T> grid ? grid.filterTree() : null;
+        List<FilterNode> nativeFilters = new ArrayList<>();
+        activeFilters.forEach((path, filter) -> {
+            if (!filter.hasActiveValue() || filter instanceof org.ipro.filtergrid.FilterNodeProducer<?>) return;
+            ColumnPath column = activeColumns.stream().filter(value -> value.getKey().equals(path)).findFirst().orElseThrow();
+            if (filter instanceof TextFilter<?> text) {
+                var operator = switch (text.getModeSelect().getValue()) {
+                    case EQUALS -> org.ipro.filtergrid.filter.FilterOperator.EQ;
+                    case NOT_EQUALS -> org.ipro.filtergrid.filter.FilterOperator.NE;
+                    case CONTAINS -> org.ipro.filtergrid.filter.FilterOperator.CONTAINS;
+                    case NOT_CONTAINS -> org.ipro.filtergrid.filter.FilterOperator.NOT_CONTAINS;
+                    case STARTS_WITH -> org.ipro.filtergrid.filter.FilterOperator.STARTS_WITH;
+                    case ENDS_WITH -> org.ipro.filtergrid.filter.FilterOperator.ENDS_WITH;
+                };
+                nativeFilters.add(filterCondition(path, operator, text.getTextField().getValue(),
+                    column.getResolvedType() == FieldType.INTEGER || column.getResolvedType() == FieldType.DECIMAL
+                        ? org.ipro.filtergrid.filter.FilterDataType.NUMBER : org.ipro.filtergrid.filter.FilterDataType.TEXT));
+            } else if (filter instanceof ComboBoxFilter<?, ?> combo) {
+                Object value = combo.getComponent().getValue();
+                if (value instanceof IdentifiableEntity<?> entity) nativeFilters.add(filterCondition(path + ".id",
+                    org.ipro.filtergrid.filter.FilterOperator.EQ, entity.getId().toString(), org.ipro.filtergrid.filter.FilterDataType.NUMBER));
+                else nativeFilters.add(filterCondition(path, org.ipro.filtergrid.filter.FilterOperator.EQ,
+                    value instanceof Enum<?> enumeration ? enumeration.name() : value.toString(), org.ipro.filtergrid.filter.FilterDataType.ENUM));
+            } else if (filter instanceof DateRangeFilter<?> range) {
+                if (range.getDateFrom().getValue() != null) nativeFilters.add(filterCondition(path,
+                    org.ipro.filtergrid.filter.FilterOperator.GE, range.getDateFrom().getValue().toString(), org.ipro.filtergrid.filter.FilterDataType.DATE));
+                if (range.getDateTo().getValue() != null) nativeFilters.add(filterCondition(path,
+                    org.ipro.filtergrid.filter.FilterOperator.LE, range.getDateTo().getValue().toString(), org.ipro.filtergrid.filter.FilterDataType.DATE));
+            } else throw new IllegalArgumentException("Фильтр «" + column.getLabel() + "» не поддерживает сохранение и срез.");
+        });
+        if (!nativeFilters.isEmpty()) gridTree = new org.ipro.filtergrid.filter.FilterComposition(gridTree, null,
+            new org.ipro.filtergrid.filter.FilterGroup(org.ipro.filtergrid.filter.LogicalOperator.AND, nativeFilters)).root();
+        return new org.ipro.filtergrid.filter.FilterComposition(
+            visualFilterAdapter.fixed(), visualFilterAdapter.context(),
+            new org.ipro.filtergrid.filter.FilterComposition(visualFilterAdapter.user(), null, gridTree).root()).root();
+    }
+
+    private static FilterNode filterCondition(String path, org.ipro.filtergrid.filter.FilterOperator operator,
+                                              String value, org.ipro.filtergrid.filter.FilterDataType type) {
+        return org.ipro.filtergrid.filter.FilterConditionNode.of(
+            new org.ipro.filtergrid.filter.FilterCondition(path, operator, value, null, type));
+    }
+
+    public GridViewState captureViewState() {
+        return GridViewState.of(activeColumns, metadata.getEntityClass(), null, currentFilterTree())
+            .withOptions(viewOptions.get());
+    }
+
+    public void applyViewState(GridViewState state) {
+        restoreViewOptions.accept(state.options());
+        List<ColumnPath> restored = toColumnPaths(state);
+        if (!restored.isEmpty()) applyColumns(restored);
+        clearVisualFilter();
+        setFixedFilter(state.fixedFilter());
+        setUserFilter(state.userFilterOrLegacy());
+        refresh();
+    }
+
+    public void applyOpeningViewState() {
+        Object state = openingParameters.get("listState");
+        if (state instanceof String json) applyViewState(GridViewState.fromJson(json));
+    }
 
     private final EntityMetadataInfo metadata;
     private final org.ipro.filtergrid.FilterGrid<T> filterGrid;
@@ -189,12 +326,28 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         if (groupValuesService != null) {
             return new GroupableJpaFilterGrid<>(
                 (Class<T>) metadata.getEntityClass(),
-                (spec, pageable) -> service.findAll(combineWithContext(spec), pageable, collectFetchPaths()),
+                (spec, pageable) -> readPage(service, spec, pageable),
                 groupValuesService);
         }
-        return new JpaFilterGrid<>(
+        return new ListFormJpaFilterGrid<>(
             (Class<T>) metadata.getEntityClass(),
-            (spec, pageable) -> service.findAll(combineWithContext(spec), pageable, collectFetchPaths()));
+            (spec, pageable) -> readPage(service, spec, pageable));
+    }
+
+    private Page<T> readPage(BaseService<T, ID> service, Specification<T> spec, Pageable pageable) {
+        try {
+            if (pageReader != null) {
+                return pageReader.read(combineWithContext(spec), currentFilterTree(),
+                    getContextSnapshot().effectiveFilters(), explicitContextFilter != null,
+                    pageable, collectFetchPaths());
+            }
+            return service.findAll(combineWithContext(spec), pageable, collectFetchPaths());
+        } catch (AccessDeniedException denied) {
+            // Lazy Grid reads happen after route opening, outside the coordinator's catch.
+            org.ipro.form.FormMessages.showAccessDenied(denied,
+                "Не удалось прочитать список «" + metadata.getListFormTitle() + "»", metadataResolver);
+            throw denied;
+        }
     }
 
     private Specification<T> combineWithContext(Specification<T> gridSpec) {
@@ -432,7 +585,8 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
         }
         copyLinkButton = CopyLinkButton.forList("Скопировать ссылку", formLinkService,
             metadata.getEntityClass(), formVariant,
-            () -> decide(CrudAction.COPY_LINK, null), this::notifyBlocked);
+            () -> decide(CrudAction.COPY_LINK, null), this::notifyBlocked,
+            () -> captureViewState().toJson());
         copyLinkButton.setIcon(VaadinIcon.LINK.create());
         int refreshPosition = toolbar.indexOf(refreshButton);
         if (refreshPosition < 0) {
@@ -468,8 +622,8 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             throw new IllegalStateException("Действие «" + definition.id()
                 + "» уже объявлено в этом списке: два действия с одним id неотличимы для решения");
         }
-        renderDeclaredAction(definition, handler);
         localActionHandlers.put(definition.id(), handler);
+        renderDeclaredAction(definition, handler);
     }
 
     /** Пересчитать видимость, доступность и подсказки generic-кнопок из текущего решения. */
@@ -579,7 +733,9 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                 "Объявленное действие «" + definition.id()
                     + "» требует модели действий: без решателя его доступность неизвестна");
         }
-        return actionResolver.decide(definition, row, requiredContextFilled());
+        ActionDecision base = actionResolver.decide(definition, row, requiredContextFilled());
+        ActionHandler local = localActionHandlers.get(definition.id());
+        return base.actionable() && local != null ? local.availability(row) : base;
     }
 
     /** Снимок состояния списка для исполнителя: строка, вариант, эффективный контекст, навигация. */
@@ -886,17 +1042,14 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                      org.ipro.filtergrid.grouping.GroupValuesService<T> groupValuesService) {
         this.metadata = metadata;
         this.visualFilterAdapter = new ListFormVisualFilterAdapter<>(
-            root -> root == null ? null : org.ipro.filtergrid.jpa.filter.JpaFilterConditionCompiler.compile(root,
-                new org.ipro.filtergrid.filter.LookupFilterFieldResolver(
-                    new org.ipro.filter.ColumnPathFilterFieldResolver(metadata.getListColumnPaths()),
-                    optionsForTree(root))),
+            this::compileFilter,
             (compiled, root) -> visualFilter = compiled);
         this.activeColumns = new ArrayList<>(metadata.getListColumnPaths());
         this.filterGrid = filterGrid != null ? filterGrid : createJpaFilterGrid(metadata, service, groupValuesService);
         if (this.filterGrid instanceof org.ipro.filtergrid.VisualFilterHost) {
             ((org.ipro.filtergrid.FilterGrid<T>) this.filterGrid).enableVisualFilter(
                 new org.ipro.filtergrid.filter.LookupFilterFieldResolver(
-                    new org.ipro.filter.ColumnPathFilterFieldResolver(this.activeColumns),
+                    new org.ipro.filter.ColumnPathFilterFieldResolver(filterableColumns()),
                     optionsForPicker()));
         }
 
@@ -933,6 +1086,9 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
         try {
             this.filterGrid.build();
+        } catch (AccessDeniedException denied) {
+            // A denied read is not a recoverable filter configuration error or an empty list.
+            throw denied;
         } catch (RuntimeException e) {
             Notification.show("Не удалось построить фильтры списка: "
                     + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()),
@@ -950,7 +1106,7 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
             FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());
             ValueProvider<T, ?> valueProvider = entity -> renderer.apply(path.getValue(entity));
 
-            boolean filterEnabled = path.asFieldMetadata()
+            boolean filterEnabled = !columnRenderers.containsKey(path.getKey()) && path.asFieldMetadata()
                 .map(FieldMetadataInfo::isFilterEnabled)
                 .orElse(true);
 
@@ -964,6 +1120,10 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
 
             filterGrid.addColumn(path.getKey(), path.getKey(), path.getLabel(), valueProvider);
         }
+        columnRenderers.forEach((path, renderer) -> {
+            var column = getGrid().getColumnByKey(path);
+            if (column != null) column.setRenderer(renderer);
+        });
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -977,8 +1137,15 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private FieldFilter<?> createFilterForPath(ColumnPath path) {
         return switch (path.getResolvedType()) {
-            case TEXT, INTEGER, DECIMAL, PASSWORD, EMAIL -> new TextFilter<>(path.getLabel());
+            case TEXT, PASSWORD, EMAIL -> new TextFilter<>(path.getLabel());
+            case INTEGER, DECIMAL -> {
+                TextFilter filter = new TextFilter<>(path.getLabel());
+                filter.getModeSelect().setItems(TextFilter.FilterMode.EQUALS, TextFilter.FilterMode.NOT_EQUALS);
+                filter.getModeSelect().setValue(TextFilter.FilterMode.EQUALS);
+                yield filter;
+            }
             case DATE -> new DateRangeFilter<>();
+            case DATETIME -> new DateTimeRangeFilter<>();
             case ENUM -> {
                 ComboBoxFilter filter = new ComboBoxFilter<>(path.getLabel());
                 if (path.getJavaType().isEnum()) {
@@ -1099,22 +1266,12 @@ public class ListForm<T extends IdentifiableEntity, ID> extends VerticalLayout {
                 }
             },
             this::resetActiveColumns
-        ).open();
+        ).withCurrentState(captureViewState()).open();
     }
 
     private void applyView(org.ipro.form.spi.GridView view) {
         GridViewState state = GridViewState.fromJson(view.columns());
-        List<ColumnPath> restored = toColumnPaths(state);
-        if (!restored.isEmpty()) {
-            applyColumns(restored);
-        }
-        if (state.fixedFilter() != null) {
-            setFixedFilter(state.fixedFilter());
-        }
-        if (state.userFilter() != null || !state.filters().isEmpty()) {
-            setUserFilter(state.userFilterOrLegacy());
-        }
-        applyFilters(state.filters());
+        applyViewState(state);
     }
 
     private List<ColumnPath> toColumnPaths(GridViewState state) {

@@ -16,10 +16,9 @@ import org.ipro.reportstudio.query.editor.QueryEditorAnalysis;
  * <p>Редактор {@link ReportQueryEditor} — это отдельный вызываемый слой, чтобы
  * основной экран редактора отчёта оставался компактным. Окно работает со
  * снапшотом исходного JPQL шаблона: «Отмена» полностью восстанавливает текст
- * запроса, «Применить» фиксирует результат анализа. Декларации параметров
- * шаблона (ReportParam) окно не трогает — редактор запроса оперирует только
- * своими тестовыми значениями ({@code QueryTestParam}), а объявление
- * персистентных параметров остаётся ответственностью ReportParamEditor.</p>
+ * запроса и метаданные, «Применить» фиксирует результат анализа.
+ * Построение среза также объявляет параметр даты; отмена восстанавливает
+ * исходные декларации параметров.</p>
  */
 public class ReportQueryDialog extends Dialog {
 
@@ -27,7 +26,10 @@ public class ReportQueryDialog extends Dialog {
     private final ReportTemplate template;
     private final Runnable onRefresh;
     private final java.util.function.Consumer<QueryEditorAnalysis> onApplied;
-    private final String snapshotJpql;
+    private final Runnable restoreQuery;
+    private final com.vaadin.flow.component.html.Paragraph applyError = new com.vaadin.flow.component.html.Paragraph();
+    private boolean settled;
+
 
     public ReportQueryDialog(ReportQueryEditor editor, ReportTemplate template, Runnable onRefresh) {
         this(editor, template, onRefresh, null);
@@ -39,9 +41,10 @@ public class ReportQueryDialog extends Dialog {
         this.template = template;
         this.onRefresh = onRefresh == null ? () -> { } : onRefresh;
         this.onApplied = onApplied;
-        this.snapshotJpql = java.util.Objects.requireNonNullElse(template.getJpql(), "");
+        this.restoreQuery = editor.captureQuerySnapshot();
+        addOpenedChangeListener(event -> { if (!event.isOpened()) restoreSnapshot(); });
 
-        setHeaderTitle("JPQL-запрос отчёта");
+        setHeaderTitle("Запрос отчёта");
         setModal(true);
         setDraggable(true);
         setResizable(true);
@@ -60,7 +63,10 @@ public class ReportQueryDialog extends Dialog {
         actions.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         actions.setWidthFull();
 
-        VerticalLayout content = new VerticalLayout(editor, actions);
+        applyError.getElement().setAttribute("role", "alert");
+        applyError.getStyle().set("color", "var(--lumo-error-text-color)");
+        applyError.setVisible(false);
+        VerticalLayout content = new VerticalLayout(editor, applyError, actions);
         content.setPadding(false);
         content.setSpacing(true);
         content.setSizeFull();
@@ -70,6 +76,7 @@ public class ReportQueryDialog extends Dialog {
     }
 
     private void applyAndClose() {
+        applyError.setVisible(false);
         QueryEditorAnalysis analysis;
         try {
             analysis = editor.analyze();
@@ -80,16 +87,28 @@ public class ReportQueryDialog extends Dialog {
             return;
         }
         if (onApplied != null) {
-            onApplied.accept(analysis);
+            try {
+                onApplied.accept(analysis);
+            } catch (RuntimeException error) {
+                applyError.setText(java.util.Objects.toString(error.getMessage(), "Не удалось применить запрос"));
+                applyError.setVisible(true);
+                return;
+            }
         }
         onRefresh.run();
+        settled = true;
         close();
     }
 
     private void cancelAndClose() {
-        template.setJpql(snapshotJpql);
-        editor.setTemplate(template);
-        onRefresh.run();
+        restoreSnapshot();
         close();
+    }
+
+    private void restoreSnapshot() {
+        if (settled) return;
+        settled = true;
+        restoreQuery.run();
+        onRefresh.run();
     }
 }

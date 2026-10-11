@@ -198,7 +198,9 @@ JPA допускает дополнительную загрузку; сохра
 включают незаявленные EAGER-связи и коллекции в fresh context/cold cache; выявленная
 незаявленная association/collection загрузка оставляет REST runtime gate открытым
 до исправления mapping/fetch strategy. C5/reference/RLS checks обязательны независимо
-от graph; attribute use-vs-load policy определяется общим C5 контрактом.
+от graph. Для REST актуальная модель доступа к опубликованным полям задана
+[ADR-0016](ADR-0016-rest-resource-field-access.md): API + entity read без отдельных
+attribute grants; проверки используемых ссылок и RLS сохраняются.
 
 Точная Java-сигнатура, internal request representation, surface roles и архитектурные
 guards фиксируются API-review F-REST-READ-3. Существующие scenario/UI/compatibility

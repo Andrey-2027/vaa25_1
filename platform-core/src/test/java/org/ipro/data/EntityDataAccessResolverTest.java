@@ -200,11 +200,11 @@ class EntityDataAccessResolverTest {
             "test reason");
     }
 
-    private static EntityDataPolicy policy(Class<? extends IdentifiableEntity> type,
+    private static EntityDataPolicy policy(Class<? extends IdentifiableEntity<Long>> type,
                                            EntityDataAccess access, String reason) {
         return new EntityDataPolicy() {
             @Override
-            public Class<? extends IdentifiableEntity> entityType() {
+            public Class<? extends IdentifiableEntity<Long>> entityType() {
                 return type;
             }
 
@@ -221,7 +221,7 @@ class EntityDataAccessResolverTest {
     }
 
     /** Non-persistent type: policy описывает persistence type, поэтому это startup error. */
-    private static final class PlainNotPersistent implements IdentifiableEntity {
+    private static final class PlainNotPersistent implements IdentifiableEntity<Long> {
         private Long id;
 
         @Override
@@ -237,7 +237,7 @@ class EntityDataAccessResolverTest {
 
     /** JPA-тип для второй policy (не важно, что fixture — важен контракт регистрации). */
     @jakarta.persistence.Entity(name = "PlainPersistentFixture")
-    private static final class PlainPersistent implements IdentifiableEntity {
+    private static final class PlainPersistent implements IdentifiableEntity<Long> {
         @jakarta.persistence.Id
         private Long id;
 

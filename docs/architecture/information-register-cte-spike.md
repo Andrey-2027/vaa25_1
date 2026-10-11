@@ -1,9 +1,9 @@
 # Р2: спайк среза последних через существующий CTE-компилятор
 
-- Дата: 2026-10-03.
-- Статус: исполняемые сценарии подготовлены; компиляция и тесты не запускались по просьбе пользователя.
+- Дата подготовки: 2026-10-03; приёмка: 2026-10-04.
+- Статус: Р2 закрыт; семь сценариев прошли на Hibernate/H2.
 - Основание: Р2 в [плане развития](information-register-development-plan.md#6-р2--спайк-среза-на-существующем-компиляторе).
-- Gate Р2 остаётся открытым до успешного выполнения. Наличие тестового кода не доказывает выразимость на Hibernate.
+- Результаты и воспроизводимая команда: [протокол закрытия Р2–Р3](information-register-r2-r3-acceptance.md).
 
 ## Состав
 
@@ -15,7 +15,8 @@
 | `NomenclaturePriceCteSpikeTest.java` | Четыре сценария с production mapping NomenclaturePrice в контексте приложения |
 | `TwoDimensionRegisterCteSpikeTest.java` | Три сценария с отдельным Hibernate/H2 persistence unit и тестовым регистром |
 
-Production-код, AST, semantic kind, размещение общих типов и compiler не менялись.
+AST, semantic kind и размещение общих типов не менялись. По фактическим отказам исправлены
+codec FilterNode и проверка глубокого ссылочного пути ON/неизвестного alias; регрессии прошли.
 Тестовый helper не является production generator и не вводит SliceSpec.
 У тестовых сущностей `SpikeItem` и `SpikePrice` есть реальные `@Entity`, `@Id`, metadata полей
 и физический составной unique. Они зарегистрированы явно только в отдельном persistence unit.
@@ -25,15 +26,16 @@ Production-код, AST, semantic kind, размещение общих типо�
 
 ```text
 mx:
-  SELECT nomenclature.id AS nomenclatureId [, channel], MAX(period) AS lastPeriod
+  SELECT i.id AS nomenclatureId [, channel], MAX(period) AS lastPeriod
   FROM register p
+  JOIN dimension i ON p.nomenclature.id = i.id
   WHERE period <= :dateBinding AND dimensionConditions
-  GROUP BY nomenclature.id [, channel]
+  GROUP BY i.id [, channel]
 
 latest:
-  SELECT nomenclature.id AS nomenclatureId [, channel], period, price
-  FROM register p JOIN mx m
-    ON p.nomenclature.id = m.nomenclatureId
+  SELECT i.id AS nomenclatureId [, channel], period, price
+  FROM register p JOIN dimension i ON p.nomenclature.id = i.id
+    JOIN mx m ON i.id = m.nomenclatureId
        [AND p.channel = m.channel]
        AND p.period = m.lastPeriod
   WHERE resourceConditions
@@ -55,8 +57,11 @@ main (отчёт):
 runtime `asOf` в сохранённый шаблон здесь не вводится и остаётся задачей Р5–Р6.
 
 Одна дата действует на всю выборку. Корреляция «дата каждого документа» не реализуется.
+Два среза в одном пакете не проверялись; это gate генератора Р5.
+Независимый JOIN цели измерения в обеих фазах обеспечивает её row visibility;
+association JOIN для этого оказался недостаточным в Р3.
 
-## Подготовленные проверки
+## Прошедшие проверки
 
 1. Одномерный срез: четыре номенклатуры, одна без истории, воспроизводимая случайная история
    трёх остальных. Для 24 дат сравниваются период и цена с `TreeMap.floorEntry`, а точечный
@@ -95,7 +100,7 @@ Fixtures создаются напрямую для изоляции данны�
 или согласованную видимость версий. Эти отрицательные сценарии и исполнение через полный
 report pipeline относятся к Р3. PostgreSQL, EXPLAIN и нагрузочные измерения не выполнялись.
 
-## Отложенный запуск и решение
+## Запуск и решение
 
 Из корня проекта, с настроенными JDK/Maven и актуальными локальными зависимостями:
 
@@ -103,8 +108,6 @@ report pipeline относятся к Р3. PostgreSQL, EXPLAIN и нагрузо
 mvn -o -B -ntp '-Dtest=NomenclaturePriceCteSpikeTest,TwoDimensionRegisterCteSpikeTest' test
 ```
 
-Команда приведена для будущего запуска и не выполнялась при подготовке Р2.
-Не выполнялись также test-compile и общий регрессионный прогон.
-В этой итерации выявленных выполнением дефектов compiler нет; исправления compiler не внесены.
-После запуска необходимо зафиксировать фактические результаты и, при необходимости,
-минимальную исправляющую регрессию. Только затем можно закрыть gate выразимости Р2.
+Компиляция и выполнение подтверждены. Итоговый набор Р2–Р3 и consumers/архитектуры:
+322 теста, без failures/errors/skipped. Gate выразимости Р2 закрыт.
+Runtime-подстановка даты в сохранённый шаблон и production generator остаются Р5–Р6.

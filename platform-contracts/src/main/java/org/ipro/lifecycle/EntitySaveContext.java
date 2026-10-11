@@ -7,7 +7,7 @@ import org.ipro.events.EventSource;
 import java.util.Objects;
 
 /** Контекст lifecycle-операции сохранения одной entity. */
-public record EntitySaveContext<T extends IdentifiableEntity>(
+public record EntitySaveContext<T extends IdentifiableEntity<?>>(
         T entity,
         EventContext eventContext) {
 

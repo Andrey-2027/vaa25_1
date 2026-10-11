@@ -19,7 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Transactional
 class NomenclaturePriceRegisterOracleTest {
 
-    private static final LocalDate START = LocalDate.of(2026, 1, 1);
+    private static final LocalDateTime START = LocalDateTime.of(2026, 1, 1, 0, 0);
 
     @MockitoBean
     private DataInitializer dataInitializer;
@@ -139,13 +139,13 @@ class NomenclaturePriceRegisterOracleTest {
     void matchesTheInMemoryOracleOnRandomHistory() {
         Random random = new Random(20261003L);
         List<Nomenclature> items = new ArrayList<>();
-        List<TreeMap<LocalDate, BigDecimal>> histories = new ArrayList<>();
+        List<TreeMap<LocalDateTime, BigDecimal>> histories = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             Nomenclature item = nomenclature("ORC-R" + i);
-            TreeMap<LocalDate, BigDecimal> history = new TreeMap<>();
+            TreeMap<LocalDateTime, BigDecimal> history = new TreeMap<>();
             int records = i == 3 ? 0 : 3 + random.nextInt(10);
             while (history.size() < records) {
-                LocalDate day = START.plusDays(random.nextInt(60));
+                LocalDateTime day = START.plusDays(random.nextInt(60));
                 if (history.containsKey(day)) {
                     continue;
                 }
@@ -160,7 +160,7 @@ class NomenclaturePriceRegisterOracleTest {
         int probes = 0;
         for (int i = 0; i < items.size(); i++) {
             for (int offset = -5; offset <= 65; offset++) {
-                LocalDate asOf = START.plusDays(offset);
+                LocalDateTime asOf = START.plusDays(offset);
                 Optional<BigDecimal> expected = oracle(histories.get(i), asOf);
                 Optional<BigDecimal> actual = service.priceOn(items.get(i), asOf);
                 String where = "номенклатура " + i + ", дата " + asOf;
@@ -176,7 +176,7 @@ class NomenclaturePriceRegisterOracleTest {
     }
 
     /** Наивный расчёт: последняя запись истории с датой не позже {@code asOf}. */
-    private static Optional<BigDecimal> oracle(TreeMap<LocalDate, BigDecimal> history, LocalDate asOf) {
+    private static Optional<BigDecimal> oracle(TreeMap<LocalDateTime, BigDecimal> history, LocalDateTime asOf) {
         return Optional.ofNullable(history.floorEntry(asOf)).map(java.util.Map.Entry::getValue);
     }
 
@@ -188,7 +188,7 @@ class NomenclaturePriceRegisterOracleTest {
         return item;
     }
 
-    private void price(Nomenclature item, LocalDate period, String value) {
+    private void price(Nomenclature item, LocalDateTime period, String value) {
         entityManager.persist(new NomenclaturePrice(item, period, new BigDecimal(value)));
     }
 

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Реализация публичного {@link EntityDataAccess} поверх единых canonical executor'ов
@@ -79,23 +80,29 @@ public class CanonicalEntityDataAccess implements EntityDataAccess {
     }
 
     @Override
-    public <T extends IdentifiableEntity> T create(Class<T> type, T entity) {
+    public <T extends IdentifiableEntity<Long>> T create(Class<T> type, T entity) {
         return writeExecutor.create(type, entity);
     }
 
     @Override
-    public <T extends IdentifiableEntity> T update(Class<T> type, T entity) {
+    public <T extends IdentifiableEntity<Long>> T update(Class<T> type, T entity) {
         return writeExecutor.update(type, entity);
     }
 
     @Override
-    public <T extends IdentifiableEntity> T save(Class<T> type, T entity) {
+    public <T extends IdentifiableEntity<Long>> T save(Class<T> type, T entity) {
         return writeExecutor.save(type, entity);
     }
 
     @Override
-    public <T extends IdentifiableEntity> void delete(Class<T> type, Object id) {
+    public <T extends IdentifiableEntity<Long>> void delete(Class<T> type, Object id) {
         writeExecutor.delete(type, id);
+    }
+
+    @Override
+    public <T extends IdentifiableEntity<Long>> T executeNamed(Class<T> type, String permissionId,
+                                                        Object id, Consumer<T> mutation) {
+        return writeExecutor.executeNamed(type, permissionId, id, mutation);
     }
 
     /** Прямые (не вложенные) пути InstanceName как default surface lookup. */

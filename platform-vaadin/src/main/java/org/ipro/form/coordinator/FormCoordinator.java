@@ -268,7 +268,7 @@ public class FormCoordinator implements FormNavigator {
      * @param entityClass класс сущности (например, Nomenclature.class)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> void openListForm(Class<T> entityClass) {
+    public <T extends IdentifiableEntity<Long>, ID> void openListForm(Class<T> entityClass) {
         openListForm(entityClass, null, null);
     }
 
@@ -281,7 +281,7 @@ public class FormCoordinator implements FormNavigator {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public <T extends IdentifiableEntity, ID> void openListForm(Class<T> entityClass,
+    public <T extends IdentifiableEntity<Long>, ID> void openListForm(Class<T> entityClass,
                                                                   String variant,
                                                                   Map<String, Object> parameters) {
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
@@ -297,7 +297,18 @@ public class FormCoordinator implements FormNavigator {
                 + " встраивает форму (это не ошибка конфигурации, а другая точка входа).");
         }
 
-        openListInWorkspace(entityClass, variant, parameters, entryId, title, workspace);
+        try (OperationScope scope = TelemetryBridge.beginOperation("openListForm:" + entityClass.getSimpleName())) {
+            try {
+                openListInWorkspace(entityClass, variant, parameters, entryId, title, workspace);
+            } catch (RuntimeException failure) {
+                if (AccessDenialPresentation.find(failure) == null) {
+                    throw failure;
+                }
+                scope.fail(failure);
+                AccessDenialPresentation.show(AccessDenialPresentation.describe(failure,
+                    "Не удалось открыть список «" + meta.getListFormTitle() + "»", metadataResolver));
+            }
+        }
     }
 
     /**
@@ -306,7 +317,7 @@ public class FormCoordinator implements FormNavigator {
      * формы со своими обходами custom view и wrapper'а.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> void openListInWorkspace(
+    private <T extends IdentifiableEntity<Long>, ID> void openListInWorkspace(
             Class<T> entityClass, String variant, Map<String, Object> parameters,
             String entryId, String title, WorkspaceGateway workspace) {
         Class<? extends com.vaadin.flow.component.Component> customViewClass =
@@ -379,7 +390,7 @@ public class FormCoordinator implements FormNavigator {
         if (value == null) {
             return "null";
         }
-        if (value instanceof IdentifiableEntity entity) {
+        if (value instanceof IdentifiableEntity<?> entity) {
             return entity.getClass().getName() + "#" + entity.getId();
         }
         if (value instanceof Map<?, ?> map) {
@@ -407,7 +418,7 @@ public class FormCoordinator implements FormNavigator {
      * @return ListForm компонент
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> ListForm<T, ID> createListForm(Class<T> entityClass) {
+    public <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> createListForm(Class<T> entityClass) {
         return createListForm(entityClass, null, null, null);
     }
 
@@ -417,7 +428,7 @@ public class FormCoordinator implements FormNavigator {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public <T extends IdentifiableEntity, ID> ListForm<T, ID> createListForm(
+    public <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> createListForm(
             Class<T> entityClass, String variant, Map<String, Object> parameters) {
         return createListForm(entityClass, variant, parameters, null);
     }
@@ -447,7 +458,7 @@ public class FormCoordinator implements FormNavigator {
      * </pre>
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> ListForm<T, ID> createListForm(
+    public <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> createListForm(
             Class<T> entityClass,
             Consumer<ListForm<T, ID>> configurator) {
         return createListForm(entityClass, null, null, configurator);
@@ -463,7 +474,7 @@ public class FormCoordinator implements FormNavigator {
      * @return ListForm компонент
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> ListForm<T, ID> createListForm(
+    private <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> createListForm(
             Class<T> entityClass,
             String variant,
             Map<String, Object> parameters,
@@ -503,6 +514,7 @@ public class FormCoordinator implements FormNavigator {
         // Ключ различает варианты формы: у "archived"-варианта своя настройка/свои виды.
         form.setViewSupport(gridViewStore, formSettingsStore,
             entityClass.getSimpleName() + (variant != null ? "." + variant : ""));
+        form.applyOpeningViewState();
 
         // Решения по действиям списка (E1.3): один решатель на список. Форма получает готовые
         // решения и не считает права сама — раньше «Создать» смотрело только RLS, а capability
@@ -560,7 +572,7 @@ public class FormCoordinator implements FormNavigator {
      * @param onSaved     callback после успешного сохранения
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> void openItemForm(Class<T> entityClass,
+    public <T extends IdentifiableEntity<Long>, ID> void openItemForm(Class<T> entityClass,
                                                                   ID id,
                                                                   Consumer<T> onSaved) {
         openItemForm(entityClass, null, id, onSaved);
@@ -575,7 +587,7 @@ public class FormCoordinator implements FormNavigator {
      * @param onSaved     callback после успешного сохранения
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> void openItemForm(Class<T> entityClass,
+    public <T extends IdentifiableEntity<Long>, ID> void openItemForm(Class<T> entityClass,
                                                                   String variant,
                                                                   ID id,
                                                                   Consumer<T> onSaved) {
@@ -598,7 +610,7 @@ public class FormCoordinator implements FormNavigator {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public <T extends IdentifiableEntity, ID> void openItemForm(Class<T> entityClass,
+    public <T extends IdentifiableEntity<Long>, ID> void openItemForm(Class<T> entityClass,
                                                                   String variant,
                                                                   ID id,
                                                                   Consumer<T> onSaved,
@@ -610,10 +622,20 @@ public class FormCoordinator implements FormNavigator {
                 "openItemForm:" + entityClass.getSimpleName(), context)) {
             EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
 
-            if (itemFormOpenMode == FormOpenMode.WORKSPACE_TAB) {
-                openItemFormInWorkspace(entityClass, variant, id, onSaved, meta, parameters);
-            } else {
-                openItemFormAsDialog(entityClass, variant, id, onSaved, meta, parameters);
+            try {
+                if (itemFormOpenMode == FormOpenMode.WORKSPACE_TAB) {
+                    openItemFormInWorkspace(entityClass, variant, id, onSaved, meta, parameters);
+                } else {
+                    openItemFormAsDialog(entityClass, variant, id, onSaved, meta, parameters);
+                }
+            } catch (RuntimeException failure) {
+                var denied = AccessDenialPresentation.find(failure);
+                if (denied == null) {
+                    throw failure;
+                }
+                if (scope != null) scope.fail(failure);
+                AccessDenialPresentation.show(AccessDenialPresentation.describe(failure,
+                    "Не удалось открыть форму «" + meta.getItemFormTitle() + "»", metadataResolver));
             }
         }
     }
@@ -653,7 +675,7 @@ public class FormCoordinator implements FormNavigator {
      * недоступную строку.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> void openRowAction(Class<T> entityClass, T entity,
+    private <T extends IdentifiableEntity<Long>, ID> void openRowAction(Class<T> entityClass, T entity,
                                                                   ActionResolver resolver,
                                                                   Consumer<T> onSaved) {
         ActionDecision edit = resolver.decide(CrudAction.EDIT, entity, true);
@@ -674,7 +696,7 @@ public class FormCoordinator implements FormNavigator {
      * Открывает ItemForm в диалоге (оригинальное поведение).
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> void openItemFormAsDialog(
+    private <T extends IdentifiableEntity<Long>, ID> void openItemFormAsDialog(
             Class<T> entityClass, String variant, ID id, Consumer<T> onSaved, EntityMetadataInfo meta,
             Map<String, Object> parameters) {
 
@@ -744,7 +766,12 @@ public class FormCoordinator implements FormNavigator {
                 // пользователь перечитывает данные и повторяет сохранение.
                 showError(String.join("\n", conflict.messages()));
             } else if (result instanceof FormSaveResult.Failure<T> failure) {
-                showError(String.join("\n", failure.messages()));
+                if (AccessDenialPresentation.find(failure.cause()) != null) {
+                    AccessDenialPresentation.show(AccessDenialPresentation.describe(failure.cause(),
+                        "Не удалось сохранить форму «" + meta.getItemFormTitle() + "»", metadataResolver));
+                } else {
+                    showError(String.join("\n", failure.messages()));
+                }
                 // форма остаётся открыта; in-memory rows сохраняются
             }
         });
@@ -785,7 +812,7 @@ public class FormCoordinator implements FormNavigator {
      * Поддерживает dirty/save-подтверждения при закрытии вкладки.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> void openItemFormInWorkspace(
+    private <T extends IdentifiableEntity<Long>, ID> void openItemFormInWorkspace(
             Class<T> entityClass, String variant, ID id, Consumer<T> onSaved, EntityMetadataInfo meta,
             Map<String, Object> parameters) {
 
@@ -897,9 +924,12 @@ public class FormCoordinator implements FormNavigator {
             // каталогом, поэтому здесь остаётся только чтение — и оно идёт до вкладки.
             existing = readExisting(entityClass, id);
         } catch (AccessDeniedException denied) {
-            return OpenResult.forbidden(route, "Чтение " + entityClass.getSimpleName()
-                + " запрещено для текущего пользователя");
+            return routedDenial(route, denied, "Не удалось открыть форму «" + meta.getItemFormTitle() + "»");
         } catch (RuntimeException failure) {
+            if (AccessDenialPresentation.find(failure) != null) {
+                return routedDenial(route, failure,
+                    "Не удалось открыть форму «" + meta.getItemFormTitle() + "»");
+            }
             // Детали остаются на сервере: сообщение страницы состояния стабильно и не рассказывает
             // пользователю ни про драйвер, ни про конфигурацию (E2.2, ADR-0009 §6).
             log.error("Чтение {} для route-входа завершилось ошибкой",
@@ -930,6 +960,14 @@ public class FormCoordinator implements FormNavigator {
             // Запись исчезла между preflight и сборкой: тот же 404, что и у отсутствующей строки
             // (вкладка не добавлена и компонент не закеширован — см. E2.0a).
             return OpenResult.notFound(route);
+        } catch (AccessDeniedException denied) {
+            return routedDenial(route, denied, "Не удалось открыть форму «" + meta.getItemFormTitle() + "»");
+        } catch (RuntimeException failure) {
+            if (AccessDenialPresentation.find(failure) != null) {
+                return routedDenial(route, failure,
+                    "Не удалось открыть форму «" + meta.getItemFormTitle() + "»");
+            }
+            throw failure;
         }
         return OpenResult.opened(route);
     }
@@ -944,7 +982,7 @@ public class FormCoordinator implements FormNavigator {
      * типу аргумента, а это уже другой вызов.</p>
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> T readExisting(Class<?> entityClass, ID id) {
+    private <T extends IdentifiableEntity<Long>, ID> T readExisting(Class<?> entityClass, ID id) {
         BaseService<T, ID> service = findService((Class) entityClass);
         return service.findById(id).orElse(null);
     }
@@ -960,7 +998,7 @@ public class FormCoordinator implements FormNavigator {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void initRouted(ItemFormWrapperView view, Class<?> entityClass, String variant,
                                    Object id, Object loaded, Runnable closeCallback) {
-        view.init((Class) entityClass, variant, id, (IdentifiableEntity) loaded, null,
+        view.init((Class) entityClass, variant, id, (IdentifiableEntity<Long>) loaded, null,
             closeCallback, null);
     }
 
@@ -991,16 +1029,21 @@ public class FormCoordinator implements FormNavigator {
                 + " всегда открывает форму в Workspace (ADR-0009 §3), а вкладку открывать некуда");
         }
 
-        String entryId = listEntryId(entityClass, route.variant(), null);
+        Map<String, Object> parameters = route.state() == null ? Map.of() : Map.of("listState",
+            org.ipro.form.link.ListViewStateToken.decode(route.state()));
+        String entryId = listEntryId(entityClass, route.variant(), parameters);
         registerRoutedTab(entryId, route);
         String title = meta.getListFormTitle()
             + (route.variant() != null ? " (" + route.variant() + ")" : "");
         try {
-            openListInWorkspace((Class) entityClass, route.variant(), null, entryId, title, workspace);
+            openListInWorkspace((Class) entityClass, route.variant(), parameters, entryId, title, workspace);
         } catch (AccessDeniedException denied) {
-            return OpenResult.forbidden(route, "Чтение списка " + entityClass.getSimpleName()
-                + " запрещено для текущего пользователя");
+            return routedDenial(route, denied, "Не удалось открыть список «" + meta.getListFormTitle() + "»");
         } catch (RuntimeException failure) {
+            if (AccessDenialPresentation.find(failure) != null) {
+                return routedDenial(route, failure,
+                    "Не удалось открыть список «" + meta.getListFormTitle() + "»");
+            }
             // Тот же контракт, что и у карточки: пользователю — стабильное сообщение, журналу —
             // причина.
             log.error("Открытие списка {} для route-входа завершилось ошибкой",
@@ -1020,7 +1063,7 @@ public class FormCoordinator implements FormNavigator {
      * @param entityClass класс сущности для выбора
      * @param onSelected  callback при выборе записи
      */
-    public <T extends IdentifiableEntity> void openSelectionForm(Class<T> entityClass,
+    public <T extends IdentifiableEntity<Long>> void openSelectionForm(Class<T> entityClass,
                                                                    Consumer<T> onSelected) {
         openSelectionForm(entityClass, onSelected, null);
     }
@@ -1029,7 +1072,7 @@ public class FormCoordinator implements FormNavigator {
      * Открыть выбор с параметрами открытия; поддерживается сид-фильтр
      * ({@code parameters.get("seedFilter")}) — выбор открывается предотфильтрованным.
      */
-    public <T extends IdentifiableEntity> void openSelectionForm(Class<T> entityClass,
+    public <T extends IdentifiableEntity<Long>> void openSelectionForm(Class<T> entityClass,
                                                                    Consumer<T> onSelected,
                                                                    Map<String, Object> parameters) {
         openSelectionForm(entityClass, null, onSelected, parameters);
@@ -1039,7 +1082,7 @@ public class FormCoordinator implements FormNavigator {
      * Открыть выбор по именованному варианту (набор колонок/диалог из
      * {@code SelectionFormCustomization}); неизвестный вариант — ошибка конфигурации.
      */
-    public <T extends IdentifiableEntity> void openSelectionForm(Class<T> entityClass,
+    public <T extends IdentifiableEntity<Long>> void openSelectionForm(Class<T> entityClass,
                                                                    String variant,
                                                                    Consumer<T> onSelected,
                                                                    Map<String, Object> parameters) {
@@ -1061,7 +1104,7 @@ public class FormCoordinator implements FormNavigator {
      * @param onSaved callback после успешного сохранения
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> void openCopyForm(Class<T> entityClass, ID sourceId,
+    public <T extends IdentifiableEntity<Long>, ID> void openCopyForm(Class<T> entityClass, ID sourceId,
                                                                 Consumer<T> onSaved) {
         BaseService<T, ID> service = findService(entityClass);
         Optional<T> source = service.findById(sourceId);
@@ -1136,8 +1179,13 @@ public class FormCoordinator implements FormNavigator {
      * если descriptor типа его допускает; иначе {@link ServiceLocator} отказывает с
      * реальной причиной.</p>
      */
-    private <T extends IdentifiableEntity, ID> BaseService<T, ID> findService(Class<T> entityClass) {
+    private <T extends IdentifiableEntity<Long>, ID> BaseService<T, ID> findService(Class<T> entityClass) {
         return serviceLocator.findService(entityClass);
+    }
+
+    private OpenResult routedDenial(FormRoute route, Throwable denied, String action) {
+        var report = AccessDenialPresentation.describe(denied, action, metadataResolver);
+        return new OpenResult.Forbidden(route, report.message(), report.administrativeDetails());
     }
 
     private void showError(String message) {

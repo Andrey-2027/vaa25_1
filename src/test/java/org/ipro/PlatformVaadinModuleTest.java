@@ -147,8 +147,10 @@ class PlatformVaadinModuleTest {
                 + " действий (`ActionProvenance`, `ActionProvenanceCatalog`); E3.2.2 §9.1 добавила"
                 + " типизированный снимок каталога Explorer (`ExplorerSnapshot`); E3.2.2 §10.1"
                 + " добавила SPI перехода к структуре (`EntityStructureNavigation`); §10.2 — внутренний helper меню форм"
-                + " (`FormStructureAffordance`) — итого 130")
-            .isEqualTo(130);
+                + " (`FormStructureAffordance`) — итого 130; диагностика отказов — итого 131; R8 добавила"
+                + " шесть типов стандартного списка регистра — итого 137; E1.2b добавила порт права"
+                + " на операцию (`OperationPermissionSource`) — итого 138")
+            .isEqualTo(138);
         assertThat(copies)
             .as("тип есть и в модуле, и в дереве приложения — это split package: компилятор"
                 + " различает такие копии по порядку classpath, а не по замыслу, поэтому"

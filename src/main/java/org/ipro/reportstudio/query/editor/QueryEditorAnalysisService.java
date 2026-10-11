@@ -40,10 +40,7 @@ public class QueryEditorAnalysisService {
         List<ReportParam> params = declaredParams == null ? List.of() : declaredParams.stream()
                 .filter(Objects::nonNull)
                 .toList();
-        Set<String> names = params.stream()
-                .map(ReportParam::getName)
-                .filter(name -> name != null && !name.isBlank())
-                .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
+        Set<String> names = new TreeSet<>(ReportQueryGuard.parameterNamesOf(params));
         return analyze(jpql, names, entityClasses(params));
     }
 

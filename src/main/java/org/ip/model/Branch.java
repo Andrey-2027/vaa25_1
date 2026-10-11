@@ -7,6 +7,7 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.rls.RlsDimension;
@@ -24,6 +25,7 @@ import org.ipro.metadata.HasDisplayName;
     applyToLoadByKey = true)
 @Filter(name = "BRANCH", condition = "id in (:allowedIds)")
 @EntityMetadata(
+    kind = EntityKind.CATALOG,
     listFormTitle = "Филиалы",
     itemFormTitle = "Филиал",
     selectionFormTitle = "Выбор филиала",

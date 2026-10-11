@@ -2,6 +2,8 @@ package org.ipro.rest.config;
 
 import org.ipro.data.EntityReadAccess;
 import org.ipro.rest.catalog.RestResourceCatalog;
+import org.ipro.rest.gateway.DefaultRestReadGateway;
+import org.ipro.rest.gateway.RestReadGateway;
 import org.ipro.rest.security.C5RestOperationRegistrar;
 import org.ipro.rest.security.RestReferenceAuthorizationValidator;
 import org.ipro.rest.service.RestReadService;
@@ -78,5 +80,24 @@ public class RestReadAutoConfiguration {
             }
         }
         return new RestReadService(catalog, readAccess, c5Evaluator, currentUser, referenceValidator, maxWindow);
+    }
+
+    /**
+     * MODULE_API read gateway for the optional HTTP adapter (F-REST-READ-4 §3.4). An empty
+     * catalog is a legal state: it publishes no schema and resolves nothing, so every HTTP
+     * address is a 404 without any JPA type being exposed. With a non-empty catalog the
+     * collaborators are mandatory; a missing one already fails the read service, and the
+     * gateway repeats the check for user-provided service beans.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RestReadGateway restReadGateway(
+            RestResourceCatalog catalog,
+            RestReadService readService,
+            ObjectProvider<RlsCurrentUser> currentUserProvider,
+            ObjectProvider<C5PermissionEvaluator> c5EvaluatorProvider,
+            @Value("${platform.rest.read.max-window:" + RestReadService.DEFAULT_MAX_WINDOW + "}") int maxWindow) {
+        return new DefaultRestReadGateway(catalog, readService,
+            currentUserProvider.getIfAvailable(), c5EvaluatorProvider.getIfAvailable(), maxWindow);
     }
 }

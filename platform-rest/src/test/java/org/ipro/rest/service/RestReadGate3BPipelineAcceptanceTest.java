@@ -163,10 +163,6 @@ class RestReadGate3BPipelineAcceptanceTest {
         // Default: permissions on root are granted
         when(c5Evaluator.isApiPermitted("pipeline_operator", "specifications", 1, "LIST")).thenReturn(true);
         when(c5Evaluator.isEntityReadPermitted("pipeline_operator", PrdSpecEntity.class)).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted("pipeline_operator", PrdSpecEntity.class, "id")).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted("pipeline_operator", PrdSpecEntity.class, "code")).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted("pipeline_operator", PrdSpecEntity.class, "nomenclature")).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted("pipeline_operator", PrdSpecEntity.class, "journal")).thenReturn(true);
 
         service = new RestReadService(catalog, readAccess, c5Evaluator, currentUser, referenceValidator);
     }

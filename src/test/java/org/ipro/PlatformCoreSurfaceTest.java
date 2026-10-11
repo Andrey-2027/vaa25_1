@@ -113,7 +113,7 @@ class PlatformCoreSurfaceTest {
             .containsAll(List.of(Role.values()));
         assertThat(productionTypes)
             .as("проверка не должна быть вакуумной")
-            .hasSize(100);
+            .hasSize(109);
     }
 
     /**

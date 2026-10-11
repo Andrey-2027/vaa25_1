@@ -43,21 +43,21 @@ public class RlsFilterActivator {
     }
 
     private final RlsDimensionRegistry dimensionRegistry;
-    private final RlsReadableIdsCache readableIdsCache;
+    private final RlsReadableIdsResolver readableIdsResolver;
     private final RlsCurrentUser currentUser;
     private final RlsBypassAudit bypassAudit;
 
-    public RlsFilterActivator(RlsDimensionRegistry dimensionRegistry, RlsReadableIdsCache readableIdsCache,
+    public RlsFilterActivator(RlsDimensionRegistry dimensionRegistry, RlsReadableIdsResolver readableIdsResolver,
                               RlsCurrentUser currentUser) {
-        this(dimensionRegistry, readableIdsCache, currentUser, RlsBypassAudit.loggingOnly());
+        this(dimensionRegistry, readableIdsResolver, currentUser, RlsBypassAudit.loggingOnly());
     }
 
     public RlsFilterActivator(RlsDimensionRegistry dimensionRegistry,
-                              RlsReadableIdsCache readableIdsCache,
+                              RlsReadableIdsResolver readableIdsResolver,
                               RlsCurrentUser currentUser,
                               RlsBypassAudit bypassAudit) {
         this.dimensionRegistry = dimensionRegistry;
-        this.readableIdsCache = readableIdsCache;
+        this.readableIdsResolver = readableIdsResolver;
         this.currentUser = currentUser;
         this.bypassAudit = bypassAudit;
     }
@@ -99,7 +99,7 @@ public class RlsFilterActivator {
                 // бросил бы UnknownFilterException.
                 continue;
             }
-            List<Long> allowedIds = readableIdsCache.getReadableIds(dimension, username);
+            List<Long> allowedIds = readableIdsResolver.getReadableIds(dimension, username);
             if (allowedIds == null) {
                 // Wildcard-грант (dimensionValueId = null или dimension = "*") — доступ без
                 // ограничений: фильтр сознательно НЕ включаем (см. обсуждение — @Filter не
@@ -135,6 +135,20 @@ public class RlsFilterActivator {
             "count all references before delete", action);
     }
 
+    /** Read only one recorder's rows with filters suspended; SQL guard enforces table and key scope. */
+    public <T> T withDependentRowCleanup(EntityManager entityManager, String tableName,
+                                         Supplier<T> action) {
+        return withRlsDisabled(entityManager, RlsBypassScope.DEPENDENT_ROW_CLEANUP,
+            "delete dependent rows before root deletion", Set.of(requireTableName(tableName)), action);
+    }
+
+    /** Read a complete recorder set before row-level authorization and replacement. */
+    public <T> T withRecorderSetReplacementRead(EntityManager entityManager, String tableName,
+                                                Supplier<T> action) {
+        return withRlsDisabled(entityManager, RlsBypassScope.RECORDER_SET_REPLACEMENT,
+            "read exact recorder set before replacement", Set.of(requireTableName(tableName)), action);
+    }
+
     public <T> T withDimensionAdministration(EntityManager entityManager, String dimension,
                                               Supplier<T> action) {
         String normalized = dimension == null ? "" : dimension.trim().toUpperCase(java.util.Locale.ROOT);
@@ -151,17 +165,25 @@ public class RlsFilterActivator {
                                   RlsBypassScope scope,
                                   String reason,
                                   Supplier<T> action) {
+        return withRlsDisabled(entityManager, scope, reason, Set.of(), action);
+    }
+
+    private <T> T withRlsDisabled(EntityManager entityManager,
+                                  RlsBypassScope scope,
+                                  String reason,
+                                  Set<String> approvedTables,
+                                  Supplier<T> action) {
         String requestedBy = currentUser.requireAuthenticatedUsername();
         Session session = entityManager.unwrap(Session.class);
         Map<String, List<Long>> disabled = new LinkedHashMap<>();
         for (String dimension : dimensionRegistry.dimensions()) {
             if (dimensionRegistry.kindOf(dimension) != RlsDimensionKind.CHECK_ONLY
                     && session.getEnabledFilter(dimension) != null) {
-                disabled.put(dimension, readableIdsCache.getReadableIds(dimension, requestedBy));
+                disabled.put(dimension, readableIdsResolver.getReadableIds(dimension, requestedBy));
             }
         }
         try {
-            T result = RlsContext.callAsSystem(scope, reason, requestedBy, () -> {
+            T result = RlsContext.callAsSystem(scope, reason, requestedBy, approvedTables, () -> {
                 disabled.keySet().forEach(session::disableFilter);
                 try {
                     return action.get();
@@ -179,6 +201,13 @@ public class RlsFilterActivator {
             bypassAudit.record(scope, reason, requestedBy, false, failure);
             throw failure;
         }
+    }
+
+    private static String requireTableName(String tableName) {
+        if (tableName == null || !tableName.matches("[A-Za-z][A-Za-z0-9_]*")) {
+            throw new IllegalArgumentException("A simple mapped table name is required");
+        }
+        return tableName.toLowerCase(java.util.Locale.ROOT);
     }
 
     /**

@@ -214,7 +214,7 @@ interface public abstract interface org.ipro.events.EntityEvent
   method public abstract org.ipro.events.EventContext context()
 
 interface public abstract interface org.ipro.lifecycle.EntityLifecycle
-  type-parameter T
+  type-parameter T extends org.ipro.identity.IdentifiableEntity<?>
   method public abstract java.lang.Class<T> entityType()
   method public void afterCommit(org.ipro.lifecycle.EntityChangedContext<T>)
   method public void beforeAggregateSave(org.ipro.lifecycle.AggregateSaveContext<T>)
@@ -267,7 +267,7 @@ record public final org.ipro.events.AggregateSection
   method public final java.lang.String toString()
   method public java.lang.Class<?> rowType()
   method public java.util.List<?> rows()
-  method public static org.ipro.events.AggregateSection attached(java.lang.Class<R>, java.util.List<R>)
+  method public static <R> org.ipro.events.AggregateSection attached(java.lang.Class<R>, java.util.List<R>)
 
 record public final org.ipro.events.EntityChangedEvent
   extends java.lang.Record
@@ -346,22 +346,22 @@ record public final org.ipro.events.EventContext
 
 record public final org.ipro.lifecycle.AggregateSaveContext
   extends java.lang.Record
-  type-parameter T
+  type-parameter T extends org.ipro.identity.IdentifiableEntity<?>
   ctor public(T, java.util.List<org.ipro.events.AggregateSection>, org.ipro.events.EventContext)
+  method public <R> java.util.List<R> section(java.lang.Class<R>)
   method public T aggregate()
   method public boolean isSectionAttached(java.lang.Class<?>)
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.Object aggregateId()
-  method public java.util.List<R> section(java.lang.Class<R>)
   method public java.util.List<org.ipro.events.AggregateSection> sections()
   method public org.ipro.events.EventContext eventContext()
   method public org.ipro.events.EventSource source()
 
 record public final org.ipro.lifecycle.EntityChangedContext
   extends java.lang.Record
-  type-parameter T
+  type-parameter T extends org.ipro.identity.IdentifiableEntity<?>
   ctor public(T, org.ipro.events.EventContext)
   method public T entity()
   method public final boolean equals(java.lang.Object)
@@ -373,7 +373,7 @@ record public final org.ipro.lifecycle.EntityChangedContext
 
 record public final org.ipro.lifecycle.EntityDeleteContext
   extends java.lang.Record
-  type-parameter T
+  type-parameter T extends org.ipro.identity.IdentifiableEntity<?>
   ctor public(T, org.ipro.events.EventContext)
   method public T entity()
   method public final boolean equals(java.lang.Object)
@@ -385,7 +385,7 @@ record public final org.ipro.lifecycle.EntityDeleteContext
 
 record public final org.ipro.lifecycle.EntitySaveContext
   extends java.lang.Record
-  type-parameter T
+  type-parameter T extends org.ipro.identity.IdentifiableEntity<?>
   ctor public(T, org.ipro.events.EventContext)
   method public T entity()
   method public final boolean equals(java.lang.Object)
@@ -397,7 +397,7 @@ record public final org.ipro.lifecycle.EntitySaveContext
 
 record public final org.ipro.lifecycle.EntityUpdateContext
   extends java.lang.Record
-  type-parameter T
+  type-parameter T extends org.ipro.identity.IdentifiableEntity<?>
   ctor public(T, T, org.ipro.events.EventContext)
   method public T original()
   method public T updated()

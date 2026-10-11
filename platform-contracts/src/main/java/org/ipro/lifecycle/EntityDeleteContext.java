@@ -7,7 +7,7 @@ import org.ipro.events.EventSource;
 import java.util.Objects;
 
 /** Контекст lifecycle-операции удаления entity. */
-public record EntityDeleteContext<T extends IdentifiableEntity>(
+public record EntityDeleteContext<T extends IdentifiableEntity<?>>(
         T entity,
         EventContext eventContext) {
 

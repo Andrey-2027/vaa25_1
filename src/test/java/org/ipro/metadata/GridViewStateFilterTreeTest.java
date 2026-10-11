@@ -13,6 +13,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GridViewStateFilterTreeTest {
+    @Test void listOptionsRoundTripAndLegacyStateHasEmptyOptions() {
+        var state = new GridViewState(List.of(), List.of()).withOptions(java.util.Map.of(
+            "register.mode", "Срез последних", "register.asOf", "2026-10-09T12:34:56.123"));
+        assertThat(GridViewState.fromJson(state.toJson()).options()).isEqualTo(state.options());
+        assertThat(GridViewState.fromJson("{\"columns\":[],\"filters\":[]}").options()).isEmpty();
+    }
     @Test
     void serializesFixedAndNestedUserFilter() {
         FilterNode fixed = FilterConditionNode.of(new FilterCondition(

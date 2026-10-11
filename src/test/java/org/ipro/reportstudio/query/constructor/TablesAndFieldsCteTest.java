@@ -24,7 +24,7 @@ class TablesAndFieldsCteTest {
         tab.refreshFromDraft();
 
         assertThat(tab.cteRoots()).extracting(ConstructorTreeNode::caption)
-                .contains("tmp1 (Временная таблица)");
+                .contains("tmp1 (временная таблица)");
         tab.addNode(tab.cteRoots().get(0));
         assertThat(draft.rootAlias()).isEqualTo("t");
         assertThat(draft.hasRoot()).isTrue();

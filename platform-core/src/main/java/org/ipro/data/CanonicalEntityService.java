@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Default data handle для {@code STANDARD_ROOT} без application repository/service
@@ -29,7 +30,7 @@ import java.util.Optional;
  * запрос с literal escaping, детерминированным порядком и bounded paging — не выгрузка
  * таблицы и не in-memory фильтр.</p>
  */
-public class CanonicalEntityService<T extends IdentifiableEntity> implements BaseService<T, Long> {
+public class CanonicalEntityService<T extends IdentifiableEntity<Long>> implements BaseService<T, Long> {
 
     private final Class<T> type;
     private final CanonicalReadExecutor readExecutor;
@@ -65,6 +66,18 @@ public class CanonicalEntityService<T extends IdentifiableEntity> implements Bas
     @Override
     public void delete(Long id) {
         access.delete(type, id);
+    }
+
+    /**
+     * Именованная операция владельца на строке (ADR-0019): право выражено ключом
+     * {@code ACTION:<permissionId>}, мутация применяется к загруженной строке.
+     *
+     * <p>Не третий write-путь: та же граница, что у прочих намерений, но источник права —
+     * именованное определение владельца, а не capability типа. Доменные правила операции
+     * остаются у владельца: сюда приходит мутация, а не сущность для слияния.</p>
+     */
+    public T executeNamed(String permissionId, Object id, Consumer<T> mutation) {
+        return access.executeNamed(type, permissionId, id, mutation);
     }
 
     @Override

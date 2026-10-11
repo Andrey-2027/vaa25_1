@@ -58,6 +58,23 @@ class C5ReadDecisionServiceTest {
         assertThat(decision.roles()).isEmpty();
     }
 
+    @Test void legacyFieldKeysUseOnlyTheEntityReadGrant() {
+        exact("USER", "alice", grant(true, false, false));
+        assertThat(service.isReadGranted("ATTR:org.example.Model:code", "alice")).isTrue();
+        assertThat(service.isReadGranted("ATTR:org.example.Model:name", "alice")).isTrue();
+        assertThat(service.decide("ATTR:org.example.Model:code", AccessGrant.SubjectType.USER, "alice").granted()).isTrue();
+        Mockito.verify(grantRepository, Mockito.never()).findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            any(), any(), org.mockito.ArgumentMatchers.startsWith("ATTR:"));
+    }
+
+    @Test void storedFieldGrantCannotReplaceEntityRead() {
+        when(grantRepository.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, "alice", "ATTR:org.example.Model:code"))
+            .thenReturn(List.of(grant(true, false, false)));
+        assertThat(service.isReadGranted(KEY, "alice")).isFalse();
+        assertThat(service.isReadGranted("ATTR:org.example.Model:code", "alice")).isFalse();
+    }
+
     @Test
     void assignedRoleGrantAllowsUserAndRoleSubject() {
         exact("ROLE", "ROLE_ENGINEER", grant(true, false, false));

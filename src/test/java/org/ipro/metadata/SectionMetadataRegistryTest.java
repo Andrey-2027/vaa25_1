@@ -21,6 +21,8 @@ class SectionMetadataRegistryTest {
 
         assertThat(registry.all()).extracting(TableSectionMetadataInfo::getKey)
             .containsExactly(
+                "AccountingObjectCorrection.AccountingObjectCorrectionItem",
+                "AccountingObjectInstallation.AccountingObjectInstallationItem",
                 "Nomenclature.NomAttributeValue",
                 "PrdSpec.PrdSpecMtr",
                 "PrdSpec.PrdSpecOper",

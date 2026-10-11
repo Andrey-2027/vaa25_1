@@ -13,6 +13,8 @@ import org.ipro.reportstudio.dom.ReportOrder;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.param.EntityParamRefresher;
 import org.ipro.reportstudio.param.ReportParamResolver;
+import org.ipro.reportstudio.param.ResolvedParams;
+import org.ipro.reportstudio.param.ResolvedParams;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -27,6 +29,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ReportQueryAssemblyServiceVisualFilterTest {
+    @Test
+    void outerFilterUsesCheckedColumnPathAndDoesNotOverwriteInnerConstantBindings() {
+        var guard = mock(ReportQueryGuard.class); var resolver = mock(ReportParamResolver.class);
+        var field = new QueryField("code", "p.code", String.class, "Код", true, false, false);
+        when(guard.guard(any(String.class), anySet(), any())).thenReturn(GuardResult.allowed(
+            new Analysis(List.of(), List.of(), List.of(field), Set.of())));
+        when(resolver.resolve(any(), any(), any())).thenReturn(ResolvedParams.ok(Map.of()));
+        var where = FilterConditionNode.of(new FilterCondition("p.code", FilterOperator.NE, "inner", null, FilterDataType.TEXT));
+        var definition = new VisualQueryDefinition(3, "Product", "p",
+            List.of(new VisualQueryDefinition.SelectField("p.code", "code")), List.of(), List.of(), List.of(), List.of(),
+            null, where, List.of());
+        var template = new ReportTemplate(); template.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
+        template.setVisualQueryJson(new VisualQueryDefinitionJsonCodec().write(definition));
+        template.setVisualFilterJson(new ObjectMapper().valueToTree(FilterConditionNode.of(
+            new FilterCondition("code", FilterOperator.EQ, "outer", null, FilterDataType.TEXT))).toString());
+        var result = new ReportQueryAssemblyService(guard, resolver, mock(EntityParamRefresher.class)).assemble(template, null, Map.of());
+        assertThat(result.jpql()).contains("p.code <> :visualFilter_1", "p.code = :reportFilter_1");
+        assertThat(result.bindings()).containsEntry("visualFilter_1", "inner").containsEntry("reportFilter_1", "outer");
+    }
+
     @Test
     void assemblesFilterBeforeGroupHavingAndOrderWithParameterBindings() {
         ReportQueryGuard guard = mock(ReportQueryGuard.class);

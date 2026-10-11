@@ -79,7 +79,7 @@ public class ServiceLocator implements SmartInitializingSingleton, EntityService
         for (Map.Entry<String, BaseService> entry : beans.entrySet()) {
             BaseService<?, ?> service = Objects.requireNonNull(entry.getValue(),
                 "BaseService bean must not be null");
-            Class<?> entityType = entityTypeOf(service.getClass());
+            Class<?> entityType = entityTypeOf(org.springframework.aop.support.AopUtils.getTargetClass(service));
             if (entityType == null) {
                 throw new IllegalStateException("BaseService bean '" + entry.getKey() + "' ("
                     + service.getClass().getName() + ") does not declare its entity type as the"
@@ -102,7 +102,7 @@ public class ServiceLocator implements SmartInitializingSingleton, EntityService
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends IdentifiableEntity, ID> BaseService<T, ID> findService(Class<T> entityClass) {
+    public <T extends IdentifiableEntity<Long>, ID> BaseService<T, ID> findService(Class<T> entityClass) {
         // Owned-строка секции не бывает самостоятельной сущностью: её чтение не может
         // выразить обязательный предикат владельца (доступ наследуется от агрегата),
         // поэтому у неё нет автономного сервиса/списка. Сообщаем реальную причину
@@ -144,7 +144,7 @@ public class ServiceLocator implements SmartInitializingSingleton, EntityService
      * а не скрытый generic-путь.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> BaseService<T, ID> canonicalService(Class<T> entityClass) {
+    private <T extends IdentifiableEntity<Long>, ID> BaseService<T, ID> canonicalService(Class<T> entityClass) {
         if (dataAccessResolver == null) {
             return null;
         }

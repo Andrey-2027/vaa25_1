@@ -4,6 +4,8 @@ import org.ip.model.ReceivingDocument;
 import org.ip.model.ReceivingDocumentItem;
 import org.ipro.events.EntityEventPublisher;
 import org.ipro.events.EventSource;
+import org.ipro.register.RecorderSetContribution;
+import org.ipro.registerfixtures.RecorderPersistenceFixtures.RecordedPeriodicRegisterFixture;
 import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.telemetry.api.OperationScope;
@@ -98,6 +100,34 @@ class MetadataDrivenAggregateTelemetryTest {
 
         verify(telemetry, never()).beginOperation(anyString());
         verify(serviceLocator, never()).findService(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void explicitlyAttachedEmptyRecorderSetReachesItsServerParticipant() {
+        ReceivingDocument header = new ReceivingDocument();
+        ReceivingDocument saved = new ReceivingDocument();
+        saved.setId(11L);
+        BaseService rootService = mock(BaseService.class);
+        doReturn(rootService).when(serviceLocator).findService(ReceivingDocument.class);
+        when(rootService.save(header)).thenReturn(saved);
+
+        RecorderSetContribution clearSet = new RecorderSetContribution(
+            RecordedPeriodicRegisterFixture.class, List.of());
+        AggregateSaveContributionParticipant participant = mock(AggregateSaveContributionParticipant.class);
+        when(participant.supports(ReceivingDocument.class, clearSet)).thenReturn(true);
+        MetadataDrivenAggregateSaveService withRecorderParticipant = new MetadataDrivenAggregateSaveService(
+            serviceLocator, sectionRegistry, sectionService, eventPublisher,
+            new org.ipro.lifecycle.EntityLifecycleRegistry(List.of()), List.of(participant));
+
+        inTransaction(() -> withRecorderParticipant.save(header, List.of(), List.of(clearSet), EventSource.SYSTEM));
+
+        verify(participant).apply(saved, clearSet,
+            new AggregateSaveParticipantContext(true, null));
+        verify(eventPublisher).publishAggregateSaving(
+            any(), org.mockito.ArgumentMatchers.argThat(sections -> sections.size() == 1
+                && sections.getFirst().rowType() == RecordedPeriodicRegisterFixture.class
+                && sections.getFirst().rows().isEmpty()), any());
     }
 
     private static <T> T inTransaction(Supplier<T> action) {

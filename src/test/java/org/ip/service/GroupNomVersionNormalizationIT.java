@@ -80,7 +80,9 @@ class GroupNomVersionNormalizationIT {
         ReflectionTestUtils.setField(readExecutor, "entityManager", entityManager);
 
         writeExecutor = new CanonicalWriteExecutor(catalog, readExecutor, entityManager,
-            validator, null, null, null, null, null, null, sections);
+            validator, null, null, null, null, null, null, sections, null, List.of(),
+            () -> "test-user",
+            org.mockito.Mockito.mock(org.ipro.rls.c5.C5PermissionDecisionService.class));
     }
 
     @Test

@@ -17,10 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @SessionScope — бин привязан к HTTP/Vaadin-сессии текущего логина; на каждого
  * пользователя своя копия, живёт до логаута/истечения сессии.
+ *
+ * <p>Реализует {@link RlsReadableIdsResolver} — это default UI-источник для
+ * {@link RlsFilterActivator}; REST-путь получает свой request-scoped источник
+ * (F-REST-READ-4 §4), не меняя этот бин.</p>
  */
 @Component
 @SessionScope
-public class RlsReadableIdsCache {
+public class RlsReadableIdsCache implements RlsReadableIdsResolver {
 
     /** Оборачивает результат AccessService.getReadableIds(), который сам может быть null
      *  (безграничный доступ) — ConcurrentHashMap не хранит null-значения напрямую. */
@@ -40,6 +44,7 @@ public class RlsReadableIdsCache {
      * см. {@link AccessService#getReadableIds(String, String)} — null означает доступ
      * без ограничений по этому измерению.
      */
+    @Override
     public synchronized List<Long> getReadableIds(String dimension, String username) {
         long currentVersion = AccessGrantVersion.current();
         if (currentVersion != cachedVersion || !Objects.equals(username, cachedUsername)) {

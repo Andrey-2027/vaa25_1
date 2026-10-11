@@ -69,6 +69,7 @@ public final class ItemFormLinkAffordance {
 
     /** Id записи либо {@code null}, если он ещё не присвоен (или тип не объявляет идентичность). */
     private static Long idOf(Object entity) {
-        return entity instanceof IdentifiableEntity identifiable ? identifiable.getId() : null;
+        return entity instanceof IdentifiableEntity<?> identifiable
+            && identifiable.getId() instanceof Long id ? id : null;
     }
 }

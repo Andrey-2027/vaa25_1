@@ -20,20 +20,20 @@ import java.util.List;
  * <p>Владелец закрытия host-компонента (Dialog/Workspace) принимает решение по
  * {@link #success()}; use case/adapter форму не закрывают.</p>
  */
-public sealed interface FormSaveResult<T extends IdentifiableEntity>
+public sealed interface FormSaveResult<T extends IdentifiableEntity<Long>>
         permits FormSaveResult.Success, FormSaveResult.Failure, FormSaveResult.Conflict {
 
     boolean success();
 
     /** Успешное сохранение; {@code saved} — персистентная сущность. */
-    record Success<T extends IdentifiableEntity>(T saved) implements FormSaveResult<T> {
+    record Success<T extends IdentifiableEntity<Long>>(T saved) implements FormSaveResult<T> {
         public boolean success() {
             return true;
         }
     }
 
     /** Ошибка сохранения; {@code messages} — сообщения для показа пользователю. */
-    record Failure<T extends IdentifiableEntity>(List<String> messages, Throwable cause)
+    record Failure<T extends IdentifiableEntity<Long>>(List<String> messages, Throwable cause)
             implements FormSaveResult<T> {
         public boolean success() {
             return false;
@@ -50,7 +50,7 @@ public sealed interface FormSaveResult<T extends IdentifiableEntity>
      * {@code ItemForm.save()} (граница {@link FormSaveHandler}); host читает
      * {@code Conflict} явно, чтобы предложить пользователю перечитать данные.</p>
      */
-    record Conflict<T extends IdentifiableEntity>(List<String> messages, Throwable cause)
+    record Conflict<T extends IdentifiableEntity<Long>>(List<String> messages, Throwable cause)
             implements FormSaveResult<T> {
         public boolean success() {
             return false;

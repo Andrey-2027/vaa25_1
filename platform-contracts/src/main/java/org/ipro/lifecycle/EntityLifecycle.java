@@ -10,7 +10,7 @@ import org.ipro.identity.IdentifiableEntity;
  * UI-канала. Spring events остаются внутренним transport-механизмом и не являются
  * обязательным API для предметных правил.</p>
  */
-public interface EntityLifecycle<T extends IdentifiableEntity> {
+public interface EntityLifecycle<T extends IdentifiableEntity<?>> {
 
     /** Сущность, за которую отвечает этот handler. */
     Class<T> entityType();

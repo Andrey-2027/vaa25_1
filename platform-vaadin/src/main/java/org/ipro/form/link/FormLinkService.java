@@ -46,6 +46,15 @@ public class FormLinkService {
         return link(FormRouteKind.LIST, type, null, variant);
     }
 
+    public FormLinkResult linkToList(Class<?> type, String variant, String stateJson) {
+        FormLinkResult result = linkToList(type, variant);
+        if (result.linkPath().isEmpty()) return result;
+        FormRouteParseResult parsed = codec.parse(result.linkPath().orElseThrow());
+        FormRoute base = parsed.parsedRoute().orElseThrow();
+        FormRoute route = new FormRoute(base.kind(), base.entityKey(), null, base.variant(), ListViewStateToken.encode(stateJson));
+        return FormLinkResult.linkable(route, codec.format(route));
+    }
+
     /** Ссылка на форму: {@code null} id — default-вариант списка, {@code null} variant — default-форма. */
     public FormLinkResult link(FormRouteKind kind, Class<?> type, Long id, String variant) {
         Objects.requireNonNull(kind, "kind must not be null");

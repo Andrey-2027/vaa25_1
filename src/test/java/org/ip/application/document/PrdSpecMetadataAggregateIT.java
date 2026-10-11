@@ -21,6 +21,7 @@ import org.ipro.rls.AccessGrantRepository;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.rls.RlsAccessDeniedException;
 import org.ipro.rls.RlsTestFixture;
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,17 +82,17 @@ class PrdSpecMetadataAggregateIT {
         PrdSpec spec = newSpecWithReferences(suffix);
         PrdSpecMtr row = material(1);
 
-        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> aggregateSaveService.save(spec,
+        runAsSpecWriter(() -> aggregateSaveService.save(spec,
             List.of(MetadataDrivenAggregateSaveService.SectionInput.attached(
                 PrdSpecMtr.class, List.of(row))), EventSource.SYSTEM));
         Long existingRowId = rowsFor(spec).getFirst().getId();
 
-        RlsTestFixture.runAsSuperuser(accessGrantRepository,
+        runAsSpecWriter(
             () -> aggregateSaveService.save(spec, List.of(), EventSource.SYSTEM));
         assertThat(rowsFor(spec)).singleElement()
             .extracting(PrdSpecMtr::getId).isEqualTo(existingRowId);
 
-        assertThatThrownBy(() -> RlsTestFixture.runAsSuperuser(accessGrantRepository,
+        assertThatThrownBy(() -> runAsSpecWriter(
             () -> aggregateSaveService.save(spec,
                 List.of(MetadataDrivenAggregateSaveService.SectionInput.attached(
                     PrdSpecMtr.class, List.of())), EventSource.SYSTEM)))
@@ -109,11 +110,12 @@ class PrdSpecMetadataAggregateIT {
         persistGrant("metadata-save-user", allowedJournal.getId(), true, true, false);
         loginAs("metadata-save-user");
 
+        // ADR-0017: операцию решает C5 — у субъекта есть только журнал, но нет права на
+        // операцию над PrdSpec, поэтому отказ приходит от C5 до RLS и до persistence.
         assertThatThrownBy(() -> aggregateSaveService.save(
                 unsaved, List.of(), EventSource.UI))
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("Нет прав на изменение")
-            .hasMessageContaining("JOURNAL");
+            .isInstanceOf(org.ipro.rls.c5.C5AccessDeniedException.class)
+            .hasMessageContaining("ENTITY:PrdSpec");
         assertThat(prdSpecRepository.findAll())
             .noneMatch(saved -> unsaved.getCodeSpec().equals(saved.getCodeSpec()));
 
@@ -122,6 +124,10 @@ class PrdSpecMetadataAggregateIT {
             aggregateSaveService.save(newSpecWithReferences(suffix + "d"),
                 List.of(), EventSource.SYSTEM).aggregate());
         persistGrant("metadata-delete-user", persisted.getJournal().getId(), true, true, false);
+        // ADR-0017: право на операцию выдано намеренно — иначе отказ пришёл бы от C5 и проверял
+        // бы не строковую защиту. Права на удаление строки (JOURNAL, delete=false) у субъекта
+        // нет, поэтому отказ обязан прийти именно от RLS.
+        grantOperation("metadata-delete-user", false, true);
         loginAs("metadata-delete-user");
 
         assertThatThrownBy(() -> serviceLocator.findService(PrdSpec.class).delete(persisted.getId()))
@@ -138,7 +144,7 @@ class PrdSpecMetadataAggregateIT {
         PrdSpecMtr selfComponent = material(1);
         selfComponent.setNomenclature(spec.getNomenclature());
 
-        assertThatThrownBy(() -> RlsTestFixture.runAsSuperuser(accessGrantRepository,
+        assertThatThrownBy(() -> runAsSpecWriter(
             () -> aggregateSaveService.save(spec,
                 List.of(MetadataDrivenAggregateSaveService.SectionInput.attached(
                     PrdSpecMtr.class, List.of(selfComponent))), EventSource.UI)))
@@ -202,7 +208,7 @@ class PrdSpecMetadataAggregateIT {
 
     private void persistGrant(String username, Long journalId,
                               boolean read, boolean update, boolean delete) {
-        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+        runAsSpecWriter(() -> {
             AccessGrant grant = new AccessGrant();
             grant.setSubjectType(AccessGrant.SubjectType.USER);
             grant.setSubjectKey(username);
@@ -215,7 +221,29 @@ class PrdSpecMetadataAggregateIT {
         });
     }
 
+    private void runAsSpecWriter(Runnable action) {
+        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                SecurityContextHolder.getContext().getAuthentication().getName(), PrdSpec.class);
+            action.run();
+        });
+    }
+
+    /** Операционное право C5: тот же ключ {@code ENTITY:<SimpleName>}, но отдельная строка. */
+    private void grantOperation(String username, boolean update, boolean delete) {
+        runAsSpecWriter(() -> {
+            AccessGrant grant = new AccessGrant();
+            grant.setSubjectType(AccessGrant.SubjectType.USER);
+            grant.setSubjectKey(username);
+            grant.setDimension(C5PermissionKeys.entityOperations(PrdSpec.class));
+            grant.setCanUpdate(update);
+            grant.setCanDelete(delete);
+            accessGrantRepository.save(grant);
+        });
+    }
+
     private void loginAs(String username) {
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, username, PrdSpec.class);
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(username, "n/a", List.of()));
     }

@@ -15,6 +15,7 @@ import org.ipro.crud.InternedEntity;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.metadata.annotation.Lookup;
@@ -40,6 +41,7 @@ import org.ipro.metadata.annotation.Lookup;
     @UniqueConstraint(name = "uk_attr_value_type_ref", columnNames = {"attr_type_id", "ref_id"})
 })
 @EntityMetadata(
+    kind = EntityKind.CATALOG,
     listFormTitle = "Значения атрибутов",
     itemFormTitle = "Значение атрибута",
     selectionFormTitle = "Выбор значения атрибута",

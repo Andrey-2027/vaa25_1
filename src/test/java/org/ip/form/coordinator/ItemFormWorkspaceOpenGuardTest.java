@@ -225,7 +225,7 @@ class ItemFormWorkspaceOpenGuardTest {
      * быть искусственно.</p>
      */
     @SuppressWarnings("unchecked")
-    private <T extends IdentifiableEntity, ID> void stubService(
+    private <T extends IdentifiableEntity<Long>, ID> void stubService(
             Class<T> entityClass, ID id, Optional<T> result) {
         BaseService<T, ID> service = mock(BaseService.class);
         when(service.findById(id)).thenReturn(result);

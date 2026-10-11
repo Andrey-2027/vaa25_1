@@ -1,5 +1,6 @@
 package org.ipro.form.action;
 
+import org.ipro.data.DataOperation;
 import org.ipro.data.EntityCapabilities;
 import org.ipro.data.EntityDescriptor;
 import org.ipro.data.EntityDescriptorCatalog;
@@ -24,9 +25,19 @@ import java.util.Objects;
  *
  * <p><b>Откуда берутся входы.</b> Capabilities — из {@link EntityDescriptorCatalog} (C4, ADR-0007),
  * то есть из той же policy типа, которой пользуется canonical path, а не из второй таблицы
- * исключений в UI. Права — из {@link RlsUiGate}. После C5 (E1.2b) в {@link ActionPermission}
- * добавится resource/action-решение; менять сигнатуры провайдера для этого не потребуется, а
- * вводить permissive-заглушку вместо отсутствующего провайдера C5 — нельзя.</p>
+ * исключений в UI. Права — из двух ответов, и ни один не подменяет другой: <b>операцию</b> типа
+ * решает C5 ({@link OperationPermissionSource}, тот же движок, что спрашивает серверная граница,
+ * ADR-0017 §3), <b>строку</b> — RLS ({@link RlsUiGate}, построчные измерения). Право на операцию
+ * обязательно, а не «желательно»: permissive-заглушки вместо отсутствующего источника операций
+ * здесь нет — без него провайдер падает, а не разрешает.</p>
+ *
+ * <p><b>Почему композиция именно здесь (E1.2b).</b> Хост, который складывал бы два ответа сам,
+ * получил бы собственную формулу прав и разошёлся бы с сервером: строка, разрешённая построчно,
+ * но без права на операцию, показывала бы доступную кнопку, а серверная граница отказывала бы.
+ * Поэтому оба ответа спрашиваются (и складываются по И) ровно один раз — здесь, а решение
+ * ({@link ActionPolicy}) остаётся чистой функцией от готовых входов. Структурный отказ типа
+ * первичен: если тип не поддерживает операцию, право о ней не спрашивается вовсе — нечего
+ * оценивать, и причина остаётся типовой ({@code TYPE_NOT_SUPPORTED}), как и была.</p>
  *
  * <p><b>Строковые права и выделение.</b> {@code canUpdate}/{@code canDelete} принимают строку,
  * поэтому без выделения их нечем вычислить: {@link #classPermissionOf} отдаёт запрет с причиной
@@ -43,16 +54,18 @@ import java.util.Objects;
  * для неклассифицированного типа, generic CRUD-кнопки у него исчезнут — это проверяется в E1.3 на
  * фактическом составе списков, а не предполагается здесь.</p>
  *
- * <p><b>Потребитель.</b> На этом шаге провайдер ни к одному рендереру не подключён (граница среза
- * E1.2a). Регистрация бина и fail-fast при отсутствии обязательного коллаборатора — вместе с первым
- * потребителем, в E1.3: до него требование «коллаборатор обязателен» нечего проверять, а
- * преждевременная регистрация заставила бы контекст формы требовать каталог дескрипторов там, где
- * он сегодня не нужен.</p>
+ * <p><b>Потребитель.</b> С E1.3 провайдер подключён к рендерерам: `ListForm`, `FormCoordinator`,
+ * `ItemFormWrapperView` и `ItemFormAccessBinder` спрашивают контекст у него, а не собирают входы
+ * сами, поэтому кнопка, карточка и момент клика читают один и тот же составной ответ. Регистрация
+ * бина и fail-fast при отсутствии обязательного коллаборатора живут вместе с этим потребителем
+ * (`FormAutoConfiguration`): требование «коллаборатор обязателен» проверяемо только там, где
+ * решение действительно спрашивают.</p>
  */
 public final class ActionContextProvider {
 
     private final EntityDescriptorCatalog descriptorCatalog;
     private final RlsUiGate rlsUiGate;
+    private final OperationPermissionSource operationPermissions;
     private final FormRouteCatalog routes;
 
     /**
@@ -68,8 +81,9 @@ public final class ActionContextProvider {
      * композиции форм: подключить его везде, где собирается контекст, значило бы требовать адреса
      * там, где решается совсем другой вопрос.</p>
      */
-    public ActionContextProvider(EntityDescriptorCatalog descriptorCatalog, RlsUiGate rlsUiGate) {
-        this(descriptorCatalog, rlsUiGate, null);
+    public ActionContextProvider(EntityDescriptorCatalog descriptorCatalog, RlsUiGate rlsUiGate,
+                                 OperationPermissionSource operationPermissions) {
+        this(descriptorCatalog, rlsUiGate, operationPermissions, null);
     }
 
     /**
@@ -78,11 +92,15 @@ public final class ActionContextProvider {
      * привязка делается здесь, потому что вид адреса известен тому, кто собирает контекст.
      */
     public ActionContextProvider(EntityDescriptorCatalog descriptorCatalog, RlsUiGate rlsUiGate,
+                                 OperationPermissionSource operationPermissions,
                                  FormRouteCatalog routes) {
         this.descriptorCatalog = Objects.requireNonNull(descriptorCatalog,
             "descriptorCatalog must not be null: capability типа — не опция, а первый вход решения");
         this.rlsUiGate = Objects.requireNonNull(rlsUiGate,
             "rlsUiGate must not be null: без него решение не знает прав и обязано падать, а не разрешать");
+        this.operationPermissions = Objects.requireNonNull(operationPermissions,
+            "operationPermissions must not be null: право на операцию — не опция, а второй вход"
+                + " решения; без источника без ответа провайдер обязан падать, а не разрешать");
         this.routes = routes;
     }
 
@@ -96,12 +114,13 @@ public final class ActionContextProvider {
     /**
      * Права уровня класса: определён только {@code create}. Используется для списка без выделения.
      *
-     * <p>{@code canCreate} в текущем RLS-гейте уже устроен как проверка «нового значения измерения»,
-     * то есть строки ему не нужны — поэтому создание здесь вычисляется полностью.</p>
+     * <p>{@code canCreate} в RLS-гейте устроен как проверка «нового значения измерения», то есть
+     * строки ему не нужны, а право на операцию создания приходит от C5 — поэтому создание здесь
+     * вычисляется полностью: оба ответа складываются по И ({@link #createDecision}).</p>
      */
     public ActionPermission classPermissionOf(Class<?> entityType) {
         Objects.requireNonNull(entityType, "entityType must not be null");
-        AccessDecision create = rlsUiGate.canCreate(entityType);
+        AccessDecision create = createDecision(entityType);
         return ActionPermission.forClass(create.allowed(), create.reason());
     }
 
@@ -116,11 +135,39 @@ public final class ActionContextProvider {
         Objects.requireNonNull(entityType, "entityType must not be null");
         Objects.requireNonNull(row, "row must not be null: строковые права вычисляются только"
             + " для конкретной строки, иначе это classPermissionOf");
-        AccessDecision create = rlsUiGate.canCreate(entityType);
-        AccessDecision update = rlsUiGate.canUpdate(row);
-        AccessDecision delete = rlsUiGate.canDelete(row);
+        AccessDecision create = createDecision(entityType);
+        AccessDecision update = compose(entityType, DataOperation.UPDATE,
+            rlsUiGate.canUpdate(row), "изменение");
+        AccessDecision delete = compose(entityType, DataOperation.DELETE,
+            rlsUiGate.canDelete(row), "удаление");
         return new ActionPermission(create.allowed(), create.reason(),
             update.allowed(), update.reason(), delete.allowed(), delete.reason());
+    }
+
+    /** Создание: право на операцию C5 И классовая проверка RLS (новое значение измерения). */
+    private AccessDecision createDecision(Class<?> entityType) {
+        return compose(entityType, DataOperation.CREATE, rlsUiGate.canCreate(entityType), "создание");
+    }
+
+    /**
+     * Композиция двух ответов по И: операция (C5) и строка (RLS).
+     *
+     * <p>Структурный отказ типа первичен и права не спрашивает: если тип не поддерживает
+     * операцию, оценивать нечего, и {@link ActionPolicy} всё равно вернёт типовую причину
+     * раньше прав. Отказ C5 показывается раньше построчного: без права на операцию строка не
+     * станет записываемой ни при каком её состоянии, тогда как построчная причина у операции без
+     * права лишь отвлекала бы от настоящей.</p>
+     */
+    private AccessDecision compose(Class<?> entityType, DataOperation operation,
+                                  AccessDecision rowAnswer, String actionName) {
+        if (!capabilitiesOf(entityType).allows(operation)) {
+            return rowAnswer;
+        }
+        String denial = operationPermissions.denialReason(entityType, operation);
+        if (denial != null) {
+            return new AccessDecision(false, "Нет прав на " + actionName + " (" + denial + ")");
+        }
+        return rowAnswer;
     }
 
     /**
@@ -183,7 +230,7 @@ public final class ActionContextProvider {
      * отсутствие доказательства новизны, а не новизна.</p>
      */
     private static ActionContext.RowState rowStateOf(Object row) {
-        return row instanceof IdentifiableEntity entity && entity.getId() == null
+        return row instanceof IdentifiableEntity<?> entity && entity.getId() == null
             ? ActionContext.RowState.NEW
             : ActionContext.RowState.EXISTING;
     }

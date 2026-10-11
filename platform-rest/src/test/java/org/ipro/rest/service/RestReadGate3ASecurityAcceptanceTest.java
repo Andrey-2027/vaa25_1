@@ -189,19 +189,49 @@ class RestReadGate3ASecurityAcceptanceTest {
     }
 
     @Test
-    @DisplayName("Gate 3A.5: Attribute revocation denies request immediately without silent data omission")
-    void attributeRevocationDeniesRequest() {
+    @DisplayName("Gate 3A.5: Published fields need API and entity permission without attribute grants")
+    void publishedFieldsNeedNoAttributeGrants() {
         when(c5Evaluator.isApiPermitted("security_tester", "samples", 1, "LIST")).thenReturn(true);
         when(c5Evaluator.isEntityReadPermitted("security_tester", SampleEntity.class)).thenReturn(true);
-        // Attribute 'title' revoked
-        when(c5Evaluator.isAttributeReadPermitted("security_tester", SampleEntity.class, "id")).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted("security_tester", SampleEntity.class, "title")).thenReturn(false);
+        when(readAccess.list(any(), any(), any(), any()))
+            .thenReturn(new PageImpl<>(List.of(new SampleEntity(1L, "C", "Title"))));
 
         RestListQuery query = new RestListQuery("samples", 1, List.of("id", "title"), Map.of(), null, null, 0, 10);
 
-        assertThatThrownBy(() -> service.list(query))
-            .isInstanceOf(RestReadException.class)
-            .hasFieldOrPropertyWithValue("outcome", RestReadOutcome.FORBIDDEN)
-            .hasMessageContaining("title");
+        assertThat(service.list(query).content()).singleElement()
+            .satisfies(row -> assertThat(row).containsEntry("id", 1L).containsEntry("title", "Title"));
+        Mockito.verify(c5Evaluator, Mockito.never()).isAttributeReadPermitted(any(), any(), any());
+    }
+
+    @Test
+    void initialListAndDetailC5FailurePreservesUnavailableOutcomeAndCause() {
+        var cause = new org.ipro.rls.c5.C5PermissionConfigurationException("grant backend unavailable");
+        when(c5Evaluator.isApiPermitted(any(), any(), org.mockito.ArgumentMatchers.anyInt(), any()))
+            .thenThrow(cause);
+        assertThatThrownBy(() -> service.list(new RestListQuery(
+            "samples", 1, List.of("id"), Map.of(), null, null, 0, 10)))
+            .isInstanceOf(RestReadException.class).hasCause(cause)
+            .hasFieldOrPropertyWithValue("outcome", RestReadOutcome.SECURITY_UNAVAILABLE);
+        assertThatThrownBy(() -> service.detail(new RestDetailQuery("samples", 1, List.of("id"), 1L)))
+            .isInstanceOf(RestReadException.class).hasCause(cause)
+            .hasFieldOrPropertyWithValue("outcome", RestReadOutcome.SECURITY_UNAVAILABLE);
+        org.mockito.Mockito.verifyNoInteractions(readAccess);
+    }
+
+    @Test
+    void establishedStorageFailureIsUnavailableRatherThanEmptyOrNotFound() {
+        when(c5Evaluator.isApiPermitted(any(), any(), org.mockito.ArgumentMatchers.anyInt(), any())).thenReturn(true);
+        when(c5Evaluator.isEntityReadPermitted(any(), any())).thenReturn(true);
+        for (RuntimeException cause : List.of(
+                new org.springframework.dao.DataAccessResourceFailureException("storage connection unavailable"),
+                new org.hibernate.exception.JDBCConnectionException("storage connection unavailable",
+                    new java.sql.SQLException("connection lost")),
+                new jakarta.persistence.QueryTimeoutException("query timeout"))) {
+            org.mockito.Mockito.doThrow(cause).when(readAccess).list(any(), any(), any(), any());
+            assertThatThrownBy(() -> service.list(new RestListQuery(
+                "samples", 1, List.of("id"), Map.of(), null, null, 0, 10)))
+                .isInstanceOf(RestReadException.class).hasCause(cause)
+                .hasFieldOrPropertyWithValue("outcome", RestReadOutcome.SECURITY_UNAVAILABLE);
+        }
     }
 }

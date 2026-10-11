@@ -11,6 +11,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import org.ip.application.catalog.AttributeValuePermissions;
 import org.ip.model.AttributeType;
 import org.ip.model.AttributeValue;
 import org.ip.model.AttributeValueType;
@@ -26,10 +27,20 @@ import java.util.List;
  * типа (код/значение). Для «Внутреннего справочника» — добавление новых значений
  * в процессе работы; переименование — обработкой (кнопка «Переименовать», id строки
  * не меняется, привязки следуют автоматически). Удаления нет: значения бессмертны.
+ *
+ * <p><b>Доступность кнопок — тот же ответ, что у серверного пути (ADR-0019 §5).</b> И создание
+ * значения, и переименование требуют права C5, поэтому кнопка берёт ответ у владельца операции
+ * ({@link AttributeValuePermissions}), а не из собственного условия формы: включённая кнопка,
+ * которую сервер откажет, — обещание, которого никто не исполнит. Сужение по типу значения
+ * (ENUM для добавления, «не Ссылка» для переименования) остаётся доменным правилом формы и
+ * действует вместе с решением.</p>
  */
 public class AttributeTypeForm extends ItemForm<AttributeType> {
 
     private final AttributeValueService valueService;
+
+    /** Решение о доступности операций — тот же источник, что у серверного пути. */
+    private final AttributeValuePermissions permissions;
     private final Grid<AttributeValue> valuesGrid = new Grid<>();
     private final Button addValueButton = new Button("Добавить значение", VaadinIcon.PLUS.create());
     private final Button renameValueButton = new Button("Переименовать", VaadinIcon.PENCIL.create());
@@ -39,9 +50,11 @@ public class AttributeTypeForm extends ItemForm<AttributeType> {
     private boolean readOnly;
 
     public AttributeTypeForm(EntityMetadataInfo meta, FieldFactory fieldFactory,
-                             AttributeValueService valueService) {
+                             AttributeValueService valueService,
+                             AttributeValuePermissions permissions) {
         super(meta, fieldFactory, (List<String>) null);
         this.valueService = valueService;
+        this.permissions = permissions;
 
         H4 title = new H4("Значения");
         valuesGrid.addColumn(AttributeValue::getCode).setHeader("Код").setWidth("200px");
@@ -96,10 +109,13 @@ public class AttributeTypeForm extends ItemForm<AttributeType> {
     private void updateButtons() {
         AttributeType type = current;
         boolean editable = !readOnly && type != null && type.getId() != null;
-        addValueButton.setEnabled(editable && type.getValueType() == AttributeValueType.ENUM);
+        // Доменное сужение действует вместе с решением C5, а не вместо него: кнопка открыта
+        // ровно там, где серверный путь исполнит операцию.
+        addValueButton.setEnabled(editable && type.getValueType() == AttributeValueType.ENUM
+            && permissions.canCreateValue());
         // «Ссылка» не переименовывается: имя — снапшот строки словаря
         renameValueButton.setEnabled(editable && selectedValue != null
-            && type.getValueType() != AttributeValueType.REF);
+            && type.getValueType() != AttributeValueType.REF && permissions.canRenameValue());
     }
 
     private void openAddValueDialog() {

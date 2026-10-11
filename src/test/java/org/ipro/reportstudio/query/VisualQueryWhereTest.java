@@ -17,6 +17,34 @@ import static org.mockito.Mockito.when;
  */
 class VisualQueryWhereTest {
     @Test
+    void runtimeNamesAreRestoredInOnePassWhenOneNameContainsTheCompilerPrefix() {
+        var filter = FilterGroup.and(
+            FilterConditionNode.of(new FilterCondition("p.code", FilterOperator.EQ, ":visualFilterParam_code", null, FilterDataType.TEXT)),
+            FilterConditionNode.of(new FilterCondition("p.name", FilterOperator.EQ, ":code", null, FilterDataType.TEXT)));
+        var definition = new VisualQueryDefinition(3, "Product", "p",
+            List.of(new VisualQueryDefinition.SelectField("p.code", "code")), List.of(), List.of(), List.of(),
+            List.of(), null, filter, List.of(new VisualQueryDefinition.Parameter("visualFilterParam_code", "TEXT", true, null),
+                new VisualQueryDefinition.Parameter("code", "TEXT", true, null)));
+        var compiled = VisualQueryCompiler.compile(definition);
+        assertThat(compiled.jpql()).contains("p.code = :visualFilterParam_code", "p.name = :code");
+        assertThat(compiled.bindings()).containsOnlyKeys("visualFilterParam_code", "code");
+    }
+
+    @Test
+    void declaredWhereParameterKeepsRuntimeNameAndUndeclaredReferenceFailsCompilation() {
+        var filter = new FilterConditionNode(new FilterCondition("p.code", FilterOperator.EQ, ":code", null, FilterDataType.TEXT));
+        var definition = new VisualQueryDefinition(3, "Product", "p",
+            List.of(new VisualQueryDefinition.SelectField("p.code", "code")), List.of(), List.of(), List.of(),
+            List.of(), null, filter, List.of(new VisualQueryDefinition.Parameter("code", "TEXT", true, null)));
+        var compiled = VisualQueryCompiler.compile(definition);
+        assertThat(compiled.jpql()).contains("p.code = :code").doesNotContain("visualFilterParam_");
+        assertThat(compiled.bindings()).containsEntry("code", VisualQueryCompiler.PENDING_PARAM);
+        var undeclared = new VisualQueryDefinition(3, "Product", "p", definition.selectFields(), List.of(), List.of(),
+            List.of(), List.of(), null, filter, List.of());
+        assertThatThrownBy(() -> VisualQueryCompiler.compile(undeclared)).hasMessageContaining("code");
+    }
+
+    @Test
     void compileWithoutCatalogUsesPermissiveResolver() {
         var definition = definition("p.mystery");
         var assembled = VisualQueryCompiler.compile(definition);

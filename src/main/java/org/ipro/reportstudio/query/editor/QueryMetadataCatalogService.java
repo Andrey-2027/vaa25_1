@@ -26,6 +26,24 @@ public class QueryMetadataCatalogService {
     private final MetadataResolver metadataResolver;
     private final RlsReadGate rlsReadGate;
     private final RlsCurrentUser currentUser;
+    private org.ipro.reportstudio.query.QueryBuilderMetadataCatalog sharedCatalog;
+    private org.ipro.reportstudio.query.register.RegisterSliceReportTemplates slices;
+    public void useSharedCatalog(org.ipro.reportstudio.query.QueryBuilderMetadataCatalog catalog,
+                                 org.ipro.reportstudio.query.register.RegisterSliceReportTemplates recipes) {
+        sharedCatalog = catalog; slices = recipes;
+    }
+
+    private QueryMetadataNode convert(org.ipro.reportstudio.query.constructor.ConstructorTreeNode node) {
+        var kind = switch (node.kind()) {
+            case ENTITY -> QueryMetadataNode.Kind.ENTITY; case PROPERTY -> QueryMetadataNode.Kind.PROPERTY;
+            case ASSOCIATION -> QueryMetadataNode.Kind.ASSOCIATION; case GROUP -> QueryMetadataNode.Kind.GROUP;
+            case SLICE -> QueryMetadataNode.Kind.SLICE; case CTE -> QueryMetadataNode.Kind.CTE;
+        };
+        return new QueryMetadataNode(kind, org.ipro.reportstudio.query.constructor.CatalogTreeModel.label(node),
+            org.ipro.reportstudio.query.constructor.CatalogTreeModel.name(node),
+            org.ipro.reportstudio.query.constructor.CatalogTreeModel.dataType(node), kind != QueryMetadataNode.Kind.GROUP,
+            node.children().stream().map(this::convert).toList()).category(org.ipro.reportstudio.query.constructor.CatalogTreeModel.category(node));
+    }
 
     public QueryMetadataCatalogService(EntityManagerFactory entityManagerFactory,
                                        MetadataResolver metadataResolver,
@@ -39,6 +57,8 @@ public class QueryMetadataCatalogService {
 
     /** Возвращает только сущности с {@code @EntityMetadata} и доступные по CHECK_ONLY RLS-гейту. */
     public List<QueryMetadataNode> roots(String filter) {
+        if (sharedCatalog != null) return org.ipro.reportstudio.query.constructor.CatalogTreeModel.sourceRoots(sharedCatalog.roots(), slices, filter)
+            .stream().map(this::convert).toList();
         String needle = filter == null ? "" : filter.strip().toLowerCase(Locale.ROOT);
         return entityManagerFactory.getMetamodel().getEntities().stream()
                 .sorted(Comparator.comparing(EntityType::getName))

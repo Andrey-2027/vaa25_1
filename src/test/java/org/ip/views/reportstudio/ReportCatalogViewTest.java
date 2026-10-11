@@ -97,6 +97,7 @@ class ReportCatalogViewTest {
     private UreportTemplateService ureportService;
     private JrxmlTemplateService jrxmlService;
     private JrxmlExecutionService jrxmlExecutionService;
+    private org.ip.application.register.NomenclaturePriceReport priceReport;
     private UI ui;
     private MockedConstruction<Notification> notificationConstruction;
 
@@ -120,6 +121,7 @@ class ReportCatalogViewTest {
         ureportService = mock(UreportTemplateService.class);
         jrxmlService = mock(JrxmlTemplateService.class);
         jrxmlExecutionService = mock(JrxmlExecutionService.class);
+        priceReport = mock(org.ip.application.register.NomenclaturePriceReport.class);
         when(catalogService.findAll(any(), anyBoolean())).thenAnswer(invocation -> {
             catalogLoads.incrementAndGet();
             return List.copyOf(catalogItems);
@@ -138,6 +140,27 @@ class ReportCatalogViewTest {
     }
 
     // === каталог ===
+
+    @Test
+    void priceReportActionCreatesThroughTemplateServiceAndOpensTheSavedDraft() {
+        var draft = udrTemplate(31L, "Цены");
+        when(priceReport.createDraft()).thenReturn(draft);
+        when(templateService.nextImportedName("Цены")).thenReturn("Цены (2)");
+        when(templateService.saveTemplate(draft)).thenReturn(draft);
+        var view = newView();
+        var button = descendants(view).filter(component -> component instanceof com.vaadin.flow.component.button.Button)
+            .map(component -> (com.vaadin.flow.component.button.Button) component)
+            .filter(component -> component.getText().equals("Создать отчёт о ценах")).findFirst().orElseThrow();
+        button.click();
+        verify(templateService).saveTemplate(draft);
+        assertThat(draft.getName()).isEqualTo("Цены (2)");
+        assertThat(editorOf(view).editedTemplate()).isSameAs(draft);
+        assertThat(catalogLoads.get()).isEqualTo(2);
+    }
+
+    private static java.util.stream.Stream<com.vaadin.flow.component.Component> descendants(com.vaadin.flow.component.Component root) {
+        return java.util.stream.Stream.concat(java.util.stream.Stream.of(root), root.getChildren().flatMap(ReportCatalogViewTest::descendants));
+    }
 
     @Test
     void loadsUnifiedCatalogOnInitialization() {
@@ -159,6 +182,34 @@ class ReportCatalogViewTest {
     }
 
     // === открытие по типу движка ===
+
+    @Test
+    void openingAndRunningUniDrNavigatesToTheSavedJsonWithoutLoadingOtherEngines() {
+        var destinations = new ArrayList<String>();
+        var queries = new ArrayList<com.vaadin.flow.router.QueryParameters>();
+        ui = new UI() {
+            @Override public void navigate(String destination, com.vaadin.flow.router.QueryParameters parameters) {
+                destinations.add(destination); queries.add(parameters);
+            }
+        };
+        UI.setCurrent(ui);
+        var session = mock(com.vaadin.flow.server.VaadinSession.class);
+        when(session.hasLock()).thenReturn(true);
+        ui.getInternals().setSession(session);
+        var view = viewWithSelection(org.ipro.ureport.catalog.ReportCatalogItemFactory.ofUniDr(3L, "Позиции", ""));
+        ui.add(view);
+
+        invoke(view, "openSelected");
+        invoke(view, "runSelected");
+
+        assertThat(destinations).containsExactly("unidr", "unidr");
+        assertThat(queries).allSatisfy(parameters ->
+                assertThat(parameters.getParameters()).containsEntry("id", List.of("3")));
+        verify(templateService, never()).loadTemplate(any());
+        verify(jrxmlService, never()).findById(any());
+        verify(ureportService, never()).findById(any());
+        assertThat(notifications).isEmpty();
+    }
 
     @Test
     void openingUdrLoadsTheTemplateIntoTheCanonicalEditor() {
@@ -482,7 +533,8 @@ class ReportCatalogViewTest {
                 mock(ReportQueryGuard.class), mock(ReportPreviewService.class),
                 mock(QueryEditorAnalysisService.class), metadata,
                 mock(ReportExecutionService.class), mock(EntityLookup.class),
-                mock(SelectionFormAssembler.class), mock(ReportQueryAssemblyService.class), null);
+                mock(SelectionFormAssembler.class), mock(ReportQueryAssemblyService.class), null,
+                priceReport);
     }
 
     /** Одна запись в каталоге, выбранная строка — как после клика пользователя. */

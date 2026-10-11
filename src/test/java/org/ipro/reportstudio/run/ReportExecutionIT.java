@@ -90,15 +90,20 @@ class ReportExecutionIT {
             new UserRepositoryRlsRoleResolver(userRepository), registry);
         var cache = new RlsReadableIdsCache(accessService);
         var activator = new RlsFilterActivator(registry, cache, () -> SecurityContextHolder.getContext().getAuthentication().getName());
-        var readGate = new org.ipro.rls.RlsReadGate(accessService, registry);
+        var readGate = new org.ipro.rls.RlsReadGate(
+            org.ipro.rls.RlsTestFixture.allowingC5ReadEvaluator(), registry);
 
         var analyzer = new org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer(entityManagerFactory);
         org.ipro.rls.RlsCurrentUser currentSubject =
             () -> SecurityContextHolder.getContext().getAuthentication().getName();
+        var managed = new org.ipro.metadata.ManagedEntityCatalog(entityManagerFactory);
+        var registers = new org.ipro.register.RegisterRegistry(managed,
+            new org.ipro.register.RecorderTypeRegistry(managed, entityManagerFactory, new org.ipro.metadata.MetadataResolver()));
         var authorizer = new org.ipro.reportstudio.query.ReportReadAuthorizer(entityManagerFactory,
             new org.ipro.rls.c5.DefaultC5PermissionEvaluator(accessGrantRepository,
                 new UserRepositoryRlsRoleResolver(userRepository)), currentSubject,
-            List.of(new org.ip.application.register.RegisterReportReadPolicy(entityManagerFactory, registry)),
+            List.of(new org.ipro.reportstudio.query.register.RegisterReportReadPolicy(entityManagerFactory, registry,
+                registers)),
             accessService, registry);
         var guard = new org.ipro.reportstudio.query.ReportQueryGuard(analyzer, accessService, registry,
             currentSubject, entityManagerFactory, authorizer);
@@ -127,10 +132,6 @@ class ReportExecutionIT {
         persistGrant("admin", "*", null, true);
         for (Class<?> type : List.of(PrdSpec.class, Journal.class)) {
             persistGrant("admin", org.ipro.rls.c5.C5PermissionKeys.entityRead(type), null, true);
-            for (var attribute : entityManager.getMetamodel().entity(type).getAttributes()) {
-                persistGrant("admin", org.ipro.rls.c5.C5PermissionKeys.attributeRead(type, attribute.getName()),
-                    null, true);
-            }
         }
         entityManager.flush();
 

@@ -22,6 +22,11 @@ public class ReportPreviewService {
     }
 
     @Transactional(readOnly = true, timeout = 60)
+    public ReportDataset preview(ReportQueryAssembler assembled, int maxRows, long timeoutMs) {
+        return executor.execute(assembled, maxRows, timeoutMs);
+    }
+
+    @Transactional(readOnly = true, timeout = 60)
     public ReportDataset preview(String jpql, Map<String, Object> bindings,
                                  List<QueryField> fields, int maxRows, long timeoutMs) {
         return executor.execute(jpql, bindings, fields, maxRows, timeoutMs);

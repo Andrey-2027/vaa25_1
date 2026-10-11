@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  * Владеет кнопкой целиком (создаёт, кладёт в footer через колбэк, переключает видимость).
  * Обновляется вызовом {@link #update()} из путей установки сущности формы.
  */
-final class ItemHistory<T extends IdentifiableEntity> {
+final class ItemHistory<T extends IdentifiableEntity<Long>> {
 
     private final Button historyButton = new Button("История", VaadinIcon.CLOCK.create());
     private final Class<T> entityClass;

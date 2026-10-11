@@ -30,7 +30,7 @@ class C5RestOperationRegistrarTest {
     static class Resource { }
 
     @Test
-    void registersVersionedApiAndFqnEntityAttributePermissions() {
+    void registersVersionedApiAndFqnEntityPermissionsWithoutAttributeKeys() {
         RestResourceCatalog catalog = mock(RestResourceCatalog.class);
         ResolvedRestResource resource = mock(ResolvedRestResource.class);
         RestResourceDefinition<?> definition = mock(RestResourceDefinition.class);
@@ -56,13 +56,11 @@ class C5RestOperationRegistrarTest {
         verify(registry).registerDynamicDimension("REST:widgets:v2:DETAIL", RlsDimensionKind.CHECK_ONLY);
         verify(registry).registerDynamicDimension(
             C5PermissionKeys.entityRead(Resource.class), RlsDimensionKind.CHECK_ONLY);
-        verify(registry).registerDynamicDimension(
-            C5PermissionKeys.attributeRead(Resource.class, "code"), RlsDimensionKind.CHECK_ONLY);
+        org.mockito.Mockito.verifyNoMoreInteractions(registry);
 
         assertThat(readPermissionRegistry.registeredKeys()).containsExactlyInAnyOrder(
             "REST:widgets:v2:LIST", "REST:widgets:v2:DETAIL",
-            C5PermissionKeys.entityRead(Resource.class),
-            C5PermissionKeys.attributeRead(Resource.class, "code"));
+            C5PermissionKeys.entityRead(Resource.class));
         assertThat(readPermissionRegistry.isRegisteredReadKey("REST:widgets:v1:LIST")).isFalse();
     }
 }

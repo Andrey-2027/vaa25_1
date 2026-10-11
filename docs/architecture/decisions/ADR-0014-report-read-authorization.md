@@ -1,7 +1,7 @@
 # ADR-0014: C5 и видимость регистров в report read
 
-- Статус: проект решения; код подготовлен, компиляция и приёмка отложены по просьбе пользователя.
-- Дата: 2026-10-03.
+- Статус: принято для ограниченного scalar report-контракта; приёмка Р3 выполнена.
+- Дата: 2026-10-04 (подготовка 2026-10-03).
 - Основание: Р3 [плана регистров](../information-register-development-plan.md), ADR-0007 и ADR-0013.
 
 ## Проблема
@@ -11,7 +11,7 @@ ReportQueryGuard проверял семантику, параметры и RLS 
 Кроме того, RLS по id версии регистра мог скрыть свежую запись, оставив старую в MAX(period).
 Разрешение такого результата изменило бы смысл среза последних.
 
-## Подготовленное решение
+## Решение
 
 ReportReadAuthorizer использует общий C5PermissionEvaluator, AccessService, RlsCurrentUser
 и Hibernate SQM. Он не копирует алгоритм вычисления грантов.
@@ -27,10 +27,16 @@ ReportQueryGuard применяет authorizer при подготовке, exec
 
 Старые конструкторы guard/executor сохранены для структурных тестов и совместимости.
 Они не являются новым защищённым execution API. Production factory использует полные
-конструкторы; заменяющий executor обязан сохранять этот контракт. Это переходный долг до
+конструкторы; короткие адаптеры deprecated, ArchUnit запрещает production-вызовы в репозитории.
+Заменяющий executor обязан сохранять этот контракт. Это переходный долг до
 выделения report add-on, а не разрешённый прикладной обход.
 
 ## Ограниченная опубликованная проекция
+
+**Уточнение 2026-10-07:** требования ATTR-read и attribute lineage для авторизации
+заменены [ADR-0018](ADR-0018-no-field-permissions.md). Текущий report gate требует
+ENTITY-read участвующих типов и RLS; отдельных прав на поля нет. Текст ниже
+фиксирует первоначальный контракт и не является действующим требованием ATTR.
 
 До полноценной attribute lineage канал допускает только scalar-проекцию и требует точные
 ENTITY-read и ATTR-read для **всех persistent-атрибутов каждого участвующего типа**, включая
@@ -44,14 +50,20 @@ Entity-valued результат не допускается: нормализа
 
 Это изменение действует на общий report channel, в том числе preview/JpqlRunService.
 Существующие отчёты могут потребовать новых грантов или scalar-проекции. Перед выпуском
-нужна проверка текущих consumers и согласованная настройка прав. Непроверенный код в рабочем
-дереве не является подтверждением готовности общего канала к выпуску.
+нужна проверка consumers и согласованная настройка прав. Известные source consumers прошли
+приёмку; шаблоны конкретной production-БД перед её выпуском требуют собственной инвентаризации.
+
+При ограниченном FILTERABLE-доступе цели association JOIN/FK не гарантирует row filter.
+Требуется независимый INNER entity join по фактическому id в том же источнике SQM;
+LEFT/OR/постороннее ON не подтверждают видимость. Полный RLS-доступ не требует этого join.
+Report query явно отключает result query cache и обходит entity cache; Hibernate query options проверены.
 
 ## Постоянная видимость версий
 
-ReportReadPolicy — SPI дополнительных ограничений источника. Прикладной
-RegisterReportReadPolicy реализует его для @RegisterMetadata, поэтому reportstudio
-не импортирует прикладные register/model пакеты.
+ReportReadPolicy — SPI дополнительных ограничений источника. С Р4 реализация
+`org.ipro.reportstudio.query.register.RegisterReportReadPolicy` использует общий
+`RegisterRegistry` / `RegisterDescriptor`. Она регистрируется обязательным бином reportstudio;
+общий пакет регистра не импортирует reportstudio или предметные model-пакеты.
 
 Для FILTERABLE политики разрешены стандартные valuePaths:
 
@@ -63,15 +75,17 @@ id строки, произвольные вложенные mutable-пути, c
 Отказ содержит `REGISTER_SLICE_VISIBILITY`, тип, измерение RLS и пути.
 CHECK_ONLY не фильтрует отдельные версии и проверяется как допуск типа.
 Ограничение пока применяется ко всем report-запросам участвующего регистра, не только к CTE.
-Расширение набора инвариантных значений требует явного контракта descriptor в Р4.
+Р4 добавляет descriptor без расширения набора допустимых инвариантных значений.
+Для расширения этого набора нужны отдельные правила и отрицательные security-тесты.
 
 ## Проверка и оставшиеся gates
 
-Подготовлены 12 сценариев в RegisterSliceReportSecurityTest с настоящими грантами,
+Прошли 15 сценариев в RegisterSliceReportSecurityTest с настоящими грантами,
 DefaultC5PermissionEvaluator, RLS activator/cache, SQM, assembly/executor и ReportExecutionService.
 Renderer только записывает полученный dataset; security и persistence не замоканы.
 Один отдельный unit-сценарий подменяет descriptor registry для проверки отказов policy.
 
-Запуск отсутствует. Р2/Р3, архитектурные gates, existing report consumers и wiring требуют
-приёмки. PostgreSQL и нагрузочные измерения не выполнялись. Протокол:
-[Р3 — подготовка](../information-register-report-security.md).
+Р2/Р3, архитектурные gates, существующие source report consumers и wiring прошли приёмку:
+322 теста без failures/errors/skipped. Отдельно принят RLS owner и независимый starter closure.
+PostgreSQL, внешние cache providers и нагрузочные измерения не выполнялись. Протокол:
+[Р2–Р3 — закрытие](../information-register-r2-r3-acceptance.md).

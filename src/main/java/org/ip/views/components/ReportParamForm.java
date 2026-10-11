@@ -6,6 +6,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -23,6 +24,8 @@ import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.dom.ReportParam;
 import org.ipro.reportstudio.dom.ReportParamKind;
 import org.ipro.reportstudio.dom.ReportParamSource;
+import org.ipro.reportstudio.dom.ReportTemplate;
+import org.ipro.reportstudio.query.register.RegisterSliceReportTemplates;
 import org.ipro.reportstudio.param.ReportContext;
 
 import java.util.ArrayList;
@@ -50,9 +53,37 @@ import java.util.function.Consumer;
 public class ReportParamForm extends VerticalLayout {
 
     private final Map<String, FieldEntry> fields = new LinkedHashMap<>();
+    private final java.util.Map<String,String> parameterTypes;
+    private final java.util.Set<String> dateParameters;
+    private final java.util.Set<String> dateTimeParameters;
+    private Runnable changeListener = () -> { };
+
+    /** Includes server-side entity selection and changes to dynamically added list rows. */
+    public void setChangeListener(Runnable listener) { changeListener = java.util.Objects.requireNonNull(listener); }
+
+    private void observe(Component component) {
+        if (component instanceof EntityField<?> entity) entity.addValueChangeListener(value -> changeListener.run());
+        else if (component instanceof HasValue<?, ?> value) value.addValueChangeListener(event -> changeListener.run());
+    }
+
+    public ReportParamForm(ReportTemplate template, ReportContext context,
+                           EntityLookup lookupService, SelectionFormAssembler assembler) {
+        this(template.getParams(), context, lookupService, assembler,
+            RegisterSliceReportTemplates.dateParameters(template),
+            RegisterSliceReportTemplates.dateTimeParameters(template), RegisterSliceReportTemplates.parameterTypes(template));
+    }
 
     public ReportParamForm(List<ReportParam> params, ReportContext context,
                            EntityLookup lookupService, SelectionFormAssembler assembler) {
+        this(params, context, lookupService, assembler, java.util.Set.of(), java.util.Set.of(), java.util.Map.of());
+    }
+
+    private ReportParamForm(List<ReportParam> params, ReportContext context,
+                            EntityLookup lookupService, SelectionFormAssembler assembler, java.util.Set<String> dateParameters,
+                            java.util.Set<String> dateTimeParameters, java.util.Map<String,String> parameterTypes) {
+        this.parameterTypes = parameterTypes;
+        this.dateParameters = dateParameters;
+        this.dateTimeParameters = dateTimeParameters;
         setSpacing(false);
         setPadding(false);
         if (params == null) {
@@ -81,6 +112,11 @@ public class ReportParamForm extends VerticalLayout {
         for (Map.Entry<String, FieldEntry> entry : fields.entrySet()) {
             Object value = entry.getValue().read().get();
             if (value != null && !(value instanceof String s && s.isBlank())) {
+                String type = parameterTypes.getOrDefault(entry.getKey(), "");
+                if (value instanceof Number number) value = switch(type) {
+                    case "java.lang.Long", "long" -> number.longValue(); case "java.lang.Integer", "int" -> number.intValue(); case "java.lang.Short", "short" -> number.shortValue();
+                    case "java.math.BigDecimal" -> new java.math.BigDecimal(number.toString()); default -> value;
+                };
                 result.put(entry.getKey(), value);
             }
         }
@@ -92,7 +128,21 @@ public class ReportParamForm extends VerticalLayout {
     private Component createScalarField(ReportParam param) {
         String hint = param.getDefaultValue();
         Component component;
-        if (hint != null && !hint.isBlank()) {
+        if (dateTimeParameters.contains(param.getName())) {
+            var timestamp = new DateTimePicker(label(param));
+            timestamp.setStep(java.time.Duration.ofMillis(1));
+            component = timestamp;
+        } else if (dateParameters.contains(param.getName())) {
+            component = new DatePicker(label(param));
+        } else if (parameterTypes.getOrDefault(param.getName(), "").matches("(java\\.lang\\.|java\\.math\\.)?(Long|Integer|Short|Byte|BigDecimal|Double|Float)|long|int|short|byte|double|float")) {
+            var number = new NumberField(label(param)); number.setStep(parameterTypes.get(param.getName()).matches(".*(Double|Float|BigDecimal)|double|float") ? 0.01 : 1); component = number;
+        } else if (java.util.Set.of("boolean","java.lang.Boolean").contains(parameterTypes.getOrDefault(param.getName(), ""))) {
+            component = new com.vaadin.flow.component.combobox.ComboBox<Boolean>(label(param), true, false);
+        } else if (enumType(parameterTypes.get(param.getName())) != null) {
+            var enumeration = new com.vaadin.flow.component.combobox.ComboBox<Object>(label(param));
+            enumeration.setItems(enumType(parameterTypes.get(param.getName())).getEnumConstants());
+            component = enumeration;
+        } else if (hint != null && !hint.isBlank()) {
             String trimmed = hint.trim();
             if (trimmed.matches("-?\\d+(\\.\\d+)?")) {
                 NumberField numberField = new NumberField(label(param));
@@ -114,6 +164,12 @@ public class ReportParamForm extends VerticalLayout {
         return component;
     }
 
+    private static Class<?> enumType(String name) {
+        if (name == null || name.isBlank()) return null;
+        try { var type = Class.forName(name, false, Thread.currentThread().getContextClassLoader()); return type.isEnum() ? type : null; }
+        catch (ClassNotFoundException unknown) { return null; }
+    }
+
     private TextField textField(ReportParam param) {
         TextField textField = new TextField(label(param));
         textField.setClearButtonVisible(true);
@@ -131,6 +187,7 @@ public class ReportParamForm extends VerticalLayout {
         row.setSpacing(true);
         row.setAlignItems(FlexComponent.Alignment.BASELINE);
         add(row);
+        observe(from);observe(to);
         fields.put(param.getName() + "From", new FieldEntry(from::getValue, null));
         fields.put(param.getName() + "To", new FieldEntry(to::getValue, null));
     }
@@ -172,9 +229,11 @@ public class ReportParamForm extends VerticalLayout {
             EntityField row = new EntityField(label(param), entitySearch(param, lookupService, assembler));
             row.setWidthFull();
             installSelectionForm(row, param, assembler);
+            observe(row);
             Button remove = new Button(VaadinIcon.MINUS.create(), e -> {
-                list.remove(row);
+                row.getParent().ifPresent(list::remove);
                 rowFields.remove(row);
+                changeListener.run();
             });
             remove.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY);
             HorizontalLayout rowLayout = new HorizontalLayout(row, remove);
@@ -187,7 +246,7 @@ public class ReportParamForm extends VerticalLayout {
 
         Button addButton = new Button("Добавить", VaadinIcon.PLUS.create());
         addButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        addButton.addClickListener(e -> addRow.accept(null));
+        addButton.addClickListener(e -> {addRow.accept(null);changeListener.run();});
 
         Span caption = new Span(label(param));
         caption.getElement().getStyle()
@@ -228,10 +287,17 @@ public class ReportParamForm extends VerticalLayout {
 
     private void addField(String name, Component component, Consumer<Boolean> readOnlySetter) {
         add(component);
+        observe(component);
         if (component instanceof EntityField<?> entityField) {
             fields.put(name, new FieldEntry(
                 () -> entityField.getValue(),
                 readOnly -> entityField.setReadOnly(readOnly)));
+        } else if (component instanceof DateTimePicker timestamp) {
+            fields.put(name, new FieldEntry(() -> {
+                if (timestamp.isInvalid())
+                    throw new IllegalArgumentException("Параметр " + name + ": укажите корректную дату и время");
+                return timestamp.getValue();
+            }, timestamp::setReadOnly));
         } else if (component instanceof HasValue<?, ?> hasValue) {
             fields.put(name, new FieldEntry(hasValue::getValue, hasValue::setReadOnly));
         } else {

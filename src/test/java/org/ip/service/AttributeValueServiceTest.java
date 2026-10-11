@@ -88,9 +88,12 @@ class AttributeValueServiceTest {
     }
 
     /**
-     * C4.6 волна E: сервис значений больше не наследует compatibility base. Проверяются
-     * канонизация, дедуп, гонка и переименование — они идут через repository; canonical handle
-     * (стандартная поверхность) в этих сценариях не участвует и подменён заглушкой.
+     * C4.6 волна E: сервис значений больше не наследует compatibility base. C5.6b: создание и
+     * переименование идут canonical path, поэтому вместо пустой заглушки handle исполняет ровно
+     * два обещания, на которые опирается сервис — {@code create} персистит, именованная операция
+     * применяет мутацию к запертой строке. Проверяются канонизация, дедуп, гонка и правила
+     * переименования; решение об операции и порядок границы — предмет полного контекста
+     * ({@code AttributeValueRenameOperationIT}).
      */
     private AttributeValueService newService() {
         // Lookup через реальный EntityManager слайса (GroupNom незащищён RLS —
@@ -108,7 +111,7 @@ class AttributeValueServiceTest {
             sklNomOpaRepository, sklNomOpaValueRepository,
             lookupService, entityCatalog,
             new NaturalKeyCreateSupport(transactionManager), transactionManager,
-            mock(CanonicalEntityService.class));
+            AttributeValueCanonicalStub.attributeValues(entityManager, attributeValueRepository));
     }
 
     private AttributeType saveType(String code, AttributeValueType valueType) {

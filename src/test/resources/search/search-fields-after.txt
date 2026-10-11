@@ -1,3 +1,6 @@
+org.ip.model.AccountingObjectCorrection global=false fields=number
+org.ip.model.AccountingObjectInstallation global=false fields=number
+org.ip.model.AccountingType global=false fields=code,name
 org.ip.model.AttributeType global=false fields=code,name
 org.ip.model.AttributeValue global=false fields=code,name
 org.ip.model.Branch global=false fields=code,name
@@ -6,6 +9,7 @@ org.ip.model.GroupNom global=false fields=code,name
 org.ip.model.Journal global=false fields=code,name
 org.ip.model.NomSklAttribute global=false fields=
 org.ip.model.Nomenclature global=true fields=code,name
+org.ip.model.NomenclatureAccountingObject global=false fields=workshop.code,nomenclature.code,nomenclature.name,accountingType.name
 org.ip.model.NomenclaturePrice global=false fields=
 org.ip.model.Oper global=false fields=code,name
 org.ip.model.PrdSpec global=true fields=codeSpec,draft

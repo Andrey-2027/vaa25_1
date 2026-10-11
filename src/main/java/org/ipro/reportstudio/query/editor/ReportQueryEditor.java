@@ -48,6 +48,8 @@ import org.ipro.reportstudio.query.VisualQueryPackageJsonCodec;
 import org.ipro.reportstudio.query.VisualQueryDefinitionJsonCodec;
 import org.ipro.reportstudio.query.VisualQueryTextParser;
 import org.ipro.reportstudio.query.constructor.JpqlQueryBuilderDialog;
+import org.ipro.reportstudio.query.register.RegisterSliceReportTemplates;
+import org.ipro.reportstudio.query.VisualQueryCompiler;
 import org.ipro.reportstudio.dom.ReportQuerySource;
 import org.ipro.reportstudio.run.ReportExecutionService;
 
@@ -127,9 +129,18 @@ public class ReportQueryEditor extends VerticalLayout {
     private final SelectionFormAssembler selectionFormAssembler;
 
     private final TextField catalogFilter = new TextField();
-    private final TreeGrid<QueryMetadataNode> catalog = new TreeGrid<>();
+    private final org.ipro.reportstudio.query.catalog.QuerySourceTree<QueryMetadataNode> catalog = new org.ipro.reportstudio.query.catalog.QuerySourceTree<>();
     private final TextArea jpql = new TextArea();
+    private final TextArea sliceDescription = new TextArea("Запрос");
+    private final Button generatedQueryButton = small("Показать сформированный запрос");
+    private final Button editQueryTextButton = small("Редактировать текст");
+    private boolean generatedQueryVisible;
+    private boolean editingGeneratedQuery;
+    private boolean shortQueryDirty;
+    private boolean writingShortQuery;
     private final Button constructorButton = small("Конструктор запроса…");
+    private final Button sliceButton = small("Срез последних…");
+    private RegisterSliceReportTemplates sliceRecipes;
     private QueryBuilderMetadataCatalog constructorCatalog;
     private final ComboBox<String> activeAlias = new ComboBox<>();
     private final IntegerField previewRows = new IntegerField("Строк");
@@ -215,6 +226,13 @@ public class ReportQueryEditor extends VerticalLayout {
         configureCatalog();
         configureEditor();
         configureConstructorButton();
+        sliceButton.setEnabled(false);
+        sliceButton.addClickListener(event -> {
+            if (template != null && sliceRecipes != null) {
+                new RegisterSliceQueryDialog(sliceRecipes, lookupService, selectionFormAssembler,
+                    !jpql.getValue().isBlank(), this::applySliceResult).open();
+            }
+        });
         configureParameters();
         configureResult();
         add(buildLayout());
@@ -228,17 +246,44 @@ public class ReportQueryEditor extends VerticalLayout {
         // Алиасы прошлого запроса не должны влиять на подсказку нового:
         // карта заполняется через putIfAbsent и иначе никогда не очищается.
         aliasesByEntity.clear();
+        activeAlias.clear();
         jpql.setValue(Objects.requireNonNullElse(template.getJpql(), ""));
         visualQueryPackage = null;
         testParams.clear();
         syncTestParameters(extractParameterNames(jpql.getValue()));
+        restoreVisualParameters();
         selectParam(null);
         refreshParametersGrid();
         clearResult();
+        shortQueryDirty = false;
+        generatedQueryVisible = false;
+        editingGeneratedQuery = false;
+        refreshQueryPresentation();
     }
 
     public String getJpql() {
+        applyShortQuery();
         return jpql.getValue();
+    }
+
+    /** Restores query edits and parameter declarations when an enclosing editor is cancelled. */
+    public Runnable captureQuerySnapshot() {
+        if (template == null) throw new IllegalStateException("Сначала необходимо установить шаблон отчёта");
+        ReportTemplate target = template;
+        String text = target.getJpql(), json = target.getVisualQueryJson();
+        ReportQuerySource source = target.getQuerySource();
+        record State(ReportParam parameter, boolean required, boolean shown, String caption) { }
+        var declarations = target.getParams().stream().map(param -> new State(param,
+            param.isRequired(), param.isShowOnForm(), param.getCaption())).toList();
+        return () -> {
+            target.setJpql(text); target.setVisualQueryJson(json); target.setQuerySource(source);
+            target.getParams().clear();
+            declarations.forEach(state -> {
+                state.parameter().setRequired(state.required()); state.parameter().setShowOnForm(state.shown()); state.parameter().setCaption(state.caption());
+                target.addParam(state.parameter());
+            });
+            setTemplate(target);
+        };
     }
 
     /** Вводит текст запроса как при ручном вводе: обновляет шаблон и уведомляет changeListener. */
@@ -249,7 +294,74 @@ public class ReportQueryEditor extends VerticalLayout {
     /** Каталог (allow-list сущностей) для конструктора запроса; без него кнопка неактивна. */
     public void setQueryConstructorCatalog(QueryBuilderMetadataCatalog catalog) {
         constructorCatalog = catalog;
+        catalogService.useSharedCatalog(catalog, sliceRecipes);
+        if (template != null) restoreVisualParameters();
+        refreshCatalog(); refreshAllRootsCache();
         constructorButton.setEnabled(catalog != null && !catalog.roots().isEmpty());
+    }
+
+    public void setRegisterSliceRecipes(RegisterSliceReportTemplates recipes) {
+        sliceRecipes = recipes;
+        catalogService.useSharedCatalog(constructorCatalog, recipes);
+        if (template != null) restoreVisualParameters();
+        refreshCatalog(); refreshAllRootsCache();
+        sliceButton.setEnabled(recipes != null);
+        refreshQueryPresentation();
+    }
+
+    void applySliceResult(RegisterSliceQueryDialog.Result result) {
+        if (template == null) return;
+        var declaration = result.query().getParams().getFirst();
+        var existing = template.getParams().stream().filter(param -> param.getName().equals(declaration.getName())).findFirst();
+        if (existing.isPresent() && (existing.get().getKind() != ReportParamKind.SCALAR
+                || existing.get().getValueSource() != ReportParamSource.FORM))
+            throw new IllegalArgumentException("Параметр «" + declaration.getName() + "» уже используется с другим назначением. Выберите другое имя.");
+        if (existing.isEmpty()) {
+            declaration.setPosition(template.getParams().stream().mapToInt(ReportParam::getPosition).max().orElse(-1) + 1);
+            template.addParam(declaration);
+        }
+        else { existing.get().setRequired(true); existing.get().setShowOnForm(true); }
+        synchronizeLanguageParameters(result.query().getVisualQueryJson());
+        template.setVisualQueryJson(result.query().getVisualQueryJson());
+        template.setQuerySource(ReportQuerySource.VISUAL);
+        visualQueryPackage = new VisualQueryPackageJsonCodec().read(template.getVisualQueryJson());
+        applyJpqlText(JpqlFormatter.format(result.query().getJpql()));
+        syncTestParameters(extractParameterNames(jpql.getValue()));
+        restoreVisualParameters();
+        importConstructorBindings(Map.of(declaration.getName(), result.asOf()));
+        shortQueryDirty = false;
+        generatedQueryVisible = false;
+        editingGeneratedQuery = false;
+        refreshQueryPresentation();
+        changeListener.accept(template);
+        status.setText("Срез построен. «Проверить» использует введённую дату; при запуске отчёта дата задаётся параметром.");
+    }
+
+    /** Saved literals and declared temporal types survive reopening the editor. */
+    private void restoreVisualParameters() {
+        if (template.getVisualQueryJson() == null || template.getVisualQueryJson().isBlank()) return;
+        try {
+            String json = template.getVisualQueryJson();
+            VisualQueryDefinition definition;
+            if (json.contains("\"ctes\"")) {
+                visualQueryPackage = new VisualQueryPackageJsonCodec().read(json);
+                definition = visualQueryPackage.main();
+            } else definition = new VisualQueryDefinitionJsonCodec().read(json);
+            for (var declaration : definition.parameters()) {
+                testParams.stream().filter(param -> param.name().equals(declaration.name())).findFirst().ifPresent(param -> {
+                    if ("DATETIME".equals(declaration.dataType())) setTestType(param, FieldType.DATETIME);
+                    if ("DATE".equals(declaration.dataType())) setTestType(param, FieldType.DATE);
+                });
+            }
+            if (sliceRecipes != null && constructorCatalog != null) synchronizeLanguageParameters(json);
+            if (template.getQuerySource() == ReportQuerySource.VISUAL && constructorCatalog != null) {
+                var compiled = visualQueryPackage == null ? VisualQueryCompiler.compile(definition, constructorCatalog)
+                    : VisualQueryCompiler.compile(visualQueryPackage, constructorCatalog);
+                importConstructorBindings(compiled.bindings());
+            }
+        } catch (RuntimeException failure) {
+            status.setText("Не удалось восстановить параметры конструктора: " + failure.getMessage());
+        }
     }
 
     public void setChangeListener(Consumer<ReportTemplate> changeListener) {
@@ -266,16 +378,17 @@ public class ReportQueryEditor extends VerticalLayout {
         if (template == null) {
             throw new IllegalStateException("Сначала необходимо установить шаблон отчёта");
         }
-        // Текст — источник истины: конструктор записывает готовый текст, автоперекомпиляции нет.
+        try { applyShortQuery(); } catch (RuntimeException error) { status.setText(error.getMessage()); throw error; }
         template.setJpql(jpql.getValue());
-        QueryEditorAnalysis initial = analysisService.analyze(jpql.getValue(), testParamNames(), testEntityClasses());
+        QueryEditorAnalysis initial = analysisService.analyze(jpql.getValue(), analysisParameterNames(), testEntityClasses());
         if (!initial.syntaxValid()) {
             showErrors(initial);
             analysisListener.accept(initial);
             return initial;
         }
         syncTestParameters(initial.parameters().stream().map(QueryParameterDescriptor::name).toList());
-        QueryEditorAnalysis checked = analysisService.analyze(jpql.getValue(), testParamNames(), testEntityClasses());
+        QueryEditorAnalysis checked = analysisService.analyze(jpql.getValue(), analysisParameterNames(), testEntityClasses());
+        checked = publicAnalysis(checked);
         refreshParametersGrid();
         updateAliases(checked);
         if (checked.guardResult().allowed()) {
@@ -314,9 +427,8 @@ public class ReportQueryEditor extends VerticalLayout {
             int skipped = allGroups.size() - safeGroups.size() + allOrders.size() - safeOrders.size();
             ReportQueryAssembler assembled = queryAssemblyService.assembleForPreview(
                     jpql.getValue(), testParamNames(), testBindings(), template, safeGroups, safeOrders);
-            ReportDataset dataset = previewService.preview(assembled.jpql(), assembled.bindings(),
-                    assembled.fields(), rows, ReportTemplate.DEFAULT_TIMEOUT_MS);
-            renderResult(analysis.guardResult().selectFields(), dataset);
+            ReportDataset dataset = previewService.preview(assembled, rows, ReportTemplate.DEFAULT_TIMEOUT_MS);
+            renderResult(assembled.fields(), dataset);
             String warnings = joinWarnings(analysis.guardResult().warnings());
             status.setText("Готово: " + dataset.rowCount() + " строк, "
                     + analysis.guardResult().selectFields().size() + " колонок." + warnings
@@ -345,10 +457,7 @@ public class ReportQueryEditor extends VerticalLayout {
         catalogFilter.setWidthFull();
         catalogFilter.getElement().setAttribute("theme", "small");
         catalogFilter.addValueChangeListener(event -> refreshCatalog());
-        catalog.addHierarchyColumn(QueryMetadataNode::caption).setHeader("Сущности и поля").setFlexGrow(1).setResizable(true).setAutoWidth(false);
-        catalog.addColumn(node -> kindLabel(node.kind())).setHeader("Вид").setResizable(true).setAutoWidth(true).setFlexGrow(0);
-        catalog.addColumn(QueryMetadataNode::javaType).setHeader("Тип").setResizable(true).setAutoWidth(true).setFlexGrow(0);
-        catalog.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
+        catalog.configure(QueryMetadataNode::caption, QueryMetadataNode::token, QueryMetadataNode::category, QueryMetadataNode::javaType);
         catalog.getStyle().set("font-size", "var(--lumo-font-size-xs)");
         catalog.getStyle().set("--lumo-line-height-xs", "1.1");
         catalog.setSizeFull();
@@ -357,6 +466,7 @@ public class ReportQueryEditor extends VerticalLayout {
 
     private static String kindLabel(QueryMetadataNode.Kind kind) {
         return switch (kind) {
+            case GROUP -> ""; case SLICE -> "Срез последних"; case CTE -> "Источник запроса";
             case ENTITY -> "Таблица";
             case TABLE -> "Таблица";
             case PROPERTY -> "Поле";
@@ -377,6 +487,7 @@ public class ReportQueryEditor extends VerticalLayout {
      * конструктора; если текст пуст или не разобрался — берётся сохранённый черновик.
      */
     private void openConstructorDialog() {
+        try { applyShortQuery(); } catch (RuntimeException error) { status.setText(error.getMessage()); return; }
         if (template == null || constructorCatalog == null) return;
         VisualQueryDefinition saved = null;
         if (template.getVisualQueryJson() != null && !template.getVisualQueryJson().isBlank()) {
@@ -395,7 +506,7 @@ public class ReportQueryEditor extends VerticalLayout {
         VisualQueryPackage parsedPackage = visualQueryPackage;
         List<String> parseWarnings = List.of();
         String text = jpql.getValue();
-        if (text != null && !text.isBlank()) {
+        if (template.getQuerySource() != ReportQuerySource.VISUAL && text != null && !text.isBlank()) {
             var parsedPackageResult = new VisualQueryTextParser(constructorCatalog).parsePackage(text);
             if (parsedPackageResult.queryPackage() != null && !parsedPackageResult.queryPackage().ctes().isEmpty()) {
                 parsedPackage = parsedPackageResult.queryPackage();
@@ -411,26 +522,75 @@ public class ReportQueryEditor extends VerticalLayout {
                 }
             }
         }
-        // Условия WHERE в конструкторе используют типизированные литералы:
-        // :параметры подставляются на runtime через ReportParam, компилятор их не принимает.
-        new JpqlQueryBuilderDialog(constructorCatalog, List.of(), initial, parsedPackage, parseWarnings,
-                this::applyConstructorResult).open();
+        List<String> declaredNames = initial == null ? List.of() : initial.parameters().stream()
+            .map(VisualQueryDefinition.Parameter::name).toList();
+        var dialog = new JpqlQueryBuilderDialog(constructorCatalog, declaredNames, initial, parsedPackage, parseWarnings,
+                this::applyConstructorResult);
+        if (sliceRecipes != null) dialog.setSliceSupport(sliceRecipes, template.getQuerySource() == ReportQuerySource.VISUAL
+                ? template.getVisualQueryJson() : null, (request, applied) -> {
+            var settings = new RegisterSliceQueryDialog(sliceRecipes, lookupService, selectionFormAssembler, false, ignored -> { });
+            settings.setParameterNames(template.getParams().stream().map(ReportParam::getName).toList());
+            settings.configureParameterizedConstructor(request.registerEntity(), request.current(), (spec, parameter, filters) ->
+                applied.accept(sliceRecipes.constructorSlice(spec, parameter, request.occupied(), filters)));
+            settings.open();
+        });
+        dialog.open();
     }
 
     /** Применяет результат конструктора: текст — источник истины, определение остаётся черновиком. */
     void applyConstructorResult(JpqlQueryBuilderDialog.Result result) {
         if (template == null) return;
+        var constructorSlices = sliceRecipes == null ? List.<RegisterSliceReportTemplates.ConstructorSlice>of()
+            : sliceRecipes.constructorSlices(result.visualQueryJson());
+        for (var slice : constructorSlices) {
+            var declaration = template.getParams().stream().filter(parameter -> parameter.getName().equals(slice.dateParameter())).findFirst();
+            if (declaration.isPresent() && (declaration.get().getKind() != ReportParamKind.SCALAR
+                    || declaration.get().getValueSource() != ReportParamSource.FORM))
+                throw new IllegalArgumentException("Параметр «" + slice.dateParameter() + "» уже используется с другим назначением.");
+        }
+        synchronizeLanguageParameters(result.visualQueryJson());
+        for (var slice : constructorSlices) {
+            var declaration = template.getParams().stream().filter(parameter -> parameter.getName().equals(slice.dateParameter())).findFirst().orElseGet(() -> {
+                var parameter = new ReportParam(); parameter.setName(slice.dateParameter()); parameter.setCaption("Дата и время среза");
+                parameter.setPosition(template.getParams().stream().mapToInt(ReportParam::getPosition).max().orElse(-1) + 1);
+                template.addParam(parameter); return parameter;
+            });
+            if (slice.dateParameter().equals(declaration.getCaption())) declaration.setCaption("Дата и время среза");
+            declaration.setRequired(true); declaration.setShowOnForm(true);
+        }
+        String originalJson = template.getVisualQueryJson();
+        if (sliceRecipes != null && result.visualQueryJson() != null) {
+            var previousParameters = new java.util.HashSet<String>();
+            for (var source : sliceRecipes.constructorSlices(originalJson))
+                sliceRecipes.sourceParameters(source).stream().map(org.ipro.reportstudio.query.VisualQueryDefinition.Parameter::name)
+                    .filter(name -> !name.startsWith("sliceId_")).forEach(previousParameters::add);
+            template.getParams().removeIf(parameter -> previousParameters.contains(parameter.getName())
+                && !result.bindings().containsKey(parameter.getName()) && parameter.getValueSource() == ReportParamSource.FORM
+                && ("Дата и время среза".equals(parameter.getCaption()) || parameter.getName().equals(parameter.getCaption()))
+                && (parameter.getDefaultValue() == null || parameter.getDefaultValue().isBlank()));
+        }
         visualQueryPackage = result.queryPackage();
-        template.setVisualQueryJson(visualQueryPackage != null && !visualQueryPackage.ctes().isEmpty()
+        template.setVisualQueryJson(result.visualQueryJson() != null ? result.visualQueryJson() : visualQueryPackage != null && !visualQueryPackage.ctes().isEmpty()
                 ? new VisualQueryPackageJsonCodec().write(visualQueryPackage)
                 : new VisualQueryDefinitionJsonCodec().write(result.definition()));
-        template.setQuerySource(ReportQuerySource.MANUAL);
+        if (sliceRecipes != null) template.setVisualQueryJson(sliceRecipes.retainSlicePresentation(
+            originalJson, template.getVisualQueryJson()));
+        if (!constructorSlices.isEmpty() || result.definition().expressions().stream().anyMatch(expression ->
+                expression.expression() instanceof org.ipro.reportstudio.query.VisualQueryExpression.FunctionCall function && function.name().equalsIgnoreCase("Представление")))
+            template.setQuerySource(ReportQuerySource.VISUAL);
+        else if (template.getQuerySource() != ReportQuerySource.VISUAL)
+            template.setQuerySource(ReportQuerySource.MANUAL);
         // В редактор — тот же текст, что показан в окне «Запрос» конструктора (форматированный).
         String formatted = JpqlFormatter.format(result.jpql());
         applyJpqlText(formatted == null || formatted.isBlank() ? result.jpql() : formatted);
         // Значения WHERE-условий конструктора — тестовые значения :visualFilter_*;
         // без них «Проверить»/«Выполнить» не сможет забиндить параметры запроса.
         importConstructorBindings(result.bindings());
+        restoreVisualParameters();
+        shortQueryDirty = false;
+        generatedQueryVisible = false;
+        editingGeneratedQuery = false;
+        refreshQueryPresentation();
         status.setText("Запрос построен конструктором.");
     }
 
@@ -464,7 +624,123 @@ public class ReportQueryEditor extends VerticalLayout {
         return FieldType.TEXT;
     }
 
+    private Set<String> analysisParameterNames() {
+        var names = new LinkedHashSet<>(testParamNames());
+        if (template.getQuerySource() == ReportQuerySource.VISUAL && constructorCatalog != null) {
+            var pack = new VisualQueryPackageJsonCodec().read(template.getVisualQueryJson());
+            names.addAll(org.ipro.reportstudio.query.VisualQueryCompiler.compile(pack, constructorCatalog).bindings().keySet());
+        }
+        return names;
+    }
+
+    private QueryEditorAnalysis publicAnalysis(QueryEditorAnalysis checked) {
+        if (template.getQuerySource() != ReportQuerySource.VISUAL || constructorCatalog == null) return checked;
+        var compiled = org.ipro.reportstudio.query.VisualQueryCompiler.compile(new VisualQueryPackageJsonCodec().read(template.getVisualQueryJson()), constructorCatalog);
+        if (compiled.presentations().isEmpty()) return checked;
+        var original = checked.guardResult().analysis();
+        var result = new org.ipro.reportstudio.query.GuardResult(checked.guardResult().allowed(), checked.guardResult().errors(), checked.guardResult().warnings(),
+            new org.ipro.reportstudio.query.Analysis(original.failures(), original.entities(), compiled.fields(), original.parameters()));
+        return new QueryEditorAnalysis(checked.jpql(), result, checked.parameters());
+    }
+
+    private void applyShortQuery() {
+        if (template == null || sliceRecipes == null || constructorCatalog == null) return;
+        String text = shortQueryDirty ? sliceDescription.getValue() : jpql.getValue();
+        if (!shortQueryDirty && !org.ipro.reportstudio.query.ReportQueryLanguage.containsExtensions(text)) return;
+        var parsed = new org.ipro.reportstudio.query.ReportQueryLanguage(constructorCatalog, sliceRecipes).parse(text);
+        applyConstructorResult(new JpqlQueryBuilderDialog.Result(parsed.pack().main(), parsed.compiled().jpql(),
+            parsed.compiled().bindings(), parsed.pack(), parsed.json()));
+        template.setQuerySource(ReportQuerySource.VISUAL);
+        shortQueryDirty = false; refreshQueryPresentation();
+    }
+
+    private static void setTestType(QueryTestParam test, FieldType type) {
+        if (test.type() != type) test.setType(type);
+    }
+
+    private void synchronizeLanguageParameters(String json) {
+        if (json == null || sliceRecipes == null || constructorCatalog == null) return;
+        var language = new org.ipro.reportstudio.query.ReportQueryLanguage(constructorCatalog, sliceRecipes);
+        var entities = language.entityParameters(json);
+        var pack = new VisualQueryPackageJsonCodec().read(json);
+        for (var declaration : pack.main().parameters()) {
+            if (declaration.name().startsWith("sliceId_")) continue;
+            var existing = template.getParams().stream().filter(parameter -> parameter.getName().equals(declaration.name())).findFirst();
+            Class<?> type = parameterEntityType(declaration, entities);
+            if (existing.isPresent() && type != null && (existing.get().getKind() != ReportParamKind.ENTITY
+                    || !type.getName().equals(existing.get().getEntityClass())))
+                throw new IllegalArgumentException("Несовместимое назначение параметра: " + declaration.name());
+            if (existing.isPresent() && type == null && !"ENTITY".equals(declaration.dataType()) && !"TEXT".equals(declaration.dataType())
+                    && existing.get().getKind() != ReportParamKind.SCALAR)
+                throw new IllegalArgumentException("Параметр «" + declaration.name() + "» требует скалярное значение");
+        }
+        for (var declaration : pack.main().parameters()) {
+            if (declaration.name().startsWith("sliceId_")) continue;
+            Class<?> type = parameterEntityType(declaration, entities);
+            var parameter = template.getParams().stream().filter(value -> value.getName().equals(declaration.name())).findFirst().orElseGet(() -> {
+                var value = new ReportParam(); value.setName(declaration.name()); value.setCaption(declaration.name());
+                value.setPosition(template.getParams().stream().mapToInt(ReportParam::getPosition).max().orElse(-1) + 1);
+                if (type != null) { value.setKind(ReportParamKind.ENTITY); value.setEntityClass(type.getName()); }
+                template.addParam(value); return value;
+            });
+            parameter.setRequired(true); parameter.setShowOnForm(true);
+            syncTestParameters(List.of(declaration.name()));
+            var test = testParams.stream().filter(value -> value.name().equals(declaration.name())).findFirst().orElseThrow();
+            if (type != null) { setTestType(test, FieldType.ENTITY_REFERENCE); test.setClassName(type.getName()); }
+            else if (declaration.dataType().equals("DATETIME")) setTestType(test, FieldType.DATETIME);
+            else if (declaration.dataType().equals("DATE")) setTestType(test, FieldType.DATE);
+            else if (declaration.dataType().matches(".*(Long|Integer|Short)|long|int|short")) setTestType(test, FieldType.INTEGER);
+            else if (declaration.dataType().matches(".*(BigDecimal|Double|Float)|double|float")) setTestType(test, FieldType.DECIMAL);
+            else if (declaration.dataType().equals("java.lang.Boolean") || declaration.dataType().equals("boolean")) setTestType(test, FieldType.BOOLEAN);
+            else try {
+                Class<?> scalarType = Class.forName(declaration.dataType(), false, Thread.currentThread().getContextClassLoader());
+                if (scalarType.isEnum()) { setTestType(test, FieldType.ENUM); test.setClassName(scalarType.getName()); }
+            } catch (ClassNotFoundException ignored) { /* Legacy TEXT declarations keep their existing editor. */ }
+        }
+        testParams.removeIf(parameter -> parameter.name().startsWith("sliceId_"));
+    }
+
+    private Class<?> parameterEntityType(org.ipro.reportstudio.query.VisualQueryDefinition.Parameter declaration, Map<String, Class<?>> entities) {
+        Class<?> type = entities.get(declaration.name()); if (type != null) return type;
+        if (!java.util.Set.of("TEXT", "ENTITY").contains(declaration.dataType())) return null;
+        var existing = template.getParams().stream().filter(value -> value.getName().equals(declaration.name())
+            && value.getKind() == ReportParamKind.ENTITY).findFirst();
+        if (existing.isEmpty() || existing.get().getEntityClass() == null) return null;
+        try { return Class.forName(existing.get().getEntityClass(), false, Thread.currentThread().getContextClassLoader()); }
+        catch (ClassNotFoundException unknown) { throw new IllegalArgumentException("Неизвестный тип параметра: " + declaration.name(), unknown); }
+    }
+
     private void configureEditor() {
+        sliceDescription.setReadOnly(false);
+        sliceDescription.setValueChangeMode(ValueChangeMode.EAGER);
+        sliceDescription.addValueChangeListener(event -> {
+            if (event.isFromClient() && !writingShortQuery) {
+                shortQueryDirty = true;
+                syncTestParameters(extractParameterNames(event.getValue())); refreshParametersGrid(); clearResult();
+            }
+        });
+        sliceDescription.setWidthFull();
+        sliceDescription.setHeight("100%");
+        sliceDescription.setHelperText("Запрос можно править текстом или конструктором. «Проверить» применяет введённый текст.");
+        sliceDescription.getStyle().set("min-height", "140px").set("font-family", "monospace")
+            .set("font-size", "var(--lumo-font-size-s)");
+        generatedQueryButton.addClickListener(event -> {
+            generatedQueryVisible = !generatedQueryVisible;
+            editingGeneratedQuery = false;
+            refreshQueryPresentation();
+        });
+        editQueryTextButton.addClickListener(event -> {
+            if (shortQueryDirty) {
+                try { applyShortQuery(); } catch (RuntimeException error) { status.setText(error.getMessage()); return; }
+            }
+            editingGeneratedQuery = true;
+            template.setQuerySource(ReportQuerySource.MANUAL);
+            refreshQueryPresentation();
+            jpql.focus();
+        });
+        sliceDescription.setVisible(false);
+        generatedQueryButton.setVisible(false);
+        editQueryTextButton.setVisible(false);
         jpql.setLabel("JPQL");
         jpql.setPlaceholder("select s.code as code, s.name as name from Specification s where s.journal = :journal");
         // EAGER: onCaretContext читает jpql.getValue() для inferAliasesFromJpql(),
@@ -475,11 +751,13 @@ public class ReportQueryEditor extends VerticalLayout {
         jpql.getStyle().set("min-height", "140px");
         jpql.getStyle().set("font-size", "var(--lumo-font-size-xs)");
         jpql.getStyle().set("font-family", "monospace");
-        analyzeButton.addClickListener(e -> preview());
+        analyzeButton.addClickListener(e -> { try { preview(); } catch (RuntimeException error) { status.setText(error.getMessage()); clearResult(); } });
         formatButton.addClickListener(e -> {
-            String formatted = JpqlFormatter.format(jpql.getValue());
-            if (formatted != null && !formatted.equals(jpql.getValue())) {
-                jpql.setValue(formatted);
+            var target = sliceDescription.isVisible() && !editingGeneratedQuery ? sliceDescription : jpql;
+            String formatted = JpqlFormatter.format(target.getValue());
+            if (formatted != null && !formatted.equals(target.getValue())) {
+                if (target == sliceDescription) shortQueryDirty = true;
+                target.setValue(formatted);
                 status.setText("Запрос отформатирован.");
             }
         });
@@ -489,10 +767,12 @@ public class ReportQueryEditor extends VerticalLayout {
         });
         jpql.addValueChangeListener(event -> {
             if (template != null) {
+                if (event.isFromClient()) template.setQuerySource(ReportQuerySource.MANUAL);
                 template.setJpql(event.getValue());
                 syncTestParameters(extractParameterNames(event.getValue()));
                 refreshParametersGrid();
                 changeListener.accept(template);
+                refreshQueryPresentation();
             }
             if (!result.getColumns().isEmpty()) {
                 clearResult();
@@ -612,7 +892,10 @@ public class ReportQueryEditor extends VerticalLayout {
     }
 
     private SplitLayout buildLayout() {
-        VerticalLayout catalogPanel = compact(catalogFilter, catalog);
+        VerticalLayout catalogPanel = compact(catalogFilter, new Button("Добавить представление", event -> {
+            var node = catalog.asSingleSelect().getValue();
+            if (node != null && node.selectable()) insertAtCaret("Представление(" + metadataPath(node) + ")");
+        }), catalog);
         catalogPanel.setHeightFull();
         SplitLayout left = new SplitLayout(catalogPanel, parameterPanel);
         left.setOrientation(SplitLayout.Orientation.VERTICAL);
@@ -620,11 +903,13 @@ public class ReportQueryEditor extends VerticalLayout {
         left.setSizeFull();
         left.getStyle().set("min-width", "0");
 
-        HorizontalLayout toolbar = new HorizontalLayout(constructorButton, analyzeButton, formatButton, parametersButton, activeAlias, previewRows);
+        HorizontalLayout toolbar = new HorizontalLayout(constructorButton, sliceButton, generatedQueryButton,
+            editQueryTextButton, analyzeButton, formatButton, parametersButton, activeAlias, previewRows);
+        toolbar.getStyle().set("flex-wrap", "wrap");
         toolbar.setPadding(false);
         toolbar.setSpacing(true);
         toolbar.setAlignItems(Alignment.BASELINE);
-        VerticalLayout editorPanel = compact(toolbar, jpql, status);
+        VerticalLayout editorPanel = compact(toolbar, sliceDescription, jpql, status);
         editorPanel.setHeightFull();
         SplitLayout right = new SplitLayout(editorPanel, result);
         right.setOrientation(SplitLayout.Orientation.VERTICAL);
@@ -639,10 +924,42 @@ public class ReportQueryEditor extends VerticalLayout {
         return main;
     }
 
+    private void refreshQueryPresentation() {
+        var description = sliceRecipes == null || constructorCatalog == null || template == null || template.getQuerySource() != ReportQuerySource.VISUAL
+            ? java.util.Optional.<String>empty() : new org.ipro.reportstudio.query.ReportQueryLanguage(constructorCatalog, sliceRecipes).format(template);
+        boolean compactSlice = description.isPresent() || shortQueryDirty;
+        if (!shortQueryDirty) {
+            writingShortQuery = true; sliceDescription.setValue(description.orElse("")); writingShortQuery = false;
+        }
+        sliceDescription.setVisible(compactSlice && !generatedQueryVisible);
+        jpql.setVisible(!compactSlice || generatedQueryVisible);
+        jpql.setReadOnly(compactSlice && !editingGeneratedQuery);
+        jpql.setLabel(compactSlice ? "Сформированный запрос" : "JPQL");
+        generatedQueryButton.setVisible(compactSlice);
+        generatedQueryButton.setText(generatedQueryVisible ? "Показать краткий запрос" : "Показать сформированный запрос");
+        editQueryTextButton.setVisible(compactSlice && generatedQueryVisible && !editingGeneratedQuery);
+        formatButton.setVisible(!compactSlice || generatedQueryVisible);
+        activeAlias.setVisible(!compactSlice || editingGeneratedQuery);
+        catalog.setEnabled(!compactSlice || editingGeneratedQuery);
+    }
+
     private void refreshCatalog() {
-        List<QueryMetadataNode> roots = catalogService.roots(catalogFilter.getValue());
+        List<QueryMetadataNode> roots = new java.util.ArrayList<>(catalogService.roots(catalogFilter.getValue()));
+        if (visualQueryPackage != null) {
+            var owned = sliceRecipes == null ? java.util.Set.<String>of() : sliceRecipes.constructorSlices(template.getVisualQueryJson()).stream().flatMap(source -> source.stages().stream()).map(org.ipro.reportstudio.query.VisualQueryPackage.Cte::name).collect(java.util.stream.Collectors.toSet());
+            var ctes = visualQueryPackage.ctes().stream().filter(cte -> !owned.contains(cte.name())).map(cte -> new QueryMetadataNode(QueryMetadataNode.Kind.CTE, cte.name(), cte.name(), "Источник запроса", true,
+                cte.definition().selectFields().stream().map(field -> new QueryMetadataNode(QueryMetadataNode.Kind.PROPERTY, field.resultName(), field.resultName(), "", true, List.of())).toList())).map(node -> filterMetadata(node, catalogFilter.getValue())).filter(java.util.Objects::nonNull).toList();
+            if (!ctes.isEmpty()) roots.add(new QueryMetadataNode(QueryMetadataNode.Kind.GROUP, "Источники запроса", "", "", false, ctes));
+        }
         catalog.setItems(roots, QueryMetadataNode::children);
         catalog.expand(roots);
+    }
+
+    private static QueryMetadataNode filterMetadata(QueryMetadataNode node, String text) {
+        String needle = text == null ? "" : text.strip().toLowerCase(java.util.Locale.ROOT);
+        if (needle.isEmpty() || (node.caption() + " " + node.token()).toLowerCase(java.util.Locale.ROOT).contains(needle)) return node;
+        var children = node.children().stream().map(child -> filterMetadata(child, text)).filter(java.util.Objects::nonNull).toList();
+        return children.isEmpty() ? null : new QueryMetadataNode(node.kind(), node.caption(), node.token(), node.javaType(), node.selectable(), children).category(node.category());
     }
 
     /** Полный список корней — отдельно от {@link #refreshCatalog()}, который применяет пользовательский фильтр. */
@@ -793,10 +1110,16 @@ public class ReportQueryEditor extends VerticalLayout {
         return close.isEmpty() ? "" : " Возможно: " + String.join(", ", close) + "?";
     }
 
+    private static List<QueryMetadataNode> flattenRoots(List<QueryMetadataNode> nodes) {
+        var result = new ArrayList<QueryMetadataNode>();
+        for (var node : nodes) { result.add(node); result.addAll(flattenRoots(node.children())); }
+        return result;
+    }
+
     private QueryMetadataNode findRootByToken(String entityName) {
         // Каталог keyed по короткому имени сущности; на случай FQCN сравниваем и хвост.
         String shortName = lastSegment(entityName);
-        return allRoots.stream()
+        return flattenRoots(allRoots).stream()
                 .filter(node -> entityName.equals(node.token()) || shortName.equals(node.token()))
                 .findFirst()
                 .orElse(null);
@@ -817,6 +1140,9 @@ public class ReportQueryEditor extends VerticalLayout {
         if (!node.selectable()) {
             return;
         }
+        if (node.kind() == QueryMetadataNode.Kind.SLICE) {
+            insertAtCaret("СрезПоследних(" + node.token() + ", :asOf)"); return;
+        }
         String token;
         if (node.kind() == QueryMetadataNode.Kind.ENTITY) {
             token = node.token();
@@ -831,28 +1157,21 @@ public class ReportQueryEditor extends VerticalLayout {
             token = " JOIN " + alias + "." + node.token() + " " + node.token().substring(0, 1).toLowerCase(java.util.Locale.ROOT);
             status.setText("Добавлен JOIN для табличной части. Используйте алиас '" + node.token().substring(0, 1).toLowerCase(java.util.Locale.ROOT) + "' для полей таблицы.");
         } else {
-            QueryMetadataNode parent = catalog.getTreeData().getParent(node);
-            if (parent != null && parent.kind() == QueryMetadataNode.Kind.TABLE) {
-                QueryMetadataNode entity = catalog.getTreeData().getParent(parent);
-                String alias = resolveAlias(entity);
-                if (alias == null || alias.isBlank()) {
-                    status.setText("Не определён алиас сущности — задайте его в панели инструментов.");
-                    return;
-                }
-                String tableAlias = parent.token().substring(0, 1).toLowerCase(java.util.Locale.ROOT);
-                token = tableAlias + "." + node.token();
-                status.setText("Поле табличной части. Убедитесь, что добавлен JOIN " + alias + "." + parent.token() + " " + tableAlias);
-            } else {
-                QueryMetadataNode entity = parent;
-                String alias = resolveAlias(entity);
-                if (alias == null || alias.isBlank()) {
-                    status.setText("Не определён алиас сущности — задайте его в панели инструментов.");
-                    return;
-                }
-                token = alias.trim() + "." + node.token();
-            }
+            token = metadataPath(node);
         }
         insertAtCaret(token);
+    }
+
+    private String metadataPath(QueryMetadataNode node) {
+        var parts = new java.util.ArrayList<String>();
+        var current = node;
+        while (current != null && current.kind() != QueryMetadataNode.Kind.ENTITY && current.kind() != QueryMetadataNode.Kind.CTE && current.kind() != QueryMetadataNode.Kind.SLICE) {
+            if (current.kind() == QueryMetadataNode.Kind.ASSOCIATION || current.kind() == QueryMetadataNode.Kind.PROPERTY) parts.addFirst(current.token());
+            current = catalog.getTreeData().getParent(current);
+        }
+        String alias = resolveAlias(current);
+        if (alias == null || alias.isBlank()) throw new IllegalArgumentException("Укажите алиас источника");
+        return alias + (parts.isEmpty() ? "" : "." + String.join(".", parts));
     }
 
     /** Алиас для полей: явный выбор > карта сущностей > алиасы из JPQL > дефолт по имени. */
@@ -916,6 +1235,14 @@ public class ReportQueryEditor extends VerticalLayout {
         if (text.isBlank()) {
             return;
         }
+        if (visualQueryPackage != null && sliceRecipes != null && template != null) {
+            for (var slice : sliceRecipes.constructorSlices(template.getVisualQueryJson())) {
+                var main = visualQueryPackage.main();
+                if (main.entityName().equals(slice.name())) registerEntityAlias(slice.registerEntity(), main.entityAlias());
+                main.joins().stream().filter(join -> join.independent() && join.sourcePath().equals(slice.name()))
+                    .forEach(join -> registerEntityAlias(slice.registerEntity(), join.alias()));
+            }
+        }
         for (Matcher matcher = FROM_ALIAS.matcher(text); matcher.find(); ) {
             registerEntityAlias(lastSegment(matcher.group(1)), matcher.group(2));
         }
@@ -932,7 +1259,7 @@ public class ReportQueryEditor extends VerticalLayout {
 
     /** Небольшой bridge: замена выделения или вставка в позицию курсора стандартного TextArea. */
     private void insertAtCaret(String token) {
-        jpql.getElement().executeJs("""
+        (sliceDescription.isVisible() && !editingGeneratedQuery ? sliceDescription : jpql).getElement().executeJs("""
             const input = this.inputElement || this.shadowRoot?.querySelector('textarea');
             if (!input) return;
             let text = $0;
@@ -961,7 +1288,7 @@ public class ReportQueryEditor extends VerticalLayout {
         }
         Set<String> existing = testParams.stream().map(QueryTestParam::name).collect(Collectors.toSet());
         for (String name : names) {
-            if (name != null && !name.isBlank() && !existing.contains(name)) {
+            if (name != null && !name.isBlank() && !name.startsWith("sliceId_") && !existing.contains(name)) {
                 testParams.add(new QueryTestParam(name));
                 existing.add(name);
             }
@@ -1199,10 +1526,12 @@ public class ReportQueryEditor extends VerticalLayout {
 
     private Component dateTimeValueField(QueryTestParam param) {
         DateTimePicker field = new DateTimePicker();
-        field.setWidth("200px");
+        field.setStep(java.time.Duration.ofMillis(1));
+        field.setWidth("360px");
         field.getElement().setAttribute("theme", "small");
         if (param.value() instanceof LocalDateTime d) {
-            field.setValue(d);
+            field.setValue(d.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+            param.setValue(field.getValue());
         }
         field.addValueChangeListener(e -> param.setValue(e.getValue()));
         return field;

@@ -9,6 +9,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class VisualQueryCompilerJoinTest {
     @Test
+    void sameIndependentEntityCanBeJoinedUnderDifferentAliases() {
+        var joins = List.of(
+            new VisualQueryDefinition.Join(null, "Party", "origin", VisualQueryDefinition.JoinKind.INNER,
+                new JoinCondition.Predicate("p.origin.id", JoinCondition.Operator.EQ, "origin.id")),
+            new VisualQueryDefinition.Join(null, "Party", "destination", VisualQueryDefinition.JoinKind.INNER,
+                new JoinCondition.Predicate("p.destination.id", JoinCondition.Operator.EQ, "destination.id")));
+        var definition = new VisualQueryDefinition(3, "Transfer", "p",
+            List.of(new VisualQueryDefinition.SelectField("id", "id")), joins, List.of(), List.of(), List.of(), null, null, List.of(), List.of());
+        assertThat(VisualQueryCompiler.compile(definition).jpql())
+            .contains("join Party origin on p.origin.id = origin.id", "join Party destination on p.destination.id = destination.id");
+    }
+
+    @Test
     void rejectsUnknownAliasEvenWhenOnFieldIsId() {
         var definition = new VisualQueryDefinition(3, "Product", "p",
             List.of(new VisualQueryDefinition.SelectField("id", "id")),

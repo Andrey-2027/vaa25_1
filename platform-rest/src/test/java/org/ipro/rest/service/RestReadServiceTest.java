@@ -155,23 +155,22 @@ class RestReadServiceTest {
     }
 
     @Test
-    void defaultSortRequiresAttributeReadGrant() {
+    void defaultSortRequiresNoAttributeReadGrant() {
         when(currentUser.username()).thenReturn("alice");
         ResolvedRestResource resource = configuredResource(
             Optional.of(new RestResourceDefinition.Sort("code", RestSortDirection.DESC)));
         when(catalog.find("items", 1)).thenReturn(Optional.of(resource));
         when(c5Evaluator.isApiPermitted("alice", "items", 1, "LIST")).thenReturn(true);
         when(c5Evaluator.isEntityReadPermitted("alice", TestEntity.class)).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted("alice", TestEntity.class, "id")).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted("alice", TestEntity.class, "code")).thenReturn(false);
+        when(readAccess.list(eq(TestEntity.class), any(), any(Pageable.class), anyCollection()))
+            .thenAnswer(invocation -> new PageImpl<>(List.of(new TestEntity(1L, "A", "name")),
+                invocation.getArgument(2, Pageable.class), 1));
 
         RestListQuery query = new RestListQuery("items", 1, List.of("id"), Map.of(), null, null, 0, 20);
 
-        assertThatThrownBy(() -> service.list(query))
-            .isInstanceOf(RestReadException.class)
-            .hasFieldOrPropertyWithValue("outcome", RestReadOutcome.FORBIDDEN)
-            .hasMessageContaining("sort: code");
-        Mockito.verifyNoInteractions(readAccess);
+        assertThat(service.list(query).content()).singleElement()
+            .satisfies(row -> assertThat(row).containsEntry("id", 1L));
+        Mockito.verify(c5Evaluator, Mockito.never()).isAttributeReadPermitted(any(), any(), any());
     }
 
     @Test
@@ -189,8 +188,6 @@ class RestReadServiceTest {
         when(catalog.find("items", 1)).thenReturn(Optional.of(resource));
         when(c5Evaluator.isApiPermitted("alice", "items", 1, "LIST")).thenReturn(true);
         when(c5Evaluator.isEntityReadPermitted("alice", TestEntity.class)).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted("alice", TestEntity.class, "id")).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted("alice", TestEntity.class, "journal")).thenReturn(true);
         when(referenceValidator.authorizeReferencePath("alice", TestEntity.class, journalIdPath))
             .thenReturn(false);
 
@@ -297,8 +294,6 @@ class RestReadServiceTest {
         when(currentUser.username()).thenReturn("alice");
         when(c5Evaluator.isApiPermitted("alice", "items", 1, "LIST")).thenReturn(true);
         when(c5Evaluator.isEntityReadPermitted("alice", TestEntity.class)).thenReturn(true);
-        when(c5Evaluator.isAttributeReadPermitted(eq("alice"), eq(TestEntity.class), Mockito.anyString()))
-            .thenReturn(true);
         when(readAccess.list(eq(TestEntity.class), any(), any(Pageable.class), anyCollection()))
             .thenAnswer(invocation -> new PageImpl<>(List.of(new TestEntity(1L, "A", "name")),
                 invocation.getArgument(2, Pageable.class), 10_001));

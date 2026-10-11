@@ -68,7 +68,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     }
 
     private ItemForm<?> itemForm;
-    private Consumer<IdentifiableEntity> savedCallback;
+    private Consumer<IdentifiableEntity<Long>> savedCallback;
 
     /** Кнопка «Скопировать ссылку» открытой карточки; перерисовывается после сохранения. */
     private CopyLinkButton copyLinkButton;
@@ -105,7 +105,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
      * @param closeCallback callback для закрытия вкладки
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> void init(
+    public <T extends IdentifiableEntity<Long>, ID> void init(
             Class<T> entityClass,
             String variant,
             ID id,
@@ -126,7 +126,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
      * @param parameters    параметры открытия формы (могут быть null)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> void init(
+    public <T extends IdentifiableEntity<Long>, ID> void init(
             Class<T> entityClass,
             String variant,
             ID id,
@@ -152,7 +152,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
      *                     прочитать сам wrapper (или {@code id == null})
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> void init(
+    public <T extends IdentifiableEntity<Long>, ID> void init(
             Class<T> entityClass,
             String variant,
             ID id,
@@ -175,7 +175,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
 
         ItemForm<T> form = formResolver.resolveItemForm(entityClass, variant, id, parameters);
         form.setSaveHandler((FormSaveHandler) applicationContext.getBean(FormSaveHandler.class));
-        this.savedCallback = (Consumer) onSaved;
+        this.savedCallback = onSaved == null ? null : saved -> onSaved.accept(entityClass.cast(saved));
 
         // Загружаем существующую запись или инициализируем несохранённую для новой
         if (existing != null) {
@@ -232,7 +232,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     }
 
     /** Canonical чтение записи для открытия вкладки — тот же путь, что у диалога. */
-    private <T extends IdentifiableEntity, ID> T loadExisting(Class<T> entityClass, ID id) {
+    private <T extends IdentifiableEntity<Long>, ID> T loadExisting(Class<T> entityClass, ID id) {
         BaseService<T, ID> service = serviceLocator.findService(entityClass);
         return service.findById(id).orElse(null);
     }
@@ -308,28 +308,34 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
      * внутри {@code ItemForm.save()}, уведомления, вызов onSaved при успехе.
      * Закрытие — только у вызывающего host-кода.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private FormSaveResult saveNow(ItemForm<?> form) {
-        FormSaveResult result = form.save();
-        if (result.success()) {
+    private FormSaveResult<?> saveNow(ItemForm<?> form) {
+        FormSaveResult<?> result = form.save();
+        if (result instanceof FormSaveResult.Success<?> success) {
             // У только что сохранённой записи появился id: ссылка стала построимой, и кнопка
             // обязана это увидеть, не дожидаясь переоткрытия вкладки (E2.1).
             if (copyLinkButton != null) {
                 copyLinkButton.refresh();
             }
             if (savedCallback != null) {
-                savedCallback.accept(((FormSaveResult.Success) result).saved());
+                savedCallback.accept(success.saved());
             }
             Notification.show("Сохранено", 2000, Notification.Position.BOTTOM_START)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        } else if (result instanceof FormSaveResult.Conflict conflict) {
+        } else if (result instanceof FormSaveResult.Conflict<?> conflict) {
             // Конфликт @Version: форма остается открытой, изменения не потеряны —
             // пользователь перечитывает данные (открывает запись заново) и повторяет.
             Notification.show(String.join("\n", conflict.messages()), 5000, Notification.Position.MIDDLE)
                 .addThemeVariants(NotificationVariant.LUMO_CONTRAST);
-        } else if (result instanceof FormSaveResult.Failure failure) {
-            Notification.show(String.join("\n", failure.messages()), 5000, Notification.Position.MIDDLE)
-                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } else if (result instanceof FormSaveResult.Failure<?> failure) {
+            if (AccessDenialPresentation.find(failure.cause()) != null) {
+                String title = form.getMetadata() == null ? "карточка" : form.getMetadata().getItemFormTitle();
+                AccessDenialPresentation.show(AccessDenialPresentation.describe(failure.cause(),
+                    "Не удалось сохранить форму «" + title + "»",
+                    applicationContext.getBean(org.ipro.metadata.MetadataResolver.class)));
+            } else {
+                Notification.show(String.join("\n", failure.messages()), 5000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
         }
         return result;
     }

@@ -18,7 +18,21 @@ public final class VisualQueryParameterRuntime {
             if (value == null && parameter.required()) {
                 throw new IllegalArgumentException("Обязательный visual-параметр не заполнен: " + parameter.name());
             }
-            if (value != null) result.put(parameter.name(), value);
+            if (value != null) {
+                if ("DATE".equals(parameter.dataType()) && !(value instanceof java.time.LocalDate))
+                    throw new IllegalArgumentException("Visual-параметр " + parameter.name() + " требует LocalDate");
+                if ("DATETIME".equals(parameter.dataType()) && !(value instanceof java.time.LocalDateTime))
+                    throw new IllegalArgumentException("Visual-параметр " + parameter.name() + " требует LocalDateTime");
+                String expected = parameter.dataType();
+                if (!java.util.Set.of("TEXT", "DATE", "DATETIME", "ENTITY").contains(expected)) {
+                    try {
+                        Class<?> type = switch(expected) { case "INTEGER", "DECIMAL", "NUMBER", "long", "int", "short", "byte" -> Number.class; case "double", "float" -> Number.class; case "BOOLEAN", "boolean" -> Boolean.class; case "STRING", "TEXT" -> String.class; case "ENUM" -> Enum.class; default -> Class.forName(expected, false, Thread.currentThread().getContextClassLoader()); };
+                        if (Number.class.isAssignableFrom(type) && value instanceof Number) { /* JDBC numeric binding. */ }
+                        else if (!type.isInstance(value)) throw new IllegalArgumentException("Параметр " + parameter.name() + " требует " + type.getSimpleName());
+                    } catch (ClassNotFoundException unknown) { throw new IllegalArgumentException("Неизвестный тип параметра: " + expected, unknown); }
+                }
+                result.put(parameter.name(), value);
+            }
         }
         values.keySet().stream().filter(name -> definitions == null || definitions.stream().noneMatch(p -> p.name().equals(name)))
                 .forEach(name -> { throw new IllegalArgumentException("Параметр не объявлен в visual query: " + name); });

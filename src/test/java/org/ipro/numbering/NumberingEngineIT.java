@@ -91,7 +91,8 @@ class NumberingEngineIT {
 
     @BeforeEach
     void authenticateRlsTestUser() {
-        RlsTestFixture.authenticateAsSuperuser(accessGrantRepository);
+        String subject = RlsTestFixture.authenticateAsSuperuser(accessGrantRepository);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, subject, ReceivingDocument.class);
     }
 
     private static final LocalDate DATE_2025 = LocalDate.of(2025, 6, 1);
@@ -277,6 +278,9 @@ class NumberingEngineIT {
     @Test
     void createAssignsNumberUpdateKeepsIt() {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                ReceivingDocument.class);
             Workshop receiving = workshopRepository.save(new Workshop("RW-1", "Цех приёмщик"));
             Workshop transferring = workshopRepository.save(new Workshop("TW-1", "Цех сдатчик"));
             Journal journal = persistedJournal("J-H1");
@@ -298,6 +302,9 @@ class NumberingEngineIT {
     @Test
     void manualNumberPreservedOnCreate() {
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(),
+                ReceivingDocument.class);
             Workshop receiving = workshopRepository.save(new Workshop("RW-2", "Цех приёмщик"));
             Workshop transferring = workshopRepository.save(new Workshop("TW-2", "Цех сдатчик"));
             Journal journal = persistedJournal("J-H2");

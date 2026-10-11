@@ -1,0 +1,23 @@
+# Persisted identities; changing a key requires an explicit compatibility/migration decision.
+item:accounting-object-corrections-list
+item:accounting-object-installations-list
+item:accounting-objects-list
+item:accounting-types-list
+item:attribute-types-list
+item:attribute-values-list
+item:branches-list
+item:journals-list
+item:nomenclature-groups-list
+item:nomenclature-list
+item:nomenclature-prices-list
+item:operations-list
+item:receiving-documents-list
+item:specifications-list
+item:storage-attribute-sets-list
+item:storage-attributes-list
+item:units-list
+item:workshops-list
+subsystem:directories
+subsystem:documents
+subsystem:production
+subsystem:production-documents

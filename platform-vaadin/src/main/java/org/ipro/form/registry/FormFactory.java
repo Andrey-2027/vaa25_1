@@ -3,7 +3,7 @@ package org.ipro.form.registry;
 import com.vaadin.flow.component.Component;
 
 /**
- * Фабрика для создания форм.
+ * Прикладной SPI фабрики формы: callback для {@code ItemFormVariants.addDefault/add}.
  *
  * Принимает FormContext (контекст вызова) и возвращает готовый компонент формы.
  *

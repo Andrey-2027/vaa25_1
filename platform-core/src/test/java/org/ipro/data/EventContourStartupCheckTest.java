@@ -85,7 +85,7 @@ class EventContourStartupCheckTest {
         }
     }
 
-    private static final class Nomenclature implements IdentifiableEntity {
+    private static final class Nomenclature implements IdentifiableEntity<Long> {
         private Long id;
 
         @Override

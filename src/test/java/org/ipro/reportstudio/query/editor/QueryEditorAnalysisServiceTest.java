@@ -18,6 +18,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class QueryEditorAnalysisServiceTest {
+    @Test void periodDeclarationsExposeActualFromAndToBindings() {
+        var guard = mock(ReportQueryGuard.class);
+        when(guard.guard(any(), any(), any())).thenReturn(GuardResult.allowed(new Analysis(List.of(), List.of(), List.of(), Set.of("periodFrom", "periodTo"))));
+        var period = new ReportParam();period.setName("period");period.setKind(org.ipro.reportstudio.dom.ReportParamKind.PERIOD);
+        new QueryEditorAnalysisService(guard).analyze("select d.date as day from Document d where d.date between :periodFrom and :periodTo", List.of(period));
+        verify(guard).guard(any(), eq(Set.of("periodFrom", "periodTo")), eq(Map.of()));
+    }
 
     @Test
     void exposesParametersFoundByExistingGuardAndMarksUndeclaredOnesUnknown() {

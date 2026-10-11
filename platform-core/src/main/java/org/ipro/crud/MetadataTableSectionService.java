@@ -16,7 +16,7 @@ import java.util.Objects;
  * {@link GenericOwnedSectionService} and the resolved section descriptor.</p>
  */
 public final class MetadataTableSectionService<
-        R extends IdentifiableEntity, P extends IdentifiableEntity>
+        R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>>
         implements TableSectionService<R, P> {
 
     private final GenericOwnedSectionService delegate;

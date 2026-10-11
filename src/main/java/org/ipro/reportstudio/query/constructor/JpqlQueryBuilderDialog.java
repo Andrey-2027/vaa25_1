@@ -24,9 +24,13 @@ public class JpqlQueryBuilderDialog extends Dialog {
 
     /** Результат работы конструктора: определение, текст JPQL и bindings (значения WHERE). */
     public record Result(VisualQueryDefinition definition, String jpql, Map<String, Object> bindings,
-                         org.ipro.reportstudio.query.VisualQueryPackage queryPackage) {
+                         org.ipro.reportstudio.query.VisualQueryPackage queryPackage, String visualQueryJson) {
+        public Result(VisualQueryDefinition definition, String jpql, Map<String, Object> bindings,
+                      org.ipro.reportstudio.query.VisualQueryPackage queryPackage) {
+            this(definition, jpql, bindings, queryPackage, null);
+        }
         public Result(VisualQueryDefinition definition, String jpql, Map<String, ?> bindings) {
-            this(definition, jpql, castBindings(bindings), null);
+            this(definition, jpql, castBindings(bindings), null, null);
         }
 
         private static Map<String, Object> castBindings(Map<String, ?> bindings) {
@@ -113,8 +117,18 @@ public class JpqlQueryBuilderDialog extends Dialog {
             return;
         }
         if (onApply != null) {
-            onApply.accept(new Result(definition, constructor.jpql(), constructor.bindings(), constructor.queryPackage()));
+            try {
+                onApply.accept(new Result(definition, constructor.jpql(), constructor.bindings(), constructor.queryPackage(), constructor.visualQueryJson()));
+            } catch (IllegalArgumentException refusal) {
+                Notification.show(refusal.getMessage(), 5000, Notification.Position.MIDDLE); return;
+            }
         }
         close();
+    }
+
+    public void setSliceSupport(org.ipro.reportstudio.query.register.RegisterSliceReportTemplates recipes, String json,
+            java.util.function.BiConsumer<JpqlQueryConstructor.SliceRequest,
+                Consumer<org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice>> opener) {
+        constructor.setSliceSupport(recipes, json, opener);
     }
 }

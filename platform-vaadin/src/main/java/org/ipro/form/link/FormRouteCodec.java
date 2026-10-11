@@ -55,6 +55,7 @@ public class FormRouteCodec {
         if (route.variant() != null) {
             path.append('?').append(VARIANT_PARAMETER).append('=').append(route.variant());
         }
+        if (route.state() != null) path.append(route.variant() == null ? '?' : '&').append("state=").append(route.state());
         return path.toString();
     }
 
@@ -94,6 +95,7 @@ public class FormRouteCodec {
                 return FormRouteParseResult.rejected("неизвестный раздел адреса: '" + kindSegment + "'");
             }
             if (kind == FormRouteKind.ITEM) {
+                if (variantParse.state() != null) return FormRouteParseResult.rejected("state допустим только для списка");
                 if (segments.length != 4) {
                     return FormRouteParseResult.rejected(
                         "карточка требует ровно /records/{entityKey}/{id}");
@@ -116,13 +118,14 @@ public class FormRouteCodec {
             if (!FormRoute.isKey(entityKey)) {
                 return FormRouteParseResult.rejected("entityKey вне грамматики: '" + segments[2] + "'");
             }
-            return FormRouteParseResult.parsed(new FormRoute(FormRouteKind.LIST, entityKey, null, variant));
+            return FormRouteParseResult.parsed(new FormRoute(FormRouteKind.LIST, entityKey, null, variant, variantParse.state()));
         }
         return FormRouteParseResult.rejected("адрес не является маршрутом формы: '" + url + "'");
     }
 
     /** Результат разбора query-строки: либо вариант (может быть {@code null}), либо отказ. */
-    private record VariantParse(String variant, String rejection) {
+    private record VariantParse(String variant, String state, String rejection) {
+        VariantParse(String variant, String rejection) { this(variant, null, rejection); }
     }
 
     /**
@@ -131,6 +134,7 @@ public class FormRouteCodec {
      */
     private VariantParse variantOf(String query) {
         String variant = null;
+        String state = null;
         if (query == null) {
             return new VariantParse(null, null);
         }
@@ -145,6 +149,13 @@ public class FormRouteCodec {
                 // Переносимый инфраструктурный параметр: форма его не видит.
                 continue;
             }
+            if ("state".equals(name)) {
+                if (state != null) return new VariantParse(null, "state задан дважды");
+                try { ListViewStateToken.decode(rawValue); }
+                catch (RuntimeException invalid) { return new VariantParse(null, "Некорректное состояние списка"); }
+                state = rawValue;
+                continue;
+            }
             if (!VARIANT_PARAMETER.equals(name)) {
                 return new VariantParse(null, "неизвестный query-параметр: '" + name + "'");
             }
@@ -157,7 +168,7 @@ public class FormRouteCodec {
             }
             variant = decoded;
         }
-        return new VariantParse(variant, null);
+        return new VariantParse(variant, state, null);
     }
 
     /**

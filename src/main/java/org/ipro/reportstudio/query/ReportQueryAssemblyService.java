@@ -27,6 +27,8 @@ public class ReportQueryAssemblyService {
     private final ReportParamResolver paramResolver;
     private final EntityParamRefresher refresher;
     private final QueryBuilderMetadataCatalog visualCatalog;
+    private ReportQueryLanguage queryLanguage;
+    public void useQueryLanguage(ReportQueryLanguage language) { queryLanguage = language; }
 
     public ReportQueryAssemblyService(ReportQueryGuard guard, ReportParamResolver paramResolver,
                                       EntityParamRefresher refresher) {
@@ -68,13 +70,29 @@ public class ReportQueryAssemblyService {
         ServiceParams.bindings(context, refresher).forEach(bindings::putIfAbsent);
         // Компиляторные bindings (WHERE-литералы) идут первыми; resolveVisualParameterBindings
         // затем заполняет значения объявленных visual-параметров (в т.ч. из HAVING).
-        bindings.putAll(visual.bindings());
+        visual.bindings().forEach((name, value) -> {
+            if (!VisualQueryCompiler.PENDING_PARAM.equals(value) || name.matches("visualFilter_[0-9]+"))
+                bindings.put(name, value);
+        });
+        refreshSliceEntities(template, bindings);
+        expandIdentityBindings(bindings, visual.bindings().keySet());
         bindings.putAll(resolveVisualParameterBindings(template, executableJpql, bindings));
-        String jpql = applyVisualFilter(executableJpql, checked, template, bindings);
+        String jpql = applyVisualFilter(executableJpql, checked, template, bindings, visual.fields());
+        requirePresentationOrdering(visual.presentations(), ReportExecutionService.groupFieldsOf(template), ReportExecutionService.ordersOf(template));
         jpql = OrderByApplier.withOrderBy(jpql,
                 ReportExecutionService.groupFieldsOf(template),
                 ReportExecutionService.ordersOf(template));
-        return new ReportQueryAssembler(jpql, bindings, checked.selectFields(), checked.warnings());
+        return new ReportQueryAssembler(jpql, bindings, visual.presentations().isEmpty() ? checked.selectFields() : visual.fields(), checked.warnings(), visual.presentations());
+    }
+
+    /** Describe the same executable query as assemble(), without resolving values or executing SQL. */
+    public ReportQueryAssembler describe(ReportTemplate template) {
+        var visual=resolveExecutableJpql(template);
+        var names=new java.util.LinkedHashSet<>(ReportQueryGuard.parameterNamesOf(template.getParams()));
+        names.addAll(visual.bindings().keySet());
+        var checked=guard.guard(visual.jpql(),names,visualParameterEntityClasses(template));
+        if(!checked.allowed()) throw new IllegalArgumentException("Отказ: "+String.join("; ",checked.errors()));
+        return new ReportQueryAssembler(visual.jpql(),visual.bindings(),visual.presentations().isEmpty()?checked.selectFields():visual.fields(),checked.warnings(),visual.presentations());
     }
 
     /**
@@ -115,13 +133,23 @@ public class ReportQueryAssemblyService {
     public ReportQueryAssembler assembleForPreview(String jpql, Set<String> parameterNames,
                                                     Map<String, Object> bindings, ReportTemplate template,
                                                     List<String> groupFields, List<OrderByApplier.OrderSpec> orders) {
-        GuardResult checked = guard.guard(jpql, parameterNames);
+        VisualCompile visual = template != null && template.getQuerySource() == org.ipro.reportstudio.dom.ReportQuerySource.VISUAL
+            ? resolveExecutableJpql(template) : new VisualCompile(jpql, Map.of(), List.of());
+        jpql = visual.jpql();
+        var names = new java.util.LinkedHashSet<>(parameterNames); names.addAll(visual.bindings().keySet());
+        GuardResult checked = guard.guard(jpql, names);
         if (!checked.allowed()) {
             throw new IllegalArgumentException("Отказ: " + String.join("; ", checked.errors()));
         }
         Map<String, Object> allBindings = new HashMap<>(bindings == null ? Map.of() : bindings);
+        visual.bindings().forEach((name, value) -> { if (!VisualQueryCompiler.PENDING_PARAM.equals(value)) allBindings.put(name, value); });
+        refreshSliceEntities(template, allBindings);
+        expandIdentityBindings(allBindings, visual.bindings().keySet());
+        if (template != null && template.getQuerySource() == org.ipro.reportstudio.dom.ReportQuerySource.VISUAL)
+            allBindings.putAll(resolveVisualParameterBindings(template, jpql, allBindings));
+        requirePresentationOrdering(visual.presentations(), groupFields, orders);
         String ordered = OrderByApplier.withOrderBy(jpql, groupFields, orders);
-        return new ReportQueryAssembler(ordered, allBindings, checked.selectFields(), checked.warnings());
+        return new ReportQueryAssembler(ordered, allBindings, visual.presentations().isEmpty() ? checked.selectFields() : visual.fields(), checked.warnings(), visual.presentations());
     }
 
     private Map<String, Class<?>> visualParameterEntityClasses(ReportTemplate template) {
@@ -141,6 +169,7 @@ public class ReportQueryAssemblyService {
     }
 
     private Map<String, Object> resolveVisualParameterBindings(ReportTemplate template, String jpql, Map<String, Object> bindings) {
+        if (template.getQuerySource() != ReportQuerySource.VISUAL) return Map.of();
         if (template.getVisualQueryJson() == null) return Map.of();
         String json = template.getVisualQueryJson();
         VisualQueryDefinition definition = json.contains("\"ctes\"")
@@ -156,13 +185,18 @@ public class ReportQueryAssemblyService {
     }
 
     /** Результат компиляции visual query: итоговый JPQL + внутренние bindings (WHERE/HAVING). */
-    record VisualCompile(String jpql, Map<String, Object> bindings) {
-        static final VisualCompile EMPTY = new VisualCompile(null, Map.of());
+    record VisualCompile(String jpql, Map<String, Object> bindings, List<QueryField> fields, QueryPresentationPlan presentations) {
+        VisualCompile(String jpql, Map<String, Object> bindings, List<QueryField> fields) { this(jpql, bindings, fields, QueryPresentationPlan.EMPTY); }
+        static final VisualCompile EMPTY = new VisualCompile(null, Map.of(), List.of());
     }
 
     private VisualCompile resolveExecutableJpql(ReportTemplate template) {
         if (template.getQuerySource() != ReportQuerySource.VISUAL) {
-            return new VisualCompile(template.getJpql(), Map.of());
+            if (queryLanguage != null && ReportQueryLanguage.containsExtensions(template.getJpql())) {
+                var compiled = queryLanguage.parse(template.getJpql()).compiled();
+                return new VisualCompile(compiled.jpql(), compiled.bindings(), compiled.fields(), compiled.presentations());
+            }
+            return new VisualCompile(template.getJpql(), Map.of(), List.of());
         }
         try {
             String json = template.getVisualQueryJson();
@@ -173,24 +207,85 @@ public class ReportQueryAssemblyService {
                 VisualQueryDefinition definition = new VisualQueryDefinitionJsonCodec().read(json);
                 compiled = VisualQueryCompiler.compile(definition, visualCatalog);
             }
-            return new VisualCompile(compiled.jpql(), compiled.bindings());
+            return new VisualCompile(compiled.jpql(), compiled.bindings(), compiled.fields(), compiled.presentations());
         } catch (Exception error) {
             throw new IllegalArgumentException("Некорректный визуальный запрос: " + error.getMessage(), error);
         }
     }
 
+    private void refreshSliceEntities(ReportTemplate template, Map<String,Object> bindings) {
+        if (queryLanguage == null || template == null || template.getQuerySource() != ReportQuerySource.VISUAL || template.getVisualQueryJson() == null) return;
+        for (var parameter : queryLanguage.entityParameters(template.getVisualQueryJson()).entrySet()) {
+            Object value = bindings.get(parameter.getKey());
+            if (!parameter.getValue().isInstance(value) || !(value instanceof org.ipro.identity.IdentifiableEntity entity) || entity.getId() == null)
+                throw new IllegalArgumentException("Выберите доступный элемент параметра: " + parameter.getKey());
+            Object fresh = refresher.refresh(parameter.getValue(), entity.getId());
+            if (fresh == null) throw new IllegalArgumentException("Элемент параметра недоступен: " + parameter.getKey());
+            bindings.put(parameter.getKey(), fresh);
+        }
+    }
+
+    static void expandIdentityBindings(Map<String, Object> bindings, Set<String> names) {
+        for (var name : names) if (name.startsWith("sliceId_")) {
+            Object value = bindings.get(name.substring("sliceId_".length()));
+            if (value instanceof org.ipro.identity.IdentifiableEntity entity) value = entity.getId();
+            if (!(value instanceof Number)) throw new IllegalArgumentException("Выберите значение ссылочного параметра: " + name.substring("sliceId_".length()));
+            bindings.put(name, ((Number) value).longValue());
+        }
+    }
+    private static void requirePresentationOrdering(QueryPresentationPlan plan, List<String> groups, List<OrderByApplier.OrderSpec> orders) {
+        for (var column : plan.columns()) if (groups.contains(column.name()) || orders.stream().anyMatch(order -> order.columnName().equals(column.name())))
+            throw new IllegalArgumentException("Группировка и сортировка по представлению пока не поддерживаются: " + column.name());
+    }
+
     private String applyVisualFilter(String jpql, GuardResult checked, ReportTemplate template,
-                                     Map<String, Object> bindings) {
+                                     Map<String, Object> bindings, List<QueryField> visualFields) {
         if (template.getVisualFilterJson() == null) return jpql;
         try {
             FilterNode filter = FilterTreeJson.read(new com.fasterxml.jackson.databind.ObjectMapper()
                     .readTree(template.getVisualFilterJson()));
-            CompiledFilter compiled = new ProjectionFilterCompiler(
-                    new QueryFieldFilterFieldResolver(checked.selectFields())).compile(filter, bindings);
-            bindings.putAll(compiled.bindings());
-            return WhereClauseApplier.apply(jpql, compiled.predicate());
+            var allowed = new QueryFieldFilterFieldResolver(checked.selectFields());
+            org.ipro.filtergrid.filter.FilterFieldResolver executionFields = path -> {
+                var field = allowed.resolve(path);
+                var projection = visualFields.stream().filter(column -> column.name().equals(path)).findFirst()
+                    .orElseGet(() -> checked.selectFields().stream().filter(column -> column.name().equals(path)).findFirst().orElseThrow());
+                String expression = projection.expression();
+                if (expression == null || expression.isBlank()) return field;
+                if (!expression.matches("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*"))
+                    throw new IllegalArgumentException("WHERE-фильтр требует scalar path: " + path);
+                return new org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField(expression,
+                    field.label(), field.javaType(), field.dataType(), field.filterEnabled());
+            };
+            var paths = new HashMap<String, org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField>();
+            FilterNode executableFilter = executionFilter(filter, executionFields, paths);
+            CompiledFilter compiled = new ProjectionFilterCompiler(path -> java.util.Objects.requireNonNull(paths.get(path)))
+                .compile(executableFilter, bindings);
+            Map<String, String> names = new HashMap<>();
+            int index = 0;
+            for (var binding : compiled.bindings().entrySet()) {
+                String name = binding.getKey();
+                while (bindings.containsKey(name)) name = "reportFilter_" + (++index);
+                names.put(binding.getKey(), name); bindings.put(name, binding.getValue());
+            }
+            String predicate = compiled.predicate();
+            if (predicate != null) predicate = java.util.regex.Pattern.compile(":([A-Za-z_][A-Za-z0-9_]*)")
+                .matcher(predicate).replaceAll(match -> ":" + names.getOrDefault(match.group(1), match.group(1)));
+            return WhereClauseApplier.apply(jpql, predicate);
         } catch (JsonProcessingException error) {
             throw new IllegalArgumentException("Некорректный JSON визуального фильтра", error);
         }
+    }
+
+    private static FilterNode executionFilter(FilterNode node, org.ipro.filtergrid.filter.FilterFieldResolver resolver,
+            Map<String, org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField> paths) {
+        if (node instanceof org.ipro.filtergrid.filter.FilterConditionNode conditionNode) {
+            var condition = conditionNode.condition();
+            var field = resolver.resolve(condition.path()); paths.put(field.path(), field);
+            return new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition(
+                field.path(), condition.operator(), condition.value(), condition.valueTo(), condition.dataType(), condition.values()));
+        }
+        var group = (org.ipro.filtergrid.filter.FilterGroup) node;
+        return new org.ipro.filtergrid.filter.FilterGroup(group.operator(),
+            group.children().stream().map(child -> executionFilter(child, resolver, paths)).toList());
     }
 }

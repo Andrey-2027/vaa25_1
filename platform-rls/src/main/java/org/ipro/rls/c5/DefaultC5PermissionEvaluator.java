@@ -54,12 +54,12 @@ public class DefaultC5PermissionEvaluator implements C5PermissionEvaluator {
     }
 
     @Override
+    @Deprecated
     public boolean isAttributeReadPermitted(String username, Class<?> entityType, String persistentPath) {
         Objects.requireNonNull(username, "username must not be null");
         Objects.requireNonNull(entityType, "entityType must not be null");
         Objects.requireNonNull(persistentPath, "persistentPath must not be null");
 
-        return decisionService.isReadGranted(
-            C5PermissionKeys.attributeRead(entityType, persistentPath), username);
+        return isEntityReadPermitted(username, entityType);
     }
 }

@@ -13,7 +13,7 @@ import java.util.Objects;
  * Отсутствующая section представлена отсутствием записи, а пустая list означает
  * явно подключённую и очищаемую section.
  */
-public record AggregateSaveContext<T extends IdentifiableEntity>(
+public record AggregateSaveContext<T extends IdentifiableEntity<?>>(
         T aggregate,
         List<AggregateSection> sections,
         EventContext eventContext) {

@@ -56,6 +56,12 @@ class VaadinModuleCompositionTest {
      */
     private static final Set<String> REVIEWED_TYPES = Set.of(
         "org.ipro.form.BindingDescriptor",
+        "org.ipro.form.FormMessages",
+        "org.ipro.form.builder.FormTypeCustomization",
+        "org.ipro.form.builtin.ListPageReader",
+        "org.ipro.form.builtin.ListFormJpaFilterGrid",
+        "org.ipro.form.builtin.DateTimeRangeFilter",
+        "org.ipro.form.link.ListViewStateToken",
         "org.ipro.form.Dirtyable",
         "org.ipro.form.EntityField",
         "org.ipro.form.FieldFactory",
@@ -98,6 +104,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.action.ActionSurface",
         "org.ipro.form.action.CrudAction",
         "org.ipro.form.action.CopyLinkButton",
+        "org.ipro.form.action.OperationPermissionSource",
         "org.ipro.form.action.ReadOnlyReason",
         "org.ipro.form.action.RouteLinkability",
         "org.ipro.form.builder.ContextFilterControl",
@@ -134,6 +141,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.builtin.RowDraft",
         "org.ipro.form.builtin.ViewSelectorDialog",
         "org.ipro.form.config.FormAutoConfiguration",
+        "org.ipro.form.coordinator.AccessDenialPresentation",
         "org.ipro.form.coordinator.FormCoordinator",
         "org.ipro.form.coordinator.FormNavigator",
         "org.ipro.form.coordinator.FormOpenMode",
@@ -296,8 +304,11 @@ class VaadinModuleCompositionTest {
                 + " действий (`ActionProvenance` и его каталог) — итого 127; E3.2.2 §9.1 добавила"
                 + " типизированный снимок каталога Explorer (`ExplorerSnapshot`); E3.2.2 §10.1"
                 + " добавила SPI перехода к структуре (`EntityStructureNavigation`); §10.2 — внутренний helper меню форм"
-                + " (`FormStructureAffordance`) — итого 130")
-            .hasSize(130);
+                + " (`FormStructureAffordance`) — итого 130; диагностика отказов добавила INTERNAL helper"
+                + " (`AccessDenialPresentation`) — итого 131; R8 добавила семейную настройку форм,"
+                + " paged reader, структурный адаптер фильтра, datetime-отбор и кодек состояния — итого 137;"
+                + " E1.2b добавила порт права на операцию (`OperationPermissionSource`) — итого 138")
+            .hasSize(138);
     }
 
     @Test

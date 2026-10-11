@@ -179,7 +179,8 @@ class PlatformApiBaselineTest {
      * Временный режим все-публичности — долг, и он обязан быть виден и сокращаться.
      *
      * <p>Семантическую классификацию прошли {@code platform-core} (D3.3), {@code platform-vaadin}
-     * (роли назначены в D3.5.0 до физического переноса) и {@code platform-rest} (F-REST-READ-1).
+     * (роли назначены в D3.5.0 до физического переноса), {@code platform-rest} (F-REST-READ-1)
+     * и {@code platform-rest-web} (F-REST-READ-4).
      * Остальные артефакты зафиксированы целиком
      * ({@code TEMPORARY_ALL_PUBLIC}), их реализацию нельзя менять свободно — это противоречит
      * политике D1, и D3.9 обязан это снять. Тест превращает «когда-нибудь» в список: он печатает,
@@ -199,9 +200,10 @@ class PlatformApiBaselineTest {
             .toList();
 
         assertThat(semantic)
-            .as("семантическую классификацию прошли platform-core, platform-rest и platform-vaadin;"
-                + " новый артефакт без реестра ролей не должен тихо замерзать целиком, включая реализацию")
-            .isEqualTo(List.of("platform-core", "platform-rest", "platform-vaadin"));
+            .as("семантическую классификацию прошли platform-core, platform-rest, platform-rest-web"
+                + " и platform-vaadin; новый артефакт без реестра ролей не должен тихо замерзать"
+                + " целиком, включая реализацию")
+            .isEqualTo(List.of("platform-core", "platform-navigation", "platform-rest", "platform-rest-web", "platform-vaadin"));
         assertThat(temporary)
             .as("долг D3.9: эти артефакты всё ещё заморожены целиком, включая реализацию")
             .isNotEmpty();
@@ -267,7 +269,9 @@ class PlatformApiBaselineTest {
      */
     private static final Map<String, Path> SEMANTIC_ROLE_REGISTRIES = Map.of(
         "platform-core", Path.of("src/test/resources/platform-core-surface.txt"),
+        "platform-navigation", Path.of("platform-navigation/src/main/resources/META-INF/navigation-surface.txt"),
         "platform-rest", Path.of("src/test/resources/platform-rest-surface.txt"),
+        "platform-rest-web", Path.of("src/test/resources/platform-rest-web-surface.txt"),
         "platform-vaadin", Path.of("src/test/resources/platform-vaadin-surface.txt"));
 
     private static Policy policyFor(String artifactId) {
@@ -352,7 +356,7 @@ class PlatformApiBaselineTest {
             .sorted()
             .forEach(iface -> text.append("  implements ").append(iface).append('\n'));
         for (TypeVariable<?> variable : type.getTypeParameters()) {
-            text.append("  type-parameter ").append(variable.getName()).append('\n');
+            text.append("  type-parameter ").append(typeParameter(variable)).append('\n');
         }
         Arrays.stream(type.getDeclaredAnnotations())
             .map(annotation -> annotation.annotationType().getName())
@@ -381,6 +385,7 @@ class PlatformApiBaselineTest {
                 continue;
             }
             members.add("  ctor " + Modifier.toString(constructor.getModifiers())
+                + (constructor.getTypeParameters().length == 0 ? "" : ' ' + typeParameters(constructor))
                 + '(' + parameters(constructor) + ')' + declaredExceptions(constructor));
         }
         for (Method method : type.getDeclaredMethods()) {
@@ -388,6 +393,7 @@ class PlatformApiBaselineTest {
                 continue;
             }
             members.add("  method " + Modifier.toString(method.getModifiers()) + ' '
+                + typeParameters(method)
                 + typeName(method.getGenericReturnType()) + ' ' + method.getName()
                 + '(' + parameters(method) + ')' + declaredExceptions(method)
                 + defaultValue(method));
@@ -395,6 +401,29 @@ class PlatformApiBaselineTest {
         members.sort(Comparator.naturalOrder());
         members.forEach(member -> text.append(member).append('\n'));
         return text.toString();
+    }
+
+    private static String typeParameter(TypeVariable<?> variable) {
+        List<String> bounds = Arrays.stream(variable.getBounds())
+            .filter(bound -> bound != Object.class).map(PlatformApiBaselineTest::typeName).toList();
+        return variable.getName() + (bounds.isEmpty() ? "" : " extends " + String.join(" & ", bounds));
+    }
+
+    private static String typeParameters(Executable executable) {
+        if (executable.getTypeParameters().length == 0) return "";
+        return '<' + String.join(", ", Arrays.stream(executable.getTypeParameters())
+            .map(PlatformApiBaselineTest::typeParameter).toList()) + "> ";
+    }
+
+    @Test
+    void describesClassAndMethodGenericBounds() {
+        assertThat(describe(GenericBoundsFixture.class))
+            .contains("type-parameter T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>")
+            .contains("method public <R extends java.lang.Number & java.lang.Comparable<R>> R echo(R)");
+    }
+
+    private static final class GenericBoundsFixture<T extends org.ipro.identity.IdentifiableEntity<Long>> {
+        public <R extends Number & Comparable<R>> R echo(R value) { return value; }
     }
 
     /** Константное значение — часть контракта: его правка ломает потребителя так же, как подпись. */
@@ -570,7 +599,7 @@ class PlatformApiBaselineTest {
 
     private static String read(Path path) {
         try {
-            return Files.readString(path, StandardCharsets.UTF_8);
+            return Files.readString(path, StandardCharsets.UTF_8).replace("\r\n", "\n");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

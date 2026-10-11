@@ -1,0 +1,109 @@
+{
+  "/api/v1/nomenclature#default" : {
+    "content" : [ {
+      "id" : 1,
+      "code" : "example",
+      "name" : "example"
+    } ],
+    "page" : 0,
+    "size" : 50,
+    "totalElements" : 1,
+    "totalPages" : 1
+  },
+  "/api/v1/nomenclature/{id}#default" : {
+    "data" : {
+      "id" : 1,
+      "code" : "example",
+      "name" : "example"
+    }
+  },
+  "/api/v1/nomenclature#id" : {
+    "content" : [ {
+      "id" : 1
+    } ],
+    "page" : 0,
+    "size" : 50,
+    "totalElements" : 1,
+    "totalPages" : 1
+  },
+  "/api/v1/nomenclature/{id}#id" : {
+    "data" : {
+      "id" : 1
+    }
+  },
+  "/api/v1/nomenclature#maximum" : {
+    "content" : [ {
+      "id" : 1,
+      "code" : "example",
+      "name" : "example",
+      "typeNom" : "example"
+    } ],
+    "page" : 0,
+    "size" : 50,
+    "totalElements" : 1,
+    "totalPages" : 1
+  },
+  "/api/v1/nomenclature/{id}#maximum" : {
+    "data" : {
+      "id" : 1,
+      "code" : "example",
+      "name" : "example",
+      "typeNom" : "example"
+    }
+  },
+  "/api/v1/specifications#default" : {
+    "content" : [ {
+      "id" : 1,
+      "codeSpec" : "example",
+      "draft" : null
+    } ],
+    "page" : 0,
+    "size" : 50,
+    "totalElements" : 1,
+    "totalPages" : 1
+  },
+  "/api/v1/specifications/{id}#default" : {
+    "data" : {
+      "id" : 1,
+      "codeSpec" : "example",
+      "draft" : null,
+      "comment" : null
+    }
+  },
+  "/api/v1/specifications#id" : {
+    "content" : [ {
+      "id" : 1
+    } ],
+    "page" : 0,
+    "size" : 50,
+    "totalElements" : 1,
+    "totalPages" : 1
+  },
+  "/api/v1/specifications/{id}#id" : {
+    "data" : {
+      "id" : 1
+    }
+  },
+  "/api/v1/specifications#maximum" : {
+    "content" : [ {
+      "id" : 1,
+      "codeSpec" : "example",
+      "draft" : null,
+      "nomenclatureCode" : "example"
+    } ],
+    "page" : 0,
+    "size" : 50,
+    "totalElements" : 1,
+    "totalPages" : 1
+  },
+  "/api/v1/specifications/{id}#maximum" : {
+    "data" : {
+      "id" : 1,
+      "codeSpec" : "example",
+      "draft" : null,
+      "comment" : null,
+      "journalId" : 1,
+      "nomenclatureCode" : "example"
+    }
+  }
+}

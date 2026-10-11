@@ -5,12 +5,12 @@ import org.ip.model.AttributeType;
 import org.ip.model.AttributeValueType;
 import org.ip.model.Branch;
 import org.ip.model.Workshop;
-import org.ip.repository.AttributeTypeRepository;
 import org.ip.repository.AttributeValueRepository;
 import org.ip.repository.BranchRepository;
 import org.ip.repository.WorkshopRepository;
 import org.ip.service.AttributeValueService;
 import org.ipro.crud.ValidationException;
+import org.ipro.data.EntityDataAccess;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsTestFixture;
@@ -47,9 +47,6 @@ class AttributeValueRefRlsIT {
     private AttributeValueService attributeValueService;
 
     @Autowired
-    private AttributeTypeRepository attributeTypeRepository;
-
-    @Autowired
     private AttributeValueRepository attributeValueRepository;
 
     @Autowired
@@ -60,6 +57,16 @@ class AttributeValueRefRlsIT {
 
     @Autowired
     private AccessGrantRepository accessGrantRepository;
+
+    @Autowired
+    private EntityDataAccess access;
+
+    /** Bulk-уборка строк значения: у типа нет canonical delete by design (см. cleanup). */
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
+    @Autowired
+    private org.springframework.transaction.support.TransactionTemplate transactions;
 
     @AfterEach
     void tearDown() {
@@ -105,10 +112,18 @@ class AttributeValueRefRlsIT {
     }
 
     private void cleanup(Fixture fixture) {
-        attributeValueRepository.findByAttrTypeOrderByCode(fixture.type())
-            .forEach(attributeValueRepository::delete);
-        attributeValueRepository.flush();
-        attributeTypeRepository.delete(fixture.type());
+        // Строки значения снимаются bulk-запросом: значения бессмертны, canonical delete у типа
+        // нет by design (ADR-0019 §3), а repository-удаление managed-строки вооружённая граница
+        // отклоняет на flush — и правильно делает. Bulk-операция не является entity-write и
+        // delete-handle типу не выдаёт: это уборка данных теста, а не пользовательский путь.
+        transactions.executeWithoutResult(status -> entityManager.createQuery(
+                "delete from AttributeValue v where v.attrType.id = :typeId")
+            .setParameter("typeId", fixture.type().getId())
+            .executeUpdate());
+        // Тип атрибута снимается canonical path: у него есть write handle, значит, прямая
+        // запись — вход в обход финальной границы (ADR-0017 §9).
+        grantTypeReadKey();
+        access.delete(AttributeType.class, fixture.type().getId());
         workshopRepository.deleteAll(List.of(fixture.workshopA(), fixture.workshopB()));
         branchRepository.deleteAll(List.of(fixture.workshopA().getBranch(), fixture.workshopB().getBranch()));
         accessGrantRepository.deleteAll(accessGrantRepository
@@ -126,7 +141,7 @@ class AttributeValueRefRlsIT {
         AttributeType type = new AttributeType(
             "REF-" + suffix, "Ссылка " + suffix, AttributeValueType.REF);
         type.setTargetDictionary(Workshop.class.getName());
-        type = attributeTypeRepository.save(type);
+        type = createType(type);
 
         String username = "ref-user-" + suffix;
         AccessGrant grant = new AccessGrant();
@@ -140,7 +155,29 @@ class AttributeValueRefRlsIT {
         return new Fixture(username, type, workshopA, workshopB);
     }
 
+    /**
+     * Фикстура типа идёт canonical path. Операции субъект уже получил (см.
+     * {@link RlsTestFixture#callAsSuperuser}), а read-ключ выдаётся здесь же: он нужен и
+     * созданию, и снятию типа, и не выдаётся wildcard-строкой "*" (ADR-0017 §4).
+     */
+    private AttributeType createType(AttributeType type) {
+        grantTypeReadKey();
+        return access.create(AttributeType.class, type);
+    }
+
+    private void grantTypeReadKey() {
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+            SecurityContextHolder.getContext().getAuthentication().getName(),
+            AttributeType.class);
+    }
+
     private void loginAs(String username) {
+        // Entity C5 is a prerequisite; this test varies the independent BRANCH RLS grant.
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository, username, Workshop.class);
+        // Создание значения идёт canonical create (C5.6b, ADR-0019 §4): без строки на ключ
+        // операций типа создание отказывает — первичная выдача, а не ослабление проверки.
+        RlsTestFixture.grantC5EntityOperations(accessGrantRepository, username,
+            org.ip.model.AttributeValue.class);
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(username, "n/a", List.of()));
     }

@@ -6,6 +6,27 @@ Backend платформы: generic CRUD, доступ к данным, мета
 
 ## Что здесь означает «core»
 
+### Identity и текущий тип ключа
+
+`IdentifiableEntity<ID>` — нейтральный Java-контракт, но действующий core использует
+`T extends IdentifiableEntity<Long>` в canonical write, owned sections и aggregate save.
+Root и row имеют независимые Long id; generic-параметр не задаёт parent-связь.
+Нейтральные lifecycle/helper участки читают `IdentifiableEntity<?>`.
+
+`CrudService<T>` сохраняет Long delete/findById. Исторический независимый ID в
+`BaseService<T, ID>` и resolver/locator API остаётся долгом: он не связывает ID с T
+и не подтверждает arbitrary-key CRUD. Потребитель текущего контура выбирает
+`BaseService<MyEntity, Long>`. Полная типизация всей цепочки CRUD по ID — отдельная работа.
+Прямой findById через generic BaseService<T, Long> может быть неоднозначным из-за
+унаследованного Long overload; руководство показывает типобезопасный CrudService<T> view.
+
+После обновления identity-интерфейса нужен согласованный clean rebuild implementors
+и consumers; одинаковая SNAPSHOT-версия не доказывает binary compatibility.
+[Руководство потребителя](../docs/architecture/identity-id-consumer-guide.md) содержит
+примеры, границы поддержки и список оставшихся runtime bridges с владельцами/проверками.
+
+### Граница backend
+
 «Без UI и без кода приложения», а не «чистый Java». Spring, JPA и `jakarta.validation` в этом
 модуле допустимы: сюда переехало исполнение, а не контракты.
 

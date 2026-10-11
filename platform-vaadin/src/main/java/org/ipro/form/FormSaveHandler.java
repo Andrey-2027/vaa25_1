@@ -14,7 +14,7 @@ import org.ipro.identity.IdentifiableEntity;
  * <p>Реализация не должна закрывать форму/диалог — закрытием владеет host
  * (Dialog/Workspace), читающий {@link FormSaveResult}.</p>
  */
-public interface FormSaveHandler<T extends IdentifiableEntity> {
+public interface FormSaveHandler<T extends IdentifiableEntity<Long>> {
 
     FormSaveResult<T> save(ItemForm<T> form);
 }

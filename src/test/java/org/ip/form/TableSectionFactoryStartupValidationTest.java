@@ -8,7 +8,7 @@ import org.ipro.form.registry.FormRegistry;
 import org.ipro.form.registry.FormResolver;
 import org.ipro.metadata.MetadataResolver;
 import org.ip.model.PrdSpecMtr;
-import org.ipro.identity.IdentifiableEntity;
+import org.ipro.crud.BaseEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.ApplicationArguments;
@@ -80,14 +80,14 @@ class TableSectionFactoryStartupValidationTest {
 
     @Test
     void customizationWithoutDeclaredVariantsIsIgnored() {
-        TableSectionCustomization<IdentifiableEntity> silent = new TableSectionCustomization<>() {
+        TableSectionCustomization<BaseEntity> silent = new TableSectionCustomization<>() {
             @Override
-            public Class<IdentifiableEntity> rowClass() {
-                return IdentifiableEntity.class;
+            public Class<BaseEntity> rowClass() {
+                return BaseEntity.class;
             }
 
             @Override
-            public void configure(ItemTable<IdentifiableEntity, ?> table) {
+            public void configure(ItemTable<BaseEntity, ?> table) {
             }
         };
 

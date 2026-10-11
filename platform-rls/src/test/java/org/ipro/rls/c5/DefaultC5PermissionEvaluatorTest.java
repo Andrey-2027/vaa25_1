@@ -108,8 +108,8 @@ class DefaultC5PermissionEvaluatorTest {
     }
 
     @Test
-    void isAttributeReadPermitted_checksExactAttributePathKey() {
-        String key = "ATTR:java.lang.String:length";
+    void legacyAttributeMethodUsesEntityReadForEveryField() {
+        String key = C5PermissionKeys.entityRead(String.class);
         AccessGrant grant = new AccessGrant();
         grant.setCanRead(true);
 
@@ -118,7 +118,7 @@ class DefaultC5PermissionEvaluatorTest {
             .thenReturn(List.of(grant));
 
         assertThat(evaluator.isAttributeReadPermitted("john", String.class, "length")).isTrue();
-        assertThat(evaluator.isAttributeReadPermitted("john", String.class, "bytes")).isFalse();
+        assertThat(evaluator.isAttributeReadPermitted("john", String.class, "bytes")).isTrue();
     }
 
     @Test

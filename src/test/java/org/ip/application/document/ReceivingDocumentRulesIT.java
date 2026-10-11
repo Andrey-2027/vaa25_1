@@ -115,6 +115,8 @@ class ReceivingDocumentRulesIT {
         String suffix = suffix();
 
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(), ReceivingDocument.class);
             ReceivingDocument document = documentWithDifferentWorkshops(suffix);
 
             documents().save(document);
@@ -136,6 +138,8 @@ class ReceivingDocumentRulesIT {
         String suffix = suffix();
 
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(), ReceivingDocument.class);
             Journal journal = persistJournal(suffix);
             Workshop workshop = workshopRepository.save(new Workshop("W-" + suffix, "Цех " + suffix));
             ReceivingDocument document = new ReceivingDocument(
@@ -156,6 +160,8 @@ class ReceivingDocumentRulesIT {
         String suffix = suffix();
 
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(), ReceivingDocument.class);
             Nomenclature nomenclature = persistNomenclature(suffix);
             ReceivingDocument document = documentWithDifferentWorkshops(suffix);
             ReceivingDocument saved = aggregateSaveService.save(document,
@@ -191,6 +197,8 @@ class ReceivingDocumentRulesIT {
         String suffix = suffix();
 
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(), ReceivingDocument.class);
             ReceivingDocument document = documentWithDifferentWorkshops(suffix);
             ReceivingDocument saved = documents().save(document);
             recorder.blockDeletesFor(saved.getId());
@@ -213,6 +221,8 @@ class ReceivingDocumentRulesIT {
         nomenclature.setName("Деталь " + suffix);
 
         RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(), ReceivingDocument.class);
             ReceivingDocument document = documentWithDifferentWorkshops(suffix);
             List<ReceivingDocumentItem> rows = List.of(
                 new ReceivingDocumentItem(nomenclature, BigDecimal.ONE),

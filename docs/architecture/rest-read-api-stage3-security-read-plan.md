@@ -1,9 +1,20 @@
 # F-REST-READ-3: серверные права и canonical read contract — подробный план
 
-- Статус: реализация и corrective pass выполнены; Gate 3A подтверждён прогонами
-  2026-10-03; пакеты З0–З2 плана завершения выполнены (З2 — 2026-10-04), Gate 3B и
-  общая приёмка этапа остаются открытыми
-- Дата: 2026-10-03
+> Актуализация 2026-10-06: [ADR-0016](decisions/ADR-0016-rest-resource-field-access.md)
+> заменяет нижеописанную модель обязательных attribute grants. REST требует API
+> и entity read; опубликованные поля, фильтры и сортировки отдельных grants не требуют.
+> Entity read используемых ссылок и RLS сохраняются. Прежние результаты приёмки
+> относятся к прежнему контракту; новая проверка фиксируется отдельно.
+
+> Актуализация 2026-10-06: [ADR-0016](decisions/ADR-0016-rest-resource-field-access.md)
+> заменяет нижеописанную модель обязательных attribute grants. REST требует API
+> и entity read; опубликованные поля, фильтры и сортировки отдельных grants не требуют.
+> Entity read используемых ссылок и RLS сохраняются. Прежние результаты приёмки
+> относятся к прежнему контракту; новая проверка фиксируется отдельно.
+
+- Статус: реализация, corrective pass, З0–З5 и Gate 3A/3B завершены; локальная серверная приёмка закрыта 2026-10-06
+- Дата: 2026-10-03; контрольный статус актуализирован 2026-10-05
+- Актуализация 2026-10-06: З0–З5 и Gate 3A/3B закрыты. Полный стандартный bootstrap на стабильном source snapshot: 1830 application tests, failures/errors 0; frontend/package и strict validation — exit 0. Общий C5/C и внешнее включение остаются отдельными; [evidence 4.7](rest-read-api-stage4-47-evidence-20261006.md).
 - Архитектурное решение: независимый REST fetch profile зафиксирован в
   [ADR-0007, §4.1](decisions/ADR-0007-canonical-data-access-path.md#rest-fixed-fetch-profile);
   evidence реализации записан в §14–§15, remaining work — в плане завершения
@@ -874,3 +885,26 @@ app-пилотом `RestReadPipelinePilotIT` (12/12), финальный W = 10 
 [completion evidence, §11](rest-read-api-stage3-completion-evidence.md#11-з4--численные-sqlgraphwindow-бюджеты-2026-10-04).
 Следующий пакет — З5, воспроизводимость и итоговые gates. Новые результаты
 не заменяют финальные owner/app/starter gates.
+
+## 17. Контрольное ревью и план HTTP — 2026-10-05
+
+[Контрольный прогон](rest-read-api-stage3-review-20261005.md) подтвердил
+REST read/role/admin/API/surface набор 40/40. З0–З4 приняты; открытый общий gate
+З5 сохраняется по evidence §12: последний application clean verify завершился
+2026-10-05 в 00:11:51 с 20 failures + 22 errors. Полный этап не переобозначен
+закрытым по результату адресного набора.
+
+[Этап 4](rest-read-api-stage4-http-plan.md) завершает функциональный read-срез:
+optional web artifact, строгий parsing после authorization, Basic/TLS и request
+RLS без session, JSON/Problem Details/OpenAPI, HTTP pilots и итоговые gates.
+Изолированная разработка допустима сейчас; окончательная приёмка сохраняет
+условия закрытия этапа 3, а внешняя публикация — общий C5/C и deployment gate.
+
+## 18. Итоговая приёмка — 2026-10-06
+
+З5/Gate 3A/3B закрыты: полный стандартный bootstrap на стабильных inputs,
+application 1830 tests (failures/errors 0), REST HTTP/H2 и compatibility 50/50,
+frontend/package и strict validation exit 0. Шесть skipped относятся только к
+отдельному RecorderSetWriterPostgresIT. Детали и source/JAR receipts — [evidence 4.7](rest-read-api-stage4-47-evidence-20261006.md).
+Исторические открытые статусы §14–§17 заменены этим результатом. Read-подмножество
+C5 принято; полный C5/C, E1.2b action/UI и внешнее включение требуют своей приёмки.

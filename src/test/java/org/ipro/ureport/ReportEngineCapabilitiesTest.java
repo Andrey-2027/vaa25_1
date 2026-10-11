@@ -47,6 +47,8 @@ class ReportEngineCapabilitiesTest {
         assertThat(ReportEngineCapabilities.of(JR))
                 .as("JR: только сведения, макет правится вне приложения, удаление в каталоге")
                 .isEqualTo(new Capabilities("JR", INFO, false, false, true));
+        assertThat(ReportEngineCapabilities.of(ReportEngineType.UNIDR))
+                .isEqualTo(new Capabilities("UniDR", ReportEngineCapabilities.OpenTarget.UNIDR_EDITOR, false, false, false));
     }
 
     @Test
@@ -59,10 +61,10 @@ class ReportEngineCapabilitiesTest {
     }
 
     @Test
-    void onlyUdrIsNotDeletableInsideTheCatalog() {
+    void recipeEditorsAreNotDeletableInsideTheCatalog() {
         assertThat(enginesWith(capabilities -> !capabilities.deleteInCatalog()))
-                .as("UDR удаляется из редактора, остальные движки — подтверждением в каталоге")
-                .containsExactly(UDR);
+                .as("UDR и UniDR не удаляются в каталоге")
+                .containsExactlyInAnyOrder(UDR, ReportEngineType.UNIDR);
     }
 
     @Test
@@ -75,7 +77,7 @@ class ReportEngineCapabilitiesTest {
                 .as("цель открытия — свойство движка: совпадение целей означало бы, "
                         + "что матрица не описывает реальные различия")
                 .hasSize(ReportEngineType.values().length)
-                .containsExactlyInAnyOrder(EDITOR, DESIGNER, INFO);
+                .containsExactlyInAnyOrder(EDITOR, DESIGNER, INFO, ReportEngineCapabilities.OpenTarget.UNIDR_EDITOR);
     }
 
     @Test

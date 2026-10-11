@@ -16,9 +16,9 @@ class RowDraftTest {
 
     @Test
     void restoreReturnsScalarAndEntityReferenceToCapturedValues() throws Exception {
-        IdentifiableEntity originalReference = mock(IdentifiableEntity.class);
-        IdentifiableEntity changedReference = mock(IdentifiableEntity.class);
-        when(originalReference.getId()).thenReturn(7L);
+        IdentifiableEntity<?> originalReference = mock(IdentifiableEntity.class);
+        IdentifiableEntity<?> changedReference = mock(IdentifiableEntity.class);
+        when(originalReference.getId()).thenAnswer(ignored -> 7L);
 
         Row row = new Row("before", originalReference);
         RowDraft<Row> draft = RowDraft.capture(row, fields());
@@ -39,10 +39,10 @@ class RowDraftTest {
      */
     @Test
     void restoreRestoresEveryEntityReferenceWithoutAnyRead() throws Exception {
-        IdentifiableEntity first = mock(IdentifiableEntity.class);
-        IdentifiableEntity second = mock(IdentifiableEntity.class);
-        when(first.getId()).thenReturn(1L);
-        when(second.getId()).thenReturn(2L);
+        IdentifiableEntity<?> first = mock(IdentifiableEntity.class);
+        IdentifiableEntity<?> second = mock(IdentifiableEntity.class);
+        when(first.getId()).thenAnswer(ignored -> 1L);
+        when(second.getId()).thenAnswer(ignored -> 2L);
 
         PairRow row = new PairRow(first, second);
         RowDraft<PairRow> draft = RowDraft.capture(row, pairFields());
@@ -61,7 +61,7 @@ class RowDraftTest {
      */
     @Test
     void restoreKeepsUnsavedReferenceWhichHasNoId() throws Exception {
-        IdentifiableEntity unsaved = mock(IdentifiableEntity.class);
+        IdentifiableEntity<?> unsaved = mock(IdentifiableEntity.class);
         when(unsaved.getId()).thenReturn(null);
 
         PairRow row = new PairRow(unsaved, unsaved);
@@ -96,9 +96,9 @@ class RowDraftTest {
         private String name;
 
         @FieldMetadata
-        private IdentifiableEntity reference;
+        private IdentifiableEntity<?> reference;
 
-        private Row(String name, IdentifiableEntity reference) {
+        private Row(String name, IdentifiableEntity<?> reference) {
             this.name = name;
             this.reference = reference;
         }
@@ -106,12 +106,12 @@ class RowDraftTest {
 
     private static class PairRow {
         @FieldMetadata
-        private IdentifiableEntity first;
+        private IdentifiableEntity<?> first;
 
         @FieldMetadata
-        private IdentifiableEntity second;
+        private IdentifiableEntity<?> second;
 
-        private PairRow(IdentifiableEntity first, IdentifiableEntity second) {
+        private PairRow(IdentifiableEntity<?> first, IdentifiableEntity<?> second) {
             this.first = first;
             this.second = second;
         }

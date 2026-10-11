@@ -5,6 +5,7 @@ import org.ip.Application;
 import org.ip.model.User;
 import org.ip.repository.UserRepository;
 import org.ipro.rls.AccessGrant;
+import org.ipro.rls.RlsTestFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,12 @@ class ReportJpqlPreviewControllerIT {
     private UserRepository userRepository;
 
     @Autowired
+    private org.ipro.data.EntityDataAccess access;
+
+    @Autowired
+    private org.ipro.rls.AccessGrantRepository grants;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private MockMvc mockMvc;
@@ -113,7 +120,9 @@ class ReportJpqlPreviewControllerIT {
                 .setParameter("keys", OWN_USERS)
                 .executeUpdate();
             for (String username : OWN_USERS) {
-                userRepository.findByUsername(username).ifPresent(userRepository::delete);
+                userRepository.findByUsername(username).ifPresent(user ->
+                    RlsTestFixture.runAsSuperuserWithRead(grants, new Class<?>[] {User.class},
+                        () -> access.delete(User.class, user.getId())));
             }
             entityManager.flush();
         });
@@ -196,7 +205,8 @@ class ReportJpqlPreviewControllerIT {
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setEnabled(true);
         user.setRoles(Set.of());
-        userRepository.save(user);
+        // У посева нет своего субъекта — фикстура даёт названного и его права: запись canonical path.
+        RlsTestFixture.callAsSuperuser(grants, () -> access.create(User.class, user));
     }
 
     private void persistGrant(String subjectKey, String dimension, Long dimensionValueId) {

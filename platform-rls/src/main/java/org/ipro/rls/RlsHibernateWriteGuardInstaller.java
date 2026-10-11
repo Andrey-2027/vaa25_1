@@ -20,12 +20,11 @@ public final class RlsHibernateWriteGuardInstaller implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        RlsWriteGuardBridge.install(dimensionRegistry);
         SessionFactoryImplementor sessionFactory = entityManagerFactory
             .unwrap(SessionFactoryImplementor.class);
         EventListenerRegistry listeners = sessionFactory.getServiceRegistry()
             .requireService(EventListenerRegistry.class);
-        RlsWriteEnforcementListener listener = new RlsWriteEnforcementListener();
+        RlsWriteEnforcementListener listener = new RlsWriteEnforcementListener(dimensionRegistry);
         listeners.prependListeners(EventType.PRE_INSERT, listener);
         listeners.prependListeners(EventType.PRE_UPDATE, listener);
         listeners.prependListeners(EventType.PRE_DELETE, listener);

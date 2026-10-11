@@ -128,7 +128,7 @@ final class JoinsTab extends VerticalLayout {
         assocField.addValueChangeListener(event ->
                 assocAlias.setPlaceholder(event.getValue() == null ? "" : autoAlias(event.getValue())));
 
-        indepTarget.setItemLabelGenerator(QueryBuilderMetadataCatalog.Entity::entityName);
+        indepTarget.setItemLabelGenerator(QueryBuilderMetadataCatalog.Entity::caption);
         indepTarget.setWidth("240px");
         indepTarget.addValueChangeListener(event -> {
             onRightField.setItems(qualifiedFields(event.getValue(), aliasOf(event.getValue())));
@@ -227,8 +227,8 @@ final class JoinsTab extends VerticalLayout {
             var parent = join.independent() ? null : draft.entityForAlias(parentAlias(join));
             var target = draft.entityOfJoin(join);
             rows.add(new JoinRow(number++, join,
-                    parent == null ? "—" : parent.entityName() + " (" + parentAlias(join) + ")",
-                    target == null ? join.independent() ? join.sourcePath() : "?" : target.entityName(),
+                    parent == null ? "—" : parent.caption() + " (" + parentAlias(join) + ")",
+                    target == null ? join.independent() ? join.sourcePath() : "?" : target.caption(),
                     join.kind() == VisualQueryDefinition.JoinKind.LEFT,
                     join.alias(),
                     conditionText(join)));
@@ -237,7 +237,7 @@ final class JoinsTab extends VerticalLayout {
         assocSource.setItems(draft.tables());
         onLeftTable.setItems(draft.tables());
         editLeftTable.setItems(draft.tables());
-        indepTarget.setItems(draft.roots().stream()
+        indepTarget.setItems(java.util.stream.Stream.concat(draft.roots().stream(), draft.availableCteEntities().stream())
                 .filter(entity -> !draft.isEntitySelected(entity.entityName()))
                 .toList());
         if (selectedJoin != null && draft.joins().stream().noneMatch(j -> j.alias().equals(selectedJoin.alias()))) {
@@ -431,7 +431,7 @@ final class JoinsTab extends VerticalLayout {
     }
 
     private String tableLabel(QueryConstructorDraft.TableRef table) {
-        return table.entity().entityName() + (table.root() ? " (FROM)" : " (" + table.alias() + ")");
+        return table.entity().caption() + (table.root() ? " (FROM)" : " (" + table.alias() + ")");
     }
 
     private List<QueryBuilderMetadataCatalog.Association> availableAssociations(QueryConstructorDraft.TableRef table) {

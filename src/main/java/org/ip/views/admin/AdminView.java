@@ -1,6 +1,10 @@
 package org.ip.views.admin;
 
 import java.util.Map;
+import java.util.HashMap;
+
+import jakarta.persistence.EntityManagerFactory;
+import org.ipro.metadata.annotation.EntityMetadata;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -21,16 +25,21 @@ import com.vaadin.flow.spring.annotation.SpringComponent;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessService.EffectiveGrant;
 import org.ipro.rls.RlsDimensionKind;
+import org.ipro.rls.c5.C5Operation;
+import org.ip.application.catalog.NamedOperationOwner;
 import org.ip.service.AccessGrantAdminService;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
+import org.ip.service.AccessGrantAdminService.UngrantedDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * «Администрирование» (после разделения): только Доступ (RLS), Настройки,
- * Нумерация. Всё, что касается телеметрии (журнал, ошибки, трассировка,
+ * Нумерация и опциональный редактор профилей интерфейса. Всё, что касается телеметрии (журнал, ошибки, трассировка,
  * агрегаты, история изменений), переехало в отдельный вид
  * {@link DiagnosticsView} («Диагностика»).
  */
@@ -41,11 +50,17 @@ public class AdminView extends VerticalLayout {
     private final AccessGrantAdminService accessGrantAdminService;
     private final SettingsAdminTab settingsTab;
     private final NumberingAdminTab numberingTab;
+    private final ObjectProvider<NavigationProfilesAdminTab> navigationTabs;
+    private final boolean navigationEnabled;
+    private NavigationProfilesAdminTab navigationTab;
+    private boolean uiBuilt;
+    private final Map<String, String> entityLabels = new HashMap<>();
 
     private final Grid<DimensionValueAccessRow> accessGrid = new Grid<>();
     private final VerticalLayout accessTab = new VerticalLayout();
 
     private final ComboBox<String> accessDimension = new ComboBox<>("Измерение");
+    private final Span accessDimensionKey = new Span();
     private final ComboBox<AccessGrant.SubjectType> accessSubjectType = new ComboBox<>("Тип субъекта");
     private final ComboBox<String> accessSubjectKey = new ComboBox<>("Пользователь/роль");
     private final java.util.List<DimensionValueAccessRow> accessRows = new java.util.ArrayList<>();
@@ -58,14 +73,39 @@ public class AdminView extends VerticalLayout {
     private final Button saveAccessButton = new Button("Сохранить", new Icon(VaadinIcon.CHECK), e -> saveAccessMatrix());
     private final Button effectiveRightsButton = new Button("Эффективные права",
             new Icon(VaadinIcon.EYE), e -> openEffectiveRightsDialog());
+    /** Отчёт «определение зарегистрировано, грантов нет»: см. refreshUngrantedReport. */
+    private final Grid<UngrantedDefinition> ungrantedGrid = new Grid<>();
+    private final VerticalLayout ungrantedSection = new VerticalLayout();
     private boolean accessSaveInProgress;
+    /** Названия именованных операций, объявленные их владельцами, по permission id. */
+    private final Map<String, String> operationTitles = new HashMap<>();
+    /** Что текущее измерение вообще может выражать: из этого живёт включённость чекбоксов. */
+    private GrantFlags expressibleFlagsOfDimension = new GrantFlags(true, true, true);
 
     public AdminView(@Autowired AccessGrantAdminService accessGrantAdminService,
                      @Autowired SettingsAdminTab settingsTab,
-                     @Autowired NumberingAdminTab numberingTab) {
+                     @Autowired NumberingAdminTab numberingTab,
+                     @Autowired EntityManagerFactory entityManagerFactory,
+                     @Autowired java.util.List<NamedOperationOwner> namedOperationOwners,
+                     @Autowired ObjectProvider<NavigationProfilesAdminTab> navigationTabs,
+                     @Value("${platform.navigation.enabled:false}") boolean navigationEnabled) {
         this.accessGrantAdminService = accessGrantAdminService;
+        this.navigationTabs = navigationTabs;
+        this.navigationEnabled = navigationEnabled;
+        for (NamedOperationOwner owner : namedOperationOwners) {
+            operationTitles.put(owner.permissionId(), owner.title());
+        }
         this.settingsTab = settingsTab;
         this.numberingTab = numberingTab;
+        for (var entity : entityManagerFactory.getMetamodel().getEntities()) {
+            Class<?> type = entity.getJavaType();
+            EntityMetadata metadata = type.getAnnotation(EntityMetadata.class);
+            String title = metadata == null || metadata.listFormTitle().isBlank()
+                ? type.getSimpleName() : metadata.listFormTitle();
+            String label = title.equals(type.getSimpleName()) ? title : title + " (" + type.getSimpleName() + ")";
+            entityLabels.put(type.getName(), label);
+            entityLabels.put(entity.getName(), label);
+        }
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -75,15 +115,22 @@ public class AdminView extends VerticalLayout {
     protected void onAttach(com.vaadin.flow.component.AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         if (isAdmin()) {
-            buildUi();
+            if (!uiBuilt) {
+                buildUi();
+                uiBuilt = true;
+            }
         } else {
+            removeAll();
+            uiBuilt = false;
             add(new H3("Доступно только администратору"));
         }
     }
 
     private boolean isAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.getAuthorities().stream()
+        return auth != null && auth.isAuthenticated()
+                && !(auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)
+                && auth.getAuthorities().stream()
                 .anyMatch(g -> "ROLE_ADMIN".equals(g.getAuthority()));
     }
 
@@ -94,15 +141,24 @@ public class AdminView extends VerticalLayout {
         Tab settingsItem = new Tab(new Span("Настройки"), new Icon(VaadinIcon.COGS));
         Tab numberingItem = new Tab(new Span("Нумерация"), new Icon(VaadinIcon.HASH));
         Tabs tabs = new Tabs(accessItem, settingsItem, numberingItem);
+        Tab navigationItem = navigationEnabled ? new Tab(new Span("Интерфейс"), new Icon(VaadinIcon.MENU)) : null;
+        if (navigationEnabled) {
+            navigationTab = navigationTabs.getObject();
+            tabs.add(navigationItem);
+        }
         add(tabs);
 
         buildAccessTab();
 
         add(accessTab, settingsTab, numberingTab);
+        if (navigationTab != null) add(navigationTab);
         show(accessTab);
 
         tabs.addSelectedChangeListener(e -> {
-            if (e.getSelectedTab() == settingsItem) {
+            if (navigationItem != null && e.getSelectedTab() == navigationItem) {
+                show(navigationTab);
+                navigationTab.refresh();
+            } else if (e.getSelectedTab() == settingsItem) {
                 show(settingsTab);
                 settingsTab.refresh();
             } else if (e.getSelectedTab() == numberingItem) {
@@ -118,6 +174,7 @@ public class AdminView extends VerticalLayout {
         accessTab.setVisible(false);
         settingsTab.setVisible(false);
         numberingTab.setVisible(false);
+        if (navigationTab != null) navigationTab.setVisible(false);
         active.setVisible(true);
     }
 
@@ -139,10 +196,21 @@ public class AdminView extends VerticalLayout {
     }
 
     private void buildAccessTab() {
-        accessDimension.setItems(accessGrantAdminService.availableDimensions());
+        accessDimension.setLabel("Объект доступа / измерение");
+        accessDimension.setItemLabelGenerator(this::accessDimensionLabel);
+        accessDimension.setWidth("min(100%, 32rem)");
+        accessDimension.getStyle().set("--vaadin-combo-box-overlay-width", "min(90vw, 65rem)");
+        accessDimensionKey.getStyle().set("overflow-wrap", "anywhere");
+        accessDimension.setHelperComponent(accessDimensionKey);
+        var dimensions = accessGrantAdminService.availableDimensions();
+        accessDimension.setItems(dimensions.stream()
+            .sorted(java.util.Comparator.comparing(this::accessDimensionLabel).thenComparing(key -> key))
+            .toList());
         accessDimension.setAllowCustomValue(false);
-        if (!accessGrantAdminService.availableDimensions().isEmpty()) {
-            accessDimension.setValue(accessGrantAdminService.availableDimensions().get(0));
+        accessDimension.addValueChangeListener(e -> accessDimensionKey.setText(
+            e.getValue() == null ? "" : e.getValue()));
+        if (!dimensions.isEmpty()) {
+            accessDimension.setValue(dimensions.get(0));
         }
 
         accessSubjectType.setItems(AccessGrant.SubjectType.values());
@@ -171,15 +239,34 @@ public class AdminView extends VerticalLayout {
         accessGrid.addComponentColumn(this::buildUpdateCheckbox).setHeader("Изменение").setWidth("110px").setFlexGrow(0);
         accessGrid.addComponentColumn(this::buildDeleteCheckbox).setHeader("Удаление").setWidth("100px").setFlexGrow(0);
 
+        // Отчёт «определение зарегистрировано, грантов нет» (C5.8): зарегистрированный ключ
+        // без единой решающей строки закрыт для всех, включая администратора. Без отчёта это
+        // было видно только тому, кто сам догадается открыть ключ; отчёт обновляется после
+        // каждого сохранения, поэтому выданное право тут же перестаёт в нём числиться.
+        ungrantedGrid.addColumn(d -> accessDimensionLabel(d.key())).setHeader("Определение")
+                .setAutoWidth(true).setFlexGrow(1);
+        ungrantedGrid.addColumn(d -> formatUngrantedOperations(d.operations()))
+                .setHeader("Что решает").setAutoWidth(true).setFlexGrow(0);
+        ungrantedGrid.setAllRowsVisible(true);
+        ungrantedGrid.setWidthFull();
+        Span ungrantedTitle = new Span("Определения без выданных грантов");
+        ungrantedTitle.getStyle().set("font-weight", "600");
+        Span ungrantedHint = new Span("Никому не выдано — включая администратора: такие определения "
+                + "сейчас закрыты. Если это не задумано, выдайте право на этой вкладке или включите "
+                + "первичную выдачу.");
+        ungrantedHint.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        ungrantedSection.setPadding(false);
+        ungrantedSection.setSpacing(false);
+        ungrantedSection.add(ungrantedTitle, ungrantedHint, ungrantedGrid);
+
         // Для CHECK_ONLY-измерений ("доступ к виду документа целиком", без построчного
         // списка записей) — три обычных чекбокса вместо грида, см. loadAccessMatrix/
         // saveAccessMatrix и AccessGrantAdminService.kindOf.
         singleGrantUpdate.setEnabled(false);
         singleGrantDelete.setEnabled(false);
         singleGrantRead.addValueChangeListener(e -> {
-            singleGrantUpdate.setEnabled(e.getValue());
-            singleGrantDelete.setEnabled(e.getValue());
-            if (!e.getValue()) {
+            applySingleGrantEnabled(expressibleFlagsOfDimension, e.getValue());
+            if (expressibleFlagsOfDimension.read() && !e.getValue()) {
                 singleGrantUpdate.setValue(false);
                 singleGrantDelete.setValue(false);
             }
@@ -191,23 +278,86 @@ public class AdminView extends VerticalLayout {
         singleGrantRow.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
         singleGrantRow.setSpacing(true);
 
-        Span hint = new Span("Запись без отмеченного \"Чтение\" для выбранного пользователя/роли — " +
-                "недоступна вообще (запись гранта не создаётся). \"Изменение\"/\"Удаление\" " +
-                "без \"Чтение\" не имеют смысла — отключены, пока не отмечено \"Чтение\".");
+        Span hint = new Span("Запись без отмеченного \"Чтение\" недоступна там, где измерение вообще " +
+                "выражает чтение: у такого измерения \"Изменение\"/\"Удаление\" отключены, пока не " +
+                "отмечено \"Чтение\". У операционного измерения флага \"Чтение\" нет — доступ " +
+                "решает объявленная операция, а чтение сущности — отдельный C5 read-ключ ENTITY:<FQN>.");
         hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
 
         HorizontalLayout subjectRow = new HorizontalLayout(accessDimension, accessSubjectType, accessSubjectKey,
                 saveButton, effectiveRightsButton);
         subjectRow.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.END);
         subjectRow.setSpacing(true);
+        subjectRow.setWidthFull();
+        subjectRow.getStyle().set("flex-wrap", "wrap");
 
         accessTab.setSpacing(true);
         accessTab.setSizeFull();
-        accessTab.add(subjectRow, hint, singleGrantRow, accessGrid);
+        accessTab.add(subjectRow, hint, singleGrantRow, accessGrid, ungrantedSection);
         accessTab.setFlexGrow(1, accessGrid);
         this.singleGrantRowLayout = singleGrantRow;
 
+        refreshUngrantedReport();
         loadAccessMatrix();
+    }
+
+    /**
+     * Показывает определения, у которых нет ни одной решающей строки ни у одного субъекта:
+     * зарегистрировано — и молча закрыто. Отчёт пуст — секция скрыта, чтобы не занимать место
+     * сообщением «всё в порядке».
+     */
+    private void refreshUngrantedReport() {
+        var rows = accessGrantAdminService.ungrantedDefinitions();
+        ungrantedGrid.setItems(rows);
+        ungrantedSection.setVisible(!rows.isEmpty());
+    }
+
+    /** Что решает определение — для столбца отчёта; пустое множество невозможно у определения. */
+    private static String formatUngrantedOperations(java.util.Set<C5Operation> operations) {
+        if (operations.contains(C5Operation.READ)) {
+            return "чтение";
+        }
+        java.util.List<String> labels = new java.util.ArrayList<>();
+        if (operations.contains(C5Operation.CREATE)) {
+            labels.add("создание");
+        }
+        if (operations.contains(C5Operation.UPDATE)) {
+            labels.add("изменение");
+        }
+        if (operations.contains(C5Operation.EXECUTE)) {
+            labels.add("выполнение");
+        }
+        if (operations.contains(C5Operation.DELETE)) {
+            labels.add("удаление");
+        }
+        return labels.isEmpty() ? "—" : String.join(", ", labels);
+    }
+
+    private String accessDimensionLabel(String key) {
+        if (key.startsWith("ENTITY:")) {
+            String entityKey = key.substring("ENTITY:".length());
+            return entityLabels.getOrDefault(entityKey, entityKey) + (accessGrantAdminService.isC5ReadDimension(key)
+                ? " — чтение сущности" : " — доступ к сущности");
+        }
+        if (key.startsWith("ACTION:")) {
+            String permissionId = key.substring("ACTION:".length());
+            String title = operationTitles.get(permissionId);
+            // Сырой ключ остаётся как есть, если владелец не объявил название: без выдуманной
+            // расшифровки администратор видит хотя бы точный ключ, который выдаёт.
+            return title == null ? key : title + " — операция (" + key + ")";
+        }
+        return key;
+    }
+
+    /**
+     * «Изменение»/«Удаление» без «Чтения» требуются только там, где измерение вообще выражает
+     * «Чтение»: для именованной операции требовать чтение значило бы требовать право, которым
+     * операция не решается (ADR-0017 §3 — EXECUTE решает «изменение»).
+     */
+    private void applySingleGrantEnabled(GrantFlags expressible, boolean read) {
+        boolean readGate = expressible.read() && !read;
+        singleGrantUpdate.setEnabled(expressible.update() && !readGate);
+        singleGrantDelete.setEnabled(expressible.delete() && !readGate);
     }
 
     private void refreshSubjectKeyItems() {
@@ -259,21 +409,28 @@ public class AdminView extends VerticalLayout {
         }
 
         if (checkOnly) {
-            // C5 read (entity/API/attribute) поддерживает только чтение — update/delete
-            // не являются рабочими C5-правами и не предлагаются (F-REST-READ-3, З2).
-            boolean c5Read = accessGrantAdminService.isC5ReadDimension(dimension);
-            singleGrantUpdateLabel.setVisible(!c5Read);
-            singleGrantUpdate.setVisible(!c5Read);
-            singleGrantDeleteLabel.setVisible(!c5Read);
-            singleGrantDelete.setVisible(!c5Read);
+            // Показываются ровно те флаги, которые измерение выражает: C5 read — только
+            // чтение (F-REST-READ-3, З2), операция — объявленные ею операции, где EXECUTE
+            // решает флаг «изменение» и требоваться «чтение» не может.
+            GrantFlags expressible = accessGrantAdminService.expressibleFlags(dimension);
+            this.expressibleFlagsOfDimension = expressible;
+            boolean namedOperation = accessGrantAdminService.isNamedOperationDimension(dimension);
+            singleGrantUpdateLabel.setText(namedOperation ? "Выполнение:" : "Изменение:");
+            singleGrantRead.setVisible(expressible.read());
+            singleGrantUpdateLabel.setVisible(expressible.update());
+            singleGrantUpdate.setVisible(expressible.update());
+            singleGrantDeleteLabel.setVisible(expressible.delete());
+            singleGrantDelete.setVisible(expressible.delete());
             GrantFlags flags = accessGrantAdminService.currentSingleGrant(dimension, accessSubjectType.getValue(), subjectKey);
             singleGrantRead.setValue(flags.read());
             singleGrantUpdate.setValue(flags.update());
-            singleGrantUpdate.setEnabled(!c5Read && flags.read());
             singleGrantDelete.setValue(flags.delete());
-            singleGrantDelete.setEnabled(!c5Read && flags.read());
+            applySingleGrantEnabled(expressible, flags.read());
             return;
         }
+        this.expressibleFlagsOfDimension = new GrantFlags(true, true, true);
+        singleGrantUpdateLabel.setText("Изменение:");
+        singleGrantRead.setVisible(true);
         singleGrantUpdateLabel.setVisible(true);
         singleGrantUpdate.setVisible(true);
         singleGrantDeleteLabel.setVisible(true);
@@ -304,10 +461,13 @@ public class AdminView extends VerticalLayout {
         saveAccessButton.setEnabled(false);
         try {
             if (accessGrantAdminService.kindOf(dimension) == RlsDimensionKind.CHECK_ONLY) {
-                GrantFlags flags = accessGrantAdminService.isC5ReadDimension(dimension)
-                        ? new GrantFlags(singleGrantRead.getValue(), false, false)
-                        : new GrantFlags(singleGrantRead.getValue(), singleGrantUpdate.getValue(),
-                                singleGrantDelete.getValue());
+                // Сохраняется только выражаемое измерением: скрытый чекбокс не должен
+                // записать флаг, которого определение не решает.
+                GrantFlags expressible = accessGrantAdminService.expressibleFlags(dimension);
+                GrantFlags flags = new GrantFlags(
+                        expressible.read() && singleGrantRead.getValue(),
+                        expressible.update() && singleGrantUpdate.getValue(),
+                        expressible.delete() && singleGrantDelete.getValue());
                 accessGrantAdminService.saveSingleGrant(dimension, accessSubjectType.getValue(), subjectKey, flags);
             } else {
                 Map<Long, GrantFlags> desired = new java.util.HashMap<>();
@@ -316,6 +476,7 @@ public class AdminView extends VerticalLayout {
                 }
                 accessGrantAdminService.saveGrants(dimension, accessSubjectType.getValue(), subjectKey, desired);
             }
+            refreshUngrantedReport();
 
             Notification.show("Права сохранены для " + subjectKey, 2500, Notification.Position.BOTTOM_START)
                     .addThemeVariants(com.vaadin.flow.component.notification.NotificationVariant.LUMO_SUCCESS);

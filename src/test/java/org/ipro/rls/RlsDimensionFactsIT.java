@@ -13,6 +13,7 @@ import org.ip.subsystem.Subsystems;
 import org.hibernate.annotations.Filter;
 import org.ipro.data.EntityDescriptor;
 import org.ipro.data.EntityDescriptorCatalog;
+import org.ipro.data.DataOperation;
 import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.rls.c5.C5PermissionKeys;
 import org.junit.jupiter.api.Test;
@@ -76,6 +77,10 @@ class RlsDimensionFactsIT {
     @Autowired
     private EntityDescriptorCatalog entityDescriptors;
 
+    /** Определения операций, объявленные владельцами: из capability именованные не выводятся. */
+    @Autowired
+    private org.ipro.rls.c5.C5OperationPermissionRegistry operationDefinitions;
+
     /**
      * Измерение не приходит на класс извне: аннотация объявляется только на типе
      * ({@code @Target(TYPE)}), не наследуется ({@code @Inherited} нет) и не стоит на членах.
@@ -92,13 +97,14 @@ class RlsDimensionFactsIT {
             .containsExactly(ElementType.TYPE);
     }
 
-    /** Аннотированные RLS dimensions плюс динамические FQN C5 entity-read keys. */
+    /** Аннотированные RLS dimensions плюс динамические ключи C5: read (FQN) и операционные. */
     @Test
-    void applicationHasEightAnnotatedDimensionsAndC5EntityReadKeys() {
+    void applicationHasEightAnnotatedDimensionsAndC5Keys() {
         Set<String> expected = new TreeSet<>(DIMENSIONS);
         expected.addAll(canonicalEntityReadKeys());
+        expected.addAll(c5OperationKeys());
         assertThat(dimensions.dimensions())
-            .as("реестр содержит reviewed @RlsDimension и ключи canonical C5 entity read")
+            .as("реестр содержит reviewed @RlsDimension, ключи canonical C5 entity read и ключи операций")
             .containsExactlyInAnyOrderElementsOf(expected);
         reportDimensions();
     }
@@ -232,6 +238,7 @@ class RlsDimensionFactsIT {
         }
         Set<String> expectedCheckOnly = new TreeSet<>(CHECK_ONLY);
         expectedCheckOnly.addAll(canonicalEntityReadKeys());
+        expectedCheckOnly.addAll(c5OperationKeys());
         assertThat(kinds.entrySet().stream()
                 .filter(entry -> entry.getValue() == RlsDimensionKind.CHECK_ONLY)
                 .map(Map.Entry::getKey).toList())
@@ -314,6 +321,36 @@ class RlsDimensionFactsIT {
             .map(EntityDescriptor::type)
             .map(C5PermissionKeys::entityRead)
             .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
+    }
+
+    /**
+     * Ключи операций C5: определение получает тип с canonical write-capability, а сам ключ —
+     * короткое имя {@code ENTITY:<SimpleName>} (ADR-0017 §3). Регистратор реестра измерений
+     * объявляет их динамически как CHECK_ONLY, чтобы право на операцию можно было выдать
+     * строкой гранта — как и любой другой ключ. Это вторая половина словаря C5: read-ключи
+     * остаются FQN и с операционными не смешиваются.
+     */
+    /**
+     * Ключи операций, которые владельцы объявили при старте. Два источника, и оба обязательны:
+     * entity-операции выводятся из canonical capability типа (иначе замер не проверял бы, что
+     * реестр не разошёлся с политикой типов), а именованные операции — из реестра определений
+     * (ADR-0017 §5, ADR-0019), потому что из capability они не выводятся вовсе: определение
+     * объявляет владелец операции, а не descriptor типа.
+     */
+    private Set<String> c5OperationKeys() {
+        Set<DataOperation> writeIntentions = Set.of(
+            DataOperation.CREATE, DataOperation.UPDATE, DataOperation.DELETE);
+        Set<String> keys = entityDescriptors.all().stream()
+            .filter(descriptor -> descriptor.capabilities().writes().stream()
+                .anyMatch(writeIntentions::contains))
+            .map(EntityDescriptor::type)
+            .map(C5PermissionKeys::entityOperations)
+            .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
+        operationDefinitions.definitions().stream()
+            .map(org.ipro.rls.c5.C5PermissionDefinition::key)
+            .filter(key -> key.startsWith("ACTION:"))
+            .forEach(keys::add);
+        return keys;
     }
 
     /** Десять типов-носителей: пять сущностей и пять вложенных маркеров. */

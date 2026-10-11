@@ -31,6 +31,7 @@
 # --- слой ---
 layer src/main/java/org/ipro/reportstudio
 layer src/main/java/org/ip/views/reportstudio
+layer src/main/java/org/ip/views/unidr
 # Отчётная форма параметров лежит в общем каталоге компонентов, а не в reportstudio: она
 # потребляет SelectionForm/EntityField/SearchFunction/SelectionFormAssembler, то есть держит
 # шов больше всех после SelectionFormAssembler. Отдельная строка вместо расширения слоя на
@@ -56,9 +57,10 @@ layer src/main/java/org/ip/views/components/ReportParamForm.java
 seam org.ipro.form.Dirtyable org.ip.views.reportstudio.ReportEditorView
 seam org.ipro.form.Savable org.ip.views.reportstudio.ReportEditorView
 # Описание поля и сборка формы выбора — то, чем параметр отчёта становится виджетом.
-seam org.ipro.form.EntityField org.ip.views.components.ReportParamForm org.ipro.reportstudio.query.editor.ReportQueryEditor
-seam org.ipro.form.SelectionForm org.ip.views.components.ReportParamForm
-seam org.ipro.form.SelectionFormAssembler org.ip.views.components.ReportParamForm org.ip.views.reportstudio.ContextualReportLauncher org.ip.views.reportstudio.ItemFormReportActions org.ip.views.reportstudio.ReportCatalogView org.ip.views.reportstudio.ReportEditorView org.ip.views.reportstudio.ReportPrintAction org.ip.views.reportstudio.ReportPrintDialog org.ip.views.reportstudio.ReportRunDialog org.ipro.reportstudio.query.editor.ReportQueryEditor
+# UniDR uses the same published entity field/selection contracts for source parameters and constants.
+seam org.ipro.form.EntityField org.ip.views.components.ReportParamForm org.ip.views.unidr.UniDrReferencePicker org.ipro.reportstudio.query.editor.ReportQueryEditor org.ipro.reportstudio.query.editor.RegisterSliceQueryDialog
+seam org.ipro.form.SelectionForm org.ip.views.components.ReportParamForm org.ip.views.unidr.UniDrReferencePicker
+seam org.ipro.form.SelectionFormAssembler org.ip.views.components.ReportParamForm org.ip.views.reportstudio.ContextualReportLauncher org.ip.views.reportstudio.ItemFormReportActions org.ip.views.reportstudio.ReportCatalogView org.ip.views.reportstudio.ReportEditorView org.ip.views.reportstudio.ReportPrintAction org.ip.views.reportstudio.ReportPrintDialog org.ip.views.reportstudio.ReportRunDialog org.ip.views.unidr.UniDrQueryUiSupport org.ip.views.unidr.UniDrConditionsEditor org.ip.views.unidr.UniDrDefinitionEditor org.ip.views.unidr.UniDrReferencePicker org.ip.views.unidr.UniDrValueEditor org.ipro.reportstudio.query.editor.ReportQueryEditor org.ipro.reportstudio.query.editor.RegisterSliceQueryDialog
 # Функция поиска значений для поля: у отчёта свой протокол подгрузки кандидатов.
 seam org.ipro.form.SearchFunction org.ip.views.components.ReportParamForm
 # Пункт меню ItemForm, через который отчёт открывается из карточки сущности. Печать в СПИСКЕ

@@ -13,6 +13,8 @@ import org.ipro.rest.catalog.RestReadOperation;
 import org.ipro.rest.catalog.RestResourceCatalog;
 import org.ipro.rest.catalog.RestResourceKey;
 import org.ipro.rest.catalog.RestResourceProjection;
+import org.ipro.rest.gateway.RestFieldFact;
+import org.ipro.rest.gateway.RestReadGateway;
 import org.ipro.rest.security.RestReferenceAuthorizationValidator;
 import org.ipro.rest.service.RestListQuery;
 import org.ipro.rest.service.RestReadException;
@@ -52,7 +54,25 @@ class RestReadAutoConfigurationTest {
             .run(context -> {
                 assertThat(context).hasNotFailed();
                 assertThat(context).hasSingleBean(RestReadService.class);
+                assertThat(context).hasSingleBean(RestReadGateway.class);
+                RestReadGateway gateway = context.getBean(RestReadGateway.class);
+                assertThat(gateway.publishedResources()).isEmpty();
+                assertThat(gateway.resolve("items", 1)).isEmpty();
             });
+    }
+
+    @Test
+    void gatewayPublishesExecutableCatalogSchemaFacts() {
+        executableRunner().run(context -> {
+            assertThat(context).hasNotFailed();
+            RestReadGateway gateway = context.getBean(RestReadGateway.class);
+            assertThat(gateway.publishedResources()).hasSize(1);
+            assertThat(gateway.resolve("items", 1)).isPresent();
+            assertThat(gateway.resolve("items", 1).orElseThrow().list().maximumFields())
+                .extracting(RestFieldFact::alias).containsExactly("id");
+            assertThat(gateway.resolve("items", 1).orElseThrow().detail().idField().alias())
+                .isEqualTo("id");
+        });
     }
 
     @ParameterizedTest
@@ -138,7 +158,6 @@ class RestReadAutoConfigurationTest {
         C5PermissionEvaluator permissions = mock(C5PermissionEvaluator.class);
         when(permissions.isApiPermitted("alice", "items", 1, "LIST")).thenReturn(true);
         when(permissions.isEntityReadPermitted("alice", Item.class)).thenReturn(true);
-        when(permissions.isAttributeReadPermitted("alice", Item.class, "id")).thenReturn(true);
         return new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(RestReadAutoConfiguration.class))
             .withPropertyValues("platform.rest.read.enabled=true")

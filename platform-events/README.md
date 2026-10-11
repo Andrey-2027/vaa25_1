@@ -54,6 +54,16 @@ imports-файл пуст, приложение стартует, записи �
 
 ## Свои тесты
 
+Реестр принимает `T extends IdentifiableEntity<?>`. After-commit dispatch захватывает
+тип конкретного handler и проверяет entity через `handler.entityType().cast(entity)`;
+raw dispatch отсутствует. Локальный unchecked lookup остаётся на границе карты,
+индексированной при создании по `handler.entityType()`.
+
+`LifecycleTransactionTest` проверяет String identity через реальную Spring
+transaction synchronization и event wiring: callbacks внутри транзакции, afterCommit
+после commit, veto и отсутствие доставки afterCommit после rollback. Тестовый
+transaction manager не использует БД. Существующие owner-фикстуры сохраняют Long id.
+
 `src/test` модуля держит его поведение и его провод: публикация до/после commit (включая
 fail-closed без транзакции), fail-fast реестра на дублях, состав среза и compile-зависимости,
 а также то, что автоконфигурация модуля поднимает оба бина и находит объявленные consumer'ом

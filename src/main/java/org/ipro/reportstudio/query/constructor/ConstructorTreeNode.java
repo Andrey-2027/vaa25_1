@@ -10,9 +10,9 @@ import java.util.List;
  * TreeData/TreeGrid идентифицирует элементы через equals, и поля с одинаковыми
  * caption/name у разных сущностей должны оставаться различимыми (identity).
  */
-final class ConstructorTreeNode {
+public final class ConstructorTreeNode {
 
-    enum Kind { ENTITY, PROPERTY, ASSOCIATION, CTE }
+    public enum Kind { ENTITY, PROPERTY, ASSOCIATION, CTE, SLICE, GROUP }
 
     private final Kind kind;
     /** Отображаемое имя (в стиле 1С — техническое имя сущности/поля/связи). */
@@ -26,14 +26,14 @@ final class ConstructorTreeNode {
     private final String tableAlias;
     private ConstructorTreeNode parent;
 
-    ConstructorTreeNode(Kind kind, String caption, QueryBuilderMetadataCatalog.Entity entity,
+    public ConstructorTreeNode(Kind kind, String caption, QueryBuilderMetadataCatalog.Entity entity,
                         QueryBuilderMetadataCatalog.Field field,
                         QueryBuilderMetadataCatalog.Association association,
                         List<ConstructorTreeNode> children) {
         this(kind, caption, entity, field, association, children, null);
     }
 
-    ConstructorTreeNode(Kind kind, String caption, QueryBuilderMetadataCatalog.Entity entity,
+    public ConstructorTreeNode(Kind kind, String caption, QueryBuilderMetadataCatalog.Entity entity,
                         QueryBuilderMetadataCatalog.Field field,
                         QueryBuilderMetadataCatalog.Association association,
                         List<ConstructorTreeNode> children, String tableAlias) {
@@ -49,14 +49,14 @@ final class ConstructorTreeNode {
         }
     }
 
-    Kind kind() { return kind; }
-    String caption() { return caption; }
-    QueryBuilderMetadataCatalog.Entity entity() { return entity; }
-    QueryBuilderMetadataCatalog.Field field() { return field; }
-    QueryBuilderMetadataCatalog.Association association() { return association; }
-    List<ConstructorTreeNode> children() { return children; }
-    ConstructorTreeNode parent() { return parent; }
-    String tableAlias() { return tableAlias; }
+    public Kind kind() { return kind; }
+    public String caption() { return caption; }
+    public QueryBuilderMetadataCatalog.Entity entity() { return entity; }
+    public QueryBuilderMetadataCatalog.Field field() { return field; }
+    public QueryBuilderMetadataCatalog.Association association() { return association; }
+    public List<ConstructorTreeNode> children() { return children; }
+    public ConstructorTreeNode parent() { return parent; }
+    public String tableAlias() { return tableAlias; }
 
     /** Ближайший узел-сущность вверх по цепочке (владелец поля/связи). */
     ConstructorTreeNode ownerEntity() {

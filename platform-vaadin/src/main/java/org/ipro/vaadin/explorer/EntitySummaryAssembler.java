@@ -1329,8 +1329,8 @@ public class EntitySummaryAssembler {
 
     @SuppressWarnings("unchecked")
     private Optional<EntityLifecycle<?>> registered(Class<?> entityClass) {
-        Class<? extends IdentifiableEntity> entityType =
-            (Class<? extends IdentifiableEntity>) entityClass;
+        Class<? extends IdentifiableEntity<?>> entityType =
+            (Class<? extends IdentifiableEntity<?>>) entityClass;
         return lifecycleRegistry.find(entityType).map(handler -> (EntityLifecycle<?>) handler);
     }
 

@@ -11,6 +11,11 @@ import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.dom.ReportTemplateState;
 import org.ipro.reportstudio.query.GuardResult;
 import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
+import org.ipro.reportstudio.query.VisualQueryCompiler;
+import org.ipro.reportstudio.query.VisualQueryPackageJsonCodec;
+import org.ipro.reportstudio.query.VisualQueryDefinitionJsonCodec;
+import org.ipro.reportstudio.dom.ReportQuerySource;
 import org.ipro.reportstudio.service.ReportTemplateService;
 
 import java.util.ArrayList;
@@ -34,14 +39,21 @@ public class ReportTemplateTransferService {
     private final ObjectMapper objectMapper;
     private final ReportQueryGuard guard;
     private final ReportTemplateService templateService;
+    private final QueryBuilderMetadataCatalog catalog;
 
     public ReportTemplateTransferService(
             ObjectMapper objectMapper,
             ReportQueryGuard guard,
             ReportTemplateService templateService) {
+        this(objectMapper, guard, templateService, null);
+    }
+
+    public ReportTemplateTransferService(ObjectMapper objectMapper, ReportQueryGuard guard,
+                                         ReportTemplateService templateService, QueryBuilderMetadataCatalog catalog) {
         this.objectMapper = objectMapper;
         this.guard = guard;
         this.templateService = templateService;
+        this.catalog = catalog;
     }
 
     public String exportTemplate(ReportTemplate template) {
@@ -59,7 +71,21 @@ public class ReportTemplateTransferService {
         imported.setName(templateService.nextImportedName(imported.getName()));
         imported.setState(ReportTemplateState.DRAFT);
 
-        GuardResult guardResult = guard.guard(imported.getJpql(), parameterNames(imported));
+        var names = new HashSet<>(parameterNames(imported));
+        if (imported.getQuerySource() == ReportQuerySource.VISUAL) {
+            try {
+                String visualJson = imported.getVisualQueryJson();
+                var compiled = visualJson != null && visualJson.contains("\"ctes\"")
+                    ? VisualQueryCompiler.compile(new VisualQueryPackageJsonCodec().read(visualJson), catalog)
+                    : VisualQueryCompiler.compile(new VisualQueryDefinitionJsonCodec().read(visualJson), catalog);
+                names.addAll(compiled.bindings().keySet());
+                imported.setJpql(compiled.jpql());
+            } catch (RuntimeException failure) {
+                throw new ReportTemplateTransferException("Некорректный визуальный запрос импортируемого шаблона: "
+                    + failure.getMessage(), failure);
+            }
+        }
+        GuardResult guardResult = guard.guard(imported.getJpql(), names);
         if (!guardResult.allowed()) {
             throw new ReportTemplateTransferException("JPQL импортируемого шаблона отклонён: "
                     + String.join("; ", guardResult.errors()));

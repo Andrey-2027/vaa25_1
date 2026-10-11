@@ -24,6 +24,9 @@ public interface ActionHandler {
     /** Объявление действия: идентичность, поверхность, тип, вариант и требование. */
     ActionDefinition definition();
 
+    /** Additional operation-specific decision, recomputed at selection and click time. */
+    default ActionDecision availability(Object row) { return ActionDecision.allowed(); }
+
     /**
      * Выполнить действие. Вызывается только тогда, когда решение разрешило запуск; повторную
      * проверку перед вызовом делает host, поэтому исполнение не обязано перепроверять права — но

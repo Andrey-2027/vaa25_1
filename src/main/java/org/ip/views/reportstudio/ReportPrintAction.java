@@ -95,7 +95,7 @@ public class ReportPrintAction implements ActionHandler {
 
     @Override
     public void execute(ActionInvocation invocation) {
-        IdentifiableEntity selected = invocation.selected();
+        IdentifiableEntity<?> selected = invocation.selected();
         // Строка, исчезнувшая между решением и кликом, — штатный случай: запускать нечего.
         if (selected == null) {
             return;
@@ -108,7 +108,7 @@ public class ReportPrintAction implements ActionHandler {
      * (выделение списка одиночное, {@code Grid.SelectionMode.SINGLE}), плюс вид
      * {@code <Тип>-list} — так же, как это называла прежняя кнопка печати.
      */
-    protected ReportContext contextOf(ActionInvocation invocation, IdentifiableEntity selected) {
+    protected ReportContext contextOf(ActionInvocation invocation, IdentifiableEntity<?> selected) {
         Object id = selected.getId();
         return contextFactory.forSelection(
             invocation.entityType(),

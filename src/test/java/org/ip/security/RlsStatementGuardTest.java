@@ -75,6 +75,7 @@ class RlsStatementGuardTest {
     }
 
     private void grantWildcardToAdmin() {
+        org.ipro.rls.RlsTestFixture.grantC5EntityRead(accessGrantRepository, "admin", ReceivingDocument.class);
         AccessGrant grant = new AccessGrant();
         grant.setSubjectType(AccessGrant.SubjectType.USER);
         grant.setSubjectKey("admin");

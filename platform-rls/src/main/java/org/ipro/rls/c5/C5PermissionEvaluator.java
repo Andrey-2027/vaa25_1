@@ -1,7 +1,7 @@
 package org.ipro.rls.c5;
 
 /**
- * Common C5 permission evaluator for API operations, entity read, and attribute read.
+ * Common C5 permission evaluator for API operations and entity read.
  * Governed by platform-rls as the owner of C5 decision service and grant store.
  */
 public interface C5PermissionEvaluator {
@@ -19,8 +19,10 @@ public interface C5PermissionEvaluator {
     boolean isEntityReadPermitted(String username, Class<?> entityType);
 
     /**
-     * Checks if the given subject has C5 read permission for a specific attribute of the entity.
-     * The permission key is formatted as ATTR:{entityType.getName()}:{persistentPath}.
+     * @deprecated Fields have no separate permissions; checks the owning entity read permission.
      */
-    boolean isAttributeReadPermitted(String username, Class<?> entityType, String persistentPath);
+    @Deprecated
+    default boolean isAttributeReadPermitted(String username, Class<?> entityType, String persistentPath) {
+        return isEntityReadPermitted(username, entityType);
+    }
 }

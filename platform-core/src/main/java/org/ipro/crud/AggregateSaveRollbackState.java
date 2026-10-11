@@ -4,7 +4,9 @@ import org.ipro.identity.IdentifiableEntity;
 
 import jakarta.persistence.Version;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Column;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.core.ResolvableType;
 import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.numbering.annotation.Numbered;
 import org.springframework.data.annotation.CreatedBy;
@@ -33,7 +35,7 @@ import java.util.Map;
  */
 final class AggregateSaveRollbackState implements TransactionSynchronization {
 
-    private final Map<IdentifiableEntity, EntityState> entities = new IdentityHashMap<>();
+    private final Map<IdentifiableEntity<Long>, EntityState> entities = new IdentityHashMap<>();
 
     static AggregateSaveRollbackState current() {
         if (!TransactionSynchronizationManager.isActualTransactionActive()
@@ -53,10 +55,8 @@ final class AggregateSaveRollbackState implements TransactionSynchronization {
         return state;
     }
 
-    void capture(IdentifiableEntity entity, TableSectionMetadataInfo section) {
-        IdentifiableEntity target = entity instanceof HibernateProxy proxy
-            ? (IdentifiableEntity) proxy.getHibernateLazyInitializer().getImplementation()
-            : entity;
+    void capture(IdentifiableEntity<Long> entity, TableSectionMetadataInfo section) {
+        IdentifiableEntity<Long> target = requireLongIdentity(entity);
         EntityState state = entities.computeIfAbsent(target, EntityState::new);
         if (section != null) {
             state.capture(section.getParentField());
@@ -64,6 +64,26 @@ final class AggregateSaveRollbackState implements TransactionSynchronization {
                 state.capture(section.getLineNumberField());
             }
         }
+    }
+
+    /** Validate the declared key even for transient rows whose id is null. */
+    @SuppressWarnings("unchecked")
+    static IdentifiableEntity<Long> requireLongIdentity(Object entity) {
+        Object target = entity instanceof HibernateProxy proxy
+            ? proxy.getHibernateLazyInitializer().getImplementation() : entity;
+        if (!(target instanceof IdentifiableEntity<?> identifiable)
+                || ResolvableType.forClass(target.getClass()).as(IdentifiableEntity.class)
+                    .resolveGeneric(0) != Long.class) {
+            throw new IllegalArgumentException("Aggregate rollback requires IdentifiableEntity<Long>: "
+                + (target == null ? "null" : target.getClass().getName()));
+        }
+        Object id = identifiable.getId();
+        if (id != null && !(id instanceof Long)) {
+            throw new IllegalArgumentException("Aggregate rollback requires a Long id: "
+                + target.getClass().getName());
+        }
+        // The resolved interface argument and the current value were both checked.
+        return (IdentifiableEntity<Long>) identifiable;
     }
 
     @Override
@@ -80,11 +100,11 @@ final class AggregateSaveRollbackState implements TransactionSynchronization {
     }
 
     private static final class EntityState {
-        private final IdentifiableEntity entity;
+        private final IdentifiableEntity<Long> entity;
         private final Long id;
         private final Map<Field, Object> fields = new LinkedHashMap<>();
 
-        private EntityState(IdentifiableEntity entity) {
+        private EntityState(IdentifiableEntity<Long> entity) {
             this.entity = entity;
             this.id = entity.getId();
             for (Class<?> type = entity.getClass(); type != Object.class; type = type.getSuperclass()) {
@@ -122,6 +142,7 @@ final class AggregateSaveRollbackState implements TransactionSynchronization {
 
         private static boolean isPlatformManaged(Field field) {
             return field.isAnnotationPresent(Version.class)
+                || (field.isAnnotationPresent(Column.class) && !field.getAnnotation(Column.class).updatable())
                 // Hibernate may replace a new aggregate's collection with a persistent
                 // wrapper before a later section vetoes the transaction. Restore the
                 // caller-owned collection reference so the still-open form can retry.

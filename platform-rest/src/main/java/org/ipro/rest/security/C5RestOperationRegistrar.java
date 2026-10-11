@@ -55,7 +55,6 @@ public class C5RestOperationRegistrar implements InitializingBean {
 
     private void registerPath(ResolvedRestPath path) {
         for (ResolvedRestPath.Segment segment : path.segments()) {
-            registerReadKey(C5PermissionKeys.attributeRead(segment.declaringType(), segment.name()));
             if (segment.association()) {
                 registerEntity(segment.javaType());
             }

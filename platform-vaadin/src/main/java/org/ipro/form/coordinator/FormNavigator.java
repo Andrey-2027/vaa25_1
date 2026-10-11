@@ -32,7 +32,7 @@ public interface FormNavigator {
     /**
      * Создать ListForm указанного варианта с параметрами открытия для встраивания в View.
      */
-    <T extends IdentifiableEntity, ID> ListForm<T, ID> createListForm(
+    <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> createListForm(
         Class<T> entityClass, String variant, Map<String, Object> parameters);
 
     /**
@@ -41,7 +41,7 @@ public interface FormNavigator {
      * <p>Контракт обязан покрывать то, что приложение реально вызывает: иначе view пришлось бы
      * снова зависеть от класса реализации, а это ровно то, что разделяет этот интерфейс.</p>
      */
-    default <T extends IdentifiableEntity, ID> ListForm<T, ID> createListForm(Class<T> entityClass) {
+    default <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> createListForm(Class<T> entityClass) {
         return createListForm(entityClass, null, null);
     }
 
@@ -51,7 +51,7 @@ public interface FormNavigator {
      * @param parameters бизнес-параметры открытия (могут быть null); инфраструктура
      *                   через карту не передается
      */
-    <T extends IdentifiableEntity, ID> void openItemForm(
+    <T extends IdentifiableEntity<Long>, ID> void openItemForm(
         Class<T> entityClass, String variant, ID id, Consumer<T> onSaved,
         Map<String, Object> parameters);
 
@@ -66,7 +66,7 @@ public interface FormNavigator {
      * @param variant имя варианта (null = default)
      * @param parameters бизнес-параметры открытия (могут быть null)
      */
-    <T extends IdentifiableEntity, ID> void openListForm(Class<T> entityClass, String variant,
+    <T extends IdentifiableEntity<Long>, ID> void openListForm(Class<T> entityClass, String variant,
                                                          Map<String, Object> parameters);
 
     /**

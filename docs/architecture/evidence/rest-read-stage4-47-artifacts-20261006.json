@@ -1,0 +1,58 @@
+[
+  {
+    "artifact": "platform-core",
+    "sourceFingerprint": "cdcfb4b528ec28c8896b8538e38d2ff716cfbe67ca355303ec227f72338ef9f1",
+    "sourceFileCount": 136,
+    "jarSha256": "9147acb4f66b6f0ba8313557466961d6f980ccd1011a409ae26318853be810ec",
+    "installedMatchesTarget": true
+  },
+  {
+    "artifact": "platform-rls",
+    "sourceFingerprint": "4f43522c70abba24f8784c54e4856f5ca7d6299ce71603d6dccb7f14e74bad26",
+    "sourceFileCount": 51,
+    "jarSha256": "f017816a0fbcf4c2db07254cf0b65df13bac5291f48a0a378883848fac7a54f4",
+    "installedMatchesTarget": true
+  },
+  {
+    "artifact": "platform-spring-boot-autoconfigure",
+    "sourceFingerprint": "c4e85cca18fc6ab649c127c9df168d276ebc41b527b8a49f7358f50d52de6a33",
+    "sourceFileCount": 17,
+    "jarSha256": "fb94cccc17678a3d81e2d2874d930de48fbadb3d76033a89b3e1ad03d2694f8e",
+    "installedMatchesTarget": true
+  },
+  {
+    "artifact": "platform-vaadin",
+    "sourceFingerprint": "267e6cf0ca2fcd55bfb03b94a029064f550b408e947753f4671cf98719b3c438",
+    "sourceFileCount": 213,
+    "jarSha256": "23c2b355ff2f6a301335f6cdafd4e26e59d9cb4987933b024a0ca114b8f69436",
+    "installedMatchesTarget": true
+  },
+  {
+    "artifact": "platform-rest",
+    "sourceFingerprint": "5bae2f6ceb08af06fb38c85ef2060e62a926c3b48147cdf1fcf5751bce682d7f",
+    "sourceFileCount": 60,
+    "jarSha256": "5035e8a816890aeab95c5630505af8292db6cc6bbbb898afb839157e009259a3",
+    "installedMatchesTarget": true
+  },
+  {
+    "artifact": "platform-rest-web",
+    "sourceFingerprint": "2895a05adc850c738bb4cf6c9ba2e13b1de4d0ea41fac44d526db28eaa0dd116",
+    "sourceFileCount": 37,
+    "jarSha256": "e6b27194a4f618e42e431f274134c812fb434c211a696493dc29d674d78583b4",
+    "installedMatchesTarget": true
+  },
+  {
+    "artifact": "platform-backend-starter",
+    "sourceFingerprint": "cceb9af2ecdaa3922e7b27e8e8a2b8ce0aefcbf8b7804eb93af3249c07b59668",
+    "sourceFileCount": 2,
+    "jarSha256": "57ebe914b2c2a57513eaf77c3b702c7e8220e978d50c330b6fd37e9f192c5e4c",
+    "installedMatchesTarget": true
+  },
+  {
+    "artifact": "platform-vaadin-starter",
+    "sourceFingerprint": "9976e779eb79218a92bb9ad185b46c298f14396350f0f2e0517df83608c5f54a",
+    "sourceFileCount": 2,
+    "jarSha256": "4a7aa6d50cc99f1867c40bbc5b7ae1e25ca4073d11eb4c3935f46f577132aace",
+    "installedMatchesTarget": true
+  }
+]

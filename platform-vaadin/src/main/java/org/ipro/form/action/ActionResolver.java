@@ -73,7 +73,8 @@ public final class ActionResolver {
     public ActionDecision decide(ActionDefinition definition, Object row,
                                  boolean requiredContextComplete) {
         Objects.requireNonNull(definition, "definition must not be null");
-        return ActionPolicy.decide(definition, context(row, requiredContextComplete));
+        ActionDecision base = ActionPolicy.decide(definition, context(row, requiredContextComplete));
+        return base.actionable() ? handler(definition).map(handler -> handler.availability(row)).orElse(base) : base;
     }
 
     /**

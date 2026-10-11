@@ -61,7 +61,12 @@ public sealed interface OpenResult {
      * Адрес известен, но доступ к сценарию чтения закрыт: class-level deny, либо тип не
      * допускает автономного {@code LIST}/{@code DETAIL}-чтения.
      */
-    record Forbidden(FormRoute route, String message) implements OpenResult {
+    record Forbidden(FormRoute route, String message, String administrativeDetails) implements OpenResult {
+
+        /** Compatibility constructor for existing hosts without diagnostics. */
+        public Forbidden(FormRoute route, String message) {
+            this(route, message, "");
+        }
 
         @Override
         public String outcome() {

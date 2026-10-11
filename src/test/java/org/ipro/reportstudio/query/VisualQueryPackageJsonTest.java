@@ -1,10 +1,12 @@
 package org.ipro.reportstudio.query;
 
 import org.junit.jupiter.api.Test;
+import org.ipro.register.RecorderRef;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class VisualQueryPackageJsonTest {
     @Test
@@ -52,6 +54,22 @@ class VisualQueryPackageJsonTest {
 
         assertThat(restored.ctes()).isEmpty();
         assertThat(restored.main()).isEqualTo(definition);
+    }
+
+    @Test
+    void keepsVersionOnePackagesReadableAndRequiresVersionTwoForRecorderSelection() {
+        var definition = definition("Q6Product");
+        var legacy = new VisualQueryPackage(1, List.of(new VisualQueryPackage.Cte("tmp1", definition)), definition);
+        var codec = new VisualQueryPackageJsonCodec();
+
+        var restored = codec.read(codec.write(legacy));
+
+        assertThat(restored.version()).isEqualTo(1);
+        assertThat(restored.ctes().getFirst().selectedRecorders()).isEmpty();
+        assertThatThrownBy(() -> new VisualQueryPackage(1, List.of(
+                new VisualQueryPackage.Cte("tmp1", definition,
+                        List.of(new RecorderRef("r5-document-a", 1L)))), definition))
+                .hasMessageContaining("visual package 2");
     }
 
     private static VisualQueryDefinition definition(String entityName) {

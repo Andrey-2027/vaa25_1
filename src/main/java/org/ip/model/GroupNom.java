@@ -7,12 +7,14 @@ import org.ipro.crud.BaseEntity;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 
 @Entity
 @Table(name = "group_nom")
 @EntityMetadata(
+    kind = EntityKind.CATALOG,
     listFormTitle = "Группы номенклатуры",
     itemFormTitle = "Группа номенклатуры",
     selectionFormTitle = "Выбор группы номенклатуры",

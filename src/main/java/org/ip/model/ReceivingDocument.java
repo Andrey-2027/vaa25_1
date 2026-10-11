@@ -26,6 +26,7 @@ import org.ipro.crud.BaseEntity;
 import org.ipro.fetch.instance.InstanceName;
 import org.ipro.numbering.NumberingPeriod;
 import org.ipro.numbering.annotation.Numbered;
+import org.ipro.register.RecorderType;
 import org.ipro.search.GlobalSearchable;
 
 import java.time.LocalDate;
@@ -90,6 +91,7 @@ import java.time.LocalDate;
 )
 @InstanceName(value = {"number", "date"}, separator = " от ")
 @TableSections({ReceivingDocumentItem.class})
+@RecorderType("receiving-document")
 public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
 
     /**

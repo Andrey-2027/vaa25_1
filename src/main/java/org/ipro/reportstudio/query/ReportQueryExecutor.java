@@ -38,6 +38,51 @@ import java.util.Set;
  */
 @Component
 public class ReportQueryExecutor {
+    private org.ipro.data.presentation.EntityPresentationService presentations;
+    private org.ipro.register.RecorderTypeRegistry recorderTypes;
+    public void usePresentations(org.ipro.data.presentation.EntityPresentationService service, org.ipro.register.RecorderTypeRegistry types) {
+        presentations = service; recorderTypes = types;
+    }
+
+    public ReportDataset execute(ReportQueryAssembler assembled, int maxRows, long timeoutMs) {
+        var plan = assembled.presentations();
+        if (plan.isEmpty()) return execute(assembled.jpql(), assembled.bindings(), assembled.fields(), maxRows, timeoutMs);
+        if (presentations == null || recorderTypes == null) throw new IllegalStateException("Сервис представлений не подключён");
+        var physical = execute(assembled.jpql(), assembled.bindings(), plan.physicalFields(), maxRows, timeoutMs);
+        var physicalRows = physical.rows();
+        var references = new java.util.LinkedHashSet<org.ipro.data.presentation.EntityPresentationService.Reference>();
+        var rowRefs = new java.util.ArrayList<java.util.Map<String, org.ipro.data.presentation.EntityPresentationService.Reference>>();
+        for (var row : physicalRows) {
+            var refs = new java.util.HashMap<String, org.ipro.data.presentation.EntityPresentationService.Reference>();
+            for (var column : plan.columns()) {
+                Object id = row.value(column.idColumn()); if (id == null) continue;
+                Class<?> type = column.entityType();
+                if (column.typeColumn() != null) type = recorderTypes.findType(String.valueOf(row.value(column.typeColumn()))).orElse(null);
+                if (type != null) {
+                    var reference = new org.ipro.data.presentation.EntityPresentationService.Reference(type, ((Number) id).longValue());
+                    refs.put(column.name(), reference); references.add(reference);
+                }
+            }
+            rowRefs.add(refs);
+        }
+        var labels = presentations.resolve(references); var schema = assembled.fields().toArray(QueryField[]::new);
+        var rows = new java.util.ArrayList<ReportRow>();
+        for (int index = 0; index < physicalRows.length; index++) {
+            var raw = physicalRows[index]; var values = new Object[schema.length];
+            for (int cell = 0; cell < schema.length; cell++) {
+                String name = schema[cell].name();
+                var presentation = plan.columns().stream().filter(column -> column.name().equals(name)).findFirst();
+                if (presentation.isEmpty()) values[cell] = raw.value(name);
+                else if (raw.value(presentation.get().idColumn()) == null) values[cell] = null;
+                else {
+                    var ref = rowRefs.get(index).get(name);
+                    values[cell] = ref == null ? "Документ недоступен" : labels.getOrDefault(ref, presentations.unavailable(ref.type()));
+                }
+            }
+            rows.add(new ReportRow(schema, values));
+        }
+        return new ReportDataset(schema, rows.toArray(ReportRow[]::new));
+    }
 
     private final EntityManager entityManager;
     private final RlsFilterActivator rlsFilterActivator;
@@ -46,10 +91,14 @@ public class ReportQueryExecutor {
     private final ReportQueryGuard executionGuard;
     private final ReportReadAuthorizer readAuthorizer;
 
+    /** @deprecated Structural test adapter; production must supply guard and authorizer. */
+    @Deprecated(forRemoval = true)
     public ReportQueryExecutor(EntityManager entityManager, RlsFilterActivator rlsFilterActivator) {
         this(entityManager, rlsFilterActivator, null);
     }
 
+    /** @deprecated Structural test adapter; production must supply guard and authorizer. */
+    @Deprecated(forRemoval = true)
     public ReportQueryExecutor(EntityManager entityManager,
                                RlsFilterActivator rlsFilterActivator,
                                RlsCurrentUser currentUser) {
@@ -106,6 +155,9 @@ public class ReportQueryExecutor {
         applyServerStatementTimeout(timeoutMs);
         Query query = entityManager.createQuery(jpql, Tuple.class);
         query.setHint(QueryHints.HINT_READONLY, Boolean.TRUE);
+        query.setHint(QueryHints.HINT_CACHEABLE, Boolean.FALSE);
+        query.setHint("jakarta.persistence.cache.retrieveMode", jakarta.persistence.CacheRetrieveMode.BYPASS);
+        query.setHint("jakarta.persistence.cache.storeMode", jakarta.persistence.CacheStoreMode.BYPASS);
         query.setHint(QueryHints.HINT_FETCH_SIZE, Math.min(maxRows, 1000));
         query.setHint(QueryHints.HINT_TIMEOUT, (int) Math.max(1, timeoutMs / 1000));
         query.setMaxResults(maxRows);

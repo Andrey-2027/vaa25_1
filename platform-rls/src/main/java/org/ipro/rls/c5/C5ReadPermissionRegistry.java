@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
  * Explicit registry of C5 read permission definitions (F-REST-READ-3, З2).
  *
  * <p>Registrars ({@code C5EntityReadPermissionRegistrar} for canonical entity roots,
- * {@code C5RestOperationRegistrar} for API operations and attribute paths) register the
+ * {@code C5RestOperationRegistrar} for API operations) register the
  * exact keys they declare at startup. The registry is the only way to recognise a C5 read
  * permission: a key prefix such as {@code ENTITY:}/{@code REST:}, the CHECK_ONLY RLS kind
  * or a {@code "*"} wildcard row must never be treated as such.</p>
@@ -22,12 +22,12 @@ public class C5ReadPermissionRegistry {
 
     /** Registers one C5 read permission key; repeated registration is idempotent. */
     public void registerReadKey(String key) {
-        registeredKeys.add(requireReadKey(key));
+        registeredKeys.add(requireReadKey(C5PermissionKeys.readKey(key)));
     }
 
     /** True only for keys explicitly registered through {@link #registerReadKey(String)}. */
     public boolean isRegisteredReadKey(String dimension) {
-        return dimension != null && registeredKeys.contains(dimension);
+        return dimension != null && !dimension.startsWith("ATTR:") && registeredKeys.contains(dimension);
     }
 
     /** Immutable snapshot of the registered keys, sorted. */

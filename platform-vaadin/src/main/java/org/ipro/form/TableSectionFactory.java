@@ -94,7 +94,7 @@ public class TableSectionFactory implements ApplicationRunner {
      * точка открытия (PR-1.5, решение №7).
      * Если табличных частей нет — ничего не делает (form остаётся как есть).
      */
-    public <T extends IdentifiableEntity> void attachTableSections(ItemForm<T> form, Class<T> entityClass) {
+    public <T extends IdentifiableEntity<Long>> void attachTableSections(ItemForm<T> form, Class<T> entityClass) {
         attachTableSections(form, entityClass, form.getSectionFilter());
     }
 
@@ -109,7 +109,7 @@ public class TableSectionFactory implements ApplicationRunner {
      *
      * @param rowClasses row-классы секций к подключению; null = все секции
      */
-    public <T extends IdentifiableEntity> void attachTableSections(ItemForm<T> form, Class<T> entityClass,
+    public <T extends IdentifiableEntity<Long>> void attachTableSections(ItemForm<T> form, Class<T> entityClass,
                                                                    Collection<Class<?>> rowClasses) {
         List<TableSectionMetadataInfo> sections = metadataResolver.resolveTableSections(entityClass);
         for (TableSectionMetadataInfo section : sections) {
@@ -133,8 +133,8 @@ public class TableSectionFactory implements ApplicationRunner {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Map<Class<?>, List<?>> copyRowsFor(Class<?> parentClass,
-                                              IdentifiableEntity sourceParent,
-                                              IdentifiableEntity newParent,
+                                              IdentifiableEntity<Long> sourceParent,
+                                              IdentifiableEntity<Long> newParent,
                                               org.ipro.crud.EntityCopyService copy) {
         Map<Class<?>, List<?>> result = new java.util.LinkedHashMap<>();
         for (TableSectionMetadataInfo section : metadataResolver.resolveTableSections(parentClass)) {
@@ -157,7 +157,7 @@ public class TableSectionFactory implements ApplicationRunner {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity> ItemTable<?, T> createItemTable(TableSectionMetadataInfo section) {
+    private <T extends IdentifiableEntity<Long>> ItemTable<?, T> createItemTable(TableSectionMetadataInfo section) {
         TableSectionService rawService = findTableSectionService(section);
         java.util.function.Supplier<org.ipro.form.registry.FormResolver> formResolverSupplier =
             formResolverProvider::getObject;

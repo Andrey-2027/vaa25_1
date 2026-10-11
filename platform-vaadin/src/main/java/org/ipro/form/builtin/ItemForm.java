@@ -77,11 +77,17 @@ import java.util.function.Supplier;
  * Табличные части подключаются автоматически через TableSectionFactory (см.
  * FormResolver/ItemFormWrapperView) — вызывающему коду вручную создавать ItemTable не нужно.
  */
-public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
+public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         implements org.ipro.form.Dirtyable,
                    org.ipro.form.Savable {
 
     private final EntityMetadataInfo metadata; // null для форм строк табличных частей
+    private final java.util.List<Consumer<T>> entityStateListeners = new java.util.ArrayList<>();
+
+    public void addEntityStateListener(Consumer<T> listener) {
+        entityStateListeners.add(listener);
+        listener.accept(entity);
+    }
     private final Class<T> entityClass;
     private final FieldFactory fieldFactory;
     private final FormBindingRegistry registry = new FormBindingRegistry();
@@ -484,7 +490,7 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      * возвращается как {@link org.ipro.form.SectionPayload#absent()}, а не как
      * пустая команда очистки.
      */
-    public <R extends IdentifiableEntity> org.ipro.form.SectionPayload<R> sectionPayload(
+    public <R extends IdentifiableEntity<Long>> org.ipro.form.SectionPayload<R> sectionPayload(
             Class<R> rowClass) {
         return sections.sectionPayload(rowClass);
     }
@@ -498,7 +504,7 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      *
      * @param rowClass класс строки (например, ReceivingDocumentItem.class)
      */
-    public <R extends IdentifiableEntity> ItemTable<R, T> tableSection(Class<R> rowClass) {
+    public <R extends IdentifiableEntity<Long>> ItemTable<R, T> tableSection(Class<R> rowClass) {
         return sections.tableSection(rowClass);
     }
 
@@ -531,6 +537,7 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      */
     public void setEntity(T entity) {
         this.entity = entity;
+        entityStateListeners.forEach(listener -> listener.accept(entity));
         T populatingEntity = entity != null ? entity : newInstance();
         registry.readAllFromEntity(populatingEntity);
         for (Consumer<T> refresher : displayRefreshers) {
@@ -614,6 +621,7 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
      */
     public void applyPersistedEntity(T saved) {
         this.entity = saved;
+        entityStateListeners.forEach(listener -> listener.accept(saved));
         registry.readAllFromEntity(saved);
         for (Consumer<T> refresher : displayRefreshers) {
             refresher.accept(saved);
@@ -730,6 +738,10 @@ public class ItemForm<T extends IdentifiableEntity> extends VerticalLayout
     }
 
     private static String saveFailureMessage(RuntimeException error) {
+        if (org.ipro.form.coordinator.AccessDenialPresentation.find(error) != null) {
+            // Hosts use Failure.cause for richer diagnostics. Other consumers get safe text.
+            return "Недостаточно прав для сохранения. Обратитесь к администратору.";
+        }
         for (Throwable cause = error; cause != null; cause = cause.getCause()) {
             // 23505 — unique violation в PostgreSQL/H2. Другие integrity errors,
             // например NOT NULL (23502), не должны называться дублированием ключа.

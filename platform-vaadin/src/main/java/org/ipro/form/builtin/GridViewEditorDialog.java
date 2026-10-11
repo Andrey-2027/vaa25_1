@@ -65,6 +65,8 @@ import java.util.function.Function;
  *   - "Изменить" — editingView = существующий вид, initialColumns = его текущий состав
  */
 public class GridViewEditorDialog extends Dialog {
+    private GridViewState initialState;
+    public GridViewEditorDialog withStateOptions(GridViewState state) { initialState = state; return this; }
 
     /** Узел дерева доступных полей. */
     private record AvailableField(String path, String label, String groupLabel) {
@@ -449,7 +451,9 @@ public class GridViewEditorDialog extends Dialog {
         // Пустые группы не сохраняем: сохранённое условие без условий — это не условие
         // (см. ListFormVisualFilterAdapter#pruneEmptyGroups).
         FilterNode userFilter = ListFormVisualFilterAdapter.pruneEmptyGroups(filterTreeValue);
-        String stateJson = GridViewState.of(columns, metadata.getEntityClass(), null, userFilter).toJson();
+        String stateJson = GridViewState.of(columns, metadata.getEntityClass(),
+            initialState == null ? null : initialState.fixedFilter(), userFilter)
+            .withOptions(initialState == null ? java.util.Map.of() : initialState.options()).toJson();
 
         try {
             if (editingView == null) {

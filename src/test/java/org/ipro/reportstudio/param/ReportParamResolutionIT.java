@@ -87,7 +87,7 @@ class ReportParamResolutionIT {
             new UserRepositoryRlsRoleResolver(userRepository), registry);
         var cache = new RlsReadableIdsCache(accessService);
         activator = new RlsFilterActivator(registry, cache, () -> SecurityContextHolder.getContext().getAuthentication().getName());
-        var readGate = new RlsReadGate(accessService, registry);
+        var readGate = new RlsReadGate(org.ipro.rls.RlsTestFixture.allowingC5ReadEvaluator(), registry);
 
         var analyzer = new SqmQuerySemanticAnalyzer(entityManagerFactory);
         guard = new ReportQueryGuard(analyzer, accessService, registry,

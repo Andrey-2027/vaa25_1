@@ -45,6 +45,10 @@ public final class VisualQueryTextParser {
 
     private final QueryBuilderMetadataCatalog catalog;
     private final List<String> warnings = new ArrayList<>();
+    private boolean namedConditions;
+    private final Map<String, VisualQueryDefinition.Parameter> namedDeclarations = new LinkedHashMap<>();
+    /** Strict application syntax retains named operands instead of recovering saved literals. */
+    public VisualQueryTextParser withNamedConditions() { namedConditions = true; return this; }
     private VisualQueryPackage.VirtualCatalog virtualCatalog = VisualQueryPackage.VirtualCatalog.empty();
     private final List<VisualQueryDefinition.Join> joinsAccumulator = new ArrayList<>();
     private final List<VisualQueryDefinition.Expression> expressionsAccumulator = new ArrayList<>();
@@ -54,13 +58,17 @@ public final class VisualQueryTextParser {
     public VisualQueryTextParser(QueryBuilderMetadataCatalog catalog) {
         this.catalog = catalog;
     }
+    private VisualQueryPackage.VirtualCatalog initialVirtualCatalog = VisualQueryPackage.VirtualCatalog.empty();
+    public VisualQueryTextParser withSources(List<VisualQueryPackage.VirtualEntity> sources) {
+        initialVirtualCatalog = new VisualQueryPackage.VirtualCatalog(sources); virtualCatalog = initialVirtualCatalog; return this;
+    }
 
     /** Результат разбора пакета WITH. */
     public record PackageParsed(VisualQueryPackage queryPackage, List<String> warnings) { }
 
     public PackageParsed parsePackage(String jpql) {
         warnings.clear();
-        virtualCatalog = VisualQueryPackage.VirtualCatalog.empty();
+        virtualCatalog = initialVirtualCatalog;
         if (jpql == null || jpql.isBlank()) return new PackageParsed(null, List.of());
         String text = jpql.trim();
         if (!startsWithWord(text, "with")) {
@@ -87,7 +95,7 @@ public final class VisualQueryTextParser {
                 }
                 String cteQuery = body.substring(1, body.length() - 1).trim();
                 VisualQueryTextParser nested = new VisualQueryTextParser(catalog);
-                nested.virtualCatalog = virtualCatalog;
+                nested.virtualCatalog = virtualCatalog; nested.namedConditions = namedConditions;
                 Parsed parsed = nested.parse(cteQuery, null);
                 // Предупреждения CTE собираются отдельно: parse основного запроса ниже
                 // очищает this.warnings (тот же список), и они бы потерялись.
@@ -155,6 +163,7 @@ public final class VisualQueryTextParser {
 
     public Parsed parse(String jpql, VisualQueryDefinition savedForValues) {
         warnings.clear();
+        namedDeclarations.clear();
         subqueriesAccumulator.clear();
         if (jpql == null || jpql.isBlank()) {
             return new Parsed(null, warnings);
@@ -221,7 +230,7 @@ public final class VisualQueryTextParser {
         VisualQueryDefinition definition = new VisualQueryDefinition(
                 VisualQueryDefinition.CURRENT_VERSION, entityName, rootAliasOf(aliases),
                 List.copyOf(selects), List.copyOf(joinsOf(aliases)), groupBy,
-                List.copyOf(aggregates), List.copyOf(expressions), having, where, List.of(), orders,
+                List.copyOf(aggregates), List.copyOf(expressions), having, where, List.copyOf(namedDeclarations.values()), orders,
                 List.copyOf(subqueriesAccumulator));
         return new Parsed(definition, warnings);
     }
@@ -560,6 +569,15 @@ public final class VisualQueryTextParser {
             }
             cursor[0] += 2;
             List<VisualQueryExpression> arguments = new ArrayList<>();
+            if (word.equalsIgnoreCase("Представление")) {
+                if (cursor[0] >= tokens.length || tokens[cursor[0]].type() != JpqlLexer.Type.WORD
+                        || !tokens[cursor[0]].value().matches("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*"))
+                    throw new IllegalArgumentException("Представление требует ссылку");
+                arguments.add(new VisualQueryExpression.FieldRef(tokens[cursor[0]++].value()));
+                if (cursor[0] >= tokens.length || tokens[cursor[0]++].type() != JpqlLexer.Type.RPAREN)
+                    throw new IllegalArgumentException("Представление принимает одну ссылку");
+                return new VisualQueryExpression.FunctionCall("Представление", arguments);
+            }
             if (cursor[0] < tokens.length && tokens[cursor[0]].type() == JpqlLexer.Type.RPAREN) {
                 cursor[0]++;
                 return new VisualQueryExpression.FunctionCall(word, arguments);
@@ -951,7 +969,7 @@ public final class VisualQueryTextParser {
         if (left.type() != JpqlLexer.Type.WORD || op.type() != JpqlLexer.Type.OP
                 || right.type() != JpqlLexer.Type.WORD) return null;
         JoinCondition.Operator operator = op.value().equals("=") ? JoinCondition.Operator.EQ
-                : (op.value().equals("<>") || op.value().equals("!=") || op.value().equals("<"))
+                : (op.value().equals("<>") || op.value().equals("!="))
                 ? JoinCondition.Operator.NE : null;
         if (operator == null) {
             warnings.add("Оператор ON «" + op.value() + "» не поддерживается (только = и <>)");
@@ -966,7 +984,7 @@ public final class VisualQueryTextParser {
     }
 
     private static boolean fieldReference(String value) {
-        return value != null && value.matches("[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*");
+        return value != null && value.matches("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+");
     }
 
     /** Группировка списка по одинаковой связке: вложенные группы другого оператора. */
@@ -1316,7 +1334,9 @@ n     * парсером и регистрирует его под именем 
             String valueTo = cond.valueTo();
             if (cond.paramName() != null) {
                 SavedRef ref = savedValues.get(cond.paramName());
-                if (ref != null && ref.condition().path().equals(cond.path()) && ref.valueSlot()) {
+                if (namedConditions) {
+                    value = ":" + cond.paramName(); declareNamed(cond.paramName(), cond.path(), aliases);
+                } else if (ref != null && ref.condition().path().equals(cond.path()) && ref.valueSlot()) {
                     // LIKE скрывает CONTAINS/STARTS_WITH: оператор берём из сохранённого условия.
                     if (cond.like() && (ref.condition().operator() == FilterOperator.CONTAINS
                             || ref.condition().operator() == FilterOperator.STARTS_WITH)) {
@@ -1331,7 +1351,9 @@ n     * парсером и регистрирует его под именем 
             }
             if (cond.paramNameTo() != null) {
                 SavedRef ref = savedValues.get(cond.paramNameTo());
-                if (ref != null && ref.condition().path().equals(cond.path()) && !ref.valueSlot()) {
+                if (namedConditions) {
+                    valueTo = ":" + cond.paramNameTo(); declareNamed(cond.paramNameTo(), cond.path(), aliases);
+                } else if (ref != null && ref.condition().path().equals(cond.path()) && !ref.valueSlot()) {
                     valueTo = ref.condition().valueTo();
                 } else {
                     warnings.add("Второе значение условия «" + cond.path() + "» (:" + cond.paramNameTo()
@@ -1375,13 +1397,40 @@ n     * парсером и регистрирует его под именем 
         if (plain != null) return dataTypeOf(plain.javaType());
         // Первичный ключ не входит в поля формы, но валиден в условиях (s.id).
         if ("id".equals(field)) return FilterDataType.NUMBER;
-        return null; // ассоциации в WHERE не используются (нужен typed lookup)
+        if (namedConditions) { Class<?> type = conditionJavaType(path, aliases); return type == null ? null : dataTypeOf(type); }
+        return null; // Legacy recovery retains its previous lookup contract.
+    }
+
+    private Class<?> conditionJavaType(String path, Map<String, QueryBuilderMetadataCatalog.Entity> aliases) {
+        String[] segments = path.split("\\."); if (segments.length < 2) return null;
+        var entity = aliases.get(segments[0]); if (entity == null) return null;
+        String relative = path.substring(path.indexOf('.') + 1);
+        var exact = fieldOf(entity, relative); if (exact != null) return exact.javaType();
+        for (int index = 1; index < segments.length; index++) {
+            String segment = segments[index]; boolean last = index == segments.length - 1;
+            var field = fieldOf(entity, segment); if (last && field != null) return field.javaType();
+            if (last && segment.equals("id")) return Long.class;
+            var association = associationOf(entity, segment); if (association == null) return null;
+            if (last) return association.targetType();
+            entity = entityByType(association.targetType()); if (entity == null) return null;
+        }
+        return null;
+    }
+
+    private void declareNamed(String name, String path, Map<String, QueryBuilderMetadataCatalog.Entity> aliases) {
+        Class<?> type = conditionJavaType(path, aliases);
+        if (type == null) throw new IllegalArgumentException("Поле параметра не найдено: " + path);
+        type = org.ipro.register.SliceSpecValidator.boxed(type);
+        String dataType = type == java.time.LocalDateTime.class ? "DATETIME" : type == java.time.LocalDate.class ? "DATE" : type.getName();
+        var declaration = new VisualQueryDefinition.Parameter(name, dataType, true, null);
+        var previous = namedDeclarations.putIfAbsent(name, declaration);
+        if (previous != null && !previous.dataType().equals(dataType)) throw new IllegalArgumentException("Несовместимые типы параметра: " + name);
     }
 
     private static FilterDataType dataTypeOf(Class<?> type) {
         if (type.isEnum()) return FilterDataType.ENUM;
-        if (Number.class.isAssignableFrom(type) || type.isPrimitive()) return FilterDataType.NUMBER;
         if (type == Boolean.class || type == boolean.class) return FilterDataType.BOOLEAN;
+        if (Number.class.isAssignableFrom(type) || type.isPrimitive()) return FilterDataType.NUMBER;
         if (java.time.temporal.Temporal.class.isAssignableFrom(type)) return FilterDataType.DATE;
         return FilterDataType.TEXT;
     }

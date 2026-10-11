@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "receiving-items",
+  "sourceVersion": 1,
+  "title": "Количество по цехам и номенклатуре",
+  "columns": [
+    { "fieldId": "date", "title": null },
+    { "fieldId": "document", "title": null },
+    { "fieldId": "nomenclature", "title": null },
+    { "fieldId": "quantity", "title": null }
+  ],
+  "measures": [
+    { "fieldId": "quantity", "aggregation": "SUM", "title": null },
+    { "fieldId": "rowCount", "aggregation": "COUNT_ROWS", "title": null }
+  ],
+  "groups": [ "receivingWorkshop", "nomenclature" ],
+  "filters": [],
+  "parameters": [
+    {
+      "id": "period", "fieldId": "date", "operator": "BETWEEN", "caption": "Период",
+      "defaultRule": "CURRENT_MONTH", "defaultValue": null
+    },
+    {
+      "id": "unit", "fieldId": "unit", "operator": "EQ", "caption": "Единица измерения",
+      "defaultRule": "NONE", "defaultValue": null
+    },
+    {
+      "id": "recipient", "fieldId": "receivingWorkshop", "operator": "EQ", "caption": "Цех-приёмщик",
+      "defaultRule": "NONE", "defaultValue": null
+    }
+  ],
+  "sorts": [ { "fieldId": "date", "direction": "ASC" } ],
+  "mode": "SUMMARY",
+  "grandTotal": true,
+  "appearance": { "rowBorders": true, "columnBorders": true, "stripeRows": true }
+}

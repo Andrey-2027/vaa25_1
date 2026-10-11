@@ -17,12 +17,23 @@ import java.util.List;
 
 /** Полное переносимое состояние сохранённого вида грида. */
 public record GridViewState(List<ColumnPath.Spec> columns, List<FilterSpec> filters,
-                            FilterNode fixedFilter, FilterNode userFilter) {
+                            FilterNode fixedFilter, FilterNode userFilter,
+                            java.util.Map<String, String> options) {
     private static final ObjectMapper JSON = new ObjectMapper();
 
     public GridViewState {
         columns = columns == null ? List.of() : List.copyOf(columns);
         filters = filters == null ? List.of() : List.copyOf(filters);
+        options = options == null ? java.util.Map.of() : java.util.Map.copyOf(options);
+    }
+
+    public GridViewState(List<ColumnPath.Spec> columns, List<FilterSpec> filters,
+                         FilterNode fixedFilter, FilterNode userFilter) {
+        this(columns, filters, fixedFilter, userFilter, java.util.Map.of());
+    }
+
+    public GridViewState withOptions(java.util.Map<String, String> values) {
+        return new GridViewState(columns, filters, fixedFilter, userFilter, values);
     }
 
     /** Legacy-конструктор: старый массив FilterSpec остаётся пользовательским AND-фильтром. */
@@ -53,6 +64,7 @@ public record GridViewState(List<ColumnPath.Spec> columns, List<FilterSpec> filt
             var object = JSON.createObjectNode();
             object.set("columns", JSON.valueToTree(columns));
             object.set("filters", JSON.valueToTree(filters));
+            if (!options.isEmpty()) object.set("options", JSON.valueToTree(options));
             if (fixedFilter != null) object.set("fixedFilter", FilterTreeJson.write(fixedFilter));
             if (userFilter != null) object.set("userFilter", FilterTreeJson.write(userFilter));
             return JSON.writeValueAsString(object);
@@ -72,7 +84,9 @@ public record GridViewState(List<ColumnPath.Spec> columns, List<FilterSpec> filt
                         ? JSON.convertValue(object.path("filters"), new TypeReference<List<FilterSpec>>() {}) : List.of();
                 return new GridViewState(columns, filters,
                         FilterTreeJson.read(object.get("fixedFilter")),
-                        FilterTreeJson.read(object.get("userFilter")));
+                        FilterTreeJson.read(object.get("userFilter")),
+                        object.has("options") ? JSON.convertValue(object.get("options"),
+                            new TypeReference<java.util.Map<String, String>>() {}) : java.util.Map.of());
             } catch (Exception e) {
                 throw new IllegalStateException("Cannot parse GridViewState JSON: " + value, e);
             }

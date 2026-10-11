@@ -24,7 +24,10 @@ import java.util.regex.Pattern;
  * ключ, зарегистрирован ли вариант и линкабельна ли форма — решают
  * {@link FormRouteCatalog} и {@link FormLinkService}, а не этот тип.</p>
  */
-public record FormRoute(FormRouteKind kind, String entityKey, Long id, String variant) {
+public record FormRoute(FormRouteKind kind, String entityKey, Long id, String variant, String state) {
+    public FormRoute(FormRouteKind kind, String entityKey, Long id, String variant) {
+        this(kind, entityKey, id, variant, null);
+    }
 
     /** Грамматика внешнего ключа и ключа варианта: ASCII lower-kebab-case. */
     private static final Pattern KEY = Pattern.compile("[a-z][a-z0-9]*(?:-[a-z0-9]+)*");
@@ -42,6 +45,10 @@ public record FormRoute(FormRouteKind kind, String entityKey, Long id, String va
         }
         if (variant != null) {
             variant = requireKey(variant, "variant");
+        }
+        if (state != null) {
+            if (kind != FormRouteKind.LIST) throw new IllegalArgumentException("Состояние допустимо только для списка");
+            ListViewStateToken.decode(state);
         }
     }
 

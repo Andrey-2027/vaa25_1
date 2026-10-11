@@ -19,6 +19,9 @@ public final class QueryMetadataNode {
     private final String javaType;
     private final boolean selectable;
     private final List<QueryMetadataNode> children;
+    private String category = "";
+    public String category() { return category; }
+    public QueryMetadataNode category(String value) { category = value; return this; }
 
     public QueryMetadataNode(Kind kind, String caption, String token, String javaType,
                              boolean selectable, List<QueryMetadataNode> children) {
@@ -58,6 +61,9 @@ public final class QueryMetadataNode {
         ENTITY,
         TABLE,
         PROPERTY,
-        ASSOCIATION
+        ASSOCIATION,
+        GROUP,
+        SLICE,
+        CTE
     }
 }

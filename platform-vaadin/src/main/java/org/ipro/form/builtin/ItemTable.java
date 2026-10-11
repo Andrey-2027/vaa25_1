@@ -68,7 +68,7 @@ import java.util.function.Supplier;
  *
  * Создаётся через TableSectionFactory — вручную использовать конструктор не требуется.
  */
-public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntity> extends VerticalLayout {
+public class ItemTable<T extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> extends VerticalLayout {
 
     private final TableSectionMetadataInfo sectionMeta;
     private final FieldFactory fieldFactory;
@@ -266,8 +266,8 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
             try {
                 Object current = field.get(row);
                 Object refreshed = field.get(loaded);
-                if (current instanceof IdentifiableEntity currentEntity
-                        && refreshed instanceof IdentifiableEntity refreshedEntity
+                if (current instanceof IdentifiableEntity<?> currentEntity
+                        && refreshed instanceof IdentifiableEntity<?> refreshedEntity
                         && currentEntity.getId() != null
                         && Objects.equals(currentEntity.getId(), refreshedEntity.getId())) {
                     field.set(row, refreshed);
@@ -363,6 +363,11 @@ public class ItemTable<T extends IdentifiableEntity, P extends IdentifiableEntit
 
     public List<T> getRows() {
         return List.copyOf(rows);
+    }
+
+    /** Repaint derived row values without replacing drafts, reloading persistence, or clearing dirty state. */
+    public void refreshRows() {
+        grid.getDataProvider().refreshAll();
     }
 
     public void setReadOnly(boolean readOnly) {

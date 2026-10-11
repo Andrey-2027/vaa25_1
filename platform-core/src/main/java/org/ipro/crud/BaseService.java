@@ -11,7 +11,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface BaseService<T extends IdentifiableEntity, ID> extends CrudService<T> {
+/**
+ * Existing CRUD services use Long entity identity. The historical independent ID
+ * argument is retained for source compatibility; it does not provide arbitrary-key CRUD.
+ */
+public interface BaseService<T extends IdentifiableEntity<Long>, ID> extends CrudService<T> {
     T save(T entity);
     T create(T entity);
     T update(T entity);

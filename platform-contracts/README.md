@@ -20,7 +20,7 @@
 
 - `org.slf4j:slf4j-api` — внешний API-артефакт (`EventContext` читает `traceId` из MDC);
 - `org.ipro:platform-identity-api` — нейтральный identifier
-  `org.ipro.identity.IdentifiableEntity`: Java-only артефакт, который собирает реактор `crudui`,
+  `org.ipro.identity.IdentifiableEntity<ID>`: Java-only артефакт, который собирает реактор `crudui`,
   но владеют им обе стороны. Раньше этот тип лежал в `crudui-core`, и контракты зависели от
   UI-библиотеки ради `Long getId()`: Vaadin не тёк только за счёт `provided`-scope, а
   направление владения scope'ом не исправляется.
@@ -47,7 +47,35 @@ D1 зафиксировал границу картой и исполняемы�
 UI-артефакта, либо `crudui-core` начинает зависеть от растущего набора GitVaa-контрактов —
 первое неверно по владению, второе создаёт цикл между репозиториями.
 
+## Generic identity и миграция потребителя
+
+Нейтральный `IdentifiableEntity<ID>` не ограничивает ID на Long/Number/Serializable.
+Прямые реализации действующих сущностей используют `IdentifiableEntity<Long>`;
+наследники BaseEntity получают этот контракт автоматически. Нейтральный код читает
+identity через `IdentifiableEntity<?>`, а текущий CRUD/формы требуют Long-bound.
+
+Lifecycle SPI сохраняет один параметр T, например `EntityLifecycle<MyEntity>` и
+`EntitySaveContext<MyEntity>`; добавлять параметр ID к handler или контексту не нужно.
+Возможность передать сущность с другим ID через lifecycle не означает поддержки такого
+ключа в persistence/CRUD, deep links или report compiler.
+
+Из-за стирания ID descriptors методов identity-интерфейса теперь используют Object
+вместо Long. Старые binaries требуют согласованной перекомпиляции реализации и всех
+потребителей вместе с новым комплектом библиотек. FQN сохраняется; schema/data migration
+и новая ручная регистрация сущностей для этого изменения не нужны.
+
+Полная инструкция, компилируемые Long/wildcard примеры, границы поддержки и владельцы
+runtime bridges — в [руководстве потребителя](../docs/architecture/identity-id-consumer-guide.md).
+
 ## Свои тесты
+
+Lifecycle SPI и пять lifecycle-контекстов используют `T extends IdentifiableEntity<?>`:
+они передают сущность без ограничения её ключа на Long. Число параметров и состав
+record-полей сохранены; `EventContext.aggregateId` остаётся Object. Запись конкретного
+id и поддержка ключей в persistence/CRUD принадлежат их владельцам.
+
+`LifecycleIdentityContractTest` проверяет все контексты с пользовательским типом ключа
+без числовых/Serializable bounds, wildcard-чтение и сохранение id из EventContext.
 
 `src/test` модуля держит то, что модуль может проверить сам: reviewed-состав среза, reviewed
 compile-зависимости, отсутствие spring/jakarta/vaadin импортов и отсутствие прикладного пакета

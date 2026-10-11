@@ -18,6 +18,18 @@
 
 История обсуждения, альтернативные мнения и уже закрытые вопросы не дублируются в roadmap. Для них используются отдельные discussion-документы и ADR.
 
+Для выбора пилота или завершённого механизма, границ текущего пакета и первой
+практической проверки применяется
+[политика разработки](docs/architecture/development-delivery-policy.md).
+Режим и критерий завершения указываются в плане задачи. Ранее принятые DoD
+и обязательные gates действуют до явного пересмотра.
+
+Командный интерфейс: [Пилот 1, КИ-1–КИ-5](docs/architecture/command-interface-pilot-plan.md)
+готов к [пользовательской пробе на PostgreSQL](docs/architecture/command-interface-user-trial.md).
+[Браузерная приёмка](docs/architecture/evidence/command-interface-ki5-20261010.md)
+подтверждает видимость и сохранение назначений; постоянное включение и переход
+к одному построителю меню принимаются по результатам пробы.
+
 Статусы:
 
 | Статус | Значение |
@@ -1379,7 +1391,7 @@ default-hook; делегаты и другие listeners явно обознач
 
 Не открывать generic entity REST до завершения этапа C.
 
-#### F-REST-READ. Входящий API чтения локальных сущностей (этап 3 — завершение приёмки)
+#### F-REST-READ. Входящий API чтения локальных сущностей (этапы 1–4 приняты локально)
 
 Отдельный условный срез для явно опубликованных `GET list/detail`, описанный в
 [`docs/architecture/rest-read-api-plan.md`](docs/architecture/rest-read-api-plan.md).
@@ -1399,19 +1411,20 @@ REST-пилота.
 Подробный третий срез — общий C5 read-контур, canonical read contract,
 защищённые ссылки, транзакционная проекция и приёмка итогового графа/SQL:
 [`docs/architecture/rest-read-api-stage3-security-read-plan.md`](docs/architecture/rest-read-api-stage3-security-read-plan.md).
-Реализация третьего среза и corrective pass выполнены; в повторной проверке 2026-10-03
-прошли C5 entity-key registration, REST пилот и общий canonical-read/UI набор (65/65).
-Gate 3B остаётся открытым: количественные LIST/DETAIL budgets для обоих ресурсов,
-стоимость предельного offset/window, согласование C5/admin decision и реальная ролевая
-операционная grant policy требуют завершения; owner API/surface
-проверки прошли 13/13, owner module verify прошёл для `platform-rls`, `platform-core`,
-`platform-rest` и autoconfigure. Strict/bootstrap acceptance остаётся открытым из-за
-sibling drift и ошибки очистки JAR в соседнем `crudui` (запись 2026-10-03 в плане).
+Реализация третьего среза и corrective pass выполнены; З0–З4 плана завершения
+приняты: окно 10 000, C5/admin parity, реальные роли/отзыв и численные LIST/DETAIL
+SQL/graph budgets обоих ресурсов. Контрольное ревью 2026-10-05 подтвердило
+REST/C5/API/surface набор 40/40.
+З5/Gate 3A/3B закрыты 2026-10-06: полный стандартный bootstrap на стабильных
+inputs — application 1830 tests, failures/errors 0, 6 PostgreSQL-only skipped;
+frontend/package и strict validation exit 0. Все прежние C5/problem classes
+зелёные; source inventory до/после и восемь installed/target JAR совпадают ([evidence 4.7](docs/architecture/rest-read-api-stage4-47-evidence-20261006.md)).
+Общий C5/C и внешнее включение имеют отдельные acceptance criteria.
 Подробный остаток и порядок закрытия этапа зафиксированы в
 [`docs/architecture/rest-read-api-stage3-completion-plan.md`](docs/architecture/rest-read-api-stage3-completion-plan.md):
 inputs/SQL baseline → окно страниц → C5/admin parity → реальные роли и UI/service
-callers → бюджеты SQL/графов → strict bootstrap и финальные gates. Рабочий default
-окна 10 000 строк реализован; окончательная приёмка стоимости остаётся в З4.
+callers → бюджеты SQL/графов → strict bootstrap и финальные gates. Финальное
+пилотное окно 10 000 строк принято в З4; HTTP stateless cost проверяется отдельно.
 З0 выполнен: текущие owner JAR установлены и сверены, REST app pilot прошёл 7/7;
 SQL trace объясняет 20/16 отдельным RLS ids cache, C5 остаётся 14 queries в каждом
 измеренном PrdSpec LIST. UI LIST/REST graphs и SQL baseline обоих roots записаны в
@@ -1420,7 +1433,18 @@ SQL trace объясняет 20/16 отдельным RLS ids cache, C5 оста
 границ; owner REST verify — 91/91, root REST/API/surface checks — 21/21. На H2
 с 10 001 видимой строкой каждого ресурса последняя разрешённая страница полная,
 total не обрезается, следующий запрос отклоняется без business SQL.
-Следующий пакет — З2; эта запись не закрывает Gate 3B или strict bootstrap.
+З2–З5 также выполнены; исторические условия перехода и промежуточный статус записаны в
+[контрольном ревью](docs/architecture/rest-read-api-stage3-review-20261005.md).
+Подробный [план этапа 4](docs/architecture/rest-read-api-stage4-http-plan.md)
+включает optional `platform-rest-web`, Basic/TLS, parsing после gates, request RLS,
+JSON/Problem Details/OpenAPI, реальные HTTP пилоты и финальную read-приёмку.
+Пакеты 4.0–4.7 реализованы и приняты локально: web owner 109/109,
+HTTP/H2 + compatibility app run 50/50; SQL/graph budgets и session isolation
+закреплены в [evidence 4.6](docs/architecture/rest-read-api-stage4-46-evidence-20261005.md).
+З5 и итоговые 4.7/strict gates закрыты ([evidence 4.7](docs/architecture/rest-read-api-stage4-47-evidence-20261006.md)); общий C5/C, consumer и deployment
+gates остаются отдельными. HTTP opt-in по умолчанию выключен.
+Это последний функциональный этап первого read-среза; публикация сохраняет C5/C
+и deployment gates, синхронизация/запись имеют отдельные планы.
 Контракт независимого REST fetch profile
 принят в [ADR-0007 §4.1](docs/architecture/decisions/ADR-0007-canonical-data-access-path.md#rest-fixed-fetch-profile):
 полные maximum source paths, explicit subgraphs и fetchgraph без UI union/display deepen.
@@ -1647,8 +1671,11 @@ I-2  IDEA plugin: draft editor, diff/preview, controlled apply
 
 **Актуализация 2026-10-02:** C5.0–C5.3 поставлены в очередь как ближайший отдельный
 security-срез; контракт C5 можно готовить параллельно текущей работе E3 и подготовке G.
-`F-REST-READ` остаётся проектом границ. Его исследование допустимо сейчас, а публикация
-маршрутов требует C5 и завершения gate этапа C.
+Актуализация 2026-10-06: локальная реализация и приёмка F-REST-READ (этапы 1–4)
+завершены ([evidence 4.7](docs/architecture/rest-read-api-stage4-47-evidence-20261006.md)). Публикация маршрутов требует общего C5/C и deployment gate.
+Уточнение прав 2026-10-06: [ADR-0016](docs/architecture/decisions/ADR-0016-rest-resource-field-access.md)
+задаёт API + entity read для всех опубликованных REST-полей без attribute grants;
+проверки entity read используемых ссылок и RLS сохраняются.
 
 Базовая последовательность этапов:
 

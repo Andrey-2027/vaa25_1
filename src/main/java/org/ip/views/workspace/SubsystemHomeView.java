@@ -12,10 +12,9 @@ import com.vaadin.flow.spring.annotation.SpringComponent;
 import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.SubsystemNode;
-import org.ipro.rls.AccessService;
+import org.ipro.navigation.NavigationTree;
 import org.ipro.rls.RlsCurrentUser;
-import org.ipro.rls.RlsDimensionKind;
-import org.ipro.rls.RlsDimensionRegistry;
+import org.ipro.rls.RlsReadGate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 
@@ -24,17 +23,14 @@ import org.springframework.context.annotation.Scope;
 public class SubsystemHomeView extends VerticalLayout {
 
     private final FormNavigator navigator;
-    private final RlsDimensionRegistry dimensionRegistry;
-    private final AccessService accessService;
+    private final RlsReadGate readGate;
     private final RlsCurrentUser currentUser;
 
     public SubsystemHomeView(@Autowired FormNavigator navigator,
-                             @Autowired RlsDimensionRegistry dimensionRegistry,
-                             @Autowired AccessService accessService,
+                             @Autowired RlsReadGate readGate,
                              @Autowired RlsCurrentUser currentUser) {
         this.navigator = navigator;
-        this.dimensionRegistry = dimensionRegistry;
-        this.accessService = accessService;
+        this.readGate = readGate;
         this.currentUser = currentUser;
         setSizeFull();
         setPadding(true);
@@ -79,36 +75,53 @@ public class SubsystemHomeView extends VerticalLayout {
     }
 
     /**
-     * Скрывает плитку, если у сущности зарегистрировано CHECK_ONLY-измерение вида
-     * "ENTITY:<ИмяКласса>" (см. RlsDimensionKind, ReceivingDocument — пример) и у
-     * текущего пользователя нет по нему доступа вообще — "Пользователь может создавать
-     * Накладные, но не имеет доступа к Ордерам" в точности этот случай: список меню
-     * подсистемы общий, но конкретная плитка не показывается.
+     * Плитка показывается по решению о <b>чтении</b> — тем же ответом, которым ответит открытие
+     * списка ({@link RlsReadGate} спрашивает C5 о чтении сущности) — и больше не по флагу
+     * CHECK_ONLY короткого ключа {@code ENTITY:<ИмяКласса>}.
      *
-     * Сущности без такого измерения (большинство — Journal, Branch, Workshop, ...) —
-     * показываются как раньше, без единой проверки: dimensionRegistry.dimensions()
-     * просто не содержит "ENTITY:Journal" и т.п., если никто не завёл такое измерение.
+     * <p>Это и был дублирующий гейт C5.7. Короткий ключ — ключ <b>операций</b> типа
+     * (CREATE/UPDATE/DELETE, ADR-0017 §3); его «чтение» когда-то означало «виден ли вид целиком»
+     * для типа вроде ReceivingDocument, но читал его здесь только UI, а флаг копился в выдаче как
+     * второе значение одного и того же ключа. Теперь чтение типа решается один раз — C5 read-ключом
+     * {@code ENTITY:<FQN>}, а построчный доступ (JOURNAL/BRANCH) остаётся у RLS. Список меню
+     * подсистемы общий: скрывается только то, что действительно нельзя читать, а не то, на что не
+     * выдана операция.</p>
      */
     private boolean isEntityVisible(EntityMetadataInfo entity) {
-        String dimension = "ENTITY:" + entity.getEntityClass().getSimpleName();
-        if (!dimensionRegistry.dimensions().contains(dimension)) {
-            return true;
+        return readGate.canRead(entity.getEntityClass(), currentUser.requireAuthenticatedUsername());
+    }
+
+    /** Uses exactly the projection captured for this UI's menu; no metadata traversal. */
+    public void init(NavigationTree.Node node) {
+        removeAll();
+        add(new H3(node.title()));
+        for (var group : node.groupsRecursive()) {
+            if (!group.subsystemId().equals(node.id())) {
+                H4 title = new H4(group.title());
+                title.getStyle().set("margin-top", "1em").set("margin-bottom", "0.25em");
+                add(title);
+            }
+            FlexLayout tiles = new FlexLayout();
+            tiles.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+            tiles.getStyle().set("gap", "0.75em");
+            group.items().forEach(item -> tiles.add(createTile(item.title(), item.icon(), item.entityClass())));
+            add(tiles);
         }
-        if (dimensionRegistry.kindOf(dimension) != RlsDimensionKind.CHECK_ONLY) {
-            return true; // подстраховка: конвенция по именованию не проверяется программно нигде больше
-        }
-        return accessService.hasAnyAccess(dimension, currentUser.requireAuthenticatedUsername());
     }
 
     private Button createTile(EntityMetadataInfo entity) {
+        return createTile(entity.getListFormTitle(), entity.getIcon(), entity.getEntityClass());
+    }
+
+    private Button createTile(String title, String iconName, Class<?> entityClass) {
         Icon icon;
         try {
-            icon = VaadinIcon.valueOf(entity.getIcon()).create();
+            icon = VaadinIcon.valueOf(iconName).create();
         } catch (IllegalArgumentException e) {
             icon = VaadinIcon.FILE.create();
         }
 
-        Button tile = new Button(entity.getListFormTitle(), icon);
+        Button tile = new Button(title, icon);
         tile.addThemeVariants(ButtonVariant.LUMO_LARGE);
         tile.getStyle()
             .set("width", "180px")
@@ -117,14 +130,14 @@ public class SubsystemHomeView extends VerticalLayout {
             .set("white-space", "normal")
             .set("text-align", "center");
 
-        tile.addClickListener(e -> openEntityList(entity));
+        tile.addClickListener(e -> openEntityList(entityClass));
         return tile;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private void openEntityList(EntityMetadataInfo entity) {
+    private void openEntityList(Class<?> entityClass) {
         // Координатор выбирает generic ListForm или зарегистрированный variant-View
         // и передаёт ему контекст открытия единым способом.
-        navigator.openListForm((Class) entity.getEntityClass(), null, null);
+        navigator.openListForm((Class) entityClass, null, null);
     }
 }

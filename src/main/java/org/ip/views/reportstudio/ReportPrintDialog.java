@@ -242,6 +242,7 @@ public class ReportPrintDialog {
 
     private void runSelected(ReportCatalogItem selected, ReportContext context) {
         switch (selected.type()) {
+            case UNIDR -> UI.getCurrent().navigate("unidr", QueryParameters.simple(java.util.Map.of("id",String.valueOf(selected.id()))));
             case UDR -> {
                 try {
                     ReportTemplate template = templateService.loadTemplate(selected.id());
@@ -282,6 +283,7 @@ public class ReportPrintDialog {
     private void editSelected(ReportCatalogItem selected, ReportContext context) {
         // Цель правки — решение движка (матрица); эффект цели свой у каждой точки входа.
         switch (ReportEngineCapabilities.of(selected.type()).openTarget()) {
+            case UNIDR_EDITOR -> UI.getCurrent().navigate("unidr", QueryParameters.simple(java.util.Map.of("id",String.valueOf(selected.id()))));
             case EDITOR -> {
                 HashMap<String, String> parameters = new HashMap<>();
                 parameters.put("id", String.valueOf(selected.id()));

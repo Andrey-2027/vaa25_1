@@ -1,6 +1,6 @@
 package org.ip.model;
 
-import org.ip.register.RegisterMetadataValidator;
+import org.ipro.register.RegisterMetadataValidator;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -233,7 +233,8 @@ class ItemFormAccessBinderDecisionTest {
     }
 
     private static ActionContextProvider provider(RlsUiGate gate) {
-        return new ActionContextProvider(catalog(), gate);
+        // Право на операцию разрешено: тест проверяет режим карточки и RLS-ответ, а не C5.
+        return new ActionContextProvider(catalog(), gate, (entityType, operation) -> null);
     }
 
     private static EntityDescriptorCatalog catalog() {

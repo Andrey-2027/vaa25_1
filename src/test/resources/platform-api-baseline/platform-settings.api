@@ -70,7 +70,7 @@ class public org.ipro.settings.SettingsService
   ctor public(org.ipro.settings.SettingsRegistry, org.ipro.settings.SettingValueRepository)
   field public static final java.lang.String GLOBAL_SCOPE = GLOBAL
   field public static final long GLOBAL_SCOPE_ID = 0
-  method public E getEnum(java.lang.Class<?>, java.lang.String, java.lang.Class<E>)
+  method public <E extends java.lang.Enum<E>> E getEnum(java.lang.Class<?>, java.lang.String, java.lang.Class<E>)
   method public boolean getBoolean(java.lang.Class<?>, java.lang.String)
   method public java.lang.Long getEntityRefId(java.lang.Class<?>, java.lang.String)
   method public java.lang.Object get(java.lang.Class<?>, java.lang.String)

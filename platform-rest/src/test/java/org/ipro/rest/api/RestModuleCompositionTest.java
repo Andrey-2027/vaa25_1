@@ -61,7 +61,13 @@ class RestModuleCompositionTest {
         "RestDetailResult",
         "RestFilterSpecificationCompiler",
         "RestScalarProjector",
-        "RestReadService");
+        "RestReadService",
+        "RestReadResourceSchema",
+        "RestListContract",
+        "RestDetailContract",
+        "RestFieldFact",
+        "RestFilterFact",
+        "DefaultRestReadGateway");
     private static final Set<String> REVIEWED_API_TYPES = Set.of(
         "org.ipro.rest.api.RestFieldFormat",
         "org.ipro.rest.api.RestFieldType",
@@ -102,7 +108,36 @@ class RestModuleCompositionTest {
         "org.ipro.rest.service.RestDetailResult",
         "org.ipro.rest.service.RestFilterSpecificationCompiler",
         "org.ipro.rest.service.RestScalarProjector",
-        "org.ipro.rest.service.RestReadService");
+        "org.ipro.rest.service.RestReadService",
+        "org.ipro.rest.gateway.RestReadGateway",
+        "org.ipro.rest.gateway.RestListRequestFactory",
+        "org.ipro.rest.gateway.RestDetailRequestFactory",
+        "org.ipro.rest.gateway.RestReadResourceSchema",
+        "org.ipro.rest.gateway.RestListContract",
+        "org.ipro.rest.gateway.RestDetailContract",
+        "org.ipro.rest.gateway.RestFieldFact",
+        "org.ipro.rest.gateway.RestFilterFact",
+        "org.ipro.rest.gateway.DefaultRestReadGateway");
+
+    /**
+     * Ровно эти типы читает optional HTTP-адаптер: gateway-факты и внутренние read-запросы.
+     * Любой другой MODULE_API — падение: расширение шва обязано проходить API-review.
+     */
+    private static final Set<String> REVIEWED_MODULE_API = Set.of(
+        "org.ipro.rest.gateway.RestReadGateway",
+        "org.ipro.rest.gateway.RestListRequestFactory",
+        "org.ipro.rest.gateway.RestDetailRequestFactory",
+        "org.ipro.rest.gateway.RestReadResourceSchema",
+        "org.ipro.rest.gateway.RestListContract",
+        "org.ipro.rest.gateway.RestDetailContract",
+        "org.ipro.rest.gateway.RestFieldFact",
+        "org.ipro.rest.gateway.RestFilterFact",
+        "org.ipro.rest.service.RestReadOutcome",
+        "org.ipro.rest.service.RestReadException",
+        "org.ipro.rest.service.RestListQuery",
+        "org.ipro.rest.service.RestDetailQuery",
+        "org.ipro.rest.service.RestPageResult",
+        "org.ipro.rest.service.RestDetailResult");
     private static final Pattern IMPORT = Pattern.compile("^\\s*import\\s+([\\w.]+);", Pattern.MULTILINE);
     private static final Pattern TOP_LEVEL_PUBLIC_TYPE = Pattern.compile(
         "^public\\s+(?:final\\s+)?(?:class|enum|record)\\s+(\\w+)", Pattern.MULTILINE);
@@ -164,6 +199,7 @@ class RestModuleCompositionTest {
                     && !imported.startsWith("org.ipro.data.")
                     && !imported.startsWith("org.ipro.rest.api.")
                     && !imported.startsWith("org.ipro.rest.catalog.")
+                    && !imported.startsWith("org.ipro.rest.gateway.")
                     && !imported.startsWith("org.ipro.rest.security.")
                     && !imported.startsWith("org.ipro.rest.service.")
                     && !imported.startsWith("org.ipro.rls.")
@@ -173,6 +209,26 @@ class RestModuleCompositionTest {
             }
         }
         assertThat(unreviewedConfigurationImports).isEmpty();
+
+        List<String> unreviewedGatewayImports = new ArrayList<>();
+        for (Path source : javaSources(MODULE.resolve("src/main/java/org/ipro/rest/gateway"))) {
+            Matcher matcher = IMPORT.matcher(read(source));
+            while (matcher.find()) {
+                String imported = matcher.group(1);
+                if (!imported.startsWith("java.")
+                    && !imported.startsWith("org.ipro.rest.api.")
+                    && !imported.startsWith("org.ipro.rest.catalog.")
+                    && !imported.startsWith("org.ipro.rest.gateway.")
+                    && !imported.startsWith("org.ipro.rest.service.")
+                    && !imported.startsWith("org.ipro.rls.")
+                    && !imported.startsWith("org.springframework.")) {
+                    unreviewedGatewayImports.add(source.getFileName() + " -> " + imported);
+                }
+            }
+        }
+        assertThat(unreviewedGatewayImports)
+            .as("gateway читает только reviewed рёбра: api/catalog/service/rls/c5")
+            .isEmpty();
 
         String pom = read(MODULE.resolve("pom.xml"));
         assertThat(pom).doesNotContain("spring-boot-starter-web", "spring-webmvc", "vaadin");
@@ -240,8 +296,14 @@ class RestModuleCompositionTest {
         }
 
         assertThat(roles.keySet()).isEqualTo(REVIEWED_API_TYPES);
-        assertThat(roles.values()).contains("APP_API", "INTERNAL")
-            .doesNotContain("MODULE_API");
+        assertThat(roles.values()).contains("APP_API", "INTERNAL");
+        Set<String> moduleApi = new TreeSet<>();
+        roles.forEach((type, role) -> {
+            if ("MODULE_API".equals(role)) moduleApi.add(type);
+        });
+        assertThat(moduleApi)
+            .as("MODULE_API — reviewed шов HTTP-адаптера: новый тип в этой роли — изменение контракта")
+            .isEqualTo(new TreeSet<>(REVIEWED_MODULE_API));
         assertThat(WORKSPACE.resolve("src/test/resources/platform-api-baseline/platform-rest.api"))
             .as("публичные сигнатуры platform-rest должны быть зафиксированы общим baseline")
             .exists();

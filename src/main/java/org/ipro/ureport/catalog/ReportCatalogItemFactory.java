@@ -30,6 +30,10 @@ import org.ipro.ureport.service.UreportTemplateService;
  * функции без зависимостей.</p>
  */
 public final class ReportCatalogItemFactory {
+    /** JSON-backed UniDR rows share the same catalog assembly boundary. */
+    public static ReportCatalogItem ofUniDr(long id, String name, String description) {
+        return new ReportCatalogItem(id, ReportEngineType.UNIDR, name, description, true, null, false);
+    }
 
     /** Строка UDR-отчёта. */
     public static ReportCatalogItem of(ReportTemplate template) {

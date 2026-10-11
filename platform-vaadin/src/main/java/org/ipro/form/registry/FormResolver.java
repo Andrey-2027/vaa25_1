@@ -47,6 +47,11 @@ import java.util.function.Consumer;
  */
 @org.springframework.stereotype.Component
 public class FormResolver {
+    private java.util.List<org.ipro.form.builder.FormTypeCustomization> typeCustomizations = java.util.List.of();
+
+    public void setTypeCustomizations(java.util.List<org.ipro.form.builder.FormTypeCustomization> customizations) {
+        typeCustomizations = java.util.List.copyOf(customizations);
+    }
 
     private final FormRegistry formRegistry;
     private final MetadataResolver metadataResolver;
@@ -139,7 +144,7 @@ public class FormResolver {
      * @return ListForm (кастомная или generic)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> ListForm<T, ID> resolveListForm(
+    public <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> resolveListForm(
             Class<T> entityClass,
             String variant,
             Map<String, Object> parameters) {
@@ -190,7 +195,7 @@ public class FormResolver {
      * @return ItemForm (кастомная или generic)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> ItemForm<T> resolveItemForm(
+    public <T extends IdentifiableEntity<Long>, ID> ItemForm<T> resolveItemForm(
             Class<T> entityClass,
             String variant,
             ID id,
@@ -250,18 +255,18 @@ public class FormResolver {
      * @param onSelect колбэк при выборе записи
      * @return готовый SelectionForm
      */
-    public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionForm(
+    public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> resolveSelectionForm(
             Class<T> entityClass, Consumer<T> onSelect) {
         return resolveSelectionForm(entityClass, null, onSelect, Map.of());
     }
 
-    public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionForm(
+    public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> resolveSelectionForm(
             Class<T> entityClass, Consumer<T> onSelect, org.ipro.filtergrid.filter.SeedFilter seed) {
         return resolveSelectionForm(entityClass, null, onSelect,
             seed == null ? Map.of() : Map.of(seed.path(), seed.value()));
     }
 
-    public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionForm(
+    public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> resolveSelectionForm(
             Class<T> entityClass, Consumer<T> onSelect, Map<String, Object> filters) {
         return resolveSelectionForm(entityClass, null, onSelect, filters);
     }
@@ -274,7 +279,7 @@ public class FormResolver {
      *                {@code IllegalStateException} (fallback запрещён, как у List/Item)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionForm(
+    public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> resolveSelectionForm(
             Class<T> entityClass, String variant, Consumer<T> onSelect, Map<String, Object> filters) {
         Map<String, Object> effectiveFilters = filters == null ? Map.of() : filters;
 
@@ -326,7 +331,7 @@ public class FormResolver {
      * декларация одна ({@code FormRegistry.getContextFilters}), панель строится
      * при каждом открытии на свежем диалоге.
      */
-    private <T extends IdentifiableEntity> void attachSelectionContextFilters(
+    private <T extends IdentifiableEntity<Long>> void attachSelectionContextFilters(
             SelectionForm<T> form, Class<T> entityClass, String variant,
             Map<String, Object> fixedFilters) {
         org.ipro.form.builder.SelectionContextFilters.attach(form, entityClass, variant, fixedFilters,
@@ -334,7 +339,7 @@ public class FormResolver {
     }
 
     /** Открыть выбор с несколькими фиксированными ограничениями связи. */
-    public <T extends IdentifiableEntity, ID> SelectionForm<T> resolveSelectionFormWithSeeds(
+    public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> resolveSelectionFormWithSeeds(
             Class<T> entityClass, Consumer<T> onSelect,
             java.util.Collection<org.ipro.filtergrid.filter.SeedFilter> seeds) {
         Map<String, Object> filters = new java.util.LinkedHashMap<>();
@@ -351,7 +356,7 @@ public class FormResolver {
      * и создавать поля.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity> FormContext buildListFormContext(Class<T> entityClass, String variant,
+    private <T extends IdentifiableEntity<Long>> FormContext buildListFormContext(Class<T> entityClass, String variant,
                                                                           Map<String, Object> parameters) {
         BaseService<T, ?> service = findService(entityClass);
         return FormContext.builder(entityClass)
@@ -385,13 +390,14 @@ public class FormResolver {
     // === Создание generic форм из метаданных ===
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> ListForm<T, ID> createGenericListForm(
+    private <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> createGenericListForm(
             Class<T> entityClass,
             Map<String, Object> parameters) {
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
         BaseService<T, ID> service = findService(entityClass);
         ListForm<T, ID> form;
-        if (groupingValuesProviderFactory == null) {
+        if (groupingValuesProviderFactory == null || typeCustomizations.stream()
+                .anyMatch(customization -> customization.supports(entityClass) && !customization.supportsGrouping())) {
             form = new ListForm<>(meta, service);
         } else {
             GroupValuesService<T> gvs = groupingValuesProviderFactory.create(entityClass);
@@ -404,7 +410,7 @@ public class FormResolver {
      * Применяет общий контекст открытия ко всем ListForm, включая кастомные фабрики,
      * затем — поведенческие кастомайзеры (сначала default сущности, затем вариантные).
      */
-    private <T extends IdentifiableEntity, ID> ListForm<T, ID> prepareListForm(
+    private <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> prepareListForm(
             Class<T> entityClass, String variant,
             ListForm<T, ID> form, Map<String, Object> parameters) {
         form.setFormVariant(variant);
@@ -428,6 +434,9 @@ public class FormResolver {
         if (!seedValues.isEmpty()) {
             form.setOpeningContextFilters(seedValues);
         }
+        FormContext familyContext = buildListFormContext(entityClass, variant, parameters);
+        typeCustomizations.stream().filter(customization -> customization.supports(entityClass))
+            .forEach(customization -> customization.customizeList(form, familyContext));
         java.util.List<org.ipro.form.builder.ListFormCustomizer> customizers =
             new java.util.ArrayList<>(formRegistry.getListCustomizers(entityClass, null));
         if (variant != null) {
@@ -446,9 +455,12 @@ public class FormResolver {
      * Поведенческие кастомайзеры карточки: после сборки (generic или фабрика),
      * но ДО подключения табличных частей. Сначала default сущности, затем вариантные.
      */
-    private <T extends IdentifiableEntity, ID> void applyItemCustomizers(
+    private <T extends IdentifiableEntity<Long>, ID> void applyItemCustomizers(
             Class<T> entityClass, String variant, ID id,
             ItemForm<T> form, Map<String, Object> parameters) {
+        FormContext familyContext = buildItemFormContext(entityClass, id, parameters);
+        typeCustomizations.stream().filter(customization -> customization.supports(entityClass))
+            .forEach(customization -> customization.customizeItem(form, familyContext));
         java.util.List<org.ipro.form.builder.ItemFormCustomizer> customizers =
             new java.util.ArrayList<>(formRegistry.getItemCustomizers(entityClass, null));
         if (variant != null) {
@@ -462,7 +474,7 @@ public class FormResolver {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends IdentifiableEntity> ItemForm<T> createGenericItemForm(
+    private <T extends IdentifiableEntity<Long>> ItemForm<T> createGenericItemForm(
             Class<T> entityClass,
             Map<String, Object> parameters) {
 
@@ -484,7 +496,7 @@ public class FormResolver {
 
     // === Поиск сервисов ===
 
-    private <T extends IdentifiableEntity, ID> BaseService<T, ID> findService(Class<T> entityClass) {
+    private <T extends IdentifiableEntity<Long>, ID> BaseService<T, ID> findService(Class<T> entityClass) {
         return serviceLocator.findService(entityClass);
     }
 

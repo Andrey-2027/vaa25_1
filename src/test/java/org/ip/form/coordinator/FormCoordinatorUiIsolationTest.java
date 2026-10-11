@@ -122,11 +122,46 @@ class FormCoordinatorUiIsolationTest {
     }
 
     private static FormCoordinator coordinator(WorkspaceGateway gateway) {
+        return coordinator(gateway, mock(FormResolver.class));
+    }
+
+    @Test
+    void deniedLookupDuringCreationShowsAccessDialogInsteadOfAnUncaughtClickFailure() {
+        com.vaadin.flow.component.UI previous = com.vaadin.flow.component.UI.getCurrent();
+        com.vaadin.flow.component.UI ui = new com.vaadin.flow.component.UI();
+        com.vaadin.flow.component.UI.setCurrent(ui);
+        try (var dialogs = org.mockito.Mockito.mockConstruction(
+            com.vaadin.flow.component.dialog.Dialog.class,
+            org.mockito.Mockito.withSettings().defaultAnswer(org.mockito.Mockito.RETURNS_DEEP_STUBS))) {
+            FormResolver resolver = mock(FormResolver.class);
+            org.mockito.Mockito.when(resolver.resolveItemForm(
+                org.mockito.ArgumentMatchers.eq(Workshop.class),
+                org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.isNull()))
+                .thenThrow(new org.springframework.security.access.AccessDeniedException("Related lookup denied"));
+            FormCoordinator coordinator = coordinator(null, resolver);
+            org.assertj.core.api.Assertions.assertThatCode(() -> coordinator.openItemForm(Workshop.class, null, null))
+                .doesNotThrowAnyException();
+            assertThat(dialogs.constructed()).hasSize(1);
+            var dialog = dialogs.constructed().get(0);
+            var content = org.mockito.ArgumentCaptor.forClass(com.vaadin.flow.component.Component[].class);
+            verify(dialog).add(content.capture());
+            assertThat(content.getValue()).singleElement().isInstanceOfSatisfying(
+                com.vaadin.flow.component.html.Paragraph.class,
+                message -> assertThat(message.getText()).contains("Недостаточно прав"));
+            verify(dialog).setHeaderTitle("Доступ запрещён");
+            verify(dialog).open();
+        } finally {
+            com.vaadin.flow.component.UI.setCurrent(previous);
+        }
+    }
+
+    private static FormCoordinator coordinator(WorkspaceGateway gateway, FormResolver formResolver) {
         MetadataResolver metadataResolver = mock(MetadataResolver.class);
         EntityMetadataInfo meta = mock(EntityMetadataInfo.class);
         when(meta.getListFormTitle()).thenReturn("Title");
+        when(meta.getItemFormTitle()).thenReturn("Title");
         when(metadataResolver.resolve(Workshop.class)).thenReturn(meta);
-        FormResolver formResolver = mock(FormResolver.class);
         when(formResolver.getFormRegistry()).thenReturn(new FormRegistry());
 
         @SuppressWarnings("unchecked")

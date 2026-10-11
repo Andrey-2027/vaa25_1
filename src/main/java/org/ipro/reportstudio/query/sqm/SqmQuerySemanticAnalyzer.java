@@ -230,6 +230,8 @@ public class SqmQuerySemanticAnalyzer implements QuerySemanticAnalyzer {
                 return;
             }
             if (expression instanceof SqmPath<?> path) {
+                // FK is stored on the readable owner row; caption loading has its own canonical gate.
+                if (path instanceof org.hibernate.query.sqm.tree.domain.SqmFkExpression<?> fk) path = fk.getLhs().getLhs();
                 for (SqmPath<?> part = path; part != null; part = part.getLhs()) {
                     if (part.getNodeType() instanceof SqmEntityDomainType<?> entityType) {
                         entities.add(new EntityUsage(

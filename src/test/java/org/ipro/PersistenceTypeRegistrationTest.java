@@ -51,6 +51,7 @@ class PersistenceTypeRegistrationTest {
     /** Пакеты, которые обязаны быть объявлены в @EntityScan (reviewed). */
     private static final Set<String> REVIEWED_ENTITY_PACKAGES = Set.of(
         "org.ip.model",
+        "org.ipro.register.persistence",
         "org.ipro.telemetry.model",
         "org.ipro.rls",
         "org.ipro.reportstudio.dom",

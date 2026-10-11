@@ -1,5 +1,6 @@
-# F-REST-READ-2: декларации — прикладной API; каталог и его auto-configuration технически public,
-# но внутренние. Только APP_API-типы попадают в signature baseline.
+# F-REST-READ-2/3/4: декларации — прикладной API; каталог, security и service-типы —
+# MODULE_API там, где их читает optional HTTP-адаптер, иначе INTERNAL. Публичные роли
+# (APP_API/MODULE_API) фиксируются signature baseline; INTERNAL — нет.
 APP_API org.ipro.rest.api.RestFieldFormat
 APP_API org.ipro.rest.api.RestFieldType
 APP_API org.ipro.rest.api.RestFilterOperator
@@ -31,12 +32,21 @@ INTERNAL org.ipro.rest.config.RestResourceCatalogAutoConfiguration
 INTERNAL org.ipro.rest.config.RestReadAutoConfiguration
 INTERNAL org.ipro.rest.security.C5RestOperationRegistrar
 INTERNAL org.ipro.rest.security.RestReferenceAuthorizationValidator
-INTERNAL org.ipro.rest.service.RestReadOutcome
-INTERNAL org.ipro.rest.service.RestReadException
-INTERNAL org.ipro.rest.service.RestListQuery
-INTERNAL org.ipro.rest.service.RestDetailQuery
-INTERNAL org.ipro.rest.service.RestPageResult
-INTERNAL org.ipro.rest.service.RestDetailResult
+MODULE_API org.ipro.rest.gateway.RestReadGateway
+MODULE_API org.ipro.rest.gateway.RestListRequestFactory
+MODULE_API org.ipro.rest.gateway.RestDetailRequestFactory
+MODULE_API org.ipro.rest.gateway.RestReadResourceSchema
+MODULE_API org.ipro.rest.gateway.RestListContract
+MODULE_API org.ipro.rest.gateway.RestDetailContract
+MODULE_API org.ipro.rest.gateway.RestFieldFact
+MODULE_API org.ipro.rest.gateway.RestFilterFact
+INTERNAL org.ipro.rest.gateway.DefaultRestReadGateway
+MODULE_API org.ipro.rest.service.RestReadOutcome
+MODULE_API org.ipro.rest.service.RestReadException
+MODULE_API org.ipro.rest.service.RestListQuery
+MODULE_API org.ipro.rest.service.RestDetailQuery
+MODULE_API org.ipro.rest.service.RestPageResult
+MODULE_API org.ipro.rest.service.RestDetailResult
 INTERNAL org.ipro.rest.service.RestFilterSpecificationCompiler
 INTERNAL org.ipro.rest.service.RestScalarProjector
 INTERNAL org.ipro.rest.service.RestReadService

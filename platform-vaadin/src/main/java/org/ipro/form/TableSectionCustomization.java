@@ -41,7 +41,7 @@ import java.util.List;
  * }
  * </pre>
  */
-public interface TableSectionCustomization<T extends IdentifiableEntity> {
+public interface TableSectionCustomization<T extends IdentifiableEntity<Long>> {
 
     Class<T> rowClass();
 

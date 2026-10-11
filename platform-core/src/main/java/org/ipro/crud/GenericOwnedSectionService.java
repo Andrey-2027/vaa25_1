@@ -102,7 +102,7 @@ public class GenericOwnedSectionService {
 
     /** Создаёт строку через canonical no-arg constructor и связывает её с root. */
     @Transactional
-    public <R extends IdentifiableEntity, P extends IdentifiableEntity> R createNew(
+    public <R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> R createNew(
             P parent, TableSectionMetadataInfo descriptor) {
         requireDescriptor(parent, descriptor);
         try {
@@ -124,7 +124,7 @@ public class GenericOwnedSectionService {
      * Значение parent у строки допускается null (оно будет проставлено перед persistence),
      * но уже установленный другой parent считается попыткой перемещения строки.
      */
-    public <R extends IdentifiableEntity, P extends IdentifiableEntity> List<String> validateRows(
+    public <R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> List<String> validateRows(
             P parent, List<R> rows, TableSectionMetadataInfo descriptor) {
         requireDescriptor(parent, descriptor);
         List<String> errors = new ArrayList<>();
@@ -168,7 +168,7 @@ public class GenericOwnedSectionService {
      * New rows persist, existing rows merge, отсутствующие строки удаляются.
      */
     @Transactional
-    public <R extends IdentifiableEntity, P extends IdentifiableEntity> void replaceAll(
+    public <R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> void replaceAll(
             P parent, List<R> rows, TableSectionMetadataInfo descriptor) {
         requireDescriptor(parent, descriptor);
         rlsPolicyEnforcer.requireUpdate(parent);
@@ -240,7 +240,7 @@ public class GenericOwnedSectionService {
      * metadata-производный набор ссылок строки.
      */
     @Transactional(readOnly = true)
-    public <R extends IdentifiableEntity, P extends IdentifiableEntity> List<R> findByParent(
+    public <R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> List<R> findByParent(
             P parent, TableSectionMetadataInfo descriptor) {
         List<String> paths = fetchPlanRegistry == null
             ? FetchGraphs.entityReferencePaths(descriptor.getGridFields())
@@ -251,7 +251,7 @@ public class GenericOwnedSectionService {
 
     /** Загружает строки с явно запрошенным UI fetch graph. */
     @Transactional(readOnly = true)
-    public <R extends IdentifiableEntity, P extends IdentifiableEntity> List<R> findByParent(
+    public <R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> List<R> findByParent(
             P parent,
             TableSectionMetadataInfo descriptor,
             java.util.Collection<String> fetchPaths) {
@@ -300,7 +300,7 @@ public class GenericOwnedSectionService {
 
     /** Удаляет все строки root независимо от их текущего состава в UI. */
     @Transactional
-    public <R extends IdentifiableEntity, P extends IdentifiableEntity> void deleteAll(
+    public <R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> void deleteAll(
             P parent, TableSectionMetadataInfo descriptor) {
         requireDescriptor(parent, descriptor);
         rlsPolicyEnforcer.requireDelete(parent);
@@ -310,7 +310,7 @@ public class GenericOwnedSectionService {
 
     /** Удаляет все standard owned sections, явно объявленные aggregate root. */
     @Transactional
-    public <P extends IdentifiableEntity> void deleteAllOwnedSections(P parent) {
+    public <P extends IdentifiableEntity<Long>> void deleteAllOwnedSections(P parent) {
         Objects.requireNonNull(parent, "parent must not be null");
         rlsPolicyEnforcer.requireDelete(parent);
         for (TableSectionMetadataInfo descriptor : sectionRegistry.forOwner(entityType(parent))) {
@@ -322,7 +322,7 @@ public class GenericOwnedSectionService {
      * Собственно удаление строк без версионной защиты: каскад перед удалением
      * владельца версию удаляемой шапки не увеличивает.
      */
-    private <R extends IdentifiableEntity, P extends IdentifiableEntity> void removeAll(
+    private <R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> void removeAll(
             P parent, TableSectionMetadataInfo descriptor) {
         requireDescriptor(parent, descriptor);
         for (R row : this.<R, P>findByParent(parent, descriptor)) {
@@ -340,7 +340,7 @@ public class GenericOwnedSectionService {
      * Для detached-входа ожидаемая версия сверяется с актуальной до лока.
      * Новая (transient) шапка защиты не требует — версия присваивается при вставке.
      */
-    private void guardAggregateVersion(IdentifiableEntity parent) {
+    private void guardAggregateVersion(IdentifiableEntity<Long> parent) {
         if (parent.getId() == null) {
             return;
         }
@@ -369,7 +369,7 @@ public class GenericOwnedSectionService {
         entityManager.lock(managed, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
     }
 
-    private <R extends IdentifiableEntity, P extends IdentifiableEntity> void prepareRows(
+    private <R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> void prepareRows(
             P parent, List<R> rows, TableSectionMetadataInfo descriptor) {
         for (int index = 0; index < rows.size(); index++) {
             R row = rows.get(index);
@@ -400,10 +400,10 @@ public class GenericOwnedSectionService {
         if (first == second) {
             return true;
         }
-        if (first instanceof IdentifiableEntity firstEntity
-                && second instanceof IdentifiableEntity secondEntity) {
-            Long firstId = firstEntity.getId();
-            Long secondId = secondEntity.getId();
+        if (first instanceof IdentifiableEntity<?> firstEntity
+                && second instanceof IdentifiableEntity<?> secondEntity) {
+            Object firstId = firstEntity.getId();
+            Object secondId = secondEntity.getId();
             if (firstId != null && secondId != null) {
                 return firstId.equals(secondId)
                     && entityType(first).equals(entityType(second));
@@ -419,7 +419,7 @@ public class GenericOwnedSectionService {
         return entity.getClass();
     }
 
-    private void requireDescriptor(IdentifiableEntity parent, TableSectionMetadataInfo descriptor) {
+    private void requireDescriptor(IdentifiableEntity<Long> parent, TableSectionMetadataInfo descriptor) {
         Objects.requireNonNull(parent, "parent must not be null");
         Objects.requireNonNull(descriptor, "descriptor must not be null");
         if (!descriptor.getOwnerClass().isInstance(parent)) {

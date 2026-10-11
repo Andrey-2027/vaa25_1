@@ -120,6 +120,13 @@ public final class CopyLinkButton extends Button {
             () -> links.linkToList(entityType, variant).linkPath(), onBlocked);
     }
 
+    public static CopyLinkButton forList(String title, FormLinkService links, Class<?> entityType,
+                                         String variant, Supplier<ActionDecision> decision,
+                                         Consumer<ActionDecision> onBlocked, Supplier<String> state) {
+        return new CopyLinkButton(title, decision,
+            () -> links.linkToList(entityType, variant, state.get()).linkPath(), onBlocked);
+    }
+
     /**
      * Кнопка для подвала карточки: ссылка на открытую запись. {@code recordId} спрашивается в
      * момент клика, потому что у только что созданной записи id появляется лишь после сохранения.

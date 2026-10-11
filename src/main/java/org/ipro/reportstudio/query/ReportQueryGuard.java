@@ -48,6 +48,8 @@ public class ReportQueryGuard {
     private final org.hibernate.engine.spi.SessionFactoryImplementor sessionFactory;
     private final ReportReadAuthorizer readAuthorizer;
 
+    /** @deprecated Structural test adapter; production must supply the C5 authorizer. */
+    @Deprecated(forRemoval = true)
     public ReportQueryGuard(QuerySemanticAnalyzer analyzer, AccessService accessService,
                             RlsDimensionRegistry dimensionRegistry, RlsCurrentUser currentUser,
                             jakarta.persistence.EntityManagerFactory entityManagerFactory) {
@@ -206,7 +208,9 @@ public class ReportQueryGuard {
     /** Имена параметров шаблона из его ReportParam-ов (для финальной отдачи в guard). */
     public static Set<String> parameterNamesOf(Collection<? extends ReportParam> params) {
         return params == null ? Set.of() : params.stream()
-            .map(ReportParam::getName)
+            .filter(java.util.Objects::nonNull)
+            .flatMap(parameter->parameter.getKind()==org.ipro.reportstudio.dom.ReportParamKind.PERIOD
+                ?java.util.stream.Stream.of(parameter.getName()+"From",parameter.getName()+"To"):java.util.stream.Stream.of(parameter.getName()))
             .collect(Collectors.toSet());
     }
 }

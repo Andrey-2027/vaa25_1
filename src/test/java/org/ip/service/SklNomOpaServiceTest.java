@@ -115,7 +115,7 @@ class SklNomOpaServiceTest {
             lookupService,
             new ManagedEntityCatalog(entityManager.getEntityManagerFactory()),
             new NaturalKeyCreateSupport(transactionManager), transactionManager,
-            mock(org.ipro.data.CanonicalEntityService.class));
+            AttributeValueCanonicalStub.attributeValues(entityManager, attributeValueRepository));
     }
 
     @Autowired

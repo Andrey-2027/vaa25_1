@@ -23,7 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PlatformStarterCompositionTest {
 
     private static final Path RESOLVED_RUNTIME_TREE =
-        Path.of("target/application-runtime-dependency-tree.json");
+        Path.of(System.getProperty("platform.runtime.dependency-tree",
+            "target/application-runtime-dependency-tree.json"));
 
     private static final Pattern DEPENDENCY_MANAGEMENT =
         Pattern.compile("<dependencyManagement>.*?</dependencyManagement>", Pattern.DOTALL);
@@ -69,6 +70,7 @@ class PlatformStarterCompositionTest {
             "org.ipro:platform-rls",
             "org.ipro:platform-core",
             "org.ipro:platform-spring-boot-autoconfigure",
+            "org.ipro:platform-rest-web",
             "org.ipro:platform-vaadin",
             "org.ipro:platform-backend-starter",
             "org.ipro:platform-vaadin-starter",
@@ -92,6 +94,7 @@ class PlatformStarterCompositionTest {
 
         assertThat(applicationDependencies).contains(
             "org.ipro:platform-vaadin-starter",
+            "org.ipro:platform-rest-web",
             "org.ipro:filtergrid-core",
             "org.ipro:filtergrid-jpa",
             "org.ipro:filtergrid-inmemory",
@@ -102,7 +105,8 @@ class PlatformStarterCompositionTest {
         assertThat(applicationDependencies)
             .noneMatch(coordinate -> coordinate.startsWith("org.ipro:platform-")
                 && !coordinate.equals("org.ipro:platform-vaadin-starter")
-                && !coordinate.equals("org.ipro:platform-rest"));
+                && !coordinate.equals("org.ipro:platform-rest")
+                && !coordinate.equals("org.ipro:platform-rest-web"));
         assertThat(applicationDependencies)
             .doesNotContain("com.vaadin:vaadin-spring-boot-starter");
         assertThat(applicationDependencies)
@@ -133,7 +137,7 @@ class PlatformStarterCompositionTest {
         assertThat(starterClosure)
             .as("проверяется разрешённое транзитивное замыкание starter, включая platform-модули")
             .contains("platform-vaadin")
-            .doesNotContain("platform-rest");
+            .doesNotContain("platform-rest", "platform-rest-web");
 
         // Maven places a shared dependency at its nearest winner. With direct platform-rest,
         // core/autoconfigure appear under REST and are omitted from the starter subtree.
@@ -147,12 +151,12 @@ class PlatformStarterCompositionTest {
 
         List<String> directRestDependencies = directChildren(root).stream()
             .filter(node -> "org.ipro".equals(node.path("groupId").asText()))
-            .filter(node -> "platform-rest".equals(node.path("artifactId").asText()))
+            .filter(node -> node.path("artifactId").asText().startsWith("platform-rest"))
             .map(node -> node.path("groupId").asText() + ":" + node.path("artifactId").asText())
             .toList();
         assertThat(directRestDependencies)
-            .as("REST API разрешён приложением как отдельная прямая опция, а не через starter")
-            .containsExactly("org.ipro:platform-rest");
+            .as("REST read-срез разрешён приложением как отдельные прямые опции, а не через starter")
+            .containsExactlyInAnyOrder("org.ipro:platform-rest", "org.ipro:platform-rest-web");
     }
 
     private static JsonNode readResolvedRuntimeTree() {

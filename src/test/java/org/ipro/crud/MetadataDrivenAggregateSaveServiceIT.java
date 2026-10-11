@@ -136,7 +136,7 @@ class MetadataDrivenAggregateSaveServiceIT {
         });
     }
 
-    private <R extends IdentifiableEntity> ItemTable<R, PrdSpec> attachTable(
+    private <R extends IdentifiableEntity<Long>> ItemTable<R, PrdSpec> attachTable(
             ItemForm<PrdSpec> form, Class<R> rowClass) {
         TableSectionMetadataInfo descriptor = sectionRegistry.findByRow(rowClass).orElseThrow();
         // Real form/table lifecycle and persistence; field rendering is outside this regression.
@@ -214,7 +214,9 @@ class MetadataDrivenAggregateSaveServiceIT {
 
     @Test
     void savesReceivingDocumentThroughTheSameMetadataDrivenContract() {
-        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+        // CHECK_ONLY read permission is separate from write operations and row-level '*'.
+        RlsTestFixture.runAsSuperuserWithRead(accessGrantRepository,
+            new Class<?>[]{ReceivingDocument.class}, () -> {
             String suffix = UUID.randomUUID().toString().substring(0, 8);
             Journal journal = journalRepository.save(journal("R-J-" + suffix));
             UnitOfMeasurement unit = unitRepository.save(
@@ -329,6 +331,10 @@ class MetadataDrivenAggregateSaveServiceIT {
     }
 
     private PrdSpec createSpec(String suffix) {
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(), PrdSpec.class);
+        RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName(), PrdSpec.class);
         Journal journal = new Journal();
         journal.setCode("J-" + suffix);
         journal.setName("Journal " + suffix);

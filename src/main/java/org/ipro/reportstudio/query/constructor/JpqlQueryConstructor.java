@@ -15,6 +15,7 @@ import com.vaadin.flow.component.button.Button;
 import org.ipro.reportstudio.query.JpqlFormatter;
 import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
 import org.ipro.reportstudio.query.VisualQueryDefinition;
+import org.ipro.reportstudio.query.register.RegisterSliceReportTemplates;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,6 +41,10 @@ public class JpqlQueryConstructor extends VerticalLayout {
     /** Предупреждения обратного разбора текста запроса (что не восстановилось). */
     private final Div parseWarnings = new Div();
     private final Select<String> stageSelector = new Select<>();
+    private RegisterSliceReportTemplates sliceRecipes;
+    private java.util.function.BiConsumer<SliceRequest, java.util.function.Consumer<RegisterSliceReportTemplates.ConstructorSlice>> sliceOpener;
+    public record SliceRequest(String registerEntity, RegisterSliceReportTemplates.ConstructorSlice current,
+                               java.util.Set<String> occupied) { }
 
     public JpqlQueryConstructor(QueryBuilderMetadataCatalog catalog, List<String> parameterNames) {
         draft.setCatalog(catalog);
@@ -108,6 +113,7 @@ public class JpqlQueryConstructor extends VerticalLayout {
         // Подпись «Этап» даёт FormItem — собственный label у Select убран,
         // иначе подпись дублируется и панель становится выше.
         stageSelector.setLabel(null);
+        stageSelector.setItemLabelGenerator(name -> "main".equals(name) ? "Итоговый запрос" : name);
         stageSelector.addValueChangeListener(event -> {
             if (event.isFromClient()) { draft.switchStage(event.getValue()); refreshAll(); }
         });
@@ -122,6 +128,7 @@ public class JpqlQueryConstructor extends VerticalLayout {
     public void setPackage(org.ipro.reportstudio.query.VisualQueryPackage queryPackage) {
         if (queryPackage == null) return;
         draft.clear();
+        draft.clearPackageStages();
         for (var cte : queryPackage.ctes()) {
             String stage = draft.stageNames().contains(cte.name()) ? cte.name() : draft.addStage();
             if (!stage.equals(cte.name())) {
@@ -131,10 +138,48 @@ public class JpqlQueryConstructor extends VerticalLayout {
             }
             draft.switchStage(stage);
             draft.load(cte.definition());
+            draft.setStageRecorders(stage, cte.selectedRecorders());
         }
         draft.switchStage("main");
         draft.load(queryPackage.main());
         refreshAll();
+    }
+
+    public void setSliceSupport(RegisterSliceReportTemplates recipes, String json,
+            java.util.function.BiConsumer<SliceRequest, java.util.function.Consumer<RegisterSliceReportTemplates.ConstructorSlice>> opener) {
+        sliceRecipes = recipes; sliceOpener = opener;
+        draft.setSlices(recipes.constructorSlices(json));
+        tablesTab.setSliceSupport(recipes, this::addSlice, this::editSlice);
+        refreshAll();
+    }
+
+    private void addSlice(String registerEntity, String field) {
+        if (!draft.isMainStage()) {
+            com.vaadin.flow.component.notification.Notification.show("Добавляйте срез в итоговый запрос."); return;
+        }
+        sliceOpener.accept(new SliceRequest(registerEntity, null, draft.occupiedNames()), source -> {
+            String alias = draft.addSlice(source);
+            if ("*".equals(field)) source.entity().fields().forEach(column -> draft.addSelection(alias + "." + column.name(), column.name()));
+            else if (field != null && field.startsWith("@presentation:")) draft.addExpression("presentation", new org.ipro.reportstudio.query.VisualQueryExpression.FunctionCall("Представление", List.of(new org.ipro.reportstudio.query.VisualQueryExpression.FieldRef(alias + "." + field.substring(14)))));
+            else if ("recorder".equals(field)) draft.addExpression("recorder", new org.ipro.reportstudio.query.VisualQueryExpression.FunctionCall("Представление", List.of(new org.ipro.reportstudio.query.VisualQueryExpression.FieldRef(alias + ".recorder"))));
+            else if (field != null) draft.addSelection(alias + "." + field, field);
+            refreshAll();
+        });
+    }
+
+    private void editSlice(String name) {
+        var current = draft.slices().stream().filter(source -> source.name().equals(name)).findFirst().orElse(null);
+        if (current == null) return;
+        sliceOpener.accept(new SliceRequest(current.registerEntity(), current, sliceRecipes.constructorNamespace(current)), source -> {
+            draft.updateSlice(name, source); refreshAll();
+        });
+    }
+
+    public String visualQueryJson() {
+        var pack = queryPackage();
+        if (pack == null) return null;
+        String json = new org.ipro.reportstudio.query.VisualQueryPackageJsonCodec().write(pack);
+        return sliceRecipes == null ? json : sliceRecipes.saveConstructorSlices(json, draft.slices());
     }
 
     /**
@@ -191,7 +236,8 @@ public class JpqlQueryConstructor extends VerticalLayout {
     /** Обновляет все вкладки и окно «Запрос» (вызывается после изменений черновика). */
     public void refreshAll() {
         parseWarnings.setVisible(false);
-        var names = new java.util.ArrayList<>(draft.stageNames());
+        draft.pruneUnusedSlices();
+        var names = new java.util.ArrayList<>(draft.visibleStageNames());
         if (!names.contains("main")) names.add("main");
         stageSelector.setItems(names);
         stageSelector.setValue(draft.activeStage());
@@ -217,8 +263,8 @@ public class JpqlQueryConstructor extends VerticalLayout {
     }
 
     private Details queryPanel() {
-        Details details = new Details("Запрос", queryBody());
-        details.setOpened(true);
+        Details details = new Details("Сформированный запрос", queryBody());
+        details.setOpened(false);
         details.setWidthFull();
         details.getStyle().set("flex-shrink", "0");
         details.addOpenedChangeListener(event -> { });

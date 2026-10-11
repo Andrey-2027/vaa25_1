@@ -1,5 +1,6 @@
 package org.ip.security;
 
+import org.ip.application.user.UserPasswordChangePermission;
 import org.ip.config.DataInitializer;
 import org.ip.model.Nomenclature;
 import org.ip.model.Role;
@@ -54,11 +55,9 @@ class C5GrantAdminParityIT {
     @Autowired
     private AccessGrantRepository accessGrantRepository;
 
+    /** Canonical write handle для фикстур `Role`/`User`: тот же preflight, что у приложения. */
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
+    private org.ipro.data.EntityDataAccess access;
 
     @MockitoBean
     private DataInitializer dataInitializer;
@@ -76,6 +75,28 @@ class C5GrantAdminParityIT {
     void clearAuthentication() {
         securityContextHolderStrategy.clearContext();
         SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * Права, которых требует canonical write: read-ключ и ключ операций — разные строки, и
+     * отдельной строкой — смена пароля.
+     *
+     * <p>Запись {@code User} вместе с хэшем пароля — не generic-изменение строки, а именованная
+     * операция владельца (C5.8e): фикстура предъявляет её так же, как первичная выдача
+     * администратору. Без неё создание пользователя отказывает — это и проверяет
+     * {@code UserPasswordWriteBoundaryIT}; здесь она нужна, потому что фикстура создаёт
+     * пользователя, а не потому что тест проверяет пароль.</p>
+     */
+    private void grantCanonicalWrite(String subject, Class<?>... types) {
+        for (Class<?> type : types) {
+            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entityRead(type),
+                AccessGrant.SubjectType.USER, subject, new GrantFlags(true, false, false));
+            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entityOperations(type),
+                AccessGrant.SubjectType.USER, subject, new GrantFlags(false, true, true));
+        }
+        accessGrantAdminService.saveSingleGrant(
+            C5PermissionKeys.action(UserPasswordChangePermission.PERMISSION_ID),
+            AccessGrant.SubjectType.USER, subject, new GrantFlags(false, true, false));
     }
 
     @Test
@@ -120,10 +141,12 @@ class C5GrantAdminParityIT {
     void roleGrantIsEffectiveOnlyWhileRoleIsAssigned() {
         String username = "c5-parity-role-user";
         String roleName = "c5-parity-role";
-        Role role = roleRepository.save(new Role(roleName));
+        // Первичная выдача: собственный субъект теста получает право на canonical write (ADR-0017 §3).
+        grantCanonicalWrite("admin", Role.class, User.class);
+        Role role = access.create(Role.class, new Role(roleName));
         User user = new User(username, "password");
         user.setRoles(Set.of(role));
-        userRepository.saveAndFlush(user);
+        access.create(User.class, user);
 
         accessGrantAdminService.saveSingleGrant(C5_KEY, AccessGrant.SubjectType.ROLE, roleName,
             new GrantFlags(true, false, false));
@@ -134,7 +157,7 @@ class C5GrantAdminParityIT {
         assertThat(viaRole.sources()).containsExactly("роль: " + roleName);
 
         user.setRoles(Set.of());
-        userRepository.saveAndFlush(user);
+        access.update(User.class, user);
         assertThat(c5PermissionEvaluator.isEntityReadPermitted(username, Nomenclature.class)).isFalse();
         assertThat(effective(username).get(C5_KEY).canRead()).isFalse();
 
@@ -193,19 +216,29 @@ class C5GrantAdminParityIT {
             .containsExactly(7L);
     }
 
+    /**
+     * C5.7: короткий {@code ENTITY:}-ключ — ключ операций, и выдача пишет ровно объявленные флаги.
+     * Раньше строка «изменение» нормализовала «чтение», потому что этот же флаг служил гейтом
+     * видимости плитки; теперь плитку и чтение типа решает C5 read-ключ {@code ENTITY:<FQN>},
+     * поэтому флаг чтения на операционном ключе не записывается и никого не вводит в заблуждение.
+     */
     @Test
-    void legacyCheckOnlyDimensionKeepsExistingSemantics() {
+    void shortEntityKeyIsIssuedAsAnOperationKeyOnly() {
         String username = "c5-parity-legacy";
+        assertThat(accessGrantAdminService.isOperationDimension(LEGACY_CHECK_ONLY)).isTrue();
+        assertThat(accessGrantAdminService.isC5ReadDimension(LEGACY_CHECK_ONLY)).isFalse();
+
         accessGrantAdminService.saveSingleGrant(LEGACY_CHECK_ONLY, AccessGrant.SubjectType.USER, username,
             new GrantFlags(false, true, false));
 
         List<AccessGrant> saved = accessGrantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
             AccessGrant.SubjectType.USER, username, LEGACY_CHECK_ONLY);
         assertThat(saved).singleElement().satisfies(row -> {
-            assertThat(row.isCanRead()).isTrue();
+            assertThat(row.isCanRead())
+                .as("чтение на операционном ключе не записывается: его никто не читает")
+                .isFalse();
             assertThat(row.isCanUpdate()).isTrue();
         });
-        assertThat(accessGrantAdminService.isC5ReadDimension(LEGACY_CHECK_ONLY)).isFalse();
     }
 
     private java.util.Map<String, AccessService.EffectiveGrant> effective(String username) {

@@ -132,9 +132,12 @@ public class MetadataAutoConfiguration {
             SectionMetadataRegistry sectionMetadataRegistry,
             GenericOwnedSectionService genericOwnedSectionService,
             EntityEventPublisher entityEventPublisher,
-            EntityLifecycleRegistry entityLifecycleRegistry) {
+            EntityLifecycleRegistry entityLifecycleRegistry,
+            ObjectProvider<org.ipro.crud.AggregateSaveContributionParticipant> contributionParticipants,
+            ObjectProvider<org.ipro.crud.AggregateOperationAuthorizer> operationAuthorizer) {
         return new MetadataDrivenAggregateSaveService(
             serviceLocator, sectionMetadataRegistry, genericOwnedSectionService,
-            entityEventPublisher, entityLifecycleRegistry);
+            entityEventPublisher, entityLifecycleRegistry,
+            contributionParticipants.orderedStream().toList(), operationAuthorizer.getIfAvailable());
     }
 }

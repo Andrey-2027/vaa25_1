@@ -29,7 +29,8 @@ public final class RlsContext {
     private static final ThreadLocal<Bypass> BYPASS = new ThreadLocal<>();
 
     /** Immutable authority carried only for the lexical duration of a privileged operation. */
-    private record Bypass(RlsBypassScope scope, String reason, String requestedBy) {
+    private record Bypass(RlsBypassScope scope, String reason, String requestedBy,
+                          java.util.Set<String> approvedTables) {
         private Bypass {
             Objects.requireNonNull(scope, "scope");
             if (reason == null || reason.isBlank()) {
@@ -42,6 +43,7 @@ public final class RlsContext {
             if (!requestedBy.equals(requestedBy.trim()) || "system".equalsIgnoreCase(requestedBy)) {
                 throw new IllegalArgumentException("RLS bypass requires an authenticated actor");
             }
+            approvedTables = java.util.Set.copyOf(approvedTables);
         }
     }
 
@@ -76,9 +78,16 @@ public final class RlsContext {
 
     static <T> T callAsSystem(
             RlsBypassScope scope, String reason, String requestedBy, Supplier<T> action) {
+        return callAsSystem(scope, reason, requestedBy, java.util.Set.of(), action);
+    }
+
+    static <T> T callAsSystem(
+            RlsBypassScope scope, String reason, String requestedBy,
+            java.util.Set<String> approvedTables, Supplier<T> action) {
         Objects.requireNonNull(action, "action");
         Bypass previous = BYPASS.get();
-        Bypass current = new Bypass(scope, reason, requestedBy);
+        Bypass current = new Bypass(scope, reason, requestedBy,
+            Objects.requireNonNull(approvedTables, "approvedTables"));
         BYPASS.set(current);
         log.warn("RLS privileged bypass started: scope={}, actor={}, reason={}",
             scope, requestedBy, reason);
@@ -107,6 +116,11 @@ public final class RlsContext {
     static String currentReason() {
         Bypass bypass = BYPASS.get();
         return bypass == null ? null : bypass.reason();
+    }
+
+    static java.util.Set<String> currentApprovedTables() {
+        Bypass bypass = BYPASS.get();
+        return bypass == null ? java.util.Set.of() : bypass.approvedTables();
     }
 
 }

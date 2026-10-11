@@ -11,11 +11,11 @@ import org.ipro.rls.RlsReadGate;
 import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsRepositoryEnforcementAspect;
 import org.ipro.rls.RlsReadableIdsCache;
+import org.ipro.rls.RlsReadableIdsResolver;
 import org.ipro.rls.RlsRoleResolver;
 import org.ipro.rls.RlsScopeResolver;
 import org.ipro.rls.RlsStatementGuard;
 import org.ipro.rls.RlsUiGate;
-import org.ipro.rls.RlsWriteGuardBridge;
 import org.ipro.rls.RlsHibernateWriteGuardInstaller;
 import org.ipro.rls.RlsBypassAudit;
 import org.ipro.telemetry.core.SecurityEventLogger;
@@ -23,6 +23,7 @@ import org.ipro.telemetry.core.SqlStatementAuditBridge;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -72,14 +73,73 @@ public class RlsAutoConfiguration {
         return new RlsReadableIdsCache(accessService);
     }
 
+    /**
+     * Default UI-источник readable-ids для {@link RlsFilterActivator}: делегирует
+     * session-scope кэш, сохраняя прежнюю семантику. HTTP-адаптер объявляет свой
+     * resolver bean с {@code @AutoConfigureBefore(RlsAutoConfiguration.class)}, поэтому здесь
+     * условие срабатывает и default не создаётся; два независимых resolver-бина
+     * (ошибка конфигурации) останавливают startup при создании активатора, а не
+     * выбираются молча.
+     *
+     * <p>{@code ignored} — сам кэш: он тоже реализует интерфейс, но это не второй
+     * источник, а делегат этого же default-бина; без {@code ignored} условие приняло
+     * бы его за готового кандидата.</p>
+     */
+    @Bean
+    @ConditionalOnMissingBean(value = RlsReadableIdsResolver.class, ignored = RlsReadableIdsCache.class)
+    public RlsReadableIdsResolver rlsReadableIdsResolver(RlsReadableIdsCache readableIdsCache,
+                                                        AccessService accessService) {
+        // Keep the singleton resolver distinct from its session-scoped concrete delegate.
+        // Returning the cache itself registers a second candidate for concrete-cache injection.
+        // Startup runners and background jobs have an authenticated subject but no HTTP session.
+        // They use the same grant policy without sharing a cache across subjects or threads.
+        return (dimension, username) ->
+            org.springframework.web.context.request.RequestContextHolder.getRequestAttributes() == null
+                ? accessService.getReadableIds(dimension, username)
+                : readableIdsCache.getReadableIds(dimension, username);
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public RlsFilterActivator rlsFilterActivator(RlsDimensionRegistry dimensionRegistry,
-                                                 RlsReadableIdsCache readableIdsCache,
+                                                 ListableBeanFactory beanFactory,
                                                  RlsCurrentUser currentUser,
                                                  ObjectProvider<org.ipro.rls.RlsBypassAudit> bypassAudit) {
-        return new RlsFilterActivator(dimensionRegistry, readableIdsCache, currentUser,
-            bypassAudit.getIfAvailable(org.ipro.rls.RlsBypassAudit::loggingOnly));
+        return new RlsFilterActivator(dimensionRegistry, singleResolver(beanFactory),
+            currentUser, bypassAudit.getIfAvailable(org.ipro.rls.RlsBypassAudit::loggingOnly));
+    }
+
+    /**
+     * Ровно один независимый источник readable-ids. Session/request-scoped кэши (например,
+     * session-кэш этого модуля или request-scoped кэш HTTP-адаптера) реализуют интерфейс как
+     * состояние, привязанное к области видимости, а не как отдельный источник, поэтому в
+     * подсчёт попадают только singleton-resolver'ы. Два независимых singleton-бина (ошибка
+     * конфигурации, например default + собственный бин приложения) останавливают startup
+     * понятной ошибкой, а не выбираются молча по имени/порядку.
+     */
+    private static RlsReadableIdsResolver singleResolver(ListableBeanFactory beanFactory) {
+        java.util.List<RlsReadableIdsResolver> independent = new java.util.ArrayList<>();
+        for (String name : beanFactory.getBeanNamesForType(RlsReadableIdsResolver.class)) {
+            // Scoped bean definitions appear twice: the scoped target (non-singleton) and the
+            // singleton proxy delegate (ScopedProxyFactoryBean). Both are state of an area of
+            // visibility, not an independent source.
+            if (!beanFactory.isSingleton(name) || isScopedProxy(beanFactory, name)) {
+                continue;
+            }
+            independent.add(beanFactory.getBean(name, RlsReadableIdsResolver.class));
+        }
+        if (independent.size() != 1) {
+            throw new IllegalStateException("Ожидался ровно один независимый RlsReadableIdsResolver"
+                + " (singleton; scoped-кэши — состояние, а не источник), найдено "
+                + independent.size() + ": источники readable-ids не должны выбираться молча");
+        }
+        return independent.get(0);
+    }
+
+    private static boolean isScopedProxy(ListableBeanFactory beanFactory, String name) {
+        return beanFactory instanceof org.springframework.beans.factory.config.ConfigurableListableBeanFactory configurable
+            && org.springframework.aop.scope.ScopedProxyFactoryBean.class.getName()
+                .equals(configurable.getBeanDefinition(name).getBeanClassName());
     }
 
     /**
@@ -108,9 +168,9 @@ public class RlsAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RlsReadGate rlsReadGate(AccessService accessService,
+    public RlsReadGate rlsReadGate(org.ipro.rls.c5.C5PermissionEvaluator c5PermissionEvaluator,
                                    RlsDimensionRegistry dimensionRegistry) {
-        return new RlsReadGate(accessService, dimensionRegistry);
+        return new RlsReadGate(c5PermissionEvaluator, dimensionRegistry);
     }
 
     /** Explicit C5 read definitions registered by entity/REST registrars (F-REST-READ-3, З2). */
@@ -127,6 +187,28 @@ public class RlsAutoConfiguration {
             AccessGrantRepository grantRepository,
             RlsRoleResolver roleResolver) {
         return new org.ipro.rls.c5.C5ReadDecisionService(grantRepository, roleResolver);
+    }
+
+    /** Explicit C5 operation definitions registered by entity/owner registrars (ADR-0017 §5). */
+    @Bean
+    @ConditionalOnMissingBean
+    public org.ipro.rls.c5.C5OperationPermissionRegistry c5OperationPermissionRegistry() {
+        return new org.ipro.rls.c5.C5OperationPermissionRegistry();
+    }
+
+    /**
+     * Single C5 decision for entity operations and named operations; read delegates unchanged to the
+     * existing read decision service, so no read semantics are duplicated here.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public org.ipro.rls.c5.C5PermissionDecisionService c5PermissionDecisionService(
+            AccessGrantRepository grantRepository,
+            RlsRoleResolver roleResolver,
+            org.ipro.rls.c5.C5OperationPermissionRegistry operationPermissionRegistry,
+            org.ipro.rls.c5.C5ReadDecisionService readDecisionService) {
+        return new org.ipro.rls.c5.C5PermissionDecisionService(grantRepository, roleResolver,
+            operationPermissionRegistry, readDecisionService);
     }
 
     @Bean

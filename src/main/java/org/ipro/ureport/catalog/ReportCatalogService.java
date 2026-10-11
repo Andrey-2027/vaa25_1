@@ -24,17 +24,26 @@ public class ReportCatalogService {
     private final JrxmlTemplateService jrxmlTemplateService;
     private final RlsReadGate rlsReadGate;
     private final RlsCurrentUser currentUser;
+    private final List<ReportCatalogContributor> contributors;
 
     public ReportCatalogService(ReportTemplateService reportTemplateService,
                                 UreportTemplateService ureportTemplateService,
                                 JrxmlTemplateService jrxmlTemplateService,
                                 RlsReadGate rlsReadGate,
                                 RlsCurrentUser currentUser) {
+        this(reportTemplateService, ureportTemplateService, jrxmlTemplateService, rlsReadGate, currentUser, List.of());
+    }
+    public ReportCatalogService(ReportTemplateService reportTemplateService,
+                                UreportTemplateService ureportTemplateService,
+                                JrxmlTemplateService jrxmlTemplateService,
+                                RlsReadGate rlsReadGate, RlsCurrentUser currentUser,
+                                List<ReportCatalogContributor> contributors) {
         this.reportTemplateService = reportTemplateService;
         this.ureportTemplateService = ureportTemplateService;
         this.jrxmlTemplateService = jrxmlTemplateService;
         this.rlsReadGate = rlsReadGate;
         this.currentUser = currentUser;
+        this.contributors = List.copyOf(contributors);
     }
 
     @Transactional(readOnly = true)
@@ -45,6 +54,7 @@ public class ReportCatalogService {
         if (jrxmlTemplateService != null) {
             result.addAll(jrItems(term, includeDisabled));
         }
+        contributors.forEach(contributor -> result.addAll(contributor.findAll(term, includeDisabled)));
         result.sort(Comparator.comparing(ReportCatalogItem::name,
                 String.CASE_INSENSITIVE_ORDER));
         return result;
@@ -60,6 +70,8 @@ public class ReportCatalogService {
             case JR -> jrItem(jrxmlTemplateService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Шаблон JR не найден: " + id)));
+            case UNIDR -> contributors.stream().filter(contributor -> contributor.type() == type).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Движок UniDR выключен")).find(id);
         };
     }
 

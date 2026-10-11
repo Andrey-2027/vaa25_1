@@ -147,6 +147,10 @@ class DeepLinkTwoUserAccessIT {
         grantJournal("e25-holder-" + suffix, journalOfAlice, true);
         grantJournal(alice, journalOfAlice, true);
         grantJournal(bob, journalOfBob, true);
+        org.ipro.rls.RlsTestFixture.grantC5EntityRead(grants, alice,
+            Journal.class, org.ip.model.Workshop.class, org.ip.model.ReceivingDocument.class);
+        org.ipro.rls.RlsTestFixture.grantC5EntityRead(grants, bob,
+            Journal.class, org.ip.model.Workshop.class, org.ip.model.ReceivingDocument.class);
     }
 
     @AfterEach
@@ -311,7 +315,9 @@ class DeepLinkTwoUserAccessIT {
     void aClassLevelReadDenyEndsAsAnEmptyReadNotAsForbidden() {
         Long documentId = createDocument();
 
-        login("e25-doc-stranger-" + UUID.randomUUID().toString().substring(0, 8));
+        String stranger = "e25-doc-stranger-" + UUID.randomUUID().toString().substring(0, 8);
+        RlsTestFixture.grantC5EntityRead(grants, stranger, org.ip.model.ReceivingDocument.class);
+        login(stranger);
 
         assertThat(open("/records/receiving-document/" + documentId))
             .as("классовый запрет чтения не раскрывает строку — и не выдаёт её наличие")
@@ -444,7 +450,7 @@ class DeepLinkTwoUserAccessIT {
     private void revokeAlice() {
         RlsTestFixture.callAsSuperuser(grants, () -> {
             grants.deleteAll(grants.findAll().stream()
-                .filter(grant -> alice.equals(grant.getSubjectKey()))
+                .filter(grant -> alice.equals(grant.getSubjectKey()) && "JOURNAL".equals(grant.getDimension()))
                 .toList());
             return null;
         });
@@ -455,6 +461,7 @@ class DeepLinkTwoUserAccessIT {
     }
 
     private void grantDocuments(String subjectKey, Long journalId) {
+        RlsTestFixture.grantC5EntityRead(grants, subjectKey, org.ip.model.ReceivingDocument.class);
         saveGrant(subjectKey, "ENTITY:ReceivingDocument", null, true);
         // Построчный доступ к самому документу — отдельное измерение: классовый гейт открывает
         // класс, но не строки в нём.

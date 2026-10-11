@@ -1,5 +1,7 @@
 package org.ip.views.forms;
 
+import org.ip.application.user.UserPasswordChangePermission;
+import org.ip.application.user.UserRoleAssignmentPermission;
 import org.ipro.form.builder.ItemFormCustomization;
 import org.ipro.form.builder.ItemFormVariants;
 import org.ip.model.Role;
@@ -18,14 +20,23 @@ import java.util.List;
  *
  * <p>Волна E + D3.5.2: роли читаются bounded {@link EntityLookup#search} как маленький
  * закрытый справочник (десятки записей, явный лимит), а не выгрузкой всей таблицы.</p>
+ *
+ * <p>C5.8d: форма получает владельцев операций назначения ролей и смены пароля — поля берут
+ * доступность у того же решения, что спрашивает серверный путь (см. {@link UserItemForm}).</p>
  */
 @Component
 public class UserFormConfig implements ItemFormCustomization {
 
     private final EntityLookup lookupService;
+    private final UserRoleAssignmentPermission roleAssignmentPermission;
+    private final UserPasswordChangePermission passwordChangePermission;
 
-    public UserFormConfig(EntityLookup lookupService) {
+    public UserFormConfig(EntityLookup lookupService,
+                          UserRoleAssignmentPermission roleAssignmentPermission,
+                          UserPasswordChangePermission passwordChangePermission) {
         this.lookupService = lookupService;
+        this.roleAssignmentPermission = roleAssignmentPermission;
+        this.passwordChangePermission = passwordChangePermission;
     }
 
     @Override
@@ -39,7 +50,8 @@ public class UserFormConfig implements ItemFormCustomization {
             var meta = ctx.metadataResolver().resolve(User.class);
             return new UserItemForm(meta, ctx.fieldFactory(),
                 lookupService.search(Role.class, List.of("name"), "",
-                    LookupComboHelper.DICTIONARY_LIMIT));
+                    LookupComboHelper.DICTIONARY_LIMIT),
+                roleAssignmentPermission, passwordChangePermission);
         });
     }
 }

@@ -78,9 +78,7 @@ class RestReferenceAuthorizationValidatorTest {
             Map.of("JOURNAL", RlsDimensionKind.FILTERABLE),
             Map.of("JOURNAL", rule("id"))));
         C5PermissionEvaluator c5 = mock(C5PermissionEvaluator.class);
-        when(c5.isAttributeReadPermitted("alice", Root.class, "journal")).thenReturn(true);
         when(c5.isEntityReadPermitted("alice", Journal.class)).thenReturn(true);
-        when(c5.isAttributeReadPermitted("alice", Journal.class, "id")).thenReturn(true);
 
         RestReferenceAuthorizationValidator validator = validator(registry, c5, null);
 

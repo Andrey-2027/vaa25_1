@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-09-11",
+  "capturedAt": "2026-10-09",
   "workspaceContract": {
     "applicationDirectory": "GitVaa25",
     "dependencyRoot": "..",
@@ -23,8 +23,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "4d576ad8ad2685479dbf110aeb271266228f3105b3d475c5095ebd77ff41dd23",
-        "fileCount": 13,
+        "sha256": "b610b745dce3bfd7417b64beafd2be573e9c9caa974a17117e1b30832d808442",
+        "fileCount": 14,
         "inputs": [
           "pom.xml",
           "crudui-core/pom.xml",
@@ -61,8 +61,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "55e1093ed64e4ab71905900ada2e0ad3700e57b3617d920a735c6a5767f0b8fa",
-        "fileCount": 36,
+        "sha256": "d58e2609979fb2b118f94adf036f57ce13a2319d7d5e609561a6bc45450d4933",
+        "fileCount": 37,
         "inputs": [
           "pom.xml",
           "src"
@@ -91,8 +91,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "6e1489274d12b618312e0faff5cbbd3959eaa919f336f36a81b8a5879059be94",
-        "fileCount": 11,
+        "sha256": "e2944df8a3530b0a4d0ee3df551e5c7805a0ea21d244b431ef6711da4882e8e9",
+        "fileCount": 12,
         "inputs": [
           "pom.xml",
           "src"
@@ -121,8 +121,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "619b6c496d3e89e4877240922b14ea61669e4c245edbfe0a79e877891b691be5",
-        "fileCount": 4,
+        "sha256": "1e9c1467c05c4cf394817ebd246e927b22aa8549c0cec8061b1f39e2dd4b817d",
+        "fileCount": 5,
         "inputs": [
           "pom.xml",
           "src"
@@ -273,12 +273,12 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D2 → D3 fourth subsystem module: the whole Row-Level Security subsystem (dimensions and policies, read/write gates, Hibernate filters and enforcement aspect, SQL-leak canary, neutral SPIs RlsDimensionValueLabelResolver/RlsOwnedSectionLookup implemented by the application, AccessGrant entity with repository, two auto-configurations for beans and persistence registration). Direct metadata/fetch dependencies replaced by SPIs; consumes platform-telemetry as an artifact, provides platform-numbering with a scope resolver."
+        "state": "D2 → D3 fourth subsystem module: the whole Row-Level Security subsystem (dimensions and policies, read/write gates, Hibernate filters and enforcement aspect, SQL-leak canary, neutral SPIs RlsDimensionValueLabelResolver/RlsOwnedSectionLookup implemented by the application, AccessGrant entity with repository, two auto-configurations for beans and persistence registration). Direct metadata/fetch dependencies replaced by SPIs; consumes platform-telemetry as an artifact, provides platform-numbering with a scope resolver. F-REST-READ-4 4.3: RlsReadableIdsResolver seam — the session cache remains the default UI implementation, RlsFilterActivator consumes the interface, and the activator selects exactly one independent singleton resolver (scoped cache proxies are state, not an independent source); two independent sources stop startup instead of being chosen silently."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "5ca95045ee21369623bd1e7596c65c5caa3beb4b71385280a0522f91f8d9f67c",
-        "fileCount": 49,
+        "sha256": "127e5f6309275d2e5f1477f6b0c0cd7a73116b8341273026e7719b9a3fc49d59",
+        "fileCount": 61,
         "inputs": [
           "pom.xml",
           "src"
@@ -348,8 +348,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "aeada1cfdb85b35490fde4a84bb43e32a13ddb874d5d0257be3e83851a24e8db",
-        "fileCount": 131,
+        "sha256": "b4cae416a178e7aa4164c09cf619bd3eee1cc6c155d534ed018915b9308b8963",
+        "fileCount": 147,
         "inputs": [
           "pom.xml",
           "src"
@@ -366,6 +366,24 @@
       ]
     },
     {
+      "id": "platform-navigation",
+      "relativePath": "platform-navigation",
+      "dependsOn": ["platform-core", "platform-persistence"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "KI-2: optional navigation catalog, protected named profile/assignment operations and current-user read model. Versioned INTERNAL_STORE tables register through conditional auto-configuration, disabled by default; no application/Vaadin/route dependencies. Application security and immutable user identity adapters are mandatory when enabled. Owner-side H2 and isolated PostgreSQL validate/restart tests; menu rendering belongs to KI-3."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "7f92c6022f428ea2537098c183d221182d3584e1b0cdfab0ae8c8b3f87cf7e34",
+        "fileCount": 35,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-navigation:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
       "id": "platform-spring-boot-autoconfigure",
       "relativePath": "platform-spring-boot-autoconfigure",
       "dependsOn": ["platform-contracts", "platform-core", "platform-events", "platform-numbering", "platform-rls"],
@@ -376,8 +394,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "a19f336c72ac1d2beeaa7acd6f6435267fdee20dc74f4fed142dc436de5c4e5b",
-        "fileCount": 17,
+        "sha256": "f58514ffb01e85e642916fa0238dd292e7b4508eb9a4895c78971a69876f432b",
+        "fileCount": 19,
         "inputs": [
           "pom.xml",
           "src"
@@ -404,8 +422,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "fe0dfb761cd6947f9d28686ce23abd50cb7a5a38e1f4a066ec9faf5f328647d1",
-        "fileCount": 211,
+        "sha256": "23ea98eeaf02803a4ee6efd3e6f5730ab6d1a984e81135c70aa437ea496e163c",
+        "fileCount": 226,
         "inputs": [
           "pom.xml",
           "src"
@@ -428,12 +446,12 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "F-REST-READ-2: optional explicit resource declarations plus an immutable startup catalog validated against one Hibernate-backed JPA metamodel and EntityDescriptorCatalog. The rest.api builder remains Java-only; the module owns auto-configuration and has no HTTP routes or Vaadin dependency."
+        "state": "F-REST-READ-2/4: optional explicit resource declarations plus an immutable startup catalog validated against one Hibernate-backed JPA metamodel and EntityDescriptorCatalog; F-REST-READ-4 adds the reviewed MODULE_API read gateway (schema facts, admission gates, parser callback) consumed by the optional HTTP adapter. The rest.api builder remains Java-only; the module owns auto-configuration and has no HTTP routes or Vaadin dependency."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "a6c33812be37254d8227043a74599c4b38a59e9429fcbc8466934ba8afb38e24",
-        "fileCount": 50,
+        "sha256": "51624956d9f7e6f378c58b0fb5e07bc2b1b9b79f4a8ffdb141ec36489e03657a",
+        "fileCount": 60,
         "inputs": [
           "pom.xml",
           "src"
@@ -441,6 +459,34 @@
       },
       "artifacts": [
         "org.ipro:platform-rest:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-rest-web",
+      "relativePath": "platform-rest-web",
+      "dependsOn": ["platform-rest", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "F-REST-READ-4 4.1/4.2/4.3/4.4/4.5: optional HTTP adapter over the server-side REST read pipeline. Born with a reviewed surface and compile closure; inert until platform.rest.web.enabled=true and never pulled in by a starter. 4.2 adds the strict v1 query parser, the ALWAYS-inclusion JSON writer, the Problem advice and the single GET controller over the MODULE_API gateway. 4.3 adds the request-scoped readable-ids seam (RestReadableIdsCache + RestAwareRlsReadableIdsResolver registered before RlsAutoConfiguration), the request-scope marker filter, the namespace filter with 404-before-405-before-406 precedence, and the @Order(2) stateless Basic read chain with Problem Details entry point/denied handler. 4.4 adds shared semantic failure classification, REST-only pre-handler MVC and authentication failure handling, trace-linked server diagnostics and a private complete-500 fallback if the Problem codec fails. 4.5 adds an INTERNAL deterministic OpenAPI 3.1.1 generator over published gateway facts, versioned application wire/Problem snapshots and a v1 drift gate; no documentation HTTP route. 4.6 adds real socket/H2 application pilots and explicitly disables session authentication callbacks in the REST chain: incoming UI sessions must not be rotated by Basic authentication. Depends on platform-rest and directly on the reviewed platform-rls seam; the managed Boot 4.0.6 MVC/Security stack plus the Jackson 3 mapper copy arrive without WebFlux, Spring Data REST or Vaadin dependency."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "2895a05adc850c738bb4cf6c9ba2e13b1de4d0ea41fac44d526db28eaa0dd116",
+        "fileCount": 37,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-rest-web:1.0-SNAPSHOT"
       ],
       "buildSteps": [
         {
@@ -460,7 +506,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "b6d5e50105a3113a56950d6e76ba932d91b7f764d13e82f10fbcebac8970b528",
+        "sha256": "9fca30fa801ceede0d9737265521b91033bf2a644bd5e9adda3f4ae61c6609da",
         "fileCount": 1,
         "inputs": [
           "pom.xml"
@@ -550,8 +596,8 @@
         "state": "No local .git directory; upstream revision is documented by README-vendor.md and pom.xml."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "0362d8b3eb2a877fd361589f68aefd81074d936e707305dc7fe98c509e6efe41",
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "d869ece49c684ae9db3a7619d381821b80dbebc411443d02f06fd46c66534288",
         "fileCount": 1321,
         "inputs": [
           "pom.xml",
@@ -613,13 +659,14 @@
         "state": "Tracked and untracked local changes are part of the recorded fingerprint."
       },
       "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v1",
-        "sha256": "8edfe8eddc98a6f6d1b4c1cbc48bd1df1072a4e4dfd20cecb931acdb874204ed",
-        "fileCount": 544,
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "29b35dd6082ebce529c3e32643ab2e35f7e4537aed15e49b953e96675a0af7cf",
+        "fileCount": 546,
         "inputs": [
           "ureport3-parent/pom.xml",
           "ureport3-core/pom.xml",
           "ureport3-core/src",
+          "ureport3-core/dsl",
           "ureport3-font/pom.xml",
           "ureport3-font/src",
           "ureport3-console/pom.xml",

@@ -1,0 +1,55 @@
+package org.ip.application.register;
+
+import org.ip.repository.AccountingObjectRegisterRepository;
+import org.ip.model.AccountingObjectDocument;
+import org.ip.model.AccountingObjectInstallation;
+import org.ip.model.AccountingObjectCorrection;
+import org.ip.model.NomenclatureAccountingObject;
+import org.ipro.crud.ValidationException;
+import org.ipro.lifecycle.EntitySaveContext;
+import org.ipro.register.RecorderRef;
+import org.ipro.register.RecorderTypeRegistry;
+import org.ipro.register.RegisterRecords;
+import org.springframework.stereotype.Component;
+import java.util.*;
+
+@Component
+public class AccountingObjectRegisterGeneration {
+    private final AccountingObjectRegisterRepository persistence;
+    private final RecorderTypeRegistry recorderTypes;
+    private final AccountingObjectRegisterService reader;
+    private final RegisterRecords registerRecords;
+
+    public AccountingObjectRegisterGeneration(AccountingObjectRegisterRepository persistence, RecorderTypeRegistry recorderTypes,
+            AccountingObjectRegisterService reader,
+            RegisterRecords registerRecords) {
+        this.persistence = persistence; this.recorderTypes = recorderTypes; this.reader = reader;
+        this.registerRecords = registerRecords;
+    }
+    public void onSave(EntitySaveContext<? extends AccountingObjectDocument> context) {
+        AccountingObjectDocument document = context.entity();
+        var lines = AccountingObjectSaveScope.lines(document);
+        RecorderRef recorder = recorderTypes.referenceFor(document.getClass(), document.getId());
+        List<NomenclatureAccountingObject> rows = new ArrayList<>();
+        for (var line : lines) {
+            if (document instanceof AccountingObjectInstallation) validateInstallation(document, recorder, line.nomenclatureId());
+            else if (reader.currentType((AccountingObjectCorrection) document, line.nomenclatureId()).isEmpty()) {
+                throw new ValidationException("Номенклатура отсутствует в срезе выбранного цеха на дату корректировки");
+            }
+            NomenclatureAccountingObject row = new NomenclatureAccountingObject();
+            row.setRecorder(recorder); row.setPeriod(document.getDate()); row.setWorkshop(document.getWorkshop());
+            row.setNomenclature(persistence.nomenclatureReference(line.nomenclatureId()));
+            row.setAccountingType(persistence.accountingTypeReference(line.accountingTypeId()));
+            rows.add(row);
+        }
+        var records = registerRecords.forRecorder(context);
+        records.clear(NomenclatureAccountingObject.class);
+        records.add(NomenclatureAccountingObject.class, rows);
+    }
+
+    private void validateInstallation(AccountingObjectDocument document, RecorderRef own, Long nomenclatureId) {
+        if (persistence.hasOtherInstallation(document.getWorkshop().getId(), nomenclatureId, own)) throw new ValidationException(
+            "Объект учёта этой номенклатуры уже существует в истории выбранного цеха");
+    }
+}
+

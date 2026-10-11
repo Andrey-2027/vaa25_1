@@ -1,0 +1,1341 @@
+{
+  "openapi" : "3.1.1",
+  "jsonSchemaDialect" : "https://json-schema.org/draft/2020-12/schema",
+  "info" : {
+    "title" : "Published REST read API",
+    "version" : "1.0",
+    "description" : "Explicit read resources. Basic credentials require TLS. Unknown/duplicate query parameters are rejected."
+  },
+  "security" : [ {
+    "basicAuth" : [ ]
+  } ],
+  "paths" : {
+    "/api/v1/nomenclature" : {
+      "get" : {
+        "operationId" : "nomenclature_v1_list",
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Comma-separated unique aliases, no whitespace trimming. Absent uses defaults; id is always returned. Empty selection is invalid.",
+          "schema" : {
+            "type" : "array",
+            "minItems" : 1,
+            "uniqueItems" : true,
+            "maxItems" : 4,
+            "items" : {
+              "type" : "string",
+              "enum" : [ "id", "code", "name", "typeNom" ]
+            },
+            "default" : [ "id", "code", "name" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Zero-based page; (page * effective size + effective size) must not exceed x-max-window.",
+          "schema" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 9999,
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Absent or explicit 0 uses the published default. Integer overflow is rejected.",
+          "schema" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 200,
+            "default" : 50
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "One declared alias[,asc|desc]; alias alone means asc. Stable id tie-breaker is server-owned.",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "id", "id,asc", "id,desc", "code", "code,asc", "code,desc" ],
+            "default" : "code,asc"
+          }
+        }, {
+          "name" : "typeNom",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Equality filter; supplied exactly once. Strings are literal, including empty and 'null'; no trim or SQL NULL syntax.",
+          "schema" : {
+            "type" : "string"
+          },
+          "x-operator" : "EQUALS",
+          "allowEmptyValue" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful scalar projection",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/nomenclature_v1_List"
+                },
+                "example" : {
+                  "content" : [ {
+                    "id" : 1,
+                    "code" : "example",
+                    "name" : "example"
+                  } ],
+                  "page" : 0,
+                  "size" : 50,
+                  "totalElements" : 1,
+                  "totalPages" : 1
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem400"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              },
+              "WWW-Authenticate" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "Basic realm=\"rest-read\""
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem401"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem403"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem404"
+                }
+              }
+            }
+          },
+          "405" : {
+            "description" : "Method Not Allowed",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              },
+              "Allow" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "GET"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem405"
+                }
+              }
+            }
+          },
+          "406" : {
+            "description" : "Not Acceptable",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem406"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem500"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem503"
+                }
+              }
+            }
+          }
+        },
+        "x-default-fields" : [ "id", "code", "name" ],
+        "x-maximum-fields" : [ "id", "code", "name", "typeNom" ],
+        "x-unknown-query-parameters" : "reject",
+        "x-duplicate-query-parameters" : "reject",
+        "x-max-window" : 10000
+      }
+    },
+    "/api/v1/nomenclature/{id}" : {
+      "get" : {
+        "operationId" : "nomenclature_v1_detail",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "minimum" : -9223372036854775808,
+            "maximum" : 9223372036854775807,
+            "format" : "int64",
+            "x-wire-pattern" : "^[+-]?[0-9]+$"
+          },
+          "description" : "Single simple identifier; integer parsing accepts signed decimal only and rejects overflow."
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Comma-separated unique aliases, no whitespace trimming. Absent uses defaults; id is always returned. Empty selection is invalid.",
+          "schema" : {
+            "type" : "array",
+            "minItems" : 1,
+            "uniqueItems" : true,
+            "maxItems" : 4,
+            "items" : {
+              "type" : "string",
+              "enum" : [ "id", "code", "name", "typeNom" ]
+            },
+            "default" : [ "id", "code", "name" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful scalar projection",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/nomenclature_v1_Detail"
+                },
+                "example" : {
+                  "data" : {
+                    "id" : 1,
+                    "code" : "example",
+                    "name" : "example"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem400"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              },
+              "WWW-Authenticate" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "Basic realm=\"rest-read\""
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem401"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem403"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem404"
+                }
+              }
+            }
+          },
+          "405" : {
+            "description" : "Method Not Allowed",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              },
+              "Allow" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "GET"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem405"
+                }
+              }
+            }
+          },
+          "406" : {
+            "description" : "Not Acceptable",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem406"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem500"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem503"
+                }
+              }
+            }
+          }
+        },
+        "x-default-fields" : [ "id", "code", "name" ],
+        "x-maximum-fields" : [ "id", "code", "name", "typeNom" ],
+        "x-unknown-query-parameters" : "reject",
+        "x-duplicate-query-parameters" : "reject"
+      }
+    },
+    "/api/v1/specifications" : {
+      "get" : {
+        "operationId" : "specifications_v1_list",
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Comma-separated unique aliases, no whitespace trimming. Absent uses defaults; id is always returned. Empty selection is invalid.",
+          "schema" : {
+            "type" : "array",
+            "minItems" : 1,
+            "uniqueItems" : true,
+            "maxItems" : 4,
+            "items" : {
+              "type" : "string",
+              "enum" : [ "id", "codeSpec", "draft", "nomenclatureCode" ]
+            },
+            "default" : [ "id", "codeSpec", "draft" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Zero-based page; (page * effective size + effective size) must not exceed x-max-window.",
+          "schema" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 9999,
+            "default" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Absent or explicit 0 uses the published default. Integer overflow is rejected.",
+          "schema" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 200,
+            "default" : 50
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "One declared alias[,asc|desc]; alias alone means asc. Stable id tie-breaker is server-owned.",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "id", "id,asc", "id,desc", "codeSpec", "codeSpec,asc", "codeSpec,desc" ],
+            "default" : "id,asc"
+          }
+        }, {
+          "name" : "journalId",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Equality filter; supplied exactly once. Strings are literal, including empty and 'null'; no trim or SQL NULL syntax.",
+          "schema" : {
+            "type" : "integer",
+            "minimum" : -9223372036854775808,
+            "maximum" : 9223372036854775807,
+            "format" : "int64",
+            "x-wire-pattern" : "^[+-]?[0-9]+$"
+          },
+          "x-operator" : "EQUALS"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful scalar projection",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/specifications_v1_List"
+                },
+                "example" : {
+                  "content" : [ {
+                    "id" : 1,
+                    "codeSpec" : "example",
+                    "draft" : null
+                  } ],
+                  "page" : 0,
+                  "size" : 50,
+                  "totalElements" : 1,
+                  "totalPages" : 1
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem400"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              },
+              "WWW-Authenticate" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "Basic realm=\"rest-read\""
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem401"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem403"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem404"
+                }
+              }
+            }
+          },
+          "405" : {
+            "description" : "Method Not Allowed",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              },
+              "Allow" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "GET"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem405"
+                }
+              }
+            }
+          },
+          "406" : {
+            "description" : "Not Acceptable",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem406"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem500"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem503"
+                }
+              }
+            }
+          }
+        },
+        "x-default-fields" : [ "id", "codeSpec", "draft" ],
+        "x-maximum-fields" : [ "id", "codeSpec", "draft", "nomenclatureCode" ],
+        "x-unknown-query-parameters" : "reject",
+        "x-duplicate-query-parameters" : "reject",
+        "x-max-window" : 10000
+      }
+    },
+    "/api/v1/specifications/{id}" : {
+      "get" : {
+        "operationId" : "specifications_v1_detail",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "minimum" : -9223372036854775808,
+            "maximum" : 9223372036854775807,
+            "format" : "int64",
+            "x-wire-pattern" : "^[+-]?[0-9]+$"
+          },
+          "description" : "Single simple identifier; integer parsing accepts signed decimal only and rejects overflow."
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : false,
+          "description" : "Comma-separated unique aliases, no whitespace trimming. Absent uses defaults; id is always returned. Empty selection is invalid.",
+          "schema" : {
+            "type" : "array",
+            "minItems" : 1,
+            "uniqueItems" : true,
+            "maxItems" : 6,
+            "items" : {
+              "type" : "string",
+              "enum" : [ "id", "codeSpec", "draft", "comment", "journalId", "nomenclatureCode" ]
+            },
+            "default" : [ "id", "codeSpec", "draft", "comment" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful scalar projection",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/specifications_v1_Detail"
+                },
+                "example" : {
+                  "data" : {
+                    "id" : 1,
+                    "codeSpec" : "example",
+                    "draft" : null,
+                    "comment" : null
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem400"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              },
+              "WWW-Authenticate" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "Basic realm=\"rest-read\""
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem401"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem403"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem404"
+                }
+              }
+            }
+          },
+          "405" : {
+            "description" : "Method Not Allowed",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              },
+              "Allow" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "GET"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem405"
+                }
+              }
+            }
+          },
+          "406" : {
+            "description" : "Not Acceptable",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem406"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem500"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "headers" : {
+              "Cache-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "const" : "no-store"
+                }
+              }
+            },
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem503"
+                }
+              }
+            }
+          }
+        },
+        "x-default-fields" : [ "id", "codeSpec", "draft", "comment" ],
+        "x-maximum-fields" : [ "id", "codeSpec", "draft", "comment", "journalId", "nomenclatureCode" ],
+        "x-unknown-query-parameters" : "reject",
+        "x-duplicate-query-parameters" : "reject"
+      }
+    }
+  },
+  "components" : {
+    "securitySchemes" : {
+      "basicAuth" : {
+        "type" : "http",
+        "scheme" : "basic"
+      }
+    },
+    "schemas" : {
+      "Problem" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "required" : [ "type", "title", "status", "detail", "instance", "code", "traceId" ],
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "const" : "about:blank"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "integer",
+            "enum" : [ 400, 401, 403, 404, 405, 406, 500, 503 ]
+          },
+          "detail" : {
+            "type" : "string"
+          },
+          "instance" : {
+            "type" : "string"
+          },
+          "code" : {
+            "type" : "string",
+            "enum" : [ "invalid_request", "unauthenticated", "forbidden", "not_found", "method_not_allowed", "not_acceptable", "internal_error", "security_unavailable" ]
+          },
+          "traceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "param" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z_][A-Za-z0-9_]{0,127}$"
+          },
+          "reason" : {
+            "type" : "string",
+            "enum" : [ "unknown_parameter", "duplicate_parameter", "unknown_field", "duplicate_field", "empty_fields", "unknown_filter", "invalid_filter_value", "invalid_page", "invalid_size", "out_of_window", "unknown_sort", "multiple_sort_keys", "invalid_sort_direction", "invalid_id" ]
+          }
+        }
+      },
+      "Problem400" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Problem"
+        }, {
+          "properties" : {
+            "status" : {
+              "const" : 400
+            },
+            "code" : {
+              "const" : "invalid_request"
+            }
+          }
+        } ]
+      },
+      "Problem401" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Problem"
+        }, {
+          "properties" : {
+            "status" : {
+              "const" : 401
+            },
+            "code" : {
+              "const" : "unauthenticated"
+            }
+          }
+        } ]
+      },
+      "Problem403" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Problem"
+        }, {
+          "properties" : {
+            "status" : {
+              "const" : 403
+            },
+            "code" : {
+              "const" : "forbidden"
+            }
+          }
+        } ]
+      },
+      "Problem404" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Problem"
+        }, {
+          "properties" : {
+            "status" : {
+              "const" : 404
+            },
+            "code" : {
+              "const" : "not_found"
+            }
+          }
+        } ]
+      },
+      "Problem405" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Problem"
+        }, {
+          "properties" : {
+            "status" : {
+              "const" : 405
+            },
+            "code" : {
+              "const" : "method_not_allowed"
+            }
+          }
+        } ]
+      },
+      "Problem406" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Problem"
+        }, {
+          "properties" : {
+            "status" : {
+              "const" : 406
+            },
+            "code" : {
+              "const" : "not_acceptable"
+            }
+          }
+        } ]
+      },
+      "Problem500" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Problem"
+        }, {
+          "properties" : {
+            "status" : {
+              "const" : 500
+            },
+            "code" : {
+              "const" : "internal_error"
+            }
+          }
+        } ]
+      },
+      "Problem503" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Problem"
+        }, {
+          "properties" : {
+            "status" : {
+              "const" : 503
+            },
+            "code" : {
+              "const" : "security_unavailable"
+            }
+          }
+        } ]
+      },
+      "nomenclature_v1_ListItem" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "required" : [ "id" ],
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "minimum" : -9223372036854775808,
+            "maximum" : 9223372036854775807,
+            "format" : "int64"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "typeNom" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "nomenclature_v1_DetailItem" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "required" : [ "id" ],
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "minimum" : -9223372036854775808,
+            "maximum" : 9223372036854775807,
+            "format" : "int64"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "typeNom" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "nomenclature_v1_List" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "required" : [ "content", "page", "size", "totalElements", "totalPages" ],
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/nomenclature_v1_ListItem"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 2147483647
+          },
+          "size" : {
+            "type" : "integer",
+            "minimum" : 1,
+            "maximum" : 200
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 9223372036854775807
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 2147483647
+          }
+        }
+      },
+      "nomenclature_v1_Detail" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "required" : [ "data" ],
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/nomenclature_v1_DetailItem"
+          }
+        }
+      },
+      "specifications_v1_ListItem" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "required" : [ "id" ],
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "minimum" : -9223372036854775808,
+            "maximum" : 9223372036854775807,
+            "format" : "int64"
+          },
+          "codeSpec" : {
+            "type" : "string"
+          },
+          "draft" : {
+            "type" : [ "string", "null" ]
+          },
+          "nomenclatureCode" : {
+            "type" : "string"
+          }
+        }
+      },
+      "specifications_v1_DetailItem" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "required" : [ "id" ],
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "minimum" : -9223372036854775808,
+            "maximum" : 9223372036854775807,
+            "format" : "int64"
+          },
+          "codeSpec" : {
+            "type" : "string"
+          },
+          "draft" : {
+            "type" : [ "string", "null" ]
+          },
+          "comment" : {
+            "type" : [ "string", "null" ]
+          },
+          "journalId" : {
+            "type" : "integer",
+            "minimum" : -9223372036854775808,
+            "maximum" : 9223372036854775807,
+            "format" : "int64"
+          },
+          "nomenclatureCode" : {
+            "type" : "string"
+          }
+        }
+      },
+      "specifications_v1_List" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "required" : [ "content", "page", "size", "totalElements", "totalPages" ],
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/specifications_v1_ListItem"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 2147483647
+          },
+          "size" : {
+            "type" : "integer",
+            "minimum" : 1,
+            "maximum" : 200
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 9223372036854775807
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "maximum" : 2147483647
+          }
+        }
+      },
+      "specifications_v1_Detail" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "required" : [ "data" ],
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/specifications_v1_DetailItem"
+          }
+        }
+      }
+    }
+  }
+}

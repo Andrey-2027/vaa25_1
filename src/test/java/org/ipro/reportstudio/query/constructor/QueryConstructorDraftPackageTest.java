@@ -1,6 +1,7 @@
 package org.ipro.reportstudio.query.constructor;
 
 import org.ipro.reportstudio.query.VisualQueryDefinition;
+import org.ipro.register.RecorderRef;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -8,6 +9,14 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QueryConstructorDraftPackageTest {
+    @Test void renamingAStageRetainsEarlierStagesAndTheirOrder() {
+        var draft = new QueryConstructorDraft();
+        var first = draft.addStage(); draft.renameStage(first, "first"); draft.load(definition("R5RecordedPrice", "r"));
+        var second = draft.addStage(); draft.renameStage(second, "second"); draft.load(definition("R5RecordedPrice", "r"));
+        draft.switchStage("main"); draft.load(definition("second", "s"));
+        assertThat(draft.packageDefinition().ctes()).extracting(org.ipro.reportstudio.query.VisualQueryPackage.Cte::name)
+            .containsExactly("first", "second");
+    }
     private static VisualQueryDefinition definition(String entity, String alias) {
         return new VisualQueryDefinition(VisualQueryDefinition.CURRENT_VERSION, entity, alias,
                 List.of(new VisualQueryDefinition.SelectField(alias + ".code", "code")),
@@ -38,5 +47,19 @@ class QueryConstructorDraftPackageTest {
         draft.removeStage("tmp1");
         assertThat(draft.stageNames()).doesNotContain("tmp1");
         assertThat(draft.activeStage()).isEqualTo("main");
+    }
+
+    @Test
+    void retainsTypedRecorderSelectionWhenPackageStagesAreEdited() {
+        var recorder = new RecorderRef("r5-document-a", 17L);
+        var draft = new QueryConstructorDraft();
+        draft.load(definition("R5RecordedPrice", "r"));
+        draft.addStage();
+        draft.load(definition("R5RecordedPrice", "r"));
+        draft.setStageRecorders("tmp1", List.of(recorder));
+        draft.switchStage("main");
+
+        assertThat(draft.packageDefinition().ctes().getFirst().selectedRecorders())
+                .containsExactly(recorder);
     }
 }

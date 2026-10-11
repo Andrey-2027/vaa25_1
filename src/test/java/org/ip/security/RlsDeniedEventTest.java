@@ -76,9 +76,21 @@ class RlsDeniedEventTest {
             .<ReceivingDocument, Long>findService(ReceivingDocument.class);
     }
 
+    /**
+     * Отказ построчного RLS-гейта фиксируется SECURITY-событием {@code rls:denied}.
+     *
+     * <p>C5.6: право на операцию — отдельная строка того же ключа {@code ENTITY:ReceivingDocument}
+     * (ADR-0017), поэтому она выдана явно, а отказ приходит именно от RLS: у субъекта нет
+     * права на журнал создаваемого документа. Без операционной строки отказ был бы C5 и до
+     * RLS-пути — то есть этот тест перестал бы проверять событие RLS вовсе.</p>
+     */
     @Test
     void writeGuardDeniedEmitsRlsSecurityEvent() {
-        String deniedUser = "rls-denied-event-test";
+        // Субъект уникален на прогон: база тестов разделяется между классами и запусками, а
+        // глобальная строка гранта (dimensionValueId = null) пережила бы прогон и разрешила бы
+        // то измерение, которое этот тест проверяет как запрет.
+        String deniedUser = "rls-denied-event-" + java.util.UUID.randomUUID();
+        String journalHolder = "rls-journal-holder-" + java.util.UUID.randomUUID();
         ReceivingDocument doc = RlsTestFixture.callAsSuperuser(accessGrantRepository, () -> {
             Branch branch = new Branch();
             branch.setCode("DE-1");
@@ -98,9 +110,16 @@ class RlsDeniedEventTest {
             journal.setName("Журнал");
             journalRepository.save(journal);
 
-            // Подготовка должна пройти; отказ проверяем именно по ENTITY-гранту.
+            // Отказ проверяем по построчному измерению JOURNAL: BRANCH грант выдан, а журнал — нет.
             accessGrantRepository.save(grant(deniedUser, "BRANCH"));
-            accessGrantRepository.save(grant(deniedUser, "JOURNAL"));
+            // Ключ ENTITY:ReceivingDocument владеет сразу двумя решениями — операцией C5 и
+            // CHECK_ONLY-воротами RLS (ADR-0017 §3 сохранил прежний ключ), поэтому строка выдана:
+            // без неё отказ был бы от C5 и до RLS-пути этот тест не доходил бы вовсе.
+            accessGrantRepository.save(grant(deniedUser, "ENTITY:ReceivingDocument"));
+            // Bootstrap-правило AccessService: пока по измерению нет НИ ОДНОГО гранта, создание
+            // нового его значения разрешено. Закрываем его строкой другого субъекта, иначе на
+            // пустой базе запрет по JOURNAL не сработал бы и тест зависел бы от соседей по прогону.
+            accessGrantRepository.save(grant(journalHolder, "JOURNAL"));
 
             ReceivingDocument document = new ReceivingDocument(
                 "DE-1", LocalDate.now(), receiver, deliverer);
@@ -122,12 +141,23 @@ class RlsDeniedEventTest {
             .emitSecurityEvent(eq("WARN"), eq("rls:denied"), anyString(),
                 org.mockito.ArgumentMatchers.contains("Нет прав на изменение"), payload.capture());
 
-        // конкретное измерение зависит от порядка checks и состояния bootstrap (грантов
-        // JOURNAL/BRANCH может и не быть в разделяемой тестовой БД) — проверяем состав payload,
-        // а не конкретный dimension
-        assertThat((String) payload.getValue().get("dimension")).isNotBlank();
+        // Раз только журнал без права, измерение отказа определено однозначно — и оно
+        // названо в событии: это и есть проверка, что событие описывает настоящую причину.
+        assertThat((String) payload.getValue().get("dimension")).isEqualTo("JOURNAL");
         assertThat(payload.getValue().get("action")).isEqualTo("изменение");
         assertThat(payload.getValue().get("entity")).isEqualTo(ReceivingDocument.class.getName());
+
+        // За собой убираем: разделяемая база — не место для состояния одного теста.
+        deleteGrants(deniedUser, "BRANCH", "ENTITY:ReceivingDocument");
+        deleteGrants(journalHolder, "JOURNAL");
+    }
+
+    private void deleteGrants(String subjectKey, String... dimensions) {
+        for (String dimension : dimensions) {
+            accessGrantRepository.deleteAll(accessGrantRepository
+                .findBySubjectTypeAndSubjectKeyAndDimension(
+                    AccessGrant.SubjectType.USER, subjectKey, dimension));
+        }
     }
 
     private static AccessGrant grant(String subjectKey, String dimension) {

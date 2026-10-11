@@ -1,10 +1,15 @@
 target/
+# Runtime shared UniDR definitions; back up the configured directory separately.
+/reports/unidr/
 .local-maven-repository/
 # D3.0: пустой локальный репозиторий для проверки бутстрапа с нуля
 # (bootstrap-local-dependencies.ps1 -FreshLocalRepository). Отдельный от тёплого кэша
 # .local-maven-repository, чтобы проверка воспроизводимости не стоила кэша.
 .local-maven-repository-fresh/
 /config/application-local.properties
+/config/navigation-pilot.*.local*
+/config/accounting_object_pilot_*.login.local
+/config/application-accounting-pilot-idea.local.properties
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -89,6 +94,11 @@ node_modules/
 # только машину автора — на чистом checkout файла просто нет, а тест читает его как источник
 # истины. PlatformVaadinSurfaceTest обязан находить его в репозитории.
 !src/test/resources/platform-vaadin-surface.txt
+
+# KI-1: module-owned reviewed roles and stable navigation IDs are versioned contracts.
+!platform-navigation/src/main/resources/META-INF/navigation-surface.txt
+!src/test/resources/navigation/
+!src/test/resources/navigation/*.txt
 
 # D3.5.7: reviewed-реестр шва Report → Form. Тот же случай, что и выше: широкое правило `*.txt`
 # исключило бы контракт шва из поставки, а ReportFormSeamTest читает его как источник истины.

@@ -1,0 +1,2 @@
+org.ipro.rest.web.config.RestRlsResolverAutoConfiguration
+org.ipro.rest.web.config.RestWebAutoConfiguration

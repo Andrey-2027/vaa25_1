@@ -22,7 +22,7 @@ import org.ipro.metadata.annotation.GridColumn;
  */
 @Entity(name = "C4FixtureEntity")
 @EntityMetadata(listFormTitle = "C4 fixture")
-public class C4FixtureEntity implements IdentifiableEntity {
+public class C4FixtureEntity implements IdentifiableEntity<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

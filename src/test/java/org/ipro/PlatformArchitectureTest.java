@@ -29,6 +29,13 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 class PlatformArchitectureTest {
 
     @ArchTest
+    static final ArchRule registerInfrastructureIndependentOfReportAndUi =
+            noClasses().that().resideInAnyPackage("org.ipro.register..")
+                    .should().dependOnClassesThat().resideInAnyPackage(
+                            "org.ipro.reportstudio..", "org.ipro.jr..", "org.ipro.ureport..",
+                            "org.ipro.vaadin..", "com.vaadin..", "net.sf.jasperreports..");
+
+    @ArchTest
     static final ArchRule platformIndependentOfApplication =
             noClasses().that().resideInAnyPackage("org.ipro..")
                     .should().dependOnClassesThat().resideInAnyPackage("org.ip..");

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.crud.BaseEntity;
@@ -14,6 +15,7 @@ import org.ipro.metadata.HasDisplayName;
 @Table(name = "unit_of_measurement")
 @SearchFields({"shortCode"})
 @EntityMetadata(
+    kind = EntityKind.CATALOG,
     listFormTitle = "Единицы измерения",
     itemFormTitle = "Единица измерения",
     selectionFormTitle = "Выбор единицы измерения",

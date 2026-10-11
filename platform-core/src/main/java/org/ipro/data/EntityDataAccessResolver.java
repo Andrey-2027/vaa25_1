@@ -109,7 +109,7 @@ public class EntityDataAccessResolver {
      * собственный сервис (это решает {@code ServiceLocator}, а не resolver).
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity, ID> Optional<BaseService<T, ID>> findService(Class<T> type) {
+    public <T extends IdentifiableEntity<Long>, ID> Optional<BaseService<T, ID>> findService(Class<T> type) {
         return find(type).map(access -> (BaseService<T, ID>) new CanonicalEntityService(type,
             readExecutor, access));
     }

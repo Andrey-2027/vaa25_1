@@ -3,6 +3,7 @@ package org.ipro.reportstudio.query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.ipro.register.RecorderRef;
 
 /** JSON-кодек пакета визуальных запросов. Старый одиночный JSON читается как пакет без CTE. */
 public final class VisualQueryPackageJsonCodec {
@@ -23,7 +24,7 @@ public final class VisualQueryPackageJsonCodec {
                 String name = cte.path("name").asText();
                 VisualQueryDefinition definition = definitionCodec.read(cte.path("definition").toString());
                 VisualQueryPackage.Source source = readSource(cte.get("source"), name, definition);
-                ctes.add(new VisualQueryPackage.Cte(name, source, definition));
+                ctes.add(new VisualQueryPackage.Cte(name, source, definition, readSelectedRecorders(cte.get("selectedRecorders"))));
             }
             return new VisualQueryPackage(version, ctes,
                     definitionCodec.read(node.path("main").toString()));
@@ -61,6 +62,14 @@ public final class VisualQueryPackageJsonCodec {
                 item.put("name", cte.name());
                 item.set("source", writeSource(cte.source()));
                 item.set("definition", mapper.readTree(definitionCodec.write(cte.definition())));
+                if (!cte.selectedRecorders().isEmpty()) {
+                    var selected = item.putArray("selectedRecorders");
+                    for (RecorderRef recorder : cte.selectedRecorders()) {
+                        var reference = selected.addObject();
+                        reference.put("typeCode", recorder.getTypeCode());
+                        reference.put("id", recorder.getId());
+                    }
+                }
             }
             root.set("main", mapper.readTree(definitionCodec.write(queryPackage.main())));
             return mapper.writeValueAsString(root);
@@ -81,5 +90,18 @@ public final class VisualQueryPackageJsonCodec {
             result.put("alias", cte.alias());
         }
         return result;
+    }
+
+    private java.util.List<RecorderRef> readSelectedRecorders(JsonNode values) {
+        if (values == null || values.isNull()) return java.util.List.of();
+        if (!values.isArray()) throw new IllegalArgumentException("selectedRecorders должен быть массивом");
+        var result = new java.util.ArrayList<RecorderRef>();
+        for (JsonNode value : values) {
+            if (!value.isObject() || !value.path("typeCode").isTextual()
+                    || !value.path("id").isIntegralNumber() || !value.path("id").canConvertToLong())
+                throw new IllegalArgumentException("Некорректная ссылка регистратора в CTE");
+            result.add(new RecorderRef(value.path("typeCode").asText(), value.path("id").asLong()));
+        }
+        return java.util.List.copyOf(result);
     }
 }

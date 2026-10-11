@@ -194,7 +194,11 @@ class CharacterizationStandardPathIT {
     // === Helpers ===
 
     private void withSuperuser(Runnable action) {
-        RlsTestFixture.runAsSuperuser(accessGrantRepository, action);
+        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository,
+                SecurityContextHolder.getContext().getAuthentication().getName(), Branch.class);
+            action.run();
+        });
     }
 
     private List<Branch> seed(String prefix, int count) {

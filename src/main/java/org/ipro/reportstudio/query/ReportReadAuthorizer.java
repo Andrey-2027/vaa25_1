@@ -55,6 +55,18 @@ public final class ReportReadAuthorizer {
             }
         }
         List<String> errors = new ArrayList<>();
+        for (SqmPath<?> path : collector.filteredAssociationPaths) {
+            Class<?> type = collector.entityClass((SqmEntityDomainType<?>) path.getNodeType());
+            boolean restricted = dimensionRegistry.policyOf(type).dimensions().entrySet().stream()
+                .anyMatch(entry -> entry.getValue() == org.ipro.rls.RlsDimensionKind.FILTERABLE
+                    && accessService.getReadableIds(entry.getKey(), username) != null);
+            boolean joined = collector.identityJoins.getOrDefault(path.getLhs(), Set.of())
+                .contains(path.getReferencedPathSource().getPathName());
+            if (restricted && !joined) {
+                errors.add("RLS_ASSOCIATION_JOIN_REQUIRED: " + type.getName()
+                    + " — нужен INNER JOIN целевого типа по id; association JOIN/FK не гарантирует row filter");
+            }
+        }
         var schema = new org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer(emf).analyze(hql);
         for (var field : schema.selectFields()) {
             if (!scalar(field.javaType())) {
@@ -73,19 +85,8 @@ public final class ReportReadAuthorizer {
                 errors.add("Report C5: нет ENTITY-read для " + type.getName());
                 continue;
             }
-            // До attribute lineage отчётный канал публикует только полностью разрешённые типы.
-            // Строже точечной проекции, зато закрывает ресурсы в CTE, WHERE/ON и агрегатах.
-            for (var attribute : emf.getMetamodel().entity(type).getAttributes()) {
-                if (attribute.getPersistentAttributeType() == jakarta.persistence.metamodel.Attribute.PersistentAttributeType.EMBEDDED
-                    || attribute.getPersistentAttributeType() == jakarta.persistence.metamodel.Attribute.PersistentAttributeType.ELEMENT_COLLECTION) {
-                    errors.add("Report C5: тип с embedded/element-collection требует attribute lineage: "
-                        + type.getName() + ":" + attribute.getName());
-                    continue;
-                }
-                if (!permissions.isAttributeReadPermitted(username, type, attribute.getName())) {
-                    errors.add("Report C5: нет ATTR-read для " + type.getName() + ":" + attribute.getName());
-                }
-            }
+            // Entity read covers its fields. Sources in CTE/WHERE/ON still require their own
+            // entity read and RLS; there are no independent attribute permissions (ADR-0018).
         }
         for (ReportReadPolicy policy : policies) {
             errors.addAll(policy.violations(Set.copyOf(collector.types)));
@@ -107,12 +108,27 @@ public final class ReportReadAuthorizer {
 
     private final class EntityCollector extends BaseSemanticQueryWalker {
         private final Set<Class<?>> types = new LinkedHashSet<>();
+        private final Set<SqmPath<?>> filteredAssociationPaths = Collections.newSetFromMap(new IdentityHashMap<>());
+        private final Map<SqmPath<?>, Set<String>> identityJoins = new IdentityHashMap<>();
+
+        private Class<?> entityClass(SqmEntityDomainType<?> entity) {
+            return factory.getMappingMetamodel().getEntityDescriptor(entity.getHibernateEntityName())
+                .getJavaType().getJavaTypeClass();
+        }
 
         private void capture(SqmPath<?> path) {
             for (SqmPath<?> part = path; part != null; part = part.getLhs()) {
                 if (part.getNodeType() instanceof SqmEntityDomainType<?> entity) {
-                    types.add(factory.getMappingMetamodel().getEntityDescriptor(entity.getHibernateEntityName())
-                        .getJavaType().getJavaTypeClass());
+                    Class<?> type = entityClass(entity);
+                    types.add(type);
+                    // Hibernate can read association.id straight from FK without joining the target.
+                    // C5 admission alone cannot guarantee that its FILTERABLE row visibility applies.
+                    if ((part instanceof SqmEntityValuedSimplePath<?>
+                            || part instanceof org.hibernate.query.sqm.tree.from.SqmAttributeJoin<?, ?>)
+                        && dimensionRegistry.policyOf(type).dimensions().containsValue(
+                            org.ipro.rls.RlsDimensionKind.FILTERABLE)) {
+                        filteredAssociationPaths.add(part);
+                    }
                 }
             }
         }
@@ -121,8 +137,47 @@ public final class ReportReadAuthorizer {
             super.consumeFromClauseRoot(root);
         }
         @Override protected void consumeExplicitJoin(SqmJoin<?, ?> join, boolean transitive) {
+            if (join instanceof org.hibernate.query.sqm.tree.from.SqmEntityJoin<?, ?> entityJoin
+                && join.getSqmJoinType() == org.hibernate.query.sqm.tree.SqmJoinType.INNER) {
+                collectIdentityJoin(entityJoin, join.getJoinPredicate());
+            }
             capture(join);
             super.consumeExplicitJoin(join, transitive);
+        }
+
+        private void collectIdentityJoin(org.hibernate.query.sqm.tree.from.SqmEntityJoin<?, ?> join,
+                                         org.hibernate.query.sqm.tree.predicate.SqmPredicate predicate) {
+            if (predicate instanceof org.hibernate.query.sqm.tree.predicate.SqmJunctionPredicate junction
+                && junction.getOperator() == jakarta.persistence.criteria.Predicate.BooleanOperator.AND) {
+                junction.getPredicates().forEach(part -> collectIdentityJoin(join, part));
+            } else if (predicate instanceof org.hibernate.query.sqm.tree.predicate.SqmComparisonPredicate comparison
+                && comparison.getSqmOperator() == org.hibernate.query.sqm.ComparisonOperator.EQUAL) {
+                matchIdentityJoin(join, comparison.getLeftHandExpression(), comparison.getRightHandExpression());
+                matchIdentityJoin(join, comparison.getRightHandExpression(), comparison.getLeftHandExpression());
+            }
+        }
+
+        private void matchIdentityJoin(org.hibernate.query.sqm.tree.from.SqmEntityJoin<?, ?> join,
+                                       org.hibernate.query.sqm.tree.expression.SqmExpression<?> foreignKey,
+                                       org.hibernate.query.sqm.tree.expression.SqmExpression<?> targetId) {
+            if (!(foreignKey instanceof SqmPath<?> key) || !(targetId instanceof SqmPath<?> id)
+                || id.getLhs() != join || !(key.getLhs() instanceof SqmEntityValuedSimplePath<?> association)
+                || !(association.getNodeType() instanceof SqmEntityDomainType<?> entity)) return;
+            Class<?> type = entityClass(entity);
+            if (type != entityClass(join.getModel())) return;
+            var target = emf.getMetamodel().entity(type);
+            if (!target.hasSingleIdAttribute()) return;
+            String idName = target.getId(target.getIdType().getJavaType()).getName();
+            if (key.getReferencedPathSource().getPathName().equals(idName)
+                && id.getReferencedPathSource().getPathName().equals(idName)) {
+                identityJoins.computeIfAbsent(association.getLhs(), ignored -> new HashSet<>())
+                    .add(association.getReferencedPathSource().getPathName());
+            }
+        }
+        @Override public Object visitFkExpression(SqmFkExpression<?> expression) {
+            // A foreign key belongs to the owner. No target row is read in this SQL operation.
+            capture(expression.getLhs().getLhs());
+            return expression;
         }
         @Override public Object visitBasicValuedPath(SqmBasicValuedSimplePath<?> path) {
             capture(path);

@@ -32,6 +32,8 @@ import org.ipro.form.link.PublishedFormRoute;
 import org.ipro.vaadin.search.GlobalSearchHeader;
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.metadata.SubsystemRegistry;
+import org.ip.navigation.NavigationUiSnapshot;
+import org.ipro.navigation.NavigationTree;
 import org.ip.views.admin.AdminView;
 import org.ip.views.admin.CardAnchor;
 import org.ip.views.admin.DiagnosticsView;
@@ -121,6 +123,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
 
     private final Workspace workspace;
     private final SubsystemRegistry subsystemRegistry;
+    private final NavigationUiSnapshot navigationSnapshot;
     private final UserPreferencesStore preferencesStore;
     private final GlobalSearchHeader globalSearchHeader;
     private final FormRouteOpener routeOpener;
@@ -140,8 +143,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
                       EntityExplorerAccess explorerAccess,
                       FormRouteCatalog routeCatalog,
                       ObjectProvider<EntityExplorerView> explorerViews,
-                      EntityExplorerNavigation structureNavigation) {
+                      EntityExplorerNavigation structureNavigation,
+                      NavigationUiSnapshot navigationSnapshot) {
         this.subsystemRegistry = subsystemRegistry;
+        this.navigationSnapshot = navigationSnapshot;
         this.preferencesStore = preferencesStore;
         this.globalSearchHeader = globalSearchHeader;
         this.workspace = workspace;
@@ -650,8 +655,12 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
             nav.addItem(subsystemItem);
         }
 
-        for (SubsystemNode root : subsystemRegistry.getRoots()) {
-            nav.addItem(buildNavItem(root));
+        if (navigationSnapshot.enabled()) {
+            navigationSnapshot.appendMenu(nav, this::openSubsystem);
+        } else {
+            for (SubsystemNode root : subsystemRegistry.getRoots()) {
+                nav.addItem(buildNavItem(root));
+            }
         }
 
         SideNavItem legacyItem = new SideNavItem("Справочники (legacy)");
@@ -695,6 +704,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
         String tabId = "subsystem-" + node.getMarkerClass().getSimpleName();
         workspace.open(SubsystemHomeView.class, tabId, node.getTitle(),
             (SubsystemHomeView v) -> v.init(node));
+    }
+
+    private void openSubsystem(NavigationTree.Node node) {
+        workspace.open(SubsystemHomeView.class, "subsystem-" + node.id(), node.title(), v -> v.init(node));
     }
 
     private static boolean isAdmin() {

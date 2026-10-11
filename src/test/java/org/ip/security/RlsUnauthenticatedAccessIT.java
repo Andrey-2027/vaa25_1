@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -67,8 +68,8 @@ class RlsUnauthenticatedAccessIT {
     @Test
     void serviceReadWithoutAuthenticationIsDeniedInsteadOfReturningEverything() {
         assertThatThrownBy(() -> documents().findAll())
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("аутентифицированного пользователя");
+            .isInstanceOf(org.ipro.rls.c5.C5AccessDeniedException.class)
+            .satisfies(RlsUnauthenticatedAccessIT::assertEntityReadDenied);
     }
 
     @Test
@@ -77,15 +78,15 @@ class RlsUnauthenticatedAccessIT {
             new UsernamePasswordAuthenticationToken("system", "n/a", List.of()));
 
         assertThatThrownBy(() -> documents().findAll())
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("аутентифицированного пользователя");
+            .isInstanceOf(org.ipro.rls.c5.C5AccessDeniedException.class)
+            .satisfies(RlsUnauthenticatedAccessIT::assertEntityReadDenied);
     }
 
     @Test
     void lookupWithoutAuthenticationIsDenied() {
         assertThatThrownBy(() -> lookups.findAll(ReceivingDocument.class))
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("аутентифицированного пользователя");
+            .isInstanceOf(org.ipro.rls.c5.C5AccessDeniedException.class)
+            .satisfies(RlsUnauthenticatedAccessIT::assertEntityReadDenied);
     }
 
     @Test
@@ -93,6 +94,13 @@ class RlsUnauthenticatedAccessIT {
         assertThatThrownBy(() -> journals.findAll())
             .isInstanceOf(RlsAccessDeniedException.class)
             .hasMessageContaining("аутентифицированного пользователя");
+    }
+
+    private static void assertEntityReadDenied(Throwable failure) {
+        var decision = ((org.ipro.rls.c5.C5AccessDeniedException) failure).decision();
+        assertThat(decision.allowed()).isFalse();
+        assertThat(decision.key()).isEqualTo(org.ipro.rls.c5.C5PermissionKeys.entityRead(ReceivingDocument.class));
+        assertThat(decision.operation()).isEqualTo(org.ipro.rls.c5.C5Operation.READ);
     }
 
     @Test

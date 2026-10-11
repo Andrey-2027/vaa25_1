@@ -1,6 +1,7 @@
 package org.ip.service;
 
 import jakarta.validation.Validator;
+import org.ip.application.catalog.AttributeValuePermissions;
 import org.ip.model.AttributeType;
 import org.ip.model.AttributeValue;
 import org.ip.model.AttributeValueType;
@@ -63,6 +64,14 @@ import java.util.Optional;
  * до SQL и до пользовательского кода, а не тихо выполнялся бы через repository. Нормализация
  * {@code codeUp}/{@code refId} вынесена в {@code AttributeValueLifecycle}, чтобы применяться
  * ко всем путям записи, а не только к тому, которым шёл этот сервис.</p>
+ *
+ * <p>C5.6b: все пять записей типа больше не идут мимо canonical path. Четыре пути создания
+ * (интернирование и создание в текущей транзакции) вызывают canonical {@code create}, поэтому
+ * создание значения требует права CREATE на ключ типа; переименование идёт именованной операцией
+ * владельца {@code ACTION:ATTRIBUTE_VALUE:RENAME} (ADR-0019) — вход принимает мутацию на
+ * загруженной строке, поэтому generic UPDATE у типа по-прежнему не появляется. Repository
+ * остаётся только для чтения и блокировок: дедуп, гонка и пессимистичная блокировка строки
+ * значения не переезжают в платформу.</p>
  */
 @Measured
 @Service
@@ -279,10 +288,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
         if (existing.isPresent()) {
             return existing.get();
         }
-        AttributeValue created = attributeValueRepository.save(
-            new AttributeValue(managedType, display, display, null, refId));
-        attributeValueRepository.flush();
-        return created;
+        return canonical.create(new AttributeValue(managedType, display, display, null, refId));
     }
 
     private AttributeType lockAttributeType(AttributeType type) {
@@ -305,10 +311,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
         if (existing.isPresent()) {
             return existing.get();
         }
-        AttributeValue created = attributeValueRepository.save(
-            new AttributeValue(type, code, name, codeUp, null));
-        attributeValueRepository.flush();
-        return created;
+        return canonical.create(new AttributeValue(type, code, name, codeUp, null));
     }
 
     /**
@@ -377,38 +380,59 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
      * карточки) риск закрывается «могилкой» (неактивная строка, занимающая слот).
      */
     public AttributeValue renameValue(Long valueId, String newCode, String newName) {
-        return renameTx.execute(status -> {
-            AttributeValue value = attributeValueRepository.findByIdForUpdate(valueId)
-                .orElseThrow(() -> new ValidationException(
-                    "Значение атрибута с id=" + valueId + " не найдено."));
-            AttributeValueType type = value.getAttrType().getValueType();
-            if (type == AttributeValueType.REF) {
-                throw new ValidationException(
-                    "Переименование значения «Ссылка» запрещено: его имя — снапшот строки "
-                        + "словаря на момент привязки.");
+        return renameTx.execute(status -> canonical.executeNamed(
+            AttributeValuePermissions.RENAME_PERMISSION_ID, valueId,
+            value -> applyRename(value, newCode, newName)));
+    }
+
+    /**
+     * Доменные правила переименования — мутация владельца внутри именованной операции
+     * (ADR-0019 §2): решение об операции и загрузка строки уже сделаны платформой, а здесь
+     * остаются только правила типа.
+     *
+     * <p>Строка перечитывается под пессимистичной блокировкой: проверка цели и запись
+     * атомарны. Загрузка идёт тем же экземпляром persistence context, поэтому блокировка
+     * берётся на той же строке, которую мутирует операция, а не на втором представлении.</p>
+     *
+     * <p>Правила те же, что были у прежнего repository-пути:
+     * <ul>
+     *   <li>новый код нормализуется по типу (STRING/ENUM — trim, NUMBER — каноническая форма);</li>
+     *   <li>слот {@code (attrType, codeUp)} занят <b>другой</b> строкой → это слияние, а не
+     *       переименование: запрещено;</li>
+     *   <li>REF — запрещено: имя значения это снапшот строки словаря на момент привязки;</li>
+     *   <li>STRING/NUMBER — {@code name} следует за кодом; ENUM — {@code name} меняется только
+     *       если передан непустой {@code newName}.</li>
+     * </ul>
+     */
+    private void applyRename(AttributeValue value, String newCode, String newName) {
+        AttributeValue locked = attributeValueRepository.findByIdForUpdate(value.getId())
+            .orElseThrow(() -> new ValidationException(
+                "Значение атрибута с id=" + value.getId() + " не найдено."));
+        AttributeValueType type = locked.getAttrType().getValueType();
+        if (type == AttributeValueType.REF) {
+            throw new ValidationException(
+                "Переименование значения «Ссылка» запрещено: его имя — снапшот строки "
+                    + "словаря на момент привязки.");
+        }
+        String code = normalizeRenameCode(type, newCode);
+        Optional<AttributeValue> target = attributeValueRepository.findByAttrTypeAndCodeUp(
+            locked.getAttrType(), code.toUpperCase(Locale.ROOT));
+        if (target.isPresent() && !target.get().getId().equals(locked.getId())) {
+            throw new ValidationException(
+                "Значение «" + code + "» уже существует у типа " + locked.getAttrType().getCode()
+                    + " — это слияние, а не переименование.");
+        }
+        locked.setCode(code);
+        locked.setCodeUp(code.toUpperCase(Locale.ROOT));
+        if (type == AttributeValueType.STRING || type == AttributeValueType.NUMBER) {
+            locked.setName(code);
+        } else {
+            String label = normalizeText(newName);
+            if (!label.isEmpty()) {
+                locked.setName(label);
             }
-            String code = normalizeRenameCode(type, newCode);
-            Optional<AttributeValue> target = attributeValueRepository.findByAttrTypeAndCodeUp(
-                value.getAttrType(), code.toUpperCase(Locale.ROOT));
-            if (target.isPresent() && !target.get().getId().equals(valueId)) {
-                throw new ValidationException(
-                    "Значение «" + code + "» уже существует у типа " + value.getAttrType().getCode()
-                        + " — это слияние, а не переименование.");
-            }
-            value.setCode(code);
-            value.setCodeUp(code.toUpperCase(Locale.ROOT));
-            if (type == AttributeValueType.STRING || type == AttributeValueType.NUMBER) {
-                value.setName(code);
-            } else {
-                String label = normalizeText(newName);
-                if (!label.isEmpty()) {
-                    value.setName(label);
-                }
-            }
-            AttributeValue saved = attributeValueRepository.save(value);
-            rebuildDisplayNames(saved);
-            return saved;
-        });
+        }
+        rebuildDisplayNames(locked);
     }
 
     /**
@@ -508,7 +532,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
         }
         return createSupport.getOrCreate(AttributeValue.interningKeyOf(type, codeUp, null),
             () -> attributeValueRepository.findByAttrTypeAndCodeUp(type, codeUp),
-            () -> attributeValueRepository.save(new AttributeValue(type, code, name, codeUp, null)));
+            () -> canonical.create(new AttributeValue(type, code, name, codeUp, null)));
     }
 
     private AttributeValue getOrCreateRefRow(AttributeType type, String displayName, Long refId) {
@@ -518,8 +542,7 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
         }
         return createSupport.getOrCreate(AttributeValue.interningKeyOf(type, null, refId),
             () -> attributeValueRepository.findByAttrTypeAndRefId(type, refId),
-            () -> attributeValueRepository.save(
-                new AttributeValue(type, displayName, displayName, null, refId)));
+            () -> canonical.create(new AttributeValue(type, displayName, displayName, null, refId)));
     }
 
     // === Стандартная поверхность: делегируется canonical handle ===

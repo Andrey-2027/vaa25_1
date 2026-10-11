@@ -68,7 +68,8 @@ public class RlsPolicyEnforcer {
 
     public void requireReadable(Class<?> entityClass, EntityManager entityManager) {
         if (!prepareRead(entityClass, entityManager)) {
-            throw new RlsAccessDeniedException("Нет права чтения " + entityType(entityClass).getSimpleName());
+            throw new RlsAccessDeniedException("Нет права чтения " + entityType(entityClass).getSimpleName(),
+                entityType(entityClass), "READ");
         }
     }
 
@@ -84,6 +85,24 @@ public class RlsPolicyEnforcer {
         if (isProtected(entityType(entity)) && !RlsContext.isBypassed()) {
             RlsWriteAuthorization.grant(entity, RlsWriteAuthorization.Operation.DELETE, checks);
         }
+    }
+
+    /**
+     * Фиксирует авторизацию canonical write для типа без RLS (ADR-0017 §9).
+     *
+     * <p>Вызывается только canonical write preflight — тем же местом, где {@link
+     * #requireUpdate(Object)} решает строку. Для типа с измерениями это no-op: его
+     * авторизация уже зафиксирована вместе с проверками строк. Реестр здесь тот же самый,
+     * что держит слушатель границы, поэтому запись и проверка flush всегда говорят об одном
+     * наборе типов.</p>
+     */
+    public void recordCanonicalWrite(Object entity) {
+        RlsWriteGuardBridge.recordCanonicalWrite(registry, entity);
+    }
+
+    /** То же для удаления: право на {@code DELETE} решено на preflight, flush лишь потребляет. */
+    public void recordCanonicalDelete(Object entity) {
+        RlsWriteGuardBridge.recordCanonicalDelete(registry, entity);
     }
 
     private Map<String, List<RlsCheckValue>> requirePermission(Object entity, boolean delete) {
@@ -118,7 +137,8 @@ public class RlsPolicyEnforcer {
                         dimension, id);
                     throw new RlsAccessDeniedException("Нет прав на "
                         + (delete ? "удаление" : "изменение") + " (измерение "
-                        + dimension + (id == null ? ", создание новой записи" : ", id=" + id) + ")");
+                        + dimension + (id == null ? ", создание новой записи" : ", id=" + id) + ")",
+                        entityClass, delete ? "DELETE" : id == null ? "CREATE" : "UPDATE", dimension);
                 }
             }
         }

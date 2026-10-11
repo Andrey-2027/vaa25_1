@@ -35,6 +35,8 @@ import java.util.function.Consumer;
  * сам ничего не решает про права.
  */
 public class ViewSelectorDialog extends Dialog {
+    private GridViewState currentState;
+    public ViewSelectorDialog withCurrentState(GridViewState state) { currentState = state; return this; }
 
     private final org.ipro.metadata.GridMetadata metadata;
     private final MetadataResolver metadataResolver;
@@ -130,14 +132,15 @@ public class ViewSelectorDialog extends Dialog {
         standard.setTooltipText("Состав колонок из метаданных, без сохранённого вида");
 
         Button create = new Button("Создать", e -> openEditor(null,
-            metadata.getListColumnPaths(), null, ""));
+            currentState == null ? metadata.getListColumnPaths() : toColumnPaths(currentState),
+            currentState == null ? null : currentState.userFilterOrLegacy(), "", currentState));
 
         Button copy = new Button("Копировать", e -> {
             GridView selected = requireSelection();
             if (selected == null) return;
             GridViewState state = GridViewState.fromJson(selected.columns());
             openEditor(null, toColumnPaths(state), state.userFilterOrLegacy(),
-                selected.name() + " (копия)");
+                selected.name() + " (копия)", state);
         });
 
         Button edit = new Button("Изменить", e -> {
@@ -145,7 +148,7 @@ public class ViewSelectorDialog extends Dialog {
             if (selected == null) return;
             GridViewState state = GridViewState.fromJson(selected.columns());
             openEditor(selected, toColumnPaths(state), state.userFilterOrLegacy(),
-                selected.name());
+                selected.name(), state);
         });
 
         Button delete = new Button("Удалить", e -> {
@@ -169,7 +172,7 @@ public class ViewSelectorDialog extends Dialog {
     }
 
     private void openEditor(GridView editingView, List<ColumnPath> initialColumns,
-                            FilterNode initialFilter, String initialName) {
+                            FilterNode initialFilter, String initialName, GridViewState initialState) {
         new GridViewEditorDialog(metadata, metadataResolver, gridViewStore, lookupService, formKey,
             editingView, initialColumns, initialFilter, initialName, supportsFilters,
             savedView -> {
@@ -177,7 +180,7 @@ public class ViewSelectorDialog extends Dialog {
                 grid.setItems(gridViewStore.findVisibleViews(formKey));
             },
             entitySelector
-        ).open();
+        ).withStateOptions(initialState).open();
     }
 
     private List<ColumnPath> toColumnPaths(GridViewState state) {

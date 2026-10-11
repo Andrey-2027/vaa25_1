@@ -15,6 +15,10 @@ import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.c5.C5AccessDeniedException;
 import org.ipro.rls.c5.C5PermissionEvaluator;
 import org.ipro.rls.c5.C5PermissionConfigurationException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.TransientDataAccessResourceException;
+import org.springframework.dao.QueryTimeoutException;
+import org.hibernate.exception.JDBCConnectionException;
 import org.ipro.rls.c5.C5PermissionKeys;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -83,6 +87,17 @@ public class RestReadService {
     }
 
     public RestPageResult list(RestListQuery query) {
+        try {
+            return listInternal(query);
+        } catch (C5PermissionConfigurationException | DataAccessResourceFailureException
+                 | TransientDataAccessResourceException | QueryTimeoutException
+                 | JDBCConnectionException | jakarta.persistence.QueryTimeoutException unavailable) {
+            throw new RestReadException(RestReadOutcome.SECURITY_UNAVAILABLE,
+                "REST list enforcement is unavailable", unavailable);
+        }
+    }
+
+    private RestPageResult listInternal(RestListQuery query) {
         Objects.requireNonNull(query, "query must not be null");
 
         // 1. РџРѕР»СѓС‡РёС‚СЊ РїРѕРґС‚РІРµСЂР¶РґС‘РЅРЅС‹Р№ СЃСѓР±СЉРµРєС‚ (РѕС‚РєР°Р· РїСЂРё RLS bypass)
@@ -121,8 +136,8 @@ public class RestReadService {
         Pageable pageable = compilePageable(resource, query.page(), effectivePageSize,
             query.sortBy(), query.sortDirection());
 
-        // 5. РџСЂРѕРІРµСЂРёС‚СЊ C5 РЅР° С„Р°РєС‚РёС‡РµСЃРєРё РёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ Р°С‚СЂРёР±СѓС‚С‹
-        authorizeAttributes(username, rootType, resource, effectiveAliases, query.filters(), pageable.getSort());
+        // Published scalar paths are authorized by API + entity read and the resource contract.
+        validateEffectiveSort(resource, pageable.getSort());
 
         // 6. РџСЂРёРјРµРЅРёС‚СЊ reference rules Рє Р°СЃСЃРѕС†РёР°С†РёСЏРј
         authorizeReferences(username, rootType, resource, effectiveAliases, query.filters(), pageable.getSort());
@@ -157,6 +172,17 @@ public class RestReadService {
     }
 
     public RestDetailResult detail(RestDetailQuery query) {
+        try {
+            return detailInternal(query);
+        } catch (C5PermissionConfigurationException | DataAccessResourceFailureException
+                 | TransientDataAccessResourceException | QueryTimeoutException
+                 | JDBCConnectionException | jakarta.persistence.QueryTimeoutException unavailable) {
+            throw new RestReadException(RestReadOutcome.SECURITY_UNAVAILABLE,
+                "REST detail enforcement is unavailable", unavailable);
+        }
+    }
+
+    private RestDetailResult detailInternal(RestDetailQuery query) {
         Objects.requireNonNull(query, "query must not be null");
 
         // 1. РџРѕР»СѓС‡РёС‚СЊ РїРѕРґС‚РІРµСЂР¶РґС‘РЅРЅС‹Р№ СЃСѓР±СЉРµРєС‚ (РѕС‚РєР°Р· РїСЂРё RLS bypass)
@@ -188,8 +214,7 @@ public class RestReadService {
         RestResourceProjection projection = resource.projection(RestReadOperation.DETAIL);
         List<String> effectiveAliases = determineEffectiveAliases(query.fields(), projection);
 
-        // 5. РџСЂРѕРІРµСЂРёС‚СЊ C5 РЅР° Р°С‚СЂРёР±СѓС‚С‹
-        authorizeAttributes(username, rootType, resource, effectiveAliases, Map.of(), null);
+        // Published scalar paths are authorized by API + entity read and the resource contract.
 
         // 6. РџСЂРёРјРµРЅРёС‚СЊ reference rules Рє Р°СЃСЃРѕС†РёР°С†РёСЏРј
         authorizeReferences(username, rootType, resource, effectiveAliases, Map.of(), Sort.unsorted());
@@ -305,33 +330,7 @@ public class RestReadService {
         return type;
     }
 
-    private void authorizeAttributes(String username, Class<?> rootType, ResolvedRestResource resource,
-                                     List<String> effectiveAliases, Map<String, Object> filters,
-                                     Sort effectiveSort) {
-        for (String alias : effectiveAliases) {
-            ResolvedRestField field = resource.fields().get(alias);
-            if (field != null) {
-                String firstSegment = field.source().segments().getFirst().name();
-                if (!c5Evaluator.isAttributeReadPermitted(username, rootType, firstSegment)) {
-                    throw new RestReadException(RestReadOutcome.FORBIDDEN,
-                        "Attribute read denied on root: " + firstSegment);
-                }
-            }
-        }
-
-        if (filters != null) {
-            for (String filterName : filters.keySet()) {
-                ResolvedRestPath path = resource.filters().get(filterName);
-                if (path != null) {
-                    String firstSegment = path.segments().getFirst().name();
-                    if (!c5Evaluator.isAttributeReadPermitted(username, rootType, firstSegment)) {
-                        throw new RestReadException(RestReadOutcome.FORBIDDEN,
-                            "Attribute read denied on filter: " + firstSegment);
-                    }
-                }
-            }
-        }
-
+    private void validateEffectiveSort(ResolvedRestResource resource, Sort effectiveSort) {
         for (Sort.Order order : effectiveSort == null ? Sort.unsorted() : effectiveSort) {
             ResolvedRestPath path = resource.sorts().values().stream()
                 .filter(candidate -> candidate.source().equals(order.getProperty()))
@@ -345,11 +344,6 @@ public class RestReadService {
             if (path == null) {
                 throw new RestReadException(RestReadOutcome.INVALID_REQUEST,
                     "Effective sort path is not present in the REST catalog: " + order.getProperty());
-            }
-            String persistentAttribute = path.segments().getFirst().name();
-            if (!c5Evaluator.isAttributeReadPermitted(username, rootType, persistentAttribute)) {
-                throw new RestReadException(RestReadOutcome.FORBIDDEN,
-                    "Attribute read denied on sort: " + persistentAttribute);
             }
         }
     }

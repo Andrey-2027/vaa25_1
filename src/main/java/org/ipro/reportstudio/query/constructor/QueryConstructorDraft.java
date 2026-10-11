@@ -16,6 +16,7 @@ import org.ipro.reportstudio.query.VisualQueryDefinition;
 import org.ipro.reportstudio.query.VisualQueryExpression;
 import org.ipro.reportstudio.query.VisualQueryOrder;
 import org.ipro.reportstudio.query.VisualQueryPackage;
+import org.ipro.register.RecorderRef;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -80,9 +81,12 @@ public final class QueryConstructorDraft {
     private final List<VisualQueryDefinition.HavingCondition> havingConditions = new ArrayList<>();
     private JoinLogicalOperator havingOperator = JoinLogicalOperator.AND;
     private FilterNode where;
+    private List<VisualQueryDefinition.Parameter> declaredParameters = List.of();
     /** Подзапросы активного этапа: условия WHERE ссылаются на них по имени (sub1, sub2, …). */
     private List<VisualQueryDefinition.Subquery> subqueries = List.of();
     private final LinkedHashMap<String, VisualQueryDefinition> packageStages = new LinkedHashMap<>();
+    private final LinkedHashMap<String, List<RecorderRef>> packageStageRecorders = new LinkedHashMap<>();
+    private final LinkedHashMap<String, org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice> slices = new LinkedHashMap<>();
     private String activeStage = "main";
     /** Поле SELECT, замещённое агрегатом — для восстановления при удалении агрегата. */
     private final Map<String, VisualQueryDefinition.SelectField> replacedByAggregate = new LinkedHashMap<>();
@@ -127,6 +131,183 @@ public final class QueryConstructorDraft {
 
     public List<String> stageNames() { return List.copyOf(packageStages.keySet()); }
 
+    public List<String> visibleStageNames() {
+        var hidden = sliceStages();
+        return packageStages.keySet().stream().filter(name -> !hidden.contains(name)).toList();
+    }
+
+    public List<org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice> slices() {
+        return List.copyOf(slices.values());
+    }
+
+    public List<String> parameterNames() {
+        return declaredParameters.stream().map(VisualQueryDefinition.Parameter::name).toList();
+    }
+
+    public java.util.Set<String> occupiedNames() {
+        var names = new LinkedHashSet<>(packageStages.keySet());
+        tables().forEach(table -> names.add(table.alias()));
+        roots.forEach(root -> names.add(root.entityName()));
+        return names;
+    }
+
+    public void setSlices(List<org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice> sources) {
+        slices.clear(); sources.forEach(source -> slices.put(source.name(), source));
+    }
+
+    public String addSlice(org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice source) {
+        if (!isMainStage()) throw new IllegalArgumentException("Добавляйте срез в итоговый запрос.");
+        checkSliceParameters(source);
+        for (var stage : source.stages()) {
+            if (packageStages.containsKey(stage.name())) throw new IllegalArgumentException("Повторное имя источника среза.");
+        }
+        for (var stage : source.stages()) {
+            packageStages.put(stage.name(), stage.definition()); setStageRecorders(stage.name(), stage.selectedRecorders());
+        }
+        slices.put(source.name(), source);
+        String alias = addCteTable(source.name());
+        ensureSliceParameters(source);
+        return alias;
+    }
+
+    /** Updates generated stages without changing field paths, table aliases or the main query. */
+    public void updateSlice(String name, org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice replacement) {
+        var original = slices.get(name);
+        if (original == null || !replacement.name().equals(name)
+                || !original.registerEntity().equals(replacement.registerEntity()))
+            throw new IllegalArgumentException("Изменение типа источника требует добавить новый срез.");
+        var names = original.stages().stream().map(org.ipro.reportstudio.query.VisualQueryPackage.Cte::name).toList();
+        if (!names.equals(replacement.stages().stream().map(org.ipro.reportstudio.query.VisualQueryPackage.Cte::name).toList()))
+            throw new IllegalArgumentException("Изменение структуры источника требует добавить новый срез.");
+        checkSliceParameters(replacement);
+        for (var stage : replacement.stages()) {
+            packageStages.put(stage.name(), stage.definition()); setStageRecorders(stage.name(), stage.selectedRecorders());
+        }
+        slices.put(name, replacement);
+        ensureSliceParameters(replacement);
+        pruneSliceParameters(original);
+    }
+
+    private void pruneSliceParameters(org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice source) {
+        var candidates = sliceParameters(source).stream().map(VisualQueryDefinition.Parameter::name).collect(Collectors.toSet());
+        declaredParameters = declaredParameters.stream().filter(parameter -> !candidates.contains(parameter.name())
+            || parameterStillReferenced(parameter.name())
+            || (!parameter.name().startsWith("sliceId_") && parameterStillReferenced("sliceId_" + parameter.name()))).toList();
+    }
+
+    private boolean parameterStillReferenced(String name) {
+        var definitions = new ArrayList<>(packageStages.values()); definitions.add(definition());
+        for (var definition : definitions) {
+            if (definition == null) continue;
+            try {
+                var node = new com.fasterxml.jackson.databind.ObjectMapper().readTree(
+                    new org.ipro.reportstudio.query.VisualQueryDefinitionJsonCodec().write(definition));
+                ((com.fasterxml.jackson.databind.node.ObjectNode) node).remove("parameters");
+                if (jsonReferencesParameter(node, name)) return true;
+            } catch (Exception unsupported) { return true; }
+        }
+        return false;
+    }
+
+    private static boolean jsonReferencesParameter(com.fasterxml.jackson.databind.JsonNode node, String name) {
+        if (node.isTextual()) {
+            String value = node.asText();
+            return value.equals(name) || Pattern.compile(":" + Pattern.quote(name) + "(?![A-Za-z0-9_])").matcher(value).find();
+        }
+        for (var child : node) if (jsonReferencesParameter(child, name)) return true;
+        return false;
+    }
+
+    private List<VisualQueryDefinition.Parameter> sliceParameters(org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice source) {
+        var values = new LinkedHashMap<String, VisualQueryDefinition.Parameter>();
+        for (var parameter : source.stages().getFirst().definition().parameters()) {
+            values.put(parameter.name(), parameter);
+            if (parameter.name().startsWith("sliceId_")) {
+                String name = parameter.name().substring(8);
+                values.put(name, new VisualQueryDefinition.Parameter(name, "ENTITY", true, null));
+            }
+        }
+        return List.copyOf(values.values());
+    }
+    private void checkSliceParameters(org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice source) {
+        for (var filter : source.parameterFilters()) {
+            Class<?> target = sliceReferenceType(source, filter.field());
+            for (var previous : slices.values()) {
+                if (previous.name().equals(source.name())) continue;
+                for (var used : previous.parameterFilters()) if (used.parameter().equals(filter.parameter())
+                        && sliceReferenceType(previous, used.field()) != target)
+                    throw new IllegalArgumentException("Несовместимый тип ссылочного параметра: " + filter.parameter());
+            }
+        }
+        for (var value : sliceParameters(source)) if (declaredParameters.stream().anyMatch(existing -> existing.name().equals(value.name()) && !existing.dataType().equals(value.dataType())))
+            throw new IllegalArgumentException("Параметр «" + value.name() + "» уже имеет другой тип");
+    }
+    private static Class<?> sliceReferenceType(org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice source, String field) {
+        return source.entity().fields().stream().filter(value -> value.name().equals(field)).map(value -> value.referenceType()).filter(Objects::nonNull).findFirst().orElse(null);
+    }
+
+    private void ensureSliceParameters(org.ipro.reportstudio.query.register.RegisterSliceReportTemplates.ConstructorSlice source) {
+        var values = new LinkedHashMap<String, VisualQueryDefinition.Parameter>();
+        declaredParameters.forEach(value -> values.put(value.name(), value));
+        sliceParameters(source).forEach(value -> values.put(value.name(), value));
+        declaredParameters = List.copyOf(values.values());
+    }
+
+    private void ensureSliceParameter(String name) {
+        checkSliceParameter(name);
+        var parameters = new ArrayList<>(declaredParameters);
+        var existing = parameters.stream().filter(parameter -> parameter.name().equals(name)).findFirst();
+        if (existing.isEmpty()) parameters.add(new VisualQueryDefinition.Parameter(name, "DATETIME", true, null));
+        declaredParameters = List.copyOf(parameters);
+    }
+
+    private void checkSliceParameter(String name) {
+        if (declaredParameters.stream().anyMatch(parameter -> parameter.name().equals(name) && !"DATETIME".equals(parameter.dataType())))
+            throw new IllegalArgumentException("Параметр «" + name + "» уже имеет другой тип.");
+    }
+
+    public void pruneUnusedSlices() {
+        if (slices.isEmpty()) return;
+        packageStages.put(activeStage, definition());
+        Set<String> hidden = sliceStages();
+        // A table can be selected before SELECT fields; definition() is still null then.
+        var unused = slices.values().stream()
+            .filter(source -> !source.name().equals(entityName) && joins.stream()
+                .noneMatch(join -> join.independent() && join.sourcePath().equals(source.name())))
+            .filter(source -> packageStages.entrySet().stream()
+            .filter(entry -> !hidden.contains(entry.getKey())).map(Map.Entry::getValue).filter(Objects::nonNull)
+            .noneMatch(definition -> definition.entityName().equals(source.name()) || definition.joins().stream()
+                .anyMatch(join -> join.independent() && join.sourcePath().equals(source.name())))).toList();
+        for (var source : unused) {
+            slices.remove(source.name());
+            source.stages().forEach(stage -> { packageStages.remove(stage.name()); packageStageRecorders.remove(stage.name()); });
+            pruneSliceParameters(source);
+        }
+    }
+
+    private Set<String> sliceStages() {
+        return slices.values().stream().flatMap(source -> source.stages().stream()).map(VisualQueryPackage.Cte::name)
+            .collect(Collectors.toSet());
+    }
+
+    /** Retains the typed candidate selection attached to a generated recorder CTE. */
+    public void setStageRecorders(String stage, List<RecorderRef> recorders) {
+        if (stage == null || stage.isBlank()) throw new IllegalArgumentException("Этап обязателен");
+        List<RecorderRef> copy = List.copyOf(recorders == null ? List.of() : recorders);
+        if (new java.util.HashSet<>(copy).size() != copy.size())
+            throw new IllegalArgumentException("Повторная ссылка регистратора в этапе: " + stage);
+        if (copy.isEmpty()) packageStageRecorders.remove(stage);
+        else packageStageRecorders.put(stage, copy);
+    }
+
+    /** Clears stages before loading a separate saved visual package. */
+    public void clearPackageStages() {
+        packageStages.clear();
+        packageStageRecorders.clear();
+        slices.clear();
+        activeStage = "main";
+    }
+
     public boolean isMainStage() { return "main".equals(activeStage); }
 
     public void switchStage(String stage) {
@@ -143,12 +324,13 @@ public final class QueryConstructorDraft {
     public void renameStage(String oldName, String newName) {
         if (oldName == null || newName == null || oldName.equals(newName)
                 || "main".equals(oldName) || "main".equals(newName)
-                || packageStages.containsKey(newName)) return;
-        VisualQueryDefinition value = packageStages.remove(oldName);
+                || packageStages.containsKey(newName) || !packageStages.containsKey(oldName)) return;
+        List<RecorderRef> recorders = packageStageRecorders.remove(oldName);
+        if (recorders != null) packageStageRecorders.put(newName, recorders);
         LinkedHashMap<String, VisualQueryDefinition> copy = new LinkedHashMap<>();
         packageStages.forEach((key, definition) -> copy.put(key.equals(oldName) ? newName : key, definition));
         packageStages.clear();
-        copy.put(newName, value);
+        packageStages.putAll(copy);
         if (oldName.equals(activeStage)) activeStage = newName;
     }
 
@@ -159,6 +341,7 @@ public final class QueryConstructorDraft {
         if (!activeStage.equals("main")) packageStages.put(activeStage, definitionOrEmpty());
         else if (hasRoot()) packageStages.put("main", definitionOrEmpty());
         packageStages.putIfAbsent(name, null);
+        packageStageRecorders.remove(name);
         activeStage = name;
         clear();
         return name;
@@ -167,8 +350,14 @@ public final class QueryConstructorDraft {
     public void removeStage(String stage) {
         if (stage == null || "main".equals(stage)) return;
         packageStages.remove(stage);
-        packageStages.entrySet().removeIf(entry -> entry.getValue() != null
-                && entry.getValue().entityName().equals(stage));
+        packageStageRecorders.remove(stage);
+        var removed = new LinkedHashSet<String>();
+        packageStages.entrySet().removeIf(entry -> {
+            boolean remove = entry.getValue() != null && entry.getValue().entityName().equals(stage);
+            if (remove) removed.add(entry.getKey());
+            return remove;
+        });
+        removed.forEach(packageStageRecorders::remove);
         if (activeStage.equals(stage)) { activeStage = "main"; clear(); VisualQueryDefinition main = packageStages.get("main"); if (main != null) load(main); }
     }
 
@@ -184,7 +373,8 @@ public final class QueryConstructorDraft {
             VisualQueryPackage.Source source = available.contains(d.entityName())
                     ? new VisualQueryPackage.CteSource(d.entityAlias(), d.entityName())
                     : new VisualQueryPackage.EntitySource(d.entityName(), d.entityAlias());
-            ctes.add(new VisualQueryPackage.Cte(entry.getKey(), source, d));
+            ctes.add(new VisualQueryPackage.Cte(entry.getKey(), source, d,
+                packageStageRecorders.getOrDefault(entry.getKey(), List.of())));
             available.add(entry.getKey());
         }
         VisualQueryPackage.Source mainSource = available.contains(main.entityName())
@@ -224,6 +414,8 @@ public final class QueryConstructorDraft {
         for (var entry : packageStages.entrySet()) {
             if (!entry.getKey().equals("main") && !entry.getKey().equals(activeStage)
                     && entry.getValue() != null) {
+                if (slices.containsKey(entry.getKey())) { result.add(slices.get(entry.getKey()).entity()); continue; }
+                if (sliceStages().contains(entry.getKey())) continue;
                 result.add(new QueryBuilderMetadataCatalog.Entity(entry.getKey(), Object.class,
                         entry.getValue().selectFields().stream().map(field ->
                                 new QueryBuilderMetadataCatalog.Field(field.resultName(), field.resultName(), Object.class, false)).toList(),
@@ -252,7 +444,7 @@ public final class QueryConstructorDraft {
     public String addCteTable(String cteName) {
         if (cteName == null || cteName.isBlank()) return null;
         if (!hasRoot()) {
-            setCteRoot(cteName, "t");
+            setCteRoot(cteName, slices.containsKey(cteName) ? "srez" : "t");
             return hasRoot() ? entityAlias : null;
         }
         if (entityName.equals(cteName)) return entityAlias;
@@ -261,7 +453,7 @@ public final class QueryConstructorDraft {
                 .findFirst();
         if (existing.isPresent()) return existing.get().alias();
         return addJoin(new VisualQueryDefinition.Join(null, cteName,
-                lowerCamel(cteName), VisualQueryDefinition.JoinKind.LEFT)).alias();
+                slices.containsKey(cteName) ? "srez" : lowerCamel(cteName), VisualQueryDefinition.JoinKind.LEFT)).alias();
     }
 
     /** Alias, под которым виртуальный CTE доступен на активном этапе (корень или JOIN). */
@@ -807,12 +999,12 @@ public final class QueryConstructorDraft {
 
     /** Определение запроса; null, пока не выбраны таблицы и поля. */
     public VisualQueryDefinition definition() {
-        if (!hasRoot() || (selections.isEmpty() && aggregates.isEmpty())) return null;
+        if (!hasRoot() || (selections.isEmpty() && aggregates.isEmpty() && expressions.isEmpty())) return null;
         VisualQueryDefinition.Having having = havingConditions.isEmpty() ? null
                 : new VisualQueryDefinition.Having(havingOperator, havingConditions);
         return new VisualQueryDefinition(VisualQueryDefinition.CURRENT_VERSION, entityName, entityAlias,
                 List.copyOf(selections), List.copyOf(joins), effectiveGrouping(), List.copyOf(aggregates),
-                List.copyOf(expressions), having, where, List.of(), List.copyOf(orders), List.copyOf(subqueries));
+                List.copyOf(expressions), having, where, declaredParameters, List.copyOf(orders), List.copyOf(subqueries));
     }
 
     /** Компилирует черновик; при ошибке возвращает message вместо текста. */
@@ -847,6 +1039,7 @@ public final class QueryConstructorDraft {
             havingConditions.addAll(having.conditions());
         }
         where = definition.where();
+        declaredParameters = List.copyOf(definition.parameters());
     }
 
     public void clear() {
@@ -862,6 +1055,7 @@ public final class QueryConstructorDraft {
         havingOperator = JoinLogicalOperator.AND;
         where = null;
         subqueries = List.of();
+        declaredParameters = List.of();
         replacedByAggregate.clear();
     }
 
@@ -940,7 +1134,7 @@ public final class QueryConstructorDraft {
         String[] parts = path.split("\\.");
         if (parts.length < 2) return path;
         var entity = entityForAlias(parts[0]);
-        String base = entity == null ? parts[0] : entity.entityName();
+        String base = entity == null ? parts[0] : slices.containsKey(entity.entityName()) ? entity.caption() : entity.entityName();
         return base + "." + String.join(".", java.util.Arrays.copyOfRange(parts, 1, parts.length));
     }
 

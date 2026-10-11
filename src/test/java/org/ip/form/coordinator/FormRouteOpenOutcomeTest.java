@@ -286,7 +286,7 @@ class FormRouteOpenOutcomeTest {
      * с переменной типа, поэтому и в тесте искусственного выбора нет.</p>
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> BaseService<T, ID> serviceReturning(
+    private <T extends IdentifiableEntity<Long>, ID> BaseService<T, ID> serviceReturning(
             Class<T> type, ID id, Optional<T> result) {
         BaseService<T, ID> service = mock(BaseService.class);
         when(service.findById(id)).thenReturn(result);
@@ -295,7 +295,7 @@ class FormRouteOpenOutcomeTest {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> BaseService<T, ID> serviceThrowing(
+    private <T extends IdentifiableEntity<Long>, ID> BaseService<T, ID> serviceThrowing(
             Class<T> type, ID id, RuntimeException failure) {
         BaseService<T, ID> service = mock(BaseService.class);
         when(service.findById(id)).thenThrow(failure);
@@ -305,14 +305,14 @@ class FormRouteOpenOutcomeTest {
 
     /** Смена ответа у той же заглушки: проверка «право перепроверяется на каждом входе». */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> void stubReturning(
+    private <T extends IdentifiableEntity<Long>, ID> void stubReturning(
             BaseService<T, ID> service, ID id, Optional<T> result) {
         when(service.findById(id)).thenReturn(result);
     }
 
     /** Порядок «чтение → вкладка»: обе части проверяются на одном и том же вызове. */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> void verifyReadBeforeOpen(
+    private <T extends IdentifiableEntity<Long>, ID> void verifyReadBeforeOpen(
             BaseService<T, ID> service, ID id, WorkspaceGateway gateway) {
         InOrder order = inOrder(service, gateway);
         order.verify(service).findById(id);
@@ -321,7 +321,7 @@ class FormRouteOpenOutcomeTest {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity, ID> void verifyReadCount(
+    private <T extends IdentifiableEntity<Long>, ID> void verifyReadCount(
             BaseService<T, ID> service, ID id, int expected) {
         verify(service, times(expected)).findById(id);
     }

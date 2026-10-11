@@ -37,7 +37,7 @@ public final class MetadataDrivenItemFormSaveAdapter {
     }
 
     /** Сохранить форму через metadata-driven aggregate service и применить persisted state. */
-    public <T extends IdentifiableEntity> FormSaveResult<T> save(ItemForm<T> form) {
+    public <T extends IdentifiableEntity<Long>> FormSaveResult<T> save(ItemForm<T> form) {
         Objects.requireNonNull(form, "form must not be null");
         T aggregate = form.getEntity();
         MetadataDrivenAggregateSaveService.AggregateSaveResult<T> result =
@@ -47,8 +47,7 @@ public final class MetadataDrivenItemFormSaveAdapter {
     }
 
     /** Снять только фактически подключённые секции формы. */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity> List<MetadataDrivenAggregateSaveService.SectionInput> harvest(
+    public <T extends IdentifiableEntity<Long>> List<MetadataDrivenAggregateSaveService.SectionInput> harvest(
             ItemForm<T> form) {
         Objects.requireNonNull(form, "form must not be null");
         Class<T> aggregateClass = form.getEntityClass();
@@ -57,10 +56,11 @@ public final class MetadataDrivenItemFormSaveAdapter {
         List<MetadataDrivenAggregateSaveService.SectionInput> result = new ArrayList<>();
         for (TableSectionMetadataInfo descriptor : descriptors) {
             declaredRows.add(descriptor.getRowClass());
-            SectionPayload payload = form.sectionPayload((Class) descriptor.getRowClass());
+            Class<? extends IdentifiableEntity<Long>> rowType = longRowType(descriptor.getRowClass());
+            SectionPayload<?> payload = form.sectionPayload(rowType);
             if (payload.isAttached()) {
                 result.add(MetadataDrivenAggregateSaveService.SectionInput.attached(
-                    (Class<? extends IdentifiableEntity>) descriptor.getRowClass(), payload.rows()));
+                    rowType, payload.rows()));
             }
         }
         for (Class<?> attachedRow : form.attachedSectionClasses()) {
@@ -73,17 +73,32 @@ public final class MetadataDrivenItemFormSaveAdapter {
     }
 
     /** Применить persisted aggregate и только возвращённые attached sections к форме. */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T extends IdentifiableEntity> void apply(
+    public <T extends IdentifiableEntity<Long>> void apply(
             ItemForm<T> form,
             MetadataDrivenAggregateSaveService.AggregateSaveResult<T> result) {
         Objects.requireNonNull(form, "form must not be null");
         Objects.requireNonNull(result, "result must not be null");
         form.applyPersistedEntity(result.aggregate());
         for (MetadataDrivenAggregateSaveService.SectionResult section : result.sections()) {
-            form.tableSection((Class) section.rowType())
-                .applyPersistedRows(result.aggregate(), (List) section.rows());
+            applySection(form, result.aggregate(), section.rowType(), section.rows());
         }
         form.commitSnapshot();
+    }
+
+    private static <T extends IdentifiableEntity<Long>, R extends IdentifiableEntity<Long>> void applySection(
+            ItemForm<T> form, T aggregate, Class<R> rowType,
+            List<? extends IdentifiableEntity<Long>> rows) {
+        form.tableSection(rowType).applyPersistedRows(aggregate, rows.stream().map(rowType::cast).toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Class<? extends IdentifiableEntity<Long>> longRowType(Class<?> rowType) {
+        if (!IdentifiableEntity.class.isAssignableFrom(rowType)
+                || org.springframework.core.ResolvableType.forClass(rowType).as(IdentifiableEntity.class)
+                    .resolveGeneric(0) != Long.class) {
+            throw new IllegalArgumentException("Form section requires IdentifiableEntity<Long>: " + rowType.getName());
+        }
+        // The interface and its declared identity argument were checked above.
+        return (Class<? extends IdentifiableEntity<Long>>) rowType;
     }
 }

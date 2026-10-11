@@ -7,7 +7,7 @@ import org.ipro.events.EventSource;
 import java.util.Objects;
 
 /** Контекст after-commit реакции на изменение entity. */
-public record EntityChangedContext<T extends IdentifiableEntity>(
+public record EntityChangedContext<T extends IdentifiableEntity<?>>(
         T entity,
         EventContext eventContext) {
 

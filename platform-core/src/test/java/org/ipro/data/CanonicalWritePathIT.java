@@ -10,24 +10,35 @@ import org.hibernate.stat.Statistics;
 import org.ipro.data.fixture.C4FixtureEntity;
 import org.ipro.data.fixture.C4FixtureJpaConfiguration;
 import org.ipro.data.fixture.C4NoTextFixtureEntity;
+import org.ipro.data.fixture.C4VersionedFixtureEntity;
 import org.ipro.data.ApiDetailRead;
 import org.ipro.data.ApiPageRead;
 import org.ipro.crud.ValidationException;
 import org.ipro.events.EntityEventPublisher;
 import org.ipro.fetch.plan.FetchScenario;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.lifecycle.EntityLifecycleRegistry;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.numbering.NumberingService;
+import org.ipro.rls.AccessGrant;
+import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsAccessDeniedException;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsFilterActivator;
 import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsReadGate;
 import org.ipro.rls.c5.C5AccessDeniedException;
+import org.ipro.rls.c5.C5Operation;
+import org.ipro.rls.c5.C5OperationPermissionRegistry;
+import org.ipro.rls.c5.C5PermissionConfigurationException;
+import org.ipro.rls.c5.C5PermissionDecisionService;
+import org.ipro.rls.c5.C5PermissionDefinition;
 import org.ipro.rls.c5.C5PermissionEvaluator;
+import org.ipro.rls.c5.C5PermissionKeys;
+import org.ipro.rls.c5.C5ReadDecisionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +60,10 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.mockito.ArgumentCaptor;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -119,7 +133,8 @@ class CanonicalWritePathIT {
         ReflectionTestUtils.setField(readExecutor, "entityManager", entityManager);
 
         writeExecutor = new CanonicalWriteExecutor(catalog, readExecutor, entityManager,
-            validator, null, null, null, null, null, null, null);
+            validator, null, null, null, null, null, null, null, null, List.of(),
+            () -> "test-user", allowAllOperations());
         access = new CanonicalEntityDataAccess(catalog, readExecutor, writeExecutor, null);
         resolver = new EntityDataAccessResolver(catalog, access, readExecutor, List.of());
         service = new CanonicalEntityService<>(C4FixtureEntity.class, readExecutor, access);
@@ -169,6 +184,67 @@ class CanonicalWritePathIT {
         service.delete(created.getId());
         assertThat(service.findById(created.getId())).isEmpty();
         assertThat(service.findAll()).isEmpty();
+    }
+
+    @Test
+    void canonicalDeleteParticipantRunsWithTheLockedRootBeforeRootRemoval() {
+        C4VersionedFixtureEntity created = new C4VersionedFixtureEntity("DEL-1");
+        entityManager.persist(created);
+        entityManager.flush();
+        Long createdId = created.getId();
+        entityManager.clear();
+        List<IdentifiableEntity<Long>> observedRoots = new ArrayList<>();
+        CanonicalDeleteParticipant participant = new CanonicalDeleteParticipant() {
+            @Override
+            public boolean supports(Class<?> rootType) {
+                return rootType == C4VersionedFixtureEntity.class;
+            }
+
+            @Override
+            public void beforeDelete(IdentifiableEntity<Long> lockedRoot) {
+                observedRoots.add(lockedRoot);
+                assertThat(entityManager.contains(lockedRoot)).isTrue();
+            }
+        };
+        CanonicalWriteExecutor coordinated = new CanonicalWriteExecutor(catalog, readExecutor,
+            entityManager, validator, null, null, null, null, null, null, null,
+            WriteTelemetry.noop(), List.of(participant), () -> "test-user", allowAllOperations());
+
+        coordinated.delete(C4VersionedFixtureEntity.class, createdId);
+
+        assertThat(observedRoots).hasSize(1);
+        assertThat(((C4VersionedFixtureEntity) observedRoots.getFirst()).getId()).isEqualTo(createdId);
+        assertThat(entityManager.find(C4VersionedFixtureEntity.class, createdId)).isNull();
+    }
+
+    @Test
+    void canonicalDeleteRejectsAStaleReadAfterLockAndRefresh() {
+        C4VersionedFixtureEntity current = new C4VersionedFixtureEntity("DEL-VERSION-1");
+        entityManager.persist(current);
+        entityManager.flush();
+        Long id = current.getId();
+        current.setCode("DEL-VERSION-2");
+        entityManager.flush();
+        assertThat(current.getVersion()).isEqualTo(1L);
+
+        C4VersionedFixtureEntity staleRead = new C4VersionedFixtureEntity("stale");
+        staleRead.setId(id);
+        staleRead.setVersion(0L);
+        CanonicalReadExecutor staleReader = mock(CanonicalReadExecutor.class);
+        doAnswer(invocation -> Optional.of(staleRead)).when(staleReader).readDetail(any());
+        CanonicalDeleteParticipant participant = mock(CanonicalDeleteParticipant.class);
+        when(participant.supports(C4VersionedFixtureEntity.class)).thenReturn(true);
+        CanonicalWriteExecutor guarded = new CanonicalWriteExecutor(catalog, staleReader,
+            entityManager, validator, null, null, null, null, null, null, null, null,
+            List.of(participant), () -> "test-user", allowAllOperations());
+
+        assertThatThrownBy(() -> guarded.delete(C4VersionedFixtureEntity.class, id))
+            .isInstanceOf(jakarta.persistence.OptimisticLockException.class)
+            .hasMessageContaining("RECORDER_DELETE_VERSION_CONFLICT");
+
+        verify(participant, never()).beforeDelete(any());
+        assertThat(entityManager.find(C4VersionedFixtureEntity.class, id)).isNotNull();
+        assertThat(entityManager.find(C4VersionedFixtureEntity.class, id).getVersion()).isEqualTo(1L);
     }
 
     @Test
@@ -234,7 +310,8 @@ class CanonicalWritePathIT {
         }).when(enforcer).requireUpdate(any());
         Validator spyValidator = spy(Validation.buildDefaultValidatorFactory().getValidator());
         CanonicalWriteExecutor guarded = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, spyValidator, enforcer, null, null, null, null, null, null);
+            entityManager, spyValidator, enforcer, null, null, null, null, null, null, null,
+            List.of(), () -> "test-user", allowAllOperations());
 
         guarded.update(C4FixtureEntity.class, submitted);
 
@@ -266,7 +343,8 @@ class CanonicalWritePathIT {
         EntityLifecycleRegistry lifecycle = mock(EntityLifecycleRegistry.class);
         EntityEventPublisher events = mock(EntityEventPublisher.class);
         CanonicalWriteExecutor guarded = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, spyValidator, enforcer, null, events, lifecycle, null, null, null);
+            entityManager, spyValidator, enforcer, null, events, lifecycle, null, null, null,
+            null, List.of(), () -> "test-user", allowAllOperations());
 
         assertThatThrownBy(() -> guarded.update(C4FixtureEntity.class, submitted))
             .isInstanceOf(IllegalStateException.class)
@@ -297,7 +375,8 @@ class CanonicalWritePathIT {
         RlsPolicyEnforcer enforcer = mock(RlsPolicyEnforcer.class);
 
         CanonicalWriteExecutor full = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, spyValidator, enforcer, numbering, events, lifecycle, null, null, null);
+            entityManager, spyValidator, enforcer, numbering, events, lifecycle, null, null, null,
+            null, List.of(), () -> "test-user", allowAllOperations());
 
         C4FixtureEntity created = full.create(C4FixtureEntity.class,
             new C4FixtureEntity("B-1", "Полный"));
@@ -325,7 +404,8 @@ class CanonicalWritePathIT {
         doThrow(new IllegalStateException("RLS denied")).when(enforcer).requireUpdate(any());
 
         CanonicalWriteExecutor guarded = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, spyValidator, enforcer, null, events, lifecycle, null, null, null);
+            entityManager, spyValidator, enforcer, null, events, lifecycle, null, null, null,
+            null, List.of(), () -> "test-user", allowAllOperations());
 
         C4FixtureEntity existing = new C4FixtureEntity("RLS-1", "Попытка изменения");
         existing.setId(saved.getId());
@@ -618,7 +698,8 @@ class CanonicalWritePathIT {
         when(section.getKey()).thenReturn("materials");
         when(ownedSections.forOwner(C4FixtureEntity.class)).thenReturn(List.of(section));
         CanonicalWriteExecutor executor = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, validator, null, null, null, null, null, null, ownedSections, telemetry);
+            entityManager, validator, null, null, null, null, null, null, ownedSections, telemetry,
+            List.of(), () -> "test-user", allowAllOperations());
 
         assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
             new C4FixtureEntity("A-1", "агрегат")))
@@ -637,7 +718,8 @@ class CanonicalWritePathIT {
         RlsPolicyEnforcer enforcer = mock(RlsPolicyEnforcer.class);
         doThrow(new RlsAccessDeniedException("нет права записи")).when(enforcer).requireUpdate(any());
         CanonicalWriteExecutor executor = new CanonicalWriteExecutor(catalog, readExecutor,
-            entityManager, validator, enforcer, null, null, null, null, null, null, telemetry);
+            entityManager, validator, enforcer, null, null, null, null, null, null, telemetry,
+            List.of(), () -> "test-user", allowAllOperations());
 
         assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
             new C4FixtureEntity("R-1", "нет прав")))
@@ -694,6 +776,259 @@ class CanonicalWritePathIT {
             "begin:CREATE", "failed:PersistenceException", "close");
     }
 
+    // ------------------------------------------------------------- C5.6: решение об операции
+
+    /**
+     * C5.6, DoD: отказ C5 останавливает запись до RLS, нумерации, server validation,
+     * lifecycle-хуков и before-событий — то есть до пользовательского кода и до SQL.
+     */
+    @Test
+    void c5DenialStopsBeforeRlsNumberingValidationHooksAndEvents() {
+        Validator spyValidator = spy(Validation.buildDefaultValidatorFactory().getValidator());
+        EntityLifecycleRegistry lifecycle = mock(EntityLifecycleRegistry.class);
+        EntityEventPublisher events = mock(EntityEventPublisher.class);
+        NumberingService numbering = mock(NumberingService.class);
+        RlsPolicyEnforcer enforcer = mock(RlsPolicyEnforcer.class);
+        C5PermissionDecisionService denyAll = mock(C5PermissionDecisionService.class);
+        doThrow(new C5AccessDeniedException("Нет прав на операцию с объектом"))
+            .when(denyAll).requireEntity(any(), any(), any());
+        CanonicalWriteExecutor guarded = new CanonicalWriteExecutor(catalog, readExecutor,
+            entityManager, spyValidator, enforcer, numbering, events, lifecycle, null, null, null,
+            null, List.of(), () -> "test-user", denyAll);
+
+        assertThatThrownBy(() -> guarded.create(C4FixtureEntity.class,
+            new C4FixtureEntity("C5-DENY-1", "запрещено")))
+            .isInstanceOf(C5AccessDeniedException.class);
+
+        verify(numbering, never()).assignAutoValues(any());
+        verify(spyValidator, never()).validate(any());
+        verify(lifecycle, never()).beforeSave(any(), any(), any());
+        verify(events, never()).publishSaving(any(), any());
+        verify(enforcer, never()).requireUpdate(any());
+        assertThat(entityManager.createQuery(
+            "select count(e) from C4FixtureEntity e where e.code = :code")
+            .setParameter("code", "C5-DENY-1").getSingleResult()).isEqualTo(0L);
+    }
+
+    /** Gate C5.6: тип закрыт без гранта на операцию и открыт, когда грант выдан. */
+    @Test
+    void writeIsClosedWithoutAnOperationGrantAndOpenWithOne() {
+        AccessGrantRepository grants = mock(AccessGrantRepository.class);
+        String key = C5PermissionKeys.entityOperations(C4FixtureEntity.class);
+        when(grants.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, "test-user", key)).thenReturn(List.of());
+        CanonicalWriteExecutor executor = new CanonicalWriteExecutor(catalog, readExecutor,
+            entityManager, validator, null, null, null, null, null, null, null, null, List.of(),
+            () -> "test-user", operationsWithGrants(grants));
+
+        assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
+            new C4FixtureEntity("C5-CLOSED", "нет гранта")))
+            .isInstanceOf(C5AccessDeniedException.class)
+            .hasMessageContaining("CREATE");
+
+        when(grants.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, "test-user", key))
+            .thenReturn(List.of(operationGrant(true, true)));
+        C4FixtureEntity created = executor.create(C4FixtureEntity.class,
+            new C4FixtureEntity("C5-OPEN", "грант есть"));
+
+        assertThat(created.getId()).isNotNull();
+        assertThat(entityManager.createQuery(
+            "select count(e) from C4FixtureEntity e where e.code = :code")
+            .setParameter("code", "C5-OPEN").getSingleResult()).isEqualTo(1L);
+
+        AccessGrant deleteOnly = operationGrant(false, true);
+        when(grants.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, "test-user", key)).thenReturn(List.of(deleteOnly));
+        assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
+            new C4FixtureEntity("C5-DELETE-ONLY", "только удаление")))
+            .isInstanceOf(C5AccessDeniedException.class);
+    }
+
+    /** ADR-0017 §3: wildcard-строка не авторизует операцию и C5 её вообще не запрашивает. */
+    @Test
+    void wildcardRowDoesNotAuthorizeCanonicalWrite() {
+        AccessGrantRepository grants = mock(AccessGrantRepository.class);
+        String key = C5PermissionKeys.entityOperations(C4FixtureEntity.class);
+        AccessGrant wildcard = operationGrant(true, true);
+        wildcard.setDimension("*");
+        when(grants.findUserGrants(key, "test-user")).thenReturn(List.of(wildcard));
+        when(grants.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            any(), any(), any())).thenReturn(List.of());
+        CanonicalWriteExecutor executor = new CanonicalWriteExecutor(catalog, readExecutor,
+            entityManager, validator, null, null, null, null, null, null, null, null, List.of(),
+            () -> "test-user", operationsWithGrants(grants));
+
+        assertThatThrownBy(() -> executor.create(C4FixtureEntity.class,
+            new C4FixtureEntity("C5-WILDCARD", "обходной путь")))
+            .isInstanceOf(C5AccessDeniedException.class);
+        verify(grants, never()).findUserGrants(any(), any());
+    }
+
+    /** Отсутствующий провайдер — ошибка конфигурации, а не allow (как и в canonical read). */
+    @Test
+    void missingDecisionProviderIsAConfigurationErrorNotAnAllow() {
+        CanonicalWriteExecutor unconfigured = new CanonicalWriteExecutor(catalog, readExecutor,
+            entityManager, validator, null, null, null, null, null, null, null);
+
+        assertThatThrownBy(() -> unconfigured.create(C4FixtureEntity.class,
+            new C4FixtureEntity("C5-NO-PROVIDER", "не сконфигурировано")))
+            .isInstanceOf(C5PermissionConfigurationException.class)
+            .hasMessageContaining("no provider is configured");
+        assertThat(entityManager.createQuery(
+            "select count(e) from C4FixtureEntity e where e.code = :code")
+            .setParameter("code", "C5-NO-PROVIDER").getSingleResult()).isEqualTo(0L);
+    }
+
+    /**
+     * Шов владельца свойства (C5.8e): preflight получает и предсостояние, и цель записи.
+     *
+     * <p>Доказывается не «политика вызвана», а две вещи сразу: владельцу видно <b>что было</b> и
+     * <b>что записывается</b> (иначе решение о «свойство тронуто?» принимать не по чему), и отказ
+     * владельца останавливает запись там же, где останавливает отказ операции, — до валидации,
+     * хуков, событий и SQL. Контроль невакуумности — в соседнем тесте: та же запись с разрешением
+     * владельца доходит до строки.</p>
+     */
+    @Test
+    void thePropertyPolicySeesThePreviousStateAndDenialStopsTheWrite() {
+        C4FixtureEntity saved = service.create(new C4FixtureEntity("POLICY-1", "Исходное"));
+        entityManager.flush();
+
+        CanonicalWritePropertyPolicy policy = denyingPolicy();
+        EntityLifecycleRegistry lifecycle = mock(EntityLifecycleRegistry.class);
+        EntityEventPublisher events = mock(EntityEventPublisher.class);
+        Validator spyValidator = spy(validator);
+        CanonicalWriteExecutor guarded = executorWith(policy, spyValidator, events, lifecycle);
+
+        C4FixtureEntity changed = new C4FixtureEntity("POLICY-1", "Изменённое");
+        changed.setId(saved.getId());
+
+        assertThatThrownBy(() -> guarded.update(C4FixtureEntity.class, changed))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("property denied");
+
+        ArgumentCaptor<Object> original = ArgumentCaptor.forClass(Object.class);
+        ArgumentCaptor<Object> target = ArgumentCaptor.forClass(Object.class);
+        verify(policy).requireAuthorizedChange(eq(C4FixtureEntity.class), original.capture(),
+            target.capture());
+        assertThat(((C4FixtureEntity) original.getValue()).getName())
+            .as("владельцу видно сохранённое состояние, а не только присланное")
+            .isEqualTo("Исходное");
+        assertThat(((C4FixtureEntity) target.getValue()).getName()).isEqualTo("Изменённое");
+        verify(spyValidator, never()).validate(any());
+        verify(lifecycle, never()).beforeSave(any(), any(), any());
+        verify(lifecycle, never()).beforeUpdate(any(), any(), any(), any());
+        verify(events, never()).publishSaving(any(), any());
+    }
+
+    /** Создания предсостояния не имеет: владельцу передаётся {@code null}, а не пустая строка. */
+    @Test
+    void creationAsksTheSamePolicyWithoutAPreviousState() {
+        CanonicalWritePropertyPolicy policy = mock(CanonicalWritePropertyPolicy.class);
+        CanonicalWriteExecutor guarded = executorWith(policy, validator, null, null);
+
+        C4FixtureEntity created = guarded.create(C4FixtureEntity.class,
+            new C4FixtureEntity("POLICY-2", "Созданное"));
+        entityManager.flush();
+
+        ArgumentCaptor<Object> original = ArgumentCaptor.forClass(Object.class);
+        ArgumentCaptor<Object> target = ArgumentCaptor.forClass(Object.class);
+        verify(policy).requireAuthorizedChange(eq(C4FixtureEntity.class), original.capture(),
+            target.capture());
+        assertThat(original.getValue()).as("предсостояния у создания нет").isNull();
+        assertThat(((C4FixtureEntity) target.getValue()).getCode()).isEqualTo("POLICY-2");
+        assertThat(created.getId()).isNotNull();
+
+        // Контроль невакуумности: тот же путь с запретом владельца отказывает и строки не создаёт.
+        CanonicalWriteExecutor blocked = executorWith(denyingPolicy(), validator, null, null);
+        assertThatThrownBy(() -> blocked.create(C4FixtureEntity.class,
+            new C4FixtureEntity("POLICY-3", "Отклонённое")))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("property denied");
+        assertThat(entityManager.createQuery(
+                "select count(e) from C4FixtureEntity e where e.code = :code")
+            .setParameter("code", "POLICY-3").getSingleResult())
+            .as("отказ владельца не оставляет строки")
+            .isEqualTo(0L);
+    }
+
+    /** Разрешённое владельцем изменение доходит до строки — отказ был про свойство, а не про канал. */
+    @Test
+    void anAllowedPropertyChangeStillWrites() {
+        C4FixtureEntity saved = service.create(new C4FixtureEntity("POLICY-4", "Исходное"));
+        entityManager.flush();
+        entityManager.clear();
+
+        CanonicalWritePropertyPolicy policy = mock(CanonicalWritePropertyPolicy.class);
+        CanonicalWriteExecutor guarded = executorWith(policy, validator, null, null);
+
+        C4FixtureEntity changed = new C4FixtureEntity("POLICY-4", "Разрешённое");
+        changed.setId(saved.getId());
+        guarded.update(C4FixtureEntity.class, changed);
+        entityManager.flush();
+        entityManager.clear();
+
+        verify(policy).requireAuthorizedChange(eq(C4FixtureEntity.class), any(), any());
+        assertThat(entityManager.find(C4FixtureEntity.class, saved.getId()).getName())
+            .isEqualTo("Разрешённое");
+    }
+
+    /**
+     * Именованная операция владельца — тот же канал записи, и шов спрашивается в ней тоже:
+     * предсостояние снято с управления, цель — управляемый экземпляр после мутации владельца.
+     */
+    @Test
+    void theNamedOperationChannelAsksTheSamePolicyWithTheDetachedPreviousState() {
+        C4FixtureEntity saved = service.create(new C4FixtureEntity("POLICY-5", "Исходное"));
+        entityManager.flush();
+        entityManager.clear();
+
+        CanonicalWritePropertyPolicy policy = denyingPolicy();
+        EntityLifecycleRegistry lifecycle = mock(EntityLifecycleRegistry.class);
+        EntityEventPublisher events = mock(EntityEventPublisher.class);
+        Validator spyValidator = spy(validator);
+        CanonicalWriteExecutor guarded = executorWith(policy, spyValidator, events, lifecycle);
+
+        assertThatThrownBy(() -> guarded.executeNamed(C4FixtureEntity.class, NAMED_PERMISSION,
+                saved.getId(), target -> target.setName("Новое")))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("property denied");
+
+        ArgumentCaptor<Object> original = ArgumentCaptor.forClass(Object.class);
+        ArgumentCaptor<Object> target = ArgumentCaptor.forClass(Object.class);
+        verify(policy).requireAuthorizedChange(eq(C4FixtureEntity.class), original.capture(),
+            target.capture());
+        assertThat(original.getValue())
+            .as("предсостояние — отдельный экземпляр, иначе решение сравнивало бы значение с собой")
+            .isNotSameAs(target.getValue());
+        assertThat(((C4FixtureEntity) original.getValue()).getName()).isEqualTo("Исходное");
+        assertThat(((C4FixtureEntity) target.getValue()).getName()).isEqualTo("Новое");
+        verify(spyValidator, never()).validate(any());
+        verify(lifecycle, never()).beforeUpdate(any(), any(), any(), any());
+        verify(events, never()).publishSaving(any(), any());
+    }
+
+    /** Именованная операция фикстуры: определение регистрирует решающий сервис, здесь — allow. */
+    private static final String NAMED_PERMISSION = "C4_FIXTURE:RENAME";
+
+    /** Владелец свойства, который отказывает любой записи: предмет тестов — место вопроса, не ответ. */
+    private static CanonicalWritePropertyPolicy denyingPolicy() {
+        CanonicalWritePropertyPolicy policy = mock(CanonicalWritePropertyPolicy.class);
+        doThrow(new IllegalStateException("property denied")).when(policy)
+            .requireAuthorizedChange(any(), any(), any());
+        return policy;
+    }
+
+    /** Полный контур с владельцем свойства; остальные швы те же, что у общего executor'а. */
+    private CanonicalWriteExecutor executorWith(CanonicalWritePropertyPolicy propertyPolicy,
+                                                Validator validationPort,
+                                                EntityEventPublisher eventPublisher,
+                                                EntityLifecycleRegistry lifecycleRegistry) {
+        return new CanonicalWriteExecutor(catalog, readExecutor, entityManager, validationPort,
+            null, null, eventPublisher, lifecycleRegistry, null, null, null, null, List.of(),
+            () -> "test-user", allowAllOperations(), propertyPolicy);
+    }
+
     private CanonicalWriteExecutor executorWith(WriteTelemetry telemetry) {
         return executorWith(catalog, entityManager, telemetry);
     }
@@ -702,7 +1037,33 @@ class CanonicalWritePathIT {
                                                 EntityManager manager,
                                                 WriteTelemetry telemetry) {
         return new CanonicalWriteExecutor(descriptors, readExecutor, manager, validator,
-            null, null, null, null, null, null, null, telemetry);
+            null, null, null, null, null, null, null, telemetry, List.of(),
+            () -> "test-user", allowAllOperations());
+    }
+
+    /** Явный allow-all double: тесты порядка проверяют pipeline, а не решение о правах. */
+    private static C5PermissionDecisionService allowAllOperations() {
+        return mock(C5PermissionDecisionService.class);
+    }
+
+    /** Настоящее решение C5 над подменённым grant store: одна строка — одно право. */
+    private static C5PermissionDecisionService operationsWithGrants(AccessGrantRepository grants) {
+        C5OperationPermissionRegistry registry = new C5OperationPermissionRegistry();
+        registry.register(C5PermissionDefinition.entityOperations(C4FixtureEntity.class,
+            Set.of(C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
+        return new C5PermissionDecisionService(grants, username -> List.of(), registry,
+            new C5ReadDecisionService(grants, username -> List.of()));
+    }
+
+    private static AccessGrant operationGrant(boolean update, boolean delete) {
+        AccessGrant grant = new AccessGrant();
+        grant.setSubjectType(AccessGrant.SubjectType.USER);
+        grant.setSubjectKey("test-user");
+        grant.setDimension(C5PermissionKeys.entityOperations(C4FixtureEntity.class));
+        grant.setDimensionValueId(null);
+        grant.setCanUpdate(update);
+        grant.setCanDelete(delete);
+        return grant;
     }
 
     /** Транзакция, исход которой наблюдаем: REQUIRES_NEW коммитится или откатывается. */

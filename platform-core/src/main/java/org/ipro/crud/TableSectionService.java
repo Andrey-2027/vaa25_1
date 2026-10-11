@@ -12,7 +12,7 @@ import java.util.List;
  * UI (ItemTable) работает со списком строк в памяти; стандартную реализацию этого
  * контракта создаёт платформа из resolved descriptor.
  */
-public interface TableSectionService<T extends IdentifiableEntity, P extends IdentifiableEntity> {
+public interface TableSectionService<T extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> {
 
     /**
      * Загрузить все строки, принадлежащие родителю, в порядке отображения.

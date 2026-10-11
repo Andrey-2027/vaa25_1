@@ -52,7 +52,12 @@ class EffectiveMetadataSnapshotTest {
      * 18 ссылок и 24 типа — из JPA). Если любое значение поплывёт, diff перестанет быть пустым
      * и тест упадёт.</p>
      */
-    private static final List<String> DECLARED_SEMANTIC_DIFF = List.of();
+    // Information-register periodicity now stores a timestamp (see information-register-periodicity.md).
+    // Preserve the original C4.2 snapshot and declare this later semantic change explicitly.
+    private static final List<String> DECLARED_SEMANTIC_DIFF = java.util.stream.Stream.concat(
+        java.util.stream.Stream.of("org.ip.model.NomenclaturePrice#period type: DATE -> DATETIME"),
+        resource("/metadata/accounting-pilot-semantic-additions.txt").lines().filter(line -> !line.isBlank()))
+        .toList();
 
     @MockitoBean
     private DataInitializer dataInitializer;

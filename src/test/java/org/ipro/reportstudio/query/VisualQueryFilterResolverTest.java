@@ -9,6 +9,18 @@ import static org.mockito.Mockito.when;
 
 class VisualQueryFilterResolverTest {
     @Test
+    void technicalIdIsAvailableOnlyOnRealSourcesAndAllowedAliases() {
+        var real = new QueryBuilderMetadataCatalog.Entity("Item", String.class, List.of(), List.of());
+        var virtual = new QueryBuilderMetadataCatalog.Entity("latest", Object.class,
+            List.of(new QueryBuilderMetadataCatalog.Field("itemId", "Item", Long.class, false)), List.of());
+        var resolver = new VisualQueryFilterResolver(List.of(
+            new VisualQueryFilterResolver.TableAlias("i", real), new VisualQueryFilterResolver.TableAlias("l", virtual)));
+        assertThat(resolver.resolve("i.id").javaType()).isEqualTo(Long.class);
+        assertThatThrownBy(() -> resolver.resolve("other.id")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> resolver.resolve("l.id")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void exposesRootAndJoinedFields() {
         var root = new QueryBuilderMetadataCatalog.Entity("Product", Object.class,
                 List.of(new QueryBuilderMetadataCatalog.Field("code", "Код", String.class, false)),

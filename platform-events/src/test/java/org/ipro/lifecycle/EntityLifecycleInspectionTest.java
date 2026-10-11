@@ -128,7 +128,7 @@ class EntityLifecycleInspectionTest {
                 "beforeDelete", "onSave", "afterCommit");
     }
 
-    static class InspectionEntity implements IdentifiableEntity {
+    static class InspectionEntity implements IdentifiableEntity<Long> {
         private Long id;
 
         @Override

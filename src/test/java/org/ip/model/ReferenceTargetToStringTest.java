@@ -38,19 +38,18 @@ class ReferenceTargetToStringTest {
     private static final Path MODEL = Path.of("src/main/java/org/ip/model");
 
     private static final Pattern ENTITY = Pattern.compile("@Entity\\b");
-    private static final Pattern TO_STRING = Pattern.compile("public String toString\\(\\)");
     private static final String IDENTIFIER = "[a-z][A-Za-z0-9]*";
 
     /** Ручная проверка: именно эти четыре типа ломали сохранённые условия до D3.5.2b. */
     private static final Set<String> REVIEWED_TARGETS = Set.of("Journal", "Branch", "Oper", "PrdSpec");
 
     @Test
-    void everyReferenceTargetHasStableToString() {
+    void everyReferenceTargetHasStableToString() throws ReflectiveOperationException {
         Map<String, String> sources = sources();
         Map<String, String> offenders = new TreeMap<>();
         for (String target : referenceTargets(sources)) {
-            if (!TO_STRING.matcher(sources.get(target)).find()) {
-                offenders.put(target, "нет своего toString(): наследуется Object.toString(),"
+            if (Class.forName("org.ip.model." + target).getMethod("toString").getDeclaringClass() == Object.class) {
+                offenders.put(target, "нет переопределения toString(): наследуется Object.toString(),"
                     + " поэтому сохранённое условие отбора по ссылке на этот тип перестанет"
                     + " разрешаться после перезапуска JVM. Нужен стабильный между запусками"
                     + " toString(), как у остальных сущностей");

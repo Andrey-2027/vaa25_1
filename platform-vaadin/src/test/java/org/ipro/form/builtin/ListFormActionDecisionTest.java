@@ -332,7 +332,8 @@ class ListFormActionDecisionTest {
 
         form.setActionResolver(new ActionResolver(
             new ActionRegistry(CrudAction.listToolbarDefaults(), List.of()),
-            new ActionContextProvider(descriptors, gate, routes),
+            // Право на операцию разрешено: тест проверяет адресуемость и RLS-ответ, а не C5.
+            new ActionContextProvider(descriptors, gate, (entityType, operation) -> null, routes),
             ActionHandlerRegistry.empty(), ActionSurface.LIST_TOOLBAR, Standard.class, null));
         form.setFormLinkService(mock(FormLinkService.class));
 
@@ -372,7 +373,7 @@ class ListFormActionDecisionTest {
                                                            List<ActionDefinition> overrides) {
         return new ActionResolver(
             new ActionRegistry(CrudAction.listToolbarDefaults(), overrides),
-            new ActionContextProvider(catalog(type, READS, writes), gate),
+            new ActionContextProvider(catalog(type, READS, writes), gate, (entityType, operation) -> null),
             ActionHandlerRegistry.empty(),
             ActionSurface.LIST_TOOLBAR, type, null);
     }
@@ -390,7 +391,7 @@ class ListFormActionDecisionTest {
         EntityDescriptorCatalog catalog = catalog(type, reads, writes);
         form.setActionResolver(new ActionResolver(
             new ActionRegistry(CrudAction.listToolbarDefaults(), List.of()),
-            new ActionContextProvider(catalog, gate),
+            new ActionContextProvider(catalog, gate, (entityType, operation) -> null),
             ActionHandlerRegistry.empty(),
             ActionSurface.LIST_TOOLBAR, type, null));
         return form;

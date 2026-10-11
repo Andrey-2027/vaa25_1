@@ -27,6 +27,8 @@ class VisualQueryPackageVirtualCatalogTest {
                 new VisualQueryPackage.Cte("tmp1", definition)), definition), null);
 
         assertThat(result.fields()).extracting(org.ipro.reportstudio.data.QueryField::name)
-                .containsExactly("code");
+                .containsExactly("code", "rows", "firstCode", "constant", "calculated");
+        assertThat(result.fields()).extracting(org.ipro.reportstudio.data.QueryField::javaType)
+                .containsExactly(Object.class, Number.class, Number.class, Object.class, Object.class);
     }
 }

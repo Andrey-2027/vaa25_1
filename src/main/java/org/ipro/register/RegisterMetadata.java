@@ -1,0 +1,44 @@
+package org.ipro.register;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Декларация информационного регистра (ADR-0013, v1.0).
+ *
+ * <p>Все имена — это имена Java-полей сущности. Для самостоятельного регистра row key состоит
+ * из dimensions и period (если он задан); для подчинённого регистра row key задают recorder и
+ * line number. Технический {@code id} из {@code BaseEntity} сохраняется.</p>
+ *
+ * <p>Для регистра, подчинённого документам, {@link #recorderTypes()} перечисляет допустимые
+ * типы регистраторов. Их ссылка и номер строки образуют отдельный row key; dimensions остаются
+ * группой среза.</p>
+ *
+ * <p>Корректность декларации проверяет {@link RegisterMetadataValidator}.</p>
+ */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface RegisterMetadata {
+
+    /** Dimensions: поля группы среза, не nullable и неизменяемые после создания записи. */
+    String[] dimensions();
+
+    /** Период ({@code LocalDateTime}) или пустая строка для непериодического регистра. */
+    String period() default "";
+
+    /** Calendar normalization at write time; EXACT preserves time to milliseconds. */
+    RegisterPeriodicity periodicity() default RegisterPeriodicity.EXACT;
+
+    /** Ресурсы: изменяемые значения записи. */
+    String[] resources();
+
+    /** Допустимые типы документов-регистраторов; непустой список требует RecordedRegisterEntry. */
+    Class<?>[] recorderTypes() default {};
+
+    /** Opt-in to a separate checked key-change command; ordinary entity writes remain restricted. */
+    boolean keyChangeAllowed() default false;
+}

@@ -18,7 +18,7 @@ import java.util.Objects;
 public interface EntityDataPolicy {
 
     /** Явный тип, которому принадлежит policy. */
-    Class<? extends IdentifiableEntity> entityType();
+    Class<? extends IdentifiableEntity<Long>> entityType();
 
     /** Собственный data access типа. */
     EntityDataAccess dataAccess();

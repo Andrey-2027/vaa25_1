@@ -30,7 +30,7 @@ import java.util.Set;
  * (см. ReportTemplateService). Идентификатор — Long ({@link IdentifiableEntity}).</p>
  */
 @jakarta.transaction.Transactional
-public class ValidatedJpaCrudService<T extends IdentifiableEntity> implements BaseService<T, Long> {
+public class ValidatedJpaCrudService<T extends IdentifiableEntity<Long>> implements BaseService<T, Long> {
 
     protected final JpaRepository<T, Long> repository;
     private final Validator validator;

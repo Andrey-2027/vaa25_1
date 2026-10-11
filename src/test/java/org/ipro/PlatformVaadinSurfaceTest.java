@@ -141,8 +141,11 @@ class PlatformVaadinSurfaceTest {
                 + " происхождение действий (`ActionProvenance`, `ActionProvenanceCatalog`) — итого 127;"
                 + " E3.2.2 §9.1 добавила снимок каталога Explorer (`ExplorerSnapshot`); E3.2.2 §10.1"
                 + " добавила SPI перехода к структуре (`EntityStructureNavigation`); §10.2 — внутренний helper меню форм"
-                + " (`FormStructureAffordance`) — итого 130")
-            .hasSize(130);
+                + " (`FormStructureAffordance`) — итого 130; диагностика отказов добавила INTERNAL helper"
+                + " (`AccessDenialPresentation`) — итого 131; R8 добавила шесть типов стандартного списка регистра —"
+                + " итого 137; E1.2b добавила порт права на операцию (`OperationPermissionSource`) —"
+                + " итого 138")
+            .hasSize(138);
         assertThat(withoutRole)
             .as("тип будущего platform-vaadin без роли: классификация — решение, которое нужно"
                 + " принять до переноса, а не после него")

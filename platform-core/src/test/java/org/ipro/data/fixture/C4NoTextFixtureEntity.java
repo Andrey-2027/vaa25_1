@@ -13,7 +13,7 @@ import org.ipro.metadata.annotation.GridColumn;
 /** Test-only standard root for the blank-search case where metadata has no text columns. */
 @Entity(name = "C4NoTextFixtureEntity")
 @EntityMetadata(listFormTitle = "C4 no-text fixture")
-public class C4NoTextFixtureEntity implements IdentifiableEntity {
+public class C4NoTextFixtureEntity implements IdentifiableEntity<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

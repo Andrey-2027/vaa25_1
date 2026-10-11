@@ -40,9 +40,11 @@ import static org.mockito.Mockito.when;
  * полный CRUD и «создание без изменения». Это те же сочетания, на которых E1 будет пилотироваться,
  * только без приложения.</p>
  *
- * <p>{@link RlsUiGate} — мок: настоящий гейт требует AccessService, реестр измерений и текущего
- * пользователя, то есть проверял бы RLS, а не провайдер. Провайдер обязан лишь <b>переносить</b>
- * ответ гейта без изменения — это и проверяется (в том числе точной строкой причины).</p>
+ * <p>{@link RlsUiGate} и {@link OperationPermissionSource} — моки/стабы: настоящий гейт требует
+ * AccessService, реестр измерений и текущего пользователя, а настоящий источник операций —
+ * хранилище грантов C5; то есть они проверяли бы RLS и C5, а не провайдер. Провайдер обязан лишь
+ * <b>сложить оба ответа по И</b> без изменения причин — это и проверяется (в том числе точной
+ * строкой причины и тем, что источник не спрашивается там, где операцию не поддерживает тип).</p>
  */
 class ActionContextProviderTest {
 
@@ -107,11 +109,24 @@ class ActionContextProviderTest {
         return gate;
     }
 
+    /**
+     * Источник права на операцию без запретов.
+     *
+     * <p>Настоящий источник — C5 поверх хранилища грантов, то есть проверялся бы он, а не
+     * провайдер. Провайдер обязан лишь <b>сложить оба ответа по И</b> и не подменить причину
+     * отказа, поэтому здесь по умолчанию разрешено, а различие делает только тот тест, который
+     * источник переопределил.</p>
+     */
+    private static OperationPermissionSource allowedOperations() {
+        return (entityType, operation) -> null;
+    }
+
     // --- capability: из policy типа, а не из UI ------------------------------------------------
 
     @Test
     void capabilitiesComeFromDescriptorPolicyNotFromUiTable() {
-        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate());
+        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate(),
+            allowedOperations());
 
         EntityCapabilities standardRoot = provider.capabilitiesOf(Nomenclature.class);
         assertThat(standardRoot.allows(DataOperation.CREATE)).isTrue();
@@ -135,7 +150,8 @@ class ActionContextProviderTest {
      */
     @Test
     void typeWithoutDescriptorGetsNamedDenialInsteadOfPermissiveRoot() {
-        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate());
+        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate(),
+            allowedOperations());
 
         EntityCapabilities foreign = provider.capabilitiesOf(ForeignType.class);
         assertThat(foreign.writes()).isEmpty();
@@ -157,7 +173,7 @@ class ActionContextProviderTest {
         RlsUiGate gate = allowedGate();
         when(gate.canCreate(Nomenclature.class)).thenReturn(new AccessDecision(false,
             "Нет прав на создание (измерение ENTITY:PrdSpec)"));
-        ActionContextProvider provider = new ActionContextProvider(catalog(), gate);
+        ActionContextProvider provider = new ActionContextProvider(catalog(), gate, allowedOperations());
 
         ActionDecision decision = ActionPolicy.decide(definition(CrudAction.CREATE),
             provider.listContext(Nomenclature.class, null, true));
@@ -173,7 +189,7 @@ class ActionContextProviderTest {
     void capabilityDenialOutweighsRlsDenial() {
         RlsUiGate gate = allowedGate();
         when(gate.canCreate(ForeignType.class)).thenReturn(new AccessDecision(false, "нет прав"));
-        ActionContextProvider provider = new ActionContextProvider(catalog(), gate);
+        ActionContextProvider provider = new ActionContextProvider(catalog(), gate, allowedOperations());
 
         ActionDecision decision = ActionPolicy.decide(definition(CrudAction.CREATE),
             provider.listContext(ForeignType.class, null, true));
@@ -188,7 +204,7 @@ class ActionContextProviderTest {
         Nomenclature row = new Nomenclature();
         when(gate.canUpdate(row)).thenReturn(new AccessDecision(false,
             "Нет прав на изменение (измерение JOURNAL, id=7)"));
-        ActionContextProvider provider = new ActionContextProvider(catalog(), gate);
+        ActionContextProvider provider = new ActionContextProvider(catalog(), gate, allowedOperations());
 
         ActionContext context = provider.rowContext(Nomenclature.class, null, row, true);
         assertThat(context.hasSelection()).isTrue();
@@ -212,7 +228,7 @@ class ActionContextProviderTest {
     @Test
     void listContextDoesNotEvaluateRowRightsAndReportsNoSelection() {
         RlsUiGate gate = allowedGate();
-        ActionContextProvider provider = new ActionContextProvider(catalog(), gate);
+        ActionContextProvider provider = new ActionContextProvider(catalog(), gate, allowedOperations());
 
         ActionContext context = provider.listContext(Nomenclature.class, null, true);
 
@@ -234,7 +250,7 @@ class ActionContextProviderTest {
         RlsUiGate gate = allowedGate();
         Nomenclature row = new Nomenclature();
         when(gate.canUpdate(row)).thenReturn(new AccessDecision(false, "нет прав на изменение"));
-        ActionContextProvider provider = new ActionContextProvider(catalog(), gate);
+        ActionContextProvider provider = new ActionContextProvider(catalog(), gate, allowedOperations());
 
         ActionDecision edit = ActionPolicy.decide(definition(CrudAction.EDIT),
             provider.rowContext(Nomenclature.class, null, row, true));
@@ -244,7 +260,8 @@ class ActionContextProviderTest {
 
     @Test
     void rowContextWithoutRowDegradesToSelectionlessContext() {
-        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate());
+        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate(),
+            allowedOperations());
 
         ActionContext context = provider.rowContext(Nomenclature.class, "archived", null, true);
 
@@ -267,7 +284,7 @@ class ActionContextProviderTest {
         RlsUiGate gate = allowedGate();
         when(gate.canCreate(AttributeValue.class))
             .thenReturn(new AccessDecision(false, "Нет прав на создание (измерение ENTITY:Attribute)"));
-        ActionContextProvider provider = new ActionContextProvider(catalog(), gate);
+        ActionContextProvider provider = new ActionContextProvider(catalog(), gate, allowedOperations());
 
         AttributeValue row = new AttributeValue();
         ActionContext context = provider.rowContext(AttributeValue.class, null, row, false);
@@ -283,7 +300,8 @@ class ActionContextProviderTest {
     /** Тип без generic записи: ни создать, ни изменить — и причина у обоих структурная. */
     @Test
     void immutableTypeOffersNeitherCreateNorEdit() {
-        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate());
+        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate(),
+            allowedOperations());
         ImmutableSet row = new ImmutableSet();
 
         ActionContext context = provider.rowContext(ImmutableSet.class, null, row, false);
@@ -300,19 +318,114 @@ class ActionContextProviderTest {
             .isEqualTo(ActionDecision.allowed());
     }
 
+    // --- E1.2b: операция из C5, строка из RLS ---------------------------------------------------
+
+    /**
+     * Право на операцию отказано её источником: действие видно и недоступно, а причина называет
+     * операцию — иначе администратор не отличил бы отказ на изменение от отказа на удаление.
+     */
+    @Test
+    void operationDenialBlocksActionAndNamesTheOperation() {
+        OperationPermissionSource operations = (type, operation) ->
+            operation == DataOperation.UPDATE ? "Нет прав на операцию с объектом" : null;
+        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate(), operations);
+        Nomenclature row = new Nomenclature();
+
+        ActionDecision edit = ActionPolicy.decide(definition(CrudAction.EDIT),
+            provider.rowContext(Nomenclature.class, null, row, true));
+
+        assertThat(edit.visible()).isTrue();
+        assertThat(edit.actionable()).isFalse();
+        assertThat(edit.reason()).isEqualTo(Reason.ACCESS_DENIED);
+        assertThat(edit.message()).contains("изменение", "Нет прав на операцию с объектом");
+
+        assertThat(ActionPolicy.decide(definition(CrudAction.DELETE),
+            provider.rowContext(Nomenclature.class, null, row, true)))
+            .as("каждая операция спрашивается отдельно: отказ на изменение не отнимает удаление")
+            .isEqualTo(ActionDecision.allowed());
+    }
+
+    /**
+     * Строковое разрешение не заменяет право на операцию: строка, разрешённая построчно, без права
+     * на операцию остаётся недоступной. Это и есть расхождение, которое устраняет E1.2b.
+     */
+    @Test
+    void rowAllowanceDoesNotSubstituteForOperationRight() {
+        OperationPermissionSource operations = (type, operation) -> "Нет прав на операцию с объектом";
+        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate(), operations);
+        Nomenclature row = new Nomenclature();
+
+        ActionDecision create = ActionPolicy.decide(definition(CrudAction.CREATE),
+            provider.listContext(Nomenclature.class, null, true));
+        ActionDecision edit = ActionPolicy.decide(definition(CrudAction.EDIT),
+            provider.rowContext(Nomenclature.class, null, row, true));
+
+        assertThat(create.reason()).isEqualTo(Reason.ACCESS_DENIED);
+        assertThat(edit.reason()).isEqualTo(Reason.ACCESS_DENIED);
+    }
+
+    /**
+     * Отказ C5 показывается раньше построчного: без права на операцию строка не станет записываемой
+     * ни при каком своём состоянии, и построчная причина только уводила бы от настоящей.
+     */
+    @Test
+    void operationDenialIsNamedBeforeRowDenial() {
+        RlsUiGate gate = allowedGate();
+        Nomenclature row = new Nomenclature();
+        when(gate.canUpdate(row)).thenReturn(new AccessDecision(false,
+            "Нет прав на изменение (измерение JOURNAL, id=7)"));
+        OperationPermissionSource operations = (type, operation) -> "Нет прав на операцию с объектом";
+        ActionContextProvider provider = new ActionContextProvider(catalog(), gate, operations);
+
+        ActionDecision edit = ActionPolicy.decide(definition(CrudAction.EDIT),
+            provider.rowContext(Nomenclature.class, null, row, true));
+
+        assertThat(edit.reason()).isEqualTo(Reason.ACCESS_DENIED);
+        assertThat(edit.message())
+            .contains("Нет прав на операцию с объектом")
+            .doesNotContain("JOURNAL");
+    }
+
+    /**
+     * Тип, не поддерживающий операцию, источник права не спрашивает вовсе: оценивать нечего, и
+     * причина остаётся типовой ({@code TYPE_NOT_SUPPORTED}), как и была до E1.2b.
+     */
+    @Test
+    void operationSourceIsNotAskedForOperationTheTypeDoesNotSupport() {
+        List<String> asked = new java.util.ArrayList<>();
+        OperationPermissionSource operations = (type, operation) -> {
+            asked.add(type.getSimpleName() + ":" + operation);
+            return null;
+        };
+        ActionContextProvider provider = new ActionContextProvider(catalog(), allowedGate(), operations);
+        AttributeValue row = new AttributeValue();
+
+        ActionDecision edit = ActionPolicy.decide(definition(CrudAction.EDIT),
+            provider.rowContext(AttributeValue.class, null, row, false));
+
+        assertThat(edit.reason()).isEqualTo(Reason.TYPE_NOT_SUPPORTED);
+        assertThat(asked)
+            .as("у типа только CREATE: UPDATE/DELETE не оцениваются")
+            .containsExactly("AttributeValue:CREATE");
+    }
+
     // --- контракт коллабораторов ----------------------------------------------------------------
 
     @Test
     void missingCollaboratorsAndMissingRowFailWithNamedReason() {
         RlsUiGate gate = allowedGate();
-        ActionContextProvider provider = new ActionContextProvider(catalog(), gate);
+        ActionContextProvider provider = new ActionContextProvider(catalog(), gate, allowedOperations());
 
-        assertThatThrownBy(() -> new ActionContextProvider(null, gate))
+        assertThatThrownBy(() -> new ActionContextProvider(null, gate, allowedOperations()))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("descriptorCatalog");
-        assertThatThrownBy(() -> new ActionContextProvider(catalog(), null))
+        assertThatThrownBy(() -> new ActionContextProvider(catalog(), null, allowedOperations()))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("rlsUiGate");
+        assertThatThrownBy(() -> new ActionContextProvider(catalog(), gate, null))
+            .as("источник права на операцию обязателен: без него провайдер разрешал бы её молча")
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("operationPermissions");
         assertThatThrownBy(() -> provider.rowPermissionOf(Nomenclature.class, null))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("row must not be null");

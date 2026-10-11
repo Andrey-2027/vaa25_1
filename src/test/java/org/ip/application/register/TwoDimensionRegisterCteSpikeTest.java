@@ -3,8 +3,8 @@ package org.ip.application.register;
 import jakarta.persistence.*;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import org.ip.register.RegisterMetadata;
-import org.ip.register.RegisterMetadataValidator;
+import org.ipro.register.RegisterMetadata;
+import org.ipro.register.RegisterMetadataValidator;
 import org.ipro.filtergrid.filter.*;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.EntityMetadata;
@@ -15,14 +15,14 @@ import org.ipro.rls.*;
 import org.junit.jupiter.api.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /** Отдельный persistence unit: два измерения не добавляются в production-модель цен. */
 class TwoDimensionRegisterCteSpikeTest {
-    private static final LocalDate START = LocalDate.of(2026, 1, 1);
+    private static final LocalDateTime START = LocalDateTime.of(2026, 1, 1, 0, 0);
     private SessionFactory factory;
     private EntityManager em;
     private QueryBuilderMetadataCatalog catalog;
@@ -44,7 +44,8 @@ class TwoDimensionRegisterCteSpikeTest {
         registry.rebuild();
         var access = new AccessService(null, username -> List.of(), registry);
         catalog = new QueryBuilderMetadataCatalog(factory, new MetadataResolver(),
-            new RlsReadGate(access, registry), () -> "cte-spike");
+            new RlsReadGate(org.ipro.rls.RlsTestFixture.allowingC5ReadEvaluator(), registry),
+            () -> "cte-spike");
         guard = new ReportQueryGuard(new SqmQuerySemanticAnalyzer(factory), access, registry,
             () -> "cte-spike", factory);
         assertThat(RegisterMetadataValidator.validate(SpikePrice.class)).isEmpty();
@@ -62,11 +63,11 @@ class TwoDimensionRegisterCteSpikeTest {
     @Test
     void compositeJoinMatchesOracleForEveryDimensionAndPeriod() {
         var random = new Random(2302);
-        Map<Key, NavigableMap<LocalDate, BigDecimal>> histories = new LinkedHashMap<>();
+        Map<Key, NavigableMap<LocalDateTime, BigDecimal>> histories = new LinkedHashMap<>();
         for (int index = 0; index < 3; index++) {
             var item = item(index + 1);
             for (String channel : List.of("retail", "wholesale")) {
-                var history = new TreeMap<LocalDate, BigDecimal>();
+                var history = new TreeMap<LocalDateTime, BigDecimal>();
                 for (int offset = 0; offset < 15; offset++) {
                     if (random.nextBoolean()) {
                         var value = BigDecimal.valueOf(random.nextInt(20001), 2);
@@ -137,10 +138,10 @@ class TwoDimensionRegisterCteSpikeTest {
         assertThat(rows.stream().map(r -> (String) r[1]).toList()).containsExactlyInAnyOrder("retail", "wholesale");
     }
 
-    private VisualQueryPackage slice(LocalDate date, FilterNode dimensions, FilterNode resources) {
+    private VisualQueryPackage slice(LocalDateTime date, FilterNode dimensions, FilterNode resources) {
         return RegisterSliceCteSpike.slice("SpikePrice", date, true, dimensions, resources);
     }
-    private List<Object[]> execute(VisualQueryPackage pack, LocalDate date) {
+    private List<Object[]> execute(VisualQueryPackage pack, LocalDateTime date) {
         return RegisterSliceCteSpike.execute(em, catalog, guard, pack, date);
     }
     private SpikeItem item(long id) {
@@ -150,7 +151,7 @@ class TwoDimensionRegisterCteSpikeTest {
         em.persist(item);
         return item;
     }
-    private void price(SpikeItem item, String channel, LocalDate date, BigDecimal value) {
+    private void price(SpikeItem item, String channel, LocalDateTime date, BigDecimal value) {
         var price = new SpikePrice();
         price.id = ++sequence;
         price.nomenclature = item;
@@ -185,7 +186,7 @@ class TwoDimensionRegisterCteSpikeTest {
         @Column(name = "channel_code", nullable = false, updatable = false)
         @FieldMetadata(label = "Channel") String channel;
         @Column(name = "period_date", nullable = false, updatable = false)
-        @FieldMetadata(label = "Period") LocalDate period;
+        @FieldMetadata(label = "Period") LocalDateTime period;
         @Column(name = "price", nullable = false, precision = 19, scale = 4)
         @FieldMetadata(label = "Price") BigDecimal price;
         public Long getId() { return id; }
@@ -193,8 +194,8 @@ class TwoDimensionRegisterCteSpikeTest {
         public void setNomenclature(SpikeItem value) { nomenclature = value; }
         public String getChannel() { return channel; }
         public void setChannel(String value) { channel = value; }
-        public LocalDate getPeriod() { return period; }
-        public void setPeriod(LocalDate value) { period = value; }
+        public LocalDateTime getPeriod() { return period; }
+        public void setPeriod(LocalDateTime value) { period = value; }
         public BigDecimal getPrice() { return price; }
         public void setPrice(BigDecimal value) { price = value; }
     }

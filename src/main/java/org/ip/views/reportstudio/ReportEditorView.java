@@ -34,6 +34,7 @@ import org.ipro.reportstudio.query.editor.QueryEditorAnalysis;
 import org.ipro.reportstudio.query.editor.QueryEditorAnalysisService;
 import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
 import org.ipro.reportstudio.query.editor.ReportQueryEditor;
+import org.ipro.reportstudio.query.register.RegisterSliceReportTemplates;
 import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.layout.ReportLayoutOperations;
@@ -95,6 +96,7 @@ public class ReportEditorView extends VerticalLayout
     private final ReportQueryEditor queryEditor;
     private final ReportStructureEditor structureEditor = new ReportStructureEditor();
     private final ReportParamEditor paramEditor = new ReportParamEditor();
+    private final RegisterSliceReportTemplates sliceRecipes;
     private final TextArea jpqlText = new TextArea();
     private final RadioButtonGroup<ReportEditorMode> layoutMode = new RadioButtonGroup<>();
     private final Div layoutContent = new Div();
@@ -126,6 +128,17 @@ public class ReportEditorView extends VerticalLayout
             SelectionFormAssembler selectionFormAssembler,
             ReportQueryAssemblyService queryAssemblyService,
             QueryBuilderMetadataCatalog visualCatalog) {
+        this(guard, previewService, queryEditorAnalysisService, queryMetadataCatalogService, templateService,
+            executionService, lookupService, selectionFormAssembler, queryAssemblyService, visualCatalog, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public ReportEditorView(
+            ReportQueryGuard guard, ReportPreviewService previewService,
+            QueryEditorAnalysisService queryEditorAnalysisService, QueryMetadataCatalogService queryMetadataCatalogService,
+            ReportTemplateService templateService, ReportExecutionService executionService, EntityLookup lookupService,
+            SelectionFormAssembler selectionFormAssembler, ReportQueryAssemblyService queryAssemblyService,
+            QueryBuilderMetadataCatalog visualCatalog, RegisterSliceReportTemplates sliceRecipes) {
         this.templateService = templateService;
         this.executionService = executionService;
         this.lookupService = lookupService;
@@ -135,9 +148,11 @@ public class ReportEditorView extends VerticalLayout
         this.previewService = previewService;
         this.queryAssemblyService = queryAssemblyService;
         this.visualCatalog = visualCatalog;
+        this.sliceRecipes = sliceRecipes;
         this.queryEditor = new ReportQueryEditor(queryEditorAnalysisService, queryMetadataCatalogService,
                 previewService, lookupService, selectionFormAssembler, queryAssemblyService);
         this.queryEditor.setQueryConstructorCatalog(visualCatalog);
+        this.queryEditor.setRegisterSliceRecipes(sliceRecipes);
         this.queryEditor.setChangeListener(template1 -> {
             syncJpqlText();
             markDirty();
@@ -582,6 +597,7 @@ public class ReportEditorView extends VerticalLayout
         ReportQueryEditor dialogEditor = new ReportQueryEditor(analysisService, catalogService,
                 previewService, lookupService, selectionFormAssembler, queryAssemblyService);
         dialogEditor.setQueryConstructorCatalog(visualCatalog);
+        dialogEditor.setRegisterSliceRecipes(sliceRecipes);
         dialogEditor.setTemplate(template);
         new ReportQueryDialog(dialogEditor, template, this::refreshEditors, this::onQueryAnalyzed).open();
     }

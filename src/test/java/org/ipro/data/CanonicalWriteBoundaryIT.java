@@ -12,6 +12,7 @@ import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.ValidationException;
 import org.ipro.ureport.dom.UreportTemplate;
+import org.ipro.rls.AccessGrant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,6 +56,9 @@ class CanonicalWriteBoundaryIT {
     @Autowired
     private GridFormViewRepository gridFormViewRepository;
 
+    @Autowired
+    private org.ipro.rls.AccessGrantRepository accessGrantRepository;
+
     @Test
     void attributeValueGenericUpdateAndDeleteAreRejectedBeforeRlsAndSql() {
         assertThatThrownBy(() -> access.update(AttributeValue.class, new AttributeValue()))
@@ -88,6 +92,11 @@ class CanonicalWriteBoundaryIT {
         // P0: capability проверяется по intent, и intent же обязан совпасть с фактическим
         // состоянием. Иначе create существующего AttributeValue (только CREATE) делал бы
         // запрещённый merge, а update без id — insert.
+        //
+        // C5.6: решение об операции стоит сразу за capability (ADR-0017 §5), а несоответствие
+        // intent'а состоянию — следующая структурная проверка. Поэтому у пробника есть
+        // операции на оба типа: иначе отказ был бы по правам и проверял бы не то.
+        authenticateAs("intent-probe", AttributeValue.class, org.ip.model.Workshop.class);
         AttributeValue existing = new AttributeValue();
         existing.setId(42L);
 
@@ -108,14 +117,14 @@ class CanonicalWriteBoundaryIT {
      */
     @Test
     void gridFormViewOwnershipIsEnforcedInsideTheCanonicalWritePipeline() {
-        authenticateAs("view-owner");
+        authenticateAs("view-owner", GridFormView.class);
         GridFormView personal = gridFormViewRepository.saveAndFlush(
             new GridFormView("ownIt.formKey", "Личный вид", "[]", false));
         Long id = personal.getId();
         assertThat(personal.getCreatedBy()).isEqualTo("view-owner");
         try {
             // Чужой пользователь не может ни изменить, ни удалить личный вид.
-            authenticateAs("other-user");
+            authenticateAs("other-user", GridFormView.class);
             GridFormView payload = gridFormViewRepository.findById(id).orElseThrow();
             payload.setName("Переименовано чужим");
             assertThatThrownBy(() -> access.update(GridFormView.class, payload))
@@ -127,7 +136,7 @@ class CanonicalWriteBoundaryIT {
 
             // Автор сохраняет своё право: сужение capability не должно было стать
             // блокировкой законного редактирования.
-            authenticateAs("view-owner");
+            authenticateAs("view-owner", GridFormView.class);
             GridFormView own = gridFormViewRepository.findById(id).orElseThrow();
             own.setName("Переименовано автором");
             assertThat(access.update(GridFormView.class, own).getName())
@@ -138,7 +147,23 @@ class CanonicalWriteBoundaryIT {
         }
     }
 
-    private static void authenticateAs(String username) {
+    /**
+     * Субъект с read и операционными правами на перечисленные типы: владелец вида проверяется
+     * внутри pipeline, то есть после решения C5 (ADR-0017), а не вместо него.
+     */
+    private void authenticateAs(String username, Class<?>... entityTypes) {
+        org.ipro.rls.RlsTestFixture.grantC5EntityRead(accessGrantRepository, username, entityTypes);
+        for (Class<?> entityType : entityTypes) {
+            org.ipro.rls.AccessGrant operations = new org.ipro.rls.AccessGrant();
+            operations.setSubjectType(AccessGrant.SubjectType.USER);
+            operations.setSubjectKey(username);
+            operations.setDimension(
+                org.ipro.rls.c5.C5PermissionKeys.entityOperations(entityType));
+            operations.setCanUpdate(true);
+            operations.setCanDelete(true);
+            accessGrantRepository.save(operations);
+        }
+        accessGrantRepository.flush();
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(new UsernamePasswordAuthenticationToken(
             username, "n/a", java.util.List.of()));

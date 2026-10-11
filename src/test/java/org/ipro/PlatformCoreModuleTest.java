@@ -56,6 +56,12 @@ class PlatformCoreModuleTest {
      * (расхождение этих двух списков и есть та ошибка, которую одна сторона не видит).
      */
     private static final Set<String> REVIEWED_TYPES = Set.of(
+        "org.ipro.crud.AggregateOperationAuthorizer",
+        "org.ipro.crud.AggregateSaveContribution",
+        "org.ipro.crud.AggregateSaveContributionParticipant",
+        "org.ipro.crud.AggregateSaveParticipantContext",
+        "org.ipro.crud.AggregateSaveLifecycleScope",
+        "org.ipro.data.CanonicalDeleteParticipant",
         "org.ipro.crud.AggregateSaveRollbackState",
         "org.ipro.crud.BaseService",
         "org.ipro.crud.EntityCopyService",
@@ -82,6 +88,9 @@ class PlatformCoreModuleTest {
         "org.ipro.data.CanonicalReadExecutor",
         "org.ipro.data.CanonicalWriteDeniedException",
         "org.ipro.data.CanonicalWriteExecutor",
+        "org.ipro.data.CanonicalWritePropertyPolicy",
+        "org.ipro.data.CanonicalSaveLifecycleScope",
+        "org.ipro.data.presentation.EntityPresentationService",
         "org.ipro.data.DetailRead",
         "org.ipro.data.EntityCapabilities",
         "org.ipro.data.EntityDataAccess",

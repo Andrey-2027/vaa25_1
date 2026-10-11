@@ -184,7 +184,8 @@ class ActionResolverTest {
         EntityDescriptorCatalog catalog = new EntityDescriptorCatalog(managed, sections,
             new MetadataResolver(), List.of(),
             List.of(new EntityCapabilityOverride(type, READS, writes, "policy фикстуры E1.3")));
-        return new ActionContextProvider(catalog, gate);
+        // Право на операцию разрешено: тест проверяет резолвер и RLS-ответ, а не C5 (E1.2b).
+        return new ActionContextProvider(catalog, gate, (entityType, operation) -> null);
     }
 
     private static RlsUiGate allowedGate() {

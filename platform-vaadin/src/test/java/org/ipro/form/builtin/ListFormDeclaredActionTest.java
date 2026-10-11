@@ -243,7 +243,9 @@ class ListFormDeclaredActionTest {
                 handlerRegistry.definitions().stream()).toList(),
             List.of());
         ActionResolver resolver = new ActionResolver(registry,
-            new ActionContextProvider(catalog(Standard.class), gate), handlerRegistry,
+            // Право на операцию разрешено: тест проверяет объявленное действие и RLS-ответ.
+            new ActionContextProvider(catalog(Standard.class), gate, (entityType, operation) -> null),
+            handlerRegistry,
             ActionSurface.LIST_TOOLBAR, Standard.class, null);
 
         ListForm<?, ?> form = listForm(Standard.class, new Standard());
@@ -323,7 +325,8 @@ class ListFormDeclaredActionTest {
                 handlerRegistry.definitions().stream()).toList(),
             List.of());
         ActionResolver resolver = new ActionResolver(registry,
-            new ActionContextProvider(catalog(type), gate), handlerRegistry,
+            new ActionContextProvider(catalog(type), gate, (entityType, operation) -> null),
+            handlerRegistry,
             ActionSurface.LIST_TOOLBAR, type, null);
 
         FormNavigator navigator = mock(FormNavigator.class);

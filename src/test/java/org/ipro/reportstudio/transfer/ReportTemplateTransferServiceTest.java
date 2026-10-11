@@ -23,6 +23,40 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ReportTemplateTransferServiceTest {
+    @Test void visualImportCompilesItsStoredLiteralsBeforeCheckingParameters() {
+        var templates = mock(ReportTemplateService.class); var guard = mock(ReportQueryGuard.class);
+        var allowed = mock(GuardResult.class); when(allowed.allowed()).thenReturn(true);
+        when(guard.guard(any(String.class), anySet())).thenReturn(allowed);
+        when(templates.nextImportedName(any(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(templates.saveTemplate(any(ReportTemplate.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        var catalog = mock(org.ipro.reportstudio.query.QueryBuilderMetadataCatalog.class);
+        var entity = new org.ipro.reportstudio.query.QueryBuilderMetadataCatalog.Entity("Model", String.class,
+            java.util.List.of(new org.ipro.reportstudio.query.QueryBuilderMetadataCatalog.Field("code", "Code", String.class, false)), java.util.List.of());
+        when(catalog.roots()).thenReturn(java.util.List.of(entity)); when(catalog.root("Model")).thenReturn(entity);
+        var definition = new org.ipro.reportstudio.query.VisualQueryDefinition(3, "Model", "m",
+            java.util.List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.SelectField("m.code", "code")), java.util.List.of(),
+            java.util.List.of(), java.util.List.of(), java.util.List.of(), null,
+            new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition("m.code",
+                org.ipro.filtergrid.filter.FilterOperator.EQ, "S-1", null, org.ipro.filtergrid.filter.FilterDataType.TEXT)), java.util.List.of(), java.util.List.of());
+        var source = template(); source.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
+        source.setVisualQueryJson(new org.ipro.reportstudio.query.VisualQueryDefinitionJsonCodec().write(definition));
+        var transfer = new ReportTemplateTransferService(new ObjectMapper(), guard, templates, catalog);
+        var imported = transfer.importTemplate(transfer.exportTemplate(source));
+        assertThat(imported.getJpql()).contains(":visualFilter_1");
+        org.mockito.Mockito.verify(guard).guard(org.mockito.ArgumentMatchers.eq(imported.getJpql()),
+            org.mockito.ArgumentMatchers.argThat(names -> names.contains("visualFilter_1")));
+        assertThat(imported.getVisualQueryJson()).isEqualTo(source.getVisualQueryJson());
+    }
+
+    @Test void invalidVisualPackageIsRejectedBeforeSaving() {
+        var templates = mock(ReportTemplateService.class);
+        when(templates.nextImportedName(any(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        var source = template(); source.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL); source.setVisualQueryJson("broken");
+        var transfer = new ReportTemplateTransferService(new ObjectMapper(), mock(ReportQueryGuard.class), templates);
+        assertThatThrownBy(() -> transfer.importTemplate(transfer.exportTemplate(source)))
+            .isInstanceOf(ReportTemplateTransferException.class).hasMessageContaining("Некорректный визуальный запрос");
+        org.mockito.Mockito.verify(templates, org.mockito.Mockito.never()).saveTemplate(any());
+    }
 
     @Test
     void exportsPortableJsonAndImportsIndependentDraft() {

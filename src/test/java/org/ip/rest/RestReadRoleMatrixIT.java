@@ -82,11 +82,12 @@ import static org.assertj.core.api.Assertions.catchThrowable;
  * проверяется то, что нельзя доказать owner-тестами с подменённым resolver'ом: грант роли
  * даёт те же данные и total, что прямой грант; решение меняется при отзыве гранта и снятии
  * роли без перезапуска; решения и видимость не переносятся между субъектами; отсутствие
- * одного права (API, entity, attribute, filter, default sort, reference target) отказывает
+ * одного права (API, entity, reference target) отказывает
  * до business data, а поле вне запрошенной проекции не требует гранта лишь из-за fixed fetch
  * superset. Отдельно проверены политика существующих UI/service callers (обычный UI list/
  * detail и canonical app service читаются по entity C5 роли, REST дополнительно требует API
- * и attribute grants) и сохранение class/row RLS на тех же ролевых назначениях.</p>
+ * grants) и сохранение class/row RLS на тех же ролевых назначениях. Опубликованные поля,
+ * фильтры и сортировки не требуют отдельных attribute grants (ADR-0016).</p>
  */
 @SpringBootTest(classes = Application.class)
 @TestPropertySource(properties = {
@@ -132,6 +133,10 @@ class RestReadRoleMatrixIT {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    /** Canonical write handle для governed-фикстур (`Role`/`User`): тот же preflight, что у приложения. */
+    @Autowired
+    private org.ipro.data.EntityDataAccess access;
 
     @Autowired
     private JournalRepository journalRepository;
@@ -349,52 +354,14 @@ class RestReadRoleMatrixIT {
         assertDeniedWithoutBusinessData(missingEntity,
             () -> readService.list(specList("id")), "entity");
 
-        List<String> withoutOutput = fullSpecKeys();
-        withoutOutput.remove(C5PermissionKeys.attributeRead(PrdSpec.class, "comment"));
-        String missingOutput = unique("matrix-no-output");
-        roleWithUser(missingOutput, withoutOutput, fixture.journalAId());
-        assertDeniedWithoutBusinessData(missingOutput,
-            () -> readService.detail(specDetail(fixture.specAId(), "id", "comment")),
-            "Attribute read denied on root: comment");
-
-        List<String> withoutFilter = fullSpecKeys();
-        withoutFilter.remove(C5PermissionKeys.attributeRead(PrdSpec.class, "journal"));
-        String missingFilter = unique("matrix-no-filter");
-        roleWithUser(missingFilter, withoutFilter, fixture.journalAId());
-        assertDeniedWithoutBusinessData(missingFilter,
-            () -> readService.list(new RestListQuery("specifications", 1,
-                List.of("id", "codeSpec"), Map.of("journalId", fixture.journalAId()), null, null, 0, 10)),
-            "Attribute read denied on filter: journal");
-
-        List<String> withoutSort = List.of(
-            NOM_LIST,
-            C5PermissionKeys.entityRead(Nomenclature.class),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "id"),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "name"));
-        String missingSort = unique("matrix-no-sort");
-        roleWithUser(missingSort, withoutSort, null);
-        assertDeniedWithoutBusinessData(missingSort,
-            () -> readService.list(new RestListQuery("nomenclature", 1,
-                List.of("id", "name"), Map.of(), null, null, 0, 10)),
-            "Attribute read denied on sort: code");
-
         List<String> withoutReference = fullSpecKeys();
         withoutReference.remove(C5PermissionKeys.entityRead(Nomenclature.class));
-        withoutReference.remove(C5PermissionKeys.attributeRead(Nomenclature.class, "code"));
         String missingReference = unique("matrix-no-reference");
         roleWithUser(missingReference, withoutReference, fixture.journalAId());
         assertDeniedWithoutBusinessData(missingReference,
             () -> readService.list(specList("id", "nomenclatureCode")),
             "Reference authorization denied for field: nomenclatureCode");
 
-        // id — всегда добавляется сервером (обязательное поле, default sort и tie-breaker):
-        // его отсутствие отказывает до данных так же, как любое другое.
-        List<String> withoutId = fullSpecKeys();
-        withoutId.remove(C5PermissionKeys.attributeRead(PrdSpec.class, "id"));
-        String missingId = unique("matrix-no-id");
-        roleWithUser(missingId, withoutId, fixture.journalAId());
-        assertDeniedWithoutBusinessData(missingId,
-            () -> readService.list(specList("id", "codeSpec")), "Attribute read denied on root: id");
     }
 
     @Test
@@ -405,12 +372,7 @@ class RestReadRoleMatrixIT {
         List<String> keys = new ArrayList<>(List.of(
             SPEC_LIST, SPEC_DETAIL,
             C5PermissionKeys.entityRead(PrdSpec.class),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "id"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "codeSpec"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "journal"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "nomenclature"),
-            C5PermissionKeys.entityRead(Journal.class),
-            C5PermissionKeys.attributeRead(Journal.class, "id")));
+            C5PermissionKeys.entityRead(Journal.class)));
         roleWithUser(user, keys, fixture.journalAId());
 
         loginAs(user);
@@ -424,7 +386,7 @@ class RestReadRoleMatrixIT {
         assertThat(specifications.fixedFetchPaths(RestReadOperation.DETAIL))
             .contains("nomenclature.code");
 
-        // journalId в DETAIL требует только segment journal и target Journal.id — Nomenclature не участвует.
+        // journalId в DETAIL требует чтения Journal; Nomenclature не участвует.
         RestPageResult page = readService.list(specList("id", "codeSpec"));
         assertThat(page.totalElements()).isEqualTo(1);
         assertThat(page.content()).singleElement()
@@ -502,8 +464,7 @@ class RestReadRoleMatrixIT {
         DocumentFixture fixture = persistDocumentFixture();
         String reader = unique("matrix-doc-reader");
         Role role = roleWithUser(reader, List.of(
-            C5PermissionKeys.entityRead(ReceivingDocument.class),
-            LEGACY_DOCUMENT_CLASS), fixture.journalId());
+            C5PermissionKeys.entityRead(ReceivingDocument.class)), fixture.journalId());
         grantRowToRole(role.getName(), "BRANCH", fixture.branchId());
 
         loginAs(reader);
@@ -511,15 +472,13 @@ class RestReadRoleMatrixIT {
             .containsExactly(fixture.number());
         assertThat(documents().findById(fixture.documentId())).isPresent();
 
-        // Классовый CHECK_ONLY-гейт: без него чтение пустое, а не исключение.
-        revokeKeyFromRole(role.getName(), LEGACY_DOCUMENT_CLASS);
-        loginAs(reader);
-        assertThat(documents().findAll()).isEmpty();
-        assertThat(documents().findById(fixture.documentId())).isEmpty();
-
-        grantKeyToRole(role.getName(), LEGACY_DOCUMENT_CLASS);
-        loginAs(reader);
-        assertThat(documents().findAll()).hasSize(1);
+        // C5.7: короткий ENTITY-ключ — ключ операций, и выдать на нём «чтение» больше нельзя.
+        // Доступ к виду целиком решает C5 entity-read, а не флаг этого ключа (проверка ниже).
+        assertThatThrownBy(() -> withAdmin(() -> accessGrantAdminService.saveSingleGrant(
+            LEGACY_DOCUMENT_CLASS, AccessGrant.SubjectType.ROLE, role.getName(),
+            new GrantFlags(true, false, false))))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("чтение");
 
         // Без C5 entity-права canonical read отказывает исключением.
         revokeKeyFromRole(role.getName(), C5PermissionKeys.entityRead(ReceivingDocument.class));
@@ -574,10 +533,10 @@ class RestReadRoleMatrixIT {
 
     private Role roleWithUser(String username, List<String> dimensions, Long journalId) {
         Role role = RlsTestFixture.callAsSuperuser(accessGrantRepository, () -> {
-            Role created = roleRepository.saveAndFlush(new Role("role-" + username));
+            Role created = access.create(Role.class, new Role("role-" + username));
             User user = new User(username, "password");
             user.setRoles(Set.of(created));
-            userRepository.saveAndFlush(user);
+            access.create(User.class, user);
             return created;
         });
         grantKeysToRole(role.getName(), dimensions);
@@ -588,10 +547,10 @@ class RestReadRoleMatrixIT {
     }
 
     private void setUserRoles(String username, Set<Role> roles) {
-        RlsTestFixture.callAsSuperuser(accessGrantRepository, () -> {
+        RlsTestFixture.callAsSuperuserWithRead(accessGrantRepository, new Class<?>[] {User.class}, () -> {
             User user = userRepository.findByUsername(username).orElseThrow();
             user.setRoles(roles);
-            return userRepository.saveAndFlush(user);
+            return access.update(User.class, user);
         });
     }
 
@@ -713,16 +672,8 @@ class RestReadRoleMatrixIT {
         return new ArrayList<>(List.of(
             SPEC_LIST, SPEC_DETAIL,
             C5PermissionKeys.entityRead(PrdSpec.class),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "id"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "codeSpec"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "draft"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "comment"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "nomenclature"),
-            C5PermissionKeys.attributeRead(PrdSpec.class, "journal"),
             C5PermissionKeys.entityRead(Nomenclature.class),
-            C5PermissionKeys.attributeRead(Nomenclature.class, "code"),
-            C5PermissionKeys.entityRead(Journal.class),
-            C5PermissionKeys.attributeRead(Journal.class, "id")));
+            C5PermissionKeys.entityRead(Journal.class)));
     }
 
     private Fixture persistFixture() {

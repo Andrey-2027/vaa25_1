@@ -35,7 +35,9 @@ public final class ReportEngineCapabilities {
         /** Внешний веб-дизайнер в новой вкладке (UReport3). */
         DESIGNER,
         /** Только сведения: макет правится вне приложения (JR). */
-        INFO
+        INFO,
+        /** Simple recipe editor on the UniDR route. */
+        UNIDR_EDITOR
     }
 
     /**
@@ -70,7 +72,9 @@ public final class ReportEngineCapabilities {
             ReportEngineType.UREPORT3, new Capabilities(
                     "UReport3", OpenTarget.DESIGNER, false, false, true),
             ReportEngineType.JR, new Capabilities(
-                    "JR", OpenTarget.INFO, false, false, true));
+                    "JR", OpenTarget.INFO, false, false, true),
+            ReportEngineType.UNIDR, new Capabilities(
+                    "UniDR", OpenTarget.UNIDR_EDITOR, false, false, false));
 
     /** Возможности движка. Движок без записи в таблице — ошибка, а не «нет данных». */
     public static Capabilities of(ReportEngineType type) {

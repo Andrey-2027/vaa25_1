@@ -38,5 +38,5 @@ public interface EntityServiceResolver {
      * @throws IllegalStateException если handle нет (owned-строка, недопущенный тип,
      *                              отсутствие сервиса) — с причиной и вариантами исправления
      */
-    <T extends IdentifiableEntity, ID> BaseService<T, ID> findService(Class<T> entityClass);
+    <T extends IdentifiableEntity<Long>, ID> BaseService<T, ID> findService(Class<T> entityClass);
 }

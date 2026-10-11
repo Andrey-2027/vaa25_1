@@ -62,6 +62,8 @@ class FetchPlanLookupHydrationIT {
 
     private void loginAsSuperuser() {
         String username = "plan-test-" + UUID.randomUUID();
+        org.ipro.rls.RlsTestFixture.grantC5EntityRead(accessGrantRepository, username,
+            Nomenclature.class, PrdSpec.class);
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(username, "n/a", List.of()));
 

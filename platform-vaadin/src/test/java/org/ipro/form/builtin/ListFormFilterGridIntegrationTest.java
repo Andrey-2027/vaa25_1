@@ -11,11 +11,47 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ListFormFilterGridIntegrationTest {
+    @Test
+    void deniedReadDoesNotProduceAnApparentlyEmptyUsableList() {
+        EntityMetadataInfo metadata = mock(EntityMetadataInfo.class);
+        doReturn(TestEntity.class).when(metadata).getEntityClass();
+        when(metadata.getListColumnPaths()).thenReturn(List.of(ColumnPath.resolve(TestEntity.class, "id")));
+        var denial = new org.springframework.security.access.AccessDeniedException("Entity read denied");
+        var deniedGrid = new org.ipro.filtergrid.FilterGrid<TestEntity>(TestEntity.class) {
+            private final com.vaadin.flow.component.grid.Grid<TestEntity> grid =
+                new com.vaadin.flow.component.grid.Grid<>(TestEntity.class, false);
+
+            @Override
+            protected org.ipro.filtergrid.FilterSpecification<TestEntity> buildSpecification() {
+                return (root, query, cb) -> cb.conjunction();
+            }
+
+            @Override
+            public com.vaadin.flow.component.grid.Grid<TestEntity> getGrid() {
+                return grid;
+            }
+
+            @Override
+            public void build() {
+                throw denial;
+            }
+        };
+
+        com.vaadin.flow.component.UI previous = com.vaadin.flow.component.UI.getCurrent();
+        com.vaadin.flow.component.UI.setCurrent(new com.vaadin.flow.component.UI());
+        try {
+            assertThatThrownBy(() -> new ListForm<>(metadata, deniedGrid)).isSameAs(denial);
+        } finally {
+            com.vaadin.flow.component.UI.setCurrent(previous);
+        }
+    }
+
     @Test
     void listFormUsesFilterGridBottomBarInsteadOfLegacyTopPanel() {
         ListForm<TestEntity, Long> form = newForm();

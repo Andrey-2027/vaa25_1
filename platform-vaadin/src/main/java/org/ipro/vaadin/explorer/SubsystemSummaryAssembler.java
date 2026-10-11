@@ -21,8 +21,10 @@ import java.util.stream.Collectors;
  * <p>Единственное место знания о том, «что входит в строку каталога». Грани строки:
  * эффективное наименование ({@link EntitySummaryAssembler}, тот же путь резолюции
  * «код ← переопределение»), нумерация, наличие кастомных регистраций форм/наборов
- * ({@link FormRegistry#registrationsOf}), наличие контекст-фильтров и RLS-гейт
- * {@code ENTITY:<Класс>} (CHECK_ONLY) — как в {@code SubsystemHomeView}.</p>
+ * ({@link FormRegistry#registrationsOf}), наличие контекст-фильтров и гейт типа целиком —
+ * измерение {@code ENTITY:<Класс>} рода CHECK_ONLY. Колонка сообщает, что гейт объявлен, а не
+ * решится ли чтение: решение даёт C5 (см. {@code RlsReadGate}), и плитка подсистемы спрашивает
+ * то же решение, а не эту конвенцию.</p>
  */
 public class SubsystemSummaryAssembler {
 
@@ -193,7 +195,11 @@ public class SubsystemSummaryAssembler {
             rlsGate);
     }
 
-    /** RLS-гейт вида {@code ENTITY:<ИмяКласса>} CHECK_ONLY — та же конвенция, что в SubsystemHomeView. */
+    /**
+     * Гейт типа целиком: измерение {@code ENTITY:<ИмяКласса>} рода CHECK_ONLY. Наличие измерения —
+     * факт реестра RLS («гейт объявлен»); сам ответ о чтении даёт C5, поэтому по этой колонке нельзя
+     * заключать, видна ли плитка подсистемы или откроется ли список.
+     */
     private boolean hasEntityGate(String simpleName) {
         String dimension = "ENTITY:" + simpleName;
         return rlsDimensionRegistry.dimensions().contains(dimension)

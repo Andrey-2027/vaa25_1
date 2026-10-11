@@ -17,7 +17,9 @@ import org.ipro.form.action.ActionRegistry;
 import org.ipro.form.action.ActionResolver;
 import org.ipro.form.action.ActionSurface;
 import org.ipro.form.action.CrudAction;
+import org.ipro.form.action.OperationPermissionSource;
 import org.ipro.form.action.ReadOnlyReason;
+import org.ipro.form.config.FormAutoConfiguration;
 import org.ipro.form.coordinator.ItemFormAccessBinder;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
@@ -25,8 +27,16 @@ import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;
+import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsUiGate;
+import org.ipro.rls.c5.C5Operation;
+import org.ipro.rls.c5.C5OperationPermissionRegistry;
+import org.ipro.rls.c5.C5PermissionDecision;
+import org.ipro.rls.c5.C5PermissionDecisionService;
+import org.ipro.rls.c5.C5PermissionDefinition;
+import org.ipro.rls.c5.C5PermissionKeys;
+import org.ipro.rls.c5.C5ReadDecisionService;
 import org.ipro.rls.config.RlsPersistenceAutoConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,9 +45,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -94,6 +106,8 @@ class RlsProtectedTypeActionDecisionTest {
 
     private RlsDimensionRegistry dimensionRegistry;
     private RlsUiGate gate;
+    private C5OperationPermissionRegistry operationRegistry;
+    private C5PermissionDecisionService decisions;
     private EntityDescriptorCatalog catalog;
     private Journal journalA;
     private PrdSpec spec;
@@ -102,10 +116,24 @@ class RlsProtectedTypeActionDecisionTest {
     void setUp() {
         dimensionRegistry = new RlsDimensionRegistry("org.ip");
         dimensionRegistry.rebuild();
-        AccessService accessService = new AccessService(accessGrantRepository,
-            new UserRepositoryRlsRoleResolver(userRepository), dimensionRegistry);
-        gate = new RlsUiGate(accessService, dimensionRegistry,
-            () -> SecurityContextHolder.getContext().getAuthentication().getName());
+        UserRepositoryRlsRoleResolver roleResolver = new UserRepositoryRlsRoleResolver(userRepository);
+        AccessService accessService = new AccessService(accessGrantRepository, roleResolver,
+            dimensionRegistry);
+        gate = new RlsUiGate(accessService, dimensionRegistry, this::currentUsername);
+
+        // Право на операцию — тот же C5-движок, что спрашивает серверная граница (E1.2b).
+        // Определения регистрируются здесь явно: в приложении их выводит регистратор из
+        // canonical capabilities (ADR-0017 §5), а срез объявляет ровно те виды, которые
+        // называет. Виды — не произвол среза: они переписаны с capabilities тех же типов
+        // (у носителя все три, у create-only значения атрибута — только `CREATE`), иначе
+        // решение о типе падало бы ошибкой конфигурации, а не отказом.
+        operationRegistry = new C5OperationPermissionRegistry();
+        operationRegistry.register(C5PermissionDefinition.entityOperations(PrdSpec.class,
+            Set.of(C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
+        operationRegistry.register(C5PermissionDefinition.entityOperations(AttributeValue.class,
+            Set.of(C5Operation.CREATE)));
+        decisions = new C5PermissionDecisionService(accessGrantRepository, roleResolver,
+            operationRegistry, new C5ReadDecisionService(accessGrantRepository, roleResolver));
 
         MetadataResolver metadataResolver = new MetadataResolver();
         SectionMetadataRegistry sections = new SectionMetadataRegistry("org.ip", metadataResolver);
@@ -158,6 +186,7 @@ class RlsProtectedTypeActionDecisionTest {
     @Test
     void rightsDenialTurnsRowActionsOffAndKeepsReadActionsAvailable() {
         grant(READ_ONLY_USER, journalA.getId(), true, false, false);
+        grantOperation(READ_ONLY_USER, true, true);
         loginAs(READ_ONLY_USER);
 
         ActionDecision edit = listDecision(CrudAction.EDIT, spec);
@@ -190,6 +219,7 @@ class RlsProtectedTypeActionDecisionTest {
     @Test
     void creationOfProtectedTypeIsRefusedByRightsAndNamesItsDimension() {
         grant(READ_ONLY_USER, journalA.getId(), true, false, false);
+        grantOperation(READ_ONLY_USER, true, true);
         loginAs(READ_ONLY_USER);
 
         ActionDecision create = listDecision(CrudAction.CREATE, null);
@@ -210,6 +240,7 @@ class RlsProtectedTypeActionDecisionTest {
     @Test
     void cardOfProtectedRecordOpensReadOnlyWithRightsNotice() {
         grant(READ_ONLY_USER, journalA.getId(), true, false, false);
+        grantOperation(READ_ONLY_USER, true, true);
         loginAs(READ_ONLY_USER);
 
         ReadOnlyReason reason = new ItemFormAccessBinder()
@@ -228,6 +259,7 @@ class RlsProtectedTypeActionDecisionTest {
     @Test
     void rowWithDeniedUpdateKeepsReadPathThroughOpen() {
         grant(READ_ONLY_USER, journalA.getId(), true, false, false);
+        grantOperation(READ_ONLY_USER, true, true);
         loginAs(READ_ONLY_USER);
 
         ActionDecision edit = listDecision(CrudAction.EDIT, spec);
@@ -253,6 +285,7 @@ class RlsProtectedTypeActionDecisionTest {
     @Test
     void capabilityReadOnlyStaysNeutralWhileRightsDenialIsNamed() {
         grant(READ_ONLY_USER, journalA.getId(), true, false, false);
+        grantOperation(READ_ONLY_USER, true, true);
         loginAs(READ_ONLY_USER);
 
         AttributeValue value = new AttributeValue();
@@ -275,6 +308,7 @@ class RlsProtectedTypeActionDecisionTest {
     @Test
     void everyRightIsReadSeparatelyOnProtectedType() {
         grant(WRITER_USER, journalA.getId(), true, true, false);
+        grantOperation(WRITER_USER, true, false);
         loginAs(WRITER_USER);
 
         assertThat(listDecision(CrudAction.EDIT, spec).actionable()).isTrue();
@@ -283,13 +317,17 @@ class RlsProtectedTypeActionDecisionTest {
         ActionDecision delete = listDecision(CrudAction.DELETE, spec);
         assertThat(delete.actionable()).isFalse();
         assertThat(delete.reason()).isEqualTo(Reason.ACCESS_DENIED);
-        assertThat(delete.message()).contains("удаление", "JOURNAL");
+        assertThat(delete.message())
+            .as("право на удаление не выдано — отказ приходит от C5, а не от строки")
+            .contains("удаление")
+            .doesNotContain("JOURNAL");
     }
 
     /** Контроль: с полным правом и действия, и карточка разрешены — иначе отказы выше ничего не значат. */
     @Test
     void permittedUserSeesEditableCardAndAvailableActions() {
         grant(WRITER_USER, journalA.getId(), true, true, true);
+        grantOperation(WRITER_USER, true, true);
         loginAs(WRITER_USER);
 
         assertThat(listDecision(CrudAction.EDIT, spec).actionable()).isTrue();
@@ -299,6 +337,50 @@ class RlsProtectedTypeActionDecisionTest {
             .as("изменение доступно — просмотр не дублирует кнопку изменения")
             .isFalse();
         assertThat(new ItemFormAccessBinder().readOnlyReason(itemResolver(), spec)).isNull();
+    }
+
+    // --- E1.2b: тот же ответ, что у сервера, и отзыв после отрисовки -------------------------------------
+
+    /**
+     * Построчное право без права на операцию не открывает действие — ни в UI, ни на сервере.
+     *
+     * <p>Это и был разрыв, который закрывает E1.2b: строка, разрешённая построчно, показывала
+     * доступную кнопку, а canonical write отказывал — две разные формулы одного права.</p>
+     */
+    @Test
+    void rowRightsWithoutOperationRightOpenNothingInUiOrOnServer() {
+        grant(WRITER_USER, journalA.getId(), true, true, true);
+        loginAs(WRITER_USER);
+
+        assertThat(listDecision(CrudAction.EDIT, spec).reason()).isEqualTo(Reason.ACCESS_DENIED);
+        assertThat(listDecision(CrudAction.CREATE, null).reason()).isEqualTo(Reason.ACCESS_DENIED);
+        assertThat(serverDecision(C5Operation.UPDATE).allowed())
+            .as("серверный ответ тот же: без права на операцию запись отказывает")
+            .isFalse();
+    }
+
+    /**
+     * Право снято между отрисовкой и кликом: действие, нарисованное доступным, на клике
+     * переспрашивает решение и не запускается — иначе кнопка была бы границей, а не подсказкой.
+     */
+    @Test
+    void revokedOperationRightBlocksActionRecomputedAfterRender() {
+        grant(WRITER_USER, journalA.getId(), true, true, true);
+        grantOperation(WRITER_USER, true, true);
+        loginAs(WRITER_USER);
+
+        assertThat(listDecision(CrudAction.EDIT, spec).actionable())
+            .as("до отзыва действие доступно — контроль к проверке ниже")
+            .isTrue();
+
+        revokeOperation(WRITER_USER);
+
+        ActionDecision clicked = listDecision(CrudAction.EDIT, spec);
+        assertThat(clicked.actionable())
+            .as("решение пересчитывается в момент клика: снятое право не запускает действие")
+            .isFalse();
+        assertThat(clicked.reason()).isEqualTo(Reason.ACCESS_DENIED);
+        assertThat(serverDecision(C5Operation.UPDATE).allowed()).isFalse();
     }
 
     // --- фикстуры -------------------------------------------------------------------------------
@@ -321,13 +403,58 @@ class RlsProtectedTypeActionDecisionTest {
         entityManager.flush();
     }
 
+    /**
+     * Право на операцию типа — точная глобальная строка C5 (ADR-0017 §3): {@code canUpdate} решает
+     * CREATE/UPDATE, {@code canDelete} — DELETE; чтение этим ключом не решается вовсе.
+     */
+    private void grantOperation(String username, boolean write, boolean delete) {
+        AccessGrant grant = new AccessGrant();
+        grant.setSubjectType(AccessGrant.SubjectType.USER);
+        grant.setSubjectKey(username);
+        grant.setDimension(C5PermissionKeys.entityOperations(PrdSpec.class));
+        grant.setDimensionValueId(null);
+        grant.setCanRead(false);
+        grant.setCanUpdate(write);
+        grant.setCanDelete(delete);
+        entityManager.persist(grant);
+        entityManager.flush();
+    }
+
+    /** Отзыв права на операцию — то же хранилище, из которого читает решение. */
+    private void revokeOperation(String username) {
+        accessGrantRepository.deleteAll(accessGrantRepository
+            .findBySubjectTypeAndSubjectKeyAndDimension(AccessGrant.SubjectType.USER, username,
+                C5PermissionKeys.entityOperations(PrdSpec.class)));
+        entityManager.flush();
+    }
+
     private ActionRegistry actionRegistry() {
         // Полный платформенный состав: списку нужны list-действия, карточке — crud.save.
         return new ActionRegistry(CrudAction.platformDefaults(), List.of());
     }
 
     private ActionContextProvider provider() {
-        return new ActionContextProvider(catalog, gate);
+        return new ActionContextProvider(catalog, gate, operationSource());
+    }
+
+    /**
+     * Источник права на операцию — <b>тот же адаптер, который регистрирует контейнер</b>
+     * ({@link FormAutoConfiguration#operationPermissionSource}), поверх настоящего
+     * {@link C5PermissionDecisionService}: срез проверяет проводку, а не её копию. Субъект берётся
+     * из {@code SecurityContextHolder}, как и в приложении.
+     */
+    private OperationPermissionSource operationSource() {
+        RlsCurrentUser currentUser = this::currentUsername;
+        return new FormAutoConfiguration().operationPermissionSource(decisions, currentUser);
+    }
+
+    private String currentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication == null ? null : authentication.getName();
+    }
+
+    private C5PermissionDecision serverDecision(C5Operation operation) {
+        return decisions.decideEntity(WRITER_USER, PrdSpec.class, operation);
     }
 
     private ActionResolver listResolver() {

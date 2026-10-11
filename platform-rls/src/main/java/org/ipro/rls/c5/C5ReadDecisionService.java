@@ -44,6 +44,7 @@ public class C5ReadDecisionService {
      * Short-circuits on the first allow; used by the server read pipeline.
      */
     public boolean isReadGranted(String dimension, String username) {
+        dimension = C5PermissionKeys.readKey(dimension);
         requireDimension(dimension);
         Objects.requireNonNull(username, "username must not be null");
         if (hasExactGlobalReadGrant(AccessGrant.SubjectType.USER, username, dimension)) {
@@ -66,18 +67,19 @@ public class C5ReadDecisionService {
      * grant and {@code roles} is empty.</p>
      */
     public C5ReadDecision decide(String dimension, AccessGrant.SubjectType subjectType, String subjectKey) {
-        requireDimension(dimension);
+        String readKey = C5PermissionKeys.readKey(dimension);
+        requireDimension(readKey);
         Objects.requireNonNull(subjectType, "subjectType must not be null");
         Objects.requireNonNull(subjectKey, "subjectKey must not be null");
 
         if (subjectType == AccessGrant.SubjectType.ROLE) {
-            boolean granted = hasExactGlobalReadGrant(AccessGrant.SubjectType.ROLE, subjectKey, dimension);
+            boolean granted = hasExactGlobalReadGrant(AccessGrant.SubjectType.ROLE, subjectKey, readKey);
             return new C5ReadDecision(granted, granted, List.of());
         }
 
-        boolean direct = hasExactGlobalReadGrant(AccessGrant.SubjectType.USER, subjectKey, dimension);
+        boolean direct = hasExactGlobalReadGrant(AccessGrant.SubjectType.USER, subjectKey, readKey);
         List<String> grantingRoles = roleResolver.rolesOf(subjectKey).stream()
-            .filter(role -> hasExactGlobalReadGrant(AccessGrant.SubjectType.ROLE, role, dimension))
+            .filter(role -> hasExactGlobalReadGrant(AccessGrant.SubjectType.ROLE, role, readKey))
             .toList();
         return new C5ReadDecision(direct || !grantingRoles.isEmpty(), direct, grantingRoles);
     }

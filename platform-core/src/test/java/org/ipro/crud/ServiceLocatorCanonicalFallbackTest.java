@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 class ServiceLocatorCanonicalFallbackTest {
 
     @EntityMetadata(listFormTitle = "canonical fixture")
-    static class CanonicalFixture implements IdentifiableEntity {
+    static class CanonicalFixture implements IdentifiableEntity<Long> {
         private Long id;
 
         @Override
@@ -48,7 +48,7 @@ class ServiceLocatorCanonicalFallbackTest {
     }
 
     /** Регистрация важна типом, а не поведением, поэтому тела намеренно пустые. */
-    abstract static class FixtureService<T extends IdentifiableEntity>
+    abstract static class FixtureService<T extends IdentifiableEntity<Long>>
             implements BaseService<T, Long> {
 
         @Override
@@ -110,6 +110,26 @@ class ServiceLocatorCanonicalFallbackTest {
         assertThat(locator.findService(CanonicalFixture.class))
             .as("имя бина больше не выводится из имени класса — регистрация типизирована")
             .isInstanceOf(TypedFixtureService.class);
+    }
+
+    @Test
+    void inheritedEntityTypeIsResolvedThroughClassProxy() {
+        org.springframework.aop.framework.ProxyFactory factory =
+            new org.springframework.aop.framework.ProxyFactory(new TypedFixtureService());
+        factory.setProxyTargetClass(true);
+        BaseService<?, ?> proxy = (BaseService<?, ?>) factory.getProxy();
+        assertThat(locator(Map.of("proxiedService", proxy)).findService(CanonicalFixture.class))
+            .isSameAs(proxy);
+    }
+
+    @Test
+    void inheritedEntityTypeIsResolvedThroughInterfaceProxy() {
+        org.springframework.aop.framework.ProxyFactory factory =
+            new org.springframework.aop.framework.ProxyFactory(new TypedFixtureService());
+        factory.setInterfaces(BaseService.class);
+        BaseService<?, ?> proxy = (BaseService<?, ?>) factory.getProxy();
+        assertThat(locator(Map.of("proxiedService", proxy)).findService(CanonicalFixture.class))
+            .isSameAs(proxy);
     }
 
     @Test

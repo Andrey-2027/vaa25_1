@@ -170,7 +170,10 @@ public class CanonicalReadExecutor {
         }
         if (!c5PermissionEvaluator.isEntityReadPermitted(username, type)) {
             throw new org.ipro.rls.c5.C5AccessDeniedException(
-                "Entity C5 read denied for " + type.getName());
+                org.ipro.rls.c5.C5PermissionDecision.denied(
+                    org.ipro.rls.c5.C5DecisionReason.ENTITY_PERMISSION_DENIED,
+                    org.ipro.rls.c5.C5PermissionKeys.entityRead(type),
+                    org.ipro.rls.c5.C5Operation.READ), type);
         }
     }
 

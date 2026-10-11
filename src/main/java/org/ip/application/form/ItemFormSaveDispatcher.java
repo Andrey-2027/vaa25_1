@@ -25,7 +25,7 @@ import java.util.Objects;
  * оборачивает {@code ItemForm.save()}. Форму/диалог этот обработчик не закрывает.</p>
  */
 @Component
-public class ItemFormSaveDispatcher implements FormSaveHandler<IdentifiableEntity> {
+public class ItemFormSaveDispatcher implements FormSaveHandler<IdentifiableEntity<Long>> {
 
     private final ItemFormSaveHandlerRegistry handlerRegistry;
     private final MetadataDrivenItemFormSaveAdapter metadataDrivenAdapter;
@@ -43,18 +43,21 @@ public class ItemFormSaveDispatcher implements FormSaveHandler<IdentifiableEntit
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public FormSaveResult<IdentifiableEntity> save(ItemForm<IdentifiableEntity> form) {
+    public FormSaveResult<IdentifiableEntity<Long>> save(ItemForm<IdentifiableEntity<Long>> form) {
         Objects.requireNonNull(form, "form must not be null");
 
         var customHandler = handlerRegistry.find(form.getEntityClass());
         if (customHandler.isPresent()) {
-            ItemFormSaveHandler handler = customHandler.get();
-            return (FormSaveResult) handler.save((ItemForm) form);
+            // Registry resolution checked supports(form.getEntityClass()); the SPI
+            // erases the handler's entity argument at this one capture boundary.
+            @SuppressWarnings("unchecked")
+            ItemFormSaveHandler<IdentifiableEntity<Long>> handler =
+                (ItemFormSaveHandler<IdentifiableEntity<Long>>) customHandler.get();
+            return handler.save(form);
         }
 
         if (metadataDrivenAdapter != null) {
-            return (FormSaveResult) metadataDrivenAdapter.save(form);
+            return metadataDrivenAdapter.save(form);
         }
 
         // Transitional hand-built fallback for callers that have not yet wired
@@ -65,8 +68,8 @@ public class ItemFormSaveDispatcher implements FormSaveHandler<IdentifiableEntit
                 "Metadata-driven aggregate adapter is required for forms with attached sections");
         }
 
-        BaseService service = serviceLocator.findService(form.getEntityClass());
-        IdentifiableEntity saved = (IdentifiableEntity) service.save(form.getEntity());
+        BaseService<IdentifiableEntity<Long>, Long> service = serviceLocator.findService(form.getEntityClass());
+        IdentifiableEntity<Long> saved = service.save(form.getEntity());
         form.commitSnapshot();
         return new FormSaveResult.Success<>(saved);
     }

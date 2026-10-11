@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ValidatedJpaCrudServiceGuardTest {
 
     @EntityMetadata(listFormTitle = "metadata root")
-    static class MetadataDrivenFixture implements IdentifiableEntity {
+    static class MetadataDrivenFixture implements IdentifiableEntity<Long> {
         private Long id;
 
         @Override
@@ -29,7 +29,7 @@ class ValidatedJpaCrudServiceGuardTest {
         }
     }
 
-    static class InternalStoreFixture implements IdentifiableEntity {
+    static class InternalStoreFixture implements IdentifiableEntity<Long> {
         private Long id;
 
         @Override

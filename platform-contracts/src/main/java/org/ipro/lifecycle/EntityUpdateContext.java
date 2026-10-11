@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /** Контекст изменения существующей entity с исходным состоянием до persistence. */
-public record EntityUpdateContext<T extends IdentifiableEntity>(
+public record EntityUpdateContext<T extends IdentifiableEntity<?>>(
         T original,
         T updated,
         EventContext eventContext) {

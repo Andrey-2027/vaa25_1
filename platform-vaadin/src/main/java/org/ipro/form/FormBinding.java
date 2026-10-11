@@ -2,6 +2,7 @@ package org.ipro.form;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.HasValidation;
 import org.ipro.metadata.FieldMetadataInfo;
 
 import java.util.Objects;
@@ -41,6 +42,10 @@ public class FormBinding {
     private final Predicate<Object> isEmpty;
     private final Consumer<Boolean> setReadOnly;
     private boolean readOnly = false;
+    private boolean locked;
+
+    /** Structural field lock survives subsequent form-wide access binding. */
+    public void setLocked(boolean value) { locked = value; setReadOnly(readOnly); }
     private Object lastLoadedValue;
 
     /**
@@ -128,6 +133,7 @@ public class FormBinding {
      * Прочитать значение из Vaadin-компонента и записать в поле сущности.
      */
     public void applyToEntity(Object entity) {
+        if (locked) return;
         Object value = readFromComponent.get();
         writeToEntity.accept(entity, value);
     }
@@ -176,6 +182,9 @@ public class FormBinding {
      *   - значение не пустое (isEmpty возвращает false)
      */
     public boolean isValid() {
+        if (component instanceof HasValidation validation && validation.isInvalid()) {
+            return false;
+        }
         if (!descriptor.required()) return true;
         if (isAutoNumbered()) return true;
         Object value = readFromComponent.get();
@@ -195,6 +204,11 @@ public class FormBinding {
      * Сообщение об ошибке валидации, или null если поле валидно.
      */
     public String getValidationError() {
+        if (component instanceof HasValidation validation && validation.isInvalid()) {
+            String message = validation.getErrorMessage();
+            return descriptor.label() + ": "
+                + (message == null || message.isBlank() ? "некорректное значение" : message);
+        }
         if (isValid()) return null;
         return descriptor.label() + ": обязательно для заполнения";
     }
@@ -205,7 +219,7 @@ public class FormBinding {
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
         if (setReadOnly != null) {
-            setReadOnly.accept(readOnly);
+            setReadOnly.accept(readOnly || locked);
         }
     }
 
@@ -213,7 +227,7 @@ public class FormBinding {
      * Проверить, находится ли компонент в режиме read-only.
      */
     public boolean isReadOnly() {
-        return readOnly;
+        return readOnly || locked;
     }
 
     // === Геттеры ===

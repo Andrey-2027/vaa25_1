@@ -53,6 +53,8 @@ class AutoconfigureModuleCompositionTest {
         "org.ipro.fetch.config.FetchPlanInstanceNameAutoConfiguration",
         "org.ipro.data.config.DataAccessAutoConfiguration",
         "org.ipro.data.config.C5EntityReadPermissionRegistrar",
+        // ADR-0017 / C5.5: определения операций из canonical write-capabilities.
+        "org.ipro.data.config.C5EntityOperationPermissionRegistrar",
         "org.ipro.search.config.GlobalSearchAutoConfiguration");
 
     /**

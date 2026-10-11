@@ -17,6 +17,7 @@ import org.ipro.crud.ServiceLocator;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
@@ -116,6 +117,9 @@ class RlsAutoConfigurationSmokeTest {
 
     @Autowired
     private RlsCurrentUser rlsCurrentUser;
+
+    @Autowired
+    private org.ipro.data.EntityDataAccess access;
 
     @Autowired
     private UserRepository userRepository;
@@ -252,9 +256,12 @@ class RlsAutoConfigurationSmokeTest {
         ReceivingDocument doc = new ReceivingDocument("NW-1", java.time.LocalDate.now(), receiver, deliverer);
         doc.setJournal(journal);
 
+        // ADR-0017: право на операцию решает C5 отдельно от строк — ключ тот же
+        // ENTITY:ReceivingDocument, поэтому документ отклоняется до RLS-пути и до
+        // пользовательского кода.
         assertThatThrownBy(() -> documents().save(doc))
-            .isInstanceOf(org.ipro.rls.RlsAccessDeniedException.class)
-            .hasMessageContaining("Нет прав на изменение");
+            .isInstanceOf(org.ipro.rls.c5.C5AccessDeniedException.class)
+            .hasMessageContaining("ENTITY:ReceivingDocument");
     }
 
     @Test
@@ -282,15 +289,17 @@ class RlsAutoConfigurationSmokeTest {
     }
 
     @Test
-    void saveSingleGrantNormalizesReadFlagAndRemovesOnNone() {
+    void saveSingleGrantWritesOnlyExpressibleFlagsAndRemovesOnNone() {
         authenticateAdmin();
         accessGrantAdminService.saveSingleGrant("ENTITY:ReceivingDocument", AccessGrant.SubjectType.USER,
             "normalize-u3", new GrantFlags(false, true, false));
 
+        // C5.7: «ENTITY:ReceivingDocument» — ключ операций, и его строка больше не нормализует
+        // «чтение» из остальных флагов: чтение сущности решает отдельный read-ключ ENTITY:<FQN>.
         List<AccessGrant> saved = accessGrantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
             AccessGrant.SubjectType.USER, "normalize-u3", "ENTITY:ReceivingDocument");
         assertThat(saved).singleElement().satisfies(g -> {
-            assertThat(g.isCanRead()).isTrue();
+            assertThat(g.isCanRead()).isFalse();
             assertThat(g.isCanUpdate()).isTrue();
             assertThat(g.isCanDelete()).isFalse();
         });
@@ -304,8 +313,6 @@ class RlsAutoConfigurationSmokeTest {
     @Autowired
     private jakarta.persistence.EntityManagerFactory entityManagerFactory;
 
-    @Autowired
-    private org.ip.repository.RoleRepository roleRepository;
 
     /**
      * Свёртка прямых грантов пользователя и грантов его ролей (Фаза 7): права — по
@@ -314,11 +321,12 @@ class RlsAutoConfigurationSmokeTest {
     @Test
     void effectiveGrantsFoldDirectAndRoleGrants() {
         authenticateAdmin();
-        org.ip.model.Role role = new org.ip.model.Role("eff-роль");
-        roleRepository.save(role);
+        // Первичная выдача для субъекта теста: read-ключ и ключ операций — разные строки (ADR-0017 §3).
+        grantCanonicalWrite("admin", org.ip.model.Role.class, User.class);
+        org.ip.model.Role role = access.create(org.ip.model.Role.class, new org.ip.model.Role("eff-роль"));
         User user = new User("eff-u1", "password");
         user.setRoles(java.util.Set.of(role));
-        userRepository.save(user);
+        access.create(User.class, user);
 
         accessGrantRepository.save(grant("eff-u1", AccessGrant.SubjectType.USER, "JOURNAL", 301L,
             true, true, false));
@@ -371,7 +379,9 @@ class RlsAutoConfigurationSmokeTest {
             accessGrantAdminService.collectEffective(AccessGrant.SubjectType.USER, "eff-u3");
         assertThat(effective.keySet()).isEqualTo(
             java.util.Set.copyOf(accessGrantAdminService.availableDimensions()));
-        assertThat(effective.get("ENTITY:ReceivingDocument").canRead()).isTrue();
+        assertThat(effective.get("ENTITY:ReceivingDocument").canRead())
+            .as("короткий ENTITY-ключ — ключ операций: столбец «Чтение» решает C5, а не флаг строки")
+            .isFalse();
         assertThat(effective.get("ENTITY:ReceivingDocument").canUpdate()).isTrue();
         assertThat(effective.get("JOURNAL").canRead()).isFalse();
         assertThat(effective.get("JOURNAL").sources()).isEmpty();
@@ -402,6 +412,25 @@ class RlsAutoConfigurationSmokeTest {
                 assertThat(value.code()).isEqualTo("META-CATALOG");
                 assertThat(value.name()).isEqualTo("Metadata catalog");
             });
+    }
+
+    /**
+     * Права, которых требует canonical write: read-ключ и ключ операций (ADR-0017 §3) плюс
+     * отдельная строка смены пароля — фикстура заводит пользователя с хэшем, а это именованная
+     * операция владельца (C5.8e), а не generic-изменение строки.
+     */
+    private void grantCanonicalWrite(String subject, Class<?>... types) {
+        for (Class<?> type : types) {
+            accessGrantRepository.save(grant(subject, AccessGrant.SubjectType.USER,
+                C5PermissionKeys.entityRead(type), null, true, false, false));
+            accessGrantRepository.save(grant(subject, AccessGrant.SubjectType.USER,
+                C5PermissionKeys.entityOperations(type), null, false, true, true));
+        }
+        accessGrantRepository.save(grant(subject, AccessGrant.SubjectType.USER,
+            C5PermissionKeys.action(
+                org.ip.application.user.UserPasswordChangePermission.PERMISSION_ID),
+            null, false, true, false));
+        accessGrantRepository.flush();
     }
 
     private static AccessGrant grant(String subjectKey, AccessGrant.SubjectType subjectType,

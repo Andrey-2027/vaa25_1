@@ -13,6 +13,8 @@ import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsAccessDeniedException;
 import org.ipro.rls.RlsTestFixture;
+import org.ipro.rls.c5.C5AccessDeniedException;
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,12 @@ import static org.mockito.Mockito.verify;
  * <p>Используется измерение {@code JOURNAL}: {@link Journal} объявляет
  * {@code @RlsDimension("JOURNAL")} с default {@code valuePaths = {"id"}}, поэтому новые
  * записи проверяются по {@code id == null}, существующие — по своему id.</p>
+ *
+ * <p><b>ADR-0017: две независимые проверки.</b> Право выполнить операцию — это C5-ключ
+ * {@code ENTITY:Journal} (глобальная строка), а доступ к конкретной строке — это RLS-
+ * строка измерения {@code JOURNAL} со своим значением. Без первого отказывает C5 и до
+ * RLS, без второго — RLS и до пользовательского кода. Один набор флагов не подменяет
+ * другой, поэтому обе стороны выдаются явно.</p>
  */
 @SpringBootTest
 class RlsServiceWriteBoundaryIT {
@@ -109,6 +117,7 @@ class RlsServiceWriteBoundaryIT {
     void serviceCreateAllowedByUpdateGrantPersists() {
         String actor = actor("allow-create");
         login(actor);
+        grants.saveAndFlush(operationGrant(actor, true, false));
         grants.saveAndFlush(grant(actor, null, true, true, false));
 
         Journal saved = journals().create(journal("WSB-AC-" + suffix()));
@@ -126,8 +135,8 @@ class RlsServiceWriteBoundaryIT {
         login(actor);
 
         assertThatThrownBy(() -> journals().create(journal(code)))
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("Нет прав на изменение");
+            .isInstanceOf(C5AccessDeniedException.class)
+            .hasMessageContaining("ENTITY:Journal");
 
         assertThat(existsAsSuperuser(code)).isFalse();
     }
@@ -137,6 +146,7 @@ class RlsServiceWriteBoundaryIT {
         String actor = actor("allow-update");
         Long id = createAsSuperuser("WSB-AU-" + suffix());
         login(actor);
+        grants.saveAndFlush(operationGrant(actor, true, false));
         grants.saveAndFlush(grant(actor, id, true, true, false));
 
         Journal detached = loadAsSuperuser(id);
@@ -157,8 +167,8 @@ class RlsServiceWriteBoundaryIT {
         detached.setName("запрещено");
 
         assertThatThrownBy(() -> journals().update(detached))
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("Нет прав на изменение");
+            .isInstanceOf(C5AccessDeniedException.class)
+            .hasMessageContaining("ENTITY:Journal");
 
         assertThat(loadAsSuperuser(id).getName()).isNotEqualTo("запрещено");
     }
@@ -168,6 +178,7 @@ class RlsServiceWriteBoundaryIT {
         String actor = actor("allow-delete");
         Long id = createAsSuperuser("WSB-AD-" + suffix());
         login(actor);
+        grants.saveAndFlush(operationGrant(actor, false, true));
         grants.saveAndFlush(grant(actor, id, true, false, true));
 
         journals().delete(id);
@@ -183,8 +194,8 @@ class RlsServiceWriteBoundaryIT {
         grants.saveAndFlush(grant(actor, id, true, false, false));
 
         assertThatThrownBy(() -> journals().delete(id))
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("Нет прав на удаление");
+            .isInstanceOf(C5AccessDeniedException.class)
+            .hasMessageContaining("ENTITY:Journal");
 
         assertThat(findAsSuperuser(id)).isPresent();
     }
@@ -207,8 +218,8 @@ class RlsServiceWriteBoundaryIT {
         Journal invalid = new Journal(); // code/name пусты — @NotBlank не выполнен
 
         assertThatThrownBy(() -> journals().create(invalid))
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("Нет прав на изменение");
+            .isInstanceOf(C5AccessDeniedException.class)
+            .hasMessageContaining("ENTITY:Journal");
 
         verify(entityEventPublisher, never()).publishSaving(any(), any());
         verify(lifecycleRegistry, never()).beforeSave(any(), any(), any());
@@ -230,8 +241,8 @@ class RlsServiceWriteBoundaryIT {
         detached.setName("запрещено");
 
         assertThatThrownBy(() -> journals().update(detached))
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("Нет прав на изменение");
+            .isInstanceOf(C5AccessDeniedException.class)
+            .hasMessageContaining("ENTITY:Journal");
 
         assertThat(detached.getVersion()).as("normalizeVersion не выполнялся").isNull();
         verify(entityEventPublisher, never()).publishSaving(any(), any());
@@ -251,8 +262,8 @@ class RlsServiceWriteBoundaryIT {
         grants.saveAndFlush(grant(actor, id, true, false, false));
 
         assertThatThrownBy(() -> journals().delete(id))
-            .isInstanceOf(RlsAccessDeniedException.class)
-            .hasMessageContaining("Нет прав на удаление");
+            .isInstanceOf(C5AccessDeniedException.class)
+            .hasMessageContaining("ENTITY:Journal");
 
         verify(entityEventPublisher, never()).publishDeleting(any(), any());
         verify(lifecycleRegistry, never()).beforeDelete(any(), any(), any());
@@ -270,6 +281,7 @@ class RlsServiceWriteBoundaryIT {
         String actor = actor("allow-hooks");
         Long id = createAsSuperuser("WSB-AH-" + suffix());
         login(actor);
+        grants.saveAndFlush(operationGrant(actor, true, true));
         grants.saveAndFlush(grant(actor, id, true, true, true));
 
         journals().update(loadAsSuperuser(id));
@@ -281,6 +293,39 @@ class RlsServiceWriteBoundaryIT {
         verify(lifecycleRegistry).beforeDelete(any(), any(), any());
         verify(ownedSections).deleteAllOwnedSections(any());
         assertThat(findAsSuperuser(id)).isEmpty();
+    }
+
+    // --------------------------------------------- ADR-0017: два независимых решения
+
+    /**
+     * Право на операцию и право на строку — разные решения: с операционным грантом, но без
+     * доступа к строке отказывает RLS-путь (запись недоступна), а со строкой, но без
+     * операционного гранта — C5 и до RLS. Один набор флагов не подменяет другой.
+     */
+    @Test
+    void operationRightAndRowRightAreIndependentDecisions() {
+        String actorWithoutRow = actor("op-without-row");
+        Long id = createAsSuperuser("WSB-IND-" + suffix());
+        login(actorWithoutRow);
+        grants.saveAndFlush(operationGrant(actorWithoutRow, true, true));
+
+        Journal withoutRow = loadAsSuperuser(id);
+        withoutRow.setName("без строки");
+        assertThatThrownBy(() -> journals().update(withoutRow))
+            .isInstanceOf(org.ipro.data.CanonicalWriteDeniedException.class)
+            .hasMessageContaining("отсутствует или недоступна");
+
+        String actorWithoutOperation = actor("row-without-op");
+        login(actorWithoutOperation);
+        grants.saveAndFlush(grant(actorWithoutOperation, id, true, true, true));
+
+        Journal withoutOperation = loadAsSuperuser(id);
+        withoutOperation.setName("без операции");
+        assertThatThrownBy(() -> journals().update(withoutOperation))
+            .isInstanceOf(C5AccessDeniedException.class)
+            .hasMessageContaining("ENTITY:Journal");
+
+        assertThat(loadAsSuperuser(id).getName()).isNotEqualTo("без операции");
     }
 
     // ---------------------------------------------- прямой EntityManager (flush-listener)
@@ -345,8 +390,27 @@ class RlsServiceWriteBoundaryIT {
     }
 
     private void login(String username) {
+        // This suite varies JOURNAL row/write permissions; canonical C5 read is
+        // an independent prerequisite and must not mask the RLS outcome.
+        RlsTestFixture.grantC5EntityRead(grants, username, Journal.class);
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(username, "n/a", List.of()));
+    }
+
+    /**
+     * C5-право на операцию — отдельная глобальная строка (ADR-0017). До этого среза
+     * операцию и строку решала одна и та же RLS-строка измерения {@code JOURNAL}: набор
+     * флагов теперь не подменяет обе стороны сразу.
+     */
+    private AccessGrant operationGrant(String subjectKey, boolean update, boolean delete) {
+        AccessGrant grant = new AccessGrant();
+        grant.setSubjectType(AccessGrant.SubjectType.USER);
+        grant.setSubjectKey(subjectKey);
+        grant.setDimension(C5PermissionKeys.entityOperations(Journal.class));
+        grant.setDimensionValueId(null);
+        grant.setCanUpdate(update);
+        grant.setCanDelete(delete);
+        return grant;
     }
 
     private AccessGrant grant(String subjectKey, Long dimensionValueId,

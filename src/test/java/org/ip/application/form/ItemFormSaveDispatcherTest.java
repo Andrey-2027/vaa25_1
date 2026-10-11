@@ -44,7 +44,7 @@ class ItemFormSaveDispatcherTest {
         ReceivingDocument saved = mock(ReceivingDocument.class);
         customHandler.saved = saved;
 
-        FormSaveResult<IdentifiableEntity> result = customDispatcher.save((ItemForm) form);
+        FormSaveResult<IdentifiableEntity<Long>> result = customDispatcher.save((ItemForm) form);
 
         assertThat(result.success()).isTrue();
         assertThat(((FormSaveResult.Success) result).saved()).isSameAs(saved);
@@ -61,7 +61,7 @@ class ItemFormSaveDispatcherTest {
         FormSaveResult<PrdSpec> expected = new FormSaveResult.Success<>(saved);
         doReturn(expected).when(metadataAdapter).save(form);
 
-        FormSaveResult<IdentifiableEntity> result = dispatcher.save((ItemForm) form);
+        FormSaveResult<IdentifiableEntity<Long>> result = dispatcher.save((ItemForm) form);
 
         assertThat(result).isSameAs(expected);
         verify(metadataAdapter).save(form);
@@ -83,7 +83,7 @@ class ItemFormSaveDispatcherTest {
         when(serviceLocator.findService(Workshop.class)).thenReturn(service);
         when(service.save(entity)).thenReturn(saved);
 
-        FormSaveResult<IdentifiableEntity> result = legacyDispatcher.save((ItemForm) form);
+        FormSaveResult<IdentifiableEntity<Long>> result = legacyDispatcher.save((ItemForm) form);
 
         assertThat(result.success()).isTrue();
         assertThat(((FormSaveResult.Success) result).saved()).isSameAs(saved);

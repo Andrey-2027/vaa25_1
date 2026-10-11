@@ -16,6 +16,7 @@ import org.ipro.form.action.ActionProvenanceCatalog;
 import org.ipro.form.action.ActionRegistry;
 import org.ipro.form.action.ActionSurface;
 import org.ipro.form.action.CrudAction;
+import org.ipro.form.action.OperationPermissionSource;
 import org.ipro.form.coordinator.FormCoordinator;
 import org.ipro.form.coordinator.ItemFormWrapperView;
 import org.ipro.form.registry.FormRegistry;
@@ -24,6 +25,10 @@ import org.ipro.form.spi.FormSettingsStore;
 import org.ipro.form.spi.GridViewStore;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
 import org.ipro.rls.RlsUiGate;
+import org.ipro.rls.c5.C5DecisionReason;
+import org.ipro.rls.c5.C5Operation;
+import org.ipro.rls.c5.C5PermissionDecision;
+import org.ipro.rls.c5.C5PermissionDecisionService;
 import org.junit.jupiter.api.Test;
 import org.ipro.form.spi.WorkspaceGateway;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -43,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -219,6 +225,80 @@ class FormAutoConfigurationTest {
     }
 
     /**
+     * E1.2b: право на операцию приходит из C5 тем же ответом, что спрашивает серверная граница, и
+     * отказ показывается <b>безопасным текстом причины</b>, а не формулировкой слоя действий.
+     *
+     * <p>Проверяется сама лямбда бина, а не контейнер: подменять в общем раннере ответ C5 значило бы
+     * проверять мок, а не решение «спросить тот же движок». Полная композиция (операция из C5 И
+     * строка из RLS) проверена в {@code ActionContextProviderTest}.</p>
+     */
+    @Test
+    void operationPermissionSourceAnswersFromC5DecisionService() {
+        C5PermissionDecisionService decisions = mock(C5PermissionDecisionService.class);
+        org.ipro.rls.RlsCurrentUser currentUser = mock(org.ipro.rls.RlsCurrentUser.class);
+        when(currentUser.requireAuthenticatedUsername()).thenReturn("auditor");
+        when(decisions.decideEntity("auditor", Nomenclature.class, C5Operation.UPDATE))
+            .thenReturn(C5PermissionDecision.denied(C5DecisionReason.ENTITY_PERMISSION_DENIED,
+                "ENTITY:Nomenclature", C5Operation.UPDATE));
+
+        OperationPermissionSource source =
+            new FormAutoConfiguration().operationPermissionSource(decisions, currentUser);
+
+        assertThat(source.denialReason(Nomenclature.class, org.ipro.data.DataOperation.UPDATE))
+            .isEqualTo(C5DecisionReason.ENTITY_PERMISSION_DENIED.message());
+    }
+
+    /**
+     * Аноним и неявный {@code system} — не субъекты прав: адаптер отказывает той же формулировкой,
+     * что и C5, и <b>не спрашивает</b> решение о грантах (иначе хранилище грантов получало бы
+     * запрос о субъекте, которого нет).
+     */
+    @Test
+    void operationPermissionSourceDeniesUnauthenticatedSubjectWithoutAskingC5() {
+        C5PermissionDecisionService decisions = mock(C5PermissionDecisionService.class);
+        org.ipro.rls.RlsCurrentUser currentUser = mock(org.ipro.rls.RlsCurrentUser.class);
+        when(currentUser.requireAuthenticatedUsername()).thenThrow(
+            new org.ipro.rls.RlsAccessDeniedException(
+                "Защищённая операция требует аутентифицированного пользователя"));
+
+        OperationPermissionSource source =
+            new FormAutoConfiguration().operationPermissionSource(decisions, currentUser);
+
+        assertThat(source.denialReason(Nomenclature.class, org.ipro.data.DataOperation.CREATE))
+            .isEqualTo(C5DecisionReason.UNAUTHENTICATED.message());
+        verifyNoInteractions(decisions);
+
+        // Вторая законная форма того же состояния: реализация не бросает, а отвечает «субъекта нет».
+        org.ipro.rls.RlsCurrentUser silent = mock(org.ipro.rls.RlsCurrentUser.class);
+        when(silent.requireAuthenticatedUsername()).thenReturn("");
+        assertThat(new FormAutoConfiguration().operationPermissionSource(decisions, silent)
+            .denialReason(Nomenclature.class, org.ipro.data.DataOperation.DELETE))
+            .isEqualTo(C5DecisionReason.UNAUTHENTICATED.message());
+        verifyNoInteractions(decisions);
+    }
+
+    /**
+     * Чтение операцией записи не является: у него отдельный C5 read-ключ ({@code RlsReadGate}), и
+     * попытка спросить право на операцию о чтении — ошибка композиции, а не молчаливое разрешение.
+     */
+    @Test
+    void readIsNotAnOperationRightAndIsRejectedByName() {
+        org.ipro.rls.RlsCurrentUser currentUser = mock(org.ipro.rls.RlsCurrentUser.class);
+        when(currentUser.requireAuthenticatedUsername()).thenReturn("auditor");
+        OperationPermissionSource source = new FormAutoConfiguration().operationPermissionSource(
+            mock(C5PermissionDecisionService.class), currentUser);
+
+        assertThatThrownBy(() -> source.denialReason(Nomenclature.class,
+            org.ipro.data.DataOperation.LIST))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("чтение решает C5 read-ключ");
+    }
+
+    /** Тип-носитель проверки адаптера: адаптеру нужен класс, состояние не участвует. */
+    static class Nomenclature {
+    }
+
+    /**
      * Fail-fast, а не backoff: {@code RlsUiGate} — обязательный коллаборатор безопасности.
      * Контекст обязан упасть и назвать причину. Молчаливое отсутствие gate дало бы UI, который
      * показывает данные, не прошедшие RLS-проверку, — то есть цена отказа выше цены падения старта.
@@ -385,7 +465,14 @@ class FormAutoConfigurationTest {
             .withBean(GenericOwnedSectionService.class,
                 () -> mock(GenericOwnedSectionService.class))
             .withBean(FormSettingsStore.class, () -> mock(FormSettingsStore.class))
-            .withBean(GridViewStore.class, () -> mock(GridViewStore.class));
+            .withBean(GridViewStore.class, () -> mock(GridViewStore.class))
+            // E1.2b: источник права на операцию — C5 того же движка, что спрашивает серверная граница.
+            // Здесь он замокан: проверяется проводка «провайдер входов получил обязательный
+            // источник», а не решения C5 (они проверяются в platform-rls и на прикладном носителе).
+            .withBean(C5PermissionDecisionService.class,
+                () -> mock(C5PermissionDecisionService.class))
+            .withBean(org.ipro.rls.RlsCurrentUser.class,
+                () -> mock(org.ipro.rls.RlsCurrentUser.class));
         ApplicationContextRunner configured = withDescriptorCatalog
             ? runner.withBean(EntityDescriptorCatalog.class,
                 () -> mock(EntityDescriptorCatalog.class))

@@ -1,8 +1,10 @@
 # F-REST-READ-3: evidence завершения
 
 - Дата: 2026-10-03, Europe/Moscow.
-- Статус: З0–З4 выполнены; З5 и полная приёмка этапа остаются открытыми.
+- Актуализация 2026-10-06: З0–З5 и Gate 3A/3B закрыты. Полный стандартный bootstrap на стабильном source snapshot: 1830 application tests, failures/errors 0; frontend/package и strict validation — exit 0. Общий C5/C и внешнее включение остаются отдельными; [evidence 4.7](rest-read-api-stage4-47-evidence-20261006.md).
+- Статус: З0–З5 выполнены; Gate 3A/3B и локальная серверная приёмка этапа закрыты.
 - План: [`rest-read-api-stage3-completion-plan.md`](rest-read-api-stage3-completion-plan.md).
+- Контрольное ревью: [2026-10-05, 40/40 и открытый З5](rest-read-api-stage3-review-20261005.md).
 - Контракт: [`rest-read-api-stage3-security-read-plan.md`](rest-read-api-stage3-security-read-plan.md).
 - SQL trace: [`evidence/rest-read-stage3-z0-sql-20261003.txt`](evidence/rest-read-stage3-z0-sql-20261003.txt).
 - SQL trace З1: [`evidence/rest-read-stage3-z1-sql-20261003.txt`](evidence/rest-read-stage3-z1-sql-20261003.txt).
@@ -724,3 +726,17 @@ git-состояния модулей (ни CRLF-дерево, ни LF-blob, н�
 evidence; его текущий хеш `eb6061e683db8bdee3dbbcd16f7a226941fe46ca3551fae3055858fde5d4f602`.
 
 З5 остаётся открытым до зелёного application clean verify; это внешний gate полного C5.
+
+## 13. З5 — окончательное закрытие, 2026-10-06
+
+Полный стандартный bootstrap на согласованном стабильном checkout завершился exit 0.
+Application: 1830 tests, failures/errors 0, 6 skipped только в PostgreSQL-only
+RecorderSetWriterPostgresIT. REST HTTP/H2 + compatibility — 50/50, skipped 0;
+прежние 14 C5/problem classes зелёные. Frontend/package выполнены, strict validation
+без overrides — exit 0. Source inventory 1366 inputs до/после совпал; target/installed
+JAR совпали для восьми owners. З5 и Gate 3A/3B закрыты.
+
+Команды, owner counts, reviewed API/roles, source/JAR receipts и machine-readable
+results находятся в [evidence 4.7](rest-read-api-stage4-47-evidence-20261006.md). §12 сохраняет исторический отказ; его статус
+заменён этим итоговым результатом. Полный C5/C и deployment gate не закрываются
+успешной локальной read-приёмкой.

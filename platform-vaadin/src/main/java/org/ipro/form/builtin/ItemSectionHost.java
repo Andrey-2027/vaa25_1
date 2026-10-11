@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  * читает через поставщика (нужна для {@code setParent} при подключении секции
  * к уже установленной сущности).
  */
-final class ItemSectionHost<T extends IdentifiableEntity> {
+final class ItemSectionHost<T extends IdentifiableEntity<Long>> {
 
     private final Supplier<T> currentEntity;
     private final VerticalLayout sectionsContainer = new VerticalLayout();
@@ -151,7 +151,7 @@ final class ItemSectionHost<T extends IdentifiableEntity> {
      * прежнюю строгую семантику и по-прежнему бросает при отсутствии секции.
      */
     @SuppressWarnings("unchecked")
-    public <R extends IdentifiableEntity> SectionPayload<R> sectionPayload(Class<R> rowClass) {
+    public <R extends IdentifiableEntity<Long>> SectionPayload<R> sectionPayload(Class<R> rowClass) {
         List<ItemTable<?, T>> matches = tableSections.stream()
             .filter(table -> table.getRowClass().equals(rowClass))
             .toList();
@@ -177,7 +177,7 @@ final class ItemSectionHost<T extends IdentifiableEntity> {
      * @param rowClass класс строки (например, ReceivingDocumentItem.class)
      */
     @SuppressWarnings("unchecked")
-    public <R extends IdentifiableEntity> ItemTable<R, T> tableSection(Class<R> rowClass) {
+    public <R extends IdentifiableEntity<Long>> ItemTable<R, T> tableSection(Class<R> rowClass) {
         List<ItemTable<?, T>> matches = tableSections.stream()
             .filter(table -> table.getRowClass().equals(rowClass))
             .toList();

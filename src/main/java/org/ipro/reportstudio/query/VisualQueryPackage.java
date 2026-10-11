@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.ipro.register.RecorderRef;
 
 /** Пакет запросов: упорядоченные нерекурсивные CTE и итоговый запрос. */
 public record VisualQueryPackage(int version, List<Cte> ctes, VisualQueryDefinition main) {
-    public static final int CURRENT_VERSION = 1;
+    public static final int CURRENT_VERSION = 2;
     private static final Pattern IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
 
     public VisualQueryPackage(List<Cte> ctes, VisualQueryDefinition main) {
@@ -16,7 +17,7 @@ public record VisualQueryPackage(int version, List<Cte> ctes, VisualQueryDefinit
     }
 
     public VisualQueryPackage {
-        if (version != CURRENT_VERSION) {
+        if (version < 1 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Неподдерживаемая версия пакета visual query: " + version);
         }
         ctes = List.copyOf(ctes == null ? List.of() : ctes);
@@ -24,6 +25,8 @@ public record VisualQueryPackage(int version, List<Cte> ctes, VisualQueryDefinit
         Set<String> names = new HashSet<>();
         for (int i = 0; i < ctes.size(); i++) {
             Cte cte = Objects.requireNonNull(ctes.get(i), "ctes[" + i + "]");
+            if (version < 2 && !cte.selectedRecorders().isEmpty())
+                throw new IllegalArgumentException("Выбор регистратора в CTE требует версию visual package 2 или новее");
             if (!names.add(cte.name())) throw new IllegalArgumentException("Повторное имя CTE: " + cte.name());
             if (cte.source() instanceof CteSource source && !names.contains(source.cteName())) {
                 throw new IllegalArgumentException("CTE " + cte.name() + " ссылается на недоступный этап: " + source.cteName());
@@ -97,8 +100,10 @@ public record VisualQueryPackage(int version, List<Cte> ctes, VisualQueryDefinit
             }
             var fields = new java.util.ArrayList<QueryBuilderMetadataCatalog.Field>();
             for (VisualQueryDefinition.SelectField selected : definition.selectFields()) {
+                QueryBuilderMetadataCatalog.Field source = sourceField(selected.path(), definition.entityAlias(), root);
                 fields.add(new QueryBuilderMetadataCatalog.Field(selected.resultName(), selected.resultName(),
-                        sourceType(selected.path(), definition.entityAlias(), root), false));
+                        sourceType(selected.path(), definition.entityAlias(), root), source != null && source.technical(), List.of(),
+                        referenceType(selected.path(), definition, metadataCatalog, virtualCatalog)));
             }
             for (VisualQueryDefinition.Aggregate aggregate : definition.aggregates()) {
                 fields.add(new QueryBuilderMetadataCatalog.Field(aggregate.resultName(), aggregate.resultName(),
@@ -111,10 +116,55 @@ public record VisualQueryPackage(int version, List<Cte> ctes, VisualQueryDefinit
             return new VirtualEntity(name, fields);
         }
 
+        private static Class<?> referenceType(String path, VisualQueryDefinition definition,
+                                              QueryBuilderMetadataCatalog catalog, VirtualCatalog virtual) {
+            int dot = path.indexOf('.');
+            if (dot < 0) return null;
+            var entity = sourceEntity(path.substring(0, dot), definition, catalog, virtual);
+            if (entity == null) return null;
+            String relative = path.substring(dot + 1);
+            var field = entity.fields().stream().filter(value -> value.name().equals(relative)).findFirst();
+            if (field.isPresent() && field.get().referenceType() != null) return field.get().referenceType();
+            if (!relative.equals("id") && !relative.endsWith(".id")) return null;
+            String[] segments = relative.split("\\.");
+            for (int index = 0; index < segments.length - 1; index++) {
+                String segment = segments[index];
+                var association = entity.associations().stream().filter(value -> value.name().equals(segment)).findFirst();
+                if (association.isEmpty()) return null;
+                Class<?> target = association.get().targetType();
+                if (index == segments.length - 2) return target;
+                entity = catalog.roots().stream().filter(value -> value.javaType() == target).findFirst().orElse(null);
+                if (entity == null) return null;
+            }
+            return entity.javaType() == Object.class ? null : entity.javaType();
+        }
+
+        private static QueryBuilderMetadataCatalog.Entity sourceEntity(String alias, VisualQueryDefinition definition,
+                                                                        QueryBuilderMetadataCatalog catalog, VirtualCatalog virtual) {
+            if (alias.equals(definition.entityAlias())) {
+                var entity = virtual.entity(definition.entityName());
+                if (entity != null) return entity;
+                try { return catalog.root(definition.entityName()); } catch (IllegalArgumentException unavailable) { return null; }
+            }
+            var join = definition.joins().stream().filter(value -> value.alias().equals(alias)).findFirst();
+            if (join.isEmpty()) return null;
+            if (join.get().independent()) {
+                var entity = virtual.entity(join.get().sourcePath());
+                if (entity != null) return entity;
+                try { return catalog.root(join.get().sourcePath()); } catch (IllegalArgumentException unavailable) { return null; }
+            }
+            var parent = sourceEntity(join.get().parentAlias() == null ? definition.entityAlias() : join.get().parentAlias(), definition, catalog, virtual);
+            if (parent == null) return null;
+            var association = parent.associations().stream().filter(value -> value.name().equals(join.get().sourcePath())).findFirst();
+            return association.isEmpty() ? null : catalog.roots().stream().filter(value -> value.javaType() == association.get().targetType()).findFirst().orElse(null);
+        }
+
         private static Class<?> sourceType(String path, String alias,
                                            QueryBuilderMetadataCatalog.Entity root) {
             String relative = path.startsWith(alias + ".") ? path.substring(alias.length() + 1) : path;
             String[] segments = relative.split("\\.");
+            QueryBuilderMetadataCatalog.Field exact = sourceField(path, alias, root);
+            if (exact != null) return exact.javaType();
             String last = segments[segments.length - 1];
             // Системный идентификатор (в т.ч. в конце dotted-traversal «m.prdSpec.id») — Long.
             if ("id".equals(last)) return Long.class;
@@ -126,6 +176,12 @@ public record VisualQueryPackage(int version, List<Cte> ctes, VisualQueryDefinit
             }
             return root.fields().stream().filter(field -> field.name().equals(last))
                     .map(QueryBuilderMetadataCatalog.Field::javaType).findFirst().orElse(Object.class);
+        }
+
+        private static QueryBuilderMetadataCatalog.Field sourceField(String path, String alias,
+                                                                      QueryBuilderMetadataCatalog.Entity root) {
+            String relative = path.startsWith(alias + ".") ? path.substring(alias.length() + 1) : path;
+            return root.fields().stream().filter(field -> field.name().equals(relative)).findFirst().orElse(null);
         }
 
         private static Class<?> aggregateType(VisualQueryDefinition.Aggregate aggregate, String alias,
@@ -202,19 +258,32 @@ public record VisualQueryPackage(int version, List<Cte> ctes, VisualQueryDefinit
         }
     }
 
-    public record Cte(String name, Source source, VisualQueryDefinition definition) {
+    public record Cte(String name, Source source, VisualQueryDefinition definition,
+                       List<RecorderRef> selectedRecorders) {
         public Cte {
             validateName(name, "имени CTE");
             source = Objects.requireNonNull(source, "source");
             definition = Objects.requireNonNull(definition, "definition");
+            selectedRecorders = List.copyOf(selectedRecorders == null ? List.of() : selectedRecorders);
+            if (new java.util.HashSet<>(selectedRecorders).size() != selectedRecorders.size())
+                throw new IllegalArgumentException("Повторная ссылка регистратора в CTE: " + name);
             if (!source.alias().equals(definition.entityAlias())) {
                 throw new IllegalArgumentException("Alias источника не совпадает с alias определения: " + source.name());
             }
         }
 
+        public Cte(String name, Source source, VisualQueryDefinition definition) {
+            this(name, source, definition, List.of());
+        }
+
         /** Совместимый shorthand: старое определение CTE начинается от JPA-сущности. */
         public Cte(String name, VisualQueryDefinition definition) {
             this(name, new EntitySource(definition.entityName(), definition.entityAlias()), definition);
+        }
+
+        /** Generated recorder slices carry a typed candidate selection beside the generic filter AST. */
+        public Cte(String name, VisualQueryDefinition definition, List<RecorderRef> selectedRecorders) {
+            this(name, new EntitySource(definition.entityName(), definition.entityAlias()), definition, selectedRecorders);
         }
     }
 

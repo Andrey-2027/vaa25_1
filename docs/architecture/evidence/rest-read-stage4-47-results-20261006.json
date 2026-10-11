@@ -1,0 +1,227 @@
+{
+  "status": "local-read-acceptance-complete-external-rollout-gates-open",
+  "fullBootstrapExitCode": 0,
+  "application": {
+    "tests": 1830,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 6
+  },
+  "failedApplicationGates": [],
+  "restHttpAndCompatibilityTests": 50,
+  "restHttpAndCompatibilityFailures": 0,
+  "restHttpAndCompatibilitySkipped": 0,
+  "criticalSuites": [
+    {
+      "name": "org.ip.rest.RestReadHttpContractIT",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.rest.RestReadHttpPilotIT",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.rest.RestReadHttpSecurityIT",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.rest.RestReadHttpSessionIsolationIT",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.rest.RestReadPipelinePilotIT",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.rest.RestReadRoleMatrixIT",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.security.C5GrantAdminParityIT",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.web.ReportJpqlPreviewControllerIT",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "skippedSuites": [
+    {
+      "name": "org.ipro.register.RecorderSetWriterPostgresIT",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 6
+    }
+  ],
+  "latestStrictValidationExitCode": 0,
+  "rlsOwnerTests": 27,
+  "vaadinOwnerTests": 475,
+  "sourceInventoryFileCount": 1366,
+  "sourceInventorySha256": "f371e5ad9ae5044d159c3013c78740de6edcb62caf1cc16eab69c6f30d599acc",
+  "beforeAndAfterInventoryMatches": true,
+  "historicalUnstableBootstrap": {
+    "exitCode": 1,
+    "application": {
+      "errors": 1,
+      "skipped": 6,
+      "failures": 4,
+      "tests": 1830
+    },
+    "failedGates": [
+      {
+        "class": "org.ipro.PlatformApiBaselineTest",
+        "failures": 0,
+        "errors": 1
+      },
+      {
+        "class": "org.ipro.PlatformPublicSurfaceTest",
+        "failures": 1,
+        "errors": 0
+      },
+      {
+        "class": "org.ipro.PlatformVaadinModuleTest",
+        "failures": 1,
+        "errors": 0
+      },
+      {
+        "class": "org.ipro.PlatformVaadinSurfaceTest",
+        "failures": 1,
+        "errors": 0
+      },
+      {
+        "class": "org.ipro.WorkspaceManifestTest",
+        "failures": 1,
+        "errors": 0
+      }
+    ]
+  },
+  "completedAt": "2026-10-06T12:07:35+03:00",
+  "frontendProductionBuildExitCode": 0,
+  "applicationJarSha256": "b1a52de27f1d8b544ddbcb4a4a941c0ff090b81a2dc56388452c3db5a5cccd0b",
+  "runtimeDependencyTreeSha256": "30a1aec6d9b1fd313dcdfd8ac9770ff351c312e601fb258f48a6e6125d6e138d",
+  "legacyRegressionSuites": [
+    {
+      "name": "org.ip.application.catalog.AttributeValueRefRlsIT",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.application.catalog.NomenclatureAttributesIT",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.application.document.PrdSpecMetadataAggregateIT",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.application.document.ReceivingDocumentRulesIT",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.routes.DeepLinkTwoUserAccessIT",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.security.RlsServiceWriteBoundaryIT",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.security.RlsStatementGuardTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.security.RlsUnauthenticatedAccessIT",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ip.views.reportstudio.ReportEditorConsolidationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ipro.crud.MetadataDrivenAggregateSaveServiceIT",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ipro.data.CanonicalWriteBoundaryIT",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ipro.data.CharacterizationStandardPathIT",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ipro.fetch.plan.FetchPlanLookupHydrationIT",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "org.ipro.numbering.NumberingEngineIT",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

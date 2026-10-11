@@ -12,6 +12,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class VisualQueryPackageCompilerTest {
     @Test
+    void repeatedRealSourceDoesNotBecomeTheProjectionOfAnEarlierCte() {
+        var catalog = org.mockito.Mockito.mock(QueryBuilderMetadataCatalog.class);
+        var entity = new QueryBuilderMetadataCatalog.Entity("Product", String.class,
+            List.of(new QueryBuilderMetadataCatalog.Field("code", "Code", String.class, false),
+                new QueryBuilderMetadataCatalog.Field("price", "Price", java.math.BigDecimal.class, false)), List.of());
+        org.mockito.Mockito.when(catalog.root("Product")).thenReturn(entity);
+        var first = new VisualQueryDefinition("Product", "a", List.of(new VisualQueryDefinition.SelectField("code", "firstCode")));
+        var second = new VisualQueryDefinition("Product", "b", List.of(new VisualQueryDefinition.SelectField("code", "secondCode")));
+        var third = new VisualQueryDefinition("Product", "c", List.of(new VisualQueryDefinition.SelectField("price", "lastPrice")));
+        var main = new VisualQueryDefinition("Product", "d", List.of(new VisualQueryDefinition.SelectField("code", "code")));
+        var result = VisualQueryCompiler.compile(new VisualQueryPackage(List.of(
+            new VisualQueryPackage.Cte("first", first), new VisualQueryPackage.Cte("second", second),
+            new VisualQueryPackage.Cte("third", third)), main), catalog);
+        assertThat(result.jpql()).contains("select c.price as lastPrice from Product c", "select d.code as code from Product d");
+        assertThat(result.fields().getFirst().javaType()).isEqualTo(String.class);
+    }
+
+    @Test
     void compilesCtesAndMainQueryInOrderWithSharedBindings() {
         var first = new VisualQueryDefinition(
                 VisualQueryDefinition.CURRENT_VERSION, "Q6Product", "p", List.of(

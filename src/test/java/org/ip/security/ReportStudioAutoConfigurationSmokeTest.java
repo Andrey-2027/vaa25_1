@@ -2,6 +2,9 @@ package org.ip.security;
 
 import org.ip.Application;
 import org.ip.config.DataInitializer;
+import org.ip.model.NomenclaturePrice;
+import org.ipro.register.RegisterRegistry;
+import org.ipro.reportstudio.query.register.RegisterReportReadPolicy;
 import org.ipro.reportstudio.ReportTemplateRepository;
 import org.ipro.reportstudio.config.ReportSchemaCompatibility;
 import org.ipro.reportstudio.query.ReportPreviewService;
@@ -49,6 +52,23 @@ class ReportStudioAutoConfigurationSmokeTest {
 
     @Autowired
     private ReportSchemaCompatibility schemaCompatibility;
+
+    @Autowired
+    private RegisterRegistry registers;
+
+    @Autowired
+    private RegisterReportReadPolicy registerReportReadPolicy;
+
+    @Autowired
+    private org.ipro.reportstudio.query.register.RegisterSliceCteGenerator sliceGenerator;
+
+    @Test
+    void registerInfrastructureAndReportPolicyAreRegisteredWithoutApplicationScan() {
+        assertThat(registerReportReadPolicy).isNotNull();
+        assertThat(sliceGenerator).isNotNull();
+        assertThat(registers.require(NomenclaturePrice.class).dimensionNames()).containsExactly("nomenclature");
+        assertThat(registers.require(NomenclaturePrice.class).period().orElseThrow().name()).isEqualTo("period");
+    }
 
     @Test
     void reportStudioBeansAreRegisteredByAutoConfiguration() {

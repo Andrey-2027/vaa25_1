@@ -45,6 +45,35 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class ReportStudioAutoConfiguration {
 
     @Bean
+    public org.ipro.reportstudio.query.register.RegisterSliceCteGenerator registerSliceCteGenerator() {
+        return new org.ipro.reportstudio.query.register.RegisterSliceCteGenerator();
+    }
+
+    @Bean
+    public org.ipro.reportstudio.query.ReportQueryLanguage reportQueryLanguage(
+            org.ipro.reportstudio.query.QueryBuilderMetadataCatalog catalog,
+            org.ipro.reportstudio.query.register.RegisterSliceReportTemplates recipes) {
+        return new org.ipro.reportstudio.query.ReportQueryLanguage(catalog, recipes);
+    }
+
+    @Bean
+    public org.ipro.reportstudio.query.register.RegisterSliceReportTemplates registerSliceReportTemplates(
+            EntityManagerFactory factory, org.ipro.register.RegisterRegistry registers,
+            org.ipro.reportstudio.query.QueryBuilderMetadataCatalog catalog,
+            org.ipro.reportstudio.query.register.RegisterSliceCteGenerator generator,
+            org.ipro.rls.c5.C5PermissionEvaluator permissions, RlsCurrentUser currentUser) {
+        return new org.ipro.reportstudio.query.register.RegisterSliceReportTemplates(factory, registers, catalog, generator,
+            permissions, currentUser);
+    }
+
+    @Bean
+    public org.ipro.reportstudio.query.register.RegisterReportReadPolicy registerReportReadPolicy(
+            EntityManagerFactory factory, RlsDimensionRegistry dimensions,
+            org.ipro.register.RegisterRegistry registers) {
+        return new org.ipro.reportstudio.query.register.RegisterReportReadPolicy(factory, dimensions, registers);
+    }
+
+    @Bean
     public org.ipro.reportstudio.query.ReportReadAuthorizer reportReadAuthorizer(
             EntityManagerFactory factory, org.ipro.rls.c5.C5PermissionEvaluator permissions,
             RlsCurrentUser currentUser, java.util.List<org.ipro.reportstudio.query.ReportReadPolicy> policies,
@@ -76,8 +105,11 @@ public class ReportStudioAutoConfiguration {
     public ReportQueryExecutor reportQueryExecutor(EntityManager entityManager,
                                                    RlsFilterActivator rlsFilterActivator,
                                                    RlsCurrentUser currentUser, ReportQueryGuard guard,
-                                                   org.ipro.reportstudio.query.ReportReadAuthorizer authorizer) {
-        return new ReportQueryExecutor(entityManager, rlsFilterActivator, currentUser, guard, authorizer);
+                                                   org.ipro.reportstudio.query.ReportReadAuthorizer authorizer,
+                                                   org.ipro.data.presentation.EntityPresentationService presentations,
+                                                   org.ipro.register.RecorderTypeRegistry recorderTypes) {
+        var executor = new ReportQueryExecutor(entityManager, rlsFilterActivator, currentUser, guard, authorizer);
+        executor.usePresentations(presentations, recorderTypes); return executor;
     }
 
     @Bean
@@ -182,8 +214,10 @@ public class ReportStudioAutoConfiguration {
     public ReportQueryAssemblyService reportQueryAssemblyService(ReportQueryGuard guard,
                                                                   ReportParamResolver resolver,
                                                                   EntityParamRefresher refresher,
-                                                                  org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog) {
-        return new ReportQueryAssemblyService(guard, resolver, refresher, visualCatalog);
+                                                                  org.ipro.reportstudio.query.QueryBuilderMetadataCatalog visualCatalog,
+                                                                  org.ipro.reportstudio.query.ReportQueryLanguage language) {
+        var service = new ReportQueryAssemblyService(guard, resolver, refresher, visualCatalog);
+        service.useQueryLanguage(language); return service;
     }
 
     @Bean
@@ -221,7 +255,7 @@ public class ReportStudioAutoConfiguration {
     public ReportTemplateTransferService reportTemplateTransferService(
             ObjectMapper objectMapper,
             ReportQueryGuard guard,
-            ReportTemplateService templateService) {
-        return new ReportTemplateTransferService(objectMapper, guard, templateService);
+            ReportTemplateService templateService, org.ipro.reportstudio.query.QueryBuilderMetadataCatalog catalog) {
+        return new ReportTemplateTransferService(objectMapper, guard, templateService, catalog);
     }
 }

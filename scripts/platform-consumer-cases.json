@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "expectedTestCount": 23,
+  "requiredCases": [
+    "aggregateServerRejectsReaderAnonymousAndForeignFinalDepartment",
+    "aliceAndBobReadOnlyTheirDepartmentIncludingDirectIds",
+    "compiledConsumerUsesOnlyReviewedApplicationApiAndSpi",
+    "deletionRemovesOwnedRowsAndReferencedMaterialIsProtected",
+    "duplicateMaterialVetoPreservesDraftAndRetryUsesSameForm",
+    "emptyAndInvalidRowsAreRejectedOnServerAndSameFormCanRetry",
+    "filledAggregateReopensWithNumbersLinksAndSingleAfterCommit",
+    "fixtureSetupIsIdempotentAndRevokesItsOwnAuthority",
+    "flushBoundaryRejectsDirectJpaWriteEvenForEditor",
+    "formStoresIsolatePersonalDataAndProtectSharedViewOwnership",
+    "lateFailureRollsBackExecutedSqlAndDraftCanBeSavedAgain",
+    "materialCrudValidationAndSharedUnicodeLookup",
+    "materialLookupIsSharedAndOwnedRowsHaveNoStandaloneHandle",
+    "missingAndAnonymousAuthenticationCannotAcquireSystemAuthority",
+    "readerGetsReadOnlyCardAndHiddenIdDoesNotOpenDialog",
+    "repeatedSaveKeepsNumberReplacesRowsAndNewDocumentGetsAnotherNumber",
+    "runtimeHasPlatformArtifactsAndNoOriginalApplicationOrReportStack",
+    "serverRejectsReaderWritesAndEditorOutsideDepartment",
+    "staleEditorGetsConflictWithoutLosingInputOrOverwritingWinner",
+    "standardListsAndRequestCustomizationOpenWithOwnedSectionAndLookup",
+    "starterProvidesPersistenceCanonicalAccessAndFormSaveAdapter",
+    "subjectAndRoleAdaptersUseTheConsumerIdentitySource",
+    "unauthenticatedAndUnknownSubjectsCannotReadBusinessData"
+  ]
+}

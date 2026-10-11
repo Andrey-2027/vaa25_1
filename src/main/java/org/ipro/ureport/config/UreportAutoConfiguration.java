@@ -52,6 +52,7 @@ public class UreportAutoConfiguration {
             jrxmlTemplateService = null;
         }
         return new ReportCatalogService(reportTemplateService, ureportTemplateService,
-                jrxmlTemplateService, rlsReadGate, currentUser);
+                jrxmlTemplateService, rlsReadGate, currentUser,
+                applicationContext.getBeanProvider(org.ipro.ureport.catalog.ReportCatalogContributor.class).orderedStream().toList());
     }
 }

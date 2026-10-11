@@ -1,12 +1,20 @@
 # F-REST-READ-3: план завершения и окончательной приёмки
 
-- Статус: З0–З4 выполнены; З5 и полная приёмка этапа открыты.
-- Дата: 2026-10-03; З2 фактически выполнен 2026-10-04, З3 — 2026-10-04, З4 — 2026-10-04, З5 — частично 2026-10-04.
+> Решение 2026-10-06: [ADR-0016](decisions/ADR-0016-rest-resource-field-access.md).
+> В приведённом ниже историческом плане требования attribute grants заменены
+> API + entity read для опубликованных полей, фильтров и сортировок.
+> Проверки entity read используемых ссылок и RLS сохранены.
+
+- Статус: З0–З5 выполнены; локальная серверная приёмка этапа завершена.
+- Дата: 2026-10-03; З2 фактически выполнен 2026-10-04, З3 — 2026-10-04, З4 — 2026-10-04, З5 — завершён 2026-10-06.
+- Актуализация 2026-10-06: З0–З5 и Gate 3A/3B закрыты. Полный стандартный bootstrap на стабильном source snapshot: 1830 application tests, failures/errors 0; frontend/package и strict validation — exit 0. Общий C5/C и внешнее включение остаются отдельными; [evidence 4.7](rest-read-api-stage4-47-evidence-20261006.md).
 - Основной контракт: [`rest-read-api-stage3-security-read-plan.md`](rest-read-api-stage3-security-read-plan.md).
 - Родительский план: [`rest-read-api-plan.md`](rest-read-api-plan.md).
 - Архитектура загрузки: [ADR-0007, §4.1](decisions/ADR-0007-canonical-data-access-path.md#rest-fixed-fetch-profile).
 - Сборка: [`build/local-dependency-workspace.md`](build/local-dependency-workspace.md).
 - Evidence: [`rest-read-api-stage3-completion-evidence.md`](rest-read-api-stage3-completion-evidence.md).
+- Контрольное ревью 2026-10-05: [40/40, открытый общий gate З5](rest-read-api-stage3-review-20261005.md).
+- Следующий функциональный этап: [HTTP-адаптер и итоговая read-приёмка](rest-read-api-stage4-http-plan.md).
 
 ## 1. Цель и границы завершения
 
@@ -46,7 +54,7 @@ Studio не входят в эти работы. Серверная СУБД н�
 и REST profiles сопоставлены. В З0 owner artifacts установлены без нового verify;
 в З1 `platform-rest` install с verify прошёл 91/91, root REST/API/surface набор —
 21/21. Остальные итоговые owner gates остаются в З5.
-Gate 3A имеет evidence; Gate 3B и общие критерии полного завершения ещё открыты.
+Gate 3A/3B и общие build-критерии закрыты итоговым прогоном 2026-10-06; исторические промежуточные результаты сохранены ниже.
 
 `DefaultC5PermissionEvaluator` сейчас обращается к хранилищу при проверке каждого
 permission; кеша решений C5 в нём нет. Значения 20/16 нельзя объяснять «холодным» и
@@ -479,8 +487,8 @@ F-REST-READ-3 завершён, перечисленные внешние gates 
 - [x] З2: admin/server C5 parity и сохранение read grants проверены (C5GrantAdminParityIT 7/7, smoke 17/17, owner 23+32+91, surface 24/24).
 - [x] З3: реальные роли/отзыв и политика UI/service callers подтверждены (RestReadRoleMatrixIT 8/8; общий app canonical-read/UI/RLS набор с ним — 99/99).
 - [x] З4: обе сущности покрыты LIST/DETAIL, SQL/graph/window budgets заполнены и проходят (RestReadPipelinePilotIT 12/12; evidence §11).
-- [ ] З5: owner/app/starter checks, strict validation и стандартный bootstrap проходят. Owner/starter/strict/dependency-bootstrap зелёные; application clean verify красный из-за внешнего полного C5 (14 тест-классов, evidence §12).
-- [ ] Итоговый evidence опубликован в versioned документации; основной план и roadmap согласованы.
+- [x] З5: owner/app/starter checks, strict validation и стандартный bootstrap проходят; итоговый [evidence 4.7](rest-read-api-stage4-47-evidence-20261006.md) связывает стабильные inputs, JAR и результаты.
+- [x] Итоговый evidence опубликован в versioned документации; основной план и roadmap согласованы.
 
 Главные риски ограничены этими пакетами: слишком дорогое глубокое чтение,
 повторные обращения C5 к grants/roles, расхождение admin decision, пропущенные

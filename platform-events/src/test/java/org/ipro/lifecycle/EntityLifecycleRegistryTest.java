@@ -97,6 +97,31 @@ class EntityLifecycleRegistryTest {
         assertThat(handler.afterCommitCount).isEqualTo(1);
     }
 
+    @Test
+    void rejectsMismatchedAfterCommitEntityBeforeInvokingHandler() {
+        RecordingLifecycle handler = new RecordingLifecycle();
+        EntityLifecycleRegistry registry = new EntityLifecycleRegistry(List.of(handler));
+        EventContext context = EventContext.forEntity(
+            FixtureDocument.class, 42L, EventSource.SYSTEM, "save:FixtureDocument");
+
+        assertThatThrownBy(() -> registry.onEntityChanged(new EntityChangedEvent<>(new FixtureRow(), context)))
+            .isInstanceOf(ClassCastException.class);
+        assertThat(handler.afterCommitCount).isZero();
+    }
+
+    @Test
+    void ignoresNonIdentifiableEntitiesAndUnregisteredEntityTypes() {
+        RecordingLifecycle handler = new RecordingLifecycle();
+        EntityLifecycleRegistry registry = new EntityLifecycleRegistry(List.of(handler));
+        EventContext document = EventContext.forEntity(
+            FixtureDocument.class, 42L, EventSource.SYSTEM, "save:FixtureDocument");
+        registry.onEntityChanged(new EntityChangedEvent<>(new Object(), document));
+        EventContext row = EventContext.forEntity(
+            FixtureRow.class, 42L, EventSource.SYSTEM, "save:FixtureRow");
+        registry.onEntityChanged(new EntityChangedEvent<>(new FixtureRow(), row));
+        assertThat(handler.afterCommitCount).isZero();
+    }
+
     private static final class RecordingLifecycle implements EntityLifecycle<FixtureDocument> {
         private int beforeSaveCount;
         private int onSaveCount;
@@ -132,7 +157,7 @@ class EntityLifecycleRegistryTest {
     }
 
     /** Сущность-фикстура модуля: контракт — только {@link IdentifiableEntity}. */
-    static class FixtureDocument implements IdentifiableEntity {
+    static class FixtureDocument implements IdentifiableEntity<Long> {
         private Long id;
         private String code;
 
@@ -156,7 +181,7 @@ class EntityLifecycleRegistryTest {
     }
 
     /** Строка агрегата — отдельный тип, чтобы «вложенный» и «отсутствующий» не смешивались. */
-    static class FixtureRow implements IdentifiableEntity {
+    static class FixtureRow implements IdentifiableEntity<Long> {
         private Long id;
 
         @Override

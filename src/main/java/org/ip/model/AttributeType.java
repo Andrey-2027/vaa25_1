@@ -12,6 +12,7 @@ import org.ipro.crud.BaseEntity;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
+import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
@@ -31,6 +32,7 @@ import org.ipro.numbering.annotation.Numbered;
 @Entity
 @Table(name = "attribute_type")
 @EntityMetadata(
+    kind = EntityKind.CATALOG,
     listFormTitle = "Типы атрибутов",
     itemFormTitle = "Тип атрибута",
     selectionFormTitle = "Выбор типа атрибута",

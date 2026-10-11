@@ -22,17 +22,22 @@ class ReportEditorConsolidationTest {
 
     private static final Path ROOT = Path.of("src/main/java/org/ip/views/reportstudio");
 
-    /** Элементы управления, наличие которых было подтверждено сравнением с compact-стеком. */
+    /**
+     * Attached controls of the canonical flow editor. The old bands/fields tables and
+     * query-add row were replaced by flowLane and availableGrid/availableList drag-and-drop;
+     * aggregation is edited through paletteAggregation. Their backing legacy fields do
+     * not represent extra rendered screens. Behaviour parity remains in ReportStructureEditorTest.
+     */
     private static final List<String> ACCEPTED_CONTROLS = List.of(
-            "bands", "bandGroup", "groupParent", "applyBand", "selectionHint", "bandHint", "bandFormWrap",
-            "queryCombo", "addColumnButton", "addRowNumberButton", "addExpressionButton",
-            "addFormulaButton", "addTextButton", "fieldsGrid", "fieldUp", "fieldDown", "fieldRemove",
+            "bandGroup", "groupParent", "applyBand", "bandHint", "bandFormWrap",
+            "addRowNumberButton", "addExpressionButton",
+            "addFormulaButton", "addTextButton", "fieldUp", "fieldDown", "fieldRemove",
             "palette", "paletteHint", "paletteKind", "paletteFieldQuery", "paletteCaption", "paletteWidth",
             "paletteAlignment", "paletteFormat", "paletteBorder", "paletteVisible", "paletteAggregation",
             "paletteTextButton", "startNewPage", "sortCombo", "sortDirection", "addSortButton", "sortGrid",
             "sortUp", "sortDown", "sortRemove", "sortHint", "fieldHint", "errorHint", "flowLane",
             "gridEnabled", "stripeRows", "baseFontSize", "pageSize", "pageOrientation",
-            "groupTitleWidth", "groupHeaderLayout", "addAggregation", "noDataEnabled", "noDataText",
+            "groupTitleWidth", "groupHeaderLayout", "noDataEnabled", "noDataText",
             "availableGrid", "availableFilter", "availableList");
 
     @Test
@@ -66,7 +71,9 @@ class ReportEditorConsolidationTest {
     @Test
     void canonicalStructureEditorRendersEveryAcceptedControl() throws Exception {
         ReportStructureEditor editor = new ReportStructureEditor();
-        Set<Component> tree = descendants(editor);
+        // ReportEditorView renders the page settings beside the flow editor, in its own tab.
+        Set<Component> tree = descendants(new com.vaadin.flow.component.orderedlayout.VerticalLayout(
+                editor, editor.pageSettingsPanel()));
 
         for (String name : ACCEPTED_CONTROLS) {
             Field field = ReportStructureEditor.class.getDeclaredField(name);
