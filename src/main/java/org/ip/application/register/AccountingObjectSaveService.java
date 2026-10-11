@@ -51,7 +51,8 @@ public class AccountingObjectSaveService {
         document.setWorkshop(workshop);
 
         List<AccountingObjectContribution.Line> lines = new ArrayList<>();
-        Set<Long> seen = new HashSet<>();
+        List<AccountingObjectCorrectionItem> corrections = new ArrayList<>();
+        Set<Long> seen = new LinkedHashSet<>();
         for (Object input : sections.getFirst().rows()) {
             if (!itemClass.isInstance(input)) throw new ValidationException("Неверный тип позиции документа");
             AccountingObjectItem item = (AccountingObjectItem) input;
@@ -63,14 +64,22 @@ public class AccountingObjectSaveService {
             if (!seen.add(nomenclatureId)) throw new ValidationException("Номенклатура повторяется в позициях документа");
             item.setNomenclature(requireReference(Nomenclature.class, nomenclatureId, "Номенклатура"));
             item.setAccountingType(requireReference(AccountingType.class, item.getAccountingType().getId(), "Тип учёта"));
-            if (item instanceof AccountingObjectCorrectionItem correctionItem) {
-                correctionItem.setCurrentAccountingType(registerReader.currentType((AccountingObjectCorrection) document,
-                    nomenclatureId).orElseThrow(() -> new ValidationException(
-                        "Номенклатура отсутствует в срезе выбранного цеха на дату корректировки")));
-            }
+            if (item instanceof AccountingObjectCorrectionItem correctionItem) corrections.add(correctionItem);
             lines.add(new AccountingObjectContribution.Line(nomenclatureId, item.getAccountingType().getId()));
         }
         if (lines.isEmpty()) throw new ValidationException("Добавьте хотя бы одну позицию документа");
+        if (!corrections.isEmpty()) {
+            // Один batch-срез на весь документ вместо чтения на каждую строку (Р9).
+            Map<Long, AccountingType> currentTypes =
+                registerReader.currentTypes((AccountingObjectCorrection) document, seen);
+            for (AccountingObjectCorrectionItem item : corrections) {
+                AccountingType current = currentTypes.get(item.getNomenclature().getId());
+                if (current == null) {
+                    throw new ValidationException("Номенклатура отсутствует в срезе выбранного цеха на дату корректировки");
+                }
+                item.setCurrentAccountingType(current);
+            }
+        }
         try (var ignored = AccountingObjectSaveScope.open(document, lines)) {
             return aggregateSave.save(document, sections, source);
         }

@@ -3,6 +3,7 @@ package org.ipro.data;
 import org.ipro.identity.IdentifiableEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
@@ -36,6 +37,19 @@ public interface EntityDataAccess {
 
     /** Список: сценарий {@code LIST}; {@code filter} может быть {@code null}. */
     <T> Page<T> list(Class<T> type, Specification<T> filter, Pageable pageable);
+
+    /**
+     * Первая строка по фильтру и порядку: bounded/first read (Р9).
+     *
+     * <p>Сценарий данных тот же, что у {@link #list} ({@code LIST}), поэтому FetchPlan,
+     * экспозиция типа, C5/RLS-граница и telemetry остаются прежними. Отличается форма выдачи:
+     * одна строка и <b>без count-запроса</b> — там, где нужна конкретная строка, а не total,
+     * второй запрос не выполняется.</p>
+     *
+     * <p>{@code sort} обязателен: без порядка «первая» строка не определена, и СУБД вправе
+     * вернуть любую. Для диапазона строк и {@code total} вызывающий использует {@link #list}.</p>
+     */
+    <T> Optional<T> first(Class<T> type, Specification<T> filter, Sort sort);
 
     /**
      * Значение выбора: сценарий {@code LOOKUP}. Surface поиска — прямые строковые пути

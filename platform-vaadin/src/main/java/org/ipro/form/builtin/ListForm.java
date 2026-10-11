@@ -1106,8 +1106,11 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
             FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());
             ValueProvider<T, ?> valueProvider = entity -> renderer.apply(path.getValue(entity));
 
+            // Встроенный фильтр колонки: объявленный отказ (@FieldMetadata(inlineFilter = false))
+            // и своя отрисовка значения одинаково снимают его — см. почему два признака рядом
+            // в FieldMetadataInfo.
             boolean filterEnabled = !columnRenderers.containsKey(path.getKey()) && path.asFieldMetadata()
-                .map(FieldMetadataInfo::isFilterEnabled)
+                .map(FieldMetadataInfo::isInlineFilterEnabled)
                 .orElse(true);
 
             if (filterEnabled) {

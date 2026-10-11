@@ -429,6 +429,19 @@ public final class FieldMetadataInfo {
         return annotation.filter();
     }
 
+    /**
+     * Показывать ли встроенную строку быстрого фильтра под заголовком колонки.
+     * По умолчанию true; отключается {@code @FieldMetadata(inlineFilter = false)}.
+     *
+     * <p>Это не то же, что {@link #isFilterEnabled()}: поле с {@code inlineFilter = false}
+     * остаётся фильтруемым условием, но не получает контрол в шапке списка или формы выбора.
+     * Спрашивают этот признак ровно потребители встроенных фильтров — {@code ListForm} и
+     * {@code SelectionFormAssembler}.</p>
+     */
+    public boolean isInlineFilterEnabled() {
+        return annotation.inlineFilter();
+    }
+
     // === Grid-настройки ===
 
     public int getGridOrder() {

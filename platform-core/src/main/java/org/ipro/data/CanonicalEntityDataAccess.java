@@ -4,7 +4,9 @@ import org.ipro.identity.IdentifiableEntity;
 import org.ipro.fetch.instance.InstanceNameResolver;
 import org.ipro.fetch.plan.FetchScenario;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
@@ -64,6 +66,14 @@ public class CanonicalEntityDataAccess implements EntityDataAccess {
         Objects.requireNonNull(type, "type must not be null");
         Objects.requireNonNull(pageable, "pageable must not be null");
         return readExecutor.readPage(PageRead.of(type, FetchScenario.LIST, filter, pageable));
+    }
+
+    @Override
+    public <T> Optional<T> first(Class<T> type, Specification<T> filter, Sort sort) {
+        Objects.requireNonNull(type, "type must not be null");
+        Objects.requireNonNull(sort, "sort must not be null");
+        return readExecutor.readFirst(PageRead.of(type, FetchScenario.LIST, filter,
+            PageRequest.of(0, 1, sort)));
     }
 
     @Override

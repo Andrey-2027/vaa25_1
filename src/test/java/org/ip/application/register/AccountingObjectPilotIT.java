@@ -506,6 +506,58 @@ class AccountingObjectPilotIT {
             .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("не является managed-регистром");
     }
 
+    /**
+     * Р8, приёмка v1.2: решение UI о смене ключа и решение команды совпадают у одного субъекта на
+     * одной строке — иначе действие обещает то, что сервис отклонит, или скрывает доступное.
+     * Oracle — сам вызов команды: разрешение проверяется применением правила, а не его копией.
+     */
+    @Test void uiKeyChangeDecisionMatchesTheCommandDecisionForTheSameSubject() {
+        install(fixture.a, fixture.n, fixture.fifo, DATE);
+        var row = history().getFirst();
+        List<Subject> subjects = List.of(
+            new Subject("нет прав", false, false, false),
+            new Subject("только чтение", true, false, false),
+            new Subject("чтение и запись без операции", true, true, false),
+            new Subject("чтение, запись и операция", true, true, true),
+            new Subject("операция без данных", false, false, true));
+        for (Subject subject : subjects) {
+            String actor = "parity-" + UUID.randomUUID();
+            authenticate(actor);
+            if (subject.read() || subject.update()) {
+                grant(actor, "ENTITY:NomenclatureAccountingObject", subject.read(), subject.update(), false);
+            }
+            if (subject.read()) {
+                RlsTestFixture.grantC5EntityRead(grants, actor, NomenclatureAccountingObject.class,
+                    Workshop.class, Nomenclature.class, AccountingType.class);
+            }
+            if (subject.action()) {
+                RlsTestFixture.grantC5Action(grants, actor,
+                    RegisterKeyChangePermissions.permissionId(NomenclatureAccountingObject.class));
+            }
+
+            boolean ui = keyPermissions.canChangeKey(NomenclatureAccountingObject.class, row);
+
+            assertThat(ui).as("UI и команда расходятся у субъекта «%s»", subject.name())
+                .isEqualTo(commandAllowsKeyChange(row));
+            assertThat(ui).as("без полного набора прав действие не предлагается: «%s»", subject.name())
+                .isEqualTo(subject.read() && subject.update() && subject.action());
+        }
+    }
+
+    /** Намеренно нормализованный no-op: проверяется решение, а не запись. */
+    private boolean commandAllowsKeyChange(NomenclatureAccountingObject row) {
+        try {
+            keyChanges.change(NomenclatureAccountingObject.class, row.getId(), row.getVersion(),
+                Map.of("workshop", row.getWorkshop().getId(), "nomenclature", row.getNomenclature().getId()),
+                row.getPeriod());
+            return true;
+        } catch (RuntimeException refused) {
+            return false;
+        }
+    }
+
+    private record Subject(String name, boolean read, boolean update, boolean action) { }
+
     private Long clockOrder() {
         return new TransactionTemplate(transactionManager).execute(status -> entityManager.find(
             org.ipro.register.persistence.RecorderOrderClock.class,

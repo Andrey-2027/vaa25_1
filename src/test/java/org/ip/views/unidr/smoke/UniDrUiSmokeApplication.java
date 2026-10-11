@@ -17,6 +17,7 @@ import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
 import org.springframework.boot.context.annotation.ImportCandidates;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,14 +31,22 @@ import java.util.*;
 import static org.mockito.Mockito.*;
 
 /** Loopback-only browser fixture. Real UniDrView/worker/DR/export, simulated source and choices. No DB. */
+// Профиль-переключатель: fixture лежит в сканируемом приложением пакете, и без него его
+// конфигурация попадала бы в каждый контекст @SpringBootTest — два fixture'а давали два
+// бина security и роняли загрузку приложения в тестах. Профиль включает сам fixture в main().
+@Profile(UniDrUiSmokeApplication.PROFILE)
 @SpringBootConfiguration
 @EnableAutoConfiguration
 @EnableVaadin("org.ip.views.unidr")
 public class UniDrUiSmokeApplication {
+
+    static final String PROFILE = "unidr-smoke";
+
     public static void main(String[] args) {
         var excluded=ImportCandidates.load(AutoConfiguration.class,UniDrUiSmokeApplication.class.getClassLoader()).getCandidates().stream()
             .filter(name->name.startsWith("org.ipro.") || name.contains("DataSource") || name.contains("HibernateJpa") || name.contains("JpaRepositories") || name.contains("UserDetailsServiceAutoConfiguration")).toList();
         var application=new SpringApplication(UniDrUiSmokeApplication.class);
+        application.setAdditionalProfiles(PROFILE);
         application.setDefaultProperties(Map.of("server.address","127.0.0.1","server.port","8086","spring.config.location","optional:file:outputs/unidr-u4/smoke-empty.properties",
             "spring.autoconfigure.exclude",String.join(",",excluded),"app.unidr.enabled","true","vaadin.allowed-packages","org.ip.views.unidr","vaadin.launch-browser","false",
             "vaadin.node-auto-update","false","vaadin.require-home-node-exec","false"));

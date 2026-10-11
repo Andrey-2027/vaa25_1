@@ -90,6 +90,37 @@ class CanonicalReadSortGuardTest {
         verify(entityManager, never()).getCriteriaBuilder();
     }
 
+    /**
+     * Р9: bounded/first read проходит тот же guard, что paged/unpaged list. Иначе сортировка
+     * по to-many-пути вернула бы «первую» строку по неопределённому порядку — при том что
+     * у того же порядка уже есть явный запрет.
+     */
+    @Test
+    void firstReadSortByToManyPathIsRejectedBeforeAnyQuery() {
+        metamodelReportsAttribute("children", true);
+
+        assertThatThrownBy(() -> executor.readFirst(PageRead.of(C4FixtureEntity.class,
+            FetchScenario.LIST, null, PageRequest.of(0, 1, Sort.by("children")))))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("to-many-пути");
+
+        verify(entityManager, never()).getCriteriaBuilder();
+    }
+
+    /**
+     * Р9: порядок обязателен и проверяется до построения запроса. Без него СУБД вправе вернуть
+     * любую строку, то есть «первая» перестаёт что-либо означать.
+     */
+    @Test
+    void firstReadWithoutOrderIsRejectedBeforeAnyQuery() {
+        assertThatThrownBy(() -> executor.readFirst(PageRead.of(C4FixtureEntity.class,
+            FetchScenario.LIST, null, PageRequest.of(0, 1, Sort.unsorted()))))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("без порядка");
+
+        verify(entityManager, never()).getCriteriaBuilder();
+    }
+
     @Test
     void sortByRootFieldIsNotRejected() {
         metamodelReportsAttribute("code", false);

@@ -5,7 +5,6 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.ipro.data.EntityDataAccess;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -30,6 +29,10 @@ import java.util.TreeSet;
  * <p>Здесь нет среза по набору измерений, пакетного чтения и условий по ресурсам — это v1.1/v1.2.
  * Читатель требует <b>полный</b> набор измерений: частичный набор вернул бы произвольную одну запись
  * из многих групп.</p>
+ *
+ * <p>Чтение идёт bounded/first intent'ом ({@code EntityDataAccess#first}, Р9): одна строка и без
+ * count-запроса. Ранее то же чтение шло через paged list с размером 1, и отдельный count считался,
+ * хотя total здесь не используется.</p>
  *
  * <p>Прикладной бин получает descriptor из {@link RegisterRegistry}, проверенного по managed catalog.
  * Конструктор без registry сохраняется для самостоятельного использования и проверяет декларацию
@@ -85,7 +88,8 @@ public final class RegisterReader<T> {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         Sort newestFirst = Sort.by(winnerOrder.stream().map(Sort.Order::desc).toList());
-        return access.list(type, spec, PageRequest.of(0, 1, newestFirst)).stream().findFirst();
+        // Р9: одно чтение вместо list(0,1) + отдельный count — на точечном чтении total не нужен.
+        return access.first(type, spec, newestFirst);
     }
 
     private void requireExactDimensions(Map<String, ?> values) {

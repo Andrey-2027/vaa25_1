@@ -38,10 +38,33 @@ public class AccountingObjectRegisterService {
         return workshop == null ? history.history(page) : history.history(Map.of("workshop", workshop), page);
     }
 
+    /** Точечное чтение: одна строка без count-запроса (Р9). */
     public Optional<AccountingType> currentType(AccountingObjectCorrection document, Long nomenclatureId) {
         if (document.getWorkshop() == null || document.getDate() == null || nomenclatureId == null) return Optional.empty();
-        return latest(document.getWorkshop(), document.getDate(), nomenclatureId, recorderOf(document),
-            PageRequest.of(0, 1)).stream().findFirst().map(NomenclatureAccountingObject::getAccountingType);
+        return slice.first(latestSpec(document.getWorkshop(), document.getDate(), nomenclatureId), recorderOf(document))
+            .map(NomenclatureAccountingObject::getAccountingType);
+    }
+
+    /**
+     * Текущие типы учёта для набора номенклатур документа — один batch-срез на весь набор (Р9).
+     *
+     * <p>Значение каждой номенклатуры то же, что у {@link #currentType}: последняя запись среза
+     * цеха на дату документа без строк самого документа. Номенклатура без строки в срезе в
+     * результат не попадает — вызывающий обязан на это отказать.</p>
+     */
+    public Map<Long, AccountingType> currentTypes(AccountingObjectCorrection document, Collection<Long> nomenclatureIds) {
+        if (document.getWorkshop() == null || document.getWorkshop().getId() == null || document.getDate() == null
+                || nomenclatureIds == null || nomenclatureIds.isEmpty()) {
+            return Map.of();
+        }
+        List<Map<String, Object>> keys = nomenclatureIds.stream().filter(Objects::nonNull).distinct()
+            .map(id -> Map.<String, Object>of("workshop", document.getWorkshop().getId(), "nomenclature", id))
+            .toList();
+        if (keys.isEmpty()) return Map.of();
+        Map<Long, AccountingType> types = new LinkedHashMap<>();
+        slice.latestForKeys(document.getDate(), keys, recorderOf(document))
+            .forEach(row -> types.put(row.getNomenclature().getId(), row.getAccountingType()));
+        return Collections.unmodifiableMap(types);
     }
 
     /** One bounded page is sufficient for the deliberately small first pilot; exceeding it is an explicit refusal. */
@@ -76,13 +99,17 @@ public class AccountingObjectRegisterService {
 
     private Page<NomenclatureAccountingObject> latest(Workshop workshop, LocalDateTime asOf,
             Long nomenclatureId, RecorderRef excluded, Pageable pageable) {
+        SliceSpec spec = latestSpec(workshop, asOf, nomenclatureId);
+        return excluded == null ? slice.latest(spec, pageable) : slice.latestExcludingRecorder(spec, excluded, pageable);
+    }
+
+    private SliceSpec latestSpec(Workshop workshop, LocalDateTime asOf, Long nomenclatureId) {
         Objects.requireNonNull(asOf, "asOf");
         List<SliceSpec.Condition> conditions = new ArrayList<>();
         if (workshop != null) conditions.add(new SliceSpec.Condition("workshop", SliceSpec.Operator.EQ, workshop.getId()));
         if (nomenclatureId != null) conditions.add(new SliceSpec.Condition("nomenclature", SliceSpec.Operator.EQ, nomenclatureId));
-        SliceSpec spec = new SliceSpec(NomenclatureAccountingObject.class, SliceSpec.Mode.LATEST,
+        return new SliceSpec(NomenclatureAccountingObject.class, SliceSpec.Mode.LATEST,
             asOf, conditions, List.of());
-        return excluded == null ? slice.latest(spec, pageable) : slice.latestExcludingRecorder(spec, excluded, pageable);
     }
 }
 

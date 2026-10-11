@@ -39,6 +39,8 @@ import java.util.*;
 import static org.mockito.Mockito.*;
 
 /** Disposable H2 + real UDR query/constructor/parameters and UniDR. Never connects to the working DB. */
+// См. UniDrUiSmokeApplication: профиль-переключатель держит fixture вне контекстов @SpringBootTest.
+@Profile(UniDrUiSmokeApplication.PROFILE)
 @SpringBootConfiguration
 @EnableAutoConfiguration
 @EnableVaadin("org.ip.views.unidr")
@@ -51,6 +53,7 @@ public class UniDrQuerySmokeApplication {
         var excluded=ImportCandidates.load(AutoConfiguration.class,UniDrQuerySmokeApplication.class.getClassLoader()).getCandidates().stream()
             .filter(name->name.startsWith("org.ipro.") || name.contains("UserDetailsServiceAutoConfiguration")).toList();
         var app=new SpringApplication(UniDrQuerySmokeApplication.class);
+        app.setAdditionalProfiles(UniDrUiSmokeApplication.PROFILE);
         app.setDefaultProperties(Map.ofEntries(Map.entry("server.address","127.0.0.1"),Map.entry("server.port","8086"),
             Map.entry("spring.config.location","optional:file:outputs/unidr-u4/smoke-empty.properties"),Map.entry("spring.autoconfigure.exclude",String.join(",",excluded)),
             Map.entry("spring.datasource.url","jdbc:h2:mem:unidr-query-smoke-"+UUID.randomUUID()+";DB_CLOSE_DELAY=-1"),Map.entry("spring.datasource.username","sa"),

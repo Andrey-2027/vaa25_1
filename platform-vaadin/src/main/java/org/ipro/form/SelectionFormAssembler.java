@@ -105,6 +105,13 @@ public class SelectionFormAssembler {
         for (ColumnPath path : resolved.columns()) {
             FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());
             ValueProvider<T, String> valueProvider = entity -> renderer.apply(path.getValue(entity));
+            // Объявленный отказ от встроенного фильтра (@FieldMetadata(inlineFilter = false),
+            // например период регистра) уважается и здесь: иначе одна и та же колонка была бы без
+            // фильтра в списке и с фильтром в форме выбора. Колонка при этом остаётся.
+            if (path.asFieldMetadata().map(field -> !field.isInlineFilterEnabled()).orElse(false)) {
+                filterGrid.addColumn(path.getKey(), path.getKey(), path.getLabel(), valueProvider);
+                continue;
+            }
             filterGrid.addColumnFilter(path.getKey(), path.getKey(), path.getLabel(),
                 valueProvider, new TextFilter<>());
         }

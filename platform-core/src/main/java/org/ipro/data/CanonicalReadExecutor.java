@@ -69,6 +69,9 @@ public class CanonicalReadExecutor {
 
     private static final String FETCHGRAPH_HINT = "jakarta.persistence.fetchgraph";
 
+    /** Р9: bounded/first read ограничен одной data-строкой — это и есть его контракт. */
+    private static final int FIRST_READ_LIMIT = 1;
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -230,6 +233,67 @@ public class CanonicalReadExecutor {
             long total = entityManager.createQuery(countQuery).getSingleResult();
             return new PageImpl<>(content, pageable, total);
         });
+    }
+
+    /**
+     * Bounded/first read (Р9): одна data-строка по фильтру и порядку, <b>без count-запроса</b>.
+     *
+     * <p>{@link #readPage} всегда выполняет второй запрос — count — и на точечном чтении он не
+     * нужен: вызывающему нужна одна строка, а не total. Здесь запрос ровно один, но граница та же:
+     * capability сценария, C5/RLS gate, FetchPlan, экспозиция и telemetry. Меняется только форма
+     * выдачи: без count и с ограничением в одну строку.</p>
+     *
+     * <p>Порядок обязателен и проверяется до SQL. «Первая строка» без порядка не определена:
+     * СУБД вправе вернуть любую, и молча вернуть её — значит выдать случайность за факт. Так же
+     * отклоняется сортировка по to-many-пути (тот же guard, что у paged/unpaged list).</p>
+     *
+     * <p>Это не обещание «один SQL на весь вызов»: permission-запросы C5/RLS считаются отдельно и
+     * в границу этого метода не входят.</p>
+     */
+    public <T> Optional<T> readFirst(PageRead<T> request) {
+        Objects.requireNonNull(request, "request must not be null");
+        requireOrderedFirstRead(request);
+        return measured(DataOperation.LIST, request.type(), request.scenario(), () -> {
+            requireScenario(request.type(), request.scenario());
+            if (!canRead(request.type())) {
+                return Optional.<T>empty();
+            }
+            requireSortWithoutCollection(request.type(), request.pageable());
+            rlsFilterActivator.ensureRlsEnabled(entityManager);
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<T> query = cb.createQuery(request.type());
+            Root<T> root = query.from(request.type());
+            query.select(root);
+            applySpec(request.filter(), root, query, cb);
+            applySort(request.pageable(), root, query, cb);
+            TypedQuery<T> typedQuery = entityManager.createQuery(query);
+            EntityGraph<T> graph = graphResolver.resolve(entityManager, request.type(),
+                request.scenario(), request.additionalPaths());
+            if (graph != null) {
+                typedQuery.setHint(FETCHGRAPH_HINT, graph);
+            }
+            typedQuery.setMaxResults(FIRST_READ_LIMIT);
+            List<T> content = typedQuery.getResultList();
+            return content.isEmpty() ? Optional.<T>empty() : Optional.of(content.get(0));
+        });
+    }
+
+    /**
+     * Контракт first read: ровно одна строка и явный порядок. Проверяется до построения запроса,
+     * чтобы отказ называл причину, а не выглядел как пустой результат.
+     */
+    private void requireOrderedFirstRead(PageRead<?> request) {
+        Pageable pageable = request.pageable();
+        if (pageable != null && pageable.isPaged() && pageable.getPageSize() != FIRST_READ_LIMIT) {
+            throw new IllegalArgumentException("readFirst читает одну строку, а запрошен размер"
+                + " страницы " + pageable.getPageSize() + ". Ограничение выдачи не переопределяется"
+                + " вызывающим: для диапазона строк есть readPage.");
+        }
+        if (pageable == null || pageable.getSort().isUnsorted()) {
+            throw new IllegalArgumentException("Первая строка без порядка не определена: укажите"
+                + " sort. СУБД вправе вернуть любую подходящую строку, и молча вернуть её — значит"
+                + " выдать случайную строку за факт.");
+        }
     }
 
     /** Unpaged list (compatibility {@code findAll()}) через ту же границу. */

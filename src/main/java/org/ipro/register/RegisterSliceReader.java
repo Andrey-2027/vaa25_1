@@ -19,11 +19,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -33,6 +36,9 @@ import java.util.Set;
  */
 public final class RegisterSliceReader<T> {
     public static final int MAX_PAGE_SIZE = 500;
+
+    /** Верхняя граница набора ключей одного batch-чтения: превышение — явный отказ, не усечение. */
+    public static final int MAX_BATCH_KEYS = 200;
 
     private final Class<T> type;
     private final EntityDataAccess access;
@@ -132,11 +138,101 @@ public final class RegisterSliceReader<T> {
         Objects.requireNonNull(spec, "spec");
         Objects.requireNonNull(excluded, "excluded");
         Objects.requireNonNull(pageable, "pageable");
-        if (!descriptor.recorded() || !descriptor.recorderTypeCodes().contains(excluded.getTypeCode())) {
-            throw new IllegalArgumentException("SLICE_RECORDER_TYPE: исключаемый регистратор не разрешён регистром");
-        }
+        requireExcludedRecorder(excluded);
         SliceSpecValidator.validate(descriptor, spec, dimensionTypes);
         return access.list(type, winnerSpecification(spec, excluded), stablePageable(pageable));
+    }
+
+    /**
+     * Одна строка-победитель тем же предикатом, что у {@link #latest}, но без count-запроса (Р9):
+     * там, где нужна конкретная строка, total не считается. Порядок среза тот же, что у страницы.
+     */
+    public Optional<T> first(SliceSpec spec) {
+        return first(spec, null);
+    }
+
+    /** Точка за вычетом собственного регистратора: тот же победитель, что у {@link #latestExcludingRecorder}. */
+    public Optional<T> first(SliceSpec spec, RecorderRef excluded) {
+        Objects.requireNonNull(spec, "spec");
+        if (spec.registerType() != type) {
+            throw new IllegalArgumentException("SLICE_TYPE: спецификация относится к другому регистру");
+        }
+        requireExcludedRecorder(excluded);
+        SliceSpecValidator.validate(descriptor, spec, dimensionTypes);
+        return access.first(type, winnerSpecification(spec, excluded), stablePageable(PageRequest.of(0, 1)).getSort());
+    }
+
+    /**
+     * Набор полных ключей на одну общую дату: последняя строка на каждый набор измерений (Р9).
+     *
+     * <p>Один set-based запрос на весь набор: ключи становятся дизъюнкцией наборов измерений, а не
+     * отдельным point read на каждую строку. Семантика победителя, права, FetchPlan, экспозиция и
+     * telemetry — те же, что у {@link #latest}: батч-чтение не отдельный канал данных.</p>
+     *
+     * <p>Контракт набора: одна дата {@code asOf} для всех ключей; ключ содержит ровно измерения
+     * регистра, ссылки передаются сохранёнными идентификаторами (как в {@link SliceSpec.Condition});
+     * пустой набор даёт пустой результат; дубли читаются один раз; отсутствующие и запрещённые
+     * правами строки просто не появляются — их отсутствие обрабатывает вызывающий. Дата у каждого
+     * ключа — другой контракт, а не скрытое расширение этого метода.</p>
+     */
+    public List<T> latestForKeys(java.time.LocalDateTime asOf, Collection<Map<String, Object>> keys) {
+        return latestForKeys(asOf, keys, null);
+    }
+
+    /** Батч-срез с исключением собственного регистратора — для строк редактируемого документа. */
+    public List<T> latestForKeys(java.time.LocalDateTime asOf, Collection<Map<String, Object>> keys,
+                                 RecorderRef excluded) {
+        Objects.requireNonNull(asOf, "asOf");
+        Objects.requireNonNull(keys, "keys");
+        requireExcludedRecorder(excluded);
+        List<Map<String, Object>> requested = new ArrayList<>();
+        Set<Map<String, Object>> seen = new HashSet<>();
+        for (Map<String, Object> key : keys) {
+            Objects.requireNonNull(key, "key");
+            // LinkedHashMap.equals сравнивает по содержимому: дубль ключа не удваивает чтение.
+            Map<String, Object> copy = new LinkedHashMap<>(key);
+            if (seen.add(copy)) requested.add(copy);
+        }
+        if (requested.isEmpty()) return List.of();
+        if (requested.size() > MAX_BATCH_KEYS) {
+            throw new IllegalArgumentException("SLICE_BATCH_SIZE: набор ключей не должен превышать "
+                + MAX_BATCH_KEYS + " полных наборов измерений, получено " + requested.size());
+        }
+        List<SliceSpec> keySpecs = new ArrayList<>();
+        for (Map<String, Object> key : requested) keySpecs.add(keySpec(asOf, key));
+        Specification<T> requestedKeys = (root, query, cb) -> {
+            List<Predicate> alternatives = new ArrayList<>();
+            for (SliceSpec keySpec : keySpecs) {
+                alternatives.add(cb.and(candidateFilters(root, cb, keySpec).toArray(Predicate[]::new)));
+            }
+            return cb.or(alternatives.toArray(Predicate[]::new));
+        };
+        Specification<T> winners = winnerSpecification(SliceSpec.latest(type, asOf), excluded).and(requestedKeys);
+        // Одна страница на весь набор: добавочный count не зависит от числа ключей и не является N+1.
+        return access.list(type, winners, stablePageable(PageRequest.of(0, requested.size()))).getContent();
+    }
+
+    /** Ключ батча как обычная спецификация среза: тот же валидатор типов и измерений. */
+    private SliceSpec keySpec(java.time.LocalDateTime asOf, Map<String, Object> key) {
+        Set<String> expected = new LinkedHashSet<>(descriptor.dimensionNames());
+        if (!expected.equals(key.keySet())) {
+            throw new IllegalArgumentException("SLICE_BATCH_KEY: ключ обязан содержать ровно измерения регистра "
+                + expected + ", получено " + key.keySet());
+        }
+        List<SliceSpec.Condition> conditions = new ArrayList<>();
+        for (var dimension : descriptor.dimensions()) {
+            conditions.add(new SliceSpec.Condition(dimension.name(), SliceSpec.Operator.EQ, key.get(dimension.name())));
+        }
+        SliceSpec spec = new SliceSpec(type, SliceSpec.Mode.LATEST, asOf, conditions, List.of());
+        SliceSpecValidator.validate(descriptor, spec, dimensionTypes);
+        return spec;
+    }
+
+    private void requireExcludedRecorder(RecorderRef excluded) {
+        if (excluded != null && (!descriptor.recorded()
+                || !descriptor.recorderTypeCodes().contains(excluded.getTypeCode()))) {
+            throw new IllegalArgumentException("SLICE_RECORDER_TYPE: исключаемый регистратор не разрешён регистром");
+        }
     }
 
     /** Structured list filters: dimension predicates restrict candidates; other predicates test winners. */

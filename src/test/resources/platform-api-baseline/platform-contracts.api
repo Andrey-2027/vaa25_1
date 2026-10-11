@@ -32,6 +32,7 @@ annotation public abstract interface org.ipro.metadata.annotation.FieldMetadata
   target [FIELD]
   method public abstract boolean filter() default true
   method public abstract boolean hidden() default false
+  method public abstract boolean inlineFilter() default true
   method public abstract boolean readOnly() default false
   method public abstract int order() default 999
   method public abstract java.lang.String label() default 

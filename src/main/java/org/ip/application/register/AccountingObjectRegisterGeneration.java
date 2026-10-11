@@ -5,6 +5,7 @@ import org.ip.model.AccountingObjectDocument;
 import org.ip.model.AccountingObjectInstallation;
 import org.ip.model.AccountingObjectCorrection;
 import org.ip.model.NomenclatureAccountingObject;
+import org.ip.model.AccountingType;
 import org.ipro.crud.ValidationException;
 import org.ipro.lifecycle.EntitySaveContext;
 import org.ipro.register.RecorderRef;
@@ -30,10 +31,14 @@ public class AccountingObjectRegisterGeneration {
         AccountingObjectDocument document = context.entity();
         var lines = AccountingObjectSaveScope.lines(document);
         RecorderRef recorder = recorderTypes.referenceFor(document.getClass(), document.getId());
+        // Один batch-срез на весь документ вместо чтения на каждую строку (Р9).
+        Map<Long, AccountingType> currentTypes = document instanceof AccountingObjectCorrection correction
+            ? reader.currentTypes(correction, lines.stream().map(line -> line.nomenclatureId()).toList())
+            : Map.of();
         List<NomenclatureAccountingObject> rows = new ArrayList<>();
         for (var line : lines) {
             if (document instanceof AccountingObjectInstallation) validateInstallation(document, recorder, line.nomenclatureId());
-            else if (reader.currentType((AccountingObjectCorrection) document, line.nomenclatureId()).isEmpty()) {
+            else if (!currentTypes.containsKey(line.nomenclatureId())) {
                 throw new ValidationException("Номенклатура отсутствует в срезе выбранного цеха на дату корректировки");
             }
             NomenclatureAccountingObject row = new NomenclatureAccountingObject();

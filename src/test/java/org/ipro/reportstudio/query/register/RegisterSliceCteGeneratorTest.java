@@ -181,6 +181,7 @@ class RegisterSliceCteGeneratorTest {
                     .setMaxResults(page.getPageSize()).getResultList();
                 return new org.springframework.data.domain.PageImpl<>(result, page, result.size());
             });
+        withBoundedFirst(access, Price.class);
         var reader = new RegisterReader<Price>(Price.class, access);
         var dimensions = Map.<String, Object>of("item", em.getReference(Item.class, 1L), "channel", "retail");
         assertThat(reader.getLast(dimensions, first.minusNanos(1000000))).isEmpty();
@@ -626,6 +627,32 @@ class RegisterSliceCteGeneratorTest {
         }
     }
 
+    /**
+     * Точечное чтение идёт bounded-каналом Р9: та же спецификация, один результат и без count.
+     * Стаб {@code list} этого канала не покрывает, поэтому он добавляется отдельно.
+     */
+    private <E> org.ipro.data.EntityDataAccess withBoundedFirst(org.ipro.data.EntityDataAccess access,
+                                                               Class<E> entityType) {
+        org.mockito.Mockito.when(access.first(org.mockito.ArgumentMatchers.eq(entityType),
+            org.mockito.ArgumentMatchers.any(),
+            org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Sort.class)))
+            .thenAnswer(invocation -> {
+                @SuppressWarnings("unchecked")
+                org.springframework.data.jpa.domain.Specification<E> specification = invocation.getArgument(1);
+                org.springframework.data.domain.Sort order = invocation.getArgument(2);
+                var builder = em.getCriteriaBuilder();
+                var query = builder.createQuery(entityType);
+                var root = query.from(entityType);
+                query.select(root).where(specification.toPredicate(root, query, builder));
+                query.orderBy(order.stream().map(sortOrder -> sortOrder.isAscending()
+                    ? builder.asc(criteriaPath(root, sortOrder.getProperty()))
+                    : builder.desc(criteriaPath(root, sortOrder.getProperty()))).toList());
+                java.util.List<E> rows = em.createQuery(query).setMaxResults(1).getResultList();
+                return rows.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(rows.getFirst());
+            });
+        return access;
+    }
+
     private <E> org.ipro.data.EntityDataAccess criteriaPageAccess(Class<E> entityType) {
         var access = org.mockito.Mockito.mock(org.ipro.data.EntityDataAccess.class);
         org.mockito.Mockito.when(access.list(org.mockito.ArgumentMatchers.eq(entityType),
@@ -651,6 +678,7 @@ class RegisterSliceCteGeneratorTest {
                 long total = em.createQuery(countQuery).getSingleResult();
                 return new org.springframework.data.domain.PageImpl<>(content, page, total);
             });
+        withBoundedFirst(access, entityType);
         return access;
     }
 
@@ -682,6 +710,12 @@ class RegisterSliceCteGeneratorTest {
             org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(Pageable.class)))
             .thenAnswer(invocation -> executor.readPage(org.ipro.data.PageRead.of(RecordedPrice.class,
                 FetchScenario.LIST, invocation.getArgument(1), invocation.getArgument(2))));
+        org.mockito.Mockito.when(access.first(org.mockito.ArgumentMatchers.eq(RecordedPrice.class),
+            org.mockito.ArgumentMatchers.any(),
+            org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Sort.class)))
+            .thenAnswer(invocation -> executor.readFirst(org.ipro.data.PageRead.of(RecordedPrice.class,
+                FetchScenario.LIST, invocation.getArgument(1),
+                org.springframework.data.domain.PageRequest.of(0, 1, invocation.getArgument(2)))));
         return new CanonicalHarness(access, c5, readGate);
     }
 
@@ -753,6 +787,7 @@ class RegisterSliceCteGeneratorTest {
                     .setMaxResults(page.getPageSize()).getResultList();
                 return new org.springframework.data.domain.PageImpl<>(result, page, result.size());
             });
+        withBoundedFirst(access, RecordedPrice.class);
         var pointWinner = new RegisterReader<RecordedPrice>(RecordedPrice.class, access, registers)
             .getLast(Map.of("itemKey", "sku"), first);
         assertThat(pointWinner).hasValueSatisfying(value -> {

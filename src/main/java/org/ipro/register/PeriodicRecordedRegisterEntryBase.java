@@ -17,10 +17,15 @@ import java.time.LocalDateTime;
 @EntityListeners(RegisterPeriodListener.class)
 public abstract class PeriodicRecordedRegisterEntryBase extends RecordedRegisterEntryBase
         implements PeriodicRegisterEntry {
+    /**
+     * См. {@link PeriodicRegisterEntryBase}: у периода регистра нет встроенной строки быстрого
+     * фильтра — широкий диапазон даты-времени в шапке мешает списку, а дата среза выбирается
+     * контролом «На дату». Отбор по периоду условиями при этом сохраняется.
+     */
     @NotNull
     @Column(name = "period_date", nullable = false, updatable = false)
     @FieldMetadata(
-        label = "Период", order = 2,
+        label = "Период", order = 2, inlineFilter = false,
         grid = @GridColumn(order = 2, width = "150px")
     )
     private LocalDateTime period;

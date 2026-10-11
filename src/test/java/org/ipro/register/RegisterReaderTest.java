@@ -11,19 +11,19 @@ import org.ip.model.NomenclaturePrice;
 import org.ipro.registerfixtures.RecorderPersistenceFixtures.RecordedPeriodicRegisterFixture;
 import org.junit.jupiter.api.Test;
 import org.ipro.data.EntityDataAccess;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -99,21 +99,26 @@ class RegisterReaderTest {
         verifyNoInteractions(access);
     }
 
+    /**
+     * Точечное чтение идёт bounded-каналом: тот же полный порядок победителя, но без count.
+     * Раньше тест стабил {@code list} — то есть закреплял именно тот лишний total, который Р9 убирает.
+     */
     @Test
     void recordedPeriodicGetLastUsesFullWinnerOrderOnCanonicalRead() {
         var recordedReader = new RegisterReader<>(RecordedPeriodicRegisterFixture.class, access);
         var winner = new RecordedPeriodicRegisterFixture("item-a",
             new RecorderRef("fixture-document-b", 42L), 2, 11L, DAY, 120);
-        when(access.list(eq(RecordedPeriodicRegisterFixture.class), any(), any(Pageable.class)))
-            .thenReturn(new PageImpl<>(java.util.List.of(winner)));
+        when(access.first(eq(RecordedPeriodicRegisterFixture.class), any(), any(Sort.class)))
+            .thenReturn(Optional.of(winner));
 
         assertThat(recordedReader.getLast(Map.of("itemKey", "item-a"), DAY)).hasValue(winner);
 
-        var pageable = org.mockito.ArgumentCaptor.forClass(Pageable.class);
-        verify(access).list(eq(RecordedPeriodicRegisterFixture.class), any(), pageable.capture());
-        assertThat(pageable.getValue().getSort().stream().map(Sort.Order::getProperty))
+        var sort = org.mockito.ArgumentCaptor.forClass(Sort.class);
+        verify(access).first(eq(RecordedPeriodicRegisterFixture.class), any(), sort.capture());
+        verify(access, never()).list(eq(RecordedPeriodicRegisterFixture.class), any(), any(org.springframework.data.domain.Pageable.class));
+        assertThat(sort.getValue().stream().map(Sort.Order::getProperty))
             .containsExactly("period", "recordingOrder", "lineNumber");
-        assertThat(pageable.getValue().getSort().stream().map(Sort.Order::getDirection))
+        assertThat(sort.getValue().stream().map(Sort.Order::getDirection))
             .containsOnly(Sort.Direction.DESC);
     }
 

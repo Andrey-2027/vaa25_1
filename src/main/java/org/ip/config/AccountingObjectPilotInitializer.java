@@ -12,6 +12,8 @@ import org.ipro.events.EventSource;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.c5.C5PermissionKeys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,7 +25,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Explicit local pilot fixture, committed atomically through the ordinary write boundaries.
@@ -48,7 +52,10 @@ public class AccountingObjectPilotInitializer implements CommandLineRunner {
      */
     static final String PILOT_SUBJECT = "accounting-pilot";
 
-    private static final List<Class<?>> PILOT_TYPES = List.of(Workshop.class, Nomenclature.class,
+    private static final Logger log = LoggerFactory.getLogger(AccountingObjectPilotInitializer.class);
+
+    /** Типы пилота: тот же перечень проверяет отчёт о недостающих правах при старте. */
+    static final List<Class<?>> PILOT_TYPES = List.of(Workshop.class, Nomenclature.class,
         UnitOfMeasurement.class, AccountingType.class, AccountingObjectInstallation.class,
         AccountingObjectCorrection.class, NomenclatureAccountingObject.class, NomenclaturePrice.class);
     // The existing nomenclature card reads these references and sections while opening.
@@ -83,8 +90,93 @@ public class AccountingObjectPilotInitializer implements CommandLineRunner {
         if (!database.matches("accounting_object_pilot_[a-z0-9_]+")) {
             throw new IllegalStateException("Pilot seed requires an isolated accounting_object_pilot_* database");
         }
-        if (users.findByUsername(PILOT_SUBJECT).isPresent()) return;
+        if (users.findByUsername(PILOT_SUBJECT).isPresent()) {
+            reportMissingDeclaredRights();
+            return;
+        }
         seedFixture();
+    }
+
+    /**
+     * Назвать при старте, чего из объявленных прав нет у субъекта пилота.
+     *
+     * <p><b>Зачем.</b> Фикстура выдаёт права только при первой подготовке базы: на существующей
+     * базе {@link #run} лишь проверяет субъекта, и ключ, объявленный фикстурой позже, там не
+     * появится. Симптом одинаков для нехватки права и для намеренного запрета типа: действие
+     * (например, «Создать» в тулбаре списка) становится недоступным, а причина видна только в
+     * подсказке кнопки. Отчёт называет отсутствующий ключ вслух при каждом запуске пилота.</p>
+     *
+     * <p><b>Почему это проверка строк, а не вопрос решению по действию.</b> Объявленное право и
+     * решение — разные вещи: решение складывает capability типа, право C5 и построчный RLS, и
+     * обходной отказ по одной из трёх причин читался бы как недостающее право. Здесь названы ровно
+     * те строки {@code access_grant}, которые фикстура объявляет: их отсутствие — факт, а не
+     * толкование. Ничего не исправляется: намеренно снятое администратором право не возвращается
+     * при запуске молча — это решение администратора.</p>
+     */
+    private void reportMissingDeclaredRights() {
+        List<String> missing = missingDeclaredRights();
+        if (missing.isEmpty()) {
+            log.info("Пилот: объявленные права субъекта '{}' на месте — доступность действий типа"
+                + " зависит теперь только от данных и типа", PILOT_SUBJECT);
+            return;
+        }
+        log.warn("Пилот: у субъекта '{}' нет {} объявленных прав — {}. Фикстура выдаёт права"
+            + " только при первой подготовке базы и существующие строки не переписывает, поэтому"
+            + " на ранее подготовленной базе ключ нужно назначить администратором; пока его нет,"
+            + " соответствующее действие типа будет недоступным с названной причиной",
+            PILOT_SUBJECT, missing.size(), missing);
+    }
+
+    /**
+     * Объявленные фикстурой права, которых нет у субъекта: пусто — выдача полная.
+     *
+     * <p>Перечень читается из тех же списков типов, по которым {@link #seedFixture()} выдаёт
+     * права, поэтому проверка не может разойтись с выдачей: новый тип в фикстуре требует ключа и
+     * здесь, иначе запуск пилота назовёт расхождение. Право чтения — ключ {@code ENTITY:<FQN>} с
+     * флагом чтения, право на операцию — ключ {@code ENTITY:<SimpleName>} с флагами изменения и
+     * удаления (ADR-0017 §3), именованное действие — ключ {@code ACTION:<id>} с «выполнением».</p>
+     */
+    List<String> missingDeclaredRights() {
+        List<String> missing = new ArrayList<>();
+        if (!hasGrant("*", AccessGrant::isCanRead)) {
+            missing.add("*");
+        }
+        for (Class<?> type : PILOT_TYPES) {
+            requireRead(missing, type);
+            requireOperations(missing, type);
+        }
+        for (Class<?> type : NOMENCLATURE_READ_TYPES) {
+            requireRead(missing, type);
+        }
+        for (Class<?> type : SEEDED_ACCOUNT_TYPES) {
+            requireRead(missing, type);
+            requireOperations(missing, type);
+        }
+        String changePassword = C5PermissionKeys.action(UserPasswordChangePermission.PERMISSION_ID);
+        if (!hasGrant(changePassword, AccessGrant::isCanUpdate)) {
+            missing.add(changePassword);
+        }
+        return List.copyOf(missing);
+    }
+
+    private void requireRead(List<String> missing, Class<?> type) {
+        String key = C5PermissionKeys.entityRead(type);
+        if (!hasGrant(key, AccessGrant::isCanRead)) {
+            missing.add(key);
+        }
+    }
+
+    private void requireOperations(List<String> missing, Class<?> type) {
+        String key = C5PermissionKeys.entityOperations(type);
+        if (!hasGrant(key, grant -> grant.isCanUpdate() && grant.isCanDelete())) {
+            missing.add(key);
+        }
+    }
+
+    /** Есть ли у субъекта фикстуры строка по ключу с нужными флагами: строк по ключу может быть несколько. */
+    private boolean hasGrant(String dimension, Predicate<AccessGrant> required) {
+        return grants.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, PILOT_SUBJECT, dimension).stream().anyMatch(required);
     }
 
     /**
