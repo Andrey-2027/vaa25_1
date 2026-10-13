@@ -89,6 +89,13 @@ node_modules/
 !src/test/resources/platform-rest-surface.txt
 !src/test/resources/platform-package-matrix.txt
 
+# Шаблон поверх перечисления выше. Перечень отстал уже к F-REST-READ-4:
+# `platform-rest-web-surface.txt` читают PlatformApiBaselineTest и
+# RestWebModuleCompositionTest, но в поставку он не попадал — на чистом checkout гейт падал
+# NoSuchFileException. Цена перечисления уже описана ниже на примере README модулей;
+# здесь тот же класс ошибки, поэтому список закрыт шаблоном, а не ещё одной строкой.
+!src/test/resources/platform-*-surface.txt
+
 # D3.5.0: семантический реестр будущего модуля platform-vaadin. Тот же случай, что и в §2.8
 # (D3.3): широкое правило `*.txt` исключило бы reviewed-список из поставки, и гейт защищал бы
 # только машину автора — на чистом checkout файла просто нет, а тест читает его как источник

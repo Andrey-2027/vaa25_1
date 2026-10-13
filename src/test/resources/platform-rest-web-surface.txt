@@ -1,0 +1,20 @@
+# F-REST-READ-4 4.1/4.2/4.3/4.4: HTTP-адаптер — optional артефакт. Все типы технически public,
+# но INTERNAL: controller/advice/parser/codec/security-chain/RLS-мост — реализация шва,
+# не контракт приложения. Публичных ролей (APP_API/MODULE_API) у адаптера нет.
+INTERNAL org.ipro.rest.web.config.RestRlsResolverAutoConfiguration
+INTERNAL org.ipro.rest.web.config.RestWebAutoConfiguration
+INTERNAL org.ipro.rest.web.mvc.RestReadController
+INTERNAL org.ipro.rest.web.openapi.RestOpenApiGenerator
+INTERNAL org.ipro.rest.web.codec.RestJsonCodec
+INTERNAL org.ipro.rest.web.problem.RestProblemFactory
+INTERNAL org.ipro.rest.web.problem.RestProblemWriter
+INTERNAL org.ipro.rest.web.problem.RestReadExceptionHandler
+INTERNAL org.ipro.rest.web.query.RestQueryParser
+INTERNAL org.ipro.rest.web.query.RestQueryException
+INTERNAL org.ipro.rest.web.query.RestQueryReason
+INTERNAL org.ipro.rest.web.rls.RestAwareRlsReadableIdsResolver
+INTERNAL org.ipro.rest.web.rls.RestReadableIdsCache
+INTERNAL org.ipro.rest.web.rls.RestRequestContext
+INTERNAL org.ipro.rest.web.security.RestReadNamespaceFilter
+INTERNAL org.ipro.rest.web.security.RestRequestScopeFilter
+INTERNAL org.ipro.rest.web.security.RestRequestTargetParser
