@@ -1,0 +1,212 @@
+# platform-register: публичная поверхность (policy: SEMANTIC_ROLES, перезапись: -Dplatform.api.baseline.write=true)
+abstract-class public abstract org.ipro.register.PeriodicRecordedRegisterEntryBase
+  extends org.ipro.register.RecordedRegisterEntryBase
+  implements org.ipro.register.PeriodicRegisterEntry
+  annotation jakarta.persistence.Access
+  annotation jakarta.persistence.EntityListeners
+  annotation jakarta.persistence.MappedSuperclass
+  ctor protected()
+  method public java.time.LocalDateTime getPeriod()
+  method public void setPeriod(java.time.LocalDateTime)
+
+abstract-class public abstract org.ipro.register.PeriodicRegisterEntryBase
+  extends org.ipro.crud.BaseEntity
+  implements org.ipro.register.PeriodicRegisterEntry
+  annotation jakarta.persistence.Access
+  annotation jakarta.persistence.EntityListeners
+  annotation jakarta.persistence.MappedSuperclass
+  ctor protected()
+  method public java.time.LocalDateTime getPeriod()
+  method public void setPeriod(java.time.LocalDateTime)
+
+abstract-class public abstract org.ipro.register.RecordedRegisterEntryBase
+  extends org.ipro.crud.BaseEntity
+  implements org.ipro.register.RecordedRegisterEntry
+  annotation jakarta.persistence.Access
+  annotation jakarta.persistence.EntityListeners
+  annotation jakarta.persistence.MappedSuperclass
+  ctor protected()
+  method public java.lang.Integer getLineNumber()
+  method public java.lang.Long getRecordingOrder()
+  method public org.ipro.register.RecorderRef getRecorder()
+  method public void setLineNumber(java.lang.Integer)
+  method public void setRecorder(org.ipro.register.RecorderRef)
+  method public void setRecordingOrder(java.lang.Long)
+
+annotation public abstract interface org.ipro.register.RecorderType
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Documented
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.String value()
+
+annotation public abstract interface org.ipro.register.RegisterMetadata
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Documented
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract boolean keyChangeAllowed() default false
+  method public abstract boolean keyWriteAllowed() default false
+  method public abstract java.lang.Class<?>[] recorderTypes() default []
+  method public abstract java.lang.String period() default 
+  method public abstract java.lang.String[] dimensions()
+  method public abstract java.lang.String[] resources()
+  method public abstract org.ipro.register.RegisterPeriodicity periodicity() default EXACT
+
+class public final org.ipro.register.RegisterDescriptor
+  method public boolean genericWritesAllowed()
+  method public boolean keyChangeAllowed()
+  method public boolean keyWriteAllowed()
+  method public boolean periodic()
+  method public boolean recorded()
+  method public java.lang.Class<?> entityType()
+  method public java.lang.String entityName()
+  method public java.util.List<java.lang.Class<?>> recorderTypes()
+  method public java.util.List<java.lang.String> dimensionGroupColumns()
+  method public java.util.List<java.lang.String> dimensionNames()
+  method public java.util.List<java.lang.String> keyColumns()
+  method public java.util.List<java.lang.String> recorderTypeCodes()
+  method public java.util.List<java.lang.String> rowKeyColumns()
+  method public java.util.List<java.lang.String> winnerOrderFields()
+  method public java.util.List<org.ipro.register.RegisterDescriptor$FieldDescriptor> dimensions()
+  method public java.util.List<org.ipro.register.RegisterDescriptor$FieldDescriptor> resources()
+  method public java.util.Optional<org.ipro.register.RegisterDescriptor$FieldDescriptor> lineNumber()
+  method public java.util.Optional<org.ipro.register.RegisterDescriptor$FieldDescriptor> period()
+  method public java.util.Optional<org.ipro.register.RegisterDescriptor$FieldDescriptor> recorder()
+  method public java.util.Optional<org.ipro.register.RegisterDescriptor$FieldDescriptor> recordingOrder()
+  method public org.ipro.register.RegisterPeriodicity periodicity()
+  method public static org.ipro.register.RegisterDescriptor describe(java.lang.Class<?>)
+
+class public final org.ipro.register.RegisterKeyChangeScope
+  implements java.lang.AutoCloseable
+  method public static boolean permits(java.lang.Object)
+  method public void close()
+
+class public final org.ipro.register.RegisterPeriodListener
+  ctor public()
+  method public static void normalize(java.lang.Object)
+  method public void beforeWrite(java.lang.Object)
+
+class public org.ipro.register.RecorderRef
+  annotation jakarta.persistence.Access
+  annotation jakarta.persistence.Embeddable
+  ctor protected()
+  ctor public(java.lang.String, java.lang.Long)
+  field public static final int TYPE_CODE_MAX_LENGTH = 64
+  method public boolean equals(java.lang.Object)
+  method public int hashCode()
+  method public java.lang.Long getId()
+  method public java.lang.String getTypeCode()
+  method public static boolean isValidTypeCode(java.lang.String)
+
+enum public final org.ipro.register.RegisterPeriodicity
+  extends java.lang.Enum<org.ipro.register.RegisterPeriodicity>
+  enum-constants [EXACT, DAY, MONTH, YEAR]
+  field public static final org.ipro.register.RegisterPeriodicity DAY = enum-constant
+  field public static final org.ipro.register.RegisterPeriodicity EXACT = enum-constant
+  field public static final org.ipro.register.RegisterPeriodicity MONTH = enum-constant
+  field public static final org.ipro.register.RegisterPeriodicity YEAR = enum-constant
+  method public java.time.LocalDateTime normalize(java.time.LocalDateTime)
+  method public static org.ipro.register.RegisterPeriodicity valueOf(java.lang.String)
+  method public static org.ipro.register.RegisterPeriodicity[] values()
+
+enum public static final org.ipro.register.RegisterDescriptor$Mapping
+  extends java.lang.Enum<org.ipro.register.RegisterDescriptor$Mapping>
+  enum-constants [BASIC, TO_ONE, OTHER]
+  field public static final org.ipro.register.RegisterDescriptor$Mapping BASIC = enum-constant
+  field public static final org.ipro.register.RegisterDescriptor$Mapping OTHER = enum-constant
+  field public static final org.ipro.register.RegisterDescriptor$Mapping TO_ONE = enum-constant
+  method public static org.ipro.register.RegisterDescriptor$Mapping valueOf(java.lang.String)
+  method public static org.ipro.register.RegisterDescriptor$Mapping[] values()
+
+enum public static final org.ipro.register.SliceSpec$Mode
+  extends java.lang.Enum<org.ipro.register.SliceSpec$Mode>
+  enum-constants [LATEST]
+  field public static final org.ipro.register.SliceSpec$Mode LATEST = enum-constant
+  method public static org.ipro.register.SliceSpec$Mode valueOf(java.lang.String)
+  method public static org.ipro.register.SliceSpec$Mode[] values()
+
+enum public static final org.ipro.register.SliceSpec$Operator
+  extends java.lang.Enum<org.ipro.register.SliceSpec$Operator>
+  enum-constants [EQ, NE, GT, GE, LT, LE]
+  field public static final org.ipro.register.SliceSpec$Operator EQ = enum-constant
+  field public static final org.ipro.register.SliceSpec$Operator GE = enum-constant
+  field public static final org.ipro.register.SliceSpec$Operator GT = enum-constant
+  field public static final org.ipro.register.SliceSpec$Operator LE = enum-constant
+  field public static final org.ipro.register.SliceSpec$Operator LT = enum-constant
+  field public static final org.ipro.register.SliceSpec$Operator NE = enum-constant
+  method public static org.ipro.register.SliceSpec$Operator valueOf(java.lang.String)
+  method public static org.ipro.register.SliceSpec$Operator[] values()
+
+enum public static final org.ipro.register.SliceSpec$RecorderReadIntent$Scope
+  extends java.lang.Enum<org.ipro.register.SliceSpec$RecorderReadIntent$Scope>
+  enum-constants [ALL_RECORDERS, SELECTED_RECORDERS]
+  field public static final org.ipro.register.SliceSpec$RecorderReadIntent$Scope ALL_RECORDERS = enum-constant
+  field public static final org.ipro.register.SliceSpec$RecorderReadIntent$Scope SELECTED_RECORDERS = enum-constant
+  method public static org.ipro.register.SliceSpec$RecorderReadIntent$Scope valueOf(java.lang.String)
+  method public static org.ipro.register.SliceSpec$RecorderReadIntent$Scope[] values()
+
+interface public abstract interface org.ipro.register.PeriodicRegisterEntry
+  method public abstract java.time.LocalDateTime getPeriod()
+  method public abstract void setPeriod(java.time.LocalDateTime)
+
+interface public abstract interface org.ipro.register.RecordedRegisterEntry
+  method public abstract java.lang.Integer getLineNumber()
+  method public abstract java.lang.Long getRecordingOrder()
+  method public abstract org.ipro.register.RecorderRef getRecorder()
+  method public abstract void setLineNumber(java.lang.Integer)
+  method public abstract void setRecorder(org.ipro.register.RecorderRef)
+  method public abstract void setRecordingOrder(java.lang.Long)
+
+record public final org.ipro.register.SliceSpec
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, org.ipro.register.SliceSpec$Mode, java.time.LocalDateTime, java.util.List<org.ipro.register.SliceSpec$Condition>, java.util.List<org.ipro.register.SliceSpec$Condition>)
+  ctor public(java.lang.Class<?>, org.ipro.register.SliceSpec$Mode, java.time.LocalDateTime, java.util.List<org.ipro.register.SliceSpec$Condition>, java.util.List<org.ipro.register.SliceSpec$Condition>, org.ipro.register.SliceSpec$RecorderReadIntent)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> registerType()
+  method public java.time.LocalDateTime asOf()
+  method public java.util.List<org.ipro.register.SliceSpec$Condition> afterSlice()
+  method public java.util.List<org.ipro.register.SliceSpec$Condition> dimensions()
+  method public org.ipro.register.SliceSpec$Mode mode()
+  method public org.ipro.register.SliceSpec$RecorderReadIntent recorderReadIntent()
+  method public static org.ipro.register.SliceSpec latest(java.lang.Class<?>, java.time.LocalDateTime)
+  method public static org.ipro.register.SliceSpec latestAmongRecorders(java.lang.Class<?>, java.time.LocalDateTime, java.util.List<org.ipro.register.RecorderRef>)
+
+record public static final org.ipro.register.RegisterDescriptor$FieldDescriptor
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.Class<?>, java.util.Optional<java.lang.String>, org.ipro.register.RegisterDescriptor$Mapping)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> javaType()
+  method public java.lang.String name()
+  method public java.util.Optional<java.lang.String> columnName()
+  method public org.ipro.register.RegisterDescriptor$Mapping mapping()
+
+record public static final org.ipro.register.SliceSpec$Condition
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.register.SliceSpec$Operator, java.lang.Object)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Object value()
+  method public java.lang.String field()
+  method public org.ipro.register.SliceSpec$Operator operator()
+
+record public static final org.ipro.register.SliceSpec$RecorderReadIntent
+  extends java.lang.Record
+  ctor public(org.ipro.register.SliceSpec$RecorderReadIntent$Scope, java.util.List<org.ipro.register.RecorderRef>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<org.ipro.register.RecorderRef> selectedRecorders()
+  method public org.ipro.register.SliceSpec$RecorderReadIntent$Scope scope()
+  method public static org.ipro.register.SliceSpec$RecorderReadIntent allRecorders()
+  method public static org.ipro.register.SliceSpec$RecorderReadIntent selectedRecorders(java.util.List<org.ipro.register.RecorderRef>)
+

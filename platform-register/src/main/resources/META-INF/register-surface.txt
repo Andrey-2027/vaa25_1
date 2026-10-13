@@ -1,0 +1,66 @@
+# D-R S0: семантическая классификация production-типов артефакта platform-register.
+#
+# Зачем реестр появился в том же срезе, что и модуль. Порядок «сначала перенести 17 типов, потом
+# решить, что из них контракт» уже опробован в D3.3 и дал TEMPORARY_ALL_PUBLIC: состав
+# зафиксирован, а решение не принято ни по одному типу, включая реализацию. Здесь роль
+# назначается тем же изменением, которое создаёт артефакт. Забор — RegisterSurfaceRoleTest
+# в самом модуле: его сборка (buildSteps манифеста) гоняет тесты, поэтому расхождение видно на
+# сборке артефакта, а не только в приложении.
+#
+# Формат: <role> <fqn>
+# Роли (ровно одна на production-тип): APP_API | APP_SPI | MODULE_API | INTERNAL
+#   APP_API    — поддерживаемый API приложения: приложение называет тип, платформа не наследует.
+#   APP_SPI    — приложение реализует или расширяет тип; платформа вызывает обратно.
+#   MODULE_API — контракт между platform-модулями: тип нужен следующему срезу (S1 — читатель,
+#                S3 — протокол набора владельца), но приложение его не называет.
+#   INTERNAL   — реализация без compatibility promise: менять и удалять можно свободно.
+# Вложенные типы наследуют роль владельца и отдельной записи не требуют.
+#
+# Замер, на котором стоят решения, а не привычка: `node scripts/analyze-platform-surface.mjs
+# --json` (2026-10-13). Из него следует:
+#   · приложение (main) называет 12 типов среза, тесты — ещё четыре; роль по тесту не
+#     назначается: тесты движка переезжают вместе со своими срезами (S5);
+#   · ни один платформенный модуль типов регистра не называет. Поэтому MODULE_API на S0 не
+#     назначен ни одному типу: следующий срез введёт его осознанно, вместе с читателем, а не
+#     как «на будущее»;
+#   · четыре типа не названы нигде — охранник подчинённой строки, контекст записи набора,
+#     валидатор декларации и валидатор среза. Это реализация: обещание строки — поведение, а не
+#     имена. Охранник назван аннотацией @EntityListeners на базовом классе подчинённой строки,
+#     и в baseline артефакта эта строка видна: забор замыкания считает сигнатурой поля, методы
+#     и наследование, а не аргументы аннотаций. Так исключение остаётся прочитанным в диффе,
+#     а не невидимым.
+#
+# Совместимость с D1-реестром приложения (platform-public-surface.txt). Роли сходятся, кроме
+# двух записей: D1 записал PeriodicRegisterEntryBase и RecordedRegisterEntry как API по признаку
+# «приложение называет тип», здесь роль — APP_SPI по признаку «приложение расширяет тип»
+# (NomenclaturePrice extends PeriodicRegisterEntryBase, строки реализуют RecordedRegisterEntry).
+# Это два разных вопроса, и один ответ на них склеивать нельзя: D1 считает бюджет доступа
+# приложения к платформе, этот реестр — границу обещания совместимости. Расхождение записано
+# явно, чтобы следующий срез читателя не унаследовал его молча.
+
+# ---- APP_API (8)
+APP_API org.ipro.register.RecorderRef
+APP_API org.ipro.register.RecorderType
+APP_API org.ipro.register.RegisterDescriptor
+APP_API org.ipro.register.RegisterKeyChangeScope
+APP_API org.ipro.register.RegisterMetadata
+APP_API org.ipro.register.RegisterPeriodicity
+APP_API org.ipro.register.RegisterPeriodListener
+APP_API org.ipro.register.SliceSpec
+
+# ---- APP_SPI (5)
+APP_SPI org.ipro.register.PeriodicRecordedRegisterEntryBase
+APP_SPI org.ipro.register.PeriodicRegisterEntry
+APP_SPI org.ipro.register.PeriodicRegisterEntryBase
+APP_SPI org.ipro.register.RecordedRegisterEntry
+APP_SPI org.ipro.register.RecordedRegisterEntryBase
+
+# ---- MODULE_API (0)
+
+# ---- INTERNAL (4)
+INTERNAL org.ipro.register.RecordedRegisterEntryWriteGuard
+INTERNAL org.ipro.register.RecorderSetWriteContext
+INTERNAL org.ipro.register.RegisterMetadataValidator
+INTERNAL org.ipro.register.SliceSpecValidator
+
+# Всего 17 production-типов: S0 перенёс ровно их, и ни один не остался без решения о роли.

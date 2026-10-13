@@ -104,6 +104,15 @@ node_modules/
 
 # KI-1: module-owned reviewed roles and stable navigation IDs are versioned contracts.
 !platform-navigation/src/main/resources/META-INF/navigation-surface.txt
+
+# D-R S0: reviewed-реестр ролей модуля platform-register — тот же случай, что у platform-navigation
+# выше: широкое правило `*.txt` исключило бы reviewed-контракт из поставки, а
+# RegisterSurfaceRoleTest читает его как источник истины и защищал бы только машину автора.
+# Шаблон, а не имя файла: урок ниже про README модулей («перечисление уже дважды отставало»)
+# относится и сюда — предмет записи тот же, reviewed-данные владельца модуля, которые обязаны
+# присутствовать на чистом checkout. Действует только для файлов под META-INF платформенных
+# модулей, поэтому случайных исключений правило не создаёт.
+!platform-*/src/main/resources/META-INF/*.txt
 !src/test/resources/navigation/
 !src/test/resources/navigation/*.txt
 

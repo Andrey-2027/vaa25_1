@@ -200,10 +200,11 @@ class PlatformApiBaselineTest {
             .toList();
 
         assertThat(semantic)
-            .as("семантическую классификацию прошли platform-core, platform-rest, platform-rest-web"
-                + " и platform-vaadin; новый артефакт без реестра ролей не должен тихо замерзать"
-                + " целиком, включая реализацию")
-            .isEqualTo(List.of("platform-core", "platform-navigation", "platform-rest", "platform-rest-web", "platform-vaadin"));
+            .as("семантическую классификацию прошли platform-core, platform-navigation,"
+                + " platform-register, platform-rest, platform-rest-web и platform-vaadin; новый"
+                + " артефакт без реестра ролей не должен тихо замерзать целиком, включая реализацию")
+            .isEqualTo(List.of("platform-core", "platform-navigation", "platform-register",
+                "platform-rest", "platform-rest-web", "platform-vaadin"));
         assertThat(temporary)
             .as("долг D3.9: эти артефакты всё ещё заморожены целиком, включая реализацию")
             .isNotEmpty();
@@ -266,10 +267,17 @@ class PlatformApiBaselineTest {
      * задним числом: роли 93 типов были приняты до физического переноса (D3.5.0), поэтому
      * {@code TEMPORARY_ALL_PUBLIC} зафиксировал бы не решение, а согласие с любым текущим
      * состоянием — ровно тот долг D3.3, который этот шаг должен был не повторить.</p>
+     *
+     * <p>{@code platform-register} появился в том же порядке (D-R S0): реестр ролей
+     * ({@code META-INF/register-surface.txt}) создан тем же изменением, что и артефакт, и решает
+     * судьбу всех 17 перенесённых типов, включая четыре реализации. Оставить модуль в
+     * {@code TEMPORARY_ALL_PUBLIC} значило бы заморозить охранник строки и оба валидатора как
+     * часть контракта — то есть назначить реализацию поверхностью по умолчанию.</p>
      */
     private static final Map<String, Path> SEMANTIC_ROLE_REGISTRIES = Map.of(
         "platform-core", Path.of("src/test/resources/platform-core-surface.txt"),
         "platform-navigation", Path.of("platform-navigation/src/main/resources/META-INF/navigation-surface.txt"),
+        "platform-register", Path.of("platform-register/src/main/resources/META-INF/register-surface.txt"),
         "platform-rest", Path.of("src/test/resources/platform-rest-surface.txt"),
         "platform-rest-web", Path.of("src/test/resources/platform-rest-web-surface.txt"),
         "platform-vaadin", Path.of("src/test/resources/platform-vaadin-surface.txt"));

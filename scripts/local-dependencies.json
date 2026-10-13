@@ -366,6 +366,34 @@
       ]
     },
     {
+      "id": "platform-register",
+      "relativePath": "platform-register",
+      "dependsOn": ["platform-contracts", "platform-persistence"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D-R S0 (register extraction, slice 0): declaration and row contract of the information register - annotations, immutable descriptor, declaration validator, both row base classes (periodic and recorder-owned), SliceSpec with its validator, the neutral recorder reference and the row guards. The artifact is a relocation, not a refactoring: the engine named no application type, so the price of the move was measured as movement. It carries no beans and no AutoConfiguration.imports, so the application keeps its own registration and the move cannot change behaviour before S1 brings reading; the app compiles against it and reports its own reader configuration. dependsOn is exactly the two compile imports found by the closure measurement (platform-contracts for the metadata annotations of descriptor and rows, platform-persistence for BaseEntity); platform-core is deliberately not needed at this slice. The module owns its reviewed role registry (META-INF/register-surface.txt, 17 types classified APP_API/APP_SPI/MODULE_API/INTERNAL) and its first test, RegisterSurfaceRoleTest, which is why buildSteps installs with tests enabled: the promise of compatibility of this artifact has to break its own build, not only the app's. Later slices add reading (S1), key writes (S2), the recorder set protocol (S3) and the Vaadin adapter (S4), each adding only the dependencies it needs."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "3ae7ced8282e9f4d4f38601926c30f33cce2274337f3dce2b526374ecf4ee58d",
+        "fileCount": 20,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-register:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
       "id": "platform-navigation",
       "relativePath": "platform-navigation",
       "dependsOn": ["platform-core", "platform-persistence"],

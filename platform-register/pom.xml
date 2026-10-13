@@ -71,5 +71,23 @@
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
         </dependency>
+
+        <!--
+          Первый собственный тест модуля — забор ролей поверхности (RegisterSurfaceRoleTest).
+          Он рефлексивный и потому не тянет Spring: носитель проверки — артефакт и его решения,
+          а не контекст приложения. Свой прогон тестов у модуля появляется до S3 осознанно:
+          приёмка программы требует, чтобы модуль проверялся своей сборкой, а не только сборкой
+          приложения (buildSteps манифеста гоняют модуль с тестами).
+        -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
