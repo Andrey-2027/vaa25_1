@@ -10,6 +10,7 @@ import org.ipro.crud.ValidationException;
 import org.ipro.data.EntityDataAccess;
 import org.ipro.register.RegisterKeyChanges;
 import org.ipro.register.RegisterKeyChangePermissions;
+import org.ipro.register.RegisterKeyWritePermissions;
 import org.ipro.rls.c5.C5PermissionKeys;
 import org.ipro.rls.AccessGrant;
 import org.junit.jupiter.api.AfterEach;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,6 +54,8 @@ class NomenclaturePricePersistenceTest {
 
     @Autowired private RegisterKeyChanges keyChanges;
     @Autowired private RegisterKeyChangePermissions keyPermissions;
+    @Autowired private RegisterKeyWritePermissions keyWritePermissions;
+    @Autowired private NomenclaturePriceService prices;
     @Autowired private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     private String username;
@@ -301,6 +305,109 @@ class NomenclaturePricePersistenceTest {
         assertThatThrownBy(() -> keyChanges.change(NomenclaturePrice.class, row.getId(), row.getVersion(),
             java.util.Map.of(), DAY.plusDays(1)))
             .isInstanceOf(ValidationException.class).hasMessageContaining("все измерения");
+    }
+
+    // === ADR-0023: запись по ключу в пилоте цен ===
+
+    /**
+     * Upsert пилота: «записать цену на дату» — команда по полному ключу, а не решение приложения.
+     * Отсутствующая строка создаётся с нормализованным периодом, повтор тех же ресурсов — no-op
+     * без версии и аудита, новый ресурс — UPDATE с операцией команды в аудите.
+     */
+    @Test void keyWriteUpsertsThePriceAndRepeatingTheSameResourceIsANoOp() {
+        grantKeyWrite(false);
+
+        NomenclaturePrice created = prices.setPrice(nomenclature, DAY.plusHours(9), new BigDecimal("120"));
+        assertThat(created.getPeriod()).as("период дня нормализуется ключом").isEqualTo(DAY);
+        assertThat(created.getPrice()).isEqualByComparingTo("120");
+        assertThat(created.getVersion()).isZero();
+        assertThat(auditCount(created)).isEqualTo(1);
+        assertThat(auditPayload(created)).singleElement().satisfies(payload -> assertThat(payload)
+            .as("создание: и ключ, и ресурс — новые значения").contains("\"new\":\"120\"")
+            .contains("\"old\":\"\"").contains("\"field\":\"nomenclature\"")
+            .contains("set-register-key:NomenclaturePrice"));
+
+        NomenclaturePrice repeated = prices.setPrice(nomenclature, DAY, new BigDecimal("120.0000"));
+        assertThat(repeated.getVersion()).as("повтор тех же ресурсов не двигает версию").isZero();
+        assertThat(auditCount(created)).as("no-op не пишет аудит").isEqualTo(1);
+
+        NomenclaturePrice changed = prices.setPrice(nomenclature, DAY, new BigDecimal("150"));
+        assertThat(changed.getId()).isEqualTo(created.getId());
+        assertThat(changed.getVersion()).isEqualTo(1);
+        assertThat(auditCount(created)).isEqualTo(2);
+        assertThat(auditPayload(created)).anySatisfy(payload -> assertThat(payload)
+            .contains("set-register-key:NomenclaturePrice").contains("120").contains("150"));
+    }
+
+    /** Проверяемая версия в пилоте: команда не создаёт строку и не перезаписывает чужое решение. */
+    @Test void checkedPriceChangeRefusesAnAbsentRowAndAStaleVersion() {
+        grantKeyWrite(false);
+
+        assertThatThrownBy(() -> prices.changePrice(nomenclature, DAY, new BigDecimal("90"), 0L))
+            .isInstanceOf(ValidationException.class).hasMessageContaining("не установлена");
+        assertThat(prices.priceOn(nomenclature, DAY)).isEmpty();
+
+        NomenclaturePrice row = prices.setPrice(nomenclature, DAY, new BigDecimal("100"));
+        assertThatThrownBy(() -> prices.changePrice(nomenclature, DAY, new BigDecimal("90"), row.getVersion() + 1))
+            .isInstanceOf(jakarta.persistence.OptimisticLockException.class)
+            .hasMessageContaining("уже изменена");
+        assertThatThrownBy(() -> prices.changePrice(nomenclature, DAY, new BigDecimal("90"), null))
+            .isInstanceOf(ValidationException.class).hasMessageContaining("исходная версия");
+        assertThat(prices.priceOn(nomenclature, DAY)).hasValueSatisfying(value ->
+            assertThat(value).isEqualByComparingTo("100"));
+    }
+
+    /** Удаление по ключу: версия обязательна, повтор сообщает об отсутствии строки, аудит — DELETE. */
+    @Test void priceRemovalRequiresTheVersionAndReportsAnAbsentRow() {
+        grantKeyWrite(true);
+        NomenclaturePrice row = prices.setPrice(nomenclature, DAY, new BigDecimal("100"));
+
+        assertThatThrownBy(() -> prices.removePrice(nomenclature, DAY, null))
+            .isInstanceOf(ValidationException.class).hasMessageContaining("исходная версия");
+        assertThatThrownBy(() -> prices.removePrice(nomenclature, DAY, row.getVersion() + 1))
+            .isInstanceOf(jakarta.persistence.OptimisticLockException.class);
+        assertThat(prices.priceOn(nomenclature, DAY)).hasValueSatisfying(value ->
+            assertThat(value).isEqualByComparingTo("100"));
+        assertThat(prices.removePrice(nomenclature, DAY, row.getVersion())).isTrue();
+        assertThat(prices.removePrice(nomenclature, DAY, row.getVersion()))
+            .as("строки уже нет — факт, а не исключение").isFalse();
+        assertThat(auditPayload(row)).anySatisfy(payload -> assertThat(payload)
+            .contains("delete-register-key:NomenclaturePrice")
+            .doesNotContain("\"new\":\"100\""));
+    }
+
+    /** Именованная операция записи по ключу — отдельное право: generic-запись её не выдаёт. */
+    @Test void theKeyWriteActionIsSeparateFromTheGenericWriteRight() {
+        assertThat(keyWritePermissions.canWriteKey(NomenclaturePrice.class, false)).isFalse();
+        assertThatThrownBy(() -> prices.setPrice(nomenclature, DAY, new BigDecimal("100")))
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        assertThat(prices.priceOn(nomenclature, DAY)).isEmpty();
+
+        grantKeyWrite(false);
+        assertThat(keyWritePermissions.canWriteKey(NomenclaturePrice.class, false)).isTrue();
+        assertThat(keyWritePermissions.canWriteKey(NomenclaturePrice.class, true))
+            .as("удаление по ключу — другая операция").isFalse();
+        assertThat(prices.setPrice(nomenclature, DAY, new BigDecimal("100")).getPrice())
+            .isEqualByComparingTo("100");
+    }
+
+    private void grantKeyWrite(boolean delete) {
+        grant(C5PermissionKeys.action(RegisterKeyWritePermissions.setPermissionId(NomenclaturePrice.class)), true);
+        if (delete) {
+            grant(C5PermissionKeys.action(RegisterKeyWritePermissions.deletePermissionId(NomenclaturePrice.class)), true);
+        }
+        grant(C5PermissionKeys.entityRead(Nomenclature.class), false);
+        entityManager.flush();
+    }
+
+    private long auditCount(NomenclaturePrice row) {
+        return jdbc.queryForObject("select count(*) from entity_change_log where entity = ? and entity_id = ?",
+            Long.class, "NomenclaturePrice", row.getId().toString());
+    }
+
+    private List<String> auditPayload(NomenclaturePrice row) {
+        return jdbc.queryForList("select payload from entity_change_log where entity = ? and entity_id = ?",
+            String.class, "NomenclaturePrice", row.getId().toString());
     }
 
     private void grantKeyChange() {

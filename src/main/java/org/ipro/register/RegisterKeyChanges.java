@@ -22,8 +22,6 @@ import org.ipro.telemetry.api.FieldChangeRecord;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -90,7 +88,7 @@ public final class RegisterKeyChanges {
             throw new OptimisticLockException("Запись уже изменена. Перезагрузите её и повторите действие.");
         }
         policies.requireUpdate(row);
-        T original = snapshot(type, row);
+        T original = RegisterRowState.snapshot(type, row);
         Map<String, Object> oldKey = key(descriptor, row);
         Map<String, Object> newKey = new LinkedHashMap<>();
         Map<String, Object> values = new LinkedHashMap<>();
@@ -117,7 +115,7 @@ public final class RegisterKeyChanges {
         EventContext context = events.contextFor(type, id, EventSource.SYSTEM, "change-register-key:" + descriptor.entityName());
         try (var scope = RegisterKeyChangeScope.open(row,
                 entityManager.unwrap(SharedSessionContractImplementor.class), oldKey, newKey)) {
-            values.forEach((name, value) -> set(type, row, name, value));
+            values.forEach((name, value) -> RegisterRowState.assign(type, row, name, value));
             policies.requireUpdate(row);
             events.publishSaving(row, context);
             lifecycles.beforeSave(type, row, context);
@@ -171,48 +169,13 @@ public final class RegisterKeyChanges {
 
     private static Map<String, Object> key(RegisterDescriptor descriptor, Object row) {
         var values = new LinkedHashMap<String, Object>();
-        for (var field : descriptor.dimensions()) values.put(field.name(), RegisterKeyWriteGuardInstaller.scalar(get(descriptor.entityType(), row, field.name())));
-        descriptor.period().ifPresent(field -> values.put(field.name(), get(descriptor.entityType(), row, field.name())));
+        for (var field : descriptor.dimensions()) values.put(field.name(), RegisterKeyWriteGuardInstaller.scalar(
+            RegisterRowState.value(descriptor.entityType(), row, field.name())));
+        descriptor.period().ifPresent(field -> values.put(field.name(),
+            RegisterRowState.value(descriptor.entityType(), row, field.name())));
         return values;
     }
 
-    private static <T> T snapshot(Class<T> type, T source) {
-        try {
-            var constructor = type.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            T copy = constructor.newInstance();
-            for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
-                for (Field field : current.getDeclaredFields()) {
-                    if (!Modifier.isStatic(field.getModifiers())) {
-                        field.setAccessible(true);
-                        field.set(copy, field.get(source));
-                    }
-                }
-            }
-            return copy;
-        } catch (ReflectiveOperationException failure) {
-            throw new IllegalStateException("Не удалось получить исходное состояние записи", failure);
-        }
-    }
-
-    private static Field field(Class<?> type, String name) {
-        for (Class<?> current = type; current != null; current = current.getSuperclass()) {
-            try {
-                Field field = current.getDeclaredField(name);
-                field.setAccessible(true);
-                return field;
-            } catch (NoSuchFieldException ignored) { }
-        }
-        throw new IllegalStateException("Register field not found: " + name);
-    }
-    private static Object get(Class<?> type, Object row, String name) {
-        try { return field(type, name).get(row); }
-        catch (IllegalAccessException failure) { throw new IllegalStateException(failure); }
-    }
-    private static void set(Class<?> type, Object row, String name, Object value) {
-        try { field(type, name).set(row, value); }
-        catch (IllegalAccessException failure) { throw new IllegalStateException(failure); }
-    }
     private static Class<?> boxed(Class<?> type) {
         if (!type.isPrimitive()) return type;
         if (type == int.class) return Integer.class;

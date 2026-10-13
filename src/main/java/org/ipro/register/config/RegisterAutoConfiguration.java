@@ -13,6 +13,8 @@ import org.ipro.register.RlsRecorderSetWriteAuthorizer;
 import org.ipro.register.RegisterRecords;
 import org.ipro.register.RegisterKeyChanges;
 import org.ipro.register.RegisterKeyChangePermissions;
+import org.ipro.register.RegisterKeyWrites;
+import org.ipro.register.RegisterKeyWritePermissions;
 import org.ipro.register.RegisterKeyWriteGuardInstaller;
 import org.ipro.data.EntityDataAccess;
 import org.ipro.events.EntityEventPublisher;
@@ -64,6 +66,27 @@ public class RegisterAutoConfiguration {
             Validator validator, EntityLifecycleRegistry lifecycles, EntityEventPublisher events,
             RlsCurrentUser currentUser, java.util.Optional<EventSink> audit, PlatformTransactionManager transactionManager) {
         return new RegisterKeyChanges(entityManager, registers, permissions, reads, policies, validator,
+            lifecycles, events, currentUser, audit, transactionManager);
+    }
+
+    @Bean
+    public RegisterKeyWritePermissions registerKeyWritePermissions(RegisterRegistry registers,
+            C5OperationPermissionRegistry operations, RlsDimensionRegistry dimensions,
+            C5PermissionDecisionService decisions, RlsCurrentUser currentUser) {
+        return new RegisterKeyWritePermissions(registers, operations, dimensions, decisions, currentUser);
+    }
+
+    /**
+     * Запись по ключу (ADR-0023): автономная команда с bounded retry. Владелец повтора —
+     * граница транзакции, поэтому бин не прячет чужую транзакцию и не открывает REQUIRES_NEW.
+     */
+    @Bean
+    public RegisterKeyWrites registerKeyWrites(EntityManager entityManager, RegisterRegistry registers,
+            RegisterKeyWritePermissions permissions, EntityDataAccess reads, RlsPolicyEnforcer policies,
+            Validator validator, EntityLifecycleRegistry lifecycles, EntityEventPublisher events,
+            RlsCurrentUser currentUser, java.util.Optional<EventSink> audit,
+            PlatformTransactionManager transactionManager) {
+        return new RegisterKeyWrites(entityManager, registers, permissions, reads, policies, validator,
             lifecycles, events, currentUser, audit, transactionManager);
     }
 

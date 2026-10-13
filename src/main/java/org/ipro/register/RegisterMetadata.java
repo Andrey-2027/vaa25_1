@@ -41,4 +41,12 @@ public @interface RegisterMetadata {
 
     /** Opt-in to a separate checked key-change command; ordinary entity writes remain restricted. */
     boolean keyChangeAllowed() default false;
+
+    /**
+     * Opt-in к записи по ключу (set/delete, ADR-0023): запись ресурсов для полного ключа и
+     * удаление по ключу отдельными именованными операциями. Ключ при этом не меняется —
+     * перенос строки остаётся командой {@link #keyChangeAllowed()}. Обычные пути записи
+     * (managed flush, generic UPDATE) этим флагом не открываются.
+     */
+    boolean keyWriteAllowed() default false;
 }

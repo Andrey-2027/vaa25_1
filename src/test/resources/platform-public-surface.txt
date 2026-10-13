@@ -403,3 +403,9 @@ API org.ipro.navigation.NavigationNode
 API org.ipro.navigation.NavigationVisibility
 API org.ipro.navigation.NavigationAdministrationService
 API org.ipro.navigation.NavigationConflictException
+
+# R11 (ADR-0023): application command that writes register resources by full key and deletes by
+# key, plus the seam that answers the same C5 decision for the UI. The register engine is not a
+# platform module; roles are assigned here so the application-to-platform boundary stays reviewed.
+API org.ipro.register.RegisterKeyWrites
+API org.ipro.register.RegisterKeyWritePermissions

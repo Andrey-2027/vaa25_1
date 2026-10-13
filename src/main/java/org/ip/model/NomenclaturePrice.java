@@ -26,6 +26,11 @@ import java.time.LocalDateTime;
  * Отдельная команда «Изменить ключ записи» может перенести существующую строку на другую дату
  * или номенклатуру с сохранением ID и цены. Для команды нужны отдельно назначенные права.</p>
  *
+ * <p>Регистр объявляет {@code keyWriteAllowed} (ADR-0023): прикладная запись идёт командой
+ * {@code RegisterKeyWrites} через {@link org.ip.application.register.NomenclaturePriceService}
+ * («записать цену на дату» и «удалить цену на дату»), а не решением «создать или обновить» на
+ * стороне приложения. Ключ этой записью не меняется: другая дата/номенклатура — другая строка.</p>
+ *
  * <p>Валюты и типа цены в v1.0 нет сознательно. Тип сущности — обычный ({@code PLAIN}): общий
  * {@code EntityKind.INFORMATION_REGISTER} не вводится (см. ADR-0013 §6).</p>
  */
@@ -45,7 +50,7 @@ import java.time.LocalDateTime;
     selectColumns = {"nomenclature", "period", "price"}
 )
 @RegisterMetadata(dimensions = "nomenclature", period = "period", resources = "price", periodicity = RegisterPeriodicity.DAY,
-    keyChangeAllowed = true)
+    keyChangeAllowed = true, keyWriteAllowed = true)
 public class NomenclaturePrice extends PeriodicRegisterEntryBase {
 
     @NotNull

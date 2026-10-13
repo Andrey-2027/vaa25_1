@@ -60,7 +60,8 @@ public final class RegisterMetadataValidator {
         RECORDER_MAPPING,
         RECORDER_CLOCK_KEY_MISSING,
         RECORDER_WRITE_GUARD_MISSING,
-        PERIOD_CAPABILITY_MISMATCH
+        PERIOD_CAPABILITY_MISMATCH,
+        KEY_WRITE_RECORDED
     }
 
     /** @param field имя поля, к которому относится отказ, или {@code null} для отказа типа */
@@ -105,6 +106,11 @@ public final class RegisterMetadataValidator {
         } else if (!recorded && recorderTypes.length != 0) {
             out.add(new Violation(Code.RECORDER_METADATA_MISMATCH, null,
                 "recorderTypes заданы, но сущность не реализует RecordedRegisterEntry."));
+        }
+        if (recorded && meta.keyWriteAllowed()) {
+            out.add(new Violation(Code.KEY_WRITE_RECORDED, null,
+                "keyWriteAllowed не применяется к подчинённому регистру: его строки принадлежат"
+                    + " документу-регистратору и пишутся набором владельца (ADR-0015/0020)."));
         }
         if (recorded && periodic && !PeriodicRegisterEntry.class.isAssignableFrom(type)) {
             out.add(new Violation(Code.PERIOD_CAPABILITY_MISMATCH, meta.period(),

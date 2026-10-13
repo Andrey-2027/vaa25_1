@@ -133,6 +133,9 @@ public final class RegisterDescriptor {
     /** Explicit register declaration; entities outside RegisterRegistry never acquire this capability. */
     public boolean keyChangeAllowed() { return entityType.getAnnotation(RegisterMetadata.class).keyChangeAllowed(); }
 
+    /** Opt-in записи по ключу (ADR-0023): set/delete отдельными операциями; ключ остаётся неизменяемым. */
+    public boolean keyWriteAllowed() { return entityType.getAnnotation(RegisterMetadata.class).keyWriteAllowed(); }
+
     /** Stable-code declarations allowed to own rows of this register. */
     public List<Class<?>> recorderTypes() { return recorderTypes; }
     public List<String> recorderTypeCodes() { return recorderTypeCodes; }
