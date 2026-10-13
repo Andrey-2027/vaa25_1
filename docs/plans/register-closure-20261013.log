@@ -1,0 +1,174 @@
+# Р11/Р10: замер замыкания пакета org.ipro.register (2026-10-13)
+# Команда: node scripts/analyze-register-closure.mjs
+# Инструмент: scripts/analyze-register-closure.mjs (импорты, полные имена, простые имена, wildcard,
+#   отдельно литералы и javadoc; владельцы типов по источникам, включая соседние проекты манифеста)
+
+# Замыкание org.ipro.register (seeds: all)
+# файлов-семян: 43 main + 17 test
+# корней сканирования: 36 (app-tree, app-tree-test, platform-contracts, platform-core, platform-events, platform-metadata, platform-navigation, platform-numbering, platform-persistence, platform-rest, platform-rest-web, platform-rls, platform-settings, platform-spring-boot-autoconfigure, platform-telemetry, platform-vaadin, crudui/crudui-core, crudui/crudui-demo, crudui/platform-crud-api, crudui/platform-identity-api, DynamicReport7/dynamicreports-adhoc, DynamicReport7/dynamicreports-core, DynamicReport7/dynamicreports-examples, DynamicReport7/dynamicreports-googlecharts, FilterGrid/filtergrid-core, FilterGrid/filtergrid-demo, FilterGrid/filtergrid-grouping, FilterGrid/filtergrid-inmemory, FilterGrid/filtergrid-jpa, FilterGrid/filtergrid-projection, ReportFlowUI, ReportFlowUI/reportui-core, ReportFlowUI/reportui-demo, ureport3/ureport3-console, ureport3/ureport3-core, ureport3/ureport3-font)
+# объявлений типов в воркспейсе: 7258
+
+## Однопачечные ссылки из main-семян (сам движок): 14
+FilterGrid/filtergrid-core	org.ipro.filtergrid.filter.*
+crudui/platform-identity-api	org.ipro.identity.*
+platform-contracts	org.ipro.events.*
+platform-contracts	org.ipro.lifecycle.*
+platform-contracts	org.ipro.metadata.annotation.*
+platform-core	org.ipro.crud.*
+platform-core	org.ipro.data.*
+platform-core	org.ipro.metadata.*
+platform-events	org.ipro.events.*
+platform-events	org.ipro.lifecycle.*
+platform-persistence	org.ipro.crud.*
+platform-rls	org.ipro.rls.*
+platform-rls	org.ipro.rls.c5.*
+platform-telemetry	org.ipro.telemetry.api.*
+
+## Однопачечные ссылки из test-семян (тесты движка): 17
+FilterGrid/filtergrid-core	org.ipro.filtergrid.filter.*
+application	org.ip.model.*
+crudui/platform-identity-api	org.ipro.identity.*
+platform-contracts	org.ipro.events.*
+platform-contracts	org.ipro.lifecycle.*
+platform-contracts	org.ipro.metadata.annotation.*
+platform-core	org.ipro.crud.*
+platform-core	org.ipro.data.*
+platform-core	org.ipro.metadata.*
+platform-events	org.ipro.events.*
+platform-events	org.ipro.lifecycle.*
+platform-in-tree-test:org.ipro.registerfixtures	org.ipro.registerfixtures.*
+platform-in-tree-test:org.ipro.registerfixtures	org.ipro.registerfixtures.RecorderPersistenceFixtures.*
+platform-persistence	org.ipro.crud.*
+platform-rls	org.ipro.rls.*
+platform-rls	org.ipro.rls.c5.*
+platform-telemetry	org.ipro.telemetry.api.*
+
+## Транзитивное замыкание: 253 файлов
+platform-core	71
+register	43
+platform-rls	36
+platform-contracts	34
+register-test	17
+platform-numbering	15
+platform-telemetry	11
+application	9
+FilterGrid/filtergrid-core	8
+platform-events	2
+platform-in-tree-test:org.ipro.registerfixtures	2
+platform-metadata	2
+crudui/platform-crud-api	1
+crudui/platform-identity-api	1
+platform-persistence	1
+
+## Пересечение границы в приложение: 9
+org.ip.model.NomenclaturePrice	application	org/ip/model/NomenclaturePrice.java	из register-test:org/ipro/register/RegisterListFilterPhasesTest.java	import
+org.ip.model.Nomenclature	application	org/ip/model/Nomenclature.java	из register-test:org/ipro/register/RegisterReaderTest.java	import
+org.ip.subsystem.Subsystems	application	org/ip/subsystem/Subsystems.java	из application:org/ip/model/NomenclaturePrice.java	fully-qualified
+org.ip.model.GroupNom	application	org/ip/model/GroupNom.java	из application:org/ip/model/Nomenclature.java	simple
+org.ip.model.NomAttributeValue	application	org/ip/model/NomAttributeValue.java	из application:org/ip/model/Nomenclature.java	simple
+org.ip.model.UnitOfMeasurement	application	org/ip/model/UnitOfMeasurement.java	из application:org/ip/model/Nomenclature.java	simple
+org.ip.model.AttributeType	application	org/ip/model/AttributeType.java	из application:org/ip/model/NomAttributeValue.java	simple
+org.ip.model.AttributeValue	application	org/ip/model/AttributeValue.java	из application:org/ip/model/NomAttributeValue.java	simple
+org.ip.model.AttributeValueType	application	org/ip/model/AttributeValueType.java	из application:org/ip/model/AttributeType.java	simple
+
+## Потребители движка (обратное направление): 50 файлов
+platform-in-tree:org.ipro.reportstudio	18
+application	15
+application-test	9
+platform-in-tree-test:org.ipro.reportstudio	6
+platform-in-tree-test:org.ipro.crud	1
+platform-in-tree-test:org.ipro.registerfixtures	1
+application-test	org/ip/application/register/AccountingObjectPilotIT.java	org.ipro.register.RegisterKeyChangePermissions (wildcard); org.ipro.register.RegisterKeyChanges (wildcard); org.ipro.register.RegisterRecords (wildcard); org.ipro.register.persistence.RecorderOrderClock (fully-qualified)
+application	org/ip/application/register/AccountingObjectRegisterGeneration.java	org.ipro.register.RecorderRef (import); org.ipro.register.RecorderTypeRegistry (import); org.ipro.register.RegisterRecords (import)
+application	org/ip/application/register/AccountingObjectRegisterService.java	org.ipro.register.RecordedRegisterReader (import); org.ipro.register.RecorderRef (import); org.ipro.register.RecorderTypeRegistry (import); org.ipro.register.RegisterRegistry (import); org.ipro.register.RegisterSliceReader (import); org.ipro.register.SliceSpec (import)
+application-test	org/ip/application/register/NomenclaturePriceCteSpikeTest.java	org.ipro.register.RegisterRegistry (fully-qualified); org.ipro.register.SliceSpec (fully-qualified); org.ipro.register.SliceSpec.Condition (fully-qualified); org.ipro.register.SliceSpec.Mode (fully-qualified); org.ipro.register.SliceSpec.Operator (fully-qualified)
+application	org/ip/application/register/NomenclaturePriceLifecycle.java	org.ipro.register.RegisterKeyChangeScope (import); org.ipro.register.RegisterPeriodListener (import)
+application-test	org/ip/application/register/NomenclaturePricePersistenceTest.java	org.ipro.register.RegisterKeyChangePermissions (import); org.ipro.register.RegisterKeyChanges (import); org.ipro.register.RegisterKeyWritePermissions (import)
+application	org/ip/application/register/NomenclaturePriceService.java	org.ipro.register.RegisterKeyWrites (import); org.ipro.register.RegisterReader (import); org.ipro.register.RegisterRegistry (import)
+application-test	org/ip/application/register/RegisterBatchReadIT.java	org.ipro.register.RegisterSliceReader (import)
+application	org/ip/application/register/RegisterKeyPermissionTitles.java	org.ipro.register.RegisterKeyChangePermissions (import); org.ipro.register.RegisterKeyWritePermissions (import)
+application-test	org/ip/application/register/TwoDimensionRegisterCteSpikeTest.java	org.ipro.register.RegisterMetadata (import); org.ipro.register.RegisterMetadataValidator (import)
+application	org/ip/config/AccountingObjectRegisterConfiguration.java	org.ipro.register.RegisterRegistry (import); org.ipro.register.RegisterSliceReader (import)
+application	org/ip/model/AccountingObjectCorrection.java	org.ipro.register.RecorderType (import)
+application	org/ip/model/AccountingObjectInstallation.java	org.ipro.register.RecorderType (import)
+application	org/ip/model/NomenclatureAccountingObject.java	org.ipro.register.PeriodicRecordedRegisterEntryBase (import); org.ipro.register.RegisterMetadata (import); org.ipro.register.RegisterPeriodicity (import)
+application	org/ip/model/NomenclaturePrice.java	org.ipro.register.PeriodicRegisterEntryBase (import); org.ipro.register.RegisterMetadata (import); org.ipro.register.RegisterPeriodicity (import)
+application-test	org/ip/model/NomenclaturePriceRegisterTest.java	org.ipro.register.RegisterMetadataValidator (import)
+application	org/ip/model/ReceivingDocument.java	org.ipro.register.RecorderType (import)
+application	org/ip/repository/AccountingObjectRegisterRepository.java	org.ipro.register.RecorderRef (import)
+application-test	org/ip/security/ReportStudioAutoConfigurationSmokeTest.java	org.ipro.register.RegisterRegistry (import)
+application	org/ip/views/register/RecorderRefPresentationResolver.java	org.ipro.register.RecorderRef (import); org.ipro.register.RecorderTypeRegistry (import)
+application-test	org/ip/views/register/RecorderRefPresentationResolverTest.java	org.ipro.register.RecorderRef (import); org.ipro.register.RecorderTypeRegistry (import)
+application	org/ip/views/register/RegisterFormCustomization.java	org.ipro.register.RecordedRegisterEntry (import); org.ipro.register.RecorderRef (import); org.ipro.register.RegisterDescriptor (import); org.ipro.register.RegisterKeyChangePermissions (import); org.ipro.register.RegisterKeyChanges (import); org.ipro.register.RegisterListFilterPhases (import); org.ipro.register.RegisterPeriodicity (import); org.ipro.register.RegisterRegistry (import); org.ipro.register.RegisterSliceReader (import)
+application	org/ip/views/register/RegisterKeyDialog.java	org.ipro.register.RegisterDescriptor (import); org.ipro.register.RegisterKeyChanges (import)
+application-test	org/ip/views/register/RegisterKeyDialogTest.java	org.ipro.register.RegisterDescriptor (import); org.ipro.register.RegisterKeyChanges (import)
+platform-in-tree-test:org.ipro.crud	org/ipro/crud/MetadataDrivenAggregateTelemetryTest.java	org.ipro.register.RecorderSetContribution (import)
+platform-in-tree-test:org.ipro.registerfixtures	org/ipro/registerfixtures/RecorderPersistenceFixtures.java	org.ipro.register.PeriodicRecordedRegisterEntryBase (import); org.ipro.register.PeriodicRegisterEntryBase (import); org.ipro.register.RecordedRegisterEntryBase (import); org.ipro.register.RecorderRef (import); org.ipro.register.RecorderType (import); org.ipro.register.RegisterMetadata (import); org.ipro.register.RegisterPeriodicity (import)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/config/ReportStudioAutoConfiguration.java	org.ipro.register.RecorderTypeRegistry (fully-qualified); org.ipro.register.RegisterRegistry (fully-qualified)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/constructor/CatalogTreeModel.java	org.ipro.register.RecordedRegisterEntry (fully-qualified); org.ipro.register.RecorderRef (fully-qualified)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/constructor/QueryConstructorDraft.java	org.ipro.register.RecorderRef (import)
+platform-in-tree-test:org.ipro.reportstudio	org/ipro/reportstudio/query/constructor/QueryConstructorDraftPackageTest.java	org.ipro.register.RecorderRef (import)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/editor/RegisterSliceQueryDialog.java	org.ipro.register.SliceSpec (import); org.ipro.register.SliceSpecValidator (import)
+platform-in-tree-test:org.ipro.reportstudio	org/ipro/reportstudio/query/editor/ReportQueryEditorTest.java	org.ipro.register.RegisterRegistry (fully-qualified)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/QueryBuilderMetadataCatalog.java	org.ipro.register.RecordedRegisterEntry (import); org.ipro.register.RegisterMetadata (fully-qualified)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/QueryPresentationCompiler.java	org.ipro.register.RecordedRegisterEntry (fully-qualified)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/register/RegisterReportReadPolicy.java	org.ipro.register.RegisterDescriptor (import); org.ipro.register.RegisterRegistry (import)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/register/RegisterSliceConstructorSources.java	org.ipro.register.RecorderRef (import); org.ipro.register.SliceSpec (import)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/register/RegisterSliceCteGenerator.java	org.ipro.register.SliceSpec (import); org.ipro.register.SliceSpecValidator (import)
+platform-in-tree-test:org.ipro.reportstudio	org/ipro/reportstudio/query/register/RegisterSliceCteGeneratorTest.java	org.ipro.register.PeriodicRecordedRegisterEntryBase (wildcard); org.ipro.register.RecorderRef (wildcard); org.ipro.register.RecorderType (wildcard); org.ipro.register.RecorderTypeRegistry (wildcard); org.ipro.register.RegisterMetadata (wildcard); org.ipro.register.RegisterPeriodicity (wildcard); org.ipro.register.RegisterReader (wildcard); org.ipro.register.RegisterRegistry (wildcard); org.ipro.register.RegisterSliceReader (wildcard); org.ipro.register.SliceSpec (wildcard)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/register/RegisterSliceReportTemplates.java	org.ipro.register.RecorderRef (fully-qualified); org.ipro.register.RegisterDescriptor (fully-qualified); org.ipro.register.RegisterPeriodicity (fully-qualified); org.ipro.register.RegisterRegistry (import); org.ipro.register.SliceSpec (import); org.ipro.register.SliceSpecValidator (fully-qualified)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/register/RegisterSliceSource.java	org.ipro.register.RecorderRef (import); org.ipro.register.RegisterDescriptor (import); org.ipro.register.RegisterRegistry (import); org.ipro.register.SliceSpecValidator (import)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/register/SliceParameterFilter.java	org.ipro.register.SliceSpec (import)
+platform-in-tree-test:org.ipro.reportstudio	org/ipro/reportstudio/query/registersecurity/RegisterSliceReportSecurityTest.java	org.ipro.register.PeriodicRecordedRegisterEntryBase (import); org.ipro.register.RecorderType (import); org.ipro.register.RecorderTypeRegistry (fully-qualified); org.ipro.register.RegisterMetadata (import); org.ipro.register.RegisterRegistry (fully-qualified); org.ipro.register.SliceSpec (fully-qualified); org.ipro.register.SliceSpec.Condition (fully-qualified); org.ipro.register.SliceSpec.Mode (fully-qualified); org.ipro.register.SliceSpec.Operator (fully-qualified)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/ReportQueryExecutor.java	org.ipro.register.RecorderTypeRegistry (fully-qualified)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/ReportQueryLanguage.java	org.ipro.register.RecorderRef (wildcard); org.ipro.register.SliceSpec (wildcard)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/VisualQueryCompiler.java	org.ipro.register.RecorderRef (import); org.ipro.register.RecorderType (import); org.ipro.register.RegisterMetadata (import)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/VisualQueryPackage.java	org.ipro.register.RecorderRef (import)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/VisualQueryPackageJsonCodec.java	org.ipro.register.RecorderRef (import)
+platform-in-tree-test:org.ipro.reportstudio	org/ipro/reportstudio/query/VisualQueryPackageJsonTest.java	org.ipro.register.RecorderRef (import)
+platform-in-tree:org.ipro.reportstudio	org/ipro/reportstudio/query/VisualQueryTextParser.java	org.ipro.register.SliceSpecValidator (fully-qualified)
+platform-in-tree-test:org.ipro.reportstudio	org/ipro/reportstudio/run/ReportExecutionIT.java	org.ipro.register.RecorderTypeRegistry (fully-qualified); org.ipro.register.RegisterRegistry (fully-qualified)
+
+## Типы движка, названные вне пакета: 30
+org.ipro.register.PeriodicRecordedRegisterEntryBase	application,platform-in-tree-test:org.ipro.registerfixtures,platform-in-tree-test:org.ipro.reportstudio
+org.ipro.register.PeriodicRegisterEntryBase	application,platform-in-tree-test:org.ipro.registerfixtures
+org.ipro.register.RecordedRegisterEntry	application,platform-in-tree:org.ipro.reportstudio
+org.ipro.register.RecordedRegisterEntryBase	platform-in-tree-test:org.ipro.registerfixtures
+org.ipro.register.RecordedRegisterReader	application
+org.ipro.register.RecorderRef	application,application-test,platform-in-tree-test:org.ipro.registerfixtures,platform-in-tree-test:org.ipro.reportstudio,platform-in-tree:org.ipro.reportstudio
+org.ipro.register.RecorderSetContribution	platform-in-tree-test:org.ipro.crud
+org.ipro.register.RecorderType	application,platform-in-tree-test:org.ipro.registerfixtures,platform-in-tree-test:org.ipro.reportstudio,platform-in-tree:org.ipro.reportstudio
+org.ipro.register.RecorderTypeRegistry	application,application-test,platform-in-tree-test:org.ipro.reportstudio,platform-in-tree:org.ipro.reportstudio
+org.ipro.register.RegisterDescriptor	application,application-test,platform-in-tree:org.ipro.reportstudio
+org.ipro.register.RegisterKeyChangePermissions	application,application-test
+org.ipro.register.RegisterKeyChangeScope	application
+org.ipro.register.RegisterKeyChanges	application,application-test
+org.ipro.register.RegisterKeyWritePermissions	application,application-test
+org.ipro.register.RegisterKeyWrites	application
+org.ipro.register.RegisterListFilterPhases	application
+org.ipro.register.RegisterMetadata	application,application-test,platform-in-tree-test:org.ipro.registerfixtures,platform-in-tree-test:org.ipro.reportstudio,platform-in-tree:org.ipro.reportstudio
+org.ipro.register.RegisterMetadataValidator	application-test
+org.ipro.register.RegisterPeriodListener	application
+org.ipro.register.RegisterPeriodicity	application,platform-in-tree-test:org.ipro.registerfixtures,platform-in-tree-test:org.ipro.reportstudio,platform-in-tree:org.ipro.reportstudio
+org.ipro.register.RegisterReader	application,platform-in-tree-test:org.ipro.reportstudio
+org.ipro.register.RegisterRecords	application,application-test
+org.ipro.register.RegisterRegistry	application,application-test,platform-in-tree-test:org.ipro.reportstudio,platform-in-tree:org.ipro.reportstudio
+org.ipro.register.RegisterSliceReader	application,application-test,platform-in-tree-test:org.ipro.reportstudio
+org.ipro.register.SliceSpec	application,application-test,platform-in-tree-test:org.ipro.reportstudio,platform-in-tree:org.ipro.reportstudio
+org.ipro.register.SliceSpec.Condition	application-test,platform-in-tree-test:org.ipro.reportstudio
+org.ipro.register.SliceSpec.Mode	application-test,platform-in-tree-test:org.ipro.reportstudio
+org.ipro.register.SliceSpec.Operator	application-test,platform-in-tree-test:org.ipro.reportstudio
+org.ipro.register.SliceSpecValidator	platform-in-tree:org.ipro.reportstudio
+org.ipro.register.persistence.RecorderOrderClock	application-test
+
+## Неразрешённые ссылки в пространстве имён проекта: 0
+## Прочие неразрешённые (сторонние библиотеки и JDK): 216
+
+## Ссылки в строковых литералах (рефлексия, имена в тексте): 0 файлов
+
+## Ссылки в javadoc (документация, не зависимость): 0 файлов
+
+## Файлы регистрации, называющие движок: 1
+app-tree	src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports	org.ipro.register.config.RegisterAutoConfiguration
+
+## Split package в замыкании: 0

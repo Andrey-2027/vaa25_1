@@ -39,6 +39,8 @@
 | [`information-register-r6-report.md`](information-register-r6-report.md) | Р6: сохраняемый отчёт цен, runtime дата, форма, фильтры, права и приёмка |
 | [`information-register-periodicity.md`](information-register-periodicity.md) | Период LocalDateTime, точное время и календарные режимы, запись, чтение и переход схемы |
 | [`information-register-recorder-plan.md`](information-register-recorder-plan.md) | План регистратора сведений: полиморфная ссылка, четыре режима, независимые права, замена набора, конкуренция, срезы и миграции |
+| [`information-register-extraction-slice.md`](information-register-extraction-slice.md) | Замер замыкания движка `org.ipro.register` на приложение: полные/транзитивные/однопачечные ссылки, исходники артефактов и предлагаемый срез контрактов S0–S3 |
+| [`information-register-extraction-plan.md`](information-register-extraction-plan.md) | План выноса механизма регистра в `platform-register`/`platform-register-vaadin`: срезы S0–S5, решения ADR-0024/ADR-0025, изменения гейтов, приёмка и риски |
 | [`identifiable-entity-generic-plan.md`](identifiable-entity-generic-plan.md) | План параметризации IdentifiableEntity по ID с сохранением Long: потребители, JVM-совместимость, этапы, сборка и приёмка |
 | [`identity-id-consumer-guide.md`](identity-id-consumer-guide.md) | Завершённый generic identity: миграция внешнего потребителя, Long/wildcard примеры, binary compatibility, границы поддержки ID и владельцы runtime bridges |
 | [`rest-read-api-plan.md`](rest-read-api-plan.md) | План входящего REST API чтения: явная публикация list/detail, поля, фильтры, права и граница canonical read path |
@@ -74,6 +76,7 @@
 | [`decisions/ADR-0014-report-read-authorization.md`](decisions/ADR-0014-report-read-authorization.md) | Принятый C5-допуск report read, ограниченная проекция и постоянная видимость версий регистра |
 | [`decisions/ADR-0015-information-register-recorder.md`](decisions/ADR-0015-information-register-recorder.md) | Полиморфный регистратор информации, независимые права и правило победителя по порядку записи при равном периоде |
 | [`decisions/ADR-0021-register-key-change-command.md`](decisions/ADR-0021-register-key-change-command.md) | Отдельная opt-in смена ключа строки, C5/ENTITY/RLS, Hibernate snapshot guard, неизменность регистратора и аудит |
+| [`decisions/ADR-0023-register-key-write.md`](decisions/ADR-0023-register-key-write.md) | Запись регистра по ключу (Р11): `set`/upsert/`delete`, физический UNIQUE как авторитет гонки отсутствующего ключа, классификация конфликтов по SQLState и bounded retry на границе транзакции |
 | [`e2-deep-link-host-spike.md`](e2-deep-link-host-spike.md) | Измеренный результат E2.0: route templates на текущей оболочке, поведение Back/Forward при `pushState`, сохранение `Workspace` и границы проверенного |
 | [`actions-guide.md`](actions-guide.md) | Руководство прикладного разработчика по декларативным действиям форм (E1): два примера, требования, suppression, проверки и антипримеры |
 | [`deep-links-guide.md`](deep-links-guide.md) | Руководство прикладного разработчика по глубоким ссылкам (E2): когда адрес появляется сам, как объявить ключ и прежние адреса, как получить ссылку программно и что из этого хрупко |

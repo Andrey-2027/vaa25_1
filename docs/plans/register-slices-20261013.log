@@ -1,0 +1,160 @@
+# Протокол проверки раскладки срезов выноса регистра
+# дата: 2026-10-13; инструмент: scripts/analyze-register-closure.mjs --slice
+
+=== $ node scripts/analyze-register-closure.mjs --slice S0
+# Срез S0 (1 из 5): 17 файлов
+# Уже перенесено более ранними срезами: ничего
+org/ipro/register/PeriodicRecordedRegisterEntryBase.java	org.ipro.register.PeriodicRecordedRegisterEntryBase, org.ipro.register.PeriodicRecordedRegisterEntryBase.PeriodicRecordedRegisterEntryBase
+org/ipro/register/PeriodicRegisterEntry.java	org.ipro.register.PeriodicRegisterEntry, org.ipro.register.PeriodicRegisterEntry.PeriodicRegisterEntry
+org/ipro/register/PeriodicRegisterEntryBase.java	org.ipro.register.PeriodicRegisterEntryBase, org.ipro.register.PeriodicRegisterEntryBase.PeriodicRegisterEntryBase
+org/ipro/register/RecordedRegisterEntry.java	org.ipro.register.RecordedRegisterEntry, org.ipro.register.RecordedRegisterEntry.RecordedRegisterEntry
+org/ipro/register/RecordedRegisterEntryBase.java	org.ipro.register.RecordedRegisterEntryBase, org.ipro.register.RecordedRegisterEntryBase.RecordedRegisterEntryBase
+org/ipro/register/RecordedRegisterEntryWriteGuard.java	org.ipro.register.RecordedRegisterEntryWriteGuard, org.ipro.register.RecordedRegisterEntryWriteGuard.RecordedRegisterEntryWriteGuard
+org/ipro/register/RecorderRef.java	org.ipro.register.RecorderRef, org.ipro.register.RecorderRef.RecorderRef
+org/ipro/register/RecorderSetWriteContext.java	org.ipro.register.RecorderSetWriteContext, org.ipro.register.RecorderSetWriteContext.RecorderSetWriteContext, org.ipro.register.RecorderSetWriteContext.Grant, org.ipro.register.RecorderSetWriteContext.Scope
+org/ipro/register/RecorderType.java	org.ipro.register.RecorderType, org.ipro.register.RecorderType.RecorderType
+org/ipro/register/RegisterDescriptor.java	org.ipro.register.RegisterDescriptor, org.ipro.register.RegisterDescriptor.RegisterDescriptor, org.ipro.register.RegisterDescriptor.Mapping, org.ipro.register.RegisterDescriptor.FieldDescriptor
+org/ipro/register/RegisterKeyChangeScope.java	org.ipro.register.RegisterKeyChangeScope, org.ipro.register.RegisterKeyChangeScope.RegisterKeyChangeScope
+org/ipro/register/RegisterMetadata.java	org.ipro.register.RegisterMetadata, org.ipro.register.RegisterMetadata.RegisterMetadata
+org/ipro/register/RegisterMetadataValidator.java	org.ipro.register.RegisterMetadataValidator, org.ipro.register.RegisterMetadataValidator.RegisterMetadataValidator, org.ipro.register.RegisterMetadataValidator.Code, org.ipro.register.RegisterMetadataValidator.Violation
+org/ipro/register/RegisterPeriodicity.java	org.ipro.register.RegisterPeriodicity, org.ipro.register.RegisterPeriodicity.RegisterPeriodicity
+org/ipro/register/RegisterPeriodListener.java	org.ipro.register.RegisterPeriodListener, org.ipro.register.RegisterPeriodListener.RegisterPeriodListener
+org/ipro/register/SliceSpec.java	org.ipro.register.SliceSpec, org.ipro.register.SliceSpec.SliceSpec, org.ipro.register.SliceSpec.Mode, org.ipro.register.SliceSpec.Operator, org.ipro.register.SliceSpec.RecorderReadIntent, org.ipro.register.SliceSpec.Scope, org.ipro.register.SliceSpec.Condition
+org/ipro/register/SliceSpecValidator.java	org.ipro.register.SliceSpecValidator, org.ipro.register.SliceSpecValidator.SliceSpecValidator
+
+## Файлы среза, которых нет на диске: 0
+
+## Ссылки за границу среза: 0
+нет: срез компиляционно замкнут
+
+## Владельцы, нужные срезу (зависимости pom):
+platform-contracts	2 типов	org.ipro.metadata.annotation.FieldMetadata, org.ipro.metadata.annotation.GridColumn
+platform-persistence	1 типов	org.ipro.crud.BaseEntity
+
+## Неразрешённые ссылки на org.ipro.register.*: 0
+exit=0
+
+=== $ node scripts/analyze-register-closure.mjs --slice S1
+# Срез S1 (2 из 5): 6 файлов
+# Уже перенесено более ранними срезами: S0
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.config.RegisterAutoConfiguration, org.ipro.register.config.RegisterAutoConfiguration.RegisterAutoConfiguration
+org/ipro/register/RegisterListFilterPhases.java	org.ipro.register.RegisterListFilterPhases, org.ipro.register.RegisterListFilterPhases.RegisterListFilterPhases
+org/ipro/register/RegisterReader.java	org.ipro.register.RegisterReader, org.ipro.register.RegisterReader.RegisterReader
+org/ipro/register/RegisterRegistry.java	org.ipro.register.RegisterRegistry, org.ipro.register.RegisterRegistry.RegisterRegistry
+org/ipro/register/RegisterSliceReader.java	org.ipro.register.RegisterSliceReader, org.ipro.register.RegisterSliceReader.RegisterSliceReader, org.ipro.register.RegisterSliceReader.DimensionPath
+org/ipro/register/RegisterStartupValidator.java	org.ipro.register.RegisterStartupValidator, org.ipro.register.RegisterStartupValidator.RegisterStartupValidator
+
+## Файлы среза, которых нет на диске: 0
+
+## Ссылки за границу среза: 14
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RecorderOrderClockBootstrap	import	register:org/ipro/register/RecorderOrderClockBootstrap.java [срез S3]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RecorderSetContributionParticipant	import	register:org/ipro/register/RecorderSetContributionParticipant.java [срез S3]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RecorderSetDeleteParticipant	import	register:org/ipro/register/RecorderSetDeleteParticipant.java [срез S3]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RecorderSetWriteAuthorizer	import	register:org/ipro/register/RecorderSetWriteAuthorizer.java [срез S3]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RecorderTypeRegistry	import	register:org/ipro/register/RecorderTypeRegistry.java [срез S3]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RegisterKeyChangePermissions	import	register:org/ipro/register/RegisterKeyChangePermissions.java [срез S2]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RegisterKeyChanges	import	register:org/ipro/register/RegisterKeyChanges.java [срез S2]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RegisterKeyWriteGuardInstaller	import	register:org/ipro/register/RegisterKeyWriteGuardInstaller.java [срез S2]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RegisterKeyWritePermissions	import	register:org/ipro/register/RegisterKeyWritePermissions.java [срез S2]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RegisterKeyWrites	import	register:org/ipro/register/RegisterKeyWrites.java [срез S2]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RegisterRecords	import	register:org/ipro/register/RegisterRecords.java [срез S3]
+org/ipro/register/config/RegisterAutoConfiguration.java	org.ipro.register.RlsRecorderSetWriteAuthorizer	import	register:org/ipro/register/RlsRecorderSetWriteAuthorizer.java [срез S3]
+org/ipro/register/RegisterRegistry.java	org.ipro.register.RecorderTypeRegistry	simple	register:org/ipro/register/RecorderTypeRegistry.java [срез S3]
+org/ipro/register/RegisterStartupValidator.java	org.ipro.register.RecorderOrderClockBootstrap	simple	register:org/ipro/register/RecorderOrderClockBootstrap.java [срез S3]
+
+## Владельцы, нужные срезу (зависимости pom):
+FilterGrid/filtergrid-core	4 типов	org.ipro.filtergrid.filter.FilterConditionNode, org.ipro.filtergrid.filter.FilterGroup, org.ipro.filtergrid.filter.FilterNode, org.ipro.filtergrid.filter.LogicalOperator
+platform-core	5 типов	org.ipro.crud.AggregateSaveContributionParticipant, org.ipro.data.CanonicalDeleteParticipant, org.ipro.data.EntityDataAccess, org.ipro.metadata.ManagedEntityCatalog, org.ipro.metadata.MetadataResolver
+platform-events	2 типов	org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry
+platform-rls	7 типов	org.ipro.rls.AccessService, org.ipro.rls.RlsCurrentUser, org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsPolicyEnforcer, org.ipro.rls.c5.C5OperationPermissionRegistry, org.ipro.rls.c5.C5PermissionDecisionService
+platform-telemetry	1 типов	org.ipro.telemetry.api.EventSink
+register	12 типов	org.ipro.register.RecorderOrderClockBootstrap, org.ipro.register.RecorderSetContributionParticipant, org.ipro.register.RecorderSetDeleteParticipant, org.ipro.register.RecorderSetWriteAuthorizer, org.ipro.register.RecorderTypeRegistry, org.ipro.register.RegisterKeyChangePermissions, org.ipro.register.RegisterKeyChanges, org.ipro.register.RegisterKeyWriteGuardInstaller, org.ipro.register.RegisterKeyWritePermissions, org.ipro.register.RegisterKeyWrites, org.ipro.register.RegisterRecords, org.ipro.register.RlsRecorderSetWriteAuthorizer
+
+## Неразрешённые ссылки на org.ipro.register.*: 0
+exit=1
+
+=== $ node scripts/analyze-register-closure.mjs --slice S2
+# Срез S2 (3 из 5): 7 файлов
+# Уже перенесено более ранними срезами: S0, S1
+org/ipro/register/RegisterKeyChangePermissions.java	org.ipro.register.RegisterKeyChangePermissions, org.ipro.register.RegisterKeyChangePermissions.RegisterKeyChangePermissions
+org/ipro/register/RegisterKeyChanges.java	org.ipro.register.RegisterKeyChanges, org.ipro.register.RegisterKeyChanges.RegisterKeyChanges
+org/ipro/register/RegisterKeyWriteGuardInstaller.java	org.ipro.register.RegisterKeyWriteGuardInstaller, org.ipro.register.RegisterKeyWriteGuardInstaller.RegisterKeyWriteGuardInstaller, org.ipro.register.RegisterKeyWriteGuardInstaller.Guard
+org/ipro/register/RegisterKeyWritePermissions.java	org.ipro.register.RegisterKeyWritePermissions, org.ipro.register.RegisterKeyWritePermissions.RegisterKeyWritePermissions
+org/ipro/register/RegisterKeyWrites.java	org.ipro.register.RegisterKeyWrites, org.ipro.register.RegisterKeyWrites.RegisterKeyWrites, org.ipro.register.RegisterKeyWrites.Verdict, org.ipro.register.RegisterKeyWrites.Result
+org/ipro/register/RegisterRowState.java	org.ipro.register.RegisterRowState, org.ipro.register.RegisterRowState.RegisterRowState
+org/ipro/register/RegisterWriteMutex.java	org.ipro.register.RegisterWriteMutex, org.ipro.register.RegisterWriteMutex.RegisterWriteMutex
+
+## Файлы среза, которых нет на диске: 0
+
+## Ссылки за границу среза: 1
+org/ipro/register/RegisterWriteMutex.java	org.ipro.register.persistence.RecorderOrderClock	import	register:org/ipro/register/persistence/RecorderOrderClock.java [срез S3]
+
+## Владельцы, нужные срезу (зависимости pom):
+crudui/platform-identity-api	1 типов	org.ipro.identity.IdentifiableEntity
+platform-contracts	2 типов	org.ipro.events.EventContext, org.ipro.events.EventSource
+platform-core	2 типов	org.ipro.crud.ValidationException, org.ipro.data.EntityDataAccess
+platform-events	2 типов	org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry
+platform-persistence	1 типов	org.ipro.crud.BaseEntity
+platform-rls	11 типов	org.ipro.rls.AccessService, org.ipro.rls.RlsCheckValue, org.ipro.rls.RlsCurrentUser, org.ipro.rls.RlsDimensionKind, org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsPolicyEnforcer, org.ipro.rls.c5.C5Operation, org.ipro.rls.c5.C5OperationPermissionRegistry, org.ipro.rls.c5.C5PermissionDecisionService, org.ipro.rls.c5.C5PermissionDefinition, org.ipro.rls.c5.C5PermissionKeys
+platform-telemetry	2 типов	org.ipro.telemetry.api.EventSink, org.ipro.telemetry.api.FieldChangeRecord
+register	1 типов	org.ipro.register.persistence.RecorderOrderClock
+
+## Неразрешённые ссылки на org.ipro.register.*: 0
+exit=1
+
+=== $ node scripts/analyze-register-closure.mjs --slice S3
+# Срез S3 (4 из 5): 13 файлов
+# Уже перенесено более ранними срезами: S0, S1, S2
+org/ipro/register/persistence/RecorderOrderClock.java	org.ipro.register.persistence.RecorderOrderClock, org.ipro.register.persistence.RecorderOrderClock.RecorderOrderClock
+org/ipro/register/RecordedRegisterReader.java	org.ipro.register.RecordedRegisterReader, org.ipro.register.RecordedRegisterReader.RecordedRegisterReader
+org/ipro/register/RecorderOrderClockBootstrap.java	org.ipro.register.RecorderOrderClockBootstrap, org.ipro.register.RecorderOrderClockBootstrap.RecorderOrderClockBootstrap
+org/ipro/register/RecorderSetContribution.java	org.ipro.register.RecorderSetContribution, org.ipro.register.RecorderSetContribution.RecorderSetContribution
+org/ipro/register/RecorderSetContributionParticipant.java	org.ipro.register.RecorderSetContributionParticipant, org.ipro.register.RecorderSetContributionParticipant.RecorderSetContributionParticipant
+org/ipro/register/RecorderSetDeleteParticipant.java	org.ipro.register.RecorderSetDeleteParticipant, org.ipro.register.RecorderSetDeleteParticipant.RecorderSetDeleteParticipant
+org/ipro/register/RecorderSetTransactionExecutor.java	org.ipro.register.RecorderSetTransactionExecutor, org.ipro.register.RecorderSetTransactionExecutor.RecorderSetTransactionExecutor
+org/ipro/register/RecorderSetWriteAuthorizer.java	org.ipro.register.RecorderSetWriteAuthorizer, org.ipro.register.RecorderSetWriteAuthorizer.RecorderSetWriteAuthorizer
+org/ipro/register/RecorderSetWriter.java	org.ipro.register.RecorderSetWriter, org.ipro.register.RecorderSetWriter.RecorderSetWriter, org.ipro.register.RecorderSetWriter.Result
+org/ipro/register/RecorderSetWriteRequest.java	org.ipro.register.RecorderSetWriteRequest, org.ipro.register.RecorderSetWriteRequest.RecorderSetWriteRequest
+org/ipro/register/RecorderTypeRegistry.java	org.ipro.register.RecorderTypeRegistry, org.ipro.register.RecorderTypeRegistry.RecorderTypeRegistry, org.ipro.register.RecorderTypeRegistry.Snapshot
+org/ipro/register/RegisterRecords.java	org.ipro.register.RegisterRecords, org.ipro.register.RegisterRecords.RegisterRecords, org.ipro.register.RegisterRecords.ForRecorder
+org/ipro/register/RlsRecorderSetWriteAuthorizer.java	org.ipro.register.RlsRecorderSetWriteAuthorizer, org.ipro.register.RlsRecorderSetWriteAuthorizer.RlsRecorderSetWriteAuthorizer
+
+## Файлы среза, которых нет на диске: 0
+
+## Ссылки за границу среза: 0
+нет: срез компиляционно замкнут
+
+## Владельцы, нужные срезу (зависимости pom):
+crudui/platform-identity-api	1 типов	org.ipro.identity.IdentifiableEntity
+platform-contracts	3 типов	org.ipro.events.AggregateSection, org.ipro.lifecycle.EntitySaveContext, org.ipro.metadata.annotation.EntityKind
+platform-core	10 типов	org.ipro.crud.AggregateSaveContribution, org.ipro.crud.AggregateSaveContributionParticipant, org.ipro.crud.AggregateSaveLifecycleScope, org.ipro.crud.AggregateSaveParticipantContext, org.ipro.crud.ValidationException, org.ipro.data.CanonicalDeleteParticipant, org.ipro.data.CanonicalSaveLifecycleScope, org.ipro.data.EntityDataAccess, org.ipro.metadata.ManagedEntityCatalog, org.ipro.metadata.MetadataResolver
+platform-persistence	1 типов	org.ipro.crud.BaseEntity
+platform-rls	2 типов	org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsPolicyEnforcer
+
+## Неразрешённые ссылки на org.ipro.register.*: 0
+exit=0
+
+=== $ node scripts/analyze-register-closure.mjs --slice S4
+# Срез S4 (5 из 5): 5 файлов
+# Уже перенесено более ранними срезами: S0, S1, S2, S3
+org/ip/views/register/RecorderRefDisplay.java	org.ip.views.register.RecorderRefDisplay, org.ip.views.register.RecorderRefDisplay.RecorderRefDisplay
+org/ip/views/register/RecorderRefPresentation.java	org.ip.views.register.RecorderRefPresentation, org.ip.views.register.RecorderRefPresentation.RecorderRefPresentation
+org/ip/views/register/RecorderRefPresentationResolver.java	org.ip.views.register.RecorderRefPresentationResolver, org.ip.views.register.RecorderRefPresentationResolver.RecorderRefPresentationResolver
+org/ip/views/register/RegisterFormCustomization.java	org.ip.views.register.RegisterFormCustomization, org.ip.views.register.RegisterFormCustomization.RegisterFormCustomization
+org/ip/views/register/RegisterKeyDialog.java	org.ip.views.register.RegisterKeyDialog, org.ip.views.register.RegisterKeyDialog.RegisterKeyDialog
+
+## Файлы среза, которых нет на диске: 0
+
+## Ссылки за границу среза: 0
+нет: срез компиляционно замкнут
+
+## Владельцы, нужные срезу (зависимости pom):
+crudui/platform-identity-api	1 типов	org.ipro.identity.IdentifiableEntity
+FilterGrid/filtergrid-core	4 типов	org.ipro.filtergrid.filter.FilterDataType, org.ipro.filtergrid.filter.FilterFieldResolver, org.ipro.filtergrid.filter.FilterValueCodec, org.ipro.filtergrid.util.JpaPathUtil
+platform-core	7 типов	org.ipro.crud.BaseService, org.ipro.data.EntityDataAccess, org.ipro.data.EntityDataAccessResolver, org.ipro.data.EntityReadAccess, org.ipro.data.presentation.EntityPresentationService, org.ipro.fetch.instance.InstanceNameResolver, org.ipro.metadata.ColumnPath
+platform-persistence	1 типов	org.ipro.crud.BaseEntity
+platform-vaadin	15 типов	org.ipro.form.FormBindingRegistry, org.ipro.form.FormMessages, org.ipro.form.action.ActionDecision, org.ipro.form.action.ActionDefinition, org.ipro.form.action.ActionHandler, org.ipro.form.action.ActionId, org.ipro.form.action.ActionInvocation, org.ipro.form.action.ActionRequirement, org.ipro.form.action.ActionSurface, org.ipro.form.builder.FormTypeCustomization, org.ipro.form.builtin.ItemForm, org.ipro.form.builtin.ListForm, org.ipro.form.link.FormLinkService, org.ipro.form.link.FormRouteOpener, org.ipro.form.registry.FormContext
+
+## Неразрешённые ссылки на org.ipro.register.*: 0
+exit=0
+
