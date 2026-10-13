@@ -29,6 +29,7 @@
         <module>../platform-telemetry</module>
         <module>../platform-rls</module>
         <module>../platform-core</module>
+        <module>../platform-register</module>
         <module>../platform-spring-boot-autoconfigure</module>
         <module>../platform-vaadin</module>
         <module>../platform-rest</module>

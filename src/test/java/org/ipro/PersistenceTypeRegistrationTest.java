@@ -37,6 +37,10 @@ class PersistenceTypeRegistrationTest {
 
     private static final List<Path> SOURCE_ROOTS = List.of(
         Path.of("src/main/java"),
+        // D-R S0: контракты регистра уехали в модуль. Сущностей там пока нет, но корень
+        // перечислен заранее: появление @Entity/@Repository в модуле обязан увидеть этот забор,
+        // а не обнаружиться при первом запуске с потерянной регистрацией (урок platform-settings).
+        Path.of("platform-register/src/main/java"),
         Path.of("platform-contracts/src/main/java"),
         Path.of("platform-events/src/main/java"),
         Path.of("platform-persistence/src/main/java"),

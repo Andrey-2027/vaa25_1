@@ -81,6 +81,13 @@
             <artifactId>platform-vaadin-starter</artifactId>
         </dependency>
 
+        <!-- D-R S0: контракты регистра сведений — декларация, descriptor, SliceSpec и базовые
+             классы строк обеих схем. Пока без бинов: регистрацию приложения срез не меняет. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-register</artifactId>
+        </dependency>
+
         <!-- The REST declaration API is an opt-in add-on and is not pulled in by either starter. -->
         <dependency>
             <groupId>org.ipro</groupId>

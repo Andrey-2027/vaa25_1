@@ -233,32 +233,13 @@ class PlatformSubsystemClosureTest {
         // от артефактов (platform-core, platform-vaadin) и приложения-домена. Это ровно та
         // предпосылка, на которой стоит следующий срез D3.5.7 (report как потребитель UI-слоя),
         // поэтому цифра снимается сознательно, а не потому что «тест покраснел».
-        // Р4: declarations remain in the root artifact until production pilots justify an owner.
-        // The report adapter consumes the neutral descriptor/registry, never domain entities.
-        // Future D-R extraction must move this neutral API to a backend owner or provide a port;
-        // reportstudio cannot be published with an implicit dependency on root application code.
-        // Temporal revision: the neutral declaration additionally includes calendar granularity
-        // and its JPA write normalizer; these still have the same provisional register owner.
-        // Recorder support adds typed references and transitively reaches recorder metadata,
-        // normalization and write context. These remain backend register contracts, not app entities.
+        // D-R S0: семнадцать контрактных типов уехали в артефакт platform-register, поэтому в дереве
+        // их больше нет и в замыкание они не попадают. Здесь намеренно оставлены ровно два типа,
+        // которые уедут на следующих срезах: реестр — S1, каталог регистраторов — S3. Реестр
+        // shrink-only, поэтому сужение записано явно, а не оставлено как «висящий» замер.
         registry.put("org.ipro.reportstudio", Set.of(
-            "org.ipro.register.PeriodicRegisterEntry",
-            "org.ipro.register.RecordedRegisterEntry",
-            "org.ipro.register.RecordedRegisterEntryWriteGuard",
-            "org.ipro.register.RecorderRef",
-            "org.ipro.register.RecorderSetWriteContext",
-            "org.ipro.register.RecorderType",
             "org.ipro.register.RecorderTypeRegistry",
-            "org.ipro.register.RegisterDescriptor",
-            // Recorded-row write guards transitively inspect the register command permit.
-            "org.ipro.register.RegisterKeyChangeScope",
-            "org.ipro.register.RegisterMetadata",
-            "org.ipro.register.RegisterMetadataValidator",
-            "org.ipro.register.RegisterPeriodicity",
-            "org.ipro.register.RegisterPeriodListener",
-            "org.ipro.register.RegisterRegistry",
-            "org.ipro.register.SliceSpec",
-            "org.ipro.register.SliceSpecValidator"));
+            "org.ipro.register.RegisterRegistry"));
 
         return registry;
     }

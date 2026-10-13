@@ -502,11 +502,11 @@
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D3.8 platform BOM: manages every platform artifact plus the shared FilterGrid module versions and imports the Vaadin BOM. It intentionally contains no report coordinates. It is listed before starters because they import it while Maven constructs their models."
+        "state": "D3.8 platform BOM: manages every platform artifact plus the shared FilterGrid module versions and imports the Vaadin BOM. It intentionally contains no report coordinates. It is listed before starters because they import it while Maven constructs their models. D-R S0 added the register contract artifact to its dependencyManagement on the day the module appeared."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "9fca30fa801ceede0d9737265521b91033bf2a644bd5e9adda3f4ae61c6609da",
+        "sha256": "9ec80f90243443d25bac90d82dda1b6bb71644b189eeab01f0a7c857cb9da8ee",
         "fileCount": 1,
         "inputs": [
           "pom.xml"
