@@ -143,3 +143,27 @@
   вообще пишет" не проверял никто.
 - Диагностика (`EntitySummaryPanel` / `lifecycleRows`) по-прежнему описывает handler **типа**:
   после решения состояние «путь хуки не вызывает» перестало существовать, отдельная ось не вводилась.
+
+## 6. Перепрогон PostgreSQL из модуля (2026-10-16)
+
+После переноса тестов движка в `platform-register` (S5(в)) гейт §3.5 всё ещё запускался из
+корневого проекта, и запускать там было уже нечего: на чистом checkout — `No tests matching
+pattern` (surefire 3.5.5 при `failIfNoSpecifiedTests=true` падает даже с
+`-DfailIfNoTests=false`), а на машине с остатками `target/test-classes` приложения — прогон 96
+устаревших скомпилированных копий, то есть ни один из двух случаев не мерил модуль. Это тот же
+класс ошибки, что назван в §4.1, но с другой стороны: не старый артефакт затеняет новый, а
+старые тесты вместо перенесённых. Скрипт переведён на сборку модуля
+(`-f platform-register/pom.xml`); соседние гейты среза (`register-s3-postgresql.ps1`,
+`register-r11-postgresql.ps1`, ветка `Concurrency` в `register-r8-postgresql.ps1`) были
+переведены вместе с переносом тестов.
+
+Прогон: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-adr0025-postgresql.ps1`
+→ одноразовая база `g3_register_test_adr0025_6927ba9fbda94657864641ee159be64f` (PostgreSQL 17.10)
+→ **48/48**: `RecorderSetWriterPostgresIT` 7, `RegisterKeyWriteConcurrencyPostgresIT` 20,
+`RegisterWriteConcurrencyPostgresIT` 21, `Failures: 0, Errors: 0, Skipped: 0`, `BUILD SUCCESS`
+([протокол](../../plans/register-adr0025-module-postgresql-20261016.log)). Числа совпадают с §3.5:
+перенос тестов не изменил ни один результат решения.
+
+Граница этого прогона: он относится только к модулю. Полный `mvn verify` приложения и
+random-order прогон остаются за приёмкой §6 плана, а чужая краснота, названная в §4.4, после
+чекпойнта 2026-10-16 не исчезла и обязана быть названа заново в момент итогового прогона.

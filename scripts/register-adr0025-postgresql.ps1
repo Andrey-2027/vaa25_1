@@ -39,12 +39,18 @@ try {
     $adrArguments = [System.Collections.Generic.List[string]]::new()
     $adrArguments.Add('-o')
     if ($LocalRepository) { $adrArguments.Add("-Dmaven.repo.local=$LocalRepository") }
-    $adrArguments.Add('-Dvaadin.skip=true')
+    # D-R S5(в): все три класса — тесты движка, они переехали в platform-register и гоняются его
+    # сборкой. Из корневого проекта они больше не запускаются: на чистом checkout это
+    # «No tests matching pattern» (surefire 3.5.5 при failIfNoSpecifiedTests=true падает даже
+    # с `-DfailIfNoTests=false`), а на машине с остатками `target/test-classes` — прогон
+    # устаревших скомпилированных копий, то есть гейт не мерил модуль в обоих случаях. Путь
+    # агента абсолютный: для дочернего JVM рабочий каталог — каталог модуля.
+    $adrArguments.Add('-f')
+    $adrArguments.Add('platform-register/pom.xml')
     $adrArguments.Add("-DargLine=-javaagent:$adrAgent")
     # Приёмка ADR-0025 плюс соседние пути на том же реестре: правило строки подключается к
     # писателю набора, поэтому «набор не сломался» доказывается вместе с ним, а не отдельным прогоном.
     $adrArguments.Add('-Dtest=RecorderSetWriterPostgresIT,RegisterWriteConcurrencyPostgresIT,RegisterKeyWriteConcurrencyPostgresIT')
-    $adrArguments.Add('-DfailIfNoTests=false')
     $adrArguments.Add('test')
     & $Maven @adrArguments
     if ($LASTEXITCODE -ne 0) { throw 'ADR-0025 PostgreSQL gate failed; inspect the Maven output.' }
