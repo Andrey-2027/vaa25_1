@@ -45,7 +45,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 @SpringComponent
 @Scope("prototype")
-public class AdminView extends VerticalLayout {
+public class AdminView extends VerticalLayout implements org.ipro.form.Dirtyable, org.ipro.form.Savable {
+
+    @Autowired
+    private ObjectProvider<PermissionWorkspace> permissionWorkspaces;
+    private PermissionWorkspace permissionWorkspace;
 
     private final AccessGrantAdminService accessGrantAdminService;
     private final SettingsAdminTab settingsTab;
@@ -138,9 +142,10 @@ public class AdminView extends VerticalLayout {
         add(new H3("Администрирование"));
 
         Tab accessItem = new Tab(new Span("Доступ (RLS)"), new Icon(VaadinIcon.KEY));
+        Tab workspaceItem = new Tab(new Span("Пользователи и права — новый экран"), new Icon(VaadinIcon.USERS));
         Tab settingsItem = new Tab(new Span("Настройки"), new Icon(VaadinIcon.COGS));
         Tab numberingItem = new Tab(new Span("Нумерация"), new Icon(VaadinIcon.HASH));
-        Tabs tabs = new Tabs(accessItem, settingsItem, numberingItem);
+        Tabs tabs = new Tabs(accessItem, workspaceItem, settingsItem, numberingItem);
         Tab navigationItem = navigationEnabled ? new Tab(new Span("Интерфейс"), new Icon(VaadinIcon.MENU)) : null;
         if (navigationEnabled) {
             navigationTab = navigationTabs.getObject();
@@ -155,7 +160,22 @@ public class AdminView extends VerticalLayout {
         show(accessTab);
 
         tabs.addSelectedChangeListener(e -> {
-            if (navigationItem != null && e.getSelectedTab() == navigationItem) {
+            if (e.getSelectedTab() == workspaceItem) {
+                if (permissionWorkspace == null) {
+                    try {
+                        permissionWorkspace = permissionWorkspaces.getObject();
+                        add(permissionWorkspace);
+                        setFlexGrow(1, permissionWorkspace);
+                    } catch (RuntimeException failure) {
+                        org.slf4j.LoggerFactory.getLogger(AdminView.class).error("Cannot open permission workspace", failure);
+                        Notification.show("Не удалось открыть новый экран прав: " + failure.getMessage());
+                        tabs.setSelectedTab(accessItem);
+                        return;
+                    }
+                }
+                show(permissionWorkspace);
+                permissionWorkspace.reloadActive();
+            } else if (navigationItem != null && e.getSelectedTab() == navigationItem) {
                 show(navigationTab);
                 navigationTab.refresh();
             } else if (e.getSelectedTab() == settingsItem) {
@@ -175,8 +195,15 @@ public class AdminView extends VerticalLayout {
         settingsTab.setVisible(false);
         numberingTab.setVisible(false);
         if (navigationTab != null) navigationTab.setVisible(false);
+        if (permissionWorkspace != null) permissionWorkspace.setVisible(false);
         active.setVisible(true);
     }
+
+    @Override public boolean isDirty() { return permissionWorkspace != null && permissionWorkspace.isDirty(); }
+    @Override public String getCloseConfirmMessage() {
+        return permissionWorkspace == null ? "" : permissionWorkspace.getCloseConfirmMessage();
+    }
+    @Override public boolean doSave() { return permissionWorkspace == null || permissionWorkspace.doSave(); }
 
     // ------------------------------------------------------ доступ (RLS)
 
@@ -336,8 +363,7 @@ public class AdminView extends VerticalLayout {
     private String accessDimensionLabel(String key) {
         if (key.startsWith("ENTITY:")) {
             String entityKey = key.substring("ENTITY:".length());
-            return entityLabels.getOrDefault(entityKey, entityKey) + (accessGrantAdminService.isC5ReadDimension(key)
-                ? " — чтение сущности" : " — доступ к сущности");
+            return entityLabels.getOrDefault(entityKey, entityKey) + " — права на объект";
         }
         if (key.startsWith("ACTION:")) {
             String permissionId = key.substring("ACTION:".length());

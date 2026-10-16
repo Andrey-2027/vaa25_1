@@ -59,5 +59,9 @@ class UniDrRunParameterResolverTest {
             "recipient", new Literal(ValueType.REFERENCE, List.of())), ZoneOffset.UTC), now)).doesNotContainKey("recipient");
         assertThat(resolver.resolve(new UniDrRunRequest(modified, Map.of("unit", new Literal(ValueType.REFERENCE, List.of("1"))), ZoneOffset.UTC), now))
             .containsEntry("recipient", new Literal(ValueType.REFERENCE, List.of("2")));
+        var cleared=new LinkedHashMap<String,Literal>();cleared.put("unit",new Literal(ValueType.REFERENCE,List.of("1")));cleared.put("recipient",null);
+        var request=new UniDrRunRequest(modified,cleared,ZoneOffset.UTC);cleared.put("recipient",new Literal(ValueType.REFERENCE,List.of("3")));
+        assertThat(resolver.resolve(request,now)).doesNotContainKey("recipient");
+        assertThatThrownBy(()->request.values().clear()).isInstanceOf(UnsupportedOperationException.class);
     }
 }

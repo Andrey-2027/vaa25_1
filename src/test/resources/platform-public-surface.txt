@@ -345,22 +345,25 @@ legacy-internal org.ipro.ureport.service.UreportTemplateService org/ip/views/rep
 # Р6: supported directory + latest-register report recipe; AST/compiler stay inside reportstudio.
 API org.ipro.reportstudio.query.register.RegisterSliceReportTemplates
 
-API org.ipro.data.EntityReadAccess
-API org.ipro.fetch.instance.InstanceNameResolver
-API org.ipro.form.link.FormLinkService
+# D-R S4 (2026-10-14): шестнадцать записей реестра сняты вместе с переездом стандартного
+# интерфейса регистра в platform-register-vaadin. До среза эти типы называл прикладной main —
+# ровно один файл и ровно по одной причине: адаптер форм (canonical-чтение регистратора,
+# резолвер подписей, фазы отбора среза, действия тулбара списка, диалог смены ключа). После
+# переезда прикладной main не называет ни одного из них, а реестр обязан совпадать с фактом
+# в обе стороны — поэтому записи сняты, а не оставлены «на будущее». Это измеренное сокращение
+# reach-through: бюджет API не вырос ни на строку, а досягаемость приложения внутрь платформы
+# уменьшилась. Если тип понадобится приложению снова, он возвращается новой осознанной строкой.
+#
+# Сняты: org.ipro.data.EntityReadAccess, org.ipro.fetch.instance.InstanceNameResolver,
+# org.ipro.form.link.FormLinkService, org.ipro.data.presentation.EntityPresentationService,
+# org.ipro.register.RegisterKeyChanges, org.ipro.register.RegisterListFilterPhases,
+# org.ipro.form.builder.FormTypeCustomization, org.ipro.form.FormMessages,
+# org.ipro.form.action.ActionDecision, org.ipro.form.FormBindingRegistry,
+# org.ipro.filtergrid.filter.FilterDataType, org.ipro.filtergrid.filter.FilterFieldResolver,
+# org.ipro.filtergrid.filter.FilterValueCodec, org.ipro.filtergrid.util.JpaPathUtil,
+# org.ipro.register.RecordedRegisterEntry, org.ipro.register.RegisterDescriptor.
 API org.ipro.register.RecorderRef
 API org.ipro.register.RecorderTypeRegistry
-
-# R8: shared captions are a read service used by UI and reporting adapters.
-API org.ipro.data.presentation.EntityPresentationService
-
-# R8: standard register forms and their separate key command.
-API org.ipro.register.RegisterKeyChanges
-API org.ipro.register.RegisterListFilterPhases
-SPI org.ipro.form.builder.FormTypeCustomization
-API org.ipro.form.FormMessages
-API org.ipro.form.action.ActionDecision
-API org.ipro.form.FormBindingRegistry
 
 # IG0 baseline review: supported aggregate command/payload, neutral register contracts,
 # filter construction, and C5 authorization seams used by application commands/admin UI.
@@ -368,14 +371,14 @@ API org.ipro.form.FormBindingRegistry
 API org.ipro.crud.MetadataDrivenAggregateSaveService
 SPI org.ipro.crud.AggregateSaveContribution
 API org.ipro.events.EventSource
-API org.ipro.filtergrid.filter.FilterDataType
-API org.ipro.filtergrid.filter.FilterFieldResolver
-API org.ipro.filtergrid.filter.FilterValueCodec
-API org.ipro.filtergrid.util.JpaPathUtil
 SPI org.ipro.register.PeriodicRecordedRegisterEntryBase
-API org.ipro.register.RecordedRegisterEntry
-API org.ipro.register.RegisterDescriptor
 API org.ipro.register.RegisterSliceReader
+
+# D-R S1 (2026-10-13): the reader factory is the single assembly point for register readers
+# (declaration registry + canonical EntityDataAccess read port + persistence unit). The
+# application asks it by descriptor instead of constructing a reader next to its own bean,
+# which is exactly the divergence S1 closed; the slice reader keeps its own role.
+API org.ipro.register.RegisterReaderFactory
 API org.ipro.rls.RlsFilterActivator
 API org.ipro.rls.RlsPolicyEnforcer
 API org.ipro.rls.RlsReadGate

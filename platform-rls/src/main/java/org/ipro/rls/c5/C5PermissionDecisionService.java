@@ -20,7 +20,7 @@ import java.util.Objects;
  * <p>Storage follows ADR-0017 §3: only an exact key with a global row ({@code dimensionValueId ==
  * null}) is considered, so an RLS {@code "*"} wildcard row and a value-scoped RLS row can never
  * authorise an operation. The {@code canUpdate} flag allows CREATE, UPDATE and EXECUTE,
- * {@code canDelete} allows DELETE, and {@code canRead} never decides an operation. A subject's
+ * {@code canDelete} allows DELETE, and {@code canRead} independently allows READ. A subject's
  * decision unions the subject's own grant with the grants of the roles assigned to it by
  * {@link RlsRoleResolver}; a role that is not assigned cannot authorise.</p>
  *
@@ -71,6 +71,9 @@ public class C5PermissionDecisionService {
         // The definition is checked before any grant is read: an unknown key is a configuration
         // error even for a subject that holds nothing.
         operationRegistry.requireSupports(key, operation);
+        if (requiresRead(key, operation) && !decideRead(username, key).allowed()) {
+            return C5PermissionDecision.denied(denialReason(key), key, operation);
+        }
         if (grantAllows(globalGrants(AccessGrant.SubjectType.USER, username, key), operation)) {
             return C5PermissionDecision.permitted(key, operation, List.of("прямой"));
         }
@@ -111,6 +114,9 @@ public class C5PermissionDecisionService {
         }
         // The definition is checked before any grant is read, exactly as in decide().
         operationRegistry.requireSupports(key, operation);
+        if (requiresRead(key, operation) && !decideReadForSubject(subjectType, subjectKey, key).allowed()) {
+            return C5PermissionDecision.denied(denialReason(key), key, operation);
+        }
         List<String> sources = new ArrayList<>();
         if (grantAllows(globalGrants(subjectType, subjectKey, key), operation)) {
             sources.add(sourceOf(subjectType, subjectKey));
@@ -135,10 +141,7 @@ public class C5PermissionDecisionService {
         if (operation == C5Operation.EXECUTE) {
             throw new IllegalArgumentException("EXECUTE is a named operation, not an entity operation");
         }
-        String key = operation == C5Operation.READ
-            ? C5PermissionKeys.entityRead(entityType)
-            : C5PermissionKeys.entityOperations(entityType);
-        return decide(username, key, operation);
+        return decide(username, C5PermissionKeys.entity(entityType), operation);
     }
 
     /** Decides execution of a named owner operation. */
@@ -211,12 +214,26 @@ public class C5PermissionDecisionService {
     }
 
     /** ADR-0017 §3: canUpdate allows CREATE/UPDATE/EXECUTE, canDelete allows DELETE. */
+    public List<AccessGrant> contributions(String key, C5Operation operation, List<AccessGrant> subjectGrants) {
+        if (operation == C5Operation.READ) return readDecisionService.contributions(key, subjectGrants);
+        operationRegistry.requireSupports(key, operation);
+        if (requiresRead(key, operation) && readDecisionService.contributions(key, subjectGrants).isEmpty()) return List.of();
+        return subjectGrants.stream().filter(grant -> matchesGrant(grant, key, operation)).toList();
+    }
+
+    private static boolean requiresRead(String key, C5Operation operation) {
+        return key.startsWith("ENTITY:") && (operation == C5Operation.UPDATE || operation == C5Operation.DELETE);
+    }
+
+    /** Exact/global rule shared with the read owner and the batched explanation path. */
+    public static boolean matchesGrant(AccessGrant grant, String key, C5Operation operation) {
+        return key.equals(grant.getDimension()) && grant.getDimensionValueId() == null
+            && org.ipro.rls.RlsGrantMatching.flagAllows(grant, operation);
+    }
+
     private static boolean grantAllows(List<AccessGrant> grants, C5Operation operation) {
-        return grants.stream().anyMatch(grant -> switch (operation) {
-            case READ -> grant.isCanRead();
-            case CREATE, UPDATE, EXECUTE -> grant.isCanUpdate();
-            case DELETE -> grant.isCanDelete();
-        });
+        // The repository already restricts this enforcement path to exact/global rows.
+        return grants.stream().anyMatch(grant -> org.ipro.rls.RlsGrantMatching.flagAllows(grant, operation));
     }
 
     private static C5DecisionReason denialReason(String key) {

@@ -35,16 +35,16 @@ class UniDrEditorTest {
     final Clock clock=Clock.fixed(Instant.parse("2026-10-10T12:00:00Z"),ZoneOffset.UTC);
     // UI.setCurrent stores a weak reference; keep the synthetic UI alive throughout each test.
     private com.vaadin.flow.component.UI testUi;
-    @BeforeEach void login() { SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("alice",null,List.of()));testUi=new com.vaadin.flow.component.UI();com.vaadin.flow.component.UI.setCurrent(testUi); }
+    @BeforeEach void login() {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("alice",null,List.of()));
+        testUi=new com.vaadin.flow.component.UI();com.vaadin.flow.component.UI.setCurrent(testUi);
+        var session=mock(com.vaadin.flow.server.VaadinSession.class);when(session.hasLock()).thenReturn(true);testUi.getInternals().setSession(session);
+    }
     @AfterEach void cleanup() { SecurityContextHolder.clearContext();com.vaadin.flow.component.UI.setCurrent(null);testUi=null; }
     static Stream<Component> tree(Component root) { return Stream.concat(Stream.of(root),root.getChildren().flatMap(UniDrEditorTest::tree)); }
     static <T extends Component> List<T> all(Component root,Class<T> type) { return tree(root).filter(type::isInstance).map(type::cast).toList(); }
     static Button button(Component root,String text) { return all(root,Button.class).stream().filter(button->button.getText().equals(text)).findFirst().orElseThrow(); }
     static Button footerButton(com.vaadin.flow.component.dialog.Dialog dialog,String text) {return dialog.getFooter().getElement().getChildren().map(element->element.getComponent().orElse(null)).filter(Button.class::isInstance).map(Button.class::cast).filter(button->button.getText().equals(text)).findFirst().orElseThrow();}
-    static Component fieldRow(Component root,String caption) {
-        Component component=all(root,Button.class).stream().filter(button->button.getAriaLabel().orElse("").equals("Свойства: "+caption)).findFirst().orElseThrow();
-        while(!"row".equals(component.getElement().getAttribute("role")))component=component.getParent().orElseThrow();return component;
-    }
     @SuppressWarnings("unchecked") static <T> ComboBox<T> combo(Component root,String label) { return (ComboBox<T>)all(root,ComboBox.class).stream().filter(input->label.equals(input.getLabel())).findFirst().orElseThrow(); }
     UniDrSourceDefinition.Field field(String id) { return catalog.find(base.sourceId()).orElseThrow().fields().stream().filter(field->field.id().equals(id)).findFirst().orElseThrow(); }
     private UniDrDefinitionEditor attached(UniDrDefinitionEditor editor) {
@@ -70,13 +70,13 @@ class UniDrEditorTest {
         expression.setValue("{quantity} * 10");footerButton(dialog,"Сохранить колонку").click();assertThat(dialog.isOpened()).isFalse();
         var computed=editor.definition().computedColumns().getFirst();assertThat(editor.definition().columns()).extracting(Column::fieldId).contains(computed.id());
         var border=combo(editor,"Граница колонки");border.setValue(border.getListDataView().getItems().filter(value->value.toString().equals("OFF")).findFirst().orElseThrow());
-        all(editor,Checkbox.class).stream().filter(input->input.getLabel().equals("Номер строки")).findFirst().orElseThrow().setValue(true);
+        all(editor,Checkbox.class).stream().filter(input->input.getLabel().equals("Нумеровать строки детализации")).findFirst().orElseThrow().setValue(true);
         var editDialog=editor.openComputedEditor(computed);all(editDialog,TextArea.class).getFirst().setValue("{quantity} * 20");footerButton(editDialog,"Сохранить колонку").click();
         assertThat(editor.definition().computedColumns().getFirst().expression()).isEqualTo("{quantity} * 20");assertThat(editor.definition().fieldStyles().get(computed.id()).border()).isFalse();
         editor.removeField(computed.id());editor.addField(computed.id());
         assertThat(editor.definition().rowNumbers()).isTrue();assertThat(editor.definition().fieldStyles().get(computed.id()).border()).isFalse();assertThat(validator.validate(editor.definition())).isEmpty();
-        editor.mode.setValue(Mode.SUMMARY);assertThat(all(editor,Checkbox.class).stream().filter(input->input.getLabel().equals("Номер строки")).findFirst().orElseThrow().isEnabled()).isFalse();
-        editor.mode.setValue(Mode.DETAILS);button(fieldRow(editor,"Стоимость"),"⋯").click();
+        editor.mode.setValue(Mode.SUMMARY);assertThat(all(editor,Checkbox.class).stream().filter(input->input.getLabel().equals("Нумеровать строки детализации")).findFirst().orElseThrow().isEnabled()).isFalse();
+        editor.mode.setValue(Mode.DETAILS);editor.selectField(computed.id());
         all(editor,TextField.class).stream().filter(input->"Формат".equals(input.getLabel())).findFirst().orElseThrow().setValue("0.00");
         var convert=editor.openComputedEditor(editor.definition().computedColumns().getFirst());UniDrEditorTest.<Computation>combo(convert,"Тип вычисления").setValue(Computation.TEXT);
         all(convert,TextArea.class).getFirst().setValue("Количество: {quantity}");footerButton(convert,"Сохранить колонку").click();
@@ -94,20 +94,18 @@ class UniDrEditorTest {
     @Test void tableEditsAndPropertySwitchingPreserveTitlesTotalsAndOrder() {
         var changes=new java.util.concurrent.atomic.AtomicInteger();
         var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),base,references,changes::incrementAndGet));
-        editor.mode.setValue(Mode.DETAILS);var row=fieldRow(editor,"Количество");
-        all(row,TextField.class).getFirst().setValue("Объём");
-        @SuppressWarnings("unchecked") var aggregation=(ComboBox<Aggregation>)all(row,ComboBox.class).getFirst();aggregation.setValue(Aggregation.AVG);
-        button(row,"⋯").click();
-        var measureTitle=all(editor,TextField.class).stream().filter(input->"Количество · заголовок итога".equals(input.getAriaLabel().orElse(""))).findFirst().orElseThrow();
-        measureTitle.setValue("Средний объём");
+        editor.mode.setValue(Mode.DETAILS);editor.columnTitle("quantity").setValue("Объём");
+        var aggregation=editor.aggregation("quantity");aggregation.setValue(Aggregation.AVG);
+        editor.mode.setValue(Mode.SUMMARY);editor.columnTitle("quantity").setValue("Средний объём");editor.mode.setValue(Mode.DETAILS);
+        editor.selectField("quantity");
         all(editor,IntegerField.class).getFirst().setValue(220);
         UniDrEditorTest.<UniDrDefinition.Alignment>combo(editor,"Выравнивание").setValue(UniDrDefinition.Alignment.CENTER);
         all(editor,TextField.class).stream().filter(input->"Формат".equals(input.getLabel())).findFirst().orElseThrow().setValue("#,##0.000");
         int edits=changes.get();
-        button(fieldRow(editor,"Номенклатура"),"⋯").click();button(row,"⋯").click();
+        editor.selectField("nomenclature");editor.selectField("quantity");
         assertThat(changes.get()).isEqualTo(edits);
-        assertThat(all(editor,TextField.class)).contains(measureTitle);assertThat(measureTitle.getValue()).isEqualTo("Средний объём");
-        button(row,"↑").click();
+        assertThat(editor.columnTitle("quantity").getValue()).isEqualTo("Объём");
+        button(editor,"↑").click();
         assertThat(editor.definition().columns()).contains(new Column("quantity","Объём"));
         assertThat(editor.definition().measures()).contains(new Measure("quantity",Aggregation.AVG,"Средний объём"));
         assertThat(editor.definition().fieldStyles()).containsEntry("quantity",new FieldStyle(220,UniDrDefinition.Alignment.CENTER,"#,##0.000"));
@@ -117,15 +115,28 @@ class UniDrEditorTest {
         assertThat(editor.definition().columns()).contains(new Column("quantity","Объём"));
         assertThat(editor.definition().measures()).contains(new Measure("quantity",Aggregation.SUM,"Средний объём"));
     }
-    @Test void summaryTableContainsOnlyMeasuresAndCountIsAnIndependentSwitch() {
+    @Test void summaryRetainsDetailsAndCountCanBeRemovedAndAddedAsAMeasure() {
         var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),base,references,()->{}));
-        assertThat(all(editor,Button.class).stream().filter(button->button.getAriaLabel().orElse("").startsWith("Свойства: "))).hasSize(1);
-        assertThat(all(editor,Checkbox.class)).noneMatch(input->"Количество".equals(input.getLabel()));
-        var count=all(editor,Checkbox.class).stream().filter(input->"Считать количество записей".equals(input.getLabel())).findFirst().orElseThrow();
-        count.setValue(false);assertThat(editor.definition().measures()).extracting(Measure::fieldId).containsExactly("quantity");
-        count.setValue(true);assertThat(editor.definition().measures()).isEqualTo(base.measures());
-        editor.addField("document");assertThat(editor.definition().groups()).contains("document");
+        editor.removeField("rowCount");assertThat(editor.definition().measures()).extracting(Measure::fieldId).containsExactly("quantity");
+        editor.addField("rowCount");assertThat(editor.definition().measures()).isEqualTo(base.measures());
+        var before=editor.definition();editor.addField("document");assertThat(editor.definition()).isEqualTo(before);
         editor.mode.setValue(Mode.DETAILS);assertThat(editor.definition().columns()).isEqualTo(base.columns());
+    }
+    @Test void detailMeasureWithoutASelectedColumnEditsItsActualPrintedTitle() {
+        var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),base,references,()->{}));
+        editor.mode.setValue(Mode.DETAILS);editor.removeField("quantity");editor.aggregation("quantity").setValue(Aggregation.AVG);
+        editor.columnTitle("quantity").setValue("Средний объём");
+        assertThat(editor.definition().columns()).extracting(Column::fieldId).doesNotContain("quantity");
+        assertThat(editor.definition().measures()).contains(new Measure("quantity",Aggregation.AVG,"Средний объём"));
+    }
+    @Test void countPropertiesUseTheNormalPaletteAndStyleResetRetainsTitleAndAggregation() {
+        var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),base,references,()->{}));
+        editor.columnTitle("rowCount").setValue("Число позиций");editor.selectField("rowCount");
+        all(editor,IntegerField.class).getFirst().setValue(100);
+        assertThat(editor.definition().fieldStyles()).containsKey("rowCount");
+        button(editor,"Сбросить оформление").click();
+        assertThat(editor.definition().fieldStyles()).doesNotContainKey("rowCount");
+        assertThat(editor.definition().measures().getLast()).isEqualTo(new Measure("rowCount",Aggregation.COUNT_ROWS,"Число позиций"));
     }
     @Test void pickerCancelDoesNotMutateAndBatchAdditionPreservesTitlesAndRejectsDuplicates() {
         var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),base,references,()->{}));editor.mode.setValue(Mode.DETAILS);
@@ -141,7 +152,7 @@ class UniDrEditorTest {
     }
     @Test void movingColumnsAndGroupsKeepsSettingsAndEnforcesGroupLimits() {
         var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),base,references,()->{}));editor.mode.setValue(Mode.DETAILS);
-        all(fieldRow(editor,"Количество"),TextField.class).getFirst().setValue("Объём");
+        editor.columnTitle("quantity").setValue("Объём");
         editor.moveField("quantity","date");assertThat(editor.definition().columns()).extracting(Column::fieldId).containsExactly("quantity","date","document","nomenclature");
         assertThat(editor.definition().columns().getFirst().title()).isEqualTo("Объём");
         editor.moveGroup("nomenclature","receivingWorkshop");editor.addGroup("unit");editor.addGroup("unit");editor.addGroup("date");
@@ -225,14 +236,15 @@ class UniDrEditorTest {
     }
     private record Fixture(UniDrView view,ArrayDeque<Runnable> tasks,UniDrQueryService query) {}
     private Fixture view() {
+        when(references.selected(eq("unit"),eq(1L))).thenReturn(new UniDrReferenceService.Option(1L,"шт"));
         var access=new UniDrAccess(()->true,()->SecurityContextHolder.getContext().getAuthentication().getName());
         var query=mock(UniDrQueryService.class);var compiler=mock(UniDrReportCompiler.class);var exporter=mock(ReportCompiler.class);var tasks=new ArrayDeque<Runnable>();
         when(query.read(any(),any(),any())).thenReturn(new UniDrQueryService.Data(new ReportDataset(new QueryField[0],new ReportRow[0]),Map.of()));
         when(compiler.compile(any(),any())).thenReturn(new net.sf.jasperreports.engine.JasperPrint());
         var runs=new UniDrRunService(access,query,new ReportTaskExecutor(tasks::add),new ReportRunQuota(2),clock,compiler,exporter);
-        var view=new UniDrView(runs,references,clock);view.openSession();return new Fixture(view,tasks,query);
+        var view=new UniDrView(runs,references,clock);return new Fixture(view,tasks,query);
     }
-    private void unit(UniDrView view) { all(view,UniDrReferencePicker.class).stream().filter(input->input.getLabel().equals("Единица измерения")).findFirst().orElseThrow().setValue(new UniDrReferenceService.Option(1L,"шт")); }
+    private void unit(UniDrView view) { if(view.runDialog()==null)view.start();all(view.runDialog(),UniDrReferencePicker.class).stream().filter(input->input.getLabel().equals("Единица измерения")).findFirst().orElseThrow().setValue(new UniDrReferenceService.Option(1L,"шт")); }
     @Test void separateParameterTabEditsDeclarationsWithoutLosingRunValues() {
         var fixture=view();unit(fixture.view);var before=fixture.view.values();
         var tab=all(fixture.view,com.vaadin.flow.component.tabs.Tab.class).stream().filter(value->value.getElement().getTextRecursively().equals("Параметры отчёта")).findFirst().orElseThrow();
@@ -242,19 +254,29 @@ class UniDrEditorTest {
         assertThat(fixture.view.definition().parameters().getFirst().caption()).isEqualTo("Даты накладных");assertThat(fixture.view.values()).isEqualTo(before);
     }
     @Test void validationPreventsQueueingUntilRequiredUnitIsSelected() {
-        var fixture=view();fixture.view.start();assertThat(fixture.tasks).isEmpty();assertThat(all(fixture.view,Div.class)).anyMatch(div->div.getText().contains("Заполните «Единица измерения»"));
-        unit(fixture.view);fixture.view.start();assertThat(fixture.tasks).hasSize(1);
+        var fixture=view();fixture.view.start();fixture.view.runDialog().start();assertThat(fixture.tasks).isEmpty();assertThat(all(fixture.view.runDialog(),Div.class)).anyMatch(div->div.getText().contains("Заполните «Единица измерения»"));
+        unit(fixture.view);fixture.view.runDialog().start();assertThat(fixture.tasks).hasSize(1);
     }
     @Test void changedSettingsCancelPendingPublicationAndSuccessfulRunEnablesExports() {
-        var fixture=view();unit(fixture.view);fixture.view.start();fixture.view.markChanged(true);fixture.tasks.removeFirst().run();login();fixture.view.poll();
-        assertThat(all(fixture.view,IFrame.class).getFirst().isVisible()).isFalse();
-        fixture.view.start();fixture.tasks.removeFirst().run();login();fixture.view.poll();assertThat(all(fixture.view,IFrame.class).getFirst().isVisible()).isTrue();
-        assertThat(all(fixture.view,Anchor.class).stream().filter(anchor->anchor.getText().startsWith("Скачать")).allMatch(Anchor::isEnabled)).isTrue();
-        fixture.view.markChanged(true);assertThat(all(fixture.view,IFrame.class).getFirst().isVisible()).isTrue();assertThat(all(fixture.view,Anchor.class).stream().filter(anchor->anchor.getText().startsWith("Скачать")).noneMatch(Anchor::isEnabled)).isTrue();
+        var fixture=view();unit(fixture.view);fixture.view.runDialog().start();var cancelled=fixture.view.runDialog();fixture.view.markChanged(true);fixture.tasks.removeFirst().run();login();cancelled.poll();
+        assertThat(cancelled.preview()).isNull();
+        fixture.view.start();fixture.view.runDialog().start();fixture.tasks.removeFirst().run();login();fixture.view.poll();
+        var preview=fixture.view.runDialog().preview();assertThat(preview.isOpened()).isTrue();assertThat(fixture.view.runDialog().isOpened()).isFalse();
+        assertThat(all(preview,Anchor.class)).hasSize(2);assertThat(all(fixture.view,IFrame.class)).isEmpty();
+        fixture.view.markChanged(true);assertThat(preview.isOpened()).isFalse();
     }
     @Test void closedEditorDiscardsLateRunAndResetRestoresInitialDefinition() {
-        var fixture=view();unit(fixture.view);fixture.view.start();fixture.view.close();fixture.tasks.removeFirst().run();login();fixture.view.poll();assertThat(all(fixture.view,IFrame.class).getFirst().isVisible()).isFalse();
+        var fixture=view();unit(fixture.view);fixture.view.runDialog().start();var dialog=fixture.view.runDialog();fixture.view.close();fixture.tasks.removeFirst().run();login();dialog.poll();assertThat(dialog.preview()).isNull();
         var other=view();all(other.view,TextField.class).stream().filter(input->"Название отчёта".equals(input.getLabel())).findFirst().orElseThrow().setValue("Другой отчёт");other.view.reset();assertThat(other.view.definition()).isEqualTo(base);
+    }
+    @Test void runValuesDoNotDirtyDraftAndDefaultsOnlyResetRuntimeInputs() {
+        var fixture=view();var definition=fixture.view.definition();unit(fixture.view);
+        assertThat(fixture.view.getElement().hasAttribute("data-dirty")).isFalse();
+        fixture.view.runDialog().close();fixture.view.start();
+        assertThat(fixture.view.runDialog().values().get("unit").values()).containsExactly("1");
+        footerButton(fixture.view.runDialog(),"Значения по умолчанию").click();
+        assertThat(fixture.view.runDialog().values().get("unit").values()).isEmpty();
+        assertThat(fixture.view.definition()).isEqualTo(definition);
     }
     @Test void disabledRouteShowsExplanationAndHasNoRunControls() {
         var view=new UniDrView(null,null,clock);assertThat(all(view,Button.class)).isEmpty();assertThat(all(view,Paragraph.class)).anyMatch(text->text.getText().equals("Пилот UniDR выключен"));

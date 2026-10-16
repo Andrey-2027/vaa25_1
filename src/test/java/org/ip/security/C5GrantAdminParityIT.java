@@ -89,10 +89,8 @@ class C5GrantAdminParityIT {
      */
     private void grantCanonicalWrite(String subject, Class<?>... types) {
         for (Class<?> type : types) {
-            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entityRead(type),
-                AccessGrant.SubjectType.USER, subject, new GrantFlags(true, false, false));
-            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entityOperations(type),
-                AccessGrant.SubjectType.USER, subject, new GrantFlags(false, true, true));
+            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entity(type),
+                AccessGrant.SubjectType.USER, subject, new GrantFlags(true, true, true));
         }
         accessGrantAdminService.saveSingleGrant(
             C5PermissionKeys.action(UserPasswordChangePermission.PERMISSION_ID),
@@ -181,7 +179,7 @@ class C5GrantAdminParityIT {
     }
 
     @Test
-    void updateOnlyGlobalRowDoesNotGrantReadAndIsNotOfferedAsC5Right() {
+    void updateOnlyGlobalRowDoesNotGrantReadButShowsItsIndependentWriteFlags() {
         String username = "c5-parity-update-only";
         accessGrantRepository.saveAndFlush(grant(AccessGrant.SubjectType.USER, username, C5_KEY, null,
             false, true, true));
@@ -189,21 +187,19 @@ class C5GrantAdminParityIT {
         assertThat(c5PermissionEvaluator.isEntityReadPermitted(username, Nomenclature.class)).isFalse();
         assertThat(effective(username).get(C5_KEY).canRead()).isFalse();
         assertThat(accessGrantAdminService.currentSingleGrant(C5_KEY, AccessGrant.SubjectType.USER, username))
-            .isEqualTo(GrantFlags.NONE);
+            .isEqualTo(new GrantFlags(false, true, true));
     }
 
     @Test
-    void c5SaveRejectsWriteFlagsAndValueScopedInputAndKeepsHistoricalValueRows() {
+    void c5SaveAcceptsIndependentWriteFlagsButRejectsValueScopedInput() {
         String username = "c5-parity-boundary";
         AccessGrant valueRow = grant(AccessGrant.SubjectType.USER, username, C5_KEY, 7L, true, false, false);
         accessGrantRepository.saveAndFlush(valueRow);
 
-        assertThatThrownBy(() -> accessGrantAdminService.saveSingleGrant(C5_KEY,
-            AccessGrant.SubjectType.USER, username, new GrantFlags(false, true, false)))
-            .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> accessGrantAdminService.saveSingleGrant(C5_KEY,
-            AccessGrant.SubjectType.USER, username, new GrantFlags(false, false, true)))
-            .isInstanceOf(IllegalArgumentException.class);
+        accessGrantAdminService.saveSingleGrant(C5_KEY, AccessGrant.SubjectType.USER, username,
+            new GrantFlags(false, true, true));
+        assertThat(accessGrantAdminService.currentSingleGrant(C5_KEY, AccessGrant.SubjectType.USER, username))
+            .isEqualTo(new GrantFlags(false, true, true));
         assertThatThrownBy(() -> accessGrantAdminService.saveGrants(C5_KEY,
             AccessGrant.SubjectType.USER, username, java.util.Map.of(7L, new GrantFlags(true, false, false))))
             .isInstanceOf(IllegalArgumentException.class);
@@ -223,22 +219,16 @@ class C5GrantAdminParityIT {
      * поэтому флаг чтения на операционном ключе не записывается и никого не вводит в заблуждение.
      */
     @Test
-    void shortEntityKeyIsIssuedAsAnOperationKeyOnly() {
+    void oldShortEntityKeyIsNeitherRegisteredNorAnEffectiveEntityRight() {
         String username = "c5-parity-legacy";
-        assertThat(accessGrantAdminService.isOperationDimension(LEGACY_CHECK_ONLY)).isTrue();
+        assertThat(accessGrantAdminService.isOperationDimension(LEGACY_CHECK_ONLY)).isFalse();
         assertThat(accessGrantAdminService.isC5ReadDimension(LEGACY_CHECK_ONLY)).isFalse();
 
-        accessGrantAdminService.saveSingleGrant(LEGACY_CHECK_ONLY, AccessGrant.SubjectType.USER, username,
-            new GrantFlags(false, true, false));
+        accessGrantRepository.saveAndFlush(grant(AccessGrant.SubjectType.USER, username, LEGACY_CHECK_ONLY,
+            null, true, true, true));
 
-        List<AccessGrant> saved = accessGrantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
-            AccessGrant.SubjectType.USER, username, LEGACY_CHECK_ONLY);
-        assertThat(saved).singleElement().satisfies(row -> {
-            assertThat(row.isCanRead())
-                .as("чтение на операционном ключе не записывается: его никто не читает")
-                .isFalse();
-            assertThat(row.isCanUpdate()).isTrue();
-        });
+        assertThat(effective(username)).doesNotContainKey(LEGACY_CHECK_ONLY);
+        assertThat(c5PermissionEvaluator.isEntityReadPermitted(username, org.ip.model.ReceivingDocument.class)).isFalse();
     }
 
     private java.util.Map<String, AccessService.EffectiveGrant> effective(String username) {

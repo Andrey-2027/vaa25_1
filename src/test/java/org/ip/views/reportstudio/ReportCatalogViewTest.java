@@ -184,7 +184,7 @@ class ReportCatalogViewTest {
     // === открытие по типу движка ===
 
     @Test
-    void openingAndRunningUniDrNavigatesToTheSavedJsonWithoutLoadingOtherEngines() {
+    void openingUniDrNavigatesButRunningUsesTheSavedSnapshotInTheSharedFactory() {
         var destinations = new ArrayList<String>();
         var queries = new ArrayList<com.vaadin.flow.router.QueryParameters>();
         ui = new UI() {
@@ -197,12 +197,18 @@ class ReportCatalogViewTest {
         when(session.hasLock()).thenReturn(true);
         ui.getInternals().setSession(session);
         var view = viewWithSelection(org.ipro.ureport.catalog.ReportCatalogItemFactory.ofUniDr(3L, "Позиции", ""));
+        var files=mock(org.ip.unidr.store.UniDrFileStore.class);
+        var runs=mock(org.ip.views.unidr.UniDrRunDialogFactory.class);
+        var definition=org.ip.unidr.model.UniDrDefinitions.receivingItemsSummary();
+        when(files.load(3L)).thenReturn(new org.ip.unidr.store.UniDrFileStore.Saved(3L,"revision","","alice",definition));
+        view.useUniDrFiles(files);view.useUniDrRuns(runs);
         ui.add(view);
 
         invoke(view, "openSelected");
         invoke(view, "runSelected");
 
-        assertThat(destinations).containsExactly("unidr", "unidr");
+        assertThat(destinations).containsExactly("unidr");
+        verify(runs).open(definition);
         assertThat(queries).allSatisfy(parameters ->
                 assertThat(parameters.getParameters()).containsEntry("id", List.of("3")));
         verify(templateService, never()).loadTemplate(any());

@@ -138,16 +138,9 @@ public class DataInitializer implements CommandLineRunner {
             read.setDimension(C5PermissionKeys.entityRead(type));
             read.setDimensionValueId(null);
             read.setCanRead(true);
+            read.setCanUpdate(true);
+            read.setCanDelete(true);
             grants.save(read);
-
-            AccessGrant operations = new AccessGrant();
-            operations.setSubjectType(AccessGrant.SubjectType.USER);
-            operations.setSubjectKey(SEED_SUBJECT);
-            operations.setDimension(C5PermissionKeys.entityOperations(type));
-            operations.setDimensionValueId(null);
-            operations.setCanUpdate(true);
-            operations.setCanDelete(true);
-            grants.save(operations);
         }
 
         AccessGrant password = new AccessGrant();
@@ -155,6 +148,7 @@ public class DataInitializer implements CommandLineRunner {
         password.setSubjectKey(SEED_SUBJECT);
         password.setDimension(C5PermissionKeys.action(UserPasswordChangePermission.PERMISSION_ID));
         password.setDimensionValueId(null);
+        password.setCanRead(false);
         password.setCanUpdate(true);
         grants.save(password);
 

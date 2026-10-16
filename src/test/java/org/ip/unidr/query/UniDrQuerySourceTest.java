@@ -55,7 +55,7 @@ class UniDrQuerySourceTest {
         var initial=definition();var recipe=new UniDrDefinition(1,"query",1,"Ссылки",List.of(new Column("workshop",null)),initial.measures(),List.of("workshop"),List.of(),List.of(),List.of(),Mode.SUMMARY,true).withQuery(query);
         var service=new UniDrQuerySourceService(mock(ReportQueryAssemblyService.class));var source=UniDrQuerySourceService.metadata(schema);
         var result=service.prepare(recipe,new ReportQueryAssembler(query.jpql(),Map.of(),schema,List.of()),data,Map.of());
-        assertThat(result.rows()).extracting(row->row.value("__unidr_key_0")).containsExactly(null,"1","2");
+        assertThat(result.rows()).extracting(row->row.value("__unidr_key_workshop")).containsExactly(null,"1","2");
         var catalog=new UniDrSourceCatalog(List.of(),ignored->source);assertThat(new org.ip.unidr.render.UniDrReportCompiler(catalog,new UniDrDefinitionValidator(catalog)).compile(recipe,result)).isNotNull();
     }
     @Test void describeUsesUdrGuardButDoesNotResolveRuntimeParameters() {

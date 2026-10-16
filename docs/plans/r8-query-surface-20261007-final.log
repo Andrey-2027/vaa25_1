@@ -1,0 +1,114 @@
+Access is denied.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-cli) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.PlatformPublicSurfaceTest
+[ERROR] Tests run: 10, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 11.97 s <<< FAILURE! -- in org.ipro.PlatformPublicSurfaceTest
+[ERROR] org.ipro.PlatformPublicSurfaceTest.applicationCodeDoesNotUsePlatformWildcardImports -- Time elapsed: 0.271 s <<< FAILURE!
+java.lang.AssertionError: 
+[wildcard-������ ������ ��������� �������� ������������ ����: ������ ����� �� �����, � �� ����, � ������� ����� ��������� �� ���� �����������. �������� ��� ������ ���������] 
+Expecting empty but was: {"import org.ipro.crud.*;"=["org/ip/application/register/AccountingObjectContributionParticipant.java",
+    "org/ip/application/register/AccountingObjectSaveService.java"], "import org.ipro.form.*;"=["org/ip/views/forms/AccountingObjectCorrectionRowConfig.java",
+    "org/ip/views/forms/AccountingObjectSaveHandlers.java",
+    "org/ip/views/register/AccountingObjectRegisterView.java"], "import org.ipro.form.builder.*;"=["org/ip/views/forms/AccountingObjectCorrectionRowConfig.java"], "import org.ipro.form.builtin.*;"=["org/ip/views/forms/AccountingObjectCorrectionRowConfig.java"], "import org.ipro.metadata.annotation.*;"=["org/ip/model/AccountingObjectCorrection.java",
+    "org/ip/model/AccountingObjectCorrectionItem.java",
+    "org/ip/model/AccountingObjectDocument.java",
+    "org/ip/model/AccountingObjectInstallation.java",
+    "org/ip/model/AccountingObjectInstallationItem.java",
+    "org/ip/model/AccountingObjectItem.java",
+    "org/ip/model/AccountingType.java",
+    "org/ip/model/NomenclatureAccountingObject.java"], "import org.ipro.register.*;"=["org/ip/application/register/AccountingObjectContributionParticipant.java",
+    "org/ip/application/register/AccountingObjectRegisterService.java",
+    "org/ip/model/NomenclatureAccountingObject.java"], "import org.ipro.rls.*;"=["org/ip/config/AccountingObjectPilotInitializer.java",
+    "org/ip/model/NomenclatureAccountingObject.java"]}
+	at org.ipro.PlatformPublicSurfaceTest.applicationCodeDoesNotUsePlatformWildcardImports(PlatformPublicSurfaceTest.java:208)
+
+[ERROR] org.ipro.PlatformPublicSurfaceTest.everyPlatformTypeTheApplicationNamesHasAReviewedRole -- Time elapsed: 0.515 s <<< FAILURE!
+java.lang.AssertionError: 
+[���������� �������� ��� ���������, �������� ��� � reviewed-�������. ���� ���� �� ���������, ������� �������� ������ �� ������� �����: ��� � ���� ����, ��-�� ������� 165 ���������� ����� ��������� ����������. �������� ������ � src\test\resources\platform-public-surface.txt � ����� API, SPI ��� legacy-internal] 
+Expecting empty but was: ["org.ipro.crud.AggregateSaveContribution",
+    "org.ipro.crud.MetadataDrivenAggregateSaveService",
+    "org.ipro.events.EventSource",
+    "org.ipro.rls.RlsFilterActivator",
+    "org.ipro.rls.RlsPolicyEnforcer",
+    "org.ipro.rls.RlsReadableIdsResolver",
+    "org.ipro.rls.c5.C5PermissionKeys"]
+	at org.ipro.PlatformPublicSurfaceTest.everyPlatformTypeTheApplicationNamesHasAReviewedRole(PlatformPublicSurfaceTest.java:124)
+
+[ERROR] org.ipro.PlatformPublicSurfaceTest.applicationCodeDoesNotUseFullyQualifiedPlatformReferences -- Time elapsed: 0.470 s <<< FAILURE!
+java.lang.AssertionError: 
+[fully-qualified ������ �� ��������� ������� � ������, � ������: ��� ����� � ����, �� �� � ����� �����. �������� � ����� �������� � ��� � ���� ������ ������� ����������� �� ��������� �����������] 
+Expecting empty but was: {"org/ip/config/AccountingObjectPilotInitializer.java"=["org.ipro.rls.c5.C5PermissionKeys.entityOperations",
+    "org.ipro.rls.c5.C5PermissionKeys.entityRead"], "org/ip/views/forms/AccountingObjectCorrectionRowConfig.java"=["org.ipro.crud.ValidationException"], "org/ip/views/register/AccountingObjectRegisterFormConfig.java"=["org.ipro.form.link.FormRouteOpener"], "org/ip/views/register/AccountingObjectRegisterView.java"=["org.ipro.form.link.FormRouteOpener"]}
+	at org.ipro.PlatformPublicSurfaceTest.applicationCodeDoesNotUseFullyQualifiedPlatformReferences(PlatformPublicSurfaceTest.java:268)
+
+[ERROR] org.ipro.PlatformPublicSurfaceTest.documentedMeasurementsMatchTheCode -- Time elapsed: 0.773 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[����� 'app-source-files' � docs\architecture\d1-surface-measurements.md ��������� � �����. �������� �������� ���������: -Dplatform.measurements.write=true] 
+expected: 191
+ but was: 171
+	at org.ipro.PlatformPublicSurfaceTest.documentedMeasurementsMatchTheCode(PlatformPublicSurfaceTest.java:554)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   PlatformPublicSurfaceTest.applicationCodeDoesNotUseFullyQualifiedPlatformReferences:268 [fully-qualified ������ �� ��������� ������� � ������, � ������: ��� ����� � ����, �� �� � ����� �����. �������� � ����� �������� � ��� � ���� ������ ������� ����������� �� ��������� �����������] 
+Expecting empty but was: {"org/ip/config/AccountingObjectPilotInitializer.java"=["org.ipro.rls.c5.C5PermissionKeys.entityOperations",
+    "org.ipro.rls.c5.C5PermissionKeys.entityRead"], "org/ip/views/forms/AccountingObjectCorrectionRowConfig.java"=["org.ipro.crud.ValidationException"], "org/ip/views/register/AccountingObjectRegisterFormConfig.java"=["org.ipro.form.link.FormRouteOpener"], "org/ip/views/register/AccountingObjectRegisterView.java"=["org.ipro.form.link.FormRouteOpener"]}
+[ERROR]   PlatformPublicSurfaceTest.applicationCodeDoesNotUsePlatformWildcardImports:208 [wildcard-������ ������ ��������� �������� ������������ ����: ������ ����� �� �����, � �� ����, � ������� ����� ��������� �� ���� �����������. �������� ��� ������ ���������] 
+Expecting empty but was: {"import org.ipro.crud.*;"=["org/ip/application/register/AccountingObjectContributionParticipant.java",
+    "org/ip/application/register/AccountingObjectSaveService.java"], "import org.ipro.form.*;"=["org/ip/views/forms/AccountingObjectCorrectionRowConfig.java",
+    "org/ip/views/forms/AccountingObjectSaveHandlers.java",
+    "org/ip/views/register/AccountingObjectRegisterView.java"], "import org.ipro.form.builder.*;"=["org/ip/views/forms/AccountingObjectCorrectionRowConfig.java"], "import org.ipro.form.builtin.*;"=["org/ip/views/forms/AccountingObjectCorrectionRowConfig.java"], "import org.ipro.metadata.annotation.*;"=["org/ip/model/AccountingObjectCorrection.java",
+    "org/ip/model/AccountingObjectCorrectionItem.java",
+    "org/ip/model/AccountingObjectDocument.java",
+    "org/ip/model/AccountingObjectInstallation.java",
+    "org/ip/model/AccountingObjectInstallationItem.java",
+    "org/ip/model/AccountingObjectItem.java",
+    "org/ip/model/AccountingType.java",
+    "org/ip/model/NomenclatureAccountingObject.java"], "import org.ipro.register.*;"=["org/ip/application/register/AccountingObjectContributionParticipant.java",
+    "org/ip/application/register/AccountingObjectRegisterService.java",
+    "org/ip/model/NomenclatureAccountingObject.java"], "import org.ipro.rls.*;"=["org/ip/config/AccountingObjectPilotInitializer.java",
+    "org/ip/model/NomenclatureAccountingObject.java"]}
+[ERROR]   PlatformPublicSurfaceTest.documentedMeasurementsMatchTheCode:554 [����� 'app-source-files' � docs\architecture\d1-surface-measurements.md ��������� � �����. �������� �������� ���������: -Dplatform.measurements.write=true] 
+expected: 191
+ but was: 171
+[ERROR]   PlatformPublicSurfaceTest.everyPlatformTypeTheApplicationNamesHasAReviewedRole:124 [���������� �������� ��� ���������, �������� ��� � reviewed-�������. ���� ���� �� ���������, ������� �������� ������ �� ������� �����: ��� � ���� ����, ��-�� ������� 165 ���������� ����� ��������� ����������. �������� ������ � src\test\resources\platform-public-surface.txt � ����� API, SPI ��� legacy-internal] 
+Expecting empty but was: ["org.ipro.crud.AggregateSaveContribution",
+    "org.ipro.crud.MetadataDrivenAggregateSaveService",
+    "org.ipro.events.EventSource",
+    "org.ipro.rls.RlsFilterActivator",
+    "org.ipro.rls.RlsPolicyEnforcer",
+    "org.ipro.rls.RlsReadableIdsResolver",
+    "org.ipro.rls.c5.C5PermissionKeys"]
+[INFO] 
+[ERROR] Tests run: 10, Failures: 4, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  29.749 s
+[INFO] Finished at: 2026-10-07T14:29:33+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-cli) on project Vaa25_1: There are test failures.
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

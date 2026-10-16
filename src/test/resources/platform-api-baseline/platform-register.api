@@ -57,6 +57,24 @@ annotation public abstract interface org.ipro.register.RegisterMetadata
   method public abstract java.lang.String[] resources()
   method public abstract org.ipro.register.RegisterPeriodicity periodicity() default EXACT
 
+class public final org.ipro.register.RecordedRegisterReader
+  type-parameter T
+  ctor public(java.lang.Class<T>, org.ipro.data.EntityDataAccess, org.ipro.register.RegisterRegistry)
+  method public java.util.Optional<T> detail(java.lang.Long)
+  method public org.springframework.data.domain.Page<T> history(java.util.Map<java.lang.String, ?>, org.springframework.data.domain.Pageable)
+  method public org.springframework.data.domain.Page<T> history(org.springframework.data.domain.Pageable)
+
+class public final org.ipro.register.RecorderTypeRegistry
+  ctor public(org.ipro.metadata.ManagedEntityCatalog, jakarta.persistence.EntityManagerFactory, org.ipro.metadata.MetadataResolver)
+  method public java.lang.Class<?> requireType(java.lang.String)
+  method public java.lang.Class<?> resolveType(org.ipro.register.RecorderRef)
+  method public java.lang.String requireCode(java.lang.Class<?>)
+  method public java.util.List<java.lang.Class<?>> types()
+  method public java.util.Optional<java.lang.Class<?>> findType(java.lang.String)
+  method public java.util.Optional<java.lang.String> findCode(java.lang.Class<?>)
+  method public org.ipro.register.RecorderRef referenceFor(java.lang.Class<?>, java.lang.Long)
+  method public synchronized void initialize()
+
 class public final org.ipro.register.RegisterDescriptor
   method public boolean genericWritesAllowed()
   method public boolean keyChangeAllowed()
@@ -81,15 +99,84 @@ class public final org.ipro.register.RegisterDescriptor
   method public org.ipro.register.RegisterPeriodicity periodicity()
   method public static org.ipro.register.RegisterDescriptor describe(java.lang.Class<?>)
 
+class public final org.ipro.register.RegisterKeyChangePermissions
+  implements org.springframework.beans.factory.SmartInitializingSingleton
+  ctor public(org.ipro.register.RegisterRegistry, org.ipro.rls.c5.C5OperationPermissionRegistry, org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.c5.C5PermissionDecisionService, org.ipro.rls.RlsCurrentUser, org.ipro.rls.AccessService)
+  method public boolean canChangeKey(java.lang.Class<?>, java.lang.Object)
+  method public static java.lang.String permissionId(java.lang.Class<?>)
+  method public void afterSingletonsInstantiated()
+
 class public final org.ipro.register.RegisterKeyChangeScope
   implements java.lang.AutoCloseable
   method public static boolean permits(java.lang.Object)
   method public void close()
 
+class public final org.ipro.register.RegisterKeyChanges
+  ctor public(jakarta.persistence.EntityManager, org.ipro.register.RegisterRegistry, org.ipro.register.RegisterKeyChangePermissions, org.ipro.data.EntityDataAccess, org.ipro.rls.RlsPolicyEnforcer, jakarta.validation.Validator, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.events.EntityEventPublisher, org.ipro.rls.RlsCurrentUser, java.util.Optional<org.ipro.telemetry.api.EventSink>, org.springframework.transaction.PlatformTransactionManager)
+  method public <T extends org.ipro.crud.BaseEntity> T change(java.lang.Class<T>, java.lang.Long, java.lang.Long, java.util.Map<java.lang.String, ?>, java.time.LocalDateTime)
+
+class public final org.ipro.register.RegisterKeyWritePermissions
+  implements org.springframework.beans.factory.SmartInitializingSingleton
+  ctor public(org.ipro.register.RegisterRegistry, org.ipro.rls.c5.C5OperationPermissionRegistry, org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.c5.C5PermissionDecisionService, org.ipro.rls.RlsCurrentUser)
+  method public boolean canWriteKey(java.lang.Class<?>, boolean)
+  method public static java.lang.String deletePermissionId(java.lang.Class<?>)
+  method public static java.lang.String setPermissionId(java.lang.Class<?>)
+  method public void afterSingletonsInstantiated()
+
+class public final org.ipro.register.RegisterKeyWrites
+  ctor public(jakarta.persistence.EntityManager, org.ipro.register.RegisterRegistry, org.ipro.register.RegisterKeyWritePermissions, org.ipro.data.EntityDataAccess, org.ipro.rls.RlsPolicyEnforcer, jakarta.validation.Validator, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.events.EntityEventPublisher, org.ipro.rls.RlsCurrentUser, java.util.Optional<org.ipro.telemetry.api.EventSink>, org.springframework.transaction.PlatformTransactionManager)
+  ctor public(jakarta.persistence.EntityManager, org.ipro.register.RegisterRegistry, org.ipro.register.RegisterKeyWritePermissions, org.ipro.data.EntityDataAccess, org.ipro.rls.RlsPolicyEnforcer, jakarta.validation.Validator, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.events.EntityEventPublisher, org.ipro.rls.RlsCurrentUser, java.util.Optional<org.ipro.telemetry.api.EventSink>, org.springframework.transaction.PlatformTransactionManager, int)
+  field public static final int DEFAULT_MAX_ATTEMPTS = 3
+  method public <T extends org.ipro.crud.BaseEntity> org.ipro.register.RegisterKeyWrites$Result<T> delete(java.lang.Class<T>, java.util.Map<java.lang.String, ?>, java.time.LocalDateTime, java.lang.Long)
+  method public <T extends org.ipro.crud.BaseEntity> org.ipro.register.RegisterKeyWrites$Result<T> set(java.lang.Class<T>, java.util.Map<java.lang.String, ?>, java.util.Map<java.lang.String, ?>, java.time.LocalDateTime)
+  method public <T extends org.ipro.crud.BaseEntity> org.ipro.register.RegisterKeyWrites$Result<T> set(java.lang.Class<T>, java.util.Map<java.lang.String, ?>, java.util.Map<java.lang.String, ?>, java.time.LocalDateTime, java.lang.Long)
+
 class public final org.ipro.register.RegisterPeriodListener
   ctor public()
   method public static void normalize(java.lang.Object)
   method public void beforeWrite(java.lang.Object)
+
+class public final org.ipro.register.RegisterReader
+  type-parameter T
+  ctor public(java.lang.Class<T>, org.ipro.data.EntityDataAccess)
+  ctor public(java.lang.Class<T>, org.ipro.data.EntityDataAccess, org.ipro.register.RegisterRegistry)
+  method public java.util.Optional<T> getLast(java.util.Map<java.lang.String, ?>, java.time.LocalDateTime)
+
+class public final org.ipro.register.RegisterReaderFactory
+  ctor public(org.ipro.register.RegisterRegistry, org.ipro.data.EntityDataAccess, jakarta.persistence.EntityManagerFactory)
+  method public <T> org.ipro.register.RegisterReader<T> point(java.lang.Class<T>)
+  method public <T> org.ipro.register.RegisterSliceReader<T> slice(java.lang.Class<T>)
+
+class public final org.ipro.register.RegisterRecords
+  ctor public(jakarta.persistence.EntityManager, org.ipro.register.RegisterRegistry, org.ipro.register.RecorderTypeRegistry, jakarta.validation.Validator, org.ipro.lifecycle.EntityLifecycleRegistry, org.ipro.rls.RlsFilterActivator, org.ipro.register.RecorderSetWriteAuthorizer, org.springframework.transaction.PlatformTransactionManager)
+  method public org.ipro.register.RegisterRecords$ForRecorder forRecorder(org.ipro.lifecycle.EntitySaveContext<?>)
+
+class public final org.ipro.register.RegisterRecords$ForRecorder
+  method public <T extends org.ipro.crud.BaseEntity & org.ipro.register.RecordedRegisterEntry> int clear(java.lang.Class<T>)
+  method public <T extends org.ipro.crud.BaseEntity & org.ipro.register.RecordedRegisterEntry> java.util.List<T> add(java.lang.Class<T>, java.util.List<? extends T>)
+  method public <T extends org.ipro.crud.BaseEntity & org.ipro.register.RecordedRegisterEntry> void delete(java.lang.Class<T>, java.lang.Long)
+
+class public final org.ipro.register.RegisterRegistry
+  ctor public(org.ipro.metadata.ManagedEntityCatalog)
+  ctor public(org.ipro.metadata.ManagedEntityCatalog, org.ipro.register.RecorderTypeRegistry)
+  method public java.util.List<org.ipro.register.RegisterDescriptor> descriptors()
+  method public java.util.Optional<org.ipro.register.RegisterDescriptor> find(java.lang.Class<?>)
+  method public org.ipro.register.RegisterDescriptor require(java.lang.Class<?>)
+  method public synchronized void initialize()
+
+class public final org.ipro.register.RegisterSliceReader
+  type-parameter T
+  ctor public(java.lang.Class<T>, org.ipro.data.EntityDataAccess, org.ipro.register.RegisterRegistry, jakarta.persistence.EntityManagerFactory)
+  field public static final int MAX_BATCH_KEYS = 200
+  field public static final int MAX_PAGE_SIZE = 500
+  method public java.util.List<T> latestForKeys(java.time.LocalDateTime, java.util.Collection<java.util.Map<java.lang.String, java.lang.Object>>)
+  method public java.util.List<T> latestForKeys(java.time.LocalDateTime, java.util.Collection<java.util.Map<java.lang.String, java.lang.Object>>, org.ipro.register.RecorderRef)
+  method public java.util.Optional<T> first(org.ipro.register.SliceSpec)
+  method public java.util.Optional<T> first(org.ipro.register.SliceSpec, org.ipro.register.RecorderRef)
+  method public org.springframework.data.domain.Page<T> latest(org.ipro.register.SliceSpec, org.springframework.data.domain.Pageable)
+  method public org.springframework.data.domain.Page<T> latestExcludingRecorder(org.ipro.register.SliceSpec, org.ipro.register.RecorderRef, org.springframework.data.domain.Pageable)
+  method public org.springframework.data.domain.Pageable latestListPageable(org.springframework.data.domain.Pageable)
+  method public org.springframework.data.jpa.domain.Specification<T> latestListSpecification(java.time.LocalDateTime, org.springframework.data.jpa.domain.Specification<T>, org.springframework.data.jpa.domain.Specification<T>)
 
 class public org.ipro.register.RecorderRef
   annotation jakarta.persistence.Access
@@ -122,6 +209,24 @@ enum public static final org.ipro.register.RegisterDescriptor$Mapping
   field public static final org.ipro.register.RegisterDescriptor$Mapping TO_ONE = enum-constant
   method public static org.ipro.register.RegisterDescriptor$Mapping valueOf(java.lang.String)
   method public static org.ipro.register.RegisterDescriptor$Mapping[] values()
+
+enum public static final org.ipro.register.RegisterKeyWrites$Verdict
+  extends java.lang.Enum<org.ipro.register.RegisterKeyWrites$Verdict>
+  enum-constants [CREATED, UPDATED, UNCHANGED, DELETED, ABSENT, VERSION_REQUIRED, VERSION_CONFLICT, CONCURRENT_INSERT, RETRY_EXHAUSTED, LOCK_TIMEOUT, SERIALIZATION_FAILURE, DEADLOCK]
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict ABSENT = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict CONCURRENT_INSERT = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict CREATED = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict DEADLOCK = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict DELETED = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict LOCK_TIMEOUT = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict RETRY_EXHAUSTED = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict SERIALIZATION_FAILURE = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict UNCHANGED = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict UPDATED = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict VERSION_CONFLICT = enum-constant
+  field public static final org.ipro.register.RegisterKeyWrites$Verdict VERSION_REQUIRED = enum-constant
+  method public static org.ipro.register.RegisterKeyWrites$Verdict valueOf(java.lang.String)
+  method public static org.ipro.register.RegisterKeyWrites$Verdict[] values()
 
 enum public static final org.ipro.register.SliceSpec$Mode
   extends java.lang.Enum<org.ipro.register.SliceSpec$Mode>
@@ -162,6 +267,32 @@ interface public abstract interface org.ipro.register.RecordedRegisterEntry
   method public abstract void setRecorder(org.ipro.register.RecorderRef)
   method public abstract void setRecordingOrder(java.lang.Long)
 
+interface public abstract interface org.ipro.register.RecorderSetWriteAuthorizer
+  annotation java.lang.FunctionalInterface
+  method public abstract void authorize(org.ipro.register.RecorderSetWriteRequest)
+
+record public final org.ipro.register.RecorderSetWriteRequest
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, org.ipro.crud.BaseEntity, org.ipro.register.RecorderRef, java.util.List<? extends org.ipro.register.RecordedRegisterEntry>, java.util.List<? extends org.ipro.register.RecordedRegisterEntry>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> registerType()
+  method public java.util.List<? extends org.ipro.register.RecordedRegisterEntry> existingRows()
+  method public java.util.List<? extends org.ipro.register.RecordedRegisterEntry> proposedRows()
+  method public org.ipro.crud.BaseEntity recorderDocument()
+  method public org.ipro.register.RecorderRef recorder()
+
+record public final org.ipro.register.RegisterListFilterPhases
+  extends java.lang.Record
+  ctor public(org.ipro.filtergrid.filter.FilterNode, org.ipro.filtergrid.filter.FilterNode)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.filtergrid.filter.FilterNode afterSlice()
+  method public org.ipro.filtergrid.filter.FilterNode dimensions()
+  method public static org.ipro.register.RegisterListFilterPhases split(org.ipro.register.RegisterDescriptor, org.ipro.filtergrid.filter.FilterNode)
+
 record public final org.ipro.register.SliceSpec
   extends java.lang.Record
   ctor public(java.lang.Class<?>, org.ipro.register.SliceSpec$Mode, java.time.LocalDateTime, java.util.List<org.ipro.register.SliceSpec$Condition>, java.util.List<org.ipro.register.SliceSpec$Condition>)
@@ -188,6 +319,17 @@ record public static final org.ipro.register.RegisterDescriptor$FieldDescriptor
   method public java.lang.String name()
   method public java.util.Optional<java.lang.String> columnName()
   method public org.ipro.register.RegisterDescriptor$Mapping mapping()
+
+record public static final org.ipro.register.RegisterKeyWrites$Result
+  extends java.lang.Record
+  type-parameter T
+  ctor public(org.ipro.register.RegisterKeyWrites$Verdict, T)
+  method public T row()
+  method public boolean written()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.register.RegisterKeyWrites$Verdict verdict()
 
 record public static final org.ipro.register.SliceSpec$Condition
   extends java.lang.Record

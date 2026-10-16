@@ -17,22 +17,22 @@ class C5OperationPermissionRegistryTest {
         registry.register(C5PermissionDefinition.entityOperations(String.class,
             Set.of(C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
 
-        assertThat(C5PermissionKeys.entityOperations(String.class)).isEqualTo("ENTITY:String");
-        assertThat(registry.isRegistered("ENTITY:String")).isTrue();
-        assertThat(registry.requireOperations("ENTITY:String"))
+        assertThat(C5PermissionKeys.entityOperations(String.class)).isEqualTo("ENTITY:java.lang.String");
+        assertThat(registry.isRegistered("ENTITY:java.lang.String")).isTrue();
+        assertThat(registry.requireOperations("ENTITY:java.lang.String"))
             .containsExactlyInAnyOrder(C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE);
     }
 
     @Test
-    void readAndOperationDefinitionsAreSeparateSpellingsOfTheSameType() {
-        registry.register(C5PermissionDefinition.entityRead(String.class));
-        registry.register(C5PermissionDefinition.entityOperations(String.class, Set.of(C5Operation.UPDATE)));
+    void readProjectionUsesTheCompleteEntityDefinition() {
+        registry.register(C5PermissionDefinition.entityOperations(String.class, Set.of(C5Operation.READ, C5Operation.UPDATE)));
 
         assertThat(registry.definitions()).extracting(C5PermissionDefinition::key)
-            .containsExactlyInAnyOrder(C5PermissionKeys.entityRead(String.class),
-                C5PermissionKeys.entityOperations(String.class));
+            .containsExactly(C5PermissionKeys.entity(String.class));
         assertThat(registry.requireOperations(C5PermissionKeys.entityRead(String.class)))
-            .containsExactly(C5Operation.READ);
+            .containsExactlyInAnyOrder(C5Operation.READ, C5Operation.UPDATE);
+        assertThat(new C5ReadPermissionRegistry(registry).registeredKeys()).containsExactly(C5PermissionKeys.entity(String.class));
+        assertThat(C5PermissionKeys.entityRead(String.class)).isEqualTo(C5PermissionKeys.entityOperations(String.class));
     }
 
     @Test
@@ -50,7 +50,7 @@ class C5OperationPermissionRegistryTest {
         assertThatThrownBy(() -> registry.register(
             C5PermissionDefinition.entityOperations(String.class, Set.of(C5Operation.CREATE, C5Operation.DELETE))))
             .isInstanceOf(C5PermissionConfigurationException.class)
-            .hasMessageContaining("ENTITY:String")
+            .hasMessageContaining("ENTITY:java.lang.String")
             .hasMessageContaining("conflict");
     }
 
@@ -83,7 +83,7 @@ class C5OperationPermissionRegistryTest {
     void operationTheDefinitionDoesNotDeclareIsRefusedBeforeAnyGrantIsRead() {
         registry.register(C5PermissionDefinition.entityOperations(String.class, Set.of(C5Operation.CREATE)));
 
-        assertThatThrownBy(() -> registry.requireSupports("ENTITY:String", C5Operation.DELETE))
+        assertThatThrownBy(() -> registry.requireSupports(C5PermissionKeys.entity(String.class), C5Operation.DELETE))
             .isInstanceOf(C5PermissionConfigurationException.class)
             .hasMessageContaining("cannot decide DELETE");
         assertThat(registry.isRegistered("ENTITY:NeverDeclared")).isFalse();
@@ -109,18 +109,13 @@ class C5OperationPermissionRegistryTest {
         assertThatThrownBy(() -> new C5PermissionDefinition("ENTITY:X", Set.of()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("declares no operation");
-        assertThatThrownBy(() -> new C5PermissionDefinition("ENTITY:X",
-            Set.of(C5Operation.READ, C5Operation.UPDATE)))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("must not carry other operations");
+        assertThat(new C5PermissionDefinition("ENTITY:X", Set.of(C5Operation.READ, C5Operation.UPDATE)).operations())
+            .containsExactlyInAnyOrder(C5Operation.READ, C5Operation.UPDATE);
     }
 
     @Test
-    void entityOperationDefinitionAcceptsOnlyWriteOperations() {
-        assertThatThrownBy(() -> C5PermissionDefinition.entityOperations(String.class,
-            Set.of(C5Operation.READ)))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("accepts only");
+    void entityDefinitionAcceptsReadButCannotExpressNamedExecution() {
+        assertThat(C5PermissionDefinition.entityOperations(String.class, Set.of(C5Operation.READ)).allows(C5Operation.READ)).isTrue();
         assertThatThrownBy(() -> C5PermissionDefinition.entityOperations(String.class,
             Set.of(C5Operation.EXECUTE)))
             .isInstanceOf(IllegalArgumentException.class);

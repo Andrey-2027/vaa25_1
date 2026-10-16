@@ -34,9 +34,10 @@ class C5EntityReadPermissionRegistrarTest {
         EntityDescriptorCatalog catalog = mock(EntityDescriptorCatalog.class);
         when(catalog.all()).thenReturn(List.of(standardRoot, ownerRead, ownedRow, internalStore));
         RlsDimensionRegistry registry = new RlsDimensionRegistry("unused.for.test");
-        C5ReadPermissionRegistry readPermissionRegistry = new C5ReadPermissionRegistry();
+        var definitions = new org.ipro.rls.c5.C5OperationPermissionRegistry();
+        C5ReadPermissionRegistry readPermissionRegistry = new C5ReadPermissionRegistry(definitions);
 
-        new C5EntityReadPermissionRegistrar(catalog, registry, readPermissionRegistry).afterPropertiesSet();
+        new C5EntityOperationPermissionRegistrar(catalog, registry, definitions).afterPropertiesSet();
 
         assertThat(registry.kindOf(C5PermissionKeys.entityRead(String.class)))
             .isEqualTo(RlsDimensionKind.CHECK_ONLY);

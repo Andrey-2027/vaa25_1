@@ -3,6 +3,7 @@ package org.ipro.data.config;
 import org.ipro.data.DataOperation;
 import org.ipro.data.EntityDescriptor;
 import org.ipro.data.EntityDescriptorCatalog;
+import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.c5.C5Operation;
@@ -20,14 +21,13 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Derives C5 entity operation definitions from canonical capabilities (ADR-0017 §5, plan C5.5).
+ * Derives one complete C5 entity definition from canonical read/write capabilities (P-U).
  *
  * <p>The application never enumerates platform types by hand: a type gets {@code CREATE}/{@code
  * UPDATE}/{@code DELETE} definitions exactly when its descriptor allows that write intention, and a
- * type without a canonical handle (owned row, internal store, read-only type) gets none. The
- * definition key is the existing entity gate key, registered as a dynamic CHECK_ONLY dimension so
- * the grant admin can assign it — the same mechanism the read registrar already uses for read
- * keys.</p>
+ * type without write capabilities gets no write operations. Canonical readers, including read-only
+ * types, contribute READ to that same definition. Its fully qualified entity key is registered
+ * as a dynamic CHECK_ONLY dimension for administration, without an entity-level RLS gate.</p>
  *
  * <p>Registration grants nobody access; it only makes the key recognisable and assignable.</p>
  *
@@ -96,10 +96,12 @@ final class C5EntityOperationPermissionRegistrar implements InitializingBean {
             if (operations.isEmpty()) {
                 continue;
             }
-            governedNames.add(descriptor.type().getName());
             C5PermissionDefinition definition =
                 C5PermissionDefinition.entityOperations(descriptor.type(), operations);
             dimensionRegistry.registerDynamicDimension(definition.key(), RlsDimensionKind.CHECK_ONLY);
+            operationPermissionRegistry.register(definition);
+            if (descriptor.capabilities().writes().isEmpty()) continue;
+            governedNames.add(descriptor.type().getName());
             if (writeBoundaryEnforced || writeBoundaryEnforcedTypes.contains(
                     descriptor.type().getName())) {
                 // Тот же факт, что даёт операционный ключ, называет тип предметом финальной
@@ -110,7 +112,6 @@ final class C5EntityOperationPermissionRegistrar implements InitializingBean {
             } else {
                 stagedTypes.add(descriptor.type().getName());
             }
-            operationPermissionRegistry.register(definition);
         }
         requireNamedTypesHaveCanonicalWrite(governedNames);
         reportBoundaryState(armedTypes, stagedTypes);
@@ -156,13 +157,17 @@ final class C5EntityOperationPermissionRegistrar implements InitializingBean {
 
     private static Set<C5Operation> operationCapabilities(EntityDescriptor descriptor) {
         EnumSet<C5Operation> operations = EnumSet.noneOf(C5Operation.class);
+        if (descriptor.capabilities().readScenarios().stream().anyMatch(
+                Set.of(FetchScenario.LIST, FetchScenario.DETAIL, FetchScenario.LOOKUP)::contains)) {
+            operations.add(C5Operation.READ);
+        }
         for (DataOperation operation : descriptor.capabilities().writes()) {
             switch (operation) {
                 case CREATE -> operations.add(C5Operation.CREATE);
                 case UPDATE -> operations.add(C5Operation.UPDATE);
                 case DELETE -> operations.add(C5Operation.DELETE);
                 default -> {
-                    // Read intentions are not entity operations; they stay on the read path.
+                    // Other data intentions do not create a C5 permission.
                 }
             }
         }

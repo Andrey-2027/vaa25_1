@@ -1,0 +1,617 @@
+Access is denied.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Vaa25_1 ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Vaa25_1 ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 377 source files with javac [debug parameters release 21] to target\classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[759,53] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[759,67] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[760,17] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[760,48] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[759,33] scrollIntoView(com.vaadin.flow.component.ScrollOptions) in com.vaadin.flow.dom.Element has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReconcileDialog.java:[32,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[157,9] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[157,41] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[158,31] Upload(com.vaadin.flow.component.upload.Receiver) in com.vaadin.flow.component.upload.Upload has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[162,21] addSucceededListener(com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.upload.SucceededEvent>) in com.vaadin.flow.component.upload.Upload has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[392,9] com.vaadin.flow.server.StreamResource in com.vaadin.flow.server has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[392,39] com.vaadin.flow.server.StreamResource in com.vaadin.flow.server has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[394,27] Anchor(com.vaadin.flow.server.AbstractStreamResource,java.lang.String) in com.vaadin.flow.component.html.Anchor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[401,29] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportStructureEditor.java:[1634,13] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ipro/reportstudio/query/constructor/JpqlQueryBuilderDialog.java:[81,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportPreviewDialog.java:[42,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportPreviewDialog.java:[78,16] setSrc(com.vaadin.flow.server.AbstractStreamResource) in com.vaadin.flow.component.html.IFrame has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportQueryDialog.java:[47,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/Application.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/Application.java: Recompile with -Xlint:deprecation for details.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ipro/reportstudio/query/ReportQueryExecutor.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ipro/reportstudio/query/ReportQueryExecutor.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-application-runtime-dependency-tree) @ Vaa25_1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\target\application-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ Vaa25_1 ---
+[INFO] Copying 30 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ Vaa25_1 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 340 source files with javac [debug parameters release 21] to target\test-classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/NomenclaturePriceCteSpikeTest.java:[78,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/TwoDimensionRegisterCteSpikeTest.java:[48,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/config/JpqlRunServiceTest.java:[70,34] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/config/JpqlRunServiceTest.java:[75,40] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[384,51] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[404,51] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[547,20] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[548,9] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[548,35] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/jr/JrxmlExecutionIT.java:[88,34] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/jr/JrxmlExecutionIT.java:[93,17] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/param/ReportParamResolutionIT.java:[93,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/param/ReportParamResolutionIT.java:[95,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateExecutorIT.java:[46,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateFilterIT.java:[63,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateSmokeIT.java:[34,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryExecutionIT.java:[80,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryExecutionIT.java:[82,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryGuardTest.java:[66,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/SubqueryRlsIT.java:[87,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryGuardIT.java:[51,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryPackageRlsIT.java:[60,16] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryQ6HibernateIT.java:[53,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryQ6HibernateIT.java:[55,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/register/RegisterSliceCteGeneratorTest.java:[921,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/register/RegisterSliceCteGeneratorTest.java:[937,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/groupgrid/GroupingPanelView.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/groupgrid/GroupingPanelView.java: Recompile with -Xlint:deprecation for details.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/form/coordinator/DialogWorkspaceResolutionIT.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/form/coordinator/DialogWorkspaceResolutionIT.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ip.application.register.AccountingObjectPilotIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-09 00:08:32.327 INFO  [background-preinit] [] [] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 9.0.1.Final
+2026-10-09 00:08:32.454 INFO  [main] [] [] o.i.a.r.AccountingObjectPilotIT - Starting AccountingObjectPilotIT using Java 21.0.11 with PID 17312 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25)
+2026-10-09 00:08:32.458 INFO  [main] [] [] o.i.a.r.AccountingObjectPilotIT - The following 1 profile is active: "test"
+2026-10-09 00:08:38.498 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:08:39.906 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 1374 ms. Found 18 JPA repository interfaces.
+2026-10-09 00:08:41.233 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:08:41.347 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 107 ms. Found 2 JPA repository interfaces.
+2026-10-09 00:08:41.633 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:08:41.748 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 107 ms. Found 1 JPA repository interface.
+2026-10-09 00:08:41.932 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:08:42.674 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 733 ms. Found 1 JPA repository interface.
+2026-10-09 00:08:42.697 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:08:42.802 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 96 ms. Found 1 JPA repository interface.
+2026-10-09 00:08:42.862 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:08:42.917 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 51 ms. Found 1 JPA repository interface.
+2026-10-09 00:08:43.000 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:08:43.062 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 42 ms. Found 1 JPA repository interface.
+2026-10-09 00:08:43.087 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:08:43.221 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 78 ms. Found 1 JPA repository interface.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-09 00:08:50.397 INFO  [main] [] [] org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-09 00:08:50.815 INFO  [main] [] [] org.hibernate.orm.core - HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-09 00:08:53.192 INFO  [main] [] [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-09 00:08:53.422 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-10-09 00:08:54.527 INFO  [main] [] [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:34e05358-3e4d-4ee3-bd93-503b8d4d41c7 user=SA
+2026-10-09 00:08:54.535 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-10-09 00:08:54.659 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 00:08:54.786 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:34e05358-3e4d-4ee3-bd93-503b8d4d41c7]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 34E05358-3E4D-4EE3-BD93-503B8D4D41C7/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-09 00:09:03.288 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 00:09:03.960 INFO  [main] [] [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-09 00:09:04.590 INFO  [main] [] [] o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-09 00:09:18.322 INFO  [main] [] [] o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+
+_____  __________ __________________ _______ ________ ______________ 
+__   / / /___  __ \___  ____/___  __ \__  __ \___  __ \___  __/__|__ \
+_  / / / __  /_/ /__  __/   __  /_/ /_  / / /__  /_/ /__  /   ____/ /
+/ /_/ /  _  _, _/ _  /___   _  ____/ / /_/ / _  _, _/ _  /    _  __/ 
+\____/   /_/ |_|  /_____/   /_/      \____/  /_/ |_|  /_/     /____/ 
+........................................................................................................
+.  uReport, is a Chinese style report engine licensed under the Apache License 2.0,                    .
+.  which is opensource, easy to use,high-performance, with browser-based-designer.                     .
+........................................................................................................
+
+2026-10-09 00:09:23.311 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:23.313 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:23.545 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:23.546 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:23.568 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:23.568 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:23.585 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:23.585 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:23.641 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:23.642 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:23.654 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:23.655 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:26.730 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectCorrectionItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.732 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectCorrectionItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.733 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.735 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.736 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.737 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.738 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.738 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.739 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.740 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.740 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectInstallationItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.741 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectInstallationItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.741 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.742 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.743 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.744 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.744 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.745 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.746 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#active (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-09 00:09:26.746 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.747 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.748 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#valueType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.748 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#valueType (@FieldMetadata.type): ����������� ��� ENUM ��������� � ������� �� Java-����/JPA
+2026-10-09 00:09:26.748 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AttributeValue#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.749 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.750 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.750 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.750 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#formKey (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.750 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.750 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.752 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.753 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.753 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.754 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.754 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.754 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.NomSklAttribute#required (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-09 00:09:26.755 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.755 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.755 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.755 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.757 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.757 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.757 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.758 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.758 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#qt (@FieldMetadata.type): ����������� ��� DECIMAL ��������� � ������� �� Java-����/JPA
+2026-10-09 00:09:26.758 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#typeMtr (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-09 00:09:26.758 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecOper#order (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-09 00:09:26.759 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.759 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#journal (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.759 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.ReceivingDocument#journal (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-09 00:09:26.760 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [UI_REQUIRED_SERVER_OPTIONAL] org.ip.model.ReceivingDocument#journal (@FieldMetadata.required (���������: ������ ���������� � ����� ��������� (order=0 � ������������ (journal_id, number)), �� ������ ��������� NULL: ���������� ����������� UI �� ������� �� ���������� ���������)): UI ������� ����������, �������� ������ ����� �� �������
+2026-10-09 00:09:26.760 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.760 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#receivingWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.760 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#receivingWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.762 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#transferringWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.762 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#transferringWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.762 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocumentItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.762 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.762 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#quantity (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.763 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Role#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.763 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.User#username (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.764 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.Workshop#branch (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:09:26.764 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.Workshop#branch (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-09 00:09:26.765 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.766 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:09:26.926 WARN  [main] [] [] o.i.d.c.C5EntityOperationPermissionRegistrar - ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 20 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: [org.ip.model.AccountingObjectCorrection, org.ip.model.AccountingObjectInstallation, org.ip.model.AccountingType, org.ip.model.AttributeType, org.ip.model.AttributeValue, org.ip.model.Branch, org.ip.model.GridFormView, org.ip.model.GroupNom, org.ip.model.Journal, org.ip.model.NomSklAttribute, org.ip.model.Nomenclature, org.ip.model.NomenclatureAccountingObject, org.ip.model.NomenclaturePrice, org.ip.model.Oper, org.ip.model.PrdSpec, org.ip.model.ReceivingDocument, org.ip.model.Role, org.ip.model.UnitOfMeasurement, org.ip.model.User, org.ip.model.Workshop]
+2026-10-09 00:09:26.953 INFO  [main] [] [] o.ipro.data.EventContourStartupCheck - ������ lifecycle ���������: 10 handler(s) [AttributeType -> AttributeTypeLifecycle, AttributeValue -> AttributeValueLifecycle, Nomenclature -> NomenclatureLifecycle, NomSklAttribute -> NomSklAttributeLifecycle, PrdSpec -> PrdSpecLifecycle, ReceivingDocument -> ReceivingDocumentLifecycle, GridFormView -> GridFormViewLifecycle, NomenclaturePrice -> NomenclaturePriceLifecycle, AccountingObjectInstallation -> , AccountingObjectCorrection -> ]
+2026-10-09 00:09:29.904 INFO  [main] [] [] o.i.a.r.AccountingObjectPilotIT - Started AccountingObjectPilotIT in 58.805 seconds (process running for 61.358)
+2026-10-09 00:09:32.584 WARN  [main] [6a38f21a-fa8e-4ca1-998c-0457d30a2eab] [rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc, reason=read exact recorder set before replacement
+2026-10-09 00:09:32.621 WARN  [main] [6a38f21a-fa8e-4ca1-998c-0457d30a2eab] [rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc, reason=read exact recorder set before replacement
+2026-10-09 00:09:32.632 WARN  [main] [6a38f21a-fa8e-4ca1-998c-0457d30a2eab] [rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc] ipro.telemetry.security - security event: rls:bypass user=rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc ip=127.0.0.1 error=null
+2026-10-09 00:09:32.785 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc traceId=6a38f21a-fa8e-4ca1-998c-0457d30a2eab duration=756,02 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:33.337 WARN  [main] [4578e950-c949-48f8-950b-45942b193840] [rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc, reason=read exact recorder set before replacement
+2026-10-09 00:09:33.345 WARN  [main] [4578e950-c949-48f8-950b-45942b193840] [rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc, reason=read exact recorder set before replacement
+2026-10-09 00:09:33.348 WARN  [main] [4578e950-c949-48f8-950b-45942b193840] [rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc] ipro.telemetry.security - security event: rls:bypass user=rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc ip=127.0.0.1 error=null
+2026-10-09 00:09:33.364 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-2fd84b07-edd8-4fdb-a8df-ddafa97406fc traceId=4578e950-c949-48f8-950b-45942b193840 duration=112,70 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:34.113 WARN  [main] [eb6348d1-5388-4599-a05f-58c90d89eac5] [rls-test-d678dffc-353e-4ba3-8873-d26e96af2e75] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-d678dffc-353e-4ba3-8873-d26e96af2e75, reason=read exact recorder set before replacement
+2026-10-09 00:09:34.123 WARN  [main] [eb6348d1-5388-4599-a05f-58c90d89eac5] [rls-test-d678dffc-353e-4ba3-8873-d26e96af2e75] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-d678dffc-353e-4ba3-8873-d26e96af2e75, reason=read exact recorder set before replacement
+2026-10-09 00:09:34.126 WARN  [main] [eb6348d1-5388-4599-a05f-58c90d89eac5] [rls-test-d678dffc-353e-4ba3-8873-d26e96af2e75] ipro.telemetry.security - security event: rls:bypass user=rls-test-d678dffc-353e-4ba3-8873-d26e96af2e75 ip=127.0.0.1 error=null
+2026-10-09 00:09:34.147 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-d678dffc-353e-4ba3-8873-d26e96af2e75 traceId=eb6348d1-5388-4599-a05f-58c90d89eac5 duration=121,83 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:34.366 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=document-delete-be5a1d9a-6911-4317-9b7a-f91baef4a4da, reason=delete dependent rows before root deletion
+2026-10-09 00:09:34.374 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=document-delete-be5a1d9a-6911-4317-9b7a-f91baef4a4da, reason=delete dependent rows before root deletion
+2026-10-09 00:09:34.376 WARN  [main] [] [] ipro.telemetry.security - security event: rls:bypass user=document-delete-be5a1d9a-6911-4317-9b7a-f91baef4a4da ip=127.0.0.1 error=null
+2026-10-09 00:09:34.388 WARN  [main] [] [] ipro.telemetry.security - security event: rls:denied user=document-delete-be5a1d9a-6911-4317-9b7a-f91baef4a4da ip=127.0.0.1 error=��� ���� �� �������� (��������� ENTITY:NomenclatureAccountingObject, �������� ����� ������)
+2026-10-09 00:09:34.889 WARN  [main] [0115af6d-ff79-4377-a865-26a5b440ae4b] [rls-test-306558bd-f730-4bea-8f0a-7a092784c5e7] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-306558bd-f730-4bea-8f0a-7a092784c5e7, reason=read exact recorder set before replacement
+2026-10-09 00:09:34.898 WARN  [main] [0115af6d-ff79-4377-a865-26a5b440ae4b] [rls-test-306558bd-f730-4bea-8f0a-7a092784c5e7] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-306558bd-f730-4bea-8f0a-7a092784c5e7, reason=read exact recorder set before replacement
+2026-10-09 00:09:34.900 WARN  [main] [0115af6d-ff79-4377-a865-26a5b440ae4b] [rls-test-306558bd-f730-4bea-8f0a-7a092784c5e7] ipro.telemetry.security - security event: rls:bypass user=rls-test-306558bd-f730-4bea-8f0a-7a092784c5e7 ip=127.0.0.1 error=null
+2026-10-09 00:09:34.918 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-306558bd-f730-4bea-8f0a-7a092784c5e7 traceId=0115af6d-ff79-4377-a865-26a5b440ae4b duration=98,06 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:35.513 WARN  [main] [bab60dbf-54ba-4222-aef1-d5e8c80d47f5] [rls-test-62ae479b-c5ae-47c5-8415-65b9c7af4ae2] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-62ae479b-c5ae-47c5-8415-65b9c7af4ae2, reason=read exact recorder set before replacement
+2026-10-09 00:09:35.522 WARN  [main] [bab60dbf-54ba-4222-aef1-d5e8c80d47f5] [rls-test-62ae479b-c5ae-47c5-8415-65b9c7af4ae2] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-62ae479b-c5ae-47c5-8415-65b9c7af4ae2, reason=read exact recorder set before replacement
+2026-10-09 00:09:35.525 WARN  [main] [bab60dbf-54ba-4222-aef1-d5e8c80d47f5] [rls-test-62ae479b-c5ae-47c5-8415-65b9c7af4ae2] ipro.telemetry.security - security event: rls:bypass user=rls-test-62ae479b-c5ae-47c5-8415-65b9c7af4ae2 ip=127.0.0.1 error=null
+2026-10-09 00:09:35.541 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-62ae479b-c5ae-47c5-8415-65b9c7af4ae2 traceId=bab60dbf-54ba-4222-aef1-d5e8c80d47f5 duration=94,26 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:36.766 WARN  [main] [dbc87145-47d9-445a-b98f-66fbae889961] [rls-test-c8af1962-4c49-463f-9596-4918e09fb982] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c8af1962-4c49-463f-9596-4918e09fb982, reason=read exact recorder set before replacement
+2026-10-09 00:09:36.773 WARN  [main] [dbc87145-47d9-445a-b98f-66fbae889961] [rls-test-c8af1962-4c49-463f-9596-4918e09fb982] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c8af1962-4c49-463f-9596-4918e09fb982, reason=read exact recorder set before replacement
+2026-10-09 00:09:36.776 WARN  [main] [dbc87145-47d9-445a-b98f-66fbae889961] [rls-test-c8af1962-4c49-463f-9596-4918e09fb982] ipro.telemetry.security - security event: rls:bypass user=rls-test-c8af1962-4c49-463f-9596-4918e09fb982 ip=127.0.0.1 error=null
+2026-10-09 00:09:36.790 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-c8af1962-4c49-463f-9596-4918e09fb982 traceId=dbc87145-47d9-445a-b98f-66fbae889961 duration=81,31 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:37.191 WARN  [main] [e60239ef-d80f-4198-8d57-61fe3dc87dc7] [rls-test-2f3944b7-4a93-4564-80d2-ce0ac8f14607] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-2f3944b7-4a93-4564-80d2-ce0ac8f14607, reason=read exact recorder set before replacement
+2026-10-09 00:09:37.199 WARN  [main] [e60239ef-d80f-4198-8d57-61fe3dc87dc7] [rls-test-2f3944b7-4a93-4564-80d2-ce0ac8f14607] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-2f3944b7-4a93-4564-80d2-ce0ac8f14607, reason=read exact recorder set before replacement
+2026-10-09 00:09:37.201 WARN  [main] [e60239ef-d80f-4198-8d57-61fe3dc87dc7] [rls-test-2f3944b7-4a93-4564-80d2-ce0ac8f14607] ipro.telemetry.security - security event: rls:bypass user=rls-test-2f3944b7-4a93-4564-80d2-ce0ac8f14607 ip=127.0.0.1 error=null
+2026-10-09 00:09:37.214 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-2f3944b7-4a93-4564-80d2-ce0ac8f14607 traceId=e60239ef-d80f-4198-8d57-61fe3dc87dc7 duration=82,53 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:37.459 WARN  [main] [] [] ipro.telemetry.security - security event: rls:denied user=key-only-badcd78b-46c1-4e8b-b4f4-8f81f3933acf ip=127.0.0.1 error=��� ���� �� ��������� (��������� ENTITY:NomenclatureAccountingObject, �������� ����� ������)
+2026-10-09 00:09:37.760 WARN  [main] [bfc49fb5-2209-4e64-80f5-c9fff71faf03] [rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f, reason=read exact recorder set before replacement
+2026-10-09 00:09:37.770 WARN  [main] [bfc49fb5-2209-4e64-80f5-c9fff71faf03] [rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f, reason=read exact recorder set before replacement
+2026-10-09 00:09:37.773 WARN  [main] [bfc49fb5-2209-4e64-80f5-c9fff71faf03] [rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f] ipro.telemetry.security - security event: rls:bypass user=rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f ip=127.0.0.1 error=null
+2026-10-09 00:09:37.787 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f traceId=bfc49fb5-2209-4e64-80f5-c9fff71faf03 duration=76,28 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:38.020 WARN  [main] [e7e9d658-a530-47cf-a713-4985d1e24c3d] [rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f, reason=read exact recorder set before replacement
+2026-10-09 00:09:38.025 WARN  [main] [e7e9d658-a530-47cf-a713-4985d1e24c3d] [rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f, reason=read exact recorder set before replacement
+2026-10-09 00:09:38.027 WARN  [main] [e7e9d658-a530-47cf-a713-4985d1e24c3d] [rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f] ipro.telemetry.security - security event: rls:bypass user=rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f ip=127.0.0.1 error=null
+2026-10-09 00:09:38.038 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-4f093ac9-59a5-47a2-a63b-7c597dadab2f traceId=e7e9d658-a530-47cf-a713-4985d1e24c3d duration=158,89 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:38.521 WARN  [main] [92c42d69-6fe7-4457-9a4c-16cb1381ff6a] [rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab, reason=read exact recorder set before replacement
+2026-10-09 00:09:38.528 WARN  [main] [92c42d69-6fe7-4457-9a4c-16cb1381ff6a] [rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab, reason=read exact recorder set before replacement
+2026-10-09 00:09:38.530 WARN  [main] [92c42d69-6fe7-4457-9a4c-16cb1381ff6a] [rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab] ipro.telemetry.security - security event: rls:bypass user=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab ip=127.0.0.1 error=null
+2026-10-09 00:09:38.542 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab traceId=92c42d69-6fe7-4457-9a4c-16cb1381ff6a duration=64,21 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:38.703 WARN  [main] [6a43000b-21b4-4670-9730-fa70f88027fb] [rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab, reason=read exact recorder set before replacement
+2026-10-09 00:09:38.709 WARN  [main] [6a43000b-21b4-4670-9730-fa70f88027fb] [rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab, reason=read exact recorder set before replacement
+2026-10-09 00:09:38.711 WARN  [main] [6a43000b-21b4-4670-9730-fa70f88027fb] [rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab] ipro.telemetry.security - security event: rls:bypass user=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab ip=127.0.0.1 error=null
+2026-10-09 00:09:38.722 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab traceId=6a43000b-21b4-4670-9730-fa70f88027fb duration=109,43 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:38.866 WARN  [main] [1362b402-3eff-4c58-911e-fe5d290e1f29] [rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab, reason=read exact recorder set before replacement
+2026-10-09 00:09:38.874 WARN  [main] [1362b402-3eff-4c58-911e-fe5d290e1f29] [rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab, reason=read exact recorder set before replacement
+2026-10-09 00:09:38.876 WARN  [main] [1362b402-3eff-4c58-911e-fe5d290e1f29] [rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab] ipro.telemetry.security - security event: rls:bypass user=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab ip=127.0.0.1 error=null
+2026-10-09 00:09:38.895 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-1d314ce7-d0df-4c8e-9af5-a874e5606bab traceId=1362b402-3eff-4c58-911e-fe5d290e1f29 duration=115,47 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:39.406 WARN  [main] [e83c2ebe-b1ec-464e-83e1-b9eeef7e201f] [rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=read exact recorder set before replacement
+2026-10-09 00:09:39.413 WARN  [main] [e83c2ebe-b1ec-464e-83e1-b9eeef7e201f] [rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=read exact recorder set before replacement
+2026-10-09 00:09:39.415 WARN  [main] [e83c2ebe-b1ec-464e-83e1-b9eeef7e201f] [rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108] ipro.telemetry.security - security event: rls:bypass user=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108 ip=127.0.0.1 error=null
+2026-10-09 00:09:39.425 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108 traceId=e83c2ebe-b1ec-464e-83e1-b9eeef7e201f duration=65,39 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:39.559 WARN  [main] [a1b1a965-3299-4667-832e-6d2d2bd65598] [rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=read exact recorder set before replacement
+2026-10-09 00:09:39.567 WARN  [main] [a1b1a965-3299-4667-832e-6d2d2bd65598] [rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=read exact recorder set before replacement
+2026-10-09 00:09:39.569 WARN  [main] [a1b1a965-3299-4667-832e-6d2d2bd65598] [rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108] ipro.telemetry.security - security event: rls:bypass user=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108 ip=127.0.0.1 error=null
+2026-10-09 00:09:39.583 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108 traceId=a1b1a965-3299-4667-832e-6d2d2bd65598 duration=95,38 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:39.628 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=delete dependent rows before root deletion
+2026-10-09 00:09:39.634 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=delete dependent rows before root deletion
+2026-10-09 00:09:39.637 WARN  [main] [] [] ipro.telemetry.security - security event: rls:bypass user=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108 ip=127.0.0.1 error=null
+2026-10-09 00:09:39.779 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=delete dependent rows before root deletion
+2026-10-09 00:09:39.786 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=delete dependent rows before root deletion
+2026-10-09 00:09:39.788 WARN  [main] [] [] ipro.telemetry.security - security event: rls:bypass user=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108 ip=127.0.0.1 error=null
+2026-10-09 00:09:39.900 WARN  [main] [a60388d5-c506-498c-8c1f-44b269a57bae] [rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=read exact recorder set before replacement
+2026-10-09 00:09:39.906 WARN  [main] [a60388d5-c506-498c-8c1f-44b269a57bae] [rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108, reason=read exact recorder set before replacement
+2026-10-09 00:09:39.907 WARN  [main] [a60388d5-c506-498c-8c1f-44b269a57bae] [rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108] ipro.telemetry.security - security event: rls:bypass user=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108 ip=127.0.0.1 error=null
+2026-10-09 00:09:39.920 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-99235d24-2ea0-4bd1-bb4d-42c7c7f31108 traceId=a60388d5-c506-498c-8c1f-44b269a57bae duration=61,06 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:40.273 WARN  [main] [b51f6a2d-ad36-44e0-8b52-5271ba4e1461] [rls-test-508640a8-d7b8-4fc6-8b80-d5a65e223efc] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-508640a8-d7b8-4fc6-8b80-d5a65e223efc, reason=read exact recorder set before replacement
+2026-10-09 00:09:40.279 WARN  [main] [b51f6a2d-ad36-44e0-8b52-5271ba4e1461] [rls-test-508640a8-d7b8-4fc6-8b80-d5a65e223efc] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-508640a8-d7b8-4fc6-8b80-d5a65e223efc, reason=read exact recorder set before replacement
+2026-10-09 00:09:40.282 WARN  [main] [b51f6a2d-ad36-44e0-8b52-5271ba4e1461] [rls-test-508640a8-d7b8-4fc6-8b80-d5a65e223efc] ipro.telemetry.security - security event: rls:bypass user=rls-test-508640a8-d7b8-4fc6-8b80-d5a65e223efc ip=127.0.0.1 error=null
+2026-10-09 00:09:40.293 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-508640a8-d7b8-4fc6-8b80-d5a65e223efc traceId=b51f6a2d-ad36-44e0-8b52-5271ba4e1461 duration=64,23 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:40.581 WARN  [main] [b962dd5d-fabb-491f-854e-0d6b947bcfbb] [rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf, reason=read exact recorder set before replacement
+2026-10-09 00:09:40.589 WARN  [main] [b962dd5d-fabb-491f-854e-0d6b947bcfbb] [rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf, reason=read exact recorder set before replacement
+2026-10-09 00:09:40.591 WARN  [main] [b962dd5d-fabb-491f-854e-0d6b947bcfbb] [rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf] ipro.telemetry.security - security event: rls:bypass user=rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf ip=127.0.0.1 error=null
+2026-10-09 00:09:40.603 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf traceId=b962dd5d-fabb-491f-854e-0d6b947bcfbb duration=65,89 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:40.713 WARN  [main] [8692b743-312d-443c-a3b2-df8b90f6f764] [rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf, reason=read exact recorder set before replacement
+2026-10-09 00:09:40.720 WARN  [main] [8692b743-312d-443c-a3b2-df8b90f6f764] [rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf, reason=read exact recorder set before replacement
+2026-10-09 00:09:40.722 WARN  [main] [8692b743-312d-443c-a3b2-df8b90f6f764] [rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf] ipro.telemetry.security - security event: rls:bypass user=rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf ip=127.0.0.1 error=null
+2026-10-09 00:09:40.732 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-038b8760-e7a9-4ce8-a695-47884e2cbdaf traceId=8692b743-312d-443c-a3b2-df8b90f6f764 duration=78,78 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:41.070 WARN  [main] [a7857983-0117-4ed4-864f-463680e01c04] [rls-test-5b7d6e11-4642-4c98-99ef-b5b55bdc4454] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-5b7d6e11-4642-4c98-99ef-b5b55bdc4454, reason=read exact recorder set before replacement
+2026-10-09 00:09:41.074 WARN  [main] [a7857983-0117-4ed4-864f-463680e01c04] [rls-test-5b7d6e11-4642-4c98-99ef-b5b55bdc4454] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-5b7d6e11-4642-4c98-99ef-b5b55bdc4454, reason=read exact recorder set before replacement
+2026-10-09 00:09:41.075 WARN  [main] [a7857983-0117-4ed4-864f-463680e01c04] [rls-test-5b7d6e11-4642-4c98-99ef-b5b55bdc4454] ipro.telemetry.security - security event: rls:bypass user=rls-test-5b7d6e11-4642-4c98-99ef-b5b55bdc4454 ip=127.0.0.1 error=null
+2026-10-09 00:09:41.084 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-5b7d6e11-4642-4c98-99ef-b5b55bdc4454 traceId=a7857983-0117-4ed4-864f-463680e01c04 duration=50,60 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:41.368 WARN  [main] [d521c3f4-e474-4dc9-94a5-ef7642943803] [rls-test-bc0df9f2-049f-45f1-aede-7df283e187ed] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-bc0df9f2-049f-45f1-aede-7df283e187ed, reason=read exact recorder set before replacement
+2026-10-09 00:09:41.378 WARN  [main] [d521c3f4-e474-4dc9-94a5-ef7642943803] [rls-test-bc0df9f2-049f-45f1-aede-7df283e187ed] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-bc0df9f2-049f-45f1-aede-7df283e187ed, reason=read exact recorder set before replacement
+2026-10-09 00:09:41.380 WARN  [main] [d521c3f4-e474-4dc9-94a5-ef7642943803] [rls-test-bc0df9f2-049f-45f1-aede-7df283e187ed] ipro.telemetry.security - security event: rls:bypass user=rls-test-bc0df9f2-049f-45f1-aede-7df283e187ed ip=127.0.0.1 error=null
+2026-10-09 00:09:41.391 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-bc0df9f2-049f-45f1-aede-7df283e187ed traceId=d521c3f4-e474-4dc9-94a5-ef7642943803 duration=63,00 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:41.847 WARN  [pool-3-thread-2] [39720ce2-6574-4cb3-8680-95c43c61a21f] [rls-test-b62e7a14-bdb7-4b39-a5e3-b02e021bd479] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b62e7a14-bdb7-4b39-a5e3-b02e021bd479, reason=read exact recorder set before replacement
+2026-10-09 00:09:41.853 WARN  [pool-3-thread-2] [39720ce2-6574-4cb3-8680-95c43c61a21f] [rls-test-b62e7a14-bdb7-4b39-a5e3-b02e021bd479] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b62e7a14-bdb7-4b39-a5e3-b02e021bd479, reason=read exact recorder set before replacement
+2026-10-09 00:09:41.856 WARN  [pool-3-thread-2] [39720ce2-6574-4cb3-8680-95c43c61a21f] [rls-test-b62e7a14-bdb7-4b39-a5e3-b02e021bd479] ipro.telemetry.security - security event: rls:bypass user=rls-test-b62e7a14-bdb7-4b39-a5e3-b02e021bd479 ip=127.0.0.1 error=null
+2026-10-09 00:09:41.865 WARN  [pool-3-thread-2] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-b62e7a14-bdb7-4b39-a5e3-b02e021bd479 traceId=39720ce2-6574-4cb3-8680-95c43c61a21f duration=52,74 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:42.332 WARN  [main] [495a3443-e033-4980-87b6-7bb70f851ff2] [rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7, reason=read exact recorder set before replacement
+2026-10-09 00:09:42.339 WARN  [main] [495a3443-e033-4980-87b6-7bb70f851ff2] [rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7, reason=read exact recorder set before replacement
+2026-10-09 00:09:42.341 WARN  [main] [495a3443-e033-4980-87b6-7bb70f851ff2] [rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7] ipro.telemetry.security - security event: rls:bypass user=rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7 ip=127.0.0.1 error=null
+2026-10-09 00:09:42.352 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7 traceId=495a3443-e033-4980-87b6-7bb70f851ff2 duration=49,46 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:42.430 WARN  [main] [8bce98b1-0766-4ef9-983a-e31d448a4eba] [rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7, reason=read exact recorder set before replacement
+2026-10-09 00:09:42.435 WARN  [main] [8bce98b1-0766-4ef9-983a-e31d448a4eba] [rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7, reason=read exact recorder set before replacement
+2026-10-09 00:09:42.437 WARN  [main] [8bce98b1-0766-4ef9-983a-e31d448a4eba] [rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7] ipro.telemetry.security - security event: rls:bypass user=rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7 ip=127.0.0.1 error=null
+2026-10-09 00:09:42.450 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-a5e7435f-9ca5-4c3e-8973-1fe1880267d7 traceId=8bce98b1-0766-4ef9-983a-e31d448a4eba duration=57,12 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:42.760 WARN  [main] [a944cf13-671e-4e4a-b998-063b441f7b8e] [rls-test-dce067c8-2818-4c1b-b406-5461a80bdc91] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dce067c8-2818-4c1b-b406-5461a80bdc91, reason=read exact recorder set before replacement
+2026-10-09 00:09:42.767 WARN  [main] [a944cf13-671e-4e4a-b998-063b441f7b8e] [rls-test-dce067c8-2818-4c1b-b406-5461a80bdc91] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dce067c8-2818-4c1b-b406-5461a80bdc91, reason=read exact recorder set before replacement
+2026-10-09 00:09:42.769 WARN  [main] [a944cf13-671e-4e4a-b998-063b441f7b8e] [rls-test-dce067c8-2818-4c1b-b406-5461a80bdc91] ipro.telemetry.security - security event: rls:bypass user=rls-test-dce067c8-2818-4c1b-b406-5461a80bdc91 ip=127.0.0.1 error=null
+2026-10-09 00:09:42.781 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-dce067c8-2818-4c1b-b406-5461a80bdc91 traceId=a944cf13-671e-4e4a-b998-063b441f7b8e duration=67,78 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:43.075 WARN  [main] [b523f7e1-d7ae-4a75-bd08-3a07875350b8] [rls-test-63ec89b3-2c27-4903-9470-887aba9122d8] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.082 WARN  [main] [b523f7e1-d7ae-4a75-bd08-3a07875350b8] [rls-test-63ec89b3-2c27-4903-9470-887aba9122d8] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.084 WARN  [main] [b523f7e1-d7ae-4a75-bd08-3a07875350b8] [rls-test-63ec89b3-2c27-4903-9470-887aba9122d8] ipro.telemetry.security - security event: rls:bypass user=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8 ip=127.0.0.1 error=null
+2026-10-09 00:09:43.094 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8 traceId=b523f7e1-d7ae-4a75-bd08-3a07875350b8 duration=59,83 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:43.214 WARN  [main] [cb28fed3-0fec-49ba-8f0a-2640a1597bcb] [rls-test-63ec89b3-2c27-4903-9470-887aba9122d8] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.220 WARN  [main] [cb28fed3-0fec-49ba-8f0a-2640a1597bcb] [rls-test-63ec89b3-2c27-4903-9470-887aba9122d8] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.222 WARN  [main] [cb28fed3-0fec-49ba-8f0a-2640a1597bcb] [rls-test-63ec89b3-2c27-4903-9470-887aba9122d8] ipro.telemetry.security - security event: rls:bypass user=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8 ip=127.0.0.1 error=null
+2026-10-09 00:09:43.231 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8 traceId=cb28fed3-0fec-49ba-8f0a-2640a1597bcb duration=80,61 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:43.336 WARN  [main] [700ff15a-9209-4689-a55e-1fb097be6407] [rls-test-63ec89b3-2c27-4903-9470-887aba9122d8] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.342 WARN  [main] [700ff15a-9209-4689-a55e-1fb097be6407] [rls-test-63ec89b3-2c27-4903-9470-887aba9122d8] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.344 WARN  [main] [700ff15a-9209-4689-a55e-1fb097be6407] [rls-test-63ec89b3-2c27-4903-9470-887aba9122d8] ipro.telemetry.security - security event: rls:bypass user=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8 ip=127.0.0.1 error=null
+2026-10-09 00:09:43.357 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-63ec89b3-2c27-4903-9470-887aba9122d8 traceId=700ff15a-9209-4689-a55e-1fb097be6407 duration=66,98 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:43.610 WARN  [main] [66ca0adc-a80b-4c7a-82ef-72e1111ee98d] [rls-test-4263a328-4a1c-4000-b36d-a0296f8db000] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-4263a328-4a1c-4000-b36d-a0296f8db000, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.615 WARN  [main] [66ca0adc-a80b-4c7a-82ef-72e1111ee98d] [rls-test-4263a328-4a1c-4000-b36d-a0296f8db000] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-4263a328-4a1c-4000-b36d-a0296f8db000, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.617 WARN  [main] [66ca0adc-a80b-4c7a-82ef-72e1111ee98d] [rls-test-4263a328-4a1c-4000-b36d-a0296f8db000] ipro.telemetry.security - security event: rls:bypass user=rls-test-4263a328-4a1c-4000-b36d-a0296f8db000 ip=127.0.0.1 error=null
+2026-10-09 00:09:43.638 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-4263a328-4a1c-4000-b36d-a0296f8db000 traceId=66ca0adc-a80b-4c7a-82ef-72e1111ee98d duration=76,15 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:43.897 WARN  [main] [b8e56232-afff-4254-a45c-f023629fbded] [rls-test-892661c3-baee-45e2-a50c-cd809b026818] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-892661c3-baee-45e2-a50c-cd809b026818, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.903 WARN  [main] [b8e56232-afff-4254-a45c-f023629fbded] [rls-test-892661c3-baee-45e2-a50c-cd809b026818] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-892661c3-baee-45e2-a50c-cd809b026818, reason=read exact recorder set before replacement
+2026-10-09 00:09:43.905 WARN  [main] [b8e56232-afff-4254-a45c-f023629fbded] [rls-test-892661c3-baee-45e2-a50c-cd809b026818] ipro.telemetry.security - security event: rls:bypass user=rls-test-892661c3-baee-45e2-a50c-cd809b026818 ip=127.0.0.1 error=null
+2026-10-09 00:09:43.917 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-892661c3-baee-45e2-a50c-cd809b026818 traceId=b8e56232-afff-4254-a45c-f023629fbded duration=49,96 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:44.153 WARN  [main] [] [] ipro.telemetry.security - security event: rls:denied user=document-writer-396b7c4b-eab3-4ed0-b9a1-28cc0fdda92f ip=127.0.0.1 error=��� ���� �� ��������� (��������� ENTITY:NomenclatureAccountingObject, �������� ����� ������)
+2026-10-09 00:09:44.326 WARN  [main] [4ab8c9d5-b2e8-4ccd-8453-4bc98adfb59b] [rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5, reason=read exact recorder set before replacement
+2026-10-09 00:09:44.334 WARN  [main] [4ab8c9d5-b2e8-4ccd-8453-4bc98adfb59b] [rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5, reason=read exact recorder set before replacement
+2026-10-09 00:09:44.334 WARN  [main] [4ab8c9d5-b2e8-4ccd-8453-4bc98adfb59b] [rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5] ipro.telemetry.security - security event: rls:bypass user=rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5 ip=127.0.0.1 error=null
+2026-10-09 00:09:44.345 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5 traceId=4ab8c9d5-b2e8-4ccd-8453-4bc98adfb59b duration=57,74 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:44.410 WARN  [main] [8b7d7867-6d7c-4aa5-b2f0-cb9041b0e585] [rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5, reason=read exact recorder set before replacement
+2026-10-09 00:09:44.414 WARN  [main] [8b7d7867-6d7c-4aa5-b2f0-cb9041b0e585] [rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5, reason=read exact recorder set before replacement
+2026-10-09 00:09:44.416 WARN  [main] [8b7d7867-6d7c-4aa5-b2f0-cb9041b0e585] [rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5] ipro.telemetry.security - security event: rls:bypass user=rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5 ip=127.0.0.1 error=null
+2026-10-09 00:09:44.425 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5 traceId=8b7d7867-6d7c-4aa5-b2f0-cb9041b0e585 duration=48,76 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:44.510 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-9e919932-4bd5-4e71-a86a-d4a7214dd7a5 traceId=70d51503-0abc-4d04-b097-225a462157a5 duration=41,14 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:44.723 WARN  [main] [afe25d57-bb4c-47b1-a89c-7923cfb4b4bc] [rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f, reason=read exact recorder set before replacement
+2026-10-09 00:09:44.726 WARN  [main] [afe25d57-bb4c-47b1-a89c-7923cfb4b4bc] [rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f, reason=read exact recorder set before replacement
+2026-10-09 00:09:44.730 WARN  [main] [afe25d57-bb4c-47b1-a89c-7923cfb4b4bc] [rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f] ipro.telemetry.security - security event: rls:bypass user=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f ip=127.0.0.1 error=null
+2026-10-09 00:09:44.736 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f traceId=afe25d57-bb4c-47b1-a89c-7923cfb4b4bc duration=47,50 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:44.847 WARN  [main] [1d837f28-31a4-4e43-91b4-21bb026813af] [rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f, reason=read exact recorder set before replacement
+2026-10-09 00:09:44.852 WARN  [main] [1d837f28-31a4-4e43-91b4-21bb026813af] [rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f, reason=read exact recorder set before replacement
+2026-10-09 00:09:44.855 WARN  [main] [1d837f28-31a4-4e43-91b4-21bb026813af] [rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f] ipro.telemetry.security - security event: rls:bypass user=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f ip=127.0.0.1 error=null
+2026-10-09 00:09:44.864 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f traceId=1d837f28-31a4-4e43-91b4-21bb026813af duration=73,95 ms sql=0 N+1 droppedFrames=0
+2026-10-09 00:09:44.940 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f, reason=delete dependent rows before root deletion
+2026-10-09 00:09:44.945 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f, reason=delete dependent rows before root deletion
+2026-10-09 00:09:44.949 WARN  [main] [] [] ipro.telemetry.security - security event: rls:bypass user=rls-test-6c42ae16-107d-4dd0-9947-7255a32c266f ip=127.0.0.1 error=null
+2026-10-09 00:09:45.177 WARN  [main] [d3b6c2fc-155e-4066-a2fa-7865f3eee914] [rls-test-60ad9d90-bea7-42cb-a585-f7bb959a68f5] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-60ad9d90-bea7-42cb-a585-f7bb959a68f5, reason=read exact recorder set before replacement
+2026-10-09 00:09:45.181 WARN  [main] [d3b6c2fc-155e-4066-a2fa-7865f3eee914] [rls-test-60ad9d90-bea7-42cb-a585-f7bb959a68f5] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-60ad9d90-bea7-42cb-a585-f7bb959a68f5, reason=read exact recorder set before replacement
+2026-10-09 00:09:45.181 WARN  [main] [d3b6c2fc-155e-4066-a2fa-7865f3eee914] [rls-test-60ad9d90-bea7-42cb-a585-f7bb959a68f5] ipro.telemetry.security - security event: rls:bypass user=rls-test-60ad9d90-bea7-42cb-a585-f7bb959a68f5 ip=127.0.0.1 error=null
+2026-10-09 00:09:45.193 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-60ad9d90-bea7-42cb-a585-f7bb959a68f5 traceId=d3b6c2fc-155e-4066-a2fa-7865f3eee914 duration=53,98 ms sql=0 N+1 droppedFrames=0
+[ERROR] Tests run: 25, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 74.83 s <<< FAILURE! -- in org.ip.application.register.AccountingObjectPilotIT
+[ERROR] org.ip.application.register.AccountingObjectPilotIT.staleRegisterVersionIsRejectedAndKeyCommandFailureRollsBackOuterChanges -- Time elapsed: 0.590 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual throwable to be an instance of:
+  org.springframework.transaction.UnexpectedRollbackException
+but was:
+  org.ipro.rls.RlsAccessDeniedException: Protected WRITE reached Hibernate flush without an RLS authorization: org.ip.model.AccountingObjectInstallation
+	at org.ipro.rls.RlsWriteGuardBridge.requireAuthorized(RlsWriteGuardBridge.java:74)
+	at org.ipro.rls.RlsWriteEnforcementListener.onPreUpdate(RlsWriteEnforcementListener.java:35)
+	at org.hibernate.action.internal.EntityUpdateAction.preUpdate(EntityUpdateAction.java:365)
+	...(109 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at org.ip.application.register.AccountingObjectPilotIT.staleRegisterVersionIsRejectedAndKeyCommandFailureRollsBackOuterChanges(AccountingObjectPilotIT.java:426)
+
+[INFO] Running org.ip.application.register.NomenclaturePriceLifecycleTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in org.ip.application.register.NomenclaturePriceLifecycleTest
+[INFO] Running org.ip.application.register.NomenclaturePricePersistenceTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-09 00:09:45.693 INFO  [main] [] [] o.i.a.r.NomenclaturePricePersistenceTest - Starting NomenclaturePricePersistenceTest using Java 21.0.11 with PID 17312 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25)
+2026-10-09 00:09:45.693 INFO  [main] [] [] o.i.a.r.NomenclaturePricePersistenceTest - The following 1 profile is active: "test"
+2026-10-09 00:09:47.467 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:09:47.884 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 411 ms. Found 18 JPA repository interfaces.
+2026-10-09 00:09:48.021 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:09:48.062 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 35 ms. Found 2 JPA repository interfaces.
+2026-10-09 00:09:48.134 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:09:48.179 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 52 ms. Found 1 JPA repository interface.
+2026-10-09 00:09:48.214 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:09:48.661 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 438 ms. Found 1 JPA repository interface.
+2026-10-09 00:09:48.665 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:09:48.722 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 50 ms. Found 1 JPA repository interface.
+2026-10-09 00:09:48.734 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:09:48.781 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 37 ms. Found 1 JPA repository interface.
+2026-10-09 00:09:48.791 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:09:48.806 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 11 ms. Found 1 JPA repository interface.
+2026-10-09 00:09:48.811 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 00:09:48.853 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 37 ms. Found 1 JPA repository interface.
+2026-10-09 00:09:49.738 INFO  [main] [] [] org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-09 00:09:49.885 INFO  [main] [] [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-09 00:09:49.890 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Starting...
+2026-10-09 00:09:49.902 INFO  [main] [] [] com.zaxxer.hikari.pool.HikariPool - HikariPool-2 - Added connection conn10: url=jdbc:h2:mem:245efdc6-1cf5-4ae1-9b5f-c74a41539f8d user=SA
+2026-10-09 00:09:49.904 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Start completed.
+2026-10-09 00:09:49.906 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 00:09:49.908 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:245efdc6-1cf5-4ae1-9b5f-c74a41539f8d]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 245EFDC6-1CF5-4AE1-9B5F-C74A41539F8D/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-09 00:09:51.322 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 00:09:51.506 INFO  [main] [] [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-09 00:09:56.405 INFO  [main] [] [] o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+
+_____  __________ __________________ _______ ________ ______________ 
+__   / / /___  __ \___  ____/___  __ \__  __ \___  __ \___  __/__|__ \
+_  / / / __  /_/ /__  __/   __  /_/ /_  / / /__  /_/ /__  /   ____/ /
+/ /_/ /  _  _, _/ _  /___   _  ____/ / /_/ / _  _, _/ _  /    _  __/ 
+\____/   /_/ |_|  /_____/   /_/      \____/  /_/ |_|  /_/     /____/ 
+........................................................................................................
+.  uReport, is a Chinese style report engine licensed under the Apache License 2.0,                    .
+.  which is opensource, easy to use,high-performance, with browser-based-designer.                     .
+........................................................................................................
+
+2026-10-09 00:09:58.796 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:58.796 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:58.822 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:58.822 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:58.837 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:58.837 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:58.850 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:58.850 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:58.880 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:58.880 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:09:58.895 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 00:09:58.895 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 00:10:00.478 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectCorrectionItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.478 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectCorrectionItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.478 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.478 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.478 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.478 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.478 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.478 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.478 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectInstallationItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectInstallationItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.480 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#active (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-09 00:10:00.482 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.482 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.482 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#valueType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.482 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#valueType (@FieldMetadata.type): ����������� ��� ENUM ��������� � ������� �� Java-����/JPA
+2026-10-09 00:10:00.482 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AttributeValue#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.482 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.482 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.482 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.482 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#formKey (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.NomSklAttribute#required (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.484 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.488 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.488 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.488 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.488 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.488 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#qt (@FieldMetadata.type): ����������� ��� DECIMAL ��������� � ������� �� Java-����/JPA
+2026-10-09 00:10:00.488 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#typeMtr (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-09 00:10:00.488 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecOper#order (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-09 00:10:00.488 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.490 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#journal (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.490 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.ReceivingDocument#journal (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-09 00:10:00.490 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [UI_REQUIRED_SERVER_OPTIONAL] org.ip.model.ReceivingDocument#journal (@FieldMetadata.required (���������: ������ ���������� � ����� ��������� (order=0 � ������������ (journal_id, number)), �� ������ ��������� NULL: ���������� ����������� UI �� ������� �� ���������� ���������)): UI ������� ����������, �������� ������ ����� �� �������
+2026-10-09 00:10:00.490 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.490 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#receivingWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.490 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#receivingWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.492 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#transferringWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.492 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#transferringWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.492 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocumentItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.492 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.492 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#quantity (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.494 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Role#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.495 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.User#username (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.495 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.Workshop#branch (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 00:10:00.495 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.Workshop#branch (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-09 00:10:00.495 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.495 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 00:10:00.552 WARN  [main] [] [] o.i.d.c.C5EntityOperationPermissionRegistrar - ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 20 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: [org.ip.model.AccountingObjectCorrection, org.ip.model.AccountingObjectInstallation, org.ip.model.AccountingType, org.ip.model.AttributeType, org.ip.model.AttributeValue, org.ip.model.Branch, org.ip.model.GridFormView, org.ip.model.GroupNom, org.ip.model.Journal, org.ip.model.NomSklAttribute, org.ip.model.Nomenclature, org.ip.model.NomenclatureAccountingObject, org.ip.model.NomenclaturePrice, org.ip.model.Oper, org.ip.model.PrdSpec, org.ip.model.ReceivingDocument, org.ip.model.Role, org.ip.model.UnitOfMeasurement, org.ip.model.User, org.ip.model.Workshop]
+2026-10-09 00:10:00.562 INFO  [main] [] [] o.ipro.data.EventContourStartupCheck - ������ lifecycle ���������: 10 handler(s) [AttributeType -> AttributeTypeLifecycle, AttributeValue -> AttributeValueLifecycle, Nomenclature -> NomenclatureLifecycle, NomSklAttribute -> NomSklAttributeLifecycle, PrdSpec -> PrdSpecLifecycle, ReceivingDocument -> ReceivingDocumentLifecycle, GridFormView -> GridFormViewLifecycle, NomenclaturePrice -> NomenclaturePriceLifecycle, AccountingObjectInstallation -> , AccountingObjectCorrection -> ]
+2026-10-09 00:10:01.684 INFO  [main] [] [] o.i.a.r.NomenclaturePricePersistenceTest - Started NomenclaturePricePersistenceTest in 16.333 seconds (process running for 93.138)
+2026-10-09 00:10:02.296 WARN  [main] [] [] org.hibernate.orm.jdbc.error - HHH000247: ErrorCode: 23502, SQLState: 23502
+2026-10-09 00:10:02.302 WARN  [main] [] [] org.hibernate.orm.jdbc.error - �������� NULL �� ��������� ��� ���� "NOMENCLATURE_ID"
+NULL not allowed for column "NOMENCLATURE_ID"; SQL statement:
+insert into nomenclature_price (nomenclature_id, period_date, price, version) values (?, ?, ?, 0) [23502-240]
+2026-10-09 00:10:02.336 WARN  [main] [] [] org.hibernate.orm.jdbc.error - HHH000247: ErrorCode: 23502, SQLState: 23502
+2026-10-09 00:10:02.336 WARN  [main] [] [] org.hibernate.orm.jdbc.error - �������� NULL �� ��������� ��� ���� "PERIOD_DATE"
+NULL not allowed for column "PERIOD_DATE"; SQL statement:
+insert into nomenclature_price (nomenclature_id, period_date, price, version) values (?, ?, ?, 0) [23502-240]
+2026-10-09 00:10:02.355 WARN  [main] [] [] org.hibernate.orm.jdbc.error - HHH000247: ErrorCode: 23502, SQLState: 23502
+2026-10-09 00:10:02.355 WARN  [main] [] [] org.hibernate.orm.jdbc.error - �������� NULL �� ��������� ��� ���� "PRICE"
+NULL not allowed for column "PRICE"; SQL statement:
+insert into nomenclature_price (nomenclature_id, period_date, price, version) values (?, ?, ?, 0) [23502-240]
+2026-10-09 00:10:02.380 WARN  [main] [] [] org.hibernate.orm.jdbc.error - HHH000247: ErrorCode: 23505, SQLState: 23505
+2026-10-09 00:10:02.380 WARN  [main] [] [] org.hibernate.orm.jdbc.error - ��������� ����������� ������� ��� ���������� �����: "PUBLIC.UK_NOMENCLATURE_PRICE_KEY INDEX PUBLIC.UK_NOMENCLATURE_PRICE_KEY_INDEX_C ON PUBLIC.NOMENCLATURE_PRICE(NOMENCLATURE_ID NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:5 */ CAST(7 AS BIGINT), TIMESTAMP '2026-10-01 00:00:00')"
+Unique index or primary key violation: "PUBLIC.UK_NOMENCLATURE_PRICE_KEY INDEX PUBLIC.UK_NOMENCLATURE_PRICE_KEY_INDEX_C ON PUBLIC.NOMENCLATURE_PRICE(NOMENCLATURE_ID NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:5 */ CAST(7 AS BIGINT), TIMESTAMP '2026-10-01 00:00:00')"; SQL statement:
+insert into nomenclature_price (created_at,created_by,modified_at,modified_by,nomenclature_id,period_date,price,version,id) values (?,?,?,?,?,?,?,?,default) [23505-240]
+2026-10-09 00:10:02.510 WARN  [main] [] [] org.hibernate.orm.jdbc.error - HHH000247: ErrorCode: 23505, SQLState: 23505
+2026-10-09 00:10:02.510 WARN  [main] [] [] org.hibernate.orm.jdbc.error - ��������� ����������� ������� ��� ���������� �����: "PUBLIC.UK_NOMENCLATURE_PRICE_KEY INDEX PUBLIC.UK_NOMENCLATURE_PRICE_KEY_INDEX_C ON PUBLIC.NOMENCLATURE_PRICE(NOMENCLATURE_ID NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:11 */ CAST(11 AS BIGINT), TIMESTAMP '2026-10-02 00:00:00')"
+Unique index or primary key violation: "PUBLIC.UK_NOMENCLATURE_PRICE_KEY INDEX PUBLIC.UK_NOMENCLATURE_PRICE_KEY_INDEX_C ON PUBLIC.NOMENCLATURE_PRICE(NOMENCLATURE_ID NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:11 */ CAST(11 AS BIGINT), TIMESTAMP '2026-10-02 00:00:00')"; SQL statement:
+update nomenclature_price set modified_at=?,modified_by=?,nomenclature_id=?,period_date=?,price=?,version=? where id=? and version=? [23505-240]
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.65 s -- in org.ip.application.register.NomenclaturePricePersistenceTest
+[INFO] Running org.ipro.register.RegisterDescriptorTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.062 s -- in org.ipro.register.RegisterDescriptorTest
+[INFO] Running org.ipro.register.RegisterMetadataValidatorMappingTest
+2026-10-09 00:10:03.095 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 00:10:03.104 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [undefined/unknown]
+	Database driver: undefined/unknown
+	Database dialect: H2Dialect
+	Database version: 2.1.214
+	Default catalog/schema: unknown/unknown
+	Autocommit mode: undefined/unknown
+	Isolation level: <unknown>
+	JDBC fetch size: undefined/unknown
+	Pool: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.153 s -- in org.ipro.register.RegisterMetadataValidatorMappingTest
+[INFO] Running org.ipro.register.RegisterMetadataValidatorTest
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.080 s -- in org.ipro.register.RegisterMetadataValidatorTest
+[INFO] Running org.ipro.PlatformArchitectureTest
+2026-10-09 00:10:03.327 INFO  [main] [] [] c.tngtech.archunit.core.PluginLoader - Detected Java version 21.0.11
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 20.78 s -- in org.ipro.PlatformArchitectureTest
+[INFO] Running org.ipro.PlatformDependencyDirectionTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.367 s -- in org.ipro.PlatformDependencyDirectionTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   AccountingObjectPilotIT.staleRegisterVersionIsRejectedAndKeyCommandFailureRollsBackOuterChanges:426 
+Expecting actual throwable to be an instance of:
+  org.springframework.transaction.UnexpectedRollbackException
+but was:
+  org.ipro.rls.RlsAccessDeniedException: Protected WRITE reached Hibernate flush without an RLS authorization: org.ip.model.AccountingObjectInstallation
+	at org.ipro.rls.RlsWriteGuardBridge.requireAuthorized(RlsWriteGuardBridge.java:74)
+	at org.ipro.rls.RlsWriteEnforcementListener.onPreUpdate(RlsWriteEnforcementListener.java:35)
+	at org.hibernate.action.internal.EntityUpdateAction.preUpdate(EntityUpdateAction.java:365)
+	...(109 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[INFO] 
+[ERROR] Tests run: 90, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  03:32 min
+[INFO] Finished at: 2026-10-09T00:10:24+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-test) on project Vaa25_1: There are test failures.
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

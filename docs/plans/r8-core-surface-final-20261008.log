@@ -1,0 +1,64 @@
+Access is denied.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Vaa25_1 ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-application-runtime-dependency-tree) @ Vaa25_1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\target\application-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ Vaa25_1 ---
+[INFO] Copying 30 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.PlatformCoreSurfaceTest
+[ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 4.379 s <<< FAILURE! -- in org.ipro.PlatformCoreSurfaceTest
+[ERROR] org.ipro.PlatformCoreSurfaceTest.applicationTestReferencesToInternalOrModuleTypesAreFrozenPerFile -- Time elapsed: 2.071 s <<< FAILURE!
+java.lang.AssertionError: 
+[����� ���� ����� �������� org.ipro.crud.MetadataDrivenAggregateSaveService. ���� ��� ���������� ������� � ��� ������ ���� �������� � �������, � �� ��������� ����] 
+Expecting empty but was: ["org/ip/config/PilotSecurityQueryMeasurementIT.java"]
+	at org.ipro.PlatformCoreSurfaceTest.applicationTestReferencesToInternalOrModuleTypesAreFrozenPerFile(PlatformCoreSurfaceTest.java:375)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   PlatformCoreSurfaceTest.applicationTestReferencesToInternalOrModuleTypesAreFrozenPerFile:375 [����� ���� ����� �������� org.ipro.crud.MetadataDrivenAggregateSaveService. ���� ��� ���������� ������� � ��� ������ ���� �������� � �������, � �� ��������� ����] 
+Expecting empty but was: ["org/ip/config/PilotSecurityQueryMeasurementIT.java"]
+[INFO] 
+[ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  25.684 s
+[INFO] Finished at: 2026-10-08T17:34:01+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-test) on project Vaa25_1: There are test failures.
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

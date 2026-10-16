@@ -2,7 +2,9 @@ package org.ip.unidr.render;
 
 import net.sf.jasperreports.engine.JasperPrint;
 import org.ip.unidr.run.UniDrAccess;
-import org.ipro.reportstudio.render.*;
+import org.ipro.reportstudio.render.ReportCompiler;
+import org.ipro.reportstudio.render.ReportExportFormat;
+import org.ipro.reportstudio.render.ReportRenderException;
 import java.util.*;
 
 /** Per-run, owner-checked exports; no database access or global cache. Never exposes mutable JasperPrint. */

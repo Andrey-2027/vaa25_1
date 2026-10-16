@@ -13,10 +13,13 @@ import org.ip.unidr.model.UniDrValidationException.Issue;
 
 import java.util.List;
 import java.util.Objects;
+import org.ipro.filtergrid.filter.FilterNode;
+import org.ipro.filtergrid.filter.FilterTreeJson;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static org.ip.unidr.model.UniDrValidationException.Code.*;
 
-/** Strict, bounded v1 codec; never silently migrates or discards unsupported settings. */
+/** Strict public v2 document. v1 is upgraded only in memory; this codec never writes files. */
 public final class UniDrDefinitionJsonCodec {
     public static final int MAX_JSON_CHARACTERS = 128_000;
     private final ObjectMapper mapper;
@@ -34,6 +37,15 @@ public final class UniDrDefinitionJsonCodec {
             .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS).build();
         for (CoercionInputShape shape : List.of(CoercionInputShape.Integer, CoercionInputShape.Float, CoercionInputShape.Boolean))
             mapper.coercionConfigFor(LogicalType.Textual).setCoercion(shape, CoercionAction.Fail);
+        var module=new com.fasterxml.jackson.databind.module.SimpleModule();
+        module.addSerializer(FilterNode.class,new JsonSerializer<>() {
+            @Override public void serialize(FilterNode value,com.fasterxml.jackson.core.JsonGenerator generator,SerializerProvider provider)throws java.io.IOException {generator.writeTree(FilterTreeJson.write(value));}
+        });
+        module.addDeserializer(FilterNode.class,new JsonDeserializer<>() {
+            @Override public FilterNode deserialize(com.fasterxml.jackson.core.JsonParser parser,DeserializationContext context)throws java.io.IOException {
+                JsonNode node=context.readTree(parser);checkFilterTree(node);return FilterTreeJson.read(node);
+            }
+        });mapper.registerModule(module);
     }
 
     public UniDrDefinition decode(String json) {
@@ -45,7 +57,7 @@ public final class UniDrDefinitionJsonCodec {
             JsonNode version = tree.get("schemaVersion");
             if (version == null || !version.isIntegralNumber() || !version.canConvertToInt())
                 throw error(INVALID_JSON, "schemaVersion", "Укажите целочисленную версию формата");
-            if (version.intValue() != UniDrDefinition.SCHEMA_VERSION)
+            if (version.intValue()!=1 && version.intValue() != UniDrDefinition.SCHEMA_VERSION)
                 throw error(UNSUPPORTED_SCHEMA, "schemaVersion", "Неподдерживаемая версия формата");
             if (!tree.has("grandTotal") || !tree.get("grandTotal").isBoolean())
                 throw error(INVALID_JSON, "grandTotal", "Укажите признак общего итога");
@@ -57,21 +69,75 @@ public final class UniDrDefinitionJsonCodec {
                     if (!appearance.has(flag) || !appearance.get(flag).isBoolean())
                         throw error(INVALID_JSON, "appearance." + flag, "Укажите логический признак оформления");
             }
-            return validator.requireValid(mapper.treeToValue(tree, UniDrDefinition.class));
+            UniDrDefinition definition;
+            if(version.intValue()==1) {
+                if(tree.path("query").has("tableEntity"))throw error(INVALID_JSON,"query","Неизвестное свойство источника v1");
+                var old=mapper.treeToValue(tree,LegacyDefinition.class);
+                definition=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,old.sourceId(),old.sourceVersion(),old.title(),old.columns(),old.measures(),old.groups(),old.filters(),old.parameters(),old.sorts(),
+                    old.mode(),old.grandTotal(),old.appearance(),old.query(),old.fieldStyles(),old.computedColumns(),old.rowNumbers());
+                validator.requireValid(definition);
+            } else {
+                if(tree.has("parameterDeclarations"))throw error(INVALID_JSON,"$","Недопустимое внутреннее свойство определения");
+                var expanded=((ObjectNode)tree).deepCopy();
+                if(expanded.has("filters"))throw error(INVALID_JSON,"filters","Используйте дерево условий или совместимые отборы");
+                var compatible=expanded.remove("compatibilityFilters");
+                if(compatible==null || !compatible.isArray())throw error(INVALID_JSON,"compatibilityFilters","Укажите совместимые отборы");
+                expanded.set("filters",compatible);
+                JsonNode declarations=expanded.remove("parameters");
+                if(declarations==null || !declarations.isArray())throw error(INVALID_JSON,"parameters","Укажите список параметров");
+                expanded.set("parameterDeclarations",declarations);expanded.putArray("parameters");
+                if(expanded.hasNonNull("query")) {
+                    var query=expanded.get("query");
+                    if(!query.isObject() || query.has("parameters"))throw error(INVALID_JSON,"query","Параметры объявляются в общем списке отчёта");
+                    ((ObjectNode)query).putArray("parameters");
+                }
+                definition=mapper.treeToValue(expanded,UniDrDefinition.class);
+            }
+            definition=validator.describeParameters(definition);
+            return validator.requireValid(definition);
+        } catch(UniDrValidationException known){throw known;
         } catch (JsonProcessingException invalid) {
             // Do not expose Jackson input excerpts/class names to the UI.
             throw error(INVALID_JSON, "$", "Некорректный JSON: проверьте поля, типы и структуру настройки");
+        } catch(IllegalArgumentException | NullPointerException invalid) {
+            throw error(INVALID_JSON,"$","Некорректный JSON: проверьте поля, типы и структуру настройки");
         }
     }
 
     public String encode(UniDrDefinition definition) {
-        validator.requireValid(definition);
+        validator.requireValid(definition);definition=validator.requireValid(validator.describeParameters(definition));
         try {
-            String json = mapper.writeValueAsString(definition);
+            ObjectNode tree=mapper.valueToTree(definition);
+            tree.set("parameters",tree.remove("parameterDeclarations"));
+            tree.set("compatibilityFilters",tree.remove("filters"));
+            if(tree.hasNonNull("query"))((ObjectNode)tree.get("query")).remove("parameters");
+            String json = mapper.writeValueAsString(tree);
             if (json.length() > MAX_JSON_CHARACTERS) throw error(INVALID_JSON, "$", "Настройка превышает допустимый размер");
             return json;
         } catch (JsonProcessingException invalid) {
             throw error(INVALID_JSON, "$", "Не удалось преобразовать настройку в JSON");
+        }
+    }
+    private record LegacyDefinition(int schemaVersion,String sourceId,int sourceVersion,String title,List<UniDrDefinition.Column> columns,
+        List<UniDrDefinition.Measure> measures,List<String> groups,List<UniDrDefinition.Filter> filters,List<UniDrDefinition.Parameter> parameters,
+        List<UniDrDefinition.Sort> sorts,UniDrDefinition.Mode mode,boolean grandTotal,UniDrDefinition.Appearance appearance,UniDrQuerySource query,
+        java.util.Map<String,UniDrDefinition.FieldStyle> fieldStyles,List<UniDrDefinition.ComputedColumn> computedColumns,boolean rowNumbers) {}
+
+    private static void checkFilterTree(JsonNode tree) {
+        if(tree==null || !tree.isObject())throw new IllegalArgumentException("Некорректное дерево условий");
+        if(tree.has("condition")) {
+            if(tree.size()!=1 || !tree.get("condition").isObject())throw new IllegalArgumentException("Некорректное условие");
+            var condition=tree.get("condition");var allowed=java.util.Set.of("path","operator","value","valueTo","dataType","values");
+            condition.fieldNames().forEachRemaining(name->{if(!allowed.contains(name))throw new IllegalArgumentException("Неизвестное свойство условия");});
+            for(String name:List.of("path","operator","dataType"))if(!condition.path(name).isTextual())throw new IllegalArgumentException("Некорректный тип условия");
+            for(String name:List.of("value","valueTo"))if(condition.hasNonNull(name) && !condition.get(name).isTextual())throw new IllegalArgumentException("Некорректное значение условия");
+            if(condition.hasNonNull("values")) {
+                if(!condition.get("values").isArray())throw new IllegalArgumentException("Некорректный список значений");
+                condition.get("values").forEach(value->{if(!value.isValueNode() || value.isNull())throw new IllegalArgumentException("Недопустимое значение условия");});
+            }
+        } else {
+            if(tree.size()!=2 || !tree.path("operator").isTextual() || !tree.path("children").isArray())throw new IllegalArgumentException("Некорректная группа условий");
+            tree.get("children").forEach(UniDrDefinitionJsonCodec::checkFilterTree);
         }
     }
 

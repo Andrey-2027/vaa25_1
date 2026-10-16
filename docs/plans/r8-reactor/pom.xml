@@ -1,0 +1,1 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><groupId>org.ip</groupId><artifactId>r8-local-verification</artifactId><version>1</version><packaging>pom</packaging><modules><module>../../../platform-build</module><module>../../..</module></modules></project>

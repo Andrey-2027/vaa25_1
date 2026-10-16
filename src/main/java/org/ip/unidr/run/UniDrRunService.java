@@ -6,13 +6,13 @@ import org.ip.unidr.render.UniDrRenderedReport;
 import org.ipro.reportstudio.render.ReportCompiler;
 import org.ipro.reportstudio.query.ReportRunQuota;
 import org.ipro.reportstudio.run.ReportTaskExecutor;
+import org.ipro.reportstudio.run.ReportTaskCompletion;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import java.time.Clock;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -32,17 +32,18 @@ public final class UniDrRunService {
     }
 
     public static final class Ticket {
-        private final CompletableFuture<UniDrRunResult> future = new CompletableFuture<>();
-        public CompletionStage<UniDrRunResult> completion() { return future.minimalCompletionStage(); }
+        private final ReportTaskCompletion<UniDrRunResult> future = new ReportTaskCompletion<>();
+        public CompletionStage<UniDrRunResult> completion() { return future.stage(); }
         /** Stops publication; SQL already running still ends under its timeout and retains its quota slot. */
-        public void cancel() { future.cancel(false); }
+        public void cancel() { future.cancel(); }
     }
 
     public Ticket submit(UniDrRunRequest request) {
         String owner = access.requireUser();
+        var now=clock.instant();queries.validateRequest(request,now,owner);
         var slot = quota.tryAcquire(0);
         if (slot == null) throw new UniDrRunException(UniDrRunException.Code.BUSY, quota.busyMessage());
-        var ticket = new Ticket(); var now = clock.instant();
+        var ticket = new Ticket();
         try {
             worker.execute(SecurityContextHolder.getContext().getAuthentication(), RequestContextHolder.getRequestAttributes(), () -> {
                 try {
@@ -54,7 +55,7 @@ public final class UniDrRunService {
                     access.requireOwner(owner);
                     var rendered = new UniDrRenderedReport(print, request.definition().title(), owner, access, exporter);
                     ticket.future.complete(new UniDrRunResult(UUID.randomUUID(), owner, request.definition(), now, clock.instant(), data, rendered));
-                } catch (Throwable failure) { ticket.future.completeExceptionally(failure); }
+                } catch (Throwable failure) { ticket.future.fail(failure); }
                 finally { slot.release(); }
             });
         } catch (RejectedExecutionException rejected) {

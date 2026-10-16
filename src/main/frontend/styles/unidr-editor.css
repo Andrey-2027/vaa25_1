@@ -1,8 +1,13 @@
-.unidr-editor { box-sizing: border-box; max-width: 1600px; margin: 0 auto; --lumo-size-m: 2rem; --lumo-space-m: .65rem; }
+.unidr-editor { box-sizing: border-box; max-width: 1600px; margin: 0 auto; }
 .unidr-editor h1 { margin: 0; font-size: var(--lumo-font-size-xxl); }
 .unidr-editor p { margin: .4rem 0; color: var(--lumo-secondary-text-color); }
 .unidr-editor .unidr-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; width: 100%; align-items: start; }
-.unidr-editor .unidr-selection-workspace { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 1rem; width: 100%; align-items: start; }
+.unidr-editor .unidr-selection-workspace { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: .75rem; width: 100%; align-items: start; }
+.unidr-editor .unidr-selection-workspace.unidr-palette-open { grid-template-columns: 12rem minmax(0, 1fr) 16rem; }
+.unidr-editor .unidr-selection-workspace.unidr-source-collapsed { grid-template-columns: 8rem minmax(0, 1fr); }
+.unidr-editor .unidr-selection-workspace.unidr-source-collapsed.unidr-palette-open { grid-template-columns: 8rem minmax(0, 1fr) 16rem; }
+.unidr-editor .unidr-field-grid { font-size: var(--lumo-font-size-s); min-width: 0; }
+.unidr-editor .unidr-field-grid vaadin-text-field, .unidr-editor .unidr-field-grid vaadin-combo-box { padding: 0; min-width: 0; }
 .unidr-editor .unidr-selected-fields { min-width: 0; gap: .5rem; }
 .unidr-editor .unidr-available { min-width: 0; }
 .unidr-editor .unidr-available-fields { max-height: 46vh; overflow: auto; }
@@ -16,7 +21,7 @@
 .unidr-editor .unidr-field-drop, .unidr-editor .unidr-group-drop { border: 1px dashed var(--lumo-contrast-20pct, #b8c4d0); padding: .5rem; box-sizing: border-box; width: 100%; }
 .unidr-editor .unidr-field-drop { font-size: .75rem; }
 .unidr-editor .unidr-group-drop > span { font-size: .75rem; }
-.unidr-editor .unidr-settings { width: 100%; min-width: 0; max-height: 82vh; overflow: auto; }
+.unidr-editor .unidr-settings { width: 100%; min-width: 0; }
 .unidr-editor .unidr-result { min-width: 0; }
 .unidr-editor.unidr-parameters-active .unidr-workspace { grid-template-columns: minmax(0, 1fr); }
 .unidr-editor .unidr-parameter-workspace { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 1fr); gap: 1rem; width: 100%; align-items: start; }
@@ -33,6 +38,7 @@
 .unidr-editor .unidr-card { padding: .75rem; border: 1px solid var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-m); gap: .5rem; width: 100%; box-sizing: border-box; }
 .unidr-editor .unidr-card > vaadin-text-field, .unidr-editor .unidr-card > vaadin-combo-box, .unidr-editor .unidr-value { width: 100%; }
 .unidr-editor .unidr-definition, .unidr-editor .unidr-fields-pane { gap: .5rem; }
+.unidr-editor .unidr-native-filters { min-width: 0; max-width: 100%; overflow-x: auto; }
 .unidr-editor .unidr-presentation { gap: .75rem; flex-wrap: wrap; width: 100%; }
 .unidr-editor .unidr-presentation > vaadin-combo-box { flex: 1; min-width: 10rem; }
 .unidr-editor .unidr-presentation > vaadin-checkbox { margin-bottom: .3rem; }
@@ -62,7 +68,8 @@
 .unidr-editor iframe { border: 1px solid var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-m); background: var(--lumo-contrast-5pct); }
 @media (max-width: 1050px) {
   .unidr-editor .unidr-workspace { grid-template-columns: minmax(0, 1fr); }
-  .unidr-editor .unidr-settings { max-height: 65vh; }
+  .unidr-editor .unidr-selection-workspace, .unidr-editor .unidr-selection-workspace.unidr-source-collapsed, .unidr-editor .unidr-selection-workspace.unidr-palette-open, .unidr-editor .unidr-selection-workspace.unidr-source-collapsed.unidr-palette-open { grid-template-columns: 12rem minmax(0, 1fr); }
+  .unidr-editor .unidr-field-properties:not([hidden]) { position: fixed; z-index: 100; right: .5rem; top: 5rem; bottom: .5rem; width: min(20rem, calc(100vw - 1rem)); overflow: auto; background: var(--lumo-base-color, white); box-shadow: var(--lumo-box-shadow-m); }
 }
 @media (max-width: 520px) {
   .unidr-editor { padding: .75rem; }
@@ -71,6 +78,6 @@
 }
 @media (max-width: 750px) {
   .unidr-editor .unidr-parameter-workspace { grid-template-columns: minmax(0, 1fr); }
-  .unidr-editor .unidr-selection-workspace { grid-template-columns: minmax(0, 1fr); }
+  .unidr-editor .unidr-selection-workspace, .unidr-editor .unidr-selection-workspace.unidr-source-collapsed, .unidr-editor .unidr-selection-workspace.unidr-palette-open, .unidr-editor .unidr-selection-workspace.unidr-source-collapsed.unidr-palette-open { grid-template-columns: minmax(0, 1fr); }
   .unidr-editor .unidr-available { display: none; }
 }

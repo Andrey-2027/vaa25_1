@@ -61,7 +61,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "d58e2609979fb2b118f94adf036f57ce13a2319d7d5e609561a6bc45450d4933",
+        "sha256": "815f4f1b51fdc57b37100162b17d72a2d8a4e275180c9543d3fdabec9a26cc85",
         "fileCount": 37,
         "inputs": [
           "pom.xml",
@@ -277,7 +277,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "127e5f6309275d2e5f1477f6b0c0cd7a73116b8341273026e7719b9a3fc49d59",
+        "sha256": "1d2b137d4bfaae43c2780fdcd8376f18e19dee5aac0b49f2561a0c1e900456a3",
         "fileCount": 61,
         "inputs": [
           "pom.xml",
@@ -348,8 +348,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "b4cae416a178e7aa4164c09cf619bd3eee1cc6c155d534ed018915b9308b8963",
-        "fileCount": 147,
+        "sha256": "4136c9f6f50282cf00d7b316caa32de2c7ad45837db9f8079d1de8b3afbbd35c",
+        "fileCount": 150,
         "inputs": [
           "pom.xml",
           "src"
@@ -368,16 +368,16 @@
     {
       "id": "platform-register",
       "relativePath": "platform-register",
-      "dependsOn": ["platform-contracts", "platform-persistence"],
+      "dependsOn": ["crudui", "filtergrid", "platform-contracts", "platform-core", "platform-events", "platform-persistence", "platform-rls", "platform-telemetry"],
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D-R S0 (register extraction, slice 0): declaration and row contract of the information register - annotations, immutable descriptor, declaration validator, both row base classes (periodic and recorder-owned), SliceSpec with its validator, the neutral recorder reference and the row guards. The artifact is a relocation, not a refactoring: the engine named no application type, so the price of the move was measured as movement. It carries no beans and no AutoConfiguration.imports, so the application keeps its own registration and the move cannot change behaviour before S1 brings reading; the app compiles against it and reports its own reader configuration. dependsOn is exactly the two compile imports found by the closure measurement (platform-contracts for the metadata annotations of descriptor and rows, platform-persistence for BaseEntity); platform-core is deliberately not needed at this slice. The module owns its reviewed role registry (META-INF/register-surface.txt, 17 types classified APP_API/APP_SPI/MODULE_API/INTERNAL) and its first test, RegisterSurfaceRoleTest, which is why buildSteps installs with tests enabled: the promise of compatibility of this artifact has to break its own build, not only the app's. Later slices add reading (S1), key writes (S2), the recorder set protocol (S3) and the Vaadin adapter (S4), each adding only the dependencies it needs."
+        "state": "D-R S3 (register extraction, final slice): the owner-set protocol moved in - the recorder-owned row procedures used from canonical onSave (RegisterRecords.forRecorder and its callback-bound handle clear/add/delete, each joining the owner transaction under an aggregate or canonical save token), the complete-replacement writer that preserves ids, line numbers and recording order under the shared write mutex, both platform participants (aggregate save contribution and canonical delete), the retrying transaction executor, the independent row-authorization seam with its RLS/C5 implementation, the canonical HISTORY/DETAIL reader for recorder-owned rows, and the third slice auto-configuration. The slice closes the extraction, and the strongest statement it makes is structural: after it the application keeps no register registration at all - the org.ipro.register package in the application is gone, its AutoConfiguration.imports entry is gone, and no application file assembles the engine, so the two-buildings defect S1 closed (a bean plus a second construction in the list form) is impossible by layout rather than by agreement. The seam decision is deliberate: RecorderSetWriteAuthorizer stays replaceable (@ConditionalOnMissingBean), because ADR-0019 wants the operation decision to belong to the owner, and the platform implementation here is a working one, not the only possible one. The slices met as planned: the owner set takes the order clock through the same RegisterWriteMutex S2 moved, so no second numbering mechanism exists. Roles moved with the types and stay measured: APP_API grew by RegisterRecords and RecordedRegisterReader (the application names both), APP_SPI by the authorizer and its request (the platform calls back into an implementation), and the two clock types were demoted from MODULE_API to INTERNAL - MODULE_API existed only to serve this slice, and once the slice arrived inside the same artifact the cross-module promise lost its addressee (MODULE_API = 0, measured). dependsOn is unchanged, and that is a measurement too: the protocol needed no new artifact, only the roles. The module owns a reviewed registry of 46 types (APP_API 20, APP_SPI 7, MODULE_API 0, INTERNAL 19) and three slice auto-configurations (read S1, key write S2, owner set S3), and it runs that gate in its own build, which is why buildSteps installs with tests enabled. Pre-S3 history: S2 brought key write and the order clock with its entity, S1 moved the reading in, S0 was a relocation, not a refactoring."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "3ae7ced8282e9f4d4f38601926c30f33cce2274337f3dce2b526374ecf4ee58d",
-        "fileCount": 20,
+        "sha256": "7f38e904b067dcda592eb946956b03f25f824f169edd35ffa87b3a107de4c326",
+        "fileCount": 50,
         "inputs": [
           "pom.xml",
           "src"
@@ -422,8 +422,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "f58514ffb01e85e642916fa0238dd292e7b4508eb9a4895c78971a69876f432b",
-        "fileCount": 19,
+        "sha256": "f9dacefb2feb59cb80311a4b66e086f8ce4252ef6b321da09151391177a4e2e0",
+        "fileCount": 18,
         "inputs": [
           "pom.xml",
           "src"
@@ -450,7 +450,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "23ea98eeaf02803a4ee6efd3e6f5730ab6d1a984e81135c70aa437ea496e163c",
+        "sha256": "b93cfe4caf2a40ebb5250131b8e88cd4a295158bd6835ea42720c862a502cbb7",
         "fileCount": 226,
         "inputs": [
           "pom.xml",
@@ -466,6 +466,24 @@
           "arguments": ["clean", "install"]
         }
       ]
+    },
+    {
+      "id": "platform-register-vaadin",
+      "relativePath": "platform-register-vaadin",
+      "dependsOn": ["crudui", "filtergrid", "platform-core", "platform-persistence", "platform-register", "platform-vaadin"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D-R S4 (register extraction, standard interface): the standard register interface left the application tree - the one form adapter for every managed register (HISTORY / LATEST-SLICE modes, leaf filter phases, key locking, the key-change command with its dialog, recorder columns), the recorder caption resolver with its bounded type-grouped canonical reads, its presentation value and its column component, and the slice auto-configuration. Roles were assigned by the same change that created the artifact (register-vaadin-surface.txt), so unlike a post-hoc classification all six types - including the dialog and the configuration - got a decision, not a default. The split the plan asked for resolved itself and that is a measurement, not a shortcut: S1 had already replaced the adapter's application-side reader construction with RegisterReaderFactory, so the closure run (`--slice S4`, 0 escaping references) found no application type left to keep as an extension point; what stays application-facing is the platform mechanism (the replaceable adapter bean plus FormResolver composing every FormTypeCustomization that supports the type). Vaadin is declared provided, the crudui-core precedent: the module does not push the UI stack onto consumers, and a consumer with any other interface can take the backend register artifact without Vaadin, which the module's own gate checks in both directions (platform-register declares and imports no Vaadin). Packages: the application package org.ip.views.register could not survive inside a platform artifact, so the adapter moved to org.ipro.vaadin.register (the telemetry-adapter precedent), while the engine's org.ipro.register packages stayed untouched. Registration is the module's own AutoConfiguration.imports: the application does not scan org.ipro, so without the entry the standard interface would disappear silently. The module is installed with tests enabled - its composition, dependency, surface-role and backend-cleanliness gates live in the module."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "9c5c121e2f8377553386e8dc492ca44ee99415dfe01281d04e138e7a9d111f9b",
+        "fileCount": 14,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-register-vaadin:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
     },
     {
       "id": "platform-rest",
@@ -534,7 +552,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "9ec80f90243443d25bac90d82dda1b6bb71644b189eeab01f0a7c857cb9da8ee",
+        "sha256": "a57a71916c03d0a72b387ad01c37221726b804982b58e81a3111f8e0a4631113",
         "fileCount": 1,
         "inputs": [
           "pom.xml"
@@ -586,16 +604,17 @@
       "relativePath": "platform-vaadin-starter",
       "dependsOn": [
         "platform-bom",
+        "platform-register-vaadin",
         "platform-vaadin"
       ],
       "source": {
         "kind": "in-repo-project",
         "gitCommit": null,
-        "state": "D3.8 Vaadin starter facade: supplies platform-vaadin and vaadin-spring-boot-starter as compile/runtime dependencies. Its Maven-resolved runtime tree is checked to keep platform-rest out transitively. Report libraries are intentionally excluded."
+        "state": "D3.8 Vaadin starter facade: supplies platform-vaadin and vaadin-spring-boot-starter as compile/runtime dependencies. D-R S4 adds platform-register-vaadin: the standard register interface is part of the UI supply, so a consumer declares a register and gets its standard list/form adapter without a boilerplate dependency - the adapter is inert until the engine beans exist. Its Maven-resolved runtime tree is checked to keep platform-rest out transitively (and now also to contain the register interface and the register backend it depends on, which is why the application could drop its own direct platform-register dependency). Report libraries are intentionally excluded."
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "9976e779eb79218a92bb9ad185b46c298f14396350f0f2e0517df83608c5f54a",
+        "sha256": "85eee40c0b67122ac471201374040039d6f4390191f198250b0599bdf90898c6",
         "fileCount": 2,
         "inputs": [
           "pom.xml",

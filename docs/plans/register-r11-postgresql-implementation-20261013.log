@@ -1,0 +1,9 @@
+# Р11: PostgreSQL-прогон реализации записи по ключу (2026-10-13)
+# Команда: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-r11-postgresql.ps1
+
+Isolated PostgreSQL test database: g3_register_test_r11_9c86c25b2c044c8dbe18e4c5c6007a9d (retained for diagnosis).
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.35 s -- in org.ipro.register.RegisterKeyWriteConcurrencyPostgresIT
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.620 s -- in org.ipro.register.RegisterKeyWritesPostgresIT
+[INFO] Tests run: 24, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  20.442 s

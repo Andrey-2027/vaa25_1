@@ -3,7 +3,9 @@ package org.ip.unidr.model;
 import org.ip.unidr.model.UniDrDefinition.*;
 import org.ip.unidr.source.UniDrSourceDefinition;
 import org.ip.unidr.source.UniDrSourceDefinition.Field;
-import org.ipro.reportstudio.data.*;
+import org.ipro.reportstudio.data.QueryField;
+import org.ipro.reportstudio.data.ReportDataset;
+import org.ipro.reportstudio.data.ReportRow;
 import org.ipro.reportstudio.render.FormulaEvaluator;
 
 import java.math.BigDecimal;
@@ -49,6 +51,17 @@ public final class UniDrComputedColumns {
             if(column.kind()==Computation.FORMULA && field.type()!=ValueType.DECIMAL && field.type()!=ValueType.COUNT)
                 throw new IllegalArgumentException("Для арифметики требуется числовое поле: {"+id+"}");
         }
+    }
+
+    /** Rewrite parsed brace references, never substrings of field names or surrounding text. */
+    public static String rewriteReferences(ComputedColumn column,Map<String,String> fields) {
+        references(column);var text=column.expression();var out=new StringBuilder();int start=0,open;
+        while((open=text.indexOf('{',start))>=0) {
+            int close=text.indexOf('}',open);String id=text.substring(open+1,close).trim();String replacement=fields.get(id);
+            if(replacement==null)throw new IllegalArgumentException("Нет замены поля {"+id+"}");
+            out.append(text,start,open).append('{').append(replacement).append('}');start=close+1;
+        }
+        return out.append(text,start,text.length()).toString();
     }
 
     public static ReportDataset evaluate(UniDrDefinition definition, UniDrSourceDefinition source, ReportDataset data) {

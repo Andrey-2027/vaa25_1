@@ -1,0 +1,17 @@
+# Срез S4 (5 из 5): 0 файлов
+# Уже перенесено более ранними срезами: S0, S1, S2, S3
+
+## Файлы среза, которых нет на диске: 5
+org/ip/views/register/RegisterFormCustomization.java
+org/ip/views/register/RegisterKeyDialog.java
+org/ip/views/register/RecorderRefDisplay.java
+org/ip/views/register/RecorderRefPresentation.java
+org/ip/views/register/RecorderRefPresentationResolver.java
+
+## Ссылки за границу среза: 0
+нет: срез компиляционно замкнут
+
+## Владельцы, нужные срезу (зависимости pom):
+
+## Неразрешённые ссылки на org.ipro.register.*: 0
+EXIT=1

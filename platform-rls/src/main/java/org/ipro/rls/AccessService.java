@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 /**
  * Единственное место, которое отвечает на вопрос "что пользователю доступно по измерению
@@ -61,7 +60,7 @@ public class AccessService {
         }
 
         List<Long> ids = grants.stream()
-            .filter(AccessGrant::isCanRead)
+            .filter(g -> RlsGrantMatching.flagAllows(g, org.ipro.rls.c5.C5Operation.READ))
             .map(AccessGrant::getDimensionValueId)
             .filter(Objects::nonNull)
             .distinct()
@@ -86,11 +85,11 @@ public class AccessService {
     }
 
     public boolean canUpdate(String dimension, Long dimensionValueId, String username) {
-        return hasAccess(dimension, dimensionValueId, username, AccessGrant::isCanUpdate);
+        return hasAccess(dimension, dimensionValueId, username, org.ipro.rls.c5.C5Operation.UPDATE);
     }
 
     public boolean canDelete(String dimension, Long dimensionValueId, String username) {
-        return hasAccess(dimension, dimensionValueId, username, AccessGrant::isCanDelete);
+        return hasAccess(dimension, dimensionValueId, username, org.ipro.rls.c5.C5Operation.DELETE);
     }
 
     /**
@@ -154,14 +153,16 @@ public class AccessService {
     }
 
     private boolean hasAccess(String dimension, Long dimensionValueId, String username,
-                              Predicate<AccessGrant> permission) {
+                              org.ipro.rls.c5.C5Operation operation) {
         List<AccessGrant> grants = findGrants(dimension, username);
         boolean permitted = grants.stream()
-            .filter(permission)
-            .anyMatch(g -> g.getDimensionValueId() == null
-                || g.getDimensionValueId().equals(dimensionValueId)
-                || (dimensionValueId == null && g.getDimensionValueId() != null));
-        return permitted || isNewDimensionValueAllowed(dimension);
+            .anyMatch(g -> RlsGrantMatching.matches(g, dimension, dimensionValueId, operation));
+        if (dimensionValueId != null) {
+            return permitted && grants.stream().anyMatch(g ->
+                RlsGrantMatching.matches(g, dimension, dimensionValueId, org.ipro.rls.c5.C5Operation.READ));
+        }
+        // Only creation of a new value may bootstrap. DELETE never bootstraps.
+        return permitted || (operation != org.ipro.rls.c5.C5Operation.DELETE && isNewDimensionValueAllowed(dimension));
     }
 
     /**
@@ -181,6 +182,9 @@ public class AccessService {
      *    значения. Право read-only на одно значение не даёт создания — нужен тот же
      *    флаг (update/delete), что и на изменение существующих записей.
      *
+     * Bootstrap применяется только при создании нового значения без id, никогда к
+     * изменению/удалению существующего. Существующее значение требует также READ
+     * того же значения; источники READ и write могут быть разными назначенными ролями.
      * Оба правила действуют только на FILTERABLE-измерения (сущности-справочники:
      *    Journal, Branch, ...). Для CHECK_ONLY ("доступ к виду документа целиком",
      *    ENTITY:...) строго требуется грант — см. тест
@@ -194,8 +198,7 @@ public class AccessService {
         } catch (IllegalArgumentException unknownDimension) {
             return false;
         }
-        return kind != RlsDimensionKind.CHECK_ONLY
-            && grantRepository.countByDimension(dimension) == 0;
+        return RlsGrantMatching.bootstrapAllowed(kind, grantRepository.countByDimension(dimension));
     }
 
     /** Прямые права пользователя + права всех его ролей — по ИЛИ, без дублей. */

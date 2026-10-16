@@ -37,30 +37,136 @@
 # Это два разных вопроса, и один ответ на них склеивать нельзя: D1 считает бюджет доступа
 # приложения к платформе, этот реестр — границу обещания совместимости. Расхождение записано
 # явно, чтобы следующий срез читателя не унаследовал его молча.
+#
+# ---- S1 (2026-10-13) добавил 8 типов: реестр объявлений, каталог типов-регистраторов, стартовая
+# проверка деклараций, точечный и срезовый читатели, фазы отбора листового списка, фабрика
+# читателей и её read-конфигурация. Решения этого среза:
+#
+#   · APP_API у читателей и реестра — по-прежнему по признаку «приложение называет тип»
+#     (сервис пилота, форма списка, конфигурация записи), а не по признаку «тип принадлежит
+#     модулю». MODULE_API остаётся пустым осознанно: замер `grep` по platform-*/src/main показал,
+#     что ни один платформенный модуль типов регистра не называет. Появится потребитель
+#     (S4 — UI-модуль) — роль придётся пересмотреть, и это видно в диффе, а не в комментарии;
+#   · RecorderTypeRegistry переехал в S1, а не в S3 вместе с набором владельца: реестр разрешает
+#     коды регистраторов, и без каталога реестр перестал бы проверять декларацию. План называл
+#     это развилкой S1 («либо каталог типов переезжает вместе с реестром, либо разрешение кодов
+#     получает S3-расширение»); выбран переезд, поэтому цена — один тип читающего среза,
+#     а не второй способ разрешения кодов;
+#   · RegisterStartupValidator — INTERNAL, а не APP_API: приложение его не называет, он объявлен
+#     конфигурацией модуля. Обещание здесь — поведение («регистрация падает громко»), а не имя,
+#     и это тот же размен, что у валидаторов S0;
+#   · RegisterReadConfiguration — INTERNAL по той же причине: имя авто-конфигурации не обещание,
+#     обещание — бины, которые она приносит (и их можно заменить своими,
+#     @ConditionalOnMissingBean).
+#
+# ---- S2 (2026-10-13) добавил 10 типов: команды записи по ключу и смены ключа, их именованные
+# операции, охранник mapping'а, чтение состояния строки, мьютекс записи, часы порядка подчинённых
+# регистров вместе с их сущностью и вторая авто-конфигурация артефакта. Решения среза:
+#
+#   · APP_API у обеих команд и обеих таблиц именованных операций — по всё тому же признаку
+#     «приложение называет тип»: сервис цен вызывает set/delete и смену ключа, форма списка и
+#     диалог ключа спрашивают у тех же классов canWriteKey/canChangeKey, чтобы интерфейс и
+#     команда отвечали одним решением (ADR-0017);
+#   · MODULE_API впервые не пуст, и это не «на будущее»: RecorderOrderClock и его засев нужны
+#     следующему срезу — протоколу набора владельца (S3). Оговорка названа честно: пока S3 живёт
+#     в приложении, прикладной RecorderSetWriter называет часы порядка напрямую (берёт их из
+#     мьютекса и вызывает advance). Это единственное место, где запись не следует букве
+#     «приложение его не называет», и оно исчезает вместе с переездом S3, а не в результате
+#     решения о роли: обещание здесь — контракт между модулем и следующим срезом, а не
+#     прикладная поверхность;
+#   · охранник mapping'а, чтение состояния строки, мьютекс и вторая авто-конфигурация — INTERNAL:
+#     приложение их не называет, а обещание среза — поведение («поля ключа неизменяемы для
+#     обычных путей», «смена ключа только под разрешением команды»), а не имена. Мьютекс и чтение
+#     состояния вообще package-private: замыкание API проверено забором, а не глазами;
+#   · разделение конфигурации на read (S1) и key-write (S2) — причина появления двух записей в
+#     AutoConfiguration.imports: срез привозит только свою часть, а протокол набора владельца (S3)
+#     остаётся приложению до своего среза и пользуется теми же часами порядка, а не вторым
+#     механизмом.
+#
+# ---- S3 (2026-10-14) добавил 11 типов и понизил два: протокол набора владельца — процедуры записи
+# подчинённых регистров под документом-владельцем, его шов авторизации, участие в canonical
+# сохранении и удалении агрегата и третья авто-конфигурация артефакта. Решения среза:
+#
+#   · RegisterRecords и RecordedRegisterReader — APP_API по всё тому же измеренному признаку:
+#     приложение (main) называет их — генерация набора владельца вызывает RegisterRecords, сервис
+#     чтения подчинённых строк собирает RecordedRegisterReader. Это первое место, где срез приносит
+#     прикладной протокол, а не только движок: процедура набора — часть контракта приложения
+#     с платформой (ADR-0019), поэтому её роль APP_API, а не MODULE_API — обещание предъявляется
+#     приложению, и понижать его до «внутреннего для модуля» значило бы соврать о том, кто
+#     потребитель;
+#   · RecorderSetWriteAuthorizer и RecorderSetWriteRequest — APP_SPI: приложение не вызывает
+#     авторизатор, а реализует его (в тестах — лямбдой), платформа вызывает обратно перед заменой
+#     набора. Обе роли обязаны быть application-facing вместе: Request стоит в сигнатуре
+#     Authorizer, и INTERNAL у Request утащил бы за собой весь шов — забор замыкания API поймал бы
+#     это на сборке артефакта, а не на ревью;
+#   · RecorderSetWriter, участники сохранения и удаления агрегата, исполнитель транзакции,
+#     платформенная реализация авторизатора и третья конфигурация — INTERNAL: приложение их не
+#     называет, а обещание среза — поведение (набор владельца заменяется целиком под токеном
+#     canonical onSave, с retry на границе транзакции и с отдельным решением по каждой строке),
+#     а не имена. Шов остаётся заменяемым (@ConditionalOnMissingBean), но имя реализации —
+#     не обещание;
+#   · RecorderOrderClock и RecorderOrderClockBootstrap понижены из MODULE_API в INTERNAL, и это
+#     не косметика: MODULE_API был назначен им затем, чтобы S3 взял часы порядка из другого
+#     артефакта. Срез приехал и взял их из своего же артефакта, поэтому обещание «контракт между
+#     модулями» стало некому адресованным; измерение (ни один другой модуль эти два типа не
+#     называет) превратило его в INTERNAL. MODULE_API = 0 после S3 — снова измеренный факт.
 
-# ---- APP_API (8)
+# ---- APP_API (20)
 APP_API org.ipro.register.RecorderRef
 APP_API org.ipro.register.RecorderType
+APP_API org.ipro.register.RecorderTypeRegistry
 APP_API org.ipro.register.RegisterDescriptor
+APP_API org.ipro.register.RecordedRegisterReader
+APP_API org.ipro.register.RegisterKeyChangePermissions
 APP_API org.ipro.register.RegisterKeyChangeScope
+APP_API org.ipro.register.RegisterKeyChanges
+APP_API org.ipro.register.RegisterKeyWritePermissions
+APP_API org.ipro.register.RegisterKeyWrites
+APP_API org.ipro.register.RegisterListFilterPhases
 APP_API org.ipro.register.RegisterMetadata
 APP_API org.ipro.register.RegisterPeriodicity
 APP_API org.ipro.register.RegisterPeriodListener
+APP_API org.ipro.register.RegisterReader
+APP_API org.ipro.register.RegisterReaderFactory
+APP_API org.ipro.register.RegisterRecords
+APP_API org.ipro.register.RegisterRegistry
+APP_API org.ipro.register.RegisterSliceReader
 APP_API org.ipro.register.SliceSpec
 
-# ---- APP_SPI (5)
+# ---- APP_SPI (7)
 APP_SPI org.ipro.register.PeriodicRecordedRegisterEntryBase
 APP_SPI org.ipro.register.PeriodicRegisterEntry
 APP_SPI org.ipro.register.PeriodicRegisterEntryBase
 APP_SPI org.ipro.register.RecordedRegisterEntry
 APP_SPI org.ipro.register.RecordedRegisterEntryBase
+APP_SPI org.ipro.register.RecorderSetWriteAuthorizer
+APP_SPI org.ipro.register.RecorderSetWriteRequest
 
 # ---- MODULE_API (0)
 
-# ---- INTERNAL (4)
+# ---- INTERNAL (19)
+INTERNAL org.ipro.register.RegisterKeyWriteGuardInstaller
+INTERNAL org.ipro.register.RegisterRowState
+INTERNAL org.ipro.register.RegisterWriteMutex
+INTERNAL org.ipro.register.config.RegisterKeyWriteConfiguration
 INTERNAL org.ipro.register.RecordedRegisterEntryWriteGuard
 INTERNAL org.ipro.register.RecorderSetWriteContext
 INTERNAL org.ipro.register.RegisterMetadataValidator
+INTERNAL org.ipro.register.RegisterStartupValidator
 INTERNAL org.ipro.register.SliceSpecValidator
+INTERNAL org.ipro.register.config.RegisterReadConfiguration
+INTERNAL org.ipro.register.RecorderOrderClockBootstrap
+INTERNAL org.ipro.register.persistence.RecorderOrderClock
+INTERNAL org.ipro.register.RecorderSetContribution
+INTERNAL org.ipro.register.RecorderSetContributionParticipant
+INTERNAL org.ipro.register.RecorderSetDeleteParticipant
+INTERNAL org.ipro.register.RecorderSetTransactionExecutor
+INTERNAL org.ipro.register.RecorderSetWriter
+INTERNAL org.ipro.register.RlsRecorderSetWriteAuthorizer
+INTERNAL org.ipro.register.config.RegisterRecorderSetConfiguration
 
-# Всего 17 production-типов: S0 перенёс ровно их, и ни один не остался без решения о роли.
+# Всего 46 production-типов: 17 из S0, 8 из S1, 10 из S2 и 11 из S3, и ни один не остался без
+# решения о роли. Разделение по срезам, а не по ролям, здесь не косметика: файл отвечает не «где
+# лежит тип», а «что модуль обещает». Поэтому MODULE_API = 0 — не пропуск, а измеренное состояние;
+# после S3 движок приехал целиком, и следующее, что расширит эту границу, — интерфейс (S4), а не
+# ещё один кусок записи.

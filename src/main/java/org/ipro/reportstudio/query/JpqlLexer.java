@@ -30,16 +30,23 @@ final class JpqlLexer {
                 i++;
                 continue;
             }
-            if (c == '\'') {
+            if(c=='/' && i+1<n && text.charAt(i+1)=='*') {
+                int end=text.indexOf("*/",i+2);if(end<0)throw new IllegalArgumentException("Незакрытый комментарий в запросе");i=end+2;continue;
+            }
+            if(c=='-' && i+1<n && text.charAt(i+1)=='-') {
+                int end=text.indexOf('\n',i+2);i=end<0?n:end+1;continue;
+            }
+            if (c == '\'' || c=='"') {
+                char quote=c;
                 int start = i;
                 i++;
                 StringBuilder value = new StringBuilder();
                 boolean closed = false;
                 while (i < n) {
                     char ch = text.charAt(i);
-                    if (ch == '\'') {
-                        if (i + 1 < n && text.charAt(i + 1) == '\'') {
-                            value.append('\'');
+                    if (ch == quote) {
+                        if (i + 1 < n && text.charAt(i + 1) == quote) {
+                            value.append(quote);
                             i += 2;
                             continue;
                         }

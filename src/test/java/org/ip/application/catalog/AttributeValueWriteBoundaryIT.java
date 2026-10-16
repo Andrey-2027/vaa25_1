@@ -205,11 +205,11 @@ class AttributeValueWriteBoundaryIT {
             AttributeValue.class);
 
         assertThat(operations.isRegistered(C5PermissionKeys.entityOperations(AttributeValue.class)))
-            .as("операционный ключ типа существует, но объявляет только CREATE")
+            .as("единый ключ типа объявляет READ и CREATE, без UPDATE и DELETE")
             .isTrue();
         assertThat(operations.requireOperations(
             C5PermissionKeys.entityOperations(AttributeValue.class)))
-            .containsExactly(C5Operation.CREATE);
+            .containsExactlyInAnyOrder(C5Operation.READ, C5Operation.CREATE);
 
         AttributeValue row = attributeValueRepository.findById(fixture.value().getId()).orElseThrow();
         assertThatThrownBy(() -> access.update(AttributeValue.class, row))

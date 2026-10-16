@@ -11,39 +11,18 @@ public final class WhereClauseApplier {
         int insertion = firstTopLevelClause(jpql, "group", "having", "order");
         String before = insertion < 0 ? jpql : jpql.substring(0, insertion).stripTrailing();
         String after = insertion < 0 ? "" : jpql.substring(insertion).stripLeading();
-        if (hasTopLevelWhere(before)) return before + " and (" + predicate + ") " + after;
+        int where=firstTopLevelClause(before,"where");
+        if (where>=0) return before.substring(0,where)+"where ("+before.substring(where+5).strip()+") and ("+predicate+") "+after;
         return before + " where (" + predicate + ") " + after;
     }
 
     static int firstTopLevelClause(String text, String... words) {
-        boolean single = false, doubleQuote = false;
         int depth = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            if (c == '\'' && !doubleQuote) single = !single;
-            else if (c == '"' && !single) doubleQuote = !doubleQuote;
-            else if (!single && !doubleQuote) {
-                if (c == '(') depth++;
-                else if (c == ')') depth--;
-                else if (depth == 0) {
-                    for (String word : words) {
-                        if (matchesWord(text, i, word)) return i;
-                    }
-                }
-            }
+        for (var token:JpqlLexer.tokenize(text)) {
+            if(token.type()==JpqlLexer.Type.LPAREN)depth++;
+            else if(token.type()==JpqlLexer.Type.RPAREN)depth--;
+            else if(depth==0)for(String word:words)if(token.word(word))return token.position();
         }
         return -1;
-    }
-
-    private static boolean hasTopLevelWhere(String text) {
-        return firstTopLevelClause(text, "where") >= 0;
-    }
-
-    private static boolean matchesWord(String text, int start, String word) {
-        if (start + word.length() > text.length()) return false;
-        if (!text.regionMatches(true, start, word, 0, word.length())) return false;
-        return (start == 0 || !Character.isLetterOrDigit(text.charAt(start - 1)))
-                && (start + word.length() == text.length()
-                || !Character.isLetterOrDigit(text.charAt(start + word.length())));
     }
 }

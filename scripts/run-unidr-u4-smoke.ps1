@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory = $true)][string]$JavaHome,
     [string]$NodeFolder = 'C:/Program Files/nodejs',
-    [switch]$QuerySource
+    [switch]$QuerySource,
+    [switch]$PrepareOnly
 )
 
 # Local UI fixture: fixed identity, loopback binding, no working database.
@@ -32,6 +33,7 @@ try {
         $(if($QuerySource){'org.ip.views.unidr.smoke.UniDrQuerySmokeApplication'}else{'org.ip.views.unidr.smoke.UniDrUiSmokeApplication'}), ('"--vaadin.nodeFolder='+$NodeFolder.Replace('\','/')+'"'), '--vaadin.frontend.hotdeploy=true')
     $argumentFile = Join-Path $output 'smoke.args'
     [IO.File]::WriteAllLines($argumentFile,[string[]]$arguments,[Text.UTF8Encoding]::new($false))
+    if ($PrepareOnly) { return }
     $env:PATH = (Join-Path (Get-Location) 'node_modules/.bin') + ';' + $NodeFolder + ';' + $previousPath
     Write-Host 'UniDR fixture: http://127.0.0.1:8086/unidr (Ctrl+C to stop)'
     & (Join-Path $JavaHome 'bin/java.exe') ('@'+$argumentFile)

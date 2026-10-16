@@ -1,0 +1,44 @@
+Access is denied.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< org.ipro:platform-vaadin >----------------------
+[INFO] Building GitVaa platform vaadin 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-vaadin ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-vaadin ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 132 source files with javac [debug parameters release 21] to target\classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/SelectionForm.java:[51,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/builtin/ItemTable.java:[467,16] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/builtin/ItemTable.java:[530,15] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/builtin/ViewSelectorDialog.java:[81,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/coordinator/FormCoordinator.java:[750,15] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/EntityField.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/EntityField.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-vaadin ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-vaadin ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-vaadin ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-vaadin ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\platform-vaadin\target\platform-vaadin-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-vaadin ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-vaadin\pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\.local-maven-repository\org\ipro\platform-vaadin\1.0-SNAPSHOT\platform-vaadin-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-vaadin\target\platform-vaadin-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\.local-maven-repository\org\ipro\platform-vaadin\1.0-SNAPSHOT\platform-vaadin-1.0-SNAPSHOT.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  15.343 s
+[INFO] Finished at: 2026-10-07T13:25:22+03:00
+[INFO] ------------------------------------------------------------------------

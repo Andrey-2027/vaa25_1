@@ -38,12 +38,20 @@ try {
     $env:SPRING_JPA_DATABASE_PLATFORM = 'org.hibernate.dialect.PostgreSQLDialect'
     $env:JAVA_HOME = 'C:\Program Files\Axiom\AxiomJDK-21'
     $r8Agent = Join-Path $r8Root '.local-maven-repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar'
-    $r8Tests = if ($Suite -eq 'Concurrency') { 'RegisterWriteConcurrencyPostgresIT' } else {
-        'RegisterWriteConcurrencyPostgresIT,RecorderSetWriterPostgresIT,AccountingObjectPilotIT'
+    # D-R S5(в): гонка записи по ключу и набор владельца — тесты движка, они принадлежат
+    # platform-register и гоняются его сборкой; приложению остаётся его собственный приёмочный
+    # AccountingObjectPilotIT. Путь агента абсолютный: рабочий каталог дочернего JVM — каталог модуля.
+    $r8ModuleTests = if ($Suite -eq 'Concurrency') { 'RegisterWriteConcurrencyPostgresIT' } else {
+        'RegisterWriteConcurrencyPostgresIT,RecorderSetWriterPostgresIT'
     }
-    & $Maven '-o' '-Dmaven.repo.local=.local-maven-repository' '-Dvaadin.skip=true' "-DargLine=-javaagent:$r8Agent" `
-        "-Dtest=$r8Tests" 'test'
-    if ($LASTEXITCODE -ne 0) { throw 'R8 PostgreSQL verification failed; inspect the Maven output.' }
+    & $Maven '-o' '-Dmaven.repo.local=.local-maven-repository' '-f' 'platform-register/pom.xml' `
+        "-DargLine=-javaagent:$r8Agent" "-Dtest=$r8ModuleTests" '-DfailIfNoTests=false' 'test'
+    if ($LASTEXITCODE -ne 0) { throw 'R8 PostgreSQL verification failed in platform-register; inspect the Maven output.' }
+    if ($Suite -ne 'Concurrency') {
+        & $Maven '-o' '-Dmaven.repo.local=.local-maven-repository' '-Dvaadin.skip=true' `
+            "-DargLine=-javaagent:$r8Agent" '-Dtest=AccountingObjectPilotIT' 'test'
+        if ($LASTEXITCODE -ne 0) { throw 'R8 PostgreSQL verification failed in the application; inspect the Maven output.' }
+    }
 } finally {
     foreach ($r8Variable in $r8SavedEnvironment.Keys) {
         [Environment]::SetEnvironmentVariable($r8Variable, $r8SavedEnvironment[$r8Variable], 'Process')

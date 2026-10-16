@@ -20,7 +20,9 @@ import org.ip.unidr.model.UniDrDefinition.*;
 import org.ip.unidr.model.UniDrDefinitionValidator;
 import org.ip.unidr.model.UniDrComputedColumns;
 import org.ip.unidr.source.*;
-import org.ipro.reportstudio.data.*;
+import org.ipro.reportstudio.data.QueryField;
+import org.ipro.reportstudio.data.ReportDataset;
+import org.ipro.reportstudio.data.ReportRow;
 import org.ipro.reportstudio.render.ReportRenderException;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -47,7 +49,9 @@ public final class UniDrReportCompiler {
     }
     /** Metadata from the completed server read avoids repeating query analysis/access reads during rendering. */
     public JasperPrint compile(UniDrDefinition definition,ReportDataset dataset,UniDrSourceDefinition source) {
-        new UniDrDefinitionValidator(new UniDrSourceCatalog(List.of(source))).requireValid(definition.withQuery(null));Objects.requireNonNull(dataset);
+        // The source plan and predicates were validated before the completed server read.
+        // Rendering validates layout against its detached schema, without resolving SQL fields again.
+        new UniDrDefinitionValidator(new UniDrSourceCatalog(List.of(source))).requireValid(definition.withQuery(null).withFilterTree(null));Objects.requireNonNull(dataset);
         if (TransactionSynchronizationManager.isActualTransactionActive())
             throw new ReportRenderException("Формирование макета требует завершённой транзакции чтения");
         try {

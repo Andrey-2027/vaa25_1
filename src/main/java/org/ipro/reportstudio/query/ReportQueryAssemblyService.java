@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 /** Общая подготовка запроса отчёта перед preview и production execution. */
@@ -29,6 +31,19 @@ public class ReportQueryAssemblyService {
     private final QueryBuilderMetadataCatalog visualCatalog;
     private ReportQueryLanguage queryLanguage;
     public void useQueryLanguage(ReportQueryLanguage language) { queryLanguage = language; }
+    /** Re-check the complete predicate, retaining the source's public presentation schema. */
+    public ReportQueryAssembler appendPredicate(ReportQueryAssembler source,String predicate,Map<String,Object> predicateBindings) {
+        var bindings=new LinkedHashMap<>(source.bindings());
+        for(var entry:predicateBindings.entrySet()) {
+            if(bindings.containsKey(entry.getKey()))throw new IllegalArgumentException("Повторное имя биндинга: "+entry.getKey());
+            bindings.put(entry.getKey(),entry.getValue());
+        }
+        String jpql=WhereClauseApplier.apply(source.jpql(),predicate);
+        var names=new LinkedHashSet<>(JpqlParameters.names(source.jpql()));names.addAll(bindings.keySet());
+        var checked=guard.guard(jpql,names);
+        if(!checked.allowed())throw new IllegalArgumentException("Отказ: "+String.join("; ",checked.errors()));
+        return new ReportQueryAssembler(jpql,bindings,source.fields(),checked.warnings(),source.presentations());
+    }
 
     public ReportQueryAssemblyService(ReportQueryGuard guard, ReportParamResolver paramResolver,
                                       EntityParamRefresher refresher) {

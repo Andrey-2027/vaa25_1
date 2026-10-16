@@ -209,13 +209,14 @@ class UniDrReceivingItemsSpikeTest {
         assertThat(executor.execute(request,limit+1,30_000).rowCount()).isEqualTo(limit);
     }
 
-    @Test void existingGuardRequiresExactBindingNamesForLogicalPeriod() {
+    @Test void logicalPeriodExpandsToTheExactQueryBindingsWithoutReadingRows() {
         var template=template(false);
         template.getParams().removeIf(param->param.getName().startsWith("period"));
         var period=new ReportParam();period.setName("period");period.setKind(ReportParamKind.PERIOD);
         period.setRequired(true);template.addParam(period);
-        assertThatThrownBy(()->assembly.assemble(template,ReportContext.empty(subject),values(false)))
-            .hasMessageContaining("periodFrom").hasMessageContaining("periodTo");
+        var prepared=assembly.assemble(template,ReportContext.empty(subject),values(false));
+        assertThat(prepared.bindings()).containsEntry("periodFrom",LocalDate.of(2026,10,1))
+            .containsEntry("periodTo",LocalDate.of(2026,10,31)).doesNotContainKey("period");
         assertNoSourceSql();
     }
 

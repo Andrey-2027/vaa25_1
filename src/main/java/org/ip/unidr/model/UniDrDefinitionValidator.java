@@ -1,5 +1,7 @@
 package org.ip.unidr.model;
 
+import org.ipro.reportstudio.query.ServiceParams;
+
 import org.ip.unidr.model.UniDrDefinition.*;
 import org.ip.unidr.model.UniDrValidationException.Issue;
 import org.ip.unidr.source.UniDrSourceCatalog;
@@ -26,6 +28,14 @@ public final class UniDrDefinitionValidator {
         List<Issue> issues = validate(definition);
         if (!issues.isEmpty()) throw new UniDrValidationException(issues);
         return definition;
+    }
+    public org.ip.unidr.query.UniDrSourcePlan plan(UniDrDefinition definition){return catalog.plan(definition);}
+    public UniDrDefinition describeParameters(UniDrDefinition definition) {
+        var source=catalog.resolve(definition);
+        if(source.isEmpty())return definition;
+        var parameters=org.ip.unidr.model.UniDrParameters.describeLegacy(definition.parameterDeclarations(),source.orElseThrow());
+        parameters=catalog.describeParameters(definition.query(),parameters);
+        return definition.withParameters(parameters);
     }
 
     public List<Issue> validate(UniDrDefinition definition) {
@@ -127,8 +137,6 @@ public final class UniDrDefinitionValidator {
             title(parameter.caption(), path + ".caption", true, issues);
             boolean validOperator = field != null && parameter.operator() != null && field.operators().contains(parameter.operator());
             if (field != null && !validOperator) issues.add(new Issue(INVALID_PARAMETER, path + ".operator", "Недопустимая форма параметра"));
-            if (!builtIns.contains(parameter.id()) && !referenced.contains(parameter.id()))
-                issues.add(new Issue(INVALID_PARAMETER, path, "Параметр не используется в отборах"));
             if (parameter.defaultRule() == null)
                 issues.add(new Issue(REQUIRED, path + ".defaultRule", "Правило начального значения не задано"));
             else if (parameter.defaultRule() == DefaultRule.FIXED) {
@@ -142,6 +150,10 @@ public final class UniDrDefinitionValidator {
                     issues.add(new Issue(INVALID_PARAMETER, path + ".defaultRule", "Текущий месяц применим только к диапазону дат"));
             }
         }
+        validateDeclarations(definition,issues);
+        if(definition.filterTree()!=null)try {
+            org.ip.unidr.query.UniDrFilterSupport.validate(definition.filterTree(),catalog.plan(definition),definition.parameterDeclarations());
+        } catch(IllegalArgumentException invalid){issues.add(new Issue(INVALID_FILTER,"filterTree",invalid.getMessage()));}
         for (var required : source.parameters()) {
             Parameter parameter = parameters.get(required.id());
             if (parameter == null && isRequired(definition, required.requirement()))
@@ -182,6 +194,37 @@ public final class UniDrDefinitionValidator {
         if (definition.mode() == Mode.DETAILS && definition.columns().isEmpty() && definition.measures().isEmpty())
             issues.add(new Issue(MISSING_COLUMNS, "columns", "Выберите поле или показатель"));
         return List.copyOf(issues);
+    }
+    private void validateDeclarations(UniDrDefinition definition,List<Issue> issues) {
+        var ids=new HashSet<String>();var names=new HashSet<String>();
+        var bindingNames=new HashSet<String>();
+        limits("parameters",definition.parameterDeclarations().size(),50,issues); // v1 allowed 20 filter + 30 query declarations.
+        for(int index=0;index<definition.parameterDeclarations().size();index++) {
+            var p=definition.parameterDeclarations().get(index);String path="parameters["+index+"]";
+            if(p.id()==null || !p.id().matches("[a-z][a-zA-Z0-9_-]{0,79}") || !ids.add(p.id()))issues.add(new Issue(INVALID_PARAMETER,path+".id","Некорректный или повторный идентификатор параметра"));
+            if(p.name()==null || !p.name().matches("[A-Za-z_][A-Za-z0-9_]{0,49}") || !names.add(p.name()))issues.add(new Issue(INVALID_PARAMETER,path+".name","Имена параметров должны быть уникальными идентификаторами запроса"));
+            if(p.name()!=null)for(String name:p.kind()==org.ip.unidr.model.UniDrParameter.Kind.RANGE?List.of(p.name()+"From",p.name()+"To"):List.of(p.name()))
+                if(ServiceParams.isServiceName(name) || !bindingNames.add(name))issues.add(new Issue(INVALID_PARAMETER,path+".name","Имя привязки занято другим или служебным параметром"));
+            title(p.caption(),path+".caption",true,issues);
+            if(p.valueSource()==org.ip.unidr.model.UniDrParameter.ValueSource.FIXED && p.initialRule()!=org.ip.unidr.model.UniDrParameter.InitialRule.VALUE)
+                issues.add(new Issue(INVALID_PARAMETER,path+".initialRule","Фиксированный параметр требует заданного значения"));
+            if(p.valueSource()==org.ip.unidr.model.UniDrParameter.ValueSource.COMPUTED && p.computed()==org.ip.unidr.model.UniDrParameter.Computed.NONE)
+                issues.add(new Issue(INVALID_PARAMETER,path+".computed","Выберите способ вычисления значения"));
+            if((p.valueSource()==org.ip.unidr.model.UniDrParameter.ValueSource.COMPUTED || p.valueSource()==org.ip.unidr.model.UniDrParameter.ValueSource.CONTEXT)
+                && p.initialRule()!=org.ip.unidr.model.UniDrParameter.InitialRule.NONE)issues.add(new Issue(INVALID_PARAMETER,path+".initialRule","Вычисляемый параметр и контекст не используют начальные значения формы"));
+            if(p.initialRule()==org.ip.unidr.model.UniDrParameter.InitialRule.TODAY && (p.kind()!=org.ip.unidr.model.UniDrParameter.Kind.SCALAR || p.scalarType()!=org.ip.unidr.model.UniDrParameter.ScalarType.DATE))
+                issues.add(new Issue(INVALID_PARAMETER,path+".initialRule","Сегодня применимо только к дате"));
+            if(p.initialRule()==org.ip.unidr.model.UniDrParameter.InitialRule.CURRENT_MONTH && (p.kind()!=org.ip.unidr.model.UniDrParameter.Kind.RANGE || p.scalarType()!=org.ip.unidr.model.UniDrParameter.ScalarType.DATE))
+                issues.add(new Issue(INVALID_PARAMETER,path+".initialRule","Текущий месяц применим только к периоду"));
+            if(p.initialRule()!=org.ip.unidr.model.UniDrParameter.InitialRule.VALUE && !p.initialValues().isEmpty())issues.add(new Issue(INVALID_PARAMETER,path+".initialValues","Значение допустимо только для заданного начального значения"));
+            if(p.initialRule()==org.ip.unidr.model.UniDrParameter.InitialRule.VALUE) {
+                if(p.initialValues().isEmpty() || p.kind()==org.ip.unidr.model.UniDrParameter.Kind.RANGE && p.initialValues().size()!=2 || p.kind()!=org.ip.unidr.model.UniDrParameter.Kind.RANGE && p.kind()!=org.ip.unidr.model.UniDrParameter.Kind.ENTITY_LIST && p.initialValues().size()!=1)
+                    issues.add(new Issue(INVALID_PARAMETER,path+".initialValues","Начальное значение не соответствует виду параметра"));
+                else if(p.legacy()==null && p.kind()!=org.ip.unidr.model.UniDrParameter.Kind.ENTITY && p.kind()!=org.ip.unidr.model.UniDrParameter.Kind.ENTITY_LIST) {
+                    try {p.initialValues().forEach(p::scalar);}catch(RuntimeException invalid){issues.add(new Issue(INVALID_PARAMETER,path+".initialValues","Начальное значение не соответствует типу"));}
+                }
+            }
+        }
     }
 
     /** Source parameters may be optional; parameters used by filters are always required. */

@@ -1,0 +1,31 @@
+# platform-register-vaadin: публичная поверхность (policy: SEMANTIC_ROLES, перезапись: -Dplatform.api.baseline.write=true)
+class public final org.ipro.vaadin.register.RecorderRefDisplay
+  extends com.vaadin.flow.component.html.Span
+  ctor public(org.ipro.vaadin.register.RecorderRefPresentation)
+  ctor public(org.ipro.vaadin.register.RecorderRefPresentation, java.util.function.Consumer<java.lang.String>)
+
+class public final org.ipro.vaadin.register.RecorderRefPresentationResolver
+  ctor public(org.ipro.data.EntityReadAccess, org.ipro.data.EntityDataAccessResolver, org.ipro.register.RecorderTypeRegistry, org.ipro.fetch.instance.InstanceNameResolver, org.ipro.form.link.FormLinkService)
+  field public static final int ID_CHUNK_SIZE = 200
+  method public java.util.List<org.ipro.vaadin.register.RecorderRefPresentation> resolve(java.util.Collection<org.ipro.register.RecorderRef>)
+  method public void useCommonPresentations(org.ipro.data.presentation.EntityPresentationService)
+
+class public org.ipro.vaadin.register.RegisterFormCustomization
+  implements org.ipro.form.builder.FormTypeCustomization
+  ctor public(org.ipro.register.RegisterRegistry, org.ipro.data.EntityDataAccess, org.ipro.register.RegisterReaderFactory, org.ipro.register.RegisterKeyChanges, org.ipro.register.RegisterKeyChangePermissions, org.ipro.vaadin.register.RecorderRefPresentationResolver, org.springframework.beans.factory.ObjectProvider<org.ipro.form.link.FormRouteOpener>, org.springframework.beans.factory.ObjectProvider<java.time.Clock>)
+  method public boolean supports(java.lang.Class<?>)
+  method public boolean supportsGrouping()
+  method public void customizeItem(org.ipro.form.builtin.ItemForm<?>, org.ipro.form.registry.FormContext)
+  method public void customizeList(org.ipro.form.builtin.ListForm<?, ?>, org.ipro.form.registry.FormContext)
+
+record public final org.ipro.vaadin.register.RecorderRefPresentation
+  extends java.lang.Record
+  ctor public(java.lang.String, java.util.Optional<java.lang.String>)
+  field public static final java.lang.String UNAVAILABLE_LABEL = Документ недоступен
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String label()
+  method public java.util.Optional<java.lang.String> href()
+  method public static org.ipro.vaadin.register.RecorderRefPresentation unavailable()
+

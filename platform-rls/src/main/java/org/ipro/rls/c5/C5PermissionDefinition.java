@@ -11,17 +11,13 @@ import java.util.Set;
  * definition grants nobody access; grants stay in the grant store and are resolved only through
  * {@link C5PermissionDecisionService}.</p>
  *
- * <p>Two key spellings coexist by decision and are not unified in this slice: a read definition uses
- * the fully qualified {@code ENTITY:<FQN>} key, while an operation definition uses the existing
- * entity gate key {@code ENTITY:<SimpleName>} so already issued rows keep working (ADR-0017 §3 and
- * the known naming debt). Callers should not spell keys themselves: {@link #entityRead(Class)},
- * {@link #entityOperations(Class, Set)} and {@link #action(String)} are the only supported ways.</p>
+ * <p>An entity has one fully qualified key and one complete operation set, including READ.
+ * Reading and writing use independent flags of the same exact/global grant (P-U).</p>
  */
 public record C5PermissionDefinition(String key, Set<C5Operation> operations) {
 
-    /** Operations an entity definition may declare; read and named execution are separate families. */
-    private static final Set<C5Operation> ENTITY_WRITE_OPERATIONS =
-        Set.of(C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE);
+    private static final Set<C5Operation> ENTITY_OPERATIONS =
+        Set.of(C5Operation.READ, C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE);
 
     private static final Set<String> KEY_PREFIXES = Set.of("ENTITY:", "ACTION:", "REST:");
 
@@ -37,9 +33,14 @@ public record C5PermissionDefinition(String key, Set<C5Operation> operations) {
         if (operations.isEmpty()) {
             throw new IllegalArgumentException("C5 definition '" + key + "' declares no operation");
         }
-        if (operations.contains(C5Operation.READ) && operations.size() > 1) {
-            throw new IllegalArgumentException("C5 read definition '" + key
-                + "' must not carry other operations: " + operations);
+        if (key.startsWith("REST:") && !operations.equals(Set.of(C5Operation.READ))) {
+            throw new IllegalArgumentException("REST permissions express only READ");
+        }
+        if (key.startsWith("ENTITY:") && !ENTITY_OPERATIONS.containsAll(operations)) {
+            throw new IllegalArgumentException("Entity permissions cannot express EXECUTE");
+        }
+        if (key.startsWith("ACTION:") && !operations.equals(Set.of(C5Operation.EXECUTE))) {
+            throw new IllegalArgumentException("ACTION permissions express only EXECUTE");
         }
         if (operations.contains(C5Operation.EXECUTE) && operations.size() > 1) {
             throw new IllegalArgumentException("C5 named operation definition '" + key
@@ -61,13 +62,13 @@ public record C5PermissionDefinition(String key, Set<C5Operation> operations) {
         return new C5PermissionDefinition(C5PermissionKeys.entityRead(type), Set.of(C5Operation.READ));
     }
 
-    /** Operation definition of an entity; keeps the existing entity gate key {@code ENTITY:<SimpleName>}. */
+    /** Complete entity definition derived from canonical read/write capabilities. */
     public static C5PermissionDefinition entityOperations(Class<?> type, Set<C5Operation> operations) {
         Objects.requireNonNull(type, "type must not be null");
         if (operations == null || operations.isEmpty()
-                || !ENTITY_WRITE_OPERATIONS.containsAll(operations)) {
+                || !ENTITY_OPERATIONS.containsAll(operations)) {
             throw new IllegalArgumentException("Entity operation definition of " + type.getName()
-                + " accepts only " + ENTITY_WRITE_OPERATIONS + ": " + operations);
+                + " accepts only " + ENTITY_OPERATIONS + ": " + operations);
         }
         return new C5PermissionDefinition(C5PermissionKeys.entityOperations(type), operations);
     }

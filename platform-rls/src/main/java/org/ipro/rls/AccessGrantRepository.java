@@ -46,4 +46,22 @@ public interface AccessGrantRepository
      * AccessService.isNewDimensionValueAllowed: "разметка измерения ещё не началась".
      */
     long countByDimension(String dimension);
+
+    /** Bounded page/global provenance query; subject types cannot collide on the same text key. */
+    @Query("select g from AccessGrant g where g.dimension in :keys and " +
+        "((g.subjectType = org.ipro.rls.AccessGrant.SubjectType.USER and g.subjectKey = :username) or " +
+        "(g.subjectType = org.ipro.rls.AccessGrant.SubjectType.ROLE and g.subjectKey in :roles)) and " +
+        "(g.dimensionValueId is null or g.dimensionValueId in :values or g.dimension in :allValueKeys) order by g.id")
+    List<AccessGrant> findPermissionContributions(@Param("keys") Collection<String> keys,
+        @Param("username") String username, @Param("roles") Collection<String> roles,
+        @Param("values") Collection<Long> values, @Param("allValueKeys") Collection<String> allValueKeys);
+
+    interface DimensionCount {
+        String getDimension();
+        long getGrantCount();
+    }
+
+    @Query("select g.dimension as dimension, count(g) as grantCount from AccessGrant g " +
+        "where g.dimension in :keys group by g.dimension")
+    List<DimensionCount> countPermissionDimensions(@Param("keys") Collection<String> keys);
 }

@@ -1,11 +1,11 @@
 package org.ipro.crud;
 
+import org.ip.model.NomenclatureAccountingObject;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.ReceivingDocumentItem;
 import org.ipro.events.EntityEventPublisher;
 import org.ipro.events.EventSource;
 import org.ipro.register.RecorderSetContribution;
-import org.ipro.registerfixtures.RecorderPersistenceFixtures.RecordedPeriodicRegisterFixture;
 import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.telemetry.api.OperationScope;
@@ -102,6 +102,13 @@ class MetadataDrivenAggregateTelemetryTest {
         verify(serviceLocator, never()).findService(any());
     }
 
+    /**
+     * D-R S5(в): вклад набора владельца приходит тем же путём, что и раньше, но тип строки —
+     * настоящий прикладной регистр по регистратору ({@link NomenclatureAccountingObject}), а не
+     * внутридеревная фикстура движка: фикстуры уехали в {@code platform-register} вместе со своими
+     * тестами, а прикладному тесту телеметрии чужой внутренний тип и не был нужен — предмет здесь
+     * в том, что явно приложенный пустой набор доходит до серверного участника.
+     */
     @Test
     @SuppressWarnings("unchecked")
     void explicitlyAttachedEmptyRecorderSetReachesItsServerParticipant() {
@@ -113,7 +120,7 @@ class MetadataDrivenAggregateTelemetryTest {
         when(rootService.save(header)).thenReturn(saved);
 
         RecorderSetContribution clearSet = new RecorderSetContribution(
-            RecordedPeriodicRegisterFixture.class, List.of());
+            NomenclatureAccountingObject.class, List.of());
         AggregateSaveContributionParticipant participant = mock(AggregateSaveContributionParticipant.class);
         when(participant.supports(ReceivingDocument.class, clearSet)).thenReturn(true);
         MetadataDrivenAggregateSaveService withRecorderParticipant = new MetadataDrivenAggregateSaveService(
@@ -126,7 +133,7 @@ class MetadataDrivenAggregateTelemetryTest {
             new AggregateSaveParticipantContext(true, null));
         verify(eventPublisher).publishAggregateSaving(
             any(), org.mockito.ArgumentMatchers.argThat(sections -> sections.size() == 1
-                && sections.getFirst().rowType() == RecordedPeriodicRegisterFixture.class
+                && sections.getFirst().rowType() == NomenclatureAccountingObject.class
                 && sections.getFirst().rows().isEmpty()), any());
     }
 

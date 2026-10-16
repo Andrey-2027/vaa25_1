@@ -6,6 +6,7 @@ import org.ipro.data.EntityDataAccess;
 import org.ipro.register.RecordedRegisterReader;
 import org.ipro.register.RecorderRef;
 import org.ipro.register.RecorderTypeRegistry;
+import org.ipro.register.RegisterReaderFactory;
 import org.ipro.register.RegisterRegistry;
 import org.ipro.register.RegisterSliceReader;
 import org.ipro.register.SliceSpec;
@@ -23,9 +24,15 @@ public class AccountingObjectRegisterService {
     private final RecordedRegisterReader<NomenclatureAccountingObject> history;
     private final RecorderTypeRegistry recorderTypes;
 
+    /**
+     * Читатель среза берётся у фабрики по дескриптору, а не приходит готовым бином приложения:
+     * S1 сделал сборку читателя одним местом на дерево. Прикладной bean
+     * {@code RegisterSliceReader<NomenclatureAccountingObject>} удалён вместе со срезом — иначе
+     * сервис и форма списка собирали бы читатель по-разному, и расхождение было бы не видно.
+     */
     public AccountingObjectRegisterService(EntityDataAccess access, RegisterRegistry registers,
-            RegisterSliceReader<NomenclatureAccountingObject> slice, RecorderTypeRegistry recorderTypes) {
-        this.slice = slice;
+            RegisterReaderFactory readers, RecorderTypeRegistry recorderTypes) {
+        this.slice = readers.slice(NomenclatureAccountingObject.class);
         history = new RecordedRegisterReader<>(NomenclatureAccountingObject.class, access, registers);
         this.recorderTypes = recorderTypes;
     }

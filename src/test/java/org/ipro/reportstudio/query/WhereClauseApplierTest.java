@@ -18,6 +18,11 @@ class WhereClauseApplierTest {
         assertThat(WhereClauseApplier.apply(
                 "select s from Specification s where s.note = 'group by x' and (s.code = 'order by') order by s.code",
                 "s.active = :active"))
-                .contains("where s.note = 'group by x' and (s.code = 'order by') and (s.active = :active) order by");
+                .contains("where (s.note = 'group by x' and (s.code = 'order by')) and (s.active = :active) order by");
+    }
+
+    @Test void keepsTheWholeOriginalOrWhenAddingPredicate() {
+        assertThat(WhereClauseApplier.apply("select s from Specification s where s.code = :a or s.code = :b order by s.code","s.active = :active"))
+            .isEqualTo("select s from Specification s where (s.code = :a or s.code = :b) and (s.active = :active) order by s.code");
     }
 }

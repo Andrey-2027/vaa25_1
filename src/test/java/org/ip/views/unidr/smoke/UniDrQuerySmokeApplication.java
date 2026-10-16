@@ -76,11 +76,28 @@ public class UniDrQuerySmokeApplication {
     @Bean ReportQueryGuard guard(EntityManagerFactory factory,AccessService access,RlsDimensionRegistry dimensions,RlsCurrentUser current,ReportReadAuthorizer authorizer) {
         return new ReportQueryGuard(new SqmQuerySemanticAnalyzer(factory),access,dimensions,current,factory,authorizer);
     }
-    @Bean ReportQueryExecutor executor(EntityManager em,RlsFilterActivator activator,RlsCurrentUser current,ReportQueryGuard guard,ReportReadAuthorizer authorizer){return new ReportQueryExecutor(em,activator,current,guard,authorizer);}
+    @Bean ReportQueryExecutor executor(EntityManager em,RlsFilterActivator activator,RlsCurrentUser current,ReportQueryGuard guard,ReportReadAuthorizer authorizer,
+                                      CanonicalReadExecutor canonical,EntityManagerFactory factory,MetadataResolver metadata){
+        var executor=new ReportQueryExecutor(em,activator,current,guard,authorizer);
+        var sections=new SectionMetadataRegistry("org.ip.model",metadata);sections.afterPropertiesSet();
+        var managed=new ManagedEntityCatalog(factory);
+        var descriptors=new EntityDescriptorCatalog(managed,sections,metadata,List.of(),List.of());
+        var policies=new EntityDataAccessResolver(descriptors,mock(EntityDataAccess.class),canonical,List.of());
+        var names=new org.ipro.fetch.instance.InstanceNameResolver(managed.managedEntityClasses(),metadata);
+        var presentations=new org.ipro.data.presentation.EntityPresentationService(new CanonicalEntityReadAccess(canonical),policies,names,metadata);
+        var recorderTypes=new org.ipro.register.RecorderTypeRegistry(managed,factory,metadata);recorderTypes.initialize();
+        executor.usePresentations(presentations,recorderTypes);return executor;
+    }
     @Bean EntityParamRefresher refresher(EntityManager em,RlsFilterActivator activator,RlsReadGate gate,RlsCurrentUser current,EntityManagerFactory factory){return new EntityParamRefresher(em,activator,gate,current,factory.unwrap(SessionFactoryImplementor.class));}
     @Bean ReportParamResolver resolver(EntityParamRefresher refresher,AccessService access,RlsCurrentUser current,EntityManagerFactory factory){return new ReportParamResolver(refresher,access,current,factory.unwrap(SessionFactoryImplementor.class),new ObjectMapper(),"BRANCH");}
     @Bean QueryBuilderMetadataCatalog constructorCatalog(EntityManagerFactory factory,MetadataResolver metadata,RlsReadGate gate,RlsCurrentUser current){return new QueryBuilderMetadataCatalog(factory,metadata,gate,current);}
-    @Bean ReportQueryAssemblyService assembly(ReportQueryGuard guard,ReportParamResolver resolver,EntityParamRefresher refresher,QueryBuilderMetadataCatalog catalog){return new ReportQueryAssemblyService(guard,resolver,refresher,catalog);}
+    @Bean org.ipro.reportstudio.query.register.RegisterSliceReportTemplates recipes(EntityManagerFactory factory,QueryBuilderMetadataCatalog catalog){
+        return new org.ipro.reportstudio.query.register.RegisterSliceReportTemplates(factory,new org.ipro.register.RegisterRegistry(new ManagedEntityCatalog(factory)),catalog,null);
+    }
+    @Bean ReportQueryAssemblyService assembly(ReportQueryGuard guard,ReportParamResolver resolver,EntityParamRefresher refresher,QueryBuilderMetadataCatalog catalog,
+                                             org.ipro.reportstudio.query.register.RegisterSliceReportTemplates recipes){
+        var assembly=new ReportQueryAssemblyService(guard,resolver,refresher,catalog);assembly.useQueryLanguage(new ReportQueryLanguage(catalog,recipes));return assembly;
+    }
     @Bean QueryEditorAnalysisService analysis(ReportQueryGuard guard){return new QueryEditorAnalysisService(guard);}
     @Bean QueryMetadataCatalogService queryMetadata(EntityManagerFactory factory,MetadataResolver metadata,RlsReadGate gate,RlsCurrentUser current){return new QueryMetadataCatalogService(factory,metadata,gate,current);}
     @Bean ReportPreviewService preview(ReportQueryExecutor executor){return new ReportPreviewService(executor);}

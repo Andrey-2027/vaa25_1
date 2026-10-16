@@ -43,10 +43,10 @@ class C5PermissionDecisionServiceJpaTest {
         RlsRoleResolver roleResolver = username -> roles.get();
         C5OperationPermissionRegistry operationRegistry = new C5OperationPermissionRegistry();
         operationRegistry.register(C5PermissionDefinition.entityOperations(String.class,
-            Set.of(C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
+            Set.of(C5Operation.READ, C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
         operationRegistry.register(C5PermissionDefinition.action("RegisterWrite"));
         service = new C5PermissionDecisionService(grantRepository, roleResolver, operationRegistry,
-            new C5ReadDecisionService(grantRepository, roleResolver));
+            new C5ReadDecisionService(grantRepository, roleResolver, new C5ReadPermissionRegistry(operationRegistry)));
     }
 
     @Test
@@ -54,7 +54,7 @@ class C5PermissionDecisionServiceJpaTest {
         assertThat(service.decide("alice", OPERATION_KEY, C5Operation.UPDATE).allowed()).isFalse();
 
         AccessGrant update = grant(AccessGrant.SubjectType.USER, "alice", OPERATION_KEY, null,
-            false, true, false);
+            true, true, false);
         grantRepository.saveAndFlush(update);
 
         assertThat(service.decide("alice", OPERATION_KEY, C5Operation.CREATE).allowed()).isTrue();
@@ -119,11 +119,15 @@ class C5PermissionDecisionServiceJpaTest {
 
     @Test
     void readRowDoesNotDecideAnOperationAndUpdateRowDoesNotDecideRead() {
-        grantRepository.saveAndFlush(grant(AccessGrant.SubjectType.USER, "alice", OPERATION_KEY,
+        AccessGrant row = grantRepository.saveAndFlush(grant(AccessGrant.SubjectType.USER, "alice", OPERATION_KEY,
             null, true, false, false));
 
+        assertThat(service.decideEntity("alice", String.class, C5Operation.READ).allowed()).isTrue();
+        assertThat(service.decideEntity("alice", String.class, C5Operation.UPDATE).allowed()).isFalse();
+        row.setCanRead(false); row.setCanUpdate(true); grantRepository.saveAndFlush(row);
         assertThat(service.decideEntity("alice", String.class, C5Operation.READ).allowed()).isFalse();
         assertThat(service.decideEntity("alice", String.class, C5Operation.UPDATE).allowed()).isFalse();
+        assertThat(service.decideEntity("alice", String.class, C5Operation.CREATE).allowed()).isTrue();
     }
 
     private AccessGrant grant(AccessGrant.SubjectType type, String subject, String dimension,

@@ -25,6 +25,13 @@ class VaadinStarterResolvedDependenciesTest {
         assertTrue(hasArtifact(tree, "platform-vaadin-starter"), "root artifact missing from Maven tree");
         assertTrue(hasArtifact(tree, "platform-vaadin"),
             "Vaadin starter's platform module missing from resolved Maven tree");
+        assertTrue(hasArtifact(tree, "platform-register-vaadin"),
+            "D-R S4: the standard register interface must arrive with the UI supply, otherwise the"
+                + " application would have to declare it explicitly (the boilerplate the starter removes)");
+        assertTrue(hasArtifact(tree, "platform-register"),
+            "the standard register interface depends on the register backend artifact, and it must be"
+                + " visible in the resolved tree: that is the only way the application can drop its own"
+                + " direct register dependency");
         assertFalse(hasArtifact(tree, "platform-rest"),
             "Vaadin starter must not pull platform-rest through any transitive dependency");
     }

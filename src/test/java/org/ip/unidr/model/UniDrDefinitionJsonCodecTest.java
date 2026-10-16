@@ -22,7 +22,7 @@ class UniDrDefinitionJsonCodecTest {
     }
 
     @Test void unknownRecipeVersionGetsAnExplicitDiagnosticEvenWithDifferentStructure() {
-        assertRejected("{\"schemaVersion\":2,\"futureLayout\":{}}", Code.UNSUPPORTED_SCHEMA);
+        assertRejected("{\"schemaVersion\":3,\"futureLayout\":{}}", Code.UNSUPPORTED_SCHEMA);
     }
 
     @Test void unknownSourceVersionAndUnknownFieldSurviveStructuralParsingAsModelErrors() throws Exception {
@@ -37,14 +37,14 @@ class UniDrDefinitionJsonCodecTest {
 
     @Test void extraNestedPropertiesAndJavaTypeDiscriminatorsAreRejected() throws Exception {
         assertRejected(edited(tree -> ((ObjectNode) tree.withArray("columns").get(0)).put("expression", "n.price")), Code.INVALID_JSON);
-        assertRejected(edited(tree -> tree.withArray("filters").addObject().put("fieldId", "quantity").put("operator", "EQ")
+        assertRejected(edited(tree -> tree.withArray("compatibilityFilters").addObject().put("fieldId", "quantity").put("operator", "EQ")
             .putObject("value").put("kind", "java.lang.ProcessBuilder")), Code.INVALID_JSON);
     }
 
     @Test void duplicateKeysTrailingTokensAndScalarCoercionsAreRejected() throws Exception {
         String valid = codec.encode(UniDrDefinitions.receivingItemsSummary());
         assertRejected(valid + " {}", Code.INVALID_JSON);
-        assertRejected(valid.replace("\"schemaVersion\":1", "\"schemaVersion\":1,\"schemaVersion\":1"), Code.INVALID_JSON);
+        assertRejected(valid.replace("\"schemaVersion\":2", "\"schemaVersion\":2,\"schemaVersion\":2"), Code.INVALID_JSON);
         assertRejected(edited(tree -> tree.put("sourceVersion", "1")), Code.INVALID_JSON);
         assertRejected(edited(tree -> tree.put("sourceVersion", 1.5)), Code.INVALID_JSON);
         assertRejected(edited(tree -> tree.put("grandTotal", "true")), Code.INVALID_JSON);
@@ -55,7 +55,7 @@ class UniDrDefinitionJsonCodecTest {
 
     @Test void numericLiteralMustBeAStringAndEnumsMustBeKnown() throws Exception {
         assertRejected(edited(tree -> {
-            var filter = tree.withArray("filters").addObject().put("fieldId", "quantity").put("operator", "GE");
+            var filter = tree.withArray("compatibilityFilters").addObject().put("fieldId", "quantity").put("operator", "GE");
             filter.putObject("value").put("kind", "LITERAL").put("type", "DECIMAL").putArray("values").add(1.25);
         }), Code.INVALID_JSON);
         assertRejected(edited(tree -> ((ObjectNode) tree.withArray("measures").get(0)).put("aggregation", "MEDIAN")), Code.INVALID_JSON);

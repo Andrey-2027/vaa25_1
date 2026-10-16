@@ -528,15 +528,18 @@ const SLICES = {
     'org/ipro/register/RecorderSetWriteContext.java',
     'org/ipro/register/RegisterKeyChangeScope.java',
   ],
-  // D-R S1: реестр и чтение. RegisterAutoConfiguration включён намеренно: пока он один на весь
-  // движок, он обязан распасться по срезам, и проверка показывает, на что именно он ссылается.
+  // D-R S1: реестр и чтение. На старте S1 монолитная RegisterAutoConfiguration была включена
+  // намеренно: пока она одна на весь движок, она обязана распасться по срезам, и проверка
+  // показывала, на что именно она ссылалась. Срез S3 эту развилку закрыл — монолитной
+  // конфигурации больше нет ни в приложении, ни в модуле, а её место заняли три срезовые
+  // (RegisterReadConfiguration, RegisterKeyWriteConfiguration, RegisterRecorderSetConfiguration),
+  // поэтому в списке остаётся только читающая часть.
   S1: [
     'org/ipro/register/RegisterRegistry.java',
     'org/ipro/register/RegisterStartupValidator.java',
     'org/ipro/register/RegisterReader.java',
     'org/ipro/register/RegisterSliceReader.java',
     'org/ipro/register/RegisterListFilterPhases.java',
-    'org/ipro/register/config/RegisterAutoConfiguration.java',
   ],
   S2: [
     'org/ipro/register/RegisterKeyChanges.java',
@@ -547,6 +550,14 @@ const SLICES = {
     'org/ipro/register/RegisterRowState.java',
     'org/ipro/register/RegisterWriteMutex.java',
   ],
+  // D-R S3 — протокол набора владельца. Срез закрыт 2026-10-14: список сохранён как исходный
+  // замер. Он называл 13 файлов, но двух из них срез не привёз — `RecorderOrderClockBootstrap` и
+  // `persistence/RecorderOrderClock` уехали раньше, в S2, вместе с командой ключа; замер назвал
+  // их, потому что смотрел ссылки всех файлов среза, а не только переносимых. На текущем дереве
+  // `--slice S3` отвечает «файлов нет на диске»: они уехали в артефакт,
+  // и смотреть их замыкание нужно в самом модуле, а не в дереве приложения. Проверять вынос
+  // после закрытия среза должны гейты артефакта (`RegisterSurfaceRoleTest`,
+  // `PlatformRegisterModuleTest`), а не этот замер: он отвечает «что уедет», а не «что уехало».
   S3: [
     'org/ipro/register/RecorderSetWriter.java',
     'org/ipro/register/RecorderSetWriteRequest.java',

@@ -15,6 +15,38 @@ import static org.mockito.Mockito.mock;
 
 class ReportQueryEditorTest {
 
+    @Test void inlineParameterRowProvidesFullWidthInputAndUpdatesTypedValueWithoutSelection() {
+        var template=new ReportTemplate();template.setJpql("select n.code from Nomenclature n where n.code=:par1");
+        var editor=newEditor(template);var param=editor.testParams().getFirst();
+        var row=(com.vaadin.flow.component.Component)org.springframework.test.util.ReflectionTestUtils.invokeMethod(editor,"parameterRow",param);
+        var value=(com.vaadin.flow.component.orderedlayout.VerticalLayout)row.getChildren().filter(com.vaadin.flow.component.orderedlayout.VerticalLayout.class::isInstance).findFirst().orElseThrow();
+        var input=(com.vaadin.flow.component.textfield.TextField)value.getChildren().findFirst().orElseThrow();
+        assertThat(input.getWidth()).isEqualTo("100%");input.setValue("Длинное значение параметра");
+        assertThat(param.value()).isEqualTo("Длинное значение параметра");
+        @SuppressWarnings("unchecked") var type=(com.vaadin.flow.component.combobox.ComboBox<FieldType>)row.getChildren().filter(com.vaadin.flow.component.combobox.ComboBox.class::isInstance).findFirst().orElseThrow();
+        type.setValue(FieldType.DECIMAL);
+        var number=(com.vaadin.flow.component.textfield.BigDecimalField)value.getChildren().findFirst().orElseThrow();
+        number.setValue(new java.math.BigDecimal("123.456"));
+        assertThat(number.getWidth()).isEqualTo("100%");assertThat(param.value()).isEqualTo(new java.math.BigDecimal("123.456"));
+        var panel=(com.vaadin.flow.component.Component)org.springframework.test.util.ReflectionTestUtils.getField(editor,"parameterPanel");
+        var text=(com.vaadin.flow.component.Component)org.springframework.test.util.ReflectionTestUtils.getField(editor,"jpql");
+        assertThat(panel.getParent()).isEqualTo(text.getParent());
+    }
+
+    @Test void typingParameterNameReplacesPrefixesAndKeepsOtherTestValues() {
+        var template=new ReportTemplate();template.setJpql("select a.code from Nomenclature a where a.code=:kept");
+        var editor=newEditor(template);editor.testParams().getFirst().setValue("X");
+        for(String name:java.util.List.of("p","pa","par","par1"))
+            editor.applyJpqlText("select a.code from Nomenclature a where a.code=:kept and a.name=:"+name);
+        assertThat(editor.testParams()).extracting(QueryTestParam::name).containsExactly("kept","par1");
+        assertThat(editor.testParams().getFirst().value()).isEqualTo("X");
+        editor.transferTestParamsToTemplate();
+        assertThat(template.getParams()).extracting(org.ipro.reportstudio.dom.ReportParam::getName).containsExactly("kept","par1");
+        editor.applyJpqlText("select a.code from Nomenclature a where a.code=:kept");
+        assertThat(editor.testParams()).extracting(QueryTestParam::name).containsExactly("kept");
+        assertThat(template.getParams()).hasSize(2); // Removing a reference does not delete saved declarations.
+    }
+
     private ReportQueryEditor newEditor(ReportTemplate template) {
         ReportQueryEditor editor = new ReportQueryEditor(
                 mock(QueryEditorAnalysisService.class),

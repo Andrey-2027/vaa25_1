@@ -265,8 +265,8 @@ class OperationEffectiveRightsIT {
         assertThat(c5PermissionDecisionService
             .decideEntity(granted, Nomenclature.class, C5Operation.DELETE).allowed())
             .isFalse();
-        assertThat(accessService.hasAnyAccess(NOMENCLATURE_OPERATIONS, granted))
-            .as("чтение типа больше не решается этим ключом — ни в UI, ни в гейте чтения")
+        assertThat(c5PermissionDecisionService.decideEntity(granted, Nomenclature.class, C5Operation.READ).allowed())
+            .as("чтение задаётся независимым флагом той же ENTITY-строки")
             .isFalse();
     }
 
@@ -296,10 +296,8 @@ class OperationEffectiveRightsIT {
      */
     private void grantCanonicalWrite(String subject, Class<?>... types) {
         for (Class<?> type : types) {
-            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entityRead(type),
-                AccessGrant.SubjectType.USER, subject, new GrantFlags(true, false, false));
-            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entityOperations(type),
-                AccessGrant.SubjectType.USER, subject, new GrantFlags(false, true, true));
+            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entity(type),
+                AccessGrant.SubjectType.USER, subject, new GrantFlags(true, true, true));
         }
         accessGrantAdminService.saveSingleGrant(
             C5PermissionKeys.action(UserPasswordChangePermission.PERMISSION_ID),

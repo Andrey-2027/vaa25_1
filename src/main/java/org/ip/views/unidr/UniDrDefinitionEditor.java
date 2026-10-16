@@ -17,6 +17,9 @@ import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.dnd.DragSource;
 import com.vaadin.flow.component.dnd.DropTarget;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.dnd.GridDropMode;
+import com.vaadin.flow.component.grid.dnd.GridDropLocation;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import org.ipro.form.SelectionFormAssembler;
 import org.ip.unidr.model.UniDrDefinition;
@@ -35,29 +38,38 @@ final class UniDrDefinitionEditor extends VerticalLayout {
     private final Checkbox rowBorders=new Checkbox("Границы строк"), columnBorders=new Checkbox("Границы колонок"), stripes=new Checkbox("Чередовать фон строк");
     private final List<FieldRow> fields=new ArrayList<>();
     private final List<ComputedColumn> computed=new ArrayList<>();
-    private final Checkbox rowNumbers=new Checkbox("Номер строки");
+    private final Checkbox rowNumbers=new Checkbox("Нумеровать строки детализации");
     private enum BorderChoice { DEFAULT, ON, OFF }
     private final List<String> groups=new ArrayList<>();
     private final List<Sort> sorts=new ArrayList<>();
-    private final Div fieldRows=new Div(),fieldProperties=new Div(),availableRows=new Div();
+    private final Div fieldProperties=new Div(),availableRows=new Div();
+    private final Div selectionWorkspace=new Div();
+    private final Grid<FieldRow> fieldGrid=new Grid<>();
+    private final Details detailFields=new Details();
+    private final Button fieldUp=new Button("↑",event->moveSelection(-1)),fieldDown=new Button("↓",event->moveSelection(1));
+    private String draggedField,availableDraggedField;
     private final TextField availableSearch=new TextField("Поиск полей");
     private final Span tableTitle=new Span();
-    private final Checkbox countRecords=new Checkbox("Считать количество записей");
     private final VerticalLayout groupRows=new VerticalLayout(),sortRows=new VerticalLayout();
     private FieldRow propertyField;
     private final UniDrConditionsEditor conditions;
+    private UniDrNativeFilterEditor nativeFilters;
+    private UniDrParameterEditor parameterEditor;
     private final UniDrSourceDefinition source;
+    private final UniDrDefinition initial;
     private final Runnable changed;
     private boolean ready,updating;
     private record AvailableDrag(String id) {}
-    private record ColumnDrag(String id) {}
     private record GroupDrag(String id) {}
 
     UniDrDefinitionEditor(UniDrSourceDefinition source, UniDrDefinition initial, UniDrReferenceService references, Runnable changed) {
         this(source,initial,references,changed,null);
     }
     UniDrDefinitionEditor(UniDrSourceDefinition source, UniDrDefinition initial, UniDrReferenceService references, Runnable changed,SelectionFormAssembler selection) {
-        this.source=source; this.changed=changed; setPadding(false); addClassName("unidr-definition");
+        this(source,initial,references,changed,selection,null);
+    }
+    UniDrDefinitionEditor(UniDrSourceDefinition source,UniDrDefinition initial,UniDrReferenceService references,Runnable changed,SelectionFormAssembler selection,UniDrQueryUiSupport queries) {
+        this.source=source;this.initial=initial; this.changed=changed; setPadding(false); addClassName("unidr-definition");
         computed.addAll(initial.computedColumns());rowNumbers.setValue(initial.rowNumbers());rowNumbers.setHelperText("Сквозная нумерация детальных записей");rowNumbers.addValueChangeListener(event->change());
         title.setValue(initial.title());title.setMaxLength(200);title.setWidthFull();
         mode.setItems(Mode.values());mode.setItemLabelGenerator(value->value==Mode.DETAILS?"Детальные записи":"Только итоги");mode.setValue(initial.mode());
@@ -68,41 +80,53 @@ final class UniDrDefinitionEditor extends VerticalLayout {
         order.forEach(id->fields.add(new FieldRow(field(id),initial)));
         groups.addAll(initial.groups());sorts.addAll(initial.sorts());
         conditions=new UniDrConditionsEditor(source,initial.parameters(),initial.filters(),references,this::change,selection);
+        if(queries!=null) {
+            if(!source.id().equals("unconfigured"))nativeFilters=new UniDrNativeFilterEditor(queries.catalog().plan(initial),initial.filterTree(),initial.parameterDeclarations(),references,selection,value->{if(parameterEditor!=null)parameterEditor.refreshUsage();change();});
+            parameterEditor=new UniDrParameterEditor(initial.parameterDeclarations(),queries,references,this::definition,()->{if(nativeFilters!=null)nativeFilters.parameters(parameterEditor.value());change();});
+        }
         availableRows.addClassName("unidr-available-fields");
         availableSearch.setWidthFull();availableSearch.setClearButtonVisible(true);availableSearch.setValueChangeMode(ValueChangeMode.EAGER);
         availableSearch.addValueChangeListener(event->redrawAvailable());
         var availableContent=new VerticalLayout(availableSearch,new Span("Перетащите поле в таблицу или в группировки"),availableRows);availableContent.setPadding(false);
         var available=new Details("Доступные поля",availableContent);available.setOpened(true);available.addClassName("unidr-available");
         var addActions=new HorizontalLayout(new Button("Добавить поля…",event->openFieldChooser(false)),new Button("Добавить группировки…",event->openFieldChooser(true)),new Button("Вычисляемая колонка…",event->openComputedEditor(null)));addActions.addClassName("unidr-toolbar");
-        var groupPane=new VerticalLayout(new Span("Группировки"),new Paragraph("Порядок сверху вниз задаёт вложенность. Перетаскивайте строки или используйте стрелки."),groupRows,groupAdder());
+        var groupPane=new VerticalLayout(new Span("Группировки"),groupRows);
         groupRows.addClassName("unidr-group-drop");DropTarget.create(groupRows).addDropListener(event->event.getDragData().ifPresent(data->{
             if(data instanceof AvailableDrag drag)addGroup(drag.id());else if(data instanceof GroupDrag drag)moveGroup(drag.id(),null);
         }));
-        var countRow=fields.stream().filter(row->row.field.type()==ValueType.COUNT).findFirst().orElse(null);
-        countRecords.setValue(countRow!=null && countRow.aggregation.getValue()!=null);
-        countRecords.addValueChangeListener(event->{if(countRow!=null)edit(()->countRow.aggregation.setValue(event.getValue()?Aggregation.COUNT_ROWS:null));});
-        var countActions=new HorizontalLayout(countRecords,rowNumbers);countActions.addClassName("unidr-toolbar");if(countRow!=null)countActions.add(new Button("Свойства количества записей",event->showProperties(countRow)));
-        var selectedPane=new VerticalLayout(addActions,groupPane,tableTitle,fieldsTable(),countActions,fieldProperties);selectedPane.setPadding(false);selectedPane.addClassName("unidr-selected-fields");
-        var selectionWorkspace=new Div(available,selectedPane);selectionWorkspace.addClassName("unidr-selection-workspace");
+        fieldUp.setAriaLabel("Переместить выбранную колонку выше");fieldDown.setAriaLabel("Переместить выбранную колонку ниже");
+        fieldUp.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY_INLINE);fieldDown.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY_INLINE);
+        addActions.add(fieldUp,fieldDown);
+        var selectedPane=new VerticalLayout(addActions,groupPane,tableTitle,fieldsTable(),detailFields);selectedPane.setPadding(false);selectedPane.addClassName("unidr-selected-fields");
+        selectionWorkspace.add(available,selectedPane,fieldProperties);selectionWorkspace.addClassName("unidr-selection-workspace");
+        available.addOpenedChangeListener(event->selectionWorkspace.getElement().getClassList().set("unidr-source-collapsed",!event.isOpened()));
         var fieldPane=new VerticalLayout(selectionWorkspace);
         fieldPane.addClassName("unidr-fields-pane");fieldProperties.addClassName("unidr-field-properties");fieldProperties.setVisible(false);
         fieldProperties.getElement().setAttribute("role","region");fieldProperties.getElement().setAttribute("aria-label","Свойства выбранного поля");
-        var advanced=new VerticalLayout(rowBorders,columnBorders,stripes,new Paragraph("Сортировка детальных записей внутри групп"),sortRows,sortAdder());
+        var advanced=new VerticalLayout(rowBorders,columnBorders,stripes,rowNumbers,new Paragraph("Сортировка детальных записей внутри групп"),sortRows,sortAdder());
         for(var layout:List.of(fieldPane,groupPane,advanced,groupRows,sortRows)) layout.setPadding(false);
         Accordion sections=new Accordion();sections.setWidthFull();
-        sections.add("Поля и группировки",fieldPane);sections.add("Отборы",conditions.filterPane);sections.add("Дополнительно",advanced);
+        sections.add("Поля и группировки",fieldPane);
+        if(nativeFilters!=null) {
+            var filters=new VerticalLayout(nativeFilters);filters.setPadding(false);
+            if(!initial.filters().isEmpty())filters.add(new Details(initial.compatibilityFilterStage()==CompatibilityStage.AFTER_READ?"Отбор результата (совместимость v1)":"Сохранённые отборы v1",conditions.filterPane));
+            sections.add("Отборы",filters);
+        } else sections.add("Отборы",conditions.filterPane);
+        sections.add("Дополнительно",advanced);
         var presentation=new HorizontalLayout(mode,grandTotal);presentation.setAlignItems(Alignment.END);presentation.addClassName("unidr-presentation");
         add(title,presentation,sections);redrawFields();redrawGroups();redrawSorts();redrawAvailable();ready=true;
     }
     UniDrDefinition definition() {
-        return new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,source.id(),source.version(),title.getValue(),
-            fields.stream().filter(row->row.columnAdded).map(row->new Column(row.field.id(),optional(row.caption.getValue()))).toList(),
-            fields.stream().filter(row->row.aggregation.getValue()!=null).sorted(Comparator.comparing(row->row.field.type()==ValueType.COUNT)).map(row->new Measure(row.field.id(),row.aggregation.getValue(),optional(row.measureCaption.getValue()))).toList(),
-            groups,conditions.filters(),conditions.parameters(),sorts,mode.getValue(),grandTotal.getValue(),new Appearance(rowBorders.getValue(),columnBorders.getValue(),stripes.getValue()))
-            .withFieldStyles(fields.stream().filter(row->!row.style().equals(FieldStyle.defaults())).collect(java.util.stream.Collectors.toMap(row->row.field.id(),FieldRow::style)))
-            .withComputedColumns(computed).withRowNumbers(rowNumbers.getValue());
+        return initial.edit(draft->{draft.sourceId=source.id();draft.sourceVersion=source.version();draft.title=title.getValue();
+            draft.columns=fields.stream().filter(row->row.columnAdded).map(row->new Column(row.field.id(),optional(row.caption.getValue()))).toList();
+            draft.measures=fields.stream().filter(row->row.aggregation.getValue()!=null).sorted(Comparator.comparing(row->row.field.type()==ValueType.COUNT)).map(row->new Measure(row.field.id(),row.aggregation.getValue(),optional(row.measureCaption.getValue()))).toList();
+            draft.groups=List.copyOf(groups);draft.filters=conditions.filters();draft.parameters=parameterEditor==null?conditions.parameters():parameterEditor.value().stream().filter(p->p.legacy()!=null).map(org.ip.unidr.model.UniDrParameter::legacyParameter).toList();draft.sorts=List.copyOf(sorts);draft.mode=mode.getValue();draft.grandTotal=grandTotal.getValue();
+            if(parameterEditor!=null)draft.parameterDeclarations=parameterEditor.value();if(nativeFilters!=null)draft.filterTree=nativeFilters.value();
+            draft.appearance=new Appearance(rowBorders.getValue(),columnBorders.getValue(),stripes.getValue());
+            draft.fieldStyles=fields.stream().filter(row->!row.style().equals(FieldStyle.defaults())).collect(java.util.stream.Collectors.toMap(row->row.field.id(),FieldRow::style));
+            draft.computedColumns=List.copyOf(computed);draft.rowNumbers=rowNumbers.getValue();});
     }
-    VerticalLayout parameterPane() {return conditions.parameterPane;}
+    VerticalLayout parameterPane() {return parameterEditor==null?conditions.parameterPane:parameterEditor;}
     private String optional(String text) { return text.isBlank()?null:text; }
     private void change() { if(ready && !updating) changed.run(); }
     private void edit(Runnable action) {
@@ -110,17 +134,17 @@ final class UniDrDefinitionEditor extends VerticalLayout {
         redrawFields();redrawGroups();redrawAvailable();change();
     }
     private FieldRow row(String id) {return fields.stream().filter(row->row.field.id().equals(id)).findFirst().orElseThrow();}
-    private boolean shown(FieldRow row) {return row.field.type()!=ValueType.COUNT && (mode.getValue()==Mode.DETAILS?row.columnAdded || row.aggregation.getValue()!=null:row.aggregation.getValue()!=null);}
+    private boolean shown(FieldRow row) {return mode.getValue()==Mode.DETAILS?row.columnAdded || row.aggregation.getValue()!=null:row.aggregation.getValue()!=null;}
     void addField(String id) {
-        var row=row(id);if(row.field.type()==ValueType.COUNT)return;
-        if(mode.getValue()==Mode.SUMMARY && row.field.aggregations().isEmpty()){addGroup(id);return;}
+        var row=row(id);
+        if(mode.getValue()==Mode.SUMMARY && row.field.aggregations().isEmpty())return;
         if(shown(row))return;
-        edit(()->{fields.remove(row);fields.add(row);if(mode.getValue()==Mode.DETAILS)row.columnAdded=true;
+        edit(()->{fields.remove(row);fields.add(row);if(row.field.type()==ValueType.COUNT)row.aggregation.setValue(Aggregation.COUNT_ROWS);else if(mode.getValue()==Mode.DETAILS)row.columnAdded=true;
             else row.aggregation.setValue(row.field.aggregations().contains(Aggregation.SUM)?Aggregation.SUM:Arrays.stream(Aggregation.values()).filter(row.field.aggregations()::contains).findFirst().orElseThrow());});
     }
     void removeField(String id) {var row=row(id);if(propertyField==row)closeProperties();edit(()->{row.columnAdded=false;row.aggregation.clear();});}
     void moveField(String id,String target) {
-        var moved=row(id);if(!shown(moved) || Objects.equals(id,target))return;
+        var moved=row(id);if(!shown(moved) || moved.field.type()==ValueType.COUNT || Objects.equals(id,target))return;
         edit(()->{int position=target==null?fields.size()-1:fields.indexOf(row(target));fields.remove(moved);fields.add(Math.min(position,fields.size()),moved);});
     }
     void addGroup(String id) {
@@ -135,14 +159,12 @@ final class UniDrDefinitionEditor extends VerticalLayout {
     private Field field(String id) { return source.fields().stream().filter(field->field.id().equals(id)).findFirst().orElseGet(()->UniDrComputedColumns.field(computed.stream().filter(column->column.id().equals(id)).findFirst().orElseThrow())); }
     static String operatorCaption(Operator operator) { return switch(operator){case EQ->"Равно";case NE->"Не равно";case GT->"Больше";case GE->"Больше или равно";case LT->"Меньше";case LE->"Меньше или равно";case BETWEEN->"Между";}; }
     private final class FieldRow {
-        final Field field;boolean columnAdded;final TextField caption=new TextField(),measureCaption=new TextField();
+        final Field field;boolean columnAdded,loadingTitle;final TextField caption=new TextField(),measureCaption=new TextField(),inlineTitle=new TextField();
         final ComboBox<Aggregation> aggregation=new ComboBox<>();
-        final Div layout=new Div(),actions=new Div();
         final IntegerField width=new IntegerField("Ширина");
         final ComboBox<UniDrDefinition.Alignment> alignment=new ComboBox<>("Выравнивание");
         final TextField format=new TextField("Формат");
         final ComboBox<BorderChoice> border=new ComboBox<>("Граница колонки");
-        final Button properties;
         FieldRow(Field field,UniDrDefinition initial) {
             this.field=field;
             caption.setAriaLabel(field.caption()+" · заголовок");caption.setPlaceholder(field.caption());
@@ -161,42 +183,62 @@ final class UniDrDefinitionEditor extends VerticalLayout {
             aggregation.setClearButtonVisible(true);aggregation.setPlaceholder("Не считать");measure.ifPresent(item->aggregation.setValue(item.aggregation()));measureCaption.setValue(measure.map(Measure::title).orElse(""));
             measureCaption.setAriaLabel(field.caption()+" · заголовок итога");measureCaption.setPlaceholder(field.caption());
             caption.setMaxLength(200);measureCaption.setMaxLength(200);aggregation.setVisible(!field.aggregations().isEmpty());
-            caption.addValueChangeListener(e->change());aggregation.addValueChangeListener(e->{visibility();if(ready && !updating){if(propertyField==this && !shown(this))closeProperties();redrawFields();redrawAvailable();change();}});measureCaption.addValueChangeListener(e->change());
-            properties=new Button("⋯",e->showProperties(this));properties.setAriaLabel("Свойства: "+field.caption());
-            properties.getElement().setAttribute("aria-expanded","false");
-            properties.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY_INLINE);
-            actions.addClassName("unidr-field-actions");layout.addClassName("unidr-field-row");layout.getElement().setAttribute("role","row");
-            var handle=new Span("⠿");handle.addClassName("unidr-drag-handle");handle.getElement().setAttribute("title","Перетащить поле: "+field.caption());DragSource.create(handle).setDragData(new ColumnDrag(field.id()));
-            var name=cell(new Div(handle,new Span(field.caption())),"cell");name.getElement().setAttribute("title",field.caption());
-            layout.add(name,cell(caption,"cell"),cell(aggregation,"cell"),cell(actions,"cell"));visibility();
-            DropTarget.create(layout).addDropListener(event->event.getDragData().ifPresent(data->{if(data instanceof ColumnDrag drag)moveField(drag.id(),field.id());else if(data instanceof AvailableDrag drag)addField(drag.id());}));
+            inlineTitle.setAriaLabel(field.caption()+" · заголовок колонки");inlineTitle.setPlaceholder(field.caption());inlineTitle.setMaxLength(200);inlineTitle.setWidthFull();
+            inlineTitle.addValueChangeListener(event->{if(!loadingTitle){printedTitle().setValue(event.getValue());change();}});
+            aggregation.setWidthFull();aggregation.setReadOnly(field.type()==ValueType.COUNT);
+            aggregation.addValueChangeListener(e->{visibility();if(ready && !updating){
+                boolean wasShown=mode.getValue()==Mode.DETAILS && columnAdded || e.getOldValue()!=null;
+                if(propertyField==this && !shown(this))closeProperties();
+                if(wasShown!=shown(this))redrawFields();redrawAvailable();change();
+            }});
+            visibility();
         }
         FieldStyle style() {return new FieldStyle(width.getValue(),alignment.getValue(),optional(format.getValue()),border.getValue()==BorderChoice.DEFAULT?null:border.getValue()==BorderChoice.ON);}
         void visibility() {
-            caption.setEnabled(field.detail() && columnAdded);
-            caption.setVisible(field.detail());
-            measureCaption.setEnabled(aggregation.getValue()!=null);
-            measureCaption.setVisible(!field.aggregations().isEmpty());
-            measureCaption.setHelperText(mode.getValue()==Mode.SUMMARY?null:aggregation.getValue()==null?"Сначала выберите итог в таблице":"Пустое значение — стандартный заголовок");
+            loadingTitle=true;try {inlineTitle.setValue(printedTitle().getValue());}finally {loadingTitle=false;}
         }
-    }
-    private Div cell(com.vaadin.flow.component.Component content,String role) {
-        var cell=new Div(content);cell.getElement().setAttribute("role",role);return cell;
+        private TextField printedTitle(){return mode.getValue()==Mode.DETAILS && columnAdded?caption:measureCaption;}
     }
     private Div fieldsTable() {
-        var header=new Div();header.addClassNames("unidr-field-row","unidr-field-header");header.getElement().setAttribute("role","row");
-        for(String caption:List.of("Поле","Заголовок","Итог","Действия")) header.add(cell(new Span(caption),"columnheader"));
-        fieldRows.getElement().setAttribute("role","rowgroup");
-        var table=new Div(header,fieldRows);table.addClassName("unidr-fields-table");table.getElement().setAttribute("role","table");table.getElement().setAttribute("aria-label","Поля отчёта");
+        fieldGrid.setWidthFull();fieldGrid.setAllRowsVisible(true);fieldGrid.addClassName("unidr-field-grid");fieldGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
+        fieldGrid.addColumn(row->row.field.caption()).setHeader("Поле").setFlexGrow(1).setWidth("130px");
+        fieldGrid.addComponentColumn(row->row.inlineTitle).setHeader("Заголовок").setFlexGrow(1).setWidth("130px");
+        fieldGrid.addComponentColumn(row->row.aggregation).setHeader("Итог").setFlexGrow(0).setWidth("125px");
+        fieldGrid.addComponentColumn(row->{var remove=new Button("×",event->removeField(row.field.id()));remove.setAriaLabel("Убрать из отчёта: "+row.field.caption());remove.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY_INLINE);return remove;}).setWidth("38px").setFlexGrow(0);
+        fieldGrid.addSelectionListener(event->{var selected=event.getFirstSelectedItem();if(selected.isPresent())showProperties(selected.orElseThrow());else closeProperties();updateOrderActions();});
+        fieldGrid.setRowsDraggable(true);fieldGrid.setDragFilter(row->row.field.type()!=ValueType.COUNT);fieldGrid.setDropMode(GridDropMode.BETWEEN);
+        fieldGrid.addDragStartListener(event->draggedField=event.getDraggedItems().getFirst().field.id());fieldGrid.addDragEndListener(event->draggedField=null);
+        fieldGrid.addDropListener(event->{
+            var availableId=availableDraggedField;
+            if(availableId!=null && fields.stream().anyMatch(row->row.field.id().equals(availableId))){addField(availableId);return;}
+            if(draggedField==null)return;
+            var target=event.getDropTargetItem().orElse(null);
+            moveFieldAtDrop(draggedField,target==null?null:target.field.id(),event.getDropLocation()==GridDropLocation.BELOW);
+        });
         var drop=new Div(new Span("Перетащите поле сюда или нажмите «Добавить поля…»"));drop.addClassName("unidr-field-drop");
-        DropTarget.create(drop).addDropListener(event->event.getDragData().ifPresent(data->{if(data instanceof AvailableDrag drag)addField(drag.id());else if(data instanceof ColumnDrag drag)moveField(drag.id(),null);}));
-        var scroll=new Div(table,drop);scroll.addClassName("unidr-fields-scroll");scroll.setWidthFull();return scroll;
+        DropTarget.create(drop).addDropListener(event->event.getDragData().ifPresent(data->{if(data instanceof AvailableDrag drag)addField(drag.id());}));
+        var table=new Div(fieldGrid,drop);table.setWidthFull();return table;
     }
+    private void moveFieldAtDrop(String id,String target,boolean below){
+        var moved=row(id);if(moved.field.type()==ValueType.COUNT || Objects.equals(id,target))return;
+        edit(()->{fields.remove(moved);int index=target==null?fields.size():fields.indexOf(row(target))+(below?1:0);fields.add(Math.max(0,Math.min(index,fields.size())),moved);});
+    }
+    void selectField(String id){fieldGrid.select(row(id));}
+    String selectedField(){var selected=fieldGrid.asSingleSelect().getValue();return selected==null?null:selected.field.id();}
+    TextField columnTitle(String id){return row(id).inlineTitle;}
+    ComboBox<Aggregation> aggregation(String id){return row(id).aggregation;}
+    private void moveSelection(int offset){
+        var selected=fieldGrid.asSingleSelect().getValue();var ordered=visibleFields();int from=ordered.indexOf(selected),to=from+offset;
+        if(from<0 || to<0 || to>=ordered.size() || selected.field.type()==ValueType.COUNT || ordered.get(to).field.type()==ValueType.COUNT)return;
+        moveField(selected.field.id(),ordered.get(to).field.id());selectField(selected.field.id());
+    }
+    private List<FieldRow> visibleFields(){return fields.stream().filter(this::shown).sorted(Comparator.comparing(row->row.field.type()==ValueType.COUNT)).toList();}
+    private void updateOrderActions(){var selected=fieldGrid.asSingleSelect().getValue();var rows=visibleFields();int index=rows.indexOf(selected);boolean movable=selected!=null && selected.field.type()!=ValueType.COUNT;
+        fieldUp.setEnabled(movable && index>0);fieldDown.setEnabled(movable && index>=0 && index<rows.size()-1 && rows.get(index+1).field.type()!=ValueType.COUNT);}
     private void showProperties(FieldRow row) {
-        if(propertyField!=null) {propertyField.layout.removeClassName("unidr-field-active");propertyField.properties.getElement().setAttribute("aria-expanded","false");}
-        fieldProperties.removeAll();propertyField=row;row.layout.addClassName("unidr-field-active");
-        row.properties.getElement().setAttribute("aria-expanded","true");
-        var close=new Button("Закрыть",event->{closeProperties();row.properties.focus();});
+        if(propertyField==row && fieldProperties.isVisible())return;
+        fieldProperties.removeAll();propertyField=row;
+        var close=new Button("Закрыть",event->{fieldGrid.deselectAll();fieldGrid.focus();});
         close.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY_INLINE);
         var heading=new Div(new Span("Свойства · "+row.field.caption()),close);heading.addClassName("unidr-properties-heading");
         var presentation=new Div(row.width,row.alignment,row.format,row.border);presentation.addClassName("unidr-field-presentation");
@@ -206,13 +248,14 @@ final class UniDrDefinitionEditor extends VerticalLayout {
         computed.stream().filter(column->column.id().equals(row.field.id())).findFirst().ifPresent(column->{
             fieldProperties.add(new Paragraph((column.kind()==Computation.FORMULA?"Формула: ":"Текст: ")+column.expression()),new Button("Изменить вычисление…",event->openComputedEditor(column)),new Button("Удалить вычисление",event->{closeProperties();edit(()->{computed.remove(column);fields.remove(row);});}));
         });
-        if(mode.getValue()==Mode.DETAILS || row.field.type()==ValueType.COUNT)fieldProperties.add(new Span("Заголовок показателя"),row.measureCaption);
+        fieldProperties.add(new Button("Сбросить оформление",event->edit(()->{row.width.clear();row.alignment.setValue(UniDrDefinition.Alignment.AUTO);row.format.clear();row.border.setValue(BorderChoice.DEFAULT);})),
+            new Button("Убрать из отчёта",event->removeField(row.field.id())));
         fieldProperties.setVisible(true);
-        fieldProperties.getElement().executeJs("this.scrollIntoView({block: 'nearest', inline: 'nearest'})");
+        selectionWorkspace.addClassName("unidr-palette-open");
     }
     private void closeProperties() {
-        if(propertyField!=null){propertyField.layout.removeClassName("unidr-field-active");propertyField.properties.getElement().setAttribute("aria-expanded","false");}
         propertyField=null;fieldProperties.removeAll();fieldProperties.setVisible(false);
+        selectionWorkspace.removeClassName("unidr-palette-open");
     }
     private <T> void move(List<T> items,int from,int offset,Runnable redraw) { int to=from+offset;if(to<0 || to>=items.size())return;Collections.swap(items,from,to);redraw.run();change(); }
     private HorizontalLayout orderButtons(int index,int size,Runnable up,Runnable down) {
@@ -222,27 +265,14 @@ final class UniDrDefinitionEditor extends VerticalLayout {
     }
     private void redrawFields() {
         rowNumbers.setEnabled(mode.getValue()==Mode.DETAILS);
-        fieldRows.removeAll();
         tableTitle.setText(mode.getValue()==Mode.DETAILS?"Колонки и итоги":"Показатели итогов");
-        var visible=fields.stream().filter(this::shown).toList();
-        for(int index=0;index<visible.size();index++) {
-            var row=visible.get(index);int position=index;
-            row.visibility();
-            var titleCell=(Div)row.layout.getChildren().toList().get(1);titleCell.removeAll();titleCell.add(mode.getValue()==Mode.DETAILS?row.caption:row.measureCaption);
-            var order=orderButtons(index,visible.size(),()->moveField(row.field.id(),visible.get(position-1).field.id()),()->moveField(row.field.id(),visible.get(position+1).field.id()));order.addClassName("unidr-field-order");
-            order.setSpacing(false);
-            order.getChildren().filter(Button.class::isInstance).map(Button.class::cast).forEach(button->{
-                button.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY_INLINE);
-                button.setAriaLabel(button.getAriaLabel().orElseThrow()+": "+row.field.caption());
-            });
-            var remove=new Button("×",event->removeField(row.field.id()));remove.setAriaLabel("Удалить поле: "+row.field.caption());remove.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY_INLINE);
-            row.actions.removeAll();row.actions.add(order,row.properties,remove);fieldRows.add(row.layout);
-        }
-    }
-    private HorizontalLayout groupAdder() {
-        ComboBox<Field> field=new ComboBox<>("Добавить группировку");field.setItemLabelGenerator(Field::caption);field.setItems(source.fields().stream().filter(Field::groupable).toList());
-        Button add=new Button("Добавить",e->{if(field.getValue()!=null)addGroup(field.getValue().id());});
-        return new HorizontalLayout(field,add);
+        var selected=fieldGrid.asSingleSelect().getValue();var visible=visibleFields();visible.forEach(FieldRow::visibility);fieldGrid.setItems(visible);
+        if(selected!=null && visible.contains(selected))fieldGrid.select(selected);
+        updateOrderActions();
+        var savedDetails=fields.stream().filter(row->row.columnAdded && row.aggregation.getValue()==null).toList();
+        detailFields.setSummaryText("Поля детализации — "+savedDetails.size());detailFields.setVisible(mode.getValue()==Mode.SUMMARY && !savedDetails.isEmpty());
+        var labels=new VerticalLayout();labels.setPadding(false);savedDetails.forEach(row->labels.add(new Span(row.field.caption())));
+        labels.add(new Button("Перейти к деталям",event->mode.setValue(Mode.DETAILS)));detailFields.removeAll();detailFields.add(labels);
     }
     private void redrawGroups() {
         groupRows.removeAll();
@@ -258,13 +288,13 @@ final class UniDrDefinitionEditor extends VerticalLayout {
     private void redrawAvailable() {
         availableRows.removeAll();String search=availableSearch.getValue().strip().toLowerCase(Locale.ROOT);
         for(var row:fields) {
-            if(row.field.type()==ValueType.COUNT || !(row.field.caption()+" "+row.field.id()).toLowerCase(Locale.ROOT).contains(search))continue;
+            if(!(row.field.caption()+" "+row.field.id()).toLowerCase(Locale.ROOT).contains(search))continue;
             var name=new Span(row.field.caption());name.getElement().setAttribute("title",row.field.id());
             var add=new Button("+",event->addField(row.field.id()));add.setAriaLabel("Добавить поле: "+row.field.caption());
-            boolean eligible=mode.getValue()==Mode.DETAILS?row.field.detail():!row.field.aggregations().isEmpty();add.setEnabled(eligible && !shown(row));
-            var group=new Button("Г",event->addGroup(row.field.id()));group.setAriaLabel("Группировать по: "+row.field.caption());group.setEnabled(row.field.groupable() && !groups.contains(row.field.id()) && groups.size()<source.maxGroups());
-            for(var button:List.of(add,group))button.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY_INLINE);
-            var entry=new Div(name,new Div(add,group));entry.addClassName("unidr-available-field");DragSource.create(entry).setDragData(new AvailableDrag(row.field.id()));availableRows.add(entry);
+            boolean eligible=row.field.type()==ValueType.COUNT || (mode.getValue()==Mode.DETAILS?row.field.detail():!row.field.aggregations().isEmpty());add.setEnabled(eligible && !shown(row));
+            add.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY_INLINE);
+            var entry=new Div(name,new Div(add));entry.addClassName("unidr-available-field");var drag=DragSource.create(entry);drag.setDragData(new AvailableDrag(row.field.id()));
+            drag.addDragStartListener(event->availableDraggedField=row.field.id());drag.addDragEndListener(event->availableDraggedField=null);availableRows.add(entry);
         }
     }
     Dialog openFieldChooser(boolean grouping) {
@@ -272,7 +302,7 @@ final class UniDrDefinitionEditor extends VerticalLayout {
         var search=new TextField("Поиск");search.setWidthFull();search.setClearButtonVisible(true);search.setValueChangeMode(ValueChangeMode.EAGER);
         var choices=new LinkedHashMap<String,Checkbox>();var list=new VerticalLayout();list.setPadding(false);list.setMaxHeight("55vh");list.getStyle().set("overflow","auto");
         for(var row:fields) {
-            boolean eligible=grouping?row.field.groupable() && !groups.contains(row.field.id()):row.field.type()!=ValueType.COUNT && !shown(row) && (mode.getValue()==Mode.DETAILS?row.field.detail():!row.field.aggregations().isEmpty());
+            boolean eligible=grouping?row.field.groupable() && !groups.contains(row.field.id()):!shown(row) && (row.field.type()==ValueType.COUNT || (mode.getValue()==Mode.DETAILS?row.field.detail():!row.field.aggregations().isEmpty()));
             if(!eligible)continue;var choice=new Checkbox(row.field.caption());choices.put(row.field.id(),choice);list.add(choice);
         }
         if(choices.isEmpty())list.add(new Span("Все доступные поля уже добавлены"));

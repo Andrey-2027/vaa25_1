@@ -1,0 +1,3 @@
+org.ipro.register.config.RegisterReadConfiguration
+org.ipro.register.config.RegisterKeyWriteConfiguration
+org.ipro.register.config.RegisterRecorderSetConfiguration

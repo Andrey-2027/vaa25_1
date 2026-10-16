@@ -34,11 +34,10 @@ class C5PermissionDecisionServiceTest {
         RlsRoleResolver roleResolver = username -> roles.get();
         operationRegistry = new C5OperationPermissionRegistry();
         operationRegistry.register(C5PermissionDefinition.entityOperations(String.class,
-            Set.of(C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
-        operationRegistry.register(C5PermissionDefinition.entityRead(String.class));
+            Set.of(C5Operation.READ, C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
         operationRegistry.register(C5PermissionDefinition.action("RegisterWrite"));
         service = new C5PermissionDecisionService(grantRepository, roleResolver, operationRegistry,
-            new C5ReadDecisionService(grantRepository, roleResolver));
+            new C5ReadDecisionService(grantRepository, roleResolver, new C5ReadPermissionRegistry(operationRegistry)));
     }
 
     private void exact(String subjectType, String subjectKey, String key, AccessGrant... grants) {
@@ -60,7 +59,7 @@ class C5PermissionDecisionServiceTest {
         exact("USER", "alice", OPERATION_KEY, grant(false, true, false));
 
         assertThat(service.decide("alice", OPERATION_KEY, C5Operation.CREATE).allowed()).isTrue();
-        assertThat(service.decide("alice", OPERATION_KEY, C5Operation.UPDATE).allowed()).isTrue();
+        assertThat(service.decide("alice", OPERATION_KEY, C5Operation.UPDATE).allowed()).isFalse();
         assertThat(service.decide("alice", OPERATION_KEY, C5Operation.DELETE).reason())
             .isEqualTo(C5DecisionReason.ENTITY_PERMISSION_DENIED);
 
@@ -72,7 +71,7 @@ class C5PermissionDecisionServiceTest {
     void canDeleteAllowsDeleteOnly() {
         exact("USER", "alice", OPERATION_KEY, grant(false, false, true));
 
-        assertThat(service.decide("alice", OPERATION_KEY, C5Operation.DELETE).allowed()).isTrue();
+        assertThat(service.decide("alice", OPERATION_KEY, C5Operation.DELETE).allowed()).isFalse();
         assertThat(service.decide("alice", OPERATION_KEY, C5Operation.UPDATE).allowed()).isFalse();
         assertThat(service.decide("alice", OPERATION_KEY, C5Operation.CREATE).allowed()).isFalse();
     }
@@ -108,7 +107,7 @@ class C5PermissionDecisionServiceTest {
 
     @Test
     void assignedRoleGrantAllowsAndReportsTheRoleSource() {
-        exact("ROLE", "ROLE_ENGINEER", OPERATION_KEY, grant(false, true, false));
+        exact("ROLE", "ROLE_ENGINEER", OPERATION_KEY, grant(true, true, false));
         roles.set(List.of("ROLE_ENGINEER"));
 
         C5PermissionDecision decision = service.decide("alice", OPERATION_KEY, C5Operation.UPDATE);
@@ -148,8 +147,8 @@ class C5PermissionDecisionServiceTest {
 
     @Test
     void subjectDecisionListsEverySourceInsteadOfTheFirstSufficientOne() {
-        exact("USER", "alice", OPERATION_KEY, grant(false, true, false));
-        exact("ROLE", "ROLE_ENGINEER", OPERATION_KEY, grant(false, true, false));
+        exact("USER", "alice", OPERATION_KEY, grant(true, true, false));
+        exact("ROLE", "ROLE_ENGINEER", OPERATION_KEY, grant(true, true, false));
         roles.set(List.of("ROLE_ENGINEER"));
 
         C5PermissionDecision decision = service.decideForSubject(AccessGrant.SubjectType.USER,
@@ -165,7 +164,7 @@ class C5PermissionDecisionServiceTest {
 
     @Test
     void subjectDecisionForARoleUsesExactlyThatRolesOwnGrant() {
-        exact("ROLE", "ROLE_ENGINEER", OPERATION_KEY, grant(false, true, false));
+        exact("ROLE", "ROLE_ENGINEER", OPERATION_KEY, grant(true, true, false));
         roles.set(List.of());
 
         C5PermissionDecision decision = service.decideForSubject(AccessGrant.SubjectType.ROLE,
@@ -289,10 +288,23 @@ class C5PermissionDecisionServiceTest {
 
     @Test
     void requirePassesForAPermittedOperation() {
-        exact("USER", "alice", OPERATION_KEY, grant(false, true, false));
+        exact("USER", "alice", OPERATION_KEY, grant(true, true, false));
 
         service.requireEntity("alice", String.class, C5Operation.UPDATE);
         service.require("alice", OPERATION_KEY, C5Operation.CREATE);
+    }
+
+    @Test
+    void readPrerequisiteCanComeFromAnotherAssignedRoleAndRevocationDeniesBothWrites() {
+        exact("USER", "alice", OPERATION_KEY, grant(false, true, true));
+        exact("ROLE", "reader", OPERATION_KEY, grant(true, false, false));
+        roles.set(List.of("reader"));
+        assertThat(service.decideEntity("alice", String.class, C5Operation.UPDATE).allowed()).isTrue();
+        assertThat(service.decideEntity("alice", String.class, C5Operation.DELETE).allowed()).isTrue();
+        roles.set(List.of());
+        assertThat(service.decideEntity("alice", String.class, C5Operation.UPDATE).allowed()).isFalse();
+        assertThat(service.decideEntity("alice", String.class, C5Operation.DELETE).allowed()).isFalse();
+        assertThat(service.decideEntity("alice", String.class, C5Operation.CREATE).allowed()).isTrue();
     }
 
     @Test

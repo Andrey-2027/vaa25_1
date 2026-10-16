@@ -46,19 +46,19 @@ class C5EntityOperationPermissionRegistrarTest {
 
         String writableKey = C5PermissionKeys.entityOperations(String.class);
         assertThat(operationPermissionRegistry.requireOperations(writableKey))
-            .containsExactlyInAnyOrder(C5Operation.CREATE, C5Operation.UPDATE);
+            .containsExactlyInAnyOrder(C5Operation.READ, C5Operation.CREATE, C5Operation.UPDATE);
         assertThat(operationPermissionRegistry.requireOperations(
-            C5PermissionKeys.entityOperations(Integer.class))).containsExactly(C5Operation.DELETE);
+            C5PermissionKeys.entityOperations(Integer.class))).containsExactlyInAnyOrder(C5Operation.READ, C5Operation.DELETE);
         assertThat(dimensionRegistry.kindOf(writableKey)).isEqualTo(RlsDimensionKind.CHECK_ONLY);
         assertThat(operationPermissionRegistry.definitions()).extracting(d -> d.key())
             .containsExactlyInAnyOrder(writableKey, C5PermissionKeys.entityOperations(Integer.class),
-                C5PermissionKeys.entityOperations(Double.class));
+                C5PermissionKeys.entityOperations(Double.class), C5PermissionKeys.entity(Long.class));
         assertThat(operationPermissionRegistry.isRegistered(
-            C5PermissionKeys.entityOperations(Long.class))).isFalse();
+            C5PermissionKeys.entityOperations(Long.class))).isTrue();
     }
 
     @Test
-    void readCapabilitiesNeverBecomeAnOperationDefinition() {
+    void readOnlyCapabilitiesBecomeOneReadOnlyEntityDefinitionWithoutWriteGovernance() {
         EntityDescriptor readOnly = descriptor(String.class, EntityExposure.STANDARD_ROOT,
             Set.of(FetchScenario.LIST, FetchScenario.DETAIL, FetchScenario.LOOKUP), Set.of());
         EntityDescriptorCatalog catalog = mock(EntityDescriptorCatalog.class);
@@ -69,9 +69,11 @@ class C5EntityOperationPermissionRegistrarTest {
         new C5EntityOperationPermissionRegistrar(catalog, dimensionRegistry, operationPermissionRegistry)
             .afterPropertiesSet();
 
-        assertThat(operationPermissionRegistry.size()).isZero();
+        assertThat(operationPermissionRegistry.size()).isEqualTo(1);
+        assertThat(operationPermissionRegistry.operationsOf(C5PermissionKeys.entity(String.class))).containsExactly(C5Operation.READ);
+        assertThat(dimensionRegistry.isWriteGoverned(String.class)).isFalse();
         assertThat(dimensionRegistry.dimensions())
-            .doesNotContain(C5PermissionKeys.entityOperations(String.class));
+            .contains(C5PermissionKeys.entityOperations(String.class));
     }
 
     @Test

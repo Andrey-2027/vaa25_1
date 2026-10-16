@@ -32,6 +32,7 @@
         <module>../platform-register</module>
         <module>../platform-spring-boot-autoconfigure</module>
         <module>../platform-vaadin</module>
+        <module>../platform-register-vaadin</module>
         <module>../platform-rest</module>
         <module>../platform-rest-web</module>
         <module>../platform-bom</module>

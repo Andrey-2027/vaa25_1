@@ -5,7 +5,12 @@ import org.ip.unidr.model.UniDrDefinition.*;
 import org.ip.unidr.model.UniDrDefinitionValidator;
 import org.ip.unidr.source.UniDrSourceCatalog;
 import org.ip.unidr.source.UniDrSourceDefinition;
-import org.ipro.reportstudio.dom.*;
+import org.ipro.reportstudio.dom.ReportOrder;
+import org.ipro.reportstudio.dom.ReportOrderDirection;
+import org.ipro.reportstudio.dom.ReportParam;
+import org.ipro.reportstudio.dom.ReportParamKind;
+import org.ipro.reportstudio.dom.ReportTemplate;
+import org.ipro.reportstudio.query.JpqlParameters;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.query.ReportQueryAssembler;
 import org.ipro.reportstudio.query.ReportQueryAssemblyService;
@@ -35,6 +40,21 @@ public final class UniDrQueryAdapter {
     private final UniDrSourceCatalog catalog;
     private final UniDrDefinitionValidator validator;
     private final ReportQueryAssemblyService assembly;
+    public static UniDrSourcePlan plan(UniDrSourceDefinition source) {
+        var projections=new LinkedHashMap<String,UniDrSourcePlan.Projection>();
+        for(var field:source.fields())if(PATHS.containsKey(field.id())) {
+            Class<?> type=field.type()==ValueType.REFERENCE?UniDrReferenceService.referenceType(field.id()):field.type()==ValueType.DATE?LocalDate.class:field.type()==ValueType.DECIMAL?BigDecimal.class:String.class;
+            projections.put(field.id(),new UniDrSourcePlan.Projection(field.id(),PATHS.get(field.id()),type,
+                field.type()==ValueType.REFERENCE?type.getName():null,field.groupKeyAlias(),true));
+        }
+        return new UniDrSourcePlan(null,source,projections,List.of());
+    }
+    public ReportQueryAssembler applyFilters(ReportQueryAssembler query,UniDrDefinition definition,Map<String,Object> values,
+                                             java.util.function.BiConsumer<String,Long> checkReference) {
+        var filter=UniDrFilterSupport.compile(definition.filterTree(),plan(catalog.resolve(definition).orElseThrow()),definition.parameterDeclarations(),values,
+            JpqlParameters.names(query.jpql()),checkReference);
+        return filter.predicate()==null?query:assembly.appendPredicate(query,filter.predicate(),filter.bindings());
+    }
 
     public UniDrQueryAdapter(UniDrSourceCatalog catalog, UniDrDefinitionValidator validator, ReportQueryAssemblyService assembly) {
         this.catalog = catalog; this.validator = validator; this.assembly = assembly;

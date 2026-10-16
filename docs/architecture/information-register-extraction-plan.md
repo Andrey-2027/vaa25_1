@@ -1,9 +1,30 @@
 # План выноса механизма регистра сведений в платформу
 
 - Дата: 2026-10-13.
-- Статус: план работ. Решения о модулях и о lifecycle строки требуют ADR (см. §3); до их
-  принятия разрешены только работы S0, не создающие артефакта с бинами. **S0 закрыт 2026-10-13** —
-  протокол и ограничения в [evidence](evidence/register-s0-extraction-20261013.md).
+- Статус: план работ. **S0–S4 закрыты (2026-10-13 … 2026-10-15)** — протоколы в
+  [evidence S0](evidence/register-s0-extraction-20261013.md),
+  [S1](evidence/register-s1-extraction-20261013.md), [S2](evidence/register-s2-extraction-20261013.md),
+  [S3](evidence/register-s3-extraction-20261014.md), [S4](evidence/register-s4-extraction-20261015.md);
+  из §3 закрыт **ADR-0025** ([ADR](decisions/ADR-0025-row-lifecycle-on-recorder-set.md),
+  [evidence](evidence/register-adr0025-row-lifecycle-20261015.md)).
+- **Что осталось (открыто на 2026-10-15):**
+  1. **S5 «Сокращение обвязки приложения» — единственный незакрытый срез** (§4, S5-детали).
+     Его предусловия не выполнены: **ADR-0024 не написан** (§3 — координаты и граница модулей;
+     при этом S1–S4 выполнены без него, и решения о поставке зафиксированы только в плане и
+     evidence срезов — это названный долг, а не выполненное условие), и отсутствует **ADR по
+     контракту lifecycle** для S5(б). Порядок «S5(а) требует ADR-0024, S5(б) — ADR по lifecycle»
+     из §7 остаётся в силе.
+  2. **Шаг 0 §7 (зафиксировать текущее состояние пакета коммитом) не выполнен** и для S5
+     обязателен: срез трогает `RegisterKeyPermissionTitles` и `NomenclaturePriceService`, где живут
+     незакоммиченные правки.
+  3. **Приёмка программы §6 не закрыта целиком:** кейс внешнего потребителя с объявленным
+     регистром (`examples/platform-consumer` + `scripts/test-platform-consumer-gate.ps1`, §5) не
+     написан, полный `mvn verify` и random-order прогон на закрытии срезов не выполнялись
+     (S0 назвал это прямо; на 2026-10-15 дерево красное чужими незавершёнными работами).
+  4. **Метрики §9 не в цели:** тесты движка (17 файлов, из них 5 с прикладными опорами) и обвязка
+     пилота (`AccountingObjectSaveScope`, `RegisterKeyPermissionTitles`) остаются в приложении до S5.
+     Достигнуто: прикладные файлы `org.ip.views.register` — 0, прикладная регистрация регистра — 0,
+     прямая зависимость приложения на `platform-register` — 0, reach-back `reportstudio` — 0.
 - Основание: [замер замыкания](information-register-extraction-slice.md) (движок `org.ipro.register`
   не называет ни одного прикладного типа); [ADR-0013 §5](decisions/ADR-0013-information-register-v1.md)
   (платформенная природа инфраструктуры — осознанный временный долг);
@@ -64,7 +85,7 @@ Vaadin в scope `provided`), как и предложено. Язык запро
 | Решение | Что фиксирует | Почему ADR, а не строка плана |
 | --- | --- | --- |
 | **ADR-0024. Платформенный модуль регистра и граница интерфейса** | Координаты и владелец артефактов, сохранение пакетов, необязательность UI-модуля, состав стартеров, роли поверхности, `EntityKind` **не** повышается | Меняет поставку: что приложение получает транзитивно, а что остаётся add-on |
-| **ADR-0025. Lifecycle строки регистра на пути регистратора** | Вызываются ли `EntityLifecycle` строки при замене набора владельца; порядок относительно Bean Validation; что показывает диагностика, если хук не вызывается | Меняет контракт ADR-0005 на одном из путей записи и поведение существующих правил |
+| **ADR-0025. Lifecycle строки регистра на пути регистратора** | Вызываются ли `EntityLifecycle` строки при замене набора владельца; порядок относительно Bean Validation; что показывает диагностика, если хук не вызывается | Меняет контракт ADR-0005 на одном из путей записи и поведение существующих правил. **Принято, реализовано и проверено 2026-10-15** ([ADR](decisions/ADR-0025-row-lifecycle-on-recorder-set.md), [evidence](evidence/register-adr0025-row-lifecycle-20261015.md)): хуки вызываются |
 | **ADR по `EntityKind.INFORMATION_REGISTER` / F-ERP-3** | Повышение статуса | Гейт упирается в отсутствующий в коде второй production-регистр (кандидат `ИзмененияКомпонентовПоРаспространениям` есть только в документах) — решение откладывается, план его не назначает |
 
 Внутри ADR-0024 отдельно решаются три детали: (а) `platform-register` входит в замыкание
@@ -83,10 +104,10 @@ D3.5.0; (в) `ReportFormSeamTest`/`FormAssemblyPurityTest` не должны о�
 | Срез | Содержимое | Зависимости | Что доказывает |
 | --- | --- | --- | --- |
 | **S0. Декларация и контракт строки** | 17 файлов: `RegisterMetadata`, `RegisterPeriodicity`, `RegisterDescriptor` (+`FieldDescriptor`), `RegisterMetadataValidator`, `SliceSpec` (+`Condition`/`Mode`/`Operator`), `SliceSpecValidator`, `RegisterPeriodListener`, `RecorderType`, `RecorderRef`, базовые классы обеих схем (`PeriodicRegisterEntry*`, `RecordedRegisterEntry*`), `RecordedRegisterEntryWriteGuard`, `RecorderSetWriteContext`, `RegisterKeyChangeScope` | `platform-contracts` (аннотации метаданных), `platform-persistence` (`BaseEntity`) — проверено запуском `--slice S0` | Прикладные сущности и отчётный конструктор компилируются против контракта; артефакт без бинов |
-| **S1. Реестр, чтение и фабрика читателя** | `RegisterRegistry`, `RegisterStartupValidator`, `RegisterReader`, `RegisterSliceReader`, `RegisterListFilterPhases`, своя read-конфигурация с imports, **фабрика читателя по дескриптору** | S0, `platform-core` (5 типов), `FilterGrid/filtergrid-core` (4 типа) — проверено `--slice S1` | Регистрация падает громко; приложение не приобретает обязательных регистраций; прикладной конфигурационный bean читателя удаляется |
-| **S2. Запись по ключу и правила ключа** | `RegisterKeyChanges`, `RegisterKeyWrites`, `RegisterKeyChangePermissions`, `RegisterKeyWritePermissions`, `RegisterKeyWriteGuardInstaller`, `RegisterRowState`, `RegisterWriteMutex`, **декларационный запрет смены ключа и нормализация периода в одной точке**, конфигурация прав и guard | S0–S1, `platform-rls` (C5), `platform-telemetry` (аудит), `platform-events` | ADR-0023 не переписывается; правило ключа перестаёт быть прикладным; порядок «нормализация → сравнение ключа» проверяем |
-| **S3. Регистратор и lifecycle строки** | `RecorderSetWriter`, `RecorderSetWriteRequest`, `RecorderSetWriteAuthorizer`, `RecorderSetContribution`, participants, `RecorderSetTransactionExecutor`, `RegisterRecords`, `RecorderTypeRegistry`, `RecordedRegisterReader`, `RlsRecorderSetWriteAuthorizer`, `RecorderOrderClock*`, реализация ADR-0025, конфигурация протокола | S0–S2, `platform-core` (участники агрегата), `platform-rls` | Набор владельца — один протокол; правило строки исполняется там, где обещано, либо отсутствие явно видно диагностике |
-| **S4. Стандартный интерфейс** (`platform-register-vaadin`) | `RegisterFormCustomization` (после разделения), `RegisterKeyDialog`, `RecorderRefPresentation`, `RecorderRefDisplay`, `RecorderRefPresentationResolver`; Vaadin `provided`; читатель берётся из фабрики S1 | S1–S2, `platform-vaadin`, `platform-bom` | Приложение с любым интерфейсом не тянет Vaadin; приложение с Vaadin не дублирует стандартные формы |
+| **S1. Реестр, чтение и фабрика читателя** | `RegisterRegistry`, `RecorderTypeRegistry` (переехал в S1, а не в S3 — см. детали), `RegisterStartupValidator` (сужен до деклараций), `RegisterReader`, `RegisterSliceReader`, `RegisterListFilterPhases`, `RegisterReaderFactory` (**новый**), своя read-конфигурация с imports | S0, `platform-core` (5 типов), `FilterGrid/filtergrid-core` (4 типа) — проверено `--slice S1` | Регистрация падает громко; приложение не приобретает обязательных регистраций; прикладной конфигурационный bean читателя удаляется. **Срез закрыт 2026-10-13** |
+| **S2. Запись по ключу и правила ключа** | `RegisterKeyChanges`, `RegisterKeyWrites`, `RegisterKeyChangePermissions`, `RegisterKeyWritePermissions`, `RegisterKeyWriteGuardInstaller`, `RegisterRowState`, `RegisterWriteMutex`, **часы порядка с их сущностью и `@EntityScan`** (развилка плана решена замером), **декларационный запрет смены ключа и нормализация периода в одной точке** — в охраннике, конфигурация прав и guard | S0–S1, `platform-rls` (C5), `platform-telemetry` (аудит), `platform-events`, `platform-identity-api` (leaf) | ADR-0023 не переписывается; правило ключа владеется платформой; порядок «нормализация → сравнение ключа» проверяем. **Срез закрыт 2026-10-13** |
+| **S3. Регистратор и lifecycle строки** | `RecorderSetWriter`, `RecorderSetWriteRequest`, `RecorderSetWriteAuthorizer`, `RecorderSetContribution`, participants, `RecorderSetTransactionExecutor`, `RegisterRecords`, `RecordedRegisterReader`, `RlsRecorderSetWriteAuthorizer`, реализация ADR-0025, конфигурация протокола (часы порядка и их засев уже уехали — S2) | S0–S2, `platform-core` (участники агрегата), `platform-rls` | Набор владельца — один протокол; правило строки исполняется там, где обещано, либо отсутствие явно видно диагностике. **Перемещение закрыто 2026-10-14** (см. [evidence](evidence/register-s3-extraction-20261014.md)): протокол, участники и шов авторизации уехали, приложение не регистрирует регистр вовсе, `dependsOn` не вырос. **ADR-0025 принято и реализовано 2026-10-15 внутри этого среза** ([ADR](decisions/ADR-0025-row-lifecycle-on-recorder-set.md), [evidence](evidence/register-adr0025-row-lifecycle-20261015.md)): путь набора владельца вызывает хуки строки ровно один раз на затронутую строку, после присвоения порядка записи и до Bean Validation, отрезок которого нельзя было оставить открытым |
+| **S4. Стандартный интерфейс** (`platform-register-vaadin`) | `RegisterFormCustomization` (после разделения), `RegisterKeyDialog`, `RecorderRefPresentation`, `RecorderRefDisplay`, `RecorderRefPresentationResolver`; Vaadin `provided`; читатель берётся из фабрики S1 | S1–S2, `platform-vaadin`, `platform-bom` | Приложение с любым интерфейсом не тянет Vaadin; приложение с Vaadin не дублирует стандартные формы. **Перемещение закрыто 2026-10-15** (см. [evidence](evidence/register-s4-extraction-20261015.md)): интерфейс уехал отдельным артефактом, прикладной каталог `org.ip.views.register` пуст, точка расширения осталась у платформы (заменяемый бин адаптера) и получила собственный гейт |
 | **S5. Сокращение обвязки приложения** | (а) стандартные подписи операций из метаданных, (б) поддержанный контекст позиций документа вместо самодельного scope, (в) модульные фикстуры вместо прикладных в тестах движка | S1–S4 | Объём прикладного кода сокращается измеримо; «поведение строки» перестаёт зависеть от ручной обвязки |
 
 ### S0 — детали
@@ -150,6 +171,18 @@ S2 — 1 блокер, S3 и S4 — замкнуты (с учётом перен
 Зависимости pom S1 по тому же прогону: `platform-core` (5 типов), `FilterGrid/filtergrid-core`
 (4 типа — узлы отбора), плюс S0.
 
+**Срез закрыт 2026-10-13.** Все 14 блокеров закрыты разделением монолитной конфигурации на
+срезовые; `RecorderTypeRegistry` переехал вместе с реестром (ставка на слабую проверку деклараций
+дороже одного типа), `RegisterStartupValidator` сужен до деклараций, а засев часов порядка остался
+прикладным стартовым шагом **названным долгом** под гейтом — он возвращается в модуль вместе с
+`RecorderOrderClock` в S3. Тесты движка остаются у приложения до S5, поэтому
+`RegisterStartupValidatorTest` не переезжает в модуль, но композицию модульной авто-конфигурации
+собирает так же, как работающее приложение. Плановая формулировка «запись `RegisterAutoConfiguration`
+уходит из app imports» станет верной к S3: до S2/S3 из прикладной конфигурации уехало чтение,
+а не вся регистрация. Артефакт: fingerprint `beae4353…` (29 файлов), 25 reviewed-ролей,
+`platform-register: clean install` с тестами. Протокол прогонов и явно названные чужие красные
+гейты — [evidence](evidence/register-s1-extraction-20261013.md).
+
 ### S2 — детали
 
 **Декларационные правила ключа.** Сейчас `NomenclaturePriceLifecycle.beforeUpdate` запрещает смену
@@ -168,6 +201,19 @@ JPA-listener'е `RegisterPeriodListener` (`PeriodicRegisterEntryBase`) и в `Re
 `RegisterWriteConcurrencyPostgresIT`; отрицательный сценарий «обычный UPDATE ключа отклонён»;
 `NomenclaturePricePersistenceTest` как приёмка перевода пилота.
 
+**Срез закрыт 2026-10-13.** Развилка решена замером: единственным блокером `--slice S2` была ссылка
+мьютекса на часы порядка, а часы — цель блокировки команды смены ключа для подчинённого регистра,
+поэтому они уехали вместе с командой, а не в S3; вместе с сущностью приехали её `@EntityScan` и
+засев, чем закрыт объявленный в S1 долг. Правило ключа стало платформенным: охранник владеет и
+сравнением, и порядком «нормализация → сравнение» (нормализация в охраннике названа независимостью
+от порядка слушателей Hibernate, а не починкой наблюдённого дефекта — снятие строки оставляет тест
+зелёным); прикладная нормализация в `beforeSave` удалена; прикладной ранний отказ остался
+canonical-ошибкой с предметным сообщением, потому что реестр `EntityLifecycle` допускает ровно один
+authoritative handler на тип. Приёмка: модуль собирается и устанавливается с тестами (35 ролей),
+PostgreSQL 17 изолированной базой — 24/24, H2-набор записи по ключу и пилота — зелёный;
+`WorkspaceManifestTest` совпал по `dependsOn` и не нашёл дрейфа fingerprints у артефакта. Протокол
+и явно названные чужие красные гейты — [evidence](evidence/register-s2-extraction-20261013.md).
+
 ### S3 — детали
 
 **Дефект, который чинится здесь.** `RecorderSetWriter` не знает `EntityLifecycleRegistry`: строки
@@ -176,17 +222,21 @@ JPA-listener'е `RegisterPeriodListener` (`PeriodicRegisterEntryBase`) и в `Re
 подчинённого регистра, сегодня молча не исполняется — при этом диагностика
 (`EntityLifecycleInspection`, `EntitySummaryPanel`) показывает handler по типу.
 
-ADR-0025 выбирает один из двух исходов, и оба совместимы с планом:
+ADR-0025 выбрал один из двух исходов, и он реализован 2026-10-15:
 
-- **Вызывать хуки** на пути замены набора. Тогда вызов ставится **до** Bean Validation
-  (`prepareRows` валидирует внутри; в canonical пути верно обратное — валидация после
-  `beforeSave`/`beforeUpdate`, и это тот порядок, который нельзя менять на обратный молча).
-- **Не вызывать, но сделать видимым**: диагностика сообщает «путь записи не вызывает хуки строки»
-  вместо `PLATFORM_DEFAULT`, чтобы объявленное правило нельзя было принять за исполняемое.
+- **Хуки вызываются** на всех операциях набора. Вызов стоит **до** Bean Validation и **после**
+  присвоения порядка записи: `prepareRows` валидировал внутри и до присвоения порядка, поэтому
+  порядок пришлось поставить платформенным — подготовка строки → нормализация периода →
+  порядок записи под замком → `beforeSave` → Bean Validation → авторизация набора →
+  `beforeDelete`/`remove` → `persist` → `onSave`. Это тот же порядок, что у записи по ключу.
+- Отклонённый вариант («не вызывать, но сделать видимым») и цена отказа — в ADR-0025: шестая ось
+  диагностики и переписывание контракта ADR-0005 в список исключений без выигрыша для
+  существующих правил (замер M1–M3 показал: правило строки подчинённого регистра ещё не написано).
 
-Приёмка: тест «хук исполнен ровно один раз на вставленную строку и ни разу на неизменённую»,
-тест порядка (мутация из хука либо валидируется повторно, либо отклоняется), согласованность
-диагностики для типа без handler'а и с ним.
+Приёмка закрыта: счётчик хуков по строкам на H2 и на одноразовой PostgreSQL («хук исполнен ровно
+один раз на вставленную строку и ни разу на неизменённую»), порядок «хук → валидация», вето с
+полным откатом набора, версии владельца и выделенного порядка записи. Числа и протокол — в
+[evidence ADR-0025](evidence/register-adr0025-row-lifecycle-20261015.md).
 
 ### S4 — детали
 
@@ -199,6 +249,32 @@ ADR-0025 выбирает один из двух исходов, и оба со�
 Гейты: `FormAssemblyPurityTest`, `FormDeadApiTest`, `ReportFormSeamTest`, `PlatformVaadinWiringIT`,
 `RegisterListFormToolbarTest`, `NomenclaturePriceFormTest`, `AccountingObjectPilotIT`,
 `PilotSecurityQueryMeasurementIT`; негативная сборка без UI-модуля.
+
+**Перемещение закрыто 2026-10-15.** Разделение класса, которое предполагала эта запись, замером
+не подтвердилось — и это результат среза, а не его пропуск. «Общая часть / прикладная точка
+расширения» разрезала бы `RegisterFormCustomization` по признаку «называет ли тип прикладной
+код», но к S4 этот признак исчез: S1 забрал у адаптера прикладную сборку читателя
+(`RegisterReaderFactory`), и прогон замыкания `--slice S4` нашёл **0** прикладных имён в пяти
+переносимых файлах. Общим оказалось всё, точкой расширения — механизм платформы: бин адаптера
+(`@ConditionalOnMissingBean`) и композиция `FormTypeCustomization` слоя форм, где частичная
+настройка добавляет свой адаптер рядом, а не вытесняет стандартный. Первая редакция плана
+оставляла интерфейсу «прикладную часть точки расширения»; измеренная раскладка показала, что
+такой части в дереве уже нет, и создавать её искусственно значило бы оставить в приложении
+мёртвый подкласс.
+
+Пустая точка расширения не осталась обещанием: собственный гейт среза
+(`RegisterVaadinExtensionPointTest`, три сценария на `ApplicationContextRunner`) доказывает
+умолчание (потребитель, объявивший регистр, получает стандартный адаптер), отступление (бин
+потребителя вытесняет платформенный — проверка тождеством объекта, а не фактом наличия бина) и
+односторонность (без движка интерфейс падает, а не собирает себе второй читатель). Последний
+сценарий — негативный гейт среза: он сторожит ровно тот дефект двух сборок, который закрывал S1.
+
+Роли пересмотрены, а не унаследованы (`register-vaadin-surface.txt`, 6 типов: APP_API 3, APP_SPI 1,
+MODULE_API 0, INTERNAL 2): `RegisterFormCustomization` остаётся APP_SPI, потому что платформа
+по-прежнему вызывает адаптер обратно через `FormResolver`, а потребитель расширяет или заменяет
+его. Артефакт `org.ipro:platform-register-vaadin` собран и установлен **с тестами**
+(`clean install`, 24/24: роли 3/3, состав и зависимости 9/9, диалог ключа 2/2, резолвер показов
+7/7, точка расширения 3/3). Полный протокол — [evidence](evidence/register-s4-extraction-20261015.md).
 
 ### S5 — детали
 
@@ -233,10 +309,10 @@ identity, id и Hibernate-классу. Причина не в регистре:
 | `PersistenceTypeRegistrationTest` | `SOURCE_ROOTS` + новый модуль; владелец `org.ipro.register.persistence` переходит к модулю вместе с `@EntityScan` **тогда, когда переезжает сама сущность** (S3) — до этого приложение сохраняет своё сканирование | S1 (модуль), S3 (владелец сущности) |
 | `PlatformSubsystemClosureTest` | Снятие записей reach-back у `reportstudio` **на каждом срезе**, а не один раз: тест сканирует `src/main/java`, поэтому уехавший класс исчезает из замыкания сразу и реестр становится несимметричным до правки | S0–S3 |
 | `PlatformApiBaselineTest` + `platform-api-baseline/` | Baselines `platform-register.api`, `platform-register-vaadin.api` | S0/S4 |
-| `platform-*-surface.txt` + surface-тесты | Reviewed-реестры ролей (APP_API/APP_SPI/MODULE_API/INTERNAL) для обоих модулей | S0/S4 |
-| `PlatformDependencyDirectionTest` | Backend регистра не знает `form`/`reportstudio`/`ureport`/`jr`/`org.ip`; UI-модуль может знать `form`, но не отчёты | S1/S4 |
-| `PlatformAutoConfigurationRegistryTest` | Каждая авто-конфигурация зарегистрирована ровно один раз и своим артефактом; запись `RegisterAutoConfiguration` уходит из app imports | S1–S3 |
-| `Platform*ModuleTest` | Новые `PlatformRegisterModuleTest`, `PlatformRegisterVaadinModuleTest` (состав, объявленные зависимости, запрет прикладных ссылок) | S1/S4 |
+| `platform-*-surface.txt` + surface-тесты | Reviewed-реестры ролей (APP_API/APP_SPI/MODULE_API/INTERNAL) для обоих модулей. **Выполнено 2026-10-15**: `register-vaadin-surface.txt` и `RegisterVaadinSurfaceRoleTest` живут в самом артефакте, то есть расхождение ролей видно на его сборке, а не только в сборке приложения | S0/S4 |
+| `PlatformDependencyDirectionTest` | Backend регистра не знает `form`/`reportstudio`/`ureport`/`jr`/`org.ip`; UI-модуль может знать `form`, но не отчёты. **Выполнено 2026-10-15**: у модуля интерфейса появилось ребро `platform-register-vaadin → platform-register` (без обратного), Vaadin объявлен `provided` и в backend-модуль не протёк — обе стороны проверяет состав самого артефакта | S1/S4 |
+| `PlatformAutoConfigurationRegistryTest` | Каждая авто-конфигурация зарегистрирована ровно один раз и своим артефактом; запись `RegisterAutoConfiguration` уходит из app imports. **Выполнено 2026-10-14**: монолитной конфигурации нет ни в приложении, ни в модуле — её заменили три срезовые, и у приложения не остаётся ни одной регистрации регистра | S1–S3 |
+| `Platform*ModuleTest` | Новые `PlatformRegisterModuleTest`, `PlatformRegisterVaadinModuleTest` (состав, объявленные зависимости, запрет прикладных ссылок). **Выполнено 2026-10-15**: артефакт интерфейса обязан приходить из `platform-register-vaadin`, а не из `target/classes` приложения (проверка `getProtectionDomain`), и ни один production-класс приложения не называет его типы | S1/S4 |
 | `examples/platform-consumer` + `scripts/test-platform-consumer-gate.ps1` | Кейс «объявил регистр, подключил модуль, не копировал инфраструктуру» | S5 |
 
 ## 6. Приёмка программы
@@ -281,7 +357,7 @@ untracked-файлов `git mv` истории не сохранит вовсе.
 | --- | --- |
 | Тихая потеря регистрации при выносе (класс ошибок D2/D3) | Модуль несёт свои imports; негативный эксперимент «убрать imports → старт падает» |
 | Сборка находит то, чего не видит замер по исходникам | Негативный гейт сборкой у каждого среза (урок `telemetry → settings`) |
-| Вызов lifecycle строки меняет существующее поведение | ADR-0025 фиксирует исход **и** порядок; тесты «ровно один раз», «до валидации»; отклонённый вариант тоже документируется |
+| Вызов lifecycle строки меняет существующее поведение | ADR-0025 фиксирует исход **и** порядок; тесты «ровно один раз», «до валидации»; отклонённый вариант тоже документируется. Решение принято 2026-10-15, прогоны H2 64/64 и PostgreSQL 48/48 — [evidence](evidence/register-adr0025-row-lifecycle-20261015.md) |
 | UI-модуль становится обязательным | Vaadin `provided`, модуль в стартере отдельно; негативная сборка без UI-модуля |
 | `ReportFormSeamTest`/чистота форм ломаются о перенос | S4 не ослабляет тесты: разделение `RegisterFormCustomization`, а не правка проверок |
 | Прикладной SPI (`NamedOperationOwner`) не даёт платформе владеть подписью | Решение в ADR-0024: нейтральный SPI либо динамическая регистрация владельцев |
@@ -291,6 +367,9 @@ untracked-файлов `git mv` истории не сохранит вовсе.
 
 - Прикладные файлы инфраструктуры: `org.ipro.register` 43 main + 17 test, `org.ip.views.register` 5,
   конфигурация читателя 1, подписи прав 1 → цель S4: 0 (кроме точки расширения).
+  **На 2026-10-15:** `org.ip.views.register` — 0 файлов, прикладная регистрация регистра — 0,
+  прямой зависимости приложения на `platform-register` — 0 (движок и интерфейс приезжают
+  стартером). Осталось прикладное и оно названо: тесты движка (S5) и обвязка пилота (S5).
 - Контрактных типов, названных вне пакета: 30 → reviewed-роли на все 30.
 - Reach-back `reportstudio` на регистр: 16 → 0 записей.
 - Обязательных регистраций в приложении: 1 → 1 (не больше).

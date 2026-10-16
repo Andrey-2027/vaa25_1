@@ -33,10 +33,18 @@ public class C5ReadDecisionService {
 
     private final AccessGrantRepository grantRepository;
     private final RlsRoleResolver roleResolver;
+    private final C5ReadPermissionRegistry definitions;
 
     public C5ReadDecisionService(AccessGrantRepository grantRepository, RlsRoleResolver roleResolver) {
+        this(grantRepository, roleResolver, null);
+    }
+
+    /** Production decisions validate the common definition before querying grants. */
+    public C5ReadDecisionService(AccessGrantRepository grantRepository, RlsRoleResolver roleResolver,
+                                 C5ReadPermissionRegistry definitions) {
         this.grantRepository = Objects.requireNonNull(grantRepository, "grantRepository must not be null");
         this.roleResolver = Objects.requireNonNull(roleResolver, "roleResolver must not be null");
+        this.definitions = definitions;
     }
 
     /**
@@ -46,6 +54,7 @@ public class C5ReadDecisionService {
     public boolean isReadGranted(String dimension, String username) {
         dimension = C5PermissionKeys.readKey(dimension);
         requireDimension(dimension);
+        requireRegistered(dimension);
         Objects.requireNonNull(username, "username must not be null");
         if (hasExactGlobalReadGrant(AccessGrant.SubjectType.USER, username, dimension)) {
             return true;
@@ -69,6 +78,7 @@ public class C5ReadDecisionService {
     public C5ReadDecision decide(String dimension, AccessGrant.SubjectType subjectType, String subjectKey) {
         String readKey = C5PermissionKeys.readKey(dimension);
         requireDimension(readKey);
+        requireRegistered(readKey);
         Objects.requireNonNull(subjectType, "subjectType must not be null");
         Objects.requireNonNull(subjectKey, "subjectKey must not be null");
 
@@ -101,7 +111,21 @@ public class C5ReadDecisionService {
             .findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
                 subjectType, subjectKey, dimension)
             .stream()
-            .anyMatch(AccessGrant::isCanRead);
+            .anyMatch(grant -> org.ipro.rls.RlsGrantMatching.flagAllows(grant, C5Operation.READ));
+    }
+
+    public List<AccessGrant> contributions(String dimension, List<AccessGrant> subjectGrants) {
+        String key = C5PermissionKeys.readKey(dimension);
+        requireDimension(key);
+        requireRegistered(key);
+        return subjectGrants.stream()
+            .filter(grant -> C5PermissionDecisionService.matchesGrant(grant, key, C5Operation.READ)).toList();
+    }
+
+    private void requireRegistered(String key) {
+        if (definitions != null && !definitions.isRegisteredReadKey(key)) {
+            throw new C5PermissionConfigurationException("Unregistered C5 READ definition '" + key + "'");
+        }
     }
 
     private static void requireDimension(String dimension) {

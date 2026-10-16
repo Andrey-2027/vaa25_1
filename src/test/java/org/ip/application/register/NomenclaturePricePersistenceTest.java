@@ -284,6 +284,21 @@ class NomenclaturePricePersistenceTest {
         assertThatThrownBy(entityManager::flush).hasMessageContaining("REGISTER_KEY_CHANGE_REQUIRED");
     }
 
+    /**
+     * D-R S2: порядок «нормализация → сравнение» владеется платформой, а не прикладным кодом.
+     * Этот путь — managed flush без canonical lifecycle, поэтому здесь работает ровно правило
+     * платформы: охранник сравнивает нормализованный период, и правка времени внутри того же дня
+     * ключом не считается. Без нормализации в охраннике запрет зависел бы от того, успел ли
+     * отработать JPA-listener, то есть от порядка слушателей Hibernate, а не от декларации.
+     */
+    @Test void managedPeriodEditInsideTheSameDailyBucketKeepsTheKey() {
+        var row = createPrice();
+        row.setPeriod(DAY.plusHours(23));
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(entityManager.find(NomenclaturePrice.class, row.getId()).getPeriod()).isEqualTo(DAY);
+    }
+
     @Test void managedDimensionChangeCannotRideWithAResourceUpdate() {
         var row = createPrice();
         Nomenclature second = new Nomenclature("x" + username, "Другая", nomenclature.getUnitOfMeasurement());

@@ -149,15 +149,15 @@ class InitialGrantIssuanceIT {
             assertThat(row.isCanUpdate()).as("CREATE решается флагом «изменение»").isTrue();
             assertThat(row.isCanDelete()).isTrue();
             assertThat(row.isCanRead())
-                .as("операция чтения не объявляет — и выданная строка его не записывает")
-                .isFalse();
+                .as("одна ENTITY-строка содержит все объявленные флаги")
+                .isTrue();
         });
         assertThat(rows).anySatisfy(row -> {
             assertThat(row.getDimension())
                 .isEqualTo(C5PermissionKeys.entityRead(Nomenclature.class));
             assertThat(row.isCanRead()).isTrue();
-            assertThat(row.isCanUpdate()).isFalse();
-            assertThat(row.isCanDelete()).isFalse();
+            assertThat(row.isCanUpdate()).isTrue();
+            assertThat(row.isCanDelete()).isTrue();
         });
 
         int again = issuance.issueForRole(roleName);
@@ -238,6 +238,13 @@ class InitialGrantIssuanceIT {
     @Test
     void theReportClearsExactlyWhatIsIssued() {
         String roleName = role("issuance-report");
+        String setup = role("issuance-report-setup");
+        asAdmin(setup, () -> {
+            RlsTestFixture.grantC5EntityRead(accessGrantRepository, setup, Role.class);
+            RlsTestFixture.grantC5EntityOperations(accessGrantRepository, setup, Role.class);
+            access.create(Role.class, new Role(roleName));
+            entityManager.flush();
+        });
         String operationsKey = C5PermissionKeys.entityOperations(Nomenclature.class);
         String readKey = C5PermissionKeys.entityRead(Nomenclature.class);
         deleteAllRowsFor(operationsKey);
@@ -309,10 +316,8 @@ class InitialGrantIssuanceIT {
             // Роль актора получает generic read+write по User — «роль уже меняет пользователей».
             // Названных операций у неё нет: ни пароля, ни ролей. Обе строки выданы явно, чтобы
             // отказ назвал операцию, а не невидимость строки (см. javadoc метода).
-            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entityRead(User.class),
-                AccessGrant.SubjectType.ROLE, roleName, new GrantFlags(true, false, false));
-            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entityOperations(User.class),
-                AccessGrant.SubjectType.ROLE, roleName, new GrantFlags(false, true, false));
+            accessGrantAdminService.saveSingleGrant(C5PermissionKeys.entity(User.class),
+                AccessGrant.SubjectType.ROLE, roleName, new GrantFlags(true, true, false));
         });
 
         loginAs(actorName);

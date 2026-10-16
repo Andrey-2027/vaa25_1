@@ -132,9 +132,8 @@ public class AccountingObjectPilotInitializer implements CommandLineRunner {
      *
      * <p>Перечень читается из тех же списков типов, по которым {@link #seedFixture()} выдаёт
      * права, поэтому проверка не может разойтись с выдачей: новый тип в фикстуре требует ключа и
-     * здесь, иначе запуск пилота назовёт расхождение. Право чтения — ключ {@code ENTITY:<FQN>} с
-     * флагом чтения, право на операцию — ключ {@code ENTITY:<SimpleName>} с флагами изменения и
-     * удаления (ADR-0017 §3), именованное действие — ключ {@code ACTION:<id>} с «выполнением».</p>
+     * здесь, иначе запуск пилота назовёт расхождение. P-U: чтение и запись — самостоятельные
+     * флаги общей ENTITY-строки; именованное действие — ACTION с «выполнением».</p>
      */
     List<String> missingDeclaredRights() {
         List<String> missing = new ArrayList<>();
@@ -156,7 +155,7 @@ public class AccountingObjectPilotInitializer implements CommandLineRunner {
         if (!hasGrant(changePassword, AccessGrant::isCanUpdate)) {
             missing.add(changePassword);
         }
-        return List.copyOf(missing);
+        return missing.stream().distinct().toList();
     }
 
     private void requireRead(List<String> missing, Class<?> type) {
@@ -193,12 +192,9 @@ public class AccountingObjectPilotInitializer implements CommandLineRunner {
         grant("*");
         for (Class<?> type : PILOT_TYPES) grant("ENTITY:" + type.getName());
         for (Class<?> type : NOMENCLATURE_READ_TYPES) grantRead(type);
-        // ADR-0017: право на операцию — отдельное глобальное право, а не следствие read-ключа
-        // и тем более не следствие построчного "*". Без этих строк пилотная установка и
-        // корректировка откажут на первой же записи — предсказание из evidence C5.4.
+        // P-U: операции дополняют флаги той же ENTITY-строки, а не создают второй ключ.
         for (Class<?> type : PILOT_TYPES) grantOperation(type);
-        // Роль и пользователь фикстуры пишутся canonical path, поэтому им нужны те же два
-        // права: read-ключ (чтение ADMIN и проверка существования) и ключ операций.
+        // Роль и пользователь пишутся canonical path: read/write дополняют общую ENTITY-строку.
         for (Class<?> type : SEEDED_ACCOUNT_TYPES) {
             grantRead(type);
             grantOperation(type);
@@ -252,27 +248,34 @@ public class AccountingObjectPilotInitializer implements CommandLineRunner {
         grant.setSubjectKey(PILOT_SUBJECT);
         grant.setDimension(C5PermissionKeys.action(permissionId));
         grant.setDimensionValueId(null);
+        grant.setCanRead(false);
         grant.setCanUpdate(true); grants.save(grant);
     }
 
-    /** Право на операцию: глобальная строка, где canRead не участвует (ADR-0017). */
+    /** Independent write flags of the shared entity grant. */
     private void grantOperation(Class<?> type) {
-        var grant = new AccessGrant(); grant.setSubjectType(AccessGrant.SubjectType.USER);
-        grant.setSubjectKey(PILOT_SUBJECT);
-        grant.setDimension(C5PermissionKeys.entityOperations(type));
-        grant.setDimensionValueId(null);
-        grant.setCanUpdate(true); grant.setCanDelete(true); grants.save(grant);
+        grant(C5PermissionKeys.entity(type), false, true, true);
     }
 
     private void grant(String dimension) {
-        var grant = new AccessGrant(); grant.setSubjectType(AccessGrant.SubjectType.USER);
-        grant.setSubjectKey(PILOT_SUBJECT); grant.setDimension(dimension);
-        grant.setCanRead(true); grant.setCanUpdate(true); grant.setCanDelete(true); grants.save(grant);
+        grant(dimension, true, true, true);
     }
     private void grantRead(Class<?> type) {
-        var grant = new AccessGrant(); grant.setSubjectType(AccessGrant.SubjectType.USER);
+        grant(C5PermissionKeys.entity(type), true, false, false);
+    }
+
+    private void grant(String dimension, boolean read, boolean update, boolean delete) {
+        var grant = grants.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, PILOT_SUBJECT, dimension).stream().findFirst().orElseGet(() -> {
+                var empty = new AccessGrant(); empty.setCanRead(false); return empty;
+            });
+        grant.setSubjectType(AccessGrant.SubjectType.USER);
         grant.setSubjectKey(PILOT_SUBJECT);
-        grant.setDimension(C5PermissionKeys.entityRead(type));
-        grant.setCanRead(true); grants.save(grant);
+        grant.setDimension(dimension);
+        grant.setDimensionValueId(null);
+        grant.setCanRead(grant.isCanRead() || read);
+        grant.setCanUpdate(grant.isCanUpdate() || update);
+        grant.setCanDelete(grant.isCanDelete() || delete);
+        grants.save(grant);
     }
 }

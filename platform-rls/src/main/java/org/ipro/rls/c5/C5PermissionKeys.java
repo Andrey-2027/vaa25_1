@@ -9,22 +9,20 @@ public final class C5PermissionKeys {
     }
 
     public static String entityRead(Class<?> entityType) {
+        return entity(entityType);
+    }
+
+    /** One entity identity for every supported C5 operation. */
+    public static String entity(Class<?> entityType) {
         return "ENTITY:" + Objects.requireNonNull(entityType, "entityType must not be null").getName();
     }
 
     /**
-     * Key of the entity operation definition. Uses the existing entity gate key
-     * {@code ENTITY:<SimpleName>} declared by {@code @RlsDimension(kind = CHECK_ONLY)} — ADR-0017 §3
-     * keeps it unchanged so already issued rows and the pilot fixture keep working. The fully
-     * qualified read key above is a different definition of the same type; that double spelling is
-     * the known naming debt, not an accidental collision.
-     *
-     * <p>Simple names are unique among managed types in this application: the RLS registry already
-     * fails at startup on a duplicate dimension name.</p>
+     * Entity operations use the same canonical identity as reading. The former short-name
+     * key is not an alias and existing development grants are discarded, not migrated (P-U).
      */
     public static String entityOperations(Class<?> entityType) {
-        Objects.requireNonNull(entityType, "entityType must not be null");
-        return "ENTITY:" + entityType.getSimpleName();
+        return entity(entityType);
     }
 
     /** Key of a named owner operation; the id is stable and never derived from a label or a bean name. */

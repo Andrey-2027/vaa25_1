@@ -1,0 +1,1168 @@
+Access is denied.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Vaa25_1 ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-application-runtime-dependency-tree) @ Vaa25_1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\target\application-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ Vaa25_1 ---
+[INFO] Copying 30 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ip.application.register.NomenclaturePriceCteSpikeTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-07 14:02:17.947 INFO  [background-preinit] [] [] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 9.0.1.Final
+2026-10-07 14:02:18.093 INFO  [main] [] [] o.i.a.r.NomenclaturePriceCteSpikeTest - Starting NomenclaturePriceCteSpikeTest using Java 21.0.11 with PID 24224 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25)
+2026-10-07 14:02:18.096 INFO  [main] [] [] o.i.a.r.NomenclaturePriceCteSpikeTest - The following 1 profile is active: "test"
+2026-10-07 14:02:22.834 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:02:24.006 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 1133 ms. Found 18 JPA repository interfaces.
+2026-10-07 14:02:25.024 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:02:25.105 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 73 ms. Found 2 JPA repository interfaces.
+2026-10-07 14:02:25.401 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:02:25.483 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 73 ms. Found 1 JPA repository interface.
+2026-10-07 14:02:25.579 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:02:26.102 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 519 ms. Found 1 JPA repository interface.
+2026-10-07 14:02:26.116 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:02:26.198 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 81 ms. Found 1 JPA repository interface.
+2026-10-07 14:02:26.256 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:02:26.315 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 52 ms. Found 1 JPA repository interface.
+2026-10-07 14:02:26.376 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:02:26.405 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 18 ms. Found 1 JPA repository interface.
+2026-10-07 14:02:26.420 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:02:26.487 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 63 ms. Found 1 JPA repository interface.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-07 14:02:32.928 INFO  [main] [] [] org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-07 14:02:33.276 INFO  [main] [] [] org.hibernate.orm.core - HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-07 14:02:35.196 INFO  [main] [] [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-07 14:02:35.380 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-10-07 14:02:36.309 INFO  [main] [] [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:5561cfd4-0338-43c0-8158-0c6b17932862 user=SA
+2026-10-07 14:02:36.311 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-10-07 14:02:36.425 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-07 14:02:36.532 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:5561cfd4-0338-43c0-8158-0c6b17932862]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 5561CFD4-0338-43C0-8158-0C6B17932862/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-07 14:02:43.837 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:02:44.536 INFO  [main] [] [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-07 14:02:45.050 INFO  [main] [] [] o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-07 14:02:56.987 INFO  [main] [] [] o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+
+_____  __________ __________________ _______ ________ ______________ 
+__   / / /___  __ \___  ____/___  __ \__  __ \___  __ \___  __/__|__ \
+_  / / / __  /_/ /__  __/   __  /_/ /_  / / /__  /_/ /__  /   ____/ /
+/ /_/ /  _  _, _/ _  /___   _  ____/ / /_/ / _  _, _/ _  /    _  __/ 
+\____/   /_/ |_|  /_____/   /_/      \____/  /_/ |_|  /_/     /____/ 
+........................................................................................................
+.  uReport, is a Chinese style report engine licensed under the Apache License 2.0,                    .
+.  which is opensource, easy to use,high-performance, with browser-based-designer.                     .
+........................................................................................................
+
+2026-10-07 14:03:01.453 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-07 14:03:01.453 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-07 14:03:01.635 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-07 14:03:01.636 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-07 14:03:01.650 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-07 14:03:01.650 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-07 14:03:01.664 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-07 14:03:01.664 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-07 14:03:01.704 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-07 14:03:01.704 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-07 14:03:01.721 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-07 14:03:01.723 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-07 14:03:04.293 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectCorrectionItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.296 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectCorrectionItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.297 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.298 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.298 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.299 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.299 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.299 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.300 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.300 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.300 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectInstallationItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.300 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectInstallationItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.301 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.302 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.302 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.303 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.303 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.304 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.304 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#active (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-07 14:03:04.304 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.304 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.304 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#valueType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.304 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#valueType (@FieldMetadata.type): ����������� ��� ENUM ��������� � ������� �� Java-����/JPA
+2026-10-07 14:03:04.306 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AttributeValue#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.306 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.306 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.306 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#formKey (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.NomSklAttribute#required (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.308 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.316 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#qt (@FieldMetadata.type): ����������� ��� DECIMAL ��������� � ������� �� Java-����/JPA
+2026-10-07 14:03:04.316 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#typeMtr (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-07 14:03:04.316 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecOper#order (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-07 14:03:04.316 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.316 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#journal (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.316 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.ReceivingDocument#journal (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-07 14:03:04.316 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [UI_REQUIRED_SERVER_OPTIONAL] org.ip.model.ReceivingDocument#journal (@FieldMetadata.required (���������: ������ ���������� � ����� ��������� (order=0 � ������������ (journal_id, number)), �� ������ ��������� NULL: ���������� ����������� UI �� ������� �� ���������� ���������)): UI ������� ����������, �������� ������ ����� �� �������
+2026-10-07 14:03:04.316 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.319 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#receivingWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.319 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#receivingWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.319 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#transferringWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.319 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#transferringWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.319 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocumentItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.319 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.319 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#quantity (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.319 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Role#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.319 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.User#username (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.324 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.Workshop#branch (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-07 14:03:04.324 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.Workshop#branch (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-07 14:03:04.324 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.324 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-07 14:03:04.478 WARN  [main] [] [] o.i.d.c.C5EntityOperationPermissionRegistrar - ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 20 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: [org.ip.model.AccountingObjectCorrection, org.ip.model.AccountingObjectInstallation, org.ip.model.AccountingType, org.ip.model.AttributeType, org.ip.model.AttributeValue, org.ip.model.Branch, org.ip.model.GridFormView, org.ip.model.GroupNom, org.ip.model.Journal, org.ip.model.NomSklAttribute, org.ip.model.Nomenclature, org.ip.model.NomenclatureAccountingObject, org.ip.model.NomenclaturePrice, org.ip.model.Oper, org.ip.model.PrdSpec, org.ip.model.ReceivingDocument, org.ip.model.Role, org.ip.model.UnitOfMeasurement, org.ip.model.User, org.ip.model.Workshop]
+2026-10-07 14:03:04.500 INFO  [main] [] [] o.ipro.data.EventContourStartupCheck - ������ lifecycle ���������: 10 handler(s) [AttributeType -> AttributeTypeLifecycle, AttributeValue -> AttributeValueLifecycle, Nomenclature -> NomenclatureLifecycle, NomSklAttribute -> NomSklAttributeLifecycle, PrdSpec -> PrdSpecLifecycle, ReceivingDocument -> ReceivingDocumentLifecycle, GridFormView -> GridFormViewLifecycle, NomenclaturePrice -> NomenclaturePriceLifecycle, AccountingObjectInstallation -> , AccountingObjectCorrection -> ]
+2026-10-07 14:03:07.059 INFO  [main] [] [] o.i.a.r.NomenclaturePriceCteSpikeTest - Started NomenclaturePriceCteSpikeTest in 50.606 seconds (process running for 53.811)
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 81.79 s -- in org.ip.application.register.NomenclaturePriceCteSpikeTest
+[INFO] Running org.ipro.reportstudio.query.register.RecorderWinnerCteSpikeTest
+2026-10-07 14:03:37.470 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:37.584 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:recorder-winner-46f7e2fc-d6dd-438d-9fac-f64e83a1ec2d]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: RECORDER-WINNER-46F7E2FC-D6DD-438D-9FAC-F64E83A1EC2D/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:37.786 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.651 s -- in org.ipro.reportstudio.query.register.RecorderWinnerCteSpikeTest
+[INFO] Running org.ipro.reportstudio.query.register.RegisterSliceCteGeneratorTest
+2026-10-07 14:03:38.095 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:38.097 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:r5-6cff25f4-f4ad-4209-a7df-8abe3199fbbf]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: R5-6CFF25F4-F4AD-4209-A7DF-8ABE3199FBBF/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:38.696 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.969 s -- in org.ipro.reportstudio.query.register.RegisterSliceCteGeneratorTest
+[INFO] Running org.ipro.reportstudio.query.registersecurity.RegisterSliceReportSecurityTest
+2026-10-07 14:03:43.000 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:43.007 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-07326f76-9fdb-4556-a0b6-68662a883f85]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-07326F76-9FDB-4556-A0B6-68662A883F85/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:43.575 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:43.892 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:43.899 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-65894c7f-37f2-44f5-b09e-d5c044382443]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-65894C7F-37F2-44F5-B09E-D5C044382443/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:44.281 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:44.717 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:44.723 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-b10a9811-4ef9-4e19-bbc2-311c120d82cb]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-B10A9811-4EF9-4E19-BBC2-311C120D82CB/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:45.108 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:46.098 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:46.105 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-bd3edeae-3121-450d-bf8f-1ec61e7a5391]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-BD3EDEAE-3121-450D-BF8F-1EC61E7A5391/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:46.478 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:47.349 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:47.355 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-c54034d2-5ef6-46f0-9c19-b62964952447]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-C54034D2-5EF6-46F0-9C19-B62964952447/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:47.716 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:47.885 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:47.895 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-f330a17f-990b-473e-b48f-f95c52d9d135]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-F330A17F-990B-473E-B48F-F95C52D9D135/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:48.270 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:48.981 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:48.988 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-fd050892-f31d-4c9d-a622-9f7bb36fbd57]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-FD050892-F31D-4C9D-A622-9F7BB36FBD57/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:49.303 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:49.456 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:49.477 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-107fb22f-0e3a-4221-8c16-b04e44faa2ad]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-107FB22F-0E3A-4221-8C16-B04E44FAA2AD/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:49.793 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:50.335 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:50.346 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-936b65ce-e4a2-4602-98a6-daa424c27bcc]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-936B65CE-E4A2-4602-98A6-DAA424C27BCC/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:50.738 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:51.410 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:51.415 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-0b444c1f-b9dc-4fa0-9c80-21f6ae585d5b]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-0B444C1F-B9DC-4FA0-9C80-21F6AE585D5B/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:51.780 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:53.206 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:53.211 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-3892d5e5-c54a-4c55-80e1-52c7672c5bb8]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-3892D5E5-C54A-4C55-80E1-52C7672C5BB8/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:53.549 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:53.743 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:53.745 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-7b0ad25e-46d2-4c27-95e8-609acd924186]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-7B0AD25E-46D2-4C27-95E8-609ACD924186/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:54.107 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:54.358 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:54.358 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-4f401740-82f3-4b72-ab0e-31d1ad2a67ff]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-4F401740-82F3-4B72-AB0E-31D1AD2A67FF/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:54.693 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:54.992 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:54.994 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-884564af-6830-49d2-b59e-457abf95b1a7]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-884564AF-6830-49D2-B59E-457ABF95B1A7/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:55.365 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:56.024 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:56.030 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-1b22ae5f-b47c-40bc-b13f-550a6f00af6d]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-1B22AE5F-B47C-40BC-B13F-550A6F00AF6D/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:56.359 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:56.602 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:56.612 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-96460ed0-1a97-4ac3-9f0d-13d96f40f591]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-96460ED0-1A97-4AC3-9F0D-13D96F40F591/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:56.927 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:57.175 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:57.183 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-df5b91ac-2639-44bd-a75c-7c58fb941dc7]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-DF5B91AC-2639-44BD-A75C-7C58FB941DC7/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:57.506 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:57.994 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:58.002 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-32658817-7a2d-4f26-aa22-eeba1f73039b]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-32658817-7A2D-4F26-AA22-EEBA1F73039B/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:58.378 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07 14:03:58.924 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-07 14:03:58.929 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-59f95d90-1797-4077-a323-87b5191a1417]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-59F95D90-1797-4077-A323-87B5191A1417/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-07 14:03:59.258 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.58 s -- in org.ipro.reportstudio.query.registersecurity.RegisterSliceReportSecurityTest
+[INFO] Running org.ipro.reportstudio.query.ReportQueryExecutionIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-07 14:04:00.005 INFO  [main] [] [] o.i.r.query.ReportQueryExecutionIT - Starting ReportQueryExecutionIT using Java 21.0.11 with PID 24224 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25)
+2026-10-07 14:04:00.007 INFO  [main] [] [] o.i.r.query.ReportQueryExecutionIT - The following 1 profile is active: "test"
+2026-10-07 14:04:01.146 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:04:01.622 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 453 ms. Found 18 JPA repository interfaces.
+2026-10-07 14:04:01.622 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:04:01.678 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 48 ms. Found 1 JPA repository interface.
+2026-10-07 14:04:01.765 INFO  [main] [] [] o.s.b.j.t.a.TestDatabaseAutoConfiguration$EmbeddedDataSourceBeanFactoryPostProcessor - Replacing 'dataSource' DataSource bean with embedded version
+2026-10-07 14:04:01.830 INFO  [main] [] [] o.s.j.d.e.EmbeddedDatabaseFactory - Starting embedded database: url='jdbc:h2:mem:4c449a66-b4e9-4edb-bc1c-318f5aad81a8;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2026-10-07 14:04:01.896 INFO  [main] [] [] org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-07 14:04:02.029 INFO  [main] [] [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-07 14:04:02.035 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-07 14:04:02.037 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:4c449a66-b4e9-4edb-bc1c-318f5aad81a8]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 4C449A66-B4E9-4EDB-BC1C-318F5AAD81A8/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-07 14:04:02.855 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: drop table if exists access_grant cascade 
+Hibernate: drop table if exists accounting_object_correction cascade 
+Hibernate: drop table if exists accounting_object_correction_item cascade 
+Hibernate: drop table if exists accounting_object_installation cascade 
+Hibernate: drop table if exists accounting_object_installation_item cascade 
+Hibernate: drop table if exists accounting_type cascade 
+Hibernate: drop table if exists app_user cascade 
+Hibernate: drop table if exists attribute_type cascade 
+Hibernate: drop table if exists attribute_value cascade 
+Hibernate: drop table if exists branch cascade 
+Hibernate: drop table if exists grid_form_view cascade 
+Hibernate: drop table if exists group_nom cascade 
+Hibernate: drop table if exists journal cascade 
+Hibernate: drop table if exists nom_attribute_value cascade 
+Hibernate: drop table if exists nom_skl_attribute cascade 
+Hibernate: drop table if exists nomenclature cascade 
+Hibernate: drop table if exists nomenclature_accounting_object cascade 
+Hibernate: drop table if exists nomenclature_price cascade 
+Hibernate: drop table if exists oper cascade 
+Hibernate: drop table if exists prd_spec cascade 
+Hibernate: drop table if exists prd_spec_mtr cascade 
+Hibernate: drop table if exists prd_spec_oper cascade 
+Hibernate: drop table if exists receiving_document cascade 
+Hibernate: drop table if exists receiving_document_item cascade 
+Hibernate: drop table if exists role cascade 
+Hibernate: drop table if exists skl_nom_opa cascade 
+Hibernate: drop table if exists skl_nom_opa_value cascade 
+Hibernate: drop table if exists unit_of_measurement cascade 
+Hibernate: drop table if exists user_form_settings cascade 
+Hibernate: drop table if exists user_role cascade 
+Hibernate: drop table if exists workshop cascade 
+Hibernate: create table access_grant (can_delete boolean not null, can_read boolean not null, can_update boolean not null, created_at timestamp(6), dimension_value_id bigint, id bigint generated by default as identity, modified_at timestamp(6), version bigint, created_by varchar(255), dimension varchar(255) not null, modified_by varchar(255), subject_key varchar(255) not null, subject_type enum ('ROLE','USER') not null, primary key (id))
+Hibernate: create table accounting_object_correction (created_at timestamp(6), document_date timestamp(6) not null, id bigint generated by default as identity, modified_at timestamp(6), version bigint, workshop_id bigint not null, number varchar(30) not null, created_by varchar(255), modified_by varchar(255), primary key (id), unique (number))
+Hibernate: create table accounting_object_correction_item (line_number integer not null, accounting_type_id bigint not null, created_at timestamp(6), current_accounting_type_id bigint, document_id bigint not null, id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table accounting_object_installation (created_at timestamp(6), document_date timestamp(6) not null, id bigint generated by default as identity, modified_at timestamp(6), version bigint, workshop_id bigint not null, number varchar(30) not null, created_by varchar(255), modified_by varchar(255), primary key (id), unique (number))
+Hibernate: create table accounting_object_installation_item (line_number integer not null, accounting_type_id bigint not null, created_at timestamp(6), document_id bigint not null, id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table accounting_type (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table app_user (enabled boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, username varchar(50) not null unique, password varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table attribute_type (active boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), target_dictionary varchar(255), value_type enum ('ENUM','NUMBER','REF','STRING') not null, primary key (id))
+Hibernate: create table attribute_value (attr_type_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), ref_id bigint, version bigint, code varchar(100) not null, code_up varchar(100), name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_attr_value_type_code_up unique (attr_type_id, code_up), constraint uk_attr_value_type_ref unique (attr_type_id, ref_id))
+Hibernate: create table branch (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table grid_form_view (shared boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, columns text, created_by varchar(255), form_key varchar(255) not null, modified_by varchar(255), name varchar(255) not null, primary key (id))
+Hibernate: create table group_nom (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table journal (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table nom_attribute_value (attr_type_id bigint not null, attr_value_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_nom_attr_value_nom_type unique (nomenclature_id, attr_type_id))
+Hibernate: create table nom_skl_attribute (required boolean not null, attr_type_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_nom_skl_attr_nom_type unique (nomenclature_id, attr_type_id))
+Hibernate: create table nomenclature (created_at timestamp(6), group_nom_id bigint, id bigint generated by default as identity, modified_at timestamp(6), unit_id bigint not null, version bigint, code varchar(20) not null unique, type_nom varchar(20), name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table nomenclature_accounting_object (line_no integer not null, accounting_type_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, period_date timestamp(6) not null, recorder_id bigint not null, recording_order bigint not null, version bigint, workshop_id bigint not null, recorder_type varchar(64) not null, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_accounting_object_recorder unique (recorder_type, recorder_id, line_no), check (line_no > 0 and recording_order > 0))
+Hibernate: create table nomenclature_price (price numeric(19,4) not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, period_date timestamp(6) not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_nomenclature_price_key unique (nomenclature_id, period_date))
+Hibernate: create table oper (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table prd_spec (created_at timestamp(6), id bigint generated by default as identity, journal_id bigint not null, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, code_spec varchar(50) not null, draft varchar(100), comment varchar(500), created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table prd_spec_mtr (line_number integer, qt numeric(15,3), type_mtr integer not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint, prd_spec_id bigint not null, prd_spec_mtr_id bigint, unit_id bigint, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table prd_spec_oper (order_num integer, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), oper_id bigint, prd_spec_id bigint not null, version bigint, workshop_id bigint, route varchar(100), created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table receiving_document (date date not null, created_at timestamp(6), id bigint generated by default as identity, journal_id bigint, modified_at timestamp(6), receiving_workshop_id bigint not null, transferring_workshop_id bigint not null, version bigint, number varchar(20) not null, created_by varchar(255), modified_by varchar(255), primary key (id), unique (journal_id, number))
+Hibernate: create table receiving_document_item (line_number integer, quantity numeric(38,2) not null, created_at timestamp(6), document_id bigint not null, id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table role (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, created_by varchar(255), modified_by varchar(255), name varchar(255) not null unique, primary key (id))
+Hibernate: create table skl_nom_opa (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, canonical varchar(300) not null, display_name varchar(1024), created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_skl_nom_opa_nom_canonical unique (nomenclature_id, canonical))
+Hibernate: create table skl_nom_opa_value (attr_type_id bigint not null, attr_value_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), set_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_skl_nom_opa_value_set_type unique (set_id, attr_type_id))
+Hibernate: create table unit_of_measurement (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(10) not null unique, short_code varchar(10) not null unique, name varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table user_form_settings (id bigint generated by default as identity, setting_key varchar(255) not null, setting_value text, username varchar(255) not null, primary key (id), unique (username, setting_key))
+Hibernate: create table user_role (role_id bigint not null, user_id bigint not null, primary key (role_id, user_id))
+Hibernate: create table workshop (branch_id bigint, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create index ix_accounting_object_slice on nomenclature_accounting_object (workshop_id, nomenclature_id, period_date, recording_order, line_no)
+Hibernate: create index ix_accounting_object_recorder on nomenclature_accounting_object (recorder_type, recorder_id)
+Hibernate: create index ix_skl_nom_opa_value_type_value on skl_nom_opa_value (attr_type_id, attr_value_id)
+Hibernate: alter table if exists accounting_object_correction add constraint FKkf75t9gr1eysyf9vq908flnuh foreign key (workshop_id) references workshop
+Hibernate: alter table if exists accounting_object_correction_item add constraint FKrh315dhra09lii8g43f1gjmjd foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists accounting_object_correction_item add constraint FK4i2xyyeapae4gnlcsnqdg3iq0 foreign key (accounting_type_id) references accounting_type
+Hibernate: alter table if exists accounting_object_correction_item add constraint FK5kbj9h1pbvrum4jnbjvlp34o4 foreign key (current_accounting_type_id) references accounting_type
+Hibernate: alter table if exists accounting_object_correction_item add constraint FK47tt9e3eswwpdhpsf176sg2tj foreign key (document_id) references accounting_object_correction
+Hibernate: alter table if exists accounting_object_installation add constraint FK87f13r2k4i2p1y5340slti5d foreign key (workshop_id) references workshop
+Hibernate: alter table if exists accounting_object_installation_item add constraint FKiy5f6ir4tbs2r2vd8f1l9xi3v foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists accounting_object_installation_item add constraint FK68aqw79gbdndwrjo40mqiixjq foreign key (accounting_type_id) references accounting_type
+Hibernate: alter table if exists accounting_object_installation_item add constraint FK8h00atqmottmytmfpgykvb079 foreign key (document_id) references accounting_object_installation
+Hibernate: alter table if exists attribute_value add constraint FK36aeu38yknx5exksgyx8j5qog foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists nom_attribute_value add constraint FK8bjfo60ab54xij5a93ikfj9gd foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists nom_attribute_value add constraint FKlnybp2731b0jqbvatis93xnum foreign key (attr_value_id) references attribute_value
+Hibernate: alter table if exists nom_attribute_value add constraint FKceyrscw6t4rqcbvmcb979shw6 foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists nom_skl_attribute add constraint FKjio9enocbpfvugwxy46t7w1cw foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists nom_skl_attribute add constraint FKbmyilgg5u7rk4yu3qckhvql84 foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists nomenclature add constraint FK3groo8175k0vgrpnc5q2yq1a1 foreign key (group_nom_id) references group_nom
+Hibernate: alter table if exists nomenclature add constraint FKmqhmofv4wswm9lhrb3acxfbcd foreign key (unit_id) references unit_of_measurement
+Hibernate: alter table if exists nomenclature_accounting_object add constraint FKdvw6skwywiqq8f3t5m7mwek90 foreign key (accounting_type_id) references accounting_type
+Hibernate: alter table if exists nomenclature_accounting_object add constraint FK38wek9ug105umy6788p26ti3e foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists nomenclature_accounting_object add constraint FKpswffv1fjqd3lv86rsekysb5b foreign key (workshop_id) references workshop
+Hibernate: alter table if exists nomenclature_price add constraint FKnng1o929x5cbvjbj232wjmf1o foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists prd_spec add constraint FK8vk4j8t93hrngi5qit3jrykyi foreign key (journal_id) references journal
+Hibernate: alter table if exists prd_spec add constraint FK9eaucs19gndh1k9rhe0ng695e foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists prd_spec_mtr add constraint FK5n10097fgw2lfth31a2o1ues5 foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists prd_spec_mtr add constraint FK2kcw5qqa7t9dj60vl4kj60y3l foreign key (prd_spec_id) references prd_spec
+Hibernate: alter table if exists prd_spec_mtr add constraint FKj99uwuqwkx0wp9p4kbhn6ryhr foreign key (prd_spec_mtr_id) references prd_spec
+Hibernate: alter table if exists prd_spec_mtr add constraint FKf7lfrtotyht0v22qjcgwurh81 foreign key (unit_id) references unit_of_measurement
+Hibernate: alter table if exists prd_spec_oper add constraint FKjiirso41ytutks7wj0uii5jus foreign key (workshop_id) references workshop
+Hibernate: alter table if exists prd_spec_oper add constraint FKrc7tmh739xkfi9gpl7tltur6s foreign key (oper_id) references oper
+Hibernate: alter table if exists prd_spec_oper add constraint FKiyh6mr7lk4d5pqmfxqueku0tt foreign key (prd_spec_id) references prd_spec
+Hibernate: alter table if exists receiving_document add constraint FK9nc3fpb68jj7l2txqvp2bmdgf foreign key (journal_id) references journal
+Hibernate: alter table if exists receiving_document add constraint FK8mfku3wnuyi286cnvaogj5rdd foreign key (receiving_workshop_id) references workshop
+Hibernate: alter table if exists receiving_document add constraint FKckn7g8g4fg89ra8pc5p9uyla5 foreign key (transferring_workshop_id) references workshop
+Hibernate: alter table if exists receiving_document_item add constraint FKku7b946vtl84k5cyv5kxrgtd8 foreign key (document_id) references receiving_document
+Hibernate: alter table if exists receiving_document_item add constraint FKdlxrubwipag9prcduo2urjh3a foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists skl_nom_opa add constraint FKrffc085vnj8m74wyn14bt5ss foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists skl_nom_opa_value add constraint FK84f63ouwupshauw5p52exjj0o foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists skl_nom_opa_value add constraint FK6tsj7yxk7kmvc6vuh53972bh8 foreign key (set_id) references skl_nom_opa
+Hibernate: alter table if exists skl_nom_opa_value add constraint FKfb95aippf8xkwvtjx7angw60j foreign key (attr_value_id) references attribute_value
+Hibernate: alter table if exists user_role add constraint FKa68196081fvovjhkek5m97n3y foreign key (role_id) references role
+Hibernate: alter table if exists user_role add constraint FKg7fr1r7o0fkk41nfhnjdyqn7b foreign key (user_id) references app_user
+Hibernate: alter table if exists workshop add constraint FKa6ffqryufhrf3d00w0gvcur2a foreign key (branch_id) references branch
+2026-10-07 14:04:02.939 INFO  [main] [] [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-07 14:04:03.493 INFO  [main] [] [] o.i.r.query.ReportQueryExecutionIT - Started ReportQueryExecutionIT in 3.789 seconds (process running for 110.247)
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ps1_0.code_spec from prd_spec ps1_0 join journal j1_0 on j1_0.id=ps1_0.journal_id where j1_0.code=? fetch first ? rows only
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ps1_0.code_spec from prd_spec ps1_0 order by ps1_0.code_spec fetch first ? rows only
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ps1_0.code_spec,j1_0.id,j1_0.code,j1_0.created_at,j1_0.created_by,j1_0.modified_at,j1_0.modified_by,j1_0.name,j1_0.version from prd_spec ps1_0 join journal j1_0 on j1_0.id=ps1_0.journal_id fetch first ? rows only
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ps1_0.code_spec from prd_spec ps1_0 where ps1_0.journal_id=? fetch first ? rows only
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ps1_0.code_spec,ps1_0.journal_id,j1_0.name from prd_spec ps1_0 join journal j1_0 on j1_0.id=ps1_0.journal_id and j1_0.id in (?) where ps1_0.journal_id in (?) order by ps1_0.code_spec fetch first ? rows only
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.323 s -- in org.ipro.reportstudio.query.ReportQueryExecutionIT
+[INFO] Running org.ipro.reportstudio.query.VisualQueryPackageAssemblyIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-07 14:04:07.086 INFO  [main] [] [] o.i.r.q.VisualQueryPackageAssemblyIT - Starting VisualQueryPackageAssemblyIT using Java 21.0.11 with PID 24224 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25)
+2026-10-07 14:04:07.086 INFO  [main] [] [] o.i.r.q.VisualQueryPackageAssemblyIT - The following 1 profile is active: "test"
+2026-10-07 14:04:07.237 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:04:07.248 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 7 ms. Found 0 JPA repository interfaces.
+2026-10-07 14:04:07.267 INFO  [main] [] [] o.s.b.j.t.a.TestDatabaseAutoConfiguration$EmbeddedDataSourceBeanFactoryPostProcessor - Replacing 'dataSource' DataSource bean with embedded version
+2026-10-07 14:04:07.285 INFO  [main] [] [] o.s.j.d.e.EmbeddedDatabaseFactory - Starting embedded database: url='jdbc:h2:mem:63820e6c-ff92-4480-9ace-7efc471609e1;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2026-10-07 14:04:07.309 INFO  [main] [] [] org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-07 14:04:07.432 INFO  [main] [] [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-07 14:04:07.436 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-07 14:04:07.436 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:63820e6c-ff92-4480-9ace-7efc471609e1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 63820E6C-FF92-4480-9ACE-7EFC471609E1/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-07 14:04:07.574 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: drop table if exists q6_journal cascade 
+Hibernate: drop table if exists q6_product cascade 
+Hibernate: create table q6_journal (id bigint generated by default as identity, code varchar(255), primary key (id))
+Hibernate: create table q6_product (amount numeric(38,2), id bigint generated by default as identity, code varchar(255), primary key (id))
+2026-10-07 14:04:07.587 INFO  [main] [] [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-07 14:04:07.631 INFO  [main] [] [] o.i.r.q.VisualQueryPackageAssemblyIT - Started VisualQueryPackageAssemblyIT in 0.721 seconds (process running for 114.384)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.907 s -- in org.ipro.reportstudio.query.VisualQueryPackageAssemblyIT
+[INFO] Running org.ipro.reportstudio.query.VisualQueryPackageJsonTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.083 s -- in org.ipro.reportstudio.query.VisualQueryPackageJsonTest
+[INFO] Running org.ipro.reportstudio.run.ReportExecutionIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-07 14:04:09.126 INFO  [main] [] [] o.i.r.run.ReportExecutionIT - Starting ReportExecutionIT using Java 21.0.11 with PID 24224 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25)
+2026-10-07 14:04:09.126 INFO  [main] [] [] o.i.r.run.ReportExecutionIT - The following 1 profile is active: "test"
+2026-10-07 14:04:10.051 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:04:10.523 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 458 ms. Found 18 JPA repository interfaces.
+2026-10-07 14:04:10.534 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:04:10.877 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 344 ms. Found 1 JPA repository interface.
+2026-10-07 14:04:10.885 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07 14:04:10.938 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 49 ms. Found 1 JPA repository interface.
+2026-10-07 14:04:10.990 INFO  [main] [] [] o.s.b.j.t.a.TestDatabaseAutoConfiguration$EmbeddedDataSourceBeanFactoryPostProcessor - Replacing 'dataSource' DataSource bean with embedded version
+2026-10-07 14:04:11.009 INFO  [main] [] [] o.s.j.d.e.EmbeddedDatabaseFactory - Starting embedded database: url='jdbc:h2:mem:0f35605d-ea5b-4d5e-8086-77a747ffef88;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2026-10-07 14:04:11.067 INFO  [main] [] [] org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-07 14:04:11.163 INFO  [main] [] [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-07 14:04:11.170 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-07 14:04:11.170 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:0f35605d-ea5b-4d5e-8086-77a747ffef88]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 0F35605D-EA5B-4D5E-8086-77A747FFEF88/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-07 14:04:11.931 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: drop table if exists access_grant cascade 
+Hibernate: drop table if exists accounting_object_correction cascade 
+Hibernate: drop table if exists accounting_object_correction_item cascade 
+Hibernate: drop table if exists accounting_object_installation cascade 
+Hibernate: drop table if exists accounting_object_installation_item cascade 
+Hibernate: drop table if exists accounting_type cascade 
+Hibernate: drop table if exists app_user cascade 
+Hibernate: drop table if exists attribute_type cascade 
+Hibernate: drop table if exists attribute_value cascade 
+Hibernate: drop table if exists branch cascade 
+Hibernate: drop table if exists grid_form_view cascade 
+Hibernate: drop table if exists group_nom cascade 
+Hibernate: drop table if exists journal cascade 
+Hibernate: drop table if exists nom_attribute_value cascade 
+Hibernate: drop table if exists nom_skl_attribute cascade 
+Hibernate: drop table if exists nomenclature cascade 
+Hibernate: drop table if exists nomenclature_accounting_object cascade 
+Hibernate: drop table if exists nomenclature_price cascade 
+Hibernate: drop table if exists oper cascade 
+Hibernate: drop table if exists prd_spec cascade 
+Hibernate: drop table if exists prd_spec_mtr cascade 
+Hibernate: drop table if exists prd_spec_oper cascade 
+Hibernate: drop table if exists receiving_document cascade 
+Hibernate: drop table if exists receiving_document_item cascade 
+Hibernate: drop table if exists report_band cascade 
+Hibernate: drop table if exists report_field cascade 
+Hibernate: drop table if exists report_order cascade 
+Hibernate: drop table if exists report_param cascade 
+Hibernate: drop table if exists report_template cascade 
+Hibernate: drop table if exists role cascade 
+Hibernate: drop table if exists skl_nom_opa cascade 
+Hibernate: drop table if exists skl_nom_opa_value cascade 
+Hibernate: drop table if exists unit_of_measurement cascade 
+Hibernate: drop table if exists user_form_settings cascade 
+Hibernate: drop table if exists user_role cascade 
+Hibernate: drop table if exists workshop cascade 
+Hibernate: create table access_grant (can_delete boolean not null, can_read boolean not null, can_update boolean not null, created_at timestamp(6), dimension_value_id bigint, id bigint generated by default as identity, modified_at timestamp(6), version bigint, created_by varchar(255), dimension varchar(255) not null, modified_by varchar(255), subject_key varchar(255) not null, subject_type enum ('ROLE','USER') not null, primary key (id))
+Hibernate: create table accounting_object_correction (created_at timestamp(6), document_date timestamp(6) not null, id bigint generated by default as identity, modified_at timestamp(6), version bigint, workshop_id bigint not null, number varchar(30) not null, created_by varchar(255), modified_by varchar(255), primary key (id), unique (number))
+Hibernate: create table accounting_object_correction_item (line_number integer not null, accounting_type_id bigint not null, created_at timestamp(6), current_accounting_type_id bigint, document_id bigint not null, id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table accounting_object_installation (created_at timestamp(6), document_date timestamp(6) not null, id bigint generated by default as identity, modified_at timestamp(6), version bigint, workshop_id bigint not null, number varchar(30) not null, created_by varchar(255), modified_by varchar(255), primary key (id), unique (number))
+Hibernate: create table accounting_object_installation_item (line_number integer not null, accounting_type_id bigint not null, created_at timestamp(6), document_id bigint not null, id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table accounting_type (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table app_user (enabled boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, username varchar(50) not null unique, password varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table attribute_type (active boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), target_dictionary varchar(255), value_type enum ('ENUM','NUMBER','REF','STRING') not null, primary key (id))
+Hibernate: create table attribute_value (attr_type_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), ref_id bigint, version bigint, code varchar(100) not null, code_up varchar(100), name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_attr_value_type_code_up unique (attr_type_id, code_up), constraint uk_attr_value_type_ref unique (attr_type_id, ref_id))
+Hibernate: create table branch (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table grid_form_view (shared boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, columns text, created_by varchar(255), form_key varchar(255) not null, modified_by varchar(255), name varchar(255) not null, primary key (id))
+Hibernate: create table group_nom (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table journal (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table nom_attribute_value (attr_type_id bigint not null, attr_value_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_nom_attr_value_nom_type unique (nomenclature_id, attr_type_id))
+Hibernate: create table nom_skl_attribute (required boolean not null, attr_type_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_nom_skl_attr_nom_type unique (nomenclature_id, attr_type_id))
+Hibernate: create table nomenclature (created_at timestamp(6), group_nom_id bigint, id bigint generated by default as identity, modified_at timestamp(6), unit_id bigint not null, version bigint, code varchar(20) not null unique, type_nom varchar(20), name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table nomenclature_accounting_object (line_no integer not null, accounting_type_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, period_date timestamp(6) not null, recorder_id bigint not null, recording_order bigint not null, version bigint, workshop_id bigint not null, recorder_type varchar(64) not null, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_accounting_object_recorder unique (recorder_type, recorder_id, line_no), check (line_no > 0 and recording_order > 0))
+Hibernate: create table nomenclature_price (price numeric(19,4) not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, period_date timestamp(6) not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_nomenclature_price_key unique (nomenclature_id, period_date))
+Hibernate: create table oper (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table prd_spec (created_at timestamp(6), id bigint generated by default as identity, journal_id bigint not null, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, code_spec varchar(50) not null, draft varchar(100), comment varchar(500), created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table prd_spec_mtr (line_number integer, qt numeric(15,3), type_mtr integer not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint, prd_spec_id bigint not null, prd_spec_mtr_id bigint, unit_id bigint, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table prd_spec_oper (order_num integer, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), oper_id bigint, prd_spec_id bigint not null, version bigint, workshop_id bigint, route varchar(100), created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table receiving_document (date date not null, created_at timestamp(6), id bigint generated by default as identity, journal_id bigint, modified_at timestamp(6), receiving_workshop_id bigint not null, transferring_workshop_id bigint not null, version bigint, number varchar(20) not null, created_by varchar(255), modified_by varchar(255), primary key (id), unique (journal_id, number))
+Hibernate: create table receiving_document_item (line_number integer, quantity numeric(38,2) not null, created_at timestamp(6), document_id bigint not null, id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table report_band (position integer not null, start_new_page boolean, title_width integer, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), parent_id bigint, template_id bigint not null, version bigint, group_field varchar(100), created_by varchar(255), modified_by varchar(255), header_layout enum ('EMPTY','TITLE_AND_VALUE','VALUE'), kind enum ('DETAIL','GROUP_FOOTER','GROUP_HEADER','NO_DATA','PAGE_FOOTER','PAGE_HEADER','REPORT_FOOTER','REPORT_HEADER') not null, primary key (id))
+Hibernate: create table report_field (border_enabled boolean, position integer not null, visible boolean not null, width integer, band_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, format varchar(100), query_field varchar(100), caption varchar(250), text varchar(2000), created_by varchar(255), modified_by varchar(255), aggregation enum ('AVG','COUNT','COUNT_ROWS','MAX','MIN','NONE','SUM') not null, alignment enum ('CENTER','LEFT','RIGHT') not null, kind enum ('COLUMN','EXPRESSION','FORMULA','ROW_NUMBER','TEXT') not null, primary key (id))
+Hibernate: create table report_order (position integer not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), template_id bigint not null, version bigint, column_name varchar(100) not null, created_by varchar(255), modified_by varchar(255), direction enum ('ASC','DESC') not null, primary key (id))
+Hibernate: create table report_param (position integer not null, required boolean not null, show_on_form boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), template_id bigint not null, version bigint, name varchar(50) not null, caption varchar(200), default_value varchar(1000), created_by varchar(255), entity_class varchar(255), modified_by varchar(255), computed enum ('CURRENT_USER','NONE','NOW','RLS_ORG') not null, kind enum ('ENTITY','ENTITY_LIST','PERIOD','SCALAR') not null, value_source enum ('COMPUTED','CONTEXT','DEFAULT','FORM') not null, primary key (id), constraint uk_report_param_template_name unique (template_id, name))
+Hibernate: create table report_template (advanced boolean not null, base_font_size integer, grid_enabled boolean, max_rows integer not null, stripe_rows boolean, timeout_ms integer not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, name varchar(100) not null unique, target_entity_class varchar(512), description varchar(1000), created_by varchar(255), jpql text not null, modified_by varchar(255), visual_filter_json text, visual_query_json text, page_orientation enum ('LANDSCAPE','PORTRAIT'), page_size enum ('A3','A4','A5','LEGAL','LETTER'), query_source enum ('MANUAL','VISUAL'), state enum ('DRAFT','PUBLISHED') not null, primary key (id))
+Hibernate: create table role (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, created_by varchar(255), modified_by varchar(255), name varchar(255) not null unique, primary key (id))
+Hibernate: create table skl_nom_opa (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, canonical varchar(300) not null, display_name varchar(1024), created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_skl_nom_opa_nom_canonical unique (nomenclature_id, canonical))
+Hibernate: create table skl_nom_opa_value (attr_type_id bigint not null, attr_value_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), set_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_skl_nom_opa_value_set_type unique (set_id, attr_type_id))
+Hibernate: create table unit_of_measurement (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(10) not null unique, short_code varchar(10) not null unique, name varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table user_form_settings (id bigint generated by default as identity, setting_key varchar(255) not null, setting_value text, username varchar(255) not null, primary key (id), unique (username, setting_key))
+Hibernate: create table user_role (role_id bigint not null, user_id bigint not null, primary key (role_id, user_id))
+Hibernate: create table workshop (branch_id bigint, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create index ix_accounting_object_slice on nomenclature_accounting_object (workshop_id, nomenclature_id, period_date, recording_order, line_no)
+Hibernate: create index ix_accounting_object_recorder on nomenclature_accounting_object (recorder_type, recorder_id)
+Hibernate: create index ix_skl_nom_opa_value_type_value on skl_nom_opa_value (attr_type_id, attr_value_id)
+Hibernate: alter table if exists accounting_object_correction add constraint FKkf75t9gr1eysyf9vq908flnuh foreign key (workshop_id) references workshop
+Hibernate: alter table if exists accounting_object_correction_item add constraint FKrh315dhra09lii8g43f1gjmjd foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists accounting_object_correction_item add constraint FK4i2xyyeapae4gnlcsnqdg3iq0 foreign key (accounting_type_id) references accounting_type
+Hibernate: alter table if exists accounting_object_correction_item add constraint FK5kbj9h1pbvrum4jnbjvlp34o4 foreign key (current_accounting_type_id) references accounting_type
+Hibernate: alter table if exists accounting_object_correction_item add constraint FK47tt9e3eswwpdhpsf176sg2tj foreign key (document_id) references accounting_object_correction
+Hibernate: alter table if exists accounting_object_installation add constraint FK87f13r2k4i2p1y5340slti5d foreign key (workshop_id) references workshop
+Hibernate: alter table if exists accounting_object_installation_item add constraint FKiy5f6ir4tbs2r2vd8f1l9xi3v foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists accounting_object_installation_item add constraint FK68aqw79gbdndwrjo40mqiixjq foreign key (accounting_type_id) references accounting_type
+Hibernate: alter table if exists accounting_object_installation_item add constraint FK8h00atqmottmytmfpgykvb079 foreign key (document_id) references accounting_object_installation
+Hibernate: alter table if exists attribute_value add constraint FK36aeu38yknx5exksgyx8j5qog foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists nom_attribute_value add constraint FK8bjfo60ab54xij5a93ikfj9gd foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists nom_attribute_value add constraint FKlnybp2731b0jqbvatis93xnum foreign key (attr_value_id) references attribute_value
+Hibernate: alter table if exists nom_attribute_value add constraint FKceyrscw6t4rqcbvmcb979shw6 foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists nom_skl_attribute add constraint FKjio9enocbpfvugwxy46t7w1cw foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists nom_skl_attribute add constraint FKbmyilgg5u7rk4yu3qckhvql84 foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists nomenclature add constraint FK3groo8175k0vgrpnc5q2yq1a1 foreign key (group_nom_id) references group_nom
+Hibernate: alter table if exists nomenclature add constraint FKmqhmofv4wswm9lhrb3acxfbcd foreign key (unit_id) references unit_of_measurement
+Hibernate: alter table if exists nomenclature_accounting_object add constraint FKdvw6skwywiqq8f3t5m7mwek90 foreign key (accounting_type_id) references accounting_type
+Hibernate: alter table if exists nomenclature_accounting_object add constraint FK38wek9ug105umy6788p26ti3e foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists nomenclature_accounting_object add constraint FKpswffv1fjqd3lv86rsekysb5b foreign key (workshop_id) references workshop
+Hibernate: alter table if exists nomenclature_price add constraint FKnng1o929x5cbvjbj232wjmf1o foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists prd_spec add constraint FK8vk4j8t93hrngi5qit3jrykyi foreign key (journal_id) references journal
+Hibernate: alter table if exists prd_spec add constraint FK9eaucs19gndh1k9rhe0ng695e foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists prd_spec_mtr add constraint FK5n10097fgw2lfth31a2o1ues5 foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists prd_spec_mtr add constraint FK2kcw5qqa7t9dj60vl4kj60y3l foreign key (prd_spec_id) references prd_spec
+Hibernate: alter table if exists prd_spec_mtr add constraint FKj99uwuqwkx0wp9p4kbhn6ryhr foreign key (prd_spec_mtr_id) references prd_spec
+Hibernate: alter table if exists prd_spec_mtr add constraint FKf7lfrtotyht0v22qjcgwurh81 foreign key (unit_id) references unit_of_measurement
+Hibernate: alter table if exists prd_spec_oper add constraint FKjiirso41ytutks7wj0uii5jus foreign key (workshop_id) references workshop
+Hibernate: alter table if exists prd_spec_oper add constraint FKrc7tmh739xkfi9gpl7tltur6s foreign key (oper_id) references oper
+Hibernate: alter table if exists prd_spec_oper add constraint FKiyh6mr7lk4d5pqmfxqueku0tt foreign key (prd_spec_id) references prd_spec
+Hibernate: alter table if exists receiving_document add constraint FK9nc3fpb68jj7l2txqvp2bmdgf foreign key (journal_id) references journal
+Hibernate: alter table if exists receiving_document add constraint FK8mfku3wnuyi286cnvaogj5rdd foreign key (receiving_workshop_id) references workshop
+Hibernate: alter table if exists receiving_document add constraint FKckn7g8g4fg89ra8pc5p9uyla5 foreign key (transferring_workshop_id) references workshop
+Hibernate: alter table if exists receiving_document_item add constraint FKku7b946vtl84k5cyv5kxrgtd8 foreign key (document_id) references receiving_document
+Hibernate: alter table if exists receiving_document_item add constraint FKdlxrubwipag9prcduo2urjh3a foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists report_band add constraint FKp9ni3wrha3p95mxrshc6w72mu foreign key (parent_id) references report_band
+Hibernate: alter table if exists report_band add constraint FKi6mc4hg4b1agxgabfnx40y1o3 foreign key (template_id) references report_template
+Hibernate: alter table if exists report_field add constraint FK3hjdkg7dtjq3js6xufg88e299 foreign key (band_id) references report_band
+Hibernate: alter table if exists report_order add constraint FK20rrr1pr4ar6o4bmjblxdu2k3 foreign key (template_id) references report_template
+Hibernate: alter table if exists report_param add constraint FK280oppysv6mh27vpj49ebs8wg foreign key (template_id) references report_template
+Hibernate: alter table if exists skl_nom_opa add constraint FKrffc085vnj8m74wyn14bt5ss foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists skl_nom_opa_value add constraint FK84f63ouwupshauw5p52exjj0o foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists skl_nom_opa_value add constraint FK6tsj7yxk7kmvc6vuh53972bh8 foreign key (set_id) references skl_nom_opa
+Hibernate: alter table if exists skl_nom_opa_value add constraint FKfb95aippf8xkwvtjx7angw60j foreign key (attr_value_id) references attribute_value
+Hibernate: alter table if exists user_role add constraint FKa68196081fvovjhkek5m97n3y foreign key (role_id) references role
+Hibernate: alter table if exists user_role add constraint FKg7fr1r7o0fkk41nfhnjdyqn7b foreign key (user_id) references app_user
+Hibernate: alter table if exists workshop add constraint FKa6ffqryufhrf3d00w0gvcur2a foreign key (branch_id) references branch
+2026-10-07 14:04:12.005 INFO  [main] [] [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-07 14:04:12.570 INFO  [main] [] [] o.i.r.run.ReportExecutionIT - Started ReportExecutionIT in 3.63 seconds (process running for 119.323)
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_template (advanced,base_font_size,created_at,created_by,description,grid_enabled,jpql,max_rows,modified_at,modified_by,name,page_orientation,page_size,query_source,state,stripe_rows,target_entity_class,timeout_ms,version,visual_filter_json,visual_query_json,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_template (advanced,base_font_size,created_at,created_by,description,grid_enabled,jpql,max_rows,modified_at,modified_by,name,page_orientation,page_size,query_source,state,stripe_rows,target_entity_class,timeout_ms,version,visual_filter_json,visual_query_json,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_param (caption,computed,created_at,created_by,default_value,entity_class,kind,modified_at,modified_by,name,position,required,show_on_form,template_id,value_source,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_template (advanced,base_font_size,created_at,created_by,description,grid_enabled,jpql,max_rows,modified_at,modified_by,name,page_orientation,page_size,query_source,state,stripe_rows,target_entity_class,timeout_ms,version,visual_filter_json,visual_query_json,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_param (caption,computed,created_at,created_by,default_value,entity_class,kind,modified_at,modified_by,name,position,required,show_on_form,template_id,value_source,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: insert into journal (code,created_at,created_by,modified_at,modified_by,name,version,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into unit_of_measurement (code,created_at,created_by,modified_at,modified_by,name,short_code,version,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into nomenclature (code,created_at,created_by,group_nom_id,modified_at,modified_by,name,type_nom,unit_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into prd_spec (code_spec,comment,created_at,created_by,draft,journal_id,modified_at,modified_by,nomenclature_id,version,id) values (?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_template (advanced,base_font_size,created_at,created_by,description,grid_enabled,jpql,max_rows,modified_at,modified_by,name,page_orientation,page_size,query_source,state,stripe_rows,target_entity_class,timeout_ms,version,visual_filter_json,visual_query_json,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_band (created_at,created_by,group_field,header_layout,kind,modified_at,modified_by,parent_id,position,start_new_page,template_id,title_width,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_field (aggregation,alignment,band_id,border_enabled,caption,created_at,created_by,format,kind,modified_at,modified_by,position,query_field,text,version,visible,width,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into report_param (caption,computed,created_at,created_by,default_value,entity_class,kind,modified_at,modified_by,name,position,required,show_on_form,template_id,value_source,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+[ERROR] Tests run: 4, Failures: 1, Errors: 3, Skipped: 0, Time elapsed: 5.969 s <<< FAILURE! -- in org.ipro.reportstudio.run.ReportExecutionIT
+[ERROR] org.ipro.reportstudio.run.ReportExecutionIT.serviceParamIsBoundFromRunContext -- Time elapsed: 0.543 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+����������� �������� ������� RecorderTypeRegistry ��� �������� managed DOCUMENT �����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterRegistry.find(RegisterRegistry.java:79)
+	at org.ipro.reportstudio.query.register.RegisterReportReadPolicy.violations(RegisterReportReadPolicy.java:30)
+	at org.ipro.reportstudio.query.ReportReadAuthorizer.violations(ReportReadAuthorizer.java:92)
+	at org.ipro.reportstudio.query.ReportQueryGuard.guard(ReportQueryGuard.java:135)
+	at org.ipro.reportstudio.query.ReportQueryGuard.guard(ReportQueryGuard.java:90)
+	at org.ipro.reportstudio.query.ReportQueryAssemblyService.assemble(ReportQueryAssemblyService.java:54)
+	at org.ipro.reportstudio.run.ReportExecutionService.run(ReportExecutionService.java:90)
+	at org.ipro.reportstudio.run.ReportExecutionIT.serviceParamIsBoundFromRunContext(ReportExecutionIT.java:211)
+
+[ERROR] org.ipro.reportstudio.run.ReportExecutionIT.guardRefusesUnboundRequiredEntityParam -- Time elapsed: 0.556 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <org.ipro.reportstudio.run.ReportRunException> but was: <java.lang.IllegalStateException>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:68)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:35)
+	at org.junit.jupiter.api.Assertions.assertThrows(Assertions.java:3223)
+	at org.ipro.reportstudio.run.ReportExecutionIT.guardRefusesUnboundRequiredEntityParam(ReportExecutionIT.java:200)
+Caused by: java.lang.IllegalStateException: ������������ ���������� ��������� ��������:
+����������� �������� ������� RecorderTypeRegistry ��� �������� managed DOCUMENT �����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterRegistry.find(RegisterRegistry.java:79)
+	at org.ipro.reportstudio.query.register.RegisterReportReadPolicy.violations(RegisterReportReadPolicy.java:30)
+	at org.ipro.reportstudio.query.ReportReadAuthorizer.violations(ReportReadAuthorizer.java:92)
+	at org.ipro.reportstudio.query.ReportQueryGuard.guard(ReportQueryGuard.java:135)
+	at org.ipro.reportstudio.query.ReportQueryGuard.guard(ReportQueryGuard.java:90)
+	at org.ipro.reportstudio.query.ReportQueryAssemblyService.assemble(ReportQueryAssemblyService.java:54)
+	at org.ipro.reportstudio.run.ReportExecutionService.run(ReportExecutionService.java:90)
+	at org.ipro.reportstudio.run.ReportExecutionIT.lambda$guardRefusesUnboundRequiredEntityParam$5(ReportExecutionIT.java:201)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:54)
+	... 3 more
+
+[ERROR] org.ipro.reportstudio.run.ReportExecutionIT.cachedArtifactReused -- Time elapsed: 0.572 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+����������� �������� ������� RecorderTypeRegistry ��� �������� managed DOCUMENT �����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterRegistry.find(RegisterRegistry.java:79)
+	at org.ipro.reportstudio.query.register.RegisterReportReadPolicy.violations(RegisterReportReadPolicy.java:30)
+	at org.ipro.reportstudio.query.ReportReadAuthorizer.violations(ReportReadAuthorizer.java:92)
+	at org.ipro.reportstudio.query.ReportQueryGuard.guard(ReportQueryGuard.java:135)
+	at org.ipro.reportstudio.query.ReportQueryGuard.guard(ReportQueryGuard.java:90)
+	at org.ipro.reportstudio.query.ReportQueryAssemblyService.assemble(ReportQueryAssemblyService.java:54)
+	at org.ipro.reportstudio.run.ReportExecutionService.run(ReportExecutionService.java:90)
+	at org.ipro.reportstudio.run.ReportExecutionIT.cachedArtifactReused(ReportExecutionIT.java:185)
+
+[ERROR] org.ipro.reportstudio.run.ReportExecutionIT.fullPipelineGroupAndAggregatesToPdfAndXlsx -- Time elapsed: 0.484 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+����������� �������� ������� RecorderTypeRegistry ��� �������� managed DOCUMENT �����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterRegistry.find(RegisterRegistry.java:79)
+	at org.ipro.reportstudio.query.register.RegisterReportReadPolicy.violations(RegisterReportReadPolicy.java:30)
+	at org.ipro.reportstudio.query.ReportReadAuthorizer.violations(ReportReadAuthorizer.java:92)
+	at org.ipro.reportstudio.query.ReportQueryGuard.guard(ReportQueryGuard.java:135)
+	at org.ipro.reportstudio.query.ReportQueryGuard.guard(ReportQueryGuard.java:90)
+	at org.ipro.reportstudio.query.ReportQueryAssemblyService.assemble(ReportQueryAssemblyService.java:54)
+	at org.ipro.reportstudio.run.ReportExecutionService.run(ReportExecutionService.java:90)
+	at org.ipro.reportstudio.run.ReportExecutionIT.fullPipelineGroupAndAggregatesToPdfAndXlsx(ReportExecutionIT.java:152)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   ReportExecutionIT.guardRefusesUnboundRequiredEntityParam:200 Unexpected exception type thrown, expected: <org.ipro.reportstudio.run.ReportRunException> but was: <java.lang.IllegalStateException>
+[ERROR] Errors: 
+[ERROR]   ReportExecutionIT.cachedArtifactReused:185 � IllegalState ������������ ���������� ��������� ��������:
+����������� �������� ������� RecorderTypeRegistry ��� �������� managed DOCUMENT �����.
+[ERROR]   ReportExecutionIT.fullPipelineGroupAndAggregatesToPdfAndXlsx:152 � IllegalState ������������ ���������� ��������� ��������:
+����������� �������� ������� RecorderTypeRegistry ��� �������� managed DOCUMENT �����.
+[ERROR]   ReportExecutionIT.serviceParamIsBoundFromRunContext:211 � IllegalState ������������ ���������� ��������� ��������:
+����������� �������� ������� RecorderTypeRegistry ��� �������� managed DOCUMENT �����.
+[INFO] 
+[ERROR] Tests run: 60, Failures: 1, Errors: 3, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:18 min
+[INFO] Finished at: 2026-10-07T14:04:15+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-test) on project Vaa25_1: There are test failures.
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

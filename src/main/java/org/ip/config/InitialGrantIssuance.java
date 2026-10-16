@@ -29,9 +29,8 @@ import java.util.Set;
  * грантов для выбранных ролей — иначе после включения C5-операций запись откажет и администратору
  * (предсказание C5.4, подтверждённое C5.7b).
  *
- * <p><b>Что выдаётся.</b> Плоскость сущностей: read-ключи {@code ENTITY:<FQN>} (флаг чтения) и
- * определения операций {@code ENTITY:<Имя>} (объявленные операции решаются флагами
- * «изменение»/«удаление», ADR-0017 §3). Источник — те же реестры определений, что спрашивает
+ * <p><b>Что выдаётся.</b> Одно определение {@code ENTITY:<FQN>} на сущность с объявленными
+ * флагами чтения, изменения и удаления (P-U, ADR-0017 §3). Источник — общий реестр, который спрашивает
  * решение и показывает админ-экран: выдача не может разойтись с тем, что решит сервер.</p>
  *
  * <p><b>Административный минимум.</b> Сверх плоскости сущностей выдаются названные в
@@ -107,7 +106,7 @@ public class InitialGrantIssuance implements CommandLineRunner {
         }
         for (String role : roles) {
             int issued = issueForRole(role);
-            log.info("Первичная выдача ({}): роли '{}' добавлено {} строк — read-ключи, операции"
+            log.info("Первичная выдача ({}): роли '{}' добавлено {} строк — права"
                 + " сущностей и административный минимум именованных операций; существующие строки"
                 + " не переписывались", ENABLED_PROPERTY, role, issued);
         }
@@ -131,15 +130,12 @@ public class InitialGrantIssuance implements CommandLineRunner {
             if (!isEntityKey(definition.key()) || hasGlobalRow(roleName, definition.key())) {
                 continue;
             }
-            grants.save(globalGrant(roleName, definition.key(),
-                AccessGrantAdminService.operationGrantFlags(definition.operations())));
-            issued++;
-        }
-        for (String key : readDefinitions.registeredKeys()) {
-            if (!isEntityKey(key) || hasGlobalRow(roleName, key)) {
-                continue;
+            GrantFlags operative = AccessGrantAdminService.operationGrantFlags(definition.operations());
+            if (readDefinitions.isRegisteredReadKey(definition.key()) != operative.read()) {
+                throw new IllegalStateException("Read projection differs from the complete C5 definition: " + definition.key());
             }
-            grants.save(globalGrant(roleName, key, new GrantFlags(true, false, false)));
+            grants.save(globalGrant(roleName, definition.key(),
+                operative));
             issued++;
         }
         for (String permissionId : operations) {

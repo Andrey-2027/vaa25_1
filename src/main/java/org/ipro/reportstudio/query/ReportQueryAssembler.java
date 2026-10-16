@@ -14,7 +14,8 @@ public record ReportQueryAssembler(String jpql, Map<String, Object> bindings,
     }
     public ReportQueryAssembler {
         jpql = Objects.requireNonNull(jpql, "jpql");
-        bindings = Map.copyOf(bindings == null ? Map.of() : bindings);
+        // A declared optional parameter can be explicitly bound to SQL NULL.
+        bindings = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(bindings == null ? Map.of() : bindings));
         fields = List.copyOf(fields == null ? List.of() : fields);
         warnings = List.copyOf(warnings == null ? List.of() : warnings);
         presentations = presentations == null ? QueryPresentationPlan.EMPTY : presentations;

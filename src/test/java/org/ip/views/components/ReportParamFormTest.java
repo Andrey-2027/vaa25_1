@@ -55,11 +55,11 @@ class ReportParamFormTest {
         for (var declaration : declarations) template.addParam(scalar(declaration.name(), declaration.name(), null));
         var form = new ReportParamForm(template, ReportContext.empty("alice"), lookupService, assembler);
         var children = form.getChildren().toList(); assertThat(form.values()).isEmpty();
-        ((com.vaadin.flow.component.textfield.NumberField) children.get(0)).setValue(12.0);
-        ((com.vaadin.flow.component.textfield.NumberField) children.get(1)).setValue(34.5);
+        ((com.vaadin.flow.component.textfield.BigDecimalField) children.get(0)).setValue(new java.math.BigDecimal("9007199254740993"));
+        ((com.vaadin.flow.component.textfield.BigDecimalField) children.get(1)).setValue(new java.math.BigDecimal("34.512345678901234567"));
         ((com.vaadin.flow.component.combobox.ComboBox<Boolean>) children.get(2)).setValue(false);
         ((com.vaadin.flow.component.combobox.ComboBox<Object>) children.get(3)).setValue(Mode.SECOND);
-        assertThat(form.values()).containsEntry("count", 12L).containsEntry("amount", new java.math.BigDecimal("34.5"))
+        assertThat(form.values()).containsEntry("count", 9007199254740993L).containsEntry("amount", new java.math.BigDecimal("34.512345678901234567"))
             .containsEntry("enabled", false).containsEntry("mode", Mode.SECOND);
     }
 

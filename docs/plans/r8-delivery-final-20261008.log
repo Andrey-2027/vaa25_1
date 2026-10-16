@@ -1,0 +1,856 @@
+Access is denied.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Vaa25_1 ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Vaa25_1 ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 369 source files with javac [debug parameters release 21] to target\classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[759,53] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[759,67] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[760,17] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[760,48] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[759,33] scrollIntoView(com.vaadin.flow.component.ScrollOptions) in com.vaadin.flow.dom.Element has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReconcileDialog.java:[32,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[157,9] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[157,41] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[158,31] Upload(com.vaadin.flow.component.upload.Receiver) in com.vaadin.flow.component.upload.Upload has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[162,21] addSucceededListener(com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.upload.SucceededEvent>) in com.vaadin.flow.component.upload.Upload has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[392,9] com.vaadin.flow.server.StreamResource in com.vaadin.flow.server has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[392,39] com.vaadin.flow.server.StreamResource in com.vaadin.flow.server has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[394,27] Anchor(com.vaadin.flow.server.AbstractStreamResource,java.lang.String) in com.vaadin.flow.component.html.Anchor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[401,29] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportStructureEditor.java:[1634,13] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ipro/reportstudio/query/constructor/JpqlQueryBuilderDialog.java:[81,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportPreviewDialog.java:[42,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportPreviewDialog.java:[78,16] setSrc(com.vaadin.flow.server.AbstractStreamResource) in com.vaadin.flow.component.html.IFrame has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportQueryDialog.java:[47,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/Application.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/Application.java: Recompile with -Xlint:deprecation for details.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ipro/reportstudio/query/ReportQueryExecutor.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ipro/reportstudio/query/ReportQueryExecutor.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-application-runtime-dependency-tree) @ Vaa25_1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\target\application-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ Vaa25_1 ---
+[INFO] Copying 30 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ Vaa25_1 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 338 source files with javac [debug parameters release 21] to target\test-classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/NomenclaturePriceCteSpikeTest.java:[78,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/TwoDimensionRegisterCteSpikeTest.java:[48,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/config/JpqlRunServiceTest.java:[70,34] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/config/JpqlRunServiceTest.java:[75,40] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[384,51] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[404,51] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[547,20] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[548,9] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[548,35] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/jr/JrxmlExecutionIT.java:[88,34] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/jr/JrxmlExecutionIT.java:[93,17] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/param/ReportParamResolutionIT.java:[93,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/param/ReportParamResolutionIT.java:[95,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateExecutorIT.java:[46,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateFilterIT.java:[63,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateSmokeIT.java:[34,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryExecutionIT.java:[80,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryExecutionIT.java:[82,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryGuardTest.java:[66,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/SubqueryRlsIT.java:[87,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryGuardIT.java:[51,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryPackageRlsIT.java:[60,16] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryQ6HibernateIT.java:[53,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryQ6HibernateIT.java:[55,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/register/RegisterSliceCteGeneratorTest.java:[921,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/register/RegisterSliceCteGeneratorTest.java:[937,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/groupgrid/GroupingPanelView.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/groupgrid/GroupingPanelView.java: Recompile with -Xlint:deprecation for details.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/form/coordinator/DialogWorkspaceResolutionIT.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/form/coordinator/DialogWorkspaceResolutionIT.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ip.application.register.NomenclaturePriceCteSpikeTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-08 17:23:17.183 INFO  [background-preinit] [] [] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 9.0.1.Final
+2026-10-08 17:23:17.294 INFO  [main] [] [] o.i.a.r.NomenclaturePriceCteSpikeTest - Starting NomenclaturePriceCteSpikeTest using Java 21.0.11 with PID 23932 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25)
+2026-10-08 17:23:17.299 INFO  [main] [] [] o.i.a.r.NomenclaturePriceCteSpikeTest - The following 1 profile is active: "test"
+2026-10-08 17:23:22.232 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:23:23.298 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 1029 ms. Found 18 JPA repository interfaces.
+2026-10-08 17:23:24.397 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:23:24.487 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 83 ms. Found 2 JPA repository interfaces.
+2026-10-08 17:23:24.764 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:23:24.848 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 77 ms. Found 1 JPA repository interface.
+2026-10-08 17:23:24.948 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:23:25.555 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 598 ms. Found 1 JPA repository interface.
+2026-10-08 17:23:25.569 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:23:25.671 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 97 ms. Found 1 JPA repository interface.
+2026-10-08 17:23:25.720 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:23:25.761 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 36 ms. Found 1 JPA repository interface.
+2026-10-08 17:23:25.817 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:23:25.838 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 17 ms. Found 1 JPA repository interface.
+2026-10-08 17:23:25.863 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:23:25.936 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 68 ms. Found 1 JPA repository interface.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-08 17:23:32.181 INFO  [main] [] [] org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-08 17:23:32.469 INFO  [main] [] [] org.hibernate.orm.core - HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-08 17:23:34.645 INFO  [main] [] [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-08 17:23:34.818 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-10-08 17:23:35.663 INFO  [main] [] [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:75f33c30-76b6-4248-adfd-a6a4aba6ebeb user=SA
+2026-10-08 17:23:35.668 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-10-08 17:23:35.756 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-08 17:23:35.848 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:75f33c30-76b6-4248-adfd-a6a4aba6ebeb]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 75F33C30-76B6-4248-ADFD-A6A4ABA6EBEB/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-08 17:23:43.164 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:23:43.698 INFO  [main] [] [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-08 17:23:44.210 INFO  [main] [] [] o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-08 17:23:56.407 INFO  [main] [] [] o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+
+_____  __________ __________________ _______ ________ ______________ 
+__   / / /___  __ \___  ____/___  __ \__  __ \___  __ \___  __/__|__ \
+_  / / / __  /_/ /__  __/   __  /_/ /_  / / /__  /_/ /__  /   ____/ /
+/ /_/ /  _  _, _/ _  /___   _  ____/ / /_/ / _  _, _/ _  /    _  __/ 
+\____/   /_/ |_|  /_____/   /_/      \____/  /_/ |_|  /_/     /____/ 
+........................................................................................................
+.  uReport, is a Chinese style report engine licensed under the Apache License 2.0,                    .
+.  which is opensource, easy to use,high-performance, with browser-based-designer.                     .
+........................................................................................................
+
+2026-10-08 17:24:00.791 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-08 17:24:00.791 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-08 17:24:01.010 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-08 17:24:01.011 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-08 17:24:01.028 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-08 17:24:01.028 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-08 17:24:01.041 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-08 17:24:01.041 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-08 17:24:01.085 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-08 17:24:01.085 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-08 17:24:01.101 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-08 17:24:01.101 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectCorrectionItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectCorrectionItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectInstallationItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectInstallationItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.524 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.535 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.535 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.535 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#active (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-08 17:24:03.535 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.535 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.535 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#valueType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.537 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#valueType (@FieldMetadata.type): ����������� ��� ENUM ��������� � ������� �� Java-����/JPA
+2026-10-08 17:24:03.537 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AttributeValue#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.537 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.538 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.538 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.538 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#formKey (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.538 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.538 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.538 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.538 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.538 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.538 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.542 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.542 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.NomSklAttribute#required (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-08 17:24:03.542 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#qt (@FieldMetadata.type): ����������� ��� DECIMAL ��������� � ������� �� Java-����/JPA
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#typeMtr (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecOper#order (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#journal (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.ReceivingDocument#journal (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [UI_REQUIRED_SERVER_OPTIONAL] org.ip.model.ReceivingDocument#journal (@FieldMetadata.required (���������: ������ ���������� � ����� ��������� (order=0 � ������������ (journal_id, number)), �� ������ ��������� NULL: ���������� ����������� UI �� ������� �� ���������� ���������)): UI ������� ����������, �������� ������ ����� �� �������
+2026-10-08 17:24:03.544 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.551 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#receivingWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.551 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#receivingWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.551 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#transferringWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.551 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#transferringWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.551 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocumentItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.551 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.554 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#quantity (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.554 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Role#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.554 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.User#username (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.555 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.Workshop#branch (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-08 17:24:03.555 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.Workshop#branch (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-08 17:24:03.555 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.555 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-08 17:24:03.672 WARN  [main] [] [] o.i.d.c.C5EntityOperationPermissionRegistrar - ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 20 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: [org.ip.model.AccountingObjectCorrection, org.ip.model.AccountingObjectInstallation, org.ip.model.AccountingType, org.ip.model.AttributeType, org.ip.model.AttributeValue, org.ip.model.Branch, org.ip.model.GridFormView, org.ip.model.GroupNom, org.ip.model.Journal, org.ip.model.NomSklAttribute, org.ip.model.Nomenclature, org.ip.model.NomenclatureAccountingObject, org.ip.model.NomenclaturePrice, org.ip.model.Oper, org.ip.model.PrdSpec, org.ip.model.ReceivingDocument, org.ip.model.Role, org.ip.model.UnitOfMeasurement, org.ip.model.User, org.ip.model.Workshop]
+2026-10-08 17:24:03.691 INFO  [main] [] [] o.ipro.data.EventContourStartupCheck - ������ lifecycle ���������: 10 handler(s) [AttributeType -> AttributeTypeLifecycle, AttributeValue -> AttributeValueLifecycle, Nomenclature -> NomenclatureLifecycle, NomSklAttribute -> NomSklAttributeLifecycle, PrdSpec -> PrdSpecLifecycle, ReceivingDocument -> ReceivingDocumentLifecycle, GridFormView -> GridFormViewLifecycle, NomenclaturePrice -> NomenclaturePriceLifecycle, AccountingObjectInstallation -> , AccountingObjectCorrection -> ]
+2026-10-08 17:24:06.295 INFO  [main] [] [] o.i.a.r.NomenclaturePriceCteSpikeTest - Started NomenclaturePriceCteSpikeTest in 50.793 seconds (process running for 56.943)
+2026-10-08 17:24:08.570 WARN  [main] [245ffd89-fd12-4a55-ab88-01a83f227de2] [rls-test-0922b9c0-5eaa-48f5-93dc-9a601b734595] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-0922b9c0-5eaa-48f5-93dc-9a601b734595, reason=read exact recorder set before replacement
+2026-10-08 17:24:08.594 WARN  [main] [245ffd89-fd12-4a55-ab88-01a83f227de2] [rls-test-0922b9c0-5eaa-48f5-93dc-9a601b734595] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-0922b9c0-5eaa-48f5-93dc-9a601b734595, reason=read exact recorder set before replacement
+2026-10-08 17:24:08.604 WARN  [main] [245ffd89-fd12-4a55-ab88-01a83f227de2] [rls-test-0922b9c0-5eaa-48f5-93dc-9a601b734595] ipro.telemetry.security - security event: rls:bypass user=rls-test-0922b9c0-5eaa-48f5-93dc-9a601b734595 ip=127.0.0.1 error=null
+2026-10-08 17:24:08.704 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-0922b9c0-5eaa-48f5-93dc-9a601b734595 traceId=245ffd89-fd12-4a55-ab88-01a83f227de2 duration=615,68 ms sql=0 N+1 droppedFrames=0
+2026-10-08 17:25:04.435 INFO  [telemetry-window-reporter] [] [] ipro.telemetry.stats - L0 window aggregate (calls, avg ms, max ms, p95 ms):
+  method:save:AccountingObjectInstallation                          1    615,68    615,68    615,68
+  method:save:Nomenclature                                          1     59,63     59,63     59,63
+
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 118.2 s -- in org.ip.application.register.NomenclaturePriceCteSpikeTest
+[INFO] Running org.ip.views.components.ReportParamFormTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.380 s -- in org.ip.views.components.ReportParamFormTest
+[INFO] Running org.ip.views.register.RecorderRefPresentationResolverTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.440 s -- in org.ip.views.register.RecorderRefPresentationResolverTest
+[INFO] Running org.ipro.reportstudio.query.constructor.JpqlQueryConstructorPackageTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.281 s -- in org.ipro.reportstudio.query.constructor.JpqlQueryConstructorPackageTest
+[INFO] Running org.ipro.reportstudio.query.constructor.QueryConstructorDraftPackageTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in org.ipro.reportstudio.query.constructor.QueryConstructorDraftPackageTest
+[INFO] Running org.ipro.reportstudio.query.constructor.QuerySourceTreeTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.409 s -- in org.ipro.reportstudio.query.constructor.QuerySourceTreeTest
+[INFO] Running org.ipro.reportstudio.query.constructor.TablesAndFieldsTabTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.380 s -- in org.ipro.reportstudio.query.constructor.TablesAndFieldsTabTest
+[INFO] Running org.ipro.reportstudio.query.editor.ReportQueryEditorTest
+[ERROR] Tests run: 11, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.721 s <<< FAILURE! -- in org.ipro.reportstudio.query.editor.ReportQueryEditorTest
+[ERROR] org.ipro.reportstudio.query.editor.ReportQueryEditorTest.legacyGenericVisualDeclarationKeepsItsExistingEntityParameter -- Time elapsed: 0.421 s <<< ERROR!
+java.lang.IllegalArgumentException: ����� ������� ���� �� ���� ����
+	at org.ipro.reportstudio.query.VisualQueryDefinition.<init>(VisualQueryDefinition.java:61)
+	at org.ipro.reportstudio.query.VisualQueryDefinition.<init>(VisualQueryDefinition.java:48)
+	at org.ipro.reportstudio.query.editor.ReportQueryEditorTest.legacyGenericVisualDeclarationKeepsItsExistingEntityParameter(ReportQueryEditorTest.java:68)
+
+[INFO] Running org.ipro.reportstudio.query.QueryBuilderMetadataCatalogTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-08 17:25:18.333 INFO  [main] [] [] o.i.r.q.QueryBuilderMetadataCatalogTest - Starting QueryBuilderMetadataCatalogTest using Java 21.0.11 with PID 23932 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25)
+2026-10-08 17:25:18.333 INFO  [main] [] [] o.i.r.q.QueryBuilderMetadataCatalogTest - The following 1 profile is active: "test"
+2026-10-08 17:25:19.543 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:25:20.061 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 514 ms. Found 18 JPA repository interfaces.
+2026-10-08 17:25:20.065 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08 17:25:20.121 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 53 ms. Found 1 JPA repository interface.
+2026-10-08 17:25:20.223 INFO  [main] [] [] o.s.b.j.t.a.TestDatabaseAutoConfiguration$EmbeddedDataSourceBeanFactoryPostProcessor - Replacing 'dataSource' DataSource bean with embedded version
+2026-10-08 17:25:20.324 INFO  [main] [] [] o.s.j.d.e.EmbeddedDatabaseFactory - Starting embedded database: url='jdbc:h2:mem:68f3b07c-f42e-41c4-a889-cc6bf45c46fa;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2026-10-08 17:25:20.395 INFO  [main] [] [] org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-08 17:25:20.525 INFO  [main] [] [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-08 17:25:20.533 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-08 17:25:20.535 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:68f3b07c-f42e-41c4-a889-cc6bf45c46fa]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 68F3B07C-F42E-41C4-A889-CC6BF45C46FA/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-08 17:25:21.555 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: drop table if exists access_grant cascade 
+Hibernate: drop table if exists accounting_object_correction cascade 
+Hibernate: drop table if exists accounting_object_correction_item cascade 
+Hibernate: drop table if exists accounting_object_installation cascade 
+Hibernate: drop table if exists accounting_object_installation_item cascade 
+Hibernate: drop table if exists accounting_type cascade 
+Hibernate: drop table if exists app_user cascade 
+Hibernate: drop table if exists attribute_type cascade 
+Hibernate: drop table if exists attribute_value cascade 
+Hibernate: drop table if exists branch cascade 
+Hibernate: drop table if exists grid_form_view cascade 
+Hibernate: drop table if exists group_nom cascade 
+Hibernate: drop table if exists journal cascade 
+Hibernate: drop table if exists nom_attribute_value cascade 
+Hibernate: drop table if exists nom_skl_attribute cascade 
+Hibernate: drop table if exists nomenclature cascade 
+Hibernate: drop table if exists nomenclature_accounting_object cascade 
+Hibernate: drop table if exists nomenclature_price cascade 
+Hibernate: drop table if exists oper cascade 
+Hibernate: drop table if exists prd_spec cascade 
+Hibernate: drop table if exists prd_spec_mtr cascade 
+Hibernate: drop table if exists prd_spec_oper cascade 
+Hibernate: drop table if exists receiving_document cascade 
+Hibernate: drop table if exists receiving_document_item cascade 
+Hibernate: drop table if exists role cascade 
+Hibernate: drop table if exists skl_nom_opa cascade 
+Hibernate: drop table if exists skl_nom_opa_value cascade 
+Hibernate: drop table if exists unit_of_measurement cascade 
+Hibernate: drop table if exists user_form_settings cascade 
+Hibernate: drop table if exists user_role cascade 
+Hibernate: drop table if exists workshop cascade 
+Hibernate: create table access_grant (can_delete boolean not null, can_read boolean not null, can_update boolean not null, created_at timestamp(6), dimension_value_id bigint, id bigint generated by default as identity, modified_at timestamp(6), version bigint, created_by varchar(255), dimension varchar(255) not null, modified_by varchar(255), subject_key varchar(255) not null, subject_type enum ('ROLE','USER') not null, primary key (id))
+Hibernate: create table accounting_object_correction (created_at timestamp(6), document_date timestamp(6) not null, id bigint generated by default as identity, modified_at timestamp(6), version bigint, workshop_id bigint not null, number varchar(30) not null, created_by varchar(255), modified_by varchar(255), primary key (id), unique (number))
+Hibernate: create table accounting_object_correction_item (line_number integer not null, accounting_type_id bigint not null, created_at timestamp(6), current_accounting_type_id bigint, document_id bigint not null, id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table accounting_object_installation (created_at timestamp(6), document_date timestamp(6) not null, id bigint generated by default as identity, modified_at timestamp(6), version bigint, workshop_id bigint not null, number varchar(30) not null, created_by varchar(255), modified_by varchar(255), primary key (id), unique (number))
+Hibernate: create table accounting_object_installation_item (line_number integer not null, accounting_type_id bigint not null, created_at timestamp(6), document_id bigint not null, id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table accounting_type (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table app_user (enabled boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, username varchar(50) not null unique, password varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table attribute_type (active boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), target_dictionary varchar(255), value_type enum ('ENUM','NUMBER','REF','STRING') not null, primary key (id))
+Hibernate: create table attribute_value (attr_type_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), ref_id bigint, version bigint, code varchar(100) not null, code_up varchar(100), name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_attr_value_type_code_up unique (attr_type_id, code_up), constraint uk_attr_value_type_ref unique (attr_type_id, ref_id))
+Hibernate: create table branch (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table grid_form_view (shared boolean not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, columns text, created_by varchar(255), form_key varchar(255) not null, modified_by varchar(255), name varchar(255) not null, primary key (id))
+Hibernate: create table group_nom (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table journal (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table nom_attribute_value (attr_type_id bigint not null, attr_value_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_nom_attr_value_nom_type unique (nomenclature_id, attr_type_id))
+Hibernate: create table nom_skl_attribute (required boolean not null, attr_type_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_nom_skl_attr_nom_type unique (nomenclature_id, attr_type_id))
+Hibernate: create table nomenclature (created_at timestamp(6), group_nom_id bigint, id bigint generated by default as identity, modified_at timestamp(6), unit_id bigint not null, version bigint, code varchar(20) not null unique, type_nom varchar(20), name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table nomenclature_accounting_object (line_no integer not null, accounting_type_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, period_date timestamp(6) not null, recorder_id bigint not null, recording_order bigint not null, version bigint, workshop_id bigint not null, recorder_type varchar(64) not null, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_accounting_object_recorder unique (recorder_type, recorder_id, line_no), check (line_no > 0 and recording_order > 0))
+Hibernate: create table nomenclature_price (price numeric(19,4) not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, period_date timestamp(6) not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_nomenclature_price_key unique (nomenclature_id, period_date))
+Hibernate: create table oper (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(200) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table prd_spec (created_at timestamp(6), id bigint generated by default as identity, journal_id bigint not null, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, code_spec varchar(50) not null, draft varchar(100), comment varchar(500), created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table prd_spec_mtr (line_number integer, qt numeric(15,3), type_mtr integer not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint, prd_spec_id bigint not null, prd_spec_mtr_id bigint, unit_id bigint, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table prd_spec_oper (order_num integer, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), oper_id bigint, prd_spec_id bigint not null, version bigint, workshop_id bigint, route varchar(100), created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table receiving_document (date date not null, created_at timestamp(6), id bigint generated by default as identity, journal_id bigint, modified_at timestamp(6), receiving_workshop_id bigint not null, transferring_workshop_id bigint not null, version bigint, number varchar(20) not null, created_by varchar(255), modified_by varchar(255), primary key (id), unique (journal_id, number))
+Hibernate: create table receiving_document_item (line_number integer, quantity numeric(38,2) not null, created_at timestamp(6), document_id bigint not null, id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table role (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, created_by varchar(255), modified_by varchar(255), name varchar(255) not null unique, primary key (id))
+Hibernate: create table skl_nom_opa (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), nomenclature_id bigint not null, version bigint, canonical varchar(300) not null, display_name varchar(1024), created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_skl_nom_opa_nom_canonical unique (nomenclature_id, canonical))
+Hibernate: create table skl_nom_opa_value (attr_type_id bigint not null, attr_value_id bigint not null, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), set_id bigint not null, version bigint, created_by varchar(255), modified_by varchar(255), primary key (id), constraint uk_skl_nom_opa_value_set_type unique (set_id, attr_type_id))
+Hibernate: create table unit_of_measurement (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(10) not null unique, short_code varchar(10) not null unique, name varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create table user_form_settings (id bigint generated by default as identity, setting_key varchar(255) not null, setting_value text, username varchar(255) not null, primary key (id), unique (username, setting_key))
+Hibernate: create table user_role (role_id bigint not null, user_id bigint not null, primary key (role_id, user_id))
+Hibernate: create table workshop (branch_id bigint, created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(20) not null unique, name varchar(100) not null, created_by varchar(255), modified_by varchar(255), primary key (id))
+Hibernate: create index ix_accounting_object_slice on nomenclature_accounting_object (workshop_id, nomenclature_id, period_date, recording_order, line_no)
+Hibernate: create index ix_accounting_object_recorder on nomenclature_accounting_object (recorder_type, recorder_id)
+Hibernate: create index ix_skl_nom_opa_value_type_value on skl_nom_opa_value (attr_type_id, attr_value_id)
+Hibernate: alter table if exists accounting_object_correction add constraint FKkf75t9gr1eysyf9vq908flnuh foreign key (workshop_id) references workshop
+Hibernate: alter table if exists accounting_object_correction_item add constraint FKrh315dhra09lii8g43f1gjmjd foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists accounting_object_correction_item add constraint FK4i2xyyeapae4gnlcsnqdg3iq0 foreign key (accounting_type_id) references accounting_type
+Hibernate: alter table if exists accounting_object_correction_item add constraint FK5kbj9h1pbvrum4jnbjvlp34o4 foreign key (current_accounting_type_id) references accounting_type
+Hibernate: alter table if exists accounting_object_correction_item add constraint FK47tt9e3eswwpdhpsf176sg2tj foreign key (document_id) references accounting_object_correction
+Hibernate: alter table if exists accounting_object_installation add constraint FK87f13r2k4i2p1y5340slti5d foreign key (workshop_id) references workshop
+Hibernate: alter table if exists accounting_object_installation_item add constraint FKiy5f6ir4tbs2r2vd8f1l9xi3v foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists accounting_object_installation_item add constraint FK68aqw79gbdndwrjo40mqiixjq foreign key (accounting_type_id) references accounting_type
+Hibernate: alter table if exists accounting_object_installation_item add constraint FK8h00atqmottmytmfpgykvb079 foreign key (document_id) references accounting_object_installation
+Hibernate: alter table if exists attribute_value add constraint FK36aeu38yknx5exksgyx8j5qog foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists nom_attribute_value add constraint FK8bjfo60ab54xij5a93ikfj9gd foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists nom_attribute_value add constraint FKlnybp2731b0jqbvatis93xnum foreign key (attr_value_id) references attribute_value
+Hibernate: alter table if exists nom_attribute_value add constraint FKceyrscw6t4rqcbvmcb979shw6 foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists nom_skl_attribute add constraint FKjio9enocbpfvugwxy46t7w1cw foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists nom_skl_attribute add constraint FKbmyilgg5u7rk4yu3qckhvql84 foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists nomenclature add constraint FK3groo8175k0vgrpnc5q2yq1a1 foreign key (group_nom_id) references group_nom
+Hibernate: alter table if exists nomenclature add constraint FKmqhmofv4wswm9lhrb3acxfbcd foreign key (unit_id) references unit_of_measurement
+Hibernate: alter table if exists nomenclature_accounting_object add constraint FKdvw6skwywiqq8f3t5m7mwek90 foreign key (accounting_type_id) references accounting_type
+Hibernate: alter table if exists nomenclature_accounting_object add constraint FK38wek9ug105umy6788p26ti3e foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists nomenclature_accounting_object add constraint FKpswffv1fjqd3lv86rsekysb5b foreign key (workshop_id) references workshop
+Hibernate: alter table if exists nomenclature_price add constraint FKnng1o929x5cbvjbj232wjmf1o foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists prd_spec add constraint FK8vk4j8t93hrngi5qit3jrykyi foreign key (journal_id) references journal
+Hibernate: alter table if exists prd_spec add constraint FK9eaucs19gndh1k9rhe0ng695e foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists prd_spec_mtr add constraint FK5n10097fgw2lfth31a2o1ues5 foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists prd_spec_mtr add constraint FK2kcw5qqa7t9dj60vl4kj60y3l foreign key (prd_spec_id) references prd_spec
+Hibernate: alter table if exists prd_spec_mtr add constraint FKj99uwuqwkx0wp9p4kbhn6ryhr foreign key (prd_spec_mtr_id) references prd_spec
+Hibernate: alter table if exists prd_spec_mtr add constraint FKf7lfrtotyht0v22qjcgwurh81 foreign key (unit_id) references unit_of_measurement
+Hibernate: alter table if exists prd_spec_oper add constraint FKjiirso41ytutks7wj0uii5jus foreign key (workshop_id) references workshop
+Hibernate: alter table if exists prd_spec_oper add constraint FKrc7tmh739xkfi9gpl7tltur6s foreign key (oper_id) references oper
+Hibernate: alter table if exists prd_spec_oper add constraint FKiyh6mr7lk4d5pqmfxqueku0tt foreign key (prd_spec_id) references prd_spec
+Hibernate: alter table if exists receiving_document add constraint FK9nc3fpb68jj7l2txqvp2bmdgf foreign key (journal_id) references journal
+Hibernate: alter table if exists receiving_document add constraint FK8mfku3wnuyi286cnvaogj5rdd foreign key (receiving_workshop_id) references workshop
+Hibernate: alter table if exists receiving_document add constraint FKckn7g8g4fg89ra8pc5p9uyla5 foreign key (transferring_workshop_id) references workshop
+Hibernate: alter table if exists receiving_document_item add constraint FKku7b946vtl84k5cyv5kxrgtd8 foreign key (document_id) references receiving_document
+Hibernate: alter table if exists receiving_document_item add constraint FKdlxrubwipag9prcduo2urjh3a foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists skl_nom_opa add constraint FKrffc085vnj8m74wyn14bt5ss foreign key (nomenclature_id) references nomenclature
+Hibernate: alter table if exists skl_nom_opa_value add constraint FK84f63ouwupshauw5p52exjj0o foreign key (attr_type_id) references attribute_type
+Hibernate: alter table if exists skl_nom_opa_value add constraint FK6tsj7yxk7kmvc6vuh53972bh8 foreign key (set_id) references skl_nom_opa
+Hibernate: alter table if exists skl_nom_opa_value add constraint FKfb95aippf8xkwvtjx7angw60j foreign key (attr_value_id) references attribute_value
+Hibernate: alter table if exists user_role add constraint FKa68196081fvovjhkek5m97n3y foreign key (role_id) references role
+Hibernate: alter table if exists user_role add constraint FKg7fr1r7o0fkk41nfhnjdyqn7b foreign key (user_id) references app_user
+Hibernate: alter table if exists workshop add constraint FKa6ffqryufhrf3d00w0gvcur2a foreign key (branch_id) references branch
+2026-10-08 17:25:21.792 INFO  [main] [] [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-08 17:25:22.429 INFO  [main] [] [] o.i.r.q.QueryBuilderMetadataCatalogTest - Started QueryBuilderMetadataCatalogTest in 4.363 seconds (process running for 133.08)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.dimension in (?,'*') and ag1_0.subject_type='USER' and ag1_0.subject_key=?
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.created_by,u1_0.enabled,u1_0.modified_at,u1_0.modified_by,u1_0.password,u1_0.username,u1_0.version from app_user u1_0 where u1_0.username=?
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.027 s -- in org.ipro.reportstudio.query.QueryBuilderMetadataCatalogTest
+[INFO] Running org.ipro.reportstudio.query.register.RegisterSliceCteGeneratorTest
+2026-10-08 17:25:23.978 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:24.045 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:r5-1b2a17e4-c301-40f1-8f72-f1efc9a60ae4]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: R5-1B2A17E4-C301-40F1-8F72-F1EFC9A60AE4/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:24.622 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 29, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.796 s -- in org.ipro.reportstudio.query.register.RegisterSliceCteGeneratorTest
+[INFO] Running org.ipro.reportstudio.query.registersecurity.RegisterSliceReportSecurityTest
+2026-10-08 17:25:30.780 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:30.785 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-06b8fe81-dcd1-4a44-b6df-2f291466c002;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-06B8FE81-DCD1-4A44-B6DF-2F291466C002/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:31.362 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:31.686 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:31.692 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-58dc7789-b0e6-4d9f-90c7-922852355fe8;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-58DC7789-B0E6-4D9F-90C7-922852355FE8/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:32.146 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:32.569 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:32.583 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-887240f5-f915-45fd-9f96-9feb1598dcd9;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-887240F5-F915-45FD-9F96-9FEB1598DCD9/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:32.990 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:34.463 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:34.469 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-acef0691-9a4f-4397-b234-a3ea6d3b03d8;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-ACEF0691-9A4F-4397-B234-A3EA6D3B03D8/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:34.867 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:35.904 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:35.914 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-e288e912-4aab-4d5a-b63c-c068971f7800;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-E288E912-4AAB-4D5A-B63C-C068971F7800/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:36.318 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:36.516 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:36.523 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-6adcc9d1-fa51-467f-bb35-90d87fb0ca84;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-6ADCC9D1-FA51-467F-BB35-90D87FB0CA84/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:36.900 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:37.589 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:37.597 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-98d3cfdd-8e03-46f1-9ed4-883166aef909;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-98D3CFDD-8E03-46F1-9ED4-883166AEF909/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:37.951 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:38.120 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:38.129 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-536d21be-003e-4e69-9781-8862b9cbd80b;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-536D21BE-003E-4E69-9781-8862B9CBD80B/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:38.469 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:38.944 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:38.947 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-d9412f67-12cf-414d-9646-fd7e58f0fe03;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-D9412F67-12CF-414D-9646-FD7E58F0FE03/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:39.292 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:39.765 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:39.773 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-3e0480a8-07c0-4d6b-8a24-e23ac9117b18;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-3E0480A8-07C0-4D6B-8A24-E23AC9117B18/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:40.107 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:40.270 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:40.279 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-f018c26f-817e-4ae6-b792-39244fcbc6ce;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-F018C26F-817E-4AE6-B792-39244FCBC6CE/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:40.600 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:41.895 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:41.902 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-e519aa39-2700-48ef-a05d-33cd2657c340;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-E519AA39-2700-48EF-A05D-33CD2657C340/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:42.238 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:42.400 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:42.410 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-bcc5f6b6-1a5e-458d-b83c-fb503782be3e;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-BCC5F6B6-1A5E-458D-B83C-FB503782BE3E/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:42.702 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:42.914 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:42.919 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-eba16bbc-3648-487c-a2f2-eec52bbb3328;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-EBA16BBC-3648-487C-A2F2-EEC52BBB3328/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:43.249 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:43.515 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:43.520 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-52da1b28-e4fb-45f8-8078-00c46b7a8fad;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-52DA1B28-E4FB-45F8-8078-00C46B7A8FAD/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:43.851 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:44.150 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:44.156 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-cf136eb4-92da-437d-b16a-4414e82300b6;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-CF136EB4-92DA-437D-B16A-4414E82300B6/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:44.465 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:44.944 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:44.951 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-a24aad81-ffc8-40c5-b0b3-a55f36cb2131;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-A24AAD81-FFC8-40C5-B0B3-A55F36CB2131/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:45.246 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:45.759 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:45.764 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-ed248a92-4c04-4417-9632-294edb9dfeac;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-ED248A92-4C04-4417-9632-294EDB9DFEAC/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:46.045 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:46.644 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:46.647 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-913a5c74-15bc-4937-a0ff-ae140f1e7e48;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-913A5C74-15BC-4937-A0FF-AE140F1E7E48/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:46.977 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:47.283 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:47.291 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-d45a9a6a-6f5f-40ed-b34d-2ff9d15bb276;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-D45A9A6A-6F5F-40ED-B34D-2FF9D15BB276/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:47.798 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:48.053 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:48.059 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-3ef83f60-6136-4c84-ad29-bc3e4445c30d;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-3EF83F60-6136-4C84-AD29-BC3E4445C30D/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:48.376 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:48.818 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:48.824 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-53e9a594-ceaa-4b1f-819a-e06b9f9a9282;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-53E9A594-CEAA-4B1F-819A-E06B9F9A9282/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:49.193 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-08 17:25:49.799 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-08 17:25:49.805 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-security-c60d6355-b5f3-4b38-bec2-2513e44141c0;NON_KEYWORDS=VALUE]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-SECURITY-C60D6355-B5F3-4B38-BEC2-2513E44141C0/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+2026-10-08 17:25:50.093 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 19.64 s -- in org.ipro.reportstudio.query.registersecurity.RegisterSliceReportSecurityTest
+[INFO] Running org.ipro.reportstudio.query.ReportAuthorizationWiringTest
+2026-10-08 17:25:50.400 INFO  [main] [] [] c.tngtech.archunit.core.PluginLoader - Detected Java version 21.0.11
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.12 s -- in org.ipro.reportstudio.query.ReportAuthorizationWiringTest
+[INFO] Running org.ipro.reportstudio.query.ReportQueryAssemblyServiceVisualFilterTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.105 s -- in org.ipro.reportstudio.query.ReportQueryAssemblyServiceVisualFilterTest
+[INFO] Running org.ipro.reportstudio.query.ReportQueryAssemblyServiceVisualParameterIntegrationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.101 s -- in org.ipro.reportstudio.query.ReportQueryAssemblyServiceVisualParameterIntegrationTest
+[INFO] Running org.ipro.reportstudio.query.ReportQueryAssemblyServiceVisualQueryTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.581 s -- in org.ipro.reportstudio.query.ReportQueryAssemblyServiceVisualQueryTest
+[INFO] Running org.ipro.reportstudio.query.VisualQueryCompilerTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.ipro.reportstudio.query.VisualQueryCompilerTest
+[INFO] Running org.ipro.reportstudio.query.VisualQueryTextParserTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.159 s -- in org.ipro.reportstudio.query.VisualQueryTextParserTest
+[INFO] Running org.ipro.reportstudio.transfer.ReportTemplateTransferServiceTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.476 s -- in org.ipro.reportstudio.transfer.ReportTemplateTransferServiceTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Errors: 
+[ERROR]   ReportQueryEditorTest.legacyGenericVisualDeclarationKeepsItsExistingEntityParameter:68 � IllegalArgument ����� ������� ���� �� ���� ����
+[INFO] 
+[ERROR] Tests run: 124, Failures: 0, Errors: 1, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  04:29 min
+[INFO] Finished at: 2026-10-08T17:26:07+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-test) on project Vaa25_1: 
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

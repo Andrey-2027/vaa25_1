@@ -11,12 +11,6 @@ import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.register.PeriodicRecordedRegisterEntryBase;
 import org.ipro.register.RegisterMetadata;
 import org.ipro.register.RegisterPeriodicity;
-import org.ipro.rls.RlsDimension;
-import org.ipro.rls.RlsDimensionKind;
-import org.ipro.rls.RlsDimensionValue;
-import org.ipro.rls.RlsCheckValue;
-import java.util.List;
-import java.util.Map;
 
 @Entity
 @AttributeOverride(name = "period", column = @Column(name = "period_date", nullable = false, updatable = true))
@@ -36,8 +30,7 @@ import java.util.Map;
 @RegisterMetadata(dimensions = {"workshop", "nomenclature"}, resources = "accountingType",
     period = "period", periodicity = RegisterPeriodicity.EXACT,
     recorderTypes = {AccountingObjectInstallation.class, AccountingObjectCorrection.class}, keyChangeAllowed = true)
-@RlsDimension(value = "ENTITY:NomenclatureAccountingObject", kind = RlsDimensionKind.CHECK_ONLY, custom = true)
-public class NomenclatureAccountingObject extends PeriodicRecordedRegisterEntryBase implements RlsDimensionValue {
+public class NomenclatureAccountingObject extends PeriodicRecordedRegisterEntryBase {
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workshop_id", nullable = false)
     @FieldMetadata(label = "Цех", required = RequiredMode.REQUIRED, order = 3,
@@ -62,8 +55,5 @@ public class NomenclatureAccountingObject extends PeriodicRecordedRegisterEntryB
     public void setNomenclature(Nomenclature nomenclature) { this.nomenclature = nomenclature; }
     public AccountingType getAccountingType() { return accountingType; }
     public void setAccountingType(AccountingType accountingType) { this.accountingType = accountingType; }
-    @Override public Map<String, List<RlsCheckValue>> getRlsChecks() {
-        return Map.of("ENTITY:NomenclatureAccountingObject", List.of(RlsCheckValue.of(null)));
-    }
 }
 

@@ -9,8 +9,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.Subsystem;
 import org.ipro.metadata.annotation.TableSections;
 import org.ipro.register.RecorderType;
-import org.ipro.rls.RlsDimension;
-import org.ipro.rls.RlsDimensionKind;
 
 @Entity
 @Table(name = "accounting_object_correction",
@@ -23,8 +21,6 @@ import org.ipro.rls.RlsDimensionKind;
 @InstanceName(value = {"number", "date"}, separator = " от ")
 @TableSections(AccountingObjectCorrectionItem.class)
 @RecorderType("accounting-object-correction")
-@RlsDimension(value = "ENTITY:AccountingObjectCorrection", kind = RlsDimensionKind.CHECK_ONLY, custom = true)
 public class AccountingObjectCorrection extends AccountingObjectDocument {
-    @Override protected String accessDimension() { return "ENTITY:AccountingObjectCorrection"; }
 }
 

@@ -18,8 +18,10 @@
 
     <name>GitVaa platform Vaadin starter</name>
     <description>
-        D3.8: готовая UI-поставка платформы. Добавляет platform-vaadin и Vaadin Spring Boot
-        runtime; backend-подсистемы входят через зависимости platform-vaadin.
+        D3.8: готовая UI-поставка платформы. Добавляет platform-vaadin, Vaadin Spring Boot
+        runtime и (D-R S4) стандартный интерфейс регистра сведений
+        (platform-register-vaadin); backend-подсистемы входят через зависимости platform-vaadin,
+        которым стандартный интерфейс пользуется, а не наоборот.
     </description>
 
     <properties>
@@ -43,6 +45,17 @@
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>platform-vaadin</artifactId>
+        </dependency>
+        <!--
+          D-R S4: стандартный интерфейс регистра входит в UI-поставку. Адаптер инертен, пока
+          регистр не объявлен (его авто-конфигурация включается только при наличии UI-стека и
+          бинов движка), поэтому DX-цель «объявил регистр и получил интерфейс без boilerplate»
+          важнее opt-in-схемы platform-rest: там адаптер включается свойством и живёт отдельной
+          опцией, здесь — часть ожидаемого интерфейса платформы.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-register-vaadin</artifactId>
         </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>

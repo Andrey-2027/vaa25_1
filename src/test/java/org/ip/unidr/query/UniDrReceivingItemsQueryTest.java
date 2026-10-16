@@ -96,17 +96,28 @@ class UniDrReceivingItemsQueryTest {
         executor=new ReportQueryExecutor(em,activator,current,guard,authorizer);
         var refresher=new EntityParamRefresher(em,activator,readGate,current,factory.unwrap(SessionFactoryImplementor.class));
         var resolver=new ReportParamResolver(refresher,grantsAccess,current,factory.unwrap(SessionFactoryImplementor.class),new ObjectMapper(),"BRANCH");
-        var assembly=new ReportQueryAssemblyService(guard,resolver,refresher);
-        querySources=new UniDrQuerySourceService(assembly);
         var metadata=new MetadataResolver();
+        var visuals=new QueryBuilderMetadataCatalog(factory,metadata,readGate,current);
+        var assembly=new ReportQueryAssemblyService(guard,resolver,refresher,visuals);
+        var recipes=new org.ipro.reportstudio.query.register.RegisterSliceReportTemplates(factory,
+            new org.ipro.register.RegisterRegistry(new ManagedEntityCatalog(factory)),visuals,null);
+        assembly.useQueryLanguage(new ReportQueryLanguage(visuals,recipes));
+        querySources=new UniDrQuerySourceService(assembly,factory);querySources.useTables(new UniDrTableSources(visuals));
         var sections=new SectionMetadataRegistry("org.ip.model",metadata); sections.afterPropertiesSet();
         var catalog=new EntityDescriptorCatalog(new ManagedEntityCatalog(factory),sections,metadata,List.of(),List.of());
         var canonical=new CanonicalReadExecutor(catalog,new ScenarioFetchGraphResolver(metadata,null,null),metadata,
             activator,readGate,null,ReadTelemetry.noop(),null,current,permissions);
         ReflectionTestUtils.setField(canonical,"entityManager",em);
+        var policies=new EntityDataAccessResolver(catalog,org.mockito.Mockito.mock(EntityDataAccess.class),canonical,List.of());
+        var names=new org.ipro.fetch.instance.InstanceNameResolver(new ManagedEntityCatalog(factory).managedEntityClasses(),metadata);
+        var presentations=new org.ipro.data.presentation.EntityPresentationService(new CanonicalEntityReadAccess(canonical),policies,names,metadata);
+        var recorderTypes=new org.ipro.register.RecorderTypeRegistry(new ManagedEntityCatalog(factory),factory,metadata);
+        recorderTypes.initialize();executor.usePresentations(presentations,recorderTypes);
         access=new UniDrAccess(()->true,current);
         references=new UniDrReferenceService(new LookupService(canonical),access,transactions);
-        var sources=new UniDrSourceCatalog(List.of(org.ip.unidr.source.UniDrReceivingItemsSource.definition()),querySources::describe);dynamicSources=sources;
+        references.useEntityTypes(new ManagedEntityCatalog(factory).managedEntityClasses());
+        var sources=new UniDrSourceCatalog(List.of(org.ip.unidr.source.UniDrReceivingItemsSource.definition()),querySources::describe,querySources::describeParameters);dynamicSources=sources;
+        sources.usePlans(querySources::describeSource);
         var validator=new UniDrDefinitionValidator(sources);
         parameters=new UniDrRunParameterResolver(validator);
         adapter=new UniDrQueryAdapter(sources,validator,assembly);
@@ -258,6 +269,114 @@ class UniDrReceivingItemsQueryTest {
         assertThatThrownBy(()->querySources.describe(query)).isInstanceOf(UniDrRunException.class);assertNoSourceSql();
     }
     // Fixture helpers below write only into the embedded database or this run's disposable schema.
+    @Test void tableAndItsCompiledManualQueryUseTheSameRowsTypesAndRenderResult() {
+        var table=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"По таблице",List.of(new Column("quantity",null)),
+            List.of(new Measure("quantity",Aggregation.SUM,null)),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true)
+            .withQuery(querySources.tables().select("ReceivingDocumentItem"));
+        var compiled=querySources.tables().project(table,false);
+        var manual=table.withQuery(new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,compiled.jpql(),null,List.of()));
+        var fromTable=queries.read(new UniDrRunRequest(table,Map.of(),ZoneOffset.UTC),now,subject);
+        var fromQuery=queries.read(new UniDrRunRequest(manual,Map.of(),ZoneOffset.UTC),now,subject);
+        assertThat(fromTable.dataset().fields()).isEqualTo(fromQuery.dataset().fields());
+        assertThat(fromTable.dataset().rows()).extracting(row->row.value("quantity"))
+            .doesNotContain(new BigDecimal("999.00"),new BigDecimal("777.00"),new BigDecimal("888.00"));
+        assertThat(fromTable.dataset().rows()).extracting(row->row.value("quantity")).containsExactlyElementsOf(Arrays.stream(fromQuery.dataset().rows()).map(row->row.value("quantity")).toList());
+        var compiler=new org.ip.unidr.render.UniDrReportCompiler(dynamicSources,new UniDrDefinitionValidator(dynamicSources));
+        assertThat(compiler.compile(table,fromTable.dataset(),fromTable.source()).getPages()).hasSameSizeAs(compiler.compile(manual,fromQuery.dataset(),fromQuery.source()).getPages());
+    }
+    @Test void tableLinkedFieldsKeepRowsWithMissingOptionalReferences() {
+        write(()->{grant(C5PermissionKeys.entityRead(Branch.class),null);var unassigned=new Workshop("U2-N","Без филиала");em.persist(unassigned);});
+        var table=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"Цеха",List.of(new Column("name",null),new Column("branch_name",null)),
+            List.of(),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true).withQuery(querySources.tables().select("Workshop"));
+        var result=queries.read(new UniDrRunRequest(table,Map.of(),ZoneOffset.UTC),now,subject);
+        assertThat(result.dataset().rows()).anySatisfy(row->{assertThat(row.value("name")).isEqualTo("Без филиала");assertThat(row.value("branch_name")).isNull();});
+    }
+    @Test void entityReferencesUseApplicationCaptionsAndMatchManualSource() {
+        write(()->em.createQuery("update Workshop w set w.name='Одинаковый цех' where w.code in ('U2-A','U2-B')").executeUpdate());
+        var table=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"Ссылки",List.of(new Column("receivingWorkshop",null)),
+            List.of(new Measure(UniDrQuerySourceService.COUNT,Aggregation.COUNT_ROWS,null)),List.of("receivingWorkshop"),List.of(),List.of(),List.of(),Mode.SUMMARY,true)
+            .withQuery(querySources.tables().select("ReceivingDocument"));
+        var compiled=querySources.tables().project(table,false);
+        var manual=table.withQuery(new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,compiled.jpql(),null,List.of()));
+        var result=queries.read(new UniDrRunRequest(table,Map.of(),ZoneOffset.UTC),now,subject);
+        var equivalent=queries.read(new UniDrRunRequest(manual,Map.of(),ZoneOffset.UTC),now,subject);
+        assertThat(result.dataset().rows()).isNotEmpty();
+        // Workshop's canonical display name is its code; the name attribute is deliberately identical.
+        assertThat(Arrays.stream(result.dataset().rows()).map(row->row.value("receivingWorkshop")).distinct()).containsExactlyInAnyOrder("U2-A","U2-B");
+        assertThat(Arrays.stream(result.dataset().rows()).map(row->row.value("__unidr_key_receivingWorkshop")).distinct()).hasSize(2);
+        assertThat(result.dataset().fields()).isEqualTo(equivalent.dataset().fields());
+        assertThat(result.dataset().rows()).extracting(row->row.value("__unidr_key_receivingWorkshop"))
+            .containsExactlyElementsOf(Arrays.stream(equivalent.dataset().rows()).map(row->row.value("__unidr_key_receivingWorkshop")).toList());
+        var compiler=new org.ip.unidr.render.UniDrReportCompiler(dynamicSources,new UniDrDefinitionValidator(dynamicSources));
+        assertThat(compiler.compile(table,result.dataset(),result.source()).getPages()).isNotEmpty();
+    }
+    @Test void optionalJoinCannotAuthorizeReadingUnfilteredForeignKeyOrAnOrJoin() {
+        write(()->grant(C5PermissionKeys.entityRead(Branch.class),null));
+        for(String text:List.of("select w.branch.id as leaked from Workshop w left join Branch b on w.branch.id=b.id",
+                "select b.name as leaked from Workshop w left join Branch b on w.branch.id=b.id or b.id>0")) {
+            assertThatThrownBy(()->querySources.describe(new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,text,null,List.of())))
+                .isInstanceOf(UniDrRunException.class);
+        }
+        assertNoSourceSql();
+    }
+    @Test void sectionQueryRequiresAVisibleParentAndItsEntityPermission() {
+        assertThatThrownBy(()->querySources.describe(new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,
+            "select i.quantity as qty from ReceivingDocumentItem i",null,List.of())))
+            .isInstanceOf(UniDrRunException.class).hasMessageContaining("RLS_SECTION_PARENT_JOIN_REQUIRED");
+        var table=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"Позиции",List.of(new Column("quantity",null)),
+            List.of(),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true).withQuery(querySources.tables().select("ReceivingDocumentItem"));
+        write(()->em.createQuery("delete from AccessGrant g where g.subjectKey=:user and g.dimension=:key")
+            .setParameter("user",subject).setParameter("key",C5PermissionKeys.entityRead(ReceivingDocument.class)).executeUpdate());
+        assertThatThrownBy(()->queries.read(new UniDrRunRequest(table,Map.of(),ZoneOffset.UTC),now,subject)).isInstanceOf(UniDrRunException.class);
+        assertNoSourceSql();
+    }
+    @Test void nativeFilterOnHiddenTableFieldRunsBeforeRowLimit() {
+        var query=querySources.tables().select("Nomenclature");
+        var tree=new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition("name",org.ipro.filtergrid.filter.FilterOperator.CONTAINS,
+            ":search",null,org.ipro.filtergrid.filter.FilterDataType.TEXT));
+        var p=new UniDrParameter("p_search","search","Поиск",UniDrParameter.Kind.SCALAR,UniDrParameter.ScalarType.TEXT,null,true,true,
+            UniDrParameter.ValueSource.FORM,UniDrParameter.InitialRule.NONE,List.of(),UniDrParameter.Computed.NONE,null,null);
+        var definition=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"Номенклатура",List.of(new Column("code",null)),
+            List.of(),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true).withQuery(query).withParameters(List.of(p)).withFilterTree(tree);
+        var data=service(1).read(new UniDrRunRequest(definition,Map.of(),ZoneOffset.UTC,Map.of("search","ДЕТАЛЬ X")),now,subject);
+        assertThat(data.dataset().rows()).extracting(row->row.value("code")).containsExactly("U2-X");
+        assertThat(data.dataset().fields()).extracting(org.ipro.reportstudio.data.QueryField::name).containsExactly("code");
+        assertThatThrownBy(()->service(1).validateRequest(new UniDrRunRequest(definition,Map.of(),ZoneOffset.UTC),now,subject)).hasMessageContaining("Поиск");
+    }
+    @Test void nativeEntityFilterChecksAccessAndMatchesGoldenFixture() {
+        var x=references.search("nomenclature","U2-X",10).getFirst().id();
+        var tree=new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition("nomenclature",org.ipro.filtergrid.filter.FilterOperator.EQ,
+            x.toString(),null,org.ipro.filtergrid.filter.FilterDataType.ENTITY_REFERENCE));
+        var data=read(base.withFilterTree(tree),Map.of());
+        assertThat(data.dataset().rowCount()).isEqualTo(4);
+        assertThat(Arrays.stream(data.dataset().rows()).map(row->(BigDecimal)row.value("quantity")).reduce(BigDecimal.ZERO,BigDecimal::add)).isEqualByComparingTo("21");
+        var invalid=base.withFilterTree(new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition("receivingWorkshop",org.ipro.filtergrid.filter.FilterOperator.EQ,
+            hiddenWorkshop.toString(),null,org.ipro.filtergrid.filter.FilterDataType.ENTITY_REFERENCE)));
+        SqlCapture.SQL.get().clear();assertThatThrownBy(()->read(invalid,Map.of())).isInstanceOf(UniDrRunException.class);assertNoSourceSql();
+    }
+    @Test void repeatedEntityParameterAndEntityListUseTypedIdsAndTheSameGoldenRows() {
+        var x=references.search("nomenclature","U2-X",10).getFirst().id();
+        for(var kind:List.of(UniDrParameter.Kind.ENTITY,UniDrParameter.Kind.ENTITY_LIST)) {
+            var parameter=new UniDrParameter("p_items","items","Номенклатура",kind,UniDrParameter.ScalarType.UNRESOLVED,Nomenclature.class.getName(),true,true,
+                UniDrParameter.ValueSource.FORM,UniDrParameter.InitialRule.NONE,List.of(),UniDrParameter.Computed.NONE,null,null);
+            var leaf=new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition("nomenclature",kind==UniDrParameter.Kind.ENTITY?org.ipro.filtergrid.filter.FilterOperator.EQ:org.ipro.filtergrid.filter.FilterOperator.IN,
+                ":items",null,org.ipro.filtergrid.filter.FilterDataType.ENTITY_REFERENCE));
+            var declarations=new ArrayList<>(base.parameterDeclarations());declarations.add(parameter);
+            var recipe=base.withParameters(declarations).withFilterTree(org.ipro.filtergrid.filter.FilterGroup.and(leaf,leaf));
+            var data=queries.read(new UniDrRunRequest(recipe,Map.of("unit",new Literal(ValueType.REFERENCE,List.of(unitId.toString()))),ZoneOffset.UTC,
+                Map.of("items",kind==UniDrParameter.Kind.ENTITY?x:List.of(x))),now,subject);
+            assertThat(data.dataset().rowCount()).isEqualTo(4);
+            assertThat(Arrays.stream(data.dataset().rows()).map(row->(BigDecimal)row.value("quantity")).reduce(BigDecimal.ZERO,BigDecimal::add)).isEqualByComparingTo("21");
+        }
+    }
+    @Test void optionalManualQueryParameterBindsNullAndLetsTheQueryDefineItsMeaning() {
+        var query=new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,"select n.code as code from Nomenclature n where :search is null or n.name = :search",null,List.of());
+        var p=new UniDrParameter("p_search","search","Поиск",UniDrParameter.Kind.SCALAR,UniDrParameter.ScalarType.TEXT,null,false,true,
+            UniDrParameter.ValueSource.FORM,UniDrParameter.InitialRule.NONE,List.of(),UniDrParameter.Computed.NONE,null,null);
+        var recipe=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"Поиск",List.of(new Column("code",null)),List.of(),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true).withQuery(query).withParameters(List.of(p));
+        assertThat(queries.read(new UniDrRunRequest(recipe,Map.of(),ZoneOffset.UTC),now,subject).dataset().rowCount()).isEqualTo(3);
+        assertThat(queries.read(new UniDrRunRequest(recipe,Map.of(),ZoneOffset.UTC,Map.of("search","Деталь X")),now,subject).dataset().rowCount()).isEqualTo(1);
+    }
     private void fixtures() {
         Branch visible=branch("U2-A"),hidden=branch("U2-H");
         Journal journal=journal("U2-J"),otherJournal=journal("U2-HJ");

@@ -10,15 +10,11 @@ import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
 import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.RequiredMode;
-import org.ipro.rls.RlsCheckValue;
-import org.ipro.rls.RlsDimensionValue;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 
 /** Common header; each recorder has its own table, identity and access grant. */
 @MappedSuperclass
-public abstract class AccountingObjectDocument extends BaseEntity implements HasDisplayName, RlsDimensionValue {
+public abstract class AccountingObjectDocument extends BaseEntity implements HasDisplayName {
     @NotBlank @Size(max = 30)
     @Column(nullable = false, length = 30)
     @FieldMetadata(label = "Номер", required = RequiredMode.REQUIRED, order = 1,
@@ -37,7 +33,6 @@ public abstract class AccountingObjectDocument extends BaseEntity implements Has
         grid = @GridColumn(order = 3, flexGrow = 1), lookup = @Lookup(entity = Workshop.class))
     private Workshop workshop;
 
-    protected abstract String accessDimension();
     public String getNumber() { return number; }
     public void setNumber(String number) { this.number = number; }
     public LocalDateTime getDate() { return date; }
@@ -52,8 +47,5 @@ public abstract class AccountingObjectDocument extends BaseEntity implements Has
     public void setWorkshop(Workshop workshop) { this.workshop = workshop; }
     @Override public String getDisplayName() { return number + " от " + date; }
     @Override public String toString() { return getDisplayName(); }
-    @Override public Map<String, List<RlsCheckValue>> getRlsChecks() {
-        return Map.of(accessDimension(), List.of(RlsCheckValue.of(null)));
-    }
 }
 

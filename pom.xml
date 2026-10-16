@@ -81,12 +81,12 @@
             <artifactId>platform-vaadin-starter</artifactId>
         </dependency>
 
-        <!-- D-R S0: контракты регистра сведений — декларация, descriptor, SliceSpec и базовые
-             классы строк обеих схем. Пока без бинов: регистрацию приложения срез не меняет. -->
-        <dependency>
-            <groupId>org.ipro</groupId>
-            <artifactId>platform-register</artifactId>
-        </dependency>
+        <!-- D-R S4: движок регистра приезжает через starter вместе со стандартным интерфейсом
+             (platform-vaadin-starter -> platform-register-vaadin -> platform-register). Прямая
+             зависимость приложения снята вместе со срезом: приложение перестало быть владельцем
+             регистра на S3, а интерфейс перестало собирать на S4, поэтому объявлять движок в
+             pom приложения больше нечем — и PlatformStarterCompositionTest держит это правило
+             для всех платформенных подсистем, а не только для этой. -->
 
         <!-- The REST declaration API is an opt-in add-on and is not pulled in by either starter. -->
         <dependency>
@@ -127,6 +127,15 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <!-- D-R S4: jsr310 объявлен прямо, потому что раньше он приезжал транзитивно вместе с
+             прямой зависимостью на platform-register, снятой этим срезом. UniDrParameters
+             регистрирует JavaTimeModule явно, поэтому модуль времени — фактический импорт
+             прикладного кода, а не удобство: без него запросы UniDr перестают сериализовать даты
+             при первом же запуске, и падение было бы не на сборке, а в рантайме. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
         <!-- UReport3 (форк ureport2, jakarta/Spring6): веб-дизайнер отчётов на /ureport/*.

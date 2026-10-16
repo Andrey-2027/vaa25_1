@@ -151,14 +151,14 @@ public class RlsFilterActivator {
 
     public <T> T withDimensionAdministration(EntityManager entityManager, String dimension,
                                               Supplier<T> action) {
-        String normalized = dimension == null ? "" : dimension.trim().toUpperCase(java.util.Locale.ROOT);
-        String reason = switch (normalized) {
-            case "JOURNAL" -> "list all JOURNAL dimension values";
-            case "BRANCH" -> "list all BRANCH dimension values";
-            default -> throw new IllegalArgumentException(
-                "Dimension is not approved for privileged administration: " + dimension);
-        };
-        return withRlsDisabled(entityManager, RlsBypassScope.RLS_ADMINISTRATION, reason, action);
+        Class<?> source = dimensionRegistry.grantValueType(dimension);
+        if (dimensionRegistry.kindOf(dimension) != RlsDimensionKind.FILTERABLE) {
+            throw new IllegalArgumentException("Only registered FILTERABLE grant-value sources may be administered");
+        }
+        jakarta.persistence.Table table = source.getAnnotation(jakarta.persistence.Table.class);
+        String sourceTable = requireTableName(table != null && !table.name().isBlank() ? table.name() : source.getSimpleName());
+        return withRlsDisabled(entityManager, RlsBypassScope.RLS_ADMINISTRATION,
+            "page registered dimension values", Set.of(sourceTable), action);
     }
 
     private <T> T withRlsDisabled(EntityManager entityManager,

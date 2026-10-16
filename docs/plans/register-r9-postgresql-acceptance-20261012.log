@@ -1,0 +1,18 @@
+Р9 PostgreSQL acceptance — 2026-10-12
+База: g3_register_test_r9_b13fd4c624224f6cbc66d207372c3b1c (изолированная, оставлена для диагностики)
+Сервер: PostgreSQL 17.10, Windows x86_64, READ COMMITTED; JDK 21 (AxiomJDK-21)
+Команда: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-r9-postgresql.ps1
+Локальный репозиторий Maven: ~/.m2 (тот же набор артефактов, что у H2-приёмки)
+
+=== Maven ===
+[INFO] Tests run: 29, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 59.86 s -- in org.ip.application.register.AccountingObjectPilotIT
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.57 s -- in org.ip.application.register.RegisterBatchReadIT
+[INFO] Tests run: 35, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  01:29 min
+
+=== Замеры Р9 (stdout тестов, UTF-8 из surefire XML) ===
+[Р9] SQL окна: 40, из них SELECT по nomenclature_accounting_object: 6
+[Р9] SQL окна: 75, из них SELECT по nomenclature_accounting_object: 6
+[Р9] SELECT по таблице регистра при сохранении корректировки: 1 позиция — 6, 6 позиций — 6
+[Р9] batch 1 ключ: 4 SQL, batch 6 ключей: 4 SQL, точечное 1: 3 SQL, точечных 6: 18 SQL, страница (0,1): 4 SQL

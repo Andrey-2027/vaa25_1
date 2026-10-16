@@ -62,11 +62,11 @@ class UniDrRunServiceTest {
     @Test void rejectedQueueReleasesQuota() {
         var rejected = service(new ReportTaskExecutor(task -> { throw new RejectedExecutionException(); }));
         assertThatThrownBy(() -> rejected.submit(request)).isInstanceOfSatisfying(UniDrRunException.class, e -> assertThat(e.code()).isEqualTo(UniDrRunException.Code.QUEUE_FULL));
-        assertThat(quota.activeRuns()).isZero(); verifyNoInteractions(queries);
+        assertThat(quota.activeRuns()).isZero(); verify(queries,never()).read(any(),any(),any());
     }
     @Test void cancelledQueuedTaskHoldsSlotUntilWorkerSkipsIt() {
         var ticket = service.submit(request); ticket.cancel(); assertThat(quota.activeRuns()).isEqualTo(1);
-        finish(); assertThat(quota.activeRuns()).isZero(); verifyNoInteractions(queries);
+        finish(); assertThat(quota.activeRuns()).isZero(); verify(queries,never()).read(any(),any(),any());
     }
     @Test void latestRevisionWinsEvenWhenOldTaskFinishesLast() {
         var session = service.newSession(); var old = session.start(request); var newest = session.start(request);
@@ -96,7 +96,12 @@ class UniDrRunServiceTest {
     @Test void turningPilotOffAfterQueueingFailsClosed() {
         var ticket = service.submit(request); enabled.set(false); finish();
         assertThatThrownBy(() -> ticket.completion().toCompletableFuture().join()).hasCauseInstanceOf(UniDrRunException.class);
-        assertThat(quota.activeRuns()).isZero(); verifyNoInteractions(queries);
+        assertThat(quota.activeRuns()).isZero(); verify(queries,never()).read(any(),any(),any());
+    }
+    @Test void invalidRequiredValuesNeverAcquireQuotaOrEnterWorkerQueue() {
+        doThrow(new IllegalArgumentException("Заполните параметр")).when(queries).validateRequest(any(),any(),any());
+        assertThatThrownBy(()->service.submit(request)).hasMessageContaining("Заполните параметр");
+        assertThat(quota.activeRuns()).isZero();assertThat(queue).isEmpty();verify(queries,never()).read(any(),any(),any());
     }
     @Test void anonymousAndUnauthenticatedAndSystemCannotSubmit() {
         SecurityContextHolder.clearContext(); assertThatThrownBy(() -> service.submit(request)).isInstanceOf(UniDrRunException.class);

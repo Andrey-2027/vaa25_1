@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 /**
  * Explicit registry of C5 operation definitions (ADR-0017 §5).
  *
- * <p>Registrars declare the exact keys they own at startup: entity {@code CREATE}/{@code UPDATE}/
+ * <p>Registrars declare the exact keys they own at startup: entity {@code READ}/{@code CREATE}/{@code UPDATE}/
  * {@code DELETE} are derived from canonical capabilities, named operations are declared by the
  * subsystem that owns them. The registry is the only way to recognise a C5 operation key, so a key
  * prefix, an RLS dimension name or a {@code "*"} wildcard row can never be treated as one.</p>

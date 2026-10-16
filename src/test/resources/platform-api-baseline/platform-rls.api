@@ -91,6 +91,7 @@ class public final org.ipro.rls.c5.C5PermissionConfigurationException
 class public final org.ipro.rls.c5.C5PermissionKeys
   method public static java.lang.String action(java.lang.String)
   method public static java.lang.String attributeRead(java.lang.Class<?>, java.lang.String)
+  method public static java.lang.String entity(java.lang.Class<?>)
   method public static java.lang.String entityOperations(java.lang.Class<?>)
   method public static java.lang.String entityRead(java.lang.Class<?>)
 
@@ -234,11 +235,13 @@ class public org.ipro.rls.c5.C5PermissionDecisionService
 
 class public org.ipro.rls.c5.C5ReadDecisionService
   ctor public(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver)
+  ctor public(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver, org.ipro.rls.c5.C5ReadPermissionRegistry)
   method public boolean isReadGranted(java.lang.String, java.lang.String)
   method public org.ipro.rls.c5.C5ReadDecisionService$C5ReadDecision decide(java.lang.String, org.ipro.rls.AccessGrant$SubjectType, java.lang.String)
 
 class public org.ipro.rls.c5.C5ReadPermissionRegistry
   ctor public()
+  ctor public(org.ipro.rls.c5.C5OperationPermissionRegistry)
   method public boolean isRegisteredReadKey(java.lang.String)
   method public java.util.Set<java.lang.String> registeredKeys()
   method public void registerReadKey(java.lang.String)
@@ -274,8 +277,8 @@ class public org.ipro.rls.config.RlsAutoConfiguration
   method public org.ipro.rls.c5.C5OperationPermissionRegistry c5OperationPermissionRegistry()
   method public org.ipro.rls.c5.C5PermissionDecisionService c5PermissionDecisionService(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver, org.ipro.rls.c5.C5OperationPermissionRegistry, org.ipro.rls.c5.C5ReadDecisionService)
   method public org.ipro.rls.c5.C5PermissionEvaluator c5PermissionEvaluator(org.ipro.rls.c5.C5ReadDecisionService)
-  method public org.ipro.rls.c5.C5ReadDecisionService c5ReadDecisionService(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver)
-  method public org.ipro.rls.c5.C5ReadPermissionRegistry c5ReadPermissionRegistry()
+  method public org.ipro.rls.c5.C5ReadDecisionService c5ReadDecisionService(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver, org.ipro.rls.c5.C5ReadPermissionRegistry)
+  method public org.ipro.rls.c5.C5ReadPermissionRegistry c5ReadPermissionRegistry(org.ipro.rls.c5.C5OperationPermissionRegistry)
   method public org.springframework.boot.web.servlet.FilterRegistrationBean<org.ipro.rls.RlsGuardRequestFilter> rlsGuardRequestFilter()
 
 class public org.ipro.rls.config.RlsPersistenceAutoConfiguration

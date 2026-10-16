@@ -176,8 +176,9 @@ public class RlsAutoConfiguration {
     /** Explicit C5 read definitions registered by entity/REST registrars (F-REST-READ-3, З2). */
     @Bean
     @ConditionalOnMissingBean
-    public org.ipro.rls.c5.C5ReadPermissionRegistry c5ReadPermissionRegistry() {
-        return new org.ipro.rls.c5.C5ReadPermissionRegistry();
+    public org.ipro.rls.c5.C5ReadPermissionRegistry c5ReadPermissionRegistry(
+            org.ipro.rls.c5.C5OperationPermissionRegistry definitions) {
+        return new org.ipro.rls.c5.C5ReadPermissionRegistry(definitions);
     }
 
     /** Single exact/global/read decision shared by the server evaluator and the grant admin. */
@@ -185,8 +186,9 @@ public class RlsAutoConfiguration {
     @ConditionalOnMissingBean
     public org.ipro.rls.c5.C5ReadDecisionService c5ReadDecisionService(
             AccessGrantRepository grantRepository,
-            RlsRoleResolver roleResolver) {
-        return new org.ipro.rls.c5.C5ReadDecisionService(grantRepository, roleResolver);
+            RlsRoleResolver roleResolver,
+            org.ipro.rls.c5.C5ReadPermissionRegistry readDefinitions) {
+        return new org.ipro.rls.c5.C5ReadDecisionService(grantRepository, roleResolver, readDefinitions);
     }
 
     /** Explicit C5 operation definitions registered by entity/owner registrars (ADR-0017 §5). */

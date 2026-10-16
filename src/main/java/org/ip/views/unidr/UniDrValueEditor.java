@@ -1,5 +1,7 @@
 package org.ip.views.unidr;
 
+import org.ipro.form.SelectionFormAssembler;
+
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.textfield.BigDecimalField;
@@ -21,7 +23,7 @@ final class UniDrValueEditor extends HorizontalLayout {
     UniDrValueEditor(Field field, Operator operator, String caption, UniDrReferenceService references, Runnable changed) {
         this(field,operator,caption,references,changed,null);
     }
-    UniDrValueEditor(Field field,Operator operator,String caption,UniDrReferenceService references,Runnable changed,org.ipro.form.SelectionFormAssembler selection) {
+    UniDrValueEditor(Field field,Operator operator,String caption,UniDrReferenceService references,Runnable changed,SelectionFormAssembler selection) {
         this.field=field; this.operator=operator; this.references=references;
         addClassName("unidr-value"); setPadding(false); setAlignItems(Alignment.END);
         for (int i=0; i<operator.arity(); i++) {

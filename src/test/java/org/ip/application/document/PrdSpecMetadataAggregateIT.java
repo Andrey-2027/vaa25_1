@@ -115,7 +115,7 @@ class PrdSpecMetadataAggregateIT {
         assertThatThrownBy(() -> aggregateSaveService.save(
                 unsaved, List.of(), EventSource.UI))
             .isInstanceOf(org.ipro.rls.c5.C5AccessDeniedException.class)
-            .hasMessageContaining("ENTITY:PrdSpec");
+            .hasMessageContaining(C5PermissionKeys.entity(PrdSpec.class));
         assertThat(prdSpecRepository.findAll())
             .noneMatch(saved -> unsaved.getCodeSpec().equals(saved.getCodeSpec()));
 
@@ -229,7 +229,7 @@ class PrdSpecMetadataAggregateIT {
         });
     }
 
-    /** Операционное право C5: тот же ключ {@code ENTITY:<SimpleName>}, но отдельная строка. */
+    /** Операционное право C5 использует единый ключ {@code ENTITY:<FQN>}. */
     private void grantOperation(String username, boolean update, boolean delete) {
         runAsSpecWriter(() -> {
             AccessGrant grant = new AccessGrant();

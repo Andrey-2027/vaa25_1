@@ -1,0 +1,761 @@
+CREATE DATABASE
+Isolated PostgreSQL test database: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74 (retained for diagnosis).
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Vaa25_1 ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-application-runtime-dependency-tree) @ Vaa25_1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\target\application-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ Vaa25_1 ---
+[INFO] Copying 30 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ Vaa25_1 ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 346 source files with javac [debug parameters release 21] to target\test-classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/NomenclaturePriceCteSpikeTest.java:[78,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/TwoDimensionRegisterCteSpikeTest.java:[49,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/config/JpqlRunServiceTest.java:[70,34] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/config/JpqlRunServiceTest.java:[75,40] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[384,51] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[404,51] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[547,20] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[548,9] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[548,35] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/jr/JrxmlExecutionIT.java:[88,34] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/jr/JrxmlExecutionIT.java:[93,17] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/param/ReportParamResolutionIT.java:[93,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/param/ReportParamResolutionIT.java:[95,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateExecutorIT.java:[46,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateFilterIT.java:[63,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateSmokeIT.java:[34,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryExecutionIT.java:[80,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryExecutionIT.java:[82,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryGuardTest.java:[66,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/SubqueryRlsIT.java:[87,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryGuardIT.java:[51,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryPackageRlsIT.java:[60,16] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryQ6HibernateIT.java:[53,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryQ6HibernateIT.java:[55,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/register/RegisterSliceCteGeneratorTest.java:[922,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/register/RegisterSliceCteGeneratorTest.java:[938,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/groupgrid/GroupingPanelView.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/groupgrid/GroupingPanelView.java: Recompile with -Xlint:deprecation for details.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/NomenclaturePriceFormTest.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/NomenclaturePriceFormTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ip.application.register.AccountingObjectPilotIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-09 14:12:26.167 INFO  [background-preinit] [] [] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 9.0.1.Final
+2026-10-09 14:12:26.222 INFO  [main] [] [] o.i.a.r.AccountingObjectPilotIT - Starting AccountingObjectPilotIT using Java 21.0.11 with PID 1720 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25)
+2026-10-09 14:12:26.222 INFO  [main] [] [] o.i.a.r.AccountingObjectPilotIT - The following 1 profile is active: "test"
+2026-10-09 14:12:29.484 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 14:12:30.395 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 854 ms. Found 18 JPA repository interfaces.
+2026-10-09 14:12:31.412 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 14:12:31.462 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 46 ms. Found 2 JPA repository interfaces.
+2026-10-09 14:12:31.698 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 14:12:31.782 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 70 ms. Found 1 JPA repository interface.
+2026-10-09 14:12:31.891 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 14:12:32.327 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 429 ms. Found 1 JPA repository interface.
+2026-10-09 14:12:32.327 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 14:12:32.398 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 54 ms. Found 1 JPA repository interface.
+2026-10-09 14:12:32.439 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 14:12:32.471 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 27 ms. Found 1 JPA repository interface.
+2026-10-09 14:12:32.535 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 14:12:32.552 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 13 ms. Found 1 JPA repository interface.
+2026-10-09 14:12:32.570 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-09 14:12:32.603 INFO  [main] [] [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 30 ms. Found 1 JPA repository interface.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-09 14:12:37.954 INFO  [main] [] [] org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-09 14:12:38.277 INFO  [main] [] [] org.hibernate.orm.core - HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-09 14:12:39.830 INFO  [main] [] [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-09 14:12:40.021 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-10-09 14:12:40.752 INFO  [main] [] [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1d0590bc
+2026-10-09 14:12:40.752 INFO  [main] [] [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-10-09 14:12:40.907 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 14:12:41.002 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-09 14:12:47.615 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:12:48.757 INFO  [main] [] [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-09 14:12:49.135 INFO  [main] [] [] o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-09 14:12:59.283 INFO  [main] [] [] o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+
+_____  __________ __________________ _______ ________ ______________ 
+__   / / /___  __ \___  ____/___  __ \__  __ \___  __ \___  __/__|__ \
+_  / / / __  /_/ /__  __/   __  /_/ /_  / / /__  /_/ /__  /   ____/ /
+/ /_/ /  _  _, _/ _  /___   _  ____/ / /_/ / _  _, _/ _  /    _  __/ 
+\____/   /_/ |_|  /_____/   /_/      \____/  /_/ |_|  /_/     /____/ 
+........................................................................................................
+.  uReport, is a Chinese style report engine licensed under the Apache License 2.0,                    .
+.  which is opensource, easy to use,high-performance, with browser-based-designer.                     .
+........................................................................................................
+
+2026-10-09 14:13:03.389 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 14:13:03.391 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 14:13:03.598 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 14:13:03.599 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 14:13:03.610 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 14:13:03.611 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 14:13:03.622 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 14:13:03.623 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 14:13:03.658 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 14:13:03.659 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 14:13:03.667 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'resource.loader' has been deprecated in favor of 'resource.loaders'
+2026-10-09 14:13:03.668 WARN  [main] [] [] org.apache.velocity.deprecation - configuration key 'class.resource.loader.class' has been deprecated in favor of 'resource.loader.class.class'
+2026-10-09 14:13:05.924 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectCorrectionItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.925 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectCorrectionItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.926 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.926 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.926 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.926 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.927 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.927 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectDocument#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.928 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.928 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectDocument#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.929 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectInstallationItem#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.930 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectInstallationItem#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.930 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.930 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AccountingObjectItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.931 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.932 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingObjectItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.932 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.933 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AccountingType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.934 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#active (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-09 14:13:05.934 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.935 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.936 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeType#valueType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.937 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.AttributeType#valueType (@FieldMetadata.type): ����������� ��� ENUM ��������� � ������� �� Java-����/JPA
+2026-10-09 14:13:05.938 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.AttributeValue#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.938 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.939 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.940 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.AttributeValue#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.943 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#formKey (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.943 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GridFormView#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.943 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.943 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.GroupNom#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.943 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#attrType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.944 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#attrType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.944 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomSklAttribute#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.944 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomSklAttribute#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.944 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.NomSklAttribute#required (@FieldMetadata.type): ����������� ��� BOOLEAN ��������� � ������� �� Java-����/JPA
+2026-10-09 14:13:05.944 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#accountingType (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.945 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#accountingType (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.946 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.946 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.947 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.NomenclatureAccountingObject#workshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.947 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.NomenclatureAccountingObject#workshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.948 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.949 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Oper#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.949 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#qt (@FieldMetadata.type): ����������� ��� DECIMAL ��������� � ������� �� Java-����/JPA
+2026-10-09 14:13:05.951 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecMtr#typeMtr (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-09 14:13:05.951 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.PrdSpecOper#order (@FieldMetadata.type): ����������� ��� INTEGER ��������� � ������� �� Java-����/JPA
+2026-10-09 14:13:05.952 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.953 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#journal (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.953 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.ReceivingDocument#journal (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-09 14:13:05.954 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [UI_REQUIRED_SERVER_OPTIONAL] org.ip.model.ReceivingDocument#journal (@FieldMetadata.required (���������: ������ ���������� � ����� ��������� (order=0 � ������������ (journal_id, number)), �� ������ ��������� NULL: ���������� ����������� UI �� ������� �� ���������� ���������)): UI ������� ����������, �������� ������ ����� �� �������
+2026-10-09 14:13:05.954 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.954 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#receivingWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.954 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#receivingWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.955 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocument#transferringWorkshop (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.955 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocument#transferringWorkshop (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.955 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.ReceivingDocumentItem#nomenclature (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.956 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#nomenclature (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.957 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.ReceivingDocumentItem#quantity (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.959 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Role#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.960 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.User#username (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.960 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_LOOKUP_TARGET] org.ip.model.Workshop#branch (@Lookup.entity): ����������� ���� ��������� � ����� ������: ���������� ���������
+2026-10-09 14:13:05.961 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_TYPE] org.ip.model.Workshop#branch (@FieldMetadata.type): ����������� ��� ENTITY_REFERENCE ��������� � ������� �� Java-����/JPA
+2026-10-09 14:13:05.961 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:05.961 INFO  [main] [] [] o.i.m.MetadataConsistencyStartupCheck - INFO [REDUNDANT_REQUIRED] org.ip.model.Workshop#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-09 14:13:06.108 WARN  [main] [] [] o.i.d.c.C5EntityOperationPermissionRegistrar - ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 20 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: [org.ip.model.AccountingObjectCorrection, org.ip.model.AccountingObjectInstallation, org.ip.model.AccountingType, org.ip.model.AttributeType, org.ip.model.AttributeValue, org.ip.model.Branch, org.ip.model.GridFormView, org.ip.model.GroupNom, org.ip.model.Journal, org.ip.model.NomSklAttribute, org.ip.model.Nomenclature, org.ip.model.NomenclatureAccountingObject, org.ip.model.NomenclaturePrice, org.ip.model.Oper, org.ip.model.PrdSpec, org.ip.model.ReceivingDocument, org.ip.model.Role, org.ip.model.UnitOfMeasurement, org.ip.model.User, org.ip.model.Workshop]
+2026-10-09 14:13:06.124 INFO  [main] [] [] o.ipro.data.EventContourStartupCheck - ������ lifecycle ���������: 10 handler(s) [AttributeType -> AttributeTypeLifecycle, AttributeValue -> AttributeValueLifecycle, Nomenclature -> NomenclatureLifecycle, NomSklAttribute -> NomSklAttributeLifecycle, PrdSpec -> PrdSpecLifecycle, ReceivingDocument -> ReceivingDocumentLifecycle, GridFormView -> GridFormViewLifecycle, NomenclaturePrice -> NomenclaturePriceLifecycle, AccountingObjectInstallation -> , AccountingObjectCorrection -> ]
+2026-10-09 14:13:08.457 INFO  [main] [] [] o.i.a.r.AccountingObjectPilotIT - Started AccountingObjectPilotIT in 42.763 seconds (process running for 44.555)
+2026-10-09 14:13:10.792 WARN  [main] [58d44fc8-7896-4cac-8bb4-e71c60974d28] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599, reason=read exact recorder set before replacement
+2026-10-09 14:13:10.810 WARN  [main] [58d44fc8-7896-4cac-8bb4-e71c60974d28] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599, reason=read exact recorder set before replacement
+2026-10-09 14:13:10.810 WARN  [main] [58d44fc8-7896-4cac-8bb4-e71c60974d28] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] ipro.telemetry.security - security event: rls:bypass user=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599 ip=127.0.0.1 error=null
+2026-10-09 14:13:10.834 WARN  [main] [58d44fc8-7896-4cac-8bb4-e71c60974d28] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599, reason=read exact recorder set before replacement
+2026-10-09 14:13:10.842 WARN  [main] [58d44fc8-7896-4cac-8bb4-e71c60974d28] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599, reason=read exact recorder set before replacement
+2026-10-09 14:13:10.844 WARN  [main] [58d44fc8-7896-4cac-8bb4-e71c60974d28] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] ipro.telemetry.security - security event: rls:bypass user=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599 ip=127.0.0.1 error=null
+2026-10-09 14:13:10.978 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599 traceId=58d44fc8-7896-4cac-8bb4-e71c60974d28 duration=576,25 ms sql=0 droppedFrames=0
+2026-10-09 14:13:11.396 WARN  [main] [096e7e91-b572-4c3a-929a-8ced506a1220] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599, reason=read exact recorder set before replacement
+2026-10-09 14:13:11.396 WARN  [main] [096e7e91-b572-4c3a-929a-8ced506a1220] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599, reason=read exact recorder set before replacement
+2026-10-09 14:13:11.412 WARN  [main] [096e7e91-b572-4c3a-929a-8ced506a1220] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] ipro.telemetry.security - security event: rls:bypass user=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599 ip=127.0.0.1 error=null
+2026-10-09 14:13:11.414 WARN  [main] [096e7e91-b572-4c3a-929a-8ced506a1220] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599, reason=read exact recorder set before replacement
+2026-10-09 14:13:11.423 WARN  [main] [096e7e91-b572-4c3a-929a-8ced506a1220] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599, reason=read exact recorder set before replacement
+2026-10-09 14:13:11.423 WARN  [main] [096e7e91-b572-4c3a-929a-8ced506a1220] [rls-test-3db0403d-b14d-451a-958b-1b7a3564d599] ipro.telemetry.security - security event: rls:bypass user=rls-test-3db0403d-b14d-451a-958b-1b7a3564d599 ip=127.0.0.1 error=null
+2026-10-09 14:13:12.067 WARN  [main] [d50d8d12-6638-483b-9e09-8b30831f42a5] [rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6, reason=read exact recorder set before replacement
+2026-10-09 14:13:12.080 WARN  [main] [d50d8d12-6638-483b-9e09-8b30831f42a5] [rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6, reason=read exact recorder set before replacement
+2026-10-09 14:13:12.083 WARN  [main] [d50d8d12-6638-483b-9e09-8b30831f42a5] [rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6] ipro.telemetry.security - security event: rls:bypass user=rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6 ip=127.0.0.1 error=null
+2026-10-09 14:13:12.086 WARN  [main] [d50d8d12-6638-483b-9e09-8b30831f42a5] [rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6, reason=read exact recorder set before replacement
+2026-10-09 14:13:12.095 WARN  [main] [d50d8d12-6638-483b-9e09-8b30831f42a5] [rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6, reason=read exact recorder set before replacement
+2026-10-09 14:13:12.095 WARN  [main] [d50d8d12-6638-483b-9e09-8b30831f42a5] [rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6] ipro.telemetry.security - security event: rls:bypass user=rls-test-91e224a9-8cf2-414a-86df-505f7fc304e6 ip=127.0.0.1 error=null
+2026-10-09 14:13:12.268 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=document-delete-87087d75-7756-4f90-b4f5-8f1625ef1205, reason=delete dependent rows before root deletion
+2026-10-09 14:13:12.272 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=document-delete-87087d75-7756-4f90-b4f5-8f1625ef1205, reason=delete dependent rows before root deletion
+2026-10-09 14:13:12.276 WARN  [main] [] [] ipro.telemetry.security - security event: rls:bypass user=document-delete-87087d75-7756-4f90-b4f5-8f1625ef1205 ip=127.0.0.1 error=null
+2026-10-09 14:13:12.284 WARN  [main] [] [] ipro.telemetry.security - security event: rls:denied user=document-delete-87087d75-7756-4f90-b4f5-8f1625ef1205 ip=127.0.0.1 error=��� ���� �� �������� (��������� ENTITY:NomenclatureAccountingObject, �������� ����� ������)
+2026-10-09 14:13:12.710 WARN  [main] [d8fcc22e-4bfa-48b7-ae04-1dbd9fc61b2f] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46, reason=read exact recorder set before replacement
+2026-10-09 14:13:12.714 WARN  [main] [d8fcc22e-4bfa-48b7-ae04-1dbd9fc61b2f] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46, reason=read exact recorder set before replacement
+2026-10-09 14:13:12.714 WARN  [main] [d8fcc22e-4bfa-48b7-ae04-1dbd9fc61b2f] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] ipro.telemetry.security - security event: rls:bypass user=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46 ip=127.0.0.1 error=null
+2026-10-09 14:13:12.723 WARN  [main] [d8fcc22e-4bfa-48b7-ae04-1dbd9fc61b2f] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46, reason=read exact recorder set before replacement
+2026-10-09 14:13:12.725 WARN  [main] [d8fcc22e-4bfa-48b7-ae04-1dbd9fc61b2f] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46, reason=read exact recorder set before replacement
+2026-10-09 14:13:12.731 WARN  [main] [d8fcc22e-4bfa-48b7-ae04-1dbd9fc61b2f] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] ipro.telemetry.security - security event: rls:bypass user=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46 ip=127.0.0.1 error=null
+2026-10-09 14:13:13.015 WARN  [main] [c821310e-9b6a-4b7b-9baf-23b14bf7ce1c] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.027 WARN  [main] [c821310e-9b6a-4b7b-9baf-23b14bf7ce1c] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.029 WARN  [main] [c821310e-9b6a-4b7b-9baf-23b14bf7ce1c] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] ipro.telemetry.security - security event: rls:bypass user=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46 ip=127.0.0.1 error=null
+2026-10-09 14:13:13.040 WARN  [main] [c821310e-9b6a-4b7b-9baf-23b14bf7ce1c] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.040 WARN  [main] [c821310e-9b6a-4b7b-9baf-23b14bf7ce1c] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.051 WARN  [main] [c821310e-9b6a-4b7b-9baf-23b14bf7ce1c] [rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46] ipro.telemetry.security - security event: rls:bypass user=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46 ip=127.0.0.1 error=null
+2026-10-09 14:13:13.076 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-6f5c601b-d671-4bf6-a5c3-072d1f867e46 traceId=c821310e-9b6a-4b7b-9baf-23b14bf7ce1c duration=136,62 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:13.459 WARN  [main] [17bd8c7e-75c2-4f0a-989e-8b36a33f101b] [rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.463 WARN  [main] [17bd8c7e-75c2-4f0a-989e-8b36a33f101b] [rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.463 WARN  [main] [17bd8c7e-75c2-4f0a-989e-8b36a33f101b] [rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5] ipro.telemetry.security - security event: rls:bypass user=rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5 ip=127.0.0.1 error=null
+2026-10-09 14:13:13.467 WARN  [main] [17bd8c7e-75c2-4f0a-989e-8b36a33f101b] [rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.469 WARN  [main] [17bd8c7e-75c2-4f0a-989e-8b36a33f101b] [rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.475 WARN  [main] [17bd8c7e-75c2-4f0a-989e-8b36a33f101b] [rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5] ipro.telemetry.security - security event: rls:bypass user=rls-test-5dd96d27-ea4a-4bd7-957f-bfaf35369ee5 ip=127.0.0.1 error=null
+2026-10-09 14:13:13.959 WARN  [main] [d40e2ca0-9640-414b-8f6e-13e18994a851] [rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.966 WARN  [main] [d40e2ca0-9640-414b-8f6e-13e18994a851] [rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.966 WARN  [main] [d40e2ca0-9640-414b-8f6e-13e18994a851] [rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1] ipro.telemetry.security - security event: rls:bypass user=rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1 ip=127.0.0.1 error=null
+2026-10-09 14:13:13.970 WARN  [main] [d40e2ca0-9640-414b-8f6e-13e18994a851] [rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.973 WARN  [main] [d40e2ca0-9640-414b-8f6e-13e18994a851] [rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1, reason=read exact recorder set before replacement
+2026-10-09 14:13:13.973 WARN  [main] [d40e2ca0-9640-414b-8f6e-13e18994a851] [rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1] ipro.telemetry.security - security event: rls:bypass user=rls-test-3deaa4f9-d0ef-4655-aac2-ff5b68507aa1 ip=127.0.0.1 error=null
+2026-10-09 14:13:15.044 WARN  [main] [21fa06ba-890d-491b-a462-5d5572d38114] [rls-test-ab8a073f-132a-4984-a2d3-1a2008914817] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-ab8a073f-132a-4984-a2d3-1a2008914817, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.054 WARN  [main] [21fa06ba-890d-491b-a462-5d5572d38114] [rls-test-ab8a073f-132a-4984-a2d3-1a2008914817] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-ab8a073f-132a-4984-a2d3-1a2008914817, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.054 WARN  [main] [21fa06ba-890d-491b-a462-5d5572d38114] [rls-test-ab8a073f-132a-4984-a2d3-1a2008914817] ipro.telemetry.security - security event: rls:bypass user=rls-test-ab8a073f-132a-4984-a2d3-1a2008914817 ip=127.0.0.1 error=null
+2026-10-09 14:13:15.059 WARN  [main] [21fa06ba-890d-491b-a462-5d5572d38114] [rls-test-ab8a073f-132a-4984-a2d3-1a2008914817] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-ab8a073f-132a-4984-a2d3-1a2008914817, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.064 WARN  [main] [21fa06ba-890d-491b-a462-5d5572d38114] [rls-test-ab8a073f-132a-4984-a2d3-1a2008914817] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-ab8a073f-132a-4984-a2d3-1a2008914817, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.068 WARN  [main] [21fa06ba-890d-491b-a462-5d5572d38114] [rls-test-ab8a073f-132a-4984-a2d3-1a2008914817] ipro.telemetry.security - security event: rls:bypass user=rls-test-ab8a073f-132a-4984-a2d3-1a2008914817 ip=127.0.0.1 error=null
+2026-10-09 14:13:15.402 WARN  [main] [176f538a-7e2f-4a8b-ab5d-f3707f626e5b] [rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.409 WARN  [main] [176f538a-7e2f-4a8b-ab5d-f3707f626e5b] [rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.409 WARN  [main] [176f538a-7e2f-4a8b-ab5d-f3707f626e5b] [rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d] ipro.telemetry.security - security event: rls:bypass user=rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d ip=127.0.0.1 error=null
+2026-10-09 14:13:15.409 WARN  [main] [176f538a-7e2f-4a8b-ab5d-f3707f626e5b] [rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.420 WARN  [main] [176f538a-7e2f-4a8b-ab5d-f3707f626e5b] [rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.420 WARN  [main] [176f538a-7e2f-4a8b-ab5d-f3707f626e5b] [rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d] ipro.telemetry.security - security event: rls:bypass user=rls-test-81742e03-f46b-4bc0-af7d-a6afd8cfcf2d ip=127.0.0.1 error=null
+2026-10-09 14:13:15.894 WARN  [main] [b0426dfe-65c4-4829-b08b-8fb9b1ad12fd] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.900 WARN  [main] [b0426dfe-65c4-4829-b08b-8fb9b1ad12fd] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.901 WARN  [main] [b0426dfe-65c4-4829-b08b-8fb9b1ad12fd] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] ipro.telemetry.security - security event: rls:bypass user=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24 ip=127.0.0.1 error=null
+2026-10-09 14:13:15.904 WARN  [main] [b0426dfe-65c4-4829-b08b-8fb9b1ad12fd] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.909 WARN  [main] [b0426dfe-65c4-4829-b08b-8fb9b1ad12fd] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24, reason=read exact recorder set before replacement
+2026-10-09 14:13:15.909 WARN  [main] [b0426dfe-65c4-4829-b08b-8fb9b1ad12fd] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] ipro.telemetry.security - security event: rls:bypass user=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24 ip=127.0.0.1 error=null
+2026-10-09 14:13:16.115 WARN  [main] [9eca70b2-a238-43fa-9fda-5f7c87b52fc1] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.128 WARN  [main] [9eca70b2-a238-43fa-9fda-5f7c87b52fc1] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.131 WARN  [main] [9eca70b2-a238-43fa-9fda-5f7c87b52fc1] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] ipro.telemetry.security - security event: rls:bypass user=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24 ip=127.0.0.1 error=null
+2026-10-09 14:13:16.133 WARN  [main] [9eca70b2-a238-43fa-9fda-5f7c87b52fc1] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.133 WARN  [main] [9eca70b2-a238-43fa-9fda-5f7c87b52fc1] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.133 WARN  [main] [9eca70b2-a238-43fa-9fda-5f7c87b52fc1] [rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24] ipro.telemetry.security - security event: rls:bypass user=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24 ip=127.0.0.1 error=null
+2026-10-09 14:13:16.147 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-1e77808a-93c6-4042-9235-aaf7d3fa1c24 traceId=9eca70b2-a238-43fa-9fda-5f7c87b52fc1 duration=148,69 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:16.654 WARN  [main] [745d8278-056a-4dee-8aaa-a51e1ad502b1] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.665 WARN  [main] [745d8278-056a-4dee-8aaa-a51e1ad502b1] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.665 WARN  [main] [745d8278-056a-4dee-8aaa-a51e1ad502b1] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] ipro.telemetry.security - security event: rls:bypass user=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96 ip=127.0.0.1 error=null
+2026-10-09 14:13:16.670 WARN  [main] [745d8278-056a-4dee-8aaa-a51e1ad502b1] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.673 WARN  [main] [745d8278-056a-4dee-8aaa-a51e1ad502b1] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.673 WARN  [main] [745d8278-056a-4dee-8aaa-a51e1ad502b1] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] ipro.telemetry.security - security event: rls:bypass user=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96 ip=127.0.0.1 error=null
+2026-10-09 14:13:16.811 WARN  [main] [1a07d17f-098f-4de0-84d3-1943ac8b2446] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.816 WARN  [main] [1a07d17f-098f-4de0-84d3-1943ac8b2446] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.816 WARN  [main] [1a07d17f-098f-4de0-84d3-1943ac8b2446] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] ipro.telemetry.security - security event: rls:bypass user=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96 ip=127.0.0.1 error=null
+2026-10-09 14:13:16.819 WARN  [main] [1a07d17f-098f-4de0-84d3-1943ac8b2446] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.819 WARN  [main] [1a07d17f-098f-4de0-84d3-1943ac8b2446] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.819 WARN  [main] [1a07d17f-098f-4de0-84d3-1943ac8b2446] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] ipro.telemetry.security - security event: rls:bypass user=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96 ip=127.0.0.1 error=null
+2026-10-09 14:13:16.829 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96 traceId=1a07d17f-098f-4de0-84d3-1943ac8b2446 duration=92,57 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:16.932 WARN  [main] [c3e23a88-9523-4d32-a822-74fbe293d034] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.934 WARN  [main] [c3e23a88-9523-4d32-a822-74fbe293d034] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.934 WARN  [main] [c3e23a88-9523-4d32-a822-74fbe293d034] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] ipro.telemetry.security - security event: rls:bypass user=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96 ip=127.0.0.1 error=null
+2026-10-09 14:13:16.940 WARN  [main] [c3e23a88-9523-4d32-a822-74fbe293d034] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.940 WARN  [main] [c3e23a88-9523-4d32-a822-74fbe293d034] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96, reason=read exact recorder set before replacement
+2026-10-09 14:13:16.940 WARN  [main] [c3e23a88-9523-4d32-a822-74fbe293d034] [rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96] ipro.telemetry.security - security event: rls:bypass user=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96 ip=127.0.0.1 error=null
+2026-10-09 14:13:16.960 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-b0a76d2a-b83c-4649-bece-f856d0ea8a96 traceId=c3e23a88-9523-4d32-a822-74fbe293d034 duration=82,25 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:17.258 WARN  [main] [6674a665-ea32-4a96-a873-8469df13b832] [rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.267 WARN  [main] [6674a665-ea32-4a96-a873-8469df13b832] [rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.267 WARN  [main] [6674a665-ea32-4a96-a873-8469df13b832] [rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0] ipro.telemetry.security - security event: rls:bypass user=rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0 ip=127.0.0.1 error=null
+2026-10-09 14:13:17.273 WARN  [main] [6674a665-ea32-4a96-a873-8469df13b832] [rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.277 WARN  [main] [6674a665-ea32-4a96-a873-8469df13b832] [rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.279 WARN  [main] [6674a665-ea32-4a96-a873-8469df13b832] [rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0] ipro.telemetry.security - security event: rls:bypass user=rls-test-9d785beb-8ecc-4af1-a79a-f7a15edeaed0 ip=127.0.0.1 error=null
+2026-10-09 14:13:17.853 WARN  [main] [4ae46d73-e8b7-416f-868a-83b4c0342fd3] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.853 WARN  [main] [4ae46d73-e8b7-416f-868a-83b4c0342fd3] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.853 WARN  [main] [4ae46d73-e8b7-416f-868a-83b4c0342fd3] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] ipro.telemetry.security - security event: rls:bypass user=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11 ip=127.0.0.1 error=null
+2026-10-09 14:13:17.862 WARN  [main] [4ae46d73-e8b7-416f-868a-83b4c0342fd3] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.866 WARN  [main] [4ae46d73-e8b7-416f-868a-83b4c0342fd3] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.868 WARN  [main] [4ae46d73-e8b7-416f-868a-83b4c0342fd3] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] ipro.telemetry.security - security event: rls:bypass user=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11 ip=127.0.0.1 error=null
+2026-10-09 14:13:17.963 WARN  [main] [ecf4ed91-9f90-421b-8072-228f3aa1b9a0] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.963 WARN  [main] [ecf4ed91-9f90-421b-8072-228f3aa1b9a0] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.979 WARN  [main] [ecf4ed91-9f90-421b-8072-228f3aa1b9a0] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] ipro.telemetry.security - security event: rls:bypass user=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11 ip=127.0.0.1 error=null
+2026-10-09 14:13:17.979 WARN  [main] [ecf4ed91-9f90-421b-8072-228f3aa1b9a0] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.979 WARN  [main] [ecf4ed91-9f90-421b-8072-228f3aa1b9a0] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11, reason=read exact recorder set before replacement
+2026-10-09 14:13:17.988 WARN  [main] [ecf4ed91-9f90-421b-8072-228f3aa1b9a0] [rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11] ipro.telemetry.security - security event: rls:bypass user=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11 ip=127.0.0.1 error=null
+2026-10-09 14:13:17.998 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-85c1e49e-8ce9-4433-b1ba-dd2f98151c11 traceId=ecf4ed91-9f90-421b-8072-228f3aa1b9a0 duration=77,16 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:19.222 WARN  [main] [c145d458-7dc5-4804-bd53-d9f50efd867d] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.225 WARN  [main] [c145d458-7dc5-4804-bd53-d9f50efd867d] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.227 WARN  [main] [c145d458-7dc5-4804-bd53-d9f50efd867d] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] ipro.telemetry.security - security event: rls:bypass user=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3 ip=127.0.0.1 error=null
+2026-10-09 14:13:19.229 WARN  [main] [c145d458-7dc5-4804-bd53-d9f50efd867d] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.233 WARN  [main] [c145d458-7dc5-4804-bd53-d9f50efd867d] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.235 WARN  [main] [c145d458-7dc5-4804-bd53-d9f50efd867d] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] ipro.telemetry.security - security event: rls:bypass user=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3 ip=127.0.0.1 error=null
+2026-10-09 14:13:19.354 WARN  [main] [3b507d41-e85a-4fd0-88fd-a83bc219e3d7] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.358 WARN  [main] [3b507d41-e85a-4fd0-88fd-a83bc219e3d7] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.360 WARN  [main] [3b507d41-e85a-4fd0-88fd-a83bc219e3d7] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] ipro.telemetry.security - security event: rls:bypass user=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3 ip=127.0.0.1 error=null
+2026-10-09 14:13:19.360 WARN  [main] [3b507d41-e85a-4fd0-88fd-a83bc219e3d7] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.360 WARN  [main] [3b507d41-e85a-4fd0-88fd-a83bc219e3d7] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.368 WARN  [main] [3b507d41-e85a-4fd0-88fd-a83bc219e3d7] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] ipro.telemetry.security - security event: rls:bypass user=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3 ip=127.0.0.1 error=null
+2026-10-09 14:13:19.373 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3 traceId=3b507d41-e85a-4fd0-88fd-a83bc219e3d7 duration=78,29 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:19.421 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=delete dependent rows before root deletion
+2026-10-09 14:13:19.423 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=delete dependent rows before root deletion
+2026-10-09 14:13:19.423 WARN  [main] [] [] ipro.telemetry.security - security event: rls:bypass user=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3 ip=127.0.0.1 error=null
+2026-10-09 14:13:19.532 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=delete dependent rows before root deletion
+2026-10-09 14:13:19.535 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=delete dependent rows before root deletion
+2026-10-09 14:13:19.535 WARN  [main] [] [] ipro.telemetry.security - security event: rls:bypass user=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3 ip=127.0.0.1 error=null
+2026-10-09 14:13:19.609 WARN  [main] [239787f5-9589-4a5f-a87a-b09c8c4edb95] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.612 WARN  [main] [239787f5-9589-4a5f-a87a-b09c8c4edb95] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.614 WARN  [main] [239787f5-9589-4a5f-a87a-b09c8c4edb95] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] ipro.telemetry.security - security event: rls:bypass user=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3 ip=127.0.0.1 error=null
+2026-10-09 14:13:19.616 WARN  [main] [239787f5-9589-4a5f-a87a-b09c8c4edb95] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.618 WARN  [main] [239787f5-9589-4a5f-a87a-b09c8c4edb95] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.618 WARN  [main] [239787f5-9589-4a5f-a87a-b09c8c4edb95] [rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3] ipro.telemetry.security - security event: rls:bypass user=rls-test-6b0ab56d-5a94-4f50-bbd7-e1e7e9e8f5e3 ip=127.0.0.1 error=null
+2026-10-09 14:13:19.903 WARN  [main] [1a6c6c86-a366-4f99-ae77-5f4a516bd542] [rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.914 WARN  [main] [1a6c6c86-a366-4f99-ae77-5f4a516bd542] [rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.914 WARN  [main] [1a6c6c86-a366-4f99-ae77-5f4a516bd542] [rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84] ipro.telemetry.security - security event: rls:bypass user=rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84 ip=127.0.0.1 error=null
+2026-10-09 14:13:19.914 WARN  [main] [1a6c6c86-a366-4f99-ae77-5f4a516bd542] [rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.914 WARN  [main] [1a6c6c86-a366-4f99-ae77-5f4a516bd542] [rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84, reason=read exact recorder set before replacement
+2026-10-09 14:13:19.914 WARN  [main] [1a6c6c86-a366-4f99-ae77-5f4a516bd542] [rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84] ipro.telemetry.security - security event: rls:bypass user=rls-test-dafaa8fe-4b9f-40aa-94a8-493ae23dbe84 ip=127.0.0.1 error=null
+2026-10-09 14:13:20.198 WARN  [main] [1db0a413-96d8-41e5-a5ab-83b4522d41f5] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.198 WARN  [main] [1db0a413-96d8-41e5-a5ab-83b4522d41f5] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.198 WARN  [main] [1db0a413-96d8-41e5-a5ab-83b4522d41f5] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] ipro.telemetry.security - security event: rls:bypass user=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f ip=127.0.0.1 error=null
+2026-10-09 14:13:20.212 WARN  [main] [1db0a413-96d8-41e5-a5ab-83b4522d41f5] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.217 WARN  [main] [1db0a413-96d8-41e5-a5ab-83b4522d41f5] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.217 WARN  [main] [1db0a413-96d8-41e5-a5ab-83b4522d41f5] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] ipro.telemetry.security - security event: rls:bypass user=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f ip=127.0.0.1 error=null
+2026-10-09 14:13:20.310 WARN  [main] [03cb85c9-ddc3-4869-b200-b591066caedb] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.310 WARN  [main] [03cb85c9-ddc3-4869-b200-b591066caedb] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.310 WARN  [main] [03cb85c9-ddc3-4869-b200-b591066caedb] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] ipro.telemetry.security - security event: rls:bypass user=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f ip=127.0.0.1 error=null
+2026-10-09 14:13:20.325 WARN  [main] [03cb85c9-ddc3-4869-b200-b591066caedb] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.325 WARN  [main] [03cb85c9-ddc3-4869-b200-b591066caedb] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.325 WARN  [main] [03cb85c9-ddc3-4869-b200-b591066caedb] [rls-test-c2d03eef-2477-4115-9fbf-600a7849551f] ipro.telemetry.security - security event: rls:bypass user=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f ip=127.0.0.1 error=null
+2026-10-09 14:13:20.325 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-c2d03eef-2477-4115-9fbf-600a7849551f traceId=03cb85c9-ddc3-4869-b200-b591066caedb duration=68,76 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:20.629 WARN  [main] [dfc7d60d-8e79-4464-8544-e36d24bdcdd3] [rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.629 WARN  [main] [dfc7d60d-8e79-4464-8544-e36d24bdcdd3] [rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.629 WARN  [main] [dfc7d60d-8e79-4464-8544-e36d24bdcdd3] [rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a] ipro.telemetry.security - security event: rls:bypass user=rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a ip=127.0.0.1 error=null
+2026-10-09 14:13:20.629 WARN  [main] [dfc7d60d-8e79-4464-8544-e36d24bdcdd3] [rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.646 WARN  [main] [dfc7d60d-8e79-4464-8544-e36d24bdcdd3] [rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.646 WARN  [main] [dfc7d60d-8e79-4464-8544-e36d24bdcdd3] [rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a] ipro.telemetry.security - security event: rls:bypass user=rls-test-cee59ca4-66a8-4364-ad6a-ae5cfc142e5a ip=127.0.0.1 error=null
+2026-10-09 14:13:20.885 WARN  [main] [6c01eebd-faf3-4a65-aa26-d724d216a785] [rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.885 WARN  [main] [6c01eebd-faf3-4a65-aa26-d724d216a785] [rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.901 WARN  [main] [6c01eebd-faf3-4a65-aa26-d724d216a785] [rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74] ipro.telemetry.security - security event: rls:bypass user=rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74 ip=127.0.0.1 error=null
+2026-10-09 14:13:20.904 WARN  [main] [6c01eebd-faf3-4a65-aa26-d724d216a785] [rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.904 WARN  [main] [6c01eebd-faf3-4a65-aa26-d724d216a785] [rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74, reason=read exact recorder set before replacement
+2026-10-09 14:13:20.904 WARN  [main] [6c01eebd-faf3-4a65-aa26-d724d216a785] [rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74] ipro.telemetry.security - security event: rls:bypass user=rls-test-9848b1d7-9fa3-4024-8940-ac275a585c74 ip=127.0.0.1 error=null
+2026-10-09 14:13:21.276 WARN  [pool-3-thread-2] [739ed344-b564-431f-bc57-6067c37d3d4b] [rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.281 WARN  [pool-3-thread-2] [739ed344-b564-431f-bc57-6067c37d3d4b] [rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.283 WARN  [pool-3-thread-2] [739ed344-b564-431f-bc57-6067c37d3d4b] [rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb] ipro.telemetry.security - security event: rls:bypass user=rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb ip=127.0.0.1 error=null
+2026-10-09 14:13:21.285 WARN  [pool-3-thread-2] [739ed344-b564-431f-bc57-6067c37d3d4b] [rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.287 WARN  [pool-3-thread-2] [739ed344-b564-431f-bc57-6067c37d3d4b] [rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.287 WARN  [pool-3-thread-2] [739ed344-b564-431f-bc57-6067c37d3d4b] [rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb] ipro.telemetry.security - security event: rls:bypass user=rls-test-7439d193-0e7b-4c27-85d4-f82aca3c92fb ip=127.0.0.1 error=null
+2026-10-09 14:13:21.792 WARN  [main] [ba3618b5-aa6e-4be0-b708-a2d056c2a350] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.792 WARN  [main] [ba3618b5-aa6e-4be0-b708-a2d056c2a350] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.803 WARN  [main] [ba3618b5-aa6e-4be0-b708-a2d056c2a350] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] ipro.telemetry.security - security event: rls:bypass user=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a ip=127.0.0.1 error=null
+2026-10-09 14:13:21.803 WARN  [main] [ba3618b5-aa6e-4be0-b708-a2d056c2a350] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.803 WARN  [main] [ba3618b5-aa6e-4be0-b708-a2d056c2a350] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.803 WARN  [main] [ba3618b5-aa6e-4be0-b708-a2d056c2a350] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] ipro.telemetry.security - security event: rls:bypass user=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a ip=127.0.0.1 error=null
+2026-10-09 14:13:21.899 WARN  [main] [c7eedbde-d883-4014-88c3-50241a61e365] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.899 WARN  [main] [c7eedbde-d883-4014-88c3-50241a61e365] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.899 WARN  [main] [c7eedbde-d883-4014-88c3-50241a61e365] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] ipro.telemetry.security - security event: rls:bypass user=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a ip=127.0.0.1 error=null
+2026-10-09 14:13:21.915 WARN  [main] [c7eedbde-d883-4014-88c3-50241a61e365] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.915 WARN  [main] [c7eedbde-d883-4014-88c3-50241a61e365] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a, reason=read exact recorder set before replacement
+2026-10-09 14:13:21.915 WARN  [main] [c7eedbde-d883-4014-88c3-50241a61e365] [rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a] ipro.telemetry.security - security event: rls:bypass user=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a ip=127.0.0.1 error=null
+2026-10-09 14:13:21.931 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-12a29c55-8a1f-419d-af9a-06c8667e145a traceId=c7eedbde-d883-4014-88c3-50241a61e365 duration=72,35 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:22.187 WARN  [main] [fdb76179-cc74-48bb-b6d8-904877470ffb] [rls-test-11828517-3504-4715-91d8-dc6a4b804052] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-11828517-3504-4715-91d8-dc6a4b804052, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.202 WARN  [main] [fdb76179-cc74-48bb-b6d8-904877470ffb] [rls-test-11828517-3504-4715-91d8-dc6a4b804052] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-11828517-3504-4715-91d8-dc6a4b804052, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.202 WARN  [main] [fdb76179-cc74-48bb-b6d8-904877470ffb] [rls-test-11828517-3504-4715-91d8-dc6a4b804052] ipro.telemetry.security - security event: rls:bypass user=rls-test-11828517-3504-4715-91d8-dc6a4b804052 ip=127.0.0.1 error=null
+2026-10-09 14:13:22.202 WARN  [main] [fdb76179-cc74-48bb-b6d8-904877470ffb] [rls-test-11828517-3504-4715-91d8-dc6a4b804052] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-11828517-3504-4715-91d8-dc6a4b804052, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.202 WARN  [main] [fdb76179-cc74-48bb-b6d8-904877470ffb] [rls-test-11828517-3504-4715-91d8-dc6a4b804052] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-11828517-3504-4715-91d8-dc6a4b804052, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.202 WARN  [main] [fdb76179-cc74-48bb-b6d8-904877470ffb] [rls-test-11828517-3504-4715-91d8-dc6a4b804052] ipro.telemetry.security - security event: rls:bypass user=rls-test-11828517-3504-4715-91d8-dc6a4b804052 ip=127.0.0.1 error=null
+2026-10-09 14:13:22.461 WARN  [main] [e713a2e4-5735-4847-8313-05ee308076f1] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.470 WARN  [main] [e713a2e4-5735-4847-8313-05ee308076f1] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.470 WARN  [main] [e713a2e4-5735-4847-8313-05ee308076f1] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] ipro.telemetry.security - security event: rls:bypass user=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e ip=127.0.0.1 error=null
+2026-10-09 14:13:22.470 WARN  [main] [e713a2e4-5735-4847-8313-05ee308076f1] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.470 WARN  [main] [e713a2e4-5735-4847-8313-05ee308076f1] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.470 WARN  [main] [e713a2e4-5735-4847-8313-05ee308076f1] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] ipro.telemetry.security - security event: rls:bypass user=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e ip=127.0.0.1 error=null
+2026-10-09 14:13:22.571 WARN  [main] [6cebb440-5470-4ab2-a9b1-d5bb89736b58] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.575 WARN  [main] [6cebb440-5470-4ab2-a9b1-d5bb89736b58] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.575 WARN  [main] [6cebb440-5470-4ab2-a9b1-d5bb89736b58] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] ipro.telemetry.security - security event: rls:bypass user=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e ip=127.0.0.1 error=null
+2026-10-09 14:13:22.580 WARN  [main] [6cebb440-5470-4ab2-a9b1-d5bb89736b58] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.582 WARN  [main] [6cebb440-5470-4ab2-a9b1-d5bb89736b58] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.582 WARN  [main] [6cebb440-5470-4ab2-a9b1-d5bb89736b58] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] ipro.telemetry.security - security event: rls:bypass user=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e ip=127.0.0.1 error=null
+2026-10-09 14:13:22.591 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e traceId=6cebb440-5470-4ab2-a9b1-d5bb89736b58 duration=61,66 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:22.675 WARN  [main] [20c769fb-8cc3-4c8f-9bbd-d3d07afbc71f] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.678 WARN  [main] [20c769fb-8cc3-4c8f-9bbd-d3d07afbc71f] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.680 WARN  [main] [20c769fb-8cc3-4c8f-9bbd-d3d07afbc71f] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] ipro.telemetry.security - security event: rls:bypass user=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e ip=127.0.0.1 error=null
+2026-10-09 14:13:22.686 WARN  [main] [20c769fb-8cc3-4c8f-9bbd-d3d07afbc71f] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.692 WARN  [main] [20c769fb-8cc3-4c8f-9bbd-d3d07afbc71f] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.692 WARN  [main] [20c769fb-8cc3-4c8f-9bbd-d3d07afbc71f] [rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e] ipro.telemetry.security - security event: rls:bypass user=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e ip=127.0.0.1 error=null
+2026-10-09 14:13:22.692 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-a6c37054-bf6c-490e-97b7-40d2d394a55e traceId=20c769fb-8cc3-4c8f-9bbd-d3d07afbc71f duration=59,78 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:22.963 WARN  [main] [08514978-4444-4e57-b07a-bc83ed8099cd] [rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.965 WARN  [main] [08514978-4444-4e57-b07a-bc83ed8099cd] [rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.965 WARN  [main] [08514978-4444-4e57-b07a-bc83ed8099cd] [rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9] ipro.telemetry.security - security event: rls:bypass user=rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9 ip=127.0.0.1 error=null
+2026-10-09 14:13:22.971 WARN  [main] [08514978-4444-4e57-b07a-bc83ed8099cd] [rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.973 WARN  [main] [08514978-4444-4e57-b07a-bc83ed8099cd] [rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9, reason=read exact recorder set before replacement
+2026-10-09 14:13:22.975 WARN  [main] [08514978-4444-4e57-b07a-bc83ed8099cd] [rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9] ipro.telemetry.security - security event: rls:bypass user=rls-test-dde10fb4-9195-48ec-b006-ad2a6689b3a9 ip=127.0.0.1 error=null
+2026-10-09 14:13:23.223 WARN  [main] [7956372c-ec2d-4a21-8fa6-60380bcfcca1] [rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.234 WARN  [main] [7956372c-ec2d-4a21-8fa6-60380bcfcca1] [rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.234 WARN  [main] [7956372c-ec2d-4a21-8fa6-60380bcfcca1] [rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84] ipro.telemetry.security - security event: rls:bypass user=rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84 ip=127.0.0.1 error=null
+2026-10-09 14:13:23.238 WARN  [main] [7956372c-ec2d-4a21-8fa6-60380bcfcca1] [rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.240 WARN  [main] [7956372c-ec2d-4a21-8fa6-60380bcfcca1] [rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.242 WARN  [main] [7956372c-ec2d-4a21-8fa6-60380bcfcca1] [rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84] ipro.telemetry.security - security event: rls:bypass user=rls-test-21b797dc-5714-44ac-9d3a-a067c8948a84 ip=127.0.0.1 error=null
+2026-10-09 14:13:23.454 WARN  [main] [] [] ipro.telemetry.security - security event: rls:denied user=document-writer-357c44eb-dc9a-4bfd-8218-a59f3747ddd2 ip=127.0.0.1 error=��� ���� �� ��������� (��������� ENTITY:NomenclatureAccountingObject, �������� ����� ������)
+2026-10-09 14:13:23.629 WARN  [main] [15437029-5d4c-46d6-bf80-6ab1f7278425] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.629 WARN  [main] [15437029-5d4c-46d6-bf80-6ab1f7278425] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.629 WARN  [main] [15437029-5d4c-46d6-bf80-6ab1f7278425] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] ipro.telemetry.security - security event: rls:bypass user=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b ip=127.0.0.1 error=null
+2026-10-09 14:13:23.629 WARN  [main] [15437029-5d4c-46d6-bf80-6ab1f7278425] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.629 WARN  [main] [15437029-5d4c-46d6-bf80-6ab1f7278425] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.629 WARN  [main] [15437029-5d4c-46d6-bf80-6ab1f7278425] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] ipro.telemetry.security - security event: rls:bypass user=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b ip=127.0.0.1 error=null
+2026-10-09 14:13:23.703 WARN  [main] [f3869c16-d419-4351-9b67-28dd6e27ff37] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.708 WARN  [main] [f3869c16-d419-4351-9b67-28dd6e27ff37] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.708 WARN  [main] [f3869c16-d419-4351-9b67-28dd6e27ff37] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] ipro.telemetry.security - security event: rls:bypass user=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b ip=127.0.0.1 error=null
+2026-10-09 14:13:23.708 WARN  [main] [f3869c16-d419-4351-9b67-28dd6e27ff37] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.708 WARN  [main] [f3869c16-d419-4351-9b67-28dd6e27ff37] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b, reason=read exact recorder set before replacement
+2026-10-09 14:13:23.708 WARN  [main] [f3869c16-d419-4351-9b67-28dd6e27ff37] [rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b] ipro.telemetry.security - security event: rls:bypass user=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b ip=127.0.0.1 error=null
+2026-10-09 14:13:23.803 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectInstallation user=rls-test-38a37eea-7b6e-45f9-88e0-eea536fe236b traceId=b43fa04f-44be-4c35-b113-6c70288bd945 duration=38,53 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:24.027 WARN  [main] [244ec6dd-aff5-4110-ae2a-7cd1b55a0567] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.029 WARN  [main] [244ec6dd-aff5-4110-ae2a-7cd1b55a0567] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.029 WARN  [main] [244ec6dd-aff5-4110-ae2a-7cd1b55a0567] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] ipro.telemetry.security - security event: rls:bypass user=rls-test-36367add-6478-46c4-82ad-5096f96a09e5 ip=127.0.0.1 error=null
+2026-10-09 14:13:24.033 WARN  [main] [244ec6dd-aff5-4110-ae2a-7cd1b55a0567] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.033 WARN  [main] [244ec6dd-aff5-4110-ae2a-7cd1b55a0567] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.033 WARN  [main] [244ec6dd-aff5-4110-ae2a-7cd1b55a0567] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] ipro.telemetry.security - security event: rls:bypass user=rls-test-36367add-6478-46c4-82ad-5096f96a09e5 ip=127.0.0.1 error=null
+2026-10-09 14:13:24.127 WARN  [main] [dd4a1d4f-7790-462c-baf8-c4a63341a7cc] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.127 WARN  [main] [dd4a1d4f-7790-462c-baf8-c4a63341a7cc] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.139 WARN  [main] [dd4a1d4f-7790-462c-baf8-c4a63341a7cc] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] ipro.telemetry.security - security event: rls:bypass user=rls-test-36367add-6478-46c4-82ad-5096f96a09e5 ip=127.0.0.1 error=null
+2026-10-09 14:13:24.140 WARN  [main] [dd4a1d4f-7790-462c-baf8-c4a63341a7cc] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.140 WARN  [main] [dd4a1d4f-7790-462c-baf8-c4a63341a7cc] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.140 WARN  [main] [dd4a1d4f-7790-462c-baf8-c4a63341a7cc] [rls-test-36367add-6478-46c4-82ad-5096f96a09e5] ipro.telemetry.security - security event: rls:bypass user=rls-test-36367add-6478-46c4-82ad-5096f96a09e5 ip=127.0.0.1 error=null
+2026-10-09 14:13:24.154 WARN  [main] [] [] ipro.telemetry.operation - op=save:AccountingObjectCorrection user=rls-test-36367add-6478-46c4-82ad-5096f96a09e5 traceId=dd4a1d4f-7790-462c-baf8-c4a63341a7cc duration=68,62 ms sql=0 N+1 droppedFrames=0
+2026-10-09 14:13:24.237 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=delete dependent rows before root deletion
+2026-10-09 14:13:24.241 WARN  [main] [] [] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=rls-test-36367add-6478-46c4-82ad-5096f96a09e5, reason=delete dependent rows before root deletion
+2026-10-09 14:13:24.243 WARN  [main] [] [] ipro.telemetry.security - security event: rls:bypass user=rls-test-36367add-6478-46c4-82ad-5096f96a09e5 ip=127.0.0.1 error=null
+2026-10-09 14:13:24.457 WARN  [main] [20a5e46b-4b32-4dd2-b210-bde3631f8aea] [rls-test-e6171d9b-d16d-4435-af00-871e06e2152a] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-e6171d9b-d16d-4435-af00-871e06e2152a, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.457 WARN  [main] [20a5e46b-4b32-4dd2-b210-bde3631f8aea] [rls-test-e6171d9b-d16d-4435-af00-871e06e2152a] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-e6171d9b-d16d-4435-af00-871e06e2152a, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.467 WARN  [main] [20a5e46b-4b32-4dd2-b210-bde3631f8aea] [rls-test-e6171d9b-d16d-4435-af00-871e06e2152a] ipro.telemetry.security - security event: rls:bypass user=rls-test-e6171d9b-d16d-4435-af00-871e06e2152a ip=127.0.0.1 error=null
+2026-10-09 14:13:24.469 WARN  [main] [20a5e46b-4b32-4dd2-b210-bde3631f8aea] [rls-test-e6171d9b-d16d-4435-af00-871e06e2152a] org.ipro.rls.RlsContext - RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-e6171d9b-d16d-4435-af00-871e06e2152a, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.472 WARN  [main] [20a5e46b-4b32-4dd2-b210-bde3631f8aea] [rls-test-e6171d9b-d16d-4435-af00-871e06e2152a] org.ipro.rls.RlsContext - RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=rls-test-e6171d9b-d16d-4435-af00-871e06e2152a, reason=read exact recorder set before replacement
+2026-10-09 14:13:24.472 WARN  [main] [20a5e46b-4b32-4dd2-b210-bde3631f8aea] [rls-test-e6171d9b-d16d-4435-af00-871e06e2152a] ipro.telemetry.security - security event: rls:bypass user=rls-test-e6171d9b-d16d-4435-af00-871e06e2152a ip=127.0.0.1 error=null
+[INFO] Tests run: 28, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 59.38 s -- in org.ip.application.register.AccountingObjectPilotIT
+[INFO] Running org.ipro.register.RecorderSetWriterPostgresIT
+2026-10-09 14:13:24.614 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:24.771 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 14:13:24.786 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:25.032 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:25.343 INFO  [main] [] [] o.i.r.RecorderSetWriterPostgresIT - PostgreSQL recorder clock contention: two same-version replacements completed in 77 ms
+2026-10-09 14:13:25.488 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:25.611 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 14:13:25.611 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:25.755 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:26.121 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:26.344 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 14:13:26.354 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:26.480 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:26.806 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:26.928 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 14:13:26.933 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:27.041 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:27.266 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:27.387 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 14:13:27.394 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:27.524 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:27.712 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:27.841 WARN  [main] [] [] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-09 14:13:27.847 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:28.015 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:29.314 WARN  [main] [] [] org.hibernate.orm.jdbc.error - HHH000247: ErrorCode: 0, SQLState: 55P03
+2026-10-09 14:13:29.314 WARN  [main] [] [] org.hibernate.orm.jdbc.error - ������: ���������� ��������� �������� ��-�� ����-���� ����������
+  ���: ��� ���������� ������� (0,2) � ��������� "recorder_fixture_document_a"
+2026-10-09 14:13:30.369 WARN  [main] [] [] org.hibernate.orm.jdbc.error - HHH000247: ErrorCode: 0, SQLState: 55P03
+2026-10-09 14:13:30.371 WARN  [main] [] [] org.hibernate.orm.jdbc.error - ������: ���������� ��������� �������� ��-�� ����-���� ����������
+  ���: ��� ���������� ������� (0,2) � ��������� "recorder_fixture_document_a"
+2026-10-09 14:13:31.430 WARN  [main] [] [] org.hibernate.orm.jdbc.error - HHH000247: ErrorCode: 0, SQLState: 55P03
+2026-10-09 14:13:31.430 WARN  [main] [] [] org.hibernate.orm.jdbc.error - ������: ���������� ��������� �������� ��-�� ����-���� ����������
+  ���: ��� ���������� ������� (0,2) � ��������� "recorder_fixture_document_a"
+2026-10-09 14:13:31.472 WARN  [main] [] [] org.hibernate.orm.jdbc.error - HHH000247: ErrorCode: 0, SQLState: 23514
+2026-10-09 14:13:31.472 WARN  [main] [] [] org.hibernate.orm.jdbc.error - ������: ����� ������ � ��������� "register_recorded_periodic_fixture" �������� �����������-�������� "register_recorded_periodic_fixture_amount_check"
+  �����������: ��������� ������ �������� (-1, 2, 2026-10-09 14:13:31.471033, 3, 2026-10-09 14:13:31.471033, 2026-10-05 09:30:00, 1, 2, 0, item-shared, fixture-document-a, system, system).
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.988 s -- in org.ipro.register.RecorderSetWriterPostgresIT
+[INFO] Running org.ipro.register.RegisterWriteConcurrencyPostgresIT
+2026-10-09 14:13:31.584 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:31.779 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:31.997 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:32.171 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:32.312 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:32.461 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:32.616 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:32.748 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:32.885 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:33.067 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:33.254 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:33.386 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:33.511 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:33.651 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:33.782 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:33.919 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:34.047 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:34.164 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-09 14:13:34.304 WARN  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2026-10-09 14:13:34.434 INFO  [main] [] [] o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.10
+	Default catalog/schema: g3_register_test_r8_c1efc207f7f54622b9b02655b6ddcf74/public
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: none
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 8
+2026-10-09 14:13:34.550 INFO  [main] [] [] org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[ERROR] Tests run: 7, Failures: 0, Errors: 7, Skipped: 0, Time elapsed: 3.096 s <<< FAILURE! -- in org.ipro.register.RegisterWriteConcurrencyPostgresIT
+[ERROR] org.ipro.register.RegisterWriteConcurrencyPostgresIT.deleteThenKeyChangeRejectsTheRemovedId -- Time elapsed: 0.587 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterWriteConcurrencyPostgresIT.connect(RegisterWriteConcurrencyPostgresIT.java:65)
+
+[ERROR] org.ipro.register.RegisterWriteConcurrencyPostgresIT.independentRowsCompetingForOneUniqueKeyCannotOverwriteEachOther -- Time elapsed: 0.426 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterWriteConcurrencyPostgresIT.connect(RegisterWriteConcurrencyPostgresIT.java:65)
+
+[ERROR] org.ipro.register.RegisterWriteConcurrencyPostgresIT.twoKeyChangesWithSameVersionHaveOneWinner -- Time elapsed: 0.465 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterWriteConcurrencyPostgresIT.connect(RegisterWriteConcurrencyPostgresIT.java:65)
+
+[ERROR] org.ipro.register.RegisterWriteConcurrencyPostgresIT.replacementThenKeyChangeRejectsTheRemovedId -- Time elapsed: 0.417 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterWriteConcurrencyPostgresIT.connect(RegisterWriteConcurrencyPostgresIT.java:65)
+
+[ERROR] org.ipro.register.RegisterWriteConcurrencyPostgresIT.keyChangeThenDeleteLeavesNoOrphans -- Time elapsed: 0.416 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterWriteConcurrencyPostgresIT.connect(RegisterWriteConcurrencyPostgresIT.java:65)
+
+[ERROR] org.ipro.register.RegisterWriteConcurrencyPostgresIT.concurrentAppendUsesFreshOwnerStateAndUniqueLineNumbers -- Time elapsed: 0.396 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterWriteConcurrencyPostgresIT.connect(RegisterWriteConcurrencyPostgresIT.java:65)
+
+[ERROR] org.ipro.register.RegisterWriteConcurrencyPostgresIT.keyChangeThenReplacementLeavesOneNewCompleteSet -- Time elapsed: 0.350 s <<< ERROR!
+java.lang.IllegalStateException: 
+������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+	at org.ipro.register.RegisterRegistry.initialize(RegisterRegistry.java:72)
+	at org.ipro.register.RegisterWriteConcurrencyPostgresIT.connect(RegisterWriteConcurrencyPostgresIT.java:65)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Errors: 
+[ERROR]   RegisterWriteConcurrencyPostgresIT.connect:65 � IllegalState ������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+[ERROR]   RegisterWriteConcurrencyPostgresIT.connect:65 � IllegalState ������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+[ERROR]   RegisterWriteConcurrencyPostgresIT.connect:65 � IllegalState ������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+[ERROR]   RegisterWriteConcurrencyPostgresIT.connect:65 � IllegalState ������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+[ERROR]   RegisterWriteConcurrencyPostgresIT.connect:65 � IllegalState ������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+[ERROR]   RegisterWriteConcurrencyPostgresIT.connect:65 � IllegalState ������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+[ERROR]   RegisterWriteConcurrencyPostgresIT.connect:65 � IllegalState ������������ ���������� ��������� ��������:
+org.ipro.register.RegisterWriteConcurrencyPostgresIT$Row [KEY_COLUMN_NAME] ���� 'itemKey': ������� ���� ����� 'itemKey' ������ ���������� ����.
+[INFO] 
+[ERROR] Tests run: 41, Failures: 0, Errors: 7, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:02 min
+[INFO] Finished at: 2026-10-09T14:13:35+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-test) on project Vaa25_1: 
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

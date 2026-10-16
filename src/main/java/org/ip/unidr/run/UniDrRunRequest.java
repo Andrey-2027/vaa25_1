@@ -1,5 +1,7 @@
 package org.ip.unidr.run;
 
+import org.ipro.reportstudio.param.ReportContext;
+
 import org.ip.unidr.model.UniDrDefinition;
 import org.ip.unidr.model.UniDrDefinition.Literal;
 
@@ -8,13 +10,17 @@ import java.util.Map;
 import java.util.Objects;
 
 /** Snapshot for one run. Identity always comes from the authenticated server context. */
-public record UniDrRunRequest(UniDrDefinition definition, Map<String, Literal> values, ZoneId zone, Map<String,Object> queryValues) {
-    public UniDrRunRequest(UniDrDefinition definition,Map<String,Literal> values,ZoneId zone) {this(definition,values,zone,Map.of());}
+public record UniDrRunRequest(UniDrDefinition definition, Map<String, Literal> values, ZoneId zone, Map<String,Object> queryValues,
+                              ReportContext context) {
+    public UniDrRunRequest(UniDrDefinition definition,Map<String,Literal> values,ZoneId zone) {this(definition,values,zone,Map.of(),null);}
+    public UniDrRunRequest(UniDrDefinition definition,Map<String,Literal> values,ZoneId zone,Map<String,Object> queryValues){this(definition,values,zone,queryValues,null);}
     public UniDrRunRequest {
         Objects.requireNonNull(definition);
-        values = Map.copyOf(values);
+        // Explicit empty input clears a saved default; it is different from an absent key.
+        values = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(values));
         Objects.requireNonNull(zone);
-        var copy=new java.util.LinkedHashMap<String,Object>();queryValues.forEach((name,value)->{if(value!=null)copy.put(name,snapshot(value));});queryValues=Map.copyOf(copy);
+        var copy=new java.util.LinkedHashMap<String,Object>();queryValues.forEach((name,value)->copy.put(name,value==null?null:snapshot(value)));queryValues=java.util.Collections.unmodifiableMap(copy);
+        if(context!=null)context=new ReportContext(context.entityClass(),context.entityId()==null?null:snapshot(context.entityId()),context.selectedIds().stream().map(UniDrRunRequest::snapshot).toList(),context.viewId(),null,context.now());
     }
     private static Object snapshot(Object value) {
         if(value instanceof java.util.Collection<?> collection)return collection.stream().map(UniDrRunRequest::snapshot).toList();

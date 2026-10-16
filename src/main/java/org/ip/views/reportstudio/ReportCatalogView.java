@@ -71,6 +71,9 @@ public class ReportCatalogView extends HorizontalLayout {
     private org.ip.unidr.store.UniDrFileStore uniDrFiles;
     @org.springframework.beans.factory.annotation.Autowired(required=false)
     void useUniDrFiles(org.ip.unidr.store.UniDrFileStore files) { this.uniDrFiles=files; }
+    private org.ip.views.unidr.UniDrRunDialogFactory uniDrRuns;
+    @org.springframework.beans.factory.annotation.Autowired(required=false)
+    void useUniDrRuns(org.ip.views.unidr.UniDrRunDialogFactory runs) { this.uniDrRuns=runs; }
 
     public ReportCatalogView(
             ReportTemplateService templateService,
@@ -283,7 +286,11 @@ public class ReportCatalogView extends HorizontalLayout {
             case UDR -> runUdr(selected);
             case UREPORT3 -> runUreport(selected);
             case JR -> runJr(selected);
-            case UNIDR -> openUniDr(selected);
+            case UNIDR -> {
+                if(uniDrFiles==null || uniDrRuns==null) {Notification.show("UniDR выключен");return;}
+                try {uniDrRuns.open(uniDrFiles.load(selected.id()).definition());}
+                catch(RuntimeException failed){Notification.show(failed.getMessage());}
+            }
         }
     }
 

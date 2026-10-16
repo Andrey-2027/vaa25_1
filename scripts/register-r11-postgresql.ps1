@@ -37,7 +37,11 @@ try {
     $r11Arguments = [System.Collections.Generic.List[string]]::new()
     $r11Arguments.Add('-o')
     if ($LocalRepository) { $r11Arguments.Add("-Dmaven.repo.local=$LocalRepository") }
-    $r11Arguments.Add('-Dvaadin.skip=true')
+    # D-R S5(в): оба класса — тесты движка, они переехали в platform-register и гоняются его
+    # сборкой. Gate остаётся тем же, но теперь падает на границе артефакта, а не приложения:
+    # путь агента абсолютный, потому что для дочернего JVM рабочий каталог — каталог модуля.
+    $r11Arguments.Add('-f')
+    $r11Arguments.Add('platform-register/pom.xml')
     $r11Arguments.Add("-DargLine=-javaagent:$r11Agent")
     # Спайк контракта и приёмка реализации: оба класса гонок требуют реального сервера.
     $r11Arguments.Add('-Dtest=RegisterKeyWriteConcurrencyPostgresIT,RegisterKeyWritesPostgresIT')

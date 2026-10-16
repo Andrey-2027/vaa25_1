@@ -87,6 +87,12 @@ public class UserPreferencesStore {
         });
     }
 
+    /** Restore the application's saved density on standalone routes as well as MainLayout. */
+    public void applySavedDensity(UI ui) {
+        initFromClient(ui);
+        ui.getPage().executeJs(DensityJs.BOOTSTRAP);
+    }
+
     private void applyToClient(UserPreferences prefs) {
         UI ui = UI.getCurrent();
         if (ui == null) return;

@@ -45,6 +45,10 @@ public class ReportQueryExecutor {
     }
 
     public ReportDataset execute(ReportQueryAssembler assembled, int maxRows, long timeoutMs) {
+        return execute(assembled,maxRows,timeoutMs,false);
+    }
+    /** UniDR groups use identities even when two references have the same caption. */
+    public ReportDataset execute(ReportQueryAssembler assembled,int maxRows,long timeoutMs,boolean keepPresentationKeys) {
         var plan = assembled.presentations();
         if (plan.isEmpty()) return execute(assembled.jpql(), assembled.bindings(), assembled.fields(), maxRows, timeoutMs);
         if (presentations == null || recorderTypes == null) throw new IllegalStateException("Сервис представлений не подключён");
@@ -65,12 +69,19 @@ public class ReportQueryExecutor {
             }
             rowRefs.add(refs);
         }
-        var labels = presentations.resolve(references); var schema = assembled.fields().toArray(QueryField[]::new);
+        var labels = presentations.resolve(references);var fields=new java.util.ArrayList<>(assembled.fields());
+        if(keepPresentationKeys)for(var column:plan.columns())fields.add(QueryField.scalar("__unidr_key_"+column.name(),String.class));
+        var schema = fields.toArray(QueryField[]::new);
         var rows = new java.util.ArrayList<ReportRow>();
         for (int index = 0; index < physicalRows.length; index++) {
             var raw = physicalRows[index]; var values = new Object[schema.length];
             for (int cell = 0; cell < schema.length; cell++) {
                 String name = schema[cell].name();
+                if(keepPresentationKeys && name.startsWith("__unidr_key_")) {
+                    var column=plan.columns().stream().filter(c->name.equals("__unidr_key_"+c.name())).findFirst().orElseThrow();
+                    Object id=raw.value(column.idColumn());
+                    values[cell]=id==null?null:column.typeColumn()==null?id.toString():Objects.toString(raw.value(column.typeColumn()),"")+":"+id;continue;
+                }
                 var presentation = plan.columns().stream().filter(column -> column.name().equals(name)).findFirst();
                 if (presentation.isEmpty()) values[cell] = raw.value(name);
                 else if (raw.value(presentation.get().idColumn()) == null) values[cell] = null;

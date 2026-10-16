@@ -102,6 +102,14 @@ node_modules/
 # истины. PlatformVaadinSurfaceTest обязан находить его в репозитории.
 !src/test/resources/platform-vaadin-surface.txt
 
+# ADR-0025: reviewed-реестр путей записи сущностей платформы и их lifecycle-обязательства.
+# Тот же случай, что у surface-реестров выше: широкое правило `*.txt` исключило бы его из
+# поставки, а PlatformWritePathLifecycleTest читает файл как источник истины — на чистом
+# checkout гейт падал бы «пустой реестр», то есть проверка держалась бы только на машине
+# автора. Имя названо явно, а не шаблоном: это единственный реестр такой формы, и
+# перечисление из одной строки честнее шаблона, который пока ничего не покрывает.
+!src/test/resources/platform-write-paths.txt
+
 # KI-1: module-owned reviewed roles and stable navigation IDs are versioned contracts.
 !platform-navigation/src/main/resources/META-INF/navigation-surface.txt
 
@@ -155,3 +163,12 @@ logs/
 
 ### Local verification logs ###
 /*.log
+
+### Local agent scratch ###
+# Разборы и выгрузки агентских прогонов (копии деревьев, диагностические исходники,
+# результаты обхода компиляции): десятки тысяч файлов, к поставке не относятся, а `git status`
+# с ними нечитаем и `git add -A` перестаёт быть безопасной командой. Каталоги названы явно,
+# а не шаблоном: это единственные два места такой формы, и перечисление честнее шаблона,
+# который пока ничего не покрывает.
+outputs/
+docs/plans/e322-11-evidence/

@@ -20,7 +20,6 @@ import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.TableSections;
 import org.ipro.rls.RlsDimension;
 import org.ipro.rls.RlsCheckValue;
-import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.RlsDimensionValue;
 import org.ipro.crud.BaseEntity;
 import org.ipro.fetch.instance.InstanceName;
@@ -51,12 +50,8 @@ import java.time.LocalDate;
  *     отдельных @Filter с разными именами Hibernate склеивает по AND автоматически —
  *     ядро RLS (RlsFilterActivator/AccessService/AccessGrant) не менялось вообще, только
  *     аннотации на этой сущности.</li>
- * <li>"ENTITY:ReceivingDocument" — CHECK_ONLY (не построчный @Filter, а "есть доступ к
- *     виду документа целиком или нет"): например, "может создавать Накладные, но не
- *     имеет доступа к Ордерам" — этим же измерением, просто у другой сущности. Участвует
- *     только в write-guard'е и в AccessService.hasAnyAccess (скрытие пункта меню) — в
- *     Hibernate-фильтр не попадает вообще, поэтому и не описан через @Filter/@FilterDef
- *     выше, в отличие от JOURNAL/BRANCH.</li>
+ * <li>Права на саму сущность задаёт единое C5-определение ENTITY с независимыми флагами;
+ *     оно не является дополнительным измерением области записей.</li>
  * </ul>
  */
 @Entity
@@ -67,8 +62,6 @@ import java.time.LocalDate;
     readCondition = ReceivingDocument.JOURNAL_READ_CONDITION)
 @RlsDimension(value = "BRANCH", custom = true,
     readCondition = ReceivingDocument.BRANCH_READ_CONDITION)
-@RlsDimension(value = "ENTITY:ReceivingDocument", kind = RlsDimensionKind.CHECK_ONLY,
-    custom = true)
 @FilterDefs({
     @FilterDef(name = "JOURNAL", parameters = @ParamDef(name = "allowedIds", type = Long.class),
         applyToLoadByKey = true),
@@ -229,9 +222,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
 
     /**
      * JOURNAL — одна проверка (как у PrdSpec). BRANCH — две (приёмщик И сдатчик — обе
-     * должны пройти). "ENTITY:ReceivingDocument" — CHECK_ONLY, всегда null (см. javadoc
-     * класса и RlsDimensionKind — пройдёт только у обладателя wildcard-гранта на это
-     * измерение, построчных грантов у него не бывает по определению).
+     * должны пройти). Право на операцию сущности отдельно проверяется единым C5-контрактом.
      */
     @Override
     public java.util.Map<String, java.util.List<RlsCheckValue>> getRlsChecks() {
@@ -240,8 +231,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
             "JOURNAL", java.util.List.of(RlsCheckValue.of(journalId)),
             "BRANCH", java.util.List.of(
                 branchCheckFor(receivingWorkshop),
-                branchCheckFor(transferringWorkshop)),
-            "ENTITY:ReceivingDocument", java.util.List.of(RlsCheckValue.of(null))
+                branchCheckFor(transferringWorkshop))
         );
     }
 

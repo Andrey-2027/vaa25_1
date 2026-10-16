@@ -716,7 +716,7 @@ public class ReportQueryEditor extends VerticalLayout {
         sliceDescription.addValueChangeListener(event -> {
             if (event.isFromClient() && !writingShortQuery) {
                 shortQueryDirty = true;
-                syncTestParameters(extractParameterNames(event.getValue())); refreshParametersGrid(); clearResult();
+                reconcileTestParameters(extractParameterNames(event.getValue())); refreshParametersGrid(); clearResult();
             }
         });
         sliceDescription.setWidthFull();
@@ -769,7 +769,7 @@ public class ReportQueryEditor extends VerticalLayout {
             if (template != null) {
                 if (event.isFromClient()) template.setQuerySource(ReportQuerySource.MANUAL);
                 template.setJpql(event.getValue());
-                syncTestParameters(extractParameterNames(event.getValue()));
+                reconcileTestParameters(extractParameterNames(event.getValue()));
                 refreshParametersGrid();
                 changeListener.accept(template);
                 refreshQueryPresentation();
@@ -806,12 +806,10 @@ public class ReportQueryEditor extends VerticalLayout {
     }
 
     private void configureParameters() {
-        parameters.addColumn(QueryTestParam::name).setHeader("Параметр").setAutoWidth(true);
-        parameters.addColumn(p -> typeCaption(p.type())).setHeader("Тип").setAutoWidth(true);
-        parameters.addColumn(ReportQueryEditor::formatValue).setHeader("Значение").setFlexGrow(1);
-        parameters.addComponentColumn(this::removeButton).setAutoWidth(true).setFlexGrow(0);
+        parameters.addComponentColumn(this::parameterRow).setHeader("Тестовые параметры: имя · тип · значение").setFlexGrow(1);
         parameters.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
-        parameters.setHeight("7em");
+        parameters.setAllRowsVisible(true);
+        parameters.setWidthFull();
         parameters.getStyle().set("font-size", "var(--lumo-font-size-xs)");
         parameters.asSingleSelect().addValueChangeListener(event -> selectParam(event.getValue()));
 
@@ -859,29 +857,53 @@ public class ReportQueryEditor extends VerticalLayout {
 
         paramHint.getStyle().set("color", "var(--lumo-secondary-text-color)").set("margin", "0");
 
-        HorizontalLayout formRow = new HorizontalLayout(paramType, entityClassName, enumClassName);
-        formRow.setAlignItems(Alignment.END);
-        formRow.setSpacing(false);
-        formRow.getStyle().set("gap", "var(--lumo-space-xs)");
-        formRow.setWrap(true);
-        formRow.setPadding(false);
-        VerticalLayout detail = new VerticalLayout(formRow, paramValueSlot, paramHint);
-        detail.setPadding(false);
-        detail.setSpacing(false);
-        detail.getStyle().set("gap", "var(--lumo-space-xs)");
-        detail.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)")
-                .set("padding-top", "var(--lumo-space-xs)")
-                .set("margin-top", "var(--lumo-space-xs)");
-        detail.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-
         parameterPanel.setPadding(false);
         parameterPanel.setSpacing(false);
         parameterPanel.getStyle().set("gap", "var(--lumo-space-xs)");
         transferParamsButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
-        parameterPanel.add(parameters, transferParamsButton, detail);
+        parameterPanel.add(parameters, transferParamsButton);
+        parameterPanel.setWidthFull();
+        parameterPanel.getStyle().set("max-height", "35vh").set("overflow", "auto").set("flex-shrink", "0");
         parameterPanel.setVisible(false);
 
         selectParam(null);
+    }
+
+    private Component parameterRow(QueryTestParam param) {
+        var name = new Span(":" + param.name());
+        name.getStyle().set("flex", "1 1 7rem").set("overflow-wrap", "anywhere");
+        var type = new ComboBox<FieldType>();
+        type.setAriaLabel("Тип параметра " + param.name());
+        type.setItems(PARAM_TYPES);type.setItemLabelGenerator(ReportQueryEditor::typeCaption);
+        type.setValue(param.type());type.setWidth("10rem");
+        var value = new VerticalLayout();value.setPadding(false);value.setSpacing(false);
+        value.getStyle().set("flex", "4 1 18rem").set("min-width", "0");
+        Runnable refresh = () -> {
+            value.removeAll();
+            if (param.type() == FieldType.ENTITY_REFERENCE) {
+                var entity = new ComboBox<String>("Тип сущности");
+                entity.setItems(entityCaptions.keySet().stream().sorted().toList());
+                entity.setItemLabelGenerator(this::entityClassCaption);entity.setWidthFull();
+                if (param.className() != null && entityCaptions.containsKey(param.className())) entity.setValue(param.className());
+                entity.addValueChangeListener(event -> {param.setClassName(blankToNull(event.getValue()));parameters.getListDataView().refreshItem(param);});
+                value.add(entity);
+            } else if (param.type() == FieldType.ENUM) {
+                var enumeration = new TextField("Класс перечисления");enumeration.setWidthFull();
+                enumeration.setValue(Objects.requireNonNullElse(param.className(), ""));
+                enumeration.addValueChangeListener(event -> {param.setClassName(blankToNull(event.getValue()));parameters.getListDataView().refreshItem(param);});
+                value.add(enumeration);
+            }
+            var input = createValueField(param);
+            if (input instanceof com.vaadin.flow.component.HasSize sized) sized.setWidthFull();
+            input.getElement().setAttribute("aria-label", "Значение параметра " + param.name());
+            value.add(input);
+        };
+        type.addValueChangeListener(event -> {if(event.getValue()!=null){param.setType(event.getValue());refresh.run();}});
+        refresh.run();
+        var row = new HorizontalLayout(name,type,value,removeButton(param));
+        row.setWidthFull();row.setPadding(false);row.setAlignItems(Alignment.CENTER);row.setWrap(true);
+        row.getStyle().set("gap", "var(--lumo-space-s)");
+        return row;
     }
 
     private void configureResult() {
@@ -897,11 +919,7 @@ public class ReportQueryEditor extends VerticalLayout {
             if (node != null && node.selectable()) insertAtCaret("Представление(" + metadataPath(node) + ")");
         }), catalog);
         catalogPanel.setHeightFull();
-        SplitLayout left = new SplitLayout(catalogPanel, parameterPanel);
-        left.setOrientation(SplitLayout.Orientation.VERTICAL);
-        left.setSplitterPosition(66);
-        left.setSizeFull();
-        left.getStyle().set("min-width", "0");
+        catalogPanel.getStyle().set("min-width", "0");
 
         HorizontalLayout toolbar = new HorizontalLayout(constructorButton, sliceButton, generatedQueryButton,
             editQueryTextButton, analyzeButton, formatButton, parametersButton, activeAlias, previewRows);
@@ -909,7 +927,7 @@ public class ReportQueryEditor extends VerticalLayout {
         toolbar.setPadding(false);
         toolbar.setSpacing(true);
         toolbar.setAlignItems(Alignment.BASELINE);
-        VerticalLayout editorPanel = compact(toolbar, sliceDescription, jpql, status);
+        VerticalLayout editorPanel = compact(toolbar, sliceDescription, jpql, status, parameterPanel);
         editorPanel.setHeightFull();
         SplitLayout right = new SplitLayout(editorPanel, result);
         right.setOrientation(SplitLayout.Orientation.VERTICAL);
@@ -917,7 +935,7 @@ public class ReportQueryEditor extends VerticalLayout {
         right.setSizeFull();
         right.getStyle().set("min-width", "0");
 
-        SplitLayout main = new SplitLayout(left, right);
+        SplitLayout main = new SplitLayout(catalogPanel, right);
         main.setSplitterPosition(30);
         main.setSizeFull();
         main.getStyle().set("min-height", "550px");
@@ -1282,6 +1300,13 @@ public class ReportQueryEditor extends VerticalLayout {
 
     // === Тестовые параметры (QueryTestParam) ===
 
+    /** Text edits replace references; partial names must not accumulate as declarations. */
+    private void reconcileTestParameters(Collection<String> names) {
+        testParams.removeIf(parameter -> !names.contains(parameter.name()));
+        if (selectedParam != null && !testParams.contains(selectedParam)) selectParam(null);
+        syncTestParameters(names);
+    }
+
     private void syncTestParameters(Collection<String> names) {
         if (names == null) {
             return;
@@ -1301,6 +1326,9 @@ public class ReportQueryEditor extends VerticalLayout {
         if (!testParams.isEmpty()) {
             parametersVisible = true;
             parameterPanel.setVisible(true);
+        } else {
+            parametersVisible = false;
+            parameterPanel.setVisible(false);
         }
     }
 

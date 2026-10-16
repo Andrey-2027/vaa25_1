@@ -2,6 +2,9 @@ package org.ip.views.components;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.HasLabel;
+import com.vaadin.flow.component.HasSize;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -13,6 +16,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.TextField;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.form.EntityField;
@@ -53,6 +57,9 @@ import java.util.function.Consumer;
 public class ReportParamForm extends VerticalLayout {
 
     private final Map<String, FieldEntry> fields = new LinkedHashMap<>();
+    private final Map<String,Consumer<Object>> writers=new LinkedHashMap<>();
+    private final Map<Component,String> rowLabels=new LinkedHashMap<>();
+    private boolean inlineLabels;
     private final java.util.Map<String,String> parameterTypes;
     private final java.util.Set<String> dateParameters;
     private final java.util.Set<String> dateTimeParameters;
@@ -60,6 +67,22 @@ public class ReportParamForm extends VerticalLayout {
 
     /** Includes server-side entity selection and changes to dynamically added list rows. */
     public void setChangeListener(Runnable listener) { changeListener = java.util.Objects.requireNonNull(listener); }
+
+    /** Opt-in row layout for UniDR's run window, using the same FormItem pattern as UDR. */
+    public void useInlineLabels() {
+        if(inlineLabels || rowLabels.isEmpty())return;inlineLabels=true;
+        var layout=new FormLayout();layout.setWidthFull();
+        layout.setResponsiveSteps(new FormLayout.ResponsiveStep("0",1,FormLayout.ResponsiveStep.LabelsPosition.ASIDE));
+        layout.getStyle().set("--vaadin-form-item-label-width","9rem");
+        removeAll();
+        rowLabels.forEach((component,label)->{clearOwnLabels(component);if(component instanceof HasSize size)size.setWidthFull();layout.addFormItem(component,label);});
+        add(layout);
+    }
+    private static void clearOwnLabels(Component component) {
+        if(component instanceof HasLabel labelled){String label=labelled.getLabel();if(label!=null && !label.isBlank())component.getElement().setAttribute("aria-label",label);labelled.setLabel("");}
+        if("true".equals(component.getElement().getAttribute("data-parameter-caption")))component.setVisible(false);
+        component.getChildren().forEach(ReportParamForm::clearOwnLabels);
+    }
 
     private void observe(Component component) {
         if (component instanceof EntityField<?> entity) entity.addValueChangeListener(value -> changeListener.run());
@@ -76,6 +99,12 @@ public class ReportParamForm extends VerticalLayout {
     public ReportParamForm(List<ReportParam> params, ReportContext context,
                            EntityLookup lookupService, SelectionFormAssembler assembler) {
         this(params, context, lookupService, assembler, java.util.Set.of(), java.util.Set.of(), java.util.Map.of());
+    }
+    /** Typed callers such as UniDR do not encode input types in default values. */
+    public ReportParamForm(List<ReportParam> params,ReportContext context,EntityLookup lookupService,SelectionFormAssembler assembler,
+                           Map<String,String> types) {
+        this(params,context,lookupService,assembler,types.entrySet().stream().filter(e->e.getValue().equals("java.time.LocalDate")).map(Map.Entry::getKey).collect(java.util.stream.Collectors.toSet()),
+            types.entrySet().stream().filter(e->e.getValue().equals("java.time.LocalDateTime")).map(Map.Entry::getKey).collect(java.util.stream.Collectors.toSet()),types);
     }
 
     private ReportParamForm(List<ReportParam> params, ReportContext context,
@@ -114,13 +143,23 @@ public class ReportParamForm extends VerticalLayout {
             if (value != null && !(value instanceof String s && s.isBlank())) {
                 String type = parameterTypes.getOrDefault(entry.getKey(), "");
                 if (value instanceof Number number) value = switch(type) {
-                    case "java.lang.Long", "long" -> number.longValue(); case "java.lang.Integer", "int" -> number.intValue(); case "java.lang.Short", "short" -> number.shortValue();
+                    case "java.lang.Long", "long" -> new java.math.BigDecimal(number.toString()).longValueExact(); case "java.lang.Integer", "int" -> new java.math.BigDecimal(number.toString()).intValueExact(); case "java.lang.Short", "short" -> new java.math.BigDecimal(number.toString()).shortValueExact();
                     case "java.math.BigDecimal" -> new java.math.BigDecimal(number.toString()); default -> value;
                 };
                 result.put(entry.getKey(), value);
             }
         }
         return result;
+    }
+    /** UniDR keeps explicit empty input distinct from an absent value/default. */
+    public Map<String,Object> allValues() {
+        var result=new LinkedHashMap<>(values());fields.keySet().forEach(name->result.putIfAbsent(name,null));
+        return java.util.Collections.unmodifiableMap(result);
+    }
+    public void setValues(Map<String,Object> values) {
+        Runnable previous=changeListener;changeListener=()->{};
+        try {values.forEach((name,value)->{var writer=writers.get(name);if(writer!=null)writer.accept(value);});}
+        finally {changeListener=previous;}
     }
 
     // === скалярные поля ===
@@ -134,6 +173,8 @@ public class ReportParamForm extends VerticalLayout {
             component = timestamp;
         } else if (dateParameters.contains(param.getName())) {
             component = new DatePicker(label(param));
+        } else if (java.util.Set.of("java.math.BigDecimal","java.lang.Long","long","java.lang.Integer","int","java.lang.Short","short").contains(parameterTypes.getOrDefault(param.getName(),""))) {
+            component=new BigDecimalField(label(param));
         } else if (parameterTypes.getOrDefault(param.getName(), "").matches("(java\\.lang\\.|java\\.math\\.)?(Long|Integer|Short|Byte|BigDecimal|Double|Float)|long|int|short|byte|double|float")) {
             var number = new NumberField(label(param)); number.setStep(parameterTypes.get(param.getName()).matches(".*(Double|Float|BigDecimal)|double|float") ? 0.01 : 1); component = number;
         } else if (java.util.Set.of("boolean","java.lang.Boolean").contains(parameterTypes.getOrDefault(param.getName(), ""))) {
@@ -179,17 +220,22 @@ public class ReportParamForm extends VerticalLayout {
     private void addPeriodFields(ReportParam param) {
         DatePicker from = new DatePicker(label(param) + " (с)");
         DatePicker to = new DatePicker(label(param) + " (по)");
+        from.setPlaceholder("с");to.setPlaceholder("по");
         from.setRequiredIndicatorVisible(param.isRequired());
         to.setRequiredIndicatorVisible(param.isRequired());
-        from.setWidth("220px");
-        to.setWidth("220px");
+        from.setWidth("min(220px, 100%)");
+        to.setWidth("min(220px, 100%)");
         HorizontalLayout row = new HorizontalLayout(from, to);
+        row.setWidthFull();row.getStyle().set("flex-wrap","wrap");
         row.setSpacing(true);
         row.setAlignItems(FlexComponent.Alignment.BASELINE);
         add(row);
+        rowLabels.put(row,label(param));
         observe(from);observe(to);
         fields.put(param.getName() + "From", new FieldEntry(from::getValue, null));
         fields.put(param.getName() + "To", new FieldEntry(to::getValue, null));
+        writers.put(param.getName()+"From",value->from.setValue((java.time.LocalDate)value));
+        writers.put(param.getName()+"To",value->to.setValue((java.time.LocalDate)value));
     }
 
     // === сущностные поля (переиспользование RLS-осведомлённого EntityField) ===
@@ -215,6 +261,16 @@ public class ReportParamForm extends VerticalLayout {
         Class<?> entityClass = entityClassOf(param);
         field.setSelectionFormFactory(onSelect ->
             (SelectionForm) assembler.assemble((Class) entityClass, (Consumer) onSelect));
+        labelSelectionControls(field,label(param));
+    }
+
+    private static void labelSelectionControls(Component root,String caption) {
+        root.getChildren().forEach(child->{
+            if(child instanceof Button button)button.getElement().setAttribute("aria-label","Выбрать из справочника: "+caption);
+            else if(child instanceof TextField text){text.setAriaLabel(caption);text.getStyle().set("min-width","0").set("flex","1");}
+            else if(child instanceof HorizontalLayout layout){layout.setWidthFull();layout.getStyle().set("min-width","0");}
+            labelSelectionControls(child,caption);
+        });
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -229,6 +285,7 @@ public class ReportParamForm extends VerticalLayout {
             EntityField row = new EntityField(label(param), entitySearch(param, lookupService, assembler));
             row.setWidthFull();
             installSelectionForm(row, param, assembler);
+            if(inlineLabels)row.setLabel("");
             observe(row);
             Button remove = new Button(VaadinIcon.MINUS.create(), e -> {
                 row.getParent().ifPresent(list::remove);
@@ -243,16 +300,24 @@ public class ReportParamForm extends VerticalLayout {
             rowFields.add(row);
         };
         addRow.accept(null);
+        writers.put(param.getName(),value->{
+            list.removeAll();rowFields.clear();
+            var selected=value instanceof java.util.Collection<?> collection?collection:List.of();
+            for(Object item:selected){addRow.accept(null);rowFields.getLast().setValue((org.ipro.metadata.HasDisplayName)item);}
+            if(rowFields.isEmpty())addRow.accept(null);
+        });
 
         Button addButton = new Button("Добавить", VaadinIcon.PLUS.create());
         addButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         addButton.addClickListener(e -> {addRow.accept(null);changeListener.run();});
 
         Span caption = new Span(label(param));
+        caption.getElement().setAttribute("data-parameter-caption","true");
         caption.getElement().getStyle()
             .set("font-size", "var(--lumo-font-size-s)")
             .set("color", "var(--lumo-secondary-text-color)");
-        add(caption, list, addButton);
+        var group=new VerticalLayout(caption,list,addButton);group.setPadding(false);group.setSpacing(false);group.setWidthFull();
+        add(group);rowLabels.put(group,label(param));
         fields.put(param.getName(), new FieldEntry(
             () -> rowFields.stream().map(EntityField::getValue)
                 .filter(java.util.Objects::nonNull).toList(),
@@ -287,8 +352,11 @@ public class ReportParamForm extends VerticalLayout {
 
     private void addField(String name, Component component, Consumer<Boolean> readOnlySetter) {
         add(component);
+        rowLabels.put(component,component instanceof HasLabel labelled?labelled.getLabel():name);
         observe(component);
+        if(component instanceof HasValue<?,?> field)writers.put(name,value->writeField(field,value,enumType(parameterTypes.get(name))));
         if (component instanceof EntityField<?> entityField) {
+            writers.put(name,value->writeEntity(entityField,value));
             fields.put(name, new FieldEntry(
                 () -> entityField.getValue(),
                 readOnly -> entityField.setReadOnly(readOnly)));
@@ -303,6 +371,18 @@ public class ReportParamForm extends VerticalLayout {
         } else {
             fields.put(name, new FieldEntry(() -> null, readOnlySetter));
         }
+    }
+    @SuppressWarnings({"rawtypes","unchecked"})
+    private static void writeField(HasValue field,Object value,Class<?> enumClass) {
+        if(enumClass!=null && value instanceof String name)value=Enum.valueOf((Class)enumClass,name);
+        if(field instanceof BigDecimalField && value instanceof Number number)value=new java.math.BigDecimal(number.toString());
+        if(field instanceof TextField && value==null)value="";
+        field.setValue(value);
+    }
+
+    @SuppressWarnings({"rawtypes","unchecked"})
+    private static void writeEntity(EntityField field,Object value) {
+        field.setValue((org.ipro.metadata.HasDisplayName)value);
     }
 
     /** Считыватель значения + сеттер readOnly (null — поле не переключает readOnly). */

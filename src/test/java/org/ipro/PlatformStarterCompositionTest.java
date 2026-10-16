@@ -47,6 +47,7 @@ class PlatformStarterCompositionTest {
         assertThat(directDependencies(Path.of("platform-vaadin-starter/pom.xml")))
             .containsExactlyInAnyOrder(
                 "org.ipro:platform-vaadin",
+                "org.ipro:platform-register-vaadin",
                 "com.vaadin:vaadin-spring-boot-starter");
         assertThat(read(Path.of("platform-vaadin-starter/pom.xml")))
             .contains("<artifactId>platform-bom</artifactId>", "<scope>import</scope>")
@@ -72,6 +73,7 @@ class PlatformStarterCompositionTest {
             "org.ipro:platform-spring-boot-autoconfigure",
             "org.ipro:platform-rest-web",
             "org.ipro:platform-vaadin",
+            "org.ipro:platform-register-vaadin",
             "org.ipro:platform-backend-starter",
             "org.ipro:platform-vaadin-starter",
             "org.ipro:filtergrid-core",

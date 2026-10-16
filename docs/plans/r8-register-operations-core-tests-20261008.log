@@ -1,0 +1,208 @@
+Access is denied.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< org.ipro:platform-core >-----------------------
+[INFO] Building GitVaa platform core 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-core ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\main\resources
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-core ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 108 source files with javac [debug parameters release 21] to target\classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/main/java/org/ipro/crud/EntityCopyService.java: C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\main\java\org\ipro\crud\EntityCopyService.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/main/java/org/ipro/crud/EntityCopyService.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-core ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-core ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 35 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/test/java/org/ipro/crud/jpa/ValidatedJpaCrudServiceTest.java: C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\test\java\org\ipro\crud\jpa\ValidatedJpaCrudServiceTest.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/test/java/org/ipro/crud/jpa/ValidatedJpaCrudServiceTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-core ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.core.CoreModuleCompositionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.507 s -- in org.ipro.core.CoreModuleCompositionTest
+[INFO] Running org.ipro.data.CanonicalSaveLifecycleScopeTest
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.093 s -- in org.ipro.data.CanonicalSaveLifecycleScopeTest
+[INFO] Running org.ipro.data.CanonicalWritePathIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-08T23:35:15.212+03:00  INFO 17960 --- [           main] org.ipro.data.CanonicalWritePathIT       : Starting CanonicalWritePathIT using Java 21.0.11 with PID 17960 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\platform-core)
+2026-10-08T23:35:15.229+03:00  INFO 17960 --- [           main] org.ipro.data.CanonicalWritePathIT       : No active profile set, falling back to 1 default profile: "default"
+2026-10-08T23:35:16.764+03:00  INFO 17960 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-08T23:35:16.937+03:00  INFO 17960 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 113 ms. Found 0 JPA repository interfaces.
+2026-10-08T23:35:17.196+03:00  INFO 17960 --- [           main] beddedDataSourceBeanFactoryPostProcessor : Replacing 'dataSource' DataSource bean with embedded version
+2026-10-08T23:35:17.567+03:00  INFO 17960 --- [           main] o.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:d0047c45-52bd-4c4f-935a-23153f42198a;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2026-10-08T23:35:18.924+03:00  INFO 17960 --- [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-08T23:35:19.244+03:00  INFO 17960 --- [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-08T23:35:21.128+03:00  INFO 17960 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-08T23:35:21.407+03:00  INFO 17960 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:d0047c45-52bd-4c4f-935a-23153f42198a]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: D0047C45-52BD-4C4F-935A-23153F42198A/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-08T23:35:23.045+03:00  INFO 17960 --- [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: drop table if exists c4_fixture_entity cascade 
+Hibernate: drop table if exists c4_no_text_fixture_entity cascade 
+Hibernate: drop table if exists c4_versioned_fixture_entity cascade 
+Hibernate: create table c4_fixture_entity (id bigint generated by default as identity, code varchar(255) not null, name varchar(255), primary key (id))
+Hibernate: create table c4_no_text_fixture_entity (active boolean not null, id bigint generated by default as identity, primary key (id))
+Hibernate: create table c4_versioned_fixture_entity (created_at timestamp(6), id bigint generated by default as identity, modified_at timestamp(6), version bigint, code varchar(255), created_by varchar(255), modified_by varchar(255), primary key (id))
+2026-10-08T23:35:23.120+03:00  INFO 17960 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-08T23:35:23.314+03:00  INFO 17960 --- [           main] org.ipro.data.CanonicalWritePathIT       : Started CanonicalWritePathIT in 9.753 seconds (process running for 13.845)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' order by cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\'
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where cfe1_0.id=?
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where cfe1_0.id=?
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where cfe1_0.id=?
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where cfe1_0.id=?
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\'
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 order by cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(cfe1_0.id) from c4_fixture_entity cfe1_0
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\'
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: delete from c4_fixture_entity cfe1_0 where cfe1_0.code=?
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 offset ? rows fetch first ? rows only
+Hibernate: select count(cfe1_0.id) from c4_fixture_entity cfe1_0
+Hibernate: update c4_fixture_entity set code=?,name=? where id=?
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where cfe1_0.id=?
+Hibernate: delete from c4_fixture_entity where id=?
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where cfe1_0.id=?
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0
+Hibernate: select count(cfe1_0.id) from c4_fixture_entity cfe1_0 where cfe1_0.code=?
+Hibernate: insert into c4_no_text_fixture_entity (active,id) values (?,default)
+Hibernate: select cntfe1_0.id,cntfe1_0.active from c4_no_text_fixture_entity cntfe1_0 order by cntfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(cntfe1_0.id) from c4_no_text_fixture_entity cntfe1_0
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select count(cfe1_0.id) from c4_fixture_entity cfe1_0 where cfe1_0.code=?
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\'
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\'
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\'
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where cfe1_0.id=?
+Hibernate: update c4_fixture_entity set code=?,name=? where id=?
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\'
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\'
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\'
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 order by cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(cfe1_0.id) from c4_fixture_entity cfe1_0
+Hibernate: select cfe1_0.id,cfe1_0.code,cfe1_0.name from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' order by case when lower(cfe1_0.code)=? or lower(cfe1_0.name)=? then ? when lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\' then ? else ? end,cfe1_0.id offset ? rows fetch first ? rows only
+Hibernate: select count(distinct cfe1_0.id) from c4_fixture_entity cfe1_0 where lower(cfe1_0.code) like ? escape '\' or lower(cfe1_0.name) like ? escape '\'
+Hibernate: insert into c4_versioned_fixture_entity (code,created_at,created_by,modified_at,modified_by,version,id) values (?,?,?,?,?,?,default)
+Hibernate: update c4_versioned_fixture_entity set code=?,modified_at=?,modified_by=?,version=? where id=? and version=?
+Hibernate: select cvfe1_0.id,cvfe1_0.code,cvfe1_0.created_at,cvfe1_0.created_by,cvfe1_0.modified_at,cvfe1_0.modified_by,cvfe1_0.version from c4_versioned_fixture_entity cvfe1_0 where cvfe1_0.id=?
+Hibernate: select count(cfe1_0.id) from c4_fixture_entity cfe1_0 where cfe1_0.code=?
+Hibernate: insert into c4_versioned_fixture_entity (code,created_at,created_by,modified_at,modified_by,version,id) values (?,?,?,?,?,?,default)
+Hibernate: select cvfe1_0.id,cvfe1_0.code,cvfe1_0.created_at,cvfe1_0.created_by,cvfe1_0.modified_at,cvfe1_0.modified_by,cvfe1_0.version from c4_versioned_fixture_entity cvfe1_0 where cvfe1_0.id=?
+Hibernate: select cvfe1_0.id,cvfe1_0.code,cvfe1_0.created_at,cvfe1_0.created_by,cvfe1_0.modified_at,cvfe1_0.modified_by,cvfe1_0.version from c4_versioned_fixture_entity cvfe1_0 where cvfe1_0.id=? for update wait 1
+Hibernate: delete from c4_versioned_fixture_entity where id=? and version=?
+Hibernate: select cvfe1_0.id,cvfe1_0.code,cvfe1_0.created_at,cvfe1_0.created_by,cvfe1_0.modified_at,cvfe1_0.modified_by,cvfe1_0.version from c4_versioned_fixture_entity cvfe1_0 where cvfe1_0.id=?
+Hibernate: insert into c4_fixture_entity (code,name,id) values (?,?,default)
+[INFO] Tests run: 37, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.10 s -- in org.ipro.data.CanonicalWritePathIT
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 45, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-core ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\platform-core\target\platform-core-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-core ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-core\pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\.local-maven-repository\org\ipro\platform-core\1.0-SNAPSHOT\platform-core-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-core\target\platform-core-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\.local-maven-repository\org\ipro\platform-core\1.0-SNAPSHOT\platform-core-1.0-SNAPSHOT.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  51.904 s
+[INFO] Finished at: 2026-10-08T23:35:32+03:00
+[INFO] ------------------------------------------------------------------------

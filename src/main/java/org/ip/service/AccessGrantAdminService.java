@@ -48,6 +48,9 @@ import java.util.stream.Collectors;
 @Measured
 public class AccessGrantAdminService {
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.ip.application.access.PermissionSubjectLock permissionSubjectLock;
+
     /**
      * Три флага прав; все false = записи гранта нет вообще (нет доступа). При сохранении
      * canRead нормализуется до read || update || delete ("изменение"/"удаление" без
@@ -127,8 +130,8 @@ public class AccessGrantAdminService {
 
     /**
      * Зарегистрированный C5 read key (entity/API, см. C5ReadPermissionRegistry).
-     * Такие измерения редактируются только флагом чтения и без dimension value; распознаются
-     * по явной регистрации, а не по префиксу, CHECK_ONLY или wildcard (F-REST-READ-3, З2).
+     * Это представление READ общего реестра. ENTITY может также выражать write-флаги той же
+     * global-строки; API выражает только чтение. Префикс, CHECK_ONLY и wildcard не заменяют регистрацию.
      */
     public boolean isC5ReadDimension(String dimension) {
         return c5ReadPermissionRegistry.isRegisteredReadKey(dimension);
@@ -165,12 +168,8 @@ public class AccessGrantAdminService {
      * Флаги, которые измерение вообще может выражать: для операционного измерения — объявленные
      * его определением, для C5 read — только чтение, для остальных CHECK_ONLY — прежние три.
      *
-     * <p>С C5.7 операционных измерений без второй роли не осталось: короткий ключ
-     * {@code ENTITY:<Имя>} больше не служит гейтом видимости плитки (плитку решает чтение
-     * сущности, см. {@code SubsystemHomeView} и {@code RlsReadGate}), поэтому и его выдача
-     * говорит ровно то, что решает операция — без «чтения», которого определение не объявляет.
-     * Определения операций не объявляют {@code READ} вовсе: у типа это CREATE/UPDATE/DELETE, у
-     * именованной операции — EXECUTE.</p>
+     * <p>P-U: полное ENTITY-определение объявляет READ и поддерживаемые операции записи.
+     * Все независимые флаги адресуют общую строку. ACTION выражает только EXECUTE, REST — READ.</p>
      *
      * <p>Экран берёт набор отсюда, а не выводит его сам: пока набор флагов выводится в двух
      * местах (в экране и в выдаче), кнопка и записанная строка расходятся — именно так и
@@ -242,9 +241,10 @@ public class AccessGrantAdminService {
     @Transactional
     public void saveGrants(String dimension, AccessGrant.SubjectType subjectType, String subjectKey,
                            Map<Long, GrantFlags> desiredByValueId) {
-        if (isC5ReadDimension(dimension)) {
-            throw new IllegalArgumentException("C5 read permission '" + dimension
-                + "' has no value-scoped grants; edit its read flag with saveSingleGrant");
+        permissionSubjectLock.acquire(subjectType, subjectKey);
+        if (isOperationDimension(dimension) || isC5ReadDimension(dimension)) {
+            throw new IllegalArgumentException("C5 permission '" + dimension
+                + "' has no value-scoped grants; edit its independent flags with saveSingleGrant");
         }
         Map<Long, AccessGrant> existingByValueId = new HashMap<>();
         for (AccessGrant grant : accessGrantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
@@ -307,6 +307,7 @@ public class AccessGrantAdminService {
     @Transactional
     public void saveSingleGrant(String dimension, AccessGrant.SubjectType subjectType, String subjectKey,
                                 GrantFlags flags) {
+        permissionSubjectLock.acquire(subjectType, subjectKey);
         if (dimension != null && dimension.startsWith("ATTR:")) {
             throw new IllegalArgumentException("Права на поля отменены; настраивайте доступ к сущности");
         }
@@ -339,13 +340,11 @@ public class AccessGrantAdminService {
     }
 
     /**
-     * Операция: выдаётся ровно то, что объявляет определение, — у типа это CREATE/UPDATE/DELETE
+     * Выдаётся ровно то, что объявляет определение, — у типа это READ/CREATE/UPDATE/DELETE
      * (флаг «изменение» решает CREATE/UPDATE, «удаление» — DELETE), у именованной операции
      * единственный флаг «изменение» решает {@code EXECUTE}. Выдача не записывает право, которого
-     * определение не решает, и не нормализует «чтение» из остальных флагов: с C5.7 у
-     * операционного ключа нет второй роли, в которой {@code canRead} что-то значит (чтение
-     * сущности решает read-ключ {@code ENTITY:<FQN>}), а строка гранта обязана говорить то, что
-     * она значит. Операция глобальна, поэтому исторические value-scoped строки не переиспользуются
+     * определение не решает, и не нормализует «чтение» из остальных флагов. У ENTITY все флаги
+     * самостоятельны и находятся в общей строке. Операция глобальна, поэтому value-scoped строки не переиспользуются
      * и не переписываются — как в C5 read.
      */
     private void saveSingleOperationGrant(String dimension, AccessGrant.SubjectType subjectType,
@@ -469,6 +468,7 @@ public class AccessGrantAdminService {
             }
         }
         for (String key : c5ReadPermissionRegistry.registeredKeys()) {
+            if (c5OperationPermissionRegistry.isRegistered(key)) continue;
             boolean granted = globalByDimension.getOrDefault(key, List.of()).stream()
                 .anyMatch(AccessGrant::isCanRead);
             if (!granted) {
@@ -482,7 +482,8 @@ public class AccessGrantAdminService {
     /** Решает ли хоть одна глобальная строка объявленные операции определения. */
     private static boolean decidesAnyOperation(List<AccessGrant> rows, Set<C5Operation> operations) {
         GrantFlags deciding = operationGrantFlags(operations);
-        return rows.stream().anyMatch(row -> (deciding.update() && row.isCanUpdate())
+        return rows.stream().anyMatch(row -> (deciding.read() && row.isCanRead())
+            || (deciding.update() && row.isCanUpdate())
             || (deciding.delete() && row.isCanDelete()));
     }
 
@@ -496,12 +497,12 @@ public class AccessGrantAdminService {
                                                                       String subjectKey) {
         Map<String, AccessService.EffectiveGrant> result = new LinkedHashMap<>();
         for (String dimension : availableDimensions()) {
-            if (isC5ReadDimension(dimension)) {
-                result.put(dimension, c5EffectiveGrant(dimension, subjectType, subjectKey));
-                continue;
-            }
             if (isOperationDimension(dimension)) {
                 result.put(dimension, operationEffectiveGrant(dimension, subjectType, subjectKey));
+                continue;
+            }
+            if (isC5ReadDimension(dimension)) {
+                result.put(dimension, c5EffectiveGrant(dimension, subjectType, subjectKey));
                 continue;
             }
             AccessService.EffectiveGrant grant = subjectType == AccessGrant.SubjectType.USER
@@ -523,12 +524,8 @@ public class AccessGrantAdminService {
      * движком — теми же определениями, тем же ключом и тем же отображением флагов
      * (CREATE/UPDATE/EXECUTE → «изменение», DELETE → «удаление»).</p>
      *
-     * <p>Столбец «Чтение» операция не решает вовсе, и это ответ C5, а не пробел: определение
-     * операций не объявляет READ. Чтение сущности решается отдельным read-ключом
-     * {@code ENTITY:<FQN>} (своей строкой на экране), и с C5.7 у короткого {@code ENTITY:<Имя>}
-     * ключа нет второй роли в RLS — ни гейта видимости плитки, ни гейта чтения; и то, и другое
-     * спрашивает решение C5 о чтении. Поэтому здесь спрашивается ровно объявленное: «чтение» у
-     * операционного измерения остаётся ответом определения.
+     * <p>P-U: чтение и запись спрашивают самостоятельные операции единого ENTITY-определения.
+     * ACTION/REST также спрашивают только объявленные операции; RLS-wildcard не участвует.
      */
     private AccessService.EffectiveGrant operationEffectiveGrant(String dimension,
                                                                  AccessGrant.SubjectType subjectType,

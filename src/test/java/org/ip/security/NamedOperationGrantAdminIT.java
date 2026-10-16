@@ -120,8 +120,8 @@ class NamedOperationGrantAdminIT {
                 .as("EXECUTE решается флагом «изменение»; чтения и удаления у операции нет")
                 .isEqualTo(new GrantFlags(false, true, false));
             assertThat(accessGrantAdminService.expressibleFlags(READ_KEY))
-                .as("read-ключ по-прежнему выражает только чтение")
-                .isEqualTo(new GrantFlags(true, false, false));
+                .as("единое ENTITY-определение AttributeValue поддерживает чтение и создание")
+                .isEqualTo(new GrantFlags(true, true, false));
         });
 
         assertThat(namedOperationOwners)

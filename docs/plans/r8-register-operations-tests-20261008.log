@@ -1,0 +1,474 @@
+Access is denied.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Vaa25_1 ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Vaa25_1 ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 371 source files with javac [debug parameters release 21] to target\classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[759,53] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[759,67] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[760,17] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[760,48] com.vaadin.flow.component.ScrollOptions in com.vaadin.flow.component has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/admin/EntitySummaryPanel.java:[759,33] scrollIntoView(com.vaadin.flow.component.ScrollOptions) in com.vaadin.flow.dom.Element has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReconcileDialog.java:[32,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[157,9] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[157,41] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[158,31] Upload(com.vaadin.flow.component.upload.Receiver) in com.vaadin.flow.component.upload.Upload has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[162,21] addSucceededListener(com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.upload.SucceededEvent>) in com.vaadin.flow.component.upload.Upload has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[392,9] com.vaadin.flow.server.StreamResource in com.vaadin.flow.server has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[392,39] com.vaadin.flow.server.StreamResource in com.vaadin.flow.server has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[394,27] Anchor(com.vaadin.flow.server.AbstractStreamResource,java.lang.String) in com.vaadin.flow.component.html.Anchor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportCatalogView.java:[401,29] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportStructureEditor.java:[1634,13] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ipro/reportstudio/query/constructor/JpqlQueryBuilderDialog.java:[81,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportPreviewDialog.java:[42,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportPreviewDialog.java:[78,16] setSrc(com.vaadin.flow.server.AbstractStreamResource) in com.vaadin.flow.component.html.IFrame has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/views/reportstudio/ReportQueryDialog.java:[47,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/Application.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ip/Application.java: Recompile with -Xlint:deprecation for details.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ipro/reportstudio/query/ReportQueryExecutor.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/main/java/org/ipro/reportstudio/query/ReportQueryExecutor.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-application-runtime-dependency-tree) @ Vaa25_1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\target\application-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ Vaa25_1 ---
+[INFO] Copying 30 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ Vaa25_1 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 340 source files with javac [debug parameters release 21] to target\test-classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/NomenclaturePriceCteSpikeTest.java:[78,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/application/register/TwoDimensionRegisterCteSpikeTest.java:[48,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/config/JpqlRunServiceTest.java:[70,34] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/config/JpqlRunServiceTest.java:[75,40] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[384,51] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[404,51] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[547,20] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[548,9] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java:[548,35] com.vaadin.flow.component.upload.receivers.MemoryBuffer in com.vaadin.flow.component.upload.receivers has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/jr/JrxmlExecutionIT.java:[88,34] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/jr/JrxmlExecutionIT.java:[93,17] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/param/ReportParamResolutionIT.java:[93,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/param/ReportParamResolutionIT.java:[95,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateExecutorIT.java:[46,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateFilterIT.java:[63,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/CteHibernateSmokeIT.java:[34,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryExecutionIT.java:[80,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryExecutionIT.java:[82,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/ReportQueryGuardTest.java:[66,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/SubqueryRlsIT.java:[87,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryGuardIT.java:[51,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryPackageRlsIT.java:[60,16] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryQ6HibernateIT.java:[53,20] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/VisualQueryQ6HibernateIT.java:[55,17] ReportQueryGuard(org.ipro.reportstudio.query.QuerySemanticAnalyzer,org.ipro.rls.AccessService,org.ipro.rls.RlsDimensionRegistry,org.ipro.rls.RlsCurrentUser,jakarta.persistence.EntityManagerFactory) in org.ipro.reportstudio.query.ReportQueryGuard has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/register/RegisterSliceCteGeneratorTest.java:[921,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ipro/reportstudio/query/register/RegisterSliceCteGeneratorTest.java:[937,24] ReportQueryExecutor(jakarta.persistence.EntityManager,org.ipro.rls.RlsFilterActivator) in org.ipro.reportstudio.query.ReportQueryExecutor has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/groupgrid/GroupingPanelView.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/groupgrid/GroupingPanelView.java: Recompile with -Xlint:deprecation for details.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/form/coordinator/DialogWorkspaceResolutionIT.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/src/test/java/org/ip/form/coordinator/DialogWorkspaceResolutionIT.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.PlatformApiBaselineTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.887 s -- in org.ipro.PlatformApiBaselineTest
+[INFO] Running org.ipro.register.InformationRegisterRecorderPersistenceTest
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+23:36:43.914 [main] INFO org.hibernate.orm.core -- HHH000001: Hibernate ORM core version 7.2.12.Final
+23:36:46.051 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:36:47.438 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:36:47.506 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_e662462d-1187-45dd-8b38-2ee4132400c0;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_E662462D-1187-45DD-8B38-2EE4132400C0/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:36:49.786 [main] INFO org.hibernate.validator.internal.util.Version -- HV000001: Hibernate Validator 9.0.1.Final
+23:36:53.960 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:36:57.153 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:57.172 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:57.203 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:57.212 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:57.473 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:36:57.485 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:36:57.486 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_bd4102d9-dfed-4ad7-b061-59cf3f88ff9a;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_BD4102D9-DFED-4AD7-B061-59CF3F88FF9A/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:36:57.919 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:36:58.114 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:58.123 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:58.195 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:58.202 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:58.337 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:36:58.348 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:36:58.350 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_0f070ce7-c8e2-44fe-97eb-02eb7f90d07f;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_0F070CE7-C8E2-44FE-97EB-02EB7F90D07F/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:36:58.808 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:36:59.128 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:36:59.142 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:36:59.143 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_7f1ce1df-2701-48ac-bbbd-475bd15448cf;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_7F1CE1DF-2701-48AC-BBBD-475BD15448CF/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:36:59.539 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:36:59.725 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:59.733 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:36:59.775 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=register-test-user, reason=delete dependent rows before root deletion
+23:36:59.786 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=register-test-user, reason=delete dependent rows before root deletion
+23:36:59.923 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:36:59.931 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:36:59.933 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_38a29f72-a13a-4ea7-b7d0-116b3654a726;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_38A29F72-A13A-4EA7-B7D0-116B3654A726/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:00.356 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:00.728 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:00.738 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:00.756 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:00.766 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:00.784 [main] WARN org.hibernate.orm.session -- HHH90010101: Closing shared session with unprocessed transaction completion actions
+23:37:02.028 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:02.036 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:02.059 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:02.070 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:02.223 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:02.234 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:02.235 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_19969327-64fd-40fe-b5ca-94aa085c309e;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_19969327-64FD-40FE-B5CA-94AA085C309E/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:02.627 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:02.727 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:02.734 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:02.782 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:02.790 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:02.900 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:02.908 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:02.910 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_1e7ce164-63b3-4525-9e4b-74a56ea8d90c;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_1E7CE164-63B3-4525-9E4B-74A56EA8D90C/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:03.239 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:03.578 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:03.591 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:03.592 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_22edc7bd-b91a-41d0-a637-baac99badc92;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_22EDC7BD-B91A-41D0-A637-BAAC99BADC92/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:03.963 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:04.262 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:04.270 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:04.271 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_5cf87d68-8297-480c-a1c6-5230e0141d4e;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_5CF87D68-8297-480C-A1C6-5230E0141D4E/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:04.569 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:04.758 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:04.767 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:04.910 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:04.919 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:04.920 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_6cc632df-a407-4a66-a9e7-99d72a1b7ae4;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_6CC632DF-A407-4A66-A9E7-99D72A1B7AE4/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:05.264 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:06.408 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:06.447 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:06.451 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_e3f7c45d-1c03-4c3e-aec2-c81c57e8f94c;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_E3F7C45D-1C03-4C3E-AEC2-C81C57E8F94C/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:06.822 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:07.016 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:07.025 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:07.026 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_ee9a28f7-b431-4ce9-bce8-691b65988113;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_EE9A28F7-B431-4CE9-BCE8-691B65988113/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:07.317 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:07.508 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:07.517 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:07.631 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:07.638 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:07.639 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_95ae90d5-2301-48eb-adbf-1f9abac94487;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_95AE90D5-2301-48EB-ADBF-1F9ABAC94487/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:07.937 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:08.103 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:08.109 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:08.116 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:08.120 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:08.232 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:08.239 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:08.240 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_393a7b01-2f7f-472a-87e2-cf401c57b241;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_393A7B01-2F7F-472A-87E2-CF401C57B241/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:08.547 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:08.768 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:08.776 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:08.777 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_7d162c0e-21a6-4813-80b6-fb704d32f204;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_7D162C0E-21A6-4813-80B6-FB704D32F204/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:09.086 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:09.258 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:09.266 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:09.339 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:09.345 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:09.442 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:09.448 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:09.449 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_a6ec3ec5-a901-4925-ab71-ab44e9786525;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_A6EC3EC5-A901-4925-AB71-AB44E9786525/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:09.775 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:09.886 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+23:37:09.889 [main] WARN org.hibernate.orm.jdbc.error -- ��������� ����������� ������� ��� ���������� �����: "PUBLIC.UK_REGISTER_NONPERIODIC_FIXTURE_KEY INDEX PUBLIC.UK_REGISTER_NONPERIODIC_FIXTURE_KEY_INDEX_F ON PUBLIC.REGISTER_NONPERIODIC_FIXTURE(ITEM_KEY NULLS FIRST) VALUES ( /* 1 */ 'item-a' )"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_NONPERIODIC_FIXTURE_KEY INDEX PUBLIC.UK_REGISTER_NONPERIODIC_FIXTURE_KEY_INDEX_F ON PUBLIC.REGISTER_NONPERIODIC_FIXTURE(ITEM_KEY NULLS FIRST) VALUES ( /* 1 */ 'item-a' )"; SQL statement:
+insert into register_nonperiodic_fixture (amount,createdAt,createdBy,item_key,modifiedAt,modifiedBy,version,id) values (?,?,?,?,?,?,?,default) [23505-240]
+23:37:09.920 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+23:37:09.920 [main] WARN org.hibernate.orm.jdbc.error -- ��������� ����������� ������� ��� ���������� �����: "PUBLIC.UK_REGISTER_PERIODIC_FIXTURE_KEY_PERIOD INDEX PUBLIC.UK_REGISTER_PERIODIC_FIXTURE_KEY_PERIOD_INDEX_9 ON PUBLIC.REGISTER_PERIODIC_FIXTURE(ITEM_KEY NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'item-a', TIMESTAMP '2026-10-05 00:00:00')"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_PERIODIC_FIXTURE_KEY_PERIOD INDEX PUBLIC.UK_REGISTER_PERIODIC_FIXTURE_KEY_PERIOD_INDEX_9 ON PUBLIC.REGISTER_PERIODIC_FIXTURE(ITEM_KEY NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'item-a', TIMESTAMP '2026-10-05 00:00:00')"; SQL statement:
+insert into register_periodic_fixture (amount,createdAt,createdBy,item_key,modifiedAt,modifiedBy,period_date,version,id) values (?,?,?,?,?,?,?,?,default) [23505-240]
+23:37:09.940 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+23:37:09.941 [main] WARN org.hibernate.orm.jdbc.error -- ��������� ����������� ������� ��� ���������� �����: "PUBLIC.UK_REGISTER_RECORDED_FIXTURE_RECORDER_LINE INDEX PUBLIC.UK_REGISTER_RECORDED_FIXTURE_RECORDER_LINE_INDEX_9 ON PUBLIC.REGISTER_RECORDED_FIXTURE(RECORDER_TYPE NULLS FIRST, RECORDER_ID NULLS FIRST, LINE_NO NULLS FIRST) VALUES ( /* key:1 */ 'fixture-document-a', CAST(1 AS BIGINT), 1)"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_RECORDED_FIXTURE_RECORDER_LINE INDEX PUBLIC.UK_REGISTER_RECORDED_FIXTURE_RECORDER_LINE_INDEX_9 ON PUBLIC.REGISTER_RECORDED_FIXTURE(RECORDER_TYPE NULLS FIRST, RECORDER_ID NULLS FIRST, LINE_NO NULLS FIRST) VALUES ( /* key:1 */ 'fixture-document-a', CAST(1 AS BIGINT), 1)"; SQL statement:
+insert into register_recorded_fixture (amount,createdAt,createdBy,item_key,line_no,modifiedAt,modifiedBy,recorder_id,recorder_type,recording_order,version,id) values (?,?,?,?,?,?,?,?,?,?,?,default) [23505-240]
+23:37:09.967 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+23:37:09.968 [main] WARN org.hibernate.orm.jdbc.error -- ��������� ����������� ������� ��� ���������� �����: "PUBLIC.UK_REGISTER_RECORDED_PERIODIC_FIXTURE_RECORDER_LINE INDEX PUBLIC.UK_REGISTER_RECORDED_PERIODIC_FIXTURE_RECORDER_LINE_INDEX_4 ON PUBLIC.REGISTER_RECORDED_PERIODIC_FIXTURE(RECORDER_TYPE NULLS FIRST, RECORDER_ID NULLS FIRST, LINE_NO NULLS FIRST) VALUES ( /* key:1 */ 'fixture-document-a', CAST(1 AS BIGINT), 1)"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_RECORDED_PERIODIC_FIXTURE_RECORDER_LINE INDEX PUBLIC.UK_REGISTER_RECORDED_PERIODIC_FIXTURE_RECORDER_LINE_INDEX_4 ON PUBLIC.REGISTER_RECORDED_PERIODIC_FIXTURE(RECORDER_TYPE NULLS FIRST, RECORDER_ID NULLS FIRST, LINE_NO NULLS FIRST) VALUES ( /* key:1 */ 'fixture-document-a', CAST(1 AS BIGINT), 1)"; SQL statement:
+insert into register_recorded_periodic_fixture (amount,createdAt,createdBy,item_key,line_no,modifiedAt,modifiedBy,period_date,recorder_id,recorder_type,recording_order,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default) [23505-240]
+23:37:10.077 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:10.086 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:10.087 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_cd1ab456-dbea-44eb-a732-7ba55c227c86;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_CD1AB456-DBEA-44EB-A732-7BA55C227C86/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:10.364 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:10.572 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:10.578 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:10.592 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:10.599 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:10.726 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:10.732 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:10.733 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_89dc8dee-25e3-42eb-92ec-1f29ea734cf8;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_89DC8DEE-25E3-42EB-92EC-1F29EA734CF8/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:11.030 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:11.200 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:11.207 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:11.208 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_3581abbb-9f06-47f1-aa11-0f7cd1db49ca;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_3581ABBB-9F06-47F1-AA11-0F7CD1DB49CA/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:11.504 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:11.632 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23513, SQLState: 23513
+23:37:11.633 [main] WARN org.hibernate.orm.jdbc.error -- ��������� �����������: "CONSTRAINT_46B: "
+Check constraint violation: "CONSTRAINT_46B: "; SQL statement:
+insert into register_recorded_periodic_fixture (amount,createdAt,createdBy,item_key,line_no,modifiedAt,modifiedBy,period_date,recorder_id,recorder_type,recording_order,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default) [23513-240]
+23:37:11.741 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+23:37:11.747 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+23:37:11.748 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_14fd504a-1bfd-49ee-9a13-3a3ffe325436;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_14FD504A-1BFD-49EE-9A13-3A3FFE325436/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+23:37:12.014 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+23:37:12.185 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:12.192 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:12.197 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:12.202 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:12.214 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+23:37:12.218 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 31.70 s -- in org.ipro.register.InformationRegisterRecorderPersistenceTest
+[INFO] Running org.ipro.register.RegisterDescriptorTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.060 s -- in org.ipro.register.RegisterDescriptorTest
+[INFO] Running org.ipro.register.RlsRecorderSetWriteAuthorizerTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.055 s -- in org.ipro.register.RlsRecorderSetWriteAuthorizerTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 29, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:13 min
+[INFO] Finished at: 2026-10-08T23:37:12+03:00
+[INFO] ------------------------------------------------------------------------

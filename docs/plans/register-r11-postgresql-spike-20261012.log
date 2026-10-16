@@ -1,0 +1,34 @@
+Р11 PostgreSQL-спайк записи по ключу — 2026-10-12
+База: g3_register_test_r11_2fe8a873f07a48899280b50e2a04fd20 (изолированная, оставлена для диагностики)
+Сервер: PostgreSQL 17.10, Windows x86_64, READ COMMITTED; JDK 21 (AxiomJDK-21)
+Команда: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-r11-postgresql.ps1
+Класс: RegisterKeyWriteConcurrencyPostgresIT
+
+=== Maven ===
+[INFO] Running org.ipro.register.RegisterKeyWriteConcurrencyPostgresIT
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.76 s -- in org.ipro.register.RegisterKeyWriteConcurrencyPostgresIT
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  18.688 s
+
+=== Проверки (surefire) ===
+      1 uniqueViolationRollsBackTheWholeAttemptAndRefusesContinuation
+      1 spikeFixtureIsADeclaredIndependentPeriodicRegisterWithAPhysicalKey
+      1 retryBudgetIsBoundedWhenACompetitorKeepsTakingTheKey
+      1 resourceOnlySetNeverMovesTheKeyAndCheckedSetDoesNotCreateRows
+      1 postgresRefusesToContinueATransactionAfterAStatementError
+      1 loserOfTheInsertRaceConvergesThroughBoundedRetryWithoutDuplicatingTheWrite()[3]
+      1 loserOfTheInsertRaceConvergesThroughBoundedRetryWithoutDuplicatingTheWrite()[2]
+      1 loserOfTheInsertRaceConvergesThroughBoundedRetryWithoutDuplicatingTheWrite()[1]
+      1 failuresAreClassifiedBySqlStateAndOnlyTransientOnesAreRetried
+      1 failedAttemptLeavesNeitherRowNorAuditRecord
+      1 deleteByKeyRequiresTheVersionAndTreatsAbsenceAsAVerdict
+      1 concurrentInsertOfOneAbsentKeyHasOneWinnerAndTheLoserIsClassified()[3]
+      1 concurrentInsertOfOneAbsentKeyHasOneWinnerAndTheLoserIsClassified()[2]
+      1 concurrentInsertOfOneAbsentKeyHasOneWinnerAndTheLoserIsClassified()[1]
+      1 checkedUpdateHasOneWinnerAndTheLoserIsNotRetried()[3]
+      1 checkedUpdateHasOneWinnerAndTheLoserIsNotRetried()[2]
+      1 checkedUpdateHasOneWinnerAndTheLoserIsNotRetried()[1]
+      1 canonicalBatchOrderAvoidsDeadlockAndDifferentKeysDoNotConflict()[3]
+      1 canonicalBatchOrderAvoidsDeadlockAndDifferentKeysDoNotConflict()[2]
+      1 canonicalBatchOrderAvoidsDeadlockAndDifferentKeysDoNotConflict()[1]

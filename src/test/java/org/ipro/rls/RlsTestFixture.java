@@ -173,12 +173,11 @@ public final class RlsTestFixture {
     public static void grantC5EntityOperations(AccessGrantRepository grants, String username,
                                                Class<?>... entityTypes) {
         for (Class<?> entityType : entityTypes) {
-            AccessGrant operations = new AccessGrant();
+            AccessGrant operations = entityGrant(grants, username, C5PermissionKeys.entity(entityType));
             operations.setSubjectType(AccessGrant.SubjectType.USER);
             operations.setSubjectKey(username);
             operations.setDimension(C5PermissionKeys.entityOperations(entityType));
             operations.setDimensionValueId(null);
-            operations.setCanRead(false);
             operations.setCanUpdate(true);
             grants.save(operations);
         }
@@ -207,7 +206,7 @@ public final class RlsTestFixture {
     public static void grantC5EntityRead(AccessGrantRepository grants, String username,
                                          Class<?>... entityTypes) {
         for (Class<?> entityType : entityTypes) {
-            AccessGrant entityRead = new AccessGrant();
+            AccessGrant entityRead = entityGrant(grants, username, C5PermissionKeys.entity(entityType));
             entityRead.setSubjectType(AccessGrant.SubjectType.USER);
             entityRead.setSubjectKey(username);
             entityRead.setDimension(C5PermissionKeys.entityRead(entityType));
@@ -216,5 +215,12 @@ public final class RlsTestFixture {
             grants.save(entityRead);
         }
         grants.flush();
+    }
+
+    private static AccessGrant entityGrant(AccessGrantRepository grants, String username, String key) {
+        return grants.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, username, key).stream().findFirst().orElseGet(() -> {
+                AccessGrant grant = new AccessGrant(); grant.setCanRead(false); return grant;
+            });
     }
 }

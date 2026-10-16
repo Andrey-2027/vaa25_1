@@ -18,12 +18,16 @@
 
     <name>GitVaa platform register</name>
     <description>
-        D-R (срез S0): декларация регистра и контракт его строки — аннотации, неизменяемый
-        descriptor, валидатор декларации, базовые классы обеих схем (периодическая и подчинённая
-        регистратору), SliceSpec со своим валидатором, нейтральные ссылки на регистратор и
-        охранники строки. Бинов на этом срезе нет: артефакт обязан собираться и подключаться,
-        не меняя регистрацию приложения. Замер замыкания показал, что цена выноса — перемещение,
-        а не рефакторинг: движок не называет ни одного прикладного типа.
+        D-R (срезы S0–S3): декларация регистра и контракт его строки (S0), затем чтение —
+        реестр объявлений, каталог типов-регистраторов, стартовая проверка деклараций,
+        точечный читатель, срезовый читатель и фабрика читателей по дескриптору (S1).
+        S2 привёз запись по ключу: команды set/delete и смены ключа, именованные операции,
+        охранник mapping'а и часы порядка подчинённых регистров вместе с их сущностью.
+        S3 закрыл вынос: протокол набора владельца — процедуры замены подчинённого набора под
+        canonical-сохранением документа, участие в удалении агрегата и заменяемый шов
+        авторизации строки. Замер замыкания показал, что цена трёх срезов — перемещение,
+        а не рефакторинг: движок не называет ни одного прикладного типа, а после S3 у него
+        один владелец — этот артефакт.
     </description>
 
     <properties>
@@ -31,6 +35,12 @@
         <maven.compiler.release>21</maven.compiler.release>
         <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
         <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
+        <platform-core.version>1.0-SNAPSHOT</platform-core.version>
+        <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
+        <platform-events.version>1.0-SNAPSHOT</platform-events.version>
+        <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
+        <platform-telemetry.version>1.0-SNAPSHOT</platform-telemetry.version>
+        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
     </properties>
 
     <!--
@@ -39,13 +49,32 @@
       1. platform-contracts — аннотации метаданных полей (@FieldMetadata, @GridColumn):
          descriptor описывает измерения и ресурсы по метаданным платформы;
       2. platform-persistence — BaseEntity: строки регистра являются сущностями дерева/модуля;
-      3. Hibernate — детали прокси-модели (Hibernate.unproxy) и события записи, на которых
+      3. platform-core (S1) — managed-каталог сущностей (ManagedEntityCatalog, MetadataResolver)
+         и канонический порт чтения EntityDataAccess: читатель видит регистр только через него,
+         поэтому C5/RLS/экспозиция/FetchPlan/телеметрия остаются теми же, что у остальных чтений;
+      4. filtergrid-core (S1) — дерево условий (FilterNode/FilterGroup/FilterConditionNode):
+         фазы отбора листового списка делят измерения и ресурсы до выбора победителя;
+      5. Hibernate — детали прокси-модели (Hibernate.unproxy) и события записи, на которых
          стоит охранник строки подчинённого регистра;
-      4. JPA и validation API — аннотации маппинга и Bean Validation.
+      6. JPA, Bean Validation и Spring (data/beans/context/autoconfigure) — аннотации маппинга,
+         критерии среза, спецификации и объявление собственной read-конфигурации.
 
-      Реализации верхних слоёв (data path, form, rls, telemetry, отчёты, UI) запрещены:
-      срезы S1–S3 добавляют чтение, запись по ключу и протокол набора владельца, и каждый
-      добавляет ровно те зависимости, которые нужны ему, а не все сразу.
+      S2 (запись по ключу) добавил ровно то, что назвал замер среза: платформенный
+      RLS-авторитет операции (11 типов), события и lifecycle-хуки строки, телеметрический
+      durable-аудит, нейтральный identity-контракт (IdentifiableEntity — тот же leaf-модуль
+      реактора crudui, на который опирается platform-core), Hibernate-события для охранника
+      mapping'а и часы порядка подчинённых регистров вместе со своей сущностью
+      (тогда же приехал @EntityScan этого пакета — владелец сущности объявляет её сам).
+
+      S3 (набор владельца) не добавил зависимостей, и это результат замера, а не экономия:
+      процедура набора и оба её участия в платформенных швах сохранения и удаления агрегата
+      держатся за platform-core (интерфейсы участников и каноническое удаление), platform-rls
+      (решение об операции строки) и spring-tx (граница транзакции владельца) — то же, что уже
+      нужно записи по ключу. Новое здесь — не зависимость, а роль: шов авторизации остаётся
+      заменяемым, поэтому платформенная реализация не притворяется единственной.
+
+      Реализации верхних слоёв (form, отчёты, UI) по-прежнему запрещены: срезы приносят движок,
+      но не интерфейс — он остаётся S4 (platform-register-vaadin), и приложение его не собирает.
     -->
     <dependencies>
         <dependency>
@@ -72,22 +101,178 @@
             <artifactId>hibernate-core</artifactId>
         </dependency>
 
-        <!--
-          Первый собственный тест модуля — забор ролей поверхности (RegisterSurfaceRoleTest).
-          Он рефлексивный и потому не тянет Spring: носитель проверки — артефакт и его решения,
-          а не контекст приложения. Свой прогон тестов у модуля появляется до S3 осознанно:
-          приёмка программы требует, чтобы модуль проверялся своей сборкой, а не только сборкой
-          приложения (buildSteps манифеста гоняют модуль с тестами).
-        -->
+        <!-- S1: управляемый каталог сущностей и канонический порт чтения. -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-core</artifactId>
+            <version>${platform-core.version}</version>
+        </dependency>
+
+        <!-- S1: дерево условий листового отбора (фазы «измерения / после среза»). -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-core</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+
+        <!-- S2: запись по ключу проходит через тот же платформенный авторитет операции и RLS.
+             Прямых прав на поля нет (ADR-0018), а полномочий документа не требуется: строка
+             самостоятельного регистра владельца-документа не имеет (ADR-0019). -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rls</artifactId>
+            <version>${platform-rls.version}</version>
+        </dependency>
+
+        <!-- S2: канонические lifecycle-хуки строки (beforeSave/beforeUpdate/onSave) и события
+             после commit — те же, через которые идёт любая другая запись платформы. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-events</artifactId>
+            <version>${platform-events.version}</version>
+        </dependency>
+
+        <!-- S2: durable-аудит изменения ключа через существующий EventSink; новых таблиц нет. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-telemetry</artifactId>
+            <version>${platform-telemetry.version}</version>
+        </dependency>
+
+        <!-- S2: IdentifiableEntity — нейтральный Java-only контракт идентичности. Его же
+             использует platform-core, поэтому это не новый внешний слой, а тот же leaf. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-identity-api</artifactId>
+            <version>${platform-identity.version}</version>
+        </dependency>
+
+        <!-- S2: EntityManagerFactoryUtils для засева часов порядка в своей транзакции. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+
+        <!-- S2: @EntityScan пакета сущности порядка записи — владелец сущности объявляет её сам. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-persistence</artifactId>
+        </dependency>
+
+        <!-- S2: durable-аудит пишется JSON-полезной нагрузкой изменений ключа. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- S1: страницы и спецификации среза (spring-data-commons + spring-data-jpa). -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+
+        <!-- S1: объявление собственной read-конфигурации модуля (@AutoConfiguration/@Bean)
+             и жизненный цикл стартовых проверок (SmartInitializingSingleton). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
+        <!--
+          Тесты движка (S5(в)). Раньше 17 тестов держало приложение: две из них импортировали
+          прикладные сущности, остальные — внутридеревные фикстуры. После перевода на модульные
+          фикстуры внешних опор у тестов нет, и приёмкой становится сборка самого модуля
+          (план §6.5), а не сборка приложения: только так расхождение «движок и его проверки»
+          видно на границе артефакта. Набор тестовых опор взят у остальных платформенных
+          модулей (platform-core, platform-persistence, platform-rls): JUnit, AssertJ, Mockito,
+          контекст Spring и ReflectionTestUtils приезжают одним стартером, а не восьмью
+          записями, у каждой из которых своя причина устареть.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!--
+          Настоящий Jakarta Validation provider: без него не поднимается ни Hibernate mapping
+          строки регистра, ни её запись через canonical-сохранение. Продакшн получает его от
+          контейнера потребителя (у приложения — spring-boot-starter-validation), поэтому модулю
+          он нужен ровно на время своих тестов.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- H2 — прогон записи по ключу и набора владельца на настоящем JPA/Hibernate без сервера. -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!--
+          spring-aspects нужен только тестам, которые строят настоящий Hibernate mapping, и
+          найден это не догадкой: Hibernate 7 при разборе @EntityListeners обязан загрузить сам
+          класс слушателя, а spring-data-jpa компилирует
+          org.springframework.data.jpa.domain.support.AuditingEntityListener так, что он
+          implements org.springframework.beans.factory.aspectj.ConfigurableObject. Этот тип живёт
+          в spring-aspects, и без него сборка метаданных падает на @EntityListeners у BaseEntity
+          (NoClassDefFoundError), хотя ни одна строка регистра его не называет. В приложении ту же
+          роль играет spring-boot-starter-aspectj, поэтому дефект был невидим, пока тесты жили
+          там; модуль называет зависимость явно — так же, как platform-persistence для тестов
+          BaseEntity. Продакшн-код модуля этот артефакт не требует: mapping читает контейнер
+          потребителя, а не движок.
+        -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- PostgreSQL — то, чего H2 не проверяет: блокировки строки порядка, гонки записи по ключу
+             и поведение unique-ключа при параллельных попытках (скрипты register-r8/s3/r11).
+             Тесты сами пропускаются, если IPRO_REGISTER_G3_JDBC_URL не задан, поэтому драйвер
+             нужен сборке, а не только прогону с базой. -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+              Тот же отбор тестов, что у приложения: PostgreSQL-прогоны среза называются
+              {@code *PostgresIT} и без базы сами снимают себя через Assumptions. Без этой записи
+              surefire 3 не собрал бы их вовсе, и «пропущено из-за отсутствия базы» подменилось бы
+              «не найдено» — то есть тишиной вместо названного пропуска.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*IT.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

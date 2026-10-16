@@ -166,12 +166,27 @@ public final class RlsStatementGuard implements SqlStatementAudit {
         }
         if (scope == RlsBypassScope.RLS_ADMINISTRATION) {
             String allowedTable = scope.administrationTable(RlsContext.currentReason());
+            Set<String> registeredTables = RlsContext.currentApprovedTables();
+            if (!registeredTables.isEmpty()) {
+                if (normalized.contains(" join ") || normalized.contains(" union ") || normalized.contains(";")) {
+                    throw new RlsAccessDeniedException("Dimension administration permits only source and grant subqueries");
+                }
+                var references = FROM_TABLE.matcher(normalized);
+                while (references.find()) {
+                    String reference = references.group(1);
+                    String table = reference.substring(reference.lastIndexOf('.') + 1)
+                        .replace("\"", "").replace("`", "").toLowerCase(Locale.ROOT);
+                    if (!registeredTables.contains(table) && !table.equals("access_grant")) {
+                        throw new RlsAccessDeniedException("Unapproved administration source table " + table);
+                    }
+                }
+            }
             boolean allowedSeen = false;
             for (TableCheck check : tables) {
                 if (!check.pattern().matcher(normalized).find()) {
                     continue;
                 }
-                if (!check.table().equalsIgnoreCase(allowedTable)) {
+                if (!check.table().equalsIgnoreCase(allowedTable) && !registeredTables.contains(check.table().toLowerCase(Locale.ROOT))) {
                     throw new RlsAccessDeniedException(
                         "RLS administration bypass cannot query table " + check.table());
                 }

@@ -9,6 +9,7 @@ public enum RlsBypassScope {
     DEPENDENT_ROW_CLEANUP(Set.of("delete dependent rows before root deletion")),
     RECORDER_SET_REPLACEMENT(Set.of("read exact recorder set before replacement")),
     RLS_ADMINISTRATION(Set.of(
+        "page registered dimension values",
         "list all JOURNAL dimension values",
         "list all BRANCH dimension values"
     ));

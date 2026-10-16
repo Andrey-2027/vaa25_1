@@ -1,5 +1,7 @@
 package org.ip.views.unidr;
 
+import org.ipro.form.SelectionFormAssembler;
+
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -26,7 +28,7 @@ final class UniDrConditionsEditor {
     private final UniDrSourceDefinition source;
     private final UniDrReferenceService references;
     private final Runnable changed;
-    private final org.ipro.form.SelectionFormAssembler selection;
+    private final SelectionFormAssembler selection;
     private boolean updating;
     private int sequence;
 
@@ -35,7 +37,7 @@ final class UniDrConditionsEditor {
         this(source,initialParameters,initialFilters,references,changed,null);
     }
     UniDrConditionsEditor(UniDrSourceDefinition source,List<Parameter> initialParameters,List<Filter> initialFilters,
-                          UniDrReferenceService references,Runnable changed,org.ipro.form.SelectionFormAssembler selection) {
+                          UniDrReferenceService references,Runnable changed,SelectionFormAssembler selection) {
         this.selection=selection;
         this.source=source; this.references=references; this.changed=changed;
         parameterPane.setPadding(false); filterPane.setPadding(false); parameterRows.setPadding(false); filterRows.setPadding(false);

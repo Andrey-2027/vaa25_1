@@ -3,10 +3,9 @@ package org.ip.application.register;
 import org.ip.model.Nomenclature;
 import org.ip.model.NomenclaturePrice;
 import org.ipro.crud.ValidationException;
-import org.ipro.data.EntityDataAccess;
 import org.ipro.register.RegisterKeyWrites;
 import org.ipro.register.RegisterReader;
-import org.ipro.register.RegisterRegistry;
+import org.ipro.register.RegisterReaderFactory;
 import org.springframework.stereotype.Component;
 
 import jakarta.persistence.OptimisticLockException;
@@ -21,7 +20,9 @@ import java.util.Optional;
  *
  * <p>Создание бина проверяет декларацию регистра ({@link RegisterReader}): ошибка в
  * {@code @RegisterMetadata} или в маппинге ключа остановит старт приложения, а не обнаружится при
- * первом чтении.</p>
+ * первом чтении. Читатель берётся у {@link RegisterReaderFactory} по дескриптору: S1 оставил
+ * ровно одно место сборки читателя на дерево, поэтому новый регистр не может обзавестись вторым
+ * способом чтения мимо реестра.</p>
  *
  * <p><b>Запись.</b> Цена записывается командой регистра по полному ключу {@code (номенклатура,
  * дата)}, а не решением приложения «создать или обновить». Upsert, проверка исходной версии,
@@ -35,9 +36,8 @@ public class NomenclaturePriceService {
     private final RegisterReader<NomenclaturePrice> reader;
     private final RegisterKeyWrites writes;
 
-    public NomenclaturePriceService(EntityDataAccess access, RegisterRegistry registry,
-            RegisterKeyWrites writes) {
-        this.reader = new RegisterReader<>(NomenclaturePrice.class, access, registry);
+    public NomenclaturePriceService(RegisterReaderFactory readers, RegisterKeyWrites writes) {
+        this.reader = readers.point(NomenclaturePrice.class);
         this.writes = writes;
     }
 

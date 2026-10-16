@@ -50,7 +50,10 @@ class PersistenceTypeRegistrationTest {
         Path.of("platform-rls/src/main/java"),
         // D3.5.4: UI-модуль сущностей не несёт, но корень перечислен — иначе появление
         // @Entity/@Repository здесь не увидел бы ни один забор этого файла.
-        Path.of("platform-vaadin/src/main/java"));
+        Path.of("platform-vaadin/src/main/java"),
+        // D-R S4: то же самое для стандартного интерфейса регистра: сущностей он не несёт
+        // (его фикстуры живут в тестах), но корень обязан быть виден забору заранее.
+        Path.of("platform-register-vaadin/src/main/java"));
 
     /** Пакеты, которые обязаны быть объявлены в @EntityScan (reviewed). */
     private static final Set<String> REVIEWED_ENTITY_PACKAGES = Set.of(
@@ -81,6 +84,11 @@ class PersistenceTypeRegistrationTest {
      * {@code @EnableJpaRepositories} сюда не попадёт и в проверке срезов участвовать не будет.
      */
     private static final Set<String> REVIEWED_SELF_REGISTERING_MODULES = Set.of(
+        // D-R S2: вместе с командами записи по ключу в platform-register приехала сущность
+        // порядка записи (RecorderOrderClock), поэтому пакет org.ipro.register.persistence
+        // объявляет сам артефакт-владелец, а не приложение: до S2 это была временная запись
+        // приложения ровно до переезда сущности.
+        "platform-register",
         "platform-numbering", "platform-settings", "platform-telemetry",
         "platform-rls");
 

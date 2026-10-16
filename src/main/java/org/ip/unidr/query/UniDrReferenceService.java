@@ -5,6 +5,7 @@ import org.ip.unidr.run.UniDrAccess;
 import org.ip.unidr.run.UniDrRunException;
 import org.ipro.crud.BaseEntity;
 import org.ipro.crud.EntityLookup;
+import org.ipro.metadata.HasDisplayName;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -13,13 +14,26 @@ import java.util.function.Function;
 
 /** The existing canonical lookup is the only reference read path; no caller-supplied Java types. */
 public final class UniDrReferenceService {
-    public record Option(Long id, String caption) implements org.ipro.metadata.HasDisplayName {
+    public record Option(Long id, String caption) implements HasDisplayName {
         @Override public String getDisplayName() {return caption;}
         @Override public String toString() {return java.util.Objects.toString(caption,"");}
     }
     private final EntityLookup lookup;
     private final UniDrAccess access;
     private final TransactionTemplate reads;
+    private java.util.Map<String,Class<?>> entityTypes=java.util.Map.of();
+    public void useEntityTypes(java.util.Collection<? extends Class<?>> types) {
+        var allowed=new java.util.LinkedHashMap<String,Class<?>>();types.forEach(type->allowed.put(type.getName(),type));entityTypes=java.util.Map.copyOf(allowed);
+    }
+    public Class<?> entityType(String name) {
+        Class<?> type=entityTypes.get(name);if(type==null)throw new IllegalArgumentException("Тип сущности недоступен");return type;
+    }
+    public Object entity(String name,Long id) {
+        access.requireUser();Class<?> type=entityType(name);
+        if(id==null || id<=0)throw new UniDrRunException(UniDrRunException.Code.REFERENCE_UNAVAILABLE,"Выбранная ссылка не найдена или недоступна");
+        return reads.execute(status->lookup.findSelectedById(type,id).orElseThrow(()->new UniDrRunException(UniDrRunException.Code.REFERENCE_UNAVAILABLE,"Выбранная ссылка не найдена или недоступна")));
+    }
+    public void requireEntity(String name,Long id){entity(name,id);}
 
     public UniDrReferenceService(EntityLookup lookup, UniDrAccess access, PlatformTransactionManager transactions) {
         this.lookup = lookup; this.access = access;

@@ -7,6 +7,9 @@ import org.ipro.crud.ValidationException;
 import org.ipro.data.EntityDataAccess;
 import org.ipro.events.EventSource;
 import org.ipro.rls.RlsPolicyEnforcer;
+import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.c5.C5PermissionDecisionService;
+import org.ipro.rls.c5.C5Operation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -18,13 +21,17 @@ public class AccountingObjectSaveService {
     private final MetadataDrivenAggregateSaveService aggregateSave;
     private final RlsPolicyEnforcer rights;
     private final AccountingObjectRegisterService registerReader;
+    private final C5PermissionDecisionService permissions;
+    private final RlsCurrentUser currentUser;
 
     public AccountingObjectSaveService(AccountingObjectRegisterRepository persistence, EntityDataAccess access,
             MetadataDrivenAggregateSaveService aggregateSave, RlsPolicyEnforcer rights,
-            AccountingObjectRegisterService registerReader) {
+            AccountingObjectRegisterService registerReader, C5PermissionDecisionService permissions,
+            RlsCurrentUser currentUser) {
         this.persistence = persistence; this.access = access; this.aggregateSave = aggregateSave;
         this.rights = rights;
         this.registerReader = registerReader;
+        this.permissions = permissions; this.currentUser = currentUser;
     }
 
     @Transactional
@@ -38,8 +45,10 @@ public class AccountingObjectSaveService {
         if (sections.size() != 1 || sections.getFirst().rowType() != itemClass) {
             throw new ValidationException("Сохранение объекта учёта требует полного списка позиций документа");
         }
+        String username = currentUser.requireAuthenticatedUsername();
+        permissions.requireEntity(username, document.getClass(), document.getId() == null ? C5Operation.CREATE : C5Operation.UPDATE);
+        permissions.requireEntity(username, NomenclatureAccountingObject.class, C5Operation.CREATE);
         rights.requireUpdate(document);
-        rights.requireUpdate(new NomenclatureAccountingObject());
         if (document.getWorkshop() == null || document.getWorkshop().getId() == null || document.getDate() == null) {
             throw new ValidationException("Укажите сохранённый цех и дату документа");
         }

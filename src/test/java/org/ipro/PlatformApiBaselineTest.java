@@ -201,10 +201,11 @@ class PlatformApiBaselineTest {
 
         assertThat(semantic)
             .as("семантическую классификацию прошли platform-core, platform-navigation,"
-                + " platform-register, platform-rest, platform-rest-web и platform-vaadin; новый"
-                + " артефакт без реестра ролей не должен тихо замерзать целиком, включая реализацию")
+                + " platform-register, platform-register-vaadin, platform-rest, platform-rest-web и"
+                + " platform-vaadin; новый артефакт без реестра ролей не должен тихо замерзать"
+                + " целиком, включая реализацию")
             .isEqualTo(List.of("platform-core", "platform-navigation", "platform-register",
-                "platform-rest", "platform-rest-web", "platform-vaadin"));
+                "platform-register-vaadin", "platform-rest", "platform-rest-web", "platform-vaadin"));
         assertThat(temporary)
             .as("долг D3.9: эти артефакты всё ещё заморожены целиком, включая реализацию")
             .isNotEmpty();
@@ -273,11 +274,19 @@ class PlatformApiBaselineTest {
      * судьбу всех 17 перенесённых типов, включая четыре реализации. Оставить модуль в
      * {@code TEMPORARY_ALL_PUBLIC} значило бы заморозить охранник строки и оба валидатора как
      * часть контракта — то есть назначить реализацию поверхностью по умолчанию.</p>
+     *
+     * <p>{@code platform-register-vaadin} (D-R S4) получил реестр
+     * ({@code META-INF/register-vaadin-surface.txt}) тем же изменением, что создал артефакт, и по
+     * той же причине — но с дополнительным смыслом: пять его типов приехали из приложения, и
+     * переезд сменил носителя обещания, поэтому роль пересматривалась, а не наследовалась. Без
+     * этого модуль замерзал бы целиком, включая диалог смены ключа и конфигурацию среза.</p>
      */
     private static final Map<String, Path> SEMANTIC_ROLE_REGISTRIES = Map.of(
         "platform-core", Path.of("src/test/resources/platform-core-surface.txt"),
         "platform-navigation", Path.of("platform-navigation/src/main/resources/META-INF/navigation-surface.txt"),
         "platform-register", Path.of("platform-register/src/main/resources/META-INF/register-surface.txt"),
+        "platform-register-vaadin",
+        Path.of("platform-register-vaadin/src/main/resources/META-INF/register-vaadin-surface.txt"),
         "platform-rest", Path.of("src/test/resources/platform-rest-surface.txt"),
         "platform-rest-web", Path.of("src/test/resources/platform-rest-web-surface.txt"),
         "platform-vaadin", Path.of("src/test/resources/platform-vaadin-surface.txt"));

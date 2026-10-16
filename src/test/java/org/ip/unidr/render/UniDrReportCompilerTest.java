@@ -46,6 +46,18 @@ class UniDrReportCompilerTest {
     private ReportDataset fixture() { return new ReportDataset(FIELDS,new ReportRow[]{row(1,1L,"Цех A",11,"Деталь X","2"),row(2,1L,"Цех A",11,"Деталь X","4"),
         row(3,1L,"Цех A",12,"Деталь Y","9"),row(4,2L,"Цех B",11,"Деталь X","5"),row(5,2L,"Цех B",11,"Деталь X","10"),row(6,2L,"Цех B",12,"Деталь Y","6")}); }
 
+    @Test void completedQueryReadRendersWithNativeFilterOnAnUnprojectedField() throws Exception {
+        var source=org.ip.unidr.query.UniDrQuerySourceService.metadata(List.of(QueryField.scalar("code",String.class),QueryField.scalar("name",String.class)));
+        var tree=new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition("name",org.ipro.filtergrid.filter.FilterOperator.CONTAINS,"X",null,org.ipro.filtergrid.filter.FilterDataType.TEXT));
+        var query=new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,"select n.code as code,n.name as name from Nomenclature n",null,List.of());
+        var recipe=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"Отобранные данные",List.of(new Column("code",null)),List.of(),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true).withQuery(query).withFilterTree(tree);
+        var fields=new QueryField[]{QueryField.scalar("code",String.class)};
+        var data=new ReportDataset(fields,new ReportRow[]{new ReportRow(fields,new Object[]{"X"})});
+        var print=compiler.compile(recipe,data,source);
+        try(var pdf=Loader.loadPDF(exporter.export(print,ReportExportFormat.PDF))){assertThat(new PDFTextStripper().getText(pdf)).contains("Отобранные данные","X");}
+        assertThat(recipe.filterTree()).isSameAs(tree);
+    }
+
     @Test void computedNumbersAndTextReachGroupedTotalsPdfAndTypedXlsx() throws Exception {
         var computed=List.of(new ComputedColumn("calc_amount","Стоимость",Computation.FORMULA,"{quantity} * 10"),
             new ComputedColumn("calc_text","Описание",Computation.TEXT,"{nomenclature} / {document}: {quantity}"));

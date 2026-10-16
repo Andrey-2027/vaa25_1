@@ -4,8 +4,8 @@ import jakarta.persistence.EntityManager;
 import org.ip.Application;
 import org.ip.config.DataInitializer;
 import org.ip.model.*;
-import org.ip.views.register.RecorderRefPresentation;
-import org.ip.views.register.RecorderRefPresentationResolver;
+import org.ipro.vaadin.register.RecorderRefPresentation;
+import org.ipro.vaadin.register.RecorderRefPresentationResolver;
 import org.ipro.crud.MetadataDrivenAggregateSaveService.SectionInput;
 import org.ipro.crud.ValidationException;
 import org.ipro.data.EntityDataAccess;
@@ -27,7 +27,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest(classes = Application.class)
+@SpringBootTest(classes = Application.class, properties = "rls.write-boundary.enforced-types=org.ip.model.AccountingObjectInstallation,org.ip.model.AccountingObjectCorrection,org.ip.model.NomenclatureAccountingObject")
 class AccountingObjectPilotIT {
     @Autowired RegisterRecords registerRecords;
     @Autowired RegisterKeyChanges keyChanges;
@@ -44,6 +44,7 @@ class AccountingObjectPilotIT {
     @Autowired AccessGrantRepository grants;
     @Autowired RlsFilterActivator filters;
     @Autowired RlsPolicyEnforcer policies;
+    @Autowired org.ipro.rls.c5.C5PermissionDecisionService permissions;
     @Autowired RecorderRefPresentationResolver captions;
     @Autowired org.ipro.form.registry.FormResolver forms;
     @Autowired org.ip.application.form.ItemFormSaveDispatcher formSaves;
@@ -312,7 +313,7 @@ class AccountingObjectPilotIT {
         install(fixture.a, fixture.n, fixture.fifo, DATE);
         String limited = "register-reader-" + UUID.randomUUID();
         authenticate(limited);
-        grant(limited, "ENTITY:NomenclatureAccountingObject", true, false, false);
+        grant(limited, org.ipro.rls.c5.C5PermissionKeys.entity(NomenclatureAccountingObject.class), true, false, false);
         RlsTestFixture.grantC5EntityRead(grants, limited, NomenclatureAccountingObject.class, Workshop.class,
             Nomenclature.class, AccountingType.class);
         var rows = history();
@@ -328,7 +329,7 @@ class AccountingObjectPilotIT {
     @Test void documentWriteGrantDoesNotGrantRegisterReplacement() {
         String limited = "document-writer-" + UUID.randomUUID();
         authenticate(limited);
-        grant(limited, "ENTITY:AccountingObjectInstallation", true, true, true);
+        grant(limited, org.ipro.rls.c5.C5PermissionKeys.entity(AccountingObjectInstallation.class), true, true, true);
         var document = installation(fixture.a, DATE);
         assertThatThrownBy(() -> save(document, List.of(installationLine(fixture.n, fixture.fifo))))
             .isInstanceOf(AccessDeniedException.class);
@@ -339,8 +340,8 @@ class AccountingObjectPilotIT {
         var installation = install(fixture.a, fixture.n, fixture.fifo, DATE);
         String limited = "document-delete-" + UUID.randomUUID();
         authenticate(limited);
-        grant(limited, "ENTITY:AccountingObjectInstallation", true, false, true);
-        grant(limited, "ENTITY:NomenclatureAccountingObject", true, false, false);
+        grant(limited, org.ipro.rls.c5.C5PermissionKeys.entity(AccountingObjectInstallation.class), true, false, true);
+        grant(limited, org.ipro.rls.c5.C5PermissionKeys.entity(NomenclatureAccountingObject.class), true, false, false);
         RlsTestFixture.grantC5EntityRead(grants, limited, AccountingObjectInstallation.class,
             NomenclatureAccountingObject.class, Workshop.class, Nomenclature.class, AccountingType.class);
         assertThatThrownBy(() -> access.delete(AccountingObjectInstallation.class, installation.getId()))
@@ -389,7 +390,7 @@ class AccountingObjectPilotIT {
         Long clock = clockOrder();
         String limited = "key-editor-" + UUID.randomUUID();
         authenticate(limited);
-        grant(limited, "ENTITY:NomenclatureAccountingObject", true, true, false);
+        grant(limited, org.ipro.rls.c5.C5PermissionKeys.entity(NomenclatureAccountingObject.class), true, true, false);
         RlsTestFixture.grantC5EntityRead(grants, limited, NomenclatureAccountingObject.class,
             Workshop.class, Nomenclature.class, AccountingType.class);
         RlsTestFixture.grantC5Action(grants, limited,
@@ -436,7 +437,7 @@ class AccountingObjectPilotIT {
         install(fixture.a, fixture.n, fixture.fifo, DATE);
         var row = history().getFirst();
         String limited = "key-only-" + UUID.randomUUID(); authenticate(limited);
-        grant(limited, "ENTITY:NomenclatureAccountingObject", true, false, false);
+        grant(limited, org.ipro.rls.c5.C5PermissionKeys.entity(NomenclatureAccountingObject.class), true, false, false);
         RlsTestFixture.grantC5EntityRead(grants, limited, NomenclatureAccountingObject.class,
             Workshop.class, Nomenclature.class, AccountingType.class);
         RlsTestFixture.grantC5Action(grants, limited,
@@ -451,7 +452,7 @@ class AccountingObjectPilotIT {
     @Test void registerWriterWithoutNamedActionCannotChangeKey() {
         install(fixture.a, fixture.n, fixture.fifo, DATE); var row = history().getFirst();
         String limited = "register-writer-" + UUID.randomUUID(); authenticate(limited);
-        grant(limited, "ENTITY:NomenclatureAccountingObject", true, true, false);
+        grant(limited, org.ipro.rls.c5.C5PermissionKeys.entity(NomenclatureAccountingObject.class), true, true, false);
         RlsTestFixture.grantC5EntityRead(grants, limited, NomenclatureAccountingObject.class,
             Workshop.class, Nomenclature.class, AccountingType.class);
         assertThatThrownBy(() -> keyChanges.change(NomenclatureAccountingObject.class, row.getId(), row.getVersion(),
@@ -465,7 +466,11 @@ class AccountingObjectPilotIT {
         var row = history().getFirst();
         assertThatThrownBy(() -> new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
             var owner = access.detail(AccountingObjectInstallation.class, document.getId()).orElseThrow();
+            permissions.requireEntity(SecurityContextHolder.getContext().getAuthentication().getName(),
+                AccountingObjectInstallation.class, org.ipro.rls.c5.C5Operation.UPDATE);
             policies.requireUpdate(owner);
+            // Explicit fixture authorization isolates transaction rollback from the flush guard.
+            policies.recordCanonicalWrite(owner);
             owner.setNumber("must-rollback");
             try {
                 keyChanges.change(NomenclatureAccountingObject.class, row.getId(), row.getVersion() + 1,
@@ -524,7 +529,7 @@ class AccountingObjectPilotIT {
             String actor = "parity-" + UUID.randomUUID();
             authenticate(actor);
             if (subject.read() || subject.update()) {
-                grant(actor, "ENTITY:NomenclatureAccountingObject", subject.read(), subject.update(), false);
+                grant(actor, org.ipro.rls.c5.C5PermissionKeys.entity(NomenclatureAccountingObject.class), subject.read(), subject.update(), false);
             }
             if (subject.read()) {
                 RlsTestFixture.grantC5EntityRead(grants, actor, NomenclatureAccountingObject.class,
@@ -596,7 +601,9 @@ class AccountingObjectPilotIT {
                 AccountingObjectCorrectionItem.class).setParameter("id", document.getId()).getResultList());
     }
     private void grant(String actor, String dimension, boolean read, boolean update, boolean delete) {
-        AccessGrant value = new AccessGrant(); value.setSubjectType(AccessGrant.SubjectType.USER);
+        AccessGrant value = grants.findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(
+            AccessGrant.SubjectType.USER, actor, dimension).stream().findFirst().orElseGet(AccessGrant::new);
+        value.setSubjectType(AccessGrant.SubjectType.USER);
         value.setSubjectKey(actor); value.setDimension(dimension);
         value.setCanRead(read); value.setCanUpdate(update); value.setCanDelete(delete); grants.saveAndFlush(value);
     }

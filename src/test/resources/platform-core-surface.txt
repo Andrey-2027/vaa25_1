@@ -24,6 +24,17 @@
 # 44 -> 43): карточка рисует строки фактов аспектов и делит их по видам факта, а вид строки
 # возвращает `FacetRow.kind()`. Роль MODULE_API расходилась с употреблением так же, как раньше у
 # `ResolvedValue`: соседние типы того же словаря (`FactSource`, `ResolvedValue`) уже APP_API.
+# 109 -> 109 — D-R S4: `EntityReadAccess` и `EntityPresentationService` APP_API -> MODULE_API
+# (APP_API 36 -> 34, MODULE_API 51 -> 53). Роль APP_API держалась на одном прикладном файле —
+# адаптере форм стандартного интерфейса регистра: показ регистратора читал пачками через
+# fixed-graph границу, а подписи собирал `EntityPresentationService`. Файл уехал в
+# platform-register-vaadin, поэтому оба типа — по правилу 3 контракт между модулями: их
+# называет production-код платформенных модулей (UI-адаптер регистра, form-слой, reportstudio —
+# платформенный код, всё ещё лежащий в дереве приложения), а прикладной main — нет. Бюджет API
+# от этого сократился, а не вырос; D1-реестр снял свои записи по той же причине.
+# Число production-типов в шапке (108 -> 109) — не рост: полнота проверяется тестом
+# `everyCoreProductionTypeHasExactlyOneReviewedRole`, который сверяет реестр с исходниками
+# platform-core в обе стороны, и 109 — то, что он измеряет сейчас.
 #
 # Роли — reviewed-решение, а не вывод теста: если бы список строил сам тест, проверялось бы то же
 # правило, которым он построен. Черновик воспроизводится скриптом
@@ -70,12 +81,12 @@
 # одновременно иметь замороженные ссылки из тестов приложения. Список только сокращается: снятая
 # ссылка обязана исчезнуть из реестра, новая ломает сборку.
 #
-# ---- APP_API (36)
+# ---- APP_API (34)
 APP_API org.ipro.crud.MetadataDrivenAggregateSaveService
-# RecorderRef UI batches read through the fixed-graph boundary and plans declared instance-name paths.
-# R8: common batched captions used by application forms and report execution.
-APP_API org.ipro.data.presentation.EntityPresentationService
-APP_API org.ipro.data.EntityReadAccess
+# Declared instance-name paths stay APP_API: резолвер входит в публичную сигнатуру APP_API-типов,
+# которые приложение называет, поэтому роль держится правилом 2, а не употреблением одного файла.
+# `EntityReadAccess` и `EntityPresentationService` в этом разделе были ровно до D-R S4 — их
+# прикладной потребитель (показ регистратора) уехал в platform-register-vaadin, см. MODULE_API ниже.
 APP_API org.ipro.fetch.instance.InstanceNameResolver
 # Часть записей ниже — не решение о конкретном типе, а выполнение правила 2 (API closure): эти
 # типы стоят в публичных сигнатурах APP_API-типов, поэтому обязаны иметь тот же уровень. Иначе
@@ -135,7 +146,15 @@ APP_SPI org.ipro.search.GlobalSearchProvider
 # EntityReadAccess/RestGraphException — контракт с REST; Api*Read — запросы к
 # MODULE_API CanonicalReadExecutor; CanonicalEntityReadAccess создаёт autoconfigure.
 # Рост 95 -> 100, MODULE_API 43 -> 48; прикладной APP_API не расширяется.
-# ---- MODULE_API (51)
+# ---- MODULE_API (53)
+# D-R S4 (2026-10-14): `EntityReadAccess` и `EntityPresentationService` переехали сюда из APP_API
+# вместе с выездом стандартного интерфейса регистра в platform-register-vaadin — решение и его
+# повод записаны в шапке (109 -> 109). Обещание для потребителя от этого не исчезло: тот, кто
+# собирает свой показ регистратора, получает оба типа через публичную сигнатуру APP_API-резолвера
+# нового модуля, то есть граница объявлена, а не потеряна. `InstanceNameResolver` оставлен в
+# APP_API: он входит в замыкание по правилу 2.
+MODULE_API org.ipro.data.EntityReadAccess
+MODULE_API org.ipro.data.presentation.EntityPresentationService
 MODULE_API org.ipro.crud.AggregateSaveLifecycleScope
 MODULE_API org.ipro.data.CanonicalSaveLifecycleScope
 # C5.6: AggregateOperationAuthorizer — узкий preflight операции для aggregate save; его называет

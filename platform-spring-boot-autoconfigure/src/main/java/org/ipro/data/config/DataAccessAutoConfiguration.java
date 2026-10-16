@@ -90,19 +90,6 @@ public class DataAccessAutoConfiguration {
             capabilityOverrides.orderedStream().toList());
     }
 
-    /** Register the exact C5 read keys that administrators need to grant canonical readers. */
-    @Bean
-    @ConditionalOnBean({EntityDescriptorCatalog.class, RlsDimensionRegistry.class,
-        org.ipro.rls.c5.C5ReadPermissionRegistry.class})
-    @ConditionalOnMissingBean
-    C5EntityReadPermissionRegistrar c5EntityReadPermissionRegistrar(
-            EntityDescriptorCatalog entityDescriptorCatalog,
-            RlsDimensionRegistry rlsDimensionRegistry,
-            org.ipro.rls.c5.C5ReadPermissionRegistry c5ReadPermissionRegistry) {
-        return new C5EntityReadPermissionRegistrar(entityDescriptorCatalog, rlsDimensionRegistry,
-            c5ReadPermissionRegistry);
-    }
-
     /**
      * Register the exact C5 operation definitions derived from canonical write capabilities.
      *

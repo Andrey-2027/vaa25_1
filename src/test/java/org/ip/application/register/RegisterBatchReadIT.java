@@ -9,6 +9,7 @@ import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.crud.MetadataDrivenAggregateSaveService.SectionInput;
 import org.ipro.data.EntityDataAccess;
 import org.ipro.events.EventSource;
+import org.ipro.register.RegisterReaderFactory;
 import org.ipro.register.RegisterSliceReader;
 import org.ipro.rls.*;
 import org.junit.jupiter.api.*;
@@ -51,7 +52,14 @@ class RegisterBatchReadIT {
     @MockitoBean
     private DataInitializer demo;
 
+    /**
+     * Читатель берётся у фабрики артефакта (S1), а не собирается тестом: прикладной
+     * конфигурационный bean читателя удалён вместе с срезом, и вторая точка сборки вернула бы
+     * ровно тот дефект, из-за которого срез и делался (bean и рядом своя сборка).
+     */
     @Autowired
+    private RegisterReaderFactory readers;
+
     private RegisterSliceReader<NomenclatureAccountingObject> slice;
 
     @Autowired
@@ -82,6 +90,7 @@ class RegisterBatchReadIT {
 
     @BeforeEach
     void setUp() {
+        slice = readers.slice(NomenclatureAccountingObject.class);
         String username = RlsTestFixture.authenticateAsSuperuser(grants);
         // Wildcard остаётся построчным обходом: canonical read проверяет read-ключ типа отдельно.
         RlsTestFixture.grantC5EntityRead(grants, username, Workshop.class, Nomenclature.class,

@@ -1,0 +1,47 @@
+# Реестр путей записи сущностей платформы и исполнителей правил (см. ADR-0005 — обещание
+# «хуки вызываются на всех стандартных путях»; ADR-0025 — цена расхождения обещания с машиной).
+#
+# Проверяется PlatformWritePathLifecycleTest: путь записи, найденный в байткоде платформенного
+# модуля, и класс, вызывающий хуки lifecycle, обязаны быть объявлены здесь, а объявление обязано
+# быть правдой — HOOKS подтверждается вызовом EntityLifecycleRegistry, DELEGATES и HOSTED —
+# зависимостью между классами.
+#
+# Формат строки:
+#   <ВЕРДИКТ> <модуль> <класс> [→ <класс-получатель>] — <причина>; решение: <ссылка>
+#
+# ВЕРДИКТ:
+#   HOOKS     — путь исполняет правила: вызывает хуки EntityLifecycle для того, что пишет;
+#   DELEGATES — путь сам не пишет, а передаёт запись объявленному пути (цель после «→»);
+#   HOSTED    — путь пишет как механизм, а обязательство lifecycle несёт вызывающий путь
+#               (цель после «→» объявлена как HOOKS и зависит от механизма);
+#   EXCEPTION — путь пишет состояние, к которому контракт lifecycle не относится
+#               (технические сущности платформы, строки блокировок, журнальные таблицы,
+#               самопроверки): причина и решение обязательны, «исключение» здесь значит
+#               «названо и обосновано», а не «забыто».
+#
+# Что считается путём записи: JPA EntityManager.persist/merge/remove, bulk executeUpdate,
+# Spring Data save/delete на репозитории, JDBC update/batchUpdate/execute и flush — flush потому,
+# что строка меняется и dirty checking'ом (RegisterKeyChanges: merge в байткоде нет, а путь есть).
+#
+# Пути приложения (org.ip.*) здесь не перечисляются: приложение пишет через платформенные пути,
+# и его обходы — предмет прикладной проверки.
+
+HOOKS platform-core org.ipro.data.CanonicalWriteExecutor — canonical-запись: beforeSave/beforeUpdate/beforeDelete/onSave корня и секций вокруг flush; решение: ADR-0005, ADR-0007
+HOOKS platform-core org.ipro.crud.jpa.ValidatedJpaCrudService — beforeSave/beforeUpdate/onSave/beforeDelete через Optional-реестр: сборка без platform-events хуки не вызовет, и это названо здесь, а не выясняется в рантайме; решение: ADR-0005
+HOOKS platform-core org.ipro.crud.MetadataDrivenAggregateSaveService — beforeAggregateSave/onSave агрегата: секции пишет GenericOwnedSectionService под этим обязательством; решение: ADR-0003, ADR-0005
+HOSTED platform-core org.ipro.crud.GenericOwnedSectionService → org.ipro.crud.MetadataDrivenAggregateSaveService — механизм owned-секций: merge/persist/remove и flush, обязательство lifecycle несёт вызывающий aggregate save; решение: ADR-0005
+HOOKS platform-register org.ipro.register.RecorderSetWriter — строки набора владельца: beforeSave/onSave на вставляемую строку, beforeDelete на удаляемую; решение: ADR-0025
+HOOKS platform-register org.ipro.register.RegisterKeyWrites — запись по ключу: beforeSave/beforeUpdate/beforeDelete/onSave; решение: ADR-0023
+HOOKS platform-register org.ipro.register.RegisterKeyChanges — смена ключа: beforeSave/beforeUpdate/onSave, строка меняется dirty checking'ом, поэтому путь виден по flush, а не по merge; решение: ADR-0021
+DELEGATES platform-register org.ipro.register.RecorderSetContributionParticipant → org.ipro.register.RecorderSetWriter — участие в сохранении агрегата: передаёт набор писателю, сам строк не трогает; решение: ADR-0019
+DELEGATES platform-register org.ipro.register.RegisterRecords → org.ipro.register.RecorderSetWriter — процедуры владельца (add/clear/delete) — та же запись через писателя; решение: ADR-0019, ADR-0020
+EXCEPTION platform-register org.ipro.register.RegisterWriteMutex — flush перед pessimistic-замком на строке часов порядка: берёт замок сериализации, состояние сущностей не меняет; решение: ADR-0023
+EXCEPTION platform-register org.ipro.register.RecorderOrderClockBootstrap — засев технической строки часов порядка при старте: RecorderOrderClock — платформенная сущность порядка записи, а не строка регистра; решение: ADR-0020
+EXCEPTION platform-numbering org.ipro.numbering.NumberingCounterService — технический счётчик нумерации: правила пишутся к строкам регистра, а не к счётчику; решение: d3-subsystem-extraction.md §4
+EXCEPTION platform-numbering org.ipro.numbering.NumberingRuleService — правила нумерации — платформенная конфигурация подсистемы, не агрегат приложения; решение: d3-subsystem-extraction.md §4
+EXCEPTION platform-settings org.ipro.settings.SettingsService — платформенный store настроек (SettingValue): не агрегат приложения; решение: d3-subsystem-extraction.md §5
+EXCEPTION platform-navigation org.ipro.navigation.internal.DefaultNavigationAdministrationService — внутреннее хранилище профилей и назначений навигации: строки платформы, не сущности приложения; решение: command-interface-pilot-boundary.md
+EXCEPTION platform-telemetry org.ipro.telemetry.core.AsyncEventSink — запись в журнальные таблицы (журнал операций, факты аудита) через JdbcTemplate: это не сущности JPA; решение: d3-subsystem-extraction.md §8а
+EXCEPTION platform-telemetry org.ipro.telemetry.core.RetentionPurgeJob — ретенция журнала: удаляет строки журнала по политике хранения; решение: d3-subsystem-extraction.md §8а
+EXCEPTION platform-telemetry org.ipro.telemetry.core.TraceServiceImpl — таблица настроек трассировки: техническая настройка контура, не сущность; решение: d3-subsystem-extraction.md §8а
+EXCEPTION platform-telemetry org.ipro.telemetry.config.FieldAuditSelfTest — самопроверка аудита на старте: пишет и откатывает в одной транзакции; решение: d3-subsystem-extraction.md §8а

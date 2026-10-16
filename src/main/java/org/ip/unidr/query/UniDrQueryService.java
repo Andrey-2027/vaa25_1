@@ -6,6 +6,7 @@ import org.ip.unidr.run.*;
 import org.ipro.reportstudio.data.ReportDataset;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.query.ReportQueryExecutor;
+import org.ipro.reportstudio.query.ReportQueryAssembler;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -32,7 +33,19 @@ public final class UniDrQueryService {
     private final int maxRows;
     private final long timeoutMs;
     private UniDrQuerySourceService querySources;
+    private UniDrOrgContext organisations;
+    public void useOrgContext(UniDrOrgContext organisations){this.organisations=organisations;}
+    private ReportContext context(UniDrRunRequest request,Instant now,String owner) {
+        var supplied=request.context();if(supplied==null || supplied.entityClass()==null)return ReportContext.empty(owner,now);
+        Class<?> type=references.entityType(supplied.entityClass().getName());
+        return ReportContext.of(type,supplied.entityId(),supplied.selectedIds(),supplied.viewId(),owner,now);
+    }
+    private UniDrOrgContext.Value organisation(String owner,org.ip.unidr.model.UniDrDefinition definition){return organisations==null || definition.parameterDeclarations().stream().noneMatch(p->p.valueSource()==org.ip.unidr.model.UniDrParameter.ValueSource.COMPUTED && p.computed()==org.ip.unidr.model.UniDrParameter.Computed.RLS_ORG && UniDrCanonicalValues.used(definition,p))?null:organisations.resolve(owner);}
     public void useQuerySources(UniDrQuerySourceService service) {querySources=Objects.requireNonNull(service);}
+    public void validateRequest(UniDrRunRequest request,Instant now,String owner) {
+        access.requireOwner(owner);var legacy=parameters.resolve(request,now);
+        UniDrCanonicalValues.resolve(request.definition(),request.queryValues(),legacy,context(request,now,owner),request.zone(),organisation(owner,request.definition()));
+    }
 
     public record Data(ReportDataset dataset, Map<String, Literal> parameters, org.ip.unidr.source.UniDrSourceDefinition source) {
         public Data(ReportDataset dataset,Map<String,Literal> parameters) {this(dataset,parameters,null);}
@@ -54,33 +67,39 @@ public final class UniDrQueryService {
     public Data read(UniDrRunRequest request, Instant now, String owner) {
         access.requireOwner(owner);
         Map<String, Literal> resolved = parameters.resolve(request, now);
+        Map<String,Object> canonical;
+        var context=context(request,now,owner);
+        try {canonical=UniDrCanonicalValues.resolve(request.definition(),request.queryValues(),resolved,context,request.zone(),organisation(owner,request.definition()));}
+        catch(IllegalArgumentException invalid){throw new UniDrRunException(UniDrRunException.Code.QUERY_REJECTED,invalid.getMessage(),invalid);}
         try {
             return reads.execute(status -> {
                 access.requireOwner(owner);
+                ReportQueryAssembler assembled;
+                UniDrSourcePlan plan=null;
                 if(request.definition().query()!=null) {
                     if(querySources==null)throw new UniDrRunException(UniDrRunException.Code.QUERY_REJECTED,"Источник запроса не подключён");
-                    var assembled=querySources.assemble(request.definition().query(),ReportContext.empty(owner,now),request.queryValues());
-                    var dataset=executor.execute(assembled,maxRows+1,timeoutMs);
-                    if(dataset.rowCount()>maxRows)throw new UniDrRunException(UniDrRunException.Code.LIMIT_EXCEEDED,"Запрос вернул больше "+maxRows+" строк. Уточните условия запроса");
-                    dataset=querySources.prepare(request.definition(),assembled,dataset,resolved);
-                    access.requireOwner(owner);return new Data(dataset,resolved,UniDrQuerySourceService.metadata(assembled.fields()));
-                }
+                    var prepared=querySources.prepareRun(request.definition(),context,canonical);assembled=prepared.query();plan=prepared.plan();
+                    if(request.definition().filterTree()!=null || request.definition().compatibilityFilterStage()==CompatibilityStage.BEFORE_READ && !request.definition().filters().isEmpty())assembled=querySources.applyFilters(assembled,request.definition(),plan,canonical,references::requireEntity);
+                } else {
                 for (Parameter parameter : request.definition().parameters()) {
                     Literal value = resolved.get(parameter.id());
                     if (value != null && value.type() == ValueType.REFERENCE) checkReferences(parameter.fieldId(), value);
                 }
                 for (Filter filter : request.definition().filters())
                     if (filter.value() instanceof Literal literal && literal.type() == ValueType.REFERENCE) checkReferences(filter.fieldId(), literal);
-                var assembled = adapter.assemble(request.definition(), resolved, ReportContext.empty(owner, now));
+                assembled = adapter.assemble(request.definition(), resolved, context);
+                if(request.definition().filterTree()!=null)assembled=adapter.applyFilters(assembled,request.definition(),canonical,references::requireEntity);
                 Map<String, Class<?>> actual = new HashMap<>();
                 assembled.fields().forEach(field -> actual.put(field.name(), field.javaType()));
                 if (!SCHEMA.equals(actual) || assembled.fields().size() != SCHEMA.size())
                     throw new UniDrRunException(UniDrRunException.Code.SCHEMA_MISMATCH, "Схема источника изменилась; формирование остановлено");
-                ReportDataset dataset = executor.execute(assembled, maxRows + 1, timeoutMs);
+                }
+                ReportDataset dataset = assembled.presentations().isEmpty()?executor.execute(assembled,maxRows+1,timeoutMs):executor.execute(assembled,maxRows+1,timeoutMs,true);
                 if (dataset.rowCount() > maxRows)
-                    throw new UniDrRunException(UniDrRunException.Code.LIMIT_EXCEEDED, "Выбрано больше " + maxRows + " позиций. Уточните период или отборы");
+                    throw new UniDrRunException(UniDrRunException.Code.LIMIT_EXCEEDED, "Выбрано больше " + maxRows + " строк. Уточните период или отборы");
+                if(plan!=null)dataset=querySources.prepare(request.definition(),assembled,dataset,resolved,plan.schema());
                 access.requireOwner(owner);
-                return new Data(dataset, resolved);
+                return new Data(dataset,resolved,plan==null?null:plan.schema());
             });
         } catch (UniDrRunException | UniDrValidationException known) { throw known; }
         catch (RuntimeException failed) {

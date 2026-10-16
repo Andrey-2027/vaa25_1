@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.List;
 import java.util.Map;
+import org.ipro.filtergrid.filter.FilterNode;
 
 /** Immutable recipe; never contains values from the last run. */
 public record UniDrDefinition(
@@ -12,20 +13,30 @@ public record UniDrDefinition(
     List<Column> columns, List<Measure> measures, List<String> groups,
     List<Filter> filters, List<Parameter> parameters, List<Sort> sorts,
     Mode mode, boolean grandTotal, Appearance appearance, UniDrQuerySource query, Map<String,FieldStyle> fieldStyles,
-    List<ComputedColumn> computedColumns, boolean rowNumbers
+    List<ComputedColumn> computedColumns, boolean rowNumbers,
+    List<UniDrParameter> parameterDeclarations,FilterNode filterTree,CompatibilityStage compatibilityFilterStage
 ) {
-    public static final int SCHEMA_VERSION = 1;
+    public static final int SCHEMA_VERSION = 2;
 
     public UniDrDefinition {
         columns = List.copyOf(columns);
         measures = List.copyOf(measures);
         groups = List.copyOf(groups);
         filters = List.copyOf(filters);
-        parameters = List.copyOf(parameters);
+        schemaVersion=schemaVersion==1?SCHEMA_VERSION:schemaVersion;
+        if(parameterDeclarations==null){parameters=List.copyOf(parameters);parameterDeclarations=UniDrParameters.fromLegacy(sourceId,parameters,query);}
+        else {parameterDeclarations=List.copyOf(parameterDeclarations);parameters=parameterDeclarations.stream().filter(p->p.legacy()!=null).map(UniDrParameter::legacyParameter).toList();query=UniDrParameters.hydrate(query,parameterDeclarations);}
+        compatibilityFilterStage=compatibilityFilterStage==null?(query==null && !UniDrQuerySource.ID.equals(sourceId)?CompatibilityStage.BEFORE_READ:CompatibilityStage.AFTER_READ):compatibilityFilterStage;
         sorts = List.copyOf(sorts);
         appearance = appearance == null ? Appearance.defaults() : appearance;
         fieldStyles = fieldStyles == null ? Map.of() : Map.copyOf(fieldStyles);
         computedColumns = computedColumns == null ? List.of() : List.copyOf(computedColumns);
+    }
+
+    public UniDrDefinition(int schemaVersion,String sourceId,int sourceVersion,String title,List<Column> columns,List<Measure> measures,
+            List<String> groups,List<Filter> filters,List<Parameter> parameters,List<Sort> sorts,Mode mode,boolean grandTotal,Appearance appearance,
+            UniDrQuerySource query,Map<String,FieldStyle> fieldStyles,List<ComputedColumn> computedColumns,boolean rowNumbers) {
+        this(schemaVersion,sourceId,sourceVersion,title,columns,measures,groups,filters,parameters,sorts,mode,grandTotal,appearance,query,fieldStyles,computedColumns,rowNumbers,null,null,null);
     }
 
     public UniDrDefinition(int schemaVersion, String sourceId, int sourceVersion, String title,
@@ -47,20 +58,47 @@ public record UniDrDefinition(
         this(schemaVersion,sourceId,sourceVersion,title,columns,measures,groups,filters,parameters,sorts,mode,grandTotal,appearance,null);
     }
     public UniDrDefinition withQuery(UniDrQuerySource query) {
-        return new UniDrDefinition(schemaVersion,sourceId,sourceVersion,title,columns,measures,groups,filters,parameters,sorts,mode,grandTotal,appearance,query,fieldStyles,computedColumns,rowNumbers);
+        return edit(draft->draft.query=query);
     }
     public UniDrDefinition withTitle(String title) {
-        return new UniDrDefinition(schemaVersion,sourceId,sourceVersion,title,columns,measures,groups,filters,parameters,sorts,mode,grandTotal,appearance,query,fieldStyles,computedColumns,rowNumbers);
+        return edit(draft->draft.title=title);
     }
     public UniDrDefinition withFieldStyles(Map<String,FieldStyle> styles) {
-        return new UniDrDefinition(schemaVersion,sourceId,sourceVersion,title,columns,measures,groups,filters,parameters,sorts,mode,grandTotal,appearance,query,styles,computedColumns,rowNumbers);
+        return edit(draft->draft.fieldStyles=styles);
     }
     public UniDrDefinition withComputedColumns(List<ComputedColumn> computed) {
-        return new UniDrDefinition(schemaVersion,sourceId,sourceVersion,title,columns,measures,groups,filters,parameters,sorts,mode,grandTotal,appearance,query,fieldStyles,computed,rowNumbers);
+        return edit(draft->draft.computedColumns=computed);
     }
     public UniDrDefinition withRowNumbers(boolean enabled) {
-        return new UniDrDefinition(schemaVersion,sourceId,sourceVersion,title,columns,measures,groups,filters,parameters,sorts,mode,grandTotal,appearance,query,fieldStyles,computedColumns,enabled);
+        return edit(draft->draft.rowNumbers=enabled);
     }
+    public UniDrDefinition withParameters(List<UniDrParameter> declarations){return edit(draft->draft.parameterDeclarations=declarations);}
+    public UniDrDefinition withFilterTree(FilterNode tree){return edit(draft->draft.filterTree=tree);}
+    /** All state is copied in one place; editor mutations cannot silently drop later properties. */
+    public UniDrDefinition edit(java.util.function.Consumer<Builder> action){var draft=new Builder(this);action.accept(draft);return draft.build();}
+    public static final class Builder {
+        private final UniDrDefinition original;
+        public int schemaVersion,sourceVersion;public String sourceId,title;
+        public List<Column> columns;public List<Measure> measures;public List<String> groups;
+        public List<Filter> filters;public List<Parameter> parameters;public List<Sort> sorts;
+        public Mode mode;public boolean grandTotal,rowNumbers;public Appearance appearance;public UniDrQuerySource query;
+        public Map<String,FieldStyle> fieldStyles;public List<ComputedColumn> computedColumns;
+        public List<UniDrParameter> parameterDeclarations;public FilterNode filterTree;
+        public CompatibilityStage compatibilityFilterStage;
+        private Builder(UniDrDefinition d){original=d;schemaVersion=d.schemaVersion;sourceVersion=d.sourceVersion;sourceId=d.sourceId;title=d.title;
+            columns=d.columns;measures=d.measures;groups=d.groups;filters=d.filters;parameters=d.parameters;sorts=d.sorts;mode=d.mode;grandTotal=d.grandTotal;
+            rowNumbers=d.rowNumbers;appearance=d.appearance;query=d.query;fieldStyles=d.fieldStyles;computedColumns=d.computedColumns;parameterDeclarations=d.parameterDeclarations;filterTree=d.filterTree;compatibilityFilterStage=d.compatibilityFilterStage;}
+        public UniDrDefinition build(){
+            var declarations=parameterDeclarations;
+            if(java.util.Objects.equals(declarations,original.parameterDeclarations)) {
+                if(!java.util.Objects.equals(parameters,original.parameters))declarations=UniDrParameters.mergeLegacy(declarations,parameters,sourceId);
+                if(!java.util.Objects.equals(query,original.query))declarations=UniDrParameters.mergeQuery(declarations,query);
+            }
+            return new UniDrDefinition(schemaVersion,sourceId,sourceVersion,title,columns,measures,groups,filters,parameters,sorts,mode,grandTotal,appearance,query,
+                fieldStyles,computedColumns,rowNumbers,declarations,filterTree,compatibilityFilterStage);
+        }
+    }
+    public enum CompatibilityStage { BEFORE_READ, AFTER_READ }
     /** References use source field IDs, never Java expressions or SQL. */
     public record ComputedColumn(String id, String caption, Computation kind, String expression) {}
     public enum Computation { FORMULA, TEXT }

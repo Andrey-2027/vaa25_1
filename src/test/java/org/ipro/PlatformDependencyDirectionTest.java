@@ -105,6 +105,34 @@ class PlatformDependencyDirectionTest {
                     .because("search не зависит от отчётных подсистем");
 
     /**
+     * Backend регистра сведений не знает форм и отчётов: S1 вынес в артефакт чтение (S2 вынесет
+     * запись по ключу, S3 — набор владельца), и ни один из этих срезов не должен приехать вместе
+     * с UI. Слой форм зависит от регистра (форма списка берёт читатель у фабрики), обратной
+     * зависимости нет.
+     */
+    @ArchTest
+    static final ArchRule registerBackendDoesNotDependOnUiOrReports =
+            noClasses().that().resideInAnyPackage("org.ipro.register..")
+                    .should().dependOnClassesThat()
+                    .resideInAnyPackage("org.ipro.form..", "org.ipro.reportstudio..",
+                            "org.ipro.ureport..", "org.ipro.jr..")
+                    .because("регистр сведений — backend-подсистема: формы и отчёты зависят от неё, а не наоборот");
+
+    /**
+     * Стандартный интерфейс регистра (S4) — верхний UI-слой: он знает форму, потому что сам
+     * является её расширением, но отчётные подсистемы остаются потребителями формы, а не её
+     * зависимостью. Направление одностороннее и внутри UI-платформы: {@code platform-register}
+     * интерфейса не знает вовсе (проверяет {@code RegisterVaadinModuleCompositionTest}).
+     */
+    @ArchTest
+    static final ArchRule registerInterfaceDoesNotDependOnReportSubsystems =
+            noClasses().that().resideInAnyPackage("org.ipro.vaadin.register..")
+                    .should().dependOnClassesThat()
+                    .resideInAnyPackage("org.ipro.reportstudio..", "org.ipro.ureport..", "org.ipro.jr..")
+                    .because("отчётность — optional add-on и потребитель формы; стандартный интерфейс"
+                            + " регистра не может тянуть её в каждого потребителя UI-платформы");
+
+    /**
      * Базовый CRUD/data-слой платформы не знает отчётных подсистем: отчёты — optional add-on
      * (D3), поэтому направление обязано быть односторонним уже сейчас.
      */

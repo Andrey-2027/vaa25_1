@@ -84,7 +84,7 @@ class UniDrDefinitionTest {
     }
 
     @Test void incompatibleRecipeVersionsAndUnknownSourceAreExplicitErrors() {
-        var draft = new Draft(); draft.schemaVersion = 2; assertIssue(draft, Code.UNSUPPORTED_SCHEMA, "schemaVersion");
+        var draft = new Draft(); draft.schemaVersion = 3; assertIssue(draft, Code.UNSUPPORTED_SCHEMA, "schemaVersion");
         draft = new Draft(); draft.sourceVersion = 2; assertIssue(draft, Code.INCOMPATIBLE_SOURCE, "sourceVersion");
         draft = new Draft(); draft.sourceId = "sql-table"; assertIssue(draft, Code.UNKNOWN_SOURCE, "sourceId");
     }
@@ -127,7 +127,7 @@ class UniDrDefinitionTest {
         assertIssue(draft, Code.INVALID_PARAMETER, "parameters");
         assertIssue(draft, Code.INVALID_PARAMETER, "parameters[0].defaultRule");
         draft = new Draft(); draft.parameters = append(draft.parameters, new Parameter("unused", "quantity", Operator.EQ, "Лишний", DefaultRule.NONE, null));
-        assertIssue(draft, Code.INVALID_PARAMETER, "parameters[3]");
+        assertThat(validator.validate(draft.build())).isEmpty(); // Unused declarations can be reused in later conditions.
     }
 
     @Test void sourceParameterAndAdditionalFilterCannotDefineTheSameConstraintTwice() {

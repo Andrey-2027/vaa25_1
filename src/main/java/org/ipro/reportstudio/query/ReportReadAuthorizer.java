@@ -55,6 +55,14 @@ public final class ReportReadAuthorizer {
             }
         }
         List<String> errors = new ArrayList<>();
+        for(var origin:collector.entityOrigins.entrySet()) {
+            var section=origin.getValue().getAnnotation(org.ipro.metadata.annotation.TableSectionMetadata.class);
+            if(section==null)continue;
+            collector.types.add(section.parentEntity());
+            if(section.rlsPolicy()==org.ipro.metadata.annotation.SectionRlsPolicy.INHERIT_ROOT
+                && !collector.identityJoins.getOrDefault(origin.getKey(),Set.of()).contains(section.parentField()))
+                errors.add("RLS_SECTION_PARENT_JOIN_REQUIRED: "+origin.getValue().getName()+" — нужен INNER JOIN родительского типа по id");
+        }
         for (SqmPath<?> path : collector.filteredAssociationPaths) {
             Class<?> type = collector.entityClass((SqmEntityDomainType<?>) path.getNodeType());
             boolean restricted = dimensionRegistry.policyOf(type).dimensions().entrySet().stream()
@@ -62,6 +70,10 @@ public final class ReportReadAuthorizer {
                     && accessService.getReadableIds(entry.getKey(), username) != null);
             boolean joined = collector.identityJoins.getOrDefault(path.getLhs(), Set.of())
                 .contains(path.getReferencedPathSource().getPathName());
+            // A LEFT entity join applies the target's filter in ON. Reading the joined alias
+            // is safe; selecting the owner's raw FK outside that ON would bypass visibility.
+            joined |= collector.optionalIdentityJoins.getOrDefault(path.getLhs(),Set.of()).contains(path.getReferencedPathSource().getPathName())
+                && !collector.foreignKeysOutsideJoin.contains(path);
             if (restricted && !joined) {
                 errors.add("RLS_ASSOCIATION_JOIN_REQUIRED: " + type.getName()
                     + " — нужен INNER JOIN целевого типа по id; association JOIN/FK не гарантирует row filter");
@@ -108,8 +120,12 @@ public final class ReportReadAuthorizer {
 
     private final class EntityCollector extends BaseSemanticQueryWalker {
         private final Set<Class<?>> types = new LinkedHashSet<>();
+        private final Map<SqmPath<?>,Class<?>> entityOrigins=new IdentityHashMap<>();
         private final Set<SqmPath<?>> filteredAssociationPaths = Collections.newSetFromMap(new IdentityHashMap<>());
         private final Map<SqmPath<?>, Set<String>> identityJoins = new IdentityHashMap<>();
+        private final Map<SqmPath<?>,Set<String>> optionalIdentityJoins=new IdentityHashMap<>();
+        private final Set<SqmPath<?>> foreignKeysOutsideJoin=Collections.newSetFromMap(new IdentityHashMap<>());
+        private boolean inJoinOn;
 
         private Class<?> entityClass(SqmEntityDomainType<?> entity) {
             return factory.getMappingMetamodel().getEntityDescriptor(entity.getHibernateEntityName())
@@ -128,21 +144,26 @@ public final class ReportReadAuthorizer {
                         && dimensionRegistry.policyOf(type).dimensions().containsValue(
                             org.ipro.rls.RlsDimensionKind.FILTERABLE)) {
                         filteredAssociationPaths.add(part);
+                        if(!inJoinOn)foreignKeysOutsideJoin.add(part);
                     }
                 }
             }
         }
         @Override protected void consumeFromClauseRoot(SqmRoot<?> root) {
+            // CTE/derived roots describe tuples. Their underlying entity roots are visited separately.
+            if(root.getNodeType() instanceof SqmEntityDomainType<?> entity)entityOrigins.put(root,entityClass(entity));
             capture(root);
             super.consumeFromClauseRoot(root);
         }
         @Override protected void consumeExplicitJoin(SqmJoin<?, ?> join, boolean transitive) {
+            if(join.getNodeType() instanceof SqmEntityDomainType<?> entity)entityOrigins.put(join,entityClass(entity));
             if (join instanceof org.hibernate.query.sqm.tree.from.SqmEntityJoin<?, ?> entityJoin
-                && join.getSqmJoinType() == org.hibernate.query.sqm.tree.SqmJoinType.INNER) {
+                && (join.getSqmJoinType() == org.hibernate.query.sqm.tree.SqmJoinType.INNER || join.getSqmJoinType()==org.hibernate.query.sqm.tree.SqmJoinType.LEFT)) {
                 collectIdentityJoin(entityJoin, join.getJoinPredicate());
             }
             capture(join);
-            super.consumeExplicitJoin(join, transitive);
+            boolean previous=inJoinOn;inJoinOn=true;
+            try {super.consumeExplicitJoin(join, transitive);}finally{inJoinOn=previous;}
         }
 
         private void collectIdentityJoin(org.hibernate.query.sqm.tree.from.SqmEntityJoin<?, ?> join,
@@ -170,7 +191,8 @@ public final class ReportReadAuthorizer {
             String idName = target.getId(target.getIdType().getJavaType()).getName();
             if (key.getReferencedPathSource().getPathName().equals(idName)
                 && id.getReferencedPathSource().getPathName().equals(idName)) {
-                identityJoins.computeIfAbsent(association.getLhs(), ignored -> new HashSet<>())
+                var joins=join.getSqmJoinType()==org.hibernate.query.sqm.tree.SqmJoinType.LEFT?optionalIdentityJoins:identityJoins;
+                joins.computeIfAbsent(association.getLhs(), ignored -> new HashSet<>())
                     .add(association.getReferencedPathSource().getPathName());
             }
         }
