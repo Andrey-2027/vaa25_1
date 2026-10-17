@@ -33,13 +33,26 @@ class PlatformStarterCompositionTest {
     private static final Pattern COORDINATES =
         Pattern.compile("<groupId>([^<]+)</groupId>\\s*<artifactId>([^<]+)</artifactId>");
 
+    /**
+     * D3.8 + D-R S5(a), ADR-0024 §2.2: backend-поставка — это фасад платформы и движок регистра.
+     *
+     * <p>Регистр объявлен здесь прямым ребром сознательно: объявив регистр, потребитель без UI
+     * обязан получить механизм, а не строку сборки, которую можно забыть. Обратная сторона тоже
+     * проверяется: ни UI-модуля, ни REST в backend-поставке нет — иначе «фасад» перестал бы быть
+     * отдельной от UI опцией (общий замысел фасада — допускать потребителя без интерфейса и без
+     * REST-среза). Разрешённое замыкание стартера проверяет его собственный
+     * `BackendStarterResolvedDependenciesTest`: там дерево, а не декларация.</p>
+     */
     @Test
-    void backendStarterIsOnlyTheBackendPlatformFacade() {
+    void backendStarterCarriesTheBackendPlatformAndTheRegisterEngineWithoutUiOrRest() {
         assertThat(directDependencies(Path.of("platform-backend-starter/pom.xml")))
-            .containsExactly("org.ipro:platform-spring-boot-autoconfigure");
+            .containsExactlyInAnyOrder(
+                "org.ipro:platform-spring-boot-autoconfigure",
+                "org.ipro:platform-register");
         assertThat(read(Path.of("platform-backend-starter/pom.xml")))
             .contains("<artifactId>platform-bom</artifactId>", "<scope>import</scope>")
-            .doesNotContain("vaadin-spring-boot-starter", "ureport", "dynamicreports", "reportui");
+            .doesNotContain("vaadin-spring-boot-starter", "platform-register-vaadin",
+                "platform-rest", "ureport", "dynamicreports", "reportui");
     }
 
     @Test

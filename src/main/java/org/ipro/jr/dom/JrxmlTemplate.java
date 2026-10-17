@@ -13,9 +13,8 @@ import org.ipro.crud.BaseEntity;
  *
  * <p>Сам шаблон — XML-файл в файловом хранилище движка ({@code jrxml.fileStoreDir}),
  * сервис читает его по {@link #fileName}. БД хранит только каталожные метаданные:
- * имя, описание, признак активности (по образцу UreportTemplate; хранение
- * раздельно с ReportTemplate (UDR)/UreportTemplate, объединение на уровне
- * read-модели каталога).</p>
+ * имя, описание, признак активности; хранение раздельно с ReportTemplate
+ * (UDR), объединение на уровне read-модели каталога.</p>
  *
  * <p>Разработка шаблона ведётся в Jaspersoft Studio на рабочей базе;
  * источник данных — JPQL после маркера {@code jpql:} в queryString

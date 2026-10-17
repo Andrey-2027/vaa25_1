@@ -4,6 +4,7 @@ import org.ip.repository.AccountingObjectRegisterRepository;
 import org.ip.model.AccountingObjectDocument;
 import org.ip.model.AccountingObjectInstallation;
 import org.ip.model.AccountingObjectCorrection;
+import org.ip.model.AccountingObjectItem;
 import org.ip.model.NomenclatureAccountingObject;
 import org.ip.model.AccountingType;
 import org.ipro.crud.ValidationException;
@@ -29,22 +30,28 @@ public class AccountingObjectRegisterGeneration {
     }
     public void onSave(EntitySaveContext<? extends AccountingObjectDocument> context) {
         AccountingObjectDocument document = context.entity();
-        var lines = AccountingObjectSaveScope.lines(document);
+        // Позиции — из объявленного командой payload'а (ADR-0026). Это тот же список, который
+        // команда передала секцией, поэтому «объявленные позиции» и «сохранённые строки» не могут
+        // разойтись, а управляемую копию документа на обновлении связала с объявлением платформа.
+        List<? extends AccountingObjectItem> positions =
+            AccountingObjectPositions.require(context, AccountingObjectPositions.itemType(document.getClass()));
         RecorderRef recorder = recorderTypes.referenceFor(document.getClass(), document.getId());
         // Один batch-срез на весь документ вместо чтения на каждую строку (Р9).
         Map<Long, AccountingType> currentTypes = document instanceof AccountingObjectCorrection correction
-            ? reader.currentTypes(correction, lines.stream().map(line -> line.nomenclatureId()).toList())
+            ? reader.currentTypes(correction, positions.stream()
+                .map(position -> position.getNomenclature().getId()).toList())
             : Map.of();
         List<NomenclatureAccountingObject> rows = new ArrayList<>();
-        for (var line : lines) {
-            if (document instanceof AccountingObjectInstallation) validateInstallation(document, recorder, line.nomenclatureId());
-            else if (!currentTypes.containsKey(line.nomenclatureId())) {
+        for (AccountingObjectItem position : positions) {
+            Long nomenclatureId = position.getNomenclature().getId();
+            if (document instanceof AccountingObjectInstallation) validateInstallation(document, recorder, nomenclatureId);
+            else if (!currentTypes.containsKey(nomenclatureId)) {
                 throw new ValidationException("Номенклатура отсутствует в срезе выбранного цеха на дату корректировки");
             }
             NomenclatureAccountingObject row = new NomenclatureAccountingObject();
             row.setRecorder(recorder); row.setPeriod(document.getDate()); row.setWorkshop(document.getWorkshop());
-            row.setNomenclature(persistence.nomenclatureReference(line.nomenclatureId()));
-            row.setAccountingType(persistence.accountingTypeReference(line.accountingTypeId()));
+            row.setNomenclature(persistence.nomenclatureReference(nomenclatureId));
+            row.setAccountingType(persistence.accountingTypeReference(position.getAccountingType().getId()));
             rows.add(row);
         }
         var records = registerRecords.forRecorder(context);

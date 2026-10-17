@@ -93,7 +93,7 @@ public class ReportQueryGuard {
     /**
      * То же, но лимит колонок задаёт вызывающий движок: у JR/JSS (pixel-perfect
      * корпоративный документ: шапка + табличная часть + итоги) ожидаемо больше
-     * полей, чем у ad-hoc отчёта UDR/UReport (стандартный лимит {@link #MAX_COLUMNS}).
+     * полей, чем у ad-hoc отчёта UDR (стандартный лимит {@link #MAX_COLUMNS}).
      */
     public GuardResult guard(String jpql, Set<String> templateParamNames,
                              Map<String, Class<?>> paramEntityClasses, int maxColumns) {

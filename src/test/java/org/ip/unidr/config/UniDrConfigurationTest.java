@@ -28,7 +28,7 @@ class UniDrConfigurationTest {
     }
     @Test void enabledUsesExistingInfrastructureAndDefaultLimits() { enabled().run(c -> assertThat(c).hasNotFailed().hasSingleBean(UniDrRunService.class)); }
     @Test void enabledRegistersFileStorageAndCatalogContributor() {
-        enabled().run(c->assertThat(c).hasNotFailed().hasSingleBean(org.ip.unidr.store.UniDrFileStore.class).hasSingleBean(org.ipro.ureport.catalog.ReportCatalogContributor.class));
+        enabled().run(c->assertThat(c).hasNotFailed().hasSingleBean(org.ip.unidr.store.UniDrFileStore.class).hasSingleBean(org.ipro.report.catalog.ReportCatalogContributor.class));
     }
     @Test void unsafeLimitsFailStartup() { enabled().withPropertyValues("app.unidr.max-rows=5001").run(c -> assertThat(c).hasFailed()); }
 }

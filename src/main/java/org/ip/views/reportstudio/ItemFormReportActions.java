@@ -6,8 +6,8 @@ import org.ipro.crud.EntityLookup;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
-import org.ipro.ureport.service.UreportTemplateService;
 
 import java.util.function.Supplier;
 
@@ -34,7 +34,7 @@ public final class ItemFormReportActions {
                 executionService, lookupService, selectionFormAssembler, null);
     }
 
-    /** Перегрузка с поддержкой UReport3 (печатные формы, привязанные к реестру). */
+    /** Перегрузка с поддержкой JR (печатные формы, привязанные к реестру). */
     public static ContextualReportLauncher addContextualLauncher(
             ItemForm<?> form,
             Supplier<ReportContext> contextSupplier,
@@ -42,13 +42,13 @@ public final class ItemFormReportActions {
             ReportExecutionService executionService,
             EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            UreportTemplateService ureportService) {
+            JrxmlTemplateService jrTemplateService) {
         return addContextualLauncher(form, contextSupplier, templateService,
                 executionService, lookupService, selectionFormAssembler,
-                ureportService, null);
+                jrTemplateService, null);
     }
 
-    /** Максимальная перегрузка: все три движка (UDR / UReport3 / JR). */
+    /** Максимальная перегрузка: создание и запуск JR-форм реестра. */
     public static ContextualReportLauncher addContextualLauncher(
             ItemForm<?> form,
             Supplier<ReportContext> contextSupplier,
@@ -56,11 +56,11 @@ public final class ItemFormReportActions {
             ReportExecutionService executionService,
             EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            UreportTemplateService ureportService,
-            JrxmlTemplateService jrTemplateService) {
+            JrxmlTemplateService jrTemplateService,
+            JrxmlExecutionService jrExecutionService) {
         ContextualReportLauncher launcher = new ContextualReportLauncher(
                 contextSupplier, templateService, executionService, lookupService,
-                selectionFormAssembler, ureportService, jrTemplateService);
+                selectionFormAssembler, jrTemplateService, jrExecutionService);
         form.getFooter().add(launcher);
         return launcher;
     }

@@ -34,7 +34,7 @@ import java.util.Set;
  * «операция есть, но не для всех строк» выражается lifecycle handler'ом. C4.6 волна F
  * провела эту границу дважды: ownership-запрет {@code GridFormView} переехал в
  * {@link org.ip.application.form.GridFormViewLifecycle} и перестал быть сужением
- * capabilities, а read-мост {@code UreportTemplate} снят — после перевода его сервиса на
+ * capabilities, а read-мост internal-store типа снят — после перевода его сервиса на
  * internal-store adapter canonical handle у типа нет вообще, и попытка получить его
  * отклоняется до SQL, а не отдаёт граф без metadata.</p>
  */

@@ -5,7 +5,7 @@
 # platform-vaadin, а не наоборот).
 #
 # Односторонность физически держит VaadinModuleCompositionTest: platform-vaadin не знает ни
-# report, ни DR/JR/UReport. Здесь проверяется другая половина контракта, которую не держит
+# report, ни DR/JR. Здесь проверяется другая половина контракта, которую не держит
 # никто: report имеет право называть ТОЛЬКО опубликованные роли, и объявленный набор
 # держателей шва — это то, что переезжает вместе со слоем.
 #
@@ -86,10 +86,9 @@ only org.ipro.form.SearchFunction держится швом: внутри пла
 # --- что обязан забрать с собой переезд слоя (D3.7; временно отложен до появления ресурса) ---
 # Подготовка к срезу, снятая в D3.5.7, а не предположение:
 #
-# 1. Регистрация. Файл AutoConfiguration.imports приложения содержит сейчас шесть строк с
+# 1. Регистрация. Файл AutoConfiguration.imports приложения содержит сейчас четыре строки с
 #    report-owned конфигурациями в пакетах org.ipro: ReportStudioAutoConfiguration,
-#    ReportStudioPersistenceAutoConfiguration, UreportAutoConfiguration,
-#    UreportPersistenceAutoConfiguration, JrPersistenceAutoConfiguration, JrAutoConfiguration. У слоя
+#    ReportStudioPersistenceAutoConfiguration, JrPersistenceAutoConfiguration, JrAutoConfiguration. У слоя
 #    есть и своя persistence-конфигурация (@EntityScan/@EnableJpaRepositories), то есть переезд
 #    меняет не только объявление бинов, но и область сканирования сущностей — а это не падает при
 #    старте, а меняет поведение. Прецедент рядом: в D3.5.4 Vaadin-адаптер телеметрии держался

@@ -130,9 +130,10 @@ final class TablesAndFieldsTab extends VerticalLayout {
                 transfer("<", this::removeSelectedField, "Убрать поле"),
                 transfer("<<", this::clearAllFields, "Убрать все поля"));
         for (HorizontalLayout column : List.of(toCenter, toFields)) {
+            column.addClassName("query-constructor-transfers");
             column.setPadding(false);
             column.setSpacing(false);
-            column.setWidth("72px");
+            column.setWidth("36px");
             column.getStyle().set("flex-direction", "column");
             column.setAlignItems(FlexComponent.Alignment.CENTER);
         }
@@ -143,6 +144,7 @@ final class TablesAndFieldsTab extends VerticalLayout {
         content.setWidthFull();
         content.setHeightFull();
         content.setFlexGrow(1, left, center, right);
+        content.setFlexShrink(0, toCenter, toFields);
         content.getStyle().set("min-height", "0");
         sliceSettings.setVisible(false);
         sliceSettings.addClickListener(event -> {

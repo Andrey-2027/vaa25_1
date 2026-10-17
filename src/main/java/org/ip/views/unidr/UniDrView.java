@@ -87,7 +87,7 @@ public class UniDrView extends VerticalLayout implements BeforeEnterObserver, Be
         this.runs=runs;this.references=references;this.clock=clock;
         this.files=files;
         this.queryUi=queryUi;catalog=queryUi==null?UniDrSourceCatalog.pilot():queryUi.catalog();validator=new UniDrDefinitionValidator(catalog);
-        addClassName("unidr-editor");setWidthFull();setPadding(true);
+        addClassNames("unidr-editor","form-1c");setWidthFull();setPadding(true);
         var heading=new HorizontalLayout(new H1("UniDR"),new Anchor("/","В приложение"));heading.setAlignItems(Alignment.CENTER);
         add(heading);
         if(runs==null || references==null) { add(new Paragraph("Пилот UniDR выключен"));return; }

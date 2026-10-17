@@ -8,7 +8,6 @@ import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
-import org.ipro.ureport.service.UreportTemplateService;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
 
@@ -24,8 +23,8 @@ import java.util.function.Supplier;
  * осталась: она отвечает только за место в форме, подпись и ленивый supplier контекста (контекст
  * строится в момент клика, уже после возможного сохранения или смены выбора).</p>
  *
- * <p>Все конструкторы сохранены как есть: их вызывают карточки сущностей и каталог отчётов, и
- * набор зависимостей у них тот же, что у диалога.</p>
+ * <p>Конструкторы сохраняют прежние точки подключения карточек: базовый набор зависимостей,
+ * вариант с созданием JR-форм и максимальный вариант с запуском JR-форм из реестра.</p>
  */
 public class ContextualReportLauncher extends Button {
 
@@ -35,8 +34,6 @@ public class ContextualReportLauncher extends Button {
     private final ReportExecutionService executionService;
     private final EntityLookup lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
-    /** nullable: без сервиса UReport3-ветка недоступна (обратная совместимость). */
-    private final UreportTemplateService ureportService;
     /** nullable: без сервиса JR-создание недоступно (обратная совместимость). */
     private final JrxmlTemplateService jrTemplateService;
     /** nullable: без сервиса запуск JR-форм из реестра недоступен. */
@@ -50,25 +47,25 @@ public class ContextualReportLauncher extends Button {
             SelectionFormAssembler selectionFormAssembler) {
         this("Отчёты", () -> templateService.search(""), contextSupplier,
                 templateService, executionService, lookupService, selectionFormAssembler,
-                null);
+                null, null);
     }
 
-    /** С поддержкой UReport3 (печатные формы реестра). */
+    /** С поддержкой JR (печатные формы реестра). */
     public ContextualReportLauncher(
             Supplier<ReportContext> contextSupplier,
             ReportTemplateService templateService,
             ReportExecutionService executionService,
             EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            UreportTemplateService ureportService) {
+            JrxmlTemplateService jrTemplateService) {
         this("Отчёты", () -> templateService.search(""), contextSupplier,
                 templateService, executionService, lookupService, selectionFormAssembler,
-                ureportService, null, null);
+                jrTemplateService, null);
     }
 
     /**
-     * С поддержкой UReport3 и JR (печатные формы реестра).
-     * JR-сервис nullable — без него пункт «JR» в меню создания не показывается.
+     * С поддержкой JR (создание и запуск печатных форм реестра).
+     * JR-сервисы nullable — без них соответствующие пункты не показываются.
      */
     public ContextualReportLauncher(
             Supplier<ReportContext> contextSupplier,
@@ -76,11 +73,11 @@ public class ContextualReportLauncher extends Button {
             ReportExecutionService executionService,
             EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            UreportTemplateService ureportService,
-            JrxmlTemplateService jrTemplateService) {
+            JrxmlTemplateService jrTemplateService,
+            JrxmlExecutionService jrExecutionService) {
         this("Отчёты", () -> templateService.search(""), contextSupplier,
                 templateService, executionService, lookupService, selectionFormAssembler,
-                ureportService, jrTemplateService, null);
+                jrTemplateService, jrExecutionService);
     }
 
     public ContextualReportLauncher(
@@ -92,7 +89,7 @@ public class ContextualReportLauncher extends Button {
             SelectionFormAssembler selectionFormAssembler) {
         this(caption, () -> templateService.search(""), contextSupplier,
                 templateService, executionService, lookupService, selectionFormAssembler,
-                null);
+                null, null);
     }
 
     public ContextualReportLauncher(
@@ -104,11 +101,13 @@ public class ContextualReportLauncher extends Button {
             EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler) {
         this(caption, templatesSupplier, contextSupplier, templateService,
-                executionService, lookupService, selectionFormAssembler, null);
+                executionService, lookupService, selectionFormAssembler, null, null);
     }
 
     /**
-     * Полная форма: с поддержкой UReport3 (печатные формы, привязанные к реестру).
+     * Полная форма: с поддержкой JR (создание и запуск печатных форм,
+     * привязанных к реестру). JR-сервисы nullable — без них соответствующие
+     * пункты не показываются.
      */
     public ContextualReportLauncher(
             String caption,
@@ -118,26 +117,6 @@ public class ContextualReportLauncher extends Button {
             ReportExecutionService executionService,
             EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            UreportTemplateService ureportService) {
-        this(caption, templatesSupplier, contextSupplier, templateService,
-                executionService, lookupService, selectionFormAssembler,
-                ureportService, null, null);
-    }
-
-    /**
-     * Максимальная форма: все три движка (UDR / UReport3 / JR).
-     * JR-сервисы nullable — без них пункт «JR» в меню создания не показывается
-     * и JR-формы в списке печати не появляются.
-     */
-    public ContextualReportLauncher(
-            String caption,
-            Supplier<List<ReportTemplate>> templatesSupplier,
-            Supplier<ReportContext> contextSupplier,
-            ReportTemplateService templateService,
-            ReportExecutionService executionService,
-            EntityLookup lookupService,
-            SelectionFormAssembler selectionFormAssembler,
-            UreportTemplateService ureportService,
             JrxmlTemplateService jrTemplateService,
             JrxmlExecutionService jrExecutionService) {
         super(caption);
@@ -147,7 +126,6 @@ public class ContextualReportLauncher extends Button {
         this.executionService = executionService;
         this.lookupService = lookupService;
         this.selectionFormAssembler = selectionFormAssembler;
-        this.ureportService = ureportService;
         this.jrTemplateService = jrTemplateService;
         this.jrExecutionService = jrExecutionService;
         addClickListener(event -> printDialog().open(contextSupplier.get()));
@@ -156,7 +134,7 @@ public class ContextualReportLauncher extends Button {
     /** Диалог выбора печатной формы с теми же зависимостями, что получила кнопка. */
     protected ReportPrintDialog printDialog() {
         return new ReportPrintDialog(templatesSupplier, templateService, executionService,
-                lookupService, selectionFormAssembler, ureportService, jrTemplateService,
+                lookupService, selectionFormAssembler, jrTemplateService,
                 jrExecutionService, this::openDialog);
     }
 

@@ -1,6 +1,7 @@
 /* Vaadin default theme */
 @import "form-1c.css";
 @import "windows-global.css";
+@import "query-constructor.css";
 
 .workspace {
   overflow: hidden;

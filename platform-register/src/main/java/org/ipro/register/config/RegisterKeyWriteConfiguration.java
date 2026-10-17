@@ -12,6 +12,7 @@ import org.ipro.register.RegisterKeyChanges;
 import org.ipro.register.RegisterKeyWriteGuardInstaller;
 import org.ipro.register.RegisterKeyWritePermissions;
 import org.ipro.register.RegisterKeyWrites;
+import org.ipro.register.RegisterNamedOperations;
 import org.ipro.register.RegisterRegistry;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCurrentUser;
@@ -66,6 +67,17 @@ public class RegisterKeyWriteConfiguration {
             RegisterRegistry registers) {
         registers.initialize();
         return new RegisterKeyWriteGuardInstaller(factory);
+    }
+
+    /**
+     * Подписи именованных операций регистра (ADR-0024 §2.4): имя объявлено декларацией, текст
+     * собирает платформа. Бин живёт в том же срезе, что и сами операции: иначе подпись обещала бы
+     * операцию, которой в артефакте нет. Приложение читает список как данные — своей строки текста
+     * и своего бина на регистр у него больше нет.
+     */
+    @Bean
+    public RegisterNamedOperations registerNamedOperations(RegisterRegistry registers) {
+        return new RegisterNamedOperations(registers);
     }
 
     /** Именованные операции смены ключа: регистрация определения не выдаёт грант. */

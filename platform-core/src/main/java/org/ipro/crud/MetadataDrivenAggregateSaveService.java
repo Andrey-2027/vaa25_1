@@ -200,6 +200,11 @@ public class MetadataDrivenAggregateSaveService {
             try (OperationScope telemetry = TelemetryBridge.beginOperation(
                     "save:" + aggregateClass.getSimpleName())) {
                 P saved = saveAggregate(aggregate, aggregateClass);
+                // ADR-0026: обновление возвращает merge-копию, и onSave увидит её, а не экземпляр
+                // команды. Копию к объявленному payload'у привязывает платформа — единственная
+                // сторона, которая знает оба экземпляра; приложению сравнивать id и Hibernate-класс
+                // не нужно.
+                AggregateCommandPayload.bindManagedCopy(aggregate, saved);
                 List<SectionResult> persistedSections = new ArrayList<>(inputs.size());
                 for (ResolvedInput input : inputs) {
                     replaceRows(saved, input);

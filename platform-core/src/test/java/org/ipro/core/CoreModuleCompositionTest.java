@@ -55,12 +55,14 @@ class CoreModuleCompositionTest {
      */
     private static final Set<String> REVIEWED_TYPES = Set.of(
         "org.ipro.crud.AggregateSaveRollbackState",
+        "org.ipro.crud.AggregateCommandPayload",
         "org.ipro.crud.AggregateOperationAuthorizer",
         "org.ipro.crud.AggregateSaveContribution",
         "org.ipro.crud.AggregateSaveContributionParticipant",
         "org.ipro.crud.AggregateSaveParticipantContext",
         "org.ipro.crud.AggregateSaveLifecycleScope",
         "org.ipro.crud.BaseService",
+        "org.ipro.crud.CallbackScope",
         "org.ipro.crud.EntityCopyService",
         "org.ipro.crud.EntityLookup",
         "org.ipro.crud.EntityServiceResolver",

@@ -152,7 +152,8 @@ class RegisterKeyDialogTest {
         selectColumns = {"dimension", "period", "amount"}
     )
     @RegisterMetadata(dimensions = "dimension", period = "period", resources = "amount",
-        periodicity = RegisterPeriodicity.DAY, keyChangeAllowed = true, keyWriteAllowed = true)
+        periodicity = RegisterPeriodicity.DAY, keyChangeAllowed = true, keyWriteAllowed = true,
+        displayName = "Тестовый регистр")
     static class DialogRegisterFixture extends PeriodicRegisterEntryBase {
 
         @NotNull

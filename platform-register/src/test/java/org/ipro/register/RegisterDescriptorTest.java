@@ -57,7 +57,8 @@ class RegisterDescriptorTest {
     }
 
     @Entity @Table(uniqueConstraints = @UniqueConstraint(columnNames = "code"))
-    @RegisterMetadata(dimensions = "code", resources = "value", keyChangeAllowed = true)
+    @RegisterMetadata(dimensions = "code", resources = "value", keyChangeAllowed = true,
+        displayName = "Проверочный регистр")
     static class OptInValue {
         @Id Long id;
         @Column(name = "code", nullable = false) String code;

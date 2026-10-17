@@ -116,8 +116,10 @@ class RestReadHttpSecurityIT extends RestReadHttpTestSupport {
     @Test
     void existingUiAndJpqlChainsRemainDistinctFromRestRead() throws Exception {
         var ui = get(null, "/ureport/index.html");
-        assertThat(ui.response().statusCode()).isBetween(300, 399);
-        assertThat(ui.response().headers().firstValue("Location").orElse("")).contains("login");
+        assertThat(ui.response().statusCode())
+            .as("выведенный дизайнер UReport не должен отвечать рабочим HTML")
+            .isNotEqualTo(200);
+        assertThat(ui.response().body()).doesNotContain("uReport");
         var anonymous = request(null, PASSWORD, "POST", "/api/report-jpql/preview", Map.of("Content-Type", "application/json"), "{\"jpql\":\"select n.id from Nomenclature n\"}");
         assertThat(anonymous.response().statusCode()).isEqualTo(401);
         assertThat(anonymous.response().body()).doesNotContain("\"traceId\"");

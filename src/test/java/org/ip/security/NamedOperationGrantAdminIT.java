@@ -3,15 +3,20 @@ package org.ip.security;
 import jakarta.persistence.EntityManager;
 import org.ip.application.catalog.AttributeValuePermissions;
 import org.ip.application.catalog.NamedOperationOwner;
+import org.ip.application.catalog.NamedOperationSource;
 import org.ip.config.DataInitializer;
 import org.ip.model.AttributeType;
 import org.ip.model.AttributeValue;
 import org.ip.model.AttributeValueType;
+import org.ip.model.NomenclatureAccountingObject;
+import org.ip.model.NomenclaturePrice;
 import org.ip.repository.AttributeValueRepository;
 import org.ip.service.AccessGrantAdminService;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
 import org.ip.service.AttributeValueService;
 import org.ipro.data.EntityDataAccess;
+import org.ipro.register.RegisterKeyChangePermissions;
+import org.ipro.register.RegisterKeyWritePermissions;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsTestFixture;
@@ -31,7 +36,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,6 +92,9 @@ class NamedOperationGrantAdminIT {
 
     @Autowired
     private List<NamedOperationOwner> namedOperationOwners;
+
+    @Autowired
+    private List<NamedOperationSource> namedOperationSources;
 
     @Autowired
     private org.ip.views.admin.AdminView adminView;
@@ -142,6 +152,33 @@ class NamedOperationGrantAdminIT {
     void theScreenIsWiredWithTheDeclaredOperationOwners() {
         assertThat(adminView).isNotNull();
         assertThat(namedOperationOwners).isNotEmpty();
+    }
+
+    /**
+     * S5(а): подписи операций регистра приходят из его декларации через <b>один</b> адаптер, и
+     * проверяется это на настоящем контексте — с настоящими объявлениями цен номенклатуры и
+     * объектов учёта, а не на строке текста в тесте.
+     */
+    @Test
+    void registerOperationTitlesComeFromTheDeclarationThroughTheSingleAdapter() {
+        Map<String, String> titles = new HashMap<>();
+        NamedOperationSource.merge(namedOperationOwners, namedOperationSources)
+            .forEach(owner -> titles.put(owner.permissionId(), owner.title()));
+
+        assertThat(titles)
+            .as("приложение больше не пишет текстов регистровых операций: их собирает платформа"
+                + " из displayName объявленного регистра")
+            .containsEntry(RegisterKeyChangePermissions.permissionId(NomenclaturePrice.class),
+                "Изменить ключ записи: Цены номенклатуры")
+            .containsEntry(RegisterKeyWritePermissions.setPermissionId(NomenclaturePrice.class),
+                "Записать по ключу: Цены номенклатуры")
+            .containsEntry(RegisterKeyWritePermissions.deletePermissionId(NomenclaturePrice.class),
+                "Удалить по ключу: Цены номенклатуры")
+            .containsEntry(RegisterKeyChangePermissions.permissionId(NomenclatureAccountingObject.class),
+                "Изменить ключ записи: Объекты учёта номенклатуры");
+        assertThat(namedOperationSources)
+            .as("адаптер один на всё приложение: следующий регистр не потребует нового бина подписи")
+            .hasSize(1);
     }
 
     /** Пара «выдал — открылось, отозвал — закрылось», включая вид записанной строки. */

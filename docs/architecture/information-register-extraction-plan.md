@@ -13,16 +13,36 @@
   импортов у них 0, а PostgreSQL-гейты среза гоняются сборкой модуля — набор ADR-0025 даёт 48/48
   ([протокол](../plans/register-adr0025-module-postgresql-20261016.log)). **ADR-0024 написан и принят**
   ([ADR](decisions/ADR-0024-register-module-and-operation-titles.md)): поставка, границы модулей и
-  имена операций решены (имена — из декларации, подписи собирает платформа); поставка backend-стартером
-  и реализация S5(а) остаются работой. Открыто: ADR по контракту lifecycle, реализация S5(а)/(б),
-  кейс внешнего потребителя и приёмка §6.
+  имена операций решены (имена — из декларации, подписи собирает платформа); поставка
+  backend-стартером выполнена 2026-10-16, реализация S5(а) остаётся работой. Открыто: ADR по
+  контракту lifecycle, имена операций S5(а), контекст позиций S5(б), кейс внешнего потребителя и
+  приёмка §6.
+- **Обновление 2026-10-16 (второе).** Поставка решена: `platform-register` включён в замыкание
+  `platform-backend-starter` прямым ребром ([evidence](evidence/register-s5a-backend-starter-20261016.md)).
+  Измерено до и после: 60 → 61 артефакт, `platform-register` в дереве есть, UI-модуля и REST нет;
+  снято ребро — сборка модуля падает (`package org.ipro.register does not exist`), то есть гейт меряет
+  поставку, а не декларацию. Тем же заходом закрыт хвост S5(в) в манифесте (fingerprint
+  `platform-register` 50 → 69 файлов) и названы два чужих дрейфа манифеста (`platform-rls`,
+  `platform-register-vaadin`), которые не перезаписывались: содержимое их каталогов совпадает с
+  HEAD, то есть дрейф старше этого захода и принадлежит своей теме.
+- **Обновление 2026-10-16 (третье).** **S5(а) закрыт по существу**: имя регистра объявляется его
+  декларацией (`@RegisterMetadata.displayName`), подписи операций собирает платформа
+  (`RegisterNamedOperations`), в приложении — один адаптер к каталогу прав вместо четырёх бинов, и
+  ни одной строки текста ([evidence](evidence/register-s5a-operation-titles-20261016.md)).
+  Негативный прогон: у объявленного регистра убрано имя — приложение не поднимается громко
+  (`[OPERATION_DISPLAY_NAME_MISSING]`), то есть пустая подпись недостижима по построению.
+- **Обновление 2026-10-16 (четвёртое).** **S5 закрыт целиком: (б) — последним срезом.** ADR-0026
+  принят ([ADR](decisions/ADR-0026-command-payload-in-lifecycle.md)), и позиции документа доходят до
+  lifecycle-хуков поддержанным механизмом платформы: команда объявляет их через
+  `AggregateCommandPayload`, платформа связывает с объявлением управляемую копию, приложение
+  больше не держит ни ThreadLocal'а, ни эвристик по `id` и Hibernate-классу
+  ([evidence](evidence/register-s5b-command-payload-20261016.md)). Вето «вне команды — отказ»
+  проверяется тем же тестом, что и до среза: прямой aggregate save **с позициями** отвергается.
 - **Что осталось (открыто на 2026-10-16):**
-  1. **S5 «Сокращение обвязки приложения»** — из трёх частей остались (а) и (б) (§4, S5-детали).
-     Предусловие (а) выполнено: **ADR-0024 принят 2026-10-16**
-     ([ADR](decisions/ADR-0024-register-module-and-operation-titles.md)) — координаты, поставка,
-     границы и имена операций решены, включая форму S5(а) «имя в декларации, подписи собирает
-     платформа». Предусловие (б) не выполнено: **ADR по контракту lifecycle не написан**. Порядок
-     «S5(а) требует ADR-0024, S5(б) — ADR по lifecycle» из §7 остаётся в силе.
+  1. **S5 «Сокращение обвязки приложения»** — закрыт целиком: (а) 2026-10-16 в два захода (поставка
+     backend-стартером, §4/S5-детали; имена операций,
+     [evidence](evidence/register-s5a-operation-titles-20261016.md)), (в) переносом тестов движка,
+     (б) контекстом позиций документа ([evidence](evidence/register-s5b-command-payload-20261016.md)).
   2. **Приёмка программы §6 не закрыта целиком:** кейс внешнего потребителя с объявленным
      регистром (`examples/platform-consumer` + `scripts/test-platform-consumer-gate.ps1`, §5) не
      написан, полный `mvn verify` и random-order прогон на закрытии срезов не выполнялись
@@ -30,11 +50,14 @@
      После чекпойнта 2026-10-16 полный прогон впервые стал возможен: диффы больше не смешиваются
      с чужими пакетами, но чужая краснота (`platform-rls.api`, `PlatformPublicSurfaceTest`,
      `WorkspaceManifestTest`) остаётся и обязана быть названа, а не зачтена молча.
-  3. **Метрики §9 не в цели по обвязке пилота:** `AccountingObjectSaveScope` (S5(б)) и
-     `RegisterKeyPermissionTitles` (S5(а)) остаются в приложении — это и есть предмет S5.
+  3. **Метрики §9 по обвязке пилота:** `AccountingObjectSaveScope` удалён вместе с эвристиками —
+     приложение не держит ни своего ThreadLocal'а, ни сравнения `id`/Hibernate-класса (S5(б),
+     2026-10-16). `RegisterKeyPermissionTitles` больше не прикладной: подписи операций собирает
+     платформа, в приложении один адаптер (`RegisterOperationTitles`), а бинов подписи на регистр —
+     0 (S5(а), 2026-10-16).
      Достигнуто: прикладные файлы `org.ip.views.register` — 0, прикладная регистрация регистра — 0,
      прямая зависимость приложения на `platform-register` — 0, reach-back `reportstudio` — 0,
-     тесты движка — больше не прикладные (S5(в), 2026-10-16).
+     тесты движка — больше не прикладные (S5(в), 2026-10-16), прикладных строк текста операций — 0.
 - Основание: [замер замыкания](information-register-extraction-slice.md) (движок `org.ipro.register`
   не называет ни одного прикладного типа); [ADR-0013 §5](decisions/ADR-0013-information-register-v1.md)
   (платформенная природа инфраструктуры — осознанный временный долг);
@@ -288,21 +311,28 @@ MODULE_API 0, INTERNAL 2): `RegisterFormCustomization` остаётся APP_SPI,
 
 ### S5 — детали
 
-**(а) Подписи операций.** `RegisterKeyPermissionTitles` — четыре бина на регистр, где приложение
-пишет только текст: id права уже считает `RegisterKeyChangePermissions.permissionId(type)`.
-Блокер, которого нет в предложении: `NamedOperationOwner` — прикладной интерфейс
-(`org.ip.application.catalog`), потребляемый прикладными `PermissionCatalogService` и `AdminView`;
-платформенный модуль его реализовать не может. Выбор: нейтральный SPI (прецедент —
-`EntityPresentationService`, который уже решил ту же задачу для показа регистратора) либо
-динамическая регистрация владельцев из `RegisterRegistry`. Решение — часть ADR-0024.
+**(а) Подписи операций. Закрыто 2026-10-16.** `RegisterKeyPermissionTitles` — четыре бина на
+регистр, где приложение писало текст, — удалён. Блокером был `NamedOperationOwner`: прикладной
+интерфейс (`org.ip.application.catalog`), который платформенный модуль реализовать не может,
+потому что он потребляется прикладными `PermissionCatalogService` и `AdminView`. Решение принято
+ADR-0024 §2.4 и реализовано: имя регистра объявляет его декларация (`@RegisterMetadata.displayName`),
+подписи собирает платформа (`RegisterNamedOperations`, форма одна на всех), а в приложении остаётся
+**один** адаптер (`NamedOperationSource` → `RegisterOperationTitles`) на все регистры сразу. Отказ
+вместо пустой подписи даёт `RegisterMetadataValidator` (`OPERATION_DISPLAY_NAME_MISSING`) — проверено
+негативным прогоном: без имени приложение не поднимается
+([evidence](evidence/register-s5a-operation-titles-20261016.md)).
 
-**(б) Контекст позиций документа.** `AccountingObjectSaveScope` — ThreadLocal с эвристиками по
-identity, id и Hibernate-классу. Причина не в регистре: у `EntityLifecycle` нет поддержанного
-способа донести payload команды до `onSave`. Движок уже решил задачу того же класса корректно —
-`RegisterRecords.forRecorder` проверяет callback-токен (`AggregateSaveLifecycleScope`/
-`CanonicalSaveLifecycleScope`), `entityManager.contains`, активную транзакцию и делает handle
-истекающим. Обобщается именно этот механизм; второй scope рядом не заводится. Работа получает
-собственный ADR (граница lifecycle-контракта, не регистра).
+**(б) Контекст позиций документа. Закрыто 2026-10-16.** Прежний `AccountingObjectSaveScope` — ThreadLocal с эвристиками по
+identity, id и Hibernate-классу — удалён; причины он не имел: у `EntityLifecycle` не было
+поддержанного способа донести payload команды до `onSave`, хотя движок ту же задачу решает
+корректно (callback-токен `AggregateSaveLifecycleScope`/`CanonicalSaveLifecycleScope`,
+`entityManager.contains`, активная транзакция, истекающий handle). Обобщён именно этот механизм,
+второй scope рядом не заведён: ADR-0026 ([ADR](decisions/ADR-0026-command-payload-in-lifecycle.md))
+даёт команде объявление payload'а (`AggregateCommandPayload`), а платформе — связывание
+управляемой копии, поэтому приложение не держит ни ThreadLocal'а, ни сравнения `id`/Hibernate-класса.
+Вето «документ сохраняется только командой» осталось в `beforeSave` и осталось доказуемым: прямой
+aggregate save с подключёнными позициями отвергается тем же тестом, что и до среза
+([evidence](evidence/register-s5b-command-payload-20261016.md)).
 
 **(в) Тесты движка. Закрыто 2026-10-16.** 5 файлов с внешними опорами — 2 с прикладными сущностями
 (`RegisterReaderTest`, `RegisterListFilterPhasesTest`) и 4 с внутридеревными фикстурами
@@ -321,11 +351,11 @@ identity, id и Hibernate-классу. Причина не в регистре:
 | Файл/гейт | Что меняется | Срез |
 | --- | --- | --- |
 | `platform-build/pom.xml`, `platform-bom`, `scripts/local-dependencies.json` | Два новых проекта: `dependsOn` по фактическим compile-импортам, артефакты, `buildSteps`, fingerprints, порядок сборки | S1 (backend), S4 (UI) |
-| Стартеры `platform-backend-starter` / `platform-vaadin-starter` | Новые артефакты в замыкании; `PlatformStarterCompositionTest` подтверждает, что `platform-rest` остаётся вне замыкания | S1/S4 |
+| Стартеры `platform-backend-starter` / `platform-vaadin-starter` | Новые артефакты в замыкании; `PlatformStarterCompositionTest` подтверждает, что `platform-rest` остаётся вне замыкания. **Выполнено 2026-10-16** для backend-стартера: ребро `platform-register` включено (60 → 61 артефакт), UI и REST остались вне замыкания, негативный прогон «убрать ребро» валит сборку модуля — [evidence](evidence/register-s5a-backend-starter-20261016.md) | S1/S4/S5(а) |
 | `PersistenceTypeRegistrationTest` | `SOURCE_ROOTS` + новый модуль; владелец `org.ipro.register.persistence` переходит к модулю вместе с `@EntityScan` **тогда, когда переезжает сама сущность** (S3) — до этого приложение сохраняет своё сканирование | S1 (модуль), S3 (владелец сущности) |
 | `PlatformSubsystemClosureTest` | Снятие записей reach-back у `reportstudio` **на каждом срезе**, а не один раз: тест сканирует `src/main/java`, поэтому уехавший класс исчезает из замыкания сразу и реестр становится несимметричным до правки | S0–S3 |
 | `PlatformApiBaselineTest` + `platform-api-baseline/` | Baselines `platform-register.api`, `platform-register-vaadin.api` | S0/S4 |
-| `platform-*-surface.txt` + surface-тесты | Reviewed-реестры ролей (APP_API/APP_SPI/MODULE_API/INTERNAL) для обоих модулей. **Выполнено 2026-10-15**: `register-vaadin-surface.txt` и `RegisterVaadinSurfaceRoleTest` живут в самом артефакте, то есть расхождение ролей видно на его сборке, а не только в сборке приложения | S0/S4 |
+| `platform-*-surface.txt` + surface-тесты | Reviewed-реестры ролей (APP_API/APP_SPI/MODULE_API/INTERNAL) для обоих модулей. **Выполнено 2026-10-15**: `register-vaadin-surface.txt` и `RegisterVaadinSurfaceRoleTest` живут в самом артефакте, то есть расхождение ролей видно на его сборке, а не только в сборке приложения. **Обновлено 2026-10-16 (S5(а))**: `register-surface.txt` — 46 → 47 типов (APP_API 21), роль нового типа назначена срезом, а не задним числом | S0/S4/S5(а) |
 | `PlatformDependencyDirectionTest` | Backend регистра не знает `form`/`reportstudio`/`ureport`/`jr`/`org.ip`; UI-модуль может знать `form`, но не отчёты. **Выполнено 2026-10-15**: у модуля интерфейса появилось ребро `platform-register-vaadin → platform-register` (без обратного), Vaadin объявлен `provided` и в backend-модуль не протёк — обе стороны проверяет состав самого артефакта | S1/S4 |
 | `PlatformAutoConfigurationRegistryTest` | Каждая авто-конфигурация зарегистрирована ровно один раз и своим артефактом; запись `RegisterAutoConfiguration` уходит из app imports. **Выполнено 2026-10-14**: монолитной конфигурации нет ни в приложении, ни в модуле — её заменили три срезовые, и у приложения не остаётся ни одной регистрации регистра | S1–S3 |
 | `Platform*ModuleTest` | Новые `PlatformRegisterModuleTest`, `PlatformRegisterVaadinModuleTest` (состав, объявленные зависимости, запрет прикладных ссылок). **Выполнено 2026-10-15**: артефакт интерфейса обязан приходить из `platform-register-vaadin`, а не из `target/classes` приложения (проверка `getProtectionDomain`), и ни один production-класс приложения не называет его типы | S1/S4 |
@@ -386,9 +416,14 @@ untracked-файлов `git mv` истории не сохранит вовсе.
   **На 2026-10-15:** `org.ip.views.register` — 0 файлов, прикладная регистрация регистра — 0,
   прямой зависимости приложения на `platform-register` — 0 (движок и интерфейс приезжают
   стартером). **На 2026-10-16:** тесты движка уехали в модуль и гоняются его сборкой — S5(в)
-  закрыт ([протокол](../plans/register-adr0025-module-postgresql-20261016.log)); осталось
-  прикладное и оно названо: обвязка пилота — подписи операций (S5(а)) и контекст позиций
-  документа (S5(б)).
+  закрыт ([протокол](../plans/register-adr0025-module-postgresql-20261016.log)). **На 2026-10-16
+  (S5(а)):** подписи операций собирает платформа из `displayName` объявленного регистра,
+  прикладных бинов подписи на регистр — 0, прикладных строк текста — 0, остался один адаптер на
+  все регистры ([evidence](evidence/register-s5a-operation-titles-20261016.md)). **На 2026-10-16
+  (S5(б)):** позиции документа объявляет команда, копию для `onSave` связывает платформа,
+  прикладных ThreadLocal'ов и эвристик по `id`/Hibernate-классу в пилоте — 0
+  ([evidence](evidence/register-s5b-command-payload-20261016.md)). Прикладного долга у S5 не
+  осталось.
 - Контрактных типов, названных вне пакета: 30 → reviewed-роли на все 30.
 - Reach-back `reportstudio` на регистр: 16 → 0 записей.
 - Обязательных регистраций в приложении: 1 → 1 (не больше).

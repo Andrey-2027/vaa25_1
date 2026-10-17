@@ -33,8 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Единая точка выполнения JPQL ({@link JpqlRunService}): guard -> preview,
- * отказ guard'а, лимит колонок по движку, UReport-семантика имён
- * (точки -> подчёркивания) и EntityRef -> отображаемое значение.
+ * отказ guard'а, лимит колонок по движку и EntityRef -> отображаемое значение.
  *
  * Сборка бинов вручную по образцу ReportQueryGuardTest/RlsIntegrationTest —
  * контекст без Vaadin/сервисов.
@@ -122,7 +121,7 @@ class JpqlRunServiceTest {
     }
 
     @Test
-    void defaultColumnLimitIsStandardForUdrUreport() {
+    void defaultColumnLimitIsStandardForUdr() {
         loginAs("admin");
         String jpql = manyColumnsSelect(ReportQueryGuard.MAX_COLUMNS + 1);
         assertThatThrownBy(() -> service.run(jpql, Map.of()))
@@ -137,28 +136,6 @@ class JpqlRunServiceTest {
         // JR-движок передаёт расширенный лимит (Ф1.2): тот же запрос проходит
         ReportDataset ds = service.run(jpql, Map.of(), 50);
         assertThat(ds.fields()).hasSize(ReportQueryGuard.MAX_COLUMNS + 1);
-    }
-
-    @Test
-    void runAsMapsReplacesDotsInFieldNames() {
-        loginAs("admin");
-        List<Map<String, Object>> rows =
-                service.runAsMaps("select j.name from Journal j where j.code = 'A'", Map.of());
-        assertThat(rows).hasSize(1);
-        // анализатор без алиаса даёт имя "j.name" — точки заменяются на '_'
-        assertThat(rows.get(0)).containsKey("j_name");
-        assertThat(rows.get(0)).doesNotContainKeys("j.name");
-    }
-
-    @Test
-    void runAsMapsConvertsEntityRefToDisplayValue() {
-        loginAs("admin");
-        List<Map<String, Object>> rows =
-                service.runAsMaps("select j from Journal j where j.code = 'A'", Map.of());
-        assertThat(rows).hasSize(1);
-        Object value = rows.get(0).values().iterator().next();
-        // Journal реализует HasDisplayName -> EntityRef разворачивается в caption
-        assertThat(value).isEqualTo("A Журнал A");
     }
 
     private String manyColumnsSelect(int columns) {

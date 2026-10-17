@@ -16,11 +16,17 @@ annotation public abstract interface org.ipro.search.GlobalSearchable
   target [TYPE]
   method public abstract int order()
 
+class public final org.ipro.crud.AggregateCommandPayload
+  method public <R> java.util.List<R> section(java.lang.Class<R>)
+  method public boolean hasSection(java.lang.Class<?>)
+  method public java.util.List<org.ipro.events.AggregateSection> sections()
+  method public static java.util.Optional<org.ipro.crud.AggregateCommandPayload> of(org.ipro.lifecycle.EntitySaveContext<?>)
+  method public static org.ipro.crud.AggregateCommandPayload$Declaration open(org.ipro.identity.IdentifiableEntity<?>, java.util.List<? extends org.ipro.events.AggregateSection>)
+
 class public final org.ipro.crud.AggregateSaveLifecycleScope
-  implements java.lang.AutoCloseable
+  extends org.ipro.crud.CallbackScope<org.ipro.crud.AggregateSaveLifecycleScope>
   method public static boolean requiresVersionAdvance(org.ipro.lifecycle.EntitySaveContext<?>, java.lang.Long)
   method public static java.lang.Object tokenFor(org.ipro.lifecycle.EntitySaveContext<?>)
-  method public void close()
 
 class public final org.ipro.crud.MetadataTableSectionService
   implements org.ipro.crud.TableSectionService<R, P>
@@ -737,6 +743,10 @@ interface public abstract interface org.ipro.search.GlobalSearchProvider
   method public abstract java.lang.String displayValue(T, org.ipro.search.GlobalSearchSource)
   method public int queryTimeoutMs()
   method public org.ipro.search.GlobalSearchMatch classify(T, org.ipro.search.GlobalSearchSource, java.lang.String)
+
+interface public abstract static interface org.ipro.crud.AggregateCommandPayload$Declaration
+  implements java.lang.AutoCloseable
+  method public abstract void close()
 
 interface public abstract static interface org.ipro.data.WriteTelemetry$WriteScope
   implements java.lang.AutoCloseable

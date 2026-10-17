@@ -21,11 +21,9 @@ import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
-import org.ipro.ureport.catalog.ReportCatalogItem;
-import org.ipro.ureport.catalog.ReportCatalogService;
-import org.ipro.ureport.catalog.ReportEngineType;
-import org.ipro.ureport.dom.UreportTemplate;
-import org.ipro.ureport.service.UreportTemplateService;
+import org.ipro.report.catalog.ReportCatalogItem;
+import org.ipro.report.catalog.ReportCatalogService;
+import org.ipro.report.catalog.ReportEngineType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +54,7 @@ import static org.mockito.Mockito.when;
 /**
  * D3.6 characterization: канонический каталог отчётов до консолидации.
  *
- * <p>Каталог — единственное место, где три движка (UDR-конструктор, UReport3, JR) сходятся в одну
+ * <p>Каталог — единственное место, где три движка (UDR-конструктор, JR, UniDR) сходятся в одну
  * таблицу, и все действия диспетчеризуются по паре {@code (type, id)}. Вариантные каталоги
  * (compact/structured) удаляются в D3.6.7, поэтому здесь закрепляется именно то поведение
  * канонического экрана, которое обязано пережить удаление вариантов:</p>
@@ -79,13 +77,11 @@ import static org.mockito.Mockito.when;
  * {@code Dialog.open()} не падал.</p>
  *
  * <p><b>Что здесь осознанно не проверяется.</b> Класс конкретного диалога запуска
- * ({@code ReportRunDialog}/{@code JrxmlRunDialog}/{@code UreportParamsDialog}) — сам факт
+ * ({@code ReportRunDialog}/{@code JrxmlRunDialog}) — сам факт
  * «какой движок пошёл в работу» уже различается по вызовам сервисов и по состоянию редактора
  * (запуск, в отличие от открытия UDR, не подменяет черновик редактора).</p>
  */
 class ReportCatalogViewTest {
-
-    private static final String DESIGNER_URL = "http://host/ureport/designer?_u=file:/tmp/a.ureport.xml";
 
     private final List<ReportCatalogItem> catalogItems = new ArrayList<>();
     private final List<String> notifications = new ArrayList<>();
@@ -94,7 +90,6 @@ class ReportCatalogViewTest {
     private ReportTemplateService templateService;
     private ReportTemplateTransferService transferService;
     private ReportCatalogService catalogService;
-    private UreportTemplateService ureportService;
     private JrxmlTemplateService jrxmlService;
     private JrxmlExecutionService jrxmlExecutionService;
     private org.ip.application.register.NomenclaturePriceReport priceReport;
@@ -118,7 +113,6 @@ class ReportCatalogViewTest {
         templateService = mock(ReportTemplateService.class);
         transferService = mock(ReportTemplateTransferService.class);
         catalogService = mock(ReportCatalogService.class);
-        ureportService = mock(UreportTemplateService.class);
         jrxmlService = mock(JrxmlTemplateService.class);
         jrxmlExecutionService = mock(JrxmlExecutionService.class);
         priceReport = mock(org.ip.application.register.NomenclaturePriceReport.class);
@@ -196,7 +190,7 @@ class ReportCatalogViewTest {
         var session = mock(com.vaadin.flow.server.VaadinSession.class);
         when(session.hasLock()).thenReturn(true);
         ui.getInternals().setSession(session);
-        var view = viewWithSelection(org.ipro.ureport.catalog.ReportCatalogItemFactory.ofUniDr(3L, "Позиции", ""));
+        var view = viewWithSelection(org.ipro.report.catalog.ReportCatalogItemFactory.ofUniDr(3L, "Позиции", ""));
         var files=mock(org.ip.unidr.store.UniDrFileStore.class);
         var runs=mock(org.ip.views.unidr.UniDrRunDialogFactory.class);
         var definition=org.ip.unidr.model.UniDrDefinitions.receivingItemsSummary();
@@ -213,7 +207,6 @@ class ReportCatalogViewTest {
                 assertThat(parameters.getParameters()).containsEntry("id", List.of("3")));
         verify(templateService, never()).loadTemplate(any());
         verify(jrxmlService, never()).findById(any());
-        verify(ureportService, never()).findById(any());
         assertThat(notifications).isEmpty();
     }
 
@@ -244,18 +237,6 @@ class ReportCatalogViewTest {
     }
 
     @Test
-    void openingUreportOpensTheExternalDesignerAndNotAnInternalEditor() {
-        ReportCatalogView view = viewWithSelection(ureportItem(2L, "Азбука"));
-
-        invoke(view, "openSelected");
-
-        assertThat(notifications).isEmpty();
-        assertThat(editorOf(view).editedTemplate().getId())
-                .as("дизайнер UReport3 живёт вне редактора UDR")
-                .isNull();
-    }
-
-    @Test
     void openingAnItemWithMissingTemplateFileIsRefusedWithoutEngineCalls() {
         ReportCatalogView view = viewWithSelection(missingFileItem(5L, "Пропавший"));
 
@@ -277,7 +258,6 @@ class ReportCatalogViewTest {
 
         verify(templateService).loadTemplate(3L);
         verify(jrxmlService, never()).findById(any());
-        verify(ureportService, never()).findById(any());
         assertThat(editorOf(view).editedTemplate().getId())
                 .as("запуск отчёта не считается его открытием на правку")
                 .isNull();
@@ -297,25 +277,6 @@ class ReportCatalogViewTest {
 
         verify(jrxmlService).findById(4L);
         verify(templateService, never()).loadTemplate(any());
-        verify(ureportService, never()).findById(any());
-    }
-
-    @Test
-    void runningUreportLoadsParamSpecsFromTheDesignerFile() {
-        UreportTemplate template = new UreportTemplate();
-        template.setId(2L);
-        template.setName("Азбука");
-        template.setFileName("a.ureport.xml");
-        when(ureportService.findById(2L)).thenReturn(Optional.of(template));
-        when(ureportService.loadParamSpecs("a.ureport.xml")).thenReturn(List.of());
-        ReportCatalogView view = viewWithSelection(ureportItem(2L, "Азбука"));
-
-        invoke(view, "runSelected");
-
-        verify(ureportService).findById(2L);
-        verify(ureportService).loadParamSpecs("a.ureport.xml");
-        verify(templateService, never()).loadTemplate(any());
-        verify(jrxmlService, never()).findById(any());
     }
 
     @Test
@@ -327,7 +288,6 @@ class ReportCatalogViewTest {
         assertThat(notifications).containsExactly("Файл шаблона отсутствует");
         verify(templateService, never()).loadTemplate(any());
         verify(jrxmlService, never()).findById(any());
-        verify(ureportService, never()).findById(any());
     }
 
     // === копия / экспорт / импорт (только UDR) ===
@@ -357,7 +317,7 @@ class ReportCatalogViewTest {
 
     @Test
     void copyOfANonUdrReportIsRefused() {
-        ReportCatalogItem item = ureportItem(2L, "Азбука");
+        ReportCatalogItem item = jrItem(2L, "Прайс лист");
         ReportCatalogView view = viewWithSelection(item);
 
         invoke(view, "copySelected");
@@ -461,32 +421,6 @@ class ReportCatalogViewTest {
     }
 
     @Test
-    void deletingUreportRequiresConfirmationThenRemovesAndRefreshes() {
-        ReportCatalogView view = viewWithSelection(ureportItem(2L, "Азбука"));
-
-        try (MockedConstruction<ConfirmDialog> construction = mockConstruction(ConfirmDialog.class)) {
-            invoke(view, "deleteSelected");
-
-            ConfirmDialog confirm = onlyDialog(construction);
-            verify(confirm).setHeader("Удалить UReport3?");
-            verify(confirm).setText(contains("Азбука"));
-            assertThat(notifications)
-                    .as("до подтверждения удаления нет")
-                    .doesNotContain("Отчёт «Азбука» удалён");
-            verify(ureportService, never()).delete(any());
-
-            fireConfirm(confirm);
-
-            verify(ureportService).delete(2L);
-            assertThat(catalogLoads.get()).as("каталог перечитан после удаления").isEqualTo(3);
-            assertThat(catalogGrid(view).asSingleSelect().getValue())
-                    .as("после перечитывания выделение снимается")
-                    .isNull();
-            assertThat(notifications).contains("Отчёт «Азбука» удалён");
-        }
-    }
-
-    @Test
     void deletingJrRequiresConfirmationThenRemovesAndRefreshes() {
         ReportCatalogView view = viewWithSelection(jrItem(4L, "Прайс лист"));
 
@@ -524,7 +458,6 @@ class ReportCatalogViewTest {
         verify(templateService, never()).loadTemplate(any());
         verify(templateService, never()).copyTemplate(any());
         verify(transferService, never()).exportTemplate(any());
-        verify(ureportService, never()).delete(any());
         verify(jrxmlService, never()).delete(any());
         assertThat(catalogLoads.get()).isEqualTo(1);
     }
@@ -535,7 +468,7 @@ class ReportCatalogViewTest {
         QueryMetadataCatalogService metadata = mock(QueryMetadataCatalogService.class);
         when(metadata.roots(any())).thenReturn(List.of());
         return new ReportCatalogView(templateService, transferService, catalogService,
-                ureportService, jrxmlService, jrxmlExecutionService,
+                jrxmlService, jrxmlExecutionService,
                 mock(ReportQueryGuard.class), mock(ReportPreviewService.class),
                 mock(QueryEditorAnalysisService.class), metadata,
                 mock(ReportExecutionService.class), mock(EntityLookup.class),
@@ -554,21 +487,15 @@ class ReportCatalogViewTest {
     }
 
     private static ReportCatalogItem udrItem(long id, String name) {
-        return new ReportCatalogItem(id, ReportEngineType.UDR, name, "описание", true, null, false);
-    }
-
-    private static ReportCatalogItem ureportItem(long id, String name) {
-        return new ReportCatalogItem(id, ReportEngineType.UREPORT3, name, "описание", true,
-                DESIGNER_URL, false);
+        return new ReportCatalogItem(id, ReportEngineType.UDR, name, "описание", true, false);
     }
 
     private static ReportCatalogItem jrItem(long id, String name) {
-        return new ReportCatalogItem(id, ReportEngineType.JR, name, "описание", true, null, false);
+        return new ReportCatalogItem(id, ReportEngineType.JR, name, "описание", true, false);
     }
 
     private static ReportCatalogItem missingFileItem(long id, String name) {
-        return new ReportCatalogItem(id, ReportEngineType.UREPORT3, name, "описание", true,
-                DESIGNER_URL, true);
+        return new ReportCatalogItem(id, ReportEngineType.JR, name, "описание", true, true);
     }
 
     private static ReportTemplate udrTemplate(long id, String name) {

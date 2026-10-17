@@ -77,7 +77,7 @@ class PlatformPublicSurfaceTest {
     /** Снятые по фазам ссылки: CurrentUser (4 файла) и JpaGlobalSearchProvider (1) — до D3.4,
      *  LookupService (16) и ServiceLocator (4) — D3.5, роль которых не сходилась с употреблением
      *  (ItemTable, ListForm и три типа explorer'а с вложенными) — D3.5.7, report-типы — D3.7. */
-    private static final int LEGACY_INTERNAL_BUDGET = 60;
+    private static final int LEGACY_INTERNAL_BUDGET = 53;
 
     private static final Pattern IMPORT = Pattern.compile("^import\\s+(org\\.ipro\\.[A-Za-z0-9_.]+);", Pattern.MULTILINE);
 

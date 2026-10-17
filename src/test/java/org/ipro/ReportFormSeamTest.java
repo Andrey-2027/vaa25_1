@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * набор обязан быть reviewed, узким и односторонним.
  *
  * <p><b>Зачем отдельный забор.</b> Физическую односторонность держит
- * {@code VaadinModuleCompositionTest} (platform-vaadin не знает ни report, ни DR/JR/UReport) —
+ * {@code VaadinModuleCompositionTest} (platform-vaadin не знает ни report, ни DR/JR) —
  * но это ответ только на половину вопроса. Вторая половина не проверялась ничем: какой именно
  * поверхностью report вправе пользоваться. Сегодня ответ «правильный» держится на дисциплине
  * автора, а срез D3.7 (report становится отдельным артефактом-потребителем) выполняется ровно

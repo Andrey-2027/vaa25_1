@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.ip.application.catalog.NamedOperationOwner;
+import org.ip.application.catalog.NamedOperationSource;
 import org.ip.model.Role;
 import org.ip.model.User;
 import org.ip.application.access.PermissionBinding.Authority;
@@ -55,6 +56,7 @@ public class PermissionCatalogService {
     private final C5ReadPermissionRegistry reads;
     private final C5OperationPermissionRegistry operations;
     private final SettingsRegistry settings;
+    /** Названия операций: одиночные владельцы плюс источники, объявляющие несколько (S5(а)). */
     private final List<NamedOperationOwner> actionOwners;
     private final List<LegacyPermissionDefinition> legacyOwners;
     private final ObjectProvider<RestResourceCatalog> rest;
@@ -64,6 +66,7 @@ public class PermissionCatalogService {
                                     SubsystemRegistry subsystems, RlsDimensionRegistry dimensions,
                                     C5ReadPermissionRegistry reads, C5OperationPermissionRegistry operations,
                                     SettingsRegistry settings, List<NamedOperationOwner> actionOwners,
+                                    List<NamedOperationSource> actionSources,
                                     List<LegacyPermissionDefinition> legacyOwners, ObjectProvider<RestResourceCatalog> rest) {
         this.descriptors = descriptors;
         this.metadata = metadata;
@@ -72,7 +75,7 @@ public class PermissionCatalogService {
         this.reads = reads;
         this.operations = operations;
         this.settings = settings;
-        this.actionOwners = List.copyOf(actionOwners);
+        this.actionOwners = NamedOperationSource.merge(actionOwners, actionSources);
         this.legacyOwners = List.copyOf(legacyOwners);
         this.rest = rest;
     }

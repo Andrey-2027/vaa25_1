@@ -1,9 +1,9 @@
 package org.ip.unidr.store;
 
-import org.ipro.ureport.catalog.ReportCatalogContributor;
-import org.ipro.ureport.catalog.ReportCatalogItem;
-import org.ipro.ureport.catalog.ReportCatalogItemFactory;
-import org.ipro.ureport.catalog.ReportEngineType;
+import org.ipro.report.catalog.ReportCatalogContributor;
+import org.ipro.report.catalog.ReportCatalogItem;
+import org.ipro.report.catalog.ReportCatalogItemFactory;
+import org.ipro.report.catalog.ReportEngineType;
 import java.util.List;
 
 public final class UniDrCatalogContributor implements ReportCatalogContributor {

@@ -215,7 +215,7 @@ class RegisterWriteConcurrencyPostgresIT {
     static class Owner extends BaseEntity { }
     @Entity(name="R8ConcurrencyRow") @Table(name="r8_concurrency_row", uniqueConstraints=@UniqueConstraint(columnNames={"recorder_type","recorder_id","line_no"}))
     @AttributeOverride(name="period", column=@Column(name="period_date",nullable=false,updatable=true))
-    @RegisterMetadata(dimensions="itemKey",period="period",resources="amount",recorderTypes=Owner.class,keyChangeAllowed=true)
+    @RegisterMetadata(dimensions="itemKey",period="period",resources="amount",recorderTypes=Owner.class,keyChangeAllowed=true,displayName="Регистр гонки записи")
     static class Row extends PeriodicRecordedRegisterEntryBase {
         @Column(name="item_key",nullable=false) String itemKey;
         @Column(nullable=false) int amount;

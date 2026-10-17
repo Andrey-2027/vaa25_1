@@ -44,6 +44,9 @@ final class ComputedFieldDialog extends Dialog {
         this.onSaved = onSaved == null ? saved -> { } : onSaved;
 
         setHeaderTitle(editing == null ? "Вычисляемое поле" : "Правка вычисляемого поля");
+        getElement().getThemeList().add("form-1c");
+        getElement().getThemeList().add("query-constructor");
+        addClassNames("form-1c", "query-constructor");
         setWidth("560px");
 
         aliasField.setWidthFull();
@@ -70,6 +73,7 @@ final class ComputedFieldDialog extends Dialog {
 
         VerticalLayout content = new VerticalLayout(aliasField, expressionField, status,
                 new HorizontalLayout(check, ok, cancel));
+        content.addClassNames("form-1c", "query-constructor");
         content.setPadding(false);
         content.setSpacing(false);
         content.getStyle().set("gap", "8px");

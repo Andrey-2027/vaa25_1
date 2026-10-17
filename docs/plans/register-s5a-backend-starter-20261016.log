@@ -1,0 +1,43 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< org.ipro:platform-backend-starter >------------------
+[INFO] Building GitVaa platform backend starter 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-backend-starter ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-backend-starter\src\main\resources
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-backend-starter\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-backend-starter ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-backend-starter-runtime-dependencies) @ platform-backend-starter ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\platform-backend-starter\target\backend-starter-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-backend-starter ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-backend-starter\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-backend-starter ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-backend-starter ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.BackendStarterResolvedDependenciesTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.085 s -- in org.ipro.BackendStarterResolvedDependenciesTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.227 s
+[INFO] Finished at: 2026-10-16T15:55:17+03:00
+[INFO] ------------------------------------------------------------------------

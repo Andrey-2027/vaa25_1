@@ -3,7 +3,7 @@ package org.ip.unidr.store;
 import org.ip.unidr.model.*;
 import org.ip.unidr.run.*;
 import org.ip.unidr.source.*;
-import org.ipro.ureport.catalog.*;
+import org.ipro.report.catalog.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -141,10 +141,8 @@ class UniDrFileStoreTest {
         }
     }
     @Test void commonCatalogMergesFileReportsWithoutConfusingEngineIds() {
-        var saved=store.create(base,"");var udr=mock(org.ipro.reportstudio.service.ReportTemplateService.class);
-        var ureport=mock(org.ipro.ureport.service.UreportTemplateService.class);
-        when(udr.search(any())).thenReturn(List.of());when(ureport.search(any())).thenReturn(List.of());
-        var catalog=new ReportCatalogService(udr,ureport,null,mock(org.ipro.rls.RlsReadGate.class),()->"alice",List.of(new UniDrCatalogContributor(store)));
+        var saved=store.create(base,"");
+        var catalog=new ReportCatalogService(List.of(new UniDrCatalogContributor(store)));
         assertThat(catalog.findAll("цехам",true)).singleElement().satisfies(item->{
             assertThat(item.type()).isEqualTo(ReportEngineType.UNIDR);assertThat(item.id()).isEqualTo(saved.id());
         });

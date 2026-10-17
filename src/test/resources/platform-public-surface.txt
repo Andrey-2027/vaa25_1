@@ -314,7 +314,11 @@ API org.ipro.register.RegisterPeriodListener
 API org.ipro.register.RegisterReader
 API org.ipro.register.RegisterRegistry
 API org.ipro.register.RegisterRecords
-API org.ipro.register.RegisterKeyChangePermissions
+# S5(а) (ADR-0024 §2.4): таблицы именованных операций приложение больше не называет напрямую —
+# подписи собирает платформа из декларации регистра, а идентификаторы операций знает она же.
+# В реестре остаётся ровно один тип регистра, который приложение действительно называет, —
+# носитель определений вместе с подписями; сами строки прав уходят вместе с прикладными бинами.
+API org.ipro.register.RegisterNamedOperations
 API org.ipro.register.RegisterKeyChangeScope
 legacy-internal org.ipro.reportstudio.query.ServiceParams org/ip/views/reports/JrxmlRunDialog.java
 legacy-internal org.ipro.reportstudio.query.editor.QueryEditorAnalysis org/ip/views/reportstudio/ReportEditorView.java org/ip/views/reportstudio/ReportQueryDialog.java
@@ -333,14 +337,10 @@ legacy-internal org.ipro.telemetry.core.JournalQueryService org/ip/views/admin/A
 legacy-internal org.ipro.telemetry.core.JournalQueryService.AggRow org/ip/views/admin/AggregatesPanel.java
 legacy-internal org.ipro.telemetry.core.JournalSearchService org/ip/views/admin/DiagnosticsView.java org/ip/views/admin/ErrorsPanel.java org/ip/views/admin/JournalPanel.java org/ip/views/admin/TracePanel.java
 legacy-internal org.ipro.telemetry.model.OperationLogEntity org/ip/views/admin/JournalPanel.java org/ip/views/admin/TracePanel.java
-legacy-internal org.ipro.ureport.catalog.ReportCatalogItem org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintDialog.java
-legacy-internal org.ipro.ureport.catalog.ReportCatalogItemFactory org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintDialog.java
-legacy-internal org.ipro.ureport.catalog.ReportCatalogService org/ip/views/reportstudio/ReportCatalogView.java
-legacy-internal org.ipro.ureport.catalog.ReportEngineCapabilities org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintDialog.java
-legacy-internal org.ipro.ureport.dom.UreportTemplate org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintDialog.java
-legacy-internal org.ipro.ureport.params.ParamUiType org/ip/views/reportstudio/UreportParamsDialog.java
-legacy-internal org.ipro.ureport.params.UreportParamSpec org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintDialog.java org/ip/views/reportstudio/UreportParamsDialog.java
-legacy-internal org.ipro.ureport.service.UreportTemplateService org/ip/views/reportstudio/ContextualReportLauncher.java org/ip/views/reportstudio/ItemFormReportActions.java org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintAction.java org/ip/views/reportstudio/ReportPrintDialog.java
+legacy-internal org.ipro.report.catalog.ReportCatalogItem org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintDialog.java
+legacy-internal org.ipro.report.catalog.ReportCatalogItemFactory org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintDialog.java
+legacy-internal org.ipro.report.catalog.ReportCatalogService org/ip/views/reportstudio/ReportCatalogView.java
+legacy-internal org.ipro.report.catalog.ReportEngineCapabilities org/ip/views/reportstudio/ReportCatalogView.java org/ip/views/reportstudio/ReportPrintDialog.java
 
 # Р6: supported directory + latest-register report recipe; AST/compiler stay inside reportstudio.
 API org.ipro.reportstudio.query.register.RegisterSliceReportTemplates
@@ -369,7 +369,15 @@ API org.ipro.register.RecorderTypeRegistry
 # filter construction, and C5 authorization seams used by application commands/admin UI.
 # RlsReadableIdsResolver is implemented by the application's readable-id policy provider.
 API org.ipro.crud.MetadataDrivenAggregateSaveService
-SPI org.ipro.crud.AggregateSaveContribution
+# S5(б) (ADR-0026): позиции документа объявляет команда — приложение называет
+# `AggregateCommandPayload` (объявление payload'а и его чтение хуками). Роль SPI у
+# `AggregateSaveContribution` снята вместе с прикладной записью, которая её реализовала: тип
+# остаётся контрактом платформенных модулей (его реализует `RecorderSetContribution`
+# в `platform-register`) и приложением не называется ни разу.
+API org.ipro.crud.AggregateCommandPayload
+# S5(б) (ADR-0026): позиции документа — секция в терминах платформы, поэтому `AggregateSection`
+# называет прикладная команда, объявляя payload, а не только платформенный publisher.
+API org.ipro.events.AggregateSection
 API org.ipro.events.EventSource
 SPI org.ipro.register.PeriodicRecordedRegisterEntryBase
 API org.ipro.register.RegisterSliceReader
@@ -411,4 +419,4 @@ API org.ipro.navigation.NavigationConflictException
 # key, plus the seam that answers the same C5 decision for the UI. The register engine is not a
 # platform module; roles are assigned here so the application-to-platform boundary stays reviewed.
 API org.ipro.register.RegisterKeyWrites
-API org.ipro.register.RegisterKeyWritePermissions
+# S5(а): RegisterKeyWritePermissions ушёл по той же причине, что RegisterKeyChangePermissions выше.

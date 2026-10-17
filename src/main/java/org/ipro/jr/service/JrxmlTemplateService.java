@@ -12,14 +12,16 @@ import org.ipro.crud.ReferenceCheckService;
 import org.ipro.crud.jpa.ValidatedJpaCrudService;
 import org.ipro.jr.JrxmlTemplateRepository;
 import org.ipro.jr.dom.JrxmlTemplate;
+import org.ipro.report.catalog.ReportCatalogItem;
+import org.ipro.report.catalog.ReportCatalogItemFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.validation.Validator;
 
 /**
  * Сервис жизненного цикла шаблонов JR (.jrxml): метаданные в БД + XML-файл
- * в отдельном хранилище движка ({@code jrxml.fileStoreDir} — не переиспользуем
- * ureport.fileStoreDir, чтобы жизненные циклы движков не были связаны).
+ * в отдельном хранилище движка ({@code jrxml.fileStoreDir}), не связанном с
+ * хранилищами других движков.
  *
  * <p>Базовый CRUD — платформенный {@link ValidatedJpaCrudService}
  * (bean-валидация + reference-check на удаление).</p>
@@ -116,7 +118,7 @@ public class JrxmlTemplateService extends ValidatedJpaCrudService<JrxmlTemplate>
      * Возвращает готовые строки каталога (type=JR).
      */
     @Transactional(readOnly = true)
-    public List<org.ipro.ureport.catalog.ReportCatalogItem> findPrintableItemsForEntity(
+    public List<ReportCatalogItem> findPrintableItemsForEntity(
             Class<?> entityClass) {
         if (entityClass == null) {
             return List.of();
@@ -126,9 +128,7 @@ public class JrxmlTemplateService extends ValidatedJpaCrudService<JrxmlTemplate>
                 .filter(JrxmlTemplate::isEnabled)
                 .filter(t -> entityClassName.equals(t.getTargetEntityClass()))
                 .filter(t -> Files.isRegularFile(fileStoreDir.resolve(t.getFileName())))
-                .map(t -> new org.ipro.ureport.catalog.ReportCatalogItem(
-                        t.getId(), org.ipro.ureport.catalog.ReportEngineType.JR,
-                        t.getName(), t.getDescription(), true, null, false))
+                .map(t -> ReportCatalogItemFactory.of(t, false))
                 .toList();
     }
 

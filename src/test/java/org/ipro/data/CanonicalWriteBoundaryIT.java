@@ -11,7 +11,7 @@ import org.ip.repository.GridFormViewRepository;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.ValidationException;
-import org.ipro.ureport.dom.UreportTemplate;
+import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.rls.AccessGrant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,12 +177,12 @@ class CanonicalWriteBoundaryIT {
      */
     @Test
     void internalStoreHasNoCanonicalHandleAtAll() {
-        assertThat(resolver.find(UreportTemplate.class)).isEmpty();
+        assertThat(resolver.find(ReportTemplate.class)).isEmpty();
 
-        assertThatThrownBy(() -> resolver.resolve(UreportTemplate.class))
+        assertThatThrownBy(() -> resolver.resolve(ReportTemplate.class))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("INTERNAL_STORE");
-        assertThatThrownBy(() -> access.create(UreportTemplate.class, new UreportTemplate()))
+        assertThatThrownBy(() -> access.create(ReportTemplate.class, new ReportTemplate()))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("CREATE")
             .hasMessageContaining("INTERNAL_STORE");

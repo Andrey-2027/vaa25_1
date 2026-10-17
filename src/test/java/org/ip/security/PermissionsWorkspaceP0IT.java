@@ -98,6 +98,7 @@ public class PermissionsWorkspaceP0IT {
     @Autowired AccessGrantRepository grants;
     @Autowired SubsystemRegistry subsystems;
     @Autowired List<NamedOperationOwner> actionOwners;
+    @Autowired List<org.ip.application.catalog.NamedOperationSource> actionSources;
     @PersistenceContext EntityManager entityManager;
     private UI previousUi;
 
@@ -144,7 +145,10 @@ public class PermissionsWorkspaceP0IT {
         }
         Files.write(output.resolve("objects.tsv"), objects, StandardCharsets.UTF_8);
         Map<String, String> actionTitles = new HashMap<>();
-        actionOwners.forEach(owner -> actionTitles.put(C5PermissionKeys.action(owner.permissionId()), owner.title()));
+        // Источники (регистровые подписи из платформы, ADR-0024 §2.4) идут в тот же снимок:
+        // иначе выгрузка показывала бы безымянную операцию там, где название есть.
+        org.ip.application.catalog.NamedOperationSource.merge(actionOwners, actionSources)
+            .forEach(owner -> actionTitles.put(C5PermissionKeys.action(owner.permissionId()), owner.title()));
         List<String> definitions = new ArrayList<>(List.of("key\toperations\ttitle"));
         operations.definitions().forEach(definition -> definitions.add(definition.key() + "\t"
             + new TreeSet<>(definition.operations()) + "\t" + actionTitles.getOrDefault(definition.key(), "")));

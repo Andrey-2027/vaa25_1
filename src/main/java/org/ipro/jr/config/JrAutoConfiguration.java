@@ -6,7 +6,9 @@ import org.ipro.crud.ReferenceCheckService;
 import org.ipro.jr.JrxmlTemplateRepository;
 import org.ipro.jr.run.JpqlDatasetRunner;
 import org.ipro.jr.run.JrxmlExecutionService;
+import org.ipro.jr.service.JrCatalogContributor;
 import org.ipro.jr.service.JrxmlTemplateService;
+import org.ipro.report.catalog.ReportCatalogReadGate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -17,9 +19,8 @@ import org.springframework.context.annotation.Bean;
  * в component-scan приложения (базовый пакет org.ip) — сервисные бины регистрируются
  * здесь, entity и repository — отдельной app-owned {@code JrPersistenceAutoConfiguration}.
  *
- * <p>Хранилище файлов — отдельное свойство {@code jrxml.fileStoreDir}
- * (не переиспользуется ureport.fileStoreDir — жизненные циклы движков
- * независимы, Р7 плана ReportJR-Jpql-Plan.md).</p>
+ * <p>Хранилище файлов — отдельное свойство {@code jrxml.fileStoreDir};
+ * жизненные циклы движков независимы (Р7 плана ReportJR-Jpql-Plan.md).</p>
  */
 @AutoConfiguration
 public class JrAutoConfiguration {
@@ -33,6 +34,14 @@ public class JrAutoConfiguration {
             @Value("${jrxml.fileStoreDir}") String fileStoreDir) {
         return new JrxmlTemplateService(repository, validator, referenceCheckService,
                 fileStoreDir);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JrCatalogContributor jrCatalogContributor(
+            JrxmlTemplateService templateService,
+            ReportCatalogReadGate readGate) {
+        return new JrCatalogContributor(templateService, readGate);
     }
 
     @Bean

@@ -33,6 +33,11 @@ import java.time.LocalDateTime;
  *
  * <p>Валюты и типа цены в v1.0 нет сознательно. Тип сущности — обычный ({@code PLAIN}): общий
  * {@code EntityKind.INFORMATION_REGISTER} не вводится (см. ADR-0013 §6).</p>
+ *
+ * <p>{@code displayName} — имя регистра для человека: из него платформа собирает подписи
+ * именованных операций (ADR-0024 §2.4), поэтому приложение не держит текста «записать цену на
+ * дату». Без имени декларация с включённой операцией отвергается на старте: пустая подпись
+ * показала бы администратору сырой ключ.</p>
  */
 @Entity
 @jakarta.persistence.AttributeOverride(name = "period",
@@ -50,7 +55,7 @@ import java.time.LocalDateTime;
     selectColumns = {"nomenclature", "period", "price"}
 )
 @RegisterMetadata(dimensions = "nomenclature", period = "period", resources = "price", periodicity = RegisterPeriodicity.DAY,
-    keyChangeAllowed = true, keyWriteAllowed = true)
+    keyChangeAllowed = true, keyWriteAllowed = true, displayName = "Цены номенклатуры")
 public class NomenclaturePrice extends PeriodicRegisterEntryBase {
 
     @NotNull

@@ -32,7 +32,7 @@ import net.sf.jasperreports.engine.data.JRMapCollectionDataSource;
  * выполняется через {@link JpqlRunService} (guard + RLS + лимиты) под текущим
  * пользователем, строки передаются движку JR как {@link JRMapCollectionDataSource}.
  * Имена полей jrxml = алиасы SELECT с заменой {@code .} на {@code _}
- * (конвенция UReport, Р3 плана).</p>
+ * (конвенция отчётных движков, Р3 плана).</p>
  *
  * <p>Граница V1: один датасет на отчёт, без суб-репортов/вложенных датасетов
  * с отдельным queryString (план ReportJR-Jpql-Plan.md, принцип 4) — нарушение

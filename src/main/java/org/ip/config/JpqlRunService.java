@@ -1,13 +1,8 @@
 package org.ip.config;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.ipro.reportstudio.data.QueryField;
 import org.ipro.reportstudio.data.ReportDataset;
-import org.ipro.reportstudio.data.ReportRow;
 import org.ipro.reportstudio.data.EntityRef;
 import org.ipro.reportstudio.query.GuardResult;
 import org.ipro.reportstudio.query.ReportPreviewService;
@@ -17,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Единая точка выполнения пользовательского JPQL для всех движков отчётов
- * (UDR, UReport B1/B2, JR/jrxml, REST-эндпоинт превью): guard → preview.
+ * (UDR, JR/jrxml, REST-эндпоинт превью): guard → preview.
  *
  * <p>RLS применяется принудительно: {@link ReportPreviewService} выполняет
  * запрос в транзакции через {@code ReportQueryExecutor}, который включает
@@ -28,7 +23,7 @@ import org.springframework.stereotype.Component;
  * <ul>
  * <li>{@link #MAX_ROWS} / {@link #TIMEOUT_MS} — защита от тяжёлых запросов;</li>
  * <li>лимит колонок задаёт вызывающий движок ({@code maxColumns}):
- * UDR/UReport — стандартный {@link ReportQueryGuard#MAX_COLUMNS}, JR/JSS —
+ * UDR — стандартный {@link ReportQueryGuard#MAX_COLUMNS}, JR/JSS —
  * расширенный (pixel-perfect корпоративный документ шире ad-hoc отчёта).</li>
  * </ul></p>
  */
@@ -49,7 +44,7 @@ public class JpqlRunService implements JpqlDatasetRunner {
     }
 
     /**
-     * Выполнение со стандартным лимитом колонок (UDR/UReport).
+     * Выполнение со стандартным лимитом колонок (UDR).
      * Имена полей результата — исходные алиасы SELECT.
      */
     public ReportDataset run(String jpql, Map<String, Object> bindings) {
@@ -78,28 +73,8 @@ public class JpqlRunService implements JpqlDatasetRunner {
     }
 
     /**
-     * Выполнение с UReport-семантикой имён: точки в алиасах (вид `a.journal`)
-     * заменяются на подчёркивания — точки ломают биндинг ячеек UReport —
-     * а entity-значения ({@link EntityRef}) переводятся в отображаемую строку,
-     * иначе UReport/JSON выдаёт "[object Object]".
-     */
-    public List<Map<String, Object>> runAsMaps(String jpql, Map<String, Object> bindings) {
-        ReportDataset ds = run(jpql, bindings);
-        QueryField[] fields = ds.fields();
-        List<Map<String, Object>> result = new ArrayList<>(ds.rowCount());
-        for (ReportRow row : ds.rows()) {
-            Map<String, Object> map = new LinkedHashMap<>(fields.length * 2);
-            for (int i = 0; i < fields.length; i++) {
-                map.put(fields[i].name().replace('.', '_'), displayValue(row.value(i)));
-            }
-            result.add(map);
-        }
-        return result;
-    }
-
-    /**
      * Entity-значения (EntityRef из reportstudio) -> строка отображения,
-     * иначе UReport/JSON выдаёт "[object Object]".
+     * иначе JSON выдаёт "[object Object]".
      */
     public static Object displayValue(Object value) {
         if (value instanceof EntityRef ref) {

@@ -32,17 +32,14 @@ import org.ipro.reportstudio.query.editor.QueryMetadataCatalogService;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
 import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
-import org.ipro.ureport.catalog.ReportCatalogItem;
-import org.ipro.ureport.catalog.ReportCatalogItemFactory;
-import org.ipro.ureport.catalog.ReportCatalogService;
-import org.ipro.ureport.catalog.ReportEngineCapabilities;
+import org.ipro.report.catalog.ReportCatalogItem;
+import org.ipro.report.catalog.ReportCatalogItemFactory;
+import org.ipro.report.catalog.ReportCatalogService;
+import org.ipro.report.catalog.ReportEngineCapabilities;
 import org.ipro.jr.dom.JrxmlTemplate;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
 import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
-import org.ipro.ureport.dom.UreportTemplate;
-import org.ipro.ureport.params.UreportParamSpec;
-import org.ipro.ureport.service.UreportTemplateService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -61,7 +58,6 @@ public class ReportCatalogView extends HorizontalLayout {
     private final ReportEditorView editor;
     private final Grid<ReportCatalogItem> grid = new Grid<>(ReportCatalogItem.class, false);
     private final TextField search = new TextField();
-    private final UreportTemplateServiceBridge ureportBridge;
     private final JrxmlTemplateService jrxmlTemplateService;
     private final JrxmlExecutionService jrxmlExecutionService;
     private final ReportExecutionService executionService;
@@ -79,7 +75,6 @@ public class ReportCatalogView extends HorizontalLayout {
             ReportTemplateService templateService,
             ReportTemplateTransferService transferService,
             ReportCatalogService catalogService,
-            UreportTemplateService ureportTemplateService,
             JrxmlTemplateService jrxmlTemplateService,
             JrxmlExecutionService jrxmlExecutionService,
             ReportQueryGuard guard,
@@ -96,7 +91,6 @@ public class ReportCatalogView extends HorizontalLayout {
         this.templateService = templateService;
         this.transferService = transferService;
         this.catalogService = catalogService;
-        this.ureportBridge = new UreportTemplateServiceBridge(ureportTemplateService);
         this.jrxmlTemplateService = jrxmlTemplateService;
         this.jrxmlExecutionService = jrxmlExecutionService;
         this.executionService = executionService;
@@ -168,7 +162,7 @@ public class ReportCatalogView extends HorizontalLayout {
         importUpload.addSucceededListener(event -> importJson(importBuffer));
 
         pane.add(new H2("Каталог отчётов"), new Paragraph(
-                "UDR — конструктор (структурированный). UReport3 — веб-дизайнер (новая вкладка)."),
+                "UDR — конструктор (структурированный). JR — макет .jrxml из Jaspersoft Studio."),
                 search, grid, actions, importUpload);
         pane.setFlexGrow(1, grid);
         return pane;
@@ -199,16 +193,13 @@ public class ReportCatalogView extends HorizontalLayout {
         Button udr = new Button("UDR — конструктор", event -> { dialog.close(); editor.requestNewTemplate(); });
         udr.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         udr.setWidthFull();
-        Button ureport = new Button("UReport3 — веб-дизайнер", event -> { dialog.close(); showCreateUreportDialog(); });
-        ureport.setWidthFull();
         Button jr = new Button("JR — Jaspersoft Studio (.jrxml)", event -> { dialog.close(); showCreateJrDialog(); });
         jr.setWidthFull();
         Paragraph hint = new Paragraph(
                 "UDR: структурированный конструктор (JPQL, группы, поля). "
-                + "UReport3: pixel-perfect дизайнер. "
                 + "JR: макет .jrxml из Jaspersoft Studio, источник jpql:");
         hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
-        dialog.add(new VerticalLayout(udr, ureport, jr, hint));
+        dialog.add(new VerticalLayout(udr, jr, hint));
         if(uniDrFiles!=null) {
             Button unidr=new Button("UniDR — универсальный отчёт",event->{dialog.close();getUI().ifPresent(ui->ui.navigate("unidr"));});
             unidr.setWidthFull();dialog.add(unidr);
@@ -246,30 +237,6 @@ public class ReportCatalogView extends HorizontalLayout {
         dialog.open();
     }
 
-    private void showCreateUreportDialog() {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Новый отчёт UReport3");
-        dialog.setWidth("460px");
-        TextField name = new TextField("Наименование");
-        name.setWidthFull();
-        TextField description = new TextField("Описание");
-        description.setWidthFull();
-        Button create = new Button("Создать и открыть дизайнера", event -> {
-            if (name.getValue() == null || name.getValue().isBlank()) { showError("Укажите наименование"); return; }
-            try {
-                ReportCatalogItem item = ureportBridge.create(name.getValue(), description.getValue());
-                refreshCatalog();
-                dialog.close();
-                openDesigner(item);
-                Notification.show("Создан отчёт UReport3 «" + item.name() + "»", 3_000, Notification.Position.MIDDLE);
-            } catch (RuntimeException ex) { showError("Не удалось создать UReport3: " + ex.getMessage()); }
-        });
-        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button cancel = new Button("Отмена", event -> dialog.close());
-        dialog.add(new VerticalLayout(name, description, new HorizontalLayout(create, cancel)));
-        dialog.open();
-    }
-
     private void openSelected() {
         ReportCatalogItem selected = grid.asSingleSelect().getValue();
         if (selected == null) { notifySelectionRequired(); return; }
@@ -284,7 +251,6 @@ public class ReportCatalogView extends HorizontalLayout {
         if (selected.fileMissing()) { showError("Файл шаблона отсутствует"); return; }
         switch (selected.type()) {
             case UDR -> runUdr(selected);
-            case UREPORT3 -> runUreport(selected);
             case JR -> runJr(selected);
             case UNIDR -> {
                 if(uniDrFiles==null || uniDrRuns==null) {Notification.show("UniDR выключен");return;}
@@ -311,29 +277,11 @@ public class ReportCatalogView extends HorizontalLayout {
         } catch (RuntimeException ex) { showError("Не удалось запустить UDR-отчёт: " + ex.getMessage()); }
     }
 
-    private void runUreport(ReportCatalogItem item) {
-        try {
-            java.util.List<UreportParamSpec> specs = ureportBridge.loadParamSpecs(item.id());
-            new UreportParamsDialog(item.name(), designerFileOf(item), specs).open();
-        } catch (RuntimeException ex) { showError("Не удалось открыть параметры UReport3: " + ex.getMessage()); }
-    }
-
-    private String designerFileOf(ReportCatalogItem item) {
-        String url = item.designerUrl();
-        String marker = "_u=file:";
-        if (url == null || !url.contains(marker)) {
-            throw new IllegalArgumentException("У записи нет URL дизайнера");
-        }
-        return java.net.URLDecoder.decode(url.substring(url.indexOf(marker) + marker.length()),
-                java.nio.charset.StandardCharsets.UTF_8);
-    }
-
     private void openItem(ReportCatalogItem item) {
         if (item.fileMissing()) { showError("Файл шаблона отсутствует"); return; }
         // Цель открытия — решение движка (матрица); эффект цели свой у каждой точки входа.
         switch (ReportEngineCapabilities.of(item.type()).openTarget()) {
             case EDITOR -> openUdrTemplate(item);
-            case DESIGNER -> openDesigner(item);
             case INFO -> openJrInfo(item);
             case UNIDR_EDITOR -> openUniDr(item);
         }
@@ -359,11 +307,6 @@ public class ReportCatalogView extends HorizontalLayout {
             ReportTemplate template = templateService.loadTemplate(item.id());
             editor.requestEditTemplate(template);
         } catch (RuntimeException ex) { showError("Не удалось открыть шаблон: " + ex.getMessage()); }
-    }
-
-    private void openDesigner(ReportCatalogItem item) {
-        if (item.designerUrl() == null) { showError("Нет URL дизайнера"); return; }
-        getUI().ifPresent(ui -> ui.getPage().open(item.designerUrl(), "_blank"));
     }
 
     private void copySelected() {
@@ -449,7 +392,6 @@ public class ReportCatalogView extends HorizontalLayout {
      */
     private void confirmDelete(ReportCatalogItem item) {
         switch (item.type()) {
-            case UREPORT3 -> confirmDeleteUreport(item);
             case JR -> confirmDeleteJr(item);
             default -> throw new IllegalStateException(
                     "Движок " + item.type() + " объявлен удаляемым в каталоге, но диалога нет");
@@ -472,19 +414,6 @@ public class ReportCatalogView extends HorizontalLayout {
         confirm.open();
     }
 
-    private void confirmDeleteUreport(ReportCatalogItem item) {
-        ConfirmDialog confirm = new ConfirmDialog();
-        confirm.setHeader("Удалить UReport3?");
-        confirm.setText("«" + item.name() + "»: будут удалены метаданные и XML. Необратимо.");
-        confirm.setConfirmText("Удалить");
-        confirm.setCancelText("Отмена");
-        confirm.addConfirmListener(event -> {
-            try { ureportBridge.delete(item.id()); refreshCatalog(); Notification.show("Отчёт «" + item.name() + "» удалён", 3_000, Notification.Position.MIDDLE); }
-            catch (RuntimeException ex) { showError("Не удалось удалить: " + ex.getMessage()); }
-        });
-        confirm.open();
-    }
-
     private void notifySelectionRequired() {
         Notification notification = Notification.show("Выберите отчёт в каталоге", 3_000, Notification.Position.MIDDLE);
         notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
@@ -500,17 +429,4 @@ public class ReportCatalogView extends HorizontalLayout {
         return stem.isBlank() ? "report-template" : stem;
     }
 
-    public record UreportTemplateServiceBridge(UreportTemplateService service) {
-        public ReportCatalogItem create(String name, String description) {
-            UreportTemplate template = service.createTemplate(name, description);
-            // Сборка — общий узел: у только что созданного шаблона файл на месте, отсюда fileMissing=false.
-            return ReportCatalogItemFactory.of(template, false);
-        }
-        public void delete(Long id) { service.delete(id); }
-        public java.util.List<UreportParamSpec> loadParamSpecs(Long id) {
-            UreportTemplate template = service.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Шаблон UReport не найден: " + id));
-            return service.loadParamSpecs(template.getFileName());
-        }
-    }
 }

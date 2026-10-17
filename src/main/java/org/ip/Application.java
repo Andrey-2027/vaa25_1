@@ -35,9 +35,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 // feature-specific persistence scans принадлежат приложению или соответствующему модулю.
 // D2 → D3: то же для platform-numbering, platform-settings и platform-telemetry —
 // вынесенные модули владеют своими пакетами сами.
-// D2 → D3 (шаг 8б): reportstudio и ureport объявляют свои persistence-пакеты сами
-// (ReportStudioPersistenceAutoConfiguration, UreportPersistenceAutoConfiguration);
-// JR persistence объявляется приложением через JrPersistenceAutoConfiguration.
+// D2 → D3 (шаг 8б): reportstudio объявляет свой persistence-пакет сам
+// (ReportStudioPersistenceAutoConfiguration); JR persistence объявляется
+// приложением через JrPersistenceAutoConfiguration.
 // В этом @EntityScan остаётся только прикладная модель.
 @EntityScan({"org.ip.model"})
 // D1: прикладной пакет объявляет свои репозитории сам. Платформенный

@@ -24,6 +24,54 @@ import javax.imageio.ImageIO;
 import static org.assertj.core.api.Assertions.*;
 
 class UniDrReportCompilerTest {
+    @Test void blankAreasDoNotReserveSpaceOrChangePagination() throws Exception {
+        var recipe=definition(0,Mode.DETAILS,Aggregation.SUM,true,Appearance.defaults());
+        var blank=recipe.edit(d->d.appearance=new Appearance(true,true,true,PageSize.A4,Orientation.AUTO,10," ","\n","",null));
+        assertThat(blank.appearance()).isEqualTo(recipe.appearance());
+        var original=compiler.compile(recipe,fixture());var actual=compiler.compile(blank,fixture());
+        assertThat(actual.getPages()).hasSameSizeAs(original.getPages());
+        for(int i=0;i<actual.getPages().size();i++)
+            assertThat(actual.getPages().get(i).getElements().stream().map(element->List.of(element.getX(),element.getY(),element.getWidth(),element.getHeight())).toList())
+                .isEqualTo(original.getPages().get(i).getElements().stream().map(element->List.of(element.getX(),element.getY(),element.getWidth(),element.getHeight())).toList());
+    }
+    @Test void fourTextAreasRepeatOnlyAtTheirScopeAndSurviveJsonAndPdf() throws Exception {
+        var recipe=definition(0,Mode.DETAILS,Aggregation.SUM,true,
+            new Appearance(true,true,true,PageSize.A5,Orientation.PORTRAIT,10,
+                "REPORT-BEGIN\nВторая строка","PAGE-BEGIN","PAGE-END","REPORT-END"));
+        var codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(catalog));
+        recipe=codec.decode(codec.encode(recipe));
+        var rows=new ReportRow[100];for(int i=0;i<rows.length;i++)rows[i]=row(i+1,1L,"Цех",11,"Деталь","2");
+        var print=compiler.compile(recipe,new ReportDataset(FIELDS,rows));
+        try(var pdf=Loader.loadPDF(exporter.export(print,ReportExportFormat.PDF))) {
+            assertThat(pdf.getNumberOfPages()).isGreaterThan(1);
+            var all=new PDFTextStripper().getText(pdf);
+            assertThat(all.split("REPORT-BEGIN",-1)).hasSize(2);assertThat(all.split("REPORT-END",-1)).hasSize(2);
+            for(int page=1;page<=pdf.getNumberOfPages();page++) {
+                var stripper=new PDFTextStripper();stripper.setStartPage(page);stripper.setEndPage(page);
+                assertThat(stripper.getText(pdf)).contains("PAGE-BEGIN","PAGE-END","Страница");
+            }
+            assertThat(all.indexOf("REPORT-END")).isGreaterThan(all.lastIndexOf("200,00"));
+        }
+        var empty=compiler.compile(recipe,new ReportDataset(FIELDS,new ReportRow[0]));
+        try(var pdf=Loader.loadPDF(exporter.export(empty,ReportExportFormat.PDF))) {
+            var text=new PDFTextStripper().getText(pdf);
+            for(String marker:List.of("REPORT-BEGIN","PAGE-BEGIN","PAGE-END","REPORT-END"))assertThat(text.split(marker,-1)).hasSize(2);
+            assertThat(text).contains("По выбранным условиям данных нет");
+        }
+    }
+    @Test void pageAppearanceRoundTripsAndControlsRenderedPageAndFont() throws Exception {
+        var recipe=UniDrDefinitions.receivingItemsSummary().edit(d->d.appearance=new Appearance(true,true,true,PageSize.A5,Orientation.LANDSCAPE,14));
+        var codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot()));
+        assertThat(codec.decode(codec.encode(recipe))).isEqualTo(recipe);
+        var print=compiler.compile(recipe,fixture());
+        assertThat(print.getPageWidth()).isEqualTo(595);assertThat(print.getPageHeight()).isEqualTo(421);
+        try(var pdf=Loader.loadPDF(exporter.export(print,ReportExportFormat.PDF))) {
+            var page=pdf.getPage(0);boolean rotated=page.getRotation()%180!=0;
+            assertThat(rotated?page.getMediaBox().getHeight():page.getMediaBox().getWidth()).isEqualTo(595f);
+            assertThat(new PDFTextStripper().getText(pdf).replaceAll("\\s+"," ")).contains("Цех A");
+        }
+        assertThatThrownBy(()->new Appearance(true,true,true,PageSize.A4,Orientation.AUTO,25)).isInstanceOf(IllegalArgumentException.class);
+    }
     private final UniDrSourceCatalog catalog = UniDrSourceCatalog.pilot();
     private final UniDrReportCompiler compiler = new UniDrReportCompiler(catalog, new UniDrDefinitionValidator(catalog));
     private final ReportCompiler exporter = new JasperReportCompiler();

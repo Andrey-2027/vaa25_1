@@ -1,0 +1,65 @@
+/* Размеры и оформление полей/таблиц берём из общей компактной темы form-1c.
+   В Vaadin 25 overlay находится в Shadow DOM диалога: переменные нужны также
+   на host, а части заголовка и содержимого доступны через exportparts. */
+vaadin-dialog.query-constructor,
+vaadin-dialog-overlay[theme~="query-constructor"],
+.query-constructor {
+  --vaadin-dialog-padding: 8px 10px;
+  --vaadin-dialog-background: var(--lumo-base-color);
+  --vaadin-dialog-border-color: #7a7a7a;
+  --vaadin-dialog-border-radius: 0;
+  --vaadin-dialog-title-font-size: var(--lumo-font-size-l);
+  font-size: var(--lumo-font-size-m);
+}
+
+vaadin-dialog.query-constructor::part(header),
+vaadin-dialog-overlay[theme~="query-constructor"]::part(header) {
+  background: linear-gradient(to bottom, #fafafa, #ececec);
+  border-bottom: 1px solid #b5b5b5;
+  padding: 6px 10px;
+}
+
+vaadin-dialog.query-constructor::part(title),
+vaadin-dialog-overlay[theme~="query-constructor"]::part(header-title) {
+  font-size: var(--lumo-font-size-l);
+  font-weight: 600;
+  color: #1c1c1c;
+}
+
+vaadin-dialog.query-constructor::part(content),
+vaadin-dialog-overlay[theme~="query-constructor"]::part(content) {
+  padding: 8px 10px;
+}
+
+.query-constructor vaadin-tabs {
+  flex-shrink: 0;
+}
+
+.query-constructor vaadin-tab {
+  min-height: var(--lumo-size-m);
+  padding: 2px 8px;
+}
+
+.query-constructor vaadin-select {
+  font-size: var(--lumo-font-size-s);
+}
+
+.query-constructor vaadin-details::part(summary) {
+  padding: 2px 4px;
+  font-size: var(--lumo-font-size-s);
+}
+
+.query-constructor-transfers {
+  gap: 2px;
+  padding: 0 4px;
+}
+
+.query-constructor-transfers vaadin-button {
+  min-width: 0;
+  margin: 0;
+  padding: 0 2px;
+}
+
+.query-constructor-transfers vaadin-button::part(label) {
+  padding: 0;
+}

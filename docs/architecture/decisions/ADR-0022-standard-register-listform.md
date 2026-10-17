@@ -75,9 +75,11 @@ AccountingObjectDocumentLifecycles вызывает AccountingObjectRegisterGene
 participant снят. Пересохранение документа заменяет ручное исправление его строк
 согласно принятой политике этого пилота.
 
-Закрытый AccountingObjectSaveScope требует исходный payload в beforeSave;
-в onSave допускает managed-копию того же типа и ID. Право RegisterRecords
-по-прежнему даёт подлинный активный canonical callback, а не этот scope.
+Команда объявляет позиции документа (ADR-0026), и это объявление — вето для beforeSave:
+документ сохраняется только из команды, объявившей его позиции. Managed-копию, которую
+возвращает merge на обновлении, связывает с объявлением платформа, поэтому приложению
+не нужны ни сравнение ID и Hibernate-класса, ни свой scope. Право RegisterRecords
+по-прежнему даёт подлинный активный canonical callback, а не объявление команды.
 ObjectProvider откладывает получение генератора до callback и исключает цикл
 инициализации lifecycle / canonical write / read service.
 

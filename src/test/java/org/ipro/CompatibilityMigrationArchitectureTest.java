@@ -43,14 +43,12 @@ class CompatibilityMigrationArchitectureTest {
             "org.ip.service.SklNomOpaService",
             "org.ip.service.UserService",
             "org.ipro.jr.service.JrxmlTemplateService",
-            "org.ipro.reportstudio.service.ReportTemplateService",
-            "org.ipro.ureport.service.UreportTemplateService");
+            "org.ipro.reportstudio.service.ReportTemplateService");
 
     /** ADR-0007 §3: {@code ValidatedJpaCrudService} обслуживает только non-metadata storage. */
     private static final Set<String> INTERNAL_STORE_ADAPTER_SUBCLASSES = Set.of(
             "org.ipro.jr.service.JrxmlTemplateService",
-            "org.ipro.reportstudio.service.ReportTemplateService",
-            "org.ipro.ureport.service.UreportTemplateService");
+            "org.ipro.reportstudio.service.ReportTemplateService");
 
     /**
      * Сущности, чья модель ссылается на application service через {@code @EntityMetadata}.

@@ -28,6 +28,21 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UniDrEditorTest {
+    @Test void pageSettingsAndFormatPresetsSurviveEditorReopening() {
+        var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),base,references,()->{}));
+        UniDrEditorTest.<PageSize>combo(editor,"Формат страницы").setValue(PageSize.A3);
+        UniDrEditorTest.<Orientation>combo(editor,"Ориентация").setValue(Orientation.LANDSCAPE);
+        all(editor,IntegerField.class).stream().filter(field->"Основной шрифт".equals(field.getLabel())).findFirst().orElseThrow().setValue(12);
+        for(String label:List.of("Шапка отчёта","Шапка страницы","Подвал страницы","Подвал отчёта"))
+            all(editor,TextArea.class).stream().filter(field->label.equals(field.getLabel())).findFirst().orElseThrow().setValue(label+"\nТекст");
+        editor.selectField("quantity");UniDrEditorTest.<String>combo(editor,"Готовый формат").setValue("#,##0.###");
+        var definition=editor.definition();assertThat(definition.appearance().fontSize()).isEqualTo(12);
+        assertThat(definition.appearance().reportHeader()).isEqualTo("Шапка отчёта\nТекст");
+        assertThat(definition.appearance().pageFooter()).isEqualTo("Подвал страницы\nТекст");
+        assertThat(definition.fieldStyles().get("quantity").format()).isEqualTo("#,##0.###");
+        var reopened=new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),definition,references,()->{});
+        assertThat(reopened.definition()).isEqualTo(definition);
+    }
     final UniDrSourceCatalog catalog=UniDrSourceCatalog.pilot();
     final UniDrDefinition base=UniDrDefinitions.receivingItemsSummary();
     final UniDrReferenceService references=mock(UniDrReferenceService.class);

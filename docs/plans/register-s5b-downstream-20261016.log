@@ -1,0 +1,1065 @@
+### S5(б) (ADR-0026): downstream-модули на изменённом механизме (register, register-vaadin)
+### 2026-10-16T22:18:17+03:00
+### mvn -o -f platform-register/pom.xml test; mvn -o -f platform-register-vaadin/pom.xml test
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< org.ipro:platform-register >---------------------
+[INFO] Building GitVaa platform register 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-register ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-register ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-register ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-register\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-register ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-register ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.register.InformationRegisterRecorderPersistenceTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (C:\Users\strim\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.8\byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+22:18:31.021 [main] INFO org.hibernate.orm.core -- HHH000001: Hibernate ORM core version 7.2.12.Final
+22:18:32.290 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:33.107 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:33.168 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_785b7da0-02e8-4b8b-891a-6c3850309f07;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_785B7DA0-02E8-4B8B-891A-6C3850309F07/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:34.701 [main] INFO org.hibernate.validator.internal.util.Version -- HV000001: Hibernate Validator 9.0.1.Final
+22:18:36.594 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:38.177 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:38.187 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:38.366 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:38.386 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:38.456 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:38.460 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:38.538 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:38.542 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:38.543 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_907a8dba-de93-4d6e-94e2-abc38072cec4;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_907A8DBA-DE93-4D6E-94E2-ABC38072CEC4/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:38.775 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:38.927 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:38.938 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:38.991 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:39.005 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:39.006 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_1afdfa47-64d9-45da-98d3-c7a4649e9fcc;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_1AFDFA47-64D9-45DA-98D3-C7A4649E9FCC/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:39.204 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:39.517 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:39.524 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:39.532 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:39.542 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:39.654 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:39.661 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:39.662 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_20d74f8e-cb07-4c5a-bbe2-a3b18f7aae53;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_20D74F8E-CB07-4C5A-BBE2-A3B18F7AAE53/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:39.982 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:40.049 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:40.053 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:40.120 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:40.124 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:40.227 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:40.248 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:40.249 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_4c21813d-ce15-42c9-aca9-39afe95376f5;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_4C21813D-CE15-42C9-ACA9-39AFE95376F5/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:40.567 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:40.769 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:40.772 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:40.772 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_93329eb0-e233-49f5-8095-4e80b2aa5292;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_93329EB0-E233-49F5-8095-4E80B2AA5292/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:40.974 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:41.101 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:41.114 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:41.186 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=DEPENDENT_ROW_CLEANUP, actor=register-test-user, reason=delete dependent rows before root deletion
+22:18:41.198 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=DEPENDENT_ROW_CLEANUP, actor=register-test-user, reason=delete dependent rows before root deletion
+22:18:41.268 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:41.272 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:41.274 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_db01f643-8d0f-494d-88af-c5a883af8403;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_DB01F643-8D0F-494D-88AF-C5A883AF8403/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:41.441 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:41.616 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:41.620 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:41.629 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:41.635 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:41.687 [main] WARN org.hibernate.orm.session -- HHH90010101: Closing shared session with unprocessed transaction completion actions
+22:18:42.597 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:42.615 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:42.682 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:42.696 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:42.790 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:42.800 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:42.800 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_e73da7f0-07c8-4045-a70c-67d16c6167b7;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_E73DA7F0-07C8-4045-A70C-67D16C6167B7/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:42.958 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:43.003 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:43.005 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:43.037 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:43.046 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:43.083 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:43.091 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:43.091 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_2dad05fd-0f94-49c3-88ae-d46e1172d9fc;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_2DAD05FD-0F94-49C3-88AE-D46E1172D9FC/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:43.273 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:43.458 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:43.464 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:43.464 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_4de1100b-cfb3-448b-9da5-7e7dfac356bb;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_4DE1100B-CFB3-448B-9DA5-7E7DFAC356BB/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:43.603 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:43.862 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:43.865 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:43.866 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_909175a2-b536-46e0-abc8-cdc0937a2568;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_909175A2-B536-46E0-ABC8-CDC0937A2568/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:44.020 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:44.206 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:44.228 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:44.325 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:44.332 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:44.333 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_9cf81282-ea03-4a3d-af13-2afa60c9e975;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_9CF81282-EA03-4A3D-AF13-2AFA60C9E975/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:44.492 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:45.447 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:45.453 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:45.453 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_a1d72588-6bf0-4c60-a18a-84ad3517b3d1;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_A1D72588-6BF0-4C60-A18A-84AD3517B3D1/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:45.617 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:45.796 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:45.800 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:45.872 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:45.874 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:45.876 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_f1508ba4-dd37-4b0b-a134-2d5ecb23cc7a;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_F1508BA4-DD37-4B0B-A134-2D5ECB23CC7A/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:46.320 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:46.444 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:46.449 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:46.449 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_e9bcbdab-8710-4fbc-9bae-67bd64ee283c;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_E9BCBDAB-8710-4FBC-9BAE-67BD64EE283C/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:46.602 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:46.770 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:46.781 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:46.871 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:46.874 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:46.874 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_f7b3519c-6edf-47fb-8e0d-a9a9ffc05ffd;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_F7B3519C-6EDF-47FB-8E0D-A9A9FFC05FFD/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:47.009 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:47.181 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:47.185 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:47.232 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:47.246 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:47.352 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:47.356 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:47.356 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_73eb61fa-2be6-4696-a910-f56cc652d95d;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_73EB61FA-2BE6-4696-A910-F56CC652D95D/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:47.479 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:47.563 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:47.567 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:47.567 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_9a729dd0-c597-46bd-972d-e917740d4c6a;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_9A729DD0-C597-46BD-972D-E917740D4C6A/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:47.702 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:47.853 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:47.857 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:47.901 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:47.906 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:47.995 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:48.021 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:48.035 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_da615cf9-907e-40f6-ace9-276fd63a9088;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_DA615CF9-907E-40F6-ACE9-276FD63A9088/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:48.281 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:48.331 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+22:18:48.331 [main] WARN org.hibernate.orm.jdbc.error -- Нарушение уникального индекса или первичного ключа: "PUBLIC.UK_REGISTER_NONPERIODIC_FIXTURE_KEY INDEX PUBLIC.UK_REGISTER_NONPERIODIC_FIXTURE_KEY_INDEX_F ON PUBLIC.REGISTER_NONPERIODIC_FIXTURE(ITEM_KEY NULLS FIRST) VALUES ( /* 1 */ 'item-a' )"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_NONPERIODIC_FIXTURE_KEY INDEX PUBLIC.UK_REGISTER_NONPERIODIC_FIXTURE_KEY_INDEX_F ON PUBLIC.REGISTER_NONPERIODIC_FIXTURE(ITEM_KEY NULLS FIRST) VALUES ( /* 1 */ 'item-a' )"; SQL statement:
+insert into register_nonperiodic_fixture (amount,createdAt,createdBy,item_key,modifiedAt,modifiedBy,version,id) values (?,?,?,?,?,?,?,default) [23505-240]
+22:18:48.348 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+22:18:48.348 [main] WARN org.hibernate.orm.jdbc.error -- Нарушение уникального индекса или первичного ключа: "PUBLIC.UK_REGISTER_PERIODIC_FIXTURE_KEY_PERIOD INDEX PUBLIC.UK_REGISTER_PERIODIC_FIXTURE_KEY_PERIOD_INDEX_9 ON PUBLIC.REGISTER_PERIODIC_FIXTURE(ITEM_KEY NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'item-a', TIMESTAMP '2026-10-05 00:00:00')"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_PERIODIC_FIXTURE_KEY_PERIOD INDEX PUBLIC.UK_REGISTER_PERIODIC_FIXTURE_KEY_PERIOD_INDEX_9 ON PUBLIC.REGISTER_PERIODIC_FIXTURE(ITEM_KEY NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'item-a', TIMESTAMP '2026-10-05 00:00:00')"; SQL statement:
+insert into register_periodic_fixture (amount,createdAt,createdBy,item_key,modifiedAt,modifiedBy,period_date,version,id) values (?,?,?,?,?,?,?,?,default) [23505-240]
+22:18:48.358 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+22:18:48.358 [main] WARN org.hibernate.orm.jdbc.error -- Нарушение уникального индекса или первичного ключа: "PUBLIC.UK_REGISTER_RECORDED_FIXTURE_RECORDER_LINE INDEX PUBLIC.UK_REGISTER_RECORDED_FIXTURE_RECORDER_LINE_INDEX_9 ON PUBLIC.REGISTER_RECORDED_FIXTURE(RECORDER_TYPE NULLS FIRST, RECORDER_ID NULLS FIRST, LINE_NO NULLS FIRST) VALUES ( /* key:1 */ 'fixture-document-a', CAST(1 AS BIGINT), 1)"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_RECORDED_FIXTURE_RECORDER_LINE INDEX PUBLIC.UK_REGISTER_RECORDED_FIXTURE_RECORDER_LINE_INDEX_9 ON PUBLIC.REGISTER_RECORDED_FIXTURE(RECORDER_TYPE NULLS FIRST, RECORDER_ID NULLS FIRST, LINE_NO NULLS FIRST) VALUES ( /* key:1 */ 'fixture-document-a', CAST(1 AS BIGINT), 1)"; SQL statement:
+insert into register_recorded_fixture (amount,createdAt,createdBy,item_key,line_no,modifiedAt,modifiedBy,recorder_id,recorder_type,recording_order,version,id) values (?,?,?,?,?,?,?,?,?,?,?,default) [23505-240]
+22:18:48.378 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+22:18:48.378 [main] WARN org.hibernate.orm.jdbc.error -- Нарушение уникального индекса или первичного ключа: "PUBLIC.UK_REGISTER_RECORDED_PERIODIC_FIXTURE_RECORDER_LINE INDEX PUBLIC.UK_REGISTER_RECORDED_PERIODIC_FIXTURE_RECORDER_LINE_INDEX_4 ON PUBLIC.REGISTER_RECORDED_PERIODIC_FIXTURE(RECORDER_TYPE NULLS FIRST, RECORDER_ID NULLS FIRST, LINE_NO NULLS FIRST) VALUES ( /* key:1 */ 'fixture-document-a', CAST(1 AS BIGINT), 1)"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_RECORDED_PERIODIC_FIXTURE_RECORDER_LINE INDEX PUBLIC.UK_REGISTER_RECORDED_PERIODIC_FIXTURE_RECORDER_LINE_INDEX_4 ON PUBLIC.REGISTER_RECORDED_PERIODIC_FIXTURE(RECORDER_TYPE NULLS FIRST, RECORDER_ID NULLS FIRST, LINE_NO NULLS FIRST) VALUES ( /* key:1 */ 'fixture-document-a', CAST(1 AS BIGINT), 1)"; SQL statement:
+insert into register_recorded_periodic_fixture (amount,createdAt,createdBy,item_key,line_no,modifiedAt,modifiedBy,period_date,recorder_id,recorder_type,recording_order,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default) [23505-240]
+22:18:48.461 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:48.463 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:48.463 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_ccaa83e7-728d-4244-b994-d834af8e6c27;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_CCAA83E7-728D-4244-B994-D834AF8E6C27/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:48.662 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:48.763 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:48.766 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:48.810 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:48.816 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:48.816 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_e995d9a7-72af-4b20-80a4-b9bbbfdda73f;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_E995D9A7-72AF-4B20-80A4-B9BBBFDDA73F/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:48.973 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:49.074 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.079 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.130 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.132 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.190 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:49.197 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:49.198 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_ae7e5ff9-5b3d-4411-a1d1-5ec06c5c5d38;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_AE7E5FF9-5B3D-4411-A1D1-5EC06C5C5D38/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:49.339 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:49.450 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.450 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.478 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:49.478 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:49.478 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_7327cd6a-3999-4ffb-a7be-94cb9ff02c97;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_7327CD6A-3999-4FFB-A7BE-94CB9FF02C97/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:49.573 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:49.641 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.644 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.649 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.652 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:49.686 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:49.689 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:49.691 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_446a0bba-6155-4c48-a592-2a2807589f05;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_446A0BBA-6155-4C48-A592-2A2807589F05/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:49.782 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:49.980 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:49.983 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:49.983 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_52a86512-e09f-4ab4-914f-6dfdbc9fdb64;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_52A86512-E09F-4AB4-914F-6DFDBC9FDB64/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:50.182 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:50.284 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:50.289 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:50.328 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:50.330 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:50.330 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_22143a7e-669d-4753-93b9-6389b6785a18;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_22143A7E-669D-4753-93B9-6389B6785A18/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:50.427 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:50.476 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:50.478 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:50.478 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_bf14884f-6a40-4470-bcf5-806f458086ed;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_BF14884F-6A40-4470-BCF5-806F458086ED/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:50.629 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:50.697 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23513, SQLState: 23513
+22:18:50.697 [main] WARN org.hibernate.orm.jdbc.error -- Нарушение ограничения: "CONSTRAINT_46B: "
+Check constraint violation: "CONSTRAINT_46B: "; SQL statement:
+insert into register_recorded_periodic_fixture (amount,createdAt,createdBy,item_key,line_no,modifiedAt,modifiedBy,period_date,recorder_id,recorder_type,recording_order,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default) [23513-240]
+22:18:50.754 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:50.757 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:50.758 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register_c4323446-5371-4a08-9bd2-287345af4534;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER_C4323446-5371-4A08-9BD2-287345AF4534/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:50.850 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:50.950 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:50.957 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:50.963 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:50.965 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:50.968 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass started: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+22:18:50.970 [main] WARN org.ipro.rls.RlsContext -- RLS privileged bypass finished: scope=RECORDER_SET_REPLACEMENT, actor=register-test-user, reason=read exact recorder set before replacement
+[INFO] Tests run: 28, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 22.66 s -- in org.ipro.register.InformationRegisterRecorderPersistenceTest
+[INFO] Running org.ipro.register.RecorderSetWriterPostgresIT
+[WARNING] Tests run: 7, Failures: 0, Errors: 0, Skipped: 7, Time elapsed: 0.089 s -- in org.ipro.register.RecorderSetWriterPostgresIT
+[INFO] Running org.ipro.register.RegisterDescriptorTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.042 s -- in org.ipro.register.RegisterDescriptorTest
+[INFO] Running org.ipro.register.RegisterKeyChangePermissionsTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.384 s -- in org.ipro.register.RegisterKeyChangePermissionsTest
+[INFO] Running org.ipro.register.RegisterKeyChangesTest
+22:18:51.572 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:51.618 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:key_129fc1e3-d2cb-42d1-905b-a585af8146f2]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEY_129FC1E3-D2CB-42D1-905B-A585AF8146F2/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:51.693 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:52.044 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:52.051 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:key_797dff66-01f8-40e1-99f1-be02112eeb47]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEY_797DFF66-01F8-40E1-99F1-BE02112EEB47/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:52.112 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:52.264 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:52.266 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:key_f200ea2f-39f8-4201-9996-932a1429703a]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEY_F200EA2F-39F8-4201-9996-932A1429703A/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:52.349 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:52.420 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:52.424 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:key_d918a6e2-b43c-43c7-8383-ff3632f0fa84]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEY_D918A6E2-B43C-43C7-8383-FF3632F0FA84/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:52.466 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:52.502 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:52.505 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:key_4f2a98cf-fe22-4fb8-9155-93fdc3c3f12d]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEY_4F2A98CF-FE22-4FB8-9155-93FDC3C3F12D/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:52.567 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:52.660 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:52.664 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:key_82356ed1-3609-44b2-bd86-6f0c65337ccf]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEY_82356ED1-3609-44B2-BD86-6F0C65337CCF/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:52.723 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:52.790 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:52.793 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:key_a0a8f90c-e61e-48f8-aeff-2a9f726b312d]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEY_A0A8F90C-E61E-48F8-AEFF-2A9F726B312D/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:52.860 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:52.912 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:52.916 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:key_01b9ce4d-c6b4-43c9-9725-0d09d10e4762]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEY_01B9CE4D-C6B4-43C9-9725-0D09D10E4762/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:52.964 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:53.021 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:53.024 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:key_22a1b3ce-0201-4be0-8ca3-0b6eb584220f]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEY_22A1B3CE-0201-4BE0-8CA3-0B6EB584220F/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:53.079 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.550 s -- in org.ipro.register.RegisterKeyChangesTest
+[INFO] Running org.ipro.register.RegisterKeyWriteConcurrencyPostgresIT
+[WARNING] Tests run: 20, Failures: 0, Errors: 0, Skipped: 20, Time elapsed: 0.149 s -- in org.ipro.register.RegisterKeyWriteConcurrencyPostgresIT
+[INFO] Running org.ipro.register.RegisterKeyWritesPostgresIT
+[WARNING] Tests run: 4, Failures: 0, Errors: 0, Skipped: 4, Time elapsed: 0.036 s -- in org.ipro.register.RegisterKeyWritesPostgresIT
+[INFO] Running org.ipro.register.RegisterKeyWritesTest
+22:18:53.335 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:53.340 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_e041b926-63ae-4a35-8e3e-ee130e60002d]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_E041B926-63AE-4A35-8E3E-EE130E60002D/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:53.454 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:53.702 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:53.704 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_a604b339-0fc9-4e67-b69b-0617e22f896c]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_A604B339-0FC9-4E67-B69B-0617E22F896C/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:53.770 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:53.916 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:53.918 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_d7c147af-4c55-473d-aac8-423c41406374]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_D7C147AF-4C55-473D-AAC8-423C41406374/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:53.964 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:54.061 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:54.077 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_d67263fb-6f34-4fd2-a21d-5e834e3303e0]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_D67263FB-6F34-4FD2-A21D-5E834E3303E0/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:54.118 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:54.176 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:54.180 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_2c3ef511-d947-4b44-a2d8-a0a1875ced57]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_2C3EF511-D947-4B44-A2D8-A0A1875CED57/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:54.217 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:54.286 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:54.288 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_88f618f1-f466-4a59-9b66-b22df62d49e3]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_88F618F1-F466-4A59-9B66-B22DF62D49E3/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:54.366 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:54.396 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+22:18:54.396 [main] WARN org.hibernate.orm.jdbc.error -- Нарушение уникального индекса или первичного ключа: "PUBLIC.UK_REGISTER_KEY_WRITE_ROW INDEX PUBLIC.UK_REGISTER_KEY_WRITE_ROW_INDEX_A ON PUBLIC.REGISTER_KEY_WRITE_ROW(BUSINESS_CODE NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'sku-10', TIMESTAMP '2026-10-12 09:00:00')"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_KEY_WRITE_ROW INDEX PUBLIC.UK_REGISTER_KEY_WRITE_ROW_INDEX_A ON PUBLIC.REGISTER_KEY_WRITE_ROW(BUSINESS_CODE NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'sku-10', TIMESTAMP '2026-10-12 09:00:00')"; SQL statement:
+insert into register_key_write_row (amount,business_code,createdAt,createdBy,modifiedAt,modifiedBy,period_date,version,id) values (?,?,?,?,?,?,?,?,default) [23505-240]
+22:18:54.459 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:54.462 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_4a0eb9b0-8c4c-4332-bcfe-3dd4f1655c7e]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_4A0EB9B0-8C4C-4332-BCFE-3DD4F1655C7E/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:54.496 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:54.522 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:54.540 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_3289f7bd-98fc-4f13-a041-5f61a75ae830]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_3289F7BD-98FC-4F13-A041-5F61A75AE830/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:54.602 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:54.643 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:54.643 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_3060ba82-556b-40c6-a20b-f7877315e681]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_3060BA82-556B-40C6-A20B-F7877315E681/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:54.681 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:54.704 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:54.711 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_7f072e8a-6cc6-4c7e-8788-0330acc8a447]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_7F072E8A-6CC6-4C7E-8788-0330ACC8A447/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:54.729 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:54.778 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:54.780 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_598ea61d-a0c9-4fde-89ee-459a33360a57]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_598EA61D-A0C9-4FDE-89EE-459A33360A57/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:54.810 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:54.815 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+22:18:54.815 [main] WARN org.hibernate.orm.jdbc.error -- Нарушение уникального индекса или первичного ключа: "PUBLIC.UK_REGISTER_KEY_WRITE_ROW INDEX PUBLIC.UK_REGISTER_KEY_WRITE_ROW_INDEX_A ON PUBLIC.REGISTER_KEY_WRITE_ROW(BUSINESS_CODE NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'sku-11', TIMESTAMP '2026-10-12 09:00:00')"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_KEY_WRITE_ROW INDEX PUBLIC.UK_REGISTER_KEY_WRITE_ROW_INDEX_A ON PUBLIC.REGISTER_KEY_WRITE_ROW(BUSINESS_CODE NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'sku-11', TIMESTAMP '2026-10-12 09:00:00')"; SQL statement:
+insert into register_key_write_row (amount,business_code,createdAt,createdBy,modifiedAt,modifiedBy,period_date,version,id) values (?,?,?,?,?,?,?,?,default) [23505-240]
+22:18:54.836 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+22:18:54.836 [main] WARN org.hibernate.orm.jdbc.error -- Нарушение уникального индекса или первичного ключа: "PUBLIC.UK_REGISTER_KEY_WRITE_ROW INDEX PUBLIC.UK_REGISTER_KEY_WRITE_ROW_INDEX_A ON PUBLIC.REGISTER_KEY_WRITE_ROW(BUSINESS_CODE NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'sku-11', TIMESTAMP '2026-10-12 09:00:00')"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_KEY_WRITE_ROW INDEX PUBLIC.UK_REGISTER_KEY_WRITE_ROW_INDEX_A ON PUBLIC.REGISTER_KEY_WRITE_ROW(BUSINESS_CODE NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'sku-11', TIMESTAMP '2026-10-12 09:00:00')"; SQL statement:
+insert into register_key_write_row (amount,business_code,createdAt,createdBy,modifiedAt,modifiedBy,period_date,version,id) values (?,?,?,?,?,?,?,?,default) [23505-240]
+22:18:54.842 [main] WARN org.hibernate.orm.jdbc.error -- HHH000247: ErrorCode: 23505, SQLState: 23505
+22:18:54.842 [main] WARN org.hibernate.orm.jdbc.error -- Нарушение уникального индекса или первичного ключа: "PUBLIC.UK_REGISTER_KEY_WRITE_ROW INDEX PUBLIC.UK_REGISTER_KEY_WRITE_ROW_INDEX_A ON PUBLIC.REGISTER_KEY_WRITE_ROW(BUSINESS_CODE NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'sku-11', TIMESTAMP '2026-10-12 09:00:00')"
+Unique index or primary key violation: "PUBLIC.UK_REGISTER_KEY_WRITE_ROW INDEX PUBLIC.UK_REGISTER_KEY_WRITE_ROW_INDEX_A ON PUBLIC.REGISTER_KEY_WRITE_ROW(BUSINESS_CODE NULLS FIRST, PERIOD_DATE NULLS FIRST) VALUES ( /* key:1 */ 'sku-11', TIMESTAMP '2026-10-12 09:00:00')"; SQL statement:
+insert into register_key_write_row (amount,business_code,createdAt,createdBy,modifiedAt,modifiedBy,period_date,version,id) values (?,?,?,?,?,?,?,?,default) [23505-240]
+22:18:54.869 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:54.872 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:keywrite_a1609e84-3eed-40d3-a840-2a675ace7baf]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: KEYWRITE_A1609E84-3EED-40D3-A840-2A675ACE7BAF/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:54.950 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.677 s -- in org.ipro.register.RegisterKeyWritesTest
+[INFO] Running org.ipro.register.RegisterListFilterPhasesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in org.ipro.register.RegisterListFilterPhasesTest
+[INFO] Running org.ipro.register.RegisterMetadataValidatorMappingTest
+22:18:55.036 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+22:18:55.038 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [undefined/unknown]
+	Database driver: undefined/unknown
+	Database dialect: H2Dialect
+	Database version: 2.1.214
+	Default catalog/schema: unknown/unknown
+	Autocommit mode: undefined/unknown
+	Isolation level: <unknown>
+	JDBC fetch size: undefined/unknown
+	Pool: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.120 s -- in org.ipro.register.RegisterMetadataValidatorMappingTest
+[INFO] Running org.ipro.register.RegisterMetadataValidatorTest
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.091 s -- in org.ipro.register.RegisterMetadataValidatorTest
+[INFO] Running org.ipro.register.RegisterNamedOperationsTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in org.ipro.register.RegisterNamedOperationsTest
+[INFO] Running org.ipro.register.RegisterPeriodicityTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in org.ipro.register.RegisterPeriodicityTest
+[INFO] Running org.ipro.register.RegisterReaderTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in org.ipro.register.RegisterReaderTest
+[INFO] Running org.ipro.register.RegisterStartupValidatorTest
+22:18:56.561 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:56.565 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-startup-01d8fdbc-f1ac-4fc7-aa57-0d147e4bb1e7]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-STARTUP-01D8FDBC-F1AC-4FC7-AA57-0D147E4BB1E7/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:56.717 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:56.866 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: java.lang.IllegalStateException: Некорректные декларации регистров сведений:
+org.ipro.register.RegisterStartupValidatorTest$MissingResourceRegister [FIELD_MISSING] поле 'missing': Поле ресурса 'missing' не найдено в MissingResourceRegister.
+org.ipro.register.RegisterStartupValidatorTest$MutableKeyRegister [KEY_UPDATABLE] поле 'code': Поле ключа 'code' изменяемо: ключ записи регистра неизменяем после создания.
+22:18:57.033 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:57.037 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-startup-54a5a3c6-49d0-44b3-b3d1-c013155bf6ad]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-STARTUP-54A5A3C6-49D0-44B3-B3D1-C013155BF6AD/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:57.097 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:57.285 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:57.285 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-startup-e5a3814d-241c-4731-9cd9-15b947324e2d]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-STARTUP-E5A3814D-241C-4731-9CD9-15B947324E2D/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:57.472 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:57.486 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: java.lang.IllegalStateException: Некорректные типы-регистраторы:
+org.ipro.register.RegisterStartupValidatorTest$DuplicateRecorderB: код типа 'startup-duplicate-recorder' уже объявлен для org.ipro.register.RegisterStartupValidatorTest$DuplicateRecorderA
+22:18:57.543 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:57.544 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-startup-29f0499e-5270-4ea8-ac1e-c4931614b90f]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-STARTUP-29F0499E-5270-4EA8-AC1E-C4931614B90F/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:57.598 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:57.610 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: java.lang.IllegalStateException: Некорректные типы-регистраторы:
+org.ipro.register.RegisterStartupValidatorTest$NonDocumentRecorder: effective EntityKind должен быть DOCUMENT
+22:18:57.662 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:57.666 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-startup-9e4d3127-6ecb-42bf-9efb-9639a6f4cfc3]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-STARTUP-9E4D3127-6ECB-42BF-9EFB-9639A6F4CFC3/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:57.699 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+22:18:57.712 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: java.lang.IllegalStateException: Некорректные декларации регистров сведений:
+org.ipro.register.RegisterStartupValidatorTest$MutableKeyRegister [KEY_UPDATABLE] поле 'code': Поле ключа 'code' изменяемо: ключ записи регистра неизменяем после создания.
+22:18:57.745 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+22:18:57.745 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:register-startup-7a7df094-8fe4-4016-ac5d-b952e5f139c9]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: REGISTER-STARTUP-7A7DF094-8FE4-4016-AC5D-B952E5F139C9/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+22:18:57.815 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.473 s -- in org.ipro.register.RegisterStartupValidatorTest
+[INFO] Running org.ipro.register.RegisterSurfaceRoleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.077 s -- in org.ipro.register.RegisterSurfaceRoleTest
+[INFO] Running org.ipro.register.RegisterWriteConcurrencyPostgresIT
+[WARNING] Tests run: 21, Failures: 0, Errors: 0, Skipped: 21, Time elapsed: 0.111 s -- in org.ipro.register.RegisterWriteConcurrencyPostgresIT
+[INFO] Running org.ipro.register.RlsRecorderSetWriteAuthorizerTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in org.ipro.register.RlsRecorderSetWriteAuthorizerTest
+[INFO] Running org.ipro.register.SliceSpecTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in org.ipro.register.SliceSpecTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 175, Failures: 0, Errors: 0, Skipped: 52
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  36.309 s
+[INFO] Finished at: 2026-10-16T22:18:58+03:00
+[INFO] ------------------------------------------------------------------------
+REGISTER_MODULE_EXIT=0
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< org.ipro:platform-register-vaadin >------------------
+[INFO] Building GitVaa platform register vaadin 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-register-vaadin ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-register-vaadin ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-register-vaadin ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-register-vaadin\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-register-vaadin ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-register-vaadin ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.vaadin.register.RecorderRefPresentationResolverTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (C:\Users\strim\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.8\byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.136 s -- in org.ipro.vaadin.register.RecorderRefPresentationResolverTest
+[INFO] Running org.ipro.vaadin.register.RegisterKeyDialogTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.942 s -- in org.ipro.vaadin.register.RegisterKeyDialogTest
+[INFO] Running org.ipro.vaadin.register.RegisterVaadinExtensionPointTest
+22:19:11.443 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'registerFormCustomization' defined in org.ipro.vaadin.register.config.RegisterVaadinConfiguration: Unsatisfied dependency expressed through method 'registerFormCustomization' parameter 0: No qualifying bean of type 'org.ipro.register.RegisterRegistry' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.081 s -- in org.ipro.vaadin.register.RegisterVaadinExtensionPointTest
+[INFO] Running org.ipro.vaadin.register.RegisterVaadinModuleCompositionTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.131 s -- in org.ipro.vaadin.register.RegisterVaadinModuleCompositionTest
+[INFO] Running org.ipro.vaadin.register.RegisterVaadinSurfaceRoleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.042 s -- in org.ipro.vaadin.register.RegisterVaadinSurfaceRoleTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 24, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  9.333 s
+[INFO] Finished at: 2026-10-16T22:19:11+03:00
+[INFO] ------------------------------------------------------------------------
+REGISTER_VAADIN_EXIT=0

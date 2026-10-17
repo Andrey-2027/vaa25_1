@@ -68,6 +68,14 @@ public final class UniDrDefinitionJsonCodec {
                 for (String flag : List.of("rowBorders", "columnBorders", "stripeRows"))
                     if (!appearance.has(flag) || !appearance.get(flag).isBoolean())
                         throw error(INVALID_JSON, "appearance." + flag, "Укажите логический признак оформления");
+                for(String key:List.of("pageSize","orientation"))
+                    if(appearance.has(key) && !appearance.get(key).isTextual())throw error(INVALID_JSON,"appearance."+key,"Укажите значение настройки страницы");
+                if(appearance.has("fontSize") && (!appearance.get("fontSize").isIntegralNumber() || !appearance.get("fontSize").canConvertToInt()
+                    || appearance.get("fontSize").intValue()<6 || appearance.get("fontSize").intValue()>24))
+                    throw error(INVALID_JSON,"appearance.fontSize","Размер шрифта должен быть целым числом от 6 до 24");
+                for(String key:List.of("reportHeader","pageHeader","pageFooter","reportFooter"))
+                    if(appearance.hasNonNull(key) && (!appearance.get(key).isTextual() || appearance.get(key).textValue().length()>4000))
+                        throw error(INVALID_JSON,"appearance."+key,"Ожидается текст длиной до 4000 символов");
             }
             UniDrDefinition definition;
             if(version.intValue()==1) {

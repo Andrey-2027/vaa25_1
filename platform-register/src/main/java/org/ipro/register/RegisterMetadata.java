@@ -24,6 +24,15 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface RegisterMetadata {
 
+    /**
+     * Имя регистра для человека (ADR-0024 §2.4). Из него платформа собирает подписи его
+     * именованных операций, поэтому пустая строка — «не объявлено», и регистр, включивший
+     * {@link #keyChangeAllowed()} или {@link #keyWriteAllowed()}, обязан имя объявить:
+     * иначе {@link RegisterMetadataValidator} отвергает декларацию, а не показывает сырой
+     * ключ в админ-экране. Регистру без именованных операций имя не требуется.
+     */
+    String displayName() default "";
+
     /** Dimensions: поля группы среза, не nullable и неизменяемые после создания записи. */
     String[] dimensions();
 

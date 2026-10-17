@@ -116,6 +116,22 @@ class RegisterMetadataValidatorTest {
         assertThat(codes(WrongOrderUnique.class)).containsExactly(Code.UNIQUE_MISSING);
     }
 
+    /** ADR-0024 §2.4: подпись операции собирается из имени регистра, поэтому имя обязательно. */
+    @Test
+    void optInWithoutDisplayNameIsRejected() {
+        assertThat(codes(OptInWithoutName.class))
+            .as("регистр включает именованную операцию, но не назвался: подпись показала бы"
+                + " администратору сырой ключ ACTION:... — отказ обязан быть на старте, а не в экране")
+            .containsExactly(Code.OPERATION_DISPLAY_NAME_MISSING);
+        assertThat(codes(OptInWithName.class))
+            .as("тот же регистр с объявленным именем корректен: правило про имя, а не про opt-in")
+            .isEmpty();
+        assertThat(codes(ClosedRegisterWithoutName.class))
+            .as("регистр без именованных операций имени не требует: иначе правило навязывало бы"
+                + " текст там, где подписи нет")
+            .isEmpty();
+    }
+
     // ---- фикстуры ----------------------------------------------------------------------
 
     static class Owner {
@@ -303,6 +319,43 @@ class RegisterMetadataValidatorTest {
         @Column(name = "period", nullable = false, updatable = false)
         LocalDateTime period;
         BigDecimal price;
+    }
+
+    /** Opt-in смены ключа без имени регистра: единственный отказ — отсутствующее имя. */
+    @Entity
+    @Table(name = "opt_in_no_name", uniqueConstraints =
+        @UniqueConstraint(name = "uk_opt_in_no_name", columnNames = {"owner_id"}))
+    @RegisterMetadata(dimensions = "owner", resources = "flag", keyChangeAllowed = true)
+    static class OptInWithoutName {
+        @ManyToOne(optional = false)
+        @JoinColumn(name = "owner_id", nullable = false)
+        Owner owner;
+        boolean flag;
+    }
+
+    /** Та же декларация с именем: имя — единственное, чего не хватало. */
+    @Entity
+    @Table(name = "opt_in_with_name", uniqueConstraints =
+        @UniqueConstraint(name = "uk_opt_in_with_name", columnNames = {"owner_id"}))
+    @RegisterMetadata(dimensions = "owner", resources = "flag", keyChangeAllowed = true,
+        displayName = "Проверочный регистр")
+    static class OptInWithName {
+        @ManyToOne(optional = false)
+        @JoinColumn(name = "owner_id", nullable = false)
+        Owner owner;
+        boolean flag;
+    }
+
+    /** Именованных операций нет — имя не требуется. */
+    @Entity
+    @Table(name = "closed_no_name", uniqueConstraints =
+        @UniqueConstraint(name = "uk_closed_no_name", columnNames = {"owner_id"}))
+    @RegisterMetadata(dimensions = "owner", resources = "flag")
+    static class ClosedRegisterWithoutName {
+        @ManyToOne(optional = false)
+        @JoinColumn(name = "owner_id", nullable = false, updatable = false)
+        Owner owner;
+        boolean flag;
     }
 
     @Entity

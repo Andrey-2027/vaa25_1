@@ -110,8 +110,21 @@
 #     артефакта. Срез приехал и взял их из своего же артефакта, поэтому обещание «контракт между
 #     модулями» стало некому адресованным; измерение (ни один другой модуль эти два типа не
 #     называет) превратило его в INTERNAL. MODULE_API = 0 после S3 — снова измеренный факт.
+#
+# ---- S5(а) (2026-10-16) добавил 1 тип: RegisterNamedOperations — определения именованных
+# операций регистра вместе с подписями для человека (ADR-0024 §2.4). Решения среза:
+#
+#   · APP_API, а не INTERNAL: тип называет приложение — один адаптер к каталогу прав читает этот
+#     список как данные и перестаёт держать текст операции на каждый регистр. Обещание здесь
+#     предъявляется приложению (форма подписи и состав операций), поэтому «внутренний для модуля»
+#     соврал бы о потребителе;
+#   · имя регистра для человека приехало атрибутом @RegisterMetadata.displayName(), а не вторым
+#     реестром рядом: имя принадлежит декларации, и его отсутствие при включённой именованной
+#     операции — отказ валидатора (RegisterMetadataValidator), а не пустая подпись в экране;
+#   · атрибут displayName() у APP_API-аннотации и метод displayName() у APP_API-дескриптора
+#     отдельными записями не идут: реестр классифицирует типы, а не их члены.
 
-# ---- APP_API (20)
+# ---- APP_API (21)
 APP_API org.ipro.register.RecorderRef
 APP_API org.ipro.register.RecorderType
 APP_API org.ipro.register.RecorderTypeRegistry
@@ -124,6 +137,7 @@ APP_API org.ipro.register.RegisterKeyWritePermissions
 APP_API org.ipro.register.RegisterKeyWrites
 APP_API org.ipro.register.RegisterListFilterPhases
 APP_API org.ipro.register.RegisterMetadata
+APP_API org.ipro.register.RegisterNamedOperations
 APP_API org.ipro.register.RegisterPeriodicity
 APP_API org.ipro.register.RegisterPeriodListener
 APP_API org.ipro.register.RegisterReader
@@ -165,8 +179,8 @@ INTERNAL org.ipro.register.RecorderSetWriter
 INTERNAL org.ipro.register.RlsRecorderSetWriteAuthorizer
 INTERNAL org.ipro.register.config.RegisterRecorderSetConfiguration
 
-# Всего 46 production-типов: 17 из S0, 8 из S1, 10 из S2 и 11 из S3, и ни один не остался без
-# решения о роли. Разделение по срезам, а не по ролям, здесь не косметика: файл отвечает не «где
-# лежит тип», а «что модуль обещает». Поэтому MODULE_API = 0 — не пропуск, а измеренное состояние;
-# после S3 движок приехал целиком, и следующее, что расширит эту границу, — интерфейс (S4), а не
-# ещё один кусок записи.
+# Всего 47 production-типов: 17 из S0, 8 из S1, 10 из S2, 11 из S3 и 1 из S5(а), и ни один не
+# остался без решения о роли. Разделение по срезам, а не по ролям, здесь не косметика: файл
+# отвечает не «где лежит тип», а «что модуль обещает». Поэтому MODULE_API = 0 — не пропуск, а
+# измеренное состояние: после S3 движок приехал целиком, и расширяет эту границу только то, что
+# предъявляется приложению, — интерфейс (S4) и подписи его операций (S5(а)).

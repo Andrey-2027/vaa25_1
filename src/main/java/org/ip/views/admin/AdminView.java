@@ -27,6 +27,7 @@ import org.ipro.rls.AccessService.EffectiveGrant;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.c5.C5Operation;
 import org.ip.application.catalog.NamedOperationOwner;
+import org.ip.application.catalog.NamedOperationSource;
 import org.ip.service.AccessGrantAdminService;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
 import org.ip.service.AccessGrantAdminService.UngrantedDefinition;
@@ -91,12 +92,15 @@ public class AdminView extends VerticalLayout implements org.ipro.form.Dirtyable
                      @Autowired NumberingAdminTab numberingTab,
                      @Autowired EntityManagerFactory entityManagerFactory,
                      @Autowired java.util.List<NamedOperationOwner> namedOperationOwners,
+                     @Autowired java.util.List<NamedOperationSource> namedOperationSources,
                      @Autowired ObjectProvider<NavigationProfilesAdminTab> navigationTabs,
                      @Value("${platform.navigation.enabled:false}") boolean navigationEnabled) {
         this.accessGrantAdminService = accessGrantAdminService;
         this.navigationTabs = navigationTabs;
         this.navigationEnabled = navigationEnabled;
-        for (NamedOperationOwner owner : namedOperationOwners) {
+        // Одиночные владельцы и источники, объявляющие несколько операций (регистровые подписи
+        // приходят из платформы), для экрана неразличимы: он показывает название по id.
+        for (NamedOperationOwner owner : NamedOperationSource.merge(namedOperationOwners, namedOperationSources)) {
             operationTitles.put(owner.permissionId(), owner.title());
         }
         this.settingsTab = settingsTab;

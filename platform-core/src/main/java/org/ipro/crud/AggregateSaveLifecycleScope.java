@@ -4,21 +4,28 @@ import org.ipro.events.EventContext;
 import org.ipro.identity.IdentifiableEntity;
 import org.ipro.lifecycle.EntitySaveContext;
 
-/** Read-only evidence of the aggregate owner's onSave after root and sections have been persisted. */
-public final class AggregateSaveLifecycleScope implements AutoCloseable {
+/**
+ * Read-only evidence of the aggregate owner's onSave after root and sections have been persisted.
+ *
+ * <p>Дисциплина потока и порядка закрытия — общая для crud-scope'ов ({@link CallbackScope},
+ * ADR-0026 §3): свидетельство принадлежит потоку, который его открыл, и закрывается только в
+ * обратном порядке.</p>
+ */
+public final class AggregateSaveLifecycleScope extends CallbackScope<AggregateSaveLifecycleScope> {
+
     private static final ThreadLocal<AggregateSaveLifecycleScope> CURRENT = new ThreadLocal<>();
+
     private final IdentifiableEntity<?> entity;
     private final EventContext context;
     private final AggregateSaveParticipantContext versionState;
-    private final AggregateSaveLifecycleScope previous;
 
     private AggregateSaveLifecycleScope(IdentifiableEntity<?> entity, EventContext context,
-                                        AggregateSaveParticipantContext versionState) {
+                                       AggregateSaveParticipantContext versionState) {
+        super(CURRENT, "Aggregate save lifecycle");
         this.entity = entity;
         this.context = context;
         this.versionState = versionState;
-        previous = CURRENT.get();
-        CURRENT.set(this);
+        enter(this);
     }
 
     static AggregateSaveLifecycleScope open(IdentifiableEntity<?> entity, EventContext context,
@@ -39,14 +46,5 @@ public final class AggregateSaveLifecycleScope implements AutoCloseable {
         return tokenFor(context) != null && !current.versionState.creating()
             && !current.versionState.versionAdvanceRequested()
             && current.versionState.originalVersion().equals(currentVersion == null ? 0L : currentVersion);
-    }
-
-    @Override
-    public void close() {
-        if (CURRENT.get() != this) {
-            throw new IllegalStateException("Aggregate save lifecycle scopes must close in order on their opening thread");
-        }
-        if (previous == null) CURRENT.remove();
-        else CURRENT.set(previous);
     }
 }

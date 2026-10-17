@@ -62,21 +62,43 @@ public final class UniDrReportCompiler {
             verifyFields(definition, dataset, fields);
             List<UniDrSourceDefinition.Field> groups = definition.groups().stream().map(fields::get).toList();
             Map<List<Object>, Integer> ordinals = groupOrdinals(dataset, groups);
-            var base = baseStyle();
+            var base = baseStyle(definition.appearance());
             var table = cellStyle(definition.appearance());
             var report = DynamicReports.report().setLocale(Locale.forLanguageTag("ru-RU"))
-                .setPageFormat(PageType.A4, columnCount(definition) > 6 ? PageOrientation.LANDSCAPE : PageOrientation.PORTRAIT)
+                .setPageFormat(PageType.valueOf(definition.appearance().pageSize().name()),
+                    definition.appearance().orientation()==UniDrDefinition.Orientation.AUTO
+                        ?columnCount(definition)>6?PageOrientation.LANDSCAPE:PageOrientation.PORTRAIT
+                        :PageOrientation.valueOf(definition.appearance().orientation().name()))
                 .setColumnStyle(table).setSubtotalStyle(table)
                 .setColumnTitleStyle(DynamicReports.stl.style(table).bold().setBackgroundColor(HEADER))
                 .setTextStyle(base)
                 .title(DynamicReports.cmp.text(definition.title()).setStyle(DynamicReports.stl.style(base).bold().setFontSize(15)))
-                .pageFooter(DynamicReports.cmp.pageXofY().setFormatExpression("Страница {0} из {1}").setStyle(base))
                 .setDetailPrintWhenExpression(DynamicReports.exp.value(definition.mode() == Mode.DETAILS))
                 .setHighlightDetailEvenRows(definition.appearance().stripeRows())
                 .setDetailEvenRowStyle(DynamicReports.stl.simpleStyle().setBackgroundColor(STRIPE))
-                .setWhenNoDataType(WhenNoDataType.NO_DATA_SECTION)
-                .noData(DynamicReports.cmp.text(definition.title()).setStyle(DynamicReports.stl.style(base).bold().setFontSize(15)),
-                    DynamicReports.cmp.text("По выбранным условиям данных нет").setStyle(base));
+                .setWhenNoDataType(WhenNoDataType.NO_DATA_SECTION);
+
+            var appearance=definition.appearance();
+            if(dataset.isEmpty()) {
+                // NO_DATA_SECTION replaces normal title/page/summary bands: emit each area once.
+                var empty=new ArrayList<net.sf.dynamicreports.report.builder.component.ComponentBuilder<?,?>>();
+                empty.add(DynamicReports.cmp.text(definition.title()).setStyle(DynamicReports.stl.style(base).bold().setFontSize(15)));
+                if(appearance.reportHeader()!=null)empty.add(DynamicReports.cmp.text(appearance.reportHeader()).setStyle(base));
+                if(appearance.pageHeader()!=null)empty.add(DynamicReports.cmp.text(appearance.pageHeader()).setStyle(base));
+                empty.add(DynamicReports.cmp.text("По выбранным условиям данных нет").setStyle(base));
+                if(appearance.reportFooter()!=null)empty.add(DynamicReports.cmp.text(appearance.reportFooter()).setStyle(base));
+                if(appearance.pageFooter()!=null)empty.add(DynamicReports.cmp.text(appearance.pageFooter()).setStyle(base));
+                empty.add(DynamicReports.cmp.pageXofY().setFormatExpression("Страница {0} из {1}").setStyle(base));
+                report.noData(empty.toArray(net.sf.dynamicreports.report.builder.component.ComponentBuilder[]::new));
+            } else {
+                if(appearance.reportHeader()!=null)report.title(DynamicReports.cmp.text(appearance.reportHeader()).setStyle(base));
+                if(appearance.pageHeader()!=null)report.pageHeader(DynamicReports.cmp.text(appearance.pageHeader()).setStyle(base));
+                if(appearance.pageFooter()!=null) {
+                    report.pageFooter(DynamicReports.cmp.text(appearance.pageFooter()).setStyle(base));
+                }
+                report.pageFooter(DynamicReports.cmp.pageXofY().setFormatExpression("Страница {0} из {1}").setStyle(base));
+                if(appearance.reportFooter()!=null)report.summary(DynamicReports.cmp.text(appearance.reportFooter()).setStyle(base));
+            }
 
             // Register original typed fields even when hidden from the visible table.
             for (QueryField field : dataset.fields()) report.fields(DynamicReports.field(field.name(), field.javaType()));
@@ -183,12 +205,12 @@ public final class UniDrReportCompiler {
             if (element instanceof JRElementGroup nested) evaluateCaptionNow(nested, key);
         }
     }
-    private StyleBuilder baseStyle() {
-        return DynamicReports.stl.style().setFontName("DejaVu Sans").setFontSize(10)
+    private StyleBuilder baseStyle(Appearance appearance) {
+        return DynamicReports.stl.style().setFontName("DejaVu Sans").setFontSize(appearance.fontSize())
             .setPdfEncoding("Identity-H").setPdfEmbedded(true).setMarkup(Markup.NONE).setPadding(4);
     }
     private StyleBuilder cellStyle(Appearance appearance) {
-        var style = baseStyle(); var pen = DynamicReports.stl.penThin().setLineColor(new Color(0xC7, 0xD0, 0xDA));
+        var style = baseStyle(appearance); var pen = DynamicReports.stl.penThin().setLineColor(new Color(0xC7, 0xD0, 0xDA));
         if (appearance.rowBorders()) style.setTopBorder(pen).setBottomBorder(pen);
         if (appearance.columnBorders()) style.setLeftBorder(pen).setRightBorder(pen);
         return style;

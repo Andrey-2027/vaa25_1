@@ -1,0 +1,176 @@
+### S5(а), ГЕЙТ ПОВЕРХНОСТИ ПРИЛОЖЕНИЯ: PlatformPublicSurfaceTest (без -Dplatform.measurements.write)
+### 2026-10-16T21:39:19+03:00
+### перегенерация замеров D1 выполнялась ранее: mvn -o test -Dtest=PlatformPublicSurfaceTest -Dplatform.measurements.write=true
+### mvn -o test -Dtest=PlatformPublicSurfaceTest -DfailIfNoSpecifiedTests=false
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Vaa25_1 ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-application-runtime-dependency-tree) @ Vaa25_1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\target\application-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ Vaa25_1 ---
+[INFO] Copying 35 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.PlatformPublicSurfaceTest
+[ERROR] Tests run: 10, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 4.025 s <<< FAILURE! -- in org.ipro.PlatformPublicSurfaceTest
+[ERROR] org.ipro.PlatformPublicSurfaceTest.legacyInternalReferencesAreFrozenPerFile -- Time elapsed: 2.795 s <<< FAILURE!
+java.lang.AssertionError: 
+[новый файл приложения начал называть внутренний тип org.ipro.reportstudio.data.EntityRef. Это ровно та ссылка, которую реестр запрещает: внутренний тип приложение знать не должно. Если тип нужен по делу — его место в API/SPI, и это решение, а не строка в списке] 
+Expecting empty but was: ["org/ip/unidr/query/UniDrQuerySourceService.java"]
+	at org.ipro.PlatformPublicSurfaceTest.legacyInternalReferencesAreFrozenPerFile(PlatformPublicSurfaceTest.java:178)
+
+[ERROR] org.ipro.PlatformPublicSurfaceTest.applicationCodeDoesNotUsePlatformWildcardImports -- Time elapsed: 0.074 s <<< FAILURE!
+java.lang.AssertionError: 
+[wildcard-импорт пакета платформы скрывает используемые типы: реестр видел бы пакет, а не типы, и полнота ролей перестала бы быть проверяемой. Замените его явными импортами] 
+Expecting empty but was: {"import org.ipro.lifecycle.*;"=["org/ip/application/access/PermissionSubjectLifecycle.java"], "import org.ipro.rls.*;"=["org/ip/application/access/PermissionPatchService.java"]}
+	at org.ipro.PlatformPublicSurfaceTest.applicationCodeDoesNotUsePlatformWildcardImports(PlatformPublicSurfaceTest.java:208)
+
+[ERROR] org.ipro.PlatformPublicSurfaceTest.everyPlatformTypeTheApplicationNamesHasAReviewedRole -- Time elapsed: 0.167 s <<< FAILURE!
+java.lang.AssertionError: 
+[приложение называет тип платформы, которого нет в reviewed-реестре. Пока роль не назначена, граница держится только на честном слове: это и есть дыра, из-за которой 165 внутренних типов оказались публичными. Добавьте строку в src\test\resources\platform-public-surface.txt с ролью API, SPI или legacy-internal] 
+Expecting empty but was: ["org.ipro.data.EntityDescriptor",
+    "org.ipro.data.EntityDescriptorCatalog",
+    "org.ipro.events.EntityChangedEvent",
+    "org.ipro.filtergrid.filter.FilterCondition",
+    "org.ipro.filtergrid.filter.FilterConditionNode",
+    "org.ipro.filtergrid.filter.FilterDataType",
+    "org.ipro.filtergrid.filter.FilterFieldResolver",
+    "org.ipro.filtergrid.filter.FilterGroup",
+    "org.ipro.filtergrid.filter.FilterOperator",
+    "org.ipro.filtergrid.filter.FilterParameterRef",
+    "org.ipro.filtergrid.filter.FilterValueCodec",
+    "org.ipro.filtergrid.filter.LogicalOperator",
+    "org.ipro.filtergrid.projection.ProjectionFilterCompiler",
+    "org.ipro.filtergrid.util.EntityOptionLabel",
+    "org.ipro.form.coordinator.FormCoordinator",
+    "org.ipro.reportstudio.dom.ReportQuerySource",
+    "org.ipro.reportstudio.query.JoinCondition",
+    "org.ipro.reportstudio.query.JpqlParameters",
+    "org.ipro.reportstudio.query.ReportQueryAssembler",
+    "org.ipro.reportstudio.query.ReportQueryExecutor",
+    "org.ipro.reportstudio.query.ReportRunQuota",
+    "org.ipro.reportstudio.query.VisualQueryCompiler",
+    "org.ipro.reportstudio.query.VisualQueryDefinition",
+    "org.ipro.reportstudio.query.VisualQueryDefinitionJsonCodec",
+    "org.ipro.reportstudio.query.VisualQueryExpression",
+    "org.ipro.reportstudio.query.VisualQueryExpressionText",
+    "org.ipro.reportstudio.query.editor.QueryParameterDescriptor",
+    "org.ipro.reportstudio.render.FormulaEvaluator",
+    "org.ipro.reportstudio.render.ReportCompiler",
+    "org.ipro.reportstudio.render.ReportRenderException",
+    "org.ipro.reportstudio.run.ReportTaskCompletion",
+    "org.ipro.reportstudio.run.ReportTaskExecutor",
+    "org.ipro.rest.catalog.RestReadOperation",
+    "org.ipro.rest.catalog.RestResourceCatalog",
+    "org.ipro.rls.AccessGrantVersion",
+    "org.ipro.rls.RlsContext",
+    "org.ipro.rls.RlsGrantMatching",
+    "org.ipro.ureport.catalog.ReportCatalogContributor",
+    "org.ipro.ureport.catalog.ReportEngineType"]
+	at org.ipro.PlatformPublicSurfaceTest.everyPlatformTypeTheApplicationNamesHasAReviewedRole(PlatformPublicSurfaceTest.java:124)
+
+[ERROR] org.ipro.PlatformPublicSurfaceTest.applicationCodeDoesNotUseFullyQualifiedPlatformReferences -- Time elapsed: 0.192 s <<< FAILURE!
+java.lang.AssertionError: 
+[fully-qualified ссылка на платформу обходит и реестр, и импорт: тип виден в коде, но не в шапке файла. Замените её явным импортом — это и есть способ сделать зависимость от платформы проверяемой] 
+Expecting empty but was: {"org/ip/application/access/PermissionCellState.java"=["org.ipro.rls.AccessGrant.SubjectType.ROLE"], "org/ip/application/access/PermissionPatchService.java"=["org.ipro.rls.c5.C5Operation.DELETE",
+    "org.ipro.rls.c5.C5Operation.READ",
+    "org.ipro.rls.c5.C5Operation.UPDATE"], "org/ip/application/access/PermissionScopePageService.java"=["org.ipro.identity.IdentifiableEntity"], "org/ip/views/admin/AdminView.java"=["org.ipro.form.Dirtyable", "org.ipro.form.Savable"], "org/ip/views/admin/PermissionCell.java"=["org.ipro.rls.AccessGrant.SubjectType.ROLE"], "org/ip/views/admin/PermissionScopeEditor.java"=["org.ipro.identity.IdentifiableEntity"], "org/ip/views/admin/PermissionWorkspace.java"=["org.ipro.filtergrid.TextFilter",
+    "org.ipro.rls.AccessGrant.SubjectType.ROLE",
+    "org.ipro.rls.AccessGrant.SubjectType.USER"], "org/ip/views/admin/PermissionWorkspaceUpdates.java"=["org.ipro.events.EntityChangedEvent"], "org/ip/views/components/ReportParamForm.java"=["org.ipro.metadata.HasDisplayName"]}
+	at org.ipro.PlatformPublicSurfaceTest.applicationCodeDoesNotUseFullyQualifiedPlatformReferences(PlatformPublicSurfaceTest.java:268)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   PlatformPublicSurfaceTest.applicationCodeDoesNotUseFullyQualifiedPlatformReferences:268 [fully-qualified ссылка на платформу обходит и реестр, и импорт: тип виден в коде, но не в шапке файла. Замените её явным импортом — это и есть способ сделать зависимость от платформы проверяемой] 
+Expecting empty but was: {"org/ip/application/access/PermissionCellState.java"=["org.ipro.rls.AccessGrant.SubjectType.ROLE"], "org/ip/application/access/PermissionPatchService.java"=["org.ipro.rls.c5.C5Operation.DELETE",
+    "org.ipro.rls.c5.C5Operation.READ",
+    "org.ipro.rls.c5.C5Operation.UPDATE"], "org/ip/application/access/PermissionScopePageService.java"=["org.ipro.identity.IdentifiableEntity"], "org/ip/views/admin/AdminView.java"=["org.ipro.form.Dirtyable", "org.ipro.form.Savable"], "org/ip/views/admin/PermissionCell.java"=["org.ipro.rls.AccessGrant.SubjectType.ROLE"], "org/ip/views/admin/PermissionScopeEditor.java"=["org.ipro.identity.IdentifiableEntity"], "org/ip/views/admin/PermissionWorkspace.java"=["org.ipro.filtergrid.TextFilter",
+    "org.ipro.rls.AccessGrant.SubjectType.ROLE",
+    "org.ipro.rls.AccessGrant.SubjectType.USER"], "org/ip/views/admin/PermissionWorkspaceUpdates.java"=["org.ipro.events.EntityChangedEvent"], "org/ip/views/components/ReportParamForm.java"=["org.ipro.metadata.HasDisplayName"]}
+[ERROR]   PlatformPublicSurfaceTest.applicationCodeDoesNotUsePlatformWildcardImports:208 [wildcard-импорт пакета платформы скрывает используемые типы: реестр видел бы пакет, а не типы, и полнота ролей перестала бы быть проверяемой. Замените его явными импортами] 
+Expecting empty but was: {"import org.ipro.lifecycle.*;"=["org/ip/application/access/PermissionSubjectLifecycle.java"], "import org.ipro.rls.*;"=["org/ip/application/access/PermissionPatchService.java"]}
+[ERROR]   PlatformPublicSurfaceTest.everyPlatformTypeTheApplicationNamesHasAReviewedRole:124 [приложение называет тип платформы, которого нет в reviewed-реестре. Пока роль не назначена, граница держится только на честном слове: это и есть дыра, из-за которой 165 внутренних типов оказались публичными. Добавьте строку в src\test\resources\platform-public-surface.txt с ролью API, SPI или legacy-internal] 
+Expecting empty but was: ["org.ipro.data.EntityDescriptor",
+    "org.ipro.data.EntityDescriptorCatalog",
+    "org.ipro.events.EntityChangedEvent",
+    "org.ipro.filtergrid.filter.FilterCondition",
+    "org.ipro.filtergrid.filter.FilterConditionNode",
+    "org.ipro.filtergrid.filter.FilterDataType",
+    "org.ipro.filtergrid.filter.FilterFieldResolver",
+    "org.ipro.filtergrid.filter.FilterGroup",
+    "org.ipro.filtergrid.filter.FilterOperator",
+    "org.ipro.filtergrid.filter.FilterParameterRef",
+    "org.ipro.filtergrid.filter.FilterValueCodec",
+    "org.ipro.filtergrid.filter.LogicalOperator",
+    "org.ipro.filtergrid.projection.ProjectionFilterCompiler",
+    "org.ipro.filtergrid.util.EntityOptionLabel",
+    "org.ipro.form.coordinator.FormCoordinator",
+    "org.ipro.reportstudio.dom.ReportQuerySource",
+    "org.ipro.reportstudio.query.JoinCondition",
+    "org.ipro.reportstudio.query.JpqlParameters",
+    "org.ipro.reportstudio.query.ReportQueryAssembler",
+    "org.ipro.reportstudio.query.ReportQueryExecutor",
+    "org.ipro.reportstudio.query.ReportRunQuota",
+    "org.ipro.reportstudio.query.VisualQueryCompiler",
+    "org.ipro.reportstudio.query.VisualQueryDefinition",
+    "org.ipro.reportstudio.query.VisualQueryDefinitionJsonCodec",
+    "org.ipro.reportstudio.query.VisualQueryExpression",
+    "org.ipro.reportstudio.query.VisualQueryExpressionText",
+    "org.ipro.reportstudio.query.editor.QueryParameterDescriptor",
+    "org.ipro.reportstudio.render.FormulaEvaluator",
+    "org.ipro.reportstudio.render.ReportCompiler",
+    "org.ipro.reportstudio.render.ReportRenderException",
+    "org.ipro.reportstudio.run.ReportTaskCompletion",
+    "org.ipro.reportstudio.run.ReportTaskExecutor",
+    "org.ipro.rest.catalog.RestReadOperation",
+    "org.ipro.rest.catalog.RestResourceCatalog",
+    "org.ipro.rls.AccessGrantVersion",
+    "org.ipro.rls.RlsContext",
+    "org.ipro.rls.RlsGrantMatching",
+    "org.ipro.ureport.catalog.ReportCatalogContributor",
+    "org.ipro.ureport.catalog.ReportEngineType"]
+[ERROR]   PlatformPublicSurfaceTest.legacyInternalReferencesAreFrozenPerFile:178 [новый файл приложения начал называть внутренний тип org.ipro.reportstudio.data.EntityRef. Это ровно та ссылка, которую реестр запрещает: внутренний тип приложение знать не должно. Если тип нужен по делу — его место в API/SPI, и это решение, а не строка в списке] 
+Expecting empty but was: ["org/ip/unidr/query/UniDrQuerySourceService.java"]
+[INFO] 
+[ERROR] Tests run: 10, Failures: 4, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  11.442 s
+[INFO] Finished at: 2026-10-16T21:39:32+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-test) on project Vaa25_1: There are test failures.
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+SURFACE_GATE_EXIT=1

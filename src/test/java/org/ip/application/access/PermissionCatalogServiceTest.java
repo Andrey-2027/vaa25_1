@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.ip.application.catalog.NamedOperationOwner;
+import org.ip.application.catalog.NamedOperationSource;
 import org.ipro.crud.BaseEntity;
 import org.ipro.data.DataOperation;
 import org.ipro.data.EntityCapabilities;
@@ -77,8 +78,11 @@ class PermissionCatalogServiceTest {
 
     private PermissionCatalogService service() { return service(List.of()); }
     private PermissionCatalogService service(List<NamedOperationOwner> titles) {
+        return service(titles, List.of());
+    }
+    private PermissionCatalogService service(List<NamedOperationOwner> titles, List<NamedOperationSource> sources) {
         return new PermissionCatalogService(descriptors, metadata, subsystems, dimensions, reads, operations,
-            settings, titles, List.of(), rest);
+            settings, titles, sources, List.of(), rest);
     }
 
     private void root(Class<?> type, Set<DataOperation> writes) {
@@ -205,6 +209,35 @@ class PermissionCatalogServiceTest {
         assertThat(row.columns().getFirst().binding().flag()).isEqualTo(PermissionBinding.Flag.UPDATE);
     }
 
+    /**
+     * S5(а): источник, объявляющий несколько операций, для каталога неотличим от одиночных
+     * владельцев — ровно поэтому приложению достаточно одного адаптера к платформенному списку.
+     */
+    @Test
+    void oneSourceCanNameSeveralOperationsLikeSeveralSingleOwners() {
+        NamedOperationSource registerTitles = () -> List.of(
+            single("REGISTER:Prices:CHANGE_KEY", "Изменить ключ записи: Цены"),
+            single("REGISTER:Prices:SET_KEY", "Записать по ключу: Цены"));
+        var service = service(List.of(single("PILOT:POST", "Провести документ")), List.of(registerTitles));
+        for (String permissionId : List.of("REGISTER:Prices:CHANGE_KEY", "REGISTER:Prices:SET_KEY", "PILOT:POST")) {
+            operations.register(C5PermissionDefinition.action(permissionId));
+        }
+
+        assertThat(service.catalog().rows()).extracting(PermissionObjectRow::title)
+            .containsExactlyInAnyOrder("Изменить ключ записи: Цены", "Записать по ключу: Цены",
+                "Провести документ");
+        assertThat(service.catalog().diagnostics())
+            .as("названные операции не должны попадать в отчёт о безымянных определениях")
+            .noneMatch(diagnostic -> diagnostic.code().equals("MISSING_ACTION_TITLE"));
+    }
+
+    private static NamedOperationOwner single(String permissionId, String title) {
+        return new NamedOperationOwner() {
+            public String permissionId() { return permissionId; }
+            public String title() { return title; }
+        };
+    }
+
     @Test
     void unsupportedDeclaredWritesAreReportedAndNotOfferedAsCapabilities() {
         root(Warehouse.class, Set.of(DataOperation.CREATE));
@@ -213,7 +246,7 @@ class PermissionCatalogServiceTest {
         wrong.register(C5PermissionDefinition.entityOperations(Warehouse.class,
             Set.of(C5Operation.READ, C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
         var service = new PermissionCatalogService(descriptors, metadata, subsystems, dimensions, reads, wrong,
-            settings, List.of(), List.of(), rest);
+            settings, List.of(), List.of(), List.of(), rest);
         var catalog = service.catalog();
         assertThat(catalog.row(PermissionObjectRow.entityId(Warehouse.class)).orElseThrow().columns())
             .extracting(PermissionObjectRow.Column::title).containsExactly("Чтение", "Создание");

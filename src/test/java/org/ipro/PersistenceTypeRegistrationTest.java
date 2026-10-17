@@ -64,7 +64,6 @@ class PersistenceTypeRegistrationTest {
         "org.ipro.reportstudio.dom",
         "org.ipro.numbering",
         "org.ipro.settings",
-        "org.ipro.ureport.dom",
         "org.ipro.jr.dom");
 
     /** Пакеты, которые обязаны быть объявлены в @EnableJpaRepositories (reviewed). */
@@ -74,7 +73,6 @@ class PersistenceTypeRegistrationTest {
         "org.ipro.reportstudio",
         "org.ipro.numbering",
         "org.ipro.settings",
-        "org.ipro.ureport",
         "org.ipro.telemetry.repository",
         "org.ipro.jr");
 

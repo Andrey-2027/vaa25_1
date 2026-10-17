@@ -39,7 +39,6 @@ import org.ipro.numbering.NumberingMetadataRegistry;
 import org.ipro.reportstudio.param.ReportContextFactory;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
-import org.ipro.ureport.service.UreportTemplateService;
 import org.ipro.vaadin.explorer.EntitySummary;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler;
 import com.vaadin.flow.component.Component;
@@ -399,8 +398,8 @@ class EntitySummaryActionPilotTest {
     private static ActionHandler printAction() {
         return new ReportPrintAction(mock(ReportTemplateService.class),
             mock(ReportExecutionService.class), mock(EntityLookup.class),
-            mock(SelectionFormAssembler.class), mock(UreportTemplateService.class),
-            mock(JrxmlTemplateService.class), mock(JrxmlExecutionService.class),
+            mock(SelectionFormAssembler.class), mock(JrxmlTemplateService.class),
+            mock(JrxmlExecutionService.class),
             new ReportContextFactory(() -> "e3-2-test", Clock.systemDefaultZone()));
     }
 }

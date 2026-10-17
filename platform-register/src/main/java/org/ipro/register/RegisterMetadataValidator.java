@@ -31,6 +31,12 @@ import java.util.Set;
  * <p>Читает только аннотации классов и полей, поэтому проверяется обычным unit-тестом.
  * {@link RegisterStartupValidator} подключает проверку всех managed-регистров к старту приложения.</p>
  *
+ * <p>Отдельно проверяется согласованность имён операций с декларацией (ADR-0024 §2.4): регистр,
+ * включивший именованную операцию ({@link RegisterMetadata#keyChangeAllowed()} или
+ * {@link RegisterMetadata#keyWriteAllowed()}), обязан объявить {@link RegisterMetadata#displayName()},
+ * потому что подпись операции собирается из этого имени. Молча показать сырой ключ вместо названия
+ * операция не может: пустое имя — ошибка декларации, а не оформление.</p>
+ *
  * <p>Колонки ключа обязаны называться явно: валидатор не знает naming strategy проекта и не
  * угадывает имя колонки по имени поля. v1 поддерживает доступ JPA через поля: property/mixed
  * access отклоняется, а поля обычных суперклассов, static/transient и {@code @Transient}
@@ -61,7 +67,8 @@ public final class RegisterMetadataValidator {
         RECORDER_CLOCK_KEY_MISSING,
         RECORDER_WRITE_GUARD_MISSING,
         PERIOD_CAPABILITY_MISMATCH,
-        KEY_WRITE_RECORDED
+        KEY_WRITE_RECORDED,
+        OPERATION_DISPLAY_NAME_MISSING
     }
 
     /** @param field имя поля, к которому относится отказ, или {@code null} для отказа типа */
@@ -111,6 +118,12 @@ public final class RegisterMetadataValidator {
             out.add(new Violation(Code.KEY_WRITE_RECORDED, null,
                 "keyWriteAllowed не применяется к подчинённому регистру: его строки принадлежат"
                     + " документу-регистратору и пишутся набором владельца (ADR-0015/0020)."));
+        }
+        if ((meta.keyChangeAllowed() || meta.keyWriteAllowed()) && meta.displayName().isBlank()) {
+            out.add(new Violation(Code.OPERATION_DISPLAY_NAME_MISSING, null,
+                "Регистр включает именованную операцию (keyChangeAllowed/keyWriteAllowed), но не"
+                    + " объявляет displayName: подпись операции собирается из имени регистра (ADR-0024 §2.4),"
+                    + " и пустое имя показало бы администратору сырой ключ вместо названия операции."));
         }
         if (recorded && periodic && !PeriodicRegisterEntry.class.isAssignableFrom(type)) {
             out.add(new Violation(Code.PERIOD_CAPABILITY_MISMATCH, meta.period(),

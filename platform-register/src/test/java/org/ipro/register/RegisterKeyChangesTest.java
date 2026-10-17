@@ -176,7 +176,8 @@ class RegisterKeyChangesTest {
 
     @Entity(name = "KeyCommandTestRow") @Table(name = "key_command_test_row",
         uniqueConstraints = @UniqueConstraint(columnNames = "business_code"))
-    @RegisterMetadata(dimensions = "code", resources = "amount", keyChangeAllowed = true)
+    @RegisterMetadata(dimensions = "code", resources = "amount", keyChangeAllowed = true,
+        displayName = "Проверочный регистр команды ключа")
     static class KeyRow extends BaseEntity {
         @Column(name = "business_code", nullable = false) String code;
         int amount;

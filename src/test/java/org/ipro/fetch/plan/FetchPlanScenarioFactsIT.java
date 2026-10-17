@@ -9,7 +9,7 @@ import org.ipro.data.EntityDescriptor;
 import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.FetchPlanInspection;
 import org.ipro.metadata.FactOrigin;
-import org.ipro.ureport.dom.UreportTemplate;
+import org.ipro.reportstudio.dom.ReportTemplate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -127,10 +127,10 @@ class FetchPlanScenarioFactsIT {
     /** Тип без объявленных сценариев: показывать нечего, и это факт, а не отсутствие данных. */
     @Test
     void typeWithoutDeclaredScenariosHasNoPlanToShow() {
-        EntityDescriptor descriptor = descriptorCatalog.descriptorOf(UreportTemplate.class);
+        EntityDescriptor descriptor = descriptorCatalog.descriptorOf(ReportTemplate.class);
         assertThat(descriptor.capabilities().readScenarios()).isEmpty();
         assertThat(descriptor.capabilitiesOrigin()).isEqualTo(FactOrigin.PLATFORM_DEFAULT);
-        assertThat(inspection.scenariosOf(UreportTemplate.class)).isEmpty();
+        assertThat(inspection.scenariosOf(ReportTemplate.class)).isEmpty();
     }
 
     /**

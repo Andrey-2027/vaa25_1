@@ -35,6 +35,11 @@ final class UniDrDefinitionEditor extends VerticalLayout {
     final TextField title=new TextField("Название отчёта");
     final ComboBox<Mode> mode=new ComboBox<>("Представление");
     final Checkbox grandTotal=new Checkbox("Общий итог");
+    private final ComboBox<PageSize> pageSize=new ComboBox<>("Формат страницы");
+    private final ComboBox<Orientation> orientation=new ComboBox<>("Ориентация");
+    private final IntegerField fontSize=new IntegerField("Основной шрифт");
+    private final TextArea reportHeader=new TextArea("Шапка отчёта"),pageHeader=new TextArea("Шапка страницы"),
+        pageFooter=new TextArea("Подвал страницы"),reportFooter=new TextArea("Подвал отчёта");
     private final Checkbox rowBorders=new Checkbox("Границы строк"), columnBorders=new Checkbox("Границы колонок"), stripes=new Checkbox("Чередовать фон строк");
     private final List<FieldRow> fields=new ArrayList<>();
     private final List<ComputedColumn> computed=new ArrayList<>();
@@ -74,6 +79,20 @@ final class UniDrDefinitionEditor extends VerticalLayout {
         title.setValue(initial.title());title.setMaxLength(200);title.setWidthFull();
         mode.setItems(Mode.values());mode.setItemLabelGenerator(value->value==Mode.DETAILS?"Детальные записи":"Только итоги");mode.setValue(initial.mode());
         grandTotal.setValue(initial.grandTotal());rowBorders.setValue(initial.appearance().rowBorders());columnBorders.setValue(initial.appearance().columnBorders());stripes.setValue(initial.appearance().stripeRows());
+        pageSize.setItems(PageSize.values());pageSize.setValue(initial.appearance().pageSize());
+        orientation.setItems(Orientation.values());orientation.setItemLabelGenerator(value->switch(value){case AUTO->"Авто";case PORTRAIT->"Книжная";case LANDSCAPE->"Альбомная";});orientation.setValue(initial.appearance().orientation());
+        orientation.setHelperText("Авто: альбомная при числе колонок больше шести");
+        fontSize.setMin(6);fontSize.setMax(24);fontSize.setStepButtonsVisible(true);fontSize.setValue(initial.appearance().fontSize());
+        pageSize.addValueChangeListener(event->change());orientation.addValueChangeListener(event->change());
+        fontSize.addValueChangeListener(event->{fontSize.setInvalid(event.getValue()==null || event.getValue()<6 || event.getValue()>24);if(!fontSize.isInvalid())change();});
+        var areas=List.of(reportHeader,pageHeader,pageFooter,reportFooter);
+        var texts=Arrays.asList(initial.appearance().reportHeader(),initial.appearance().pageHeader(),initial.appearance().pageFooter(),initial.appearance().reportFooter());
+        var hints=List.of("Один раз в начале, после названия отчёта","На каждой странице","На каждой странице, перед номером страницы","Один раз после данных и общего итога");
+        for(int index=0;index<areas.size();index++) {
+            var area=areas.get(index);area.setWidthFull();area.setMaxLength(4000);area.setMinHeight("5rem");
+            area.setValue(Objects.requireNonNullElse(texts.get(index),""));area.setHelperText(hints.get(index)+". Пустая область не занимает места.");
+            area.addValueChangeListener(event->change());
+        }
         title.addValueChangeListener(e->change());mode.addValueChangeListener(e->{if(ready){closeProperties();redrawFields();redrawAvailable();change();}});
         for(Checkbox checkbox:List.of(grandTotal,rowBorders,columnBorders,stripes)) checkbox.addValueChangeListener(e->change());
         LinkedHashSet<String> order=new LinkedHashSet<>();initial.columns().forEach(column->order.add(column.fieldId()));initial.measures().forEach(measure->order.add(measure.fieldId()));source.fields().forEach(field->order.add(field.id()));computed.forEach(column->order.add(column.id()));
@@ -113,6 +132,10 @@ final class UniDrDefinitionEditor extends VerticalLayout {
             sections.add("Отборы",filters);
         } else sections.add("Отборы",conditions.filterPane);
         sections.add("Дополнительно",advanced);
+        var page=new HorizontalLayout(pageSize,orientation,fontSize);page.setWrap(true);page.setWidthFull();
+        var areaFields=new Div(reportHeader,pageHeader,reportFooter,pageFooter);areaFields.addClassName("unidr-text-areas");
+        var pageSettings=new VerticalLayout(page,areaFields);pageSettings.setPadding(false);pageSettings.setWidthFull();
+        sections.add("Оформление страницы",pageSettings);
         var presentation=new HorizontalLayout(mode,grandTotal);presentation.setAlignItems(Alignment.END);presentation.addClassName("unidr-presentation");
         add(title,presentation,sections);redrawFields();redrawGroups();redrawSorts();redrawAvailable();ready=true;
     }
@@ -122,7 +145,8 @@ final class UniDrDefinitionEditor extends VerticalLayout {
             draft.measures=fields.stream().filter(row->row.aggregation.getValue()!=null).sorted(Comparator.comparing(row->row.field.type()==ValueType.COUNT)).map(row->new Measure(row.field.id(),row.aggregation.getValue(),optional(row.measureCaption.getValue()))).toList();
             draft.groups=List.copyOf(groups);draft.filters=conditions.filters();draft.parameters=parameterEditor==null?conditions.parameters():parameterEditor.value().stream().filter(p->p.legacy()!=null).map(org.ip.unidr.model.UniDrParameter::legacyParameter).toList();draft.sorts=List.copyOf(sorts);draft.mode=mode.getValue();draft.grandTotal=grandTotal.getValue();
             if(parameterEditor!=null)draft.parameterDeclarations=parameterEditor.value();if(nativeFilters!=null)draft.filterTree=nativeFilters.value();
-            draft.appearance=new Appearance(rowBorders.getValue(),columnBorders.getValue(),stripes.getValue());
+            draft.appearance=new Appearance(rowBorders.getValue(),columnBorders.getValue(),stripes.getValue(),pageSize.getValue(),orientation.getValue(),fontSize.getValue(),
+                reportHeader.getValue(),pageHeader.getValue(),pageFooter.getValue(),reportFooter.getValue());
             draft.fieldStyles=fields.stream().filter(row->!row.style().equals(FieldStyle.defaults())).collect(java.util.stream.Collectors.toMap(row->row.field.id(),FieldRow::style));
             draft.computedColumns=List.copyOf(computed);draft.rowNumbers=rowNumbers.getValue();});
     }
@@ -245,6 +269,15 @@ final class UniDrDefinitionEditor extends VerticalLayout {
         fieldProperties.add(heading);
         if(computed.stream().noneMatch(column->column.id().equals(row.field.id())))fieldProperties.add(new Span("Поле: "+row.field.id()));
         fieldProperties.add(presentation);
+        if(row.format.isVisible()) {
+            var preset=new ComboBox<String>("Готовый формат");preset.setWidthFull();
+            boolean date=row.field.type()==ValueType.DATE;
+            var patterns=date?List.of("dd.MM.yyyy","yyyy-MM-dd","MMMM yyyy"):List.of("#,##0","#,##0.00","#,##0.###","0%");
+            preset.setItems(patterns);
+            preset.setItemLabelGenerator(pattern->pattern+" — "+(date?java.time.LocalDate.of(2026,10,17).format(java.time.format.DateTimeFormatter.ofPattern(pattern,Locale.forLanguageTag("ru-RU"))):new java.text.DecimalFormat(pattern,java.text.DecimalFormatSymbols.getInstance(Locale.forLanguageTag("ru-RU"))).format(new java.math.BigDecimal("1234.567"))));
+            preset.addValueChangeListener(event->{if(event.getValue()!=null)row.format.setValue(event.getValue());});
+            fieldProperties.add(preset);
+        }
         computed.stream().filter(column->column.id().equals(row.field.id())).findFirst().ifPresent(column->{
             fieldProperties.add(new Paragraph((column.kind()==Computation.FORMULA?"Формула: ":"Текст: ")+column.expression()),new Button("Изменить вычисление…",event->openComputedEditor(column)),new Button("Удалить вычисление",event->{closeProperties();edit(()->{computed.remove(column);fields.remove(row);});}));
         });

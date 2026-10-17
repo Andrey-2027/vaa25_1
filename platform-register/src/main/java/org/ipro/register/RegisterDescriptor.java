@@ -130,6 +130,9 @@ public final class RegisterDescriptor {
     /** Generic entity create/update/delete is reserved for independent registers. */
     public boolean genericWritesAllowed() { return !recorded; }
 
+    /** Имя регистра для человека (ADR-0024 §2.4); пустое — регистр именованных операций не включает. */
+    public String displayName() { return entityType.getAnnotation(RegisterMetadata.class).displayName(); }
+
     /** Explicit register declaration; entities outside RegisterRegistry never acquire this capability. */
     public boolean keyChangeAllowed() { return entityType.getAnnotation(RegisterMetadata.class).keyChangeAllowed(); }
 

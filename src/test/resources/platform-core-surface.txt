@@ -32,6 +32,11 @@
 # называет production-код платформенных модулей (UI-адаптер регистра, form-слой, reportstudio —
 # платформенный код, всё ещё лежащий в дереве приложения), а прикладной main — нет. Бюджет API
 # от этого сократился, а не вырос; D1-реестр снял свои записи по той же причине.
+# 109 -> 111 — S5(б) плана выноса (ADR-0026): `AggregateCommandPayload` (APP_API 34 -> 35) —
+# объявление payload'а команды, который читают lifecycle-хуки её сущности (`beforeSave` — вето,
+# `onSave` — генерация строк); `CallbackScope` (INTERNAL 16 -> 17) — общая дисциплина
+# callback-scope'ов crud-пути: package-private механизм, у которого нет compatibility promise,
+# потому что приложение пользуется только операциями конкретных scope'ов, а не базой.
 # Число production-типов в шапке (108 -> 109) — не рост: полнота проверяется тестом
 # `everyCoreProductionTypeHasExactlyOneReviewedRole`, который сверяет реестр с исходниками
 # platform-core в обе стороны, и 109 — то, что он измеряет сейчас.
@@ -81,8 +86,9 @@
 # одновременно иметь замороженные ссылки из тестов приложения. Список только сокращается: снятая
 # ссылка обязана исчезнуть из реестра, новая ломает сборку.
 #
-# ---- APP_API (34)
+# ---- APP_API (35)
 APP_API org.ipro.crud.MetadataDrivenAggregateSaveService
+APP_API org.ipro.crud.AggregateCommandPayload
 # Declared instance-name paths stay APP_API: резолвер входит в публичную сигнатуру APP_API-типов,
 # которые приложение называет, поэтому роль держится правилом 2, а не употреблением одного файла.
 # `EntityReadAccess` и `EntityPresentationService` в этом разделе были ровно до D-R S4 — их
@@ -213,8 +219,9 @@ MODULE_API org.ipro.search.GlobalSearchRequest
 MODULE_API org.ipro.search.GlobalSearchResponse
 MODULE_API org.ipro.search.GlobalSearchResult
 MODULE_API org.ipro.search.GlobalSearchService
-# ---- INTERNAL (16)
+# ---- INTERNAL (17)
 INTERNAL org.ipro.crud.AggregateSaveRollbackState
+INTERNAL org.ipro.crud.CallbackScope
 INTERNAL org.ipro.crud.StandardCatalogEntity
 INTERNAL org.ipro.crud.StandardDocumentEntity
 INTERNAL org.ipro.data.CanonicalWriteDeniedException

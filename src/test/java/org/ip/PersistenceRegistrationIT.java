@@ -91,7 +91,6 @@ class PersistenceRegistrationIT {
         repositories.put("org.ip", org.ip.repository.BranchRepository.class);
         // собственные persistence-конференции подсистем в дереве
         repositories.put("org.ipro.reportstudio", org.ipro.reportstudio.ReportTemplateRepository.class);
-        repositories.put("org.ipro.ureport", org.ipro.ureport.UreportTemplateRepository.class);
         // вынесенные модули объявляют свои пакеты сами
         repositories.put("org.ipro.numbering", org.ipro.numbering.NumberingRuleRepository.class);
         repositories.put("org.ipro.settings", org.ipro.settings.SettingValueRepository.class);

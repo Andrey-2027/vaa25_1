@@ -1,0 +1,329 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Vaa25_1 ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-application-runtime-dependency-tree) @ Vaa25_1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\target\application-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ Vaa25_1 ---
+[INFO] Copying 35 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.PlatformStarterCompositionTest
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.377 s <<< FAILURE! -- in org.ipro.PlatformStarterCompositionTest
+[ERROR] org.ipro.PlatformStarterCompositionTest.applicationUsesStartersButKeepsReportAndAppOnlyFilterGridDependencies -- Time elapsed: 0.134 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting no elements of:
+  ["com.bstek.ureport:ureport3-console",
+    "com.fasterxml.jackson.core:jackson-databind",
+    "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+    "com.vaadin:vaadin-dev",
+    "net.sf.jasperreports:jasperreports-fonts",
+    "net.sourceforge.dynamicreports:dynamicreports-core",
+    "org.ipro.crudui:crudui-core",
+    "org.ipro:filtergrid-core",
+    "org.ipro:filtergrid-inmemory",
+    "org.ipro:filtergrid-jpa",
+    "org.ipro:filtergrid-projection",
+    "org.ipro:platform-navigation",
+    "org.ipro:platform-rest",
+    "org.ipro:platform-rest-web",
+    "org.ipro:platform-vaadin-starter",
+    "org.postgresql:postgresql",
+    "org.springframework.boot:spring-boot-starter-aspectj",
+    "org.springframework.boot:spring-boot-starter-data-jpa",
+    "org.springframework.boot:spring-boot-starter-security",
+    "org.springframework.boot:spring-boot-starter-validation",
+    "org.vaadin.reports:reportui-core"]
+to match given predicate but this element did:
+  "org.ipro:platform-navigation"
+	at org.ipro.PlatformStarterCompositionTest.applicationUsesStartersButKeepsReportAndAppOnlyFilterGridDependencies(PlatformStarterCompositionTest.java:121)
+
+[INFO] Running org.ipro.WorkspaceManifestTest
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.731 s <<< FAILURE! -- in org.ipro.WorkspaceManifestTest
+[ERROR] org.ipro.WorkspaceManifestTest.inRepoProjectsUseTheDeterministicFingerprintAlgorithmAndMatchIt -- Time elapsed: 0.674 s <<< FAILURE!
+java.lang.AssertionError: 
+[fingerprint Ч обещание, что бутстрап собирает записанные исходники. ƒрейф об€зан быть виден на mvn verify, а не только при запуске скрипта] 
+Expecting empty but was: ["platform-rls: ожидалс€ 1d2b137d4bfaae43c2780fdcd8376f18e19dee5aac0b49f2561a0c1e900456a3 (61 файлов), фактически 424c90039f697070566877ff43bec7e6d21287d5ff3d0c095981c9b14561a12a (62 файлов) Ч пересмотрите изменение и обновите манифест намеренно: -Dplatform.manifest.write=true",
+    "platform-register-vaadin: ожидалс€ 9c5c121e2f8377553386e8dc492ca44ee99415dfe01281d04e138e7a9d111f9b (14 файлов), фактически 4d0c31b726b5ec1b11eedb1f2d24325ee6e7cf8c238530d61183e7c5dba61472 (14 файлов) Ч пересмотрите изменение и обновите манифест намеренно: -Dplatform.manifest.write=true"]
+	at org.ipro.WorkspaceManifestTest.inRepoProjectsUseTheDeterministicFingerprintAlgorithmAndMatchIt(WorkspaceManifestTest.java:271)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   PlatformStarterCompositionTest.applicationUsesStartersButKeepsReportAndAppOnlyFilterGridDependencies:121 
+Expecting no elements of:
+  ["com.bstek.ureport:ureport3-console",
+    "com.fasterxml.jackson.core:jackson-databind",
+    "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+    "com.vaadin:vaadin-dev",
+    "net.sf.jasperreports:jasperreports-fonts",
+    "net.sourceforge.dynamicreports:dynamicreports-core",
+    "org.ipro.crudui:crudui-core",
+    "org.ipro:filtergrid-core",
+    "org.ipro:filtergrid-inmemory",
+    "org.ipro:filtergrid-jpa",
+    "org.ipro:filtergrid-projection",
+    "org.ipro:platform-navigation",
+    "org.ipro:platform-rest",
+    "org.ipro:platform-rest-web",
+    "org.ipro:platform-vaadin-starter",
+    "org.postgresql:postgresql",
+    "org.springframework.boot:spring-boot-starter-aspectj",
+    "org.springframework.boot:spring-boot-starter-data-jpa",
+    "org.springframework.boot:spring-boot-starter-security",
+    "org.springframework.boot:spring-boot-starter-validation",
+    "org.vaadin.reports:reportui-core"]
+to match given predicate but this element did:
+  "org.ipro:platform-navigation"
+[ERROR]   WorkspaceManifestTest.inRepoProjectsUseTheDeterministicFingerprintAlgorithmAndMatchIt:271 [fingerprint Ч обещание, что бутстрап собирает записанные исходники. ƒрейф об€зан быть виден на mvn verify, а не только при запуске скрипта] 
+Expecting empty but was: ["platform-rls: ожидалс€ 1d2b137d4bfaae43c2780fdcd8376f18e19dee5aac0b49f2561a0c1e900456a3 (61 файлов), фактически 424c90039f697070566877ff43bec7e6d21287d5ff3d0c095981c9b14561a12a (62 файлов) Ч пересмотрите изменение и обновите манифест намеренно: -Dplatform.manifest.write=true",
+    "platform-register-vaadin: ожидалс€ 9c5c121e2f8377553386e8dc492ca44ee99415dfe01281d04e138e7a9d111f9b (14 файлов), фактически 4d0c31b726b5ec1b11eedb1f2d24325ee6e7cf8c238530d61183e7c5dba61472 (14 файлов) Ч пересмотрите изменение и обновите манифест намеренно: -Dplatform.manifest.write=true"]
+[INFO] 
+[ERROR] Tests run: 9, Failures: 2, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  8.327 s
+[INFO] Finished at: 2026-10-16T15:59:50+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-test) on project Vaa25_1: There are test failures.
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+APP_EXIT=1
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< org.ipro:platform-rest >-----------------------
+[INFO] Building GitVaa platform REST declarations and catalog 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-rest ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-rest ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-rest-compile-dependencies) @ platform-rest ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\platform-rest\target\rest-compile-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-rest ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-rest ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-rest ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.rest.api.RestModuleCompositionTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.267 s -- in org.ipro.rest.api.RestModuleCompositionTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.994 s
+[INFO] Finished at: 2026-10-16T15:59:57+03:00
+[INFO] ------------------------------------------------------------------------
+REST_EXIT=0
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< org.ipro:platform-rest-web >---------------------
+[INFO] Building GitVaa platform REST read HTTP adapter 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-rest-web ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-rest-web ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-rest-web-compile-dependencies) @ platform-rest-web ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\platform-rest-web\target\rest-web-compile-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-rest-web ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-rest-web ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-rest-web ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.rest.web.RestWebModuleCompositionTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.273 s -- in org.ipro.rest.web.RestWebModuleCompositionTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  5.078 s
+[INFO] Finished at: 2026-10-16T16:00:03+03:00
+[INFO] ------------------------------------------------------------------------
+RESTWEB_EXIT=0
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Vaa25_1 ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 6 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-application-runtime-dependency-tree) @ Vaa25_1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\target\application-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ Vaa25_1 ---
+[INFO] Copying 35 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ Vaa25_1 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.PlatformStarterCompositionTest
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.369 s <<< FAILURE! -- in org.ipro.PlatformStarterCompositionTest
+[ERROR] org.ipro.PlatformStarterCompositionTest.applicationUsesStartersButKeepsReportAndAppOnlyFilterGridDependencies -- Time elapsed: 0.133 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting no elements of:
+  ["com.bstek.ureport:ureport3-console",
+    "com.fasterxml.jackson.core:jackson-databind",
+    "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+    "com.vaadin:vaadin-dev",
+    "net.sf.jasperreports:jasperreports-fonts",
+    "net.sourceforge.dynamicreports:dynamicreports-core",
+    "org.ipro.crudui:crudui-core",
+    "org.ipro:filtergrid-core",
+    "org.ipro:filtergrid-inmemory",
+    "org.ipro:filtergrid-jpa",
+    "org.ipro:filtergrid-projection",
+    "org.ipro:platform-navigation",
+    "org.ipro:platform-rest",
+    "org.ipro:platform-rest-web",
+    "org.ipro:platform-vaadin-starter",
+    "org.postgresql:postgresql",
+    "org.springframework.boot:spring-boot-starter-aspectj",
+    "org.springframework.boot:spring-boot-starter-data-jpa",
+    "org.springframework.boot:spring-boot-starter-security",
+    "org.springframework.boot:spring-boot-starter-validation",
+    "org.vaadin.reports:reportui-core"]
+to match given predicate but this element did:
+  "org.ipro:platform-navigation"
+	at org.ipro.PlatformStarterCompositionTest.applicationUsesStartersButKeepsReportAndAppOnlyFilterGridDependencies(PlatformStarterCompositionTest.java:121)
+
+[INFO] Running org.ipro.WorkspaceManifestTest
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.759 s <<< FAILURE! -- in org.ipro.WorkspaceManifestTest
+[ERROR] org.ipro.WorkspaceManifestTest.inRepoProjectsUseTheDeterministicFingerprintAlgorithmAndMatchIt -- Time elapsed: 0.707 s <<< FAILURE!
+java.lang.AssertionError: 
+[fingerprint Ч обещание, что бутстрап собирает записанные исходники. ƒрейф об€зан быть виден на mvn verify, а не только при запуске скрипта] 
+Expecting empty but was: ["platform-rls: ожидалс€ 1d2b137d4bfaae43c2780fdcd8376f18e19dee5aac0b49f2561a0c1e900456a3 (61 файлов), фактически 424c90039f697070566877ff43bec7e6d21287d5ff3d0c095981c9b14561a12a (62 файлов) Ч пересмотрите изменение и обновите манифест намеренно: -Dplatform.manifest.write=true",
+    "platform-register-vaadin: ожидалс€ 9c5c121e2f8377553386e8dc492ca44ee99415dfe01281d04e138e7a9d111f9b (14 файлов), фактически 4d0c31b726b5ec1b11eedb1f2d24325ee6e7cf8c238530d61183e7c5dba61472 (14 файлов) Ч пересмотрите изменение и обновите манифест намеренно: -Dplatform.manifest.write=true"]
+	at org.ipro.WorkspaceManifestTest.inRepoProjectsUseTheDeterministicFingerprintAlgorithmAndMatchIt(WorkspaceManifestTest.java:271)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   PlatformStarterCompositionTest.applicationUsesStartersButKeepsReportAndAppOnlyFilterGridDependencies:121 
+Expecting no elements of:
+  ["com.bstek.ureport:ureport3-console",
+    "com.fasterxml.jackson.core:jackson-databind",
+    "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+    "com.vaadin:vaadin-dev",
+    "net.sf.jasperreports:jasperreports-fonts",
+    "net.sourceforge.dynamicreports:dynamicreports-core",
+    "org.ipro.crudui:crudui-core",
+    "org.ipro:filtergrid-core",
+    "org.ipro:filtergrid-inmemory",
+    "org.ipro:filtergrid-jpa",
+    "org.ipro:filtergrid-projection",
+    "org.ipro:platform-navigation",
+    "org.ipro:platform-rest",
+    "org.ipro:platform-rest-web",
+    "org.ipro:platform-vaadin-starter",
+    "org.postgresql:postgresql",
+    "org.springframework.boot:spring-boot-starter-aspectj",
+    "org.springframework.boot:spring-boot-starter-data-jpa",
+    "org.springframework.boot:spring-boot-starter-security",
+    "org.springframework.boot:spring-boot-starter-validation",
+    "org.vaadin.reports:reportui-core"]
+to match given predicate but this element did:
+  "org.ipro:platform-navigation"
+[ERROR]   WorkspaceManifestTest.inRepoProjectsUseTheDeterministicFingerprintAlgorithmAndMatchIt:271 [fingerprint Ч обещание, что бутстрап собирает записанные исходники. ƒрейф об€зан быть виден на mvn verify, а не только при запуске скрипта] 
+Expecting empty but was: ["platform-rls: ожидалс€ 1d2b137d4bfaae43c2780fdcd8376f18e19dee5aac0b49f2561a0c1e900456a3 (61 файлов), фактически 424c90039f697070566877ff43bec7e6d21287d5ff3d0c095981c9b14561a12a (62 файлов) Ч пересмотрите изменение и обновите манифест намеренно: -Dplatform.manifest.write=true",
+    "platform-register-vaadin: ожидалс€ 9c5c121e2f8377553386e8dc492ca44ee99415dfe01281d04e138e7a9d111f9b (14 файлов), фактически 4d0c31b726b5ec1b11eedb1f2d24325ee6e7cf8c238530d61183e7c5dba61472 (14 файлов) Ч пересмотрите изменение и обновите манифест намеренно: -Dplatform.manifest.write=true"]
+[INFO] 
+[ERROR] Tests run: 9, Failures: 2, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  8.098 s
+[INFO] Finished at: 2026-10-16T16:03:20+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-test) on project Vaa25_1: There are test failures.
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

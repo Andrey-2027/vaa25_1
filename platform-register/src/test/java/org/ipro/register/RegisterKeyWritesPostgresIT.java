@@ -315,7 +315,7 @@ class RegisterKeyWritesPostgresIT {
     @Table(name = "r11_key_write_command_row", uniqueConstraints = @UniqueConstraint(
         name = "uq_r11_key_write_command_row", columnNames = {"workshop_code", "period_date"}))
     @RegisterMetadata(dimensions = "workshopCode", period = "period", resources = "amount",
-        keyWriteAllowed = true)
+        keyWriteAllowed = true, displayName = "Регистр записи по ключу (PostgreSQL)")
     static class CommandRow extends PeriodicRegisterEntryBase {
         @Column(name = "workshop_code", nullable = false, updatable = false) String workshopCode;
         @Column(name = "amount", nullable = false) BigDecimal amount;

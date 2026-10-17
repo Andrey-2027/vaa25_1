@@ -78,6 +78,9 @@ public class JpqlQueryBuilderDialog extends Dialog {
         }
 
         setHeaderTitle("Конструктор запроса");
+        getElement().getThemeList().add("form-1c");
+        getElement().getThemeList().add("query-constructor");
+        addClassNames("form-1c", "query-constructor");
         setModal(true);
         setDraggable(true);
         setResizable(true);
@@ -88,8 +91,9 @@ public class JpqlQueryBuilderDialog extends Dialog {
         constructor.setHeightFull();
 
         Button ok = new Button("ОК", event -> applyAndClose(onApply));
-        ok.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        ok.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
         Button cancel = new Button("Отмена", event -> close());
+        cancel.addThemeVariants(ButtonVariant.LUMO_SMALL);
         HorizontalLayout actions = new HorizontalLayout(ok, cancel);
         actions.setPadding(false);
         actions.setSpacing(true);
@@ -97,6 +101,7 @@ public class JpqlQueryBuilderDialog extends Dialog {
         actions.setWidthFull();
 
         VerticalLayout content = new VerticalLayout(constructor, actions);
+        content.addClassNames("form-1c", "query-constructor");
         content.setPadding(false);
         content.setSpacing(true);
         content.setSizeFull();

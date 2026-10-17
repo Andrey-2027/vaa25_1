@@ -73,7 +73,7 @@ class NavigationAdminWiringTest {
         when(factory.getMetamodel()).thenReturn(metamodel);
         when(metamodel.getEntities()).thenReturn(Set.of());
         return new AdminView(mock(AccessGrantAdminService.class), new SettingsAdminTab(null, null, null, null, null),
-            new NumberingAdminTab(null, null, null, null, null), factory, List.of(), tabs, enabled);
+            new NumberingAdminTab(null, null, null, null, null), factory, List.of(), List.of(), tabs, enabled);
     }
     private static void login(String role) {
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(

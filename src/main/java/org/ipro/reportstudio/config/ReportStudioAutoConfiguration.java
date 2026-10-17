@@ -22,6 +22,7 @@ import org.ipro.reportstudio.render.ReportCompiler;
 import org.ipro.reportstudio.run.ReportArtifactCache;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.reportstudio.service.UdrCatalogContributor;
 import org.ipro.reportstudio.transfer.ReportTemplateTransferService;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCurrentUser;
@@ -241,6 +242,12 @@ public class ReportStudioAutoConfiguration {
             Validator validator,
             org.ipro.crud.ReferenceCheckService referenceCheckService) {
         return new ReportTemplateService(repository, validator, referenceCheckService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public UdrCatalogContributor udrCatalogContributor(ReportTemplateService templateService) {
+        return new UdrCatalogContributor(templateService);
     }
     /**
      * Без {@code @ConditionalOnMissingBean}: в контексте уже есть CommandLineRunner

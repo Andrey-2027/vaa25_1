@@ -117,8 +117,31 @@ public record UniDrDefinition(
         this(schemaVersion, sourceId, sourceVersion, title, columns, measures, groups, filters, parameters,
             sorts, mode, grandTotal, Appearance.defaults());
     }
-    public record Appearance(boolean rowBorders, boolean columnBorders, boolean stripeRows) {
+    public enum PageSize { A4, A5, A3, LETTER, LEGAL }
+    public enum Orientation { AUTO, PORTRAIT, LANDSCAPE }
+    public record Appearance(boolean rowBorders, boolean columnBorders, boolean stripeRows,
+                             PageSize pageSize, Orientation orientation, Integer fontSize,
+                             String reportHeader, String pageHeader, String pageFooter, String reportFooter) {
+        public Appearance {
+            pageSize=pageSize==null?PageSize.A4:pageSize;
+            orientation=orientation==null?Orientation.AUTO:orientation;
+            fontSize=fontSize==null?10:fontSize;
+            if(fontSize<6 || fontSize>24)throw new IllegalArgumentException("Размер шрифта должен быть от 6 до 24");
+            reportHeader=area(reportHeader);pageHeader=area(pageHeader);
+            pageFooter=area(pageFooter);reportFooter=area(reportFooter);
+        }
+        public Appearance(boolean rowBorders,boolean columnBorders,boolean stripeRows,PageSize pageSize,Orientation orientation,Integer fontSize) {
+            this(rowBorders,columnBorders,stripeRows,pageSize,orientation,fontSize,null,null,null,null);
+        }
+        public Appearance(boolean rowBorders,boolean columnBorders,boolean stripeRows) {
+            this(rowBorders,columnBorders,stripeRows,PageSize.A4,Orientation.AUTO,10);
+        }
         public static Appearance defaults() { return new Appearance(true, true, true); }
+        private static String area(String value) {
+            if(value==null || value.isBlank())return null;
+            if(value.length()>4000)throw new IllegalArgumentException("Текст области отчёта не должен превышать 4000 символов");
+            return value.replace("\r\n","\n").replace('\r','\n');
+        }
     }
 
     public record Column(String fieldId, String title) {}

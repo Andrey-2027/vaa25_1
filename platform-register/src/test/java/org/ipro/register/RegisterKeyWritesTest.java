@@ -473,7 +473,8 @@ class RegisterKeyWritesTest {
     @Entity(name = "RegisterKeyWriteRow")
     @Table(name = "register_key_write_row", uniqueConstraints = @UniqueConstraint(
         name = "uk_register_key_write_row", columnNames = {"business_code", "period_date"}))
-    @RegisterMetadata(dimensions = "code", period = "period", resources = "amount", keyWriteAllowed = true)
+    @RegisterMetadata(dimensions = "code", period = "period", resources = "amount", keyWriteAllowed = true,
+        displayName = "Проверочный регистр записи по ключу")
     static class PeriodRow extends PeriodicRegisterEntryBase {
         @Column(name = "business_code", nullable = false, updatable = false) String code;
         @Column(name = "amount", nullable = false) BigDecimal amount;

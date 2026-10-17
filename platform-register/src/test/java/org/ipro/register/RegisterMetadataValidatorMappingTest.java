@@ -27,7 +27,8 @@ class RegisterMetadataValidatorMappingTest {
 
     @Entity @Table(name = "optin_mapping_test", uniqueConstraints = @UniqueConstraint(columnNames = {"business_code", "effective_period"}))
     @AttributeOverride(name = "period", column = @Column(name = "effective_period", nullable = false))
-    @RegisterMetadata(dimensions = "code", period = "period", resources = "amount", keyChangeAllowed = true)
+    @RegisterMetadata(dimensions = "code", period = "period", resources = "amount", keyChangeAllowed = true,
+        displayName = "Проверочный периодический регистр")
     static class OptInPeriod extends PeriodicRegisterEntryBase {
         @Column(name = "business_code", nullable = false) String code;
         int amount;
@@ -42,7 +43,8 @@ class RegisterMetadataValidatorMappingTest {
     }
 
     @Entity @Table(name = "incomplete_optin_test", uniqueConstraints = @UniqueConstraint(columnNames = {"business_code", "period_date"}))
-    @RegisterMetadata(dimensions = "code", period = "period", resources = "amount", keyChangeAllowed = true)
+    @RegisterMetadata(dimensions = "code", period = "period", resources = "amount", keyChangeAllowed = true,
+        displayName = "Неполная проверочная декларация")
     static class IncompleteOptIn extends PeriodicRegisterEntryBase {
         @Column(name = "business_code", nullable = false) String code;
         int amount;

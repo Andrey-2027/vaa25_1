@@ -29,7 +29,8 @@ import org.ipro.register.RegisterPeriodicity;
     selectColumns = {"workshop.code", "nomenclature.code", "nomenclature.name", "period", "accountingType.name"})
 @RegisterMetadata(dimensions = {"workshop", "nomenclature"}, resources = "accountingType",
     period = "period", periodicity = RegisterPeriodicity.EXACT,
-    recorderTypes = {AccountingObjectInstallation.class, AccountingObjectCorrection.class}, keyChangeAllowed = true)
+    recorderTypes = {AccountingObjectInstallation.class, AccountingObjectCorrection.class}, keyChangeAllowed = true,
+    displayName = "Объекты учёта номенклатуры")
 public class NomenclatureAccountingObject extends PeriodicRecordedRegisterEntryBase {
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workshop_id", nullable = false)

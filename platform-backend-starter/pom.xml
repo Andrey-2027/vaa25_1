@@ -21,6 +21,8 @@
         D3.8: фасад для backend-платформы. Платформенные подсистемы и их авто-конфигурации
         приходят транзитивно через platform-spring-boot-autoconfigure. Spring Boot runtime
         starters (JPA, security, validation) остаются ответственностью приложения.
+        D-R S5(a), ADR-0024 §2.2: механизм регистра сведений входит в это замыкание прямым
+        ребром — потребитель без UI, объявивший регистр, получает движок, не объявляя его сам.
     </description>
 
     <properties>
@@ -44,6 +46,20 @@
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>platform-spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!--
+          D-R S5(a), ADR-0024 §2.2: движок регистра входит в backend-поставку. Решение
+          перевешивает opt-in-схему HTTP-адаптера чтения: объявив регистр, потребитель
+          получает механизм, а не ещё одну строку сборки, которую нужно не забыть. Цена
+          измерена, а не обещана: все транзитивные ветки модуля уже были в этом замыкании
+          (60 артефактов до ребра), поэтому добавление стоит ровно +1 артефакт (61) и не
+          приносит backend-потребителю ни UI, ни HTTP-срез: и то и другое остаётся отдельными
+          опциями, а их отсутствие здесь держат разрешённым деревом гейты самого стартера и
+          приложения.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-register</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

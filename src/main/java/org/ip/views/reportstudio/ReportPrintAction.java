@@ -16,7 +16,6 @@ import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.param.ReportContextFactory;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
-import org.ipro.ureport.service.UreportTemplateService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -63,7 +62,6 @@ public class ReportPrintAction implements ActionHandler {
     private final ReportExecutionService executionService;
     private final EntityLookup lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
-    private final UreportTemplateService ureportService;
     private final JrxmlTemplateService jrTemplateService;
     private final JrxmlExecutionService jrExecutionService;
     private final ReportContextFactory contextFactory;
@@ -73,7 +71,6 @@ public class ReportPrintAction implements ActionHandler {
             ReportExecutionService executionService,
             EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            UreportTemplateService ureportService,
             JrxmlTemplateService jrTemplateService,
             JrxmlExecutionService jrExecutionService,
             ReportContextFactory contextFactory) {
@@ -81,7 +78,6 @@ public class ReportPrintAction implements ActionHandler {
         this.executionService = executionService;
         this.lookupService = lookupService;
         this.selectionFormAssembler = selectionFormAssembler;
-        this.ureportService = ureportService;
         this.jrTemplateService = jrTemplateService;
         this.jrExecutionService = jrExecutionService;
         this.contextFactory = contextFactory;
@@ -122,7 +118,7 @@ public class ReportPrintAction implements ActionHandler {
         new ReportPrintDialog(
             () -> templateService.findPrintableForEntity(invocation.entityType()),
             templateService, executionService, lookupService, selectionFormAssembler,
-            ureportService, jrTemplateService, jrExecutionService,
+            jrTemplateService, jrExecutionService,
             Dialog::open).open(context);
     }
 }

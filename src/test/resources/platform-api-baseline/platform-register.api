@@ -52,6 +52,7 @@ annotation public abstract interface org.ipro.register.RegisterMetadata
   method public abstract boolean keyChangeAllowed() default false
   method public abstract boolean keyWriteAllowed() default false
   method public abstract java.lang.Class<?>[] recorderTypes() default []
+  method public abstract java.lang.String displayName() default 
   method public abstract java.lang.String period() default 
   method public abstract java.lang.String[] dimensions()
   method public abstract java.lang.String[] resources()
@@ -82,6 +83,7 @@ class public final org.ipro.register.RegisterDescriptor
   method public boolean periodic()
   method public boolean recorded()
   method public java.lang.Class<?> entityType()
+  method public java.lang.String displayName()
   method public java.lang.String entityName()
   method public java.util.List<java.lang.Class<?>> recorderTypes()
   method public java.util.List<java.lang.String> dimensionGroupColumns()
@@ -130,6 +132,10 @@ class public final org.ipro.register.RegisterKeyWrites
   method public <T extends org.ipro.crud.BaseEntity> org.ipro.register.RegisterKeyWrites$Result<T> delete(java.lang.Class<T>, java.util.Map<java.lang.String, ?>, java.time.LocalDateTime, java.lang.Long)
   method public <T extends org.ipro.crud.BaseEntity> org.ipro.register.RegisterKeyWrites$Result<T> set(java.lang.Class<T>, java.util.Map<java.lang.String, ?>, java.util.Map<java.lang.String, ?>, java.time.LocalDateTime)
   method public <T extends org.ipro.crud.BaseEntity> org.ipro.register.RegisterKeyWrites$Result<T> set(java.lang.Class<T>, java.util.Map<java.lang.String, ?>, java.util.Map<java.lang.String, ?>, java.time.LocalDateTime, java.lang.Long)
+
+class public final org.ipro.register.RegisterNamedOperations
+  ctor public(org.ipro.register.RegisterRegistry)
+  method public java.util.List<org.ipro.register.RegisterNamedOperations$Operation> operations()
 
 class public final org.ipro.register.RegisterPeriodListener
   ctor public()
@@ -330,6 +336,15 @@ record public static final org.ipro.register.RegisterKeyWrites$Result
   method public final int hashCode()
   method public final java.lang.String toString()
   method public org.ipro.register.RegisterKeyWrites$Verdict verdict()
+
+record public static final org.ipro.register.RegisterNamedOperations$Operation
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String permissionId()
+  method public java.lang.String title()
 
 record public static final org.ipro.register.SliceSpec$Condition
   extends java.lang.Record

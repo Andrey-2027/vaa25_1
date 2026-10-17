@@ -19,15 +19,12 @@ import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.reportstudio.param.ReportContext;
 import org.ipro.reportstudio.run.ReportExecutionService;
 import org.ipro.reportstudio.service.ReportTemplateService;
-import org.ipro.ureport.catalog.ReportCatalogItem;
-import org.ipro.ureport.catalog.ReportCatalogItemFactory;
-import org.ipro.ureport.catalog.ReportEngineCapabilities;
-import org.ipro.ureport.dom.UreportTemplate;
-import org.ipro.ureport.service.UreportTemplateService;
+import org.ipro.report.catalog.ReportCatalogItem;
+import org.ipro.report.catalog.ReportCatalogItemFactory;
+import org.ipro.report.catalog.ReportEngineCapabilities;
 import org.ipro.jr.dom.JrxmlTemplate;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
-import org.ipro.ureport.params.UreportParamSpec;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,8 +49,9 @@ import java.util.function.Supplier;
  * диалог занимается только выбором шаблона. Параметры ENTITY/ENTITY_LIST разрешает сервер, RLS
  * применяется там же — политика отчётного движка остаётся в движке.</p>
  *
- * <p>{@code ureportService}, {@code jrTemplateService} и {@code jrExecutionService} nullable: без
- * них соответствующая ветка каталога недоступна (обратная совместимость с поставкой без add-on'а).</p>
+ * <p>{@code jrTemplateService} и {@code jrExecutionService} nullable: без них
+ * соответствующая ветка каталога недоступна (обратная совместимость с поставкой
+ * без add-on'а).</p>
  */
 public class ReportPrintDialog {
 
@@ -62,7 +60,6 @@ public class ReportPrintDialog {
     private final ReportExecutionService executionService;
     private final EntityLookup lookupService;
     private final SelectionFormAssembler selectionFormAssembler;
-    private final UreportTemplateService ureportService;
     private final JrxmlTemplateService jrTemplateService;
     private final JrxmlExecutionService jrExecutionService;
 
@@ -75,7 +72,6 @@ public class ReportPrintDialog {
             ReportExecutionService executionService,
             EntityLookup lookupService,
             SelectionFormAssembler selectionFormAssembler,
-            UreportTemplateService ureportService,
             JrxmlTemplateService jrTemplateService,
             JrxmlExecutionService jrExecutionService,
             Consumer<Dialog> presenter) {
@@ -84,7 +80,6 @@ public class ReportPrintDialog {
         this.executionService = executionService;
         this.lookupService = lookupService;
         this.selectionFormAssembler = selectionFormAssembler;
-        this.ureportService = ureportService;
         this.jrTemplateService = jrTemplateService;
         this.jrExecutionService = jrExecutionService;
         this.presenter = presenter;
@@ -141,15 +136,15 @@ public class ReportPrintDialog {
         Button cancel = new Button("Закрыть", event -> dialog.close());
         dialog.add(new VerticalLayout(
                 new Paragraph("UDR — конструктор (запуск и редактирование здесь). "
-                        + "UReport3 — веб-дизайнер, JR — макет .jrxml из Jaspersoft "
-                        + "Studio. Параметры CONTEXT/COMPUTED разрешаются на сервере."),
+                        + "JR — макет .jrxml из Jaspersoft Studio. "
+                        + "Параметры CONTEXT/COMPUTED разрешаются на сервере."),
                 templates,
                 new HorizontalLayout(create, edit, run, cancel)));
         presenter.accept(dialog);
     }
 
     /**
-     * Кнопка «Создать» с выпадающим списком движков (UDR / UReport3 / JR).
+     * Кнопка «Создать» с выпадающим списком движков (UDR / JR).
      * Пункт JR показывается только при наличии сервиса (обратная совместимость).
      */
     private Button buildCreateMenu(Dialog dialog, ReportContext context) {
@@ -166,14 +161,6 @@ public class ReportPrintDialog {
                     ReportEditorView.class,
                     QueryParameters.simple(Map.of(
                             "targetEntityClass", context.entityClass().getName())));
-        });
-        createItem.getSubMenu().addItem("UReport3 — веб-дизайнер", event -> {
-            if (!hasEntity) {
-                showError("Текущий реестр не определяет тип сущности");
-                return;
-            }
-            dialog.close();
-            createUreport(context);
         });
         if (jrTemplateService != null) {
             createItem.getSubMenu().addItem("JR — Jaspersoft Studio (.jrxml)", event -> {
@@ -227,9 +214,6 @@ public class ReportPrintDialog {
             // Строка UDR собирается тем же узлом, что у каталога (D3.6).
             items.add(ReportCatalogItemFactory.of(template));
         }
-        if (ureportService != null && context.entityClass() != null) {
-            items.addAll(ureportService.findPrintableItemsForEntity(context.entityClass()));
-        }
         if (jrTemplateService != null && context.entityClass() != null) {
             items.addAll(jrTemplateService.findPrintableItemsForEntity(context.entityClass()));
         }
@@ -250,15 +234,6 @@ public class ReportPrintDialog {
                             lookupService, selectionFormAssembler).open();
                 } catch (RuntimeException exception) {
                     showError("Не удалось подготовить отчёт: " + exception.getMessage());
-                }
-            }
-            case UREPORT3 -> {
-                try {
-                    List<UreportParamSpec> specs =
-                            ureportService.loadParamSpecs(fileNameOf(selected));
-                    new UreportParamsDialog(selected.name(), fileNameOf(selected), specs).open();
-                } catch (RuntimeException exception) {
-                    showError("Не удалось открыть параметры UReport3: " + exception.getMessage());
                 }
             }
             case JR -> {
@@ -292,51 +267,8 @@ public class ReportPrintDialog {
                 }
                 UI.getCurrent().navigate(ReportEditorView.class, QueryParameters.simple(parameters));
             }
-            case DESIGNER -> {
-                if (selected.designerUrl() != null) {
-                    UI.getCurrent().getPage().open(selected.designerUrl(), "_blank");
-                }
-            }
             case INFO -> showError("Шаблон JR редактируется в Jaspersoft Studio (вне приложения)");
         }
-    }
-
-    private void createUreport(ReportContext context) {
-        Dialog input = new Dialog();
-        input.setHeaderTitle("Новый отчёт UReport3 для реестра");
-        input.setWidth("460px");
-        com.vaadin.flow.component.textfield.TextField name =
-                new com.vaadin.flow.component.textfield.TextField("Наименование");
-        name.setWidthFull();
-        Button create = new Button("Создать и открыть дизайнера", event -> {
-            if (name.getValue() == null || name.getValue().isBlank()) {
-                showError("Укажите наименование");
-                return;
-            }
-            try {
-                UreportTemplate created = ureportService.createTemplate(
-                        name.getValue(), null, context.entityClass().getName());
-                input.close();
-                UI.getCurrent().getPage()
-                        .open(UreportTemplateService.designerUrl(created.getFileName()), "_blank");
-            } catch (RuntimeException exception) {
-                showError("Не удалось создать отчёт UReport3: " + exception.getMessage());
-            }
-        });
-        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button cancel = new Button("Отмена", event -> input.close());
-        input.add(new VerticalLayout(name, new HorizontalLayout(create, cancel)));
-        input.open();
-    }
-
-    private static String fileNameOf(ReportCatalogItem item) {
-        String url = item.designerUrl();
-        String marker = "_u=file:";
-        if (url == null || !url.contains(marker)) {
-            throw new IllegalStateException("У записи нет URL дизайнера");
-        }
-        return java.net.URLDecoder.decode(url.substring(url.indexOf(marker) + marker.length()),
-                java.nio.charset.StandardCharsets.UTF_8);
     }
 
     private static void showError(String message) {

@@ -56,6 +56,7 @@ class PlatformCoreModuleTest {
      * (расхождение этих двух списков и есть та ошибка, которую одна сторона не видит).
      */
     private static final Set<String> REVIEWED_TYPES = Set.of(
+        "org.ipro.crud.AggregateCommandPayload",
         "org.ipro.crud.AggregateOperationAuthorizer",
         "org.ipro.crud.AggregateSaveContribution",
         "org.ipro.crud.AggregateSaveContributionParticipant",
@@ -64,6 +65,7 @@ class PlatformCoreModuleTest {
         "org.ipro.data.CanonicalDeleteParticipant",
         "org.ipro.crud.AggregateSaveRollbackState",
         "org.ipro.crud.BaseService",
+        "org.ipro.crud.CallbackScope",
         "org.ipro.crud.EntityCopyService",
         "org.ipro.crud.EntityLookup",
         "org.ipro.crud.EntityServiceResolver",

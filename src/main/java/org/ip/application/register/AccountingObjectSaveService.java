@@ -2,9 +2,11 @@ package org.ip.application.register;
 
 import org.ip.repository.AccountingObjectRegisterRepository;
 import org.ip.model.*;
+import org.ipro.crud.AggregateCommandPayload;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.crud.ValidationException;
 import org.ipro.data.EntityDataAccess;
+import org.ipro.events.AggregateSection;
 import org.ipro.events.EventSource;
 import org.ipro.rls.RlsPolicyEnforcer;
 import org.ipro.rls.RlsCurrentUser;
@@ -59,7 +61,7 @@ public class AccountingObjectSaveService {
         persistence.lockWorkshop(workshop.getId());
         document.setWorkshop(workshop);
 
-        List<AccountingObjectContribution.Line> lines = new ArrayList<>();
+        List<AccountingObjectItem> positions = new ArrayList<>();
         List<AccountingObjectCorrectionItem> corrections = new ArrayList<>();
         Set<Long> seen = new LinkedHashSet<>();
         for (Object input : sections.getFirst().rows()) {
@@ -74,9 +76,9 @@ public class AccountingObjectSaveService {
             item.setNomenclature(requireReference(Nomenclature.class, nomenclatureId, "Номенклатура"));
             item.setAccountingType(requireReference(AccountingType.class, item.getAccountingType().getId(), "Тип учёта"));
             if (item instanceof AccountingObjectCorrectionItem correctionItem) corrections.add(correctionItem);
-            lines.add(new AccountingObjectContribution.Line(nomenclatureId, item.getAccountingType().getId()));
+            positions.add(item);
         }
-        if (lines.isEmpty()) throw new ValidationException("Добавьте хотя бы одну позицию документа");
+        if (positions.isEmpty()) throw new ValidationException("Добавьте хотя бы одну позицию документа");
         if (!corrections.isEmpty()) {
             // Один batch-срез на весь документ вместо чтения на каждую строку (Р9).
             Map<Long, AccountingType> currentTypes =
@@ -89,7 +91,11 @@ public class AccountingObjectSaveService {
                 item.setCurrentAccountingType(current);
             }
         }
-        try (var ignored = AccountingObjectSaveScope.open(document, lines)) {
+        // ADR-0026: позиции объявляются один раз и для секции, и для lifecycle-хуков документа
+        // (beforeSave — вето, onSave — генерация строк). Объявление даёт только закрытие, а
+        // управляемую копию на обновлении связывает с ним платформа.
+        try (var command = AggregateCommandPayload.open(document,
+                List.of(new AggregateSection(itemClass, positions)))) {
             return aggregateSave.save(document, sections, source);
         }
     }
