@@ -1,15 +1,16 @@
-package org.ip.unidr.model;
+package org.ipro.unidr.model;
+import org.ip.unidr.model.UniDrDefinitions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.model.UniDrParameter.*;
-import org.ip.unidr.query.UniDrQuerySourceService;
-import org.ip.unidr.source.UniDrSourceCatalog;
-import org.ip.unidr.store.UniDrFileStore;
-import org.ip.unidr.run.UniDrAccess;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.model.UniDrParameter.*;
+import org.ipro.unidr.query.UniDrQuerySourceService;
+import org.ipro.unidr.source.UniDrSourceCatalog;
+import org.ipro.unidr.store.UniDrFileStore;
+import org.ipro.unidr.run.UniDrAccess;
 import org.ipro.filtergrid.filter.*;
-import org.ipro.reportstudio.data.QueryField;
+import org.ipro.report.data.QueryField;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.*;
@@ -19,7 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 class UniDrDefinitionV2Test {
     @TempDir Path directory;
     final ObjectMapper json=new ObjectMapper();
-    final UniDrDefinitionJsonCodec codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot()));
+    final UniDrDefinitionJsonCodec codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrDefinitions.catalog()));
     @BeforeEach void authenticate(){org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("alice",null,List.of()));}
     @AfterEach void clearAuthentication(){org.springframework.security.core.context.SecurityContextHolder.clearContext();}
     @Test void openingLegacyFileDoesNotWriteAndSavingKeepsIdentityAndFileVersion()throws Exception {
@@ -74,7 +75,7 @@ class UniDrDefinitionV2Test {
         assertThatThrownBy(()->codec.decode(tree.toString())).isInstanceOf(UniDrValidationException.class);
     }
     @Test void namedReferencesIgnoreQuotedTextAndComments() {
-        assertThat(org.ipro.reportstudio.query.JpqlParameters.names("select ':fake', \"a :alsoFake\", 'it''s :quoted' from Product p /* :hidden */ where p.id=:id -- :comment\n and p.name=:name"))
+        assertThat(org.ipro.query.JpqlParameters.names("select ':fake', \"a :alsoFake\", 'it''s :quoted' from Product p /* :hidden */ where p.id=:id -- :comment\n and p.name=:name"))
             .containsExactlyInAnyOrder("id","name");
     }
 }

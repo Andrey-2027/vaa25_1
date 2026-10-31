@@ -151,10 +151,8 @@ public final class FetchGraphs {
             return List.copyOf(resolved);
         }
 
-        EntityMetadataInfo targetMeta;
-        try {
-            targetMeta = metadataResolver.resolve(targetClass);
-        } catch (IllegalArgumentException notMetadataDriven) {
+        EntityMetadataInfo targetMeta = metadataResolver.find(targetClass).orElse(null);
+        if (targetMeta == null) {
             return List.of();
         }
         List<ColumnPath> displayColumns = targetMeta.getSelectColumnPaths();

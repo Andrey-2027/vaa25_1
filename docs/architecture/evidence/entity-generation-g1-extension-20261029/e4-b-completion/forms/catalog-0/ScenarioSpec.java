@@ -1,0 +1,52 @@
+package com.example.generated.harness;
+
+import java.time.LocalDate;
+import java.util.List;
+import org.ipro.metadata.annotation.FieldType;
+import org.ipro.metadata.annotation.RequiredMode;
+
+/** Independent expectations for the empty standard document, authored from the E1 input contract. */
+public final class ScenarioSpec {
+
+    public enum Base { CATALOG, DOCUMENT }
+
+    public static final Base BASE = Base.CATALOG;
+    public static final String SCENARIO = "sections-catalog-0";
+    public static final String CLASS_NAME = "com.example.generated.CatalogSections0";
+    public static final String RELATIVE_PATH = "com/example/generated/CatalogSections0.java";
+    public static final String TABLE_NAME = "catalog_0";
+
+    public static final String LIST_TITLE = "Комплект";
+    public static final String ITEM_TITLE = "Комплект";
+    public static final String SELECTION_TITLE = "Комплект";
+    public static final String ICON = "FILE";
+    public static final String NAME_SAMPLE = "Пустой документ G1";
+    public static final LocalDate DATE_SAMPLE = LocalDate.of(2026, 10, 29);
+    public static final LocalDate DATE_UPDATED = LocalDate.of(2026, 10, 30);
+
+    public record BaseFieldSpec(String name, String column, FieldType type, Class<?> javaType,
+                                String label, int order, boolean serverRequired,
+                                RequiredMode requiredMode, boolean notBlank, Integer length,
+                                Object sample, String numberingRole, String dateField) {
+    }
+
+    public record FieldSpec(String name, String column, FieldType type, Class<?> javaType,
+                            String label, int order, boolean serverRequired, RequiredMode requiredMode,
+                            boolean form, Integer length, Integer precision, Integer scale,
+                            Object sample) {
+    }
+
+    public static final List<BaseFieldSpec> BASE_FIELDS = List.of(
+            new BaseFieldSpec("code", "code", FieldType.TEXT, String.class, "Код", 10,
+                    true, RequiredMode.REQUIRED, true, 50, null, "CATALOG_CODE", null),
+            new BaseFieldSpec("name", "name", FieldType.TEXT, String.class, "Наименование", 20,
+                    true, RequiredMode.REQUIRED, true, 200, NAME_SAMPLE, null, null));
+
+    public static final List<FieldSpec> FIELDS = List.of();
+
+    public static final List<String> LIST_COLUMNS = List.of("code", "name");
+    public static final List<String> SELECT_COLUMNS = List.of("code", "name");
+
+    private ScenarioSpec() {
+    }
+}

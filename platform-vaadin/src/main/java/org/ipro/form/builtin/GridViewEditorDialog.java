@@ -215,13 +215,11 @@ public class GridViewEditorDialog extends Dialog {
         availableByPath.put(node.path(), node);
 
         if (field.getResolvedType() == FieldType.ENTITY_REFERENCE) {
-            try {
-                EntityMetadataInfo target = resolver.resolve(field.getJavaType());
+            resolver.find(field.getJavaType()).ifPresent(target -> {
                 for (FieldMetadataInfo child : target.getFormFields()) {
                     collectField(node, child, resolver);
                 }
-            } catch (IllegalArgumentException notMetadataDriven) {
-            }
+            });
         }
     }
 

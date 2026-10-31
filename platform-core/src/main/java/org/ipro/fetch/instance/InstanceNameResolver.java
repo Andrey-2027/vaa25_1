@@ -188,13 +188,11 @@ public final class InstanceNameResolver implements InstanceNameProvider {
     }
 
     private static List<String> derivedPaths(Class<?> entityClass, MetadataResolver metadataResolver) {
-        EntityMetadataInfo metadata;
-        try {
-            metadata = metadataResolver.resolve(entityClass);
-        } catch (IllegalArgumentException notMetadataDriven) {
+        EntityMetadataInfo metadata = metadataResolver.find(entityClass).orElse(null);
+        if (metadata == null) {
             throw new IllegalStateException("@InstanceName on " + entityClass.getName()
                 + " declares no explicit paths and the entity has no @EntityMetadata to derive "
-                + "them from; declare value() explicitly", notMetadataDriven);
+                + "them from; declare value() explicitly");
         }
         List<String> displaySortFields = metadata.getDisplaySortFields();
         if (displaySortFields.isEmpty()) {

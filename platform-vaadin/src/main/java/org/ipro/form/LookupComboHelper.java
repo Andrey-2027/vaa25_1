@@ -52,14 +52,10 @@ public final class LookupComboHelper {
         if (entityType == null || resolver == null) {
             return List.of();
         }
-        try {
-            return resolver.resolve(entityType).getSelectColumnPaths().stream()
+        return resolver.find(entityType).map(metadata -> metadata.getSelectColumnPaths().stream()
                 .filter(path -> path.getResolvedType() == FieldType.TEXT)
                 .map(ColumnPath::getKey)
-                .toList();
-        } catch (RuntimeException unresolvable) {
-            return List.of();
-        }
+                .toList()).orElse(List.of());
     }
 
     /**

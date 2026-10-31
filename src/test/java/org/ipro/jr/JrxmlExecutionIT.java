@@ -9,10 +9,10 @@ import org.ipro.jr.dom.JrxmlTemplate;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
 import org.ipro.jr.config.JrPersistenceAutoConfiguration;
-import org.ipro.reportstudio.query.ReportPreviewService;
-import org.ipro.reportstudio.query.ReportQueryExecutor;
-import org.ipro.reportstudio.query.ReportQueryGuard;
-import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.query.ReportPreviewService;
+import org.ipro.query.ReportQueryExecutor;
+import org.ipro.query.ReportQueryGuard;
+import org.ipro.query.sqm.SqmQuerySemanticAnalyzer;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;
@@ -209,7 +209,7 @@ class JrxmlExecutionIT {
         // отвергается до обращения к БД — RLS неприменим к сырому SQL
         assertThatThrownBy(() -> executionService.run(template, Map.of()))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("sql");
+                .hasMessageContaining("SQL");
     }
 
     private void loginAs(String username) {

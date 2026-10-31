@@ -16,10 +16,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Persistence ownership boundaries: shared BaseEntity stays in the platform module;
- * JR feature persistence and its registration stay with the application.
+ * JR feature persistence and its registration live in {@code platform-jr} (M2.1).
  *
  * <p>Module composition is checked in {@code platform-persistence/src/test}; this cross-tree
- * gate verifies ownership and the application-owned JR scan declaration.</p>
+ * gate verifies ownership and the JR module's own scan declaration.</p>
  *
  * <p>Динамическая часть о перекрытии деклараций живёт в
  * {@code org.ip.PersistenceRegistrationIT}: scan declarations contribute repositories/entities
@@ -50,13 +50,16 @@ class PlatformPersistenceModuleTest {
     }
 
     @Test
-    void theApplicationOwnsJrPersistenceRegistration() {
+    void theJrModuleOwnsItsPersistenceRegistration() {
         Path configuration = Path.of(
-            "src/main/java/org/ipro/jr/config/JrPersistenceAutoConfiguration.java");
+            "platform-jr/src/main/java/org/ipro/jr/config/JrPersistenceAutoConfiguration.java");
         assertThat(configuration).exists();
         String text = read(configuration);
         assertThat(text).contains("@EntityScan(\"org.ipro.jr.dom\")");
         assertThat(text).contains("@EnableJpaRepositories(\"org.ipro.jr\")");
+        assertThat(Path.of("src/main/java/org/ipro/jr/config/JrPersistenceAutoConfiguration.java"))
+            .as("регистрация JR уехала в модуль вместе с типами")
+            .doesNotExist();
 
         assertThat(MODULE.resolve(
             "src/main/java/org/ipro/persistence/config/PersistenceAutoConfiguration.java"))
@@ -67,9 +70,11 @@ class PlatformPersistenceModuleTest {
     }
 
     @Test
-    void jrTypesAreApplicationOwnedAndBaseEntityStaysInTheModule() {
-        assertThat(Path.of("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).exists();
-        assertThat(Path.of("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).exists();
+    void jrTypesBelongToTheJrModuleAndBaseEntityStaysInPersistence() {
+        assertThat(Path.of("platform-jr/src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).exists();
+        assertThat(Path.of("platform-jr/src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).exists();
+        assertThat(Path.of("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).doesNotExist();
+        assertThat(Path.of("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).doesNotExist();
         assertThat(MODULE.resolve("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java"))
             .doesNotExist();
         assertThat(MODULE.resolve("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java"))

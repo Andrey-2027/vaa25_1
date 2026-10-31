@@ -106,6 +106,18 @@ class FetchPlanRegistryTest {
         private NamedHolder named;
     }
 
+    @EntityMetadata(displaySortFields = "missing")
+    static class InvalidMetadata { }
+
+    @Test
+    void invalidRootMetadataNeverBecomesAnEmptyScenarioPlan() {
+        for (FetchScenario scenario : List.of(FetchScenario.LIST, FetchScenario.DETAIL, FetchScenario.LOOKUP)) {
+            org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                registryOver(InvalidMetadata.class).plan(InvalidMetadata.class, scenario))
+                .hasMessageContaining(InvalidMetadata.class.getName()).hasMessageContaining("displaySortFields");
+        }
+    }
+
     private FetchPlanRegistry registryOver(Class<?>... managedTypes) {
         return registryOver(List.of(managedTypes));
     }

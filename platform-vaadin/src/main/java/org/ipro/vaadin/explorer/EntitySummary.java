@@ -7,8 +7,11 @@ import org.ipro.metadata.facet.FacetKind;
 import org.ipro.metadata.facet.ResolvedValue;
 import org.ipro.metadata.MetadataDiagnostic;
 import org.ipro.metadata.FactOrigin;
+import org.ipro.metadata.StructuralAttribute;
+import org.ipro.metadata.annotation.FieldType;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Сводка о сущности для Entity Explorer — immutable, замкнутый словарь (П1): только
@@ -55,7 +58,25 @@ public record EntitySummary(
          * Подключён ли владелец сценариев и путей чтения. {@code false} — инспекция недоступна:
          * «путей нет» тогда не утверждается, и карточка показывает само состояние.
          */
-        boolean readPlanInspectionAvailable) {
+        boolean readPlanInspectionAvailable,
+        StructureFacts structure) {
+
+    /** Binary/source-compatible pre-pilot constructor: missing structure is not an empty schema. */
+    public EntitySummary(Class<?> entityClass, String simpleName, ResolvedValue displayName,
+                         List<OverviewRow> overview, List<FieldRow> fieldsForm,
+                         List<FieldRow> fieldsGrid, List<ColumnRow> listColumns,
+                         List<ColumnRow> selectColumns, List<SectionRow> tableSections,
+                         List<FormRow> forms, List<FilterRow> contextFilters,
+                         List<SelectionRow> selections, List<ReferenceRow> references,
+                         List<NumberingRow> numbering, List<LifecycleRow> lifecycle,
+                         List<DiagnosticRow> diagnostics, List<ActionRow> actions,
+                         List<ReadPlanRow> readPlans, List<AccessRow> accessRows,
+                         List<LookupRow> lookupTargets, boolean readPlanInspectionAvailable) {
+        this(entityClass, simpleName, displayName, overview, fieldsForm, fieldsGrid,
+            listColumns, selectColumns, tableSections, forms, contextFilters, selections,
+            references, numbering, lifecycle, diagnostics, actions, readPlans, accessRows,
+            lookupTargets, readPlanInspectionAvailable, StructureFacts.unavailable());
+    }
 
     /**
      * Совместимый конструктор сводки до появления явной доступности инспекции чтения: сводка
@@ -172,6 +193,161 @@ public record EntitySummary(
         readPlans = List.copyOf(readPlans);
         accessRows = List.copyOf(accessRows);
         lookupTargets = List.copyOf(lookupTargets);
+        Objects.requireNonNull(structure, "structure");
+    }
+
+    /** One definition per annotated field; legacy projections remain separate applications. */
+    public record StructureFacts(boolean available, List<StructuralFieldRow> fields,
+                                 List<OwnedSectionRow> sections, PresentationFacts presentation,
+                                 org.ipro.metadata.CatalogOwnerDescriptor catalogOwner) {
+        public StructureFacts(boolean available, List<StructuralFieldRow> fields, List<OwnedSectionRow> sections, PresentationFacts presentation) {
+            this(available, fields, sections, presentation, null);
+        }
+        public StructureFacts(boolean available, List<StructuralFieldRow> fields, List<OwnedSectionRow> sections) {
+            this(available, fields, sections, null);
+        }
+        public StructureFacts {
+            fields = List.copyOf(fields);
+            sections = List.copyOf(sections);
+            if (!available && (!fields.isEmpty() || !sections.isEmpty() || catalogOwner != null)) {
+                throw new IllegalArgumentException("Unavailable structure cannot contain facts");
+            }
+        }
+
+        public static StructureFacts unavailable() {
+            return new StructureFacts(false, List.of(), List.of());
+        }
+    }
+
+    /** Declaration facts, never a computed instance label or an editable draft. */
+    public record PresentationFacts(String icon, List<String> sortFields, String strategy,
+                                    String methodSymbol, String declaration) {
+        public PresentationFacts { sortFields = List.copyOf(sortFields); }
+    }
+
+    /** Same identity tuple as ExplorerSnapshot.OwnedSection, without presentation or UI state. */
+    public record OwnedSectionIdentity(Class<?> ownerType, String ownerField, Class<?> rowType) {
+        public OwnedSectionIdentity {
+            Objects.requireNonNull(ownerType, "ownerType");
+            Objects.requireNonNull(rowType, "rowType");
+            requireName(ownerField);
+        }
+
+        public String id() {
+            return ownerType.getName() + "#" + ownerField + "#" + rowType.getName();
+        }
+    }
+
+    /** Null section means a root field; names in distinct owned contexts never collide. */
+    public record FieldIdentity(Class<?> rootType, OwnedSectionIdentity section, String fieldName) {
+        public FieldIdentity {
+            Objects.requireNonNull(rootType, "rootType");
+            requireName(fieldName);
+            if (section != null && section.ownerType() != rootType) {
+                throw new IllegalArgumentException("Section must belong to the root");
+            }
+        }
+    }
+
+    /** Typed, code-only structural fact. Annotation defaults are included, not claimed explicit. */
+    public record FlagFact(boolean value, FactOrigin origin, String symbol) {
+        public FlagFact {
+            Objects.requireNonNull(origin, "origin");
+            Objects.requireNonNull(symbol, "symbol");
+        }
+    }
+
+    /** Typed, code-only structural integer with its own provenance. */
+    public record IntFact(int value, FactOrigin origin, String symbol) {
+        public IntFact {
+            Objects.requireNonNull(origin, "origin");
+            Objects.requireNonNull(symbol, "symbol");
+        }
+    }
+
+    public record TypeFact(FieldType value, FactOrigin origin, String symbol) {
+        public TypeFact {
+            Objects.requireNonNull(value, "value");
+            Objects.requireNonNull(origin, "origin");
+            Objects.requireNonNull(symbol, "symbol");
+        }
+    }
+
+    /** Declared Size, never a universal effective validator; empty groups means Default. */
+    public record SizeConstraint(int min, int max, List<Class<?>> groups, ResolvedValue declaration) {
+        public SizeConstraint { groups = List.copyOf(groups); }
+    }
+
+    public enum NullabilityKind { COLUMN_NULLABLE, JOIN_COLUMN_NULLABLE, BASIC_OPTIONAL, MANY_TO_ONE_OPTIONAL, ONE_TO_ONE_OPTIONAL }
+
+    public record NullabilityFact(NullabilityKind kind, FlagFact allowsNull) { }
+
+    /** Values from @Column including annotation defaults, not inspected/effective database DDL. */
+    public record ColumnStorage(IntFact length, IntFact precision, IntFact scale) { }
+
+    /** Null column means @Column was absent; no fabricated unlimited length or zero precision. */
+    public record StorageFacts(List<NullabilityFact> nullability, ColumnStorage column) {
+        public StorageFacts { nullability = List.copyOf(nullability); }
+    }
+
+    public enum FieldApplicationKind { FORM, GRID, LIST, SELECTION }
+
+    /** Metadata application, not a claim about the layout produced by an arbitrary form factory.
+     * Order is metadata order for FORM/GRID; one-based column position for LIST/SELECTION. */
+    public record FieldApplication(FieldApplicationKind kind, FacetKey key, String path,
+                                   ResolvedValue caption, int order) { }
+
+    /** Identity addresses the field in its aggregate context; facet keys address its metadata type.
+     * The structural key is not overridable; value is the label resolved through labelKey().
+     *
+     * <p>{@code published} is a UI-channel fact: the field has {@code @FieldMetadata}. A row with
+     * {@code published == false} is a persistent JPA attribute that is structurally known but has
+     * no standard UI declaration; its label/type/required are derived defaults. Query and REST
+     * publications are deliberately not inferred from this flag.</p>
+     */
+    public record StructuralFieldRow(
+            FieldIdentity identity, FacetKey key, Class<?> declaringType, Class<?> javaType,
+            TypeFact platformType, ResolvedValue value, IntFact order,
+            FlagFact hidden, FlagFact readOnly, FlagFact uiRequired, FlagFact serverRequired,
+            List<SizeConstraint> valueConstraints, StorageFacts storage,
+            List<FieldApplication> applications, LookupRow lookup,
+            boolean published,
+            StructuralAttribute.PersistentKind persistentKind,
+            StructuralAttribute.AccessMode accessMode,
+            StructuralAttribute.TechnicalPurpose technicalPurpose) implements FacetRow {
+        public StructuralFieldRow {
+            valueConstraints = List.copyOf(valueConstraints);
+            applications = List.copyOf(applications);
+        }
+
+        public String sourceSymbol() {
+            return declaringType.getName() + "#" + identity.fieldName();
+        }
+
+        public FacetKey labelKey() {
+            return FacetKey.of(FacetKind.FIELD_LABEL, key.entityClass(), identity.fieldName());
+        }
+
+        public boolean inherited() {
+            return declaringType != (identity.section() == null ? identity.rootType() : identity.section().rowType());
+        }
+
+        @Override public FacetKind kind() { return key.kind(); }
+    }
+
+    public record OwnedSectionRow(
+            OwnedSectionIdentity identity, FacetKey key, ResolvedValue value,
+            IntFact order, IntFact minRows, ResolvedValue lineNumberField,
+            ResolvedValue persistence, ResolvedValue rlsPolicy,
+            List<StructuralFieldRow> fields) implements FacetRow {
+        public OwnedSectionRow { fields = List.copyOf(fields); }
+        @Override public FacetKind kind() { return key.kind(); }
+    }
+
+    private static void requireName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("A field name must not be blank");
+        }
     }
 
     /** Общая поверхность любой показываемой строки: вид грани + ключ + эффективное значение. */
@@ -280,7 +456,13 @@ public record EntitySummary(
             boolean platformDefault,
             String source,
             FactOrigin origin,
-            String symbol) {
+              String symbol,
+              Class<?> formClass, String baseClass, boolean classDeclared, List<String> registrationClasses) {
+        public FormRow(org.ipro.form.registry.FormType formType, String variant, String registrationKind,
+                       boolean platformDefault, String source, FactOrigin origin, String symbol) {
+            this(formType, variant, registrationKind, platformDefault, source, origin, symbol,
+                null, "", false, List.of());
+        }
         public FormRow(org.ipro.form.registry.FormType formType, String variant,
                        String registrationKind, boolean platformDefault, String source) {
             this(formType, variant, registrationKind, platformDefault, source,
@@ -289,6 +471,8 @@ public record EntitySummary(
 
         public FormRow {
             symbol = symbol == null ? "" : symbol;
+            baseClass = baseClass == null ? "" : baseClass;
+            registrationClasses = List.copyOf(registrationClasses);
         }
     }
 
@@ -340,7 +524,12 @@ public record EntitySummary(
             ResolvedValue value,
             String scope,
             String period,
-            boolean manualAllowed) implements FacetRow {
+            boolean manualAllowed, org.ipro.numbering.NumberingDefinition definition,
+            String policySource) implements FacetRow {
+        public NumberingRow(FacetKey key, String fieldName, ResolvedValue value, String scope,
+                            String period, boolean manualAllowed) {
+            this(key, fieldName, value, scope, period, manualAllowed, null, "");
+        }
         @Override
         public FacetKind kind() {
             return key.kind();
@@ -358,10 +547,14 @@ public record EntitySummary(
      * за первый.</p>
      */
     public record LifecycleRow(FacetKey key, String hook, boolean declared,
-                               ResolvedValue value, String note) {
+                               ResolvedValue value, String note, String signature) {
+        public LifecycleRow(FacetKey key, String hook, boolean declared, ResolvedValue value, String note) {
+            this(key, hook, declared, value, note, "");
+        }
         public LifecycleRow {
             hook = hook == null ? "" : hook;
             note = note == null ? "" : note;
+            signature = signature == null ? "" : signature;
         }
     }
 

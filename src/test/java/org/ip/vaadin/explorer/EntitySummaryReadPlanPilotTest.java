@@ -75,7 +75,7 @@ class EntitySummaryReadPlanPilotTest {
         referenceIndex.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry(BASE_PACKAGE);
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE);
+        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE, new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         SectionMetadataRegistry sections =
             new SectionMetadataRegistry(BASE_PACKAGE, metadataResolver);
@@ -93,8 +93,7 @@ class EntitySummaryReadPlanPilotTest {
 
         descriptors = new EntityDescriptorCatalog(managed, sections, metadataResolver,
             List.of(classification.sklNomOpaValueIsAnOwnedRow()),
-            List.of(classification.attributeValueIsCreateOnly(),
-                classification.sklNomOpaHasNoGenericWrites()));
+            List.of(), org.ip.metadata.EntityTypeTestSources.registers(managed,metadataResolver));
 
         ManagedEntityTypes types = new ManagedEntityTypes(managed);
         FetchPlanRegistry plans = new FetchPlanRegistry(types, metadataResolver,
@@ -108,7 +107,7 @@ class EntitySummaryReadPlanPilotTest {
 
     // ---------------------------------------------------------------- пилоты
 
-    /** Набор объявлен приложением — и это видно, хотя состав совпадает с правилом. */
+    /** ET8: набор выведен из полного контракта без capability-бина. */
     @Test
     void declaredScenarioSetIsShownAsTheApplicationPolicy() {
         for (Class<?> type : List.of(AttributeValue.class, SklNomOpa.class)) {
@@ -120,19 +119,18 @@ class EntitySummaryReadPlanPilotTest {
             for (EntitySummary.ReadPlanRow row : rows) {
                 assertThat(row.value().origin())
                     .as("%s/%s", type.getSimpleName(), row.scenario())
-                    .isEqualTo(FactOrigin.REGISTRATION);
+                    .isEqualTo(FactOrigin.DERIVED);
                 assertThat(row.value().symbol())
-                    .as("место объявления в ядре не разрешается — названная граница шага 2")
-                    .isEmpty();
+                    .isEqualTo(org.ipro.crud.InternedContract.class.getName());
             }
             assertThat(rows.stream().map(EntitySummary.ReadPlanRow::note).toList())
                 .allSatisfy(note -> assertThat(note)
-                    .startsWith("набор сценариев объявлен приложением"));
+                    .startsWith("набор сценариев выведен из контракта типа"));
         }
 
         assertThat(rows(AttributeValue.class).stream().map(EntitySummary.ReadPlanRow::note).toList())
             .as("причина берётся у политики типа, а не пересказывается карточкой")
-            .allSatisfy(note -> assertThat(note).contains("бессмертно"));
+            .allSatisfy(note -> assertThat(note).contains("AttributeValueService"));
     }
 
     /** Допущенный сценарий с пустым планом: строка есть, путей нет — это факт, а не ошибка. */

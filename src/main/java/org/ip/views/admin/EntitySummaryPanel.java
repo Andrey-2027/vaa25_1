@@ -19,6 +19,7 @@ import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
 import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.form.registry.FormType;
 import org.ipro.metadata.FactOrigin;
+import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.MetadataDiagnostic;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.facet.FactSource;
@@ -935,7 +936,7 @@ public class EntitySummaryPanel extends VerticalLayout {
 
     /** Обратная ссылка: «структура» (если задан навигатор) + «открыть список». */
     private Component referenceAction(EntitySummary.ReferenceRow row) {
-        boolean entity = row.referencingClass().getAnnotation(EntityMetadata.class) != null;
+        boolean entity = MetadataResolver.isApplicable(row.referencingClass());
         HorizontalLayout layout = new HorizontalLayout();
         layout.setSpacing(true);
         layout.setAlignItems(FlexComponent.Alignment.CENTER);

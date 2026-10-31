@@ -1,14 +1,15 @@
-package org.ip.unidr.render;
+package org.ipro.unidr.render;
+import org.ip.unidr.model.UniDrDefinitions;
 
 import net.sf.jasperreports.engine.*;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.ip.unidr.model.*;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.source.*;
-import org.ipro.reportstudio.data.*;
-import org.ipro.reportstudio.render.*;
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.source.*;
+import org.ipro.report.data.*;
+import org.ipro.report.render.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -24,6 +25,50 @@ import javax.imageio.ImageIO;
 import static org.assertj.core.api.Assertions.*;
 
 class UniDrReportCompilerTest {
+    @ParameterizedTest @CsvSource({"DETAILS","SUMMARY"})
+    void levelSelectionsProduceOnlySelectedValuesAndSurviveCodec(Mode mode) throws Exception {
+        var recipe=definition(2,mode,Aggregation.SUM,true,Appearance.defaults()).edit(d->d.totalsSettings=new TotalsSettings(
+            new MeasureSelection(SelectionMode.CUSTOM,List.of("rowCount")),Map.of("nomenclature",new MeasureSelection(SelectionMode.CUSTOM,List.of("quantity")))));
+        var codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(catalog));
+        assertThat(codec.decode(codec.encode(recipe))).isEqualTo(recipe);
+        var print=compiler.compile(recipe,fixture());
+        try(var pdf=Loader.loadPDF(exporter.export(print,ReportExportFormat.PDF))) {
+            var text=new PDFTextStripper().getText(pdf);
+            assertThat(text).contains("15,00","21,00","Всего").doesNotContain("36,00");
+        }
+        var noQuantity=recipe.edit(d->d.totalsSettings=new TotalsSettings(new MeasureSelection(SelectionMode.CUSTOM,List.of("rowCount")),
+            Map.of("receivingWorkshop",new MeasureSelection(SelectionMode.CUSTOM,List.of()),"nomenclature",new MeasureSelection(SelectionMode.CUSTOM,List.of()))));
+        assertThat(noQuantity.visibleMeasures()).extracting(Measure::fieldId).containsExactly("rowCount");
+        var noTotals=compiler.compile(noQuantity,fixture());
+        try(var pdf=Loader.loadPDF(exporter.export(noTotals,ReportExportFormat.PDF))) {
+            assertThat(new PDFTextStripper().getText(pdf)).doesNotContain("21,00","36,00");
+        }
+    }
+
+    @Test void invalidSelectionsAreRejectedAndDefaultsKeepOldDefinitions() {
+        var validator=new UniDrDefinitionValidator(catalog);var codec=new UniDrDefinitionJsonCodec(validator);
+        var recipe=definition(1,Mode.SUMMARY,Aggregation.SUM,true,Appearance.defaults());
+        assertThat(recipe.effectiveMeasures("receivingWorkshop")).isEqualTo(recipe.measures());
+        for(var selection:List.of(new MeasureSelection(SelectionMode.CUSTOM,List.of("missing")),
+                new MeasureSelection(SelectionMode.CUSTOM,List.of("quantity","quantity")),new MeasureSelection(SelectionMode.ALL,List.of("quantity"))))
+            assertThatThrownBy(()->validator.requireValid(recipe.edit(d->d.totalsSettings=new TotalsSettings(selection,Map.of())))).isInstanceOf(UniDrValidationException.class);
+        var empty=new MeasureSelection(SelectionMode.CUSTOM,List.of());
+        assertThatThrownBy(()->validator.requireValid(recipe.edit(d->{d.groups=List.of();d.totalsSettings=new TotalsSettings(empty,Map.of());}))).isInstanceOf(UniDrValidationException.class);
+        var json=codec.encode(recipe);
+        assertThatThrownBy(()->codec.decode(json.replace("\"totalsSettings\":", "\"totalsSettings\":null,\"bad\":"))).isInstanceOf(UniDrValidationException.class);
+    }
+    @ParameterizedTest @CsvSource({"DETAILS,receivingWorkshop,2","SUMMARY,receivingWorkshop,2","DETAILS,nomenclature,4","SUMMARY,nomenclature,4"})
+    void groupPageBreaksHaveNoLeadingBlankPageAndRespectNestedGroups(Mode mode,String field,int pages) throws Exception {
+        var recipe=definition(2,mode,Aggregation.SUM,true,Appearance.defaults().withGroups(Map.of(field,new GroupSettings(true))));
+        var codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(catalog));
+        assertThat(codec.decode(codec.encode(recipe))).isEqualTo(recipe);
+        var print=compiler.compile(recipe,fixture());assertThat(print.getPages()).hasSize(pages);
+        try(var pdf=Loader.loadPDF(exporter.export(print,ReportExportFormat.PDF))) {
+            var stripper=new PDFTextStripper();stripper.setStartPage(1);stripper.setEndPage(1);
+            assertThat(stripper.getText(pdf)).contains("Цех A","Деталь X");
+            assertThat(new PDFTextStripper().getText(pdf)).contains("36,00");
+        }
+    }
     @Test void blankAreasDoNotReserveSpaceOrChangePagination() throws Exception {
         var recipe=definition(0,Mode.DETAILS,Aggregation.SUM,true,Appearance.defaults());
         var blank=recipe.edit(d->d.appearance=new Appearance(true,true,true,PageSize.A4,Orientation.AUTO,10," ","\n","",null));
@@ -61,7 +106,7 @@ class UniDrReportCompilerTest {
     }
     @Test void pageAppearanceRoundTripsAndControlsRenderedPageAndFont() throws Exception {
         var recipe=UniDrDefinitions.receivingItemsSummary().edit(d->d.appearance=new Appearance(true,true,true,PageSize.A5,Orientation.LANDSCAPE,14));
-        var codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot()));
+        var codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrDefinitions.catalog()));
         assertThat(codec.decode(codec.encode(recipe))).isEqualTo(recipe);
         var print=compiler.compile(recipe,fixture());
         assertThat(print.getPageWidth()).isEqualTo(595);assertThat(print.getPageHeight()).isEqualTo(421);
@@ -72,9 +117,9 @@ class UniDrReportCompilerTest {
         }
         assertThatThrownBy(()->new Appearance(true,true,true,PageSize.A4,Orientation.AUTO,25)).isInstanceOf(IllegalArgumentException.class);
     }
-    private final UniDrSourceCatalog catalog = UniDrSourceCatalog.pilot();
+    private final UniDrSourceCatalog catalog = UniDrDefinitions.catalog();
     private final UniDrReportCompiler compiler = new UniDrReportCompiler(catalog, new UniDrDefinitionValidator(catalog));
-    private final ReportCompiler exporter = new JasperReportCompiler();
+    private final org.ipro.report.render.JasperExporter exporter = new org.ipro.report.render.JasperReportExporter();
     private final UniDrDefinition base = UniDrDefinitions.receivingItemsSummary();
     private static final QueryField[] FIELDS = {QueryField.scalar("rowId", Long.class), QueryField.scalar("date", LocalDate.class),
         QueryField.scalar("documentId", Long.class), QueryField.scalar("documentNumber", String.class),
@@ -95,9 +140,9 @@ class UniDrReportCompilerTest {
         row(3,1L,"Цех A",12,"Деталь Y","9"),row(4,2L,"Цех B",11,"Деталь X","5"),row(5,2L,"Цех B",11,"Деталь X","10"),row(6,2L,"Цех B",12,"Деталь Y","6")}); }
 
     @Test void completedQueryReadRendersWithNativeFilterOnAnUnprojectedField() throws Exception {
-        var source=org.ip.unidr.query.UniDrQuerySourceService.metadata(List.of(QueryField.scalar("code",String.class),QueryField.scalar("name",String.class)));
+        var source=org.ipro.unidr.query.UniDrQuerySourceService.metadata(List.of(QueryField.scalar("code",String.class),QueryField.scalar("name",String.class)));
         var tree=new org.ipro.filtergrid.filter.FilterConditionNode(new org.ipro.filtergrid.filter.FilterCondition("name",org.ipro.filtergrid.filter.FilterOperator.CONTAINS,"X",null,org.ipro.filtergrid.filter.FilterDataType.TEXT));
-        var query=new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,"select n.code as code,n.name as name from Nomenclature n",null,List.of());
+        var query=new UniDrQuerySource(org.ipro.query.document.ReportQuerySource.MANUAL,"select n.code as code,n.name as name from Nomenclature n",null,List.of());
         var recipe=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"Отобранные данные",List.of(new Column("code",null)),List.of(),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true).withQuery(query).withFilterTree(tree);
         var fields=new QueryField[]{QueryField.scalar("code",String.class)};
         var data=new ReportDataset(fields,new ReportRow[]{new ReportRow(fields,new Object[]{"X"})});

@@ -38,7 +38,7 @@ public class NomenclatureItemFormConfig implements ItemFormCustomization {
 
     @Override
     public void configure(ItemFormVariants variants) {
-        variants.addDefault(ctx -> {
+        variants.addDefault(NomenclatureItemForm.class, ctx -> {
             EntityMetadataInfo meta = ctx.metadataResolver().resolve(Nomenclature.class);
             return new NomenclatureItemForm(meta, ctx.fieldFactory(), bindingService,
                 lookupService.search(AttributeType.class, List.of("code", "name"), "",

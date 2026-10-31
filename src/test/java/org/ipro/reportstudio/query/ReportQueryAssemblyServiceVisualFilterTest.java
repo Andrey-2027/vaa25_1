@@ -1,20 +1,23 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.query.*;
+import org.ipro.query.param.*;
+import org.ipro.query.register.*;
+import org.ipro.query.sqm.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ipro.filtergrid.filter.FilterCondition;
 import org.ipro.filtergrid.filter.FilterConditionNode;
 import org.ipro.filtergrid.filter.FilterDataType;
 import org.ipro.filtergrid.filter.FilterGroup;
 import org.ipro.filtergrid.filter.FilterOperator;
-import org.ipro.reportstudio.data.QueryField;
-import org.ipro.reportstudio.dom.ReportBand;
-import org.ipro.reportstudio.dom.ReportBandKind;
-import org.ipro.reportstudio.dom.ReportOrder;
-import org.ipro.reportstudio.dom.ReportTemplate;
-import org.ipro.reportstudio.param.EntityParamRefresher;
-import org.ipro.reportstudio.param.ReportParamResolver;
-import org.ipro.reportstudio.param.ResolvedParams;
-import org.ipro.reportstudio.param.ResolvedParams;
+import org.ipro.report.data.QueryField;
+import org.ipro.query.model.QueryDefinition;
+import org.ipro.query.model.QuerySort;
+import org.ipro.query.model.QuerySource;
+import org.ipro.query.param.EntityParamRefresher;
+import org.ipro.query.param.ReportParamResolver;
+import org.ipro.query.param.ResolvedParams;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -40,11 +43,13 @@ class ReportQueryAssemblyServiceVisualFilterTest {
         var definition = new VisualQueryDefinition(3, "Product", "p",
             List.of(new VisualQueryDefinition.SelectField("p.code", "code")), List.of(), List.of(), List.of(), List.of(),
             null, where, List.of());
-        var template = new ReportTemplate(); template.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
-        template.setVisualQueryJson(new VisualQueryDefinitionJsonCodec().write(definition));
-        template.setVisualFilterJson(new ObjectMapper().valueToTree(FilterConditionNode.of(
-            new FilterCondition("code", FilterOperator.EQ, "outer", null, FilterDataType.TEXT))).toString());
-        var result = new ReportQueryAssemblyService(guard, resolver, mock(EntityParamRefresher.class)).assemble(template, null, Map.of());
+        var query = new QueryDefinition("", QuerySource.VISUAL,
+            new VisualQueryDefinitionJsonCodec().write(definition),
+            new ObjectMapper().valueToTree(FilterConditionNode.of(
+                new FilterCondition("code", FilterOperator.EQ, "outer", null, FilterDataType.TEXT))).toString(),
+            List.of());
+        var result = new ReportQueryAssemblyService(guard, resolver, mock(EntityParamRefresher.class))
+                .assemble(query, null, Map.of());
         assertThat(result.jpql()).contains("p.code <> :visualFilter_1", "p.code = :reportFilter_1");
         assertThat(result.bindings()).containsEntry("visualFilter_1", "inner").containsEntry("reportFilter_1", "outer");
     }
@@ -58,24 +63,18 @@ class ReportQueryAssemblyServiceVisualFilterTest {
                 QueryField.scalar("code", String.class),
                 QueryField.scalar("amount", BigDecimal.class)), Set.of());
         when(guard.guard(any(String.class), anySet())).thenReturn(GuardResult.allowed(analysis));
-        when(resolver.resolve(any(), any(), any())).thenReturn(new org.ipro.reportstudio.param.ResolvedParams(Map.of(), List.of(), List.of()));
+        when(resolver.resolve(any(), any(), any())).thenReturn(new org.ipro.query.param.ResolvedParams(Map.of(), List.of(), List.of()));
 
-        ReportTemplate template = new ReportTemplate();
-        template.setJpql("select s.code as code, sum(s.amount) as amount from Spec s group by s.code having sum(s.amount) > 0");
-        template.setVisualFilterJson(new ObjectMapper().valueToTree(
-                FilterGroup.and(FilterConditionNode.of(new FilterCondition(
-                        "code", FilterOperator.EQ, "A-1", null, FilterDataType.TEXT)))).toString());
-        ReportBand detail = new ReportBand();
-        detail.setKind(ReportBandKind.DETAIL);
-        detail.setPosition(0);
-        template.addBand(detail);
-        ReportOrder order = new ReportOrder();
-        order.setColumnName("code");
-        order.setPosition(0);
-        template.addOrder(order);
+        QueryDefinition query = new QueryDefinition(
+                "select s.code as code, sum(s.amount) as amount from Spec s group by s.code having sum(s.amount) > 0",
+                QuerySource.MANUAL, null,
+                new ObjectMapper().valueToTree(
+                        FilterGroup.and(FilterConditionNode.of(new FilterCondition(
+                                "code", FilterOperator.EQ, "A-1", null, FilterDataType.TEXT)))).toString(),
+                List.of());
 
         ReportQueryAssembler result = new ReportQueryAssemblyService(guard, resolver, refresher)
-                .assemble(template, null, Map.of());
+                .assemble(query, null, Map.of(), List.of(), List.of(new QuerySort("code", false)));
 
         assertThat(result.jpql()).contains("where ((code = :visualFilter_1))")
                 .contains("group by").contains("having").contains("order by");

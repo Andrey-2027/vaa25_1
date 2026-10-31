@@ -519,7 +519,7 @@ class RlsIntegrationTest {
     }
 
     @Test
-    void receivingDocumentRlsChecksIncludeEntityLevelCheckOnlyDimension() {
+    void receivingDocumentRlsChecksKeepOnlyRowDimensions() {
         Journal journalA = entityManager.find(Journal.class, journalAId);
         Workshop workshop = persistWorkshop("W-E1", null);
         entityManager.flush();
@@ -527,8 +527,10 @@ class RlsIntegrationTest {
         ReceivingDocument doc = new ReceivingDocument("RD-E1", java.time.LocalDate.now(), workshop, workshop);
         doc.setJournal(journalA);
 
-        assertThat(doc.getRlsChecks().get("ENTITY:ReceivingDocument"))
-            .containsExactly(org.ipro.rls.RlsCheckValue.of(null));
+        assertThat(doc.getRlsChecks())
+            .containsKeys("JOURNAL", "BRANCH")
+            .as("P-U: короткое CHECK_ONLY-измерение ENTITY:ReceivingDocument удалено")
+            .doesNotContainKey("ENTITY:ReceivingDocument");
     }
 
     /**

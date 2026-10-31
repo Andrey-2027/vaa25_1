@@ -1,0 +1,54 @@
+{
+  "kind": "g1-e4b-component-results-v1",
+  "date": "2026-10-30",
+  "status": "success",
+  "scope": "P8 reviewed-plan preview/download/ZIP; actual E4.A generator, sections, C/D integration and browser remain open",
+  "environment": {
+    "java": "21.0.11 (Axiom JSC)",
+    "maven": "3.9.9"
+  },
+  "command": "mvn -o -B -ntp -Dvaadin.skip=true -Dtest=EntityDraftJavaBundleTest,EntityDraftJavaPreviewTest,EntityDraftJavaDownloadTest,EntityDraftDocumentTest,EntityDraftMatrixScenarioTest test",
+  "tests": {
+    "run": 24,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "name": "EntityDraftJavaBundleTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "EntityDraftJavaPreviewTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "EntityDraftJavaDownloadTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "EntityDraftDocumentTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "EntityDraftMatrixScenarioTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

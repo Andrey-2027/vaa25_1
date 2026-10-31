@@ -9,8 +9,8 @@ import org.ipro.filtergrid.filter.*;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
-import org.ipro.reportstudio.query.*;
-import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.query.*;
+import org.ipro.query.sqm.SqmQuerySemanticAnalyzer;
 import org.ipro.rls.*;
 import org.junit.jupiter.api.*;
 
@@ -43,9 +43,16 @@ class TwoDimensionRegisterCteSpikeTest {
         var registry = new RlsDimensionRegistry("org.ip.application.register");
         registry.rebuild();
         var access = new AccessService(null, username -> List.of(), registry);
-        catalog = new QueryBuilderMetadataCatalog(factory, new MetadataResolver(),
+        var metadata = new MetadataResolver();
+        var types = new org.ipro.metadata.ManagedEntityTypes(factory);
+        var managed = new org.ipro.metadata.ManagedEntityCatalog(types);
+        var registers = new org.ipro.register.RegisterRegistry(managed);
+        var descriptors = new org.ipro.data.EntityDescriptorCatalog(managed,
+            new org.ipro.metadata.SectionMetadataRegistry(types, metadata), metadata,
+            List.of(), List.of(), List.of(new org.ipro.register.RegisterClassificationContributor(registers)));
+        catalog = new QueryBuilderMetadataCatalog(types, metadata,
             new RlsReadGate(org.ipro.rls.RlsTestFixture.allowingC5ReadEvaluator(), registry),
-            () -> "cte-spike");
+            () -> "cte-spike", descriptors);
         guard = new ReportQueryGuard(new SqmQuerySemanticAnalyzer(factory), access, registry,
             () -> "cte-spike", factory);
         assertThat(RegisterMetadataValidator.validate(SpikePrice.class)).isEmpty();

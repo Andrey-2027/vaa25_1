@@ -1,0 +1,70 @@
+[
+  {
+    "path": "src/main/java/org/ip/views/admin/DraftEditorSession.java",
+    "sha256": "b92713293015907b575b3310e77dd847ca50cdad621d812fc64974fb158d0d0e"
+  },
+  {
+    "path": "src/main/java/org/ip/views/admin/EntityDraftEditorView.java",
+    "sha256": "79d7c86e8ee06dcef4d1454dfd80f0fa55555b8319741645e294b29b9ecfa02f"
+  },
+  {
+    "path": "src/main/java/org/ip/views/admin/EntityExplorerPilotPanel.java",
+    "sha256": "39f34630c32c1842ec813359bfa683d02990be8099a49b4c60dc377e750abacc"
+  },
+  {
+    "path": "platform-vaadin/src/main/java/org/ipro/form/CatalogOwnerForms.java",
+    "sha256": "1cc15e2b9052e36b5ecb8376d206fec2f180512018f9533f9e819a06c390f846"
+  },
+  {
+    "path": "platform-vaadin/src/main/java/org/ipro/form/FormBinding.java",
+    "sha256": "cf02be7749359fb4d11d0a10522a7e9cac6d4c1464e8604b7db9abd32c30eec3"
+  },
+  {
+    "path": "platform-vaadin/src/main/java/org/ipro/form/builtin/ItemForm.java",
+    "sha256": "70dd521a0a2063136f745b467944cb1627473bd09d60a1df4a59343cac23f438"
+  },
+  {
+    "path": "platform-vaadin/src/main/java/org/ipro/form/builtin/ListForm.java",
+    "sha256": "bc1dfce3df7bbf525ce5059fce0f162a5b2ec1419a27298084e537dd875b7c32"
+  },
+  {
+    "path": "platform-vaadin/src/main/java/org/ipro/form/SelectionForm.java",
+    "sha256": "1d84692b0a0791c22a927d6668a8975fa3af5ad0696ce5bc15cce073af28af49"
+  },
+  {
+    "path": "platform-vaadin/src/main/java/org/ipro/form/SelectionFormAssembler.java",
+    "sha256": "b43789a9c9ee31a4daff8968f237193e1c8857acec4c631fc96bfa5f4f708007"
+  },
+  {
+    "path": "platform-vaadin/src/main/java/org/ipro/vaadin/explorer/EntitySummary.java",
+    "sha256": "ca4293bae6ed99d5401d9cca15771bf09d572df3fe8b344636482e673c4a6a2d"
+  },
+  {
+    "path": "platform-vaadin/src/main/java/org/ipro/vaadin/explorer/EntityStructureFactsAssembler.java",
+    "sha256": "aced556deef657b4d32c9e45d0ce8f803191c4b7acd2bbb294153a2a784c1ffb"
+  },
+  {
+    "path": "src/test/java/org/ip/views/admin/EntityDraftOwnerUiTest.java",
+    "sha256": "fe66697b10a987da172e0490679f339d8023bf6217521e23d7c53540933416f6"
+  },
+  {
+    "path": "src/test/java/org/ip/views/admin/EntityExplorerPilotPanelTest.java",
+    "sha256": "19e9df52b88b35838b06cc9b207deca29bd6ef2b5f90010440967b1be39d7065"
+  },
+  {
+    "path": "platform-vaadin/src/test/java/org/ipro/form/CatalogOwnerFormsTest.java",
+    "sha256": "3b3b6ea4e683bcc7a0685d2419d536001d10c360816690ecef30dfb487fa042d"
+  },
+  {
+    "path": "platform-vaadin/src/test/java/org/ipro/form/CatalogOwnerListSelectionTest.java",
+    "sha256": "d575b861ba1b88e9878285c5022bf80d12322a4f9ba002ceb78e39429a0e7837"
+  },
+  {
+    "path": "platform-vaadin/src/test/java/org/ipro/vaadin/explorer/CatalogOwnerExplorerTest.java",
+    "sha256": "c0a7e8f025cf5b39043fbf7aa58eb102e67b43f00399096e39b5bea5ccb794a1"
+  },
+  {
+    "path": "scripts/test-entity-generation-g1-document.ps1",
+    "sha256": "2b1dd4d728b71165da57087d635ba863e07b4eb86cd7e10a35e5874bc5424fc2"
+  }
+]

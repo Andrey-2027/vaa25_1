@@ -1,0 +1,1067 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] GitVaa platform BOM                                                [pom]
+[INFO] GitVaa platform contracts                                          [jar]
+[INFO] GitVaa platform events                                             [jar]
+[INFO] GitVaa platform persistence                                        [jar]
+[INFO] GitVaa platform metadata spine                                     [jar]
+[INFO] GitVaa platform numbering                                          [jar]
+[INFO] GitVaa platform settings                                           [jar]
+[INFO] GitVaa platform telemetry                                          [jar]
+[INFO] GitVaa platform RLS                                                [jar]
+[INFO] GitVaa platform core                                               [jar]
+[INFO] GitVaa platform register                                           [jar]
+[INFO] GitVaa platform navigation                                         [jar]
+[INFO] GitVaa platform spring-boot autoconfigure                          [jar]
+[INFO] GitVaa platform vaadin                                             [jar]
+[INFO] GitVaa platform backend starter                                    [jar]
+[INFO] Entity design contracts and independent core                       [jar]
+[INFO] Portable entity draft JSON codec                                   [jar]
+[INFO] Entity design runtime facts adapter                                [jar]
+[INFO] g1-reference-target                                                [jar]
+[INFO] g1-owner-support                                                   [jar]
+[INFO] g1-e5h-build                                                       [pom]
+[INFO] 
+[INFO] -----------------------< org.ipro:platform-bom >------------------------
+[INFO] Building GitVaa platform BOM 1.0-SNAPSHOT                         [1/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-bom\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ platform-bom ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-bom\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-bom\1.0-SNAPSHOT\platform-bom-1.0-SNAPSHOT.pom
+[INFO] 
+[INFO] --------------------< org.ipro:platform-contracts >---------------------
+[INFO] Building GitVaa platform contracts 1.0-SNAPSHOT                   [2/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-contracts\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/platform-identity-api/1.0-SNAPSHOT/platform-identity-api-1.0-SNAPSHOT.pom
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector.get (BasicRepositoryConnector.java:260)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.performDownloads (DefaultArtifactResolver.java:537)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve (DefaultArtifactResolver.java:449)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts (DefaultArtifactResolver.java:261)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact (DefaultArtifactResolver.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.loadPom (DefaultArtifactDescriptorReader.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.readArtifactDescriptor (DefaultArtifactDescriptorReader.java:183)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.resolveCachedArtifactDescriptor (DfDependencyCollector.java:382)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.getArtifactDescriptorResult (DfDependencyCollector.java:368)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:218)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:156)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.process (DfDependencyCollector.java:138)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.doCollectDependencies (DfDependencyCollector.java:108)
+    at org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate.collectDependencies (DependencyCollectorDelegate.java:222)
+    at org.eclipse.aether.internal.impl.collect.DefaultDependencyCollector.collectDependencies (DefaultDependencyCollector.java:87)
+    at org.eclipse.aether.internal.impl.DefaultRepositorySystem.collectDependencies (DefaultRepositorySystem.java:306)
+    at org.apache.maven.project.DefaultProjectDependenciesResolver.resolve (DefaultProjectDependenciesResolver.java:151)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.getDependencies (LifecycleDependencyResolver.java:224)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.resolveProjectDependencies (LifecycleDependencyResolver.java:136)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.ensureDependenciesAreResolved (MojoExecutor.java:355)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:313)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:906)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:283)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:206)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/crudui/crudui-parent/1.0-SNAPSHOT/crudui-parent-1.0-SNAPSHOT.pom
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector.get (BasicRepositoryConnector.java:260)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.performDownloads (DefaultArtifactResolver.java:537)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve (DefaultArtifactResolver.java:449)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts (DefaultArtifactResolver.java:261)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact (DefaultArtifactResolver.java:243)
+    at org.apache.maven.repository.internal.DefaultModelResolver.resolveModel (DefaultModelResolver.java:158)
+    at org.apache.maven.repository.internal.DefaultModelResolver.resolveModel (DefaultModelResolver.java:204)
+    at org.apache.maven.model.building.DefaultModelBuilder.readParentExternally (DefaultModelBuilder.java:1033)
+    at org.apache.maven.model.building.DefaultModelBuilder.readParent (DefaultModelBuilder.java:825)
+    at org.apache.maven.model.building.DefaultModelBuilder.build (DefaultModelBuilder.java:336)
+    at org.apache.maven.model.building.DefaultModelBuilder.build (DefaultModelBuilder.java:248)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.loadPom (DefaultArtifactDescriptorReader.java:293)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.readArtifactDescriptor (DefaultArtifactDescriptorReader.java:183)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.resolveCachedArtifactDescriptor (DfDependencyCollector.java:382)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.getArtifactDescriptorResult (DfDependencyCollector.java:368)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:218)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:156)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.process (DfDependencyCollector.java:138)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.doCollectDependencies (DfDependencyCollector.java:108)
+    at org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate.collectDependencies (DependencyCollectorDelegate.java:222)
+    at org.eclipse.aether.internal.impl.collect.DefaultDependencyCollector.collectDependencies (DefaultDependencyCollector.java:87)
+    at org.eclipse.aether.internal.impl.DefaultRepositorySystem.collectDependencies (DefaultRepositorySystem.java:306)
+    at org.apache.maven.project.DefaultProjectDependenciesResolver.resolve (DefaultProjectDependenciesResolver.java:151)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.getDependencies (LifecycleDependencyResolver.java:224)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.resolveProjectDependencies (LifecycleDependencyResolver.java:136)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.ensureDependenciesAreResolved (MojoExecutor.java:355)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:313)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:906)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:283)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:206)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/platform-identity-api/1.0-SNAPSHOT/platform-identity-api-1.0-SNAPSHOT.jar
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.util.concurrency.RunnableErrorForwarder.lambda$wrap$0 (RunnableErrorForwarder.java:66)
+    at java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1144)
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:642)
+    at java.lang.Thread.run (Thread.java:1583)
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-contracts ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-contracts\src\main\resources
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-contracts\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-contracts ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 36 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-contracts\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-contracts ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-contracts ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-contracts ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-contracts ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-contracts\platform-contracts-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-contracts ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-contracts\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-contracts\1.0-SNAPSHOT\platform-contracts-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-contracts\platform-contracts-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-contracts\1.0-SNAPSHOT\platform-contracts-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] ----------------------< org.ipro:platform-events >----------------------
+[INFO] Building GitVaa platform events 1.0-SNAPSHOT                      [3/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-events\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-events ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-events\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-events\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-events ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-events\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-events ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-events ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-events ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-events ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-events\platform-events-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-events ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-events\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-events\1.0-SNAPSHOT\platform-events-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-events\platform-events-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-events\1.0-SNAPSHOT\platform-events-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] -------------------< org.ipro:platform-persistence >--------------------
+[INFO] Building GitVaa platform persistence 1.0-SNAPSHOT                 [4/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-persistence\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-persistence ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-persistence\classes
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-persistence\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-persistence ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-persistence\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-persistence ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-persistence ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-persistence ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-persistence ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-persistence\platform-persistence-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-persistence ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-persistence\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-persistence\1.0-SNAPSHOT\platform-persistence-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-persistence\platform-persistence-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-persistence\1.0-SNAPSHOT\platform-persistence-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] ---------------------< org.ipro:platform-metadata >---------------------
+[INFO] Building GitVaa platform metadata spine 1.0-SNAPSHOT              [5/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-metadata\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-metadata ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-metadata\src\main\resources
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-metadata\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-metadata ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-metadata\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-metadata ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-metadata ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-metadata ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-metadata ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-metadata\platform-metadata-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-metadata ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-metadata\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-metadata\1.0-SNAPSHOT\platform-metadata-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-metadata\platform-metadata-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-metadata\1.0-SNAPSHOT\platform-metadata-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --------------------< org.ipro:platform-numbering >---------------------
+[INFO] Building GitVaa platform numbering 1.0-SNAPSHOT                   [6/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-numbering\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-numbering ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-numbering\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-numbering\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-numbering ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 17 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-numbering\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-numbering ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-numbering ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-numbering ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-numbering ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-numbering\platform-numbering-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-numbering ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-numbering\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-numbering\1.0-SNAPSHOT\platform-numbering-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-numbering\platform-numbering-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-numbering\1.0-SNAPSHOT\platform-numbering-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] ---------------------< org.ipro:platform-settings >---------------------
+[INFO] Building GitVaa platform settings 1.0-SNAPSHOT                    [7/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-settings\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-settings ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-settings\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-settings\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-settings ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 8 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-settings\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-settings ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-settings ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-settings ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-settings ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-settings\platform-settings-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-settings ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-settings\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-settings\1.0-SNAPSHOT\platform-settings-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-settings\platform-settings-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-settings\1.0-SNAPSHOT\platform-settings-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --------------------< org.ipro:platform-telemetry >---------------------
+[INFO] Building GitVaa platform telemetry 1.0-SNAPSHOT                   [8/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-telemetry\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-telemetry ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-telemetry\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-telemetry\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-telemetry ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 66 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-telemetry\classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-telemetry/src/main/java/org/ipro/telemetry/core/SqlStatementListener.java:[18,49] org.hibernate.BaseSessionEventListener in org.hibernate has been deprecated and marked for removal
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-telemetry ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-telemetry ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-telemetry ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-telemetry ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-telemetry\platform-telemetry-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-telemetry ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-telemetry\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-telemetry\1.0-SNAPSHOT\platform-telemetry-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-telemetry\platform-telemetry-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-telemetry\1.0-SNAPSHOT\platform-telemetry-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] -----------------------< org.ipro:platform-rls >------------------------
+[INFO] Building GitVaa platform RLS 1.0-SNAPSHOT                         [9/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-rls\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-rls ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-rls\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-rls\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-rls ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 51 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-rls\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-rls ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-rls ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-rls ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-rls ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-rls\platform-rls-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-rls ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-rls\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-rls\1.0-SNAPSHOT\platform-rls-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-rls\platform-rls-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-rls\1.0-SNAPSHOT\platform-rls-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] -----------------------< org.ipro:platform-core >-----------------------
+[INFO] Building GitVaa platform core 1.0-SNAPSHOT                       [10/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-core\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/platform-crud-api/1.0-SNAPSHOT/platform-crud-api-1.0-SNAPSHOT.pom
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector.get (BasicRepositoryConnector.java:260)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.performDownloads (DefaultArtifactResolver.java:537)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve (DefaultArtifactResolver.java:449)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts (DefaultArtifactResolver.java:261)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact (DefaultArtifactResolver.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.loadPom (DefaultArtifactDescriptorReader.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.readArtifactDescriptor (DefaultArtifactDescriptorReader.java:183)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.resolveCachedArtifactDescriptor (DfDependencyCollector.java:382)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.getArtifactDescriptorResult (DfDependencyCollector.java:368)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:218)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:156)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.process (DfDependencyCollector.java:138)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.doCollectDependencies (DfDependencyCollector.java:108)
+    at org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate.collectDependencies (DependencyCollectorDelegate.java:222)
+    at org.eclipse.aether.internal.impl.collect.DefaultDependencyCollector.collectDependencies (DefaultDependencyCollector.java:87)
+    at org.eclipse.aether.internal.impl.DefaultRepositorySystem.collectDependencies (DefaultRepositorySystem.java:306)
+    at org.apache.maven.project.DefaultProjectDependenciesResolver.resolve (DefaultProjectDependenciesResolver.java:151)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.getDependencies (LifecycleDependencyResolver.java:224)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.resolveProjectDependencies (LifecycleDependencyResolver.java:136)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.ensureDependenciesAreResolved (MojoExecutor.java:355)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:313)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:906)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:283)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:206)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/filtergrid-core/1.0-SNAPSHOT/filtergrid-core-1.0-SNAPSHOT.pom
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector.get (BasicRepositoryConnector.java:260)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.performDownloads (DefaultArtifactResolver.java:537)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve (DefaultArtifactResolver.java:449)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts (DefaultArtifactResolver.java:261)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact (DefaultArtifactResolver.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.loadPom (DefaultArtifactDescriptorReader.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.readArtifactDescriptor (DefaultArtifactDescriptorReader.java:183)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.resolveCachedArtifactDescriptor (DfDependencyCollector.java:382)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.getArtifactDescriptorResult (DfDependencyCollector.java:368)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:218)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:156)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.process (DfDependencyCollector.java:138)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.doCollectDependencies (DfDependencyCollector.java:108)
+    at org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate.collectDependencies (DependencyCollectorDelegate.java:222)
+    at org.eclipse.aether.internal.impl.collect.DefaultDependencyCollector.collectDependencies (DefaultDependencyCollector.java:87)
+    at org.eclipse.aether.internal.impl.DefaultRepositorySystem.collectDependencies (DefaultRepositorySystem.java:306)
+    at org.apache.maven.project.DefaultProjectDependenciesResolver.resolve (DefaultProjectDependenciesResolver.java:151)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.getDependencies (LifecycleDependencyResolver.java:224)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.resolveProjectDependencies (LifecycleDependencyResolver.java:136)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.ensureDependenciesAreResolved (MojoExecutor.java:355)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:313)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:906)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:283)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:206)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/FilterGrid/1.0-SNAPSHOT/FilterGrid-1.0-SNAPSHOT.pom
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector.get (BasicRepositoryConnector.java:260)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.performDownloads (DefaultArtifactResolver.java:537)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve (DefaultArtifactResolver.java:449)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts (DefaultArtifactResolver.java:261)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact (DefaultArtifactResolver.java:243)
+    at org.apache.maven.repository.internal.DefaultModelResolver.resolveModel (DefaultModelResolver.java:158)
+    at org.apache.maven.repository.internal.DefaultModelResolver.resolveModel (DefaultModelResolver.java:204)
+    at org.apache.maven.model.building.DefaultModelBuilder.readParentExternally (DefaultModelBuilder.java:1033)
+    at org.apache.maven.model.building.DefaultModelBuilder.readParent (DefaultModelBuilder.java:825)
+    at org.apache.maven.model.building.DefaultModelBuilder.build (DefaultModelBuilder.java:336)
+    at org.apache.maven.model.building.DefaultModelBuilder.build (DefaultModelBuilder.java:248)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.loadPom (DefaultArtifactDescriptorReader.java:293)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.readArtifactDescriptor (DefaultArtifactDescriptorReader.java:183)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.resolveCachedArtifactDescriptor (DfDependencyCollector.java:382)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.getArtifactDescriptorResult (DfDependencyCollector.java:368)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:218)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:156)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.process (DfDependencyCollector.java:138)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.doCollectDependencies (DfDependencyCollector.java:108)
+    at org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate.collectDependencies (DependencyCollectorDelegate.java:222)
+    at org.eclipse.aether.internal.impl.collect.DefaultDependencyCollector.collectDependencies (DefaultDependencyCollector.java:87)
+    at org.eclipse.aether.internal.impl.DefaultRepositorySystem.collectDependencies (DefaultRepositorySystem.java:306)
+    at org.apache.maven.project.DefaultProjectDependenciesResolver.resolve (DefaultProjectDependenciesResolver.java:151)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.getDependencies (LifecycleDependencyResolver.java:224)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.resolveProjectDependencies (LifecycleDependencyResolver.java:136)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.ensureDependenciesAreResolved (MojoExecutor.java:355)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:313)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:906)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:283)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:206)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/filtergrid-grouping/1.0-SNAPSHOT/filtergrid-grouping-1.0-SNAPSHOT.pom
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector.get (BasicRepositoryConnector.java:260)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.performDownloads (DefaultArtifactResolver.java:537)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve (DefaultArtifactResolver.java:449)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts (DefaultArtifactResolver.java:261)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact (DefaultArtifactResolver.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.loadPom (DefaultArtifactDescriptorReader.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.readArtifactDescriptor (DefaultArtifactDescriptorReader.java:183)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.resolveCachedArtifactDescriptor (DfDependencyCollector.java:382)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.getArtifactDescriptorResult (DfDependencyCollector.java:368)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:218)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:156)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.process (DfDependencyCollector.java:138)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.doCollectDependencies (DfDependencyCollector.java:108)
+    at org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate.collectDependencies (DependencyCollectorDelegate.java:222)
+    at org.eclipse.aether.internal.impl.collect.DefaultDependencyCollector.collectDependencies (DefaultDependencyCollector.java:87)
+    at org.eclipse.aether.internal.impl.DefaultRepositorySystem.collectDependencies (DefaultRepositorySystem.java:306)
+    at org.apache.maven.project.DefaultProjectDependenciesResolver.resolve (DefaultProjectDependenciesResolver.java:151)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.getDependencies (LifecycleDependencyResolver.java:224)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.resolveProjectDependencies (LifecycleDependencyResolver.java:136)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.ensureDependenciesAreResolved (MojoExecutor.java:355)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:313)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:906)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:283)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:206)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/filtergrid-jpa/1.0-SNAPSHOT/filtergrid-jpa-1.0-SNAPSHOT.pom
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector.get (BasicRepositoryConnector.java:260)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.performDownloads (DefaultArtifactResolver.java:537)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve (DefaultArtifactResolver.java:449)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts (DefaultArtifactResolver.java:261)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact (DefaultArtifactResolver.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.loadPom (DefaultArtifactDescriptorReader.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.readArtifactDescriptor (DefaultArtifactDescriptorReader.java:183)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.resolveCachedArtifactDescriptor (DfDependencyCollector.java:382)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.getArtifactDescriptorResult (DfDependencyCollector.java:368)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:218)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:156)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.process (DfDependencyCollector.java:138)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.doRecurse (DfDependencyCollector.java:343)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:277)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.processDependency (DfDependencyCollector.java:156)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.process (DfDependencyCollector.java:138)
+    at org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector.doCollectDependencies (DfDependencyCollector.java:108)
+    at org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate.collectDependencies (DependencyCollectorDelegate.java:222)
+    at org.eclipse.aether.internal.impl.collect.DefaultDependencyCollector.collectDependencies (DefaultDependencyCollector.java:87)
+    at org.eclipse.aether.internal.impl.DefaultRepositorySystem.collectDependencies (DefaultRepositorySystem.java:306)
+    at org.apache.maven.project.DefaultProjectDependenciesResolver.resolve (DefaultProjectDependenciesResolver.java:151)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.getDependencies (LifecycleDependencyResolver.java:224)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.resolveProjectDependencies (LifecycleDependencyResolver.java:136)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.ensureDependenciesAreResolved (MojoExecutor.java:355)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:313)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:906)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:283)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:206)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/platform-crud-api/1.0-SNAPSHOT/platform-crud-api-1.0-SNAPSHOT.jar
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector.get (BasicRepositoryConnector.java:260)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.performDownloads (DefaultArtifactResolver.java:537)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve (DefaultArtifactResolver.java:449)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts (DefaultArtifactResolver.java:261)
+    at org.eclipse.aether.internal.impl.DefaultRepositorySystem.resolveDependencies (DefaultRepositorySystem.java:353)
+    at org.apache.maven.project.DefaultProjectDependenciesResolver.resolve (DefaultProjectDependenciesResolver.java:184)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.getDependencies (LifecycleDependencyResolver.java:224)
+    at org.apache.maven.lifecycle.internal.LifecycleDependencyResolver.resolveProjectDependencies (LifecycleDependencyResolver.java:136)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.ensureDependenciesAreResolved (MojoExecutor.java:355)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:313)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:906)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:283)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:206)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/filtergrid-jpa/1.0-SNAPSHOT/filtergrid-jpa-1.0-SNAPSHOT.jar
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.util.concurrency.RunnableErrorForwarder.lambda$wrap$0 (RunnableErrorForwarder.java:66)
+    at java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1144)
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:642)
+    at java.lang.Thread.run (Thread.java:1583)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/filtergrid-core/1.0-SNAPSHOT/filtergrid-core-1.0-SNAPSHOT.jar
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.util.concurrency.RunnableErrorForwarder.lambda$wrap$0 (RunnableErrorForwarder.java:66)
+    at java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1144)
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:642)
+    at java.lang.Thread.run (Thread.java:1583)
+[WARNING] Could not validate integrity of download from file:///C:/Users/strim/.m2/repository/org/ipro/filtergrid-grouping/1.0-SNAPSHOT/filtergrid-grouping-1.0-SNAPSHOT.jar
+org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
+    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
+    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:484)
+    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:414)
+    at org.eclipse.aether.util.concurrency.RunnableErrorForwarder.lambda$wrap$0 (RunnableErrorForwarder.java:66)
+    at java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1144)
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:642)
+    at java.lang.Thread.run (Thread.java:1583)
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-core ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\main\resources
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-core ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 127 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-core\classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/main/java/org/ipro/crud/EntityCopyService.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/main/java/org/ipro/crud/EntityCopyService.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-core ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-core ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-core ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-core ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-core\platform-core-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-core ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-core\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-core\1.0-SNAPSHOT\platform-core-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-core\platform-core-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-core\1.0-SNAPSHOT\platform-core-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] ---------------------< org.ipro:platform-register >---------------------
+[INFO] Building GitVaa platform register 1.0-SNAPSHOT                   [11/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-register\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-register ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-register\classes
+[INFO] Copying 2 resources from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-register\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-register ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 48 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-register\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-register ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-register ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-register ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-register ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-register\platform-register-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-register ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-register\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-register\1.0-SNAPSHOT\platform-register-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-register\platform-register-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-register\1.0-SNAPSHOT\platform-register-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --------------------< org.ipro:platform-navigation >--------------------
+[INFO] Building GitVaa platform navigation 1.0-SNAPSHOT                 [12/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-navigation\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-navigation ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-navigation\classes
+[INFO] Copying 3 resources from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-navigation\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-navigation ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 24 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-navigation\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-navigation ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-navigation ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-navigation ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-navigation ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-navigation\platform-navigation-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-navigation ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-navigation\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-navigation\1.0-SNAPSHOT\platform-navigation-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-navigation\platform-navigation-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-navigation\1.0-SNAPSHOT\platform-navigation-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] ------------< org.ipro:platform-spring-boot-autoconfigure >-------------
+[INFO] Building GitVaa platform spring-boot autoconfigure 1.0-SNAPSHOT  [13/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-spring-boot-autoconfigure\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-spring-boot-autoconfigure ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-spring-boot-autoconfigure\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-spring-boot-autoconfigure\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-spring-boot-autoconfigure ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 7 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-spring-boot-autoconfigure\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-spring-boot-autoconfigure ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-spring-boot-autoconfigure ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-spring-boot-autoconfigure ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-spring-boot-autoconfigure ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-spring-boot-autoconfigure\platform-spring-boot-autoconfigure-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-spring-boot-autoconfigure ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-spring-boot-autoconfigure\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-spring-boot-autoconfigure\1.0-SNAPSHOT\platform-spring-boot-autoconfigure-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-spring-boot-autoconfigure\platform-spring-boot-autoconfigure-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-spring-boot-autoconfigure\1.0-SNAPSHOT\platform-spring-boot-autoconfigure-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] ----------------------< org.ipro:platform-vaadin >----------------------
+[INFO] Building GitVaa platform vaadin 1.0-SNAPSHOT                     [14/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-vaadin\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-vaadin ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-vaadin\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-vaadin\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-vaadin ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 140 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-vaadin\classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/SelectionForm.java:[54,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/builtin/ItemTable.java:[467,16] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/builtin/ItemTable.java:[530,15] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/builtin/ViewSelectorDialog.java:[83,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/coordinator/FormCoordinator.java:[751,15] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/EntityField.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/EntityField.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-vaadin ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-vaadin ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-vaadin ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-vaadin ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-vaadin\platform-vaadin-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-vaadin ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-vaadin\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-vaadin\1.0-SNAPSHOT\platform-vaadin-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-vaadin\platform-vaadin-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-vaadin\1.0-SNAPSHOT\platform-vaadin-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] -----------------< org.ipro:platform-backend-starter >------------------
+[INFO] Building GitVaa platform backend starter 1.0-SNAPSHOT            [15/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-backend-starter\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-backend-starter ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-backend-starter\src\main\resources
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-backend-starter\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-backend-starter ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (resolved-backend-starter-runtime-dependencies) @ platform-backend-starter ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-backend-starter\backend-starter-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-backend-starter ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-backend-starter ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-backend-starter ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ platform-backend-starter ---
+[WARNING] JAR will be empty - no content was marked for inclusion!
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-backend-starter\platform-backend-starter-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ platform-backend-starter ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\platform-backend-starter\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-backend-starter\1.0-SNAPSHOT\platform-backend-starter-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-platform-backend-starter\platform-backend-starter-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\platform-backend-starter\1.0-SNAPSHOT\platform-backend-starter-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --------------------< org.ipro:entity-design-core >---------------------
+[INFO] Building Entity design contracts and independent core 1.0-SNAPSHOT [16/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\entity-design-core\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-design-core ---
+[INFO] Copying 5 resources from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-core\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-design-core ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 32 source files with javac [debug release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-core\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-design-core ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-design-core ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-design-core ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ entity-design-core ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-core\entity-design-core-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ entity-design-core ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\entity-design-core\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\entity-design-core\1.0-SNAPSHOT\entity-design-core-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-core\entity-design-core-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\entity-design-core\1.0-SNAPSHOT\entity-design-core-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --------------------< org.ipro:entity-design-json >---------------------
+[INFO] Building Portable entity draft JSON codec 1.0-SNAPSHOT           [17/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\entity-design-json\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-design-json ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\entity-design-json\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-design-json ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-json\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-design-json ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-design-json ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-design-json ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ entity-design-json ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-json\entity-design-json-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ entity-design-json ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\entity-design-json\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\entity-design-json\1.0-SNAPSHOT\entity-design-json-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-json\entity-design-json-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\entity-design-json\1.0-SNAPSHOT\entity-design-json-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] -------------------< org.ipro:entity-design-runtime >-------------------
+[INFO] Building Entity design runtime facts adapter 1.0-SNAPSHOT        [18/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\entity-design-runtime\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-design-runtime ---
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-runtime\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-design-runtime ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-runtime\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-design-runtime ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-design-runtime ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-design-runtime ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ entity-design-runtime ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-runtime\entity-design-runtime-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ entity-design-runtime ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\entity-design-runtime\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\entity-design-runtime\1.0-SNAPSHOT\entity-design-runtime-1.0-SNAPSHOT.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-entity-design-runtime\entity-design-runtime-1.0-SNAPSHOT.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\entity-design-runtime\1.0-SNAPSHOT\entity-design-runtime-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --------------------< org.ipro:g1-reference-target >--------------------
+[INFO] Building g1-reference-target 1.0-E2                              [19/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\reference-target\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ g1-reference-target ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\reference-target\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ g1-reference-target ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug release 21] to ..\..\..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-scripts-entity-generation-g1-reference-target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ g1-reference-target ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ g1-reference-target ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ g1-reference-target ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ g1-reference-target ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-scripts-entity-generation-g1-reference-target\g1-reference-target-1.0-E2.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ g1-reference-target ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\reference-target\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\g1-reference-target\1.0-E2\g1-reference-target-1.0-E2.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-scripts-entity-generation-g1-reference-target\g1-reference-target-1.0-E2.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\g1-reference-target\1.0-E2\g1-reference-target-1.0-E2.jar
+[INFO] 
+[INFO] ---------------------< org.ipro:g1-owner-support >----------------------
+[INFO] Building g1-owner-support 1.0-E3                                 [20/21]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\owner-support\.e5h-e5h-20261031-build.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ g1-owner-support ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\owner-support\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ g1-owner-support ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug release 21] to ..\..\..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-scripts-entity-generation-g1-owner-support\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ g1-owner-support ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ g1-owner-support ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ g1-owner-support ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ g1-owner-support ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-scripts-entity-generation-g1-owner-support\g1-owner-support-1.0-E3.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ g1-owner-support ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\owner-support\.e5h-e5h-20261031-build.pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\g1-owner-support\1.0-E3\g1-owner-support-1.0-E3.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\build-scripts-entity-generation-g1-owner-support\g1-owner-support-1.0-E3.jar to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\g1-owner-support\1.0-E3\g1-owner-support-1.0-E3.jar
+[INFO] 
+[INFO] -------------------< org.ipro.evidence:g1-e5h-build >-------------------
+[INFO] Building g1-e5h-build 1                                          [21/21]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ g1-e5h-build ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\build\pom.xml to C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\repository\org\ipro\evidence\g1-e5h-build\1\g1-e5h-build-1.pom
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] GitVaa platform BOM 1.0-SNAPSHOT ................... SUCCESS [  0.842 s]
+[INFO] GitVaa platform contracts 1.0-SNAPSHOT ............. SUCCESS [  8.003 s]
+[INFO] GitVaa platform events 1.0-SNAPSHOT ................ SUCCESS [  3.118 s]
+[INFO] GitVaa platform persistence 1.0-SNAPSHOT ........... SUCCESS [  2.046 s]
+[INFO] GitVaa platform metadata spine 1.0-SNAPSHOT ........ SUCCESS [  0.818 s]
+[INFO] GitVaa platform numbering 1.0-SNAPSHOT ............. SUCCESS [  1.659 s]
+[INFO] GitVaa platform settings 1.0-SNAPSHOT .............. SUCCESS [  0.975 s]
+[INFO] GitVaa platform telemetry 1.0-SNAPSHOT ............. SUCCESS [  3.956 s]
+[INFO] GitVaa platform RLS 1.0-SNAPSHOT ................... SUCCESS [  4.969 s]
+[INFO] GitVaa platform core 1.0-SNAPSHOT .................. SUCCESS [  6.579 s]
+[INFO] GitVaa platform register 1.0-SNAPSHOT .............. SUCCESS [  4.403 s]
+[INFO] GitVaa platform navigation 1.0-SNAPSHOT ............ SUCCESS [  2.869 s]
+[INFO] GitVaa platform spring-boot autoconfigure 1.0-SNAPSHOT SUCCESS [  1.539 s]
+[INFO] GitVaa platform vaadin 1.0-SNAPSHOT ................ SUCCESS [ 14.136 s]
+[INFO] GitVaa platform backend starter 1.0-SNAPSHOT ....... SUCCESS [  6.536 s]
+[INFO] Entity design contracts and independent core 1.0-SNAPSHOT SUCCESS [  1.930 s]
+[INFO] Portable entity draft JSON codec 1.0-SNAPSHOT ...... SUCCESS [  0.441 s]
+[INFO] Entity design runtime facts adapter 1.0-SNAPSHOT ... SUCCESS [  1.444 s]
+[INFO] g1-reference-target 1.0-E2 ......................... SUCCESS [  5.518 s]
+[INFO] g1-owner-support 1.0-E3 ............................ SUCCESS [  0.905 s]
+[INFO] g1-e5h-build 1 ..................................... SUCCESS [  0.015 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:15 min
+[INFO] Finished at: 2026-10-31T16:55:34+03:00
+[INFO] ------------------------------------------------------------------------

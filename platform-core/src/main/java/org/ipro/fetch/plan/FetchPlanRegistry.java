@@ -231,11 +231,7 @@ public final class FetchPlanRegistry {
     }
 
     private EntityMetadataInfo metadataOrNull(Class<?> entityClass) {
-        try {
-            return metadataResolver.resolve(entityClass);
-        } catch (IllegalArgumentException notMetadataDriven) {
-            return null;
-        }
+        return metadataResolver.find(entityClass).orElse(null);
     }
 
     private static List<String> entityReferencePaths(List<FieldMetadataInfo> fields) {

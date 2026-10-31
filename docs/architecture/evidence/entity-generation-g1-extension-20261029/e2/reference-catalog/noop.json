@@ -1,0 +1,13 @@
+{
+  "status" : "NOOP",
+  "code" : "NOOP",
+  "message" : "The same plan, C summary, dependencies and every unchanged target are already applied",
+  "applyId" : "46d900d8-1f69-4ebf-a622-412741ed2b40",
+  "planId" : "g1-547e8bf02ef5cac7f10c36cbadff8da8d20925ce547eb17b56b8dc95150eaa59",
+  "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e2\\work\\applied-current\\reference-catalog\\src\\main\\java\\com\\example\\generated\\ReferenceCatalog.java",
+  "receipt" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e2\\work\\applied-current\\reference-catalog\\.g1-apply-v2\\receipts\\f5b46e1218c9c46ef93fa299949add0fb60210696857fb41200cd376bcd08800\\g1-547e8bf02ef5cac7f10c36cbadff8da8d20925ce547eb17b56b8dc95150eaa59.json",
+  "journal" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e2\\work\\applied-current\\reference-catalog\\.g1-apply-v2\\journal.json",
+  "contentSha256" : "415473fcf050dd705a6d05132ca3994a28427a96d538e6d676237703b24d4fa9",
+  "cSummarySha256" : "1a537d3a42c9400eb9f8cbc326f6cce169bc9893be06fc21f3424b39944f7947",
+  "exitCode" : 0
+}

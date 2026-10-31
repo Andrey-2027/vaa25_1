@@ -72,13 +72,56 @@ class EntitySummaryAssemblerTest {
         referenceIndex.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry("org.ip");
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
+        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         assembler = assembler("org.ip", metadataResolver, formRegistry,
                 referenceIndex, numbering, subsystems, FacetResolver.none());
     }
 
     // ---------------------------------------------------------------- перечень
+
+    @Test
+    void pilotStructureCarriesValueLengthApartFromStorageAndBothRequirednessFacts() {
+        EntitySummary nomenclature = assembler.summarize(Nomenclature.class);
+        EntitySummary.StructuralFieldRow name = nomenclature.structure().fields().stream()
+            .filter(field -> field.identity().fieldName().equals("name")).findFirst().orElseThrow();
+        assertThat(name.valueConstraints()).singleElement().satisfies(size -> {
+            assertThat(size.max()).isEqualTo(200);
+            assertThat(size.declaration().symbol()).isEqualTo(Nomenclature.class.getName() + "#name");
+        });
+        assertThat(name.storage().column().length().value()).isEqualTo(255);
+        assertThat(name.inherited()).isFalse();
+        EntitySummary receiving = assembler.summarize(ReceivingDocument.class);
+        EntitySummary.StructuralFieldRow journal = receiving.structure().fields().stream()
+            .filter(field -> field.identity().fieldName().equals("journal")).findFirst().orElseThrow();
+        assertThat(journal.uiRequired().value()).isTrue();
+        assertThat(journal.uiRequired().origin()).isEqualTo(FactOrigin.EXPLICIT);
+        assertThat(journal.serverRequired().value()).isFalse();
+        assertThat(journal.serverRequired().origin()).isEqualTo(FactOrigin.PLATFORM_DEFAULT);
+        assertThat(receiving.structure().sections()).singleElement().satisfies(section -> {
+            assertThat(section.identity().ownerField()).isEqualTo("document");
+            assertThat(section.minRows().value()).isEqualTo(1);
+            assertThat(section.fields()).extracting(field -> field.identity().fieldName())
+                .contains("nomenclature", "quantity").doesNotContain("document");
+        });
+        assertThat(nomenclature.structure().sections()).singleElement().satisfies(section -> {
+            assertThat(section.identity().ownerField()).isEqualTo("nomenclature");
+            assertThat(section.fields()).extracting(field -> field.identity().fieldName())
+                .contains("nomenclature", "attrType", "attrValue");
+        });
+    }
+
+    @Test
+    void snapshotPreservesStructuralFactsWhenItEnrichesDiagnostics() {
+        var snapshot = assembler.explorerSnapshot();
+        assertThat(snapshot.summaryOf(Nomenclature.class)).isPresent();
+        assertThat(snapshot.summaryOf(Nomenclature.class).orElseThrow().structure().available()).isTrue();
+        assertThat(snapshot.summaryOf(ReceivingDocument.class).orElseThrow().structure().sections())
+            .singleElement().satisfies(section -> {
+                assertThat(section.identity().id()).isEqualTo(snapshot.sectionsOf(ReceivingDocument.class).getFirst().id());
+                assertThat(section.fields()).isNotEmpty();
+            });
+    }
 
     @Test
     void entitiesAreSortedByDisplayNameAndDeterministic() {
@@ -352,7 +395,11 @@ class EntitySummaryAssemblerTest {
             String[] parts = fact.symbol().split("#", 2);
             Class<?> owner = Class.forName(parts[0]);
             if (parts.length == 2) {
-                assertThat(owner.getDeclaredField(parts[1])).isNotNull();
+                try {
+                    assertThat(owner.getDeclaredField(parts[1])).as(fact.symbol()).isNotNull();
+                } catch (NoSuchFieldException notAField) {
+                    assertThat(owner.getDeclaredMethod(parts[1])).as(fact.symbol()).isNotNull();
+                }
             }
         }
     }
@@ -366,7 +413,7 @@ class EntitySummaryAssemblerTest {
         references.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry("org.ip");
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
+        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         EntitySummaryAssembler local = assembler("org.ip", metadataResolver, forms,
             references, numbering, subsystems, FacetResolver.none());
@@ -650,7 +697,7 @@ class EntitySummaryAssemblerTest {
         MetadataResolver metadataResolver = new MetadataResolver();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry("org.ip");
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
+        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         EntitySummaryAssembler custom = assembler("org.ip", metadataResolver,
             formRegistry, index, numbering, subsystems, FacetResolver.none());
@@ -731,7 +778,7 @@ class EntitySummaryAssemblerTest {
         referenceIndex.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry("org.ip");
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
+        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         EntitySummaryAssembler custom = assembler("org.ip", metadataResolver,
             formRegistry, referenceIndex, numbering, subsystems, resolver);
@@ -758,7 +805,7 @@ class EntitySummaryAssemblerTest {
         references.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry("org.ip");
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
+        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         return assembler("org.ip", metadataResolver, new FormRegistry(), references,
             numbering, subsystems, FacetResolver.none(), startupCheck);
@@ -771,7 +818,7 @@ class EntitySummaryAssemblerTest {
         references.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry("org.ip");
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
+        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         return assembler("org.ip", metadataResolver, new FormRegistry(), references,
             numbering, subsystems, FacetResolver.none(), null,
@@ -792,6 +839,17 @@ class EntitySummaryAssemblerTest {
             new EntityLifecycleRegistry(List.of()));
     }
 
+    private static List<org.ipro.data.EntityClassificationContributor> classificationSources(ManagedEntityCatalog managed) {
+        // UI fixture only: recorder validation is covered by the backend H2 startup tests.
+        var recorders = mock(org.ipro.register.RecorderTypeRegistry.class);
+        for (Class<?> type : managed.managedEntityClasses()) {
+            var declaration = type.getAnnotation(org.ipro.register.RecorderType.class);
+            if (declaration != null) when(recorders.findCode(type)).thenReturn(Optional.of(declaration.value()));
+        }
+        return List.of(new org.ipro.register.RegisterClassificationContributor(
+            new org.ipro.register.RegisterRegistry(managed, recorders)));
+    }
+
     private static EntitySummaryAssembler assembler(
             String basePackage,
             MetadataResolver metadataResolver,
@@ -810,7 +868,7 @@ class EntitySummaryAssemblerTest {
         ManagedEntityCatalog managed = mock(ManagedEntityCatalog.class);
         when(managed.managedEntityClasses()).thenReturn(managedTypes);
         EntityDescriptorCatalog descriptors = new EntityDescriptorCatalog(
-            managed, sections, metadataResolver, List.of(), List.of());
+            managed, sections, metadataResolver, List.of(), List.of(), classificationSources(managed));
         FormRouteCatalog routes = FormRouteCatalog.build(descriptors, formRegistry, List.of());
         return new EntitySummaryAssembler(basePackage, metadataResolver, formRegistry,
             referenceIndex, numbering, subsystems, facetResolver, descriptors, routes,
@@ -1081,7 +1139,7 @@ class EntitySummaryAssemblerTest {
         references.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry("org.ip");
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip");
+        SubsystemRegistry subsystems = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         SectionMetadataRegistry sections = new SectionMetadataRegistry("org.ip", metadata);
         sections.afterPropertiesSet();
@@ -1091,7 +1149,7 @@ class EntitySummaryAssemblerTest {
         ManagedEntityCatalog managed = mock(ManagedEntityCatalog.class);
         when(managed.managedEntityClasses()).thenReturn(managedTypes);
         EntityDescriptorCatalog descriptors = new EntityDescriptorCatalog(managed, sections,
-            metadata, List.of(), List.of());
+            metadata, List.of(), List.of(), classificationSources(managed));
         FormRouteCatalog routes = FormRouteCatalog.build(descriptors, formRegistry, List.of());
         return new SnapshotWiring(metadata, references, numbering, subsystems, sections,
             descriptors, routes);

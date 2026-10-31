@@ -20,7 +20,7 @@ class ApplicationNavigationConfigurationTest {
         new ApplicationContextRunner().withUserConfiguration(ApplicationNavigationConfiguration.class)
             .run(context -> {
                 assertThat(context).hasNotFailed();
-                var registry = new SubsystemRegistry("org.ip");
+                var registry = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
                 registry.afterPropertiesSet();
                 var contributor = context.getBean(org.ipro.navigation.NavigationDefaultsContributor.class);
                 var catalog = NavigationCatalog.build(registry, List.of(contributor));

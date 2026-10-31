@@ -1,0 +1,13 @@
+{
+  "bytes" : 3645,
+  "compiled" : false,
+  "generatorVersion" : "catalog-java-v1",
+  "planId" : "g1-4be5c34e3038623c8a933ef9eff32c47f08db35529eb0da8f4106f41fb47088e",
+  "recipe" : {
+    "id" : "standard-catalog-v2",
+    "version" : 2
+  },
+  "relativePath" : "org/example/generated/G1PreviewCatalog.java",
+  "sha256" : "21ab6d0c6158b2a440e81965def2a0b67593a48a56a520d69a6395c32abcfff8",
+  "source" : "P8 imported JSON -> preview -> DownloadHandler"
+}

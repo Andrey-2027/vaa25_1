@@ -424,9 +424,12 @@ class ExplorerTreeModelTest {
         assertThat(flatten(byOwnedField.get(0)))
             .filteredOn(node -> node.kind() == ExplorerTreeModel.NodeKind.OWNED_SECTION)
             .singleElement()
-            .satisfies(node -> assertThat(node.label())
+            .satisfies(node -> {
+                assertThat(node.foundFields()).containsExactly("rate");
+                assertThat(node.label())
                 .as("найденное owned-поле остаётся подсказкой у секции владельца")
-                .contains("— найдено поле: rate"));
+                .contains("— найдено поле: rate");
+            });
 
         assertThat(ExplorerTreeModel.withQuery(roots, terms, "справочники"))
             .as("совпадение с названием группы не превращает все её типы в результаты")

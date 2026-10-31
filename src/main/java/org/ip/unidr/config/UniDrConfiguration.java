@@ -1,17 +1,16 @@
 package org.ip.unidr.config;
 
-import org.ip.unidr.model.*;
-import org.ip.unidr.query.*;
-import org.ip.unidr.run.*;
-import org.ip.unidr.render.UniDrReportCompiler;
-import org.ipro.reportstudio.render.ReportCompiler;
-import org.ip.unidr.source.UniDrSourceCatalog;
+import org.ipro.unidr.render.UniDrReportCompiler;
+import org.ipro.report.render.JasperExporter;
+import org.ipro.unidr.source.UniDrSourceCatalog;
+import org.ip.unidr.query.UniDrQueryAdapter;
+import org.ip.unidr.query.UniDrReferenceService;
 import org.ipro.crud.EntityLookup;
-import org.ipro.reportstudio.query.QueryBuilderMetadataCatalog;
-import org.ipro.reportstudio.query.ReportQueryAssemblyService;
-import org.ipro.reportstudio.query.ReportQueryExecutor;
-import org.ipro.reportstudio.query.ReportRunQuota;
-import org.ipro.reportstudio.run.ReportTaskExecutor;
+import org.ipro.query.QueryBuilderMetadataCatalog;
+import org.ipro.query.ReportQueryAssemblyService;
+import org.ipro.query.ReportQueryExecutor;
+import org.ipro.query.ReportRunQuota;
+import org.ipro.report.task.ReportTaskExecutor;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsDimensionRegistry;
 import org.ipro.rls.RlsCurrentUser;
@@ -23,6 +22,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import org.ipro.unidr.model.UniDrDefinitionJsonCodec;
+import org.ipro.unidr.model.UniDrDefinitionValidator;
+import org.ipro.unidr.query.UniDrQueryService;
+import org.ipro.unidr.query.UniDrQuerySourceService;
+import org.ipro.unidr.query.UniDrTableSources;
+import org.ipro.unidr.run.UniDrAccess;
+import org.ipro.unidr.run.UniDrOrgContext;
+import org.ipro.unidr.run.UniDrRunParameterResolver;
+import org.ipro.unidr.run.UniDrRunService;
+import org.ipro.unidr.store.UniDrCatalogContributor;
+import org.ipro.unidr.store.UniDrFileStore;
+
 import java.time.Clock;
 
 /** Disabled by default; JSON file storage without new database mappings. */
@@ -33,15 +44,21 @@ public class UniDrConfiguration {
             org.springframework.beans.factory.ObjectProvider<QueryBuilderMetadataCatalog> catalog) {
         var service=new UniDrQuerySourceService(assembly,entities.getIfAvailable());var metadata=catalog.getIfAvailable();if(metadata!=null)service.useTables(new UniDrTableSources(metadata));return service;
     }
-    @Bean UniDrSourceCatalog uniDrSources(UniDrQuerySourceService queries) { var catalog=new UniDrSourceCatalog(java.util.List.of(org.ip.unidr.source.UniDrReceivingItemsSource.definition()),queries::describe,queries::describeParameters);catalog.usePlans(queries::describeSource);return catalog; }
+    @Bean UniDrSourceCatalog uniDrSources(UniDrQuerySourceService queries, UniDrReferenceService references) {
+        var catalog=new UniDrSourceCatalog(java.util.List.of(org.ip.unidr.source.UniDrReceivingItemsSource.definition()),queries::describe,queries::describeParameters);
+        catalog.usePlans(queries::describeSource);
+        catalog.useReferences(references);
+        catalog.useSourcePlans(source -> UniDrQueryAdapter.plan(source,references));
+        return catalog;
+    }
     @Bean UniDrDefinitionValidator uniDrValidator(UniDrSourceCatalog sources) { return new UniDrDefinitionValidator(sources); }
     @Bean UniDrDefinitionJsonCodec uniDrCodec(UniDrDefinitionValidator validator) { return new UniDrDefinitionJsonCodec(validator); }
-    @Bean org.ip.unidr.store.UniDrFileStore uniDrFiles(UniDrDefinitionJsonCodec codec, UniDrAccess access,
+    @Bean UniDrFileStore uniDrFiles(UniDrDefinitionJsonCodec codec, UniDrAccess access,
         @Value("${app.unidr.file-store-dir:reports/unidr}") String directory) {
-        return new org.ip.unidr.store.UniDrFileStore(java.nio.file.Path.of(directory), codec, access);
+        return new UniDrFileStore(java.nio.file.Path.of(directory), codec, access);
     }
-    @Bean org.ip.unidr.store.UniDrCatalogContributor uniDrCatalog(org.ip.unidr.store.UniDrFileStore store) {
-        return new org.ip.unidr.store.UniDrCatalogContributor(store);
+    @Bean UniDrCatalogContributor uniDrCatalog(UniDrFileStore store) {
+        return new UniDrCatalogContributor(store);
     }
     @Bean UniDrAccess uniDrAccess(Environment environment, RlsCurrentUser current) {
         return new UniDrAccess(() -> environment.getProperty("app.unidr.enabled", Boolean.class, false), current);
@@ -52,8 +69,9 @@ public class UniDrConfiguration {
         var service=new UniDrReferenceService(lookup, access, transactions);var factory=entities.getIfAvailable();
         if(factory!=null)service.useEntityTypes(factory.getMetamodel().getEntities().stream().map(jakarta.persistence.metamodel.EntityType::getJavaType).toList());return service;
     }
-    @Bean UniDrQueryAdapter uniDrAdapter(UniDrSourceCatalog sources, UniDrDefinitionValidator validator, ReportQueryAssemblyService assembly) {
-        return new UniDrQueryAdapter(sources, validator, assembly);
+    @Bean UniDrQueryAdapter uniDrAdapter(UniDrSourceCatalog sources, UniDrDefinitionValidator validator, ReportQueryAssemblyService assembly,
+            UniDrReferenceService references) {
+        return new UniDrQueryAdapter(sources, validator, assembly, references);
     }
     @Bean UniDrQueryService uniDrQueries(UniDrAccess access, UniDrRunParameterResolver parameters, UniDrReferenceService references,
         UniDrQueryAdapter adapter, ReportQueryExecutor executor, PlatformTransactionManager transactions, UniDrQuerySourceService querySources,
@@ -69,7 +87,7 @@ public class UniDrConfiguration {
         return new UniDrReportCompiler(sources, validator);
     }
     @Bean UniDrRunService uniDrRuns(UniDrAccess access, UniDrQueryService queries, ReportTaskExecutor worker, ReportRunQuota quota,
-        @Qualifier("uniDrClock") Clock clock, UniDrReportCompiler compiler, ReportCompiler exporter) {
+        @Qualifier("uniDrClock") Clock clock, UniDrReportCompiler compiler, JasperExporter exporter) {
         return new UniDrRunService(access, queries, worker, quota, clock, compiler, exporter);
     }
 }

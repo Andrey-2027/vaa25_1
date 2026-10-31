@@ -1,5 +1,6 @@
 package org.ipro.data;
 
+import org.ipro.metadata.CatalogOwnerDescriptor;
 import org.ipro.metadata.FactOrigin;
 
 import java.util.Objects;
@@ -39,6 +40,7 @@ import java.util.Objects;
  * @param exposureSymbol     место объявления экспозиции (пусто — объявления нет)
  * @param capabilitiesOrigin происхождение набора сценариев и намерений
  * @param capabilitiesSymbol место объявления набора (пусто — объявления нет)
+ * @param owner              resolved владелец каталога; {@code null} — обычный справочник
  */
 public record EntityDescriptor(Class<?> type,
                                EntityExposure exposure,
@@ -49,13 +51,14 @@ public record EntityDescriptor(Class<?> type,
                                FactOrigin exposureOrigin,
                                String exposureSymbol,
                                FactOrigin capabilitiesOrigin,
-                               String capabilitiesSymbol) {
+                               String capabilitiesSymbol,
+                               CatalogOwnerDescriptor owner) {
 
     /** Совместимый конструктор для callers, которым происхождение ещё неизвестно. */
     public EntityDescriptor(Class<?> type, EntityExposure exposure, boolean jpaManaged,
                             boolean metadataDriven, EntityCapabilities capabilities, String reason) {
         this(type, exposure, jpaManaged, metadataDriven, capabilities, reason,
-            FactOrigin.UNKNOWN, "", FactOrigin.UNKNOWN, "");
+            FactOrigin.UNKNOWN, "", FactOrigin.UNKNOWN, "", null);
     }
 
     /**
@@ -67,7 +70,16 @@ public record EntityDescriptor(Class<?> type,
                             boolean metadataDriven, EntityCapabilities capabilities, String reason,
                             FactOrigin exposureOrigin, String exposureSymbol) {
         this(type, exposure, jpaManaged, metadataDriven, capabilities, reason,
-            exposureOrigin, exposureSymbol, FactOrigin.UNKNOWN, "");
+            exposureOrigin, exposureSymbol, FactOrigin.UNKNOWN, "", null);
+    }
+
+    /** Совместимый конструктор без owner (E3.R добавил отдельный компонент). */
+    public EntityDescriptor(Class<?> type, EntityExposure exposure, boolean jpaManaged,
+                            boolean metadataDriven, EntityCapabilities capabilities, String reason,
+                            FactOrigin exposureOrigin, String exposureSymbol,
+                            FactOrigin capabilitiesOrigin, String capabilitiesSymbol) {
+        this(type, exposure, jpaManaged, metadataDriven, capabilities, reason,
+            exposureOrigin, exposureSymbol, capabilitiesOrigin, capabilitiesSymbol, null);
     }
 
     public EntityDescriptor {
@@ -85,5 +97,10 @@ public record EntityDescriptor(Class<?> type,
         if (capabilitiesOrigin == FactOrigin.UNKNOWN && !capabilitiesSymbol.isEmpty()) {
             throw new IllegalArgumentException("UNKNOWN capability origin must not have a symbol");
         }
+    }
+
+    /** Есть ли у типа объявленный владелец каталога. */
+    public boolean hasCatalogOwner() {
+        return owner != null;
     }
 }

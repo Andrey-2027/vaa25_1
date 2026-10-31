@@ -387,7 +387,7 @@ public final class ExplorerSnapshot {
             summary.selectColumns(), summary.tableSections(), summary.forms(), summary.contextFilters(),
             summary.selections(), summary.references(), summary.numbering(), summary.lifecycle(),
             diagnostics, summary.actions(), summary.readPlans(), summary.accessRows(),
-            summary.lookupTargets(), summary.readPlanInspectionAvailable());
+            summary.lookupTargets(), summary.readPlanInspectionAvailable(), summary.structure());
     }
 
     /** Все записи инвентаря в порядке перечня сущностей (эффективная подпись, затем simpleName). */

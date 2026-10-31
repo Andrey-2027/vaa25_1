@@ -1,8 +1,8 @@
-package org.ip.views.unidr;
+package org.ipro.unidr.ui;
 
-import org.ip.unidr.render.UniDrRenderedReport;
-import org.ip.unidr.run.UniDrAccess;
-import org.ipro.reportstudio.render.*;
+import org.ipro.unidr.render.UniDrRenderedReport;
+import org.ipro.unidr.run.UniDrAccess;
+import org.ipro.report.render.*;
 import org.junit.jupiter.api.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,7 +13,7 @@ import static org.mockito.Mockito.*;
 
 class UniDrDownloadsTest {
     final AtomicBoolean enabled=new AtomicBoolean(true);
-    final ReportCompiler exporter=mock(ReportCompiler.class);
+    final org.ipro.report.render.JasperExporter exporter=mock(org.ipro.report.render.JasperExporter.class);
     final net.sf.jasperreports.engine.JasperPrint print=new net.sf.jasperreports.engine.JasperPrint();
     final UniDrAccess access=new UniDrAccess(enabled::get,()->SecurityContextHolder.getContext().getAuthentication().getName());
     final UniDrDownloads downloads=new UniDrDownloads(new UniDrRenderedReport(print,"Отчёт","alice",access,exporter));

@@ -40,7 +40,8 @@ class EntitySummaryClosedDictionaryTest {
             ResolvedValue.class));
         // Enum'ы словаря проверять нечего, но держим в списке осознанно.
         assertThat(FacetKind.values()).isNotEmpty();
-        assertThat(List.of(FacetKind.ENTITY_KIND, FacetKind.ENTITY_EXPOSURE,
+        assertThat(List.of(FacetKind.ENTITY_KIND, FacetKind.ENTITY_INTERNING,
+            FacetKind.ENTITY_RECORDER_OWNERSHIP, FacetKind.ENTITY_EXPOSURE,
             FacetKind.ENTITY_KEY, FacetKind.LINKABILITY,
             FacetKind.ENTITY_LIFECYCLE_HANDLER, FacetKind.ENTITY_LIFECYCLE_HOOK))
             .allMatch(kind -> !kind.overridable());

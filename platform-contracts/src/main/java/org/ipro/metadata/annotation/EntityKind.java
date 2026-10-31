@@ -22,6 +22,6 @@ public enum EntityKind {
     /** Документ: стандартный golden path number + date. */
     DOCUMENT,
 
-    /** Будущий информационный регистр; полная семантика реализуется отдельно. */
+    /** Информационный регистр: итоговый kind требует проверенного backend descriptor (ADR-0029). */
     INFORMATION_REGISTER
 }

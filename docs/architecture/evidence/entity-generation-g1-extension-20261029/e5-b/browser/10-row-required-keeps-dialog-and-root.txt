@@ -1,0 +1,115 @@
+- heading "E5.B · изолированный H2 consumer · e5-admin" [level=3]
+- link "Редактор P8":
+  - /url: /draft
+- generic: Сценарий
+- combobox "Сценарий": OwnedCatalogSections2
+- text: 
+- generic: 
+- generic:       
+- generic: Контекст владельца
+- combobox "Контекст владельца": Контрагент A
+- generic: 
+- generic: 
+- generic:  
+- button "Создать":
+  - generic: Создать
+- button "Перечитать список":
+  - generic: Перечитать список
+- treegrid:
+  - rowgroup:
+    - row "ID Представление":
+      - columnheader "ID":
+        - generic: ID
+      - columnheader "Представление":
+        - generic: Представление
+  - rowgroup
+  - rowgroup
+- button "Открыть выбранную":
+  - generic: Открыть выбранную
+- button "Повторно открыть":
+  - generic: Повторно открыть
+- button "Удалить выбранную":
+  - generic: Удалить выбранную
+- button "Удалить текущего владельца":
+  - generic: Удалить текущего владельца
+- generic: Новая карточка
+- button "Сохранить карточку":
+  - generic: Сохранить карточку
+- generic: Код
+- generic: •
+- textbox "Код":
+  - /placeholder: присвоится автоматически
+- generic: 
+- generic: Наименование
+- generic: •
+- text: •
+- textbox "Наименование": Browser договор A
+- generic: 
+- generic: Контрагент
+- generic: •
+- textbox:
+  - /placeholder: Контрагент
+  - text: 000001 — Контрагент A
+- generic: 
+- button [disabled]:
+- tablist:
+  - generic: 
+  - tab "Строки 1" [selected]:
+    - generic: Строки 1
+  - tab "Строки 2":
+    - generic: Строки 2
+  - generic: 
+- tabpanel "Строки 1":
+  - button "Добавить":
+    - generic: Добавить
+  - button "Изменить" [disabled]:
+    - generic: Изменить
+  - button "Удалить" [disabled]:
+    - generic: Удалить
+  - button:
+  - treegrid:
+    - rowgroup:
+      - row "Sort by Текст Sort by Ссылка":
+        - columnheader "Sort by Текст":
+          - generic "Sort by Текст":
+            - generic: Текст
+            - generic: 
+        - columnheader "Sort by Ссылка":
+          - generic "Sort by Ссылка":
+            - generic: Ссылка
+            - generic: 
+    - rowgroup
+    - rowgroup
+- radiogroup "Mode":
+  - radio
+  - radio
+  - radio
+  - radio [checked]
+- button "DevTools":
+- region "Notifications":
+  - heading "App is running in development mode" [level=2]
+  - separator
+  - generic: 
+  - checkbox "Don't show again"
+  - generic: Don't show again
+  - button "Close":
+- generic: Online
+- 'dialog "Добавить: Строки 1"':
+  - 'heading "Добавить: Строки 1" [level=2]'
+  - generic: Текст
+  - generic: •
+  - text: •
+  - textbox "Текст"
+  - generic: 
+  - generic: Ссылка
+  - generic: •
+  - textbox:
+    - /placeholder: Ссылка
+  - generic: 
+  - button:
+  - button "Отмена":
+    - generic: Отмена
+  - button "Сохранить" [active]:
+    - generic: Сохранить
+- alert:
+  - generic: "Заполните обязательные поля: Текст: обязательно для заполнения"

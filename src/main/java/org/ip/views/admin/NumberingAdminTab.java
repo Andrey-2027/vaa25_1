@@ -101,7 +101,7 @@ public class NumberingAdminTab extends VerticalLayout {
         return numberingRegistry.all().stream().map(info -> {
             Class<?> clazz = info.entityClass();
             EntityMetadataInfo meta = metadataResolver.resolve(clazz);
-            String subsystemTitle = subsystemRegistry.findByMarker(meta.getAnnotation().subsystem())
+            String subsystemTitle = subsystemRegistry.findByMarker(meta.getSubsystem())
                     .map(SubsystemNode::getTitle).orElse("—");
             NumberingRule effective = ruleService.effectiveRule(
                     clazz.getSimpleName(), info.fieldName(), info.definition());

@@ -1,0 +1,38 @@
+{
+  "schemaVersion" : 1,
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "draftId" : "00000000-0000-0009-0000-000000000000",
+  "entity" : {
+    "className" : "DocumentSections0",
+    "packageName" : {
+      "mode" : "AUTO",
+      "text" : ""
+    },
+    "label" : "Комплект",
+    "titles" : {
+      "list" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "item" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "selection" : {
+        "mode" : "AUTO",
+        "text" : ""
+      }
+    },
+    "tableName" : {
+      "mode" : "EXPLICIT",
+      "text" : "document_0"
+    },
+    "subsystemId" : null,
+    "icon" : "FILE"
+  },
+  "fields" : [ ],
+  "sections" : [ ]
+}

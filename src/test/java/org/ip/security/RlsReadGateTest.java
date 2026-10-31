@@ -166,11 +166,11 @@ class RlsReadGateTest {
     }
 
     /**
-     * Короткий ключ — ключ операций: строка на нём чтение не открывает, и гейт отказывает
-     * до построчной оценки (даже когда JOURNAL/BRANCH строку пропускают).
+     * P-U: ключ один, но флаги независимы. Строка с одним write-флагом чтение не открывает,
+     * и гейт отказывает до построчной оценки (даже когда JOURNAL/BRANCH строку пропускают).
      */
     @Test
-    void aGrantOnTheOperationKeyDoesNotOpenReads() {
+    void aWriteOnlyGrantOnTheUnifiedEntityKeyDoesNotOpenReads() {
         bootstrapProtectedWrites();
         Branch branch = branch("C5-B");
         Workshop receiver = workshop("C5-W1", branch);
@@ -180,7 +180,7 @@ class RlsReadGateTest {
 
         grant("dave", "JOURNAL", journal.getId(), true, false, false);
         grant("dave", "BRANCH", branch.getId(), true, false, false);
-        grant("dave", C5PermissionKeys.entityOperations(ReceivingDocument.class), null, true, false, false);
+        grant("dave", C5PermissionKeys.entity(ReceivingDocument.class), null, false, true, false);
         loginAs("dave");
 
         assertThatThrownBy(() -> documents().findAll())
@@ -201,7 +201,7 @@ class RlsReadGateTest {
 
         grant("dave", "JOURNAL", journal.getId(), true, false, false);
         grant("dave", "BRANCH", branch.getId(), true, false, false);
-        grant("dave", C5PermissionKeys.entityOperations(ReceivingDocument.class), null, true, false, false);
+        grant("dave", C5PermissionKeys.entity(ReceivingDocument.class), null, false, true, false);
         loginAs("dave");
 
         assertThatThrownBy(() -> lookupService.findAll(ReceivingDocument.class))

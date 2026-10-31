@@ -1,0 +1,102 @@
+{
+    "format": "ipro-report-template",
+    "template": {
+        "jpql": "SELECT pp.journal, pp.codeSpec,pp.nomenclature,pp.draft, pp.nomenclature.typeNom as tn\nFROM PrdSpec pp\n",
+        "name": "Тест1",
+        "bands": [
+            {
+                "key": "16",
+                "kind": "DETAIL",
+                "fields": [
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 0,
+                        "alignment": "LEFT",
+                        "queryField": "pp.journal",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "ROW_NUMBER",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "№",
+                        "visible": true,
+                        "position": 1,
+                        "alignment": "LEFT",
+                        "queryField": "",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "Номен",
+                        "visible": true,
+                        "position": 2,
+                        "alignment": "LEFT",
+                        "queryField": "pp.nomenclature",
+                        "aggregation": "NONE"
+                    }
+                ],
+                "position": 0,
+                "parentKey": null,
+                "groupField": null,
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            },
+            {
+                "key": "17",
+                "kind": "GROUP_HEADER",
+                "fields": [
+                ],
+                "position": 1,
+                "parentKey": null,
+                "groupField": "pp.journal",
+                "titleWidth": null,
+                "headerLayout": "TITLE_AND_VALUE",
+                "startNewPage": false
+            },
+            {
+                "key": "18",
+                "kind": "GROUP_FOOTER",
+                "fields": [
+                ],
+                "position": 2,
+                "parentKey": null,
+                "groupField": "pp.journal",
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            }
+        ],
+        "orders": [
+        ],
+        "params": [
+        ],
+        "maxRows": 5000,
+        "advanced": false,
+        "pageSize": "A4",
+        "timeoutMs": 30000,
+        "stripeRows": null,
+        "description": null,
+        "gridEnabled": null,
+        "querySource": "MANUAL",
+        "baseFontSize": 10,
+        "pageOrientation": "PORTRAIT",
+        "visualQueryJson": null,
+        "visualFilterJson": null,
+        "targetEntityClass": null
+    },
+    "schemaVersion": 3
+}

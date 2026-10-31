@@ -1,0 +1,18 @@
+[
+  {
+    "Path": "C:\\Users\\strim\\.m2\\repository\\org\\ipro\\entity-design-core\\1.0-SNAPSHOT\\entity-design-core-1.0-SNAPSHOT.jar",
+    "Hash": "B7EE1111F8287D875953FD19D2AF30A3526EA66AC129EA0E65C6050A7601A886"
+  },
+  {
+    "Path": "C:\\Users\\strim\\.m2\\repository\\org\\ipro\\entity-design-json\\1.0-SNAPSHOT\\entity-design-json-1.0-SNAPSHOT.jar",
+    "Hash": "DD3F853523224B871E0B82501790005CCA8164C7F039336F9472F53A47EE237B"
+  },
+  {
+    "Path": "C:\\Users\\strim\\.m2\\repository\\org\\ipro\\entity-design-runtime\\1.0-SNAPSHOT\\entity-design-runtime-1.0-SNAPSHOT.jar",
+    "Hash": "32DD78110552E2ACF5284EDFDD6406BA10A32CDD20BD39F098728DE221B32025"
+  },
+  {
+    "Path": "C:\\Users\\strim\\.m2\\repository\\org\\mockito\\mockito-core\\5.20.0\\mockito-core-5.20.0.jar",
+    "Hash": "D1A96D252128D3A4247CFD8A2E76412EFA3CC103977BE17933C942117A24F374"
+  }
+]

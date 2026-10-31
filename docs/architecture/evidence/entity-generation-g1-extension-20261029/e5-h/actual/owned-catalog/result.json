@@ -1,0 +1,14 @@
+{
+  "id": "owned-catalog",
+  "input": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031/inputs/owners/owned-catalog",
+  "planId": "g1-e574f28e11bfff784f1f2d0486febc5878de454bb9e18b7757b01a7337ef24c0",
+  "files": 1,
+  "cTests": 8,
+  "runtimeTests": 8.0,
+  "applied": "APPLIED",
+  "noop": "NOOP",
+  "conflict": "CONFLICT",
+  "dependencies": 19,
+  "summary": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031/actual/owned-catalog/c/accepted/summary.json",
+  "project": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031/actual/owned-catalog/project"
+}

@@ -114,23 +114,41 @@ class PlatformStarterCompositionTest {
             "org.ipro:filtergrid-jpa",
             "org.ipro:filtergrid-inmemory",
             "org.ipro:filtergrid-projection",
-            "com.bstek.ureport:ureport3-console",
             "net.sourceforge.dynamicreports:dynamicreports-core",
             "org.vaadin.reports:reportui-core");
         assertThat(applicationDependencies)
             .noneMatch(coordinate -> coordinate.startsWith("org.ipro:platform-")
                 && !coordinate.equals("org.ipro:platform-vaadin-starter")
                 && !coordinate.equals("org.ipro:platform-rest")
-                && !coordinate.equals("org.ipro:platform-rest-web"));
+                && !coordinate.equals("org.ipro:platform-rest-web")
+                // Explicit application modules from the report/query extraction; none enter the starters.
+                && !coordinate.equals("org.ipro:platform-report-core")
+                && !coordinate.equals("org.ipro:platform-report")
+                && !coordinate.equals("org.ipro:platform-jr")
+                && !coordinate.equals("org.ipro:platform-unidr")
+                && !coordinate.equals("org.ipro:platform-query")
+                && !coordinate.equals("org.ipro:platform-query-vaadin")
+                // KI-1: приложение подключает проекцию навигации напрямую — она ещё не в стартере.
+                && !coordinate.equals("org.ipro:platform-navigation")
+                // M2.2.2: отчётный UI — app-owned add-on, а не часть starter-а.
+                && !coordinate.equals("org.ipro:platform-report-vaadin"));
+        assertThat(applicationDependencies)
+            .as("UReport удалён из поставки (U1.3): зависимость не должна вернуться ни прямо, ни транзитивно")
+            .doesNotContain("com.bstek.ureport:ureport3-console");
+        assertThat(read(Path.of("pom.xml")))
+            .doesNotContain("com.bstek.ureport", "ureport.version", "ureport3");
         assertThat(applicationDependencies)
             .doesNotContain("com.vaadin:vaadin-spring-boot-starter");
         assertThat(applicationDependencies)
             .doesNotContain("org.ipro:filtergrid-grouping");
         assertThat(read(Path.of("pom.xml")))
             .doesNotContain("<filtergrid.version>", "<version>${filtergrid.version}</version>");
-        assertThat(read(Path.of("src/main/resources/META-INF/spring/"
-            + "org.springframework.boot.autoconfigure.AutoConfiguration.imports")))
-            .contains("org.ipro.jr.config.JrPersistenceAutoConfiguration");
+        // M2.1/M2.2.2: приложение не регистрирует platform-авто-конфигурации; M2.2.2
+        // удалил последний app-owned imports-файл вместе с ReportStudioAutoConfiguration.
+        Path appImports = Path.of("src/main/resources/META-INF/spring/"
+            + "org.springframework.boot.autoconfigure.AutoConfiguration.imports");
+        assertThat(Files.exists(appImports) ? read(appImports) : "")
+            .doesNotContain("org.ipro.jr.config.JrPersistenceAutoConfiguration");
     }
 
     @Test
@@ -149,9 +167,11 @@ class PlatformStarterCompositionTest {
 
         Set<String> starterClosure = new TreeSet<>();
         collectArtifactIds(vaadinStarter, starterClosure);
+        // M2.2.2: приложение подключает platform-query-vaadin/platform-report-vaadin напрямую,
+        // поэтому Maven поднимает platform-vaadin в корень (nearest winner), и в поддереве
+        // starter его уже нет. Проверяется весь runtime-граф приложения, а не только поддерево.
         assertThat(starterClosure)
-            .as("проверяется разрешённое транзитивное замыкание starter, включая platform-модули")
-            .contains("platform-vaadin")
+            .as("starter не тянет optional REST-срез")
             .doesNotContain("platform-rest", "platform-rest-web");
 
         // Maven places a shared dependency at its nearest winner. With direct platform-rest,
@@ -162,7 +182,7 @@ class PlatformStarterCompositionTest {
             .contains("org.ipro:platform-spring-boot-autoconfigure");
         Set<String> applicationClosure = new TreeSet<>();
         collectArtifactIds(root, applicationClosure);
-        assertThat(applicationClosure).contains("platform-spring-boot-autoconfigure");
+        assertThat(applicationClosure).contains("platform-spring-boot-autoconfigure", "platform-vaadin");
 
         List<String> directRestDependencies = directChildren(root).stream()
             .filter(node -> "org.ipro".equals(node.path("groupId").asText()))
@@ -234,6 +254,9 @@ class PlatformStarterCompositionTest {
     }
 
     private static String read(Path path) {
+        if (!Files.exists(path)) {
+            return "";
+        }
         try {
             return Files.readString(path);
         } catch (IOException e) {

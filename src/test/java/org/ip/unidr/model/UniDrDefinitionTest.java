@@ -1,8 +1,9 @@
-package org.ip.unidr.model;
+package org.ipro.unidr.model;
+import org.ip.unidr.model.UniDrDefinitions;
 
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.model.UniDrValidationException.Code;
-import org.ip.unidr.source.UniDrSourceCatalog;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.model.UniDrValidationException.Code;
+import org.ipro.unidr.source.UniDrSourceCatalog;
 import org.ip.unidr.source.UniDrReceivingItemsSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,7 +18,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 class UniDrDefinitionTest {
-    private final UniDrDefinitionValidator validator = new UniDrDefinitionValidator(UniDrSourceCatalog.pilot());
+    private final UniDrDefinitionValidator validator = new UniDrDefinitionValidator(UniDrDefinitions.catalog());
     private final UniDrDefinitionJsonCodec codec = new UniDrDefinitionJsonCodec(validator);
 
     @Test void startingRecipeRoundTripsWithStableIdsAndDynamicPeriodDefault() throws Exception {

@@ -1,4 +1,4 @@
-package org.ip.views.unidr.smoke;
+package org.ipro.unidr.ui.smoke;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.spring.annotation.EnableVaadin;
@@ -7,17 +7,17 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.ip.config.AuditConfig;
 import org.ip.model.*;
 import org.ip.unidr.config.UniDrConfiguration;
-import org.ip.views.unidr.UniDrQueryUiSupport;
+import org.ipro.unidr.ui.UniDrQueryUiSupport;
 import org.ipro.crud.*;
 import org.ipro.data.*;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.*;
-import org.ipro.reportstudio.param.*;
-import org.ipro.reportstudio.query.*;
-import org.ipro.reportstudio.query.editor.*;
-import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
-import org.ipro.reportstudio.render.*;
-import org.ipro.reportstudio.run.ReportTaskExecutor;
+import org.ipro.query.param.*;
+import org.ipro.query.*;
+import org.ipro.query.ui.editor.*;
+import org.ipro.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.report.render.*;
+import org.ipro.report.task.ReportTaskExecutor;
 import org.ipro.rls.*;
 import org.ipro.rls.c5.*;
 import org.springframework.boot.*;
@@ -43,11 +43,11 @@ import static org.mockito.Mockito.*;
 @Profile(UniDrUiSmokeApplication.PROFILE)
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@EnableVaadin("org.ip.views.unidr")
+@EnableVaadin("org.ipro.unidr.ui")
 @EntityScan({"org.ip.model","org.ipro.rls"})
 @EnableJpaRepositories("org.ipro.rls")
 @EnableTransactionManagement
-@Import({AuditConfig.class,UniDrConfiguration.class,UniDrQueryUiSupport.class})
+@Import({AuditConfig.class,UniDrConfiguration.class})
 public class UniDrQuerySmokeApplication {
     public static void main(String[] args) {
         var excluded=ImportCandidates.load(AutoConfiguration.class,UniDrQuerySmokeApplication.class.getClassLoader()).getCandidates().stream()
@@ -58,13 +58,21 @@ public class UniDrQuerySmokeApplication {
             Map.entry("spring.config.location","optional:file:outputs/unidr-u4/smoke-empty.properties"),Map.entry("spring.autoconfigure.exclude",String.join(",",excluded)),
             Map.entry("spring.datasource.url","jdbc:h2:mem:unidr-query-smoke-"+UUID.randomUUID()+";DB_CLOSE_DELAY=-1"),Map.entry("spring.datasource.username","sa"),
             Map.entry("spring.datasource.password",""),Map.entry("spring.jpa.hibernate.ddl-auto","create-drop"),Map.entry("spring.jpa.open-in-view","false"),Map.entry("spring.sql.init.mode","never"),
-            Map.entry("app.unidr.enabled","true"),Map.entry("vaadin.allowed-packages","org.ip.views.unidr"),Map.entry("vaadin.launch-browser","false"),
+            Map.entry("app.unidr.enabled","true"),Map.entry("vaadin.allowed-packages","org.ipro.unidr.ui"),Map.entry("vaadin.launch-browser","false"),
             Map.entry("vaadin.node-auto-update","false"),Map.entry("vaadin.require-home-node-exec","false")));
         app.run(args);
     }
     @Bean SecurityFilterChain security(HttpSecurity http)throws Exception {return new UniDrUiSmokeApplication().security(http);}
     @Bean RlsCurrentUser currentUser(){return ()->SecurityContextHolder.getContext().getAuthentication().getName();}
     @Bean MetadataResolver metadata(){return new MetadataResolver();}
+    @Bean EntityDescriptorCatalog descriptors(EntityManagerFactory factory,MetadataResolver metadata){
+        var sections=new SectionMetadataRegistry("org.ip.model",metadata);sections.afterPropertiesSet();
+        var managed=new ManagedEntityCatalog(factory);
+        var recorderTypes=new org.ipro.register.RecorderTypeRegistry(managed,factory,metadata);recorderTypes.initialize();
+        var registers=new org.ipro.register.RegisterRegistry(managed,recorderTypes);
+        return new EntityDescriptorCatalog(managed,sections,metadata,List.of(),List.of(),
+            List.of(new org.ipro.register.RegisterClassificationContributor(registers)));
+    }
     @Bean RlsDimensionRegistry dimensions(){var registry=new RlsDimensionRegistry("org.ip");registry.rebuild();return registry;}
     @Bean AccessService access(AccessGrantRepository grants,RlsDimensionRegistry dimensions){return new AccessService(grants,user->List.of(),dimensions);}
     @Bean C5PermissionEvaluator permissions(AccessGrantRepository grants){return new DefaultC5PermissionEvaluator(grants,user->List.of());}
@@ -77,36 +85,37 @@ public class UniDrQuerySmokeApplication {
         return new ReportQueryGuard(new SqmQuerySemanticAnalyzer(factory),access,dimensions,current,factory,authorizer);
     }
     @Bean ReportQueryExecutor executor(EntityManager em,RlsFilterActivator activator,RlsCurrentUser current,ReportQueryGuard guard,ReportReadAuthorizer authorizer,
-                                      CanonicalReadExecutor canonical,EntityManagerFactory factory,MetadataResolver metadata){
-        var executor=new ReportQueryExecutor(em,activator,current,guard,authorizer);
-        var sections=new SectionMetadataRegistry("org.ip.model",metadata);sections.afterPropertiesSet();
+                                      CanonicalReadExecutor canonical,EntityManagerFactory factory,MetadataResolver metadata,EntityDescriptorCatalog descriptors){
         var managed=new ManagedEntityCatalog(factory);
-        var descriptors=new EntityDescriptorCatalog(managed,sections,metadata,List.of(),List.of());
         var policies=new EntityDataAccessResolver(descriptors,mock(EntityDataAccess.class),canonical,List.of());
         var names=new org.ipro.fetch.instance.InstanceNameResolver(managed.managedEntityClasses(),metadata);
         var presentations=new org.ipro.data.presentation.EntityPresentationService(new CanonicalEntityReadAccess(canonical),policies,names,metadata);
         var recorderTypes=new org.ipro.register.RecorderTypeRegistry(managed,factory,metadata);recorderTypes.initialize();
-        executor.usePresentations(presentations,recorderTypes);return executor;
+        return new ReportQueryExecutor(em,activator,current,guard,authorizer,
+            new org.ipro.query.QueryResultLabelPresenter(presentations,recorderTypes));
     }
     @Bean EntityParamRefresher refresher(EntityManager em,RlsFilterActivator activator,RlsReadGate gate,RlsCurrentUser current,EntityManagerFactory factory){return new EntityParamRefresher(em,activator,gate,current,factory.unwrap(SessionFactoryImplementor.class));}
     @Bean ReportParamResolver resolver(EntityParamRefresher refresher,AccessService access,RlsCurrentUser current,EntityManagerFactory factory){return new ReportParamResolver(refresher,access,current,factory.unwrap(SessionFactoryImplementor.class),new ObjectMapper(),"BRANCH");}
-    @Bean QueryBuilderMetadataCatalog constructorCatalog(EntityManagerFactory factory,MetadataResolver metadata,RlsReadGate gate,RlsCurrentUser current){return new QueryBuilderMetadataCatalog(factory,metadata,gate,current);}
-    @Bean org.ipro.reportstudio.query.register.RegisterSliceReportTemplates recipes(EntityManagerFactory factory,QueryBuilderMetadataCatalog catalog){
-        return new org.ipro.reportstudio.query.register.RegisterSliceReportTemplates(factory,new org.ipro.register.RegisterRegistry(new ManagedEntityCatalog(factory)),catalog,null);
+    @Bean org.ipro.query.ui.selection.EntitySelection entitySelection(SelectionFormAssembler selections,EntityLookup lookup){return new org.ip.views.query.FormEntitySelection(selections,lookup);}
+    @Bean org.ipro.unidr.model.UniDrDefinition initialDefinition(){return org.ip.unidr.model.UniDrDefinitions.receivingItemsSummary();}
+    @Bean QueryBuilderMetadataCatalog constructorCatalog(EntityManagerFactory factory,MetadataResolver metadata,RlsReadGate gate,RlsCurrentUser current,EntityDescriptorCatalog descriptors){return new QueryBuilderMetadataCatalog(new org.ipro.metadata.ManagedEntityTypes(factory),metadata,gate,current,descriptors);}
+    @Bean org.ipro.query.register.RegisterSliceReportTemplates recipes(EntityManagerFactory factory,QueryBuilderMetadataCatalog catalog){
+        var managed = new ManagedEntityCatalog(factory);
+        var recorderTypes = new org.ipro.register.RecorderTypeRegistry(managed, factory, new MetadataResolver());
+        recorderTypes.initialize();
+        return new org.ipro.query.register.RegisterSliceReportTemplates(factory,new org.ipro.register.RegisterRegistry(managed, recorderTypes),catalog,null);
     }
     @Bean ReportQueryAssemblyService assembly(ReportQueryGuard guard,ReportParamResolver resolver,EntityParamRefresher refresher,QueryBuilderMetadataCatalog catalog,
-                                             org.ipro.reportstudio.query.register.RegisterSliceReportTemplates recipes){
+                                             org.ipro.query.register.RegisterSliceReportTemplates recipes){
         var assembly=new ReportQueryAssemblyService(guard,resolver,refresher,catalog);assembly.useQueryLanguage(new ReportQueryLanguage(catalog,recipes));return assembly;
     }
     @Bean QueryEditorAnalysisService analysis(ReportQueryGuard guard){return new QueryEditorAnalysisService(guard);}
     @Bean QueryMetadataCatalogService queryMetadata(EntityManagerFactory factory,MetadataResolver metadata,RlsReadGate gate,RlsCurrentUser current){return new QueryMetadataCatalogService(factory,metadata,gate,current);}
     @Bean ReportPreviewService preview(ReportQueryExecutor executor){return new ReportPreviewService(executor);}
-    @Bean ReportCompiler exporter(){return new JasperReportCompiler();}
+    @Bean JasperExporter exporter(){return new JasperReportExporter();}
     @Bean ReportRunQuota quota(){return new ReportRunQuota(2);}
     @Bean(destroyMethod="close") ReportTaskExecutor worker(){return new ReportTaskExecutor(1,4);}
-    @Bean CanonicalReadExecutor canonical(EntityManager em,EntityManagerFactory factory,MetadataResolver metadata,RlsFilterActivator activator,RlsReadGate gate,RlsCurrentUser current,C5PermissionEvaluator permissions) {
-        var sections=new SectionMetadataRegistry("org.ip.model",metadata);sections.afterPropertiesSet();
-        var descriptors=new EntityDescriptorCatalog(new ManagedEntityCatalog(factory),sections,metadata,List.of(),List.of());
+    @Bean CanonicalReadExecutor canonical(EntityManager em,EntityManagerFactory factory,MetadataResolver metadata,RlsFilterActivator activator,RlsReadGate gate,RlsCurrentUser current,C5PermissionEvaluator permissions,EntityDescriptorCatalog descriptors) {
         var canonical=new CanonicalReadExecutor(descriptors,new ScenarioFetchGraphResolver(metadata,null,null),metadata,activator,gate,null,ReadTelemetry.noop(),null,current,permissions);
         org.springframework.test.util.ReflectionTestUtils.setField(canonical,"entityManager",em);return canonical;
     }

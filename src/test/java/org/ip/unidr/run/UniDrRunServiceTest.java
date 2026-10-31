@@ -1,12 +1,11 @@
-package org.ip.unidr.run;
+package org.ipro.unidr.run;
 
 import org.ip.unidr.model.UniDrDefinitions;
-import org.ip.unidr.query.UniDrQueryService;
-import org.ip.unidr.render.UniDrReportCompiler;
-import org.ipro.reportstudio.render.ReportCompiler;
-import org.ipro.reportstudio.data.*;
-import org.ipro.reportstudio.query.ReportRunQuota;
-import org.ipro.reportstudio.run.ReportTaskExecutor;
+import org.ipro.unidr.query.UniDrQueryService;
+import org.ipro.unidr.render.UniDrReportCompiler;
+import org.ipro.report.data.*;
+import org.ipro.query.ReportRunQuota;
+import org.ipro.report.task.ReportTaskExecutor;
 import org.junit.jupiter.api.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,7 +22,7 @@ class UniDrRunServiceTest {
     private final UniDrAccess access = new UniDrAccess(enabled::get, () -> SecurityContextHolder.getContext().getAuthentication().getName());
     private final UniDrQueryService queries = mock(UniDrQueryService.class);
     private final UniDrReportCompiler compiler = mock(UniDrReportCompiler.class);
-    private final ReportCompiler exporter = mock(ReportCompiler.class);
+    private final org.ipro.report.render.JasperExporter exporter = mock(org.ipro.report.render.JasperExporter.class);
     private final ArrayDeque<Runnable> queue = new ArrayDeque<>();
     private final ReportRunQuota quota = new ReportRunQuota(2);
     private final UniDrRunRequest request = new UniDrRunRequest(UniDrDefinitions.receivingItemsSummary(), Map.of(), ZoneOffset.UTC);
@@ -124,10 +123,10 @@ class UniDrRunServiceTest {
         when(compiler.compile(any(), any())).thenAnswer(call -> {
             assertThat(access.requireUser()).isEqualTo("alice"); assertThat(quota.activeRuns()).isEqualTo(1);
             assertThat(org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
-            throw new org.ipro.reportstudio.render.ReportRenderException("Макет");
+            throw new org.ipro.report.render.ReportRenderException("Макет");
         });
         var ticket = service.submit(request); finish();
-        assertThatThrownBy(() -> ticket.completion().toCompletableFuture().join()).hasCauseInstanceOf(org.ipro.reportstudio.render.ReportRenderException.class);
+        assertThatThrownBy(() -> ticket.completion().toCompletableFuture().join()).hasCauseInstanceOf(org.ipro.report.render.ReportRenderException.class);
         assertThat(quota.activeRuns()).isZero();
     }
 }

@@ -96,8 +96,7 @@ public class SubsystemSummaryAssembler {
 
         List<EntityFacet> unassigned = new ArrayList<>();
         for (EntitySummaryAssembler.EntityRef ref : entityAssembler.entities()) {
-            EntityMetadata annotation = ref.entityClass().getAnnotation(EntityMetadata.class);
-            if (annotation != null && annotation.subsystem() == Subsystem.NoSubsystem.class) {
+            if (entityAssembler.subsystemOf(ref.entityClass()) == Subsystem.NoSubsystem.class) {
                 unassigned.add(facetOf(ref.entityClass()));
             }
         }

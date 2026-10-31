@@ -1,0 +1,978 @@
+[
+  {
+    "path": "org\\ipro\\form\\BindingDescriptor.class",
+    "sha256": "13ac135c70131fa3e3810022767d32f27dbfce0d3a579a87d5f7dc06b5de3055"
+  },
+  {
+    "path": "org\\ipro\\form\\CatalogOwnerForms.class",
+    "sha256": "200f3edad790ecace84be5d7bbcd5e98ca5d4f54b0adcd20e4c42a11c86900f5"
+  },
+  {
+    "path": "org\\ipro\\form\\Dirtyable.class",
+    "sha256": "e65168085b03d30ab76fa661e471563ff76692472edcec36ff1a87c7487506ab"
+  },
+  {
+    "path": "org\\ipro\\form\\EntityField.class",
+    "sha256": "f238bb3480f72fb179d8e6fd3b9b4b3e896187e2ae4a8e5772263cbf4d0515a9"
+  },
+  {
+    "path": "org\\ipro\\form\\FieldFactory.class",
+    "sha256": "cc1af65ad553cf61ffb3e77fed1da41dda7325dbbb05152d0f2377358b37b055"
+  },
+  {
+    "path": "org\\ipro\\form\\FieldFactory$1.class",
+    "sha256": "cc6967bebbc353c4ed82ca4b8f766bfbfa00ce6d488ee9c26689c34a280d7404"
+  },
+  {
+    "path": "org\\ipro\\form\\FieldRenderer.class",
+    "sha256": "bead2a2dd095eb85a9910ad56d0a4743e5808d6826bc20cd1e9bdeff65198eda"
+  },
+  {
+    "path": "org\\ipro\\form\\FieldRenderer$1.class",
+    "sha256": "e74cc5fa2ebbd57d15424d3ebe2efde3dc459532daa5fdb9d8ef5eba073ddb49"
+  },
+  {
+    "path": "org\\ipro\\form\\FilterGridMoreMenu.class",
+    "sha256": "4c5cc128f526d2aa0299bb9d6592c1de7b49f3ffa1da93d1ceb7fe5712efcd41"
+  },
+  {
+    "path": "org\\ipro\\form\\FilterLookupOptions.class",
+    "sha256": "e0179ec88b44b3faade3dbdeaeac2018c2132a69b09c8b3bce95b4be127d888f"
+  },
+  {
+    "path": "org\\ipro\\form\\FormBinding.class",
+    "sha256": "dc63e673ec1a8e066fa2e7df4c935a3be459a0f76ae5ba306f5b4a53babb184d"
+  },
+  {
+    "path": "org\\ipro\\form\\FormBindingRegistry.class",
+    "sha256": "f9486fc655f485cae5f736f435f8057bb3500797bccf62c6ce76a7a9fd8440c3"
+  },
+  {
+    "path": "org\\ipro\\form\\FormMessages.class",
+    "sha256": "32121c663dcec9e5e33daafe03e7e209918112e9136acb7c0becdf75ef467986"
+  },
+  {
+    "path": "org\\ipro\\form\\FormSaveHandler.class",
+    "sha256": "4341a22d31e1e98ea3b8807cf2bc709829f96f0311c9165f2ea3368b86f03706"
+  },
+  {
+    "path": "org\\ipro\\form\\FormSaveResult.class",
+    "sha256": "38c2b62a5beefd41270fc919a0c60168974e38d227e848afb9960ed559d49b9d"
+  },
+  {
+    "path": "org\\ipro\\form\\FormSaveResult$Conflict.class",
+    "sha256": "776b04a418c4100fa4bc9bae466396b467b1bc3c888d439ad3ec52f86fb69b4c"
+  },
+  {
+    "path": "org\\ipro\\form\\FormSaveResult$Failure.class",
+    "sha256": "c67f2f654a906e9c737b92f33d727f3d1978b950df4f66f10eed0d245d408be8"
+  },
+  {
+    "path": "org\\ipro\\form\\FormSaveResult$Success.class",
+    "sha256": "8e89573fcfd4064da437d8ec529bf913d4d04d3b6442b3923f8c528110d4d0d8"
+  },
+  {
+    "path": "org\\ipro\\form\\ItemFormSaveHandler.class",
+    "sha256": "1ad849f114fdac15b900a44cebd11daab04ef6d29bf0db21fb50c8ed04748606"
+  },
+  {
+    "path": "org\\ipro\\form\\ItemFormSaveHandlerRegistry.class",
+    "sha256": "bc3aff5d88955905ac1fd2af85ec556d9e5f7f4350f8166b7f97b2bbc81762a2"
+  },
+  {
+    "path": "org\\ipro\\form\\LookupComboHelper.class",
+    "sha256": "efa85469362c9f9e0e7e6ed91cade517b72193405df6865361d44120cdf981f7"
+  },
+  {
+    "path": "org\\ipro\\form\\MetadataDrivenItemFormSaveAdapter.class",
+    "sha256": "643ac726248f882e4bdd02d49f6b275716ceb47af701a67c0a2de0fb1e88c098"
+  },
+  {
+    "path": "org\\ipro\\form\\Savable.class",
+    "sha256": "45e1db33a4796c8553f095e17cfb0c287b0c7a6ecf1418ee6582555e4a89ca37"
+  },
+  {
+    "path": "org\\ipro\\form\\SearchFunction.class",
+    "sha256": "377aaadb61e8ff4293598ed1076f3c46d54ad6ed6f6e917e6ccf8289db843cb0"
+  },
+  {
+    "path": "org\\ipro\\form\\SectionPayload.class",
+    "sha256": "c1f2d1838b372b1f844f5533a189501b752865a880b59ea2046b5369983abab8"
+  },
+  {
+    "path": "org\\ipro\\form\\SectionPresence.class",
+    "sha256": "f3320fb7cb520cd5ef885c3f39529fe55463c96bf2bb2a4b6a15f086aea1fc3e"
+  },
+  {
+    "path": "org\\ipro\\form\\SelectionForm.class",
+    "sha256": "9286208bc8ebda01be7bf81b96f1a7a48738946036d396f6ec9747a018b00964"
+  },
+  {
+    "path": "org\\ipro\\form\\SelectionFormAssembler.class",
+    "sha256": "aa87cf15c8c8e814bc98452371a130b2c928fc2a2cbefc432680bb8f3571d7da"
+  },
+  {
+    "path": "org\\ipro\\form\\SelectionFormAssembler$ResolvedSelection.class",
+    "sha256": "a1ecf5eda846870688c7f1b3bed96b7842bb6999654fd6d0e980740816420dfa"
+  },
+  {
+    "path": "org\\ipro\\form\\SelectionFormFactory.class",
+    "sha256": "b71a00d03ab4b235ab4ec79171eed61da30f17d6ff143728652b72bb5fb11933"
+  },
+  {
+    "path": "org\\ipro\\form\\SelectionGridCustomizer.class",
+    "sha256": "db9e46d19c102c58ab5118f0ed1a9ed9d26d47044101875ba608d4f565c0ff11"
+  },
+  {
+    "path": "org\\ipro\\form\\TableSectionCustomization.class",
+    "sha256": "1b18b0827146ee32a9ecd756e355541425c01b4086ec1eb91de37c4e8dd1f535"
+  },
+  {
+    "path": "org\\ipro\\form\\TableSectionFactory.class",
+    "sha256": "cce321311696b8b4f8bba0a645bc90511ed7256f134a11b6be902fa691beac40"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionContext.class",
+    "sha256": "3c5ca96643ea9fd81953d23268afb34f71164fd83ff110497983f96417eb3c48"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionContext$RowState.class",
+    "sha256": "e9c33905cf8162a3ad4c3db83e6cc937a9706974d52126dc386481a2d1e91557"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionContextProvider.class",
+    "sha256": "1c58cb4305b0baea9d4a464ddca7364ca071798d420dfb3146314c5a0b1f089d"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionDecision.class",
+    "sha256": "550086007346cd4d5ab778ca89752c9f928d07631ee948b23cb8109d5dd07310"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionDecision$Reason.class",
+    "sha256": "68385a4b2d04ebe360fa660ed5536a8d3d0a8fd84f355a9decb9d4dd182aa302"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionDefinition.class",
+    "sha256": "f7e318a3f25c017fddac6a32e4c5d5468856f8b3b5069b97d95f273cb91ffe69"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionHandler.class",
+    "sha256": "943cc6e20e0787df8a4e45e04aec91df912ae3ace993376c3f7af59e25aaa658"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionHandlerRegistry.class",
+    "sha256": "a69c8910f8a9614a29500ea307a9e69d5cb17748b44c22b4871bf3aae452aa6f"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionId.class",
+    "sha256": "b63d73cc646f2fecc39e453f75f967e32e1572c5bc16d22965efaafedbdea806"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionInvocation.class",
+    "sha256": "d2f55d939354672473f9a22802ea29dbc0685441dc78936be92ff687173d985b"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionPermission.class",
+    "sha256": "6998b7ecd565dc7b364fb214fc17b06f97bdbe3c2b2810b2982a86e64bb268a1"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionPolicy.class",
+    "sha256": "d08acf444215e16e5259a271e5ad5ab14ff6c81e360490675582538949b9d7fd"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionPolicy$1.class",
+    "sha256": "3b5a17aacaad0104dd38bc2c875df352da9741f9c27276b7eaaea2312a6bf473"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionPolicy$Effective.class",
+    "sha256": "57dd00cb77b96dcc8072d6868aef92a71d87dc5838c67fe89bc0f4e141c79b89"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionProvenance.class",
+    "sha256": "cb3df8af7a48c0943b01decfe406c4db653febb48bc85532dde69c881700b559"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionProvenanceCatalog.class",
+    "sha256": "5c61dd93f181489763d6fb90cfb0753382d3146d829a4f71e8c0f5abdcfbe756"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionRegistry.class",
+    "sha256": "67be4cb2be86836451ff1c455eec9590f3ebd8d40c5802ed2231eb5f566888d8"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionRegistry$Key.class",
+    "sha256": "0aef0be25de5af61d329737236c4d991327f658fd4b572b5e8dd21fd19597768"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionRegistry$Registration.class",
+    "sha256": "fb7244365743e4c33ec2c495265db7370003bae6ca30548647746cc0a7809b74"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionRequirement.class",
+    "sha256": "db58c7e76557ae3e4e7424137de8e161adada1feba21ae34bfdeece3acb83d42"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionRequirement$Level.class",
+    "sha256": "1c41fec2d4cccb93442d4c96553707a507fbee41828b9b7e956d91953e8e932b"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionResolver.class",
+    "sha256": "099168c6185670d590bf35ef4ffaf261b7bd7ac96a66384f12e611c58b0258ce"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ActionSurface.class",
+    "sha256": "e5455d61dadac169db1fb53bcfdca0edc1f0b23ab456f6710f94e275921dedff"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\CopyLinkButton.class",
+    "sha256": "f3309b41a7da6443d93d7ed3db5ddc5771eaa60be1b213afa63b84d71ed42f52"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\CrudAction.class",
+    "sha256": "5b04a1a08d334864e4c012a140bffbc5990f686de5e918d6df4bc33cbaf7ff7f"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\OperationPermissionSource.class",
+    "sha256": "e543fb7418f3ee9faee1bd9be2584ec151b90f1a5c72e621b0417ec90f8cc67b"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ReadOnlyReason.class",
+    "sha256": "e72e10368f69dc3f95b7c1fca6c8b41b90622deab3866540e3bcfa1f86894793"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\ReadOnlyReason$Kind.class",
+    "sha256": "a6d6869e57b4265fdee8564dec7800c3d5e3896d5d1b5cf8565e216b4bfc2d1a"
+  },
+  {
+    "path": "org\\ipro\\form\\action\\RouteLinkability.class",
+    "sha256": "c7c8abc539aa344ead02ae5dbd4aa1f47990a74e5fe9081d89369125abdb22c8"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ContextFilterControl.class",
+    "sha256": "6ecc81da11429a8af772ec2993141493c1bf18be650e79f134739837869d15cd"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ContextFilterField.class",
+    "sha256": "13390889139277b5896028fbc9ddbaaff9dfda36570647bd39db7319b58624ca"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ContextFilterPanel.class",
+    "sha256": "44cfc9d8fd135943b980b52c29673e53f4bf5b57c224fd7e5d559aa0944b58fa"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ContextFilterPanel$1.class",
+    "sha256": "4e4cc5580333b0cd3521bac40a28525fd04caa3d41716296f1dc6a076157ad80"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\FormTypeCustomization.class",
+    "sha256": "eed6872ce7bb98fec983304a64fa701a3537b605b2ac52f486dfd783fc00f123"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ItemFormCustomization.class",
+    "sha256": "0e761e441d98c328edaeb714b409f408dd45abb3f45b6826fe68912af8780a9e"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ItemFormCustomizationRegistrar.class",
+    "sha256": "42bac41f44c0e60912b61f81fc692d5160979dd42864272ab947e374f8ba31be"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ItemFormCustomizer.class",
+    "sha256": "2dbe994eca90f6623537def848f427baec83b310a97e91fe623aa17768abcb42"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ItemFormVariants.class",
+    "sha256": "97160efbc23f7ce2d5d33ecc09e7e9520e2c265364ec45922b084fed59e83266"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ListFormCustomization.class",
+    "sha256": "7a2f6e29dbc177ab532910f7dbd39db5d0355bbe2a87305a55eca649f350a65d"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ListFormCustomizationRegistrar.class",
+    "sha256": "5b561dc21dbd36b04c1ed56e6126ffb9e34a1080ca2bbb23f3dd73eb99807e26"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ListFormCustomizer.class",
+    "sha256": "a66148b75cf61b9b4f094d012f4439e54024a08b4f8d60d38cebb1b4fb1d2c28"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\ListFormVariants.class",
+    "sha256": "42aa361b97f06852866803a287c146873eda46f74ca33fd498a9503424b93224"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\SelectionColumnResolver.class",
+    "sha256": "e13427af063b533f67c560d90ad29d77cb4105642503698060bd77fa1c95064b"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\SelectionContextFilters.class",
+    "sha256": "ea74a0f88791f690489c3761256e908bb03180619f895b5c0fd28168cc1a6d25"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\SelectionFormCustomization.class",
+    "sha256": "8aebc95ae402e9656a41bdd0a63b20e0a63c3479571e5e3c73d79d68eb5a03a5"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\SelectionFormCustomizationRegistrar.class",
+    "sha256": "a26f24d89c2223959f70af0b9d8f5cc3d97323d35e07ebd0e4ef8421e8d347cc"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\SelectionFormVariants.class",
+    "sha256": "190ae20f257871774fbb9483a53fc07ce7152a71029efeb5438e529c5011e58f"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\layout\\CustomNode.class",
+    "sha256": "56942b10da666ba104e20c756eae81833398c92d738636fbf554fd17b4d619aa"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\layout\\DisplayNode.class",
+    "sha256": "6eeb6c1bc03260233703298b4d1e3974a1f77d5e49e231e14fad32147852875b"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\layout\\FieldNode.class",
+    "sha256": "9c5cb560a97451789d9565a939f12a28550d7a126d93a5c5f6277d52c86dcdf2"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\layout\\ItemFormLayout.class",
+    "sha256": "0aba07f806417acf9d2718b6e2a8a09158c7f64d180ecc971e6d1b8b25a3761e"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\layout\\LayoutNode.class",
+    "sha256": "50a859d6753b73ee69cde1a2f4f93f9de2f4f9f4067bb7fff6da10b18ccc0660"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\layout\\PanelNode.class",
+    "sha256": "1284e293300f0b0cde91183eee6b20799ac8fea7551dc59478f705da132db8d4"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\layout\\TabDefinition.class",
+    "sha256": "927f155798ad8d53e2975c6c9f006cbd9861ffc5d619ba82749bf7464dfb1181"
+  },
+  {
+    "path": "org\\ipro\\form\\builder\\layout\\TabSheetNode.class",
+    "sha256": "0e23a0e996a073621898689273f79653556b1b0195191931015c7f08b129ca2c"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\DateTimeRangeFilter.class",
+    "sha256": "c2de4894ff78402e6804e8af844b3482ed78c0e975935c5db23ddace56685998"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\GridViewEditorDialog.class",
+    "sha256": "9b29b27c4ef9aba02c2045d9e5efb48e9ba3b8b72d047133eab3be28cba07679"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\GridViewEditorDialog$1.class",
+    "sha256": "c165bba263a8ecfc0943d680bd1a3e24bd648a3e7cc9aa7fae2720f0c7848004"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\GridViewEditorDialog$AvailableField.class",
+    "sha256": "7784fdc7bc6e8c5a6628d3764caefca8a1f3d78e793b9d48dc119b9fbe26e059"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\GridViewEditorDialog$SelectedColumn.class",
+    "sha256": "170a7888f9ef045a8f9a0f7287ce578db179622c5bad13ff901976831cf223cf"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ItemForm.class",
+    "sha256": "dfe9b06e487cfc2908c36cc8d3455b01695ea1f57b3cb6df0a6d58b34ba26b90"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ItemHistory.class",
+    "sha256": "08dd6437e31b1e8adb86f42b3742554cea6e70279d9e3e943e7f9a07fc3d07e8"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ItemHistory$FieldDiff.class",
+    "sha256": "458b5065d6004f4dc3a079bb8c9c68c5f213b60d93584f74365e954952d8a66f"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ItemSectionHost.class",
+    "sha256": "1c70843aae0a4d635c294914967a58fab755a907801d68e2e975ce6691c42335"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ItemTable.class",
+    "sha256": "3fffa535279faaf0b6997697248fef2c89a71acd27f786cfc84336a191526711"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ItemTable$AddOption.class",
+    "sha256": "47b8d8e1f798eacc031b1bd34e9e43e665687e849e4f02ab7acab493e355f198"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ListForm.class",
+    "sha256": "df1a15e6c7be1079684c568f0ca6715c023d00a0eeb33732e07bbcfcf8f4c36e"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ListForm$1.class",
+    "sha256": "b28871e30596bcc2528999c4a6669cf15796d31ea2b8033c2b6eb0f26ce2fe64"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ListForm$SelectionFormProvider.class",
+    "sha256": "eb23086a94b600b8be3d9c2d08fcc73ac970ab3123c01d334a3902b16d5e862a"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ListFormJpaFilterGrid.class",
+    "sha256": "d19ea285c8f6b3d4584e6d6e962455a1501ee7871454420d87e879d0e3101a58"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ListFormVisualFilterAdapter.class",
+    "sha256": "4059917851eab076a388314ac0c43f7ef56ef37047706f8ddaad0290bd812770"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ListPageReader.class",
+    "sha256": "56c3f42c1d6d6852975a811fd3603ec389cf57df6820066b1d5e46903b8d476c"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\RowDraft.class",
+    "sha256": "31609d74a066bcc11201739fc8a0c8877e4e4d414a86e0aeb1874ad65656ff1c"
+  },
+  {
+    "path": "org\\ipro\\form\\builtin\\ViewSelectorDialog.class",
+    "sha256": "c00c9f5a5b047f9f4f6a0346e62af96b2c88fad16c2b7b120820f745dccb9f5d"
+  },
+  {
+    "path": "org\\ipro\\form\\config\\FormAutoConfiguration.class",
+    "sha256": "70e9d0fa7ea679c17f54aec5e0bdd01bfd776bb7b8bb5d1af7acc01d9736e907"
+  },
+  {
+    "path": "org\\ipro\\form\\config\\FormAutoConfiguration$1.class",
+    "sha256": "03ca23d1c83f185d3d8221450471872d38abe7e6739c6b186fb49664839298ec"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\AccessDenialPresentation.class",
+    "sha256": "d11660b6f942e30986368f155896e4389ef65caf7291a5f3ee691d3bfbff2fa0"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\AccessDenialPresentation$1.class",
+    "sha256": "7878fb60b580b54ae0f474a0c319c48a623499e5c1efdcc60fabadbba14c96b2"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\AccessDenialPresentation$Report.class",
+    "sha256": "851f818aa9125c887743baa1205c8caa9f29b2dd0864a5fe6b5ef372dd20f071"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\FormCoordinator.class",
+    "sha256": "aefab67e96908dc2465c0fdcf83d9e448b9897313af56b5150d308f66e53bef7"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\FormNavigator.class",
+    "sha256": "37758feec710b4c27a3046c3f75ccd3c5924195645b9e934cab2ecb1673d659c"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\FormOpenMode.class",
+    "sha256": "1daf1424d6b2b2b6cafceae4ba92f09d97a35ef8541d81d80034b57a11113a3c"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\FormStructureAffordance.class",
+    "sha256": "45c75a02306f082cffb49fea0a65943c9eddae9a451ec03cbfb35797e7115718"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\ItemFormAccessBinder.class",
+    "sha256": "a5b3b88449bedde738256cdd888e32a01deb5c775b73de8a3b2d1f26c58bb456"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\ItemFormAccessBinder$1.class",
+    "sha256": "130725f3f8596747386614b573485e9410896809e0abafb706d9cd42f85754b7"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\ItemFormLinkAffordance.class",
+    "sha256": "da28f02e64d8c1d47d371cd9373fba9d62e9bc4648bb56013621e62ceebe3cd0"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\ItemFormWrapperView.class",
+    "sha256": "c388d3c6a20fd28210a24a352bf4478dc9ce2409b2d8fecd18ce50780ab82031"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\ItemFormWrapperView$RecordUnavailableException.class",
+    "sha256": "7cbb00b2fdcd80c7007b30314b5c428cfea48866863c32b0d2e0ac09c350c592"
+  },
+  {
+    "path": "org\\ipro\\form\\coordinator\\ListFormWrapper.class",
+    "sha256": "fa9eb74f3192d53e8fb22edb73ab95035ac234ac151b227c5b21bac5ecd5e87d"
+  },
+  {
+    "path": "org\\ipro\\form\\host\\BrowserHistory.class",
+    "sha256": "9d81e64581c71c9f6b8f347331b7a85f59ee765309daf7d7ba264259f8498266"
+  },
+  {
+    "path": "org\\ipro\\form\\host\\FormRouteUrlBridge.class",
+    "sha256": "30c31cd132a4caf19629ce4bf3c476fb0cabee3376d99ccdde97c6d55a36eb9a"
+  },
+  {
+    "path": "org\\ipro\\form\\host\\FormRouteUrlBridge$PageHistory.class",
+    "sha256": "68e73fa5f90d42f1245f656296617dfb1942207eda6f5377c1b6db532b3f793b"
+  },
+  {
+    "path": "org\\ipro\\form\\host\\RouteStatePage.class",
+    "sha256": "7323cac2fa691e7eaec1eab9262da826cf6dbc005c6039e2a12f6e853b821669"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\ApplicationBasePath.class",
+    "sha256": "20a7c15ebf0037a7de5bdb6ba80a0735a5a6a5c1836e1305e5b4976007d6664a"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\EntityExplorerAddress.class",
+    "sha256": "22e6898a419f51ad722fa94e35412d4fe8263f0d04100744af0cc0882bc81ddf"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\EntityExplorerAddress$Address.class",
+    "sha256": "0a59571956e7b2f4d195611b74916d1b156f2b0b7d2b0c503cbf3105fc3db16e"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\EntityStructureNavigation.class",
+    "sha256": "9d3907d2e683a1eeeb22aa44e2bc47218948413af112a3adb5e2f1d8f7df6080"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\EntityStructureNavigation$Availability.class",
+    "sha256": "0ddbe2445ad12a9ed58de92306457cf2674209f599435b502b9d4d94bd04aba5"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\EntityStructureNavigation$OpenResult.class",
+    "sha256": "7fef1ad246759321a2e32ce4499bca95f865a5036587b377cefb652741fc20db"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\EntityStructureNavigation$OpenResult$Opened.class",
+    "sha256": "d7c0505c8ffb467cb3e5ab5e49f980f0a17b176b8d3b59fe45aff43c12a4d39e"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\EntityStructureNavigation$OpenResult$Unavailable.class",
+    "sha256": "366de5fc60bfbd5f41d3023a6b49331fa6fe5d043a7e8d59563e603c42705a25"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormLinkResult.class",
+    "sha256": "b1bf294a47fbc30837b6a2f6d45a809d23a9b4e44b43198384ad57db01c82ff7"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormLinkResult$Linkable.class",
+    "sha256": "5d4a624a649e85b187a7e9f914b98c71d19be2dd27315d124f7b8387f454508b"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormLinkResult$NotLinkable.class",
+    "sha256": "da72b4c6d0f698db36b042403c815f80252c3f29d62e76c60dcc4f97fd56d872"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormLinkService.class",
+    "sha256": "1723897da1247d5afb135deca53fc443d6586d0f0355b922130667332984ca54"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRoute.class",
+    "sha256": "12101fc0f603d28f97e7d5538ffebbacdf7ae08ba8746f9d6d0c9b8da8001fe5"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteAliasDeclaration.class",
+    "sha256": "951a6f54889c7bf07c53c58fe39e4037c5b9c581b7aa6f733ad1632017bf45f9"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteCatalog.class",
+    "sha256": "46fb9cd378b1cd118c86b6baf132f386ca42fc9056e287da2a3f7553808f4aa2"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteCatalog$Draft.class",
+    "sha256": "f17abe22961f78db3e4ec01429b241f6a6855d5e33eb68c5dadf72e2f59530cc"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteCatalog$Snapshot.class",
+    "sha256": "920913c854d5327b8af29d86f43a4a0e3b7248d09ac65548cc394287d2d9ff35"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteCodec.class",
+    "sha256": "2a99b302df164c23ad122b4a9925451c088dd5509fe4ed8d092557a3138a73fe"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteCodec$VariantParse.class",
+    "sha256": "9934c527b1c5e5ef646f0a4d122baa2a127f0cae60f56dd0018b1b4c74dcbf15"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteKind.class",
+    "sha256": "f470321f316ec17f6e4c9b143931207015b676fbc000974d48b11e3d92b5707c"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteOpener.class",
+    "sha256": "af1a37c480ab9d7cd3db54b1b4e01c10852b36bb7a6e3fc6cbb4bbf1108d57bd"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteParseResult.class",
+    "sha256": "962979940fe22ee2ea27d15a3e692615bc290093a59094120e1cdf2005999cc0"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteParseResult$Parsed.class",
+    "sha256": "bf19634ae394a69de638169370bdf6f18e5855f81b15745336a6a87f8dcc8ca5"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\FormRouteParseResult$Rejected.class",
+    "sha256": "c24bcea454f2b79c805d2d1fecaa602f7f07d0378537afd4ed6c660c6331c3c6"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\ListViewStateToken.class",
+    "sha256": "d1e23e5e4dddca36038cde13bcc2772684f6d444d89f81b8f8720d3a57c9033c"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\NotLinkableReason.class",
+    "sha256": "875c5733ba0e2aa82ed5aaddddb53e2f232fd2099cffbed0a74ef5c36999e4a4"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\OpenResult.class",
+    "sha256": "e997eede83f786338fa22eb528fdf0d197603949584cc9bfe24483630bae255d"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\OpenResult$Forbidden.class",
+    "sha256": "5cb7ac7fe1e30077af1da095ead17d76545b99d2652408eb2a8b64f6c9699729"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\OpenResult$InvalidRoute.class",
+    "sha256": "21c515e958f0b23d67f297ec034777df523dc5d0d6b82e930ce29b6babf929d8"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\OpenResult$NotFound.class",
+    "sha256": "f3349328e37596ccd50c57983fe5b788f33a4cab8e3f76d664556fc3918414d3"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\OpenResult$NotLinkable.class",
+    "sha256": "5939dda0c0b308a7367d817d3428f219377ac06c5068b744b4624bce7a24073c"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\OpenResult$Opened.class",
+    "sha256": "1c582843be2a915330acdeafb26177e1488cf05dacab10a823959c8b1407bef9"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\OpenResult$Unavailable.class",
+    "sha256": "f9633ed1025d24078aa10b02eca3306cc832d3ee2ab06186f1380a037444586c"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\PublishedFormRoute.class",
+    "sha256": "20e9c99530acd28b6fdebaf88f697b7f4447c2a096a628329ef470679f993adf"
+  },
+  {
+    "path": "org\\ipro\\form\\link\\PublishedFormRoute$Blockers.class",
+    "sha256": "c498b7b6e1dabfd4dba62262e150175fd80c9106be224e5dccee2ede2754f0e7"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormContext.class",
+    "sha256": "7962a9626bd35756f79ea997eba9d4417cd65a11cdcac7e4272e3fcccb5933e7"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormContext$Builder.class",
+    "sha256": "2c6625261c349e9b74533ab6dcd58ffd1cbc61be1e5a109db53d41ef6682153d"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormFactory.class",
+    "sha256": "fb81454af5343e048541c07b6f803ca301b4057cd886ff0efb15c837441ab62f"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormKey.class",
+    "sha256": "7fda720e20e8103c1f7e196d0b6c9eca2afa9f7cf2610aeb893ac67e306b35e9"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormRegistry.class",
+    "sha256": "aea5652c0dd248d5d0f6b53808bf16629c63d406b6a39bf73176b350470a4888"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormRegistry$Registration.class",
+    "sha256": "cb23b04ae92fdb8d013ae3c349a8022a80e70a4706e8785ab06ea1256a14a292"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormRegistry$RegistrationKind.class",
+    "sha256": "ce8bb7df70d5fe73a0e8ab5d46311480e589873a6d7df19f993b03c7852ee4b6"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormRegistryConfiguration.class",
+    "sha256": "8c8650c2862c125f37a08946c40014877815a68b3feb4adbf3b74b1e4bb47afa"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormResolver.class",
+    "sha256": "0e096f565ee29728552fc6a43e72c45ca0ab6770e0fae11928ca91795e95cfc7"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\FormType.class",
+    "sha256": "ac4a10f4e7144e11d5cd59d260d5f0eaec5ab970c5beabf01ead6fcf76b1128d"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\ListFormContext.class",
+    "sha256": "644646b32428a29d22607be079ed627b9f3b55a1735cd3842788fecca33d238d"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\SelectionColumnsDef.class",
+    "sha256": "b6937793e888913e183a8a14515148a55b7f7c37aa856cfbc2615b573dcbce98"
+  },
+  {
+    "path": "org\\ipro\\form\\registry\\SelectionFilter.class",
+    "sha256": "7363ca3d6d3d6a05bbf38c93967dfa53ad3b3b6ddfc30ae3d33d1623d5a6f195"
+  },
+  {
+    "path": "org\\ipro\\form\\spi\\FormSettingsStore.class",
+    "sha256": "6ff2038ac143440bd4fe6b181c0cf2a79ed4246c319695f287164534a8e754fd"
+  },
+  {
+    "path": "org\\ipro\\form\\spi\\GridView.class",
+    "sha256": "a00117799fb2b7606e6143a467d69f247cf144ced0f667bffd786d5eb1f9d8d2"
+  },
+  {
+    "path": "org\\ipro\\form\\spi\\GridViewStore.class",
+    "sha256": "f56866fa595c7a2edd9811ee64b541dc4473adb1376c606a92bbf636c73f910e"
+  },
+  {
+    "path": "org\\ipro\\form\\spi\\WorkspaceGateway.class",
+    "sha256": "1895293ac4c99d80dca4800c9d783ecd002a64e8e707b89f0e629abdfd1f203a"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntityStructureFactsAssembler.class",
+    "sha256": "1329357fbb0f29d627c9f55a07a485c57506012e3e1ee2b5c2127bd63705367e"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntityStructureFactsAssembler$FieldInput.class",
+    "sha256": "f7cf6bb08bccd4873dfa106f396ce5103222d0cdb45197c3d1816694cf90f9af"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntityStructureFactsAssembler$SectionInput.class",
+    "sha256": "9767c3ffd4d2c0c19266a7c8a4d22ad0c07cc2c21ad4de3a886cf6e6c8262a58"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary.class",
+    "sha256": "9c91cca93ab2430a5498d6d3795bf8377172fa7dbde5ff89f0fb0040d522bcf9"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$AccessRow.class",
+    "sha256": "92656707101b1bb862e83a0063bc8d9f85d645938c00ba6ef8401e08a666ae61"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$AccessRuleRow.class",
+    "sha256": "ed7332da89c27164515004ee5b83922122c79028e056b2608518ebab5e13edf0"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$ActionRow.class",
+    "sha256": "0ebeb07dad6bcf96cd2cc8344af0ec2398c81cd11b451585f215dc5c9c7725cf"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$ColumnRow.class",
+    "sha256": "629f73263dee9eb58ce9ee9e905b3fab7448b5680e1b10a01c290859e57d68b9"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$ColumnStorage.class",
+    "sha256": "699c9a9b9191992aba3e5cdca30f10cee9b063b9432b4f728f6b1ca827a2b518"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$DiagnosticRow.class",
+    "sha256": "673f3ecc73a032c3b0fae592f045d5b4e9f26ea1b4cdbd0a92e0a8438f5f331e"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$FacetRow.class",
+    "sha256": "55654568a9bd56985e04d1603b2863b0a152de74b3ba7081f9e7e498ef3ffaba"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$FieldApplication.class",
+    "sha256": "df75facb156b1e5d1deef0b1bd02952b38eed59bf4a9b252caacea34f08d51bb"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$FieldApplicationKind.class",
+    "sha256": "1c96100516fe9b98f9330ede1c92d173237abeec5cd51f5e11a26934c302c587"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$FieldIdentity.class",
+    "sha256": "eb125cdd3dc33c5dd44899f6cfa5ba8d83d719dc812e47cc1df241454e6ff4e5"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$FieldRow.class",
+    "sha256": "139a34ff26a22accca92654a59ea778035ae306ce51954982bd6e1f89df9737d"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$FilterRow.class",
+    "sha256": "18e10e00239eb423b6dc59019a90a4b09816214ed6c711415206f5481553b5be"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$FlagFact.class",
+    "sha256": "fcaaf24eda7e69f33f6de3c633c0bc62998e4b19d24560fabd30328ae70706de"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$FormRow.class",
+    "sha256": "97d26775694b1ee95dbccc5db457bf1c689d8941ec6588d1e8811aefbd997f00"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$IntFact.class",
+    "sha256": "0756de64cba47983c01abafa401eeba03cdc62607b47d060ff50ae51a70ad676"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$LifecycleRow.class",
+    "sha256": "08dbea5b8cff7f54a4a1a7073a9edc31f1eeefc32d25c04e27a0cd435c2457ac"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$LookupRow.class",
+    "sha256": "2bbcff298d7a3db0ab75ea4c42ee8040025403bcb1eb90985a8bd969b07812fd"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$NullabilityFact.class",
+    "sha256": "8036596c6be3a1efcd101e24395513736be19a74e5e75d91a7a9652707706f84"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$NullabilityKind.class",
+    "sha256": "faf46719a7c6be0285901c67beccc1addde9a8ef657a3adba92a2e2e8a16aa82"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$NumberingRow.class",
+    "sha256": "9f96e2d10f4958b91030ee0b73c4b00e2d0b0472413611a5067ae8a7fdacd8d9"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$OverviewRow.class",
+    "sha256": "25f48601ab1fdd31027ecad3cb8c42ec49ee89a083317df0ce0ceebe0691da33"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$OwnedSectionIdentity.class",
+    "sha256": "4f73496eebaf003fbefe1439d6a7afdcbeded3cd4938f3f1e4f0e201c59c53f4"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$OwnedSectionRow.class",
+    "sha256": "5571e66087e79cf7ac70efe1a7aee892cfbb66c101b6f0c71696f800dff287e4"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$PathRow.class",
+    "sha256": "e9098d82e414a91ba118721563e1a6e3df4c299275c308b5fb7ffb7d7f1d34be"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$PresentationFacts.class",
+    "sha256": "1bb8edb5b967100489c1eff7fdcfe25a176600187ffd87706ee5049aec377f14"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$ReadPlanRow.class",
+    "sha256": "de69021824a72ce73a2f00c5c656ac0a4ae3588109e430e376719ea0cec92391"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$ReferenceRow.class",
+    "sha256": "c53950fb47d25bc5490f59d67ecf01e8b27db566d55a70ac5c0a3c4a17187492"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$SectionRow.class",
+    "sha256": "6da01dc5ecd927c5bfbcaa32e5d283b3185b9c35159b134a2ca6da4edc349fb4"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$SelectionRow.class",
+    "sha256": "8550ef101d5ddaebeb9f8675ce5061e8a8e8fe8e770fef3769691dcbb7b4aea9"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$SizeConstraint.class",
+    "sha256": "b081d4f48fbd1aac6f3a2e1c05861749184fdf22b1f172ec70c264c6f8a15c2a"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$StorageFacts.class",
+    "sha256": "353ec9fe8d8f131871d229f8bdda6cfb5c5598a8f0345e4dbfb6f063673185d6"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$StructuralFieldRow.class",
+    "sha256": "2d4206cba61441c98f7c1be79391ed3fe9ea238e07b9dd41fc5f7a214fea2ea9"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$StructureFacts.class",
+    "sha256": "f92ba48da29490caec7513b1ecbdc84a250c6ae8e1919a208278074fcb034920"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummary$TypeFact.class",
+    "sha256": "3d1d70d4549309887e08e7cd304b635e2aa5efa8fbc10fa26fc0b0ba7e82e9ee"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler.class",
+    "sha256": "640f6337f410985314855087d2f668ec7e2a5d95f1e11515ae41f794caa231af"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$1.class",
+    "sha256": "c75fc1f967636acbc0963c99f08acdf2ece5acdde3b27975fc508578acf56c05"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$CapabilityNote.class",
+    "sha256": "35d76f9aaefdc394042e18590e55e2b5619b4bf103cc0101c4bca4db01a31a77"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$DiagnosticProjection.class",
+    "sha256": "26f341cdebf85dfdd06516a9e91e8ef00177316e95e0d360c0e372abe1bb502a"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$EntityRef.class",
+    "sha256": "700494617baaa878d8ac6ee03be9670152c990f978b65eabe003723b86bb36d3"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$FormKey.class",
+    "sha256": "9267df0ebeb76553f6db1fa92c7015f9a53cbceb78b43914a90ff51752b12d81"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\ExplorerSnapshot.class",
+    "sha256": "0f9e9167a9661e87e676e2c59d6ee89686b00e3874c40c8cc368a64acaf94b98"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$BuildStats.class",
+    "sha256": "2740b7e3149cacdca114af4de53d6c0f5b095ac26da8ab1f046aa4d5539ddab9"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$Entry.class",
+    "sha256": "b09226f807c514cd6aba7096e3acc956ef008d2b54e6ac049b2e5c4d49d51042"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$EntryState.class",
+    "sha256": "a457cbeddf7e9ae89bdb45c5a6af8399d75ed32957f8a44f125ea294c847e1c3"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$OwnedSection.class",
+    "sha256": "829c1e27610070bfdedd0c4017abe2fd5fe9eabcfb7552e53629ec08a7a7d669"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$SearchKind.class",
+    "sha256": "b605e99c4143920c07503620dcbd5cd7c434f7d93088e368a50817bd8e99b423"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$SearchTerm.class",
+    "sha256": "baa9f0213f5efdba46557a61a8d2cfb4d70abcffb6e1916308d95cfd9f1ffce0"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$Sources.class",
+    "sha256": "461d42c40365abcc509f9e0aeb64bde69d70c6b1cb27b53e6b1a49be2aa431c2"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$SubsystemRef.class",
+    "sha256": "1c04259376c34ac459e99fcb9554eab94b31a5dadddb88f7ad7de634cbfa18da"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler.class",
+    "sha256": "221e2ada553acc413ff6d2cb9efdc48914615f2fa4b6da51b07eb60bd0bc1420"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler$Catalog.class",
+    "sha256": "420391f7b5ee464caae2d6d1f17cb56af6ac6a2b32b898e97a68e04fe033d76a"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler$EntityFacet.class",
+    "sha256": "108e1e1653ba53dc99a3119d4f32c8a31bbbdd5efb9a4c4f6684103bbbfb0576"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler$Group.class",
+    "sha256": "1843fb94d1eb2669b7437676118833dc21ee0193ebf971a4eaaaff2b8e1018fb"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler$SubsystemRef.class",
+    "sha256": "df87a6ec18810ef1f7fbfbc128be824ff53d0aaf318b450e3803d28db05e536c"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\explorer\\config\\EntityExplorerAutoConfiguration.class",
+    "sha256": "eadb3634d63169a7636ce1556530f8c22af23c7fe5a67645398c2ba8ab6e8c9f"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\search\\GlobalSearchHeader.class",
+    "sha256": "74283f0d5c5b3a9b76b0b670718c785b156fbb87c657fe0138cb7a9fdf2b7b23"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\search\\GlobalSearchNavigationAdapter.class",
+    "sha256": "f07e9f05eda5cff55e939dedf3e1cf39e58bb52b6ed2f65051c86ededa6082a7"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\search\\config\\GlobalSearchVaadinAutoConfiguration.class",
+    "sha256": "b19c774d2c31aea592d4760284590f3db10358d3834a071cef5e33240c387ae5"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\telemetry\\TelemetryErrorHandler.class",
+    "sha256": "464174baecd6398ac72041f2b61054fdb3d618d83e596314b8ca886892d5de45"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\telemetry\\TelemetryVaadinConfiguration.class",
+    "sha256": "0430c81a40de0834807a106460b54e60d36756f2e35467a1c335e8748e0935e0"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\telemetry\\TelemetryVaadinInitListener.class",
+    "sha256": "3d7efdc2ba38267d3b0a220d1af01352bcd3149cbb32198c11bdf7cd20e33141"
+  },
+  {
+    "path": "org\\ipro\\vaadin\\telemetry\\TelemetryVaadinInitListener$ChainedErrorHandler.class",
+    "sha256": "716d82482760874355e294e40e3997039514f461f296b0f78f2ef4feca1f5f79"
+  }
+]

@@ -23,7 +23,6 @@
         <platform-bom.version>1.0-SNAPSHOT</platform-bom.version>
         <crudui.version>1.0-SNAPSHOT</crudui.version>
         <reportui.version>1.0-SNAPSHOT</reportui.version>
-        <ureport.version>3.0.1</ureport.version>
         <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
         <dynamicreports.version>7.0.0-ip.20260813</dynamicreports.version>
         <jasperreports.version>7.0.6</jasperreports.version>
@@ -42,10 +41,84 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- P8 editor consumes the independent structural model; no runtime platform edge. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>entity-design-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>entity-design-json</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- ET9 optional backend adapter; design-core stays independent of runtime and UI. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>entity-design-runtime</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <!-- KI-1 optional backend projection; no menu changes until KI-3. -->
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>platform-navigation</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M1: нейтральный результат запроса (ReportDataset/QueryField/...), который
+             называет и query backend, и отчётный слой. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-report-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M2.1: общий отчётный слой (каталог, экспорт JasperPrint, пул задач) и
+             движок JR. Приложение — потребитель add-on; каталог не знает движков. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-report</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-jr</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M2.2.1: backend UniDR (model/source/store/render/run/query) без прикладного
+             источника и справочника ссылок. Приложение даёт порты UniDrReferenceCatalog
+             и UniDrRunQueryAdapter, поэтому org.ip в модуль не проникает. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-unidr</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M2.2.2: UI каталога/печати/параметров и UniDR без org.ip. Приложение
+             подключает порты UniDrCatalogGateway/UniDrRunLauncher/JrxmlRunLauncher. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-report-vaadin</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M1: query backend (описание запроса, guard, исполнитель, каталог, register-slice
+             рецепты) без UDR DOM и Vaadin. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-query</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M1.4: Q6-фикстуры переехали в тестовое дерево platform-query; прикладным
+             acceptance-тестам нужен только этот test-jar, без исходников приложения. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-query</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <!-- M1.2: UI запроса (редактор/конструктор/список/каталог) без формы платформы:
+             выбор ссылки приходит портом EntitySelection, адаптер — в приложении. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-query-vaadin</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -136,25 +209,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
-
-        <!-- UReport3 (форк ureport2, jakarta/Spring6): веб-дизайнер отчётов на /ureport/*.
-             Собран локально из C:\JavaProject\TestVaadin25\UReportFork2\ureport3 (mvn install).
-             Внимание: тянет iText 5 (AGPL) — до релиза заменить на OpenPDF.
-             Spring-зависимости форка (6.2.x) переопределяются BOM Boot 4 на Framework 7. -->
-        <dependency>
-            <groupId>com.bstek.ureport</groupId>
-            <artifactId>ureport3-console</artifactId>
-            <version>${ureport.version}</version>
-            <exclusions>
-                <!-- Форк пиннит antlr4-runtime 4.5.3, что ломает инициализацию
-                     HQL-парсера Hibernate 7 (собран под 4.13). Рантайм 4.13
-                     обратно совместим со сгенерированным кодом 4.5. -->
-                <exclusion>
-                    <groupId>org.antlr</groupId>
-                    <artifactId>antlr4-runtime</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -274,4 +328,30 @@
             </plugin>
         </plugins>
     </build>
+    <!--
+      Random-order gate. A1 записал его как «в конфигурации не найден», хотя прогоны в
+      evidence выполнялись именно так: порядок классов задаётся JUnit-свойствами, и без
+      профиля команда не хранилась нигде. Профиль делает гейт воспроизводимым одним флагом
+      (mvn -o -Prandom-order clean verify), а seed фиксируется отдельно
+      (-Djunit.jupiter.execution.order.random.seed=<год><месяц><день>), чтобы прогон был
+      повторяемым. Только порядок: произвольные seed'ы не годятся для записи в baseline.
+    -->
+    <profiles>
+        <profile>
+            <id>random-order</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <junit.jupiter.testclass.order.default>org.junit.jupiter.api.ClassOrderer$Random</junit.jupiter.testclass.order.default>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

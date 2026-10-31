@@ -45,14 +45,14 @@ import static org.mockito.Mockito.*;
 
 class NavigationUiSnapshotTest {
     private static NavigationCatalog catalog() {
-        var registry = new SubsystemRegistry("org.ip");
+        var registry = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         registry.afterPropertiesSet();
         return NavigationCatalog.build(registry,
             List.of(new ApplicationNavigationConfiguration().applicationNavigationDefaults()));
     }
 
     private static NavigationCatalog nestedCatalog() {
-        var registry = new SubsystemRegistry("org.navigationfixture");
+        var registry = new SubsystemRegistry("org.navigationfixture", new org.ipro.metadata.MetadataResolver());
         registry.afterPropertiesSet();
         return NavigationCatalog.build(registry, List.of(defaults -> defaults
             .subsystem(Fixtures.Root.class, "root").subsystem(Fixtures.Child.class, "child")

@@ -478,7 +478,7 @@ public class FormResolver {
             Class<T> entityClass,
             Map<String, Object> parameters) {
 
-        if (!entityClass.isAnnotationPresent(org.ipro.metadata.annotation.EntityMetadata.class)) {
+        if (!MetadataResolver.isApplicable(entityClass)) {
             RowMetadataInfo rowMeta = metadataResolver.resolveRowMetadata(entityClass);
             List<String> rowFields = parameters != null ? (List<String>) parameters.get("fields") : null;
             List<FieldMetadataInfo> formFields = rowFields == null ? rowMeta.getFormFields()

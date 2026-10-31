@@ -1,0 +1,59 @@
+{
+  "projectId" : "e2-fixture",
+  "version" : "v1",
+  "defaultPackage" : "com.example.generated",
+  "existingTypes" : {
+    "values" : [ ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "existingTables" : {
+    "values" : [ ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "subsystemIds" : {
+    "values" : [ ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "iconIds" : {
+    "values" : [ "FILE" ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "referenceTargets" : {
+    "com.example.generated.targets.ReferenceTarget" : {
+      "typeId" : "com.example.generated.targets.ReferenceTarget",
+      "caption" : "Existing target",
+      "exposure" : "STANDARD_ROOT",
+      "identityType" : "java.lang.Long",
+      "representation" : "YES",
+      "selection" : "YES",
+      "eligibility" : "SUPPORTED",
+      "reason" : "confirmed",
+      "sourceTypeName" : "com.example.generated.targets.ReferenceTarget"
+    }
+  },
+  "referencesComplete" : true,
+  "runtimeSnapshot" : {
+    "snapshotId" : "e2",
+    "complete" : true,
+    "types" : { },
+    "prerequisites" : {
+      "ET0_ET7_RUNTIME" : {
+        "status" : "AVAILABLE",
+        "evidence" : "fixture"
+      },
+      "STANDARD_CATALOG_APP_API" : {
+        "status" : "AVAILABLE",
+        "evidence" : "fixture"
+      },
+      "STANDARD_DOCUMENT_APP_API" : {
+        "status" : "AVAILABLE",
+        "evidence" : "fixture"
+      }
+    },
+    "diagnostics" : [ ]
+  }
+}

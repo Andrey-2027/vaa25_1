@@ -1,0 +1,38 @@
+{
+  "schemaVersion" : 1,
+  "recipe" : {
+    "id" : "standard-catalog-v2",
+    "version" : 2
+  },
+  "draftId" : "00000000-0000-0006-0000-000000000000",
+  "entity" : {
+    "className" : "CatalogSections0",
+    "packageName" : {
+      "mode" : "AUTO",
+      "text" : ""
+    },
+    "label" : "Комплект",
+    "titles" : {
+      "list" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "item" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "selection" : {
+        "mode" : "AUTO",
+        "text" : ""
+      }
+    },
+    "tableName" : {
+      "mode" : "EXPLICIT",
+      "text" : "catalog_0"
+    },
+    "subsystemId" : null,
+    "icon" : "FILE"
+  },
+  "fields" : [ ],
+  "sections" : [ ]
+}

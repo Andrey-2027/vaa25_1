@@ -19,7 +19,7 @@ enforcement-аспект, канарейку «тихих утечек» SQL, н
 Две авто-конфигурации со своим imports-файлом: `RlsAutoConfiguration` (бины
 принуждения) и `RlsPersistenceAutoConfiguration` (`@EntityScan`/`@EnableJpaRepositories`
 пакета `org.ipro.rls`) — чтобы `@DataJpaTest`-срезы подключали только persistence-часть.
-Report Studio и UReport регистрируют собственные пакеты своими app-owned конфигурациями;
+Report Studio регистрирует собственные пакеты своей app-owned конфигурацией;
 JR persistence также остаётся у приложения, а `platform-persistence` содержит только общую
 `BaseEntity`. Imports-файл приложения не перечисляет RLS-конфигурации. Свойство
 `rls.dimension-scan-package` без default — его задаёт приложение.

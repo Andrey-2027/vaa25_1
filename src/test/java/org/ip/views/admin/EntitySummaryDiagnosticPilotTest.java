@@ -179,7 +179,7 @@ class EntitySummaryDiagnosticPilotTest {
         references.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry(BASE_PACKAGE);
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE);
+        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE, new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         SectionMetadataRegistry sections = new SectionMetadataRegistry(BASE_PACKAGE, metadataResolver);
         sections.afterPropertiesSet();

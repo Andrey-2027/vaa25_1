@@ -1,0 +1,34 @@
+[
+  {
+    "path": "src\\main\\java\\org\\ipro\\autoconfigure\\PlatformProperties.java",
+    "sha256": "14083cd4feaf4f14006381484853ed5766d3265a904b539878cf60fc0c7df261"
+  },
+  {
+    "path": "src\\main\\java\\org\\ipro\\crud\\config\\CrudAutoConfiguration.java",
+    "sha256": "e4eab1435094de6aaf7dc4f21dd49c9a89b67c25a437893a4501a1d2033adda0"
+  },
+  {
+    "path": "src\\main\\java\\org\\ipro\\data\\config\\C5EntityOperationPermissionRegistrar.java",
+    "sha256": "977ddb1e256c8c8f9e926dcf29c71bd301907471ba5540e1de4c3232951265ad"
+  },
+  {
+    "path": "src\\main\\java\\org\\ipro\\data\\config\\DataAccessAutoConfiguration.java",
+    "sha256": "69bcf90d9b13560f8636f503398cf1198e9ed5722ae8b5d6c3362ee7e53c4e5f"
+  },
+  {
+    "path": "src\\main\\java\\org\\ipro\\fetch\\config\\FetchPlanInstanceNameAutoConfiguration.java",
+    "sha256": "9a5d7b46e8f37549bbb2e711ac15899daabb4ca17c127de9159c394d7b89b870"
+  },
+  {
+    "path": "src\\main\\java\\org\\ipro\\metadata\\config\\MetadataAutoConfiguration.java",
+    "sha256": "bad9c92f4d208d684caa342b4da5db7570675dcab33f36e4317bfd6df943e2ff"
+  },
+  {
+    "path": "src\\main\\java\\org\\ipro\\search\\config\\GlobalSearchAutoConfiguration.java",
+    "sha256": "e6874e6216aa083d5b6b2603253fc69fd88d31d74d51eee3795cdddac483485f"
+  },
+  {
+    "path": "src\\main\\resources\\META-INF\\spring\\org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+    "sha256": "d02ba15caf8e37a56b7df3f86c798e7d8a7be90b39ea864b2e0417a76966d14e"
+  }
+]

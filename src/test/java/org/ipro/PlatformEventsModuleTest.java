@@ -74,6 +74,11 @@ class PlatformEventsModuleTest {
     }
 
     private static List<String> lines(Path path) {
+        if (!Files.exists(path)) {
+            // M2.2.2: приложение больше не несёт platform-авто-конфигураций, поэтому
+            // app imports-файла может не быть — это пустой список, а не ошибка чтения.
+            return List.of();
+        }
         try {
             return Files.readAllLines(path, StandardCharsets.UTF_8).stream()
                 .map(String::trim)

@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "recipe": {
+    "id": "standard-catalog-v1",
+    "version": 1
+  },
+  "draftId": "00000000-0000-4000-8000-000000000001",
+  "entity": {
+    "className": "class",
+    "packageName": {
+      "mode": "EXPLICIT",
+      "text": "org.ip.model"
+    },
+    "label": "Материалы",
+    "titles": {
+      "list": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "item": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "selection": {
+        "mode": "AUTO",
+        "text": ""
+      }
+    },
+    "tableName": {
+      "mode": "AUTO",
+      "text": ""
+    },
+    "subsystemId": "org.ip.subsystem.Subsystems$Directories",
+    "icon": "FILE"
+  },
+  "fields": [
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "name": "unit",
+      "label": "Единица измерения",
+      "type": "REFERENCE",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "length": "",
+        "precision": "",
+        "scale": ""
+      },
+      "reference": {
+        "typeId": "org.ip.model.MissingTarget"
+      },
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "name": "unit",
+      "label": "Масса",
+      "type": "DECIMAL",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": false,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "length": "",
+        "precision": "12x",
+        "scale": "-"
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    }
+  ],
+  "sections": [
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "label": "Позиции",
+      "rowClassName": "MaterialPosition",
+      "packageName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "tableName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "parentFieldName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "parentColumnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "fields": [
+        {
+          "id": "00000000-0000-4000-8000-000000000021",
+          "name": "nomenclature",
+          "label": "Номенклатура",
+          "type": "REFERENCE",
+          "columnName": {
+            "mode": "AUTO",
+            "text": ""
+          },
+          "serverRequired": false,
+          "uiRequired": "AUTO",
+          "constraints": {
+            "length": "",
+            "precision": "",
+            "scale": ""
+          },
+          "reference": {
+            "typeId": "org.ip.model.Nomenclature"
+          },
+          "applications": {
+            "form": true,
+            "list": false,
+            "selection": false,
+            "table": true
+          }
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000022",
+          "name": "quantity",
+          "label": "Количество",
+          "type": "DECIMAL",
+          "columnName": {
+            "mode": "AUTO",
+            "text": ""
+          },
+          "serverRequired": false,
+          "uiRequired": "AUTO",
+          "constraints": {
+            "length": "",
+            "precision": "19",
+            "scale": "3"
+          },
+          "reference": null,
+          "applications": {
+            "form": true,
+            "list": false,
+            "selection": false,
+            "table": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "label": "Примечания",
+      "rowClassName": "MaterialNote",
+      "packageName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "tableName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "parentFieldName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "parentColumnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "fields": [
+        {
+          "id": "00000000-0000-4000-8000-000000000031",
+          "name": "note",
+          "label": "Примечание",
+          "type": "GEO_POINT",
+          "columnName": {
+            "mode": "AUTO",
+            "text": ""
+          },
+          "serverRequired": false,
+          "uiRequired": "AUTO",
+          "constraints": {
+            "length": "0",
+            "precision": "",
+            "scale": ""
+          },
+          "reference": null,
+          "applications": {
+            "form": true,
+            "list": false,
+            "selection": false,
+            "table": true
+          }
+        }
+      ]
+    }
+  ]
+}

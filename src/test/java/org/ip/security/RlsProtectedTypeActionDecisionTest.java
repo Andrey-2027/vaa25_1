@@ -1,7 +1,6 @@
 package org.ip.security;
 
 import jakarta.persistence.EntityManager;
-import org.ip.config.EntityClassificationConfig;
 import org.ip.model.AttributeValue;
 import org.ip.model.Journal;
 import org.ip.model.PrdSpec;
@@ -138,12 +137,11 @@ class RlsProtectedTypeActionDecisionTest {
         MetadataResolver metadataResolver = new MetadataResolver();
         SectionMetadataRegistry sections = new SectionMetadataRegistry("org.ip", metadataResolver);
         sections.rebuild();
-        EntityClassificationConfig classification = new EntityClassificationConfig();
+        ManagedEntityCatalog managed = new ManagedEntityCatalog(entityManager.getEntityManagerFactory());
         catalog = new EntityDescriptorCatalog(
-            new ManagedEntityCatalog(entityManager.getEntityManagerFactory()),
+            managed,
             sections, metadataResolver, List.of(),
-            List.of(classification.attributeValueIsCreateOnly(),
-                classification.sklNomOpaHasNoGenericWrites()));
+            List.of(), org.ip.metadata.EntityTypeTestSources.registers(managed,entityManager.getEntityManagerFactory(),metadataResolver));
 
         journalA = new Journal();
         journalA.setCode("E12-G-A");
@@ -413,7 +411,8 @@ class RlsProtectedTypeActionDecisionTest {
         grant.setSubjectKey(username);
         grant.setDimension(C5PermissionKeys.entityOperations(PrdSpec.class));
         grant.setDimensionValueId(null);
-        grant.setCanRead(false);
+        // ADR-0017: UPDATE/DELETE существующей строки требуют также ENTITY READ.
+        grant.setCanRead(true);
         grant.setCanUpdate(write);
         grant.setCanDelete(delete);
         entityManager.persist(grant);

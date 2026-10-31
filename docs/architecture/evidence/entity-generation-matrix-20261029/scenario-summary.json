@@ -1,0 +1,31 @@
+{
+  "status": "success",
+  "scenario": "matrix",
+  "planId": "g1-ff4f75e063206829db08b09c0fa6c9a049677b4ae23fe44151cc08361dcfdcb4",
+  "sourceSha256": "d65c2c9f5efea8e494863220fa6e4b5827c8ed04140921aad82c781ecf8fa476",
+  "relativePath": "com/example/generated/Matrix.java",
+  "p8Tests": 1,
+  "cSummary": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\matrix-20261029\\run-20261029-140029\\c\\matrix\\summary.json",
+  "cTests": 5,
+  "apply": "APPLIED",
+  "repeat": "NOOP",
+  "conflict": "CONFLICT_MODIFIED",
+  "runtime": [
+    {
+      "suite": "com.example.generated.harness.GenerationScenarioTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.example.generated.harness.MatrixRuntimeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "schema": "isolated H2 create-drop; production migration not accepted",
+  "browserRun": false
+}

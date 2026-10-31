@@ -18,11 +18,8 @@
 
     <name>GitVaa platform metadata spine</name>
     <description>
-        D2 → D3: позвоночник метаданных, на который упираются платформенные подсистемы —
-        скан классов по аннотации и индекс обратных ссылок. Вынесен первым из «среза
-        метаданных», потому что замер замыкания показал: numbering тянет из дерева ровно
-        один тип (сканер), settings — два (сканер и индекс). Пока эти два типа были в
-        дереве, ни одну подсистему нельзя было сделать модулем.
+        Нейтральный слой метаданных для платформенных подсистем: скан классов по аннотации,
+        индекс обратных ссылок и PU-scoped снимок управляемых JPA-сущностей.
     </description>
 
     <properties>
@@ -35,11 +32,12 @@
       Разрешённые зависимости — reviewed, проверяются PlatformMetadataModuleTest:
 
       1. platform-contracts — аннотации метаданных (@EntityMetadata, @FieldMetadata,
-         @Lookup, @TableSectionMetadata), которые читают оба типа этого модуля.
-      2. spring-context — сканер классов (ClassPathScanningCandidateComponentProvider) и
+         @Lookup, @TableSectionMetadata), которые читает индекс обратных ссылок.
+      2. jakarta.persistence-api — ManagedEntityTypes читает EntityManagerFactory metamodel;
+         подписи снимка остаются на JDK-типах.
+      3. spring-context — сканер классов (ClassPathScanningCandidateComponentProvider) и
          bean-контракт индекса (@Component/@Value/InitializingBean). Модуль не несёт
-         авто-конфигурации: бин ReferenceIndex объявляет MetadataAutoConfiguration
-         приложения, поэтому потеря модуля видна компилятору, а не только в рантайме.
+         авто-конфигурации: wiring объявляет MetadataAutoConfiguration приложения.
 
       Реализации платформы (data path, crud, rls, telemetry, form) здесь запрещены: этот
       модуль обязан остаться ниже их, иначе подсистемы не смогут зависеть на него без цикла.
@@ -49,6 +47,10 @@
             <groupId>org.ipro</groupId>
             <artifactId>platform-contracts</artifactId>
             <version>${platform-contracts.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

@@ -137,6 +137,9 @@ class PlatformWritePathLifecycleTest {
 
         private static final JavaClasses CLASSES = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            // platform-query:tests приходит JAR-ом: DO_NOT_INCLUDE_TESTS отсекает только
+            // каталоги, поэтому тестовые классы fixture-артефакта фильтруются по имени.
+            .withImportOption(location -> !location.contains("-tests.jar"))
             .importPackages("org.ipro");
 
         private static final Map<String, WritePath> WRITE_PATHS = discoverWritePaths(CLASSES, MODULES);

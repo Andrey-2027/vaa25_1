@@ -84,6 +84,7 @@ class DataAccessAutoConfigurationTest {
             .run(context -> {
                 assertThat(context).hasNotFailed();
                 assertThat(context).hasSingleBean(EntityDescriptorCatalog.class);
+                assertThat(context).hasSingleBean(org.ipro.metadata.MetadataDiagnosticSource.class);
                 assertThat(context).hasSingleBean(CanonicalReadExecutor.class);
                 assertThat(context).hasSingleBean(CanonicalWriteExecutor.class);
                 assertThat(context).hasSingleBean(EntityDataAccess.class);
@@ -101,6 +102,7 @@ class DataAccessAutoConfigurationTest {
         runner.run(context -> {
             assertThat(context).hasNotFailed();
             assertThat(context).hasSingleBean(EntityDescriptorCatalog.class);
+                assertThat(context).hasSingleBean(org.ipro.metadata.MetadataDiagnosticSource.class);
             assertThat(context).doesNotHaveBean(CanonicalReadExecutor.class);
             assertThat(context).doesNotHaveBean(CanonicalWriteExecutor.class);
             assertThat(context).doesNotHaveBean(EntityDataAccess.class);

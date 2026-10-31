@@ -1,5 +1,709 @@
 # Текущий engineering baseline
 
+## G1 extension: зафиксированный baseline (2026-10-31)
+
+- E0–E4, **E5.H** (общий автоматический прогон) и **E5.B** (браузерная приёмка) приняты в своих границах. **M для PostgreSQL отложен** по решению пользователя. [План extension и evidence E5](../../plans/entity-generation-g1-extension-plan.md).
+- Следующий этап: `independent-register-v1`, затем `recorded-register-v1`. Подготовка самостоятельного регистра A1/R0/R1/R2 выполнена; следующая функциональная работа — R3. A2.1 (внешний runtime consumer) ещё отсутствует и выполняется до внешней C/D/R6-приёмки; он не блокирует разработку R3. REG-A3 остаётся общим приёмочным обязательством. Register Java generation, C/D и P8 пока не объявляются реализованными.
+- План продолжения оформлен как [G1R](../../plans/entity-generation-g1r-plan.md): G1R.1 = A2.1; G1R.2 = R3 + F3; G1R.3 = C/D; G1R.4 = P8; G1R.5 = actual generated acceptance; G1R.6 = общий gate. Первый результат — самостоятельный NONE/DAY; recorded-рецепт и DB/migration — отдельные последующие приёмки. Новые пакеты составлением плана не приняты.
+- REG-A1 закрыт 31.10: три ошибки `CLASSIFICATION_SOURCE_MISSING` в `VisualQuerySubqueryIT`/`VisualQueryPackageDeepPathIT` исправлены проверенным каталогом с register-вкладом; `LookupTargetFactsIT` ограничен прикладными типами и также получил проверенный каталог. Адресный набор **72/72** (63 + 9), fail-closed `EntityClassificationTest` **12/12**; [evidence](../../../outputs/register-g1/a1/20261031-a1-closure/summary.json). REG-A2 возвращён в обязательный план следующего register-расширения: отдельный backend-only `examples/register-consumer`, A2.1 для runtime и A2.2 для actual generated result; реализация ещё не выполнена. Лог REG-A3 от 30.10 содержит ошибки и обрывается без итогового результата, поэтому общий/random-order gate не принят; актуальный PostgreSQL scope также требует выполнения. [Сверка 31.10 и подробный план следующего расширения](../../plans/information-register-g1-preparation-plan.md).
+- G1.R0 выполнен 31.10 как спецификация: [контракт первого среза](../information-register-g1-contract.md) фиксирует `NONE`/`DAY`, типы по роли, ссылочные измерения, имена хранения, профиль `NAMED_AND_CANONICAL_CRUD` без `CHANGE_KEY`, envelope v3, версии (`register-java-v1`, F3, M2/C2/D2) и migration scope. Fixtures `RegionRate`/`ItemRate` и матрица 8 положительных/26 отрицательных случаев проверены спецификационным чекером — 0 падений; [evidence](../../../outputs/register-g1/r0/20261031-r0-contract/summary.json). Код, schema resources и `RecipeCatalog` не изменялись; импорт v3, новые коды и проекция фактов — R1/R2. Генерация регистра по-прежнему не реализована.
+- **G1.R1 выполнен 31.10:** переносимые `RegisterFacts` вошли в `RuntimeDesignSnapshot` (nullable register-раздел `TypeFacts`, прежние constructors сохранены), а runtime-адаптер получил optional мост из проверенного `RegisterRegistry` без нового сканера. `REGISTER_FACTS` отделяет «проверено, регистров нет» от «фактов не предоставили»; classified-регистр без проверенной декларации падает, физическое имя ресурса не угадывается (`column=null`). Фактический snapshot: 39 типов, 2 register-раздела, `AVAILABLE (2)`. Проверки: core 104, runtime 11, JSON 18, `EntityDesignRuntimeProjectionIT` 2/2; [evidence](../../../outputs/register-g1/r1/summary.json). Генерация, draft/JSON v3, C/D, миграция и UI не входили.
+- **G1.R2 выполнен 31.10:** `RegisterDraft` с упорядоченными UUID-ролями и режимом `NONE`/`DAY`, nullable register-раздел `EntityDraft`, проверенная register-проекция в `CheckedStructure` (resolved роли, колонки, ключ, write profile), публикация без секций и строгий envelope v3. Реализованы все восемь кодов `DraftProblem`; ссылки на регистры запрещены. Проверки: core 104, JSON 24 (34 случая матрицы R0: 8 положительных, 26 отрицательных), application `test-compile` успешен; [evidence](../../../outputs/register-g1/r2/summary.json). Рецепт остаётся `HANDOFF_ONLY`, генерация, fingerprint/C/D, миграция и UI не входили.
+
+## Приоритет первого G1: сокращённый объём (2026-10-28)
+
+- По решению пользователя регистровые REG-A1/A2/A3/D1/D2/U1/O1 отложены; их завершение не является подготовительным gate G1 справочника. Известные ошибки и ограничения аудита остаются зафиксированы.
+- Ближайший пакет: явное создание catalog-v2 и GenerationPlan/Java preview для нового справочника. Затем проверка созданного класса и безопасное применение новых файлов; Документ и Регистр подключаются последующими рецептами. [Минимальный план](../../plans/entity-generation-g1-minimum-plan.md). Реализация этих срезов пока не заявляется.
+
+## Регистр сведений: сверка перед G1 (2026-10-28)
+
+- [Аудит Р-/Г-/S-серий](../information-register-pre-g1-audit.md) отделяет реализованный runtime от новой интеграции design/G1. Все четыре register-модели, descriptor/registry, чтение/запись, UI и вынос S0–S5 существуют; активные планы актуализированы, historical evidence сохранены.
+- Свежий owner gate: `platform-register` **124/0/0/0**, `platform-register-vaadin` **24/0/0/0** (tests/failures/errors/skips). [Артефакты](../../../outputs/register-pre-g1-audit-20261028/owner-results.json). PostgreSQL заново не запускался; используются датированные Р8/Р9/Р11/ADR-0025 evidence в их scope.
+- Свежий `NomenclaturePriceCteSpikeTest`: **5/0/5/0**, BUILD FAILURE. Короткий `QueryBuilderMetadataCatalog` создаёт каталог без classification sources; ошибка `CLASSIFICATION_SOURCE_MISSING` воспроизведена до CTE. [Лог](../../../outputs/register-pre-g1-audit-20261028/application-probe.log). Это актуальное подтверждение одного из блокеров, не повтор полного verify от 27.10.
+- Остатки: **REG-A1** (query/test catalog sources), **REG-A2** (внешний consumer с собственным регистром), **REG-A3** (текущий общий/random-order gate). **REG-D1/D2** — новая register projection/draft/генерация, **REG-U1** — поздний UX-отзыв Р8, **REG-O1** — эксплуатационный scope. Ни весь Г8, ни готовность генерации регистра не объявляются закрытыми.
+
+## ET9: передача контрактов в G1 (2026-10-28)
+
+- План ET0–ET9 завершён в объёме runtime + подготовки инструмента проектирования.
+  Существующий design-core остаётся JDK-only; optional entity-design-runtime проецирует
+  проверенные backend facts без Vaadin/бизнес-запросов. JSON v1 и historical capture сохранены.
+- Catalog-v2 выбирается явно; семь профилей имеют версии, файлы, constraints, fixtures и
+  prerequisites. Только v1/v2 catalog принимаются как drafts; пять HANDOFF_ONLY ещё не
+  имеют своего draft/operation contract. У всех generationEnabled=false.
+- Core 60, JSON 9, adapter 2, host 68, architecture 39, affected platform API 2 — зелёные;
+  39/39 runtime types с прежними kind/exposure/capabilities. [Evidence](../../plans/entity-types-appdev-first-et9-evidence.md),
+  [матрица и условия G1](../entity-design-g1-handoff.md). G1/G2/I не объявляются реализованными.
+
+## ET8: полный контракт интернирования (2026-10-28)
+
+- Одна InternedContract связывает структурные ключи, точные UNIQUE/NULL, предметную
+  нормализацию и канал создания. Default owner-managed, generic UPDATE/DELETE запрещены;
+  явный genericCreate сохраняет AttributeValue CREATE. Два дублирующих capability-бина удалены.
+- AttributeValue named rename, SklNomOpa composition/display cache, C5/RLS и публикации
+  сохранены. PostgreSQL 44/44, внешний binary-only пример 13/13, приложение 132/132;
+  полные owner/architecture/API результаты — [evidence ET8](../../plans/entity-types-appdev-first-et8-evidence.md).
+- Весь checkout не объявляется зелёным: all-artifact API gate имеет отдельный drift
+  platform-report-vaadin (ReportCatalogView / ReportTypeAvailability). ET8 не меняет
+  этот конструктор или его baseline; affected-artifact API checks зелёные. Новые
+  исполнимые рецепты остаются ET9/G1; предыдущий полный root verify ниже не перезаписывается.
+
+## Типы отчётов включаются конфигурацией: JRXML и UniDR (2026-10-27)
+
+([evidence](../evidence/report-type-switches-20261027.md))
+
+- Видимость типа отчёта решалась наличием портов, а не настройкой развёртывания: JR
+  предлагался всегда (его сервисы безусловны — выключить было нечем), включение UniDR
+  совпадало с наличием бинов. Появился `ReportTypeAvailability` (`app.jrxml.enabled`,
+  `app.unidr.enabled`) и одно место решения — `ReportCatalogView.offeredTypes()`:
+  строки каталога, окно «Новый отчёт» и импорт JSON UniDR читают один ответ, поэтому
+  выключенный тип не оставляет неработающих кнопок. Экран различает «выключен настройкой
+  `<свойство>`» и «не подключён в этой поставке»; выбор из одного варианта не
+  показывается — «Новый» открывает создание включённого типа сразу.
+- Проверки: `ReportTypeAvailabilityTest` + `ReportCatalogViewTest` — 7/0 адресно.
+  Живая приёмка на стенде (профиль `dev`, `admin`): оба включены — каталог и окно выбора
+  предлагают оба типа; `app.jrxml.enabled=false` — каталог только UniDR и «Новый» ведёт
+  сразу в редактор; `app.unidr.enabled=false` — каталог только JR, подсказка называет
+  свойство, импорт UniDR скрыт, «Новый» открывает JR-диалог напрямую.
+- Печать из карточек (`ReportPrintAction`) настройку не читает — названная граница, а не
+  забытая половина среза.
+
+## Полный verify 2026-10-27: 1834/0/113, единственная причина — самопостроенный каталог дескрипторов (2026-10-27)
+
+- `mvn -o -B -Dvaadin.skip=true clean verify` (лог 19:05): **1834 теста, 0 failures,
+  113 errors, 23 skipped, BUILD FAILURE** (18:20). Прогон после этой записи не
+  пере-запускался.
+- Все 113 ошибок в 12 классах — одна причина, воспроизведена адресно
+  (`NomenclaturePriceCteSpikeTest` 5/0/5): `ERROR [CLASSIFICATION_SOURCE_MISSING]
+  org.ip.model.NomenclatureAccountingObject#`. `QueryBuilderMetadataCatalog.<init>`
+  строит собственный `EntityDescriptorCatalog` с пустым списком источников
+  классификации (`List.of()`), поэтому тип с `@RegisterMetadata`
+  (`@EntityKindCandidate(INFORMATION_REGISTER)`) остаётся без проверенного источника.
+  Боевая проводка передаёт каталог приложения (`QueryAutoConfiguration`), поэтому живой
+  стенд работает; красными остаются тестовые контексты и фикстуры, собирающие каталог
+  сами (register/RLS/explorer/query).
+- **Это блокер полного гейта**, а не регрессия правки типов отчётов; последний зелёный
+  полный прогон — A1 2026-10-26 (1830/0/21). Исправление — отдельная задача: фикстуры
+  обязаны брать каталог приложения (или его источники классификации), а не собирать свой.
+
+## M2.2.2 (поправка): маршруты платформенного UI (2026-10-27)
+
+([evidence](../evidence/m2-2-2-route-registration-20261027.md))
+
+- Разрыв, которого не ловил ни один гейт M2: бины модуля приезжали артефактом, а
+  `@Route` не регистрировались — `org.ip.Application` не объявлял корни
+  сканирования Vaadin, и `/report-catalog*` и `/unidr` отвечали как
+  несуществующие адреса. Правка: `@EnableVaadin({"org.ip", "org.ipro"})`
+  (значение аннотации заменяет пакет `@SpringBootApplication`, поэтому корень
+  приложения перечислен явно).
+- Новый забор `org.ip.routes.RouteRegistrationTest` (2/0) спрашивает реестр
+  маршрутов живого контекста: каждый production-`@Route` из объявленных корней
+  обязан быть целью, четыре адреса `deep-link-baseline` — разрешаться в
+  `ReportCatalogView`/`UniDrView`.
+- Живая приёмка на PostgreSQL-стенде (профиль `dev`, `admin`): `/report-catalog`,
+  `/report-catalog-structured`, `/unidr`, `/queries` открываются; до правки первые
+  три отвечали отказом. Ручная браузерная приёмка, открытая в A1, для отчётного UI
+  закрыта.
+
+## A1: verify зелёный, блокер прав снят (2026-10-26)
+
+([evidence](../evidence/a1-verify-green-20261026.md), [исходный триаж](../evidence/a1-red-triage-20261026.md))
+
+- Полный `mvn -o -B -Dvaadin.skip=true clean verify`: **1830 тестов, 0 failures /
+  0 errors / 21 skipped, BUILD SUCCESS** (9:38). Все гейты среза M2/A1 зелёные,
+  включая `ApplicationBoundaryTest`, `PlatformPublicSurfaceTest`,
+  `PlatformApiBaselineTest` и `PlatformPackageDependencyMatrixTest`.
+- Миграция прав завершена: единый ключ `ENTITY:<FQN>`, read-предпосылка
+  `UPDATE`/`DELETE`, общий lock и lifecycle субъекта; отчёт о неназначенных
+  определениях и экран эффективных прав сверяются с решением C5.
+- `ApplicationBoundaryTest` закрыт переносом `EntityManager`-владельцев в
+  `org.ip.persistence` (`PermissionSubjectLock`, `PermissionSubjectLifecycle`,
+  `PermissionScopePageService`, `PermissionPatchStore`, `StoredGrantKeyReader`,
+  `PersistedUserState`); правило не ослаблялось. Замеры D1 обновлены: 235
+  прикладных source-файлов.
+- **Автоматический gate A1 зелёный.** Ручная PostgreSQL/браузерная приёмка и
+  отдельный random-order прогон остаются отдельным входом: в этом срезе они не
+  выполнялись. Поправка 2026-10-27: браузерная приёмка отчётного UI на
+  PostgreSQL-стенде выполнена ([поправка M2.2.2](../evidence/m2-2-2-route-registration-20261027.md)),
+  а гейт random-order стал воспроизводимым из конфигурации — профиль
+  `random-order` в корневом `pom.xml` (`mvn -o -Prandom-order clean verify`, seed —
+  `-Djunit.jupiter.execution.order.random.seed=<год><месяц><день>`); полный
+  random-order прогон остаётся отдельным входом.
+
+## M2.2.3: cutover и закрытие M2 (2026-10-26)
+
+([evidence](../evidence/m2-2-3-cutover-20261026.md))
+
+- Приложение владеет только прикладным JPQL-источником, `UniDrReferenceService`,
+  `UniDrQueryAdapter`, `UniDrDefinitions`, двумя конфигурациями и
+  `ReportRuntimeConfiguration`; app-owned `AutoConfiguration.imports` удалён.
+- Гейты переведены на новых владельцев: JR persistence — `platform-jr`,
+  seam-реестр — `platform-report-vaadin`, starter/BOM не считает report-UI частью
+  starter-а, матрица пакетов и 7 API baseline перегенерированы.
+- `mvn -o clean verify`: 291 класс, 1830 тестов, 33 failures / 14 errors; все
+  срезовые гейты M2 зелёные, приложение поднимается с включённым UniDR и
+  маршрутами `/unidr`/`/report-catalog*` (сама регистрация маршрутов здесь не
+  проверялась — поправка [2026-10-27](../evidence/m2-2-2-route-registration-20261027.md)).
+  `ReportRuntimeConfigurationSmokeTest` 2/0, `PersistenceRegistrationIT` 3/0.
+- Красными остаются наборы вне среза (permissions/RLS/REST/navigation,
+  `PlatformWritePathLifecycleTest` — долг M1, `JrxmlExecutionIT`) — это вход в A1,
+  а не регрессия переноса. **M2 закрыт.** Оба долга сняты в A1
+  ([evidence](../evidence/a1-red-triage-20261026.md)).
+
+## M2.2.2: UI отчётов и UniDR вынесен в platform-report-vaadin (2026-10-26)
+
+([evidence](../evidence/m2-2-2-report-ui-20261026.md))
+
+- 30 production-файлов в `platform-report-vaadin`: 15 UI UniDR, 9 каталога/печати/
+  параметров/диалога запроса, 6 платформенных швов (порты
+  `JrxmlRunLauncher`/`UniDrCatalogGateway`/`UniDrRunLauncher`,
+  `ReportUiAutoConfiguration`, `ReportContextFactory`, `ReportUiPreferences`).
+- Приложение оставило адаптеры `UniDrUiConfiguration` и
+  `ReportRuntimeConfiguration`; последний `org.ipro`-production-класс переехал в
+  `org.ip.config`, app `AutoConfiguration.imports` удалён.
+- `app-source-files=233`, `platform-tree-files=0`: дерево приложения больше не
+  содержит platform-кода. Legacy-поверхность — 7 типов / 18 ссылок.
+- Маршруты `/report-catalog`, `/report-catalog-compact`,
+  `/report-catalog-structured`, `/unidr` сохранены; реестры и замеры обновлены
+  намеренно, `platform-report-vaadin` — в BOM и workspace-манифесте. Сохранение
+  маршрутов по исходникам не означало их регистрацию в приложении — поправка
+  [2026-10-27](../evidence/m2-2-2-route-registration-20261027.md).
+
+## M2.2.1: backend UniDR вынесен в platform-unidr (2026-10-25)
+
+([evidence](../evidence/m2-2-1-unidr-backend-20261025.md))
+
+- 32 production-файла переехали в `platform-unidr`, пакет `org.ipro.unidr`:
+  model/source/store/render/run/query; `dynamicreports-defaults.xml` — там же.
+- В приложении остались пять файлов: прикладной источник «позиции накладных»,
+  JPQL-адаптер, справочник ссылок, `UniDrDefinitions` и `UniDrConfiguration`.
+  Граница — порты `UniDrReferenceCatalog` и `UniDrRunQueryAdapter`.
+- Шесть чистых тестов переехали в модуль (31 тест, 8 классов); прикладные типы
+  заменены локальными type-token'ами. UI каталога/печати и UniDR не трогались.
+- `platform-unidr` добавлен в BOM и workspace-манифест (fingerprint v2, 43 файла),
+  поэтому bootstrap собирает его на чистом локальном репозитории.
+- `WorkspaceManifestTest` и `ReportFormSeamTest` приведены к факту и зелёные;
+  адресные app-гейты — см. evidence.
+
+## M2.2: preflight переноса UniDR (2026-10-24)
+
+([evidence](../evidence/m2-2-preflight-20261024.md))
+
+- Инвентарь: 34 backend-файла `org.ip.unidr`, 15 UI-файлов, 8 файлов
+  каталога/печати, 25+9 тестов.
+- Три прикладные точки, которые нельзя перенести механически:
+  `UniDrReferenceService` (статический fieldId → `Workshop`/`Nomenclature`/
+  `ReceivingDocument`/`UnitOfMeasurement`), `UniDrReceivingItemsSource`
+  (прикладной JPQL-источник) и UI-мосты `UniDrFileStore`/`UniDrRunDialogFactory`
+  в каталоге/печати.
+- Решение: порты `UniDrReferenceCatalog`, `UniDrCatalogGateway`,
+  `UniDrRunLauncher`; порядок M2.2.1 (backend `platform-unidr`) → M2.2.2
+  (`platform-report-vaadin` + UI UniDR) → M2.2.3 (cutover). Пакет
+  `org.ip.unidr` → `org.ipro.unidr` переименовывается в M2.2.1.
+- Код в этом срезе не перемещался: preflight фиксирует границы до `git mv`.
+
+## M2.1: общий отчётный слой и JR вынесены в артефакты (2026-10-24)
+
+([evidence](../evidence/m2-1-report-layer-jr-20261024.md))
+
+- `platform-report` получил 15 production-файлов: нейтральный каталог, экспорт
+  готового `JasperPrint` (`PDF/XLSX/DOCX/CSV`, `FormulaEvaluator`) и ограниченный
+  пул фоновых задач. Модуль не знает движков; `JasperExporter` и
+  `ReportTaskExecutor` теперь регистрирует его auto-configuration, а не приложение.
+- `platform-jr` получил 11 production-файлов движка: entity/repository, сервис
+  шаблонов, адаптер каталога, компиляцию/запуск `.jrxml`, JPQL query executer и
+  оба auto-configuration. JPQL-источник остаётся портом `JpqlDatasetRunner`, его
+  реализация (`JpqlRunService`, guard + RLS) — в приложении.
+- Фабрика каталога больше не импортирует `JrxmlTemplate`: JR-строку собирает
+  адаптер движка механическим `of(id, type, ...)`.
+- Из app `AutoConfiguration.imports` удалены три регистрации; в
+  `ReportStudioAutoConfiguration` остались только `ObjectMapper` и
+  `ReportContextFactory`. BOM и manifest получили оба артефакта (fingerprints v2).
+- Проверки: `platform-report` — **33/0**, `platform-jr` — **13/0**, `mvn compile`
+  приложения — BUILD SUCCESS, [M1 шаг 5](../evidence/m1-5-negative-consumer-20261024.md)
+  (независимые потребители) — PASS в обе стороны.
+- `test-compile` приложения по-прежнему падает на чужом незакоммиченном дрейфе
+  Explorer (`SubsystemRegistry`/`ManagedEntityTypes`), поэтому app-level гейты
+  (`NeutralReportLayerBoundaryTest`, `PlatformPublicSurfaceTest`,
+  `WorkspaceManifestTest`) не запускались. Обновлены под новый адрес
+  нейтральных корней и JR-типов.
+- Осталось на M2: UI каталога/печати и UniDR (M2.2.2–M2.2.3); runtime-проверка
+  не выполнялась.
+
+## DB1 UDR: физические таблицы удалены, пункт закрыт (2026-10-24)
+
+([evidence](../evidence/db1-udr-removal-20261024.md))
+
+- Владелец подтвердил: рабочая БД одна — `DBVaa25`, и она тестовая; удаление
+  разрешено. Других рабочих БД нет.
+- До удаления снят read-only инвентарь и дамп: `report_template` 6,
+  `report_band` 18, `report_field` 27, `report_param` 2, `report_order` 2,
+  UDR-грантов 0; restore check совпал по counts, хэши 3/3.
+- [`scripts/db1-udr-removal.sql`](../../../scripts/db1-udr-removal.sql) выполнен на
+  `DBVaa25` с токенами `confirm`/`confirm_db`: пять таблиц удалены одной
+  транзакцией. Post-checks: `to_regclass` всех пяти = `NULL`, relation/sequence
+  `report_%` = 0, `access_grant` не трогался.
+- `mvn -B -q -DskipTests compile` — exit 0. Runtime-проверка приложения после
+  удаления не выполнялась (runbook §5).
+- **DB1 UDR закрыт**, R3.2 закрыт полностью: код движка удалён ранее, таблицы —
+  этим срезом. Откат — только из дампа в `outputs/db1-udr-backup-20261024-210326/`
+  (gitignored).
+
+## R3.2: UniDR больше не строит `ReportTemplate` — блокер снят (2026-10-23)
+
+([evidence](../evidence/r3-2-neutral-unidr-render-20261023.md))
+
+- `UniDrReportCompiler` уже собирал макет из нейтрального `ReportDataset`; теперь
+  и parameter-UI UniDR работает с `QueryDefinition`/`QueryParameter`:
+  `ReportParamEditor` не знает UDR DOM, `addMissingParameters` возвращает новое
+  описание, переходные `templateOf/cloneTemplate/sourceOf/copyParameters` удалены.
+- `ReportCatalogItemFactory.of(ReportTemplate)` удалён — каталог не собирает
+  UDR-строку и не знает DOM движка.
+- `FormEntitySelection` переехал в `org.ip.views.query`; `org.ip.views.unidr`
+  больше не импортирует `org.ipro.reportstudio.*`.
+- Гейты: `NeutralReportLayerBoundaryTest` проверяет, что production-деревья вне
+  `reportstudio` не называют `reportstudio.dom`; список моста в
+  `UniDrQueryContractBoundaryTest` пуст.
+- Проверки: `mvn compile` — BUILD SUCCESS; набор UniDr/Report/QueryWorkbench и
+  адресные гейты — **413/0** (включая `UniDrReportCompilerTest` 48/0,
+  `UniDrQueryUiTest` 11/0, `ReportParamEditorTest` 9/0,
+  `NeutralReportLayerBoundaryTest` 4/0). Полный прогон дерева не выполнялся:
+  `test-compile` упирается в незакоммиченный `EntityExplorerPilotPanelTest`
+  параллельной работы по Explorer.
+- Осталось на R3.2: удалить `reportstudio.dom`, `render/ReportCompiler`,
+  `run/ReportExecutionService`, `service/ReportTemplate*`, `transfer/*`,
+  repository и persistence registration — потребителей вне `reportstudio` нет.
+  DB1 UDR закрыт 2026-10-24
+  ([evidence](../evidence/db1-udr-removal-20261024.md)).
+
+## R3.1: входы UDR сняты (2026-10-23)
+
+([evidence](../evidence/r3-1-udr-entry-removal-20261023.md))
+
+- Каталог `/report-catalog` — только UniDR и JR: поставщик UDR-строк
+  (`UdrCatalogContributor`) удалён, встроенный редактор и UDR-действия
+  (создать/копия/экспорт/импорт/запуск/открыть) убраны. «Новый» предлагает UniDR
+  и JR.
+- Печать из списка и карточки — только UniDR (по `targetEntityClass`) и JR;
+  `ContextualReportLauncher`, `ItemFormReportActions` и `ReportPrintAction`
+  больше не принимают UDR-сервисы.
+- Удалены `ReportEditorView`, `ReportStructureEditor`, `ReportUserLayoutEditor`,
+  `ReportEditorMode`, `ReconcileDialog`, `ReportRunDialog`, `ReportPreviewDialog`
+  и их тесты; маршруты `report-editor*` убраны из deep-link baseline без
+  редиректа.
+- Реестр `platform-public-surface.txt` сокращён на 41 запись (38 legacy-internal
+  + 3 API), замеры D1 пересчитаны штатным writer: 283 файла приложения,
+  15 legacy-типов, 40 legacy-ссылок.
+- Проверки: отчетные/маршрутные/UniDR/query views — **107/0**, адресные
+  `ReportCatalogView`/`ReportEditorRouteContract`/launcher/print — **14/0**;
+  `PlatformPublicSurfaceTest` — 7/10, те же 3 прежних падения (wildcard-импорты,
+  fully-qualified ссылки, два типа без роли).
+- Осталось: R3.2 — удалить DOM/compiler/run/service/transfer и persistence;
+  блокер со стороны UniDR снят 2026-10-23
+  ([evidence](../evidence/r3-2-neutral-unidr-render-20261023.md)).
+  DB1 UDR — физические таблицы после R3.2.
+
+## R2: инвентарь UDR, архив формата и карта ID (2026-10-22, закрыт 2026-10-23)
+
+([evidence](../evidence/r2-udr-inventory-20261022.md))
+
+- Снят локальный инвентарь read-only запросом `scripts/r2-udr-inventory.sql`:
+  **6 шаблонов в `DBVaa25`**, в остальных пяти проверенных БД таблицы нет или
+  она пуста. Все шесть — `DRAFT` 2026-08, `query_source=MANUAL`; лимиты
+  `5000/30000` у всех.
+- Использованные возможности измерены по шаблонам: группы + `COUNT`, один
+  `SUM`, `ROW_NUMBER`, `EXPRESSION`, `TEXT`, `headerLayout=TITLE_AND_VALUE`,
+  параметры `ENTITY/FORM`, `ORDER BY`. `FORMULA`, `PERIOD`, `CONTEXT`,
+  `COMPUTED`, `PAGE_*`/`REPORT_*`/`NO_DATA` не встречаются.
+- **Дефект данных:** у шаблонов 2 и 4 корневые `GROUP_HEADER` записаны с
+  `parent_id = id` (в 4 — два бэнда). Архив сохраняет самоссылку как есть, а
+  `UdrTemplateArchive.selfParentBands()` называет её числом.
+- S8: формат `ipro-report-template/3` заморожен
+  ([описание](../udr-template-json-format.md)); шесть шаблонов выгружены в
+  `evidence/r2-udr-json-samples/`, независимый читатель
+  `org.ip.archive.UdrTemplateArchive` не зависит от отчётного DOM. Решение:
+  автоматический UDR→UniDR конвертер **не пишется** — единственный
+  повторяющийся набор покрыт UniDR (S1), а перенос сценарного шаблона
+  проверяется на данных вручную.
+- S3 закрыт через Q3/T1: снимок с явным лимитом и N+1, readonly JPQL
+  визуального запроса, тот же guard/RLS; константа «≤20 строк» заменена
+  явным полем.
+- **Решение владельца 2026-10-23:** все UDR-отчёты тестовые и не нужны. В карте
+  `evidence/r2-udr-id-map.csv` у всех 6 строк `owner_decision=NOT_NEEDED`;
+  `REBUILD_UNIDR` шаблона 4 отменён. Перенос данных и таблица соответствия ID не
+  нужны, прод-инвентарь по шаблонам не запрашивается. JSON-примеры остаются
+  фикстурами формата, а не архивом рабочих отчётов.
+- Проверки: `scripts/r2-udr-inventory.sql` — 6 строк; `r2-udr-export-json.sql`
+  — 6 файлов; `UdrTemplateArchiveTest` — **7/0** (формат, вложенные группы,
+  привязка печати, self-parent, отказы на битую версию/ссылку/`COLUMN`).
+- R2-D2/D4 (PERIOD/CONTEXT/COMPUTED, `headerLayout`/«нет данных») закрыты как
+  ненужные: это были препятствия переноса; R2-D5 снят вместе с архивом рабочих
+  отчётов; R2-D3 (печать из карточки) уже реализован в S5.
+- **R2 закрыт.** Дальше — R3: удаление UDR-редактора, модели, компилятора,
+  run/store/transfer, очистка каталога/печати/меню/capabilities, затем DB1 UDR
+  для физических таблиц.
+
+## T1: самостоятельный экран «Конструктор запросов» (2026-10-22)
+
+([evidence](../evidence/t1-query-workbench-20261022.md))
+
+- Снимок результата получил явный контракт: `QuerySnapshotService` просит N+1
+  строку и ставит признак `truncated`, а не выводит усечение из `rowCount() == N`.
+  `QuerySnapshot` отрезает лишнюю строку и укорачивает reference-колонки до той же
+  длины, чтобы ключи строк остались согласованными.
+- Таблица результата вынесена из редактора в `QueryResultTable`
+  (`platform-query-vaadin`): фильтр и сортировка работают по снимку, а подпись
+  говорит «Показано N из-за лимита L» и «Фильтр по снимку: K из N». Отчётный
+  режим без снимка сохранён перегрузкой `show(fields, dataset)`.
+- Новый маршрут `/queries` и пункт меню «Конструктор запросов»: черновик живёт в
+  вкладке, ничего не сохраняет и не открывает каталог/движки отчётов. Вход
+  решает `QueryWorkbenchAccess` (анонимный отклонён), а право чтения сущностей
+  остаётся у guard'а запроса.
+- `/reports-preview` и его view удалены; маршрут `/queries` внесён в
+  `deep-link-baseline.txt`. В реестре публичной поверхности новый файл явно
+  назван для `FormEntitySelection`, замеры `d1-surface-measurements.md`
+  пересчитаны.
+- Проверки: `platform-query` — **151/0** (было 146), `platform-query-vaadin` —
+  **150/0** (было 140), адресные тесты приложения — 13/0, 22 новых теста.
+  `PlatformPublicSurfaceTest`: осталось 3 падения из соседней работы
+  (wildcard-импорты `EntityDraft*`, два типа без роли, fully-qualified ссылки
+  `ReceivingDocumentFormConfig`); `ReportEditorView*` падают на уже принятом
+  закрытии «Новый шаблон» — книга возможностей ещё не обновлена.
+- Не обещано: серверная пагинация/total count, сохранение запроса как документа,
+  шаг 5 M1 (отрицательный потребитель без Vaadin/Jasper).
+
+## M1.4: Q6-фикстуры и пять IT в platform-query (2026-10-22)
+
+([evidence](../evidence/m1-4-query-q6-fixtures-20261022.md))
+
+- `Q6Journal`, `Q6Product` и пять IT (`CteHibernateExecutorIT`,
+  `CteHibernateSmokeIT`, `CteVirtualCatalogIT`, `VisualQueryPackageParserIT`,
+  `VisualQueryPackageRlsIT`) переехали в `platform-query`: 47 тестовых файлов,
+  **146 тестов, 0 падений**.
+- Модуль публикует `tests`-jar с двумя Q6-сущностями; приложение объявляет его
+  test-scope зависимостью. `Q6JpaTestConfiguration` исключён из test-jar и
+  остаётся свой у модуля и у приложения — иначе на тестовом classpath появился
+  бы второй `@SpringBootConfiguration`.
+- Прикладные `VisualQueryPackageAssemblyIT`/`VisualQueryQ6HibernateIT`
+  сканируют `org.ipro.query.q6` через `@EntityScan` и проверены на H2.
+- Добавлен тестовый `application.properties` с `H2Dialect`: `CteHibernateSmokeIT`
+  выключает метаданные JDBC и без явного диалекта не поднимался вне приложения.
+- Проверки: `platform-query install` — 146/0, содержимое test-jar проверено,
+  `test-compile` приложения — EXIT=0, адресные прикладные тесты — 5/0,
+  `WorkspaceManifestTest` — только чужой дрейф (`platform-core`, `platform-vaadin`,
+  порядок `entity-design-json`); запись `platform-query` обновлена (123 файла).
+- В приложении осталось 20 тестовых файлов: 8 acceptance на модели/безопасности,
+  6 UDR-моста/адаптера, 2 адаптера формы, прикладная Q6-конфигурация и гейты.
+- Остался шаг 5 M1 — отрицательный потребитель без Vaadin/Jasper; затем R2/R3,
+  M2 и A1.
+
+## M1.3: тесты query-модулей переехали к владельцу (2026-10-22)
+
+([evidence](../evidence/m1-3-query-module-tests-20261022.md))
+
+- `platform-query` — 39 тестовых файлов (136 тестов): backend-тесты запроса и два
+  самодостаточных H2-IT (`CteHibernateFilterIT`, `SubqueryRlsIT`). Test-scope
+  `spring-boot-starter-test`, `spring-boot-starter-data-jpa-test`, `h2`;
+  surefire включает `*IT`.
+- `platform-query-vaadin` — 26 тестовых файлов (140 тестов): редактор,
+  конструктор, списки и три parser→constructor сценария. `org.ip.model`
+  заменён фикстурами `DemoDocument`/`DemoDocumentItem`/`DemoProduct`,
+  прикладной `EmptyEntitySelection` — модульным портом.
+- Гейты модулей сканируют и `src/test`: `QueryBackendBoundaryTest` (6 тестов)
+  и `QueryUiBoundaryTest` (3) падают на импорте `org.ip`, `reportstudio`,
+  `org.ipro.form`. В приложении `ReportQueryUiBoundaryTest` требует, чтобы
+  дерево `src/test/java/org/ipro/query` не вернулось.
+- В приложении осталось 26 файлов: 8 acceptance на прикладной модели/безопасности,
+  5 IT на Q6-фикстурах, 6 UDR-моста/адаптера, 2 адаптера формы, кросс-артефактный
+  ArchUnit-гейт и два boundary-гейта.
+- Проверки: `platform-query` — 136/0, `platform-query-vaadin` — 140/0,
+  `test-compile` приложения — EXIT=0, адресный набор приложения — 96/0.
+  `WorkspaceManifestTest`: записи двух модулей совпадают, красные — чужие
+  (`platform-core` 153 → 155, `platform-vaadin` 226 → 229, порядок
+  `entity-design-json`).
+- Осталось на момент среза: Q6-фикстуры/IT в test-fixtures артефакт (закрыто в
+  M1.4), отрицательный потребитель без Vaadin/Jasper (шаг 5 M1), UI-мост UniDR
+  (R3/M2).
+
+## M1.2: query UI вынесен в platform-query-vaadin (2026-10-21)
+
+([evidence](../evidence/m1-2-query-vaadin-extraction-20261021.md))
+
+- `platform-query-vaadin` — 27 перенесённых файлов / 7 183 строки
+  (`ui.editor`, `ui.constructor`, `ui.list`, `ui.catalog`) плюс порт
+  `ui.selection` и `QueryUiAutoConfiguration`. Зависимостей от
+  `org.ipro.form`, `reportstudio`, `org.ip`, Jasper/DynamicReports нет — это
+  гейт модуля.
+- Шов формы: `EntitySelection` (колонки + поле + значение) в модуле;
+  `org.ipro.reportstudio.query.adapter.FormEntitySelection` в приложении
+  собирает `EntityField`/`SelectionFormAssembler`. Четыре прямых импорта
+  `org.ipro.form` в редакторе исчезли.
+- `QueryEditorAnalysisService`/`QueryMetadataCatalogService` переехали из
+  `ReportStudioAutoConfiguration` в `QueryUiAutoConfiguration`: query UI
+  поднимается без отчётного слоя.
+- Мост UniDR UI к UDR-редактору сократился с 10 импортов до 4; мост
+  shrink-only.
+- Гейты и реестры обновлены: `QueryUiBoundaryTest` (модуль),
+  `ReportQueryUiBoundaryTest` (в приложении остался только `adapter`),
+  `ReportFormSeamTest` (держатель теперь `FormEntitySelection`, порог
+  невакуумности 60 из-за сжатия слоя до 69 файлов), матрица пакетов
+  перегенерирована, `platform-query-vaadin` внесён в BOM/manifest.
+- Проверки: модуль — BUILD SUCCESS, 2/2; приложение `test-compile` — EXIT=0;
+  адресный набор (перенесённые UI-тесты, экраны, UniDR) — 169 тестов, 0
+  failures; гейты среза — 13/13. Общий `verify` не выполнялся: красные —
+  чужие (`PlatformPublicSurfaceTest`, `platform-core` fingerprint и порядок
+  `entity-design-json` в манифесте).
+- Осталось на момент среза: тесты UI в приложении (16 файлов; закрыто в M1.3),
+  мост UniDR (R3/M2), отрицательный потребитель UI без отчётного слоя.
+
+## M1: query-контракт вынесен в platform-query (2026-10-21)
+
+Домен UniDR больше не импортирует `org.ipro.reportstudio.*`
+([evidence](../evidence/m1-query-contract-extraction-20261021.md)):
+
+- `platform-query` — новый артефакт: `org.ipro.query` (flat backend),
+  `query.register`, `query.sqm`, `query.param`, `query.model`, `query.document`
+  и `QueryAutoConfiguration` с модульным `AutoConfiguration.imports`.
+  73 файла / 10 135 строк; пакет `reportstudio.query` сократился с 83 до 28
+  файлов (остались `adapter/constructor/editor/catalog/list`).
+- `platform-report-core` — новый JDK-only артефакт с `org.ipro.report.data`
+  (`ReportDataset`, `ReportRow`, `QueryField`, `EntityRef`): query backend
+  не может импортировать типы из дерева приложения. Пакет сохранён, поэтому
+  приложение, JR и UniDR-рендер не меняли импорты.
+- Словарь сохранённого query-документа (`ReportComputedValue`,
+  `ReportParamKind.PERIOD`, `ReportParamSource.DEFAULT`, `ReportQuerySource`)
+  переехал в `org.ipro.query.document` **без переименования констант**: v2 JSON
+  UniDR хранит эти имена, поэтому нейтральные `QueryParameterKind`/
+  `QueryValueSource` остаются API-моделью, а конвертация живёт в одном месте
+  (`UniDrParameters`).
+- Регистрация переехала к владельцу: query-бины объявляет
+  `QueryAutoConfiguration`; `ReportStudioAutoConfiguration` оставил только
+  отчётный слой и query-UI приложения.
+- Гейты: `QueryBackendBoundaryTest` (5) в модуле — без reportstudio/org.ip/
+  Vaadin и без `ReportExecutionService`; `UniDrQueryContractBoundaryTest` —
+  ноль импортов reportstudio в `org/ip/unidr/**` и точный shrink-only список
+  моста в `org/ip/views/unidr/**`; `ReportQueryUiBoundaryTest` — DOM только в
+  UDR-фасаде; матрица пакетов перегенерирована.
+- Проверки: `platform-report-core` и `platform-query` — BUILD SUCCESS,
+  20 тестов модуля; адресные гейты — 5 тестов, 0 failures. Общий
+  `test-compile` на момент среза был зелёным; позже его ломает параллельная
+  незакоммиченная работа (`EntityDraftEditorView`), поэтому полный `verify`
+  после среза не выполнялся.
+- Остались: UI-мост UniDR к UDR-редактору (10 импортов в одном файле, умирает
+  с R3/M2), второй шаг M1 — `query Vaadin` (editor/constructor/list/catalog),
+  перенос backend-тестов с модульными фикстурами.
+
+## R1/S10: экспорт, воркеры и датасет вынесены из reportstudio (2026-10-21)
+
+UniDR больше не импортирует `org.ipro.reportstudio.{data,render,run,task}`
+([evidence](../evidence/r1-shared-export-and-tasks-20261021.md)).
+
+- `ReportCompiler` сузился до `compile(ReportTemplate, ReportDataset)`. Экспорт
+  `JasperPrint` — `org.ipro.report.render.JasperExporter` (`JasperReportExporter`):
+  PDF/XLSX/DOCX/CSV, свойства числовых XLSX-ячеек, `ReportRenderException`.
+  Авто-конфигурация регистрирует `jasperExporter` и передаёт его в
+  `ReportExecutionService`.
+- `ReportTaskExecutor`/`ReportTaskCompletion` — в `org.ipro.report.task` без
+  изменения поведения (снимок субъекта и request attributes, очистка ThreadLocal,
+  bounded queue, закрытие). UniDR использует исполнитель напрямую в
+  `UniDrRunService`, JR — в `JrxmlRunDialog`; `executeAsync` на UDR-фасаде
+  остался только у UDR-диалога и уйдёт вместе с ним.
+- `ReportDataset`/`ReportRow`/`QueryField`/`EntityRef` — в `org.ipro.report.data`,
+  `FormulaEvaluator` — в `org.ipro.report.render`.
+- Гейт `NeutralReportLayerBoundaryTest` держит обе стороны шва: нейтральные
+  пакеты не знают reportstudio/UniDR/Vaadin и отчётного DOM, UniDR не импортирует
+  вынесенные куски `reportstudio.{data,render,run}`.
+- JR-диалог принимает `ReportTaskExecutor`, а не UDR-фасад; исполнитель
+  прокинут через каталог, печать из списка/карточки и `CardLauncher`. Гейт
+  дополнительно запрещает `reportstudio.run` в `views/reports`.
+- Проверки: `test-compile` — BUILD SUCCESS; адресные наборы — **145**, **139**
+  и **36** тестов, 0 failures / 0 errors.
+- Полный `mvn verify` 2026-10-21: **2448 тестов, 44 failures / 14 errors**.
+  Срезовые гейты зелёные после правок: `PlatformArchitectureTest` (порт подписи
+  переехал в `reportstudio.query`), `PlatformSubsystemClosureTest`,
+  `PlatformPublicSurfaceTest` (реестр ролей и frozen-ссылок),
+  `PlatformPackageDependencyMatrixTest` — кроме четырёх рёбер
+  `org.ipro.vaadin.explorer`, которых в реестре ещё нет. Остальные красные —
+  незакоммиченная работа соседних потоков: RLS/permissions
+  (`Permission*`, `RlsAutoConfiguration`, 27 классов), Explorer-pilot
+  (`ExplorerFormPreview` wildcard/FQN, `TableSectionService`) и расхождение
+  fingerprint-манифестов `platform-core`/`platform-vaadin`. Они названы, а не
+  замаскированы.
+- Остались: query-импорты UniDR снимаются выносом query-слоя (M1), сам
+  `ReportExecutionService` удаляется вместе с UDR (R3/S4).
+
+## R2 №6: создание новых UDR закрыто (2026-10-21)
+
+Замены готовы, поэтому новые UDR больше не создаются
+([evidence](../evidence/r2-close-udr-creation-20261021.md)).
+
+- `ReportEngineCapabilities.Capabilities.createNew`: UDR — `false`, JR и UniDR —
+  `true`. Диалог «Новый отчёт» строится по матрице: UDR-конструктора нет, UniDR —
+  основное действие, JR остаётся вторым входом.
+- `ReportEditorView.saveTemplate()` отказывает до сервиса, если `id == null`;
+  тулбар больше не предлагает «Новый шаблон». Старый `/report-editor` без `id`
+  открывает пустой экран, но сохранить его нельзя — адрес не редиректится молча.
+- Чтение, правка, запуск, копия, экспорт/импорт JSON и удаление существующих
+  шаблонов сохранены; копия и импорт — явные пути миграции старого JSON.
+- Проверки: `ReportEngineCapabilitiesTest`, `ReportCatalogViewTest`,
+  `ReportEditorViewTest`, `ReportEditorViewDirtyTest` — **60 тестов, 0/0**.
+- Остаток R2: прод-инвентарь и решения по шаблонам, S8 (судьба старого JSON и
+  конвертер), перенос данных с картой ID. Сам редактор удаляется в R3/S4.
+
+## R3: нейтральный шов исполнения запроса (2026-10-20)
+
+Execution seam закрыт по коду ([evidence](../evidence/r3-neutral-run-seam-20261020.md));
+удаление UDR целиком по-прежнему впереди (S4/S8, прод-инвентарь, §7 реестра R2).
+
+- `ReportQueryExecutor` принимает `QueryResultPresenter`; `usePresentations` и
+  зависимости от `EntityPresentationService`/`RecorderTypeRegistry` в backend'е нет.
+  Реализация — `org.ipro.reportstudio.query.QueryResultLabelPresenter`.
+- `ReportQueryRunService` — нейтральный `@Transactional(readOnly = true)` вход
+  «сборка + выполнение» с лимитами из `QueryDefinition`; на него переведён UDR-фасад,
+  который теперь только композитор (шаблон → запрос → исполнение → макет → кэш).
+  Preview принимает уже собранный запрос, UniDR сохраняет собственную границу —
+  их перевод на этот вход в срез не входил. Закрыты Q2-остатки №2–3.
+- `ReportArtifactCache.key` принимает строковую идентичность документа и bindings;
+  `ReportTemplate` из кэша ушёл.
+- Гейт `QueryBackendBoundaryTest.runPackageKeepsTheTemplateOnlyInTheUdrFacade`
+  держит shrink-only список: в `run/` отчётный DOM знает ровно один файл
+  (`ReportExecutionService`), и добавление второго ломает тест.
+- Проверки: `test-compile` — BUILD SUCCESS; адресные наборы 60 и 77 тестов;
+  регрессия `query/**`, `views/reportstudio/**`, `views/unidr/**`, `unidr/**`,
+  `run/**` — **927 тестов, 0 failures / 0 errors, 18 skipped**.
+  Полный `mvn verify`, PostgreSQL и браузерная приёмка не выполнялись.
+- Нейтральная модель макета не вводилась намеренно: bands/поля/страница принадлежат
+  UDR и исчезают вместе с ним в R2/S4; дублировать модель перед удалением нет смысла.
+
+## R2/S7: сценарий «отчёт о ценах» удалён (2026-10-20)
+
+Владелец признал отчёт «Номенклатура и цена на дату» ненужным; замена не создавалась
+([evidence](../evidence/r2-s7-price-report-removal-20261020.md)).
+
+- Удалены `NomenclaturePriceReport`, `RegisterSliceDraftAdapter`, `RegisterSliceReportTemplates.createDraft`
+  (`SliceDraft`/`DraftColumn`/`RootColumn`), кнопка «Создать отчёт о ценах» и параметр
+  `priceReport` в `ReportCatalogView`; тесты сценария убраны.
+- Прикладной код больше не создаёт `ReportTemplate`. Срез жив в конструкторе запроса
+  (`createSliceQuery`/`constructorSlice` → `RegisterSliceQueryDialog`, `UniDrQueryUiSupport`),
+  CTE-генератор и спайк не тронуты.
+- Проверки: `test-compile` — BUILD SUCCESS; 44 теста адресных наборов (`ReportCatalogViewTest` 23,
+  `NomenclaturePriceCteSpikeTest` 7, `ReportEditorViewTest` 10, `ReportPrintDialogUniDrTest` 2,
+  `ReportCatalogAssemblyGateTest` 2) — 0 failures / 0 errors. Полный `mvn verify`, PostgreSQL
+  и браузерная приёмка не выполнялись.
+- В реестре R2 строка S7 переведена в «не нужен», условие входа §5.3 закрыто явным отказом.
+
+## Q1/Q2: нейтральный query-контракт (2026-10-19)
+
+Q1 закрыт, Q2 закрыт в объёме backend-замыкания ([evidence](../evidence/q1-q2-query-contract-20261019.md)).
+
+- `org.ipro.reportstudio.query.model` описывает запрос, параметры (`SCALAR/RANGE/ENTITY/ENTITY_LIST`),
+  источник и computed-значения, сортировки и лимиты без `ReportTemplate`, `ReportParam`,
+  bands и UniDR. `QuerySource` задаёт первичность представления явно.
+- UDR и UniDR подключаются только через переходные адаптеры
+  (`ReportTemplateQueryAdapter`, `UniDrQueryDefinitions`); `ReportQueryAssemblyService`
+  и `ReportParamResolver` принимают нейтральные типы, executor не вызывает
+  `ReportExecutionService`.
+- `ReportDataset.ReferenceColumn` хранит идентичность ссылки вне публичной схемы:
+  `fields()` и `equals` не зависят от того, запрашивал ли потребитель ключи.
+- `QueryBackendBoundaryTest` запрещает импорт отчётного DOM, UniDR, run-слоя и Vaadin
+  в backend-замыкании и упоминание `ReportExecutionService`.
+- Затронутая поверхность: **889 тестов, 0 failures / 0 errors** (620 query/param/UniDR/
+  register + 269 report/views). Полный `mvn verify`, PostgreSQL и браузерная приёмка
+  не выполнялись.
+- Q2-остаток №1 закрыт 2026-10-19 ([evidence](../evidence/q2-register-slice-20261019.md)):
+  register slice отдаёт `QueryDefinition`, черновик — `SliceDraft`, `ReportTemplate`
+  собирает только `RegisterSliceDraftAdapter`; `query/register` без отчётного DOM.
+  Остаются presentation hook (`EntityPresentationService`/`RecorderTypeRegistry`)
+  в executor и read-only transaction boundary. Q3 закрыт по коду 2026-10-20
+  ([evidence](../evidence/q3-editor-draft-session-20261020.md)): `UniDrQuerySource`
+  больше не шаблон, редактор/диалог запроса работают с draft/session, а
+  `query/editor`/`query/constructor` не знают отчётного DOM.
+
+## Q3: запрос как черновик и сессия (2026-10-20)
+
+Первый срез Q3 закрыт ([evidence](../evidence/q3-editor-draft-session-20261020.md)).
+
+- `UniDrQuerySource` — record `kind/jpql/visualQueryJson/parameters/tableEntity` без
+  `ReportTemplate`/`ReportParam` и без `template()`/`from(ReportTemplate)`; энумы
+  параметров остаются словарём сохранённого JSON, отображение — в `UniDrQueryDefinitions`.
+- `QueryDraft` неизменяем, `QueryEditorSession` держит подтверждённый черновик и правку:
+  `apply`/`cancel`/`dirty`; редактор получает сессию через `open(session)`, а не шаблон.
+- `ReportQueryDialog` принимает только сессию: «Применить» подтверждает черновик и
+  вызывает обработчик экрана, отказ guard'а или исключение оставляют прежний черновик,
+  «Отмена»/закрытие возвращают подтверждённый. `ReportEditorView` пишет результат в
+  `ReportTemplate` через `ReportTemplateQueryAdapter.applyTo`.
+- `ReportQueryEditor` хранит `QueryDraft`, вход — `open(draft|session)`; анализ
+  параметров принимает `QueryParameter`, `QueryTestParam.toParamKind()` — `QueryParameterKind`.
+  Группировки/сортировки для предпросмотра приходят подсказками экрана, а запись в
+  `ReportTemplate` делает `ReportTemplateQueryAdapter.applyTo` на границе экрана.
+- `query/editor` и `query/constructor` не импортируют `org.ipro.reportstudio.dom`;
+  гейт `QueryBackendBoundaryTest` это фиксирует. `ReportTemplate`/`ReportParam`
+  остались только в `query/adapter` и UI-экранах отчёта — до R3.
+- Проверки: `test-compile` (JDK 21) — BUILD SUCCESS; регрессия `query/**`,
+  `views/reportstudio`, `views/unidr`, `unidr/**` — **877 тестов, 0 failures /
+  0 errors, 18 skipped**. Полный `mvn verify`, PostgreSQL и браузерная приёмка
+  не выполнялись. Вне среза: владение таблицей результата/query CSS и Q2-остаток №2–3.
+
+## S2/R2-D1: авторский JPQL остаётся query-документом (2026-10-19)
+
+Владелец подтвердил: сценарий авторского запроса (JPQL и визуальный конструктор)
+сохраняется как нейтральный **query-документ**, в JRXML не переносится
+([ADR-0028](../decisions/ADR-0028-author-query-as-document.md), [R2-реестр](../r2-udr-scenario-inventory.md#L49)).
+
+- JRXML остаётся языком макетов, а не заменой конструктора; UDR до R3 может быть
+  композитором документа, но не его владельцем.
+- Q3 (редактор/конструктор/`UniDrQuerySource` на query API) становится обязательным
+  этапом R2; Q2-остаток №2–3 (presentation hook, read-only transaction boundary)
+  входит в тот же объём.
+- Отдельный сохраняемый пользовательский агрегат запроса (D3/T1) этим решением не
+  вводится: документ остаётся в приложении, но новой таблицы/каталога пока нет.
+- Следующий срез — Q3: убрать `ReportTemplate`/`ReportParam` из `UniDrQuerySource`
+  с сохранением JSON и stable IDs, после чего `setTemplate` → query draft/session.
+  Перед Q3 остаётся Q2-остаток №2–3 (presentation-декоратор и граница транзакции).
+
+## U1: вывод UReport из runtime (2026-10-18)
+
+U1.1–U1.3 закрыты, U1.4 закрыт по коду, реестрам и документам; D2/D5/D9
+подтверждены владельцем 2026-10-18 ([ADR-0027](../decisions/ADR-0027-report-composition-without-ureport.md)).
+
+- В приложении нет `org.ipro.ureport.*`, `UReportConfig`, `UReportJpqlDataset`,
+  `UreportParamsDialog`, их бинов и регистраций; `ReportEngineType`/capabilities/UI
+  знают только UDR, JR и UniDR. Нейтральный `org.ipro.report.catalog` собирает строку
+  каталога в одном месте и не импортирует движки.
+- `pom.xml` не содержит `com.bstek.ureport` и property `ureport.version`; запись
+  `ureport3` снята из `scripts/local-dependencies.json` и bootstrap-манифеста.
+  `mvn dependency:tree` (297 строк) не содержит ни UReport, ни iText — AGPL-риск
+  ушёл вместе с форком; внешний checkout `../UReportFork2` не тронут.
+- Реестры поверхности пересчитаны: `legacy-internal` — 52 типа / 180 ссылок (рост записан как долг UniDR, а не разрешение),
+  `named-platform-types` — 308. `report-form-seam.txt` больше не описывает
+  UReport-строку и держит тот же шов Report → Form для UDR/JR/UniDR.
+- Полный `mvn clean verify` (после `install` platform-core и platform-vaadin) —
+  **2340 тестов, 35 failures / 14 errors в 19 наборах**. U1-гейты (каталог, печать,
+  JR, UniDR, report-form seam, starter composition, bootstrap, surface) зелёные.
+  Всё красное — чужое: долг C5/RLS (18 наборов: `ApplicationBoundaryTest`, RLS-IT,
+  `C5AccessDeniedException` вместо `RlsAccessDeniedException`, `C5*IT`, `RestReadRoleMatrixIT`
+  и др.) и незакоммиченный срез explorer (`PlatformVaadinModuleTest` 138 → 139 типов,
+  `WorkspaceManifestTest` fingerprint `platform-core` 153 → 154 и `platform-vaadin`
+  226 → 228, `NavigationAdminWiringTest`).
+  Причина прошлого невозможного `test-compile` была не в коде: приложение собирается
+  против установленных SNAPSHOT-артефактов, а `EntitySummary` был изменён только в дереве;
+  после установки модулей дерево компилируется. Замеры `d1-surface-measurements.md`
+  перегенерированы намеренно, их гейт зелёный.
+- **DB1 выполнен 2026-10-18 на локальном PostgreSQL**: удалена `ureport_template` в пяти
+  БД (2 строки в `DBVaa25`, остальные пустые), UReport-грантов не было, каталог
+  `UReportFiles` заархивирован, `ureport.fileStoreDir` убран из локального конфига.
+  Перед удалением — dump и архив с `sha256`, проверка восстановления: 2 строки и 6/6
+  файлов. Протокол — [`evidence/db1-ureport-data-removal-20261018.md`](../evidence/db1-ureport-data-removal-20261018.md).
+  D5 — удалить все шаблоны, D9 — старый `/ureport/*` не обслуживается, сегмент
+  `ureport` освобождён из deep-link baseline.
+- Runtime-приёмка 2026-10-18: `mvn spring-boot:run` на локальной БД после DB1
+  стартует за 23.9–31.6 с без ошибок; `/ureport/index.html` и `/ureport/designer` —
+  302 на `/login` (дизайнера нет); `/report-catalog` без сессии — 302 на `/login`;
+  `POST /api/report-jpql/preview` без аутентификации — 401. Каталог/печать и профиль
+  `accounting-pilot` интерактивно не проверены — нужны учётные данные приложения.
+  Документ плана —
+  [`ureport-removal-plan.md`](../ureport-removal-plan.md), evidence —
+  [`u1-ureport-removal-20261018.md`](../evidence/u1-ureport-removal-20261018.md).
+
 ## Generic identity: проверенное состояние 2026-10-09
 
 IG1–IG8 завершены в объёме `IdentifiableEntity<ID>` с сохранением Long в действующем
@@ -2611,3 +3315,14 @@ D1/Vaadin/API guards проходят. Общий manifest guard ещё сооб
 параллельного REST/C5-среза. Живая матрица, история, browser tab/clipboard и полный app-прогон —
 11.1; итог/закрытие — 11.2. Документация custom-форм: `deep-links-guide.md` §7; правила —
 ADR-0010 §12; подробные логи и результаты — `docs/plans/e3-2-e322-progress.md`.
+
+
+## Entity types / AppDev First — ET7 (2026-10-27)
+
+Основной runtime-комплект ET0–ET7 завершён: [evidence](../../plans/entity-types-appdev-first-et7-evidence.md),
+[поддержанные профили](../entity-types-runtime-profiles.md). Межконтрактная диагностика
+поступает из data-слоя в общий metadata startup/Explorer канал; зависимость metadata →
+data/fetch не добавлена. У 39 общих с ET0 типов публикации/структура/capabilities не
+изменились; удалены только пять ранее непубликуемых reportstudio storage-типов из
+параллельного report-composition среза. ADX-01 закрыт в этом scope.
+ET8, ET9, исполняемые новые рецепты и накопление остаются отдельной работой.

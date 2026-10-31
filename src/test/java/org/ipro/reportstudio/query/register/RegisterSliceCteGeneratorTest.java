@@ -1,4 +1,4 @@
-package org.ipro.reportstudio.query.register;
+package org.ipro.query.register;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +20,9 @@ import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.register.*;
-import org.ipro.reportstudio.query.*;
+import org.ipro.query.*;
+import org.ipro.query.model.QueryDefinition;
+import org.ipro.query.model.QueryParameter;
 import org.ipro.rls.*;
 import org.ipro.rls.c5.C5PermissionEvaluator;
 import org.junit.jupiter.api.*;
@@ -58,13 +60,18 @@ class RegisterSliceCteGeneratorTest {
     @AfterAll static void close() { if (factory != null) factory.close(); }
     @BeforeEach void begin() {
         em = factory.createEntityManager(); em.getTransaction().begin();
-        var managed = new ManagedEntityCatalog(factory);
-        var recorderTypes = new RecorderTypeRegistry(managed, factory, new MetadataResolver());
+        var metadata = new MetadataResolver();
+        var types = new org.ipro.metadata.ManagedEntityTypes(factory);
+        var managed = new ManagedEntityCatalog(types);
+        var recorderTypes = new RecorderTypeRegistry(managed, factory, metadata);
         registers = new RegisterRegistry(managed, recorderTypes);
-        var rls = new RlsDimensionRegistry("org.ipro.reportstudio.query.register"); rls.rebuild();
+        var descriptors = new EntityDescriptorCatalog(managed,
+            new org.ipro.metadata.SectionMetadataRegistry(types, metadata), metadata,
+            List.of(), List.of(), List.of(new RegisterClassificationContributor(registers)));
+        var rls = new RlsDimensionRegistry("org.ipro.query.register"); rls.rebuild();
         var access = new AccessService(null, name -> List.of(), rls);
-        catalog = new QueryBuilderMetadataCatalog(factory, new MetadataResolver(),
-            new RlsReadGate(org.ipro.rls.RlsTestFixture.allowingC5ReadEvaluator(), rls), () -> "r5");
+        catalog = new QueryBuilderMetadataCatalog(types, metadata,
+            new RlsReadGate(org.ipro.rls.RlsTestFixture.allowingC5ReadEvaluator(), rls), () -> "r5", descriptors);
         source = RegisterSliceSource.resolve(Price.class, registers, factory.getMetamodel(), catalog);
     }
     @AfterEach void rollback() { em.getTransaction().rollback(); em.close(); }
@@ -88,11 +95,11 @@ class RegisterSliceCteGeneratorTest {
         price(item, "retail", DAY, new BigDecimal("150"), 1);
         price(item, "retail", DAY.plusDays(1), new BigDecimal("90"), 2);
         var recipes = new RegisterSliceReportTemplates(factory, registers, catalog, generator);
-        var template = recipes.createSliceQuery(spec(DAY.plusDays(1),
+        var definition = recipes.createSliceQuery(spec(DAY.plusDays(1),
             List.of(condition("channel", SliceSpec.Operator.EQ, "retail")),
             List.of(condition("price", SliceSpec.Operator.GT, new BigDecimal("100")))), "asOf");
-        var pack = new VisualQueryPackageJsonCodec().read(template.getVisualQueryJson());
-        var constructor = new org.ipro.reportstudio.query.constructor.JpqlQueryConstructor(catalog, List.of());
+        var pack = new VisualQueryPackageJsonCodec().read(definition.visualQueryJson());
+        var constructor = new org.ipro.query.ui.constructor.JpqlQueryConstructor(catalog, List.of());
         constructor.setPackage(pack);
         var reopened = constructor.queryPackage();
         assertThat(reopened).isEqualTo(pack);
@@ -104,7 +111,7 @@ class RegisterSliceCteGeneratorTest {
         assertThat(query.getResultList()).isEmpty(); // Latest 90 must not fall back to old 150.
         query.setParameter("asOf", DAY);
         assertThat(query.getResultList()).singleElement().satisfies(row -> assertThat((BigDecimal) row[3]).isEqualByComparingTo("150"));
-        assertThat(RegisterSliceReportTemplates.dateTimeParameters(template)).containsExactly("asOf");
+        assertThat(definition.parameters()).extracting(QueryParameter::name).containsExactly("asOf");
         assertThat(recipes.sliceFilters(Price.class, false)).extracting(RegisterSliceReportTemplates.FilterField::name)
             .containsExactly("item", "channel");
         assertThat(recipes.sliceFilters(Price.class, true)).extracting(RegisterSliceReportTemplates.FilterField::name)
@@ -873,9 +880,9 @@ class RegisterSliceCteGeneratorTest {
             .contains("r.recorder.typeCode");
     }
     ReportQueryLanguage language() { return new ReportQueryLanguage(catalog, new RegisterSliceReportTemplates(factory, registers, catalog, generator)); }
-    org.ipro.reportstudio.dom.ReportTemplate languageTemplate(ReportQueryLanguage.Parsed parsed) {
-        var template = new org.ipro.reportstudio.dom.ReportTemplate(); template.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
-        template.setJpql(parsed.compiled().jpql()); template.setVisualQueryJson(parsed.json()); return template;
+    QueryDefinition languageQuery(ReportQueryLanguage.Parsed parsed) {
+        return new QueryDefinition(parsed.compiled().jpql(), org.ipro.query.model.QuerySource.VISUAL,
+            parsed.json(), null, List.of());
     }
     List<Object[]> languageRows(ReportQueryLanguage.Parsed parsed, Map<String,Object> supplied) {
         em.flush(); em.clear(); var query = em.createQuery(parsed.compiled().jpql(), Object[].class);
@@ -890,7 +897,7 @@ class RegisterSliceCteGeneratorTest {
         assertThat(parsed.entityParameters()).containsEntry("chosen", Item.class);
         assertThat(languageRows(parsed, Map.of("date", DAY.plusDays(1), "sliceId_chosen", 1L, "minimum", new BigDecimal("100")))).isEmpty();
         assertThat(languageRows(parsed, Map.of("date", DAY, "sliceId_chosen", 1L, "minimum", new BigDecimal("100")))).hasSize(1);
-        String text = language.format(languageTemplate(parsed)).orElseThrow();
+        String text = language.format(languageQuery(parsed).visualQueryJson()).orElseThrow();
         assertThat(text).contains("СрезПоследних(R5Price", "item = :chosen", "послеСреза", "price > :minimum").doesNotContain("НАСТРОЙКИ", "sliceId_");
         var reopened = language.parse(text);
         assertThat(reopened.compiled().jpql()).isEqualTo(parsed.compiled().jpql());
@@ -908,10 +915,10 @@ class RegisterSliceCteGeneratorTest {
         var item = item(1L); item(2L); price(item, "retail", DAY, new BigDecimal("150"), 1);
         var parsed = language().parse("select n.id as id, a.price as oldPrice, b.price as newPrice from R5Item n left join СрезПоследних(R5Price, :oldDate, channel = :channel) a on a.item = n.id left join СрезПоследних(R5Price, :newDate, channel = :channel) b on b.item = n.id");
         assertThat(languageRows(parsed, Map.of("oldDate", DAY.minusDays(1), "newDate", DAY, "channel", "retail"))).hasSize(2);
-        var draft = new org.ipro.reportstudio.query.constructor.JpqlQueryConstructor(catalog, List.of());
+        var draft = new org.ipro.query.ui.constructor.JpqlQueryConstructor(catalog, List.of());
         draft.setPackage(parsed.pack());
         assertThat(VisualQueryCompiler.compile(draft.queryPackage(), catalog).jpql()).isEqualTo(parsed.compiled().jpql());
-        var text = language().format(languageTemplate(parsed)).orElseThrow();
+        var text = language().format(languageQuery(parsed).visualQueryJson()).orElseThrow();
         assertThat(language().parse(text).compiled().jpql()).isEqualTo(parsed.compiled().jpql());
     }
     @Test void constructorDropsParametersOfRemovedFiltersAndKeepsTypedVirtualReferences() {
@@ -919,7 +926,7 @@ class RegisterSliceCteGeneratorTest {
         var source = recipes.constructorSlice(SliceSpec.latest(Price.class, DAY), "date", Set.of(), List.of(
             new SliceParameterFilter("item", SliceSpec.Operator.EQ, "chosen", false),
             new SliceParameterFilter("price", SliceSpec.Operator.GT, "minimum", true)));
-        var draft = new org.ipro.reportstudio.query.constructor.QueryConstructorDraft(); draft.setCatalog(catalog);
+        var draft = new org.ipro.query.ui.constructor.QueryConstructorDraft(); draft.setCatalog(catalog);
         draft.addSlice(source); draft.addField(source.entity(), List.of(), "price");
         assertThat(draft.parameterNames()).contains("date", "chosen", "sliceId_chosen", "minimum");
         var replacement = recipes.constructorSlice(SliceSpec.latest(Price.class, DAY), "date", recipes.constructorNamespace(source));
@@ -939,7 +946,7 @@ class RegisterSliceCteGeneratorTest {
             assertThat(parsed.compiled().fields()).singleElement().satisfies(field -> assertThat(field.javaType()).isEqualTo(String.class));
             assertThat(parsed.compiled().presentations().columns()).hasSize(1);
             assertThat(parsed.compiled().jpql()).doesNotContain("Представление");
-            assertThat(language().parse(language().format(languageTemplate(parsed)).orElseThrow()).compiled()).isEqualTo(parsed.compiled());
+            assertThat(language().parse(language().format(languageQuery(parsed).visualQueryJson()).orElseThrow()).compiled()).isEqualTo(parsed.compiled());
         }
         assertThatThrownBy(() -> language().parse("select Представление(n.id) as text from R5Item n")).hasMessageContaining("ссылку");
     }
@@ -954,9 +961,10 @@ class RegisterSliceCteGeneratorTest {
             refs.forEach(ref -> result.put(ref,"Объект недоступен")); return result;
         });
         var types = new RecorderTypeRegistry(new ManagedEntityCatalog(factory), factory, new MetadataResolver());
-        var executor = new ReportQueryExecutor(em, org.mockito.Mockito.mock(RlsFilterActivator.class)); executor.usePresentations(labels,types);
+        var executor = new ReportQueryExecutor(em, org.mockito.Mockito.mock(RlsFilterActivator.class),
+            new org.ipro.query.QueryResultLabelPresenter(labels, types));
         var dataset = executor.execute(parsed.compiled(),100,10000);
-        assertThat(dataset.fields()).extracting(org.ipro.reportstudio.data.QueryField::name).containsExactly("id","label","repeated");
+        assertThat(dataset.fields()).extracting(org.ipro.report.data.QueryField::name).containsExactly("id","label","repeated");
         assertThat(dataset.rows()).hasSize(2);
         assertThat(Arrays.stream(dataset.rows()).filter(row -> row.value("id").equals(1L)).findFirst().orElseThrow().value("label")).isEqualTo("Объект недоступен");
         assertThat(Arrays.stream(dataset.rows()).filter(row -> row.value("id").equals(2L)).findFirst().orElseThrow().value("label")).isNull();
@@ -970,8 +978,9 @@ class RegisterSliceCteGeneratorTest {
             Collection<org.ipro.data.presentation.EntityPresentationService.Reference> refs = invocation.getArgument(0); var result = new HashMap<org.ipro.data.presentation.EntityPresentationService.Reference,String>();
             refs.forEach(ref -> { assertThat(ref.type()).isEqualTo(RecorderDocumentA.class); assertThat(ref.id()).isEqualTo(7L); result.put(ref,"Документ А № 7"); }); return result;
         });
-        var executor = new ReportQueryExecutor(em,org.mockito.Mockito.mock(RlsFilterActivator.class));
-        executor.usePresentations(labels,new RecorderTypeRegistry(new ManagedEntityCatalog(factory),factory,new MetadataResolver()));
+        var executor = new ReportQueryExecutor(em,org.mockito.Mockito.mock(RlsFilterActivator.class),
+            new org.ipro.query.QueryResultLabelPresenter(labels,
+                new RecorderTypeRegistry(new ManagedEntityCatalog(factory),factory,new MetadataResolver())));
         for (String source : List.of("R5RecordedPrice", "СрезПоследних(R5RecordedPrice, :date)")) {
             var parsed = language().parse("select Представление(r.recorder) as recorder from " + source + " r");
             em.flush(); em.clear(); var bindings = new HashMap<>(parsed.compiled().bindings()); bindings.put("date",DAY);

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import org.ip.application.catalog.NamedOperationOwner;
 import org.ip.application.catalog.NamedOperationSource;
+import org.ip.persistence.access.StoredGrantKeyReader;
 import org.ipro.crud.BaseEntity;
 import org.ipro.data.DataOperation;
 import org.ipro.data.EntityCapabilities;
@@ -42,6 +43,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class PermissionCatalogServiceTest {
+    @jakarta.persistence.Entity
+    static class BareCatalog extends org.ipro.crud.StandardCatalogEntity { }
+
+    @Test void annotationlessRootIsGroupedWithoutRequiringARawDeclaration() {
+        root(BareCatalog.class, Set.of(DataOperation.CREATE));
+        when(metadata.resolve(BareCatalog.class)).thenReturn(new MetadataResolver().resolve(BareCatalog.class));
+        var catalog = service().catalog();
+        assertThat(catalog.row(PermissionObjectRow.entityId(BareCatalog.class)).orElseThrow().groupId())
+            .isEqualTo("aux:unassigned");
+        assertThat(catalog.groups()).anyMatch(g -> g.id().equals("aux:unassigned") && g.title().equals("Без подсистемы"));
+    }
     EntityDescriptorCatalog descriptors = mock(EntityDescriptorCatalog.class);
     MetadataResolver metadata = mock(MetadataResolver.class);
     SubsystemRegistry subsystems = mock(SubsystemRegistry.class);
@@ -50,6 +62,7 @@ class PermissionCatalogServiceTest {
     C5OperationPermissionRegistry operations = new C5OperationPermissionRegistry();
     C5ReadPermissionRegistry reads = new C5ReadPermissionRegistry(operations);
     @SuppressWarnings("unchecked") ObjectProvider<RestResourceCatalog> rest = mock(ObjectProvider.class);
+    StoredGrantKeyReader storedKeys = mock(StoredGrantKeyReader.class);
     List<EntityDescriptor> types = new ArrayList<>();
     Map<String, Class<?>> sources = new HashMap<>();
     Map<String, RlsDimensionKind> kinds = new HashMap<>();
@@ -82,7 +95,7 @@ class PermissionCatalogServiceTest {
     }
     private PermissionCatalogService service(List<NamedOperationOwner> titles, List<NamedOperationSource> sources) {
         return new PermissionCatalogService(descriptors, metadata, subsystems, dimensions, reads, operations,
-            settings, titles, sources, List.of(), rest);
+            settings, titles, sources, List.of(), rest, storedKeys);
     }
 
     private void root(Class<?> type, Set<DataOperation> writes) {
@@ -92,6 +105,7 @@ class PermissionCatalogServiceTest {
         EntityMetadata annotation = mock(EntityMetadata.class);
         doReturn(Subsystem.NoSubsystem.class).when(annotation).subsystem();
         when(info.getAnnotation()).thenReturn(annotation);
+        doReturn(Subsystem.NoSubsystem.class).when(info).getSubsystem();
         when(info.getListFormTitle()).thenReturn(type.getSimpleName());
         when(metadata.resolve(type)).thenReturn(info);
         var supported = java.util.EnumSet.of(C5Operation.READ);
@@ -186,6 +200,7 @@ class PermissionCatalogServiceTest {
         var info = metadata.resolve(Warehouse.class);
         var annotation = info.getAnnotation();
         doReturn(SecondModule.class).when(annotation).subsystem();
+        doReturn(SecondModule.class).when(info).getSubsystem();
         var catalog = service().catalog();
         assertThat(catalog.groups()).hasSize(2).extracting(PermissionCatalog.Group::id).doesNotHaveDuplicates();
         assertThat(catalog.row(PermissionObjectRow.entityId(Warehouse.class)).orElseThrow().groupId())
@@ -246,7 +261,7 @@ class PermissionCatalogServiceTest {
         wrong.register(C5PermissionDefinition.entityOperations(Warehouse.class,
             Set.of(C5Operation.READ, C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
         var service = new PermissionCatalogService(descriptors, metadata, subsystems, dimensions, reads, wrong,
-            settings, List.of(), List.of(), List.of(), rest);
+            settings, List.of(), List.of(), List.of(), rest, storedKeys);
         var catalog = service.catalog();
         assertThat(catalog.row(PermissionObjectRow.entityId(Warehouse.class)).orElseThrow().columns())
             .extracting(PermissionObjectRow.Column::title).containsExactly("Чтение", "Создание");

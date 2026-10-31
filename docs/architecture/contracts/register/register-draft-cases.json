@@ -1,0 +1,987 @@
+{
+  "kind": "register-draft-cases",
+  "contract": "docs/architecture/information-register-g1-contract.md",
+  "note": "Specification cases for the first register slice. 'edits' is a JSON Patch subset (add/remove/replace) applied to the 'from' fixture. Expectations are DraftProblem codes that R2 must produce; this file is not consumed by production code.",
+  "fixtures": {
+    "NONE": "register-draft-none.json",
+    "DAY": "register-draft-day.json"
+  },
+  "facts": {
+    "referenceTargets": [
+      {
+        "typeId": "org.ip.model.Nomenclature",
+        "kind": "CATALOG",
+        "exposure": "STANDARD_ROOT",
+        "identityType": "java.lang.Long",
+        "representation": "YES",
+        "selection": "YES",
+        "eligibility": "SUPPORTED"
+      },
+      {
+        "typeId": "org.ip.model.UnsupportedTarget",
+        "kind": "CATALOG",
+        "exposure": "NESTED",
+        "identityType": "java.lang.Long",
+        "representation": "YES",
+        "selection": "NO",
+        "eligibility": "UNSUPPORTED"
+      },
+      {
+        "typeId": "org.ip.model.UnknownFacts",
+        "kind": "UNKNOWN",
+        "exposure": "UNKNOWN",
+        "identityType": "UNKNOWN",
+        "representation": "UNKNOWN",
+        "selection": "UNKNOWN",
+        "eligibility": "UNKNOWN"
+      },
+      {
+        "typeId": "org.ip.model.InfoRegisterTarget",
+        "kind": "INFORMATION_REGISTER",
+        "exposure": "STANDARD_ROOT",
+        "identityType": "java.lang.Long",
+        "representation": "YES",
+        "selection": "YES",
+        "eligibility": "SUPPORTED"
+      }
+    ],
+    "existingTables": [
+      "existing_table"
+    ]
+  },
+  "cases": [
+    {
+      "id": "P01",
+      "from": "NONE",
+      "edits": [],
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "P02",
+      "from": "DAY",
+      "edits": [],
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "P03",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/0/type",
+          "value": "REFERENCE"
+        },
+        {
+          "op": "replace",
+          "path": "/fields/0/constraints",
+          "value": {
+            "length": "",
+            "precision": "",
+            "scale": ""
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/fields/0/reference",
+          "value": {
+            "typeId": "org.ip.model.Nomenclature"
+          }
+        }
+      ],
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "P04",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "add",
+          "path": "/fields/-",
+          "value": {
+            "id": "00000000-0000-4000-8000-000000000131",
+            "name": "channel",
+            "label": "Канал",
+            "type": "STRING",
+            "columnName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "serverRequired": true,
+            "uiRequired": "REQUIRED",
+            "constraints": {
+              "length": "20",
+              "precision": "",
+              "scale": ""
+            },
+            "reference": null,
+            "applications": {
+              "form": true,
+              "list": true,
+              "selection": true,
+              "table": false
+            }
+          }
+        },
+        {
+          "op": "add",
+          "path": "/register/dimensions/-",
+          "value": "00000000-0000-4000-8000-000000000131"
+        }
+      ],
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "P05",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/entity/tableName",
+          "value": {
+            "mode": "EXPLICIT",
+            "text": "region_rate_custom"
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/fields/1/columnName",
+          "value": {
+            "mode": "EXPLICIT",
+            "text": "rate_value"
+          }
+        }
+      ],
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "P06",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/1/serverRequired",
+          "value": false
+        },
+        {
+          "op": "replace",
+          "path": "/fields/1/uiRequired",
+          "value": "AUTO"
+        }
+      ],
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "P07",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "add",
+          "path": "/fields/-",
+          "value": {
+            "id": "00000000-0000-4000-8000-000000000132",
+            "name": "slotCount",
+            "label": "Число слотов",
+            "type": "INTEGER",
+            "columnName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "serverRequired": false,
+            "uiRequired": "AUTO",
+            "constraints": {
+              "length": "",
+              "precision": "",
+              "scale": ""
+            },
+            "reference": null,
+            "applications": {
+              "form": true,
+              "list": true,
+              "selection": true,
+              "table": false
+            }
+          }
+        },
+        {
+          "op": "add",
+          "path": "/register/resources/-",
+          "value": "00000000-0000-4000-8000-000000000132"
+        },
+        {
+          "op": "add",
+          "path": "/fields/-",
+          "value": {
+            "id": "00000000-0000-4000-8000-000000000133",
+            "name": "totalVolume",
+            "label": "Суммарный объём",
+            "type": "LONG",
+            "columnName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "serverRequired": false,
+            "uiRequired": "AUTO",
+            "constraints": {
+              "length": "",
+              "precision": "",
+              "scale": ""
+            },
+            "reference": null,
+            "applications": {
+              "form": true,
+              "list": true,
+              "selection": true,
+              "table": false
+            }
+          }
+        },
+        {
+          "op": "add",
+          "path": "/register/resources/-",
+          "value": "00000000-0000-4000-8000-000000000133"
+        },
+        {
+          "op": "add",
+          "path": "/fields/-",
+          "value": {
+            "id": "00000000-0000-4000-8000-000000000134",
+            "name": "active",
+            "label": "Активна",
+            "type": "BOOLEAN",
+            "columnName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "serverRequired": false,
+            "uiRequired": "AUTO",
+            "constraints": {
+              "length": "",
+              "precision": "",
+              "scale": ""
+            },
+            "reference": null,
+            "applications": {
+              "form": true,
+              "list": true,
+              "selection": true,
+              "table": false
+            }
+          }
+        },
+        {
+          "op": "add",
+          "path": "/register/resources/-",
+          "value": "00000000-0000-4000-8000-000000000134"
+        }
+      ],
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "P08",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/0/constraints/length",
+          "value": "200"
+        },
+        {
+          "op": "replace",
+          "path": "/fields/1/constraints/scale",
+          "value": "19"
+        }
+      ],
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "N01",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "add",
+          "path": "/register/resources/-",
+          "value": "00000000-0000-4000-8000-000000000111"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_ROLE_DUPLICATE",
+            "propertyKey": "register.resources"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N02",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "add",
+          "path": "/register/dimensions/-",
+          "value": "00000000-0000-4000-8000-000000000111"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_ROLE_DUPLICATE",
+            "propertyKey": "register.dimensions"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N03",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "add",
+          "path": "/fields/-",
+          "value": {
+            "id": "00000000-0000-4000-8000-000000000151",
+            "name": "note",
+            "label": "Примечание",
+            "type": "STRING",
+            "columnName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "serverRequired": false,
+            "uiRequired": "AUTO",
+            "constraints": {
+              "length": "100",
+              "precision": "",
+              "scale": ""
+            },
+            "reference": null,
+            "applications": {
+              "form": true,
+              "list": true,
+              "selection": true,
+              "table": false
+            }
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_ROLE_MISSING",
+            "propertyKey": "register.roles"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N04",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "add",
+          "path": "/register/resources/-",
+          "value": "00000000-0000-4000-8000-000000000999"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_ROLE_UNKNOWN",
+            "propertyKey": "register.resources"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N05",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "remove",
+          "path": "/fields/0"
+        },
+        {
+          "op": "replace",
+          "path": "/register/dimensions",
+          "value": []
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_ROLE_MISSING",
+            "propertyKey": "register.dimensions"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N06",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "remove",
+          "path": "/fields/1"
+        },
+        {
+          "op": "replace",
+          "path": "/register/resources",
+          "value": []
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_ROLE_MISSING",
+            "propertyKey": "register.resources"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N07",
+      "from": "DAY",
+      "edits": [
+        {
+          "op": "add",
+          "path": "/sections/-",
+          "value": {
+            "id": "00000000-0000-4000-8000-000000000221",
+            "label": "Позиции",
+            "rowClassName": "ItemRateLine",
+            "packageName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "tableName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "parentFieldName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "parentColumnName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "fields": []
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_SECTION_UNSUPPORTED",
+            "propertyKey": "sections"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N08",
+      "from": "DAY",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/register/period",
+          "value": "MONTH"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_PERIOD_UNSUPPORTED",
+            "propertyKey": "register.period"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N09",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/register/writeProfile",
+          "value": "NAMED_ONLY"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_WRITE_PROFILE_UNSUPPORTED",
+            "propertyKey": "register.writeProfile"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N10",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/0/type",
+          "value": "DECIMAL"
+        },
+        {
+          "op": "replace",
+          "path": "/fields/0/constraints",
+          "value": {
+            "length": "",
+            "precision": "19",
+            "scale": "4"
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_FIELD_ROLE_UNSUPPORTED",
+            "propertyKey": "register.roles"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N11",
+      "from": "DAY",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/1/type",
+          "value": "REFERENCE"
+        },
+        {
+          "op": "replace",
+          "path": "/fields/1/constraints",
+          "value": {
+            "length": "",
+            "precision": "",
+            "scale": ""
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/fields/1/reference",
+          "value": {
+            "typeId": "org.ip.model.Nomenclature"
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_FIELD_ROLE_UNSUPPORTED",
+            "propertyKey": "register.roles"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N12",
+      "from": "DAY",
+      "edits": [
+        {
+          "op": "add",
+          "path": "/fields/-",
+          "value": {
+            "id": "00000000-0000-4000-8000-000000000141",
+            "name": "period",
+            "label": "Период пользователя",
+            "type": "STRING",
+            "columnName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "serverRequired": false,
+            "uiRequired": "AUTO",
+            "constraints": {
+              "length": "20",
+              "precision": "",
+              "scale": ""
+            },
+            "reference": null,
+            "applications": {
+              "form": true,
+              "list": true,
+              "selection": true,
+              "table": false
+            }
+          }
+        },
+        {
+          "op": "add",
+          "path": "/register/resources/-",
+          "value": "00000000-0000-4000-8000-000000000141"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "RESERVED_FIELD",
+            "propertyKey": "name"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N13",
+      "from": "DAY",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/0/reference/typeId",
+          "value": "org.ip.model.UnsupportedTarget"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REFERENCE_UNAVAILABLE",
+            "propertyKey": "reference.typeId"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N14",
+      "from": "DAY",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/0/reference/typeId",
+          "value": "org.ip.model.UnknownFacts"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "PROJECT_FACT_UNKNOWN",
+            "propertyKey": "reference.typeId"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N15",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/1/columnName",
+          "value": {
+            "mode": "EXPLICIT",
+            "text": "Rate Value"
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "INVALID_STORAGE_NAME",
+            "propertyKey": "columnName"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N16",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/1/columnName",
+          "value": {
+            "mode": "EXPLICIT",
+            "text": "region_code"
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "DUPLICATE_STORAGE_NAME",
+            "propertyKey": "columnName"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N17",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/1/constraints",
+          "value": {
+            "length": "",
+            "precision": "5",
+            "scale": "7"
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "INVALID_CONSTRAINT",
+            "propertyKey": "constraints.scale"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N18",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/0/constraints/length",
+          "value": ""
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "VALUE_REQUIRED",
+            "propertyKey": "constraints.length"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N19",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/1/constraints",
+          "value": {
+            "length": "20",
+            "precision": "19",
+            "scale": "4"
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "INAPPLICABLE_CONSTRAINT",
+            "propertyKey": "constraints.length"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N20",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "add",
+          "path": "/fields/-",
+          "value": {
+            "id": "00000000-0000-4000-8000-000000000112",
+            "name": "rateExtra",
+            "label": "Ставка дополнительная",
+            "type": "DECIMAL",
+            "columnName": {
+              "mode": "AUTO",
+              "text": ""
+            },
+            "serverRequired": false,
+            "uiRequired": "AUTO",
+            "constraints": {
+              "length": "",
+              "precision": "19",
+              "scale": "4"
+            },
+            "reference": null,
+            "applications": {
+              "form": true,
+              "list": true,
+              "selection": true,
+              "table": false
+            }
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "DUPLICATE_ID",
+            "propertyKey": "id"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N21",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/entity/tableName",
+          "value": {
+            "mode": "EXPLICIT",
+            "text": "existing_table"
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "DUPLICATE_STORAGE_NAME",
+            "propertyKey": "tableName"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N22",
+      "from": "DAY",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/0/reference/typeId",
+          "value": "org.ip.model.InfoRegisterTarget"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REFERENCE_UNAVAILABLE",
+            "propertyKey": "reference.typeId"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N23",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/1/applications/table",
+          "value": true
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "INVALID_APPLICATION",
+            "propertyKey": "applications.table"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N24",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/0/serverRequired",
+          "value": false
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_DIMENSION_REQUIRED",
+            "propertyKey": "serverRequired"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N25",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/1/type",
+          "value": "DATE"
+        },
+        {
+          "op": "replace",
+          "path": "/fields/1/constraints",
+          "value": {
+            "length": "",
+            "precision": "",
+            "scale": ""
+          }
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "REGISTER_FIELD_ROLE_UNSUPPORTED",
+            "propertyKey": "register.roles"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N26",
+      "from": "NONE",
+      "edits": [
+        {
+          "op": "replace",
+          "path": "/fields/0/constraints/length",
+          "value": "201"
+        }
+      ],
+      "expect": {
+        "valid": false,
+        "codes": [
+          {
+            "code": "LIMIT_EXCEEDED",
+            "propertyKey": "constraints.length"
+          }
+        ]
+      }
+    }
+  ]
+}

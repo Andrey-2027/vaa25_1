@@ -5,7 +5,8 @@
 #
 # Формат: <role> <fqn>  и отдельно  test-usage <fqn> <файлы тестов приложения>
 # Роли (ровно одна на production-тип): APP_API | APP_SPI | MODULE_API | INTERNAL
-#   APP_API     — поддерживаемый API приложения: приложение называет тип, платформа не наследует.
+#   APP_API     — поддерживаемый API: приложение называет тип либо платформа явно экспортирует
+#                 его для внешних приложений (ET4 Standard*); использования в host-модели не требуется.
 #   APP_SPI     — приложение реализует или расширяет тип; платформа вызывает обратно.
 #   MODULE_API  — контракт между platform-модулями: production-код будущих autoconfigure/Vaadin/
 #                 report-модулей (сегодня это платформенные классы, ещё лежащие в дереве).
@@ -37,9 +38,11 @@
 # `onSave` — генерация строк); `CallbackScope` (INTERNAL 16 -> 17) — общая дисциплина
 # callback-scope'ов crud-пути: package-private механизм, у которого нет compatibility promise,
 # потому что приложение пользуется только операциями конкретных scope'ов, а не базой.
+# 111 -> 114 — ET2 (2026-10-23): `StructuralAttribute` (APP_API 35 -> 36),
+# `JpaFieldFacts` (MODULE_API 53 -> 54), `StructuralAttributeScanner` (INTERNAL 17 -> 18).
 # Число production-типов в шапке (108 -> 109) — не рост: полнота проверяется тестом
 # `everyCoreProductionTypeHasExactlyOneReviewedRole`, который сверяет реестр с исходниками
-# platform-core в обе стороны, и 109 — то, что он измеряет сейчас.
+# platform-core в обе стороны, и 114 — то, что он измеряет сейчас.
 #
 # Роли — reviewed-решение, а не вывод теста: если бы список строил сам тест, проверялось бы то же
 # правило, которым он построен. Черновик воспроизводится скриптом
@@ -86,7 +89,19 @@
 # одновременно иметь замороженные ссылки из тестов приложения. Список только сокращается: снятая
 # ссылка обязана исчезнуть из реестра, новая ломает сборку.
 #
-# ---- APP_API (35)
+# ET4: Standard* bases are explicit external APP_API exports. TableSectionService and
+# EntityDescriptorCatalog are host application API; their previous MODULE_API role was stale.
+# ---- APP_API (45)
+APP_API org.ipro.data.CatalogOwnerContext
+APP_API org.ipro.data.CatalogOwnerViolationException
+APP_API org.ipro.crud.InternedContract
+APP_API org.ipro.crud.InterningContracts
+APP_API org.ipro.data.EntityClassification
+APP_API org.ipro.crud.StandardCatalogEntity
+APP_API org.ipro.crud.StandardDocumentEntity
+# Explicit host application contracts (sections and permission catalog), not module reach-through.
+APP_API org.ipro.crud.TableSectionService
+APP_API org.ipro.data.EntityDescriptorCatalog
 APP_API org.ipro.crud.MetadataDrivenAggregateSaveService
 APP_API org.ipro.crud.AggregateCommandPayload
 # Declared instance-name paths stay APP_API: резолвер входит в публичную сигнатуру APP_API-типов,
@@ -117,6 +132,7 @@ APP_API org.ipro.data.SearchContext
 APP_API org.ipro.fetch.instance.InstanceName
 APP_API org.ipro.metadata.ColumnPath
 APP_API org.ipro.metadata.EntityMetadataInfo
+APP_API org.ipro.metadata.StructuralAttribute
 APP_API org.ipro.metadata.FieldMetadataInfo
 APP_API org.ipro.metadata.ManagedEntityCatalog
 APP_API org.ipro.metadata.FactOrigin
@@ -152,7 +168,13 @@ APP_SPI org.ipro.search.GlobalSearchProvider
 # EntityReadAccess/RestGraphException — контракт с REST; Api*Read — запросы к
 # MODULE_API CanonicalReadExecutor; CanonicalEntityReadAccess создаёт autoconfigure.
 # Рост 95 -> 100, MODULE_API 43 -> 48; прикладной APP_API не расширяется.
-# ---- MODULE_API (53)
+# ---- MODULE_API (58)
+MODULE_API org.ipro.metadata.CatalogOwnerDescriptor
+MODULE_API org.ipro.metadata.CatalogOwnerResolution
+MODULE_API org.ipro.metadata.CatalogOwnerResolver
+MODULE_API org.ipro.data.EntityContractConsistencyValidator
+MODULE_API org.ipro.metadata.MetadataDiagnosticSource
+MODULE_API org.ipro.data.EntityClassificationContributor
 # D-R S4 (2026-10-14): `EntityReadAccess` и `EntityPresentationService` переехали сюда из APP_API
 # вместе с выездом стандартного интерфейса регистра в platform-register-vaadin — решение и его
 # повод записаны в шапке (109 -> 109). Обещание для потребителя от этого не исчезло: тот, кто
@@ -176,7 +198,6 @@ MODULE_API org.ipro.crud.LookupService
 MODULE_API org.ipro.crud.MetadataTableSectionService
 MODULE_API org.ipro.crud.ReferenceCheckService
 MODULE_API org.ipro.crud.ServiceLocator
-MODULE_API org.ipro.crud.TableSectionService
 MODULE_API org.ipro.crud.jpa.ValidatedJpaCrudService
 MODULE_API org.ipro.data.CanonicalEntityDataAccess
 MODULE_API org.ipro.data.ApiDetailRead
@@ -186,7 +207,6 @@ MODULE_API org.ipro.data.RestGraphException
 MODULE_API org.ipro.data.CanonicalReadExecutor
 MODULE_API org.ipro.data.CanonicalWriteExecutor
 MODULE_API org.ipro.data.EntityDataPolicy
-MODULE_API org.ipro.data.EntityDescriptorCatalog
 #   FetchPlanInspection -> MODULE_API: публичная инспекция плана выборки. Называет production-код
 #       формы (`EntitySummaryAssembler`, `EntityExplorerAutoConfiguration`) и сборка контекста
 #       (`DataAccessAutoConfiguration`); приложение тип не называет (строки собирает сборщик).
@@ -205,6 +225,7 @@ MODULE_API org.ipro.fetch.instance.InstanceNameProvider
 MODULE_API org.ipro.fetch.plan.FetchPlanRegistry
 MODULE_API org.ipro.filter.ColumnPathFilterFieldResolver
 MODULE_API org.ipro.metadata.FilterSpec
+MODULE_API org.ipro.metadata.JpaFieldFacts
 MODULE_API org.ipro.metadata.GridMetadata
 MODULE_API org.ipro.metadata.GridViewState
 MODULE_API org.ipro.metadata.MetadataConsistencyStartupCheck
@@ -219,11 +240,11 @@ MODULE_API org.ipro.search.GlobalSearchRequest
 MODULE_API org.ipro.search.GlobalSearchResponse
 MODULE_API org.ipro.search.GlobalSearchResult
 MODULE_API org.ipro.search.GlobalSearchService
-# ---- INTERNAL (17)
+# ---- INTERNAL (18)
+INTERNAL org.ipro.data.CatalogOwnerGuard
+INTERNAL org.ipro.data.CatalogOwnerToken
 INTERNAL org.ipro.crud.AggregateSaveRollbackState
 INTERNAL org.ipro.crud.CallbackScope
-INTERNAL org.ipro.crud.StandardCatalogEntity
-INTERNAL org.ipro.crud.StandardDocumentEntity
 INTERNAL org.ipro.data.CanonicalWriteDeniedException
 INTERNAL org.ipro.data.DetailRead
 INTERNAL org.ipro.data.ListRead
@@ -236,21 +257,22 @@ INTERNAL org.ipro.filter.FilterConditionCodec
 INTERNAL org.ipro.metadata.FetchGraphs
 INTERNAL org.ipro.metadata.InstanceNameSource
 INTERNAL org.ipro.metadata.MetadataConsistencyValidator
+INTERNAL org.ipro.metadata.StructuralAttributeScanner
 INTERNAL org.ipro.search.JpaGlobalSearchProvider
 
 # ---- test-usage overlay (12)
+test-usage org.ipro.metadata.CatalogOwnerDescriptor org/ip/views/admin/EntityExplorerPilotPanelTest.java
 test-usage org.ipro.crud.GenericOwnedSectionService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/security/RlsServiceWriteBoundaryIT.java
 test-usage org.ipro.crud.ReferenceCheckService org/ip/security/RlsIntegrationTest.java org/ip/service/SklNomOpaServiceTest.java
-test-usage org.ipro.data.CanonicalReadExecutor org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.data.CanonicalReadExecutor org/ip/service/GroupNomVersionNormalizationIT.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java
 # REST maximum-graph fixture creates GroupNom through canonical write with version normalization.
 # This test-only MODULE_API usage does not expose the executor to production application code.
 test-usage org.ipro.data.CanonicalWriteExecutor org/ip/service/GroupNomVersionNormalizationIT.java org/ip/rest/RestReadPipelinePilotIT.java
-test-usage org.ipro.data.EntityDescriptorCatalog org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
 test-usage org.ipro.data.EventContourStartupCheck org/ip/lifecycle/EventContourWiringIT.java
 test-usage org.ipro.data.FetchPlanInspection org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
-test-usage org.ipro.data.ReadTelemetry org/ip/service/GroupNomVersionNormalizationIT.java
+test-usage org.ipro.data.ReadTelemetry org/ip/service/GroupNomVersionNormalizationIT.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java
 # REST pilot проверяет независимость fixed REST graph от UI scenario через настоящий resolver.
-test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java org/ip/rest/RestReadPipelinePilotIT.java
+test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java org/ip/rest/RestReadPipelinePilotIT.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java
 test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
-test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java
+test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java org/ip/metadata/EntityTypesInventoryIT.java
 test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/builtin/PrdSpecRowCancelAcceptanceTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java

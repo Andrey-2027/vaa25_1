@@ -11,7 +11,6 @@ import org.ip.repository.GridFormViewRepository;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.crud.ValidationException;
-import org.ipro.reportstudio.dom.ReportTemplate;
 import org.ipro.rls.AccessGrant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,15 +176,13 @@ class CanonicalWriteBoundaryIT {
      */
     @Test
     void internalStoreHasNoCanonicalHandleAtAll() {
-        assertThat(resolver.find(ReportTemplate.class)).isEmpty();
+        assertThat(resolver.find(UserFormSettings.class)).isEmpty();
 
-        assertThatThrownBy(() -> resolver.resolve(ReportTemplate.class))
+        assertThatThrownBy(() -> resolver.resolve(UserFormSettings.class))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("INTERNAL_STORE");
-        assertThatThrownBy(() -> access.create(ReportTemplate.class, new ReportTemplate()))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("CREATE")
-            .hasMessageContaining("INTERNAL_STORE");
+        // Тип вне IdentifiableEntity даже не выражается generic write intent'ом:
+        // внутреннее хранилище остаётся без canonical handle во всех операциях.
     }
 
     @Test

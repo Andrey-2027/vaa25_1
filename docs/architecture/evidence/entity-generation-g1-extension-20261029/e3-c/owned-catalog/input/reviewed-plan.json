@@ -1,0 +1,168 @@
+{
+  "planId" : "g1-92f1433bf7f4da2da71c3ba0d475503322aad7ffc8c58d09a13bd3ae3a4d93ef",
+  "recipe" : {
+    "id" : "standard-catalog-v2",
+    "version" : 2
+  },
+  "generatorVersion" : "catalog-java-v3",
+  "source" : {
+    "schemaVersion" : 2,
+    "recipe" : {
+      "id" : "standard-catalog-v2",
+      "version" : 2
+    },
+    "draftId" : "00000000-0000-0004-0000-000000000000",
+    "entity" : {
+      "className" : "OwnedCatalog",
+      "packageName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "label" : "Договоры",
+      "titles" : {
+        "list" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "item" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "selection" : {
+          "mode" : "AUTO",
+          "text" : ""
+        }
+      },
+      "tableName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "subsystemId" : null,
+      "icon" : "FILE"
+    },
+    "fields" : [ {
+      "id" : "00000000-0000-0004-0000-000000000001",
+      "name" : "description",
+      "label" : "Описание",
+      "type" : "STRING",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "200",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    } ],
+    "sections" : [ ],
+    "owner" : {
+      "targetTypeId" : "com.example.generated.targets.ReferenceTarget",
+      "fieldName" : "counterparty",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "label" : "Контрагент"
+    }
+  },
+  "context" : {
+    "projectId" : "e3-acceptance",
+    "version" : "1",
+    "defaultPackage" : "com.example.generated",
+    "existingTypes" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "existingTables" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "subsystemIds" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "iconIds" : {
+      "values" : [ "FILE" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "referenceTargets" : {
+      "com.example.generated.targets.ReferenceTarget" : {
+        "typeId" : "com.example.generated.targets.ReferenceTarget",
+        "caption" : "Контрагенты",
+        "exposure" : "STANDARD_ROOT",
+        "identityType" : "java.lang.Long",
+        "representation" : "YES",
+        "selection" : "YES",
+        "eligibility" : "SUPPORTED",
+        "reason" : "existing support JAR",
+        "sourceTypeName" : "com.example.generated.targets.ReferenceTarget"
+      }
+    },
+    "referencesComplete" : true,
+    "runtimeSnapshot" : {
+      "snapshotId" : "e3-acceptance",
+      "complete" : true,
+      "types" : {
+        "com.example.generated.targets.ReferenceTarget" : {
+          "typeId" : "com.example.generated.targets.ReferenceTarget",
+          "kind" : "CATALOG",
+          "kindOrigin" : "DERIVED",
+          "kindSource" : "fixture",
+          "exposure" : "STANDARD_ROOT",
+          "capabilitiesOrigin" : "DERIVED",
+          "capabilitiesSource" : "fixture",
+          "identityOrigin" : "DERIVED",
+          "identitySource" : "fixture",
+          "reads" : [ ],
+          "writes" : [ ],
+          "interned" : false,
+          "recorderOwned" : false,
+          "sectionOwnerTypeId" : "",
+          "listColumns" : [ "code", "name" ],
+          "selectColumns" : [ "code", "name" ],
+          "attributes" : [ ],
+          "sections" : [ ],
+          "naturalKeys" : [ ],
+          "creationChannel" : "",
+          "specialOperations" : [ ],
+          "owner" : null
+        }
+      },
+      "prerequisites" : {
+        "ET0_ET7_RUNTIME" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_CATALOG_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_DOCUMENT_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        }
+      },
+      "diagnostics" : [ ]
+    }
+  },
+  "files" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/OwnedCatalog.java",
+    "content" : "package com.example.generated;\n\nimport jakarta.persistence.Column;\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.FetchType;\nimport jakarta.persistence.JoinColumn;\nimport jakarta.persistence.ManyToOne;\nimport jakarta.persistence.Table;\nimport jakarta.validation.constraints.NotNull;\nimport jakarta.validation.constraints.Size;\nimport org.ipro.crud.StandardCatalogEntity;\nimport org.ipro.metadata.annotation.CatalogOwner;\nimport org.ipro.metadata.annotation.EntityMetadata;\nimport org.ipro.metadata.annotation.FieldMetadata;\nimport org.ipro.metadata.annotation.GridColumn;\nimport org.ipro.metadata.annotation.RequiredMode;\n\n@Entity\n@Table(name = \"owned_catalog\")\n@CatalogOwner(property = \"counterparty\")\n@EntityMetadata(\n    listFormTitle = \"Договоры\",\n    itemFormTitle = \"Договоры\",\n    selectionFormTitle = \"Договоры\",\n    icon = \"FILE\",\n    listColumns = {\"code\", \"name\", \"counterparty\", \"description\"},\n    selectColumns = {\"code\", \"name\", \"counterparty\", \"description\"}\n)\npublic class OwnedCatalog extends StandardCatalogEntity {\n    @NotNull\n    @ManyToOne(fetch = FetchType.LAZY, optional = false)\n    @JoinColumn(name = \"counterparty_id\", nullable = false)\n    @FieldMetadata(label = \"Контрагент\", order = 30, required = RequiredMode.REQUIRED, grid = @GridColumn(visible = false))\n    private com.example.generated.targets.ReferenceTarget counterparty;\n\n    @Size(max = 200)\n    @Column(name = \"description\", length = 200)\n    @FieldMetadata(label = \"Описание\", order = 40, grid = @GridColumn(visible = false))\n    private String description;\n\n    public com.example.generated.targets.ReferenceTarget getCounterparty() {\n        return counterparty;\n    }\n\n    public void setCounterparty(com.example.generated.targets.ReferenceTarget counterparty) {\n        this.counterparty = counterparty;\n    }\n\n    public String getDescription() {\n        return description;\n    }\n\n    public void setDescription(String description) {\n        this.description = description;\n    }\n}\n",
+    "sha256" : "2bdd0163d04c9a512a58693861e6989631a955b6d6a019de3202560daecca41d"
+  } ]
+}

@@ -1,0 +1,285 @@
+{
+  "planId" : "g1-a42064376c94a35f63ebdb78e35992855fe6f55b56c6ff82be281a1100b0a427",
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "generatorVersion" : "document-java-v4",
+  "source" : {
+    "schemaVersion" : 1,
+    "recipe" : {
+      "id" : "standard-document-v1",
+      "version" : 1
+    },
+    "draftId" : "00000000-0000-000b-0000-000000000000",
+    "entity" : {
+      "className" : "DocumentSections2",
+      "packageName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "label" : "Комплект",
+      "titles" : {
+        "list" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "item" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "selection" : {
+          "mode" : "AUTO",
+          "text" : ""
+        }
+      },
+      "tableName" : {
+        "mode" : "EXPLICIT",
+        "text" : "document_2"
+      },
+      "subsystemId" : null,
+      "icon" : "FILE"
+    },
+    "fields" : [ ],
+    "sections" : [ {
+      "id" : "00000000-0000-000b-0000-000000000001",
+      "label" : "Строки 1",
+      "rowClassName" : "DocumentSections2Row1",
+      "packageName" : {
+        "mode" : "EXPLICIT",
+        "text" : "com.example.generated.rows"
+      },
+      "tableName" : {
+        "mode" : "EXPLICIT",
+        "text" : "document_2_row_1"
+      },
+      "parentFieldName" : {
+        "mode" : "EXPLICIT",
+        "text" : "document"
+      },
+      "parentColumnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "fields" : [ {
+        "id" : "00000000-0000-000b-0000-00000000000b",
+        "name" : "note",
+        "label" : "Текст",
+        "type" : "STRING",
+        "columnName" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "serverRequired" : true,
+        "uiRequired" : "REQUIRED",
+        "constraints" : {
+          "length" : "60",
+          "precision" : "",
+          "scale" : ""
+        },
+        "reference" : null,
+        "applications" : {
+          "form" : true,
+          "list" : false,
+          "selection" : false,
+          "table" : true
+        }
+      }, {
+        "id" : "00000000-0000-000b-0000-00000000000c",
+        "name" : "target",
+        "label" : "Ссылка",
+        "type" : "REFERENCE",
+        "columnName" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "serverRequired" : false,
+        "uiRequired" : "OPTIONAL",
+        "constraints" : {
+          "length" : "",
+          "precision" : "",
+          "scale" : ""
+        },
+        "reference" : {
+          "typeId" : "com.example.generated.targets.ReferenceTarget"
+        },
+        "applications" : {
+          "form" : true,
+          "list" : false,
+          "selection" : false,
+          "table" : true
+        }
+      } ]
+    }, {
+      "id" : "00000000-0000-000b-0000-000000000002",
+      "label" : "Строки 2",
+      "rowClassName" : "DocumentSections2Row2",
+      "packageName" : {
+        "mode" : "EXPLICIT",
+        "text" : "com.example.generated.rows"
+      },
+      "tableName" : {
+        "mode" : "EXPLICIT",
+        "text" : "document_2_row_2"
+      },
+      "parentFieldName" : {
+        "mode" : "EXPLICIT",
+        "text" : "document"
+      },
+      "parentColumnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "fields" : [ {
+        "id" : "00000000-0000-000b-0000-000000000015",
+        "name" : "note",
+        "label" : "Текст",
+        "type" : "STRING",
+        "columnName" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "serverRequired" : true,
+        "uiRequired" : "REQUIRED",
+        "constraints" : {
+          "length" : "60",
+          "precision" : "",
+          "scale" : ""
+        },
+        "reference" : null,
+        "applications" : {
+          "form" : true,
+          "list" : false,
+          "selection" : false,
+          "table" : true
+        }
+      }, {
+        "id" : "00000000-0000-000b-0000-000000000016",
+        "name" : "target",
+        "label" : "Ссылка",
+        "type" : "REFERENCE",
+        "columnName" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "serverRequired" : false,
+        "uiRequired" : "OPTIONAL",
+        "constraints" : {
+          "length" : "",
+          "precision" : "",
+          "scale" : ""
+        },
+        "reference" : {
+          "typeId" : "com.example.generated.targets.ReferenceTarget"
+        },
+        "applications" : {
+          "form" : true,
+          "list" : false,
+          "selection" : false,
+          "table" : true
+        }
+      } ]
+    } ],
+    "owner" : null
+  },
+  "context" : {
+    "projectId" : "e4",
+    "version" : "1",
+    "defaultPackage" : "com.example.generated",
+    "existingTypes" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "existingTables" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "subsystemIds" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "iconIds" : {
+      "values" : [ "FILE" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "referenceTargets" : {
+      "com.example.generated.targets.ReferenceTarget" : {
+        "typeId" : "com.example.generated.targets.ReferenceTarget",
+        "caption" : "Контрагенты",
+        "exposure" : "STANDARD_ROOT",
+        "identityType" : "java.lang.Long",
+        "representation" : "YES",
+        "selection" : "YES",
+        "eligibility" : "SUPPORTED",
+        "reason" : "existing target JAR",
+        "sourceTypeName" : "com.example.generated.targets.ReferenceTarget"
+      }
+    },
+    "referencesComplete" : true,
+    "runtimeSnapshot" : {
+      "snapshotId" : "e4-fixture",
+      "complete" : true,
+      "types" : {
+        "com.example.generated.targets.ReferenceTarget" : {
+          "typeId" : "com.example.generated.targets.ReferenceTarget",
+          "kind" : "CATALOG",
+          "kindOrigin" : "DERIVED",
+          "kindSource" : "fixture",
+          "exposure" : "STANDARD_ROOT",
+          "capabilitiesOrigin" : "DERIVED",
+          "capabilitiesSource" : "fixture",
+          "identityOrigin" : "DERIVED",
+          "identitySource" : "fixture",
+          "reads" : [ ],
+          "writes" : [ ],
+          "interned" : false,
+          "recorderOwned" : false,
+          "sectionOwnerTypeId" : "",
+          "listColumns" : [ "code", "name" ],
+          "selectColumns" : [ "code", "name" ],
+          "attributes" : [ ],
+          "sections" : [ ],
+          "naturalKeys" : [ ],
+          "creationChannel" : "",
+          "specialOperations" : [ ],
+          "owner" : null
+        }
+      },
+      "prerequisites" : {
+        "ET0_ET7_RUNTIME" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_CATALOG_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_DOCUMENT_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        }
+      },
+      "diagnostics" : [ ]
+    }
+  },
+  "files" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/DocumentSections2.java",
+    "content" : "package com.example.generated;\n\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.Table;\nimport org.ipro.crud.StandardDocumentEntity;\nimport org.ipro.metadata.annotation.EntityMetadata;\nimport org.ipro.metadata.annotation.TableSections;\n\n@Entity\n@Table(name = \"document_2\")\n@TableSections({com.example.generated.rows.DocumentSections2Row1.class, com.example.generated.rows.DocumentSections2Row2.class})\n@EntityMetadata(\n    listFormTitle = \"Комплект\",\n    itemFormTitle = \"Комплект\",\n    selectionFormTitle = \"Комплект\",\n    icon = \"FILE\",\n    listColumns = {\"number\", \"date\"},\n    selectColumns = {\"number\", \"date\"}\n)\npublic class DocumentSections2 extends StandardDocumentEntity {\n}\n",
+    "sha256" : "f227d460c6bbba56ea96859d4e4cfe54a3710ed29f6723af93278e8b81d952d8"
+  }, {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/rows/DocumentSections2Row1.java",
+    "content" : "package com.example.generated.rows;\n\nimport jakarta.persistence.Column;\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.FetchType;\nimport jakarta.persistence.JoinColumn;\nimport jakarta.persistence.ManyToOne;\nimport jakarta.persistence.Table;\nimport jakarta.validation.constraints.NotNull;\nimport jakarta.validation.constraints.Size;\nimport org.ipro.crud.BaseEntity;\nimport org.ipro.metadata.annotation.FieldMetadata;\nimport org.ipro.metadata.annotation.GridColumn;\nimport org.ipro.metadata.annotation.RequiredMode;\nimport org.ipro.metadata.annotation.SectionPersistenceMode;\nimport org.ipro.metadata.annotation.SectionRlsPolicy;\nimport org.ipro.metadata.annotation.TableSectionMetadata;\n\n@Entity\n@Table(name = \"document_2_row_1\")\n@TableSectionMetadata(parentEntity = com.example.generated.DocumentSections2.class, parentField = \"document\", title = \"Строки 1\", rowFormTitle = \"Строки 1\", order = 10, lineNumberField = \"lineNumber\", persistence = SectionPersistenceMode.MUTABLE_REPLACE_ALL, rlsPolicy = SectionRlsPolicy.INHERIT_ROOT)\npublic class DocumentSections2Row1 extends BaseEntity {\n    @NotNull\n    @ManyToOne(fetch = FetchType.LAZY, optional = false)\n    @JoinColumn(name = \"document_id\", nullable = false)\n    private com.example.generated.DocumentSections2 document;\n\n    @Column(name = \"line_number\")\n    private Integer lineNumber;\n\n    @NotNull\n    @Size(max = 60)\n    @Column(name = \"note\", nullable = false, length = 60)\n    @FieldMetadata(label = \"Текст\", order = 10, required = RequiredMode.REQUIRED, grid = @GridColumn(visible = true, order = 10))\n    private String note;\n\n    @ManyToOne(fetch = FetchType.LAZY, optional = true)\n    @JoinColumn(name = \"target_id\")\n    @FieldMetadata(label = \"Ссылка\", order = 20, required = RequiredMode.OPTIONAL, grid = @GridColumn(visible = true, order = 20))\n    private com.example.generated.targets.ReferenceTarget target;\n\n    public com.example.generated.DocumentSections2 getDocument() {\n        return document;\n    }\n\n    public void setDocument(com.example.generated.DocumentSections2 document) {\n        this.document = document;\n    }\n\n    public Integer getLineNumber() {\n        return lineNumber;\n    }\n\n    public void setLineNumber(Integer lineNumber) {\n        this.lineNumber = lineNumber;\n    }\n\n    public String getNote() {\n        return note;\n    }\n\n    public void setNote(String note) {\n        this.note = note;\n    }\n\n    public com.example.generated.targets.ReferenceTarget getTarget() {\n        return target;\n    }\n\n    public void setTarget(com.example.generated.targets.ReferenceTarget target) {\n        this.target = target;\n    }\n}\n",
+    "sha256" : "f40fe009ca3957c04ff25b30fe4bddb467993963b907b185806f442f14caa69a"
+  }, {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/rows/DocumentSections2Row2.java",
+    "content" : "package com.example.generated.rows;\n\nimport jakarta.persistence.Column;\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.FetchType;\nimport jakarta.persistence.JoinColumn;\nimport jakarta.persistence.ManyToOne;\nimport jakarta.persistence.Table;\nimport jakarta.validation.constraints.NotNull;\nimport jakarta.validation.constraints.Size;\nimport org.ipro.crud.BaseEntity;\nimport org.ipro.metadata.annotation.FieldMetadata;\nimport org.ipro.metadata.annotation.GridColumn;\nimport org.ipro.metadata.annotation.RequiredMode;\nimport org.ipro.metadata.annotation.SectionPersistenceMode;\nimport org.ipro.metadata.annotation.SectionRlsPolicy;\nimport org.ipro.metadata.annotation.TableSectionMetadata;\n\n@Entity\n@Table(name = \"document_2_row_2\")\n@TableSectionMetadata(parentEntity = com.example.generated.DocumentSections2.class, parentField = \"document\", title = \"Строки 2\", rowFormTitle = \"Строки 2\", order = 20, lineNumberField = \"lineNumber\", persistence = SectionPersistenceMode.MUTABLE_REPLACE_ALL, rlsPolicy = SectionRlsPolicy.INHERIT_ROOT)\npublic class DocumentSections2Row2 extends BaseEntity {\n    @NotNull\n    @ManyToOne(fetch = FetchType.LAZY, optional = false)\n    @JoinColumn(name = \"document_id\", nullable = false)\n    private com.example.generated.DocumentSections2 document;\n\n    @Column(name = \"line_number\")\n    private Integer lineNumber;\n\n    @NotNull\n    @Size(max = 60)\n    @Column(name = \"note\", nullable = false, length = 60)\n    @FieldMetadata(label = \"Текст\", order = 10, required = RequiredMode.REQUIRED, grid = @GridColumn(visible = true, order = 10))\n    private String note;\n\n    @ManyToOne(fetch = FetchType.LAZY, optional = true)\n    @JoinColumn(name = \"target_id\")\n    @FieldMetadata(label = \"Ссылка\", order = 20, required = RequiredMode.OPTIONAL, grid = @GridColumn(visible = true, order = 20))\n    private com.example.generated.targets.ReferenceTarget target;\n\n    public com.example.generated.DocumentSections2 getDocument() {\n        return document;\n    }\n\n    public void setDocument(com.example.generated.DocumentSections2 document) {\n        this.document = document;\n    }\n\n    public Integer getLineNumber() {\n        return lineNumber;\n    }\n\n    public void setLineNumber(Integer lineNumber) {\n        this.lineNumber = lineNumber;\n    }\n\n    public String getNote() {\n        return note;\n    }\n\n    public void setNote(String note) {\n        this.note = note;\n    }\n\n    public com.example.generated.targets.ReferenceTarget getTarget() {\n        return target;\n    }\n\n    public void setTarget(com.example.generated.targets.ReferenceTarget target) {\n        this.target = target;\n    }\n}\n",
+    "sha256" : "48c453b25d23b8a74ded99af9f6b7d5eee5375496f93c1fe8e8685d37eabec5d"
+  } ]
+}

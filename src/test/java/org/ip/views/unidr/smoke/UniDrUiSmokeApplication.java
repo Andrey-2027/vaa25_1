@@ -1,18 +1,20 @@
-package org.ip.views.unidr.smoke;
+package org.ipro.unidr.ui.smoke;
+import org.ip.unidr.model.UniDrDefinitions;
+import org.ip.unidr.query.UniDrReferenceService;
 
 import com.vaadin.flow.spring.annotation.EnableVaadin;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
-import org.ip.unidr.model.*;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.query.*;
-import org.ip.unidr.render.UniDrReportCompiler;
-import org.ip.unidr.run.*;
-import org.ip.unidr.source.*;
-import org.ipro.reportstudio.data.*;
-import org.ipro.reportstudio.query.ReportRunQuota;
-import org.ipro.reportstudio.render.*;
-import org.ipro.reportstudio.run.ReportTaskExecutor;
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.query.*;
+import org.ipro.unidr.render.UniDrReportCompiler;
+import org.ipro.unidr.run.*;
+import org.ipro.unidr.source.*;
+import org.ipro.report.data.*;
+import org.ipro.query.ReportRunQuota;
+import org.ipro.report.render.*;
+import org.ipro.report.task.ReportTaskExecutor;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
 import org.springframework.boot.context.annotation.ImportCandidates;
@@ -37,7 +39,7 @@ import static org.mockito.Mockito.*;
 @Profile(UniDrUiSmokeApplication.PROFILE)
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@EnableVaadin("org.ip.views.unidr")
+@EnableVaadin("org.ipro.unidr.ui")
 public class UniDrUiSmokeApplication {
 
     static final String PROFILE = "unidr-smoke";
@@ -48,7 +50,7 @@ public class UniDrUiSmokeApplication {
         var application=new SpringApplication(UniDrUiSmokeApplication.class);
         application.setAdditionalProfiles(PROFILE);
         application.setDefaultProperties(Map.of("server.address","127.0.0.1","server.port","8086","spring.config.location","optional:file:outputs/unidr-u4/smoke-empty.properties",
-            "spring.autoconfigure.exclude",String.join(",",excluded),"app.unidr.enabled","true","vaadin.allowed-packages","org.ip.views.unidr","vaadin.launch-browser","false",
+            "spring.autoconfigure.exclude",String.join(",",excluded),"app.unidr.enabled","true","vaadin.allowed-packages","org.ipro.unidr.ui","vaadin.launch-browser","false",
             "vaadin.node-auto-update","false","vaadin.require-home-node-exec","false"));
         application.run(args);
     }
@@ -63,6 +65,8 @@ public class UniDrUiSmokeApplication {
             },UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+    @Bean UniDrSourceCatalog catalog() { return UniDrDefinitions.catalog(references()); }
+    @Bean UniDrDefinition initialDefinition() { return UniDrDefinitions.receivingItemsSummary(); }
     @Bean UniDrReferenceService references() {
         var references=mock(UniDrReferenceService.class);
         when(references.search(anyString(),anyString(),anyInt())).thenAnswer(call->{
@@ -72,17 +76,17 @@ public class UniDrUiSmokeApplication {
         when(references.selected(anyString(),anyLong())).thenAnswer(call->choices(call.getArgument(0)).stream().filter(option->option.id().equals(call.getArgument(1))).findFirst().orElseThrow());
         return references;
     }
-    private static List<UniDrReferenceService.Option> choices(String field) {
+    private static List<org.ipro.unidr.query.UniDrReferenceCatalog.Option> choices(String field) {
         return switch(field) {
-            case "unit" -> List.of(new UniDrReferenceService.Option(1L,"шт"));
-            case "nomenclature" -> List.of(new UniDrReferenceService.Option(11L,"Деталь X"),new UniDrReferenceService.Option(12L,"Деталь Y"));
-            case "document" -> List.of(new UniDrReferenceService.Option(1L,"Накладная 1"));
-            default -> List.of(new UniDrReferenceService.Option(1L,"Цех A"),new UniDrReferenceService.Option(2L,"Цех B"));
+            case "unit" -> List.of(new org.ipro.unidr.query.UniDrReferenceCatalog.Option(1L,"шт"));
+            case "nomenclature" -> List.of(new org.ipro.unidr.query.UniDrReferenceCatalog.Option(11L,"Деталь X"),new org.ipro.unidr.query.UniDrReferenceCatalog.Option(12L,"Деталь Y"));
+            case "document" -> List.of(new org.ipro.unidr.query.UniDrReferenceCatalog.Option(1L,"Накладная 1"));
+            default -> List.of(new org.ipro.unidr.query.UniDrReferenceCatalog.Option(1L,"Цех A"),new org.ipro.unidr.query.UniDrReferenceCatalog.Option(2L,"Цех B"));
         };
     }
     @Bean(destroyMethod="close") ReportTaskExecutor worker() {return new ReportTaskExecutor(1,4);}
     @Bean UniDrRunService runs(ReportTaskExecutor worker) {
-        var catalog=UniDrSourceCatalog.pilot();var validator=new UniDrDefinitionValidator(catalog);var resolver=new UniDrRunParameterResolver(validator);
+        var catalog=UniDrDefinitions.catalog();var validator=new UniDrDefinitionValidator(catalog);var resolver=new UniDrRunParameterResolver(validator);
         var source=catalog.find("receiving-items").orElseThrow();
         var query=mock(UniDrQueryService.class);
         when(query.read(any(),any(),any())).thenAnswer(call->{
@@ -98,7 +102,7 @@ public class UniDrUiSmokeApplication {
             rows.sort(order);return new UniDrQueryService.Data(new ReportDataset(fixture.fields(),rows.toArray(ReportRow[]::new)),values);
         });
         var access=new UniDrAccess(()->true,()->SecurityContextHolder.getContext().getAuthentication().getName());
-        return new UniDrRunService(access,query,worker,new ReportRunQuota(2),Clock.systemUTC(),new UniDrReportCompiler(catalog,validator),new JasperReportCompiler());
+        return new UniDrRunService(access,query,worker,new ReportRunQuota(2),Clock.systemUTC(),new UniDrReportCompiler(catalog,validator),new JasperReportExporter());
     }
     @SuppressWarnings({"rawtypes","unchecked"}) private static int compare(Object a,Object b) {return ((Comparable)a).compareTo(b);}
     private static boolean matches(ReportRow row,UniDrSourceDefinition source,String id,Operator operator,Literal literal) {

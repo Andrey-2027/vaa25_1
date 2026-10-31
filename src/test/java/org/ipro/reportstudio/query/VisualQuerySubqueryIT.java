@@ -1,5 +1,8 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.query.*;
+import org.ipro.query.param.*;
+
 import jakarta.persistence.EntityManagerFactory;
 import org.ip.Application;
 import org.junit.jupiter.api.Test;
@@ -30,14 +33,27 @@ class VisualQuerySubqueryIT {
     @Autowired EntityManagerFactory entityManagerFactory;
     @Autowired jakarta.persistence.EntityManager entityManager;
 
-    @Test
-    void parsesCompilesAndExecutesInSubquery() {
-        var catalog = new QueryBuilderMetadataCatalog(entityManagerFactory,
-                new org.ipro.metadata.MetadataResolver(),
+    /**
+     * Проверенный каталог: в persistence unit приложения есть managed-регистр, поэтому
+     * короткий конструктор (каталог без classification sources) здесь неприменим.
+     */
+    private QueryBuilderMetadataCatalog catalog() {
+        var metadata = new org.ipro.metadata.MetadataResolver();
+        var types = new org.ipro.metadata.ManagedEntityTypes(entityManagerFactory);
+        var managed = new org.ipro.metadata.ManagedEntityCatalog(types);
+        var descriptors = new org.ipro.data.EntityDescriptorCatalog(managed,
+                new org.ipro.metadata.SectionMetadataRegistry(types, metadata), metadata,
+                java.util.List.of(), java.util.List.of(),
+                org.ip.metadata.EntityTypeTestSources.registers(managed, entityManagerFactory, metadata));
+        return new QueryBuilderMetadataCatalog(types, metadata,
                 new org.ipro.rls.RlsReadGate(null, null) {
                     @Override public boolean canRead(Class<?> type, String user) { return true; }
-                },
-                () -> "smoke");
+                }, () -> "smoke", descriptors);
+    }
+
+    @Test
+    void parsesCompilesAndExecutesInSubquery() {
+        var catalog = catalog();
         String jpql = "select s.id as id, s.codeSpec as codeSpec from PrdSpec s "
                 + "where s.id in (select m.prdSpec.id from PrdSpecMtr m)";
 

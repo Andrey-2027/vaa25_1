@@ -1,0 +1,13 @@
+{
+  "status" : "REJECTED",
+  "code" : "C_SUMMARY_MISMATCH",
+  "message" : "C summary manifest does not match the reviewed plan",
+  "applyId" : null,
+  "planId" : "g1-4b565f4dc402512c5b69287a25399222b1a6e0d9d1e950ce5c4a5b28c4fca87c",
+  "target" : null,
+  "receipt" : null,
+  "journal" : null,
+  "contentSha256" : null,
+  "cSummarySha256" : null,
+  "exitCode" : 3
+}

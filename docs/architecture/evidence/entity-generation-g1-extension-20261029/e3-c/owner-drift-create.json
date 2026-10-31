@@ -1,0 +1,13 @@
+{
+  "status" : "REJECTED",
+  "code" : "DEPENDENCIES_CHANGED",
+  "message" : "Current dependency bytes differ from C: org.ipro:g1-reference-target:jar::1.0-E2",
+  "applyId" : null,
+  "planId" : "g1-92f1433bf7f4da2da71c3ba0d475503322aad7ffc8c58d09a13bd3ae3a4d93ef",
+  "target" : null,
+  "receipt" : null,
+  "journal" : null,
+  "contentSha256" : null,
+  "cSummarySha256" : null,
+  "exitCode" : 3
+}

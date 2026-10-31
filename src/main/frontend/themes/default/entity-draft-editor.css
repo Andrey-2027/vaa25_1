@@ -1,0 +1,76 @@
+/* Local draft surface; never changes the size or layout of working forms. */
+vaadin-tab#entity-draft [data-entry-caption] { display: inline-block; max-width: 32ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entity-explorer-pilot-host > .explorer-open-draft { flex: none; margin: 2px 8px; align-self: flex-start; min-height: 26px; height: 26px; }
+.entity-draft-editor { --lumo-size-m: 28px; --lumo-size-s: 26px; font-size: 12px; }
+.entity-draft-editor .draft-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; padding: 4px 10px; flex: none; border-bottom: 1px solid var(--lumo-contrast-20pct); }
+.entity-draft-editor .draft-toolbar .explorer-entity-title { margin-right: 10px; }
+.entity-draft-editor .draft-status { margin-left: auto; color: var(--lumo-secondary-text-color); }
+.entity-draft-editor .draft-json-upload { padding: 0; border: 0; min-height: 0; flex: none; }
+.entity-draft-editor .draft-json-upload::part(primary-buttons) { gap: 0; }
+.entity-draft-editor .draft-json-upload::part(file-list) { display: none; }
+.entity-draft-editor .draft-transfer-notice { flex: none; padding: 3px 10px; font-size: 11px; overflow-wrap: anywhere; }
+.entity-draft-editor .draft-transfer-notice:empty { display: none; }
+.entity-draft-editor vaadin-button { margin: 0; min-height: 26px; height: 26px; }
+.entity-draft-editor .draft-body { display: flex; flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
+.entity-draft-editor .draft-nav { flex: 0 0 124px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 8px 6px; border-right: 1px solid var(--lumo-contrast-20pct); }
+.entity-draft-editor .draft-nav vaadin-button { justify-content: flex-start; border-radius: 0; background: transparent; }
+.entity-draft-editor .draft-nav [aria-pressed=true] { background: var(--lumo-primary-color-10pct); color: var(--lumo-primary-text-color); font-weight: 600; }
+.entity-draft-editor .draft-pages { flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
+.entity-draft-editor .draft-general { height: 100%; padding: 8px 12px; overflow: auto; }
+.entity-draft-editor .draft-general > .explorer-properties { max-width: 790px; }
+.entity-draft-editor .draft-general .explorer-property { grid-template-columns: 160px minmax(0, 1fr); }
+.entity-draft-editor .explorer-property { align-items: start; padding: 2px 0; min-height: 28px; }
+.entity-draft-editor .explorer-property-label { padding-top: 4px; }
+.entity-draft-editor vaadin-text-field, .entity-draft-editor vaadin-select { width: 100%; min-width: 0; padding: 0; font-size: 12px; }
+.entity-draft-editor vaadin-text-field::part(input-field), .entity-draft-editor vaadin-select::part(input-field) { min-height: 26px; height: 26px; border-radius: 2px; }
+.entity-draft-editor vaadin-text-field::part(error-message), .entity-draft-editor vaadin-select::part(error-message) { font-size: 11px; line-height: 14px; }
+.entity-draft-editor .draft-auto { display: flex; gap: 4px; min-width: 0; }
+.entity-draft-editor .draft-auto vaadin-text-field { flex: 1; }
+.entity-draft-editor .draft-auto vaadin-button { flex: 0 0 64px; padding: 0 4px; font-size: 11px; }
+.entity-draft-editor .draft-auto [data-mode=AUTO]::part(input-field) { background: var(--lumo-primary-color-10pct); }
+.entity-draft-editor .draft-recipe { max-width: 790px; padding-top: 10px; font-size: 12px; }
+.entity-draft-editor .draft-data, .entity-draft-editor .draft-split { height: 100%; min-width: 0; min-height: 0; }
+.entity-draft-editor .draft-field-list { display: flex; flex-direction: column; flex: 1 1 55%; min-width: 0; min-height: 0; padding: 6px 8px; }
+.entity-draft-editor .draft-field-commands { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 5px; flex: none; }
+.entity-draft-editor .draft-field-scroll { flex: 1; min-height: 0; overflow: auto; }
+.entity-draft-editor .draft-field-columns, .entity-draft-editor .draft-field-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr) 88px; gap: 6px; align-items: center; text-align: left; width: 100%; }
+.entity-draft-editor .draft-field-columns { height: 26px; padding: 0 6px; background: var(--lumo-contrast-5pct); border-bottom: 1px solid var(--lumo-contrast-30pct); flex: none; font-weight: 600; }
+.entity-draft-editor .draft-field-row { width: 100%; height: 26px; min-height: 26px; max-height: 26px; padding: 0 6px; color: inherit; background: transparent; border: 0; border-bottom: 1px solid var(--lumo-contrast-10pct); border-radius: 0; font: inherit; cursor: pointer; }
+.entity-draft-editor .draft-field-row > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.entity-draft-editor .draft-field-row > span:last-child { color: var(--lumo-secondary-text-color); }
+.entity-draft-editor .draft-field-row[aria-selected=true] { background: var(--lumo-primary-color-10pct); color: var(--lumo-primary-text-color); }
+.entity-draft-editor .draft-field-row:focus-visible { outline: 2px solid var(--lumo-primary-color); outline-offset: -2px; }
+.entity-draft-editor .draft-section-header { display: flex; width: 100%; min-width: 0; }
+.entity-draft-editor .draft-section-header .draft-field-row { flex: 1; min-width: 0; background: var(--lumo-contrast-5pct); font-weight: 600; }
+.entity-draft-editor .draft-section-toggle { width: 22px; flex: 0 0 22px; height: 26px; padding: 0; border: 0; background: var(--lumo-contrast-5pct); color: inherit; cursor: pointer; }
+.entity-draft-editor .draft-section-field { padding-left: 24px; }
+.entity-draft-editor .draft-field-commands > span { flex-basis: 100%; font-size: 11px; color: var(--lumo-secondary-text-color); line-height: 18px; overflow-wrap: anywhere; }
+.entity-draft-editor vaadin-combo-box { width: 100%; min-width: 0; padding: 0; font-size: 12px; }
+.entity-draft-editor vaadin-combo-box::part(input-field) { min-height: 26px; height: 26px; border-radius: 2px; }
+.entity-draft-editor vaadin-combo-box::part(error-message) { font-size: 11px; line-height: 14px; }
+.entity-draft-editor .draft-blocked-targets { margin: 0; font-size: 11px; }
+.entity-draft-editor .draft-blocked-targets > div { max-height: 180px; overflow: auto; }
+.entity-draft-editor .draft-unavailable-target { margin-bottom: 5px; overflow-wrap: anywhere; }
+.entity-draft-editor .draft-unavailable-target > span { display: block; }
+.entity-draft-editor .draft-unavailable-target > span:last-child { color: var(--lumo-secondary-text-color); }
+.entity-draft-editor .draft-inherited { font-style: italic; }
+.entity-draft-editor .draft-empty { display: block; padding: 8px 6px; color: var(--lumo-secondary-text-color); }
+.entity-draft-editor .draft-split > .explorer-sequential-detail { flex: 0 0 360px; }
+.entity-draft-editor .draft-inspector { flex: 1; overflow: auto; min-width: 0; min-height: 0; padding: 6px 10px; }
+.entity-draft-editor .draft-inspector h4 { overflow-wrap: anywhere; line-height: 20px; margin-bottom: 6px; }
+.entity-draft-editor .draft-inspector .explorer-property { grid-template-columns: minmax(90px,.85fr) minmax(0,1.25fr); }
+.entity-draft-editor .draft-applications { display: flex; flex-wrap: wrap; gap: 0 6px; }
+.entity-draft-editor vaadin-checkbox { padding: 0; font-size: 12px; }
+.entity-draft-editor .draft-breadcrumb { flex: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-top: 1px solid var(--lumo-contrast-20pct); padding: 3px 10px; line-height: 20px; }
+.entity-draft-editor .draft-problems { flex: none; max-height: 150px; overflow: auto; padding: 0 10px; border-top: 1px solid var(--lumo-contrast-10pct); }
+.entity-draft-editor .draft-problems:empty { display: none; }
+.entity-draft-editor .draft-problems vaadin-details { margin: 0; font-size: 12px; }
+.entity-draft-editor vaadin-button.draft-problem { display: flex; width: 100%; justify-content: flex-start; height: auto; min-height: 24px; font-size: 11px; text-align: left; padding: 2px 4px; }
+.entity-draft-editor .draft-problem::part(label) { white-space: normal; overflow-wrap: anywhere; }
+@container explorer-pilot (max-width: 800px) {
+  .entity-draft-editor .draft-body { flex-direction: column; }
+  .entity-draft-editor .draft-nav { flex: none; flex-direction: row; padding: 3px 8px; border-right: 0; border-bottom: 1px solid var(--lumo-contrast-20pct); }
+  .entity-draft-editor .draft-pages { flex: 1; }
+  .entity-draft-editor .draft-general .explorer-property { grid-template-columns: minmax(90px,.7fr) minmax(0,1.3fr); }
+  .entity-draft-editor .draft-status { margin-left: 0; }
+}

@@ -1,0 +1,177 @@
+[
+  {
+    "module": "platform-bom",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-bom\\1.0-SNAPSHOT\\platform-bom-1.0-SNAPSHOT.pom",
+    "sha256": "5e940f8184febb5ba8a61a8dfd70c277185031c5bde6956e72e5b8682c2c3168"
+  },
+  {
+    "module": "platform-contracts",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-contracts\\1.0-SNAPSHOT\\platform-contracts-1.0-SNAPSHOT.jar",
+    "sha256": "5056bbed8be1dac2e3c30add00be86796ec356457ef54f09584b447579293674"
+  },
+  {
+    "module": "platform-contracts",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-contracts\\1.0-SNAPSHOT\\platform-contracts-1.0-SNAPSHOT.pom",
+    "sha256": "50b21b1af5eaf6b7b5bf0ffe0cd59a1eec2de93d84c32ee9b5d25b3e98dbc189"
+  },
+  {
+    "module": "platform-events",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-events\\1.0-SNAPSHOT\\platform-events-1.0-SNAPSHOT.jar",
+    "sha256": "bb15b885b15675034604203d44e6fd1c71059e376fbad54ba73180a1f1b13bfb"
+  },
+  {
+    "module": "platform-events",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-events\\1.0-SNAPSHOT\\platform-events-1.0-SNAPSHOT.pom",
+    "sha256": "5a0bede1e8dd6f6e20787131b146158a6b22125b43423fdc356e330686742c01"
+  },
+  {
+    "module": "platform-persistence",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-persistence\\1.0-SNAPSHOT\\platform-persistence-1.0-SNAPSHOT.jar",
+    "sha256": "e7041f17e528f19e856733fb271784db98486f98ebde8087817ef43bca464599"
+  },
+  {
+    "module": "platform-persistence",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-persistence\\1.0-SNAPSHOT\\platform-persistence-1.0-SNAPSHOT.pom",
+    "sha256": "88dbcf1da7c9212d3b384343af2b632d835434f565c5d445f1b3c3cd0a0989d5"
+  },
+  {
+    "module": "platform-metadata",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-metadata\\1.0-SNAPSHOT\\platform-metadata-1.0-SNAPSHOT.jar",
+    "sha256": "705abc06e56128a5211d112d9afad3f956f3308bea790d5dfbafdf640986e758"
+  },
+  {
+    "module": "platform-metadata",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-metadata\\1.0-SNAPSHOT\\platform-metadata-1.0-SNAPSHOT.pom",
+    "sha256": "1e0c21dd3c8e20504e462206ea435c3e4f2100cfd92ddc30a7c855030ef8f435"
+  },
+  {
+    "module": "platform-numbering",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-numbering\\1.0-SNAPSHOT\\platform-numbering-1.0-SNAPSHOT.jar",
+    "sha256": "adec135b2038c4e3ac5448bc3408573d5e4942a5ba431adc7d332da620a0c3f9"
+  },
+  {
+    "module": "platform-numbering",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-numbering\\1.0-SNAPSHOT\\platform-numbering-1.0-SNAPSHOT.pom",
+    "sha256": "0c0d781746e10d754b73e4066f008c4a0feded2e4d23a70ccdac377f87455a75"
+  },
+  {
+    "module": "platform-settings",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-settings\\1.0-SNAPSHOT\\platform-settings-1.0-SNAPSHOT.jar",
+    "sha256": "a05ea7a75dc22eac39ae8f3538f99dbb40b366d687e6e38ac46ddef04b1b8c1b"
+  },
+  {
+    "module": "platform-settings",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-settings\\1.0-SNAPSHOT\\platform-settings-1.0-SNAPSHOT.pom",
+    "sha256": "aec63a564cd7738ba6a89265562fc0336571c0327dac5cab8200a72bacbe15ce"
+  },
+  {
+    "module": "platform-telemetry",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-telemetry\\1.0-SNAPSHOT\\platform-telemetry-1.0-SNAPSHOT.jar",
+    "sha256": "622ef2e6d28baf98f72b9d479fff82a6349be2432ee0b69e7a655229ebcc9744"
+  },
+  {
+    "module": "platform-telemetry",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-telemetry\\1.0-SNAPSHOT\\platform-telemetry-1.0-SNAPSHOT.pom",
+    "sha256": "039652b78063bf40ef2bdf1bdb20d57589ea0e055e6d047c4e5971237ac15650"
+  },
+  {
+    "module": "platform-rls",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-rls\\1.0-SNAPSHOT\\platform-rls-1.0-SNAPSHOT.jar",
+    "sha256": "8f680186c57b41737cf7d60753f278ac54b760808e418cd77cc75af3dd97d8ec"
+  },
+  {
+    "module": "platform-rls",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-rls\\1.0-SNAPSHOT\\platform-rls-1.0-SNAPSHOT.pom",
+    "sha256": "b3dd2111167d2589ce5b573b8245cde487f206abebdaa4813378baa65608f3ad"
+  },
+  {
+    "module": "platform-core",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-core\\1.0-SNAPSHOT\\platform-core-1.0-SNAPSHOT.jar",
+    "sha256": "9d885a825599a19d870df0d27368f54559fc71e03260edef5df1adeccbd8f421"
+  },
+  {
+    "module": "platform-core",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-core\\1.0-SNAPSHOT\\platform-core-1.0-SNAPSHOT.pom",
+    "sha256": "dc6c05f0d88f7acf1ef434543b0ee09caf1f5dc444701b158dcbc14522d3f987"
+  },
+  {
+    "module": "platform-register",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-register\\1.0-SNAPSHOT\\platform-register-1.0-SNAPSHOT.jar",
+    "sha256": "9423bd703579dccfb0ef90b7d50c5fef65165190a7b660ff025491e1c94e218d"
+  },
+  {
+    "module": "platform-register",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-register\\1.0-SNAPSHOT\\platform-register-1.0-SNAPSHOT.pom",
+    "sha256": "a026409c6fe18a9915b6f3d1d2ed77df168d77a4fb2685a051ae9a8dce5db950"
+  },
+  {
+    "module": "platform-navigation",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-navigation\\1.0-SNAPSHOT\\platform-navigation-1.0-SNAPSHOT.jar",
+    "sha256": "8e88861d5a9cc1fffd56e9677f1c8d7a6748b8356300005973307bf449f86e93"
+  },
+  {
+    "module": "platform-navigation",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-navigation\\1.0-SNAPSHOT\\platform-navigation-1.0-SNAPSHOT.pom",
+    "sha256": "a0c1d1c0c8c3fc012a504cdc2ac40a14c584826c18f0e63d956707534304f53c"
+  },
+  {
+    "module": "platform-spring-boot-autoconfigure",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-spring-boot-autoconfigure\\1.0-SNAPSHOT\\platform-spring-boot-autoconfigure-1.0-SNAPSHOT.jar",
+    "sha256": "75ea5e4ce2172975597eb62fd559c0f70cb3f10b42f48e972dfb9290cb48b607"
+  },
+  {
+    "module": "platform-spring-boot-autoconfigure",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-spring-boot-autoconfigure\\1.0-SNAPSHOT\\platform-spring-boot-autoconfigure-1.0-SNAPSHOT.pom",
+    "sha256": "46c2433f39cfde12c63146e2b9f31f408ca206e8907fc3ffb64b897ac5ccd77d"
+  },
+  {
+    "module": "platform-vaadin",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-vaadin\\1.0-SNAPSHOT\\platform-vaadin-1.0-SNAPSHOT.jar",
+    "sha256": "797dca1b1934711ef0213f934f704948eed784bb135b387e716c00cbd1cff085"
+  },
+  {
+    "module": "platform-vaadin",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-vaadin\\1.0-SNAPSHOT\\platform-vaadin-1.0-SNAPSHOT.pom",
+    "sha256": "5cad8c5c274824a531f6f7099c3202b793e00517499d0f222bcdf06cd6bec0bd"
+  },
+  {
+    "module": "platform-backend-starter",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-backend-starter\\1.0-SNAPSHOT\\platform-backend-starter-1.0-SNAPSHOT.jar",
+    "sha256": "1b79e501bd959e5b7a5850e39f32055bff67655ca07822e4fe43efc4a2671204"
+  },
+  {
+    "module": "platform-backend-starter",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-backend-starter\\1.0-SNAPSHOT\\platform-backend-starter-1.0-SNAPSHOT.pom",
+    "sha256": "1ea88f70b83876729a8108144a90d4f222a0edb65b894379efc8698a445b473d"
+  },
+  {
+    "module": "entity-design-core",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-core\\1.0-SNAPSHOT\\entity-design-core-1.0-SNAPSHOT.jar",
+    "sha256": "772f166964c6c952b3b046fc27210d29af40fe4a4e2f319bc220ec569b4cc802"
+  },
+  {
+    "module": "entity-design-core",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-core\\1.0-SNAPSHOT\\entity-design-core-1.0-SNAPSHOT.pom",
+    "sha256": "b60fc670d34e31d355ca689601b3fb72244f94780d307440dd8f9bc9bfb03852"
+  },
+  {
+    "module": "entity-design-json",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-json\\1.0-SNAPSHOT\\entity-design-json-1.0-SNAPSHOT.jar",
+    "sha256": "9f093a8b1a3fd8df4b03c6c4f1e9bf78718555959548db43abdf8b58288e2262"
+  },
+  {
+    "module": "entity-design-json",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-json\\1.0-SNAPSHOT\\entity-design-json-1.0-SNAPSHOT.pom",
+    "sha256": "3e96f447e4df7d515460ca10a3565d51f79628787a0bf832c8ca52f6ba3002a5"
+  },
+  {
+    "module": "entity-design-runtime",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-runtime\\1.0-SNAPSHOT\\entity-design-runtime-1.0-SNAPSHOT.jar",
+    "sha256": "dc5e29742fbfc498ce83dd6bce5390fa4dbfb87b7d49144bf6260339e2155b92"
+  },
+  {
+    "module": "entity-design-runtime",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-runtime\\1.0-SNAPSHOT\\entity-design-runtime-1.0-SNAPSHOT.pom",
+    "sha256": "d3c211cdd39432932c6f648e59d350c78d5af9f4033f8a277eae11770b7c069b"
+  }
+]

@@ -1,5 +1,8 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.query.*;
+import org.ipro.query.param.*;
+
 import org.ip.Application;
 import org.ip.model.PrdSpec;
 import org.ip.repository.UserRepository;
@@ -34,9 +37,17 @@ class QueryBuilderMetadataCatalogTest {
         var registry = new RlsDimensionRegistry("org.ip");
         registry.rebuild();
         var access = new AccessService(grants, new UserRepositoryRlsRoleResolver(users), registry);
-        catalog = new QueryBuilderMetadataCatalog(emf, new org.ipro.metadata.MetadataResolver(),
+        var types = new org.ipro.metadata.ManagedEntityTypes(emf);
+        var metadata = new org.ipro.metadata.MetadataResolver();
+        var managed = new org.ipro.metadata.ManagedEntityCatalog(types);
+        var registers = new org.ipro.register.RegisterRegistry(managed,
+            new org.ipro.register.RecorderTypeRegistry(managed, emf, metadata));
+        var descriptors = new org.ipro.data.EntityDescriptorCatalog(managed,
+            new org.ipro.metadata.SectionMetadataRegistry(types, metadata), metadata,
+            java.util.List.of(), java.util.List.of(), java.util.List.of(new org.ipro.register.RegisterClassificationContributor(registers)));
+        catalog = new QueryBuilderMetadataCatalog(types, metadata,
                 new RlsReadGate(org.ipro.rls.RlsTestFixture.allowingC5ReadEvaluator(), registry),
-                () -> "admin");
+                () -> "admin", descriptors);
     }
 
     @Test

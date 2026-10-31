@@ -1,0 +1,137 @@
+{
+  "planId" : "g1-217d7847ce92f391334193675c780d0ba128b70deb50f83a3c5a72266346c9fb",
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "generatorVersion" : "document-java-v4",
+  "source" : {
+    "schemaVersion" : 1,
+    "recipe" : {
+      "id" : "standard-document-v1",
+      "version" : 1
+    },
+    "draftId" : "00000000-0000-0009-0000-000000000000",
+    "entity" : {
+      "className" : "DocumentSections0",
+      "packageName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "label" : "Комплект",
+      "titles" : {
+        "list" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "item" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "selection" : {
+          "mode" : "AUTO",
+          "text" : ""
+        }
+      },
+      "tableName" : {
+        "mode" : "EXPLICIT",
+        "text" : "document_0"
+      },
+      "subsystemId" : null,
+      "icon" : "FILE"
+    },
+    "fields" : [ ],
+    "sections" : [ ],
+    "owner" : null
+  },
+  "context" : {
+    "projectId" : "e4",
+    "version" : "1",
+    "defaultPackage" : "com.example.generated",
+    "existingTypes" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "existingTables" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "subsystemIds" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "iconIds" : {
+      "values" : [ "FILE" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "referenceTargets" : {
+      "com.example.generated.targets.ReferenceTarget" : {
+        "typeId" : "com.example.generated.targets.ReferenceTarget",
+        "caption" : "Контрагенты",
+        "exposure" : "STANDARD_ROOT",
+        "identityType" : "java.lang.Long",
+        "representation" : "YES",
+        "selection" : "YES",
+        "eligibility" : "SUPPORTED",
+        "reason" : "existing target JAR",
+        "sourceTypeName" : "com.example.generated.targets.ReferenceTarget"
+      }
+    },
+    "referencesComplete" : true,
+    "runtimeSnapshot" : {
+      "snapshotId" : "e4-fixture",
+      "complete" : true,
+      "types" : {
+        "com.example.generated.targets.ReferenceTarget" : {
+          "typeId" : "com.example.generated.targets.ReferenceTarget",
+          "kind" : "CATALOG",
+          "kindOrigin" : "DERIVED",
+          "kindSource" : "fixture",
+          "exposure" : "STANDARD_ROOT",
+          "capabilitiesOrigin" : "DERIVED",
+          "capabilitiesSource" : "fixture",
+          "identityOrigin" : "DERIVED",
+          "identitySource" : "fixture",
+          "reads" : [ ],
+          "writes" : [ ],
+          "interned" : false,
+          "recorderOwned" : false,
+          "sectionOwnerTypeId" : "",
+          "listColumns" : [ "code", "name" ],
+          "selectColumns" : [ "code", "name" ],
+          "attributes" : [ ],
+          "sections" : [ ],
+          "naturalKeys" : [ ],
+          "creationChannel" : "",
+          "specialOperations" : [ ],
+          "owner" : null
+        }
+      },
+      "prerequisites" : {
+        "ET0_ET7_RUNTIME" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_CATALOG_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_DOCUMENT_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        }
+      },
+      "diagnostics" : [ ]
+    }
+  },
+  "files" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/DocumentSections0.java",
+    "content" : "package com.example.generated;\n\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.Table;\nimport org.ipro.crud.StandardDocumentEntity;\nimport org.ipro.metadata.annotation.EntityMetadata;\n\n@Entity\n@Table(name = \"document_0\")\n@EntityMetadata(\n    listFormTitle = \"Комплект\",\n    itemFormTitle = \"Комплект\",\n    selectionFormTitle = \"Комплект\",\n    icon = \"FILE\",\n    listColumns = {\"number\", \"date\"},\n    selectColumns = {\"number\", \"date\"}\n)\npublic class DocumentSections0 extends StandardDocumentEntity {\n}\n",
+    "sha256" : "df5947f9d4ceb08351886ef0d4c0cb54a6c0c3dea87d6347189ee1ed11cfbc33"
+  } ]
+}

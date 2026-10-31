@@ -1,6 +1,6 @@
 package org.ip.service;
 
-import org.ip.application.user.PersistedUserState;
+import org.ip.persistence.user.PersistedUserState;
 import org.ip.application.user.UserPasswordChangePermission;
 import org.ip.application.user.UserRoleAssignmentPermission;
 import org.ip.model.Role;

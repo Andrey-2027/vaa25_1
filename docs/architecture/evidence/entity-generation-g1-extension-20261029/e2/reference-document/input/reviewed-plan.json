@@ -1,0 +1,161 @@
+{
+  "planId" : "g1-926f43352cfb00f313fce728af8afedf103abe21a74adaef4c7e18c23f75ce37",
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "generatorVersion" : "document-java-v2",
+  "source" : {
+    "schemaVersion" : 1,
+    "recipe" : {
+      "id" : "standard-document-v1",
+      "version" : 1
+    },
+    "draftId" : "00000000-0000-0002-0000-000000000000",
+    "entity" : {
+      "className" : "ReferenceDocument",
+      "packageName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "label" : "Ссылки",
+      "titles" : {
+        "list" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "item" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "selection" : {
+          "mode" : "AUTO",
+          "text" : ""
+        }
+      },
+      "tableName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "subsystemId" : null,
+      "icon" : "FILE"
+    },
+    "fields" : [ {
+      "id" : "00000000-0000-0002-0000-000000000001",
+      "name" : "optionalTarget",
+      "label" : "Необязательная ссылка",
+      "type" : "REFERENCE",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "OPTIONAL",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : {
+        "typeId" : "com.example.generated.targets.ReferenceTarget"
+      },
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    }, {
+      "id" : "00000000-0000-0002-0000-000000000002",
+      "name" : "requiredTarget",
+      "label" : "Обязательная ссылка",
+      "type" : "REFERENCE",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : true,
+      "uiRequired" : "REQUIRED",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : {
+        "typeId" : "com.example.generated.targets.ReferenceTarget"
+      },
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    } ],
+    "sections" : [ ]
+  },
+  "context" : {
+    "projectId" : "e2-fixture",
+    "version" : "v1",
+    "defaultPackage" : "com.example.generated",
+    "existingTypes" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "existingTables" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "subsystemIds" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "iconIds" : {
+      "values" : [ "FILE" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "referenceTargets" : {
+      "com.example.generated.targets.ReferenceTarget" : {
+        "typeId" : "com.example.generated.targets.ReferenceTarget",
+        "caption" : "Existing target",
+        "exposure" : "STANDARD_ROOT",
+        "identityType" : "java.lang.Long",
+        "representation" : "YES",
+        "selection" : "YES",
+        "eligibility" : "SUPPORTED",
+        "reason" : "confirmed",
+        "sourceTypeName" : "com.example.generated.targets.ReferenceTarget"
+      }
+    },
+    "referencesComplete" : true,
+    "runtimeSnapshot" : {
+      "snapshotId" : "e2",
+      "complete" : true,
+      "types" : { },
+      "prerequisites" : {
+        "ET0_ET7_RUNTIME" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_CATALOG_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_DOCUMENT_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        }
+      },
+      "diagnostics" : [ ]
+    }
+  },
+  "files" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/ReferenceDocument.java",
+    "content" : "package com.example.generated;\n\nimport jakarta.persistence.Column;\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.FetchType;\nimport jakarta.persistence.JoinColumn;\nimport jakarta.persistence.ManyToOne;\nimport jakarta.persistence.Table;\nimport jakarta.validation.constraints.NotNull;\nimport org.ipro.crud.StandardDocumentEntity;\nimport org.ipro.metadata.annotation.EntityMetadata;\nimport org.ipro.metadata.annotation.FieldMetadata;\nimport org.ipro.metadata.annotation.GridColumn;\nimport org.ipro.metadata.annotation.RequiredMode;\n\n@Entity\n@Table(name = \"reference_document\")\n@EntityMetadata(\n    listFormTitle = \"Ссылки\",\n    itemFormTitle = \"Ссылки\",\n    selectionFormTitle = \"Ссылки\",\n    icon = \"FILE\",\n    listColumns = {\"number\", \"date\", \"optionalTarget\", \"requiredTarget\"},\n    selectColumns = {\"number\", \"date\", \"optionalTarget\", \"requiredTarget\"}\n)\npublic class ReferenceDocument extends StandardDocumentEntity {\n    @ManyToOne(fetch = FetchType.LAZY, optional = true)\n    @JoinColumn(name = \"optional_target_id\")\n    @FieldMetadata(label = \"Необязательная ссылка\", order = 30, required = RequiredMode.OPTIONAL, grid = @GridColumn(visible = false))\n    private com.example.generated.targets.ReferenceTarget optionalTarget;\n\n    @NotNull\n    @ManyToOne(fetch = FetchType.LAZY, optional = false)\n    @JoinColumn(name = \"required_target_id\", nullable = false)\n    @FieldMetadata(label = \"Обязательная ссылка\", order = 40, required = RequiredMode.REQUIRED, grid = @GridColumn(visible = false))\n    private com.example.generated.targets.ReferenceTarget requiredTarget;\n\n    public com.example.generated.targets.ReferenceTarget getOptionalTarget() {\n        return optionalTarget;\n    }\n\n    public void setOptionalTarget(com.example.generated.targets.ReferenceTarget optionalTarget) {\n        this.optionalTarget = optionalTarget;\n    }\n\n    public com.example.generated.targets.ReferenceTarget getRequiredTarget() {\n        return requiredTarget;\n    }\n\n    public void setRequiredTarget(com.example.generated.targets.ReferenceTarget requiredTarget) {\n        this.requiredTarget = requiredTarget;\n    }\n}\n",
+    "sha256" : "00bb8f016c9387cb92e96ec9c7f4c1a22269101d3226afc6f794b7b786e39291"
+  } ]
+}

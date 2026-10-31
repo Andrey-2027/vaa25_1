@@ -10,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import java.util.function.Consumer;
 import org.ip.application.access.*;
+import org.ipro.rls.AccessGrant;
 
 /** Common object/scope cell. Effective checkbox edits only the active subject's direct flag. */
 public class PermissionCell extends HorizontalLayout {
@@ -58,7 +59,7 @@ public class PermissionCell extends HorizontalLayout {
             var source = contributions.getFirst();
             if (source.subject() == null) { list.add(new Span(source.explanation())); return; }
             var line = new VerticalLayout(); line.setPadding(false);
-            if (source.subject().type() == org.ipro.rls.AccessGrant.SubjectType.ROLE && !source.subject().identity().equals(subject.identity())) {
+            if (source.subject().type() == AccessGrant.SubjectType.ROLE && !source.subject().identity().equals(subject.identity())) {
                 line.add(new Button(source.subject().title(), event -> { dialog.close(); navigateRole.accept(source.subject()); }));
             } else line.add(new Span("Личное назначение — " + source.subject().title()));
             contributions.stream().map(value -> value.explanation()

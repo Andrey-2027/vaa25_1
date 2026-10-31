@@ -79,7 +79,9 @@ class PlatformCoreBoundaryTest {
         @Override
         public boolean includes(Location location) {
             String path = location.asURI().toString().toLowerCase(java.util.Locale.ROOT);
-            return !path.contains("/crudui/") && !path.contains("crudui-core")
+            // Isolated evidence builds also use test-classes outside Maven's default target/.
+            return !path.contains("/test-classes/")
+                && !path.contains("/crudui/") && !path.contains("crudui-core")
                 && !path.contains("filtergrid");
         }
     }

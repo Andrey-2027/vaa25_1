@@ -12,6 +12,8 @@ import org.ipro.form.FieldFactory;
 import org.ipro.form.ItemFormSaveHandler;
 import org.ipro.form.ItemFormSaveHandlerRegistry;
 import org.ipro.form.MetadataDrivenItemFormSaveAdapter;
+import org.ipro.form.FormSaveHandler;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.form.TableSectionCustomization;
 import org.ipro.form.action.ActionContextProvider;
@@ -558,5 +560,13 @@ public class FormAutoConfiguration {
             SectionMetadataRegistry sectionMetadataRegistry,
             MetadataDrivenAggregateSaveService aggregateSaveService) {
         return new MetadataDrivenItemFormSaveAdapter(sectionMetadataRegistry, aggregateSaveService);
+    }
+
+    /** Standard form saves use the same aggregate boundary without an application forwarding bean. */
+    @Bean
+    @ConditionalOnMissingBean(FormSaveHandler.class)
+    public FormSaveHandler<IdentifiableEntity<Long>> defaultFormSaveHandler(
+            MetadataDrivenItemFormSaveAdapter adapter) {
+        return adapter::save;
     }
 }

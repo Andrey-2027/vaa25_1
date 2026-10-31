@@ -4,17 +4,17 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 /**
- * Тестовая primary-конфигурация для {@code @DataJpaTest}-срезов по q6-сущностям.
+ * Прикладная primary-конфигурация для {@code @DataJpaTest}-срезов, которые ещё
+ * проверяют сценарии приложения (UDR-адаптер и RLS-исполнение).
  *
- * {@code @SpringBootConfiguration} (а не {@code @TestConfiguration}): slice-тесты
+ * <p>{@code @SpringBootConfiguration}, а не {@code @TestConfiguration}: slice-тесты
  * {@code @DataJpaTest} пропускают {@code @TestConfiguration}-классы при поиске
- * primary-конфигурации и падают с «Unable to find a @SpringBootConfiguration».
+ * primary-конфигурации. {@code @EnableAutoConfiguration} нужен ради меты
+ * {@code @AutoConfigurationPackage}: без неё Hibernate не находит base package.</p>
  *
- * {@code @EnableAutoConfiguration} нужен не для импорта авто-конфигураций (в slice
- * они отключены {@code @OverrideAutoConfiguration(enabled = false)}), а ради его
- * меты {@code @AutoConfigurationPackage}: без неё сканер сущностей Hibernate падает
- * с «Unable to retrieve @EnableAutoConfiguration base packages». Пакет этого класса
- * (org.ipro.reportstudio.query.q6) содержит Q6Product/Q6Journal.
+ * <p>M1.4: сами Q6-сущности переехали в тестовый артефакт {@code platform-query}
+ * ({@code org.ipro.query.q6}); этот класс больше не сканирует их пакет неявно,
+ * поэтому тесты задают {@code @EntityScan("org.ipro.query.q6")} явно.</p>
  */
 @SpringBootConfiguration(proxyBeanMethods = false)
 @EnableAutoConfiguration

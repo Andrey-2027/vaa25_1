@@ -320,7 +320,7 @@ abstract class RestReadHttpTestSupport {
         }
     }
     @TestConfiguration(proxyBeanMethods = false)
-    @com.vaadin.flow.spring.annotation.EnableVaadin("org.ip.views.login")
+    // Application owns @EnableVaadin; vaadin.allowed-packages narrows this transport fixture.
     static class ObservationConfiguration {
         @Bean FilterRegistrationBean<Filter> pilotSessionFixtureFilter() {
             Filter filter = (request, response, chain) -> {

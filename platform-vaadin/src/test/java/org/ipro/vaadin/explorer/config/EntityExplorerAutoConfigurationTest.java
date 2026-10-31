@@ -10,6 +10,7 @@ import org.ipro.form.link.FormRouteCatalog;
 import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.lifecycle.EntityLifecycleRegistry;
 import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.ManagedEntityTypes;
 import org.ipro.metadata.ReferenceIndex;
 import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.SubsystemRegistry;
@@ -30,7 +31,8 @@ import static org.mockito.Mockito.mock;
  * контексте нет, вместо падения старта с {@code UnsatisfiedDependency}.
  *
  * <p><b>Почему это забор, а не украшение.</b> Класс объявляет три бина, каждый из которых
- * требует чужих бинов (метаданные, реестр форм, нумерация, RLS). До шага условия проверяли только
+ * требует чужих бинов (общий снимок управляемых типов, метаданные, реестр форм, нумерация, RLS).
+ * До шага условия проверяли только
  * «пользователь не объявил свой бин», поэтому отсутствие, например, {@code MetadataResolver}
  * приводило к падению контекста — при том что сам UI-модуль к метаданным необязателен. Ошибка
  * выглядит как «платформа сломалась», хотя на самом деле не выполнено условие применимости
@@ -49,6 +51,7 @@ class EntityExplorerAutoConfigurationTest {
     private static ApplicationContextRunner withCollaborators() {
         return new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(EntityExplorerAutoConfiguration.class))
+            .withBean(ManagedEntityTypes.class, () -> new ManagedEntityTypes(java.util.List.of()))
             .withBean(MetadataResolver.class, () -> mock(MetadataResolver.class))
             .withBean(FormRegistry.class, FormRegistry::new)
             .withBean(EntityDescriptorCatalog.class, () -> mock(EntityDescriptorCatalog.class))
@@ -104,6 +107,33 @@ class EntityExplorerAutoConfigurationTest {
     }
 
     @Test
+    void backsOffWhenTheSharedManagedEntitySnapshotIsMissing() {
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(EntityExplorerAutoConfiguration.class))
+            .withBean(MetadataResolver.class, () -> mock(MetadataResolver.class))
+            .withBean(FormRegistry.class, FormRegistry::new)
+            .withBean(EntityDescriptorCatalog.class, () -> mock(EntityDescriptorCatalog.class))
+            .withBean(FormRouteCatalog.class, () -> mock(FormRouteCatalog.class))
+            .withBean(EntityLifecycleRegistry.class,
+                () -> new EntityLifecycleRegistry(java.util.List.of()))
+            .withBean(SectionMetadataRegistry.class, () -> mock(SectionMetadataRegistry.class))
+            .withBean(ReferenceIndex.class, () -> mock(ReferenceIndex.class))
+            .withBean(NumberingMetadataRegistry.class, () -> mock(NumberingMetadataRegistry.class))
+            .withBean(SubsystemRegistry.class, () -> mock(SubsystemRegistry.class))
+            .withBean(RlsDimensionRegistry.class, () -> mock(RlsDimensionRegistry.class))
+            .withBean(PlatformProperties.class, () -> mock(PlatformProperties.class))
+            .withBean(ActionRegistry.class, () -> mock(ActionRegistry.class))
+            .withBean(ActionHandlerRegistry.class, () -> mock(ActionHandlerRegistry.class))
+            .withBean(ActionProvenanceCatalog.class, () -> mock(ActionProvenanceCatalog.class))
+            .withBean(FetchPlanInspection.class, () -> mock(FetchPlanInspection.class))
+            .run(context -> {
+                assertThat(context).hasNotFailed();
+                assertThat(context).doesNotHaveBean(EntitySummaryAssembler.class);
+                assertThat(context).doesNotHaveBean(SubsystemSummaryAssembler.class);
+            });
+    }
+
+    @Test
     void missingRouteCatalogDisablesExplorerButMissingStartupCheckDoesNot() {
         withCollaborators()
             .run(context -> {
@@ -117,6 +147,7 @@ class EntityExplorerAutoConfigurationTest {
 
         new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(EntityExplorerAutoConfiguration.class))
+            .withBean(ManagedEntityTypes.class, () -> new ManagedEntityTypes(java.util.List.of()))
             .withBean(MetadataResolver.class, () -> mock(MetadataResolver.class))
             .withBean(FormRegistry.class, FormRegistry::new)
             .withBean(EntityDescriptorCatalog.class, () -> mock(EntityDescriptorCatalog.class))
@@ -148,6 +179,7 @@ class EntityExplorerAutoConfigurationTest {
     void missingActionCollaboratorsDisableTheWholeSubsystem() {
         new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(EntityExplorerAutoConfiguration.class))
+            .withBean(ManagedEntityTypes.class, () -> new ManagedEntityTypes(java.util.List.of()))
             .withBean(MetadataResolver.class, () -> mock(MetadataResolver.class))
             .withBean(FormRegistry.class, FormRegistry::new)
             .withBean(EntityDescriptorCatalog.class, () -> mock(EntityDescriptorCatalog.class))
@@ -178,6 +210,7 @@ class EntityExplorerAutoConfigurationTest {
     void missingFetchPlanInspectionDisablesTheWholeSubsystem() {
         new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(EntityExplorerAutoConfiguration.class))
+            .withBean(ManagedEntityTypes.class, () -> new ManagedEntityTypes(java.util.List.of()))
             .withBean(MetadataResolver.class, () -> mock(MetadataResolver.class))
             .withBean(FormRegistry.class, FormRegistry::new)
             .withBean(EntityDescriptorCatalog.class, () -> mock(EntityDescriptorCatalog.class))

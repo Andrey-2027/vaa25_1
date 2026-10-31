@@ -4,6 +4,7 @@ import org.ipro.metadata.MetadataAllowance;
 import org.ipro.metadata.MetadataConsistencyStartupCheck;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.ManagedEntityCatalog;
+import org.ipro.metadata.ManagedEntityTypes;
 import org.ipro.metadata.ReferenceIndex;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.metadata.SectionMetadataRegistry;
@@ -33,13 +34,19 @@ import java.util.List;
  *
  * Классы аннотированы {@code @Component}, но под базовым пакетом scan приложения
  * ({@code org.ip}) они не находятся — бины регистрируются здесь, как в
- * RlsAutoConfiguration. Параметры сканирования те же: маркеры подсистем и
- * @EntityMetadata-сущности сканируются в пакете приложения ({@code org.ip}),
- * т.к. сами аннотации стоят на классах приложения (org.ip.model, org.ip.subsystem).
+ * RlsAutoConfiguration. Настроенный пакет задаёт область поиска маркеров {@code @Subsystem}.
+ * Управляемые {@code @EntityMetadata}, {@code @TableSections} и строки
+ * {@code @TableSectionMetadata} обнаруживаются из общего JPA PU-снимка.
  */
 @AutoConfiguration
 @EnableConfigurationProperties(PlatformProperties.class)
 public class MetadataAutoConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public org.ipro.metadata.EntityMetadataApplicability entityMetadataApplicability() {
+        return MetadataResolver::isApplicable;
+    }
 
     @Bean
     @ConditionalOnMissingBean
@@ -49,30 +56,44 @@ public class MetadataAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ManagedEntityCatalog managedEntityCatalog(
+    public ManagedEntityTypes managedEntityTypesSnapshot(
             jakarta.persistence.EntityManagerFactory entityManagerFactory) {
-        return new ManagedEntityCatalog(entityManagerFactory);
+        return new ManagedEntityTypes(entityManagerFactory);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public ReferenceIndex referenceIndex(PlatformProperties platformProperties) {
-        return new ReferenceIndex(platformProperties.requiredSubsystemScanPackage());
+    public ManagedEntityCatalog managedEntityCatalog(ManagedEntityTypes managedEntityTypes) {
+        return new ManagedEntityCatalog(managedEntityTypes);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public SubsystemRegistry subsystemRegistry(PlatformProperties platformProperties) {
-        return new SubsystemRegistry(platformProperties.requiredSubsystemScanPackage());
+    public ReferenceIndex referenceIndex(ManagedEntityTypes managedEntityTypes,
+            MetadataResolver metadataResolver,
+            ObjectProvider<ReferenceIndex.ReverseReferenceSource> sources) {
+        return new ReferenceIndex(managedEntityTypes, sources.orderedStream().toList(),
+            owner -> metadataResolver.resolveAllAnnotatedFields(owner).stream()
+                .filter(org.ipro.metadata.FieldMetadataInfo::hasLookup)
+                .map(field -> new ReferenceIndex.ReverseReference(
+                    field.getLookupEntity(), owner, field.getName(), false))
+                .toList(), MetadataResolver::isApplicable);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SubsystemRegistry subsystemRegistry(PlatformProperties platformProperties,
+            ManagedEntityTypes managedEntityTypes, MetadataResolver metadataResolver) {
+        return new SubsystemRegistry(platformProperties.requiredSubsystemScanPackage(),
+            managedEntityTypes, metadataResolver);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public SectionMetadataRegistry sectionMetadataRegistry(
-            PlatformProperties platformProperties,
+            ManagedEntityTypes managedEntityTypes,
             MetadataResolver metadataResolver) {
-        return new SectionMetadataRegistry(
-            platformProperties.requiredSubsystemScanPackage(), metadataResolver);
+        return new SectionMetadataRegistry(managedEntityTypes, metadataResolver);
     }
 
     /**
@@ -95,14 +116,16 @@ public class MetadataAutoConfiguration {
      * контекст получил backoff, а не {@code UnsatisfiedDependencyException}.
      */
     @Bean
-    @ConditionalOnBean({ManagedEntityCatalog.class, MetadataResolver.class})
+    @ConditionalOnBean({ManagedEntityTypes.class, MetadataResolver.class})
     @ConditionalOnMissingBean
     public MetadataConsistencyStartupCheck metadataConsistencyStartupCheck(
-            ManagedEntityCatalog managedEntityCatalog,
+            ManagedEntityTypes managedEntityTypes,
             MetadataResolver metadataResolver,
-            ObjectProvider<MetadataAllowance> allowances) {
-        return new MetadataConsistencyStartupCheck(managedEntityCatalog, metadataResolver,
-            allowances.orderedStream().toList());
+            ObjectProvider<MetadataAllowance> allowances,
+            ObjectProvider<org.ipro.metadata.MetadataDiagnosticSource> sources) {
+        return new MetadataConsistencyStartupCheck(managedEntityTypes, metadataResolver,
+            allowances.orderedStream().toList(), sources.orderedStream()
+                .flatMap(source -> source.diagnostics().stream()).toList());
     }
 
     //
@@ -134,10 +157,14 @@ public class MetadataAutoConfiguration {
             EntityEventPublisher entityEventPublisher,
             EntityLifecycleRegistry entityLifecycleRegistry,
             ObjectProvider<org.ipro.crud.AggregateSaveContributionParticipant> contributionParticipants,
-            ObjectProvider<org.ipro.crud.AggregateOperationAuthorizer> operationAuthorizer) {
+            ObjectProvider<org.ipro.crud.AggregateOperationAuthorizer> operationAuthorizer,
+            ObjectProvider<jakarta.persistence.EntityManager> entityManager) {
+        // Partial/slice-контекст без JPA сохраняет прежнюю проводку; owner-enabled update в
+        // таком контексте получит явный отказ guard'а, а не пропущенную проверку.
         return new MetadataDrivenAggregateSaveService(
             serviceLocator, sectionMetadataRegistry, genericOwnedSectionService,
             entityEventPublisher, entityLifecycleRegistry,
-            contributionParticipants.orderedStream().toList(), operationAuthorizer.getIfAvailable());
+            contributionParticipants.orderedStream().toList(), operationAuthorizer.getIfAvailable(),
+            entityManager.getIfAvailable());
     }
 }

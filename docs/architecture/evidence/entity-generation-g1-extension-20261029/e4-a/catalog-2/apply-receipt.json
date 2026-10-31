@@ -1,0 +1,127 @@
+{
+  "kind" : "g1-apply-receipt-v2",
+  "stateVersion" : 2,
+  "applyId" : "f6bf9f00-3422-42a1-ad47-29890498cee4",
+  "manifest" : {
+    "kind" : "g1-generation-manifest-v2",
+    "planId" : "g1-c76c14f90e4c3fe8b19dbc1daa06d8316e42512c6b627988dc590a10acec821a",
+    "recipe" : {
+      "id" : "standard-catalog-v2",
+      "version" : 2
+    },
+    "generatorVersion" : "catalog-java-v4",
+    "fingerprintProfile" : "plan-fingerprint-v2",
+    "entries" : [ {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/CatalogSections2.java",
+      "sha256" : "890f0549d41b97c385308d515e8f3e33dd1882e09824b69919146dc6392160ce",
+      "bytes" : 711
+    }, {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/rows/CatalogSections2Row1.java",
+      "sha256" : "053d5ebc64d50ad5b1ba54593c6e483a5fbbb044689b0971bb2b2ad88dd5a565",
+      "bytes" : 2642
+    }, {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/rows/CatalogSections2Row2.java",
+      "sha256" : "eb9794cbe0aa89e1e04995cbf3e1937f9a3defa9fdbe6a09fad6f611a2ae15cd",
+      "bytes" : 2642
+    } ],
+    "manifestSha256" : "118ed3f2ed42e21b819cac98411d940fa8e04dc5e645ed97370ae3926156e4c9"
+  },
+  "cSummarySha256" : "ec0068e19af42a8cb0a384c2d4c34230cd8fc466c9b0119d79110655cfbd910c",
+  "verifiedDependencies" : [ {
+    "id" : "org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "sha256" : "bc0e41e7e60d5613ea921a2dbb5d891dcd7b62c07ce8238f2457ac3ce427468b"
+  }, {
+    "id" : "org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "sha256" : "d921d2b64462de000b53e302cad4d4b56c7e6b46da8f8b604fbf6c46d064b02a"
+  }, {
+    "id" : "org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "sha256" : "06bee40b045ce127eb549dbb42b78d898099cb4ff50c06af44481c44a0715298"
+  }, {
+    "id" : "org.ipro:g1-reference-target:jar::1.0-E2",
+    "sha256" : "03d8dab6ef11aee96f045219cee4fca5a2cb377621677d5f893c649955b004d8"
+  }, {
+    "id" : "org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "sha256" : "03f8e93ea7ae27179047ea062d5f80a3d80567896070da4bc103dccab48a6a43"
+  }, {
+    "id" : "org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "sha256" : "f563ee9ff8713a58161f54dde505874b7d5ef84dfb340a54c335831f9a3c4d79"
+  }, {
+    "id" : "org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "sha256" : "1df1649fb128e708c63b43ec27c995c87d83ad666bde02cd090e61eb126ad5cb"
+  }, {
+    "id" : "org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "sha256" : "35857b09a5f6b4c7d336ca05079bda7804cdc7861954d1c3fe5df08f5b34e9ea"
+  }, {
+    "id" : "org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "sha256" : "e8a3291565c47007a14afd6dfc54943ef0912b8caa8fa5d156e93699f2f785be"
+  }, {
+    "id" : "org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "sha256" : "b6cf3b357f3ef1f4b8c3a66188bdf98394018d15f1d3f7123c35e98535bf3c52"
+  }, {
+    "id" : "org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "sha256" : "2617a714b1a464bc66f2e8ad4a12f94d78e98842073270dd4252fb862c2c32ef"
+  }, {
+    "id" : "org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "sha256" : "39e3c4df664026b153aba1da685815e14958e77b145dc6a653f0c67e3237af06"
+  }, {
+    "id" : "org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "sha256" : "f89a0c3eb043ca749d3829dfd4689762d432b54f4f36990b0dd2d1e5ea4fac2c"
+  }, {
+    "id" : "org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "sha256" : "a9448964d8bea5b3b6c3b20792189e795d33d2c93b9ed71e1d45387cd9cbde67"
+  }, {
+    "id" : "org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "sha256" : "b4abc1a0143d271922c29124811a72effeac1cd37667b0c000ca544c96eac0ac"
+  }, {
+    "id" : "org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "sha256" : "3c01952fa415a82134a9ca5951351ec5e6bb2a9eb62befffbb25c0e5957662d1"
+  }, {
+    "id" : "org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "sha256" : "9c539050fa18db066f73de68c6faa911d45fc747d3142d81e61247b2a1b30789"
+  }, {
+    "id" : "org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "sha256" : "1381a559d7ea49190c07d57fae79bd23c085d7e30f373d741eba6a495b583a0e"
+  } ],
+  "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e4-a\\work\\applied\\catalog-2",
+  "sourceRoot" : "src/main/java",
+  "createdAt" : "2026-10-30T18:19:17.408605100Z",
+  "createdDirs" : [ "src/main/java/com/example/generated/rows" ],
+  "entries" : [ {
+    "relativePath" : "com/example/generated/CatalogSections2.java",
+    "target" : "src/main/java/com/example/generated/CatalogSections2.java",
+    "temp" : null,
+    "expectedSha256" : "890f0549d41b97c385308d515e8f3e33dd1882e09824b69919146dc6392160ce",
+    "bytes" : 711,
+    "publishedIdentity" : {
+      "fileKey" : "xattr:f6bf9f00-3422-42a1-ad47-29890498cee4:890f0549d41b97c385308d515e8f3e33dd1882e09824b69919146dc6392160ce",
+      "realPath" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e4-a\\work\\applied\\catalog-2\\src\\main\\java\\com\\example\\generated\\CatalogSections2.java"
+    },
+    "publishedSha256" : "890f0549d41b97c385308d515e8f3e33dd1882e09824b69919146dc6392160ce"
+  }, {
+    "relativePath" : "com/example/generated/rows/CatalogSections2Row1.java",
+    "target" : "src/main/java/com/example/generated/rows/CatalogSections2Row1.java",
+    "temp" : null,
+    "expectedSha256" : "053d5ebc64d50ad5b1ba54593c6e483a5fbbb044689b0971bb2b2ad88dd5a565",
+    "bytes" : 2642,
+    "publishedIdentity" : {
+      "fileKey" : "xattr:f6bf9f00-3422-42a1-ad47-29890498cee4:053d5ebc64d50ad5b1ba54593c6e483a5fbbb044689b0971bb2b2ad88dd5a565",
+      "realPath" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e4-a\\work\\applied\\catalog-2\\src\\main\\java\\com\\example\\generated\\rows\\CatalogSections2Row1.java"
+    },
+    "publishedSha256" : "053d5ebc64d50ad5b1ba54593c6e483a5fbbb044689b0971bb2b2ad88dd5a565"
+  }, {
+    "relativePath" : "com/example/generated/rows/CatalogSections2Row2.java",
+    "target" : "src/main/java/com/example/generated/rows/CatalogSections2Row2.java",
+    "temp" : null,
+    "expectedSha256" : "eb9794cbe0aa89e1e04995cbf3e1937f9a3defa9fdbe6a09fad6f611a2ae15cd",
+    "bytes" : 2642,
+    "publishedIdentity" : {
+      "fileKey" : "xattr:f6bf9f00-3422-42a1-ad47-29890498cee4:eb9794cbe0aa89e1e04995cbf3e1937f9a3defa9fdbe6a09fad6f611a2ae15cd",
+      "realPath" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e4-a\\work\\applied\\catalog-2\\src\\main\\java\\com\\example\\generated\\rows\\CatalogSections2Row2.java"
+    },
+    "publishedSha256" : "eb9794cbe0aa89e1e04995cbf3e1937f9a3defa9fdbe6a09fad6f611a2ae15cd"
+  } ],
+  "status" : "APPLIED"
+}

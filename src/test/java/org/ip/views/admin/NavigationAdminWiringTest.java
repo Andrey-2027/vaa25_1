@@ -2,6 +2,7 @@ package org.ip.views.admin;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import jakarta.persistence.EntityManagerFactory;
@@ -36,9 +37,12 @@ class NavigationAdminWiringTest {
         var view = adminView(true);
         view.onAttach(new AttachEvent(view, false));
         Tabs tabBar = children(view).filter(Tabs.class::isInstance).map(Tabs.class::cast).findFirst().orElseThrow();
-        assertThat(tabBar.getComponentCount()).isEqualTo(4);
+        assertThat(tabBar.getComponentCount()).isEqualTo(5);
         verifyNoInteractions(service);
-        tabBar.setSelectedTab((Tab) tabBar.getComponentAt(3));
+        Tab navigation = children(tabBar).filter(Tab.class::isInstance).map(Tab.class::cast)
+            .filter(tab -> children(tab).filter(Span.class::isInstance).map(Span.class::cast)
+                .anyMatch(label -> label.getText().equals("Интерфейс"))).findFirst().orElseThrow();
+        tabBar.setSelectedTab(navigation);
         assertThat(editor.isVisible()).isTrue();
         verify(service).listProfiles();
         view.onAttach(new AttachEvent(view, false));
@@ -46,16 +50,16 @@ class NavigationAdminWiringTest {
         assertThat(children(view).filter(NavigationProfilesAdminTab.class::isInstance)).containsExactly(editor);
         tabBar.setSelectedIndex(0);
         assertThat(editor.isVisible()).isFalse();
-        tabBar.setSelectedIndex(3);
+        tabBar.setSelectedTab(navigation);
         verifyNoMoreInteractions(service);
     }
 
-    @Test void disabledModeKeepsTheThreeExistingTabsAndDoesNotRequestTheEditor() {
+    @Test void disabledModeKeepsTheFourExistingTabsAndDoesNotRequestTheEditor() {
         login("ROLE_ADMIN");
         var view = adminView(false);
         view.onAttach(new AttachEvent(view, false));
         var tabBar = children(view).filter(Tabs.class::isInstance).map(Tabs.class::cast).findFirst().orElseThrow();
-        assertThat(tabBar.getComponentCount()).isEqualTo(3);
+        assertThat(tabBar.getComponentCount()).isEqualTo(4);
         verifyNoInteractions(tabs, service);
     }
 
@@ -73,7 +77,8 @@ class NavigationAdminWiringTest {
         when(factory.getMetamodel()).thenReturn(metamodel);
         when(metamodel.getEntities()).thenReturn(Set.of());
         return new AdminView(mock(AccessGrantAdminService.class), new SettingsAdminTab(null, null, null, null, null),
-            new NumberingAdminTab(null, null, null, null, null), factory, List.of(), List.of(), tabs, enabled);
+            new NumberingAdminTab(null, null, null, null, null), factory,
+            new org.ipro.metadata.MetadataResolver(), List.of(), List.of(), tabs, enabled);
     }
     private static void login(String role) {
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(

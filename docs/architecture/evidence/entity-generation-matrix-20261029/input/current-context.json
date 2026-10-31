@@ -1,0 +1,43 @@
+{
+  "projectId" : "test",
+  "version" : "matrix-v1",
+  "defaultPackage" : "org.example",
+  "existingTypes" : {
+    "values" : [ ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "existingTables" : {
+    "values" : [ ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "subsystemIds" : {
+    "values" : [ ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "iconIds" : {
+    "values" : [ "FILE" ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "referenceTargets" : { },
+  "referencesComplete" : true,
+  "runtimeSnapshot" : {
+    "snapshotId" : "editor-fixture-matrix-v1",
+    "complete" : true,
+    "types" : { },
+    "prerequisites" : {
+      "ET0_ET7_RUNTIME" : {
+        "status" : "AVAILABLE",
+        "evidence" : "test fixture"
+      },
+      "STANDARD_CATALOG_APP_API" : {
+        "status" : "AVAILABLE",
+        "evidence" : "test fixture"
+      }
+    },
+    "diagnostics" : [ ]
+  }
+}

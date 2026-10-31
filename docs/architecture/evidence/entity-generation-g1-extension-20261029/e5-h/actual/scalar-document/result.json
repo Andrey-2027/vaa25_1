@@ -1,0 +1,14 @@
+{
+  "id": "scalar-document",
+  "input": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031/inputs/documents/scalar-document",
+  "planId": "g1-8b24fa7aa0e26e734615fa6aacd389742ea5d561bde388633f2db91768559489",
+  "files": 1,
+  "cTests": 5,
+  "runtimeTests": 5.0,
+  "applied": "APPLIED",
+  "noop": "NOOP",
+  "conflict": "CONFLICT",
+  "dependencies": 17,
+  "summary": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031/actual/scalar-document/c/accepted/summary.json",
+  "project": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031/actual/scalar-document/project"
+}

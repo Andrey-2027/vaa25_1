@@ -1,11 +1,14 @@
-package org.ip.unidr.query;
+package org.ipro.unidr.query;
+import org.ip.unidr.query.UniDrQueryAdapter;
+import org.ip.unidr.query.UniDrReferenceService;
+import org.ip.unidr.model.UniDrDefinitions;
 
-import org.ip.unidr.model.*;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.run.*;
-import org.ip.unidr.source.UniDrSourceCatalog;
-import org.ipro.reportstudio.data.*;
-import org.ipro.reportstudio.query.*;
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.run.*;
+import org.ipro.unidr.source.UniDrSourceCatalog;
+import org.ipro.report.data.*;
+import org.ipro.query.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -30,8 +33,9 @@ class UniDrQueryServiceTest {
         Map.of("unit", new Literal(ValueType.REFERENCE, List.of("1"))), ZoneOffset.UTC);
     private final Instant now = Instant.parse("2026-10-01T00:00:00Z");
     private final ReportQueryAssembler assembled = new ReportQueryAssembler("safe query", Map.of(), schema(), List.of());
+    static Map<String,Class<?>> schemaMap(){ var result=new LinkedHashMap<String,Class<?>>();schema().forEach(field->result.put(field.name(),field.javaType()));return result; }
     private UniDrQueryService service() {
-        return new UniDrQueryService(access, new UniDrRunParameterResolver(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot())),
+        return new UniDrQueryService(access, new UniDrRunParameterResolver(new UniDrDefinitionValidator(UniDrDefinitions.catalog())),
             references, adapter, executor, transactions, 6, 30000);
     }
     static List<QueryField> schema() {
@@ -42,6 +46,7 @@ class UniDrQueryServiceTest {
     @BeforeEach void setup() {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("alice", null, List.of()));
         when(transactions.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
+        when(adapter.expectedSchema()).thenReturn(schemaMap());
         when(adapter.assemble(any(), any(), any())).thenReturn(assembled);
     }
     @AfterEach void cleanup() { SecurityContextHolder.clearContext(); }

@@ -158,7 +158,7 @@ APP_SPI org.ipro.register.RecorderSetWriteRequest
 
 # ---- MODULE_API (0)
 
-# ---- INTERNAL (19)
+# ---- INTERNAL (20)
 INTERNAL org.ipro.register.RegisterKeyWriteGuardInstaller
 INTERNAL org.ipro.register.RegisterRowState
 INTERNAL org.ipro.register.RegisterWriteMutex
@@ -184,3 +184,6 @@ INTERNAL org.ipro.register.config.RegisterRecorderSetConfiguration
 # отвечает не «где лежит тип», а «что модуль обещает». Поэтому MODULE_API = 0 — не пропуск, а
 # измеренное состояние: после S3 движок приехал целиком, и расширяет эту границу только то, что
 # предъявляется приложению, — интерфейс (S4) и подписи его операций (S5(а)).
+
+# ET6 semantic classification
+INTERNAL org.ipro.register.RegisterClassificationContributor

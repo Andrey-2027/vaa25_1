@@ -1,0 +1,70 @@
+[
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyFailure.java",
+    "sha256": "f95ad80e592222040bc9e4e88854d122fe55a5ea516e1fc124f51d9bee5c34e0"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyHarness.java",
+    "sha256": "3d84f97a08b1be1e666309c82c17f3858dc64385546fe3e9a31348c384360a4e"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyHash.java",
+    "sha256": "c1337de78ae4cad2935d0e42260f6b1c5996d4786e963b366f0cad2d1af7672b"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyHooks.java",
+    "sha256": "a779504d6b666444145cf912bdadc962e397a119ca95fb3dc2c4b7e537de012f"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyPaths.java",
+    "sha256": "21df817c6cf3cfd3e61de70a939f563d89fa4c543d25cd77e1ffaa5c694fb85f"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyRequest.java",
+    "sha256": "ed01444b39268c6529c46b6a6db344d41fe7441bccb6abf19d0aa3402b24a545"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyResult.java",
+    "sha256": "a69a2f4079231d65555d1cc9edfc260e23b0e2637c54351d734040a9238367c5"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyState.java",
+    "sha256": "c9bb41c234133a6020818fa2f89aff9da1b4584ad1da3ee7fcd65d3fa83c14ac"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyStateV2.java",
+    "sha256": "1c5c94a2bfe63ce96140554c7240d2b2b8eac9f78728d0b838d5d22d3a2b78ed"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\ApplyStatus.java",
+    "sha256": "8c97fe45ea8aa8d9a303c145853e69e912a3197d462208af067a1787621b9766"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\CSummary.java",
+    "sha256": "1783b21d6e9bc3d6839d257f270a4452fe74286e8f9b6fd0930363cdd6653634"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\CSummaryV2.java",
+    "sha256": "ef00baa295d61ac5a34f64cc47336e56170c4fe34e3b74b3b65d7133b793a694"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\DependencyLocation.java",
+    "sha256": "c7558b2ccf1aa2d69cc3fc3825adba9d71a659bde00f1dda6e2c8667ceed68b3"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\GenerationApplyAdapter.java",
+    "sha256": "af238097100c450fde652c10243d60fc51bdbcebb20c6670de163fb118329613"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\GenerationApplyV2.java",
+    "sha256": "991ea8fd63a858b152d0583ec6c998f24c0ebc63bb0f733576dbe2340fc4c154"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\Json.java",
+    "sha256": "4f8e8488787a9835bb156ad81b461ef2ae74c9f4207c19cdbaab96310d57a364"
+  },
+  {
+    "path": "org\\ipro\\design\\apply\\PlanRebuilder.java",
+    "sha256": "eed34b57b4e7246b3b9a2e39d715555316b39c8220f34f3c514eb65cdbbed78e"
+  }
+]

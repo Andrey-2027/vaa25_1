@@ -1,0 +1,35 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< org.ipro:g1-owner-support >----------------------
+[INFO] Building g1-owner-support 1.0-E3
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ g1-owner-support ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\owner-support\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ g1-owner-support ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1 source file with javac [debug release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ g1-owner-support ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\owner-support\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ g1-owner-support ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ g1-owner-support ---
+[INFO] No tests to run.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ g1-owner-support ---
+[INFO] Building jar: C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\owner-support\target\g1-owner-support-1.0-E3.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ g1-owner-support ---
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\owner-support\pom.xml to C:\Users\strim\.m2\repository\org\ipro\g1-owner-support\1.0-E3\g1-owner-support-1.0-E3.pom
+[INFO] Installing C:\JavaProject\TestVaadin25\GitVaa25\scripts\entity-generation-g1\owner-support\target\g1-owner-support-1.0-E3.jar to C:\Users\strim\.m2\repository\org\ipro\g1-owner-support\1.0-E3\g1-owner-support-1.0-E3.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  12.706 s
+[INFO] Finished at: 2026-10-30T20:28:46+03:00
+[INFO] ------------------------------------------------------------------------

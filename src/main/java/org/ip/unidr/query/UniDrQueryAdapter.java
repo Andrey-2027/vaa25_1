@@ -1,26 +1,45 @@
 package org.ip.unidr.query;
 
-import org.ip.unidr.model.UniDrDefinition;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.model.UniDrDefinitionValidator;
-import org.ip.unidr.source.UniDrSourceCatalog;
-import org.ip.unidr.source.UniDrSourceDefinition;
-import org.ipro.reportstudio.dom.ReportOrder;
-import org.ipro.reportstudio.dom.ReportOrderDirection;
-import org.ipro.reportstudio.dom.ReportParam;
-import org.ipro.reportstudio.dom.ReportParamKind;
-import org.ipro.reportstudio.dom.ReportTemplate;
-import org.ipro.reportstudio.query.JpqlParameters;
-import org.ipro.reportstudio.param.ReportContext;
-import org.ipro.reportstudio.query.ReportQueryAssembler;
-import org.ipro.reportstudio.query.ReportQueryAssemblyService;
+import org.ipro.unidr.model.UniDrDefinition;
+import org.ipro.unidr.model.UniDrDefinition.Direction;
+import org.ipro.unidr.model.UniDrDefinition.Filter;
+import org.ipro.unidr.model.UniDrDefinition.Literal;
+import org.ipro.unidr.model.UniDrDefinition.Parameter;
+import org.ipro.unidr.model.UniDrDefinition.ParameterRef;
+import org.ipro.unidr.model.UniDrDefinition.Sort;
+import org.ipro.unidr.model.UniDrDefinition.ValueType;
+import org.ipro.unidr.model.UniDrDefinition.Operator;
+import org.ipro.unidr.model.UniDrDefinitionValidator;
+import org.ipro.unidr.model.UniDrValidationException;
+import org.ipro.unidr.model.UniDrValidationException.Code;
+import org.ipro.unidr.model.UniDrValidationException.Issue;
+import org.ipro.unidr.query.UniDrFilterSupport;
+import org.ipro.unidr.query.UniDrReferenceCatalog;
+import org.ipro.unidr.query.UniDrRunQueryAdapter;
+import org.ipro.unidr.query.UniDrSourcePlan;
+import org.ipro.unidr.source.UniDrSourceCatalog;
+import org.ipro.unidr.source.UniDrSourceDefinition;
+import org.ipro.query.JpqlParameters;
+import org.ipro.query.ReportContext;
+import org.ipro.query.ReportQueryAssembler;
+import org.ipro.query.ReportQueryAssemblyService;
+import org.ipro.query.model.QueryDefinition;
+import org.ipro.query.model.QueryParameter;
+import org.ipro.query.model.QuerySort;
+import org.ipro.query.model.QuerySource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
 /** Allow-listed HQL and typed bindings → the existing guarded assembler. No persisted UDR template. */
-public final class UniDrQueryAdapter {
+public final class UniDrQueryAdapter implements UniDrRunQueryAdapter {
+    private static final Map<String, Class<?>> SCHEMA = Map.ofEntries(
+        Map.entry("rowId", Long.class), Map.entry("documentId", Long.class), Map.entry("documentNumber", String.class),
+        Map.entry("date", LocalDate.class), Map.entry("receivingWorkshopId", Long.class), Map.entry("receivingWorkshopName", String.class),
+        Map.entry("transferringWorkshopId", Long.class), Map.entry("transferringWorkshopName", String.class),
+        Map.entry("nomenclatureId", Long.class), Map.entry("nomenclatureCode", String.class), Map.entry("nomenclatureName", String.class),
+        Map.entry("unitId", Long.class), Map.entry("unit", String.class), Map.entry("quantity", BigDecimal.class));
     private static final String SOURCE = """
         select i.id as rowId, d.id as documentId, d.number as documentNumber, d.date as date,
                r.id as receivingWorkshopId, r.name as receivingWorkshopName,
@@ -40,29 +59,34 @@ public final class UniDrQueryAdapter {
     private final UniDrSourceCatalog catalog;
     private final UniDrDefinitionValidator validator;
     private final ReportQueryAssemblyService assembly;
-    public static UniDrSourcePlan plan(UniDrSourceDefinition source) {
+    private final UniDrReferenceCatalog references;
+    @Override public Map<String,Class<?>> expectedSchema(){return SCHEMA;}
+    public static UniDrSourcePlan plan(UniDrSourceDefinition source,UniDrReferenceCatalog references) {
         var projections=new LinkedHashMap<String,UniDrSourcePlan.Projection>();
         for(var field:source.fields())if(PATHS.containsKey(field.id())) {
-            Class<?> type=field.type()==ValueType.REFERENCE?UniDrReferenceService.referenceType(field.id()):field.type()==ValueType.DATE?LocalDate.class:field.type()==ValueType.DECIMAL?BigDecimal.class:String.class;
+            Class<?> type=field.type()==ValueType.REFERENCE?references.referenceType(field.id()):field.type()==ValueType.DATE?LocalDate.class:field.type()==ValueType.DECIMAL?BigDecimal.class:String.class;
             projections.put(field.id(),new UniDrSourcePlan.Projection(field.id(),PATHS.get(field.id()),type,
                 field.type()==ValueType.REFERENCE?type.getName():null,field.groupKeyAlias(),true));
         }
         return new UniDrSourcePlan(null,source,projections,List.of());
     }
+    @Override
     public ReportQueryAssembler applyFilters(ReportQueryAssembler query,UniDrDefinition definition,Map<String,Object> values,
                                              java.util.function.BiConsumer<String,Long> checkReference) {
-        var filter=UniDrFilterSupport.compile(definition.filterTree(),plan(catalog.resolve(definition).orElseThrow()),definition.parameterDeclarations(),values,
-            JpqlParameters.names(query.jpql()),checkReference);
+        var filter=UniDrFilterSupport.compile(definition.filterTree(),plan(catalog.resolve(definition).orElseThrow(),references),definition.parameterDeclarations(),values,
+            JpqlParameters.names(query.jpql()),checkReference,references);
         return filter.predicate()==null?query:assembly.appendPredicate(query,filter.predicate(),filter.bindings());
     }
 
-    public UniDrQueryAdapter(UniDrSourceCatalog catalog, UniDrDefinitionValidator validator, ReportQueryAssemblyService assembly) {
-        this.catalog = catalog; this.validator = validator; this.assembly = assembly;
+    public UniDrQueryAdapter(UniDrSourceCatalog catalog, UniDrDefinitionValidator validator, ReportQueryAssemblyService assembly,
+                             UniDrReferenceCatalog references) {
+        this.catalog = catalog; this.validator = validator; this.assembly = assembly; this.references = references;
     }
 
+    @Override
     public ReportQueryAssembler assemble(UniDrDefinition definition, Map<String, Literal> resolved, ReportContext context) {
         validator.requireValid(definition);
-        List<org.ip.unidr.model.UniDrValidationException.Issue> errors = new ArrayList<>();
+        List<Issue> errors = new ArrayList<>();
         for (String id : resolved.keySet()) {
             if (definition.parameters().stream().noneMatch(parameter -> parameter.id().equals(id)))
                 throw new IllegalArgumentException("Параметр не объявлен");
@@ -70,12 +94,11 @@ public final class UniDrQueryAdapter {
         }
         for (Parameter parameter : definition.parameters())
             if (validator.parameterRequired(definition, parameter.id()) && !resolved.containsKey(parameter.id()))
-                errors.add(new org.ip.unidr.model.UniDrValidationException.Issue(
-                    org.ip.unidr.model.UniDrValidationException.Code.REQUIRED, "values." + parameter.id(), "Заполните параметр"));
-        if (!errors.isEmpty()) throw new org.ip.unidr.model.UniDrValidationException(errors);
+                errors.add(new Issue(
+                    Code.REQUIRED, "values." + parameter.id(), "Заполните параметр"));
+        if (!errors.isEmpty()) throw new UniDrValidationException(errors);
         if (!"receiving-items".equals(definition.sourceId())) throw new IllegalArgumentException("Исполнение источника не подключено");
         UniDrSourceDefinition source = catalog.find(definition.sourceId()).orElseThrow();
-        var template = new ReportTemplate(); template.setName("UniDR");
         List<String> conditions = new ArrayList<>(); Map<String, Object> bindings = new LinkedHashMap<>();
         for (var parameter : source.parameters()) {
             Literal value = resolved.get(parameter.id());
@@ -86,20 +109,19 @@ public final class UniDrQueryAdapter {
             if (value == null) throw new IllegalArgumentException("Не заполнен параметр отбора");
             condition(filter.fieldId(), filter.operator(), value, conditions, bindings);
         }
-        template.setJpql(SOURCE + " where " + String.join(" and ", conditions));
-        for (String name : bindings.keySet()) {
-            var parameter = new ReportParam(); parameter.setName(name); parameter.setKind(ReportParamKind.SCALAR);
-            parameter.setRequired(true); template.addParam(parameter);
-        }
+        List<QueryParameter> parameters = bindings.keySet().stream()
+            .map(QueryParameter::required)
+            .toList();
         Map<String, Direction> ordering = new LinkedHashMap<>();
         for (String group : definition.groups()) field(source, group).orderPaths().forEach(path -> ordering.putIfAbsent(path, Direction.ASC));
         for (Sort sort : definition.sorts()) field(source, sort.fieldId()).orderPaths().forEach(path -> ordering.putIfAbsent(path, sort.direction()));
         ordering.putIfAbsent("i.id", Direction.ASC);
-        ordering.forEach((path, direction) -> {
-            var order = new ReportOrder(); order.setColumnName(path); order.setDirection(ReportOrderDirection.valueOf(direction.name()));
-            order.setPosition(template.getOrders().size()); template.addOrder(order);
-        });
-        return assembly.assemble(template, context, bindings);
+        List<QuerySort> sorts = ordering.entrySet().stream()
+            .map(entry -> new QuerySort(entry.getKey(), entry.getValue() == Direction.DESC))
+            .toList();
+        var query = new QueryDefinition(SOURCE + " where " + String.join(" and ", conditions),
+            QuerySource.MANUAL, null, null, parameters);
+        return assembly.assemble(query, context, bindings, List.of(), sorts);
     }
 
     private UniDrSourceDefinition.Field field(UniDrSourceDefinition source, String id) {

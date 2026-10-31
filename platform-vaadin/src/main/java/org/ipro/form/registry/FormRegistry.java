@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FormRegistry {
 
     private final Map<FormKey, FormFactory> forms = new ConcurrentHashMap<>();
+    private final Map<FormKey, Class<? extends Component>> declaredFormClasses = new ConcurrentHashMap<>();
     private final Map<FormKey, Class<? extends Component>> listFormViews = new ConcurrentHashMap<>();
     private final Map<FormKey, FormFactory> listFormViewFactories = new ConcurrentHashMap<>();
     /** Источник регистрации (класс-декларант, FQN) для read-only перечисления; null — не указан. */
@@ -185,6 +186,13 @@ public class FormRegistry {
     /** Регистрация карточки с источником-декларантом (см. {@link #register}). */
     public void registerItemForm(Class<?> entityClass, String variant, FormFactory factory, String source) {
         register(entityClass, FormType.ITEM, variant, factory, source);
+    }
+
+    /** Declared result class only; does not instantiate or inspect the factory result. */
+    public void registerItemForm(Class<?> entityClass, String variant, FormFactory factory, String source,
+                                 Class<? extends Component> declaredClass) {
+        register(entityClass, FormType.ITEM, variant, factory, source);
+        if (declaredClass != null) declaredFormClasses.put(new FormKey(entityClass, FormType.ITEM, variant), declaredClass);
     }
 
     /**
@@ -590,13 +598,13 @@ public class FormRegistry {
         for (FormKey key : forms.keySet()) {
             if (key.entityClass().equals(entityClass)) {
                 result.add(new Registration(key.formType(), key.variant(), RegistrationKind.FORM_FACTORY,
-                    registrationSources.get(key)));
+                    registrationSources.get(key), declaredFormClasses.get(key)));
             }
         }
         for (FormKey key : listFormViews.keySet()) {
             if (key.entityClass().equals(entityClass)) {
                 result.add(new Registration(key.formType(), key.variant(), RegistrationKind.LIST_VIEW_CLASS,
-                    registrationSources.get(key)));
+                    registrationSources.get(key), listFormViews.get(key)));
             }
         }
         for (FormKey key : listFormViewFactories.keySet()) {
@@ -634,6 +642,10 @@ public class FormRegistry {
      * Read-only запись: тип формы + вариант + вид регистрации + источник (FQN класса-декларанта;
      * null — не указан, например регистрации вне registrar-ов).
      */
-    public record Registration(FormType formType, String variant, RegistrationKind kind, String source) {
+    public record Registration(FormType formType, String variant, RegistrationKind kind, String source,
+                               Class<? extends Component> declaredClass) {
+        public Registration(FormType formType, String variant, RegistrationKind kind, String source) {
+            this(formType, variant, kind, source, null);
+        }
     }
 }

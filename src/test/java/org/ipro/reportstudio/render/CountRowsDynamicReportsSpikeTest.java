@@ -4,6 +4,8 @@ import net.sf.dynamicreports.report.builder.DynamicReports;
 import net.sf.dynamicreports.report.builder.column.TextColumnBuilder;
 import net.sf.dynamicreports.report.datasource.DRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
+import org.ipro.report.render.JasperReportExporter;
+import org.ipro.report.render.ReportExportFormat;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -33,7 +35,7 @@ class CountRowsDynamicReportsSpikeTest {
         report.setDataSource(data);
 
         JasperPrint print = report.toJasperPrint();
-        byte[] pdf = new JasperReportCompiler().export(print, ReportExportFormat.PDF);
+        byte[] pdf = new JasperReportExporter().export(print, ReportExportFormat.PDF);
         String text;
         try (PDDocument document = Loader.loadPDF(pdf)) {
             text = new PDFTextStripper().getText(document);
@@ -41,9 +43,9 @@ class CountRowsDynamicReportsSpikeTest {
 
         assertThat(text).contains("1").contains("2");
 
-        byte[] xlsx = new JasperReportCompiler().export(print, ReportExportFormat.XLSX);
+        byte[] xlsx = new JasperReportExporter().export(print, ReportExportFormat.XLSX);
         assertThat(xlsx).isNotEmpty();
-        byte[] csv = new JasperReportCompiler().export(print, ReportExportFormat.CSV);
+        byte[] csv = new JasperReportExporter().export(print, ReportExportFormat.CSV);
         String csvText = new String(csv, java.nio.charset.StandardCharsets.UTF_8);
         assertThat(csvText).doesNotContain("Маркер");
     }

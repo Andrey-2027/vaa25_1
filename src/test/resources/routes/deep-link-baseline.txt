@@ -59,13 +59,15 @@ alias=workshop class=org.ip.model.Workshop item=default list=default context=- l
 # entity-explorer добавлен в E3.0: сегмент занят host'ом адреса типа
 # (`/entity-explorer/{key}` объявлен @RouteAlias на MainLayout), поэтому alias сущности
 # с таким ключом не публикуется — иначе адрес типа и адрес формы столкнулись бы.
+# ureport больше не зарезервирован: U1.2 снял маршрут дизайнера, а D9 (ADR-0027) освободил
+# сегмент — старый адрес не поддерживается и не перенаправляется. Если у сущности появится
+# alias `ureport`, он будет опубликован на общих правилах ADR-0009.
 reserved records
 reserved lists
 reserved entity-explorer
 reserved link-state
 reserved login
 reserved api
-reserved ureport
 reserved error
 reserved VAADIN
 #
@@ -120,16 +122,13 @@ route / org.ip.views.MainLayout
 route /entity-explorer/:entityKey org.ip.views.MainLayout
 route /lists/:entityKey org.ip.views.MainLayout
 route /login org.ip.views.login.LoginView
+route /queries org.ip.views.query.QueryWorkbenchView
 route /records/:entityKey/:id org.ip.views.MainLayout
-route /report-catalog org.ip.views.reportstudio.ReportCatalogView
-route /report-catalog-compact org.ip.views.reportstudio.ReportCatalogView
-route /report-catalog-structured org.ip.views.reportstudio.ReportCatalogView
-route /report-editor org.ip.views.reportstudio.ReportEditorView
-route /report-editor-compact org.ip.views.reportstudio.ReportEditorView
-route /report-editor-structured org.ip.views.reportstudio.ReportEditorView
-route /reports-preview org.ip.views.test.ReportQueryPreviewView
+route /report-catalog org.ipro.report.ui.catalog.ReportCatalogView
+route /report-catalog-compact org.ipro.report.ui.catalog.ReportCatalogView
+route /report-catalog-structured org.ipro.report.ui.catalog.ReportCatalogView
 route /test-variants org.ip.views.test.TestVariantsView
-route /unidr org.ip.views.unidr.UniDrView
+route /unidr org.ipro.unidr.ui.UniDrView
 #
 # ---- planned deep-link host (ADR-0009 §1/§3)
 # Host реализован в E2.3: шаблоны `/records/:entityKey/:id` и `/lists/:entityKey` переехали

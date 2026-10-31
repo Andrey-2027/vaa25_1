@@ -48,11 +48,12 @@ class RlsUiGateTest {
     private UserRepository userRepository;
 
     private RlsUiGate gate;
+    private RlsDimensionRegistry registry;
     private Long journalAId;
 
     @BeforeEach
     void setUp() {
-        var registry = new RlsDimensionRegistry("org.ip");
+        registry = new RlsDimensionRegistry("org.ip");
         registry.rebuild();
         AccessService accessService = new AccessService(accessGrantRepository,
             new UserRepositoryRlsRoleResolver(userRepository), registry);
@@ -135,12 +136,13 @@ class RlsUiGateTest {
     }
 
     /**
-     * План Ф2: CHECK_ONLY без гранта → canUpdate(ReceivingDocument) = false. carol имеет
-     * права на JOURNAL (journalA) и BRANCH (branchA) — обе проверки документа проходят,
-     * блокирует именно отсутствие ENTITY-гранта (bootstrap на CHECK_ONLY не действует).
+     * P-U: короткого CHECK_ONLY-измерения {@code ENTITY:ReceivingDocument} больше нет —
+     * доступ к виду целиком решает C5 entity-read, а RLS-гейт проверяет только строки.
+     * Поэтому carol с правами на JOURNAL/BRANCH проходит обновление документа; отказ C5
+     * проверяется отдельно на action-решении.
      */
     @Test
-    void checkOnlyGateWithoutEntityGrantBlocksDocumentUpdate() {
+    void rowGrantsAllowDocumentUpdateWithoutLegacyEntityCheckOnlyDimension() {
         Branch branchA = persistBranch("G-BR");
         Workshop workshopA = persistWorkshop("G-W1", branchA);
         Workshop workshopB = persistWorkshop("G-W2", branchA);
@@ -152,9 +154,12 @@ class RlsUiGateTest {
         entityManager.flush();
         loginAs("carol");
 
+        assertThat(registry.dimensionsOf(ReceivingDocument.class))
+            .as("легаси ENTITY:ReceivingDocument удалён из модели")
+            .doesNotContain("ENTITY:ReceivingDocument");
         AccessDecision decision = gate.canUpdate(doc);
-        assertThat(decision.allowed()).isFalse();
-        assertThat(decision.reason()).contains("ENTITY:ReceivingDocument");
+        assertThat(decision.allowed()).isTrue();
+        assertThat(decision.reason()).isEmpty();
     }
 
     /** План Ф2: сущность без RLS (Nomenclature — ни @RlsDimension, ни RlsDimensionValue) — всё разрешено. */

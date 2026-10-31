@@ -1,5 +1,6 @@
 package org.ipro.register.config;
 
+import org.ipro.register.RegisterClassificationContributor;
 import jakarta.persistence.EntityManagerFactory;
 import org.ipro.data.EntityDataAccess;
 import org.ipro.metadata.ManagedEntityCatalog;
@@ -60,6 +61,11 @@ public class RegisterReadConfiguration {
     @ConditionalOnMissingBean
     public RegisterRegistry registerRegistry(ManagedEntityCatalog catalog, RecorderTypeRegistry recorderTypes) {
         return new RegisterRegistry(catalog, recorderTypes);
+    }
+
+    @Bean
+    public RegisterClassificationContributor registerClassificationContributor(RegisterRegistry registry) {
+        return new RegisterClassificationContributor(registry);
     }
 
     @Bean

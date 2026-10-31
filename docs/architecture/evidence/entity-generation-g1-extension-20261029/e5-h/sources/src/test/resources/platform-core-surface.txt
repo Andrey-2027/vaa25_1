@@ -1,0 +1,278 @@
+# IG0 baseline review: MetadataDrivenAggregateSaveService is the supported atomic command API
+# used by application save services; AggregateSaveContribution is their payload SPI.
+# Participant dispatch and rollback implementation remain platform-owned.
+# D3.3: семантическая классификация production-типов platform-core (FQN -> базовая роль).
+#
+# Формат: <role> <fqn>  и отдельно  test-usage <fqn> <файлы тестов приложения>
+# Роли (ровно одна на production-тип): APP_API | APP_SPI | MODULE_API | INTERNAL
+#   APP_API     — поддерживаемый API: приложение называет тип либо платформа явно экспортирует
+#                 его для внешних приложений (ET4 Standard*); использования в host-модели не требуется.
+#   APP_SPI     — приложение реализует или расширяет тип; платформа вызывает обратно.
+#   MODULE_API  — контракт между platform-модулями: production-код будущих autoconfigure/Vaadin/
+#                 report-модулей (сегодня это платформенные классы, ещё лежащие в дереве).
+#   INTERNAL    — реализация без compatibility promise: менять и удалять можно свободно.
+#
+# Зачем второй реестр. D1-реестр (`platform-public-surface.txt`) описывает только потребление
+# приложением. Тип, который приложение не называет, не получал никакой роли: обещание «internal
+# можно менять свободно» нельзя было проверить, а 44 типа, образующих контракт между модулями,
+# не были зафиксированы вовсе. Здесь роль есть у каждого из 108 production-типов, и полнота
+# проверяется тестом `PlatformCoreSurfaceTest`, а не глазами. Бюджет разделов (32/4/43/16)
+# сверяется с числом записей под заголовком: расхождение — ошибка сборки, а не тема для
+# комментария. 92 -> 94 — D3.5.1: `EntityLookup` и `EntityServiceResolver` (APP_API 28 -> 30).
+# 94 -> 95 — E3.2.0 шаг 2: `FetchPlanInspection` (MODULE_API 43 -> 44) — владелец плана
+# публикует сценарии и пути наружу, потому что `FetchPlan` в этом реестре INTERNAL.
+# 95 -> 95 — E3.2.0 шаг 5.1: `FacetKind` MODULE_API -> APP_API (APP_API 31 -> 32, MODULE_API
+# 44 -> 43): карточка рисует строки фактов аспектов и делит их по видам факта, а вид строки
+# возвращает `FacetRow.kind()`. Роль MODULE_API расходилась с употреблением так же, как раньше у
+# `ResolvedValue`: соседние типы того же словаря (`FactSource`, `ResolvedValue`) уже APP_API.
+# 109 -> 109 — D-R S4: `EntityReadAccess` и `EntityPresentationService` APP_API -> MODULE_API
+# (APP_API 36 -> 34, MODULE_API 51 -> 53). Роль APP_API держалась на одном прикладном файле —
+# адаптере форм стандартного интерфейса регистра: показ регистратора читал пачками через
+# fixed-graph границу, а подписи собирал `EntityPresentationService`. Файл уехал в
+# platform-register-vaadin, поэтому оба типа — по правилу 3 контракт между модулями: их
+# называет production-код платформенных модулей (UI-адаптер регистра, form-слой, reportstudio —
+# платформенный код, всё ещё лежащий в дереве приложения), а прикладной main — нет. Бюджет API
+# от этого сократился, а не вырос; D1-реестр снял свои записи по той же причине.
+# 109 -> 111 — S5(б) плана выноса (ADR-0026): `AggregateCommandPayload` (APP_API 34 -> 35) —
+# объявление payload'а команды, который читают lifecycle-хуки её сущности (`beforeSave` — вето,
+# `onSave` — генерация строк); `CallbackScope` (INTERNAL 16 -> 17) — общая дисциплина
+# callback-scope'ов crud-пути: package-private механизм, у которого нет compatibility promise,
+# потому что приложение пользуется только операциями конкретных scope'ов, а не базой.
+# 111 -> 114 — ET2 (2026-10-23): `StructuralAttribute` (APP_API 35 -> 36),
+# `JpaFieldFacts` (MODULE_API 53 -> 54), `StructuralAttributeScanner` (INTERNAL 17 -> 18).
+# Число production-типов в шапке (108 -> 109) — не рост: полнота проверяется тестом
+# `everyCoreProductionTypeHasExactlyOneReviewedRole`, который сверяет реестр с исходниками
+# platform-core в обе стороны, и 114 — то, что он измеряет сейчас.
+#
+# Роли — reviewed-решение, а не вывод теста: если бы список строил сам тест, проверялось бы то же
+# правило, которым он построен. Черновик воспроизводится скриптом
+# `node scripts/analyze-platform-surface.mjs --core-registry`, решения по спорным типам записаны
+# ниже явно.
+#
+# Правила классификации (в порядке применения):
+#   1. D1-роль API -> APP_API, SPI -> APP_SPI: текущие роли сохраняются.
+#   2. Явные решения по спорным типам — см. ниже.
+#   3. Тип, который называет production-код будущих autoconfigure/Vaadin/report-модулей -> MODULE_API.
+#   4. Остальные -> INTERNAL.
+#   5. Public nested type наследует роль owner-типа, если для него нет отдельной записи.
+#   6. Каждый новый production-тип обязан получить роль сразу — полнота проверяется тестом.
+#
+# Явные решения (механически не выводятся):
+#   NaturalKeyCreateSupport -> APP_API: generic механизм, намеренно используемый прикладными
+#       interned use cases. Роль legacy-internal не сходилась с употреблением.
+#   EntityDataAccess -> APP_API (значит, и его сигнатура входит в API closure).
+#   ResolvedValue -> APP_API: карточка Explorer показывает происхождение факта, а значение
+#       приходит этим типом из опубликованной `EntitySummary` (platform-vaadin). Прежняя роль
+#       MODULE_API расходилась с D1-реестром и была устаревшим решением: приложение называет
+#       тип, а его собственный компонент `source` (`FactSource`) уже APP_API. Правило 1.
+#       Шаг 5 E3.1 сделал происхождение видимым — вместе с ним видимой стала и эта граница.
+#   FacetKind -> APP_API: карточка делит строки аспекта по видам факта (объявление/исполнитель,
+#       сценарий/путь, измерение/правило), поэтому называет сам словарь видов. Прежняя роль
+#       MODULE_API расходилась с употреблением: вид строки возвращает публичный `FacetRow.kind()`
+#       из APP_API-типа `EntitySummary`. Роль SPI не подходит — это словарь, который карточка
+#       читает, а не механизм, который она подстраивает. Правило 1.
+#   LookupService, ServiceLocator -> MODULE_API: контракт между core и будущим form/vaadin-слоем.
+#       Приложение называет их напрямую — это фиксирует legacy-запись D1-реестра, а не роль.
+#   JpaGlobalSearchProvider -> INTERNAL: реализация registry по умолчанию, выбирать её явно
+#       приложение не должно (временная legacy-ссылка в D1-реестре).
+#   CurrentUser -> удалён до D3.4 (§4 плана): единственный platform-потребитель
+#       (CanonicalReadExecutor) получает RlsCurrentUser через конструктор, прикладные потребители
+#       — Spring-бин RlsCurrentUser (SecurityRlsUser) или прямой чтением SecurityContext.
+#
+# Отклонение от механического среза ревью. Срез предполагал, что 13 типов, названных только
+# тестами приложения, останутся INTERNAL. Замер по production-источникам показал другое: 12 из них
+# называет production-код metadata/data/fetch-конфигураций и form/reportstudio-слоя, то есть по
+# правилу 3 они MODULE_API. Legacy-доступ от этого не меняется: приложение (main) их не называет,
+# а ссылки тестов заморожены отдельной записью test-usage и не превращают типы в API.
+#
+# test-usage overlay — ортогональная запись, а не пятая роль: тип может быть MODULE_API и
+# одновременно иметь замороженные ссылки из тестов приложения. Список только сокращается: снятая
+# ссылка обязана исчезнуть из реестра, новая ломает сборку.
+#
+# ET4: Standard* bases are explicit external APP_API exports. TableSectionService and
+# EntityDescriptorCatalog are host application API; their previous MODULE_API role was stale.
+# ---- APP_API (45)
+APP_API org.ipro.data.CatalogOwnerContext
+APP_API org.ipro.data.CatalogOwnerViolationException
+APP_API org.ipro.crud.InternedContract
+APP_API org.ipro.crud.InterningContracts
+APP_API org.ipro.data.EntityClassification
+APP_API org.ipro.crud.StandardCatalogEntity
+APP_API org.ipro.crud.StandardDocumentEntity
+# Explicit host application contracts (sections and permission catalog), not module reach-through.
+APP_API org.ipro.crud.TableSectionService
+APP_API org.ipro.data.EntityDescriptorCatalog
+APP_API org.ipro.crud.MetadataDrivenAggregateSaveService
+APP_API org.ipro.crud.AggregateCommandPayload
+# Declared instance-name paths stay APP_API: резолвер входит в публичную сигнатуру APP_API-типов,
+# которые приложение называет, поэтому роль держится правилом 2, а не употреблением одного файла.
+# `EntityReadAccess` и `EntityPresentationService` в этом разделе были ровно до D-R S4 — их
+# прикладной потребитель (показ регистратора) уехал в platform-register-vaadin, см. MODULE_API ниже.
+APP_API org.ipro.fetch.instance.InstanceNameResolver
+# Часть записей ниже — не решение о конкретном типе, а выполнение правила 2 (API closure): эти
+# типы стоят в публичных сигнатурах APP_API-типов, поэтому обязаны иметь тот же уровень. Иначе
+# internal был бы виден приложению через API, и обещание «internal можно менять свободно» ломается.
+#   EntityDescriptor        — EntityDataAccess, EntityDataAccessResolver
+#   SearchContext           — SearchRead
+#   FactOrigin, MetadataDiagnostic — FieldMetadataInfo
+#   MetadataCache           — MetadataResolver
+#   GlobalSearchMatchKind   — GlobalSearchMatch
+#   EntityCapabilities      — EntityDescriptor
+APP_API org.ipro.crud.EntityLookup
+APP_API org.ipro.crud.EntityServiceResolver
+APP_API org.ipro.crud.NaturalKeyCreateSupport
+APP_API org.ipro.crud.ValidationException
+APP_API org.ipro.data.CanonicalEntityService
+APP_API org.ipro.data.EntityCapabilities
+APP_API org.ipro.data.EntityDataAccess
+APP_API org.ipro.data.EntityDataAccessResolver
+APP_API org.ipro.data.EntityDescriptor
+APP_API org.ipro.data.SearchRead
+APP_API org.ipro.data.SearchContext
+APP_API org.ipro.fetch.instance.InstanceName
+APP_API org.ipro.metadata.ColumnPath
+APP_API org.ipro.metadata.EntityMetadataInfo
+APP_API org.ipro.metadata.StructuralAttribute
+APP_API org.ipro.metadata.FieldMetadataInfo
+APP_API org.ipro.metadata.ManagedEntityCatalog
+APP_API org.ipro.metadata.FactOrigin
+APP_API org.ipro.metadata.MetadataAllowance
+APP_API org.ipro.metadata.MetadataCache
+APP_API org.ipro.metadata.MetadataDiagnostic
+APP_API org.ipro.metadata.MetadataDiagnosticCodes
+APP_API org.ipro.metadata.MetadataResolver
+APP_API org.ipro.metadata.RowMetadataInfo
+APP_API org.ipro.metadata.SubsystemNode
+APP_API org.ipro.metadata.SubsystemRegistry
+APP_API org.ipro.metadata.facet.FactSource
+APP_API org.ipro.metadata.facet.FacetKind
+APP_API org.ipro.metadata.facet.ResolvedValue
+APP_API org.ipro.search.GlobalSearchMatch
+APP_API org.ipro.search.GlobalSearchMatchKind
+APP_API org.ipro.search.GlobalSearchSource
+APP_API org.ipro.search.GlobalSearchable
+# 101 -> 104 — Г4: три aggregate-contribution SPI связывают server-side наборы данных
+# с общей транзакцией документа, сохраняя lifecycle, rollback и проверку прав строк.
+# ---- APP_SPI (6)
+#   C5.8e: CanonicalWritePropertyPolicy — шов владельца свойства, которое generic-запись не
+#       переносит (сейчас — хэш пароля User). Приложение его реализует (`UserPasswordChangePolicy`),
+#       поэтому APP_SPI, как FormSaveHandler и EntityLifecycle: форму вопроса определяет платформа,
+#       какому своему свойству его задать — решает приложение. APP_SPI 5 -> 6.
+APP_SPI org.ipro.data.CanonicalWritePropertyPolicy
+APP_SPI org.ipro.crud.AggregateSaveContribution
+APP_SPI org.ipro.crud.BaseService
+APP_SPI org.ipro.crud.InternedEntity
+APP_SPI org.ipro.metadata.HasDisplayName
+APP_SPI org.ipro.search.GlobalSearchProvider
+# F-REST-READ-3: пять типов уже приняты owner-тестом CoreModuleCompositionTest.
+# EntityReadAccess/RestGraphException — контракт с REST; Api*Read — запросы к
+# MODULE_API CanonicalReadExecutor; CanonicalEntityReadAccess создаёт autoconfigure.
+# Рост 95 -> 100, MODULE_API 43 -> 48; прикладной APP_API не расширяется.
+# ---- MODULE_API (58)
+MODULE_API org.ipro.metadata.CatalogOwnerDescriptor
+MODULE_API org.ipro.metadata.CatalogOwnerResolution
+MODULE_API org.ipro.metadata.CatalogOwnerResolver
+MODULE_API org.ipro.data.EntityContractConsistencyValidator
+MODULE_API org.ipro.metadata.MetadataDiagnosticSource
+MODULE_API org.ipro.data.EntityClassificationContributor
+# D-R S4 (2026-10-14): `EntityReadAccess` и `EntityPresentationService` переехали сюда из APP_API
+# вместе с выездом стандартного интерфейса регистра в platform-register-vaadin — решение и его
+# повод записаны в шапке (109 -> 109). Обещание для потребителя от этого не исчезло: тот, кто
+# собирает свой показ регистратора, получает оба типа через публичную сигнатуру APP_API-резолвера
+# нового модуля, то есть граница объявлена, а не потеряна. `InstanceNameResolver` оставлен в
+# APP_API: он входит в замыкание по правилу 2.
+MODULE_API org.ipro.data.EntityReadAccess
+MODULE_API org.ipro.data.presentation.EntityPresentationService
+MODULE_API org.ipro.crud.AggregateSaveLifecycleScope
+MODULE_API org.ipro.data.CanonicalSaveLifecycleScope
+# C5.6: AggregateOperationAuthorizer — узкий preflight операции для aggregate save; его называет
+# проводка autoconfigure (правило 3), приложение — нет. MODULE_API 50 -> 51.
+# Register participants are platform callbacks; application production code does not implement/name them.
+MODULE_API org.ipro.crud.AggregateOperationAuthorizer
+MODULE_API org.ipro.crud.AggregateSaveContributionParticipant
+MODULE_API org.ipro.crud.AggregateSaveParticipantContext
+MODULE_API org.ipro.data.CanonicalDeleteParticipant
+MODULE_API org.ipro.crud.EntityCopyService
+MODULE_API org.ipro.crud.GenericOwnedSectionService
+MODULE_API org.ipro.crud.LookupService
+MODULE_API org.ipro.crud.MetadataTableSectionService
+MODULE_API org.ipro.crud.ReferenceCheckService
+MODULE_API org.ipro.crud.ServiceLocator
+MODULE_API org.ipro.crud.jpa.ValidatedJpaCrudService
+MODULE_API org.ipro.data.CanonicalEntityDataAccess
+MODULE_API org.ipro.data.ApiDetailRead
+MODULE_API org.ipro.data.ApiPageRead
+MODULE_API org.ipro.data.CanonicalEntityReadAccess
+MODULE_API org.ipro.data.RestGraphException
+MODULE_API org.ipro.data.CanonicalReadExecutor
+MODULE_API org.ipro.data.CanonicalWriteExecutor
+MODULE_API org.ipro.data.EntityDataPolicy
+#   FetchPlanInspection -> MODULE_API: публичная инспекция плана выборки. Называет production-код
+#       формы (`EntitySummaryAssembler`, `EntityExplorerAutoConfiguration`) и сборка контекста
+#       (`DataAccessAutoConfiguration`); приложение тип не называет (строки собирает сборщик).
+#       Правило 3. Внутренний `FetchPlan` остаётся INTERNAL: наружу выходят строки, а не план.
+MODULE_API org.ipro.data.FetchPlanInspection
+MODULE_API org.ipro.data.EventContourStartupCheck
+MODULE_API org.ipro.data.ReadTelemetry
+MODULE_API org.ipro.data.ScenarioFetchGraphResolver
+MODULE_API org.ipro.data.WriteTelemetry
+MODULE_API org.ipro.data.grouping.GroupingValuesProviderFactory
+MODULE_API org.ipro.data.grouping.JpaGroupingValuesProviderFactory
+MODULE_API org.ipro.fetch.ManagedEntityTypes
+MODULE_API org.ipro.fetch.instance.InstanceNameBridge
+MODULE_API org.ipro.fetch.instance.InstanceNameBridgeInstaller
+MODULE_API org.ipro.fetch.instance.InstanceNameProvider
+MODULE_API org.ipro.fetch.plan.FetchPlanRegistry
+MODULE_API org.ipro.filter.ColumnPathFilterFieldResolver
+MODULE_API org.ipro.metadata.FilterSpec
+MODULE_API org.ipro.metadata.JpaFieldFacts
+MODULE_API org.ipro.metadata.GridMetadata
+MODULE_API org.ipro.metadata.GridViewState
+MODULE_API org.ipro.metadata.MetadataConsistencyStartupCheck
+MODULE_API org.ipro.metadata.SectionMetadataRegistry
+MODULE_API org.ipro.metadata.TableSectionGridMetadata
+MODULE_API org.ipro.metadata.TableSectionMetadataInfo
+MODULE_API org.ipro.metadata.facet.FacetKey
+MODULE_API org.ipro.metadata.facet.FacetResolver
+MODULE_API org.ipro.search.GlobalSearchCatalog
+MODULE_API org.ipro.search.GlobalSearchProviderRegistry
+MODULE_API org.ipro.search.GlobalSearchRequest
+MODULE_API org.ipro.search.GlobalSearchResponse
+MODULE_API org.ipro.search.GlobalSearchResult
+MODULE_API org.ipro.search.GlobalSearchService
+# ---- INTERNAL (18)
+INTERNAL org.ipro.data.CatalogOwnerGuard
+INTERNAL org.ipro.data.CatalogOwnerToken
+INTERNAL org.ipro.crud.AggregateSaveRollbackState
+INTERNAL org.ipro.crud.CallbackScope
+INTERNAL org.ipro.data.CanonicalWriteDeniedException
+INTERNAL org.ipro.data.DetailRead
+INTERNAL org.ipro.data.ListRead
+INTERNAL org.ipro.data.LookupRead
+INTERNAL org.ipro.data.PageRead
+INTERNAL org.ipro.data.SearchFieldResolver
+INTERNAL org.ipro.data.SearchTerms
+INTERNAL org.ipro.fetch.plan.FetchPlan
+INTERNAL org.ipro.filter.FilterConditionCodec
+INTERNAL org.ipro.metadata.FetchGraphs
+INTERNAL org.ipro.metadata.InstanceNameSource
+INTERNAL org.ipro.metadata.MetadataConsistencyValidator
+INTERNAL org.ipro.metadata.StructuralAttributeScanner
+INTERNAL org.ipro.search.JpaGlobalSearchProvider
+
+# ---- test-usage overlay (12)
+test-usage org.ipro.metadata.CatalogOwnerDescriptor org/ip/views/admin/EntityExplorerPilotPanelTest.java
+test-usage org.ipro.crud.GenericOwnedSectionService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/security/RlsServiceWriteBoundaryIT.java
+test-usage org.ipro.crud.ReferenceCheckService org/ip/security/RlsIntegrationTest.java org/ip/service/SklNomOpaServiceTest.java
+test-usage org.ipro.data.CanonicalReadExecutor org/ip/service/GroupNomVersionNormalizationIT.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java
+# REST maximum-graph fixture creates GroupNom through canonical write with version normalization.
+# This test-only MODULE_API usage does not expose the executor to production application code.
+test-usage org.ipro.data.CanonicalWriteExecutor org/ip/service/GroupNomVersionNormalizationIT.java org/ip/rest/RestReadPipelinePilotIT.java
+test-usage org.ipro.data.EventContourStartupCheck org/ip/lifecycle/EventContourWiringIT.java
+test-usage org.ipro.data.FetchPlanInspection org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
+test-usage org.ipro.data.ReadTelemetry org/ip/service/GroupNomVersionNormalizationIT.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java
+# REST pilot проверяет независимость fixed REST graph от UI scenario через настоящий resolver.
+test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java org/ip/rest/RestReadPipelinePilotIT.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java
+test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
+test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java org/ip/metadata/EntityTypesInventoryIT.java
+test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/builtin/PrdSpecRowCancelAcceptanceTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java

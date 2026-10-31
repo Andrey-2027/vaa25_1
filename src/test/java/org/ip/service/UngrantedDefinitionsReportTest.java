@@ -43,7 +43,7 @@ class UngrantedDefinitionsReportTest {
 
     private final AccessGrantRepository grants = mock(AccessGrantRepository.class);
     private final C5OperationPermissionRegistry operationDefinitions = new C5OperationPermissionRegistry();
-    private final C5ReadPermissionRegistry readDefinitions = new C5ReadPermissionRegistry();
+    private final C5ReadPermissionRegistry readDefinitions = new C5ReadPermissionRegistry(operationDefinitions);
     private final List<AccessGrant> rows = new ArrayList<>();
 
     private AccessGrantAdminService service;
@@ -51,7 +51,7 @@ class UngrantedDefinitionsReportTest {
     @BeforeEach
     void setUp() {
         operationDefinitions.register(C5PermissionDefinition.entityOperations(Nomenclature.class,
-            Set.of(C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
+            Set.of(C5Operation.READ, C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
         // Тип, который объявляет только удаление: строка с «изменением» его не решает.
         operationDefinitions.register(C5PermissionDefinition.entityOperations(Role.class,
             Set.of(C5Operation.DELETE)));
@@ -65,25 +65,24 @@ class UngrantedDefinitionsReportTest {
 
     @Test
     void everyRegisteredDefinitionWithoutADecidingRowIsReported() {
-        assertThat(keys()).containsExactlyInAnyOrder(NOMENCLATURE_OPERATIONS, NOMENCLATURE_READ, ROLE_OPERATIONS);
+        // P-U: чтение и операции — одно определение с одним ключом и полным набором операций.
+        assertThat(keys()).containsExactlyInAnyOrder(NOMENCLATURE_OPERATIONS, ROLE_OPERATIONS);
         assertThat(service.ungrantedDefinitions())
             .filteredOn(definition -> definition.key().equals(NOMENCLATURE_READ))
             .singleElement()
-            .satisfies(definition -> assertThat(definition.operations())
-                .isEqualTo(Set.of(C5Operation.READ)));
+            .satisfies(definition -> assertThat(definition.operations()).isEqualTo(Set.of(
+                C5Operation.READ, C5Operation.CREATE, C5Operation.UPDATE, C5Operation.DELETE)));
     }
 
     @Test
     void rowsThatDoNotDecideTheDefinitionDoNotHideIt() {
         rows.add(grant("*", null, true, true, true));
         rows.add(grant(NOMENCLATURE_OPERATIONS, 42L, true, true, true));
-        // Наследство прежней выдачи: глобальная строка, но с флагом, которого определение не
-        // выражает. Операцию она не решает и из отчёта определение не убирает.
-        rows.add(grant(NOMENCLATURE_OPERATIONS, null, true, false, false));
+        // Флаг, которого определение не выражает, и value-scoped строка операцию не решают
+        // и из отчёта определение не убирают.
         rows.add(grant(ROLE_OPERATIONS, null, false, true, false));
-        rows.add(grant(NOMENCLATURE_READ, null, false, true, false));
 
-        assertThat(keys()).containsExactlyInAnyOrder(NOMENCLATURE_OPERATIONS, NOMENCLATURE_READ, ROLE_OPERATIONS);
+        assertThat(keys()).containsExactlyInAnyOrder(NOMENCLATURE_OPERATIONS, ROLE_OPERATIONS);
     }
 
     @Test
@@ -92,17 +91,17 @@ class UngrantedDefinitionsReportTest {
         assertThat(keys())
             .as("CREATE/UPDATE решаются флагом «изменение» независимо от субъекта")
             .doesNotContain(NOMENCLATURE_OPERATIONS)
-            .contains(ROLE_OPERATIONS, NOMENCLATURE_READ);
+            .contains(ROLE_OPERATIONS);
 
         rows.add(grant(ROLE_OPERATIONS, null, false, false, true));
         assertThat(keys())
-            .as("определение только с DELETE решает флаг «удаление»")
+            .as("определение только с DELETE решает флаг «удаление»; ENTITY-ключ уже закрыт")
             .doesNotContain(ROLE_OPERATIONS)
-            .contains(NOMENCLATURE_READ);
+            .isEmpty();
 
         rows.add(grant(NOMENCLATURE_READ, null, true, false, false));
         assertThat(keys())
-            .as("read-ключ решает флаг чтения глобальной строки")
+            .as("P-U: READ и операции одного ключа закрываются одной решающей строкой")
             .doesNotContain(NOMENCLATURE_READ);
 
         assertThat(keys()).as("все определения получили решающую строку").isEmpty();

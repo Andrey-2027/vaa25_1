@@ -1,0 +1,759 @@
+{
+  "schemaVersion": 1,
+  "recipe": {
+    "id": "standard-catalog-v1",
+    "version": 1
+  },
+  "draftId": "00000000-0000-4000-8000-000000000001",
+  "entity": {
+    "className": "CompactCatalog",
+    "packageName": {
+      "mode": "EXPLICIT",
+      "text": "org.ip.model"
+    },
+    "label": "Справочник с длинной подписью для проверки компактности, переноса и сохранности исходного текста",
+    "titles": {
+      "list": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "item": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "selection": {
+        "mode": "AUTO",
+        "text": ""
+      }
+    },
+    "tableName": {
+      "mode": "AUTO",
+      "text": ""
+    },
+    "subsystemId": "org.ip.subsystem.Subsystems$Directories",
+    "icon": "FILE"
+  },
+  "fields": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "name": "attribute01",
+      "label": "Длинная подпись реквизита 01 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "name": "attribute02",
+      "label": "Длинная подпись реквизита 02 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "name": "attribute03",
+      "label": "Длинная подпись реквизита 03 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000004",
+      "name": "attribute04",
+      "label": "Длинная подпись реквизита 04 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000005",
+      "name": "attribute05",
+      "label": "Длинная подпись реквизита 05 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000006",
+      "name": "attribute06",
+      "label": "Длинная подпись реквизита 06 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000007",
+      "name": "attribute07",
+      "label": "Длинная подпись реквизита 07 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000008",
+      "name": "attribute08",
+      "label": "Длинная подпись реквизита 08 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000009",
+      "name": "attribute09",
+      "label": "Длинная подпись реквизита 09 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000010",
+      "name": "attribute10",
+      "label": "Длинная подпись реквизита 10 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "name": "attribute11",
+      "label": "Длинная подпись реквизита 11 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000012",
+      "name": "attribute12",
+      "label": "Длинная подпись реквизита 12 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000013",
+      "name": "attribute13",
+      "label": "Длинная подпись реквизита 13 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000014",
+      "name": "attribute14",
+      "label": "Длинная подпись реквизита 14 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000015",
+      "name": "attribute15",
+      "label": "Длинная подпись реквизита 15 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000016",
+      "name": "attribute16",
+      "label": "Длинная подпись реквизита 16 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000017",
+      "name": "attribute17",
+      "label": "Длинная подпись реквизита 17 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000018",
+      "name": "attribute18",
+      "label": "Длинная подпись реквизита 18 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000019",
+      "name": "attribute19",
+      "label": "Длинная подпись реквизита 19 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000020",
+      "name": "attribute20",
+      "label": "Длинная подпись реквизита 20 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000021",
+      "name": "attribute21",
+      "label": "Длинная подпись реквизита 21 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000022",
+      "name": "attribute22",
+      "label": "Длинная подпись реквизита 22 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000023",
+      "name": "attribute23",
+      "label": "Длинная подпись реквизита 23 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000024",
+      "name": "attribute24",
+      "label": "Длинная подпись реквизита 24 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000025",
+      "name": "attribute25",
+      "label": "Длинная подпись реквизита 25 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000026",
+      "name": "attribute26",
+      "label": "Длинная подпись реквизита 26 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000027",
+      "name": "attribute27",
+      "label": "Длинная подпись реквизита 27 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000028",
+      "name": "attribute28",
+      "label": "Длинная подпись реквизита 28 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000029",
+      "name": "attribute29",
+      "label": "Длинная подпись реквизита 29 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000030",
+      "name": "attribute30",
+      "label": "Длинная подпись реквизита 30 — проверка переноса и доступности полного текста без расширения списка",
+      "type": "STRING",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "AUTO",
+      "constraints": {
+        "scale": "",
+        "length": "255",
+        "precision": ""
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    }
+  ],
+  "sections": []
+}

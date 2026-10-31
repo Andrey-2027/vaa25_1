@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "recipe": {
+    "id": "standard-catalog-v1",
+    "version": 1
+  },
+  "draftId": "00000000-0000-4000-8000-000000000001",
+  "entity": {
+    "className": "",
+    "packageName": {
+      "mode": "AUTO",
+      "text": ""
+    },
+    "label": "",
+    "titles": {
+      "list": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "item": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "selection": {
+        "mode": "AUTO",
+        "text": ""
+      }
+    },
+    "tableName": {
+      "mode": "AUTO",
+      "text": ""
+    },
+    "subsystemId": null,
+    "icon": "FILE"
+  },
+  "fields": [],
+  "sections": []
+}

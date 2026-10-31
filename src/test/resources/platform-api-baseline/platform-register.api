@@ -47,6 +47,7 @@ annotation public abstract interface org.ipro.register.RegisterMetadata
   annotation java.lang.annotation.Documented
   annotation java.lang.annotation.Retention
   annotation java.lang.annotation.Target
+  annotation org.ipro.metadata.annotation.EntityKindCandidate
   retention RUNTIME
   target [TYPE]
   method public abstract boolean keyChangeAllowed() default false

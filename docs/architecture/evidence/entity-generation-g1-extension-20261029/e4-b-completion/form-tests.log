@@ -1,0 +1,649 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] GitVaa platform vaadin                                             [jar]
+[INFO] G1.2 compile/runtime harness                                       [jar]
+[INFO] G1.2 compile/runtime harness                                       [jar]
+[INFO] G1.2 compile/runtime harness                                       [jar]
+[INFO] G1.2 compile/runtime harness                                       [jar]
+[INFO] G1.2 compile/runtime harness                                       [jar]
+[INFO] G1.2 compile/runtime harness                                       [jar]
+[INFO] G1.2 compile/runtime harness                                       [jar]
+[INFO] g1-section-forms                                                   [pom]
+[INFO] 
+[INFO] ----------------------< org.ipro:platform-vaadin >----------------------
+[INFO] Building GitVaa platform vaadin 1.0-SNAPSHOT                       [1/9]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-vaadin\.e4-b-forms-f6a1f16102e64d4db26294132e5cb8c2.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-vaadin ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e4-b\forms-final\build-platform-vaadin\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e4-b\forms-final\build-platform-vaadin\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-vaadin ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 140 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e4-b\forms-final\build-platform-vaadin\classes
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/SelectionForm.java:[54,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/builtin/ItemTable.java:[467,16] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/builtin/ItemTable.java:[530,15] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/builtin/ViewSelectorDialog.java:[83,9] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[WARNING] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/coordinator/FormCoordinator.java:[751,15] setModal(boolean) in com.vaadin.flow.component.dialog.Dialog has been deprecated and marked for removal
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/EntityField.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/main/java/org/ipro/form/EntityField.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-vaadin ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-vaadin\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-vaadin ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 92 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e4-b\forms-final\build-platform-vaadin\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/test/java/org/ipro/form/FormBindingRegistryTest.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/test/java/org/ipro/form/FormBindingRegistryTest.java: Recompile with -Xlint:deprecation for details.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/test/java/org/ipro/form/CatalogOwnerFormsTest.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-vaadin/src/test/java/org/ipro/form/CatalogOwnerFormsTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-vaadin ---
+[INFO] 
+[INFO] ----------< com.example:entity-generation-g1-form-catalog-0 >-----------
+[INFO] Building G1.2 compile/runtime harness 0.1-SNAPSHOT                 [2/9]
+[INFO]   from catalog-0\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-generation-g1-form-catalog-0 ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-generation-g1-form-catalog-0 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (g1-consumer-runtime-dependencies) @ entity-generation-g1-form-catalog-0 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-0\target\consumer-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- dependency:3.9.0:build-classpath (g1-consumer-test-classpath) @ entity-generation-g1-form-catalog-0 ---
+[INFO] Wrote classpath file 'C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-0\target\consumer-test-classpath.txt'.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-generation-g1-form-catalog-0 ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-0\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-generation-g1-form-catalog-0 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/catalog-0/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-0\src\test\java\com\example\generated\harness\GeneratedSectionFormsTest.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/catalog-0/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-generation-g1-form-catalog-0 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.example.generated.harness.GeneratedSectionFormsTest
+2026-10-30T21:42:13.963+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Starting GeneratedSectionFormsTest using Java 21.0.11 with PID 19072 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-0)
+2026-10-30T21:42:13.973+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : No active profile set, falling back to 1 default profile: "default"
+2026-10-30T21:42:15.297+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:42:15.722+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 409 ms. Found 2 JPA repository interfaces.
+2026-10-30T21:42:15.818+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:42:15.852+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 32 ms. Found 1 JPA repository interface.
+2026-10-30T21:42:15.868+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:42:15.885+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 1 JPA repository interface.
+2026-10-30T21:42:16.660+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-30T21:42:16.764+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-30T21:42:17.481+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-30T21:42:17.537+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-30T21:42:17.797+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:g1harness user=SA
+2026-10-30T21:42:17.802+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-30T21:42:17.905+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:g1harness]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: G1HARNESS/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-30T21:42:19.395+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-30T21:42:19.447+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-30T21:42:20.043+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-30T21:42:22.182+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:22.183+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:22.183+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:22.183+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:22.285+03:00  WARN 19072 --- [entity-generation-g1-harness] [           main] d.c.C5EntityOperationPermissionRegistrar : ��������� ������� ������ ��������� (ADR-0017 �9): flush ������� ��������������� ����������� ��� 2 ����� � canonical write handle: [com.example.generated.CatalogSections0, com.example.generated.targets.ReferenceTarget]; ����� ��� 0 �����: []
+2026-10-30T21:42:22.797+03:00  INFO 19072 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Started GeneratedSectionFormsTest in 9.334 seconds (process running for 10.885)
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.57 s -- in com.example.generated.harness.GeneratedSectionFormsTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ----------< com.example:entity-generation-g1-form-catalog-1 >-----------
+[INFO] Building G1.2 compile/runtime harness 0.1-SNAPSHOT                 [3/9]
+[INFO]   from catalog-1\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-generation-g1-form-catalog-1 ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-generation-g1-form-catalog-1 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (g1-consumer-runtime-dependencies) @ entity-generation-g1-form-catalog-1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-1\target\consumer-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- dependency:3.9.0:build-classpath (g1-consumer-test-classpath) @ entity-generation-g1-form-catalog-1 ---
+[INFO] Wrote classpath file 'C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-1\target\consumer-test-classpath.txt'.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-generation-g1-form-catalog-1 ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-1\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-generation-g1-form-catalog-1 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/catalog-1/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-1\src\test\java\com\example\generated\harness\GeneratedSectionFormsTest.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/catalog-1/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-generation-g1-form-catalog-1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.example.generated.harness.GeneratedSectionFormsTest
+2026-10-30T21:42:29.209+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Starting GeneratedSectionFormsTest using Java 21.0.11 with PID 8348 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-1)
+2026-10-30T21:42:29.214+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : No active profile set, falling back to 1 default profile: "default"
+2026-10-30T21:42:30.396+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:42:30.600+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 184 ms. Found 2 JPA repository interfaces.
+2026-10-30T21:42:30.685+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:42:30.709+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 33 ms. Found 1 JPA repository interface.
+2026-10-30T21:42:30.737+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:42:30.747+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 8 ms. Found 1 JPA repository interface.
+2026-10-30T21:42:31.646+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-30T21:42:31.741+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-30T21:42:32.608+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-30T21:42:32.643+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-30T21:42:32.880+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:g1harness user=SA
+2026-10-30T21:42:32.880+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-30T21:42:32.992+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:g1harness]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: G1HARNESS/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-30T21:42:34.580+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-30T21:42:34.648+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-30T21:42:35.150+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-30T21:42:36.869+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] com.example.generated.rows.CatalogSections1Row1#note (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:36.869+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:36.873+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:36.873+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:36.873+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:36.940+03:00  WARN 8348 --- [entity-generation-g1-harness] [           main] d.c.C5EntityOperationPermissionRegistrar : ��������� ������� ������ ��������� (ADR-0017 �9): flush ������� ��������������� ����������� ��� 2 ����� � canonical write handle: [com.example.generated.CatalogSections1, com.example.generated.targets.ReferenceTarget]; ����� ��� 0 �����: []
+2026-10-30T21:42:37.367+03:00  INFO 8348 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Started GeneratedSectionFormsTest in 8.614 seconds (process running for 10.263)
+2026-10-30T21:42:39.495+03:00  WARN 8348 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : HHH000247: ErrorCode: 23506, SQLState: 23506
+2026-10-30T21:42:39.495+03:00  WARN 8348 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : ��������� ��������� �����������: "FK3TPX4J4NQBCBJN8GRP2D52NAG: PUBLIC.CATALOG_1_ROW_1 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"
+Referential integrity constraint violation: "FK3TPX4J4NQBCBJN8GRP2D52NAG: PUBLIC.CATALOG_1_ROW_1 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"; SQL statement:
+insert into catalog_1_row_1 (catalog_id,created_at,created_by,line_number,modified_at,modified_by,note,target_id,version,id) values (?,?,?,?,?,?,?,?,?,default) [23506-240]
+2026-10-30T21:42:39.505+03:00  WARN 8348 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.session                : HHH90010101: Closing shared session with unprocessed transaction completion actions
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.79 s -- in com.example.generated.harness.GeneratedSectionFormsTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ----------< com.example:entity-generation-g1-form-catalog-2 >-----------
+[INFO] Building G1.2 compile/runtime harness 0.1-SNAPSHOT                 [4/9]
+[INFO]   from catalog-2\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-generation-g1-form-catalog-2 ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-generation-g1-form-catalog-2 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 5 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (g1-consumer-runtime-dependencies) @ entity-generation-g1-form-catalog-2 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-2\target\consumer-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- dependency:3.9.0:build-classpath (g1-consumer-test-classpath) @ entity-generation-g1-form-catalog-2 ---
+[INFO] Wrote classpath file 'C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-2\target\consumer-test-classpath.txt'.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-generation-g1-form-catalog-2 ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-2\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-generation-g1-form-catalog-2 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/catalog-2/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-2\src\test\java\com\example\generated\harness\GeneratedSectionFormsTest.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/catalog-2/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-generation-g1-form-catalog-2 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.example.generated.harness.GeneratedSectionFormsTest
+2026-10-30T21:42:45.730+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Starting GeneratedSectionFormsTest using Java 21.0.11 with PID 38132 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\catalog-2)
+2026-10-30T21:42:45.742+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : No active profile set, falling back to 1 default profile: "default"
+2026-10-30T21:42:46.528+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:42:46.784+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 241 ms. Found 2 JPA repository interfaces.
+2026-10-30T21:42:46.875+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:42:46.919+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 34 ms. Found 1 JPA repository interface.
+2026-10-30T21:42:46.934+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:42:46.945+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 12 ms. Found 1 JPA repository interface.
+2026-10-30T21:42:47.822+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-30T21:42:47.906+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-30T21:42:48.803+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-30T21:42:48.857+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-30T21:42:49.104+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:g1harness user=SA
+2026-10-30T21:42:49.108+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-30T21:42:49.189+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:g1harness]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: G1HARNESS/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-30T21:42:50.670+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-30T21:42:50.752+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-30T21:42:51.345+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-30T21:42:53.319+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] com.example.generated.rows.CatalogSections2Row1#note (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:53.319+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] com.example.generated.rows.CatalogSections2Row2#note (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:53.319+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:53.319+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:53.319+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:53.319+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:42:53.423+03:00  WARN 38132 --- [entity-generation-g1-harness] [           main] d.c.C5EntityOperationPermissionRegistrar : ��������� ������� ������ ��������� (ADR-0017 �9): flush ������� ��������������� ����������� ��� 2 ����� � canonical write handle: [com.example.generated.CatalogSections2, com.example.generated.targets.ReferenceTarget]; ����� ��� 0 �����: []
+2026-10-30T21:42:53.891+03:00  INFO 38132 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Started GeneratedSectionFormsTest in 9.221 seconds (process running for 11.259)
+2026-10-30T21:42:56.483+03:00  WARN 38132 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : HHH000247: ErrorCode: 23506, SQLState: 23506
+2026-10-30T21:42:56.483+03:00  WARN 38132 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : ��������� ��������� �����������: "FK6XNP0U645O6LHIV146IVIYODO: PUBLIC.CATALOG_2_ROW_2 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"
+Referential integrity constraint violation: "FK6XNP0U645O6LHIV146IVIYODO: PUBLIC.CATALOG_2_ROW_2 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"; SQL statement:
+insert into catalog_2_row_2 (catalog_id,created_at,created_by,line_number,modified_at,modified_by,note,target_id,version,id) values (?,?,?,?,?,?,?,?,?,default) [23506-240]
+2026-10-30T21:42:56.492+03:00  WARN 38132 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.session                : HHH90010101: Closing shared session with unprocessed transaction completion actions
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.18 s -- in com.example.generated.harness.GeneratedSectionFormsTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ----------< com.example:entity-generation-g1-form-document-0 >----------
+[INFO] Building G1.2 compile/runtime harness 0.1-SNAPSHOT                 [5/9]
+[INFO]   from document-0\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-generation-g1-form-document-0 ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-generation-g1-form-document-0 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (g1-consumer-runtime-dependencies) @ entity-generation-g1-form-document-0 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-0\target\consumer-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- dependency:3.9.0:build-classpath (g1-consumer-test-classpath) @ entity-generation-g1-form-document-0 ---
+[INFO] Wrote classpath file 'C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-0\target\consumer-test-classpath.txt'.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-generation-g1-form-document-0 ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-0\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-generation-g1-form-document-0 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/document-0/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-0\src\test\java\com\example\generated\harness\GeneratedSectionFormsTest.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/document-0/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-generation-g1-form-document-0 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.example.generated.harness.GeneratedSectionFormsTest
+2026-10-30T21:43:02.125+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Starting GeneratedSectionFormsTest using Java 21.0.11 with PID 35260 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-0)
+2026-10-30T21:43:02.133+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : No active profile set, falling back to 1 default profile: "default"
+2026-10-30T21:43:02.709+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:02.954+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 235 ms. Found 2 JPA repository interfaces.
+2026-10-30T21:43:03.076+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:03.120+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 46 ms. Found 1 JPA repository interface.
+2026-10-30T21:43:03.149+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:03.162+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 1 JPA repository interface.
+2026-10-30T21:43:03.989+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-30T21:43:04.109+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-30T21:43:04.886+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-30T21:43:04.929+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-30T21:43:05.220+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:g1harness user=SA
+2026-10-30T21:43:05.222+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-30T21:43:05.310+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:g1harness]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: G1HARNESS/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-30T21:43:06.692+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-30T21:43:06.739+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-30T21:43:07.323+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-30T21:43:09.186+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:09.186+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:09.187+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardDocumentEntity#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:09.187+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardDocumentEntity#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:09.265+03:00  WARN 35260 --- [entity-generation-g1-harness] [           main] d.c.C5EntityOperationPermissionRegistrar : ��������� ������� ������ ��������� (ADR-0017 �9): flush ������� ��������������� ����������� ��� 2 ����� � canonical write handle: [com.example.generated.DocumentSections0, com.example.generated.targets.ReferenceTarget]; ����� ��� 0 �����: []
+2026-10-30T21:43:09.735+03:00  INFO 35260 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Started GeneratedSectionFormsTest in 8.141 seconds (process running for 10.082)
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.37 s -- in com.example.generated.harness.GeneratedSectionFormsTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ----------< com.example:entity-generation-g1-form-document-1 >----------
+[INFO] Building G1.2 compile/runtime harness 0.1-SNAPSHOT                 [6/9]
+[INFO]   from document-1\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-generation-g1-form-document-1 ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-generation-g1-form-document-1 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (g1-consumer-runtime-dependencies) @ entity-generation-g1-form-document-1 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-1\target\consumer-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- dependency:3.9.0:build-classpath (g1-consumer-test-classpath) @ entity-generation-g1-form-document-1 ---
+[INFO] Wrote classpath file 'C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-1\target\consumer-test-classpath.txt'.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-generation-g1-form-document-1 ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-1\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-generation-g1-form-document-1 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/document-1/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-1\src\test\java\com\example\generated\harness\GeneratedSectionFormsTest.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/document-1/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-generation-g1-form-document-1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.example.generated.harness.GeneratedSectionFormsTest
+2026-10-30T21:43:17.488+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Starting GeneratedSectionFormsTest using Java 21.0.11 with PID 14772 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-1)
+2026-10-30T21:43:17.495+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : No active profile set, falling back to 1 default profile: "default"
+2026-10-30T21:43:18.401+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:18.729+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 296 ms. Found 2 JPA repository interfaces.
+2026-10-30T21:43:18.851+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:18.896+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 44 ms. Found 1 JPA repository interface.
+2026-10-30T21:43:18.926+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:18.941+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 9 ms. Found 1 JPA repository interface.
+2026-10-30T21:43:19.935+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-30T21:43:20.040+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-30T21:43:20.950+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-30T21:43:20.983+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-30T21:43:21.177+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:g1harness user=SA
+2026-10-30T21:43:21.180+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-30T21:43:21.253+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:g1harness]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: G1HARNESS/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-30T21:43:22.790+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-30T21:43:22.862+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-30T21:43:23.357+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-30T21:43:25.138+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] com.example.generated.rows.DocumentSections1Row1#note (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:25.138+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:25.138+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:25.138+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardDocumentEntity#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:25.138+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardDocumentEntity#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:25.227+03:00  WARN 14772 --- [entity-generation-g1-harness] [           main] d.c.C5EntityOperationPermissionRegistrar : ��������� ������� ������ ��������� (ADR-0017 �9): flush ������� ��������������� ����������� ��� 2 ����� � canonical write handle: [com.example.generated.DocumentSections1, com.example.generated.targets.ReferenceTarget]; ����� ��� 0 �����: []
+2026-10-30T21:43:25.694+03:00  INFO 14772 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Started GeneratedSectionFormsTest in 8.896 seconds (process running for 11.496)
+2026-10-30T21:43:27.716+03:00  WARN 14772 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : HHH000247: ErrorCode: 23506, SQLState: 23506
+2026-10-30T21:43:27.717+03:00  WARN 14772 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : ��������� ��������� �����������: "FKK76VV02HGQAT3X38XH8BV9KNL: PUBLIC.DOCUMENT_1_ROW_1 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"
+Referential integrity constraint violation: "FKK76VV02HGQAT3X38XH8BV9KNL: PUBLIC.DOCUMENT_1_ROW_1 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"; SQL statement:
+insert into document_1_row_1 (created_at,created_by,document_id,line_number,modified_at,modified_by,note,target_id,version,id) values (?,?,?,?,?,?,?,?,?,default) [23506-240]
+2026-10-30T21:43:27.723+03:00  WARN 14772 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.session                : HHH90010101: Closing shared session with unprocessed transaction completion actions
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.10 s -- in com.example.generated.harness.GeneratedSectionFormsTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ----------< com.example:entity-generation-g1-form-document-2 >----------
+[INFO] Building G1.2 compile/runtime harness 0.1-SNAPSHOT                 [7/9]
+[INFO]   from document-2\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-generation-g1-form-document-2 ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-generation-g1-form-document-2 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 5 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (g1-consumer-runtime-dependencies) @ entity-generation-g1-form-document-2 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-2\target\consumer-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- dependency:3.9.0:build-classpath (g1-consumer-test-classpath) @ entity-generation-g1-form-document-2 ---
+[INFO] Wrote classpath file 'C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-2\target\consumer-test-classpath.txt'.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-generation-g1-form-document-2 ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-2\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-generation-g1-form-document-2 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/document-2/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-2\src\test\java\com\example\generated\harness\GeneratedSectionFormsTest.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/document-2/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-generation-g1-form-document-2 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.example.generated.harness.GeneratedSectionFormsTest
+2026-10-30T21:43:33.845+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Starting GeneratedSectionFormsTest using Java 21.0.11 with PID 3592 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\document-2)
+2026-10-30T21:43:33.853+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : No active profile set, falling back to 1 default profile: "default"
+2026-10-30T21:43:34.630+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:34.862+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 221 ms. Found 2 JPA repository interfaces.
+2026-10-30T21:43:34.969+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:35.016+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 45 ms. Found 1 JPA repository interface.
+2026-10-30T21:43:35.033+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:35.044+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 9 ms. Found 1 JPA repository interface.
+2026-10-30T21:43:35.975+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-30T21:43:36.104+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-30T21:43:37.057+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-30T21:43:37.100+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-30T21:43:37.359+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:g1harness user=SA
+2026-10-30T21:43:37.362+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-30T21:43:37.430+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:g1harness]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: G1HARNESS/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-30T21:43:39.402+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-30T21:43:39.494+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-30T21:43:40.178+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-30T21:43:41.963+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] com.example.generated.rows.DocumentSections2Row1#note (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:41.964+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] com.example.generated.rows.DocumentSections2Row2#note (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:41.964+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:41.964+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:41.964+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardDocumentEntity#date (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:41.965+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardDocumentEntity#number (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:42.061+03:00  WARN 3592 --- [entity-generation-g1-harness] [           main] d.c.C5EntityOperationPermissionRegistrar : ��������� ������� ������ ��������� (ADR-0017 �9): flush ������� ��������������� ����������� ��� 2 ����� � canonical write handle: [com.example.generated.DocumentSections2, com.example.generated.targets.ReferenceTarget]; ����� ��� 0 �����: []
+2026-10-30T21:43:42.490+03:00  INFO 3592 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Started GeneratedSectionFormsTest in 9.231 seconds (process running for 11.325)
+2026-10-30T21:43:44.951+03:00  WARN 3592 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : HHH000247: ErrorCode: 23506, SQLState: 23506
+2026-10-30T21:43:44.951+03:00  WARN 3592 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : ��������� ��������� �����������: "FK80O7K1WA8DGGTTWRCROHMIQX7: PUBLIC.DOCUMENT_2_ROW_2 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"
+Referential integrity constraint violation: "FK80O7K1WA8DGGTTWRCROHMIQX7: PUBLIC.DOCUMENT_2_ROW_2 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"; SQL statement:
+insert into document_2_row_2 (created_at,created_by,document_id,line_number,modified_at,modified_by,note,target_id,version,id) values (?,?,?,?,?,?,?,?,?,default) [23506-240]
+2026-10-30T21:43:45.121+03:00  WARN 3592 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.session                : HHH90010101: Closing shared session with unprocessed transaction completion actions
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.39 s -- in com.example.generated.harness.GeneratedSectionFormsTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] -------< com.example:entity-generation-g1-form-owned-catalog-2 >--------
+[INFO] Building G1.2 compile/runtime harness 0.1-SNAPSHOT                 [8/9]
+[INFO]   from owned-catalog-2\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-generation-g1-form-owned-catalog-2 ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-generation-g1-form-owned-catalog-2 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 5 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- dependency:3.9.0:tree (g1-consumer-runtime-dependencies) @ entity-generation-g1-form-owned-catalog-2 ---
+[INFO] Wrote dependency tree to: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\owned-catalog-2\target\consumer-runtime-dependency-tree.json
+[INFO] 
+[INFO] --- dependency:3.9.0:build-classpath (g1-consumer-test-classpath) @ entity-generation-g1-form-owned-catalog-2 ---
+[INFO] Wrote classpath file 'C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\owned-catalog-2\target\consumer-test-classpath.txt'.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-generation-g1-form-owned-catalog-2 ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\owned-catalog-2\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-generation-g1-form-owned-catalog-2 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/owned-catalog-2/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\owned-catalog-2\src\test\java\com\example\generated\harness\GeneratedSectionFormsTest.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/outputs/entity-generation-g1-extension/e4-b/forms-final/owned-catalog-2/src/test/java/com/example/generated/harness/GeneratedSectionFormsTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-generation-g1-form-owned-catalog-2 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.example.generated.harness.GeneratedSectionFormsTest
+2026-10-30T21:43:51.100+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Starting GeneratedSectionFormsTest using Java 21.0.11 with PID 17148 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-b\forms-final\owned-catalog-2)
+2026-10-30T21:43:51.106+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : No active profile set, falling back to 1 default profile: "default"
+2026-10-30T21:43:51.882+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:52.169+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 271 ms. Found 2 JPA repository interfaces.
+2026-10-30T21:43:52.274+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:52.328+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 44 ms. Found 1 JPA repository interface.
+2026-10-30T21:43:52.346+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-30T21:43:52.360+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 1 JPA repository interface.
+2026-10-30T21:43:53.325+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-30T21:43:53.457+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-30T21:43:54.422+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-30T21:43:54.462+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-30T21:43:54.694+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:g1harness user=SA
+2026-10-30T21:43:54.694+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-30T21:43:54.770+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:g1harness]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: G1HARNESS/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-30T21:43:56.361+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-30T21:43:56.438+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-30T21:43:56.948+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-30T21:43:58.801+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] com.example.generated.OwnedCatalogSections2#counterparty (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:58.801+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] com.example.generated.rows.OwnedCatalogSections2Row1#note (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:58.802+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] com.example.generated.rows.OwnedCatalogSections2Row2#note (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:58.802+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:58.803+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#code (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:58.803+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:58.803+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] o.i.m.MetadataConsistencyStartupCheck    : INFO [REDUNDANT_REQUIRED] org.ipro.crud.StandardCatalogEntity#name (@FieldMetadata.required): ����� REQUIRED ��������� � ���������� ������: ���������� ���������
+2026-10-30T21:43:58.877+03:00  WARN 17148 --- [entity-generation-g1-harness] [           main] d.c.C5EntityOperationPermissionRegistrar : ��������� ������� ������ ��������� (ADR-0017 �9): flush ������� ��������������� ����������� ��� 2 ����� � canonical write handle: [com.example.generated.OwnedCatalogSections2, com.example.generated.targets.ReferenceTarget]; ����� ��� 0 �����: []
+2026-10-30T21:43:59.326+03:00  INFO 17148 --- [entity-generation-g1-harness] [           main] c.e.g.harness.GeneratedSectionFormsTest  : Started GeneratedSectionFormsTest in 8.977 seconds (process running for 11.006)
+2026-10-30T21:44:02.168+03:00  WARN 17148 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : HHH000247: ErrorCode: 23506, SQLState: 23506
+2026-10-30T21:44:02.168+03:00  WARN 17148 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.jdbc.error             : ��������� ��������� �����������: "FKKYC2FKOJYQYTGEKW0EGSMJ1R3: PUBLIC.OWNED_CATALOG_2_ROW_2 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"
+Referential integrity constraint violation: "FKKYC2FKOJYQYTGEKW0EGSMJ1R3: PUBLIC.OWNED_CATALOG_2_ROW_2 FOREIGN KEY(TARGET_ID) REFERENCES PUBLIC.EXISTING_REFERENCE_TARGET(ID) (9223372036854775807)"; SQL statement:
+insert into owned_catalog_2_row_2 (catalog_id,created_at,created_by,line_number,modified_at,modified_by,note,target_id,version,id) values (?,?,?,?,?,?,?,?,?,default) [23506-240]
+2026-10-30T21:44:02.174+03:00  WARN 17148 --- [entity-generation-g1-harness] [           main] org.hibernate.orm.session                : HHH90010101: Closing shared session with unprocessed transaction completion actions
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.03 s -- in com.example.generated.harness.GeneratedSectionFormsTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] -----------------< org.ipro.evidence:g1-section-forms >-----------------
+[INFO] Building g1-section-forms 1                                        [9/9]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] GitVaa platform vaadin 1.0-SNAPSHOT ................ SUCCESS [ 18.467 s]
+[INFO] G1.2 compile/runtime harness 0.1-SNAPSHOT .......... SUCCESS [ 18.720 s]
+[INFO] G1.2 compile/runtime harness 0.1-SNAPSHOT .......... SUCCESS [ 15.375 s]
+[INFO] G1.2 compile/runtime harness 0.1-SNAPSHOT .......... SUCCESS [ 17.007 s]
+[INFO] G1.2 compile/runtime harness 0.1-SNAPSHOT .......... SUCCESS [ 14.482 s]
+[INFO] G1.2 compile/runtime harness 0.1-SNAPSHOT .......... SUCCESS [ 16.681 s]
+[INFO] G1.2 compile/runtime harness 0.1-SNAPSHOT .......... SUCCESS [ 17.782 s]
+[INFO] G1.2 compile/runtime harness 0.1-SNAPSHOT .......... SUCCESS [ 16.737 s]
+[INFO] g1-section-forms 1 ................................. SUCCESS [  0.005 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:16 min
+[INFO] Finished at: 2026-10-30T21:44:02+03:00
+[INFO] ------------------------------------------------------------------------

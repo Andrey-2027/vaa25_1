@@ -250,6 +250,9 @@ class PlatformTelemetryModuleTest {
     }
 
     private static List<String> lines(Path file) {
+        if (!Files.exists(file)) {
+            return List.of();
+        }
         try {
             return Files.readAllLines(file, StandardCharsets.UTF_8).stream()
                 .map(String::trim)

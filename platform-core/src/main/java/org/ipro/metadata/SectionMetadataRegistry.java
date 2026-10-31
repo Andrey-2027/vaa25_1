@@ -14,15 +14,18 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Startup-каталог resolved owned-секций. Он является единственным множеством секций для
- * будущего metadata-driven save engine и проверяет обе стороны root/row декларации.
+ * Startup-каталог resolved owned-секций. В production он обнаруживает владельцев и строки
+ * в общем PU-снимке, является единственным множеством секций для metadata-driven save engine
+ * и проверяет обе стороны root/row декларации.
  */
 public final class SectionMetadataRegistry implements InitializingBean {
 
     private final String basePackage;
+    private final ManagedEntityTypes managedEntityTypes;
     private final MetadataResolver metadataResolver;
     private List<TableSectionMetadataInfo> sections = List.of();
 
@@ -30,7 +33,19 @@ public final class SectionMetadataRegistry implements InitializingBean {
             String basePackage,
             MetadataResolver metadataResolver) {
         this.basePackage = basePackage;
+        this.managedEntityTypes = null;
         this.metadataResolver = metadataResolver;
+    }
+
+    /** Production constructor: discover owners and rows in the shared persistence-unit snapshot. */
+    public SectionMetadataRegistry(
+            ManagedEntityTypes managedEntityTypes,
+            MetadataResolver metadataResolver) {
+        this.basePackage = null;
+        this.managedEntityTypes = Objects.requireNonNull(
+            managedEntityTypes, "managedEntityTypes must not be null");
+        this.metadataResolver = Objects.requireNonNull(
+            metadataResolver, "metadataResolver must not be null");
     }
 
     @Override
@@ -40,7 +55,9 @@ public final class SectionMetadataRegistry implements InitializingBean {
 
     public void rebuild() {
         Map<Class<?>, TableSectionMetadataInfo> byRow = new LinkedHashMap<>();
-        List<Class<?>> owners = AnnotationClassScanner.scanAnnotated(basePackage, TableSections.class);
+        List<Class<?>> owners = managedEntityTypes == null
+            ? AnnotationClassScanner.scanAnnotated(basePackage, TableSections.class)
+            : new ArrayList<>(managedEntityTypes.annotatedWith(TableSections.class));
         owners.sort(Comparator.comparing(Class::getName));
         for (Class<?> owner : owners) {
             validateOwner(owner);
@@ -56,11 +73,16 @@ public final class SectionMetadataRegistry implements InitializingBean {
             }
         }
 
-        List<Class<?>> declaredRows = AnnotationClassScanner.scanAnnotated(
-            basePackage, TableSectionMetadata.class);
+        List<Class<?>> declaredRows = managedEntityTypes == null
+            ? AnnotationClassScanner.scanAnnotated(basePackage, TableSectionMetadata.class)
+            : managedEntityTypes.annotatedWith(TableSectionMetadata.class);
         for (Class<?> row : declaredRows) {
             if (!byRow.containsKey(row)) {
                 TableSectionMetadata metadata = row.getAnnotation(TableSectionMetadata.class);
+                if (managedEntityTypes != null && !managedEntityTypes.contains(metadata.parentEntity())) {
+                    throw new IllegalStateException("Owned-section owner must be managed by the current persistence unit: "
+                        + metadata.parentEntity().getName());
+                }
                 throw new IllegalStateException("Orphan @TableSectionMetadata on " + row.getName()
                     + ": owner " + metadata.parentEntity().getName()
                     + " does not list this row in @TableSections");
@@ -91,8 +113,8 @@ public final class SectionMetadataRegistry implements InitializingBean {
             throw new IllegalStateException("Owned-section root must be a JPA @Entity: "
                 + owner.getName());
         }
-        if (!owner.isAnnotationPresent(EntityMetadata.class)) {
-            throw new IllegalStateException("Owned-section root must declare @EntityMetadata: "
+        if (!MetadataResolver.isApplicable(owner)) {
+            throw new IllegalStateException("Owned-section root must declare @EntityMetadata or extend Standard*: "
                 + owner.getName());
         }
         if (!IdentifiableEntity.class.isAssignableFrom(owner)) {
@@ -101,8 +123,12 @@ public final class SectionMetadataRegistry implements InitializingBean {
         }
     }
 
-    private static void validateDescriptor(TableSectionMetadataInfo descriptor) {
+    private void validateDescriptor(TableSectionMetadataInfo descriptor) {
         Class<?> row = descriptor.getRowClass();
+        if (managedEntityTypes != null && !managedEntityTypes.contains(row)) {
+            throw new IllegalStateException("Owned-section row must be managed by the current persistence unit: "
+                + row.getName());
+        }
         if (!row.isAnnotationPresent(Entity.class)) {
             throw new IllegalStateException("Owned-section row must be a JPA @Entity: " + row.getName());
         }

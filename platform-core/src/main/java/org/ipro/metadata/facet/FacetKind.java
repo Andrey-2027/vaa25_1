@@ -57,6 +57,12 @@ public enum FacetKind {
     /** Эффективный semantic kind сущности. */
     ENTITY_KIND(false),
 
+    /** Маркер интернирования; независим от semantic kind и write policy. */
+    ENTITY_INTERNING(false),
+
+    /** Проверенная подчинённость регистратору; не является OWNED_ROW exposure. */
+    ENTITY_RECORDER_OWNERSHIP(false),
+
     /** Экспозиция сущности для стандартных операций платформы. */
     ENTITY_EXPOSURE(false),
 

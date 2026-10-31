@@ -1,0 +1,427 @@
+{
+  "mode" : "g1-apply-selftest",
+  "status" : "failed",
+  "harnessFixture" : "D-self-test; not generated-acceptance",
+  "cases" : 48,
+  "passed" : 34,
+  "failed" : 12,
+  "skipped" : 2,
+  "workRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work",
+  "timestamp" : "2026-10-29T10:55:59.647072100Z",
+  "note" : "D self-test fixture; not a generated-acceptance result",
+  "results" : [ {
+    "name" : "empty-catalog-applied",
+    "status" : "FAIL",
+    "expected" : "APPLIED/APPLIED",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected APPLIED/APPLIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "full-catalog-applied-then-noop",
+    "status" : "FAIL",
+    "expected" : "APPLIED/APPLIED",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected APPLIED/APPLIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "moved-project-noop",
+    "status" : "FAIL",
+    "expected" : "NOOP/NOOP",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected APPLIED/APPLIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "owned-modified-conflict",
+    "status" : "FAIL",
+    "expected" : "CONFLICT/CONFLICT_MODIFIED",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected APPLIED/APPLIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "owned-missing-recovery",
+    "status" : "FAIL",
+    "expected" : "RECOVERY_REQUIRED/OWNED_TARGET_MISSING",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected APPLIED/APPLIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "unowned-identical-conflict",
+    "status" : "PASS",
+    "expected" : "CONFLICT/CONFLICT_UNOWNED",
+    "actual" : "CONFLICT/CONFLICT_UNOWNED",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-17711535660220242169",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-17711535660220242169\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : true,
+    "receipt" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-17711535660220242169\\.entity-generation\\apply\\receipts\\f5b46e1218c9c46ef93fa299949add0fb60210696857fb41200cd376bcd08800\\g1-6d9495ca14c2d3c74ae08a111f9ce0f61328f8a66108d820cbb6ac0546324366.json",
+    "receiptExists" : false,
+    "journal" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-17711535660220242169\\.entity-generation\\apply\\journal.json",
+    "journalExists" : false
+  }, {
+    "name" : "other-plan-conflict",
+    "status" : "FAIL",
+    "expected" : "CONFLICT/CONFLICT_OTHER_PLAN",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected APPLIED/APPLIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "stale-draft-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/STALE_INPUT",
+    "actual" : "REJECTED/STALE_INPUT",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-15710613757130760621",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-15710613757130760621\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "stale-context-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/STALE_INPUT",
+    "actual" : "REJECTED/STALE_INPUT",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-11465169339763793494",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-11465169339763793494\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "stale-plan-id-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/PLAN_MISMATCH",
+    "actual" : "REJECTED/PLAN_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-2459876140657150407",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-2459876140657150407\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "bad-plan-hash-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/PLAN_HASH_MISMATCH",
+    "actual" : "REJECTED/PLAN_HASH_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-16827141982411054417",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-16827141982411054417\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "multi-file-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/MULTI_FILE",
+    "actual" : "REJECTED/MULTI_FILE",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-674895718364938712",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-674895718364938712\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "unsupported-recipe-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/UNSUPPORTED_RECIPE",
+    "actual" : "REJECTED/UNSUPPORTED_RECIPE",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-6278017641587530821",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-6278017641587530821\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-selftest-mode-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_SUMMARY_MISMATCH",
+    "actual" : "REJECTED/C_SUMMARY_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-7115187262251293152",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-7115187262251293152\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-failed-status-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_SUMMARY_MISMATCH",
+    "actual" : "REJECTED/C_SUMMARY_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-6439504865521426080",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-6439504865521426080\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-plan-mismatch-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_SUMMARY_MISMATCH",
+    "actual" : "REJECTED/C_SUMMARY_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-10988629280995500911",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-10988629280995500911\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-source-hash-mismatch-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_SUMMARY_MISMATCH",
+    "actual" : "REJECTED/C_SUMMARY_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-10734638563921155508",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-10734638563921155508\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-maven-not-attempted-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_SUMMARY_MISMATCH",
+    "actual" : "REJECTED/C_SUMMARY_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-6173338128892001709",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-6173338128892001709\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-maven-exit-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_SUMMARY_MISMATCH",
+    "actual" : "REJECTED/C_SUMMARY_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-16480657217068296238",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-16480657217068296238\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-no-tests-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_TESTS_INCOMPLETE",
+    "actual" : "REJECTED/C_TESTS_INCOMPLETE",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-9570421237706415797",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-9570421237706415797\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-skipped-tests-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_TESTS_INCOMPLETE",
+    "actual" : "REJECTED/C_TESTS_INCOMPLETE",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14944181503787254128",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14944181503787254128\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-missing-field-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_SUMMARY_MISSING",
+    "actual" : "REJECTED/C_SUMMARY_MISSING",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14091914631618847046",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14091914631618847046\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-wrong-type-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_SUMMARY_TYPE",
+    "actual" : "REJECTED/C_SUMMARY_TYPE",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-5014033445731594449",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-5014033445731594449\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-expected-hash-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_EXPECTED_HASH_MISMATCH",
+    "actual" : "REJECTED/C_EXPECTED_HASH_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14929132107124941591",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14929132107124941591\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "c-bytes-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/C_BYTES_MISMATCH",
+    "actual" : "REJECTED/C_BYTES_MISMATCH",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-16610449015374834567",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-16610449015374834567\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "source-root-traversal-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/SOURCE_ROOT_INVALID",
+    "actual" : "REJECTED/SOURCE_ROOT_INVALID",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-11056359766371046235",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-11056359766371046235\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "source-root-unc-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/SOURCE_ROOT_INVALID",
+    "actual" : "REJECTED/SOURCE_ROOT_INVALID",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-668135839379065114",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-668135839379065114\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "source-root-absolute-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/SOURCE_ROOT_INVALID",
+    "actual" : "REJECTED/SOURCE_ROOT_INVALID",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-1363705305363104465",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-1363705305363104465\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "parent-file-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/TARGET_PARENT_NOT_DIRECTORY",
+    "actual" : "REJECTED/TARGET_PARENT_NOT_DIRECTORY",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-15876539042446889426",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-15876539042446889426\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "target-directory-conflict",
+    "status" : "PASS",
+    "expected" : "CONFLICT/CONFLICT_UNOWNED",
+    "actual" : "CONFLICT/CONFLICT_UNOWNED",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-1007293283426904667",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-1007293283426904667\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : true,
+    "receipt" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-1007293283426904667\\.entity-generation\\apply\\receipts\\f5b46e1218c9c46ef93fa299949add0fb60210696857fb41200cd376bcd08800\\g1-6d9495ca14c2d3c74ae08a111f9ce0f61328f8a66108d820cbb6ac0546324366.json",
+    "receiptExists" : false,
+    "journal" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-1007293283426904667\\.entity-generation\\apply\\journal.json",
+    "journalExists" : false
+  }, {
+    "name" : "case-collision-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/TARGET_CASE_COLLISION",
+    "actual" : "REJECTED/TARGET_CASE_COLLISION",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-11243338853127588770",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-11243338853127588770\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "target-case-only-file-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/TARGET_CASE_COLLISION",
+    "actual" : "REJECTED/TARGET_CASE_COLLISION",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-17959623423759783164",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-17959623423759783164\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : true
+  }, {
+    "name" : "apply-locked-rejected",
+    "status" : "PASS",
+    "expected" : "REJECTED/APPLY_LOCKED",
+    "actual" : "REJECTED/APPLY_LOCKED",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-6969242183470567125",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-6969242183470567125\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "journal-incomplete-recovery",
+    "status" : "PASS",
+    "expected" : "RECOVERY_REQUIRED/JOURNAL_INCOMPLETE",
+    "actual" : "RECOVERY_REQUIRED/JOURNAL_INCOMPLETE",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-4102477984267448865",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-4102477984267448865\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false,
+    "receipt" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-4102477984267448865\\.entity-generation\\apply\\receipts\\f5b46e1218c9c46ef93fa299949add0fb60210696857fb41200cd376bcd08800\\g1-6d9495ca14c2d3c74ae08a111f9ce0f61328f8a66108d820cbb6ac0546324366.json",
+    "receiptExists" : false,
+    "journal" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-4102477984267448865\\.entity-generation\\apply\\journal.json",
+    "journalExists" : true
+  }, {
+    "name" : "journal-invalid-recovery",
+    "status" : "PASS",
+    "expected" : "RECOVERY_REQUIRED/JOURNAL_INVALID",
+    "actual" : "RECOVERY_REQUIRED/JOURNAL_INVALID",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-8418081794076569284",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-8418081794076569284\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : false
+  }, {
+    "name" : "late-target-conflict",
+    "status" : "PASS",
+    "expected" : "CONFLICT/CONFLICT_LATE_TARGET",
+    "actual" : "CONFLICT/CONFLICT_LATE_TARGET",
+    "detail" : "ok",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14763664976872503296",
+    "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14763664976872503296\\src\\main\\java\\com\\example\\generated\\FutureCatalog.java",
+    "targetExists" : true,
+    "receipt" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14763664976872503296\\.entity-generation\\apply\\receipts\\f5b46e1218c9c46ef93fa299949add0fb60210696857fb41200cd376bcd08800\\g1-6d9495ca14c2d3c74ae08a111f9ce0f61328f8a66108d820cbb6ac0546324366.json",
+    "receiptExists" : false,
+    "journal" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-14763664976872503296\\.entity-generation\\apply\\journal.json",
+    "journalExists" : false
+  }, {
+    "name" : "rollback-after-publish",
+    "status" : "FAIL",
+    "expected" : "ROLLED_BACK/APPLY_IO",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected ROLLED_BACK/APPLY_IO but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "rollback-proof-recovery",
+    "status" : "FAIL",
+    "expected" : "RECOVERY_REQUIRED/TARGET_MODIFIED",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected RECOVERY_REQUIRED/TARGET_MODIFIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "summary-changed-rollback",
+    "status" : "FAIL",
+    "expected" : "ROLLED_BACK/C_SUMMARY_CHANGED",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected ROLLED_BACK/C_SUMMARY_CHANGED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "noop-requires-fresh-c",
+    "status" : "FAIL",
+    "expected" : "REJECTED/C_SUMMARY_MISMATCH",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected APPLIED/APPLIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "corrupt-ledger-recovery",
+    "status" : "FAIL",
+    "expected" : "RECOVERY_REQUIRED/LEDGER_INVALID",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected APPLIED/APPLIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "unsupported-ledger-version-recovery",
+    "status" : "FAIL",
+    "expected" : "RECOVERY_REQUIRED/LEDGER_INVALID",
+    "actual" : "exception",
+    "detail" : "AssertionError: expected APPLIED/APPLIED but got ROLLED_BACK/PUBLICATION_FAILED: No-replace publication failed",
+    "targetExists" : false
+  }, {
+    "name" : "reserved-device-name-rejected",
+    "status" : "PASS",
+    "expected" : "REJECT",
+    "actual" : "REJECT",
+    "detail" : "ok",
+    "targetExists" : false
+  }, {
+    "name" : "ads-path-rejected",
+    "status" : "PASS",
+    "expected" : "REJECT",
+    "actual" : "REJECT",
+    "detail" : "ok",
+    "targetExists" : false
+  }, {
+    "name" : "traversal-path-rejected",
+    "status" : "PASS",
+    "expected" : "REJECT",
+    "actual" : "REJECT",
+    "detail" : "ok",
+    "targetExists" : false
+  }, {
+    "name" : "trailing-space-path-rejected",
+    "status" : "PASS",
+    "expected" : "REJECT",
+    "actual" : "REJECT",
+    "detail" : "ok",
+    "targetExists" : false
+  }, {
+    "name" : "symlink-or-junction-rejected",
+    "status" : "SKIP",
+    "expected" : "REJECT",
+    "actual" : "SKIP",
+    "detail" : "Alias creation is unavailable in this environment",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-3924102274638224241",
+    "targetExists" : false
+  }, {
+    "name" : "state-root-alias-rejected",
+    "status" : "SKIP",
+    "expected" : "REJECT",
+    "actual" : "SKIP",
+    "detail" : "Alias creation is unavailable in this environment",
+    "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\d\\apply-selftest-20261029-135543\\work\\project-3741349045251300480",
+    "targetExists" : false
+  } ]
+}

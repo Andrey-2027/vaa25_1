@@ -1,0 +1,25 @@
+{
+    "kind":  "g1-c-selftest-v2",
+    "mode":  "selftest",
+    "status":  "passed",
+    "checks":  {
+                   "positive":  true,
+                   "documentPositive":  true,
+                   "brokenCompile":  true,
+                   "hashRejected":  true,
+                   "noTests":  true,
+                   "allSkipped":  true
+               },
+    "failedChecks":  [
+
+                     ],
+    "runs":  {
+                 "positive":  "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e1-c\\harness-selftest-20261029-200753\\positive",
+                 "documentPositive":  "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e1-c\\harness-selftest-20261029-200753\\positive-document",
+                 "brokenCompile":  "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e1-c\\harness-selftest-20261029-200753\\broken-compile",
+                 "hashRejection":  "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e1-c\\harness-selftest-20261029-200753\\hash-rejection",
+                 "noTests":  "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e1-c\\harness-selftest-20261029-200753\\no-tests",
+                 "allSkipped":  "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e1-c\\harness-selftest-20261029-200753\\all-skipped"
+             },
+    "timestamp":  "2026-10-29T20:09:25.6228766+03:00"
+}

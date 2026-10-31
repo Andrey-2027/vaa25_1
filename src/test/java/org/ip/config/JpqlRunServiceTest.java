@@ -2,12 +2,12 @@ package org.ip.config;
 
 import jakarta.persistence.EntityManager;
 import org.ip.Application;
-import org.ipro.reportstudio.data.QueryField;
-import org.ipro.reportstudio.data.ReportDataset;
-import org.ipro.reportstudio.query.ReportPreviewService;
-import org.ipro.reportstudio.query.ReportQueryExecutor;
-import org.ipro.reportstudio.query.ReportQueryGuard;
-import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.report.data.QueryField;
+import org.ipro.report.data.ReportDataset;
+import org.ipro.query.ReportPreviewService;
+import org.ipro.query.ReportQueryExecutor;
+import org.ipro.query.ReportQueryGuard;
+import org.ipro.query.sqm.SqmQuerySemanticAnalyzer;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;

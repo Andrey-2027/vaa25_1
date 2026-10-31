@@ -1,0 +1,113 @@
+- link "← Формы E5.B":
+  - /url: /
+- generic: Черновик документа
+- button "Новый":
+  - generic: Новый
+- button "Загрузить JSON":
+  - generic: Загрузить JSON
+- text: 
+- list
+- button "Выгрузить JSON":
+  - generic: Выгрузить JSON
+- button "Проверить":
+  - generic: Проверить
+- button "Показать Java":
+  - generic: Показать Java
+- button "Обновить каталог":
+  - generic: Обновить каталог
+- generic: Структура проверена
+- status: Исходник сформирован
+- button "Основные":
+  - generic: Основные
+- button "Данные" [pressed]:
+  - generic: Данные
+- text:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+- button "Назад к списку":
+  - generic: Назад к списку
+- heading "Документ / counterparty" [level=4]
+- generic: Имя
+- textbox "Имя": counterparty
+- generic: 
+- generic: Подпись
+- textbox "Подпись": Контрагент
+- generic: 
+- generic: Тип
+- button "Тип реквизита Ссылка":
+  - generic: Ссылка
+- generic: 
+- text: 
+- generic: Текст
+- text: 
+- generic: Integer
+- text: 
+- generic: Long
+- text: 
+- generic: Число
+- text: 
+- generic: Да / нет
+- text: 
+- generic: Дата
+- text: 
+- generic: Дата и время
+- text: 
+- generic: Ссылка
+- generic: Тип реквизита
+- generic: Обязателен при записи
+- generic: 
+- checkbox "Обязателен при записи"
+- generic: Обязательность UI
+- button "Обязательность UI Авто":
+  - generic: Авто
+- generic: 
+- text: 
+- generic: Авто
+- text: 
+- generic: Обязательно
+- text: 
+- generic: Необязательно
+- generic: Обязательность UI
+- generic: Колонка
+- textbox "Колонка": counterparty_id
+- generic: 
+- 'button "Колонка: по предложению" [disabled]':
+  - generic: Авто
+- generic: Тип ссылки
+- combobox "Тип ссылки": Контрагенты · com.example.generated.targets.ReferenceTarget
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Применение
+- generic: 
+- checkbox "Форма" [checked]
+- generic: Форма
+- generic: 
+- checkbox "Список" [checked]
+- generic: Список
+- generic: 
+- checkbox "Выбор" [checked]
+- generic: Выбор
+- status
+- generic "Черновик / Данные / counterparty · Классы и таблицы ещё не созданы"
+- dialog "Java · BrowserGeneratedDocument" [active]:
+  - heading "Java · BrowserGeneratedDocument" [level=2]
+  - button "CREATE · com/example/generated/BrowserGeneratedDocument.java":
+    - generic: CREATE · com/example/generated/BrowserGeneratedDocument.java
+  - generic: "com/example/generated/BrowserGeneratedDocument.javaФайлов: 1"
+  - text: Исходник сформирован · Проверка компиляцией ещё не выполнена
+  - generic: Исходник
+  - textbox "Исходник": "package com.example.generated; import jakarta.persistence.Column; import jakarta.persistence.Entity; import jakarta.persistence.FetchType; import jakarta.persistence.JoinColumn; import jakarta.persistence.ManyToOne; import jakarta.persistence.Table; import jakarta.validation.constraints.Size; import org.ipro.crud.StandardDocumentEntity; import org.ipro.metadata.annotation.EntityMetadata; import org.ipro.metadata.annotation.FieldMetadata; import org.ipro.metadata.annotation.GridColumn; @Entity @Table(name = \"browser_generated_document\") @EntityMetadata( listFormTitle = \"Браузерный документ\", itemFormTitle = \"Браузерный документ\", selectionFormTitle = \"Браузерный документ\", icon = \"FILE\", listColumns = {\"number\", \"date\", \"comment\", \"counterparty\"}, selectColumns = {\"number\", \"date\", \"comment\", \"counterparty\"} ) public class BrowserGeneratedDocument extends StandardDocumentEntity { @Size(max = 255) @Column(name = \"comment\", length = 255) @FieldMetadata(label = \"Комментарий\", order = 30, grid = @GridColumn(visible = false)) private String comment; @ManyToOne(fetch = FetchType.LAZY, optional = true) @JoinColumn(name = \"counterparty_id\") @FieldMetadata(label = \"Контрагент\", order = 40, grid = @GridColumn(visible = false)) private com.example.generated.targets.ReferenceTarget counterparty; public String getComment() { return comment; } public void setComment(String comment) { this.comment = comment; } public com.example.generated.targets.ReferenceTarget getCounterparty() { return counterparty; } public void setCounterparty(com.example.generated.targets.ReferenceTarget counterparty) { this.counterparty = counterparty; } }"
+  - generic: 
+  - link "Скачать Java":
+    - /url: VAADIN/dynamic/resource/1/5d8ec45a-67f2-4c55-bedc-36053cd9e584/
+  - button "Закрыть":
+    - generic: Закрыть
+- radiogroup "Mode":
+  - radio
+  - radio
+  - radio
+  - radio [checked]
+- button "DevTools":
+- region "Notifications"
+- generic: Укажите тип ссылки
+- generic: Online

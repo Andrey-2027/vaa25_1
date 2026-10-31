@@ -1,4 +1,4 @@
-package org.ip.unidr.spike;
+package org.ipro.unidr.spike;
 
 import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.pdfbox.Loader;

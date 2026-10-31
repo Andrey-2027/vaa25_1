@@ -76,16 +76,39 @@ class LookupTargetFactsIT {
         referenceIndex.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry(BASE_PACKAGE);
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE);
+        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE, new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         SectionMetadataRegistry sections = new SectionMetadataRegistry(BASE_PACKAGE, metadataResolver);
         sections.afterPropertiesSet();
 
-        metadataTypes = new LinkedHashSet<>(
-            AnnotationClassScanner.scanAnnotated(BASE_PACKAGE, EntityMetadata.class));
+        metadataTypes = new LinkedHashSet<>(AnnotationClassScanner
+            .scanAnnotated(BASE_PACKAGE, EntityMetadata.class).stream()
+            .filter(LookupTargetFactsIT::isApplicationType)
+            .toList());
+        // Проверенный каталог: среди прикладных типов есть регистр (NomenclatureAccountingObject),
+        // и классификация обязана получить валидированный источник, как в приложении.
+        Set<Class<?>> managedTypes = new LinkedHashSet<>(metadataTypes);
+        sections.all().forEach(section -> managedTypes.add(section.getRowClass()));
+        org.ipro.metadata.ManagedEntityCatalog managed = org.mockito.Mockito.mock(
+            org.ipro.metadata.ManagedEntityCatalog.class);
+        org.mockito.Mockito.when(managed.managedEntityClasses()).thenReturn(managedTypes);
+        var descriptors = new org.ipro.data.EntityDescriptorCatalog(managed, sections, metadataResolver,
+            List.of(), List.of(), org.ip.metadata.EntityTypeTestSources.registers(managed, metadataResolver));
         assembler = new EntitySummaryAssembler(BASE_PACKAGE, metadataResolver, new FormRegistry(),
-            referenceIndex, numbering, subsystems, FacetResolver.none(), null, null, null,
+            referenceIndex, numbering, subsystems, FacetResolver.none(), descriptors, null, null,
             sections, null, null, null, null, null, null);
+    }
+
+    /**
+     * Скан идёт по всему classpath и видит fixture-сущности тестов (например, регистры,
+     * объявленные внутри spike-тестов). Замер описывает <b>прикладные</b> типы: класс,
+     * загруженный из {@code test-classes}, в замер не входит, иначе валидация регистра
+     * справедливо отказывает fixture'у, которого нет в прикладном persistence unit.
+     */
+    private static boolean isApplicationType(Class<?> type) {
+        var source = type.getProtectionDomain().getCodeSource();
+        if (source == null) return false;
+        return !source.getLocation().getPath().replace('\\', '/').contains("/test-classes");
     }
 
     // ---------------------------------------------------------------- замер

@@ -56,7 +56,8 @@ public final class SubsystemNode {
     }
 
     void sortChildren() {
-        children.sort((a, b) -> Integer.compare(a.getOrder(), b.getOrder()));
+        children.sort(java.util.Comparator.comparingInt(SubsystemNode::getOrder)
+            .thenComparing(node -> node.getMarkerClass().getName()));
         children.forEach(SubsystemNode::sortChildren);
     }
 
@@ -69,7 +70,8 @@ public final class SubsystemNode {
     }
 
     void sortOwnEntities() {
-        entities.sort((a, b) -> Integer.compare(a.getOrder(), b.getOrder()));
+        entities.sort(java.util.Comparator.comparingInt(EntityMetadataInfo::getOrder)
+            .thenComparing(entity -> entity.getEntityClass().getName()));
     }
 
     public List<EntityGroup> getEntityGroupsRecursive() {

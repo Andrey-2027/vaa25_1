@@ -1,5 +1,10 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.query.*;
+import org.ipro.query.param.*;
+import org.ipro.query.register.*;
+import org.ipro.query.sqm.*;
+
 import org.ip.Application;
 import org.ip.model.PrdSpec;
 import org.ip.repository.UserRepository;
@@ -9,7 +14,7 @@ import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsDimensionRegistry;
-import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.query.sqm.SqmQuerySemanticAnalyzer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

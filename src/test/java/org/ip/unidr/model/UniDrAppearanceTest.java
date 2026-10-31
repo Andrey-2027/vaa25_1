@@ -1,7 +1,8 @@
-package org.ip.unidr.model;
+package org.ipro.unidr.model;
+import org.ip.unidr.model.UniDrDefinitions;
 
-import org.ip.unidr.model.UniDrDefinition.Appearance;
-import org.ip.unidr.source.UniDrSourceCatalog;
+import org.ipro.unidr.model.UniDrDefinition.Appearance;
+import org.ipro.unidr.source.UniDrSourceCatalog;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -21,18 +22,21 @@ class UniDrAppearanceTest {
         appearance.put("reportHeader","x".repeat(4001));
         assertThatThrownBy(()->codec.decode(tree.toString())).isInstanceOf(UniDrValidationException.class).hasMessageContaining("appearance.reportHeader");
     }
-    private final UniDrDefinitionJsonCodec codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot()));
+    private final UniDrDefinitionJsonCodec codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrDefinitions.catalog()));
     private final String json=codec.encode(UniDrDefinitions.receivingItemsSummary());
-    @Test void flagsRoundTripAndOldV1DefinitionKeepsDefaults() {
-        String without=json.replaceAll(",\"appearance\":\\{[^}]*}","");
+    @Test void flagsRoundTripAndOldV1DefinitionKeepsDefaults() throws Exception {
+        var tree=(com.fasterxml.jackson.databind.node.ObjectNode)new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
+        tree.remove("appearance");String without=tree.toString();
         assertThat(codec.decode(without).appearance()).isEqualTo(Appearance.defaults());
         String changed=json.replace("\"rowBorders\":true","\"rowBorders\":false").replace("\"stripeRows\":true","\"stripeRows\":false");
         assertThat(codec.decode(changed).appearance()).isEqualTo(new Appearance(false,true,false));
         assertThat(codec.decode(codec.encode(codec.decode(changed)))).isEqualTo(codec.decode(changed));
     }
     @ParameterizedTest @ValueSource(strings={"null","false","{}","{\"rowBorders\":true,\"columnBorders\":true}","{\"rowBorders\":1,\"columnBorders\":true,\"stripeRows\":true}"})
-    void malformedAppearanceIsNotSilentlyDefaulted(String appearance) {
-        String malformed=json.replaceAll("\"appearance\":\\{[^}]*}","\"appearance\":"+appearance);
+    void malformedAppearanceIsNotSilentlyDefaulted(String appearance) throws Exception {
+        var mapper=new com.fasterxml.jackson.databind.ObjectMapper();
+        var tree=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(json);
+        tree.set("appearance",mapper.readTree(appearance));String malformed=tree.toString();
         assertThatThrownBy(()->codec.decode(malformed)).isInstanceOf(UniDrValidationException.class).hasMessageContaining("appearance");
     }
 }

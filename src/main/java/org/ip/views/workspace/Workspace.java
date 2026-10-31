@@ -134,6 +134,17 @@ public class Workspace extends VerticalLayout implements WorkspaceGateway {
         showView(entry);
     }
 
+    /** App-side caption change: preserve entry, component, tab and its close button. */
+    public void updateTitle(String entryId, String title) {
+        Entry entry = entries.get(entryId);
+        if (entry == null) return;
+        entry.setTitle(java.util.Objects.requireNonNull(title));
+        entry.getTab().getChildren().flatMap(Component::getChildren)
+            .filter(component -> component instanceof Span && component.getElement().hasAttribute("data-entry-caption"))
+            .map(component -> (Span) component).findFirst().ifPresent(span -> span.setText(title));
+        if (entryId.equals(activeId) && transientContent == null) titleLabel.setText(title);
+    }
+
     public <T extends Component> void open(Class<T> viewType, String entryId,
                                            String tabTitle, Consumer<T> initializer) {
         Entry existing = entries.get(entryId);
@@ -471,13 +482,15 @@ public class Workspace extends VerticalLayout implements WorkspaceGateway {
     }
 
     private Tab createTab(String entryId, String title) {
+        Span caption = new Span(title);
+        caption.getElement().setAttribute("data-entry-caption", "");
         Button closeBtn = new Button(VaadinIcon.CLOSE_SMALL.create(), e -> close(entryId));
         closeBtn.getStyle().set("margin", "0").set("padding", "0");
         closeBtn.setWidth("16px");
         closeBtn.setHeight("16px");
 
         Tab tab = new Tab(new HorizontalLayout(
-            new com.vaadin.flow.component.html.Span(title), closeBtn
+            caption, closeBtn
         ));
         tab.setId(entryId);
         tab.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");

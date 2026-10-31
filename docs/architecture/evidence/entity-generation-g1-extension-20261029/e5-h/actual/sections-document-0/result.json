@@ -1,0 +1,14 @@
+{
+  "id": "sections-document-0",
+  "input": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031/inputs/sections/document-0",
+  "planId": "g1-217d7847ce92f391334193675c780d0ba128b70deb50f83a3c5a72266346c9fb",
+  "files": 1,
+  "cTests": 5,
+  "runtimeTests": 5.0,
+  "applied": "APPLIED",
+  "noop": "NOOP",
+  "conflict": "CONFLICT",
+  "dependencies": 17,
+  "summary": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031/actual/sections-document-0/c/accepted/summary.json",
+  "project": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031/actual/sections-document-0/project"
+}

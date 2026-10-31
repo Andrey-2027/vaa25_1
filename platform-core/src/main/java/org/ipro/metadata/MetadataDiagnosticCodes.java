@@ -11,6 +11,36 @@ public final class MetadataDiagnosticCodes {
     private MetadataDiagnosticCodes() {
     }
 
+    /** Final backend classification sources: errors cannot be silenced by legacy allowances. */
+    public static final String CLASSIFICATION_SOURCE_FAILED = "CLASSIFICATION_SOURCE_FAILED";
+    public static final String CLASSIFICATION_SOURCE_MISSING = "CLASSIFICATION_SOURCE_MISSING";
+    public static final String CLASSIFICATION_SOURCE_DUPLICATE = "CLASSIFICATION_SOURCE_DUPLICATE";
+    public static final String ENTITY_CLASSIFICATION_CONFLICT = "ENTITY_CLASSIFICATION_CONFLICT";
+    public static final String INTERNED_GENERIC_WRITES = "INTERNED_GENERIC_WRITES";
+    public static final String NUMBERING_ROLE_KIND_CONFLICT = "NUMBERING_ROLE_KIND_CONFLICT";
+    public static final String LOOKUP_TARGET_NOT_ACCESSIBLE = "LOOKUP_TARGET_NOT_ACCESSIBLE";
+
+    public static final String INVALID_ENTITY_METADATA = "INVALID_ENTITY_METADATA";
+    public static final String INVALID_FIELD_METADATA = "INVALID_FIELD_METADATA";
+
+    /** Owner-capability: указанное свойство отсутствует в типе. */
+    public static final String CATALOG_OWNER_PROPERTY_MISSING = "CATALOG_OWNER_PROPERTY_MISSING";
+
+    /** Owner-capability: свойство не является поддержанной одиночной ManyToOne-связью. */
+    public static final String CATALOG_OWNER_ASSOCIATION_INVALID = "CATALOG_OWNER_ASSOCIATION_INVALID";
+
+    /** Owner-capability: цель не является допустимым managed CATALOG root с Long-ID. */
+    public static final String CATALOG_OWNER_TARGET_INVALID = "CATALOG_OWNER_TARGET_INVALID";
+
+    /** Owner-capability: декларации обязательности противоречат owner-контракту. */
+    public static final String CATALOG_OWNER_REQUIRED_MISMATCH = "CATALOG_OWNER_REQUIRED_MISMATCH";
+
+    /** Owner-capability: несколько конфликтующих объявлений в иерархии. */
+    public static final String CATALOG_OWNER_DUPLICATE = "CATALOG_OWNER_DUPLICATE";
+
+    /** Owner-capability объявлена у документа, строки секции или другого недопустимого child. */
+    public static final String CATALOG_OWNER_SUBJECT_INVALID = "CATALOG_OWNER_SUBJECT_INVALID";
+
     /** UI отказывается от обязательности, хотя контракт записи её требует. */
     public static final String UI_OPTIONAL_SERVER_REQUIRED = "UI_OPTIONAL_SERVER_REQUIRED";
 

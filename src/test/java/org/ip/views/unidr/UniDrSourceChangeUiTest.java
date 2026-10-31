@@ -1,13 +1,14 @@
-package org.ip.views.unidr;
+package org.ipro.unidr.ui;
+import org.ip.unidr.query.UniDrReferenceService;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import org.ip.unidr.model.*;
-import org.ip.unidr.query.*;
-import org.ip.unidr.run.UniDrRunService;
-import org.ip.unidr.source.*;
-import org.ipro.reportstudio.data.QueryField;
-import org.ipro.reportstudio.dom.ReportQuerySource;
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.query.*;
+import org.ipro.unidr.run.UniDrRunService;
+import org.ipro.unidr.source.*;
+import org.ipro.report.data.QueryField;
+import org.ipro.query.document.ReportQuerySource;
 import org.junit.jupiter.api.*;
 import java.time.Clock;
 import java.util.*;

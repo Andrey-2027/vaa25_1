@@ -2,17 +2,17 @@ package org.ip.config;
 
 import java.util.Map;
 
-import org.ipro.reportstudio.data.ReportDataset;
-import org.ipro.reportstudio.data.EntityRef;
-import org.ipro.reportstudio.query.GuardResult;
-import org.ipro.reportstudio.query.ReportPreviewService;
-import org.ipro.reportstudio.query.ReportQueryGuard;
+import org.ipro.report.data.ReportDataset;
+import org.ipro.report.data.EntityRef;
+import org.ipro.query.GuardResult;
+import org.ipro.query.ReportPreviewService;
+import org.ipro.query.ReportQueryGuard;
 import org.ipro.jr.run.JpqlDatasetRunner;
 import org.springframework.stereotype.Component;
 
 /**
  * Единая точка выполнения пользовательского JPQL для всех движков отчётов
- * (UDR, JR/jrxml, REST-эндпоинт превью): guard → preview.
+ * (UniDR, JR/jrxml, REST-эндпоинт превью): guard → preview.
  *
  * <p>RLS применяется принудительно: {@link ReportPreviewService} выполняет
  * запрос в транзакции через {@code ReportQueryExecutor}, который включает
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
  * <ul>
  * <li>{@link #MAX_ROWS} / {@link #TIMEOUT_MS} — защита от тяжёлых запросов;</li>
  * <li>лимит колонок задаёт вызывающий движок ({@code maxColumns}):
- * UDR — стандартный {@link ReportQueryGuard#MAX_COLUMNS}, JR/JSS —
+ * UniDR — стандартный {@link ReportQueryGuard#MAX_COLUMNS}, JR/JSS —
  * расширенный (pixel-perfect корпоративный документ шире ad-hoc отчёта).</li>
  * </ul></p>
  */
@@ -44,7 +44,7 @@ public class JpqlRunService implements JpqlDatasetRunner {
     }
 
     /**
-     * Выполнение со стандартным лимитом колонок (UDR).
+     * Выполнение со стандартным лимитом колонок (UniDR).
      * Имена полей результата — исходные алиасы SELECT.
      */
     public ReportDataset run(String jpql, Map<String, Object> bindings) {

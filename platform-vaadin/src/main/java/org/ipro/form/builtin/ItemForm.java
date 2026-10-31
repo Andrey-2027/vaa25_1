@@ -101,6 +101,23 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * без metadata-полей (E1.0a).
      */
     private boolean readOnlyMode;
+    private Object openingCatalogOwner;
+    private org.ipro.metadata.CatalogOwnerDescriptor catalogOwner() {
+        return metadata == null ? null : org.ipro.form.CatalogOwnerForms.ownerOf(entityClass);
+    }
+    private void refreshOwnerLock() {
+        var owner = catalogOwner();
+        if (owner != null) registry.getBinding(owner.property()).ifPresent(b ->
+            b.setLocked(openingCatalogOwner != null || entity != null && entity.getId() != null));
+    }
+    private void requireSameOpeningOwner(T value) {
+        var owner = catalogOwner();
+        if (owner != null && openingCatalogOwner instanceof IdentifiableEntity<?> expected && value != null) {
+            Object actual = metadata.getFieldByName(owner.property()).getValue(value);
+            if (!(actual instanceof IdentifiableEntity<?> reference) || !expected.getId().equals(reference.getId()))
+                throw new IllegalArgumentException("Entity does not match the opening catalog owner");
+        }
+    }
 
     /**
      * Кнопки «Сохранить», созданные {@link #addSaveButton()}: единственный источник
@@ -536,10 +553,12 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * и перезагружает строки табличных частей для этого родителя.
      */
     public void setEntity(T entity) {
+        requireSameOpeningOwner(entity);
         this.entity = entity;
         entityStateListeners.forEach(listener -> listener.accept(entity));
         T populatingEntity = entity != null ? entity : newInstance();
         registry.readAllFromEntity(populatingEntity);
+        refreshOwnerLock();
         for (Consumer<T> refresher : displayRefreshers) {
             refresher.accept(populatingEntity);
         }
@@ -576,11 +595,30 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * неизвестное поле — {@code IllegalArgumentException} сразу, а не тихая потеря.</p>
      */
     public T initializeNewEntity(Map<String, Object> initialValues) {
+        var owner = catalogOwner();
+        Object requestedOwner = org.ipro.form.CatalogOwnerForms.openingOwner(entityClass, initialValues);
+        if (openingCatalogOwner != null && owner != null && initialValues != null
+                && initialValues.containsKey(owner.property()) && requestedOwner == null)
+            throw new IllegalArgumentException("The opening catalog owner cannot be cleared");
+        if (requestedOwner instanceof IdentifiableEntity<?> requested) {
+            if (openingCatalogOwner instanceof IdentifiableEntity<?> opening && !opening.getId().equals(requested.getId()))
+                throw new IllegalArgumentException("The opening catalog owner cannot be replaced");
+            if (owner != null && entity != null && entity.getId() != null) {
+                Object previous = metadata.getFieldByName(owner.property()).getValue(entity);
+                if (!(previous instanceof IdentifiableEntity<?> persisted) || !persisted.getId().equals(requested.getId()))
+                    throw new IllegalArgumentException("A persisted catalog owner cannot be replaced");
+            }
+        }
         if (entity == null) {
             entity = newInstance();
         }
         applyInitialValues(entity, initialValues);
+        if (owner != null && initialValues != null && initialValues.containsKey(owner.property())) {
+            openingCatalogOwner = requestedOwner;
+        }
+        requireSameOpeningOwner(entity);
         registry.readAllFromEntity(entity);
+        refreshOwnerLock();
         for (Consumer<T> refresher : displayRefreshers) {
             refresher.accept(entity);
         }
@@ -620,9 +658,11 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * {@code tableSection(...).applyPersistedRows(...)} (см. harvest/re-apply adapter).
      */
     public void applyPersistedEntity(T saved) {
+        requireSameOpeningOwner(saved);
         this.entity = saved;
         entityStateListeners.forEach(listener -> listener.accept(saved));
         registry.readAllFromEntity(saved);
+        refreshOwnerLock();
         for (Consumer<T> refresher : displayRefreshers) {
             refresher.accept(saved);
         }
@@ -724,6 +764,10 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
             return new FormSaveResult.Failure<>(errors, null);
         }
         try {
+            var owner = catalogOwner();
+            if (owner != null && openingCatalogOwner instanceof IdentifiableEntity<?> target) {
+                return org.ipro.data.CatalogOwnerContext.call(owner.targetTypeId(), (Long)target.getId(), () -> saveHandler.save(this));
+            }
             return saveHandler.save(this);
         } catch (ObjectOptimisticLockingFailureException | jakarta.persistence.OptimisticLockException ex) {
             // Конфликт @Version: данные формы верны, но устарели — отдельный исход,
@@ -835,6 +879,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         readOnlyMode = reason != null;
         this.readOnlyReason = reason;
         registry.setReadOnly(readOnlyMode);
+        refreshOwnerLock();
         saveButtons.forEach(button -> button.setVisible(!readOnlyMode));
         sections.setReadOnly(readOnlyMode);
         setReadOnlyNotice(reason == null ? "" : reason.noticeText());

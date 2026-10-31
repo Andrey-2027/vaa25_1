@@ -1,12 +1,13 @@
-package org.ip.views.unidr;
+package org.ipro.unidr.ui;
+import org.ip.unidr.model.UniDrDefinitions;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
-import org.ip.unidr.model.*;
+import org.ipro.unidr.model.*;
 import org.ip.unidr.query.UniDrReferenceService;
-import org.ip.unidr.run.*;
-import org.ip.unidr.source.*;
-import org.ip.unidr.store.UniDrFileStore;
+import org.ipro.unidr.run.*;
+import org.ipro.unidr.source.*;
+import org.ipro.unidr.store.UniDrFileStore;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,10 +33,10 @@ class UniDrFileUiTest {
         when(session.hasLock()).thenReturn(true);
         ui.getInternals().setSession(session);
         var access=new UniDrAccess(()->true,()->SecurityContextHolder.getContext().getAuthentication().getName());
-        store=new UniDrFileStore(directory,new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot())),access);
+        store=new UniDrFileStore(directory,new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrDefinitions.catalog())),access);
     }
     @AfterEach void cleanup() {UI.setCurrent(null);ui=null;SecurityContextHolder.clearContext();}
-    UniDrView view() {var view=new UniDrView(mock(UniDrRunService.class),references,Clock.systemUTC(),null,store);ui.add(view);return view;}
+    UniDrView view() {var view=new UniDrView(mock(UniDrRunService.class),references,Clock.systemUTC(),null,store,UniDrDefinitions.catalog(references),UniDrDefinitions.receivingItemsSummary());ui.add(view);return view;}
     @Test void saveClearsDirtyAndReopeningRestoresSettings() {
         var view=view();var editor=UniDrEditorTest.all(view,UniDrDefinitionEditor.class).getFirst();editor.title.setValue("Мой сохранённый отчёт");
         assertThat(view.getElement().hasAttribute("data-dirty")).isTrue();
@@ -66,6 +67,20 @@ class UniDrFileUiTest {
         var view=view();var previous=view.definition();
         assertThatThrownBy(()->view.openSaved(123)).isInstanceOf(UniDrFileStore.StoreException.class);
         assertThat(view.definition()).isEqualTo(previous);
+    }
+    @Test void targetEntityClassFromPrintDialogBecomesSavedPrintBinding() {
+        var view=view();
+        var event=mock(com.vaadin.flow.router.BeforeEnterEvent.class);
+        var location=mock(com.vaadin.flow.router.Location.class);
+        when(event.getLocation()).thenReturn(location);
+        when(location.getQueryParameters()).thenReturn(com.vaadin.flow.router.QueryParameters.simple(
+            Map.of("targetEntityClass","org.ip.domain.ReceivingDocument")));
+        view.beforeEnter(event);
+        assertThat(view.definition().targetEntityClass()).isEqualTo("org.ip.domain.ReceivingDocument");
+        var saved=view.saveDefinition(false,"Накладные","");
+        assertThat(store.findPrintable("org.ip.domain.ReceivingDocument"))
+            .extracting(UniDrFileStore.Entry::id).containsExactly(saved.id());
+        assertThat(store.load(saved.id()).definition().targetEntityClass()).isEqualTo("org.ip.domain.ReceivingDocument");
     }
     @Test void saveDialogUsesEnteredNameAndDescription() {
         var view=view();var dialog=view.saveDialog(false);

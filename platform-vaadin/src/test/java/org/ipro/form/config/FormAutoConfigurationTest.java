@@ -81,6 +81,33 @@ import static org.mockito.Mockito.when;
 class FormAutoConfigurationTest {
 
     @Test
+    void standardSaveHandlerIsProvidedWithoutAnApplicationForwarder() {
+        runner(true).run(context -> {
+            assertThat(context).hasNotFailed();
+            assertThat(context).hasSingleBean(org.ipro.form.FormSaveHandler.class);
+            assertThat(context).hasBean("defaultFormSaveHandler");
+        });
+    }
+
+    @Test
+    void applicationSaveHandlerReplacesTheDefault() {
+        runner(true).withUserConfiguration(CustomSaveConfiguration.class).run(context -> {
+            assertThat(context).hasNotFailed();
+            assertThat(context).hasSingleBean(org.ipro.form.FormSaveHandler.class);
+            assertThat(context).doesNotHaveBean("defaultFormSaveHandler");
+            assertThat(context).hasBean("customSaveHandler");
+        });
+    }
+
+    @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+    static class CustomSaveConfiguration {
+        @org.springframework.context.annotation.Bean
+        org.ipro.form.FormSaveHandler<org.ipro.identity.IdentifiableEntity<Long>> customSaveHandler() {
+            return form -> new org.ipro.form.FormSaveResult.Success<>(form.getEntity());
+        }
+    }
+
+    @Test
     void optionalStructureNavigationIsInjectedIntoBothFormAssemblyPaths() {
         var navigation = mock(org.ipro.form.link.EntityStructureNavigation.class);
         runner(true)

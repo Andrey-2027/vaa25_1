@@ -161,7 +161,7 @@ ERP-функции производства, склада и планирова�
 | Гриды | server-side filter/grouping, saved views, projection/HQL режимы |
 | RLS | dimension registry, read/write/UI gates, Hibernate filters, statement detection |
 | Метаданные | entity/field/table-section metadata, `ColumnPath`, `FetchGraphs` |
-| Отчёты | Report Studio, Jasper/DynamicReports/UReport integrations, query guards |
+| Отчёты | Report Studio (UDR), JRXML (Jasper), UniDR и DynamicReports-рендер, query guards |
 | Cross-cutting | numbering, telemetry, field audit, global search |
 | Архитектурные правила | запрет зависимости `org.ipro` от `org.ip`, правила чистоты form assembly |
 
@@ -196,8 +196,14 @@ read/write политика (условие входа записано в §C5)
 Living audit `docs/architecture/appdev-first-audit.md` является обязательным входом
 для этапов B–I. Текущие группы долга:
 
-- `B3`: semantic entity model migration remains (`ADX-01`); domain switch/two-phase
-  save и пустая section wiring (`ADX-02`–`ADX-03`) закрыты в текущем scope;
+- `B3`: semantic entity runtime contract (`ADX-01`) закрыт ET0–ET7 (2026-10-27):
+  annotationless Standard*, единая классификация, cross-contract gate и совместимая
+  custom-проба подтверждены; [evidence](docs/plans/entity-types-appdev-first-et7-evidence.md).
+  Domain switch/two-phase save и пустая section wiring (`ADX-02`–`ADX-03`) закрыты
+  в текущем scope. Полный interning ET8 закрыт 2026-10-28 —
+  [evidence](docs/plans/entity-types-appdev-first-et8-evidence.md). ET9 handoff в существующий
+  design-core закрыт: версии, факты runtime и явные blockers —
+  [evidence](docs/plans/entity-types-appdev-first-et9-evidence.md). Исполнимая генерация остаётся G1;
 - `C2`: дублирование RLS intent между annotations, filter SQL и write checks
   (`ADX-06`) закрыто: intent объявляется один раз, read-предикат стал checked duplication
   с fail-fast сверкой при старте — для стандартного измерения из `valuePaths`, для
@@ -472,9 +478,9 @@ gitvaa-application
 Отложенные pre-distribution gates, не блокирующие текущую разработку:
 
 1. Оформить FilterGrid, ReportFlowUI и crudui как нормальные versioned Git/release-артефакты либо публиковать их во внутренний Maven repository.
-2. Зафиксировать локальные изменения UReport3 отдельным commit/release.
-3. Закрыть лицензионное решение по iText 5/UReport до distributable build.
-4. Добавить CI на чистом checkout с получением воспроизводимых внутренних артефактов.
+2. Добавить CI на чистом checkout с получением воспроизводимых внутренних артефактов.
+
+UReport3 исключён из manifest и POM (U1.3); вместе с ним ушёл iText 5 / AGPL-риск и отдельный fork gate.
 
 ### A3. Конфигурация и эксплуатационная безопасность
 
@@ -603,6 +609,12 @@ adapters и use cases после B3.11 удалены.
 
 Цель B3 — убрать domain type switch и generic two-phase save, не превращая
 архитектурную безопасность в обязательный набор классов для каждого документа.
+Уточнение 2026-10-27: runtime-комплект ET0–ET7 завершён; поддержанные
+catalog/document/custom/owned/internal/register и текущие interned-профили описаны
+в [runtime-профилях](docs/architecture/entity-types-runtime-profiles.md). Существующие
+модели с несовместимыми инвариантами сохраняются custom по результатам ET5. Этот gate
+открывает подготовку базовых рецептов, но не включает новую генерацию или накопление.
+
 B3 закрывает semantic/default-save часть `ADX-01`/`ADX-02`; cleanup-срез B3.11
 закрывает `ADX-03` — section wiring и root delete cascade стали metadata-driven.
 
@@ -1606,7 +1618,7 @@ immutable/write-through секции и другие ещё не реализо�
 Ближайшая цель — не функциональный паритет с JMIX Reports, а консолидация:
 
 1. определить основной authoring/execution path;
-2. зафиксировать роль UDR, UReport и JRXML;
+2. зафиксировать роль UDR, JRXML и UniDR;
 3. закрыть лицензирование и воспроизводимость зависимостей;
 4. обеспечить RLS/resource permissions всех dataset channels;
 5. добавить историю запусков, retention и аудит;

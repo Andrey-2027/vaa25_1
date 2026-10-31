@@ -1,0 +1,55 @@
+# platform-events: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+class public final org.ipro.events.EntityEventPublisher
+  ctor public(org.springframework.context.ApplicationEventPublisher)
+  method public <T> void publishAggregateSaving(T, java.util.List<org.ipro.events.AggregateSection>, org.ipro.events.EventContext)
+  method public <T> void publishChanged(T, org.ipro.events.EventContext)
+  method public <T> void publishDeleted(T, org.ipro.events.EventContext)
+  method public <T> void publishDeleting(T, org.ipro.events.EventContext)
+  method public <T> void publishSaved(T, org.ipro.events.EventContext)
+  method public <T> void publishSaving(T, org.ipro.events.EventContext)
+  method public boolean isAggregateOperation(java.lang.Class<?>)
+  method public org.ipro.events.EntityEventPublisher$EventScope openAggregateOperation(org.ipro.events.EventContext)
+  method public org.ipro.events.EntityEventPublisher$EventScope openOperation(org.ipro.events.EventContext)
+  method public org.ipro.events.EventContext contextFor(java.lang.Class<?>, java.lang.Object, org.ipro.events.EventSource, java.lang.String)
+
+class public final org.ipro.lifecycle.EntityLifecycleInspection
+  method public static java.util.Optional<org.ipro.lifecycle.EntityLifecycleInspection$Assessment> of(org.ipro.lifecycle.EntityLifecycle<?>)
+
+class public final org.ipro.lifecycle.EntityLifecycleRegistry
+  ctor public(java.util.List<org.ipro.lifecycle.EntityLifecycle<?>>)
+  method public <T extends org.ipro.identity.IdentifiableEntity<?>> java.util.Optional<org.ipro.lifecycle.EntityLifecycle<T>> find(java.lang.Class<T>)
+  method public <T extends org.ipro.identity.IdentifiableEntity<?>> void beforeAggregateSave(java.lang.Class<T>, T, java.util.List<org.ipro.events.AggregateSection>, org.ipro.events.EventContext)
+  method public <T extends org.ipro.identity.IdentifiableEntity<?>> void beforeDelete(java.lang.Class<T>, T, org.ipro.events.EventContext)
+  method public <T extends org.ipro.identity.IdentifiableEntity<?>> void beforeSave(java.lang.Class<T>, T, org.ipro.events.EventContext)
+  method public <T extends org.ipro.identity.IdentifiableEntity<?>> void beforeUpdate(java.lang.Class<T>, T, T, org.ipro.events.EventContext)
+  method public <T extends org.ipro.identity.IdentifiableEntity<?>> void onSave(java.lang.Class<T>, T, org.ipro.events.EventContext)
+  method public void onEntityChanged(org.ipro.events.EntityChangedEvent<?>)
+
+class public org.ipro.events.config.EventsAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  ctor public()
+  method public org.ipro.events.EntityEventPublisher entityEventPublisher(org.springframework.context.ApplicationEventPublisher)
+  method public org.ipro.lifecycle.EntityLifecycleRegistry entityLifecycleRegistry(java.util.List<org.ipro.lifecycle.EntityLifecycle<?>>)
+
+class public static final org.ipro.events.EntityEventPublisher$EventScope
+  implements java.lang.AutoCloseable
+  method public void close()
+
+record public static final org.ipro.lifecycle.EntityLifecycleInspection$Assessment
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, java.util.List<org.ipro.lifecycle.EntityLifecycleInspection$Hook>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> handlerType()
+  method public java.util.List<org.ipro.lifecycle.EntityLifecycleInspection$Hook> hooks()
+
+record public static final org.ipro.lifecycle.EntityLifecycleInspection$Hook
+  extends java.lang.Record
+  ctor public(java.lang.String, boolean)
+  method public boolean declared()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String name()
+

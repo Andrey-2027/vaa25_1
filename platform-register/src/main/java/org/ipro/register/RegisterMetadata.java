@@ -1,5 +1,7 @@
 package org.ipro.register;
 
+import org.ipro.metadata.annotation.EntityKind;
+import org.ipro.metadata.annotation.EntityKindCandidate;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -19,6 +21,7 @@ import java.lang.annotation.Target;
  *
  * <p>Корректность декларации проверяет {@link RegisterMetadataValidator}.</p>
  */
+@EntityKindCandidate(EntityKind.INFORMATION_REGISTER)
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

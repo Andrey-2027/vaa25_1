@@ -160,7 +160,7 @@ class AttributeValueRenameOperationIT {
 
         assertThatThrownBy(() -> access.update(AttributeValue.class, row))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("бессмертно");
+            .hasMessageContaining("UPDATE", "@InternedContract");
         assertThatThrownBy(() -> access.delete(AttributeValue.class, fixture.value().getId()))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("DELETE");

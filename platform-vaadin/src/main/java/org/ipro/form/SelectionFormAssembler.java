@@ -120,7 +120,10 @@ public class SelectionFormAssembler {
                 customizer.customize(filterGrid, entityClass, variant);
             }
         }
-        return new SelectionForm<>(resolved.title(), filterGrid, onSelect);
+        var form = new SelectionForm<T>(resolved.title(), filterGrid, onSelect);
+        form.configureCatalogOwner(entityClass);
+        form.setFixedFilters(filters);
+        return form;
     }
 
     private static <T> Specification<T> combine(Specification<T> first, Specification<T> second) {

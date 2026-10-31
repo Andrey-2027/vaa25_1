@@ -1,0 +1,5115 @@
+{
+  "scope" : "Application test context; isolated H2; no demo seeding; query metadata ceiling with test-only allow gate (not user authorization)",
+  "types" : [ {
+    "type" : "org.ip.model.AccountingObjectCorrection",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "AccountingObjectCorrection",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.AccountingObjectCorrection",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "date",
+      "declaringType" : "org.ip.model.AccountingObjectDocument"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "number",
+      "declaringType" : "org.ip.model.AccountingObjectDocument"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Workshop",
+      "name" : "workshop",
+      "declaringType" : "org.ip.model.AccountingObjectDocument"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "DOCUMENT",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.AccountingObjectCorrection",
+    "subsystem" : "org.ip.subsystem.Subsystems$Production",
+    "form" : [ "number", "date", "workshop" ],
+    "list" : [ "number", "date", "workshop.code", "workshop.name" ],
+    "selection" : [ "number", "date", "workshop.code", "workshop.name" ],
+    "sections" : [ {
+      "row" : "org.ip.model.AccountingObjectCorrectionItem",
+      "parentField" : "document",
+      "key" : "AccountingObjectCorrection.AccountingObjectCorrectionItem"
+    } ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "number", "date" ],
+      "associations" : [ "workshop" ],
+      "category" : "Документ"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.AccountingObjectCorrectionItem",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "AccountingObjectCorrectionItem",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "OWNED_ROW",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.AccountingObjectCorrectionItem",
+    "exposureReason" : "declared owned section AccountingObjectCorrection.AccountingObjectCorrectionItem",
+    "reads" : [ "ROW" ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "owned row: accessible only through the aggregate boundary",
+    "persistentAttributes" : [ {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AccountingType",
+      "name" : "accountingType",
+      "declaringType" : "org.ip.model.AccountingObjectCorrectionItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AccountingType",
+      "name" : "currentAccountingType",
+      "declaringType" : "org.ip.model.AccountingObjectCorrectionItem"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AccountingObjectCorrection",
+      "name" : "document",
+      "declaringType" : "org.ip.model.AccountingObjectCorrectionItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "lineNumber",
+      "declaringType" : "org.ip.model.AccountingObjectItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.AccountingObjectItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ip.model.AccountingObjectCorrectionItem is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "org.ip.model.AccountingObjectCorrection",
+    "ownershipOverrides" : [ ],
+    "rowForm" : [ "nomenclature", "currentAccountingType", "accountingType" ],
+    "rowGrid" : [ "nomenclature", "currentAccountingType", "accountingType" ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ ],
+      "associations" : [ "nomenclature", "currentAccountingType", "accountingType", "document" ],
+      "category" : "Табличная часть"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.AccountingObjectCorrectionItem",
+      "field" : "accountingType",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AccountingObjectCorrectionItem",
+      "field" : "accountingType",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.AccountingObjectInstallation",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "AccountingObjectInstallation",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.AccountingObjectInstallation",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "date",
+      "declaringType" : "org.ip.model.AccountingObjectDocument"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "number",
+      "declaringType" : "org.ip.model.AccountingObjectDocument"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Workshop",
+      "name" : "workshop",
+      "declaringType" : "org.ip.model.AccountingObjectDocument"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "DOCUMENT",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.AccountingObjectInstallation",
+    "subsystem" : "org.ip.subsystem.Subsystems$Production",
+    "form" : [ "number", "date", "workshop" ],
+    "list" : [ "number", "date", "workshop.code", "workshop.name" ],
+    "selection" : [ "number", "date", "workshop.code", "workshop.name" ],
+    "sections" : [ {
+      "row" : "org.ip.model.AccountingObjectInstallationItem",
+      "parentField" : "document",
+      "key" : "AccountingObjectInstallation.AccountingObjectInstallationItem"
+    } ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "number", "date" ],
+      "associations" : [ "workshop" ],
+      "category" : "Документ"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.AccountingObjectInstallationItem",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "AccountingObjectInstallationItem",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "OWNED_ROW",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.AccountingObjectInstallationItem",
+    "exposureReason" : "declared owned section AccountingObjectInstallation.AccountingObjectInstallationItem",
+    "reads" : [ "ROW" ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "owned row: accessible only through the aggregate boundary",
+    "persistentAttributes" : [ {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AccountingType",
+      "name" : "accountingType",
+      "declaringType" : "org.ip.model.AccountingObjectInstallationItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AccountingObjectInstallation",
+      "name" : "document",
+      "declaringType" : "org.ip.model.AccountingObjectInstallationItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "lineNumber",
+      "declaringType" : "org.ip.model.AccountingObjectItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.AccountingObjectItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ip.model.AccountingObjectInstallationItem is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "org.ip.model.AccountingObjectInstallation",
+    "ownershipOverrides" : [ ],
+    "rowForm" : [ "nomenclature", "accountingType" ],
+    "rowGrid" : [ "nomenclature", "accountingType" ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ ],
+      "associations" : [ "nomenclature", "accountingType", "document" ],
+      "category" : "Табличная часть"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.AccountingObjectInstallationItem",
+      "field" : "accountingType",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AccountingObjectInstallationItem",
+      "field" : "accountingType",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.AccountingType",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "AccountingType",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.AccountingType",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.AccountingType"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.AccountingType"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "CATALOG",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.AccountingType",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "code", "name" ],
+    "list" : [ "code", "name" ],
+    "selection" : [ "code", "name" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "code", "name" ],
+      "associations" : [ ],
+      "category" : "Справочник"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AccountingType",
+      "field" : "code",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AccountingType",
+      "field" : "name",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.AttributeType",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "AttributeType",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.AttributeType",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "active",
+      "declaringType" : "org.ip.model.AttributeType"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.AttributeType"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.AttributeType"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "targetDictionary",
+      "declaringType" : "org.ip.model.AttributeType"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ip.model.AttributeValueType",
+      "name" : "valueType",
+      "declaringType" : "org.ip.model.AttributeType"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "CATALOG",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.AttributeType",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "code", "name", "valueType", "targetDictionary", "active" ],
+    "list" : [ "code", "name", "valueType", "targetDictionary", "active" ],
+    "selection" : [ "code", "name", "valueType" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "code", "name", "valueType", "targetDictionary", "active" ],
+      "associations" : [ ],
+      "category" : "Справочник"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_TYPE",
+      "entity" : "org.ip.model.AttributeType",
+      "field" : "active",
+      "source" : "@FieldMetadata.type",
+      "message" : "объявленный тип BOOLEAN совпадает с выводом из Java-типа/JPA"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AttributeType",
+      "field" : "code",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AttributeType",
+      "field" : "name",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AttributeType",
+      "field" : "valueType",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_TYPE",
+      "entity" : "org.ip.model.AttributeType",
+      "field" : "valueType",
+      "source" : "@FieldMetadata.type",
+      "message" : "объявленный тип ENUM совпадает с выводом из Java-типа/JPA"
+    } ]
+  }, {
+    "type" : "org.ip.model.AttributeValue",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "AttributeValue",
+    "standardAncestry" : "NONE",
+    "interned" : true,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.AttributeValue",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE" ],
+    "capabilitiesOrigin" : "REGISTRATION",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "значение атрибута бессмертно (AttributeValueService); переименование — отдельная typed операция, generic update/delete запрещены",
+    "persistentAttributes" : [ {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AttributeType",
+      "name" : "attrType",
+      "declaringType" : "org.ip.model.AttributeValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.AttributeValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "codeUp",
+      "declaringType" : "org.ip.model.AttributeValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.AttributeValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "refId",
+      "declaringType" : "org.ip.model.AttributeValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "CATALOG",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.AttributeValue",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "attrType", "code", "name" ],
+    "list" : [ "attrType", "code", "name" ],
+    "selection" : [ "code", "name" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "code", "name" ],
+      "associations" : [ "attrType" ],
+      "category" : "Справочник"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.AttributeValue",
+      "field" : "attrType",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AttributeValue",
+      "field" : "attrType",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AttributeValue",
+      "field" : "code",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.AttributeValue",
+      "field" : "name",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.Branch",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "Branch",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.Branch",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.Branch"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.Branch"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "CATALOG",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.Branch",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "code", "name" ],
+    "list" : [ "code", "name" ],
+    "selection" : [ "code", "name" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "code", "name" ],
+      "associations" : [ ],
+      "category" : "Справочник"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.GridFormView",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "GridFormView",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.GridFormView",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "columns",
+      "declaringType" : "org.ip.model.GridFormView"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "formKey",
+      "declaringType" : "org.ip.model.GridFormView"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.GridFormView"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "shared",
+      "declaringType" : "org.ip.model.GridFormView"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ipro.metadata.annotation.Subsystem$NoSubsystem",
+    "form" : [ "formKey", "name", "columns", "shared" ],
+    "list" : [ "formKey", "name", "shared" ],
+    "selection" : [ "formKey", "name", "shared" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "formKey", "name", "columns", "shared" ],
+      "associations" : [ ],
+      "category" : "Прочее"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.GridFormView",
+      "field" : "formKey",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.GridFormView",
+      "field" : "name",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.GroupNom",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "GroupNom",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.GroupNom",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.GroupNom"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.GroupNom"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "CATALOG",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.GroupNom",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "code", "name" ],
+    "list" : [ "code", "name" ],
+    "selection" : [ "code", "name" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "code", "name" ],
+      "associations" : [ ],
+      "category" : "Справочник"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.GroupNom",
+      "field" : "code",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.GroupNom",
+      "field" : "name",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.Journal",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "Journal",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.Journal",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.Journal"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.Journal"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "CATALOG",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.Journal",
+    "subsystem" : "org.ip.subsystem.Subsystems$Production",
+    "form" : [ "code", "name" ],
+    "list" : [ "code", "name" ],
+    "selection" : [ "code", "name" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "code", "name" ],
+      "associations" : [ ],
+      "category" : "Справочник"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.NomAttributeValue",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "NomAttributeValue",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "OWNED_ROW",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.NomAttributeValue",
+    "exposureReason" : "declared owned section Nomenclature.NomAttributeValue",
+    "reads" : [ "ROW" ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "owned row: accessible only through the aggregate boundary",
+    "persistentAttributes" : [ {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AttributeType",
+      "name" : "attrType",
+      "declaringType" : "org.ip.model.NomAttributeValue"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AttributeValue",
+      "name" : "attrValue",
+      "declaringType" : "org.ip.model.NomAttributeValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.NomAttributeValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ipro.metadata.annotation.Subsystem$NoSubsystem",
+    "form" : [ "nomenclature", "attrType", "attrValue" ],
+    "list" : [ "attrType", "attrValue" ],
+    "selection" : [ "nomenclature", "attrType", "attrValue" ],
+    "sections" : [ ],
+    "sectionOwner" : "org.ip.model.Nomenclature",
+    "ownershipOverrides" : [ ],
+    "rowForm" : [ "nomenclature", "attrType", "attrValue" ],
+    "rowGrid" : [ "attrType", "attrValue" ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ ],
+      "associations" : [ "nomenclature", "attrType", "attrValue" ],
+      "category" : "Табличная часть"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.NomSklAttribute",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "NomSklAttribute",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.NomSklAttribute",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AttributeType",
+      "name" : "attrType",
+      "declaringType" : "org.ip.model.NomSklAttribute"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.NomSklAttribute"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "required",
+      "declaringType" : "org.ip.model.NomSklAttribute"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "nomenclature", "attrType", "required" ],
+    "list" : [ "nomenclature", "attrType", "required" ],
+    "selection" : [ "nomenclature", "attrType", "required" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "required" ],
+      "associations" : [ "nomenclature", "attrType" ],
+      "category" : "Прочее"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.NomSklAttribute",
+      "field" : "attrType",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.NomSklAttribute",
+      "field" : "attrType",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.NomSklAttribute",
+      "field" : "nomenclature",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.NomSklAttribute",
+      "field" : "nomenclature",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_TYPE",
+      "entity" : "org.ip.model.NomSklAttribute",
+      "field" : "required",
+      "source" : "@FieldMetadata.type",
+      "message" : "объявленный тип BOOLEAN совпадает с выводом из Java-типа/JPA"
+    } ]
+  }, {
+    "type" : "org.ip.model.Nomenclature",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "Nomenclature",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.Nomenclature",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.Nomenclature"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.GroupNom",
+      "name" : "groupNom",
+      "declaringType" : "org.ip.model.Nomenclature"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.Nomenclature"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "typeNom",
+      "declaringType" : "org.ip.model.Nomenclature"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.UnitOfMeasurement",
+      "name" : "unitOfMeasurement",
+      "declaringType" : "org.ip.model.Nomenclature"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "CATALOG",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.Nomenclature",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "code", "name", "unitOfMeasurement", "groupNom", "typeNom" ],
+    "list" : [ "code", "name", "unitOfMeasurement", "groupNom", "typeNom" ],
+    "selection" : [ "code", "name", "typeNom" ],
+    "sections" : [ {
+      "row" : "org.ip.model.NomAttributeValue",
+      "parentField" : "nomenclature",
+      "key" : "Nomenclature.NomAttributeValue"
+    } ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "code", "name", "typeNom" ],
+      "associations" : [ "unitOfMeasurement", "groupNom" ],
+      "category" : "Справочник"
+    } ],
+    "rest" : [ {
+      "fields" : [ "code", "id", "name", "typeNom" ],
+      "filters" : [ "typeNom" ],
+      "list" : {
+        "operation" : "LIST",
+        "maximumFields" : [ "id", "code", "name", "typeNom" ],
+        "defaultFields" : [ "id", "code", "name" ],
+        "fields" : {
+          "id" : {
+            "declaration" : {
+              "name" : "id",
+              "type" : "LONG",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "id"
+              }
+            },
+            "source" : {
+              "source" : "id",
+              "segments" : [ {
+                "name" : "id",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.Long",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.Long",
+              "nullable" : false
+            }
+          },
+          "code" : {
+            "declaration" : {
+              "name" : "code",
+              "type" : "STRING",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "code"
+              }
+            },
+            "source" : {
+              "source" : "code",
+              "segments" : [ {
+                "name" : "code",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : false
+            }
+          },
+          "name" : {
+            "declaration" : {
+              "name" : "name",
+              "type" : "STRING",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "name"
+              }
+            },
+            "source" : {
+              "source" : "name",
+              "segments" : [ {
+                "name" : "name",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : false
+            }
+          },
+          "typeNom" : {
+            "declaration" : {
+              "name" : "typeNom",
+              "type" : "STRING",
+              "nullability" : "NULLABLE",
+              "format" : "NONE",
+              "source" : {
+                "value" : "typeNom"
+              }
+            },
+            "source" : {
+              "source" : "typeNom",
+              "segments" : [ {
+                "name" : "typeNom",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : true,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : true
+            }
+          }
+        }
+      },
+      "detail" : {
+        "operation" : "DETAIL",
+        "maximumFields" : [ "id", "code", "name", "typeNom" ],
+        "defaultFields" : [ "id", "code", "name" ],
+        "fields" : {
+          "id" : {
+            "declaration" : {
+              "name" : "id",
+              "type" : "LONG",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "id"
+              }
+            },
+            "source" : {
+              "source" : "id",
+              "segments" : [ {
+                "name" : "id",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.Long",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.Long",
+              "nullable" : false
+            }
+          },
+          "code" : {
+            "declaration" : {
+              "name" : "code",
+              "type" : "STRING",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "code"
+              }
+            },
+            "source" : {
+              "source" : "code",
+              "segments" : [ {
+                "name" : "code",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : false
+            }
+          },
+          "name" : {
+            "declaration" : {
+              "name" : "name",
+              "type" : "STRING",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "name"
+              }
+            },
+            "source" : {
+              "source" : "name",
+              "segments" : [ {
+                "name" : "name",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : false
+            }
+          },
+          "typeNom" : {
+            "declaration" : {
+              "name" : "typeNom",
+              "type" : "STRING",
+              "nullability" : "NULLABLE",
+              "format" : "NONE",
+              "source" : {
+                "value" : "typeNom"
+              }
+            },
+            "source" : {
+              "source" : "typeNom",
+              "segments" : [ {
+                "name" : "typeNom",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : true,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : true
+            }
+          }
+        }
+      },
+      "sorts" : [ "code", "id" ],
+      "key" : "RestResourceKey[resource=nomenclature, major=1]"
+    } ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.NomenclatureAccountingObject",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "NomenclatureAccountingObject",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.NomenclatureAccountingObject",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AccountingType",
+      "name" : "accountingType",
+      "declaringType" : "org.ip.model.NomenclatureAccountingObject"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "lineNumber",
+      "declaringType" : "org.ipro.register.RecordedRegisterEntryBase"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.NomenclatureAccountingObject"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "period",
+      "declaringType" : "org.ipro.register.PeriodicRecordedRegisterEntryBase"
+    }, {
+      "kind" : "EMBEDDED",
+      "javaType" : "org.ipro.register.RecorderRef",
+      "name" : "recorder",
+      "declaringType" : "org.ipro.register.RecordedRegisterEntryBase"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "recordingOrder",
+      "declaringType" : "org.ipro.register.RecordedRegisterEntryBase"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Workshop",
+      "name" : "workshop",
+      "declaringType" : "org.ip.model.NomenclatureAccountingObject"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ip.subsystem.Subsystems$Production",
+    "form" : [ "period", "workshop", "nomenclature", "accountingType" ],
+    "list" : [ "workshop.code", "nomenclature.code", "nomenclature.name", "period", "accountingType.name" ],
+    "selection" : [ "workshop.code", "nomenclature.code", "nomenclature.name", "period", "accountingType.name" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : true,
+    "query" : [ {
+      "fields" : [ "period", "recorder.typeCode", "recorder.id", "recordingOrder", "lineNumber" ],
+      "associations" : [ "workshop", "nomenclature", "accountingType" ],
+      "category" : "Регистр"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.NomenclatureAccountingObject",
+      "field" : "accountingType",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.NomenclatureAccountingObject",
+      "field" : "accountingType",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.NomenclatureAccountingObject",
+      "field" : "nomenclature",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.NomenclatureAccountingObject",
+      "field" : "nomenclature",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.NomenclatureAccountingObject",
+      "field" : "workshop",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.NomenclatureAccountingObject",
+      "field" : "workshop",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.NomenclaturePrice",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "NomenclaturePrice",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.NomenclaturePrice",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.NomenclaturePrice"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "period",
+      "declaringType" : "org.ipro.register.PeriodicRegisterEntryBase"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.math.BigDecimal",
+      "name" : "price",
+      "declaringType" : "org.ip.model.NomenclaturePrice"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "nomenclature", "period", "price" ],
+    "list" : [ "nomenclature", "period", "price" ],
+    "selection" : [ "nomenclature", "period", "price" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : true,
+    "query" : [ {
+      "fields" : [ "period", "price" ],
+      "associations" : [ "nomenclature" ],
+      "category" : "Регистр"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.Oper",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "Oper",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.Oper",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.Oper"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.Oper"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ip.subsystem.Subsystems$Production",
+    "form" : [ "code", "name" ],
+    "list" : [ "code", "name" ],
+    "selection" : [ "code", "name" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "code", "name" ],
+      "associations" : [ ],
+      "category" : "Прочее"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.Oper",
+      "field" : "code",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.Oper",
+      "field" : "name",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.PrdSpec",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "PrdSpec",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.PrdSpec",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "codeSpec",
+      "declaringType" : "org.ip.model.PrdSpec"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "comment",
+      "declaringType" : "org.ip.model.PrdSpec"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "draft",
+      "declaringType" : "org.ip.model.PrdSpec"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Journal",
+      "name" : "journal",
+      "declaringType" : "org.ip.model.PrdSpec"
+    }, {
+      "kind" : "ONE_TO_MANY",
+      "javaType" : "java.util.List",
+      "name" : "materials",
+      "declaringType" : "org.ip.model.PrdSpec"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.PrdSpec"
+    }, {
+      "kind" : "ONE_TO_MANY",
+      "javaType" : "java.util.List",
+      "name" : "operations",
+      "declaringType" : "org.ip.model.PrdSpec"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ip.subsystem.Subsystems$Production",
+    "form" : [ "journal", "nomenclature", "codeSpec", "draft", "comment" ],
+    "list" : [ "journal", "nomenclature", "codeSpec", "draft", "comment" ],
+    "selection" : [ "codeSpec", "nomenclature.name" ],
+    "sections" : [ {
+      "row" : "org.ip.model.PrdSpecMtr",
+      "parentField" : "prdSpec",
+      "key" : "PrdSpec.PrdSpecMtr"
+    }, {
+      "row" : "org.ip.model.PrdSpecOper",
+      "parentField" : "prdSpec",
+      "key" : "PrdSpec.PrdSpecOper"
+    } ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "codeSpec", "draft", "comment" ],
+      "associations" : [ "journal", "nomenclature" ],
+      "category" : "Прочее"
+    } ],
+    "rest" : [ {
+      "fields" : [ "codeSpec", "comment", "draft", "id", "journalId", "nomenclatureCode" ],
+      "filters" : [ "journalId" ],
+      "list" : {
+        "operation" : "LIST",
+        "maximumFields" : [ "id", "codeSpec", "draft", "nomenclatureCode" ],
+        "defaultFields" : [ "id", "codeSpec", "draft" ],
+        "fields" : {
+          "id" : {
+            "declaration" : {
+              "name" : "id",
+              "type" : "LONG",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "id"
+              }
+            },
+            "source" : {
+              "source" : "id",
+              "segments" : [ {
+                "name" : "id",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "java.lang.Long",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.Long",
+              "nullable" : false
+            }
+          },
+          "codeSpec" : {
+            "declaration" : {
+              "name" : "codeSpec",
+              "type" : "STRING",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "codeSpec"
+              }
+            },
+            "source" : {
+              "source" : "codeSpec",
+              "segments" : [ {
+                "name" : "codeSpec",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : false
+            }
+          },
+          "draft" : {
+            "declaration" : {
+              "name" : "draft",
+              "type" : "STRING",
+              "nullability" : "NULLABLE",
+              "format" : "NONE",
+              "source" : {
+                "value" : "draft"
+              }
+            },
+            "source" : {
+              "source" : "draft",
+              "segments" : [ {
+                "name" : "draft",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : true,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : true
+            }
+          },
+          "nomenclatureCode" : {
+            "declaration" : {
+              "name" : "nomenclatureCode",
+              "type" : "STRING",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "nomenclature.code"
+              }
+            },
+            "source" : {
+              "source" : "nomenclature.code",
+              "segments" : [ {
+                "name" : "nomenclature",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "org.ip.model.Nomenclature",
+                "persistentType" : "MANY_TO_ONE",
+                "nullable" : false,
+                "association" : true
+              }, {
+                "name" : "code",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : false
+            }
+          }
+        }
+      },
+      "detail" : {
+        "operation" : "DETAIL",
+        "maximumFields" : [ "id", "codeSpec", "draft", "comment", "journalId", "nomenclatureCode" ],
+        "defaultFields" : [ "id", "codeSpec", "draft", "comment" ],
+        "fields" : {
+          "id" : {
+            "declaration" : {
+              "name" : "id",
+              "type" : "LONG",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "id"
+              }
+            },
+            "source" : {
+              "source" : "id",
+              "segments" : [ {
+                "name" : "id",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "java.lang.Long",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.Long",
+              "nullable" : false
+            }
+          },
+          "codeSpec" : {
+            "declaration" : {
+              "name" : "codeSpec",
+              "type" : "STRING",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "codeSpec"
+              }
+            },
+            "source" : {
+              "source" : "codeSpec",
+              "segments" : [ {
+                "name" : "codeSpec",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : false
+            }
+          },
+          "draft" : {
+            "declaration" : {
+              "name" : "draft",
+              "type" : "STRING",
+              "nullability" : "NULLABLE",
+              "format" : "NONE",
+              "source" : {
+                "value" : "draft"
+              }
+            },
+            "source" : {
+              "source" : "draft",
+              "segments" : [ {
+                "name" : "draft",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : true,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : true
+            }
+          },
+          "comment" : {
+            "declaration" : {
+              "name" : "comment",
+              "type" : "STRING",
+              "nullability" : "NULLABLE",
+              "format" : "NONE",
+              "source" : {
+                "value" : "comment"
+              }
+            },
+            "source" : {
+              "source" : "comment",
+              "segments" : [ {
+                "name" : "comment",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : true,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : true
+            }
+          },
+          "journalId" : {
+            "declaration" : {
+              "name" : "journalId",
+              "type" : "LONG",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "journal.id"
+              }
+            },
+            "source" : {
+              "source" : "journal.id",
+              "segments" : [ {
+                "name" : "journal",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "org.ip.model.Journal",
+                "persistentType" : "MANY_TO_ONE",
+                "nullable" : false,
+                "association" : true
+              }, {
+                "name" : "id",
+                "declaringType" : "org.ip.model.Journal",
+                "javaType" : "java.lang.Long",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.Long",
+              "nullable" : false
+            }
+          },
+          "nomenclatureCode" : {
+            "declaration" : {
+              "name" : "nomenclatureCode",
+              "type" : "STRING",
+              "nullability" : "NOT_NULL",
+              "format" : "NONE",
+              "source" : {
+                "value" : "nomenclature.code"
+              }
+            },
+            "source" : {
+              "source" : "nomenclature.code",
+              "segments" : [ {
+                "name" : "nomenclature",
+                "declaringType" : "org.ip.model.PrdSpec",
+                "javaType" : "org.ip.model.Nomenclature",
+                "persistentType" : "MANY_TO_ONE",
+                "nullable" : false,
+                "association" : true
+              }, {
+                "name" : "code",
+                "declaringType" : "org.ip.model.Nomenclature",
+                "javaType" : "java.lang.String",
+                "persistentType" : "BASIC",
+                "nullable" : false,
+                "association" : false
+              } ],
+              "terminalType" : "java.lang.String",
+              "nullable" : false
+            }
+          }
+        }
+      },
+      "sorts" : [ "codeSpec", "id" ],
+      "key" : "RestResourceKey[resource=specifications, major=1]"
+    } ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.PrdSpecMtr",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "PrdSpecMtr",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "OWNED_ROW",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.PrdSpecMtr",
+    "exposureReason" : "declared owned section PrdSpec.PrdSpecMtr",
+    "reads" : [ "ROW" ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "owned row: accessible only through the aggregate boundary",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "lineNumber",
+      "declaringType" : "org.ip.model.PrdSpecMtr"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.PrdSpecMtr"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.PrdSpec",
+      "name" : "prdSpec",
+      "declaringType" : "org.ip.model.PrdSpecMtr"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.PrdSpec",
+      "name" : "prdSpecMtr",
+      "declaringType" : "org.ip.model.PrdSpecMtr"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.math.BigDecimal",
+      "name" : "qt",
+      "declaringType" : "org.ip.model.PrdSpecMtr"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "typeMtr",
+      "declaringType" : "org.ip.model.PrdSpecMtr"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.UnitOfMeasurement",
+      "name" : "unit",
+      "declaringType" : "org.ip.model.PrdSpecMtr"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ipro.metadata.annotation.Subsystem$NoSubsystem",
+    "form" : [ "typeMtr", "prdSpecMtr", "nomenclature", "unit", "qt" ],
+    "list" : [ "typeMtr", "prdSpecMtr", "nomenclature", "unit", "qt" ],
+    "selection" : [ "typeMtr", "prdSpecMtr", "nomenclature", "unit", "qt" ],
+    "sections" : [ ],
+    "sectionOwner" : "org.ip.model.PrdSpec",
+    "ownershipOverrides" : [ ],
+    "rowForm" : [ "typeMtr", "prdSpecMtr", "nomenclature", "unit", "qt" ],
+    "rowGrid" : [ "typeMtr", "prdSpecMtr", "nomenclature", "unit", "qt" ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "typeMtr", "qt" ],
+      "associations" : [ "prdSpecMtr", "nomenclature", "unit", "prdSpec" ],
+      "category" : "Табличная часть"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_TYPE",
+      "entity" : "org.ip.model.PrdSpecMtr",
+      "field" : "qt",
+      "source" : "@FieldMetadata.type",
+      "message" : "объявленный тип DECIMAL совпадает с выводом из Java-типа/JPA"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_TYPE",
+      "entity" : "org.ip.model.PrdSpecMtr",
+      "field" : "typeMtr",
+      "source" : "@FieldMetadata.type",
+      "message" : "объявленный тип INTEGER совпадает с выводом из Java-типа/JPA"
+    } ]
+  }, {
+    "type" : "org.ip.model.PrdSpecOper",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "PrdSpecOper",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "OWNED_ROW",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.PrdSpecOper",
+    "exposureReason" : "declared owned section PrdSpec.PrdSpecOper",
+    "reads" : [ "ROW" ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "owned row: accessible only through the aggregate boundary",
+    "persistentAttributes" : [ {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Workshop",
+      "name" : "ceh",
+      "declaringType" : "org.ip.model.PrdSpecOper"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Oper",
+      "name" : "oper",
+      "declaringType" : "org.ip.model.PrdSpecOper"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "order",
+      "declaringType" : "org.ip.model.PrdSpecOper"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.PrdSpec",
+      "name" : "prdSpec",
+      "declaringType" : "org.ip.model.PrdSpecOper"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "route",
+      "declaringType" : "org.ip.model.PrdSpecOper"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ip.model.PrdSpecOper is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "org.ip.model.PrdSpec",
+    "ownershipOverrides" : [ ],
+    "rowForm" : [ "oper", "ceh", "route", "order" ],
+    "rowGrid" : [ "oper", "ceh", "route", "order" ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "route", "order" ],
+      "associations" : [ "oper", "ceh", "prdSpec" ],
+      "category" : "Табличная часть"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_TYPE",
+      "entity" : "org.ip.model.PrdSpecOper",
+      "field" : "order",
+      "source" : "@FieldMetadata.type",
+      "message" : "объявленный тип INTEGER совпадает с выводом из Java-типа/JPA"
+    } ]
+  }, {
+    "type" : "org.ip.model.ReceivingDocument",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "ReceivingDocument",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.ReceivingDocument",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDate",
+      "name" : "date",
+      "declaringType" : "org.ip.model.ReceivingDocument"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Journal",
+      "name" : "journal",
+      "declaringType" : "org.ip.model.ReceivingDocument"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "number",
+      "declaringType" : "org.ip.model.ReceivingDocument"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Workshop",
+      "name" : "receivingWorkshop",
+      "declaringType" : "org.ip.model.ReceivingDocument"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Workshop",
+      "name" : "transferringWorkshop",
+      "declaringType" : "org.ip.model.ReceivingDocument"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "DOCUMENT",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.ReceivingDocument",
+    "subsystem" : "org.ip.subsystem.Subsystems$Production",
+    "form" : [ "journal", "number", "date", "receivingWorkshop", "transferringWorkshop" ],
+    "list" : [ "id", "number", "date", "journal.code", "receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name" ],
+    "selection" : [ "id", "number", "date", "journal.code", "receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name" ],
+    "sections" : [ {
+      "row" : "org.ip.model.ReceivingDocumentItem",
+      "parentField" : "document",
+      "key" : "ReceivingDocument.ReceivingDocumentItem"
+    } ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "number", "date" ],
+      "associations" : [ "journal", "receivingWorkshop", "transferringWorkshop" ],
+      "category" : "Документ"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.ReceivingDocument",
+      "field" : "date",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.ReceivingDocument",
+      "field" : "journal",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_TYPE",
+      "entity" : "org.ip.model.ReceivingDocument",
+      "field" : "journal",
+      "source" : "@FieldMetadata.type",
+      "message" : "объявленный тип ENTITY_REFERENCE совпадает с выводом из Java-типа/JPA"
+    }, {
+      "severity" : "INFO",
+      "code" : "UI_REQUIRED_SERVER_OPTIONAL",
+      "entity" : "org.ip.model.ReceivingDocument",
+      "field" : "journal",
+      "source" : "@FieldMetadata.required (разрешено: журнал обязателен в форме накладной (order=0 и уникальность (journal_id, number)), но сервер допускает NULL: осознанное ограничение UI до решения по серверному контракту)",
+      "message" : "UI требует заполнения, контракт записи этого не требует"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.ReceivingDocument",
+      "field" : "number",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.ReceivingDocument",
+      "field" : "receivingWorkshop",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.ReceivingDocument",
+      "field" : "receivingWorkshop",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.ReceivingDocument",
+      "field" : "transferringWorkshop",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.ReceivingDocument",
+      "field" : "transferringWorkshop",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.ReceivingDocumentItem",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "ReceivingDocumentItem",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "OWNED_ROW",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.ReceivingDocumentItem",
+    "exposureReason" : "declared owned section ReceivingDocument.ReceivingDocumentItem",
+    "reads" : [ "ROW" ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "owned row: accessible only through the aggregate boundary",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.ReceivingDocument",
+      "name" : "document",
+      "declaringType" : "org.ip.model.ReceivingDocumentItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "lineNumber",
+      "declaringType" : "org.ip.model.ReceivingDocumentItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.ReceivingDocumentItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.math.BigDecimal",
+      "name" : "quantity",
+      "declaringType" : "org.ip.model.ReceivingDocumentItem"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ip.model.ReceivingDocumentItem is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "org.ip.model.ReceivingDocument",
+    "ownershipOverrides" : [ ],
+    "rowForm" : [ "nomenclature", "quantity" ],
+    "rowGrid" : [ "nomenclature", "quantity" ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "quantity" ],
+      "associations" : [ "nomenclature", "document" ],
+      "category" : "Табличная часть"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.ReceivingDocumentItem",
+      "field" : "nomenclature",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.ReceivingDocumentItem",
+      "field" : "nomenclature",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.ReceivingDocumentItem",
+      "field" : "quantity",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.Role",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "Role",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.Role",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.Role"
+    }, {
+      "kind" : "MANY_TO_MANY",
+      "javaType" : "java.util.Set",
+      "name" : "users",
+      "declaringType" : "org.ip.model.Role"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ipro.metadata.annotation.Subsystem$NoSubsystem",
+    "form" : [ "name" ],
+    "list" : [ "name" ],
+    "selection" : [ "name" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "name" ],
+      "associations" : [ ],
+      "category" : "Прочее"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.Role",
+      "field" : "name",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.SklNomOpa",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "SklNomOpa",
+    "standardAncestry" : "NONE",
+    "interned" : true,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.SklNomOpa",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "REGISTRATION",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "набор immutable, состав ведёт канонизация findOrCreate; generic CRUD запрещён typed use case",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "canonical",
+      "declaringType" : "org.ip.model.SklNomOpa"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "displayName",
+      "declaringType" : "org.ip.model.SklNomOpa"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Nomenclature",
+      "name" : "nomenclature",
+      "declaringType" : "org.ip.model.SklNomOpa"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ ],
+    "list" : [ ],
+    "selection" : [ "nomenclature", "displayName" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ ],
+      "associations" : [ ],
+      "category" : "Прочее"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.SklNomOpaValue",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "SklNomOpaValue",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "OWNED_ROW",
+    "exposureOrigin" : "REGISTRATION",
+    "exposureSymbol" : "",
+    "exposureReason" : "структурная строка агрегата SklNomOpa, состав ведёт typed use case",
+    "reads" : [ "ROW" ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "owned row: accessible only through the aggregate boundary",
+    "persistentAttributes" : [ {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AttributeType",
+      "name" : "attrType",
+      "declaringType" : "org.ip.model.SklNomOpaValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.SklNomOpa",
+      "name" : "set",
+      "declaringType" : "org.ip.model.SklNomOpaValue"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.AttributeValue",
+      "name" : "value",
+      "declaringType" : "org.ip.model.SklNomOpaValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ip.model.SklNomOpaValue is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ {
+      "owner" : "org.ip.model.SklNomOpa",
+      "reason" : "структурная строка агрегата SklNomOpa, состав ведёт typed use case",
+      "exposure" : "OWNED_ROW"
+    } ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.UnitOfMeasurement",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "UnitOfMeasurement",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.UnitOfMeasurement",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.UnitOfMeasurement"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.UnitOfMeasurement"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "shortCode",
+      "declaringType" : "org.ip.model.UnitOfMeasurement"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "CATALOG",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.UnitOfMeasurement",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "shortCode", "name", "code" ],
+    "list" : [ "shortCode", "name", "code" ],
+    "selection" : [ "code", "name", "shortCode" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "shortCode", "name", "code" ],
+      "associations" : [ ],
+      "category" : "Справочник"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.User",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "User",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.User",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "enabled",
+      "declaringType" : "org.ip.model.User"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "password",
+      "declaringType" : "org.ip.model.User"
+    }, {
+      "kind" : "MANY_TO_MANY",
+      "javaType" : "java.util.Set",
+      "name" : "roles",
+      "declaringType" : "org.ip.model.User"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "username",
+      "declaringType" : "org.ip.model.User"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "PLAIN",
+    "kindOrigin" : "PLATFORM_DEFAULT",
+    "kindSymbol" : "",
+    "subsystem" : "org.ipro.metadata.annotation.Subsystem$NoSubsystem",
+    "form" : [ "username", "enabled" ],
+    "list" : [ "username", "enabled" ],
+    "selection" : [ "username", "enabled" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "username", "enabled" ],
+      "associations" : [ ],
+      "category" : "Прочее"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.User",
+      "field" : "username",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ip.model.UserFormSettings",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "UserFormSettings",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.UserFormSettings",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ip.model.UserFormSettings"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "settingKey",
+      "declaringType" : "org.ip.model.UserFormSettings"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "settingValue",
+      "declaringType" : "org.ip.model.UserFormSettings"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "username",
+      "declaringType" : "org.ip.model.UserFormSettings"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ip.model.UserFormSettings is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ip.model.Workshop",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "Workshop",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : true,
+    "declaredAnnotation" : true,
+    "exposure" : "STANDARD_ROOT",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ip.model.Workshop",
+    "exposureReason" : "metadata-driven root",
+    "reads" : [ "DETAIL", "LIST", "LOOKUP" ],
+    "writes" : [ "CREATE", "DELETE", "UPDATE" ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "standard root with canonical data handle",
+    "persistentAttributes" : [ {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ip.model.Branch",
+      "name" : "branch",
+      "declaringType" : "org.ip.model.Workshop"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "code",
+      "declaringType" : "org.ip.model.Workshop"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ip.model.Workshop"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "RESOLVED",
+    "localKind" : "CATALOG",
+    "kindOrigin" : "EXPLICIT",
+    "kindSymbol" : "org.ip.model.Workshop",
+    "subsystem" : "org.ip.subsystem.Subsystems$Directories",
+    "form" : [ "code", "name", "branch" ],
+    "list" : [ "code", "name", "branch" ],
+    "selection" : [ "code", "name", "branch" ],
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ {
+      "fields" : [ "code", "name" ],
+      "associations" : [ "branch" ],
+      "category" : "Справочник"
+    } ],
+    "rest" : [ ],
+    "diagnostics" : [ {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_LOOKUP_TARGET",
+      "entity" : "org.ip.model.Workshop",
+      "field" : "branch",
+      "source" : "@Lookup.entity",
+      "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_TYPE",
+      "entity" : "org.ip.model.Workshop",
+      "field" : "branch",
+      "source" : "@FieldMetadata.type",
+      "message" : "объявленный тип ENTITY_REFERENCE совпадает с выводом из Java-типа/JPA"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.Workshop",
+      "field" : "code",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    }, {
+      "severity" : "INFO",
+      "code" : "REDUNDANT_REQUIRED",
+      "entity" : "org.ip.model.Workshop",
+      "field" : "name",
+      "source" : "@FieldMetadata.required",
+      "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+    } ]
+  }, {
+    "type" : "org.ipro.jr.dom.JrxmlTemplate",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "JrxmlTemplate",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.jr.dom.JrxmlTemplate",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "description",
+      "declaringType" : "org.ipro.jr.dom.JrxmlTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "enabled",
+      "declaringType" : "org.ipro.jr.dom.JrxmlTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "fileName",
+      "declaringType" : "org.ipro.jr.dom.JrxmlTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ipro.jr.dom.JrxmlTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "targetEntityClass",
+      "declaringType" : "org.ipro.jr.dom.JrxmlTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.jr.dom.JrxmlTemplate is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.numbering.NumberingCounter",
+    "codeSource" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-numbering/1.0-SNAPSHOT/platform-numbering-1.0-SNAPSHOT.jar",
+    "jpaName" : "NumberingCounter",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.numbering.NumberingCounter",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "key",
+      "declaringType" : "org.ipro.numbering.NumberingCounter"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "long",
+      "name" : "lastValue",
+      "declaringType" : "org.ipro.numbering.NumberingCounter"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "long",
+      "name" : "version",
+      "declaringType" : "org.ipro.numbering.NumberingCounter"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.numbering.NumberingCounter is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.numbering.NumberingRule",
+    "codeSource" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-numbering/1.0-SNAPSHOT/platform-numbering-1.0-SNAPSHOT.jar",
+    "jpaName" : "NumberingRule",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.numbering.NumberingRule",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "entityClass",
+      "declaringType" : "org.ipro.numbering.NumberingRule"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "fieldName",
+      "declaringType" : "org.ipro.numbering.NumberingRule"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "initialValue",
+      "declaringType" : "org.ipro.numbering.NumberingRule"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "manualInput",
+      "declaringType" : "org.ipro.numbering.NumberingRule"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "pattern",
+      "declaringType" : "org.ipro.numbering.NumberingRule"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.numbering.NumberingPeriod",
+      "name" : "period",
+      "declaringType" : "org.ipro.numbering.NumberingRule"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "prefix",
+      "declaringType" : "org.ipro.numbering.NumberingRule"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.numbering.NumberingRule is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.register.persistence.RecorderOrderClock",
+    "codeSource" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-register/1.0-SNAPSHOT/platform-register-1.0-SNAPSHOT.jar",
+    "jpaName" : "RecorderOrderClock",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.register.persistence.RecorderOrderClock",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "lastOrder",
+      "declaringType" : "org.ipro.register.persistence.RecorderOrderClock"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "registerKey",
+      "declaringType" : "org.ipro.register.persistence.RecorderOrderClock"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.register.persistence.RecorderOrderClock"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.register.persistence.RecorderOrderClock is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.reportstudio.dom.ReportBand",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "ReportBand",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.reportstudio.dom.ReportBand",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "ONE_TO_MANY",
+      "javaType" : "java.util.List",
+      "name" : "fields",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportBand"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "groupField",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportBand"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.reportstudio.dom.ReportGroupHeaderLayout",
+      "name" : "headerLayout",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportBand"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.reportstudio.dom.ReportBandKind",
+      "name" : "kind",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportBand"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ipro.reportstudio.dom.ReportBand",
+      "name" : "parent",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportBand"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "int",
+      "name" : "position",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportBand"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Boolean",
+      "name" : "startNewPage",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportBand"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ipro.reportstudio.dom.ReportTemplate",
+      "name" : "template",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportBand"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "titleWidth",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportBand"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.reportstudio.dom.ReportBand is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.reportstudio.dom.ReportField",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "ReportField",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.reportstudio.dom.ReportField",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.reportstudio.dom.ReportFieldAggregation",
+      "name" : "aggregation",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.reportstudio.dom.ReportFieldAlignment",
+      "name" : "alignment",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ipro.reportstudio.dom.ReportBand",
+      "name" : "band",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Boolean",
+      "name" : "border",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "caption",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "format",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.reportstudio.dom.ReportFieldKind",
+      "name" : "kind",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "int",
+      "name" : "position",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "queryField",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "text",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "visible",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "width",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportField"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.reportstudio.dom.ReportField is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.reportstudio.dom.ReportOrder",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "ReportOrder",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.reportstudio.dom.ReportOrder",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "columnName",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportOrder"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.reportstudio.dom.ReportOrderDirection",
+      "name" : "direction",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportOrder"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "int",
+      "name" : "position",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportOrder"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ipro.reportstudio.dom.ReportTemplate",
+      "name" : "template",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportOrder"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.reportstudio.dom.ReportOrder is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.reportstudio.dom.ReportParam",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "ReportParam",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.reportstudio.dom.ReportParam",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "caption",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.query.document.ReportComputedValue",
+      "name" : "computed",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "defaultValue",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "entityClass",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.query.document.ReportParamKind",
+      "name" : "kind",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "int",
+      "name" : "position",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "required",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "showOnForm",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "MANY_TO_ONE",
+      "javaType" : "org.ipro.reportstudio.dom.ReportTemplate",
+      "name" : "template",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.query.document.ReportParamSource",
+      "name" : "valueSource",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportParam"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.reportstudio.dom.ReportParam is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.reportstudio.dom.ReportTemplate",
+    "codeSource" : "file:/C:/JavaProject/TestVaadin25/GitVaa25/target/classes/",
+    "jpaName" : "ReportTemplate",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.reportstudio.dom.ReportTemplate",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "advanced",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "ONE_TO_MANY",
+      "javaType" : "java.util.List",
+      "name" : "bands",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "baseFontSize",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "description",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Boolean",
+      "name" : "gridEnabled",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "jpql",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "int",
+      "name" : "maxRows",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "name",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "ONE_TO_MANY",
+      "javaType" : "java.util.List",
+      "name" : "orders",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.reportstudio.dom.ReportPageOrientation",
+      "name" : "pageOrientation",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.reportstudio.dom.ReportPageSize",
+      "name" : "pageSize",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "ONE_TO_MANY",
+      "javaType" : "java.util.List",
+      "name" : "params",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.query.document.ReportQuerySource",
+      "name" : "querySource",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.reportstudio.dom.ReportTemplateState",
+      "name" : "state",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Boolean",
+      "name" : "stripeRows",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "targetEntityClass",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "int",
+      "name" : "timeoutMs",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "visualFilterJson",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "visualQueryJson",
+      "declaringType" : "org.ipro.reportstudio.dom.ReportTemplate"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.reportstudio.dom.ReportTemplate is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.rls.AccessGrant",
+    "codeSource" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-rls/1.0-SNAPSHOT/platform-rls-1.0-SNAPSHOT.jar",
+    "jpaName" : "AccessGrant",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.rls.AccessGrant",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "canDelete",
+      "declaringType" : "org.ipro.rls.AccessGrant"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "canRead",
+      "declaringType" : "org.ipro.rls.AccessGrant"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "canUpdate",
+      "declaringType" : "org.ipro.rls.AccessGrant"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "dimension",
+      "declaringType" : "org.ipro.rls.AccessGrant"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "dimensionValueId",
+      "declaringType" : "org.ipro.rls.AccessGrant"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "subjectKey",
+      "declaringType" : "org.ipro.rls.AccessGrant"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.rls.AccessGrant$SubjectType",
+      "name" : "subjectType",
+      "declaringType" : "org.ipro.rls.AccessGrant"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.rls.AccessGrant is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.settings.SettingValue",
+    "codeSource" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-settings/1.0-SNAPSHOT/platform-settings-1.0-SNAPSHOT.jar",
+    "jpaName" : "SettingValue",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.settings.SettingValue",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Boolean",
+      "name" : "boolValue",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "dateTimeValue",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDate",
+      "name" : "dateValue",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.math.BigDecimal",
+      "name" : "decimalValue",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "entityRefId",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "enumValue",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "integerValue",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.LocalDateTime",
+      "name" : "modifiedAt",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "modifiedBy",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "long",
+      "name" : "scopeId",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "scopeType",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "settingKey",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "stringValue",
+      "declaringType" : "org.ipro.settings.SettingValue"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "version",
+      "declaringType" : "org.ipro.crud.BaseEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.settings.SettingValue is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.telemetry.model.EntityChangeLogEntity",
+    "codeSource" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-telemetry/1.0-SNAPSHOT/platform-telemetry-1.0-SNAPSHOT.jar",
+    "jpaName" : "EntityChangeLogEntity",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.telemetry.model.EntityChangeLogEntity",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "changeType",
+      "declaringType" : "org.ipro.telemetry.model.EntityChangeLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.Instant",
+      "name" : "changedAt",
+      "declaringType" : "org.ipro.telemetry.model.EntityChangeLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "entity",
+      "declaringType" : "org.ipro.telemetry.model.EntityChangeLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "entityId",
+      "declaringType" : "org.ipro.telemetry.model.EntityChangeLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "fieldCount",
+      "declaringType" : "org.ipro.telemetry.model.EntityChangeLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.telemetry.model.EntityChangeLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "payload",
+      "declaringType" : "org.ipro.telemetry.model.EntityChangeLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "traceId",
+      "declaringType" : "org.ipro.telemetry.model.EntityChangeLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "userId",
+      "declaringType" : "org.ipro.telemetry.model.EntityChangeLogEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.telemetry.model.EntityChangeLogEntity is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.telemetry.model.OperationLogEntity",
+    "codeSource" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-telemetry/1.0-SNAPSHOT/platform-telemetry-1.0-SNAPSHOT.jar",
+    "jpaName" : "OperationLogEntity",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.telemetry.model.OperationLogEntity",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Double",
+      "name" : "durationMs",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "entity",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "entityId",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "errorMessage",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "org.ipro.telemetry.api.EventType",
+      "name" : "eventType",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "level",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "boolean",
+      "name" : "n1",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "operation",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "payload",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "sessionId",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Integer",
+      "name" : "sqlCount",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Double",
+      "name" : "sqlTotalMs",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.Instant",
+      "name" : "startedAt",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "traceId",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "userId",
+      "declaringType" : "org.ipro.telemetry.model.OperationLogEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.telemetry.model.OperationLogEntity is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.telemetry.model.PerfStatsEntity",
+    "codeSource" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-telemetry/1.0-SNAPSHOT/platform-telemetry-1.0-SNAPSHOT.jar",
+    "jpaName" : "PerfStatsEntity",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.telemetry.model.PerfStatsEntity",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "double",
+      "name" : "avgMs",
+      "declaringType" : "org.ipro.telemetry.model.PerfStatsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "long",
+      "name" : "count",
+      "declaringType" : "org.ipro.telemetry.model.PerfStatsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.telemetry.model.PerfStatsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "key",
+      "declaringType" : "org.ipro.telemetry.model.PerfStatsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "double",
+      "name" : "maxMs",
+      "declaringType" : "org.ipro.telemetry.model.PerfStatsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "double",
+      "name" : "minMs",
+      "declaringType" : "org.ipro.telemetry.model.PerfStatsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "double",
+      "name" : "p95Ms",
+      "declaringType" : "org.ipro.telemetry.model.PerfStatsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "double",
+      "name" : "totalMs",
+      "declaringType" : "org.ipro.telemetry.model.PerfStatsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.Instant",
+      "name" : "windowStart",
+      "declaringType" : "org.ipro.telemetry.model.PerfStatsEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.telemetry.model.PerfStatsEntity is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  }, {
+    "type" : "org.ipro.telemetry.model.TraceSettingsEntity",
+    "codeSource" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-telemetry/1.0-SNAPSHOT/platform-telemetry-1.0-SNAPSHOT.jar",
+    "jpaName" : "TraceSettingsEntity",
+    "standardAncestry" : "NONE",
+    "interned" : false,
+    "rawAnnotation" : false,
+    "declaredAnnotation" : false,
+    "exposure" : "INTERNAL_STORE",
+    "exposureOrigin" : "DERIVED",
+    "exposureSymbol" : "org.ipro.telemetry.model.TraceSettingsEntity",
+    "exposureReason" : "no @EntityMetadata and not an owned section",
+    "reads" : [ ],
+    "writes" : [ ],
+    "capabilitiesOrigin" : "PLATFORM_DEFAULT",
+    "capabilitiesSymbol" : "",
+    "capabilitiesReason" : "internal store: no public entity facade",
+    "persistentAttributes" : [ {
+      "kind" : "BASIC",
+      "javaType" : "java.time.Instant",
+      "name" : "createdAt",
+      "declaringType" : "org.ipro.telemetry.model.TraceSettingsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "createdBy",
+      "declaringType" : "org.ipro.telemetry.model.TraceSettingsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.Long",
+      "name" : "id",
+      "declaringType" : "org.ipro.telemetry.model.TraceSettingsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.time.Instant",
+      "name" : "traceUntil",
+      "declaringType" : "org.ipro.telemetry.model.TraceSettingsEntity"
+    }, {
+      "kind" : "BASIC",
+      "javaType" : "java.lang.String",
+      "name" : "userId",
+      "declaringType" : "org.ipro.telemetry.model.TraceSettingsEntity"
+    } ],
+    "resolution" : "ABSENT",
+    "resolutionError" : "java.lang.IllegalArgumentException: Class org.ipro.telemetry.model.TraceSettingsEntity is not annotated with @EntityMetadata. Add @EntityMetadata annotation to enable metadata-driven form generation.",
+    "sections" : [ ],
+    "sectionOwner" : "",
+    "ownershipOverrides" : [ ],
+    "validatedRegister" : false,
+    "query" : [ ],
+    "rest" : [ ],
+    "diagnostics" : [ ]
+  } ],
+  "diagnostics" : [ {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.AccountingObjectCorrectionItem",
+    "field" : "accountingType",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectCorrectionItem",
+    "field" : "accountingType",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectDocument",
+    "field" : "date",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectDocument",
+    "field" : "date",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectDocument",
+    "field" : "number",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectDocument",
+    "field" : "number",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.AccountingObjectDocument",
+    "field" : "workshop",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.AccountingObjectDocument",
+    "field" : "workshop",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectDocument",
+    "field" : "workshop",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectDocument",
+    "field" : "workshop",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.AccountingObjectInstallationItem",
+    "field" : "accountingType",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectInstallationItem",
+    "field" : "accountingType",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.AccountingObjectItem",
+    "field" : "nomenclature",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.AccountingObjectItem",
+    "field" : "nomenclature",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectItem",
+    "field" : "nomenclature",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingObjectItem",
+    "field" : "nomenclature",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingType",
+    "field" : "code",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AccountingType",
+    "field" : "name",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_TYPE",
+    "entity" : "org.ip.model.AttributeType",
+    "field" : "active",
+    "source" : "@FieldMetadata.type",
+    "message" : "объявленный тип BOOLEAN совпадает с выводом из Java-типа/JPA"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AttributeType",
+    "field" : "code",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AttributeType",
+    "field" : "name",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AttributeType",
+    "field" : "valueType",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_TYPE",
+    "entity" : "org.ip.model.AttributeType",
+    "field" : "valueType",
+    "source" : "@FieldMetadata.type",
+    "message" : "объявленный тип ENUM совпадает с выводом из Java-типа/JPA"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.AttributeValue",
+    "field" : "attrType",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AttributeValue",
+    "field" : "attrType",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AttributeValue",
+    "field" : "code",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.AttributeValue",
+    "field" : "name",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.GridFormView",
+    "field" : "formKey",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.GridFormView",
+    "field" : "name",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.GroupNom",
+    "field" : "code",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.GroupNom",
+    "field" : "name",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.NomSklAttribute",
+    "field" : "attrType",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.NomSklAttribute",
+    "field" : "attrType",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.NomSklAttribute",
+    "field" : "nomenclature",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.NomSklAttribute",
+    "field" : "nomenclature",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_TYPE",
+    "entity" : "org.ip.model.NomSklAttribute",
+    "field" : "required",
+    "source" : "@FieldMetadata.type",
+    "message" : "объявленный тип BOOLEAN совпадает с выводом из Java-типа/JPA"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.NomenclatureAccountingObject",
+    "field" : "accountingType",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.NomenclatureAccountingObject",
+    "field" : "accountingType",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.NomenclatureAccountingObject",
+    "field" : "nomenclature",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.NomenclatureAccountingObject",
+    "field" : "nomenclature",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.NomenclatureAccountingObject",
+    "field" : "workshop",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.NomenclatureAccountingObject",
+    "field" : "workshop",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.Oper",
+    "field" : "code",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.Oper",
+    "field" : "name",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_TYPE",
+    "entity" : "org.ip.model.PrdSpecMtr",
+    "field" : "qt",
+    "source" : "@FieldMetadata.type",
+    "message" : "объявленный тип DECIMAL совпадает с выводом из Java-типа/JPA"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_TYPE",
+    "entity" : "org.ip.model.PrdSpecMtr",
+    "field" : "typeMtr",
+    "source" : "@FieldMetadata.type",
+    "message" : "объявленный тип INTEGER совпадает с выводом из Java-типа/JPA"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_TYPE",
+    "entity" : "org.ip.model.PrdSpecOper",
+    "field" : "order",
+    "source" : "@FieldMetadata.type",
+    "message" : "объявленный тип INTEGER совпадает с выводом из Java-типа/JPA"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.ReceivingDocument",
+    "field" : "date",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.ReceivingDocument",
+    "field" : "journal",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_TYPE",
+    "entity" : "org.ip.model.ReceivingDocument",
+    "field" : "journal",
+    "source" : "@FieldMetadata.type",
+    "message" : "объявленный тип ENTITY_REFERENCE совпадает с выводом из Java-типа/JPA"
+  }, {
+    "severity" : "INFO",
+    "code" : "UI_REQUIRED_SERVER_OPTIONAL",
+    "entity" : "org.ip.model.ReceivingDocument",
+    "field" : "journal",
+    "source" : "@FieldMetadata.required (разрешено: журнал обязателен в форме накладной (order=0 и уникальность (journal_id, number)), но сервер допускает NULL: осознанное ограничение UI до решения по серверному контракту)",
+    "message" : "UI требует заполнения, контракт записи этого не требует"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.ReceivingDocument",
+    "field" : "number",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.ReceivingDocument",
+    "field" : "receivingWorkshop",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.ReceivingDocument",
+    "field" : "receivingWorkshop",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.ReceivingDocument",
+    "field" : "transferringWorkshop",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.ReceivingDocument",
+    "field" : "transferringWorkshop",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.ReceivingDocumentItem",
+    "field" : "nomenclature",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.ReceivingDocumentItem",
+    "field" : "nomenclature",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.ReceivingDocumentItem",
+    "field" : "quantity",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.Role",
+    "field" : "name",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.User",
+    "field" : "username",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_LOOKUP_TARGET",
+    "entity" : "org.ip.model.Workshop",
+    "field" : "branch",
+    "source" : "@Lookup.entity",
+    "message" : "объявленная цель совпадает с типом ссылки: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_TYPE",
+    "entity" : "org.ip.model.Workshop",
+    "field" : "branch",
+    "source" : "@FieldMetadata.type",
+    "message" : "объявленный тип ENTITY_REFERENCE совпадает с выводом из Java-типа/JPA"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.Workshop",
+    "field" : "code",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  }, {
+    "severity" : "INFO",
+    "code" : "REDUNDANT_REQUIRED",
+    "entity" : "org.ip.model.Workshop",
+    "field" : "name",
+    "source" : "@FieldMetadata.required",
+    "message" : "явное REQUIRED совпадает с контрактом записи: объявление избыточно"
+  } ],
+  "runtimeSources" : {
+    "org.ipro.data.EntityDescriptorCatalog" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-core/1.0-SNAPSHOT/platform-core-1.0-SNAPSHOT.jar",
+    "org.ipro.metadata.ManagedEntityCatalog" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-core/1.0-SNAPSHOT/platform-core-1.0-SNAPSHOT.jar",
+    "org.ipro.metadata.MetadataResolver" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-core/1.0-SNAPSHOT/platform-core-1.0-SNAPSHOT.jar",
+    "org.ipro.metadata.SectionMetadataRegistry" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-core/1.0-SNAPSHOT/platform-core-1.0-SNAPSHOT.jar",
+    "org.ipro.query.QueryBuilderMetadataCatalog" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-query/1.0-SNAPSHOT/platform-query-1.0-SNAPSHOT.jar",
+    "org.ipro.register.RegisterRegistry" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-register/1.0-SNAPSHOT/platform-register-1.0-SNAPSHOT.jar",
+    "org.ipro.rest.catalog.RestResourceCatalog" : "file:/C:/Users/strim/.m2/repository/org/ipro/platform-rest/1.0-SNAPSHOT/platform-rest-1.0-SNAPSHOT.jar"
+  }
+}

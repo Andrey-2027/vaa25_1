@@ -14,7 +14,6 @@ import org.ipro.crud.BaseService;
 import org.ipro.crud.LookupService;
 import org.ipro.crud.ServiceLocator;
 import org.ipro.fetch.plan.FetchScenario;
-import org.ipro.reportstudio.dom.ReportTemplate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -91,8 +90,6 @@ class CanonicalReadBoundaryIT {
             .isEqualTo(EntityExposure.STANDARD_ROOT);
         assertThat(catalog.descriptorOf(Nomenclature.class).metadataDriven()).isTrue();
         assertThat(catalog.descriptorOf(UserFormSettings.class).exposure())
-            .isEqualTo(EntityExposure.INTERNAL_STORE);
-        assertThat(catalog.descriptorOf(ReportTemplate.class).exposure())
             .isEqualTo(EntityExposure.INTERNAL_STORE);
     }
 
@@ -197,22 +194,22 @@ class CanonicalReadBoundaryIT {
      * {@code DETAIL} явным мостом — пока его сервис наследовал compatibility base и
      * ходил через canonical path. После перевода сервиса на internal-store adapter мост снят,
      * поэтому тип должен отказывать до RLS и SQL, а не получать граф без metadata.
-     * <p>Представитель — {@code ReportTemplate}: тот же internal-store adapter, что был
+     * <p>Представитель — {@code UserFormSettings}: тот же internal-store adapter, что был
      * у выведенного UReport-типа.</p>
      */
     @Test
     void internalStoreWithoutAnOwnerBridgeHasNoCanonicalHandle() {
-        EntityDescriptor descriptor = catalog.descriptorOf(ReportTemplate.class);
+        EntityDescriptor descriptor = catalog.descriptorOf(UserFormSettings.class);
 
         assertThat(descriptor.exposure()).isEqualTo(EntityExposure.INTERNAL_STORE);
         assertThat(descriptor.capabilities().readScenarios()).isEmpty();
         assertThat(descriptor.capabilities().writes()).isEmpty();
 
         assertThatThrownBy(() -> readExecutor.readAll(
-            ListRead.of(ReportTemplate.class, FetchScenario.LIST)))
+            ListRead.of(UserFormSettings.class, FetchScenario.LIST)))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("INTERNAL_STORE");
-        assertThatThrownBy(() -> lookupService.findAll(ReportTemplate.class))
+        assertThatThrownBy(() -> lookupService.findAll(UserFormSettings.class))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("INTERNAL_STORE");
     }

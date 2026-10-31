@@ -3,20 +3,35 @@
 Статический инвентарь текущего checkout на 2026-09-23. Это карта переноса, не решение о
 переносе и не подтверждение сборкой; Maven и тесты при составлении не запускались.
 
+> **Обновление 2026-10-24 (M2.1).** Общий слой уже вынесен в `platform-report`
+> (каталог, экспорт `JasperPrint`, пул задач), движок JR — в `platform-jr`
+> (entity/repository, сервис, execution, JPQL-порт, оба auto-configuration и
+> `jasperreports*.properties`). В приложении остались UI каталога/печати, UniDR и
+> прикладные потребители — их перенос к M2.2. Подробности — в
+> [evidence](evidence/m2-1-report-layer-jr-20261024.md).
+>
+> **Обновление 2026-10-26 (M2.2.2/M2.2.3).** UI каталога/печати/параметров и UniDR
+> вынесены в `platform-report-vaadin`, backend UniDR — в `platform-unidr` (M2.2.1).
+> Приложение оставило только прикладной JPQL-источник, справочник ссылок, адаптеры и
+> `ReportRuntimeConfiguration`; app-owned `AutoConfiguration.imports` удалён. Строки
+> ниже — историческая карта на 2026-09-23; актуальные адреса и гейты — в
+> [M2.2.2](evidence/m2-2-2-report-ui-20261026.md) и
+> [M2.2.3](evidence/m2-2-3-cutover-20261026.md).
+
 | Область | Текущее расположение | Указание для D-R |
 |---|---|---|
 | Report Studio: модель, запросы, guard, render/run, сервисы и конфигурация | `src/main/java/org/ipro/reportstudio/**` | Кандидат в add-on; app-specific consumers оставить в приложении или подключить через явный seam. |
 | UI каталога и редакторов | `src/main/java/org/ip/views/reportstudio/**` | Кандидат в add-on; сохранить интеграции с формами и текущие route aliases. |
-| Общий каталог отчётов, тип движка и SPI | `src/main/java/org/ipro/report/catalog/**` | Обновление 2026-10-17: каталог вынесен из `org.ipro.ureport.catalog`, и движки подключены адаптерами — `ReportCatalogService` не знает ни одного движка и не содержит `switch` по типу. `ReportCatalogItemFactory` — единственный узел конструкции строки, но правила движков остаются в их слоях: фабрика собирает UDR/JR/UniDR, а UReport-строку собирает `UreportTemplateService.rowOf` (срез U1.1 в [`ureport-removal-plan.md`](ureport-removal-plan.md)). Поэтому рёбер `org.ipro.report.catalog -> org.ipro.ureport.*` больше нет: остались `org.ipro.jr.dom` и `org.ipro.reportstudio.dom`. `ReportCatalogReadGate` — единое место проверки чтения; правила веток живут в адаптерах `UdrCatalogContributor` (`org.ipro.reportstudio.service`), `UreportCatalogContributor` (`org.ipro.ureport.service`), `JrCatalogContributor` (`org.ipro.jr.service`). |
+| Общий каталог отчётов, тип движка и SPI | `src/main/java/org/ipro/report/catalog/**` | Обновление 2026-10-17: каталог вынесен из `org.ipro.ureport.catalog`, и движки подключены адаптерами — `ReportCatalogService` не знает ни одного движка и не содержит `switch` по типу. `ReportCatalogItemFactory` — единственный узел конструкции строки, но правила движков остаются в их слоях: фабрика собирает UDR/JR/UniDR (срез U1.1 в [`ureport-removal-plan.md`](ureport-removal-plan.md)). U1.2 удалил UReport-адаптер и его строку, поэтому рёбер `org.ipro.report.catalog -> org.ipro.ureport.*` больше нет: остались `org.ipro.jr.dom` и `org.ipro.reportstudio.dom`. `ReportCatalogReadGate` — единое место проверки чтения; правила веток живут в адаптерах `UdrCatalogContributor` (`org.ipro.reportstudio.service`) и `JrCatalogContributor` (`org.ipro.jr.service`). |
 | Нейтральная конфигурация каталога | `src/main/java/org/ipro/report/config/ReportCatalogAutoConfiguration.java` | Бин каталога и гейт чтения создаются здесь, а не в конфигурации UReport. Каждый движок объявляет свой адаптер в собственной конфигурации; снятие движка — удаление его адаптера и бинов, без правок каталога. |
-| UReport glue, модель, сервисы и конфигурация | `src/main/java/org/ipro/ureport/**` | **Направление изменено 2026-10-17: не add-on, а вывод из приложения.** U1 в [`ureport-removal-plan.md`](ureport-removal-plan.md) перечисляет все точки касания, срезы и проверки; строка ниже фиксирует исходное состояние до удаления. Движок — отдельный внешний fork, который не удаляется автоматически. |
-| JR execution/configuration | `src/main/java/org/ipro/jr/**` | Кандидат в add-on. `org.ip.views.reports.JrxmlRunDialog` — app UI-consumer, не переносить автоматически. |
-| JR persistence | `src/main/java/org/ipro/jr/{dom/JrxmlTemplate.java,JrxmlTemplateRepository.java,config/JrPersistenceAutoConfiguration.java}` | Код и регистрация принадлежат приложению; `platform-persistence` оставляет только `BaseEntity`. Source boundary перенесена, Maven/тестовый cutover ещё не подтверждён. |
+| UReport glue, модель, сервисы и конфигурация | удалено в U1.2 (было `src/main/java/org/ipro/ureport/**`) | **Не add-on, а вывод из приложения.** Runtime, UI-ветки, адаптер каталога и регистрации сняты; Maven-зависимость и внешний fork остаются до U1.3, таблица `ureport_template` и файлы — до DB1 (см. [`ureport-removal-plan.md`](ureport-removal-plan.md)). |
+| JR execution/configuration | **`platform-jr/src/main/java/org/ipro/jr/**` (M2.1)** | Перенесено в артефакт вместе с `JrAutoConfiguration` и ресурсами `jasperreports*.properties`. `org.ip.views.reports.JrxmlRunDialog` — app UI-consumer, остаётся приложению. |
+| JR persistence | **`platform-jr/src/main/java/org/ipro/jr/{dom/JrxmlTemplate.java,JrxmlTemplateRepository.java,config/JrPersistenceAutoConfiguration.java}` (M2.1)** | Код и `@EntityScan`/`@EnableJpaRepositories` принадлежат `platform-jr`; `platform-persistence` оставляет только `BaseEntity`. Тестовый cutover подтверждён `JrPersistenceRegistrationTest` (3/0). |
 | Приложенческие потребители/точки подключения | `src/main/java/org/ip/Application.java`, `src/main/java/org/ip/config/EntityClassificationConfig.java`, `src/main/java/org/ip/views/reports/JrxmlRunDialog.java`, `src/main/java/org/ip/views/test/ReportQueryPreviewView.java` | Сверить каждый import/scan при переносе; не переносить бизнес-приложение вместе с движком. |
 | Ресурсы и тема | `src/main/resources/jasperreports*.properties`, `src/main/resources/dynamicreports-defaults.xml`, `src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`; `.report-editor` в `src/main/frontend/themes/default/styles.css` | Разнести регистрацию add-on и report styling; не оставлять движковые defaults в app случайно. Других report-шаблонов в `src/main/resources` статический поиск не выявил. |
-| Внешние зависимости/исходники | `../DynamicReport7` (`dynamicreports`, pinned upstream revision `c95f34d`); `../ReportFlowUI` (`reportui`); `../UReportFork2/ureport3` (dirty worktree, commit зафиксирован в manifest); JasperReports/JasperReports Fonts — Maven artifacts из root `pom.xml` | Источник и версии сверять через `scripts/local-dependencies.json` и root POM. Сохранить существующий license gate UReport/iText; решения о лицензировании здесь нет. |
-| App-owned автоконфигурации и persistence | `src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`; `ReportStudioPersistenceAutoConfiguration`, `UreportPersistenceAutoConfiguration`, `JrPersistenceAutoConfiguration`, `JrAutoConfiguration` | Сохранить регистрации у legacy-приложения до появления add-on. Проверить, что общий starter их не импортирует. |
-| Тесты и проверяемые швы | `src/test/java/org/ipro/reportstudio/**`, `src/test/java/org/ipro/ureport/**`, `src/test/java/org/ipro/jr/**`, `src/test/java/org/ip/views/reportstudio/**`, `src/test/java/org/ip/security/ReportStudioAutoConfigurationSmokeTest.java`, `src/test/java/org/ipro/{ReportFormSeamTest,PlatformPublicSurfaceTest}.java`; `platform-persistence/src/test/java/org/ipro/persistence/PersistenceModuleCompositionTest.java`; `src/test/resources/{report-form-seam.txt,platform-public-surface.txt}` | JR persistence slice `JrPersistenceRegistrationTest` живёт в приложении; module-composition и cross-module gates остаются у своих границ. Тесты при этом обновлении не запускались. |
+| Внешние зависимости/исходники | `../DynamicReport7` (`dynamicreports`, pinned upstream revision `c95f34d`); `../ReportFlowUI` (`reportui`); JasperReports/JasperReports Fonts — Maven artifacts из root `pom.xml` | Источник и версии сверять через `scripts/local-dependencies.json` и root POM. U1.3 убрал UReport3 из manifest и POM вместе с iText-риском; внешний checkout `../UReportFork2/ureport3` не трогается. |
+| App-owned автоконфигурации и persistence | `src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`; `ReportCatalogAutoConfiguration`, `ReportStudioPersistenceAutoConfiguration`, `JrPersistenceAutoConfiguration`, `JrAutoConfiguration` | Сохранить регистрации у legacy-приложения до появления add-on. UReport-регистрации удалены вместе с движком. Проверить, что общий starter их не импортирует. |
+| Тесты и проверяемые швы | `src/test/java/org/ipro/reportstudio/**`, `src/test/java/org/ipro/jr/**`, `src/test/java/org/ipro/report/catalog/**`, `src/test/java/org/ip/views/reportstudio/**`, `src/test/java/org/ip/security/ReportStudioAutoConfigurationSmokeTest.java`, `src/test/java/org/ipro/{ReportFormSeamTest,PlatformPublicSurfaceTest}.java`; `platform-persistence/src/test/java/org/ipro/persistence/PersistenceModuleCompositionTest.java`; `src/test/resources/{report-form-seam.txt,platform-public-surface.txt}` | JR persistence slice `JrPersistenceRegistrationTest` живёт в приложении; module-composition и cross-module gates остаются у своих границ. U1.2 обновил smoke-конфигурацию JR и забор platform-subsystem; полный `mvn verify` — U1.4. |
 
 ## Ограничение перед D3.8
 
@@ -31,7 +46,7 @@ starter простым dependency exclusion нельзя: на него напр
 `JrxmlTemplate`, `JrxmlTemplateRepository` и `JrPersistenceAutoConfiguration` находятся в
 приложении. Удалены JR-only `PersistenceAutoConfiguration` и platform imports entry; обновлены
 composition/registration gates и manifest fingerprint. Это не перенос всего report add-on:
-движки, Report Studio и UReport пока остаются приложению. Пути, регистрации, POM и manifest
+движки и Report Studio пока остаются приложению; UReport удалён из runtime в U1.2. Пути, регистрации, POM и manifest
 проверяются статически; тесты и Maven не запускались по просьбе владельца.
 
 ## План узкого разделения JR persistence

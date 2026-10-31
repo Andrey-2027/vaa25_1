@@ -7,7 +7,9 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import java.util.*;
 import org.ip.application.access.*;
+import org.ip.persistence.access.PermissionScopePageService;
 import org.ipro.filtergrid.TextFilter;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
 
 /** Shared lazy editor instantiated with the registered source's actual JPA type. */
@@ -46,7 +48,7 @@ public class PermissionScopeEditor<T> extends VerticalLayout {
         grid.addColumnFilter("code", "Код", value -> text(value, "getCode"), new TextFilter<>());
         grid.addColumnFilter("name", "Наименование", value -> text(value, "getName"), new TextFilter<>());
         scope.columns().forEach(column -> grid.addComponentColumn(value -> {
-            long id = ((Number) ((org.ipro.identity.IdentifiableEntity<?>) value).getId()).longValue();
+            long id = ((Number) ((IdentifiableEntity<?>) value).getId()).longValue();
             var state = cells.getOrDefault(id, List.of()).stream().filter(cell -> cell.binding().equals(column.binding())).findFirst().orElse(null);
             if (state == null) return new Span("Состояние обновляется");
             return new PermissionCell(column.title(), workspace.active().orElseThrow().subject(), state, enabled -> {

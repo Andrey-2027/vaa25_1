@@ -4,6 +4,10 @@ import java.util.Map;
 import java.util.HashMap;
 
 import jakarta.persistence.EntityManagerFactory;
+import org.ipro.form.Dirtyable;
+import org.ipro.form.Savable;
+import org.ipro.metadata.EntityMetadataInfo;
+import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.EntityMetadata;
 
 import com.vaadin.flow.component.button.Button;
@@ -46,7 +50,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 @SpringComponent
 @Scope("prototype")
-public class AdminView extends VerticalLayout implements org.ipro.form.Dirtyable, org.ipro.form.Savable {
+public class AdminView extends VerticalLayout implements Dirtyable, Savable {
 
     @Autowired
     private ObjectProvider<PermissionWorkspace> permissionWorkspaces;
@@ -91,6 +95,7 @@ public class AdminView extends VerticalLayout implements org.ipro.form.Dirtyable
                      @Autowired SettingsAdminTab settingsTab,
                      @Autowired NumberingAdminTab numberingTab,
                      @Autowired EntityManagerFactory entityManagerFactory,
+                     @Autowired MetadataResolver metadataResolver,
                      @Autowired java.util.List<NamedOperationOwner> namedOperationOwners,
                      @Autowired java.util.List<NamedOperationSource> namedOperationSources,
                      @Autowired ObjectProvider<NavigationProfilesAdminTab> navigationTabs,
@@ -107,9 +112,9 @@ public class AdminView extends VerticalLayout implements org.ipro.form.Dirtyable
         this.numberingTab = numberingTab;
         for (var entity : entityManagerFactory.getMetamodel().getEntities()) {
             Class<?> type = entity.getJavaType();
-            EntityMetadata metadata = type.getAnnotation(EntityMetadata.class);
-            String title = metadata == null || metadata.listFormTitle().isBlank()
-                ? type.getSimpleName() : metadata.listFormTitle();
+            String title = metadataResolver.find(type)
+                .map(EntityMetadataInfo::getListFormTitle)
+                .orElse(type.getSimpleName());
             String label = title.equals(type.getSimpleName()) ? title : title + " (" + type.getSimpleName() + ")";
             entityLabels.put(type.getName(), label);
             entityLabels.put(entity.getName(), label);

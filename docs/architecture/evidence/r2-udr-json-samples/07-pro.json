@@ -1,0 +1,133 @@
+{
+    "format": "ipro-report-template",
+    "template": {
+        "jpql": "SELECT a.journal, a.nomenclature, a.draft, a.id FROM PrdSpec a",
+        "name": "Проь",
+        "bands": [
+            {
+                "key": "19",
+                "kind": "DETAIL",
+                "fields": [
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 0,
+                        "alignment": "LEFT",
+                        "queryField": "a.journal",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 1,
+                        "alignment": "LEFT",
+                        "queryField": "a.nomenclature",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 2,
+                        "alignment": "LEFT",
+                        "queryField": "a.draft",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 3,
+                        "alignment": "LEFT",
+                        "queryField": "a.id",
+                        "aggregation": "NONE"
+                    }
+                ],
+                "position": 0,
+                "parentKey": null,
+                "groupField": null,
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            },
+            {
+                "key": "20",
+                "kind": "GROUP_HEADER",
+                "fields": [
+                ],
+                "position": 1,
+                "parentKey": null,
+                "groupField": "a.journal",
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            },
+            {
+                "key": "21",
+                "kind": "GROUP_FOOTER",
+                "fields": [
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 0,
+                        "alignment": "LEFT",
+                        "queryField": "a.nomenclature",
+                        "aggregation": "COUNT"
+                    }
+                ],
+                "position": 2,
+                "parentKey": "20",
+                "groupField": "a.journal",
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            }
+        ],
+        "orders": [
+            {
+                "position": 0,
+                "direction": "ASC",
+                "columnName": "a.journal"
+            }
+        ],
+        "params": [
+        ],
+        "maxRows": 5000,
+        "advanced": false,
+        "pageSize": "A4",
+        "timeoutMs": 30000,
+        "stripeRows": null,
+        "description": null,
+        "gridEnabled": null,
+        "querySource": "MANUAL",
+        "baseFontSize": 10,
+        "pageOrientation": "PORTRAIT",
+        "visualQueryJson": null,
+        "visualFilterJson": null,
+        "targetEntityClass": null
+    },
+    "schemaVersion": 3
+}

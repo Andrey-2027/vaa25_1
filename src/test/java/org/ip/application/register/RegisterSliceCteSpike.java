@@ -2,7 +2,7 @@ package org.ip.application.register;
 
 import jakarta.persistence.EntityManager;
 import org.ipro.filtergrid.filter.*;
-import org.ipro.reportstudio.query.*;
+import org.ipro.query.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

@@ -1,0 +1,90 @@
+{
+    "format": "ipro-report-template",
+    "template": {
+        "jpql": "\nSELECT a.code, a.unitOfMeasurement, \"Сщ\" as col3 FROM Nomenclature a\nWHERE LEFT(a.code,6)=\"А12.24\"",
+        "name": "Form первая",
+        "bands": [
+            {
+                "key": "1",
+                "kind": "DETAIL",
+                "fields": [
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "Код 1",
+                        "visible": true,
+                        "position": 0,
+                        "alignment": "LEFT",
+                        "queryField": "a.code",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": 50,
+                        "border": null,
+                        "format": null,
+                        "caption": "Ед.Изм",
+                        "visible": true,
+                        "position": 1,
+                        "alignment": "LEFT",
+                        "queryField": "a.unitOfMeasurement",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 2,
+                        "alignment": "LEFT",
+                        "queryField": "col3",
+                        "aggregation": "NONE"
+                    }
+                ],
+                "position": 0,
+                "parentKey": null,
+                "groupField": null,
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            }
+        ],
+        "orders": [
+        ],
+        "params": [
+            {
+                "kind": "ENTITY",
+                "name": "param1",
+                "caption": "Параметр 2",
+                "computed": "NONE",
+                "position": 1,
+                "required": false,
+                "showOnForm": true,
+                "entityClass": "org.ip.model.Nomenclature",
+                "valueSource": "FORM",
+                "defaultValue": null
+            }
+        ],
+        "maxRows": 5000,
+        "advanced": false,
+        "pageSize": "A4",
+        "timeoutMs": 30000,
+        "stripeRows": true,
+        "description": null,
+        "gridEnabled": true,
+        "querySource": "MANUAL",
+        "baseFontSize": 10,
+        "pageOrientation": "PORTRAIT",
+        "visualQueryJson": null,
+        "visualFilterJson": null,
+        "targetEntityClass": "org.ip.model.UnitOfMeasurement"
+    },
+    "schemaVersion": 3
+}

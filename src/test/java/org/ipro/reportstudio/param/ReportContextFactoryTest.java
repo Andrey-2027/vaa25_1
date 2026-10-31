@@ -1,5 +1,9 @@
-package org.ipro.reportstudio.param;
+package org.ipro.report.ui;
 
+import org.ipro.query.param.*;
+import org.ipro.query.*;
+
+import org.ipro.query.ReportContext;
 import org.ipro.crud.BaseEntity;
 import org.junit.jupiter.api.Test;
 

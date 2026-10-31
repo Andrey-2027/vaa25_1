@@ -1,0 +1,13 @@
+{
+  "status" : "CONFLICT",
+  "code" : "CONFLICT_MODIFIED",
+  "message" : "A target exists but is no longer the file recorded by this plan",
+  "applyId" : null,
+  "planId" : "g1-1d58301c454eb440dbb8b6c2b4eca312fe4376b06dbd2cfed88f57cf950704d7",
+  "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\actual\\sections-document-1\\conflict-project\\src\\main\\java\\com\\example\\generated\\rows\\DocumentSections1Row1.java",
+  "receipt" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\actual\\sections-document-1\\conflict-project\\.g1-apply-v2\\receipts\\f5b46e1218c9c46ef93fa299949add0fb60210696857fb41200cd376bcd08800\\g1-1d58301c454eb440dbb8b6c2b4eca312fe4376b06dbd2cfed88f57cf950704d7.json",
+  "journal" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\actual\\sections-document-1\\conflict-project\\.g1-apply-v2\\journal.json",
+  "contentSha256" : "46ceeaf4d85d1fd588101fb919094d2eb8a9f503ce561e5fef617844f58ba69e",
+  "cSummarySha256" : "6329441810c9f9aa99d41bf87e8281608628de81f01cfcee0ca61ffe278ee8cd",
+  "exitCode" : 2
+}

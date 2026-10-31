@@ -1,4 +1,7 @@
-package org.ip.unidr.query;
+package org.ipro.unidr.query;
+import org.ip.unidr.query.UniDrQueryAdapter;
+import org.ip.unidr.query.UniDrReferenceService;
+import org.ip.unidr.model.UniDrDefinitions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -6,16 +9,17 @@ import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.ip.Application;
 import org.ip.model.*;
-import org.ip.unidr.model.*;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.run.*;
-import org.ip.unidr.source.UniDrSourceCatalog;
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.run.*;
+import org.ipro.unidr.source.UniDrSourceCatalog;
 import org.ipro.crud.LookupService;
 import org.ipro.data.*;
 import org.ipro.metadata.*;
 import org.ipro.reportstudio.param.*;
-import org.ipro.reportstudio.query.*;
-import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.query.param.*;
+import org.ipro.query.*;
+import org.ipro.query.sqm.SqmQuerySemanticAnalyzer;
 import org.ipro.rls.*;
 import org.ipro.rls.c5.*;
 import org.ipro.rls.config.RlsPersistenceAutoConfiguration;
@@ -38,7 +42,7 @@ import static org.assertj.core.api.Assertions.*;
 
 /** Real canonical lookups, grants, filters and guarded SQL on actual application entities. */
 @DataJpaTest(showSql=false, properties={"spring.jpa.show-sql=false",
-    "spring.jpa.properties.hibernate.session_factory.statement_inspector=org.ip.unidr.query.UniDrReceivingItemsQueryTest$SqlCapture"})
+    "spring.jpa.properties.hibernate.session_factory.statement_inspector=org.ipro.unidr.query.UniDrReceivingItemsQueryTest$SqlCapture"})
 @ImportAutoConfiguration(RlsPersistenceAutoConfiguration.class)
 @ContextConfiguration(classes=Application.class)
 @Transactional(propagation=Propagation.NOT_SUPPORTED)
@@ -93,26 +97,28 @@ class UniDrReceivingItemsQueryTest {
         var readGate=new RlsReadGate(permissions,registry);
         var authorizer=new ReportReadAuthorizer(factory,permissions,current,List.of(),grantsAccess,registry);
         var guard=new ReportQueryGuard(new SqmQuerySemanticAnalyzer(factory),grantsAccess,registry,current,factory,authorizer);
-        executor=new ReportQueryExecutor(em,activator,current,guard,authorizer);
         var refresher=new EntityParamRefresher(em,activator,readGate,current,factory.unwrap(SessionFactoryImplementor.class));
         var resolver=new ReportParamResolver(refresher,grantsAccess,current,factory.unwrap(SessionFactoryImplementor.class),new ObjectMapper(),"BRANCH");
         var metadata=new MetadataResolver();
-        var visuals=new QueryBuilderMetadataCatalog(factory,metadata,readGate,current);
+        var managed=new ManagedEntityCatalog(factory);
+        var sections=new SectionMetadataRegistry("org.ip.model",metadata); sections.afterPropertiesSet();
+        var recorderTypes=new org.ipro.register.RecorderTypeRegistry(managed,factory,metadata); recorderTypes.initialize();
+        var registers=new org.ipro.register.RegisterRegistry(managed,recorderTypes);
+        var descriptors=new EntityDescriptorCatalog(managed,sections,metadata,List.of(),List.of(),
+            List.of(new org.ipro.register.RegisterClassificationContributor(registers)));
+        var visuals=new QueryBuilderMetadataCatalog(new org.ipro.metadata.ManagedEntityTypes(factory),metadata,readGate,current,descriptors);
         var assembly=new ReportQueryAssemblyService(guard,resolver,refresher,visuals);
-        var recipes=new org.ipro.reportstudio.query.register.RegisterSliceReportTemplates(factory,
-            new org.ipro.register.RegisterRegistry(new ManagedEntityCatalog(factory)),visuals,null);
+        var recipes=new org.ipro.query.register.RegisterSliceReportTemplates(factory,registers,visuals,null);
         assembly.useQueryLanguage(new ReportQueryLanguage(visuals,recipes));
         querySources=new UniDrQuerySourceService(assembly,factory);querySources.useTables(new UniDrTableSources(visuals));
-        var sections=new SectionMetadataRegistry("org.ip.model",metadata); sections.afterPropertiesSet();
-        var catalog=new EntityDescriptorCatalog(new ManagedEntityCatalog(factory),sections,metadata,List.of(),List.of());
-        var canonical=new CanonicalReadExecutor(catalog,new ScenarioFetchGraphResolver(metadata,null,null),metadata,
+        var canonical=new CanonicalReadExecutor(descriptors,new ScenarioFetchGraphResolver(metadata,null,null),metadata,
             activator,readGate,null,ReadTelemetry.noop(),null,current,permissions);
         ReflectionTestUtils.setField(canonical,"entityManager",em);
-        var policies=new EntityDataAccessResolver(catalog,org.mockito.Mockito.mock(EntityDataAccess.class),canonical,List.of());
+        var policies=new EntityDataAccessResolver(descriptors,org.mockito.Mockito.mock(EntityDataAccess.class),canonical,List.of());
         var names=new org.ipro.fetch.instance.InstanceNameResolver(new ManagedEntityCatalog(factory).managedEntityClasses(),metadata);
         var presentations=new org.ipro.data.presentation.EntityPresentationService(new CanonicalEntityReadAccess(canonical),policies,names,metadata);
-        var recorderTypes=new org.ipro.register.RecorderTypeRegistry(new ManagedEntityCatalog(factory),factory,metadata);
-        recorderTypes.initialize();executor.usePresentations(presentations,recorderTypes);
+        executor=new ReportQueryExecutor(em,activator,current,guard,authorizer,
+            new org.ipro.query.QueryResultLabelPresenter(presentations,recorderTypes));
         access=new UniDrAccess(()->true,current);
         references=new UniDrReferenceService(new LookupService(canonical),access,transactions);
         references.useEntityTypes(new ManagedEntityCatalog(factory).managedEntityClasses());
@@ -120,7 +126,9 @@ class UniDrReceivingItemsQueryTest {
         sources.usePlans(querySources::describeSource);
         var validator=new UniDrDefinitionValidator(sources);
         parameters=new UniDrRunParameterResolver(validator);
-        adapter=new UniDrQueryAdapter(sources,validator,assembly);
+        adapter=new UniDrQueryAdapter(sources,validator,assembly,references);
+        sources.useReferences(references);
+        sources.useSourcePlans(source -> UniDrQueryAdapter.plan(source,references));
         queries=service(5000);
         write(this::fixtures); SqlCapture.SQL.get().clear(); SqlCapture.READ_ONLY.get().clear();
     }
@@ -169,8 +177,8 @@ class UniDrReceivingItemsQueryTest {
         assertThat(result.dataset().rows()).extracting(row->row.value("quantity")).containsExactly(new BigDecimal("4.00"));
     }
     @Test void canonicalLookupHidesBranchAndJournalAndChecksSelectedIdAgain() {
-        assertThat(references.search("receivingWorkshop","",50)).extracting(UniDrReferenceService.Option::id).contains(recipientA).doesNotContain(hiddenWorkshop);
-        assertThat(references.search("document","U2-",50)).extracting(UniDrReferenceService.Option::id).contains(visibleDocument).doesNotContain(hiddenDocument);
+        assertThat(references.search("receivingWorkshop","",50)).extracting(org.ipro.unidr.query.UniDrReferenceCatalog.Option::id).contains(recipientA).doesNotContain(hiddenWorkshop);
+        assertThat(references.search("document","U2-",50)).extracting(org.ipro.unidr.query.UniDrReferenceCatalog.Option::id).contains(visibleDocument).doesNotContain(hiddenDocument);
         assertThatThrownBy(()->references.requireVisible("receivingWorkshop",hiddenWorkshop)).isInstanceOf(UniDrRunException.class);
         assertThatThrownBy(()->references.requireVisible("document",hiddenDocument)).isInstanceOf(UniDrRunException.class);
         assertNoSourceSql();
@@ -211,20 +219,18 @@ class UniDrReceivingItemsQueryTest {
     }
     @Test void realSourceFeedsCompilerAndExportsWithoutAnotherDatabaseRead() {
         var data=read(base,Map.of());
-        var sources=UniDrSourceCatalog.pilot();
-        var compiler=new org.ip.unidr.render.UniDrReportCompiler(sources,new UniDrDefinitionValidator(sources));
+        var sources=UniDrDefinitions.catalog();
+        var compiler=new org.ipro.unidr.render.UniDrReportCompiler(sources,new UniDrDefinitionValidator(sources));
         int statements=SqlCapture.SQL.get().size();
         var print=compiler.compile(base,data.dataset());
-        var report=new org.ip.unidr.render.UniDrRenderedReport(print,base.title(),subject,access,new org.ipro.reportstudio.render.JasperReportCompiler());
+        var report=new org.ipro.unidr.render.UniDrRenderedReport(print,base.title(),subject,access,new org.ipro.report.render.JasperReportExporter());
         assertThat(report.preview().bytes()).startsWith((byte)'%',(byte)'P',(byte)'D',(byte)'F');
-        assertThat(report.export(org.ipro.reportstudio.render.ReportExportFormat.PDF).bytes()).isEqualTo(report.preview().bytes());
-        assertThat(report.export(org.ipro.reportstudio.render.ReportExportFormat.XLSX).bytes()).startsWith((byte)'P',(byte)'K');
+        assertThat(report.export(org.ipro.report.render.ReportExportFormat.PDF).bytes()).isEqualTo(report.preview().bytes());
+        assertThat(report.export(org.ipro.report.render.ReportExportFormat.XLSX).bytes()).startsWith((byte)'P',(byte)'K');
         assertThat(SqlCapture.SQL.get()).hasSize(statements);
     }
     private UniDrDefinition queryDefinition() {
-        var unit=new org.ipro.reportstudio.dom.ReportParam();unit.setName("unit");unit.setCaption("Единица");unit.setKind(org.ipro.reportstudio.dom.ReportParamKind.ENTITY);unit.setEntityClass(UnitOfMeasurement.class.getName());unit.setRequired(true);
-        var template=new org.ipro.reportstudio.dom.ReportTemplate();template.addParam(unit);
-        template.setJpql("""
+        var query=new UniDrQuerySource(org.ipro.query.document.ReportQuerySource.MANUAL,"""
             select r.name as recipient, n.name as item, i.quantity as qty, d.date as day
             from ReceivingDocumentItem i
             join ReceivingDocument d on i.document.id=d.id
@@ -233,11 +239,12 @@ class UniDrReceivingItemsQueryTest {
             join Nomenclature n on i.nomenclature.id=n.id
             join Journal j on d.journal.id=j.id
             where n.unitOfMeasurement=:unit and d.date between :periodFrom and :periodTo
-            """);
-        var period=new org.ipro.reportstudio.dom.ReportParam();period.setName("period");period.setKind(org.ipro.reportstudio.dom.ReportParamKind.PERIOD);period.setRequired(true);template.addParam(period);
+            """,null,List.of(
+            new UniDrQuerySource.Param("unit","Единица",org.ipro.query.document.ReportParamKind.ENTITY,UnitOfMeasurement.class.getName(),org.ipro.query.document.ReportParamSource.FORM,true,true,null,org.ipro.query.document.ReportComputedValue.NONE,0),
+            new UniDrQuerySource.Param("period","period",org.ipro.query.document.ReportParamKind.PERIOD,null,org.ipro.query.document.ReportParamSource.FORM,true,true,null,org.ipro.query.document.ReportComputedValue.NONE,1)));
         return new UniDrDefinition(1,UniDrQuerySource.ID,1,"Запрос по накладным",List.of(new Column("recipient",null),new Column("item",null),new Column("qty",null),new Column("day",null)),
             List.of(new Measure("qty",Aggregation.SUM,null),new Measure(UniDrQuerySourceService.COUNT,Aggregation.COUNT_ROWS,null)),
-            List.of("recipient","item"),List.of(),List.of(),List.of(new Sort("day",Direction.DESC)),Mode.SUMMARY,true).withQuery(UniDrQuerySource.from(template));
+            List.of("recipient","item"),List.of(),List.of(),List.of(new Sort("day",Direction.DESC)),Mode.SUMMARY,true).withQuery(query);
     }
     private UniDrRunRequest arbitraryRequest(UniDrDefinition definition,Long unit) {
         return new UniDrRunRequest(definition,Map.of(),ZoneOffset.UTC,Map.of("unit",unit,"periodFrom",LocalDate.of(2026,10,1),"periodTo",LocalDate.of(2026,10,31)));
@@ -248,9 +255,9 @@ class UniDrReceivingItemsQueryTest {
         assertThat(Arrays.stream(data.dataset().rows()).map(row->(BigDecimal)row.value("qty")).reduce(BigDecimal.ZERO,BigDecimal::add)).isEqualByComparingTo("36");
         assertThat(data.dataset().rows()).allSatisfy(row->assertThat(row.value("recipient")).isInstanceOf(String.class));
         int statements=SqlCapture.SQL.get().size();
-        var print=new org.ip.unidr.render.UniDrReportCompiler(dynamicSources,new UniDrDefinitionValidator(dynamicSources)).compile(definition,data.dataset(),data.source());
-        var report=new org.ip.unidr.render.UniDrRenderedReport(print,definition.title(),subject,access,new org.ipro.reportstudio.render.JasperReportCompiler());
-        assertThat(report.preview().bytes()).startsWith((byte)'%',(byte)'P');assertThat(report.export(org.ipro.reportstudio.render.ReportExportFormat.XLSX).bytes()).startsWith((byte)'P',(byte)'K');
+        var print=new org.ipro.unidr.render.UniDrReportCompiler(dynamicSources,new UniDrDefinitionValidator(dynamicSources)).compile(definition,data.dataset(),data.source());
+        var report=new org.ipro.unidr.render.UniDrRenderedReport(print,definition.title(),subject,access,new org.ipro.report.render.JasperReportExporter());
+        assertThat(report.preview().bytes()).startsWith((byte)'%',(byte)'P');assertThat(report.export(org.ipro.report.render.ReportExportFormat.XLSX).bytes()).startsWith((byte)'P',(byte)'K');
         assertThat(SqlCapture.SQL.get()).hasSize(statements);
     }
     @Test void arbitraryQueryLimitAndMissingOrInvisibleEntityParameterFailClosed() {
@@ -265,7 +272,7 @@ class UniDrReceivingItemsQueryTest {
         write(()->em.createQuery("delete from AccessGrant g where g.subjectKey=:user and g.dimension=:key").setParameter("user",subject).setParameter("key",C5PermissionKeys.entityRead(Workshop.class)).executeUpdate());
         SqlCapture.SQL.get().clear();
         assertThatThrownBy(()->queries.read(arbitraryRequest(definition,unitId),now,subject)).isInstanceOf(UniDrRunException.class);assertNoSourceSql();
-        var query=new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,"delete from ReceivingDocumentItem",null,List.of());
+        var query=new UniDrQuerySource(org.ipro.query.document.ReportQuerySource.MANUAL,"delete from ReceivingDocumentItem",null,List.of());
         assertThatThrownBy(()->querySources.describe(query)).isInstanceOf(UniDrRunException.class);assertNoSourceSql();
     }
     // Fixture helpers below write only into the embedded database or this run's disposable schema.
@@ -274,14 +281,14 @@ class UniDrReceivingItemsQueryTest {
             List.of(new Measure("quantity",Aggregation.SUM,null)),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true)
             .withQuery(querySources.tables().select("ReceivingDocumentItem"));
         var compiled=querySources.tables().project(table,false);
-        var manual=table.withQuery(new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,compiled.jpql(),null,List.of()));
+        var manual=table.withQuery(new UniDrQuerySource(org.ipro.query.document.ReportQuerySource.MANUAL,compiled.jpql(),null,List.of()));
         var fromTable=queries.read(new UniDrRunRequest(table,Map.of(),ZoneOffset.UTC),now,subject);
         var fromQuery=queries.read(new UniDrRunRequest(manual,Map.of(),ZoneOffset.UTC),now,subject);
         assertThat(fromTable.dataset().fields()).isEqualTo(fromQuery.dataset().fields());
         assertThat(fromTable.dataset().rows()).extracting(row->row.value("quantity"))
             .doesNotContain(new BigDecimal("999.00"),new BigDecimal("777.00"),new BigDecimal("888.00"));
         assertThat(fromTable.dataset().rows()).extracting(row->row.value("quantity")).containsExactlyElementsOf(Arrays.stream(fromQuery.dataset().rows()).map(row->row.value("quantity")).toList());
-        var compiler=new org.ip.unidr.render.UniDrReportCompiler(dynamicSources,new UniDrDefinitionValidator(dynamicSources));
+        var compiler=new org.ipro.unidr.render.UniDrReportCompiler(dynamicSources,new UniDrDefinitionValidator(dynamicSources));
         assertThat(compiler.compile(table,fromTable.dataset(),fromTable.source()).getPages()).hasSameSizeAs(compiler.compile(manual,fromQuery.dataset(),fromQuery.source()).getPages());
     }
     @Test void tableLinkedFieldsKeepRowsWithMissingOptionalReferences() {
@@ -297,7 +304,7 @@ class UniDrReceivingItemsQueryTest {
             List.of(new Measure(UniDrQuerySourceService.COUNT,Aggregation.COUNT_ROWS,null)),List.of("receivingWorkshop"),List.of(),List.of(),List.of(),Mode.SUMMARY,true)
             .withQuery(querySources.tables().select("ReceivingDocument"));
         var compiled=querySources.tables().project(table,false);
-        var manual=table.withQuery(new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,compiled.jpql(),null,List.of()));
+        var manual=table.withQuery(new UniDrQuerySource(org.ipro.query.document.ReportQuerySource.MANUAL,compiled.jpql(),null,List.of()));
         var result=queries.read(new UniDrRunRequest(table,Map.of(),ZoneOffset.UTC),now,subject);
         var equivalent=queries.read(new UniDrRunRequest(manual,Map.of(),ZoneOffset.UTC),now,subject);
         assertThat(result.dataset().rows()).isNotEmpty();
@@ -307,20 +314,20 @@ class UniDrReceivingItemsQueryTest {
         assertThat(result.dataset().fields()).isEqualTo(equivalent.dataset().fields());
         assertThat(result.dataset().rows()).extracting(row->row.value("__unidr_key_receivingWorkshop"))
             .containsExactlyElementsOf(Arrays.stream(equivalent.dataset().rows()).map(row->row.value("__unidr_key_receivingWorkshop")).toList());
-        var compiler=new org.ip.unidr.render.UniDrReportCompiler(dynamicSources,new UniDrDefinitionValidator(dynamicSources));
+        var compiler=new org.ipro.unidr.render.UniDrReportCompiler(dynamicSources,new UniDrDefinitionValidator(dynamicSources));
         assertThat(compiler.compile(table,result.dataset(),result.source()).getPages()).isNotEmpty();
     }
     @Test void optionalJoinCannotAuthorizeReadingUnfilteredForeignKeyOrAnOrJoin() {
         write(()->grant(C5PermissionKeys.entityRead(Branch.class),null));
         for(String text:List.of("select w.branch.id as leaked from Workshop w left join Branch b on w.branch.id=b.id",
                 "select b.name as leaked from Workshop w left join Branch b on w.branch.id=b.id or b.id>0")) {
-            assertThatThrownBy(()->querySources.describe(new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,text,null,List.of())))
+            assertThatThrownBy(()->querySources.describe(new UniDrQuerySource(org.ipro.query.document.ReportQuerySource.MANUAL,text,null,List.of())))
                 .isInstanceOf(UniDrRunException.class);
         }
         assertNoSourceSql();
     }
     @Test void sectionQueryRequiresAVisibleParentAndItsEntityPermission() {
-        assertThatThrownBy(()->querySources.describe(new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,
+        assertThatThrownBy(()->querySources.describe(new UniDrQuerySource(org.ipro.query.document.ReportQuerySource.MANUAL,
             "select i.quantity as qty from ReceivingDocumentItem i",null,List.of())))
             .isInstanceOf(UniDrRunException.class).hasMessageContaining("RLS_SECTION_PARENT_JOIN_REQUIRED");
         var table=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"Позиции",List.of(new Column("quantity",null)),
@@ -340,7 +347,7 @@ class UniDrReceivingItemsQueryTest {
             List.of(),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true).withQuery(query).withParameters(List.of(p)).withFilterTree(tree);
         var data=service(1).read(new UniDrRunRequest(definition,Map.of(),ZoneOffset.UTC,Map.of("search","ДЕТАЛЬ X")),now,subject);
         assertThat(data.dataset().rows()).extracting(row->row.value("code")).containsExactly("U2-X");
-        assertThat(data.dataset().fields()).extracting(org.ipro.reportstudio.data.QueryField::name).containsExactly("code");
+        assertThat(data.dataset().fields()).extracting(org.ipro.report.data.QueryField::name).containsExactly("code");
         assertThatThrownBy(()->service(1).validateRequest(new UniDrRunRequest(definition,Map.of(),ZoneOffset.UTC),now,subject)).hasMessageContaining("Поиск");
     }
     @Test void nativeEntityFilterChecksAccessAndMatchesGoldenFixture() {
@@ -370,7 +377,7 @@ class UniDrReceivingItemsQueryTest {
         }
     }
     @Test void optionalManualQueryParameterBindsNullAndLetsTheQueryDefineItsMeaning() {
-        var query=new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,"select n.code as code from Nomenclature n where :search is null or n.name = :search",null,List.of());
+        var query=new UniDrQuerySource(org.ipro.query.document.ReportQuerySource.MANUAL,"select n.code as code from Nomenclature n where :search is null or n.name = :search",null,List.of());
         var p=new UniDrParameter("p_search","search","Поиск",UniDrParameter.Kind.SCALAR,UniDrParameter.ScalarType.TEXT,null,false,true,
             UniDrParameter.ValueSource.FORM,UniDrParameter.InitialRule.NONE,List.of(),UniDrParameter.Computed.NONE,null,null);
         var recipe=new UniDrDefinition(UniDrDefinition.SCHEMA_VERSION,"query",1,"Поиск",List.of(new Column("code",null)),List.of(),List.of(),List.of(),List.of(),List.of(),Mode.DETAILS,true).withQuery(query).withParameters(List.of(p));

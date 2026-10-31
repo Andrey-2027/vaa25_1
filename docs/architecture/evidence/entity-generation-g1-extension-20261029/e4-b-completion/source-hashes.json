@@ -1,0 +1,42 @@
+[
+  {
+    "path": "src/main/java/org/ip/views/admin/EntityDraftEditorView.java",
+    "sha256": "85604c9580810f0001ca5eaef6ea75c01337240769a8ea10e1ba16a97f7cc4b3"
+  },
+  {
+    "path": "src/main/java/org/ip/views/admin/DraftEditorSession.java",
+    "sha256": "e5556bf9494b8fd84cd9c8ee0b84b3d06e3d9cb3c9a58b55384197b83b037cd9"
+  },
+  {
+    "path": "src/main/java/org/ip/views/admin/JavaBundleArchive.java",
+    "sha256": "4988f5a4c345a3194a72fa23279f92fb5b005363d2c32a50a4fddc9890d0eba4"
+  },
+  {
+    "path": "src/test/java/org/ip/views/admin/EntityDraftSectionDeliveryTest.java",
+    "sha256": "f012754506629a92ad1206d619d2a9e569a06c4fa98881790c3b16822f7ccbf7"
+  },
+  {
+    "path": "src/test/java/org/ip/views/admin/EntityDraftDocumentTest.java",
+    "sha256": "9636e1db9f9477882f7c007a90ed3fc2dba33df841f3fb057cb5788b7b839ee5"
+  },
+  {
+    "path": "src/test/java/org/ip/views/admin/EntityDraftJavaPreviewTest.java",
+    "sha256": "0787bec3c0f2f7a4f2834c08dd9922526b6fd0753a44ec6c0cb2926463165ca5"
+  },
+  {
+    "path": "src/test/java/org/ip/views/admin/EntityDraftReferenceTest.java",
+    "sha256": "f835751e9324307b684417f94cd1efb28f5a02ad9da17b2e9ee7595ea701a1f4"
+  },
+  {
+    "path": "scripts/test-entity-generation-g1-section-ui.ps1",
+    "sha256": "63956446a00cab40508a7a3ac6e4bb8e7d593a2a80c9cb3260224b07a7111ac5"
+  },
+  {
+    "path": "scripts/test-entity-generation-g1-section-forms.ps1",
+    "sha256": "ea08b162738b2e0de6d1d0eab1f8f3d8bc54bf2e41fe86207ee57edb68527ad7"
+  },
+  {
+    "path": "scripts/entity-generation-g1/section-form-tests/GeneratedSectionFormsTest.java",
+    "sha256": "6cd210a29491fb99e0fa06173642fefe3c8873c1111e448af96735201a6a3dab"
+  }
+]

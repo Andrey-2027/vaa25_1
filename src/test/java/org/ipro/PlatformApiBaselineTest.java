@@ -94,11 +94,18 @@ class PlatformApiBaselineTest {
         int verified = 0;
         String artifactFilter = System.getProperty(ARTIFACT_FILTER_PROPERTY);
         List<Artifact> selectedArtifacts = artifacts().stream()
-            .filter(artifact -> artifactFilter == null || artifact.artifactId().equals(artifactFilter))
+            .filter(artifact -> artifactFilter == null || Arrays.stream(artifactFilter.split(","))
+                .map(String::trim).anyMatch(artifact.artifactId()::equals))
             .toList();
         assertThat(selectedArtifacts)
             .as("запрошенный артефакт baseline должен присутствовать в опубликованном манифесте")
             .isNotEmpty();
+        if (artifactFilter != null) {
+            assertThat(selectedArtifacts.stream().map(Artifact::artifactId).toList())
+                .as("каждый явно запрошенный artifact должен быть проверен")
+                .containsExactlyInAnyOrderElementsOf(Arrays.stream(artifactFilter.split(","))
+                    .map(String::trim).distinct().toList());
+        }
 
         for (Artifact artifact : selectedArtifacts) {
             if (!Files.isDirectory(artifact.sourceRoot())) {

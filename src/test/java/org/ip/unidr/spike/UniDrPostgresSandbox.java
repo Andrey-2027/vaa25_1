@@ -1,4 +1,4 @@
-package org.ip.unidr.spike;
+package org.ipro.unidr.spike;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

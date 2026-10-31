@@ -1,7 +1,12 @@
 package org.ip.unidr.source;
 
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.source.UniDrSourceDefinition.*;
+import org.ipro.unidr.model.UniDrDefinition.Aggregation;
+import org.ipro.unidr.model.UniDrDefinition.Operator;
+import org.ipro.unidr.model.UniDrDefinition.ValueType;
+import org.ipro.unidr.source.UniDrSourceDefinition;
+import org.ipro.unidr.source.UniDrSourceDefinition.Field;
+import org.ipro.unidr.source.UniDrSourceDefinition.Requirement;
+import org.ipro.unidr.source.UniDrSourceDefinition.SourceParameter;
 
 import java.util.List;
 import java.util.Set;

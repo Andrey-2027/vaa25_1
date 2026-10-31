@@ -47,6 +47,7 @@ class InternedEntityContractTest {
 
         for (JavaClass type : interned) {
             Class<?> reflected = type.reflect();
+            assertThat(InterningContracts.find(reflected)).isPresent();
             Table table = reflected.getAnnotation(Table.class);
 
             assertThat(table)

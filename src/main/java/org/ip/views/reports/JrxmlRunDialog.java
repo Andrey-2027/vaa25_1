@@ -15,9 +15,9 @@ import com.vaadin.flow.server.WrappedHttpSession;
 import jakarta.servlet.http.HttpSession;
 import org.ipro.jr.dom.JrxmlTemplate;
 import org.ipro.jr.run.JrxmlExecutionService;
-import org.ipro.reportstudio.run.ReportExecutionService;
-import org.ipro.reportstudio.param.ReportContext;
-import org.ipro.reportstudio.query.ServiceParams;
+import org.ipro.report.task.ReportTaskExecutor;
+import org.ipro.query.ReportContext;
+import org.ipro.query.ServiceParams;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
@@ -34,8 +34,8 @@ import java.util.Map;
  * Диалог запуска JR-отчёта (.jrxml): форма скалярных параметров из шаблона +
  * кнопка «Сформировать».
  *
- * <p>Выполнение — в фоновом потоке управляемого исполнителя ({@code ReportTaskExecutor}
- * через {@link ReportExecutionService#executeAsync}), а не в собственном потоке:
+ * <p>Выполнение — в фоновом потоке управляемого исполнителя
+ * {@link ReportTaskExecutor} напрямую, а не в собственном потоке:
  * аутентификация и HttpSession захватываются до постановки задачи (критично для
  * session-scoped RlsReadableIdsCache) и остаются снимком, поэтому мутация контекста
  * на UI-потоке до задачу не дотягивается. Очистку ThreadLocal выполняет исполнитель в
@@ -51,7 +51,7 @@ public class JrxmlRunDialog extends Dialog {
      * Исполнитель фоновой задачи: только через него диалог ставит работу.
      * Своего потока у диалога нет — иначе контекст пришлось бы переносить вручную.
      */
-    private final ReportExecutionService reportExecutionService;
+    private final ReportTaskExecutor taskExecutor;
     /** nullable: запуск из каталога — контекста реестра нет. */
     private final ReportContext context;
     private final List<JrxmlExecutionService.JrxmlParamSpec> specs;
@@ -59,23 +59,23 @@ public class JrxmlRunDialog extends Dialog {
     private final Map<String, DatePicker> dateFields = new HashMap<>();
 
     public JrxmlRunDialog(JrxmlTemplate template, JrxmlExecutionService executionService,
-                          ReportExecutionService reportExecutionService) {
-        this(template, executionService, reportExecutionService, null);
+                          ReportTaskExecutor taskExecutor) {
+        this(template, executionService, taskExecutor, null);
     }
 
     /**
      * Запуск из кнопки «Печать» реестра: служебные параметры
      * {@code parEntityId}/{@code parEntityIds} (если объявлены в jrxml)
      * заполняются автоматически из контекста — id текущей записи и
-     * идентификаторы выделенных строк (та же конвенция, что у UDR).
+     * идентификаторы выделенных строк (та же конвенция, что у UniDR).
      */
     public JrxmlRunDialog(JrxmlTemplate template, JrxmlExecutionService executionService,
-                          ReportExecutionService reportExecutionService,
+                          ReportTaskExecutor taskExecutor,
                           ReportContext context) {
         this.template = template;
         this.executionService = executionService;
-        this.reportExecutionService = java.util.Objects.requireNonNull(
-            reportExecutionService, "reportExecutionService must not be null");
+        this.taskExecutor = java.util.Objects.requireNonNull(
+            taskExecutor, "taskExecutor must not be null");
         this.context = context;
         this.specs = executionService.parameterSpecs(template);
 
@@ -143,7 +143,7 @@ public class JrxmlRunDialog extends Dialog {
                 parameters.put(name, java.sql.Date.valueOf(value));
             }
         });
-        // служебные параметры контекста реестра (та же конвенция, что у UDR)
+        // служебные параметры контекста реестра (та же конвенция, что у UniDR)
         if (context != null) {
             for (JrxmlExecutionService.JrxmlParamSpec spec : specs) {
                 if (ServiceParams.ENTITY_ID.equals(spec.name())
@@ -213,7 +213,7 @@ public class JrxmlRunDialog extends Dialog {
         UI currentUI = UI.getCurrent();
         currentUI.setPollInterval(250);
         try {
-            reportExecutionService.executeAsync(authentication,
+            taskExecutor.execute(authentication,
                     backgroundSession != null
                             ? new ReportRunRequestAttributes(backgroundSession)
                             : null,

@@ -1,5 +1,8 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.query.*;
+import org.ipro.query.param.*;
+
 import jakarta.persistence.EntityManager;
 import org.ip.Application;
 import org.ip.model.Journal;
@@ -62,7 +65,7 @@ class ReportQueryGuardTest {
             new UserRepositoryRlsRoleResolver(userRepository), registry);
         RlsCurrentUser currentUser = () -> SecurityContextHolder.getContext().getAuthentication().getName();
 
-        var analyzer = new org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer(entityManagerFactory);
+        var analyzer = new org.ipro.query.sqm.SqmQuerySemanticAnalyzer(entityManagerFactory);
         guard = new ReportQueryGuard(analyzer, accessService, registry, currentUser, entityManagerFactory);
 
         // alice: чтение журнала A; admin: wildcard на всё

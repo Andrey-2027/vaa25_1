@@ -24,6 +24,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +65,7 @@ class UserAdministrationSelfElevationIT {
     @Autowired RoleRepository roleRepository;
     @Autowired PasswordEncoder passwords;
     @Autowired AccessGrantAdminService accessGrantAdminService;
+    @Autowired SecurityContextHolderStrategy securityContextHolderStrategy;
     @Autowired UserRoleAssignmentPermission roleAssignmentPermission;
     @Autowired UserPasswordChangePermission passwordChangePermission;
     @Autowired List<NamedOperationOwner> namedOperationOwners;
@@ -75,8 +77,11 @@ class UserAdministrationSelfElevationIT {
     @BeforeEach
     void login() {
         actor = "user-admin-" + UUID.randomUUID().toString().substring(0, 8);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+        var context = securityContextHolderStrategy.createEmptyContext();
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(
             actor, "n/a", List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+        securityContextHolderStrategy.setContext(context);
+        SecurityContextHolder.setContext(context);
         memberRole = "MEMBER_" + UUID.randomUUID().toString().substring(0, 8);
         if (roleRepository.findByName(ADMIN_ROLE).isEmpty()) {
             createRoleAsSuperuser(ADMIN_ROLE);
@@ -88,6 +93,7 @@ class UserAdministrationSelfElevationIT {
 
     @AfterEach
     void logout() {
+        securityContextHolderStrategy.clearContext();
         SecurityContextHolder.clearContext();
     }
 

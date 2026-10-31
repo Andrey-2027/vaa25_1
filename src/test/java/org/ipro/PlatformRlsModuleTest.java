@@ -66,6 +66,8 @@ class PlatformRlsModuleTest {
         "org.ipro.rls.RlsDimensionValueCatalog",
         "org.ipro.rls.RlsDimensionValueLabelResolver",
         "org.ipro.rls.RlsFilterActivator",
+        // S5: построчное сопоставление грантов вынесено из RlsPolicyEnforcer в отдельный SPI-нейтральный тип.
+        "org.ipro.rls.RlsGrantMatching",
         "org.ipro.rls.RlsGuardRequestFilter",
         "org.ipro.rls.RlsHibernateWriteGuardInstaller",
         "org.ipro.rls.RlsOwnedSectionLookup",
@@ -224,6 +226,9 @@ class PlatformRlsModuleTest {
     }
 
     private static List<String> lines(Path file) {
+        if (!Files.exists(file)) {
+            return List.of();
+        }
         try {
             return Files.readAllLines(file, StandardCharsets.UTF_8).stream()
                 .map(String::trim)

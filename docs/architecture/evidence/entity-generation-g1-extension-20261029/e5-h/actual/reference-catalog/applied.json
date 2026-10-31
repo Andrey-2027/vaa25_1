@@ -1,0 +1,13 @@
+{
+  "status" : "APPLIED",
+  "code" : "APPLIED",
+  "message" : "Created one Java source file and recorded its v2 receipt",
+  "applyId" : "9ff97d12-2468-44d0-9b57-21f5c9df33b7",
+  "planId" : "g1-0048d05560a857354d8d7a8e4c4a7ced7f348c11f7d6d762b4d868fd52fe46d3",
+  "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\actual\\reference-catalog\\project\\src\\main\\java\\com\\example\\generated\\ReferenceCatalog.java",
+  "receipt" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\actual\\reference-catalog\\project\\.g1-apply-v2\\receipts\\f5b46e1218c9c46ef93fa299949add0fb60210696857fb41200cd376bcd08800\\g1-0048d05560a857354d8d7a8e4c4a7ced7f348c11f7d6d762b4d868fd52fe46d3.json",
+  "journal" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\actual\\reference-catalog\\project\\.g1-apply-v2\\journal.json",
+  "contentSha256" : "415473fcf050dd705a6d05132ca3994a28427a96d538e6d676237703b24d4fa9",
+  "cSummarySha256" : "30213cccfd064e583ec8cb0ca8bb691571743a3a7ec053fb5777aefd44b17928",
+  "exitCode" : 0
+}

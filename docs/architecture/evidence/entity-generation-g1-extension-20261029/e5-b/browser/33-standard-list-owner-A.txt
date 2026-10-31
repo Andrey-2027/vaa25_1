@@ -1,0 +1,91 @@
+- heading "E5.B · стандартные ListForm / SelectionForm" [level=3]
+- button "Создать тестовые записи A/B":
+  - generic: Создать тестовые записи A/B
+- generic: Владелец стандартных форм
+- combobox "Владелец стандартных форм": Контрагент A
+- text: 
+- generic: 
+- button "Стандартный список" [active]:
+  - generic: Стандартный список
+- button "Стандартный выбор":
+  - generic: Стандартный выбор
+- generic: Тестовые записи A/B готовы
+- generic: "Владелец: 000001 — Контрагент A"
+- button "Создать":
+  - generic: Создать
+- button "Изменить" [disabled]:
+  - generic: Изменить
+- button "Удалить" [disabled]:
+  - generic: Удалить
+- button "Обновить":
+- button "Компактный вид":
+- menubar:
+  - generic: Ещё
+  - menuitem "More options":
+    - generic: ···
+- text: 
+- treegrid:
+  - rowgroup:
+    - row "Sort by Код Sort by Наименование Sort by Контрагент Sort by Описание":
+      - columnheader "Sort by Код":
+        - generic "Sort by Код":
+          - generic: Код
+          - generic: 
+      - columnheader "Sort by Наименование":
+        - generic "Sort by Наименование":
+          - generic: Наименование
+          - generic: 
+      - columnheader "Sort by Контрагент":
+        - generic "Sort by Контрагент":
+          - generic: Контрагент
+          - generic: 
+      - columnheader "Sort by Описание":
+        - generic "Sort by Описание":
+          - generic: Описание
+          - generic: 
+    - row "Режим фильтра Режим фильтра Режим фильтра":
+      - columnheader "Режим фильтра":
+        - button "Режим фильтра":
+          - generic: abc
+        - textbox:
+          - /placeholder: Код
+        - generic: 
+      - columnheader "Режим фильтра":
+        - button "Режим фильтра":
+          - generic: abc
+        - textbox:
+          - /placeholder: Наименование
+        - generic: 
+      - columnheader
+      - columnheader "Режим фильтра":
+        - button "Режим фильтра":
+          - generic: abc
+        - textbox:
+          - /placeholder: Описание
+        - generic: 
+  - rowgroup:
+    - row "000001 Standard Контрагент A 000001 — Контрагент A":
+      - gridcell "000001":
+        - generic: "000001"
+      - gridcell "Standard Контрагент A":
+        - generic: Standard Контрагент A
+      - gridcell "000001 — Контрагент A":
+        - generic: 000001 — Контрагент A
+      - gridcell
+  - rowgroup
+- button "+ Условия":
+  - generic: + Условия
+- radiogroup "Mode":
+  - radio
+  - radio
+  - radio
+  - radio [checked]
+- button "DevTools":
+- region "Notifications":
+  - heading "App is running in development mode" [level=2]
+  - separator
+  - generic: 
+  - checkbox "Don't show again"
+  - generic: Don't show again
+  - button "Close":
+- generic: Online

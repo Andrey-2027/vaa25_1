@@ -1,5 +1,7 @@
 package org.ipro.metadata;
 
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.metamodel.Metamodel;
 import org.ipro.crud.StandardCatalogEntity;
 import org.ipro.crud.StandardDocumentEntity;
 import org.ipro.metadata.annotation.EntityMetadata;
@@ -7,6 +9,7 @@ import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.ipro.metadata.annotation.TableSections;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -45,13 +48,26 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MetadataResolver {
 
     private final MetadataCache cache;
+    private final Object cacheLock = new Object();
     private final Map<Class<?>, List<TableSectionMetadataInfo>> tableSectionCache = new ConcurrentHashMap<>();
+    private final Map<Class<?>, List<StructuralAttribute>> structuralAttributeCache = new ConcurrentHashMap<>();
+    private volatile Metamodel metamodel;
+    /** Поколение кэша для отбрасывания результатов, построенных до invalidation. */
+    private long cacheGeneration;
 
     /**
      * Spring-конструктор.
      */
     public MetadataResolver(MetadataCache cache) {
+        this(cache, null);
+    }
+
+    /**
+     * Конструктор для тестов с явно переданным JPA metamodel.
+     */
+    public MetadataResolver(MetadataCache cache, Metamodel metamodel) {
         this.cache = cache;
+        this.metamodel = metamodel;
     }
 
     /**
@@ -62,17 +78,87 @@ public class MetadataResolver {
     }
 
     /**
+     * Конструктор для тестов и инфраструктур без Spring.
+     */
+    public MetadataResolver(Metamodel metamodel) {
+        this(new MetadataCache(), metamodel);
+    }
+
+    /**
+     * Spring передаёт metamodel из существующего {@link EntityManagerFactory}.
+     * Отдельный discovery-порт и повторный classpath scan не создаются (ET3).
+     */
+    @Autowired(required = false)
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+        setMetamodel(entityManagerFactory == null ? null : entityManagerFactory.getMetamodel());
+    }
+
+    /**
+     * Установить metamodel вручную (главным образом для тестов).
+     * Сбрасывает кэш, потому что structural-факты могли быть построены без него.
+     * Публикация результата resolve синхронизирована с очисткой: вычисление,
+     * начатое до смены metamodel, не сможет вернуть старую запись в кэш.
+     */
+    public void setMetamodel(Metamodel metamodel) {
+        synchronized (cacheLock) {
+            this.metamodel = metamodel;
+            invalidateAllLocked();
+        }
+    }
+
+    /**
+     * Find applicable root metadata. Empty means neither a declaration nor a supported Standard* entity;
+     * invalid declarations are resolved strictly and their errors propagate.
+     */
+    public java.util.Optional<EntityMetadataInfo> find(Class<?> entityClass) {
+        java.util.Objects.requireNonNull(entityClass, "entityClass must not be null");
+        return isApplicable(entityClass)
+            ? java.util.Optional.of(resolve(entityClass)) : java.util.Optional.empty();
+    }
+
+    /** Pure intent rule; a mapped superclass alone is not an application entity. */
+    public static boolean isApplicable(Class<?> type) {
+        return type.isAnnotationPresent(EntityMetadata.class)
+            || (type.isAnnotationPresent(jakarta.persistence.Entity.class)
+                && (StandardCatalogEntity.class.isAssignableFrom(type)
+                    || StandardDocumentEntity.class.isAssignableFrom(type)));
+    }
+
+    /**
      * Получить EntityMetadataInfo для класса сущности.
-     * Бросает IllegalArgumentException, если класс не помечен @EntityMetadata.
+     * Бросает IllegalArgumentException, если нет EntityMetadata и поддержанного Standard* intent.
      */
     public EntityMetadataInfo resolve(Class<?> entityClass) {
-        EntityMetadataInfo cached = cache.get(entityClass);
-        if (cached != null) {
-            return cached;
+        while (true) {
+            long generation;
+            synchronized (cacheLock) {
+                EntityMetadataInfo cached = cache.get(entityClass);
+                if (cached != null) {
+                    return cached;
+                }
+                generation = cacheGeneration;
+            }
+
+            EntityMetadataInfo built;
+            try {
+                built = build(entityClass);
+            } catch (IllegalArgumentException invalidDeclaration) {
+                throw new IllegalArgumentException("Metadata for " + entityClass.getName()
+                    + ": " + invalidDeclaration.getMessage(), invalidDeclaration);
+            }
+
+            synchronized (cacheLock) {
+                if (generation != cacheGeneration) {
+                    continue;
+                }
+                EntityMetadataInfo cached = cache.get(entityClass);
+                if (cached != null) {
+                    return cached;
+                }
+                cache.put(entityClass, built);
+                return built;
+            }
         }
-        EntityMetadataInfo built = build(entityClass);
-        cache.put(entityClass, built);
-        return built;
     }
 
     /**
@@ -83,13 +169,29 @@ public class MetadataResolver {
      * сортируются по {@code order} и обрабатываются независимо.
      */
     public List<TableSectionMetadataInfo> resolveTableSections(Class<?> parentClass) {
-        List<TableSectionMetadataInfo> cached = tableSectionCache.get(parentClass);
-        if (cached != null) {
-            return cached;
+        while (true) {
+            long generation;
+            synchronized (cacheLock) {
+                List<TableSectionMetadataInfo> cached = tableSectionCache.get(parentClass);
+                if (cached != null) {
+                    return cached;
+                }
+                generation = cacheGeneration;
+            }
+
+            List<TableSectionMetadataInfo> built = buildTableSections(parentClass);
+            synchronized (cacheLock) {
+                if (generation != cacheGeneration) {
+                    continue;
+                }
+                List<TableSectionMetadataInfo> cached = tableSectionCache.get(parentClass);
+                if (cached != null) {
+                    return cached;
+                }
+                tableSectionCache.put(parentClass, built);
+                return built;
+            }
         }
-        List<TableSectionMetadataInfo> built = buildTableSections(parentClass);
-        tableSectionCache.put(parentClass, built);
-        return built;
     }
 
     /**
@@ -123,22 +225,81 @@ public class MetadataResolver {
     }
 
     /**
+     * Структурные JPA-атрибуты класса: все персистентные поля, включая
+     * безаннотированные. Результат кэшируется по классу и очищается вместе
+     * с остальными кэшами. Если metamodel ещё не передан (unit-тесты без JPA),
+     * возвращается пустой список; если класс не managed — тоже пустой список.
+     *
+     * <p>Это чтение не расширяет каналы публикации: formFields/gridFields по-прежнему
+     * содержат только {@code @FieldMetadata}.</p>
+     */
+    public List<StructuralAttribute> resolveStructuralAttributes(Class<?> type) {
+        while (true) {
+            Metamodel current;
+            long generation;
+            synchronized (cacheLock) {
+                List<StructuralAttribute> cached = structuralAttributeCache.get(type);
+                if (cached != null) {
+                    return cached;
+                }
+                current = metamodel;
+                generation = cacheGeneration;
+            }
+
+            List<StructuralAttribute> built;
+            if (current == null) {
+                built = List.of();
+            } else {
+                try {
+                    built = StructuralAttributeScanner.scan(type, current);
+                } catch (IllegalArgumentException notManaged) {
+                    built = List.of();
+                }
+            }
+
+            synchronized (cacheLock) {
+                if (generation != cacheGeneration) {
+                    continue;
+                }
+                List<StructuralAttribute> cached = structuralAttributeCache.get(type);
+                if (cached != null) {
+                    return cached;
+                }
+                structuralAttributeCache.put(type, built);
+                return built;
+            }
+        }
+    }
+
+    /**
      * Сбросить кэш для одного класса. Полезно при горячей перезагрузке в dev-режиме.
      * Чистит запись сущности, секции с этим родителем и секции, где класс — строка
      * (их FieldMetadataInfo иначе останутся старыми); остальные классы не трогаются.
      */
     public void invalidate(Class<?> entityClass) {
-        cache.remove(entityClass);
-        tableSectionCache.remove(entityClass);
-        tableSectionCache.entrySet().removeIf(entry -> entry.getValue().stream()
-            .anyMatch(section -> section.getRowClass().equals(entityClass)));
+        synchronized (cacheLock) {
+            cacheGeneration++;
+            cache.remove(entityClass);
+            structuralAttributeCache.remove(entityClass);
+            tableSectionCache.remove(entityClass);
+            tableSectionCache.entrySet().removeIf(entry -> entry.getValue().stream()
+                .anyMatch(section -> section.getRowClass().equals(entityClass)));
+        }
     }
 
     /**
      * Полный сброс кэша.
      */
     public void invalidateAll() {
+        synchronized (cacheLock) {
+            invalidateAllLocked();
+        }
+    }
+
+    private void invalidateAllLocked() {
+        cacheGeneration++;
         cache.clear();
+        structuralAttributeCache.clear();
         tableSectionCache.clear();
     }
 
@@ -146,29 +307,39 @@ public class MetadataResolver {
 
     private EntityMetadataInfo build(Class<?> entityClass) {
         EntityMetadata annotation = entityClass.getAnnotation(EntityMetadata.class);
-        if (annotation == null) {
+        if (!isApplicable(entityClass)) {
             throw new IllegalArgumentException(
                 "Class " + entityClass.getName() + " is not annotated with @EntityMetadata. " +
                 "Add @EntityMetadata annotation to enable metadata-driven form generation.");
         }
 
-        ResolvedEntityKind resolvedKind = resolveEntityKind(entityClass, annotation.kind());
+        ResolvedEntityKind resolvedKind = resolveEntityKind(entityClass,
+            annotation == null ? EntityKind.AUTO : annotation.kind());
 
         List<FieldMetadataInfo> allFields = scanFields(entityClass);
+        for (FieldMetadataInfo field : allFields) {
+            for (MetadataDiagnostic diagnostic : field.getDiagnostics()) {
+                if (diagnostic.code().equals(MetadataDiagnosticCodes.REFERENCE_CONFLICT)) {
+                    throw new IllegalArgumentException(diagnostic.render());
+                }
+            }
+        }
         List<FieldMetadataInfo> allAnnotatedFields = allFields.stream()
             .sorted(Comparator.comparingInt(FieldMetadataInfo::getOrder))
             .toList();
         List<FieldMetadataInfo> formFields = toFormFields(allFields);
         List<FieldMetadataInfo> gridFields = toGridFields(allFields);
+        List<StructuralAttribute> structuralAttributes = resolveStructuralAttributes(entityClass);
 
-        List<ColumnPath> listColumnPaths = resolveColumnPaths(entityClass, annotation.listColumns(), gridFields);
-        List<ColumnPath> selectColumnPaths = annotation.selectColumns().length > 0
+        List<ColumnPath> listColumnPaths = resolveColumnPaths(entityClass,
+            annotation == null ? new String[0] : annotation.listColumns(), gridFields);
+        List<ColumnPath> selectColumnPaths = annotation != null && annotation.selectColumns().length > 0
             ? resolveColumnPaths(entityClass, annotation.selectColumns(), null)
             : listColumnPaths;
 
         // Опечатка в displaySortFields должна падать при первом резолве метаданных,
         // а не глубоко в Criteria API при первом клике по заголовку колонки.
-        for (String sortField : annotation.displaySortFields()) {
+        for (String sortField : annotation == null ? new String[0] : annotation.displaySortFields()) {
             if (findDeclaredFieldInHierarchy(entityClass, sortField) == null) {
                 throw new IllegalArgumentException(
                     "displaySortFields: field '" + sortField + "' not found on " + entityClass.getName());
@@ -178,7 +349,7 @@ public class MetadataResolver {
         return new EntityMetadataInfo(
             entityClass, annotation, resolvedKind.kind(), resolvedKind.origin(),
             resolvedKind.symbol(), allAnnotatedFields, formFields, gridFields,
-            listColumnPaths, selectColumnPaths);
+            listColumnPaths, selectColumnPaths, structuralAttributes);
     }
 
     /**
@@ -341,6 +512,23 @@ public class MetadataResolver {
      * другая сущность.
      */
     private List<FieldMetadataInfo> scanFields(Class<?> entityClass) {
+        Map<String, java.lang.reflect.AnnotatedElement> persistentMembers = new LinkedHashMap<>();
+        Metamodel currentMetamodel = metamodel;
+        if (currentMetamodel != null) {
+            jakarta.persistence.metamodel.ManagedType<?> managed = null;
+            try {
+                managed = currentMetamodel.managedType(entityClass);
+            } catch (IllegalArgumentException notManaged) {
+                // Standalone metadata and non-persistent UI fields keep the legacy field path.
+            }
+            if (managed != null) {
+                for (jakarta.persistence.metamodel.Attribute<?, ?> attribute : managed.getAttributes()) {
+                    if (attribute.getJavaMember() instanceof java.lang.reflect.AnnotatedElement member) {
+                        persistentMembers.put(attribute.getName(), member);
+                    }
+                }
+            }
+        }
         Map<String, Field> byName = new LinkedHashMap<>();
         for (Class<?> current = entityClass;
              current != null && current != Object.class;
@@ -353,7 +541,8 @@ public class MetadataResolver {
         for (Field field : byName.values()) {
             FieldMetadata ann = field.getAnnotation(FieldMetadata.class);
             if (ann != null) {
-                result.add(new FieldMetadataInfo(field, ann));
+                result.add(new FieldMetadataInfo(field, ann,
+                    persistentMembers.getOrDefault(field.getName(), field)));
             }
         }
         return result;

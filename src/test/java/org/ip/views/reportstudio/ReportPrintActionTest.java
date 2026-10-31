@@ -1,4 +1,4 @@
-package org.ip.views.reportstudio;
+package org.ipro.report.ui.print;
 
 import jakarta.persistence.Entity;
 import org.ipro.crud.BaseEntity;
@@ -12,10 +12,8 @@ import org.ipro.form.action.ActionSurface;
 import org.ipro.form.action.CrudAction;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
-import org.ipro.reportstudio.param.ReportContext;
-import org.ipro.reportstudio.param.ReportContextFactory;
-import org.ipro.reportstudio.run.ReportExecutionService;
-import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.query.ReportContext;
+import org.ipro.report.ui.ReportContextFactory;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -123,9 +121,7 @@ class ReportPrintActionTest {
         private int calls;
 
         private RecordingPrintAction() {
-            super(mock(ReportTemplateService.class), mock(ReportExecutionService.class),
-                mock(EntityLookup.class), mock(SelectionFormAssembler.class),
-                mock(JrxmlTemplateService.class), mock(JrxmlExecutionService.class),
+            super(mock(JrxmlTemplateService.class), null,
                 new ReportContextFactory(() -> "test-user", Clock.systemDefaultZone()));
         }
 
@@ -137,10 +133,7 @@ class ReportPrintActionTest {
     }
 
     private static ReportPrintAction action() {
-        return new ReportPrintAction(mock(ReportTemplateService.class),
-            mock(ReportExecutionService.class), mock(EntityLookup.class),
-            mock(SelectionFormAssembler.class), mock(JrxmlTemplateService.class),
-            mock(JrxmlExecutionService.class),
+        return new ReportPrintAction(mock(JrxmlTemplateService.class), null,
             new ReportContextFactory(() -> "test-user", Clock.systemDefaultZone()));
     }
 

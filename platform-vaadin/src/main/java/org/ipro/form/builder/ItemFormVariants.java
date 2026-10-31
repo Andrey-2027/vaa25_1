@@ -24,6 +24,7 @@ import java.util.Map;
 public final class ItemFormVariants {
 
     private final Map<String, FormFactory> factories = new LinkedHashMap<>();
+    private final Map<String, Class<? extends com.vaadin.flow.component.Component>> declaredClasses = new LinkedHashMap<>();
     private final Map<String, java.util.List<ItemFormCustomizer>> customizers = new LinkedHashMap<>();
 
     /** Default-вариант (используется, когда открытие формы не указывает вариант явно). */
@@ -33,8 +34,23 @@ public final class ItemFormVariants {
 
     /** Именованный вариант. */
     public ItemFormVariants add(String variant, FormFactory factory) {
+        return add(variant, null, factory);
+    }
+
+    /** Optional declared result class; inspection never calls the factory to verify it. */
+    public ItemFormVariants addDefault(Class<? extends com.vaadin.flow.component.Component> declaredClass, FormFactory factory) {
+        return add(null, declaredClass, factory);
+    }
+
+    public ItemFormVariants add(String variant, Class<? extends com.vaadin.flow.component.Component> declaredClass, FormFactory factory) {
         factories.put(variant, factory);
+        if (declaredClass == null) declaredClasses.remove(variant);
+        else declaredClasses.put(variant, declaredClass);
         return this;
+    }
+
+    Class<? extends com.vaadin.flow.component.Component> declaredClass(String variant) {
+        return declaredClasses.get(variant);
     }
 
     /**

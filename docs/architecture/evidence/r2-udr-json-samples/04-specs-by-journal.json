@@ -1,0 +1,177 @@
+{
+    "format": "ipro-report-template",
+    "template": {
+        "jpql": "SELECT a.journal, a.nomenclature,a.codeSpec,a.id FROM PrdSpec  a\nWHERE (:parJournal is null OR a.journal = :parJournal)",
+        "name": "СпецификацииПоЖурналу",
+        "bands": [
+            {
+                "key": "8",
+                "kind": "DETAIL",
+                "fields": [
+                    {
+                        "kind": "ROW_NUMBER",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "№",
+                        "visible": true,
+                        "position": 0,
+                        "alignment": "LEFT",
+                        "queryField": "",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "Номенклатура",
+                        "visible": true,
+                        "position": 1,
+                        "alignment": "LEFT",
+                        "queryField": "a.nomenclature",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "Код спецификации",
+                        "visible": true,
+                        "position": 2,
+                        "alignment": "LEFT",
+                        "queryField": "a.codeSpec",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "ИД спецификации",
+                        "visible": true,
+                        "position": 3,
+                        "alignment": "LEFT",
+                        "queryField": "a.id",
+                        "aggregation": "NONE"
+                    }
+                ],
+                "position": 0,
+                "parentKey": null,
+                "groupField": null,
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            },
+            {
+                "key": "9",
+                "kind": "GROUP_HEADER",
+                "fields": [
+                ],
+                "position": 1,
+                "parentKey": "9",
+                "groupField": "a.journal",
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": false
+            },
+            {
+                "key": "10",
+                "kind": "GROUP_FOOTER",
+                "fields": [
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 0,
+                        "alignment": "LEFT",
+                        "queryField": "a.nomenclature",
+                        "aggregation": "COUNT"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 1,
+                        "alignment": "LEFT",
+                        "queryField": "a.id",
+                        "aggregation": "SUM"
+                    }
+                ],
+                "position": 2,
+                "parentKey": "9",
+                "groupField": "a.journal",
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            },
+            {
+                "key": "11",
+                "kind": "GROUP_HEADER",
+                "fields": [
+                ],
+                "position": 3,
+                "parentKey": "11",
+                "groupField": "a.nomenclature",
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": false
+            },
+            {
+                "key": "12",
+                "kind": "GROUP_FOOTER",
+                "fields": [
+                ],
+                "position": 4,
+                "parentKey": "11",
+                "groupField": "a.nomenclature",
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            }
+        ],
+        "orders": [
+        ],
+        "params": [
+            {
+                "kind": "ENTITY",
+                "name": "parJournal",
+                "caption": "Выберите Журнал",
+                "computed": "NONE",
+                "position": 0,
+                "required": false,
+                "showOnForm": true,
+                "entityClass": "org.ip.model.Journal",
+                "valueSource": "FORM",
+                "defaultValue": null
+            }
+        ],
+        "maxRows": 5000,
+        "advanced": false,
+        "pageSize": null,
+        "timeoutMs": 30000,
+        "stripeRows": false,
+        "description": null,
+        "gridEnabled": null,
+        "querySource": "MANUAL",
+        "baseFontSize": 10,
+        "pageOrientation": null,
+        "visualQueryJson": null,
+        "visualFilterJson": null,
+        "targetEntityClass": null
+    },
+    "schemaVersion": 3
+}

@@ -1,0 +1,277 @@
+{
+  "planId" : "g1-2fdd307057f01a33265214c7a1be5f2f0b2d7c9cd609fb9147c0677823d52fa5",
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "generatorVersion" : "document-java-v1",
+  "source" : {
+    "schemaVersion" : 1,
+    "recipe" : {
+      "id" : "standard-document-v1",
+      "version" : 1
+    },
+    "draftId" : "00000000-0000-4000-8000-000000000001",
+    "entity" : {
+      "className" : "ScalarDocument",
+      "packageName" : {
+        "mode" : "EXPLICIT",
+        "text" : "com.example.generated"
+      },
+      "label" : "Документ",
+      "titles" : {
+        "list" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "item" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "selection" : {
+          "mode" : "AUTO",
+          "text" : ""
+        }
+      },
+      "tableName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "subsystemId" : null,
+      "icon" : "FILE"
+    },
+    "fields" : [ {
+      "id" : "1cb251ec-0d56-3de6-a929-b520c4aed8d1",
+      "name" : "text",
+      "label" : "Подпись \"текст\" \\ и\nстрока",
+      "type" : "STRING",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : true,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "255",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    }, {
+      "id" : "221d2a4b-fdae-33db-95ae-ff3b02adb8c1",
+      "name" : "quantity",
+      "label" : "Подпись \"текст\" \\ и\nстрока",
+      "type" : "INTEGER",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "REQUIRED",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    }, {
+      "id" : "e2942a04-780e-323b-a15e-b8b663cf5353",
+      "name" : "count",
+      "label" : "Подпись \"текст\" \\ и\nстрока",
+      "type" : "LONG",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "OPTIONAL",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    }, {
+      "id" : "e9f40e1f-1d16-3868-9dad-2dac4ae0971e",
+      "name" : "amount",
+      "label" : "Подпись \"текст\" \\ и\nстрока",
+      "type" : "DECIMAL",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : true,
+      "uiRequired" : "REQUIRED",
+      "constraints" : {
+        "length" : "",
+        "precision" : "19",
+        "scale" : "2"
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    }, {
+      "id" : "c76a5e84-e4bd-3e52-be27-4ea30c680d79",
+      "name" : "active",
+      "label" : "Подпись \"текст\" \\ и\nстрока",
+      "type" : "BOOLEAN",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    }, {
+      "id" : "ef4feb5a-f7ef-326f-9de5-e69083bb6061",
+      "name" : "dueDate",
+      "label" : "Подпись \"текст\" \\ и\nстрока",
+      "type" : "DATE",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    }, {
+      "id" : "d7e6d55b-a379-313d-88c2-5d15faf2a23b",
+      "name" : "timestamp",
+      "label" : "Подпись \"текст\" \\ и\nстрока",
+      "type" : "DATETIME",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : true,
+        "table" : false
+      }
+    } ],
+    "sections" : [ ]
+  },
+  "context" : {
+    "projectId" : "test-project",
+    "version" : "v1",
+    "defaultPackage" : "org.ip.model",
+    "existingTypes" : {
+      "values" : [ "org.ip.model.UnitOfMeasurement", "org.ip.model.Nomenclature" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "existingTables" : {
+      "values" : [ "nomenclature" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "subsystemIds" : {
+      "values" : [ "org.ip.subsystem.Subsystems$Directories" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "iconIds" : {
+      "values" : [ "FILE" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "referenceTargets" : {
+      "org.ip.model.Nomenclature" : {
+        "typeId" : "org.ip.model.Nomenclature",
+        "caption" : "Nomenclature",
+        "exposure" : "STANDARD_ROOT",
+        "identityType" : "java.lang.Long",
+        "representation" : "YES",
+        "selection" : "YES",
+        "eligibility" : "SUPPORTED",
+        "reason" : ""
+      },
+      "org.ip.model.UnitOfMeasurement" : {
+        "typeId" : "org.ip.model.UnitOfMeasurement",
+        "caption" : "UnitOfMeasurement",
+        "exposure" : "STANDARD_ROOT",
+        "identityType" : "java.lang.Long",
+        "representation" : "YES",
+        "selection" : "YES",
+        "eligibility" : "SUPPORTED",
+        "reason" : ""
+      }
+    },
+    "referencesComplete" : true,
+    "runtimeSnapshot" : {
+      "snapshotId" : "document-v1",
+      "complete" : true,
+      "types" : { },
+      "prerequisites" : {
+        "ET0_ET7_RUNTIME" : {
+          "status" : "AVAILABLE",
+          "evidence" : "ET7"
+        },
+        "STANDARD_DOCUMENT_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "ET4"
+        }
+      },
+      "diagnostics" : [ ]
+    }
+  },
+  "files" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/ScalarDocument.java",
+    "content" : "package com.example.generated;\n\nimport jakarta.persistence.Column;\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.Table;\nimport jakarta.validation.constraints.Digits;\nimport jakarta.validation.constraints.NotNull;\nimport jakarta.validation.constraints.Size;\nimport java.math.BigDecimal;\nimport java.time.LocalDate;\nimport java.time.LocalDateTime;\nimport org.ipro.crud.StandardDocumentEntity;\nimport org.ipro.metadata.annotation.EntityMetadata;\nimport org.ipro.metadata.annotation.FieldMetadata;\nimport org.ipro.metadata.annotation.GridColumn;\nimport org.ipro.metadata.annotation.RequiredMode;\n\n@Entity\n@Table(name = \"scalar_document\")\n@EntityMetadata(\n    listFormTitle = \"Документ\",\n    itemFormTitle = \"Документ\",\n    selectionFormTitle = \"Документ\",\n    icon = \"FILE\",\n    listColumns = {\"number\", \"date\", \"text\", \"quantity\", \"count\", \"amount\", \"active\", \"dueDate\", \"timestamp\"},\n    selectColumns = {\"number\", \"date\", \"text\", \"quantity\", \"count\", \"amount\", \"active\", \"dueDate\", \"timestamp\"}\n)\npublic class ScalarDocument extends StandardDocumentEntity {\n    @NotNull\n    @Size(max = 255)\n    @Column(name = \"text\", nullable = false, length = 255)\n    @FieldMetadata(label = \"Подпись \\\"текст\\\" \\\\ и\\nстрока\", order = 30, grid = @GridColumn(visible = false))\n    private String text;\n\n    @Column(name = \"quantity\")\n    @FieldMetadata(label = \"Подпись \\\"текст\\\" \\\\ и\\nстрока\", order = 40, required = RequiredMode.REQUIRED, grid = @GridColumn(visible = false))\n    private Integer quantity;\n\n    @Column(name = \"count\")\n    @FieldMetadata(label = \"Подпись \\\"текст\\\" \\\\ и\\nстрока\", order = 50, required = RequiredMode.OPTIONAL, grid = @GridColumn(visible = false))\n    private Long count;\n\n    @NotNull\n    @Digits(integer = 17, fraction = 2)\n    @Column(name = \"amount\", nullable = false, precision = 19, scale = 2)\n    @FieldMetadata(label = \"Подпись \\\"текст\\\" \\\\ и\\nстрока\", order = 60, required = RequiredMode.REQUIRED, grid = @GridColumn(visible = false))\n    private BigDecimal amount;\n\n    @Column(name = \"active\")\n    @FieldMetadata(label = \"Подпись \\\"текст\\\" \\\\ и\\nстрока\", order = 70, grid = @GridColumn(visible = false))\n    private Boolean active;\n\n    @Column(name = \"due_date\")\n    @FieldMetadata(label = \"Подпись \\\"текст\\\" \\\\ и\\nстрока\", order = 80, grid = @GridColumn(visible = false))\n    private LocalDate dueDate;\n\n    @Column(name = \"timestamp\")\n    @FieldMetadata(label = \"Подпись \\\"текст\\\" \\\\ и\\nстрока\", order = 90, grid = @GridColumn(visible = false))\n    private LocalDateTime timestamp;\n\n    public String getText() {\n        return text;\n    }\n\n    public void setText(String text) {\n        this.text = text;\n    }\n\n    public Integer getQuantity() {\n        return quantity;\n    }\n\n    public void setQuantity(Integer quantity) {\n        this.quantity = quantity;\n    }\n\n    public Long getCount() {\n        return count;\n    }\n\n    public void setCount(Long count) {\n        this.count = count;\n    }\n\n    public BigDecimal getAmount() {\n        return amount;\n    }\n\n    public void setAmount(BigDecimal amount) {\n        this.amount = amount;\n    }\n\n    public Boolean getActive() {\n        return active;\n    }\n\n    public void setActive(Boolean active) {\n        this.active = active;\n    }\n\n    public LocalDate getDueDate() {\n        return dueDate;\n    }\n\n    public void setDueDate(LocalDate dueDate) {\n        this.dueDate = dueDate;\n    }\n\n    public LocalDateTime getTimestamp() {\n        return timestamp;\n    }\n\n    public void setTimestamp(LocalDateTime timestamp) {\n        this.timestamp = timestamp;\n    }\n}\n",
+    "sha256" : "c7ea7c6117ce6e9dbebb4bbeceaa0faae6165b8acd5ace5f5975a10f2e5f68a7"
+  } ]
+}

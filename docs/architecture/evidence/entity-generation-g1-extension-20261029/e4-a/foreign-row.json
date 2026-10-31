@@ -1,0 +1,13 @@
+{
+  "status" : "CONFLICT",
+  "code" : "CONFLICT_UNOWNED",
+  "message" : "A target exists without a matching receipt; identical content is not ownership",
+  "applyId" : null,
+  "planId" : "g1-a42064376c94a35f63ebdb78e35992855fe6f55b56c6ff82be281a1100b0a427",
+  "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e4-a\\work\\foreign-row-project\\src\\main\\java\\com\\example\\generated\\DocumentSections2.java",
+  "receipt" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e4-a\\work\\foreign-row-project\\.g1-apply-v2\\receipts\\f5b46e1218c9c46ef93fa299949add0fb60210696857fb41200cd376bcd08800\\g1-a42064376c94a35f63ebdb78e35992855fe6f55b56c6ff82be281a1100b0a427.json",
+  "journal" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e4-a\\work\\foreign-row-project\\.g1-apply-v2\\journal.json",
+  "contentSha256" : "f227d460c6bbba56ea96859d4e4cfe54a3710ed29f6723af93278e8b81d952d8",
+  "cSummarySha256" : "4fc86eb4fd5ac77a321407b0cde672a7ea688bdecb1e3935033ef4056f894a41",
+  "exitCode" : 2
+}

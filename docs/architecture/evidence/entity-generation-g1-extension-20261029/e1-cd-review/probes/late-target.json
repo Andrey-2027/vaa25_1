@@ -1,0 +1,9 @@
+{
+  "mode" : "late-target",
+  "status" : "CONFLICT",
+  "code" : "CONFLICT_LATE_TARGET",
+  "targetExists" : true,
+  "receiptExists" : false,
+  "targetHashMatches" : false,
+  "journalExists" : false
+}

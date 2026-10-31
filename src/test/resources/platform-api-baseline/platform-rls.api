@@ -35,6 +35,11 @@ class public final org.ipro.rls.RlsDimensionValueCatalog
   ctor public(org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsDimensionValueLabelResolver)
   method public java.util.List<org.ipro.rls.RlsDimensionValueCatalog$Value> allIgnoringRls(java.lang.String)
 
+class public final org.ipro.rls.RlsGrantMatching
+  method public static boolean bootstrapAllowed(org.ipro.rls.RlsDimensionKind, long)
+  method public static boolean flagAllows(org.ipro.rls.AccessGrant, org.ipro.rls.c5.C5Operation)
+  method public static boolean matches(org.ipro.rls.AccessGrant, java.lang.String, java.lang.Long, org.ipro.rls.c5.C5Operation)
+
 class public final org.ipro.rls.RlsHibernateWriteGuardInstaller
   implements org.springframework.beans.factory.InitializingBean
   ctor public(jakarta.persistence.EntityManagerFactory, org.ipro.rls.RlsDimensionRegistry)
@@ -225,10 +230,12 @@ class public org.ipro.rls.c5.C5OperationPermissionRegistry
 
 class public org.ipro.rls.c5.C5PermissionDecisionService
   ctor public(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver, org.ipro.rls.c5.C5OperationPermissionRegistry, org.ipro.rls.c5.C5ReadDecisionService)
+  method public java.util.List<org.ipro.rls.AccessGrant> contributions(java.lang.String, org.ipro.rls.c5.C5Operation, java.util.List<org.ipro.rls.AccessGrant>)
   method public org.ipro.rls.c5.C5PermissionDecision decide(java.lang.String, java.lang.String, org.ipro.rls.c5.C5Operation)
   method public org.ipro.rls.c5.C5PermissionDecision decideAction(java.lang.String, java.lang.String)
   method public org.ipro.rls.c5.C5PermissionDecision decideEntity(java.lang.String, java.lang.Class<?>, org.ipro.rls.c5.C5Operation)
   method public org.ipro.rls.c5.C5PermissionDecision decideForSubject(org.ipro.rls.AccessGrant$SubjectType, java.lang.String, java.lang.String, org.ipro.rls.c5.C5Operation)
+  method public static boolean matchesGrant(org.ipro.rls.AccessGrant, java.lang.String, org.ipro.rls.c5.C5Operation)
   method public void require(java.lang.String, java.lang.String, org.ipro.rls.c5.C5Operation)
   method public void requireAction(java.lang.String, java.lang.String)
   method public void requireEntity(java.lang.String, java.lang.Class<?>, org.ipro.rls.c5.C5Operation)
@@ -237,6 +244,7 @@ class public org.ipro.rls.c5.C5ReadDecisionService
   ctor public(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver)
   ctor public(org.ipro.rls.AccessGrantRepository, org.ipro.rls.RlsRoleResolver, org.ipro.rls.c5.C5ReadPermissionRegistry)
   method public boolean isReadGranted(java.lang.String, java.lang.String)
+  method public java.util.List<org.ipro.rls.AccessGrant> contributions(java.lang.String, java.util.List<org.ipro.rls.AccessGrant>)
   method public org.ipro.rls.c5.C5ReadDecisionService$C5ReadDecision decide(java.lang.String, org.ipro.rls.AccessGrant$SubjectType, java.lang.String)
 
 class public org.ipro.rls.c5.C5ReadPermissionRegistry
@@ -342,8 +350,10 @@ interface public abstract interface org.ipro.rls.AccessGrantRepository
   annotation org.springframework.stereotype.Repository
   method public abstract java.util.List<org.ipro.rls.AccessGrant> findBySubjectTypeAndSubjectKeyAndDimension(org.ipro.rls.AccessGrant$SubjectType, java.lang.String, java.lang.String)
   method public abstract java.util.List<org.ipro.rls.AccessGrant> findBySubjectTypeAndSubjectKeyAndDimensionAndDimensionValueIdIsNull(org.ipro.rls.AccessGrant$SubjectType, java.lang.String, java.lang.String)
+  method public abstract java.util.List<org.ipro.rls.AccessGrant> findPermissionContributions(java.util.Collection<java.lang.String>, java.lang.String, java.util.Collection<java.lang.String>, java.util.Collection<java.lang.Long>, java.util.Collection<java.lang.String>)
   method public abstract java.util.List<org.ipro.rls.AccessGrant> findRoleGrants(java.lang.String, java.util.Collection<java.lang.String>)
   method public abstract java.util.List<org.ipro.rls.AccessGrant> findUserGrants(java.lang.String, java.lang.String)
+  method public abstract java.util.List<org.ipro.rls.AccessGrantRepository$DimensionCount> countPermissionDimensions(java.util.Collection<java.lang.String>)
   method public abstract long countByDimension(java.lang.String)
 
 interface public abstract interface org.ipro.rls.RlsBypassAudit
@@ -381,6 +391,10 @@ interface public abstract interface org.ipro.rls.c5.C5PermissionEvaluator
   method public abstract boolean isApiPermitted(java.lang.String, java.lang.String, int, java.lang.String)
   method public abstract boolean isEntityReadPermitted(java.lang.String, java.lang.Class<?>)
   method public boolean isAttributeReadPermitted(java.lang.String, java.lang.Class<?>, java.lang.String)
+
+interface public abstract static interface org.ipro.rls.AccessGrantRepository$DimensionCount
+  method public abstract java.lang.String getDimension()
+  method public abstract long getGrantCount()
 
 record public final org.ipro.rls.c5.C5PermissionDecision
   extends java.lang.Record

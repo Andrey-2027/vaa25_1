@@ -11,6 +11,7 @@ import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.FetchPlanInspection;
 import org.ipro.data.config.DataAccessAutoConfiguration;
 import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.ManagedEntityTypes;
 import org.ipro.metadata.MetadataConsistencyStartupCheck;
 import org.ipro.metadata.ReferenceIndex;
 import org.ipro.metadata.SectionMetadataRegistry;
@@ -44,8 +45,9 @@ import org.ipro.events.config.EventsAutoConfiguration;
  *
  * <p><b>D3.5.5: backoff вместо {@code UnsatisfiedDependency} и явный порядок.</b> До шага условия
  * проверяли только «пользователь не объявил свой бин», поэтому отсутствие любого коллаборатора
- * (метаданные, реестр форм, нумерация, RLS) роняло старт контекста — при том что сам UI-модуль к
- * метаданным необязателен. Проверено тестом: без коллабораторов падало с
+ * (общий снимок управляемых типов, метаданные, реестр форм, нумерация, RLS) роняло старт
+ * контекста — при том что сам UI-модуль к метаданным необязателен. Проверено тестом: без
+ * коллабораторов падало с
  * {@code No qualifying bean of type 'org.ipro.autoconfigure.PlatformProperties'}. Теперь подсистема
  * просто не поднимается.</p>
  *
@@ -67,6 +69,7 @@ import org.ipro.events.config.EventsAutoConfiguration;
     DataAccessAutoConfiguration.class, EventsAutoConfiguration.class})
 @ConditionalOnBean({
     PlatformProperties.class,
+    ManagedEntityTypes.class,
     MetadataResolver.class,
     FormRegistry.class,
     EntityDescriptorCatalog.class,
@@ -109,7 +112,7 @@ public class EntityExplorerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EntitySummaryAssembler entitySummaryAssembler(
-            PlatformProperties platformProperties,
+            ManagedEntityTypes managedEntityTypes,
             MetadataResolver metadataResolver,
             FormRegistry formRegistry,
             ReferenceIndex referenceIndex,
@@ -127,7 +130,7 @@ public class EntityExplorerAutoConfiguration {
             FetchPlanInspection fetchPlanInspection,
             RlsDimensionRegistry rlsDimensionRegistry) {
         return new EntitySummaryAssembler(
-            platformProperties.requiredSubsystemScanPackage(), metadataResolver, formRegistry,
+            managedEntityTypes, metadataResolver, formRegistry,
             referenceIndex, numberingMetadataRegistry, subsystemRegistry, facetResolver,
             descriptorCatalog, formRouteCatalog, lifecycleRegistry, sectionMetadataRegistry,
             startupCheck.getIfAvailable(), actionRegistry, actionHandlerRegistry,

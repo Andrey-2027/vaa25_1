@@ -22,6 +22,41 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RegisterStartupValidatorTest {
 
     @Test
+    void backendContributorFeedsFinalCatalogWithoutVaadinOrRecorderCycle() {
+        context(ValidRegister.class,
+            org.ipro.registerfixtures.RecorderPersistenceFixtures.RecordedRegisterFixture.class,
+            org.ipro.registerfixtures.RecorderPersistenceFixtures.RecorderFixtureDocumentA.class,
+            org.ipro.registerfixtures.RecorderPersistenceFixtures.RecorderFixtureDocumentB.class,
+            org.ipro.registerfixtures.RecorderFixtureDocumentASection.class)
+            .withUserConfiguration(ClassificationConfiguration.class)
+            .run(context -> {
+                assertThat(context).hasNotFailed();
+                var catalog = context.getBean(org.ipro.data.EntityDescriptorCatalog.class);
+                var independent = catalog.classificationOf(ValidRegister.class);
+                var recorded = catalog.classificationOf(
+                    org.ipro.registerfixtures.RecorderPersistenceFixtures.RecordedRegisterFixture.class);
+                assertThat(independent.kind()).isEqualTo(org.ipro.metadata.annotation.EntityKind.INFORMATION_REGISTER);
+                assertThat(independent.symbol()).isEqualTo(ValidRegister.class.getName());
+                assertThat(independent.recorderOwned()).isFalse();
+                assertThat(recorded.kind()).isEqualTo(independent.kind());
+                assertThat(recorded.recorderOwned()).isTrue();
+                assertThat(recorded.interned()).isFalse();
+                assertThat(context).hasSingleBean(RegisterClassificationContributor.class);
+            });
+    }
+
+    @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+    static class ClassificationConfiguration {
+        @Bean org.ipro.data.EntityDescriptorCatalog descriptorCatalog(ManagedEntityCatalog managed,
+                org.ipro.metadata.MetadataResolver resolver,
+                java.util.List<org.ipro.data.EntityClassificationContributor> contributors) {
+            return new org.ipro.data.EntityDescriptorCatalog(managed,
+                org.mockito.Mockito.mock(org.ipro.metadata.SectionMetadataRegistry.class), resolver,
+                java.util.List.of(), java.util.List.of(), contributors);
+        }
+    }
+
+    @Test
     void acceptsAValidRegisterWithoutAReaderAndIgnoresOrdinaryEntities() {
         context(ValidRegister.class, OrdinaryEntity.class).run(context -> {
             assertThat(context).hasNotFailed().hasSingleBean(RegisterStartupValidator.class);
@@ -71,7 +106,7 @@ class RegisterStartupValidatorTest {
     void reportsAllBrokenRegistersInDeterministicOrder() {
         context(MutableKeyRegister.class, MissingResourceRegister.class).run(context -> {
             assertThat(context).hasFailed();
-            String message = context.getStartupFailure().getMessage();
+            String message = rootCause(context.getStartupFailure()).getMessage();
             assertThat(message).contains("FIELD_MISSING", "поле 'missing'", "KEY_UPDATABLE");
             assertThat(message.indexOf(MissingResourceRegister.class.getName()))
                 .isLessThan(message.indexOf(MutableKeyRegister.class.getName()));

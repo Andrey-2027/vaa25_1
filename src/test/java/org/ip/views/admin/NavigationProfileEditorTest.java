@@ -47,7 +47,7 @@ class NavigationProfileEditorTest {
     private UI ui;
 
     static NavigationCatalog catalog() {
-        var registry = new SubsystemRegistry("org.navigationfixture");
+        var registry = new SubsystemRegistry("org.navigationfixture", new org.ipro.metadata.MetadataResolver());
         registry.afterPropertiesSet();
         return NavigationCatalog.build(registry, List.of(defaults -> defaults
             .subsystem(Fixtures.Root.class, "root").subsystem(Fixtures.Child.class, "child")

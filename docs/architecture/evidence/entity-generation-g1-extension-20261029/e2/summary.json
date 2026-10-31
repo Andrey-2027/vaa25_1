@@ -1,0 +1,16 @@
+{
+  "stage": "E2",
+  "date": "2026-10-29",
+  "status": "implemented-and-verified",
+  "profiles": ["catalog-java-v2", "document-java-v2"],
+  "coreJsonRuntimeP8": {"suites": 23, "tests": 163, "failures": 0, "errors": 0, "skipped": 0},
+  "sourceContractChecks": 33,
+  "dSelftest": {"passed": 66, "failed": 0, "skipped": 0},
+  "actualVerificationChecks": 67,
+  "referenceCatalog": {"cTests": 6, "apply": ["APPLIED", "NOOP"], "appliedRuntimeTests": 6, "dependencyCount": 19},
+  "referenceDocument": {"cTests": 6, "apply": ["APPLIED", "NOOP"], "appliedRuntimeTests": 6, "dependencyCount": 19},
+  "targetJarDrift": {"create": "REJECTED/DEPENDENCIES_CHANGED", "noop": "REJECTED/DEPENDENCIES_CHANGED", "afterPublishSelftest": "ROLLED_BACK/DEPENDENCIES_CHANGED"},
+  "legacyMatrix": {"cTests": 5, "apply": ["APPLIED", "NOOP"], "appliedRuntimeTests": 8},
+  "deferred": ["E3 owner", "E4 sections", "E5 browser and integrated acceptance", "M migration gate"],
+  "note": "Repeated C/runtime/selftest runs are reported separately, not added to the 163-test reactor count."
+}

@@ -1,5 +1,8 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.query.*;
+import org.ipro.query.param.*;
+
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.Test;
@@ -15,7 +18,9 @@ class ReportAuthorizationWiringTest {
         var requiredParameters = Map.of(ReportQueryGuard.class.getName(), 6,
             ReportQueryExecutor.class.getName(), 5);
         var production = new ClassFileImporter().withImportOption(new ImportOption.DoNotIncludeTests())
-            .importPackages("org.ip", "org.ipro.reportstudio");
+            // M1.2: UI запроса переехал в platform-query-vaadin — забор обязан сканировать
+            // и новый пакет, иначе переезд молча вывел бы код из-под проверки.
+            .importPackages("org.ip", "org.ipro.reportstudio", "org.ipro.query.ui");
         var unsafeCalls = production.stream()
             // Deprecated constructors delegate internally to each other for compatibility.
             .filter(type -> !requiredParameters.containsKey(type.getName()))

@@ -1,0 +1,9 @@
+{
+  "mode" : "journal-failure-after-receipt",
+  "status" : "RECOVERY_REQUIRED",
+  "code" : "JOURNAL_WRITE_FAILED",
+  "targetExists" : true,
+  "receiptExists" : true,
+  "targetHashMatches" : true,
+  "journalExists" : true
+}

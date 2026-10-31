@@ -74,10 +74,16 @@ final class ExplorerTreeModel {
      * {@code OWNED_SECTION}.
      */
     record Node(NodeKind kind, String id, String label, Class<?> type, String tabId,
-                String sectionId, String fieldName, List<Node> children) {
+                String sectionId, String fieldName, List<Node> children, List<String> foundFields) {
+
+        Node(NodeKind kind, String id, String label, Class<?> type, String tabId,
+             String sectionId, String fieldName, List<Node> children) {
+            this(kind, id, label, type, tabId, sectionId, fieldName, children, List.of());
+        }
 
         Node {
             children = List.copyOf(children);
+            foundFields = List.copyOf(foundFields);
         }
     }
 
@@ -110,6 +116,7 @@ final class ExplorerTreeModel {
     interface CatalogView {
 
         List<ExplorerSnapshot.Entry> roots();
+        default List<ExplorerSnapshot.Entry> entries() { return roots(); }
 
         Optional<EntitySummary> summaryOf(Class<?> type);
 
@@ -123,6 +130,7 @@ final class ExplorerTreeModel {
 
         static CatalogView of(ExplorerSnapshot snapshot) {
             return new CatalogView() {
+                @Override public List<ExplorerSnapshot.Entry> entries() { return snapshot.entries(); }
                 @Override
                 public List<ExplorerSnapshot.Entry> roots() {
                     return snapshot.roots();
@@ -703,6 +711,7 @@ final class ExplorerTreeModel {
         String label = hint == null || hint.isEmpty()
             ? node.label() : node.label() + " — найдено поле: " + hint;
         return new Node(node.kind(), node.id(), label, node.type(), node.tabId(),
-            node.sectionId(), node.fieldName(), children);
+            node.sectionId(), node.fieldName(), children,
+            hint == null || hint.isEmpty() ? node.foundFields() : List.of(hint.split(", ")));
     }
 }

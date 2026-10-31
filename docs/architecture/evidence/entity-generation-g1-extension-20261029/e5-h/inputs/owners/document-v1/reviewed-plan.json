@@ -1,0 +1,137 @@
+{
+  "planId" : "g1-a78d36cfa6b3bac0dbe4737fee09d7332fd8776e5982cadfddbdc2ec2e60e18c",
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "generatorVersion" : "document-java-v4",
+  "source" : {
+    "schemaVersion" : 1,
+    "recipe" : {
+      "id" : "standard-document-v1",
+      "version" : 1
+    },
+    "draftId" : "00000000-0000-0004-0000-000000000002",
+    "entity" : {
+      "className" : "OwnerEnvelopeDocument",
+      "packageName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "label" : "Документ envelope E3",
+      "titles" : {
+        "list" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "item" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "selection" : {
+          "mode" : "AUTO",
+          "text" : ""
+        }
+      },
+      "tableName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "subsystemId" : null,
+      "icon" : "FILE"
+    },
+    "fields" : [ ],
+    "sections" : [ ],
+    "owner" : null
+  },
+  "context" : {
+    "projectId" : "e3-acceptance",
+    "version" : "1",
+    "defaultPackage" : "com.example.generated",
+    "existingTypes" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "existingTables" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "subsystemIds" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "iconIds" : {
+      "values" : [ "FILE" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "referenceTargets" : {
+      "com.example.generated.targets.ReferenceTarget" : {
+        "typeId" : "com.example.generated.targets.ReferenceTarget",
+        "caption" : "Контрагенты",
+        "exposure" : "STANDARD_ROOT",
+        "identityType" : "java.lang.Long",
+        "representation" : "YES",
+        "selection" : "YES",
+        "eligibility" : "SUPPORTED",
+        "reason" : "existing support JAR",
+        "sourceTypeName" : "com.example.generated.targets.ReferenceTarget"
+      }
+    },
+    "referencesComplete" : true,
+    "runtimeSnapshot" : {
+      "snapshotId" : "e3-acceptance",
+      "complete" : true,
+      "types" : {
+        "com.example.generated.targets.ReferenceTarget" : {
+          "typeId" : "com.example.generated.targets.ReferenceTarget",
+          "kind" : "CATALOG",
+          "kindOrigin" : "DERIVED",
+          "kindSource" : "fixture",
+          "exposure" : "STANDARD_ROOT",
+          "capabilitiesOrigin" : "DERIVED",
+          "capabilitiesSource" : "fixture",
+          "identityOrigin" : "DERIVED",
+          "identitySource" : "fixture",
+          "reads" : [ ],
+          "writes" : [ ],
+          "interned" : false,
+          "recorderOwned" : false,
+          "sectionOwnerTypeId" : "",
+          "listColumns" : [ "code", "name" ],
+          "selectColumns" : [ "code", "name" ],
+          "attributes" : [ ],
+          "sections" : [ ],
+          "naturalKeys" : [ ],
+          "creationChannel" : "",
+          "specialOperations" : [ ],
+          "owner" : null
+        }
+      },
+      "prerequisites" : {
+        "ET0_ET7_RUNTIME" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_CATALOG_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        },
+        "STANDARD_DOCUMENT_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "fixture"
+        }
+      },
+      "diagnostics" : [ ]
+    }
+  },
+  "files" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/OwnerEnvelopeDocument.java",
+    "content" : "package com.example.generated;\n\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.Table;\nimport org.ipro.crud.StandardDocumentEntity;\nimport org.ipro.metadata.annotation.EntityMetadata;\n\n@Entity\n@Table(name = \"owner_envelope_document\")\n@EntityMetadata(\n    listFormTitle = \"Документ envelope E3\",\n    itemFormTitle = \"Документ envelope E3\",\n    selectionFormTitle = \"Документ envelope E3\",\n    icon = \"FILE\",\n    listColumns = {\"number\", \"date\"},\n    selectColumns = {\"number\", \"date\"}\n)\npublic class OwnerEnvelopeDocument extends StandardDocumentEntity {\n}\n",
+    "sha256" : "dbda0dfeaf7aece2c428ae786e4f8bee5ff226a8ec7284209e02c0c5302125d1"
+  } ]
+}

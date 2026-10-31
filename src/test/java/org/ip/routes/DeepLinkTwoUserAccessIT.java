@@ -1,6 +1,7 @@
 package org.ip.routes;
 
 import com.vaadin.flow.component.UI;
+import org.ip.persistence.access.PermissionSubjectLock;
 import org.ip.config.DataInitializer;
 import org.ip.model.Journal;
 import org.ip.model.ReceivingDocument;
@@ -84,6 +85,10 @@ class DeepLinkTwoUserAccessIT {
 
     @MockitoBean
     private DataInitializer dataInitializer;
+
+    /** alice/bob — синтетические субъекты RLS; lock строки субъекта проверяется P-U. */
+    @MockitoBean
+    private PermissionSubjectLock permissionSubjectLock;
 
     @Autowired
     private FormRouteCatalog catalog;

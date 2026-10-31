@@ -1,5 +1,0 @@
-org.ipro.report.config.ReportCatalogAutoConfiguration
-org.ipro.reportstudio.config.ReportStudioAutoConfiguration
-org.ipro.reportstudio.config.ReportStudioPersistenceAutoConfiguration
-org.ipro.jr.config.JrPersistenceAutoConfiguration
-org.ipro.jr.config.JrAutoConfiguration

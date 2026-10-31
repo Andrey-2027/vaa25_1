@@ -1,4 +1,6 @@
-package org.ip.views.unidr;
+package org.ipro.unidr.ui;
+import org.ip.unidr.query.UniDrReferenceService;
+import org.ip.unidr.model.UniDrDefinitions;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -6,16 +8,16 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.textfield.*;
-import org.ip.unidr.model.*;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.query.*;
-import org.ip.unidr.render.UniDrReportCompiler;
-import org.ip.unidr.run.*;
-import org.ip.unidr.source.*;
-import org.ipro.reportstudio.data.*;
-import org.ipro.reportstudio.query.ReportRunQuota;
-import org.ipro.reportstudio.render.*;
-import org.ipro.reportstudio.run.ReportTaskExecutor;
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.query.*;
+import org.ipro.unidr.render.UniDrReportCompiler;
+import org.ipro.unidr.run.*;
+import org.ipro.unidr.source.*;
+import org.ipro.report.data.*;
+import org.ipro.query.ReportRunQuota;
+import org.ipro.report.render.*;
+import org.ipro.report.task.ReportTaskExecutor;
 import org.junit.jupiter.api.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +30,32 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UniDrEditorTest {
+    @Test void totalsSelectionCanBeCancelledReopenedAndPrunedWithoutReturningToAll() {
+        var recipe=base.edit(d->d.totalsSettings=new TotalsSettings(null,Map.of("receivingWorkshop",new MeasureSelection(SelectionMode.CUSTOM,List.of("quantity")))));
+        var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),recipe,references,()->{}));
+        var dialog=editor.openTotalsEditor("receivingWorkshop");
+        all(dialog,Checkbox.class).forEach(box->box.setValue(false));
+        dialog.getFooter().getElement().getChildren().map(element->element.getComponent().orElse(null)).filter(Button.class::isInstance).map(Button.class::cast).filter(b->b.getText().equals("Отмена")).findFirst().orElseThrow().click();
+        assertThat(editor.definition()).isEqualTo(recipe);
+        dialog=editor.openTotalsEditor("receivingWorkshop");
+        all(dialog,Checkbox.class).forEach(box->box.setValue(false));
+        dialog.getFooter().getElement().getChildren().map(element->element.getComponent().orElse(null)).filter(Button.class::isInstance).map(Button.class::cast).filter(b->b.getText().equals("Применить")).findFirst().orElseThrow().click();
+        assertThat(editor.definition().effectiveMeasures("receivingWorkshop")).isEmpty();
+        editor.aggregation("quantity").clear();editor.aggregation("quantity").setValue(Aggregation.SUM);
+        assertThat(editor.definition().totalsSettings().group("receivingWorkshop")).isEqualTo(new MeasureSelection(SelectionMode.CUSTOM,List.of()));
+        var reopened=new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),editor.definition(),references,()->{});
+        assertThat(reopened.definition()).isEqualTo(editor.definition());
+    }
+    @Test void groupPaginationSurvivesReorderAndReopenAndIsRemovedWithGroup() {
+        var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),base,references,()->{}));
+        var newPage=all(editor,Checkbox.class).stream().filter(box->"С новой страницы: Цех-приёмщик".equals(box.getAriaLabel().orElse(""))).findFirst().orElseThrow();
+        newPage.setValue(true);editor.moveGroup("receivingWorkshop","nomenclature");
+        assertThat(editor.definition().appearance().groupSettings()).containsEntry("receivingWorkshop",new GroupSettings(true));
+        var reopened=new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),editor.definition(),references,()->{});
+        assertThat(reopened.definition()).isEqualTo(editor.definition());
+        all(reopened,Button.class).stream().filter(button->"Удалить группировку: Цех-приёмщик".equals(button.getAriaLabel().orElse(""))).findFirst().orElseThrow().click();
+        assertThat(reopened.definition().appearance().groupSettings()).doesNotContainKey("receivingWorkshop");
+    }
     @Test void pageSettingsAndFormatPresetsSurviveEditorReopening() {
         var editor=attached(new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),base,references,()->{}));
         UniDrEditorTest.<PageSize>combo(editor,"Формат страницы").setValue(PageSize.A3);
@@ -43,7 +71,18 @@ class UniDrEditorTest {
         var reopened=new UniDrDefinitionEditor(catalog.find(base.sourceId()).orElseThrow(),definition,references,()->{});
         assertThat(reopened.definition()).isEqualTo(definition);
     }
-    final UniDrSourceCatalog catalog=UniDrSourceCatalog.pilot();
+    @Test void printBindingSurvivesReopeningAndCanBeCleared() {
+        var source=catalog.find(base.sourceId()).orElseThrow();
+        var editor=attached(new UniDrDefinitionEditor(source,base,references,()->{}));
+        UniDrEditorTest.<String>combo(editor,"Печать для типа сущности").setValue("org.ip.domain.ReceivingDocument");
+        assertThat(editor.definition().targetEntityClass()).isEqualTo("org.ip.domain.ReceivingDocument");
+        var reopened=new UniDrDefinitionEditor(source,editor.definition(),references,()->{});
+        assertThat(reopened.definition().targetEntityClass()).isEqualTo("org.ip.domain.ReceivingDocument");
+        UniDrEditorTest.<String>combo(reopened,"Печать для типа сущности").clear();
+        assertThat(reopened.definition().targetEntityClass()).isNull();
+    }
+
+    final UniDrSourceCatalog catalog=UniDrDefinitions.catalog();
     final UniDrDefinition base=UniDrDefinitions.receivingItemsSummary();
     final UniDrReferenceService references=mock(UniDrReferenceService.class);
     final UniDrDefinitionValidator validator=new UniDrDefinitionValidator(catalog);
@@ -190,7 +229,7 @@ class UniDrEditorTest {
         assertThat(all(editor.parameterPane,TextField.class).stream().filter(field->"Подпись параметра".equals(field.getLabel()))).hasSize(1);
         button(editor.parameterPane,"Единица измерения").click();
         UniDrEditorTest.<DefaultRule>combo(editor.parameterPane,"Начальное значение").setValue(DefaultRule.FIXED);
-        all(editor.parameterPane,UniDrReferencePicker.class).getFirst().setValue(new UniDrReferenceService.Option(42L,"шт"));
+        all(editor.parameterPane,UniDrReferencePicker.class).getFirst().setValue(new org.ipro.unidr.query.UniDrReferenceCatalog.Option(42L,"шт"));
         var before=editor.parameters();int edits=changes.get();
         button(editor.parameterPane,"Период").click();button(editor.parameterPane,"Единица измерения").click();
         assertThat(changes.get()).isEqualTo(edits);assertThat(editor.parameters()).isEqualTo(before);
@@ -202,7 +241,7 @@ class UniDrEditorTest {
         var editor=conditions();add(editor,"nomenclature",Operator.EQ,true);
         Parameter parameter=editor.parameters().getLast();
         var input=new UniDrValueEditor(field("nomenclature"),Operator.EQ,"Номенклатура",references,()->{});
-        all(input,UniDrReferencePicker.class).getFirst().setValue(new UniDrReferenceService.Option(42L,"Деталь"));
+        all(input,UniDrReferencePicker.class).getFirst().setValue(new org.ipro.unidr.query.UniDrReferenceCatalog.Option(42L,"Деталь"));
         assertThat(input.value()).isEqualTo(new Literal(ValueType.REFERENCE,List.of("42")));assertThat(all(input,ComboBox.class)).isEmpty();
         assertThat(all(input,TextField.class).getFirst().getValue()).isEqualTo("Деталь");
         assertThat(parameter.fieldId()).isEqualTo("nomenclature");assertThat(validator.validate(with(editor))).isEmpty();
@@ -221,7 +260,8 @@ class UniDrEditorTest {
         @SuppressWarnings("unchecked") var dialog=(org.ipro.form.SelectionForm<org.ip.model.UnitOfMeasurement>)mock(org.ipro.form.SelectionForm.class);
         var accepted=new java.util.concurrent.atomic.AtomicReference<java.util.function.Consumer<org.ip.model.UnitOfMeasurement>>();
         when(selection.assemble(eq(org.ip.model.UnitOfMeasurement.class),any())).thenAnswer(call->{accepted.set(call.getArgument(1));return dialog;});
-        when(references.selected("unit",42L)).thenReturn(new UniDrReferenceService.Option(42L,"шт"));
+        when(references.referenceType("unit")).thenReturn((Class)org.ip.model.UnitOfMeasurement.class);
+        when(references.selected("unit",42L)).thenReturn(new org.ipro.unidr.query.UniDrReferenceCatalog.Option(42L,"шт"));
         when(references.selected("unit",99L)).thenThrow(new UniDrRunException(UniDrRunException.Code.REFERENCE_UNAVAILABLE,"Недоступно"));
         var changes=new java.util.concurrent.atomic.AtomicInteger();
         var input=new UniDrValueEditor(field("unit"),Operator.EQ,"Единица измерения",references,changes::incrementAndGet,selection);
@@ -251,15 +291,16 @@ class UniDrEditorTest {
     }
     private record Fixture(UniDrView view,ArrayDeque<Runnable> tasks,UniDrQueryService query) {}
     private Fixture view() {
-        when(references.selected(eq("unit"),eq(1L))).thenReturn(new UniDrReferenceService.Option(1L,"шт"));
+        when(references.selected(eq("unit"),eq(1L))).thenReturn(new org.ipro.unidr.query.UniDrReferenceCatalog.Option(1L,"шт"));
         var access=new UniDrAccess(()->true,()->SecurityContextHolder.getContext().getAuthentication().getName());
-        var query=mock(UniDrQueryService.class);var compiler=mock(UniDrReportCompiler.class);var exporter=mock(ReportCompiler.class);var tasks=new ArrayDeque<Runnable>();
+        var query=mock(UniDrQueryService.class);var compiler=mock(UniDrReportCompiler.class);var exporter=mock(org.ipro.report.render.JasperExporter.class);var tasks=new ArrayDeque<Runnable>();
         when(query.read(any(),any(),any())).thenReturn(new UniDrQueryService.Data(new ReportDataset(new QueryField[0],new ReportRow[0]),Map.of()));
         when(compiler.compile(any(),any())).thenReturn(new net.sf.jasperreports.engine.JasperPrint());
         var runs=new UniDrRunService(access,query,new ReportTaskExecutor(tasks::add),new ReportRunQuota(2),clock,compiler,exporter);
-        var view=new UniDrView(runs,references,clock);return new Fixture(view,tasks,query);
+        var view=new UniDrView(runs,references,clock,null,null,UniDrDefinitions.catalog(references),UniDrDefinitions.receivingItemsSummary());
+        return new Fixture(view,tasks,query);
     }
-    private void unit(UniDrView view) { if(view.runDialog()==null)view.start();all(view.runDialog(),UniDrReferencePicker.class).stream().filter(input->input.getLabel().equals("Единица измерения")).findFirst().orElseThrow().setValue(new UniDrReferenceService.Option(1L,"шт")); }
+    private void unit(UniDrView view) { if(view.runDialog()==null)view.start();all(view.runDialog(),UniDrReferencePicker.class).stream().filter(input->input.getLabel().equals("Единица измерения")).findFirst().orElseThrow().setValue(new org.ipro.unidr.query.UniDrReferenceCatalog.Option(1L,"шт")); }
     @Test void separateParameterTabEditsDeclarationsWithoutLosingRunValues() {
         var fixture=view();unit(fixture.view);var before=fixture.view.values();
         var tab=all(fixture.view,com.vaadin.flow.component.tabs.Tab.class).stream().filter(value->value.getElement().getTextRecursively().equals("Параметры отчёта")).findFirst().orElseThrow();

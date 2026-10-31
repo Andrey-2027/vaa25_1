@@ -144,8 +144,9 @@ class PlatformVaadinSurfaceTest {
                 + " (`FormStructureAffordance`) — итого 130; диагностика отказов добавила INTERNAL helper"
                 + " (`AccessDenialPresentation`) — итого 131; R8 добавила шесть типов стандартного списка регистра —"
                 + " итого 137; E1.2b добавила порт права на операцию (`OperationPermissionSource`) —"
-                + " итого 138")
-            .hasSize(138);
+                + " итого 138; UX pilot P1 добавила INTERNAL-проекцию структуры EntityStructureFactsAssembler;"
+                + " E3.B добавила INTERNAL owner/form bridge CatalogOwnerForms — итого 140")
+            .hasSize(140);
         assertThat(withoutRole)
             .as("тип будущего platform-vaadin без роли: классификация — решение, которое нужно"
                 + " принять до переноса, а не после него")

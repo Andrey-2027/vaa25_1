@@ -1,0 +1,187 @@
+{
+  "kind": "g1-c-summary-v2",
+  "mode": "generated-acceptance",
+  "scenario": {
+    "id": "empty-document",
+    "specSha256": "68a8163e94081bc6c1648a2be5aafc28cad5e9f7236c9b6710a81415e044c937"
+  },
+  "manifest": {
+    "kind": "g1-generation-manifest-v2",
+    "planId": "g1-fab1174cf3cc0f9752e6ad032cc018b69c9a351925e0fd81fc56ec9d221d30dd",
+    "recipe": {
+      "id": "standard-document-v1",
+      "version": 1
+    },
+    "generatorVersion": "document-java-v4",
+    "fingerprintProfile": "plan-fingerprint-v2",
+    "entries": [
+      {
+        "operation": "CREATE",
+        "relativePath": "com/example/generated/EmptyDocument.java",
+        "sha256": "a28039602c6cae7ea4ea75cd6b1d6f9be9e6fbc2e42909e2ab028574d409ad34",
+        "bytes": 541
+      }
+    ],
+    "manifestSha256": "67d5453af0291c0f11b8943327884e40641d4afa3b1bb84adfd88cf49167351a"
+  },
+  "dependencies": [
+    {
+      "id": "org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+      "sha256": "bc0e41e7e60d5613ea921a2dbb5d891dcd7b62c07ce8238f2457ac3ce427468b"
+    },
+    {
+      "id": "org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+      "sha256": "d921d2b64462de000b53e302cad4d4b56c7e6b46da8f8b604fbf6c46d064b02a"
+    },
+    {
+      "id": "org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+      "sha256": "06bee40b045ce127eb549dbb42b78d898099cb4ff50c06af44481c44a0715298"
+    },
+    {
+      "id": "org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+      "sha256": "1b79e501bd959e5b7a5850e39f32055bff67655ca07822e4fe43efc4a2671204"
+    },
+    {
+      "id": "org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+      "sha256": "5056bbed8be1dac2e3c30add00be86796ec356457ef54f09584b447579293674"
+    },
+    {
+      "id": "org.ipro:platform-core:jar::1.0-SNAPSHOT",
+      "sha256": "9d885a825599a19d870df0d27368f54559fc71e03260edef5df1adeccbd8f421"
+    },
+    {
+      "id": "org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+      "sha256": "35857b09a5f6b4c7d336ca05079bda7804cdc7861954d1c3fe5df08f5b34e9ea"
+    },
+    {
+      "id": "org.ipro:platform-events:jar::1.0-SNAPSHOT",
+      "sha256": "bb15b885b15675034604203d44e6fd1c71059e376fbad54ba73180a1f1b13bfb"
+    },
+    {
+      "id": "org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+      "sha256": "b6cf3b357f3ef1f4b8c3a66188bdf98394018d15f1d3f7123c35e98535bf3c52"
+    },
+    {
+      "id": "org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+      "sha256": "705abc06e56128a5211d112d9afad3f956f3308bea790d5dfbafdf640986e758"
+    },
+    {
+      "id": "org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+      "sha256": "adec135b2038c4e3ac5448bc3408573d5e4942a5ba431adc7d332da620a0c3f9"
+    },
+    {
+      "id": "org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+      "sha256": "e7041f17e528f19e856733fb271784db98486f98ebde8087817ef43bca464599"
+    },
+    {
+      "id": "org.ipro:platform-register:jar::1.0-SNAPSHOT",
+      "sha256": "9423bd703579dccfb0ef90b7d50c5fef65165190a7b660ff025491e1c94e218d"
+    },
+    {
+      "id": "org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+      "sha256": "8f680186c57b41737cf7d60753f278ac54b760808e418cd77cc75af3dd97d8ec"
+    },
+    {
+      "id": "org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+      "sha256": "a05ea7a75dc22eac39ae8f3538f99dbb40b366d687e6e38ac46ddef04b1b8c1b"
+    },
+    {
+      "id": "org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+      "sha256": "75ea5e4ce2172975597eb62fd559c0f70cb3f10b42f48e972dfb9290cb48b607"
+    },
+    {
+      "id": "org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+      "sha256": "622ef2e6d28baf98f72b9d479fff82a6349be2432ee0b69e7a655229ebcc9744"
+    }
+  ],
+  "supportSources": [
+    {
+      "relativePath": "src/main/java/com/example/generated/harness/GenerationHarnessApplication.java",
+      "sha256": "5518128aaa241ee196fe80f1690f795decf060182208a08564ed023ae68b431b",
+      "bytes": 658
+    },
+    {
+      "relativePath": "src/main/java/com/example/generated/harness/HarnessIdentityConfiguration.java",
+      "sha256": "b64e7fa770dd723b5e40e2696195af831148755007f79b4f8849e54d8c08f759",
+      "bytes": 1256
+    },
+    {
+      "relativePath": "src/test/java/com/example/generated/harness/GenerationScenarioTest.java",
+      "sha256": "f4c945c93e2a1a73829824dfe8472794e61ff5c67b9e745ef15f3502bc94a01b",
+      "bytes": 22658
+    }
+  ],
+  "compile": {
+    "attempted": true,
+    "exitCode": 0
+  },
+  "runtime": {
+    "attempted": true,
+    "startup": "success"
+  },
+  "status": "success",
+  "failureKind": "",
+  "failureReason": "",
+  "detail": "Compile, startup, metadata and canonical runtime checks passed",
+  "sources": [
+    {
+      "relativePath": "com/example/generated/EmptyDocument.java",
+      "sha256": "a28039602c6cae7ea4ea75cd6b1d6f9be9e6fbc2e42909e2ab028574d409ad34",
+      "bytes": 541
+    }
+  ],
+  "sourceSetSha256": "67d5453af0291c0f11b8943327884e40641d4afa3b1bb84adfd88cf49167351a",
+  "source": {
+    "file": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\inputs\\documents\\empty-document\\com\\example\\generated\\EmptyDocument.java",
+    "relativePath": "com/example/generated/EmptyDocument.java",
+    "sha256": "a28039602c6cae7ea4ea75cd6b1d6f9be9e6fbc2e42909e2ab028574d409ad34",
+    "expectedSha256": "a28039602c6cae7ea4ea75cd6b1d6f9be9e6fbc2e42909e2ab028574d409ad34",
+    "bytes": 541,
+    "archived": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\actual\\empty-document\\c\\accepted\\input\\com\\example\\generated\\EmptyDocument.java"
+  },
+  "plan": {
+    "receipt": "",
+    "planId": "g1-fab1174cf3cc0f9752e6ad032cc018b69c9a351925e0fd81fc56ec9d221d30dd",
+    "recipe": "standard-document-v1@1",
+    "generatorVersion": "document-java-v4",
+    "generatorRevision": "",
+    "sourceFixture": ""
+  },
+  "harness": {
+    "isolation": "C:\\Users\\strim\\AppData\\Local\\Temp\\entity-generation-g1-harness-2c596faf6f724810a3ef2e3377f46f86",
+    "javaHome": "C:\\Program Files\\Axiom\\AxiomJDK-21",
+    "javaVersion": "openjdk version \"21.0.11\" 2026-04-21 LTS\r\nOpenJDK Runtime Environment (build 21.0.11+11-LTS)\r\nOpenJDK 64-Bit Server VM (build 21.0.11+11-LTS, mixed mode, sharing)",
+    "maven": "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.3\\plugins\\maven\\lib\\maven3\\bin\\mvn.cmd",
+    "offline": true,
+    "localRepository": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository"
+  },
+  "maven": {
+    "attempted": true,
+    "exitCode": 0
+  },
+  "tests": {
+    "reports": 1,
+    "run": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": [
+      {
+        "name": "com.example.generated.harness.GenerationScenarioTest",
+        "required": true,
+        "run": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "platformJars": {
+    "used": 17,
+    "changed": [],
+    "missing": [],
+    "file": "platform-jars.sha256"
+  },
+  "timestamp": "2026-10-31T17:12:06.6303072+03:00",
+  "gitHead": "9b3463dadd21378d2d189511f06b4ae375d5f78d"
+}

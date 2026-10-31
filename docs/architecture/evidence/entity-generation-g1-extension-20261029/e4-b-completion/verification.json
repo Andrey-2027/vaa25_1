@@ -1,0 +1,158 @@
+[
+  {
+    "name": "244 component/core/JSON/runtime tests",
+    "passed": true
+  },
+  {
+    "name": "28 generated form tests across 7 cases",
+    "passed": true
+  },
+  {
+    "name": "catalog-0 P8 and form consumer plan/set binding to accepted A/C/D",
+    "passed": true
+  },
+  {
+    "name": "catalog-0 exact delivered/compiled bytes com/example/generated/CatalogSections0.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-0 actual H2 form suite",
+    "passed": true
+  },
+  {
+    "name": "catalog-0 reviewed runtime test source",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 P8 and form consumer plan/set binding to accepted A/C/D",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 exact delivered/compiled bytes com/example/generated/CatalogSections1.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 exact delivered/compiled bytes com/example/generated/rows/CatalogSections1Row1.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 actual H2 form suite",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 reviewed runtime test source",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 P8 and form consumer plan/set binding to accepted A/C/D",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 exact delivered/compiled bytes com/example/generated/CatalogSections2.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 exact delivered/compiled bytes com/example/generated/rows/CatalogSections2Row1.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 exact delivered/compiled bytes com/example/generated/rows/CatalogSections2Row2.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 actual H2 form suite",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 reviewed runtime test source",
+    "passed": true
+  },
+  {
+    "name": "document-0 P8 and form consumer plan/set binding to accepted A/C/D",
+    "passed": true
+  },
+  {
+    "name": "document-0 exact delivered/compiled bytes com/example/generated/DocumentSections0.java",
+    "passed": true
+  },
+  {
+    "name": "document-0 actual H2 form suite",
+    "passed": true
+  },
+  {
+    "name": "document-0 reviewed runtime test source",
+    "passed": true
+  },
+  {
+    "name": "document-1 P8 and form consumer plan/set binding to accepted A/C/D",
+    "passed": true
+  },
+  {
+    "name": "document-1 exact delivered/compiled bytes com/example/generated/DocumentSections1.java",
+    "passed": true
+  },
+  {
+    "name": "document-1 exact delivered/compiled bytes com/example/generated/rows/DocumentSections1Row1.java",
+    "passed": true
+  },
+  {
+    "name": "document-1 actual H2 form suite",
+    "passed": true
+  },
+  {
+    "name": "document-1 reviewed runtime test source",
+    "passed": true
+  },
+  {
+    "name": "document-2 P8 and form consumer plan/set binding to accepted A/C/D",
+    "passed": true
+  },
+  {
+    "name": "document-2 exact delivered/compiled bytes com/example/generated/DocumentSections2.java",
+    "passed": true
+  },
+  {
+    "name": "document-2 exact delivered/compiled bytes com/example/generated/rows/DocumentSections2Row1.java",
+    "passed": true
+  },
+  {
+    "name": "document-2 exact delivered/compiled bytes com/example/generated/rows/DocumentSections2Row2.java",
+    "passed": true
+  },
+  {
+    "name": "document-2 actual H2 form suite",
+    "passed": true
+  },
+  {
+    "name": "document-2 reviewed runtime test source",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 P8 and form consumer plan/set binding to accepted A/C/D",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 exact delivered/compiled bytes com/example/generated/OwnedCatalogSections2.java",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 exact delivered/compiled bytes com/example/generated/rows/OwnedCatalogSections2Row1.java",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 exact delivered/compiled bytes com/example/generated/rows/OwnedCatalogSections2Row2.java",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 actual H2 form suite",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 reviewed runtime test source",
+    "passed": true
+  },
+  {
+    "name": "forms use current reactor platform-vaadin classes",
+    "passed": true
+  }
+]

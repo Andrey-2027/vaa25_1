@@ -1,0 +1,84 @@
+{
+  "projectId" : "e3-acceptance",
+  "version" : "1",
+  "defaultPackage" : "com.example.generated",
+  "existingTypes" : {
+    "values" : [ ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "existingTables" : {
+    "values" : [ ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "subsystemIds" : {
+    "values" : [ ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "iconIds" : {
+    "values" : [ "FILE" ],
+    "complete" : true,
+    "reason" : ""
+  },
+  "referenceTargets" : {
+    "com.example.generated.targets.ReferenceTarget" : {
+      "typeId" : "com.example.generated.targets.ReferenceTarget",
+      "caption" : "Контрагенты",
+      "exposure" : "STANDARD_ROOT",
+      "identityType" : "java.lang.Long",
+      "representation" : "YES",
+      "selection" : "YES",
+      "eligibility" : "SUPPORTED",
+      "reason" : "existing support JAR",
+      "sourceTypeName" : "com.example.generated.targets.ReferenceTarget"
+    }
+  },
+  "referencesComplete" : true,
+  "runtimeSnapshot" : {
+    "snapshotId" : "e3-acceptance",
+    "complete" : true,
+    "types" : {
+      "com.example.generated.targets.ReferenceTarget" : {
+        "typeId" : "com.example.generated.targets.ReferenceTarget",
+        "kind" : "CATALOG",
+        "kindOrigin" : "DERIVED",
+        "kindSource" : "fixture",
+        "exposure" : "STANDARD_ROOT",
+        "capabilitiesOrigin" : "DERIVED",
+        "capabilitiesSource" : "fixture",
+        "identityOrigin" : "DERIVED",
+        "identitySource" : "fixture",
+        "reads" : [ ],
+        "writes" : [ ],
+        "interned" : false,
+        "recorderOwned" : false,
+        "sectionOwnerTypeId" : "",
+        "listColumns" : [ "code", "name" ],
+        "selectColumns" : [ "code", "name" ],
+        "attributes" : [ ],
+        "sections" : [ ],
+        "naturalKeys" : [ ],
+        "creationChannel" : "",
+        "specialOperations" : [ ],
+        "owner" : null
+      }
+    },
+    "prerequisites" : {
+      "ET0_ET7_RUNTIME" : {
+        "status" : "AVAILABLE",
+        "evidence" : "fixture"
+      },
+      "STANDARD_CATALOG_APP_API" : {
+        "status" : "AVAILABLE",
+        "evidence" : "fixture"
+      },
+      "STANDARD_DOCUMENT_APP_API" : {
+        "status" : "AVAILABLE",
+        "evidence" : "fixture"
+      }
+    },
+    "diagnostics" : [ ]
+  }
+}

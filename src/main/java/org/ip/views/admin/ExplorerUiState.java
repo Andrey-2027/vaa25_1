@@ -29,6 +29,45 @@ final class ExplorerUiState {
     private boolean restoreFailed;
     private final Map<Class<?>, String> places = new LinkedHashMap<>();
     private final Map<String, Boolean> expansions = new LinkedHashMap<>();
+    private final Map<Class<?>, EntityExplorerPilotPlace> pilotPlaces = new LinkedHashMap<>();
+    private record BehaviorKey(Class<?> root, EntityExplorerPilotPlace.Tab tab) { }
+    private final Map<BehaviorKey, String> behaviorSelections = new LinkedHashMap<>();
+
+    void rememberBehaviorSelection(Class<?> root, EntityExplorerPilotPlace.Tab tab, String selection) {
+        behaviorSelections.put(new BehaviorKey(root, tab), selection);
+    }
+
+    String behaviorSelection(Class<?> root, EntityExplorerPilotPlace.Tab tab) {
+        return behaviorSelections.get(new BehaviorKey(root, tab));
+    }
+    record SectionPlace(Class<?> root, EntityExplorerPilotPlace.OwnedSection section) { }
+    private final Map<SectionPlace, Boolean> pilotSections = new LinkedHashMap<>();
+    private final Map<SectionPlace, String> pilotSectionFields = new LinkedHashMap<>();
+
+    boolean sectionOpened(Class<?> root, EntityExplorerPilotPlace.OwnedSection section) {
+        return pilotSections.getOrDefault(new SectionPlace(root, section), false);
+    }
+
+    void rememberSectionOpened(Class<?> root, EntityExplorerPilotPlace.OwnedSection section, boolean opened) {
+        pilotSections.put(new SectionPlace(root, section), opened);
+    }
+
+    void rememberSectionField(Class<?> root, EntityExplorerPilotPlace.SectionField field) {
+        pilotSectionFields.put(new SectionPlace(root, field.section()), field.fieldName());
+    }
+
+    String sectionField(Class<?> root, EntityExplorerPilotPlace.OwnedSection section) {
+        return pilotSectionFields.get(new SectionPlace(root, section));
+    }
+
+    /** Local pilot places do not overwrite published legacy anchors. */
+    void rememberPilotPlace(EntityExplorerPilotPlace place) {
+        pilotPlaces.put(place.rootType(), place);
+    }
+
+    EntityExplorerPilotPlace pilotPlaceOf(Class<?> type) {
+        return pilotPlaces.getOrDefault(type, EntityExplorerPilotPlace.general(type));
+    }
 
     /** Пользователь или программный вход выбрал тип и место: {@code anchor} пуст — место не названо. */
     void remember(Class<?> type, String anchor) {
@@ -96,5 +135,9 @@ final class ExplorerUiState {
         restoreFailed = false;
         places.clear();
         expansions.clear();
+        pilotPlaces.clear();
+        behaviorSelections.clear();
+        pilotSections.clear();
+        pilotSectionFields.clear();
     }
 }

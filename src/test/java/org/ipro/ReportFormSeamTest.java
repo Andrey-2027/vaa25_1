@@ -70,8 +70,12 @@ class ReportFormSeamTest {
 
     private static final Set<String> PUBLISHED_ROLES = Set.of("APP_API", "APP_SPI");
 
-    /** Ожидаемый минимум исходников слоя: сознательная помеха «слой стал пустым / не тем». */
-    private static final int MIN_LAYER_SOURCES = 100;
+    /**
+     * Ожидаемый минимум исходников слоя: сознательная помеха «слой стал пустым / не тем».
+     * M1.2 увёл редактор/конструктор/срез запроса в platform-query-vaadin, поэтому отчётный
+     * слой в приложении сократился с 60+ до 27 исходников.
+     */
+    private static final int MIN_LAYER_SOURCES = 20;
 
     private static final Pattern PACKAGE = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);
 

@@ -1,7 +1,5 @@
 package org.ip.application.access;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -18,6 +16,7 @@ import org.ip.application.catalog.NamedOperationOwner;
 import org.ip.application.catalog.NamedOperationSource;
 import org.ip.model.Role;
 import org.ip.model.User;
+import org.ip.persistence.access.StoredGrantKeyReader;
 import org.ip.application.access.PermissionBinding.Authority;
 import org.ip.application.access.PermissionBinding.Flag;
 import org.ip.application.access.PermissionCatalog.Diagnostic;
@@ -60,14 +59,15 @@ public class PermissionCatalogService {
     private final List<NamedOperationOwner> actionOwners;
     private final List<LegacyPermissionDefinition> legacyOwners;
     private final ObjectProvider<RestResourceCatalog> rest;
-    @PersistenceContext private EntityManager entityManager;
+    private final StoredGrantKeyReader storedGrantKeys;
 
     public PermissionCatalogService(EntityDescriptorCatalog descriptors, MetadataResolver metadata,
                                     SubsystemRegistry subsystems, RlsDimensionRegistry dimensions,
                                     C5ReadPermissionRegistry reads, C5OperationPermissionRegistry operations,
                                     SettingsRegistry settings, List<NamedOperationOwner> actionOwners,
                                     List<NamedOperationSource> actionSources,
-                                    List<LegacyPermissionDefinition> legacyOwners, ObjectProvider<RestResourceCatalog> rest) {
+                                    List<LegacyPermissionDefinition> legacyOwners, ObjectProvider<RestResourceCatalog> rest,
+                                    StoredGrantKeyReader storedGrantKeys) {
         this.descriptors = descriptors;
         this.metadata = metadata;
         this.subsystems = subsystems;
@@ -78,6 +78,7 @@ public class PermissionCatalogService {
         this.actionOwners = NamedOperationSource.merge(actionOwners, actionSources);
         this.legacyOwners = List.copyOf(legacyOwners);
         this.rest = rest;
+        this.storedGrantKeys = storedGrantKeys;
     }
 
     /** No database reads: rebuild from current registries, so later registered definitions are visible. */
@@ -87,9 +88,7 @@ public class PermissionCatalogService {
 
     /** One distinct-key projection; full grants, values and subjects are not loaded here. */
     public List<Diagnostic> storedKeyDiagnostics() {
-        List<String> keys = entityManager.createQuery("select distinct g.dimension from AccessGrant g", String.class)
-            .getResultList();
-        return diagnosticsForStoredKeys(keys);
+        return diagnosticsForStoredKeys(storedGrantKeys.distinctKeys());
     }
 
     public List<Diagnostic> diagnosticsForStoredKeys(Collection<String> keys) {
@@ -176,15 +175,17 @@ public class PermissionCatalogService {
         }
         private String entityGroup(Class<?> type) {
             var info = info(type);
-            Class<?> marker = info == null ? Subsystem.NoSubsystem.class : info.getAnnotation().subsystem();
+            Class<?> marker = info == null ? Subsystem.NoSubsystem.class : info.getSubsystem();
             if (marker != Subsystem.NoSubsystem.class) {
                 String id = subsystemId(marker);
                 if (!groups.containsKey(id)) throw new IllegalStateException("Unknown subsystem marker " + marker.getName());
                 return id;
             }
             boolean administration = type == User.class || type == Role.class;
-            String id = administration ? "aux:administration" : "aux:system";
-            group(id, administration ? "Администрирование" : "Системные объекты", null, null, administration ? 900 : 910);
+            boolean unassigned = !administration && info != null;
+            String id = administration ? "aux:administration" : unassigned ? "aux:unassigned" : "aux:system";
+            group(id, administration ? "Администрирование" : unassigned ? "Без подсистемы" : "Системные объекты",
+                null, null, administration ? 900 : 910);
             return id;
         }
 

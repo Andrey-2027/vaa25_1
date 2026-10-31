@@ -162,10 +162,8 @@ public final class SearchFieldResolver {
     }
 
     private List<String> metadataSelectFields(Class<?> type) {
-        EntityMetadataInfo metadata;
-        try {
-            metadata = metadataResolver.resolve(type);
-        } catch (IllegalArgumentException notMetadataDriven) {
+        EntityMetadataInfo metadata = metadataResolver.find(type).orElse(null);
+        if (metadata == null) {
             return List.of();
         }
         List<String> result = new ArrayList<>();

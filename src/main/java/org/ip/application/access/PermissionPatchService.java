@@ -1,9 +1,13 @@
 package org.ip.application.access;
 
-import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.*;
-import org.ipro.rls.*;
+import org.ip.persistence.access.PermissionPatchStore;
+import org.ip.persistence.access.PermissionSubjectLock;
+import org.ipro.rls.AccessGrant;
+import org.ipro.rls.AccessGrantRepository;
+import org.ipro.rls.RlsCurrentUser;
+import org.ipro.rls.c5.C5Operation;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -32,22 +36,21 @@ public class PermissionPatchService {
     private final PermissionSubjectLock locks;
     private final PermissionCatalogService catalogs;
     private final AccessGrantRepository grants;
-    private final EntityManager em;
-    private final RlsFilterActivator filters;
+    private final PermissionPatchStore store;
     private final RlsCurrentUser currentUser;
     private final ApplicationEventPublisher events;
     public PermissionPatchService(PermissionSubjectLock locks, PermissionCatalogService catalogs,
-                                  AccessGrantRepository grants, EntityManager em, RlsFilterActivator filters,
+                                  AccessGrantRepository grants, PermissionPatchStore store,
                                   RlsCurrentUser currentUser, ApplicationEventPublisher events) {
-        this.locks = locks; this.catalogs = catalogs; this.grants = grants; this.em = em;
-        this.filters = filters; this.currentUser = currentUser; this.events = events;
+        this.locks = locks; this.catalogs = catalogs; this.grants = grants; this.store = store;
+        this.currentUser = currentUser; this.events = events;
     }
 
     /** Immutable baseline of one address, including absence; opening does not normalize stored flags. */
     public List<PermissionPatch.Snapshot> baseline(SubjectRef subject, PermissionGrantAddress address) {
         requireCurrent(subject);
         validate(address, Map.of());
-        return snapshots(rows(subject, address));
+        return snapshots(store.rows(subject.type(), subject.subjectKey(), address.key(), address.valueId()));
     }
 
     public Saved save(PermissionPatch patch) {
@@ -57,7 +60,7 @@ public class PermissionPatchService {
         var conflicts = new ArrayList<PermissionGrantAddress>();
         for (var change : patch.changes()) {
             validate(change.address(), change.desiredFlags());
-            var rows = rows(subject, change.address());
+            var rows = store.rows(subject.type(), subject.subjectKey(), change.address().key(), change.address().valueId());
             current.put(change.address(), rows);
             if (!new HashSet<>(snapshots(rows)).equals(new HashSet<>(change.expectedRows()))) conflicts.add(change.address());
         }
@@ -90,15 +93,6 @@ public class PermissionPatchService {
         if (!current.subjectKey().equals(expected.subjectKey())) throw new Conflict(List.of());
         return current;
     }
-    private List<AccessGrant> rows(SubjectRef subject, PermissionGrantAddress address) {
-        var result = em.createQuery("select g from AccessGrant g where g.subjectType=:type and g.subjectKey=:key "
-            + "and g.dimension=:dimension and ((:value is null and g.dimensionValueId is null) or g.dimensionValueId=:value)", AccessGrant.class)
-            .setParameter("type", subject.type()).setParameter("key", subject.subjectKey())
-            .setParameter("dimension", address.key()).setParameter("value", address.valueId()).getResultList();
-        // Clear stale first-level-cache state after waiting for another transaction's subject lock.
-        result.forEach(em::refresh);
-        return result.stream().filter(grant -> Objects.equals(grant.getDimensionValueId(), address.valueId())).toList();
-    }
     static List<PermissionPatch.Snapshot> snapshots(List<AccessGrant> rows) {
         return rows.stream().map(grant -> new PermissionPatch.Snapshot(grant.getId(), grant.getVersion(),
             new PermissionPatch.Flags(grant.isCanRead(), grant.isCanUpdate(), grant.isCanDelete()))).toList();
@@ -110,19 +104,16 @@ public class PermissionPatchService {
         catalog.scope(address.key()).ifPresent(scope -> scope.columns().forEach(column -> bindings.add(column.binding())));
         if (address.key().equals("*") && address.authority() == PermissionBinding.Authority.RLS && address.valueId() == null) {
             for (var flag : PermissionBinding.Flag.values()) bindings.add(new PermissionBinding("*", address.authority(), flag,
-                Set.of(switch (flag) { case READ -> org.ipro.rls.c5.C5Operation.READ; case UPDATE -> org.ipro.rls.c5.C5Operation.UPDATE; case DELETE -> org.ipro.rls.c5.C5Operation.DELETE; })));
+                Set.of(switch (flag) { case READ -> C5Operation.READ; case UPDATE -> C5Operation.UPDATE; case DELETE -> C5Operation.DELETE; })));
         }
         var supported = bindings.stream().filter(binding -> binding.authority() == address.authority() && binding.key().equals(address.key()))
             .map(PermissionBinding::flag).collect(java.util.stream.Collectors.toSet());
         if (supported.isEmpty() || !supported.containsAll(dirty.keySet())) throw new IllegalArgumentException("Unsupported permission/flag " + address);
         if (address.valueId() != null) {
             var scope = catalog.scope(address.key()).orElseThrow(() -> new IllegalArgumentException("No scope value source"));
-            boolean exists = filters.withDimensionAdministration(em, scope.id(), () -> {
-                var cb = em.getCriteriaBuilder(); var query = cb.createQuery(Long.class); var root = query.from(scope.valueType());
-                query.select(cb.count(root)).where(cb.equal(root.get("id"), address.valueId()));
-                return em.createQuery(query).getSingleResult() == 1;
-            });
-            if (!exists) throw new IllegalArgumentException("Scope value no longer exists: " + address.valueId());
+            if (!store.scopeValueExists(scope.id(), scope.valueType(), address.valueId())) {
+                throw new IllegalArgumentException("Scope value no longer exists: " + address.valueId());
+            }
         }
     }
 }

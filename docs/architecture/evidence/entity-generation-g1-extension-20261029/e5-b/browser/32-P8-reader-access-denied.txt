@@ -1,0 +1,39 @@
+Browser tab: 4, Title: "127.0.0.1:8096/draft?continue", URL: "http://127.0.0.1:8096/draft?continue".
+1 AXWebArea 127.0.0.1:8096/draft?continue
+	18 container ROOT-2521314
+		19 text Could not navigate to 'draft'
+		20 text Reason: Access is denied by annotations on the view.
+		21 text Available routes:
+		22 content list
+			23 container
+				24 AXListMarker • 
+				25 link Description: <root>, Value: 127.0.0.1:8096/
+			26 container
+				27 AXListMarker • 
+				28 link Description: draft, Value: 127.0.0.1:8096/draft
+			29 container
+				30 AXListMarker • 
+				31 link Description: login, Value: 127.0.0.1:8096/login
+		32 text This detailed message is only shown when running in development mode.
+	2 container
+		3 Mode
+			4 container edit-mode-radio-btn
+				5 radio button (settable, integer) Value: 0, ID: input-vaadin-radio-button-19
+			6 container test-mode-radio-btn
+				7 radio button (settable, integer) Value: 0, ID: input-vaadin-radio-button-20
+			8 container inspect-mode-radio-btn
+				9 radio button (settable, integer) Value: 0, ID: input-vaadin-radio-button-21
+			10 container play-mode-radio-btn
+				11 radio button (settable, integer) Value: 1, ID: input-vaadin-radio-button-22
+		12 pop up button (collapsed) Description: DevTools, ID: devtools-button, Secondary Actions: Expand
+		13 container Notifications
+			14 container
+				15 heading App is running in development mode, Value: 2
+					33 text App is running in development mode
+				16 checkbox (settable, integer) Description: Don't show again, Value: 0, ID: input-vaadin-checkbox-4
+				34 container
+					35 text Don't show again
+				17 button Description: Close, ID: dismiss
+	36 text Online
+
+The focused UI element is 1 AXWebArea 127.0.0.1:8096/draft?continue

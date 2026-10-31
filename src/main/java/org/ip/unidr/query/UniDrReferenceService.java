@@ -1,11 +1,11 @@
 package org.ip.unidr.query;
 
 import org.ip.model.*;
-import org.ip.unidr.run.UniDrAccess;
-import org.ip.unidr.run.UniDrRunException;
+import org.ipro.unidr.query.UniDrReferenceCatalog;
+import org.ipro.unidr.run.UniDrAccess;
+import org.ipro.unidr.run.UniDrRunException;
 import org.ipro.crud.BaseEntity;
 import org.ipro.crud.EntityLookup;
-import org.ipro.metadata.HasDisplayName;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -13,11 +13,7 @@ import java.util.List;
 import java.util.function.Function;
 
 /** The existing canonical lookup is the only reference read path; no caller-supplied Java types. */
-public final class UniDrReferenceService {
-    public record Option(Long id, String caption) implements HasDisplayName {
-        @Override public String getDisplayName() {return caption;}
-        @Override public String toString() {return java.util.Objects.toString(caption,"");}
-    }
+public final class UniDrReferenceService implements UniDrReferenceCatalog {
     private final EntityLookup lookup;
     private final UniDrAccess access;
     private final TransactionTemplate reads;
@@ -25,22 +21,22 @@ public final class UniDrReferenceService {
     public void useEntityTypes(java.util.Collection<? extends Class<?>> types) {
         var allowed=new java.util.LinkedHashMap<String,Class<?>>();types.forEach(type->allowed.put(type.getName(),type));entityTypes=java.util.Map.copyOf(allowed);
     }
-    public Class<?> entityType(String name) {
+    @Override public Class<?> entityType(String name) {
         Class<?> type=entityTypes.get(name);if(type==null)throw new IllegalArgumentException("Тип сущности недоступен");return type;
     }
-    public Object entity(String name,Long id) {
+    @Override public Object entity(String name,Long id) {
         access.requireUser();Class<?> type=entityType(name);
         if(id==null || id<=0)throw new UniDrRunException(UniDrRunException.Code.REFERENCE_UNAVAILABLE,"Выбранная ссылка не найдена или недоступна");
         return reads.execute(status->lookup.findSelectedById(type,id).orElseThrow(()->new UniDrRunException(UniDrRunException.Code.REFERENCE_UNAVAILABLE,"Выбранная ссылка не найдена или недоступна")));
     }
-    public void requireEntity(String name,Long id){entity(name,id);}
+    @Override public void requireEntity(String name,Long id){entity(name,id);}
 
     public UniDrReferenceService(EntityLookup lookup, UniDrAccess access, PlatformTransactionManager transactions) {
         this.lookup = lookup; this.access = access;
         reads = new TransactionTemplate(transactions); reads.setReadOnly(true);
     }
 
-    public List<Option> search(String fieldId, String term, int limit) {
+    @Override public List<Option> search(String fieldId, String term, int limit) {
         access.requireUser();
         if (limit < 1 || limit > 100 || term != null && term.length() > 200) throw new IllegalArgumentException("Недопустимый размер поиска");
         return reads.execute(status -> switch (fieldId) {
@@ -52,12 +48,12 @@ public final class UniDrReferenceService {
         });
     }
 
-    public void requireVisible(String fieldId, Long id) {
+    @Override public void requireVisible(String fieldId, Long id) {
         selected(fieldId, id);
     }
 
     /** Resolves a configured/default ID through the same guarded lookup as searches. */
-    public Option selected(String fieldId, Long id) {
+    @Override public Option selected(String fieldId, Long id) {
         access.requireUser();
         Class<?> type = referenceType(fieldId);
         if (id == null || id <= 0) throw new UniDrRunException(UniDrRunException.Code.REFERENCE_UNAVAILABLE, "Выбранная ссылка не найдена или недоступна");
@@ -70,7 +66,12 @@ public final class UniDrReferenceService {
     }
 
     /** Server-owned mapping for the standard selection form; callers cannot supply entity classes. */
-    public static Class<? extends BaseEntity> referenceType(String fieldId) {
+    @Override public Class<? extends BaseEntity> referenceType(String fieldId) {
+        return referenceTypeForField(fieldId);
+    }
+
+    /** Static form for application UI helpers that have no reference-port instance at hand. */
+    public static Class<? extends BaseEntity> referenceTypeForField(String fieldId) {
         return switch (fieldId) {
             case "receivingWorkshop", "transferringWorkshop" -> Workshop.class;
             case "nomenclature" -> Nomenclature.class;

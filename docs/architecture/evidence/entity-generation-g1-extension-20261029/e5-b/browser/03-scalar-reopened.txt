@@ -1,0 +1,104 @@
+- heading "E5.B · изолированный H2 consumer · e5-admin" [level=3]
+- link "Редактор P8":
+  - /url: /draft
+- generic: Сценарий
+- combobox "Сценарий": ScalarDocument
+- text: 
+- generic: 
+- generic: Контекст владельца
+- combobox "Контекст владельца"
+- text: 
+- generic: 
+- button "Создать":
+  - generic: Создать
+- button "Перечитать список":
+  - generic: Перечитать список
+- treegrid:
+  - rowgroup:
+    - row "ID Представление":
+      - columnheader "ID":
+        - generic: ID
+      - columnheader "Представление":
+        - generic: Представление
+  - rowgroup:
+    - row "1 E5-SCALAR-01":
+      - gridcell "1":
+        - generic: "1"
+      - gridcell "E5-SCALAR-01":
+        - generic: E5-SCALAR-01
+  - rowgroup
+- button "Открыть выбранную":
+  - generic: Открыть выбранную
+- button "Повторно открыть" [active]:
+  - generic: Повторно открыть
+- button "Удалить выбранную":
+  - generic: Удалить выбранную
+- button "Удалить текущего владельца":
+  - generic: Удалить текущего владельца
+- generic: Повторно открыто ID=1
+- button "Сохранить карточку":
+  - generic: Сохранить карточку
+- generic: Номер
+- generic: •
+- textbox "Номер":
+  - /placeholder: присвоится автоматически
+  - text: E5-SCALAR-01
+- generic: 
+- generic: Дата
+- generic: •
+- text: •
+- combobox "Дата": 31.10.2026
+- text: 
+- generic: 
+- generic: Подпись "текст" \ и строка
+- generic: •
+- text: •
+- textbox "Подпись \"текст\" \\ и строка": Browser scalar updated
+- generic: 
+- generic: Подпись "текст" \ и строка
+- generic: •
+- generic: 
+- spinbutton "Подпись \"текст\" \\ и строка": "42"
+- generic:  
+- generic: Подпись "текст" \ и строка
+- generic: •
+- textbox "Подпись \"текст\" \\ и строка": "123"
+- generic: 
+- generic: Подпись "текст" \ и строка
+- generic: •
+- textbox "Подпись \"текст\" \\ и строка": 12,34
+- generic: 
+- generic: Подпись "текст" \ и строка
+- generic: •
+- generic: 
+- checkbox "Подпись \"текст\" \\ и строка" [checked]
+- generic: Подпись "текст" \ и строка
+- generic: •
+- combobox "Подпись \"текст\" \\ и строка": 31.10.2026
+- text: 
+- generic: 
+- generic: Подпись "текст" \ и строка
+- generic: •
+- group "Подпись \"текст\" \\ и строка":
+  - combobox: 31.10.2026
+  - text: 
+  - generic: 
+  - textbox: 12:30:00.000
+  - text: 
+  - generic: 
+- button "История":
+  - generic: История
+- radiogroup "Mode":
+  - radio
+  - radio
+  - radio
+  - radio [checked]
+- button "DevTools":
+- region "Notifications":
+  - heading "App is running in development mode" [level=2]
+  - separator
+  - generic: 
+  - checkbox "Don't show again"
+  - generic: Don't show again
+  - button "Close":
+- generic: Online

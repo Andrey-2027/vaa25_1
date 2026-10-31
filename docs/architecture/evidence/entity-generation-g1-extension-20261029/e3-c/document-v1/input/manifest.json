@@ -1,0 +1,17 @@
+{
+  "kind" : "g1-generation-manifest-v2",
+  "planId" : "g1-4b565f4dc402512c5b69287a25399222b1a6e0d9d1e950ce5c4a5b28c4fca87c",
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "generatorVersion" : "document-java-v3",
+  "fingerprintProfile" : "plan-fingerprint-v2",
+  "entries" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/OwnerEnvelopeDocument.java",
+    "sha256" : "dbda0dfeaf7aece2c428ae786e4f8bee5ff226a8ec7284209e02c0c5302125d1",
+    "bytes" : 594
+  } ],
+  "manifestSha256" : "c40e7e2012121d1107de669a803dea70c2baad36994688b826a464482ebf9511"
+}

@@ -1,0 +1,141 @@
+{
+    "format": "ipro-report-template",
+    "template": {
+        "jpql": "SELECT a.code, a.name \nFROM UnitOfMeasurement a",
+        "name": "435435",
+        "bands": [
+            {
+                "key": "5",
+                "kind": "DETAIL",
+                "fields": [
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "Код1",
+                        "visible": true,
+                        "position": 0,
+                        "alignment": "LEFT",
+                        "queryField": "a.code",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "ROW_NUMBER",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "№",
+                        "visible": true,
+                        "position": 1,
+                        "alignment": "LEFT",
+                        "queryField": "",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": false,
+                        "format": null,
+                        "caption": "Наименование",
+                        "visible": true,
+                        "position": 2,
+                        "alignment": "LEFT",
+                        "queryField": "a.name",
+                        "aggregation": "NONE"
+                    },
+                    {
+                        "kind": "EXPRESSION",
+                        "text": "Hello {a.code}",
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": "Выражение1",
+                        "visible": true,
+                        "position": 3,
+                        "alignment": "RIGHT",
+                        "queryField": "",
+                        "aggregation": "NONE"
+                    }
+                ],
+                "position": 0,
+                "parentKey": null,
+                "groupField": null,
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            },
+            {
+                "key": "6",
+                "kind": "GROUP_HEADER",
+                "fields": [
+                ],
+                "position": 1,
+                "parentKey": null,
+                "groupField": "a.code",
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": false
+            },
+            {
+                "key": "7",
+                "kind": "GROUP_FOOTER",
+                "fields": [
+                    {
+                        "kind": "COLUMN",
+                        "text": null,
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 0,
+                        "alignment": "LEFT",
+                        "queryField": "a.name",
+                        "aggregation": "COUNT"
+                    },
+                    {
+                        "kind": "TEXT",
+                        "text": "Новый",
+                        "width": null,
+                        "border": null,
+                        "format": null,
+                        "caption": null,
+                        "visible": true,
+                        "position": 1,
+                        "alignment": "LEFT",
+                        "queryField": "",
+                        "aggregation": "NONE"
+                    }
+                ],
+                "position": 2,
+                "parentKey": null,
+                "groupField": "a.code",
+                "titleWidth": null,
+                "headerLayout": null,
+                "startNewPage": null
+            }
+        ],
+        "orders": [
+        ],
+        "params": [
+        ],
+        "maxRows": 5000,
+        "advanced": false,
+        "pageSize": "A4",
+        "timeoutMs": 30000,
+        "stripeRows": false,
+        "description": null,
+        "gridEnabled": null,
+        "querySource": "MANUAL",
+        "baseFontSize": 10,
+        "pageOrientation": "PORTRAIT",
+        "visualQueryJson": null,
+        "visualFilterJson": null,
+        "targetEntityClass": "org.ip.model.UnitOfMeasurement"
+    },
+    "schemaVersion": 3
+}

@@ -39,8 +39,9 @@
 
       1. platform-persistence — база сущностей (@MappedSuperclass BaseEntity): без неё
          сущности нумерации не собираются вне дерева (тот же вывод, что у persistence-среза);
-      2. platform-metadata — скан классов по аннотации (@Numbered стоит на сущностях
-         приложения, поэтому нумерация читает аннотации сканером платформы);
+      2. platform-metadata — PU-scoped снимок managed-типов из общего metamodel;
+         в прод-конфигурации нумерация фильтрует этот набор по @EntityMetadata без
+         второго classpath scan;
       3. platform-contracts — аннотации метаданных (@EntityMetadata);
       4. JPA/validation API, Spring Data JPA, автоконфигурация и @EntityScan из Boot 4.
 

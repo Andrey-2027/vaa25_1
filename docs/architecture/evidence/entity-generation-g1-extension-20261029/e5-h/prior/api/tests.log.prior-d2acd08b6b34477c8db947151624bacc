@@ -1,0 +1,69 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< org.ip:Vaa25_1 >---------------------------
+[INFO] Building Vaa25_1 1.0-SNAPSHOT
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\.e5h-e5h-20261031-ui.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-cli) @ Vaa25_1 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.PlatformApiBaselineTest
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.831 s <<< FAILURE! -- in org.ipro.PlatformApiBaselineTest
+[ERROR] org.ipro.PlatformApiBaselineTest.artifactPublicSurfaceMatchesItsReviewedBaseline -- Time elapsed: 1.714 s <<< FAILURE!
+java.lang.AssertionError: 
+[��������� ��������� ������� � ��� ��������� ���������. Reviewed-������ ����� ����� �� �����: ��� ����� ������ ������. ���� ��������� ����������, ������������ baseline (platform.api.baseline.write=true) � ��������� ��� � �����] 
+Expecting empty but was: ["platform-contracts: ����������� ��������� � baseline
+  baseline: annotation public abstract interface org.ipro.metadata.annotation.EntityKindCandidate
+  ���:      annotation public abstract interface org.ipro.metadata.annotation.CatalogOwner",
+    "platform-core: ����������� ��������� � baseline
+  baseline: class public final org.ipro.data.EntityContractConsistencyValidator
+  ���:      class public final org.ipro.data.CatalogOwnerContext",
+    "platform-spring-boot-autoconfigure: ����������� ��������� � baseline
+  baseline:   method public org.ipro.crud.MetadataDrivenAggregateSaveService metadataDrivenAggregateSaveService(org.ipro.crud.ServiceLocator, org.ipro.metadata.SectionMetadataRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.AggregateSaveContributionParticipant>, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.AggregateOperationAuthorizer>)
+  ���:        method public org.ipro.crud.MetadataDrivenAggregateSaveService metadataDrivenAggregateSaveService(org.ipro.crud.ServiceLocator, org.ipro.metadata.SectionMetadataRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.AggregateSaveContributionParticipant>, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.AggregateOperationAuthorizer>, org.springframework.beans.factory.ObjectProvider<jakarta.persistence.EntityManager>)",
+    "platform-vaadin: ����������� ��������� � baseline
+  baseline:   method public boolean available()
+  ���:        ctor public(boolean, java.util.List<org.ipro.vaadin.explorer.EntitySummary$StructuralFieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OwnedSectionRow>, org.ipro.vaadin.explorer.EntitySummary$PresentationFacts, org.ipro.metadata.CatalogOwnerDescriptor)"]
+	at org.ipro.PlatformApiBaselineTest.artifactPublicSurfaceMatchesItsReviewedBaseline(PlatformApiBaselineTest.java:136)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   PlatformApiBaselineTest.artifactPublicSurfaceMatchesItsReviewedBaseline:136 [��������� ��������� ������� � ��� ��������� ���������. Reviewed-������ ����� ����� �� �����: ��� ����� ������ ������. ���� ��������� ����������, ������������ baseline (platform.api.baseline.write=true) � ��������� ��� � �����] 
+Expecting empty but was: ["platform-contracts: ����������� ��������� � baseline
+  baseline: annotation public abstract interface org.ipro.metadata.annotation.EntityKindCandidate
+  ���:      annotation public abstract interface org.ipro.metadata.annotation.CatalogOwner",
+    "platform-core: ����������� ��������� � baseline
+  baseline: class public final org.ipro.data.EntityContractConsistencyValidator
+  ���:      class public final org.ipro.data.CatalogOwnerContext",
+    "platform-spring-boot-autoconfigure: ����������� ��������� � baseline
+  baseline:   method public org.ipro.crud.MetadataDrivenAggregateSaveService metadataDrivenAggregateSaveService(org.ipro.crud.ServiceLocator, org.ipro.metadata.SectionMetadataRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.AggregateSaveContributionParticipant>, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.AggregateOperationAuthorizer>)
+  ���:        method public org.ipro.crud.MetadataDrivenAggregateSaveService metadataDrivenAggregateSaveService(org.ipro.crud.ServiceLocator, org.ipro.metadata.SectionMetadataRegistry, org.ipro.crud.GenericOwnedSectionService, org.ipro.events.EntityEventPublisher, org.ipro.lifecycle.EntityLifecycleRegistry, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.AggregateSaveContributionParticipant>, org.springframework.beans.factory.ObjectProvider<org.ipro.crud.AggregateOperationAuthorizer>, org.springframework.beans.factory.ObjectProvider<jakarta.persistence.EntityManager>)",
+    "platform-vaadin: ����������� ��������� � baseline
+  baseline:   method public boolean available()
+  ���:        ctor public(boolean, java.util.List<org.ipro.vaadin.explorer.EntitySummary$StructuralFieldRow>, java.util.List<org.ipro.vaadin.explorer.EntitySummary$OwnedSectionRow>, org.ipro.vaadin.explorer.EntitySummary$PresentationFacts, org.ipro.metadata.CatalogOwnerDescriptor)"]
+[INFO] 
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  12.863 s
+[INFO] Finished at: 2026-10-31T17:11:24+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.5:test (default-cli) on project Vaa25_1: There are test failures.
+[ERROR] 
+[ERROR] See C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\ui\build-app\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

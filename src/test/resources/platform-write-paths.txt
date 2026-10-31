@@ -26,6 +26,7 @@
 # Пути приложения (org.ip.*) здесь не перечисляются: приложение пишет через платформенные пути,
 # и его обходы — предмет прикладной проверки.
 
+EXCEPTION platform-query org.ipro.query.ReportQueryExecutor — SET LOCAL statement_timeout: сессионная настройка PostgreSQL, строк сущностей не пишет; решение: query-report-separation-plan.md §M1 (guard/RLS перед SQL, timeout)
 HOOKS platform-core org.ipro.data.CanonicalWriteExecutor — canonical-запись: beforeSave/beforeUpdate/beforeDelete/onSave корня и секций вокруг flush; решение: ADR-0005, ADR-0007
 HOOKS platform-core org.ipro.crud.jpa.ValidatedJpaCrudService — beforeSave/beforeUpdate/onSave/beforeDelete через Optional-реестр: сборка без platform-events хуки не вызовет, и это названо здесь, а не выясняется в рантайме; решение: ADR-0005
 HOOKS platform-core org.ipro.crud.MetadataDrivenAggregateSaveService — beforeAggregateSave/onSave агрегата: секции пишет GenericOwnedSectionService под этим обязательством; решение: ADR-0003, ADR-0005

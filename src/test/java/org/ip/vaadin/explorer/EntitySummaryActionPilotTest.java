@@ -8,7 +8,7 @@ import org.ip.model.PrdSpec;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.SklNomOpa;
 import org.ip.views.forms.PrdSpecMaterialsOnlyAction;
-import org.ip.views.reportstudio.ReportPrintAction;
+import org.ipro.report.ui.print.ReportPrintAction;
 import org.ipro.crud.EntityLookup;
 import org.ipro.data.DataOperation;
 import org.ipro.data.EntityDescriptorCatalog;
@@ -36,9 +36,7 @@ import org.ipro.metadata.facet.FacetKind;
 import org.ipro.metadata.facet.FacetResolver;
 import org.ipro.metadata.facet.ResolvedValue;
 import org.ipro.numbering.NumberingMetadataRegistry;
-import org.ipro.reportstudio.param.ReportContextFactory;
-import org.ipro.reportstudio.run.ReportExecutionService;
-import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.report.ui.ReportContextFactory;
 import org.ipro.vaadin.explorer.EntitySummary;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler;
 import com.vaadin.flow.component.Component;
@@ -112,7 +110,7 @@ class EntitySummaryActionPilotTest {
         referenceIndex.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry(BASE_PACKAGE);
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE);
+        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE, new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         SectionMetadataRegistry sections =
             new SectionMetadataRegistry(BASE_PACKAGE, metadataResolver);
@@ -125,8 +123,7 @@ class EntitySummaryActionPilotTest {
         when(managed.managedEntityClasses()).thenReturn(managedTypes);
         descriptors = new EntityDescriptorCatalog(managed, sections, metadataResolver,
             List.of(classification.sklNomOpaValueIsAnOwnedRow()),
-            List.of(classification.attributeValueIsCreateOnly(),
-                classification.sklNomOpaHasNoGenericWrites()));
+            List.of(), org.ip.metadata.EntityTypeTestSources.registers(managed,metadataResolver));
 
         assembler = new EntitySummaryAssembler(BASE_PACKAGE, metadataResolver, new FormRegistry(),
             referenceIndex, numbering, subsystems, FacetResolver.none(), descriptors, null, null,
@@ -396,10 +393,7 @@ class EntitySummaryActionPilotTest {
 
     /** Настоящее прикладное объявление «Печать»: моки — только её сервисы, не действие. */
     private static ActionHandler printAction() {
-        return new ReportPrintAction(mock(ReportTemplateService.class),
-            mock(ReportExecutionService.class), mock(EntityLookup.class),
-            mock(SelectionFormAssembler.class), mock(JrxmlTemplateService.class),
-            mock(JrxmlExecutionService.class),
+        return new ReportPrintAction(mock(JrxmlTemplateService.class), null,
             new ReportContextFactory(() -> "e3-2-test", Clock.systemDefaultZone()));
     }
 }

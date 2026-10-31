@@ -151,3 +151,52 @@ ADR-0004 §6 уже зафиксировал: `EntityKind` задаёт defaults
   на нём, а не на compatibility-базе (§7 этого ADR).
 - ADR-0007 §3 — судьба generic CRUD-баз: удаление `AbstractBaseService` — условие порядка
   для service-шва интернирования.
+
+
+## Уточнение ET7 — 2026-10-27
+
+Interning — identity-факт, независимый от semantic kind и exposure (ADR-0029).
+Общий startup gate отвергает generic UPDATE/DELETE для маркера InternedEntity,
+не изменяя capabilities автоматически. AttributeValue сохраняет CREATE и проверенную
+named rename; SklNomOpa создаётся owner-managed findOrCreate без generic CREATE.
+MetadataAllowance не гасит такие ошибки. Полная структурная декларация ключа, проверка
+именно его UNIQUE/NULL/нормализации и стандартные выводимые defaults остаются ET8;
+проверка наличия произвольного UNIQUE их не заменяет.
+См. [runtime-профили](../entity-types-runtime-profiles.md) и [evidence ET7](../../plans/entity-types-appdev-first-et7-evidence.md).
+
+## Уточнение ET8 — 2026-10-28
+
+Полный opt-in профиль объявляется одной `@InternedContract` на конкретной JPA-сущности.
+`keys` описывает persistent properties, имя точного UNIQUE, обязательные NULL другой
+ветви и предметное правило нормализации. `creation` называет предметный канал;
+`genericCreate=true` — явное исключение для проверенного canonical CREATE.
+`specialOperations` документирует исключения, не регистрирует права и не даёт разрешений.
+Это структурная декларация, а не DSL вычисления ключа: канонизация остаётся в модели,
+lifecycle и сервисе. Диагностический `interningKey()` не разбирается.
+
+Поддержанный первый профиль: field-mapped одиночные `@Column(name=...)` и простые
+`@ManyToOne`/`@JoinColumn(name=...)`, публичные getters, обычный недеферрируемый UNIQUE
+с NULLS DISTINCT. Secondary tables, expression/partial indexes, composite associations
+и property-access mapping не объявляются поддержанными этим контрактом.
+У каждого активного ключа все компоненты непусты в смысле NOT NULL; пустая строка
+может быть предметным значением (пустой SklNomOpa). Альтернативные ветви взаимоисключаются.
+
+`InterningContracts` проверяет декларацию при построении final catalog: произвольный
+UNIQUE не подходит. Для полного профиля выводятся прежние read-capabilities exposure,
+но generic UPDATE/DELETE отсутствуют, CREATE по умолчанию отсутствует. Конфликтующий
+capability override отвергается. Один `InternedEntity` без декларации сохраняет legacy
+политику; существующий ET7 gate продолжает проверять её отдельно.
+
+Типизированный overload `NaturalKeyCreateSupport.getOrCreate(type, key, finder, creator)`
+сравнивает структурный ключ и диагностическое представление победителя/новой строки
+внутри попытки до коммита. Ассоциации сравниваются по сохранённым id. Общий протокол
+REQUIRES_NEW сохранён; повторяется только подтверждённый SQLSTATE 23505. NOT NULL/FK/CHECK
+и неизвестные integrity errors не маскируются как гонка.
+Canonical CREATE полного профиля дополнительно проверяет активную ветвь после before-hooks.
+
+Обе живые модели используют полную декларацию и типизированный support. После parity
+удалены два capability-бина: AttributeValue сохранил CREATE и named rename (в том числе
+изменение scalar natural key с сохранением id); SklNomOpa сохранил owner-managed создание,
+состав и обновляемый display-cache. Полная физическая неизменяемость колонок не обещается.
+Проверка применённой внешней схемы отделена от JPA-декларации и выполняется read-only;
+гонки/откат проверяются в изолированной PostgreSQL БД. См. [ET8 evidence](../../plans/entity-types-appdev-first-et8-evidence.md).

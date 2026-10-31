@@ -1289,7 +1289,7 @@ class InformationRegisterRecorderPersistenceTest {
 
             var catalog = new org.ipro.data.EntityDescriptorCatalog(
                 new ManagedEntityCatalog(entityManagerFactory), sections, metadataResolver,
-                List.of(), List.of());
+                List.of(), List.of(), List.of(new RegisterClassificationContributor(registerRegistry)));
             var readExecutor = mock(org.ipro.data.CanonicalReadExecutor.class);
             doAnswer(invocation -> {
                 org.ipro.data.DetailRead<?> request = invocation.getArgument(0);

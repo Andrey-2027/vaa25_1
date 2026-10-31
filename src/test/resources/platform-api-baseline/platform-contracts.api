@@ -7,6 +7,23 @@ annotation public abstract interface org.ipro.data.SearchFields
   target [TYPE]
   method public abstract java.lang.String[] value()
 
+annotation public abstract interface org.ipro.metadata.annotation.CatalogOwner
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.String property()
+
+annotation public abstract interface org.ipro.metadata.annotation.EntityKindCandidate
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Documented
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [ANNOTATION_TYPE]
+  method public abstract org.ipro.metadata.annotation.EntityKind value()
+
 annotation public abstract interface org.ipro.metadata.annotation.EntityMetadata
   implements java.lang.annotation.Annotation
   annotation java.lang.annotation.Retention

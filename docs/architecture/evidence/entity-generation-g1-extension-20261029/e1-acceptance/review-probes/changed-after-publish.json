@@ -1,0 +1,9 @@
+{
+  "mode" : "changed-after-publish",
+  "status" : "RECOVERY_REQUIRED",
+  "code" : "TARGET_MODIFIED",
+  "targetExists" : true,
+  "receiptExists" : false,
+  "targetHashMatches" : false,
+  "journalExists" : true
+}

@@ -1,10 +1,15 @@
 package org.ipro.reportstudio.query;
 
-import org.ipro.reportstudio.dom.ReportQuerySource;
-import org.ipro.reportstudio.dom.ReportTemplate;
-import org.ipro.reportstudio.param.EntityParamRefresher;
-import org.ipro.reportstudio.param.ReportParamResolver;
-import org.ipro.reportstudio.param.ResolvedParams;
+import org.ipro.query.*;
+import org.ipro.query.param.*;
+import org.ipro.query.register.*;
+import org.ipro.query.sqm.*;
+
+import org.ipro.query.model.QueryDefinition;
+import org.ipro.query.model.QuerySource;
+import org.ipro.query.param.EntityParamRefresher;
+import org.ipro.query.param.ReportParamResolver;
+import org.ipro.query.param.ResolvedParams;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -35,10 +40,10 @@ class ReportQueryAssemblyServiceVisualParameterIntegrationTest {
         var definition = new VisualQueryDefinition(3, "Product", "p",
             List.of(new VisualQueryDefinition.SelectField("p.code", "code")), List.of(), List.of(), List.of(),
             List.of(), null, conditions, List.of(new VisualQueryDefinition.Parameter("code", "TEXT", true, null)));
-        var template = new ReportTemplate(); template.setQuerySource(ReportQuerySource.VISUAL);
-        template.setVisualQueryJson(new VisualQueryDefinitionJsonCodec().write(definition));
+        var query = new QueryDefinition("", QuerySource.VISUAL,
+            new VisualQueryDefinitionJsonCodec().write(definition), null, List.of());
         var result = new ReportQueryAssemblyService(guard, resolver, mock(EntityParamRefresher.class))
-            .assemble(template, null, Map.of("code", "A"));
+            .assemble(query, null, Map.of("code", "A"));
         assertThat(result.bindings()).containsEntry("code", "A")
             .containsEntry("visualFilter_1", VisualQueryCompiler.PENDING_PARAM);
     }
@@ -59,13 +64,11 @@ class ReportQueryAssemblyServiceVisualParameterIntegrationTest {
                                 new VisualQueryExpression.FieldRef("amount"),
                                 new VisualQueryExpression.ParameterRef("rate")))), null, null,
                 List.of(new VisualQueryDefinition.Parameter("rate", "DECIMAL", true, null)));
-        var template = new ReportTemplate();
-        template.setQuerySource(ReportQuerySource.VISUAL);
-        template.setVisualQueryJson(new VisualQueryDefinitionJsonCodec().write(definition));
-        template.setJpql("ignored");
+        var query = new QueryDefinition("ignored", QuerySource.VISUAL,
+                new VisualQueryDefinitionJsonCodec().write(definition), null, List.of());
 
         var result = new ReportQueryAssemblyService(guard, paramResolver, refresher)
-                .assemble(template, null, Map.of());
+                .assemble(query, null, Map.of());
 
         assertThat(result.jpql()).contains(":rate");
         assertThat(result.bindings()).containsEntry("rate", 1.25);
@@ -84,13 +87,11 @@ class ReportQueryAssemblyServiceVisualParameterIntegrationTest {
         var definition = new VisualQueryDefinition(3, "Product", "p", List.of(), List.of(), List.of(), List.of(),
                 List.of(new VisualQueryDefinition.Expression("adjusted", new VisualQueryExpression.ParameterRef("rate"))), null, null,
                 List.of(new VisualQueryDefinition.Parameter("rate", "DECIMAL", true, null)));
-        var template = new ReportTemplate();
-        template.setQuerySource(ReportQuerySource.VISUAL);
-        template.setVisualQueryJson(new VisualQueryDefinitionJsonCodec().write(definition));
-        template.setJpql("ignored");
+        var query = new QueryDefinition("ignored", QuerySource.VISUAL,
+                new VisualQueryDefinitionJsonCodec().write(definition), null, List.of());
 
         assertThatThrownBy(() -> new ReportQueryAssemblyService(guard, paramResolver, refresher)
-                .assemble(template, null, Map.of()))
+                .assemble(query, null, Map.of()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("rate");
     }

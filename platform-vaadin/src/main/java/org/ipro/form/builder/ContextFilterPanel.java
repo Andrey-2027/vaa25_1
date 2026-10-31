@@ -169,14 +169,10 @@ public class ContextFilterPanel extends HorizontalLayout {
         if (metadataResolver == null) {
             return new String[0];
         }
-        try {
-            return metadataResolver.resolve(sourceClass).getSelectColumnPaths().stream()
+        return metadataResolver.find(sourceClass).map(metadata -> metadata.getSelectColumnPaths().stream()
                 .filter(path -> path.getResolvedType() == FieldType.TEXT)
                 .map(ColumnPath::getKey)
-                .toArray(String[]::new);
-        } catch (RuntimeException unresolvable) {
-            return new String[0];
-        }
+                .toArray(String[]::new)).orElseGet(() -> new String[0]);
     }
 
     /** Привести введённый текст к типу поля (числа → Long/Double), чтобы не падать при bind. */

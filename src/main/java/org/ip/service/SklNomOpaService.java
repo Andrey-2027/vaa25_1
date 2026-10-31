@@ -9,6 +9,7 @@ import org.ip.repository.SklNomOpaRepository;
 import org.ip.repository.SklNomOpaValueRepository;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.NaturalKeyCreateSupport;
+import org.ipro.crud.InterningContracts;
 import org.ipro.crud.ValidationException;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.data.EntityDataAccessResolver;
@@ -128,9 +129,10 @@ public class SklNomOpaService implements BaseService<SklNomOpa, Long> {
 
         Optional<SklNomOpa> existing = sklNomOpaRepository.findByNomenclatureAndCanonical(nomenclature, canonical);
         if (existing.isPresent()) {
+            InterningContracts.identity(SklNomOpa.class, existing.get());
             return existing.get();
         }
-        return createSupport.getOrCreate(SklNomOpa.interningKeyOf(nomenclature, canonical),
+        return createSupport.getOrCreate(SklNomOpa.class, new SklNomOpa(nomenclature, canonical, displayName),
             () -> sklNomOpaRepository.findByNomenclatureAndCanonical(nomenclature, canonical),
             () -> {
                 // шапка создаётся заново на каждой попытке: после сорванного flush экземпляр

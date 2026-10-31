@@ -1,0 +1,16 @@
+{
+  "kind" : "g1-apply-receipt-v1",
+  "stateVersion" : 1,
+  "status" : "APPLIED",
+  "applyId" : "1acb44f9-e89d-4d10-88de-1dfeda61e61d",
+  "planId" : "g1-ff4f75e063206829db08b09c0fa6c9a049677b4ae23fe44151cc08361dcfdcb4",
+  "recipe" : "standard-catalog-v2@2",
+  "generatorVersion" : "catalog-java-v1",
+  "sourceRoot" : "src/main/java",
+  "relativePath" : "com/example/generated/Matrix.java",
+  "contentSha256" : "d65c2c9f5efea8e494863220fa6e4b5827c8ed04140921aad82c781ecf8fa476",
+  "cSummarySha256" : "5cf73c6bd33e63d1c46c8b77f2f3cc87a9df2657a18bab9fc62ac1a73144d382",
+  "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\matrix-20261029\\run-20261029-140029\\project",
+  "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\matrix-20261029\\run-20261029-140029\\project\\src\\main\\java\\com\\example\\generated\\Matrix.java",
+  "createdAt" : "2026-10-29T11:01:20.798636100Z"
+}

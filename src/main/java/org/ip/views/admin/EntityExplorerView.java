@@ -1,6 +1,8 @@
 package org.ip.views.admin;
 
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
@@ -23,6 +25,7 @@ import org.ipro.vaadin.explorer.EntitySummary;
 import org.ipro.vaadin.explorer.EntitySummaryAssembler;
 import org.ipro.vaadin.explorer.ExplorerSnapshot;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -93,6 +96,8 @@ public class EntityExplorerView extends VerticalLayout {
     private final Supplier<Catalog> catalogSource;
     private final FormNavigator navigator;
     private final EntityExplorerAccess access;
+    private final EntityExplorerPilotPolicy pilotPolicy;
+    private ExplorerSourceReader sourceReader;
 
     private final TextField searchField = new TextField();
     private final Select<ExplorerTreeModel.GroupMode> groupMode = new Select<>();
@@ -106,6 +111,28 @@ public class EntityExplorerView extends VerticalLayout {
         new TreeGrid<>(ExplorerTreeModel.Node.class);
     private final VerticalLayout cardHost = new VerticalLayout();
     private final Map<Class<?>, EntitySummaryPanel> panels = new LinkedHashMap<>();
+    private final Map<Class<?>, EntityExplorerPilotPanel> pilotPanels = new LinkedHashMap<>();
+    private List<Component> legacyChrome = List.of();
+    private VerticalLayout treePanel;
+    private boolean pilotMode;
+    private boolean catalogOpened;
+    private boolean filtersOpened;
+    private final Button filtersToggle = new Button("Фильтры ▾", event -> {
+        filtersOpened = !filtersOpened;
+        updatePilotLayout();
+    });
+    private final Button returnToPilot = new Button("К компактной карточке", event -> {
+        Class<?> type = this.selectedType;
+        selectType(type, null);
+        this.selectionListener.accept(type, null);
+    });
+    private Runnable draftOpener = () -> {};
+    private java.util.function.BooleanSupplier draftAllowed = () -> false;
+    private final Button openDraft = new Button("Новый справочник…", event -> openDraft());
+
+    private void openDraft() {
+        if (access.allows() && draftAllowed.getAsBoolean()) draftOpener.run();
+    }
 
     /** Последний выбор текущего UI — единственный владелец сохранённого типа и места. */
     private final ExplorerUiState state = new ExplorerUiState();
@@ -133,29 +160,49 @@ public class EntityExplorerView extends VerticalLayout {
     private boolean filterOptionsInitialized;
     private String displayedQuery = "";
 
-    @Autowired
     public EntityExplorerView(EntitySummaryAssembler assembler,
                               FormNavigator navigator,
                               EntityExplorerAccess access) {
+        this(assembler, navigator, access, false);
+    }
+
+    public EntityExplorerView(EntitySummaryAssembler assembler,
+                              FormNavigator navigator, EntityExplorerAccess access,
+                              @Value("${app.entity-explorer.ux-pilot.enabled:false}") boolean pilotEnabled) {
         this(() -> {
             ExplorerSnapshot snapshot = assembler.explorerSnapshot();
             return new Catalog(ExplorerTreeModel.CatalogView.of(snapshot),
                 snapshot.unassignedDiagnostics());
-        }, navigator, access);
+        }, navigator, access, new EntityExplorerPilotPolicy(pilotEnabled));
+    }
+
+    @Autowired
+    public EntityExplorerView(EntitySummaryAssembler assembler, FormNavigator navigator, EntityExplorerAccess access,
+                              @Value("${app.entity-explorer.ux-pilot.enabled:false}") boolean pilotEnabled,
+                              org.springframework.beans.factory.ObjectProvider<ExplorerSourceReader> sources) {
+        this(assembler, navigator, access, pilotEnabled);
+        this.sourceReader = sources.getIfAvailable(() -> ExplorerSourceReader.disabled(access));
     }
 
     /** Пакетный шов для тестов: тот же вид поверх уже собранного каталога, без сборщика. */
     EntityExplorerView(ExplorerTreeModel.CatalogView view,
                        List<EntitySummary.DiagnosticRow> diagnostics,
                        FormNavigator navigator, EntityExplorerAccess access) {
-        this(() -> new Catalog(view, diagnostics), navigator, access);
+        this(view, diagnostics, navigator, access, false);
+    }
+
+    EntityExplorerView(ExplorerTreeModel.CatalogView view, List<EntitySummary.DiagnosticRow> diagnostics,
+                       FormNavigator navigator, EntityExplorerAccess access, boolean pilotEnabled) {
+        this(() -> new Catalog(view, diagnostics), navigator, access, new EntityExplorerPilotPolicy(pilotEnabled));
     }
 
     private EntityExplorerView(Supplier<Catalog> catalogSource, FormNavigator navigator,
-                               EntityExplorerAccess access) {
+                               EntityExplorerAccess access, EntityExplorerPilotPolicy pilotPolicy) {
         this.catalogSource = catalogSource;
         this.navigator = navigator;
         this.access = access;
+        this.pilotPolicy = pilotPolicy;
+        this.sourceReader = ExplorerSourceReader.disabled(access);
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -346,6 +393,12 @@ public class EntityExplorerView extends VerticalLayout {
         } : listener;
     }
 
+    public void setDraftOpener(Runnable opener, java.util.function.BooleanSupplier allowed) {
+        draftOpener = java.util.Objects.requireNonNull(opener);
+        draftAllowed = java.util.Objects.requireNonNull(allowed);
+        openDraft.setVisible(access.allows() && draftAllowed.getAsBoolean());
+    }
+
     private void buildUi() {
         add(new H3("Entity Explorer — структура сущностей"));
 
@@ -356,11 +409,20 @@ public class EntityExplorerView extends VerticalLayout {
         hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
         add(hint);
         addUnassignedDiagnostics(catalog().diagnostics());
+        legacyChrome = getChildren().toList();
+        openDraft.setVisible(access.allows() && draftAllowed.getAsBoolean());
+        openDraft.addClassName("explorer-open-draft");
+        add(openDraft);
+        add(returnToPilot);
+        returnToPilot.setVisible(false);
 
         cardHost.setSizeFull();
         cardHost.setPadding(false);
         cardHost.setSpacing(false);
-        HorizontalLayout split = new HorizontalLayout(buildTreePanel(), cardHost);
+        cardHost.addClassName("explorer-card-host");
+        treePanel = buildTreePanel();
+        HorizontalLayout split = new HorizontalLayout(treePanel, cardHost);
+        split.addClassName("explorer-host-body");
         split.setSizeFull();
         split.setPadding(false);
         split.setSpacing(true);
@@ -368,17 +430,20 @@ public class EntityExplorerView extends VerticalLayout {
         split.setFlexGrow(1, cardHost);
         add(split);
         setFlexGrow(1, split);
+        updatePilotLayout();
     }
 
     /** Панель дерева: собранные один раз компоненты плюс данные, построенные для этого входа. */
     private VerticalLayout buildTreePanel() {
-        VerticalLayout panel = new VerticalLayout(searchField, groupMode, kindFilter,
+        VerticalLayout panel = new VerticalLayout(searchField, filtersToggle, groupMode, kindFilter,
             subsystemFilter, exposureFilter, onlyErrorsFilter, serviceTypesFilter, tree, emptyResult);
         panel.setSizeFull();
         panel.setPadding(false);
         panel.setSpacing(true);
         panel.setFlexGrow(1, tree);
         panel.setWidth("360px");
+        panel.addClassName("explorer-catalog");
+        filtersToggle.setVisible(false);
 
         refreshFilterOptions();
         allRoots = ExplorerTreeModel.roots(catalog().view, groupMode.getValue(), currentFilter());
@@ -399,8 +464,14 @@ public class EntityExplorerView extends VerticalLayout {
 
     /** Общая нормализация формы/подсистемы читает тот же UI snapshot; второй сборки фактов нет. */
     ExplorerTreeModel.CatalogView structureCatalog() {
+        if (!access.allows()) throw new SecurityException("Explorer access required");
         ensureCatalogContext();
         return catalog().view;
+    }
+
+    void invalidateDesignCatalog() {
+        if (!access.allows()) throw new SecurityException("Explorer access required");
+        catalog = null; panels.clear(); pilotPanels.clear();
     }
 
     void showStructureDetail(String detail) {
@@ -418,6 +489,9 @@ public class EntityExplorerView extends VerticalLayout {
         if (catalogContext != null && !catalogContext.equals(current)) {
             catalog = null;
             panels.clear();
+            pilotPanels.clear();
+            catalogOpened = false;
+            filtersOpened = false;
             state.clear();
             clearCard();
             resetFilters();
@@ -588,12 +662,51 @@ public class EntityExplorerView extends VerticalLayout {
         }
         Class<?> type = node.type();
         boolean switched = !type.equals(selectedType);
+        if (canShowPilot(type) && node.kind() == ExplorerTreeModel.NodeKind.OWNED_SECTION) {
+            var section = catalog().view.summaryOf(type).orElseThrow().structure().sections().stream()
+                .filter(row -> row.identity().id().equals(node.sectionId())).findFirst();
+            if (section.isPresent()) {
+                boolean changed = switched || !pilotMode;
+                selectType(type, null);
+                var identity = section.get().identity();
+                var target = new EntityExplorerPilotPlace.OwnedSection(identity.ownerField(), identity.rowType());
+                var panel = pilotPanels.get(type);
+                panel.focusSection(target);
+                if (!node.foundFields().isEmpty()) panel.focusSectionField(target, node.foundFields().getFirst());
+                catalogOpened = false;
+                updatePilotLayout();
+                if (changed) selectionListener.accept(type, null);
+                return;
+            }
+        }
+        if (canShowPilot(type) && node.kind() == ExplorerTreeModel.NodeKind.TYPE) {
+            boolean changed = switched || !pilotMode;
+            selectType(type, null);
+            catalogOpened = false;
+            updatePilotLayout();
+            if (changed) selectionListener.accept(type, null);
+            return;
+        }
+        if (canShowPilot(type) && node.kind() == ExplorerTreeModel.NodeKind.FIELD
+                && !"table-sections".equals(node.sectionId())
+                && catalog().view.summaryOf(type).orElseThrow().structure().fields().stream()
+                    .anyMatch(field -> field.identity().fieldName().equals(node.fieldName()))) {
+            boolean changed = switched || !pilotMode;
+            selectType(type, null);
+            pilotPanels.get(type).focusField(node.fieldName());
+            catalogOpened = false;
+            updatePilotLayout();
+            if (changed) selectionListener.accept(type, null);
+            return;
+        }
         EntitySummaryPanel panel = cardFor(type);
-        if (switched) {
+        if (switched || pilotMode) {
             cardHost.removeAll();
             cardHost.add(panel);
             selectedType = type;
             state.remember(type, state.placeOf(type));
+            pilotMode = false;
+            updatePilotLayout();
         }
         if (node.kind() == ExplorerTreeModel.NodeKind.TYPE) {
             if (switched) {
@@ -631,19 +744,42 @@ public class EntityExplorerView extends VerticalLayout {
      * открывает выбор пользователя.
      */
     private void selectType(Class<?> type, String anchor) {
+        if (pilotPolicy.opensPilot(type, anchor) && canShowPilot(type)) {
+            EntityExplorerPilotPanel panel = pilotPanels.computeIfAbsent(type, key -> new EntityExplorerPilotPanel(
+                catalog().view.summaryOf(key).orElseThrow(), state,
+                () -> { catalogOpened = !catalogOpened; updatePilotLayout(); },
+                place -> { selectType(key, place); selectionListener.accept(key, place); }, sourceReader));
+            if (cardHost.getComponentCount() != 1 || cardHost.getComponentAt(0) != panel) {
+                cardHost.removeAll();
+                cardHost.add(panel);
+            }
+            selectedType = type;
+            state.remember(type, null);
+            pilotMode = true;
+            updatePilotLayout();
+            syncTreeSelection(type);
+            return;
+        }
         EntitySummaryPanel panel = cardFor(type);
-        if (!type.equals(selectedType)) {
+        if (!type.equals(selectedType) || pilotMode) {
             cardHost.removeAll();
             cardHost.add(panel);
             selectedType = type;
         }
         state.remember(type, anchor);
+        pilotMode = false;
+        updatePilotLayout();
         panel.focusAnchor(anchor);
         syncTreeSelection(type);
     }
 
     /** Переход по ссылке из карточки: та же карточка Explorer, без цепочки новых диалогов. */
     private void openFromCard(Class<?> type) {
+        if (canShowPilot(type)) {
+            selectType(type, null);
+            selectionListener.accept(type, null);
+            return;
+        }
         boolean switched = !type.equals(selectedType);
         EntitySummaryPanel panel = cardFor(type);
         if (switched) {
@@ -651,6 +787,8 @@ public class EntityExplorerView extends VerticalLayout {
             cardHost.add(panel);
             selectedType = type;
             state.remember(type, state.placeOf(type));
+            pilotMode = false;
+            updatePilotLayout();
         }
         syncTreeSelection(type);
         if (switched) {
@@ -693,6 +831,31 @@ public class EntityExplorerView extends VerticalLayout {
     private void clearCard() {
         cardHost.removeAll();
         selectedType = null;
+        pilotMode = false;
+        updatePilotLayout();
+    }
+
+    private boolean canShowPilot(Class<?> type) {
+        return pilotPolicy.supports(type) && catalog().view.summaryOf(type)
+            .map(summary -> summary.structure().available()).orElse(false);
+    }
+
+    private void updatePilotLayout() {
+        setClassName("entity-explorer-pilot-host", pilotMode);
+        legacyChrome.forEach(component -> component.setVisible(!pilotMode));
+        returnToPilot.setVisible(!pilotMode && selectedType != null && canShowPilot(selectedType));
+        if (treePanel == null) return;
+        treePanel.setVisible(!pilotMode || catalogOpened);
+        filtersToggle.setVisible(pilotMode);
+        filtersToggle.setText(filtersOpened ? "Фильтры ▴" : "Фильтры ▾");
+        filtersToggle.getElement().setAttribute("aria-expanded", String.valueOf(filtersOpened));
+        EntityExplorerPilotPanel current = pilotPanels.get(selectedType);
+        if (current != null) current.setCatalogOpened(pilotMode && catalogOpened);
+        for (Component filter : List.of(groupMode, kindFilter, subsystemFilter, exposureFilter, onlyErrorsFilter)) {
+            filter.setVisible(!pilotMode || filtersOpened);
+        }
+        serviceTypesFilter.setVisible((!pilotMode || filtersOpened) && catalog != null
+            && ExplorerTreeModel.hasServiceTypes(catalog.view));
     }
 
     /** Тип есть в текущем снимке: сохранённый выбор восстанавливается только тогда. */

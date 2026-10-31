@@ -1,4 +1,4 @@
-package org.ip.unidr.query;
+package org.ipro.unidr.query;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

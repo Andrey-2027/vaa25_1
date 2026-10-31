@@ -1,5 +1,7 @@
 package org.ip.security;
 
+import org.ip.persistence.access.PermissionSubjectLock;
+import org.ip.application.access.SubjectRef;
 import org.ip.application.user.UserPasswordChangePermission;
 import org.ip.config.DataInitializer;
 import org.ip.model.Nomenclature;
@@ -31,6 +33,8 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 
 /**
  * F-REST-READ-3, З2: матрица приёмки «admin C5 decision == server C5 decision» на настоящем
@@ -62,6 +66,10 @@ class C5GrantAdminParityIT {
     @MockitoBean
     private DataInitializer dataInitializer;
 
+    /** Субъекты фикстуры синтетические: lock отвечает стабильной ссылкой, не читая строку. */
+    @MockitoBean
+    private PermissionSubjectLock permissionSubjectLock;
+
     @BeforeEach
     void authenticateAdmin() {
         SecurityContext context = securityContextHolderStrategy.createEmptyContext();
@@ -69,6 +77,10 @@ class C5GrantAdminParityIT {
             List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
         securityContextHolderStrategy.setContext(context);
         SecurityContextHolder.setContext(context);
+        doAnswer(call -> {
+            SubjectRef.Identity identity = call.getArgument(0);
+            return new SubjectRef(identity.type(), identity.id(), "fixture-subject", "fixture-subject");
+        }).when(permissionSubjectLock).acquire(any(SubjectRef.Identity.class));
     }
 
     @AfterEach

@@ -1,0 +1,4818 @@
+[
+  {
+    "name": "backend suites nonempty",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.DocumentGenerationTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.DraftOperationsTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.DraftValidatorTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.generation.CatalogJavaGeneratorTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.generation.GenerationManifestTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.generation.OwnerGenerationTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.generation.SectionGenerationTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.LegacyContextBinaryCompatibilityTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.RecipeContractTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.RecipeHandoffTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.ReferenceGenerationTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.json.DraftJsonCodecTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.json.OwnerAcceptanceExportTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.json.OwnerDraftJsonTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.json.SectionAcceptanceExportTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.runtime.CatalogOwnerFactsBridgeTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.design.runtime.RuntimeAdapterContractTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.contracts.ContractsModuleCompositionTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.contracts.LifecycleIdentityContractTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.core.CoreModuleCompositionTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.AggregateCommandPayloadTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.AggregateSaveRollbackStateTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.CatalogOwnerAggregateTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.EntityCopyServiceTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.InterningContractsTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.jpa.ValidatedJpaCrudServiceGuardTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.jpa.ValidatedJpaCrudServiceTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.MetadataDrivenAggregatePreflightTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.NaturalKeyCreateSupportTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.ServiceLocatorCanonicalFallbackTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.CanonicalReadSortGuardTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.CanonicalSaveLifecycleScopeTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.EntityClassificationTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.EntityDataAccessResolverTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.EntityDescriptorOriginTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.EventContourStartupCheckTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.LookupReadLimitTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.presentation.EntityPresentationServiceTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.ScenarioFetchGraphResolverRestTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.SearchTermsTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.fetch.plan.FetchPlanInspectionTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.filter.ColumnPathFilterFieldResolverTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.CatalogOwnerResolverTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.EffectiveFieldFactsTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.EffectiveStandardMetadataTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.EntityContractConsistencyTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.EntityKindResolutionTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.facet.FacetKindStructuralTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.facet.ResolvedValueTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.FieldMetadataInlineFilterTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.FieldMetadataRequiredOriginTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.ManagedEntityTypesSnapshotTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.MetadataApplicabilityTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.MetadataConsistencyStartupCheckTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.MetadataConsistencyValidatorTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.MetadataHierarchyTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.MetadataInvalidateTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.SectionDescriptorResolutionTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.SectionMetadataRegistryManagedTypesTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.StructuralAttributeScannerTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.search.GlobalSearchProviderRegistryTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.search.GlobalSearchRequestTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.BaseEntityEqualityTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.BaseEntityPersistenceTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.persistence.PersistenceModuleCompositionTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.rls.c5.C5OperationPermissionRegistryTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.rls.c5.C5PermissionDecisionServiceJpaTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.rls.c5.C5PermissionDecisionServiceTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.rls.c5.C5ReadDecisionServiceTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.rls.c5.C5ReadPermissionRegistryTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.rls.c5.DefaultC5PermissionEvaluatorJpaTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.rls.c5.DefaultC5PermissionEvaluatorTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.rls.RlsReadableIdsSeamTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.rls.RlsWriteGuardBridgeTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.autoconfigure.AutoconfigureModuleCompositionTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.autoconfigure.PlatformPropertiesTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.crud.config.CrudAutoConfigurationTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.config.C5EntityOperationPermissionRegistrarTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.config.C5EntityReadPermissionRegistrarTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.data.config.DataAccessAutoConfigurationTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.fetch.config.FetchPlanInstanceNameAutoConfigurationTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.metadata.config.MetadataAutoConfigurationTest",
+    "passed": true
+  },
+  {
+    "name": "backend org.ipro.search.config.GlobalSearchAutoConfigurationTest",
+    "passed": true
+  },
+  {
+    "name": "ui suites nonempty",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.DraftEditorSessionTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftCatalogAdapterTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftDocumentTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftEditorViewTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftJavaBundleTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftJavaDownloadTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftJavaPreviewTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftJsonTransferTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftMatrixScenarioTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftOwnerUiTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftReferenceTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftSectionDeliveryTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftSectionsTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftUxCompatibilityTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.admin.EntityDraftWorkspaceTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ip.views.workspace.EntityDraftWorkspaceContractTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.PlatformAutoConfigurationRegistryTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.PlatformContractsModuleTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.PlatformCoreBoundaryTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.PlatformCoreModuleTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.PlatformCoreSurfaceTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.PlatformVaadinSurfaceTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.PlatformWritePathLifecycleTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.builtin.ItemFormInitialValuesTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.builtin.ItemFormLifecycleTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.builtin.ItemFormReadOnlySaveButtonTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.builtin.ItemFormSaveFlowTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.builtin.ItemSectionHostPresenceTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.CatalogOwnerFormsTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.CatalogOwnerListSelectionTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.MetadataDrivenItemFormSaveAdapterTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.SectionPayloadTest",
+    "passed": true
+  },
+  {
+    "name": "ui org.ipro.form.SelectionFormContextTest",
+    "passed": true
+  },
+  {
+    "name": "api suites nonempty",
+    "passed": true
+  },
+  {
+    "name": "api org.ipro.PlatformApiBaselineTest",
+    "passed": true
+  },
+  {
+    "name": "D 87/87 without skips",
+    "passed": true
+  },
+  {
+    "name": "one C selftest summary",
+    "passed": true
+  },
+  {
+    "name": "C twelve selfchecks",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-bom .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-contracts .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-contracts .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-events .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-events .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-persistence .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-persistence .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-metadata .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-metadata .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-numbering .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-numbering .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-settings .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-settings .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-telemetry .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-telemetry .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-rls .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-rls .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-core .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-core .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-register .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-register .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-navigation .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-navigation .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-spring-boot-autoconfigure .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-spring-boot-autoconfigure .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-vaadin .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-vaadin .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-backend-starter .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact platform-backend-starter .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact entity-design-core .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact entity-design-core .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact entity-design-json .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact entity-design-json .pom",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact entity-design-runtime .jar",
+    "passed": true
+  },
+  {
+    "name": "unchanged build artifact entity-design-runtime .pom",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\data\\DataOperation.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\data\\EntityCapabilityOverride.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\data\\EntityExposure.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\data\\EntityExposureOverride.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\data\\SearchFields.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\AggregateSavingEvent.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\AggregateSection.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\EntityChangedEvent.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\EntityDeletedEvent.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\EntityDeletingEvent.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\EntityEvent.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\EntitySavedEvent.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\EntitySavingEvent.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\EventContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\EventContext$Builder.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\events\\EventSource.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\fetch\\plan\\FetchScenario.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\lifecycle\\AggregateSaveContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\lifecycle\\EntityChangedContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\lifecycle\\EntityDeleteContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\lifecycle\\EntityLifecycle.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\lifecycle\\EntitySaveContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\lifecycle\\EntityUpdateContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\CatalogOwner.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\EntityKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\EntityKindCandidate.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\EntityMetadata.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\FieldMetadata.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\FieldType.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\GridColumn.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\Lookup.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\RequiredMode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\SectionPersistenceMode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\SectionRlsPolicy.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\Subsystem.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\Subsystem$NoSubsystem.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\TableSectionMetadata.class",
+    "passed": true
+  },
+  {
+    "name": "platform-contracts same producer/test bytecode org\\ipro\\metadata\\annotation\\TableSections.class",
+    "passed": true
+  },
+  {
+    "name": "platform-persistence identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "platform-persistence same producer/test bytecode org\\ipro\\crud\\BaseEntity.class",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata same producer/test bytecode org\\ipro\\metadata\\AnnotationClassScanner.class",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata same producer/test bytecode org\\ipro\\metadata\\AnnotationClassScanner$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata same producer/test bytecode org\\ipro\\metadata\\EntityMetadataApplicability.class",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata same producer/test bytecode org\\ipro\\metadata\\ManagedEntityTypes.class",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata same producer/test bytecode org\\ipro\\metadata\\ManagedEntityTypes$EntityTypeEntry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata same producer/test bytecode org\\ipro\\metadata\\ManagedEntityTypes$EntityTypeSnapshot.class",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata same producer/test bytecode org\\ipro\\metadata\\ReferenceIndex.class",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata same producer/test bytecode org\\ipro\\metadata\\ReferenceIndex$ReverseReference.class",
+    "passed": true
+  },
+  {
+    "name": "platform-metadata same producer/test bytecode org\\ipro\\metadata\\ReferenceIndex$ReverseReferenceSource.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberFormatter.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingCounter.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingCounterRepository.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingCounterService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingDefinition.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingMetadataRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingMetadataRegistry$NumberedFieldInfo.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingPeriod.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingRule.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingRuleRepository.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingRuleService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingScopeResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\NumberingService$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\annotation\\Numbered.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\annotation\\NumberingPolicies.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\annotation\\NumberingPolicy.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\annotation\\NumberingRole.class",
+    "passed": true
+  },
+  {
+    "name": "platform-numbering same producer/test bytecode org\\ipro\\numbering\\config\\NumberingAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\AccessGrant.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\AccessGrant$SubjectType.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\AccessGrantChangeListener.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\AccessGrantRepository.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\AccessGrantRepository$DimensionCount.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\AccessGrantVersion.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\AccessService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\AccessService$EffectiveGrant.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsAccessDeniedException.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsBypassAudit.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsBypassScope.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsCheckValue.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsCheckValue$Check.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsCheckValue$NotApplicable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsContext$Bypass.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsCurrentUser.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimension.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimensionKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimensionRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimensionRegistry$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimensions.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimensionValue.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimensionValueCatalog.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimensionValueCatalog$Value.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimensionValueLabelResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsDimensionValueLabelResolver$Labels.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsFilterActivator.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsFilterActivator$Activation.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsGrantMatching.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsGrantMatching$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsGuardRequestFilter.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsHibernateWriteGuardInstaller.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsOwnedSectionLookup.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsPolicyDescriptor.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsPolicyDescriptor$ValueRule.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsPolicyEnforcer.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsReadableIdsCache.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsReadableIdsCache$CachedIds.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsReadableIdsResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsReadGate.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsRepositoryEnforcementAspect.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsRoleResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsScopeResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsStatementGuard.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsStatementGuard$TableCheck.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsUiGate.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsUiGate$AccessDecision.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsUiGate$PermissionCheck.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsWriteAuthorization.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsWriteAuthorization$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsWriteAuthorization$Grant.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsWriteAuthorization$Operation.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsWriteAuthorization$PersistentKey.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsWriteAuthorization$State.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsWriteEnforcementListener.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\RlsWriteGuardBridge.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5AccessDeniedException.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5DecisionReason.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5Operation.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5OperationPermissionRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5PermissionConfigurationException.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5PermissionDecision.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5PermissionDecisionService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5PermissionDefinition.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5PermissionEvaluator.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5PermissionKeys.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5ReadDecisionService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5ReadDecisionService$C5ReadDecision.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\C5ReadPermissionRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\c5\\DefaultC5PermissionEvaluator.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\config\\RlsAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-rls same producer/test bytecode org\\ipro\\rls\\config\\RlsPersistenceAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateCommandPayload.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateCommandPayload$Declaration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateCommandPayload$OpenDeclaration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateOperationAuthorizer.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateSaveContribution.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateSaveContributionParticipant.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateSaveLifecycleScope.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateSaveParticipantContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateSaveRollbackState.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\AggregateSaveRollbackState$EntityState.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\BaseService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\CallbackScope.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\EntityCopyService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\EntityLookup.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\EntityServiceResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\GenericOwnedSectionService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\InternedContract.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\InternedContract$Key.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\InternedEntity.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\InterningContracts.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\InterningContracts$Identity.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\LookupService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\MetadataDrivenAggregateSaveService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\MetadataDrivenAggregateSaveService$AggregateSaveResult.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\MetadataDrivenAggregateSaveService$ResolvedContribution.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\MetadataDrivenAggregateSaveService$ResolvedInput.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\MetadataDrivenAggregateSaveService$SectionInput.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\MetadataDrivenAggregateSaveService$SectionResult.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\MetadataTableSectionService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\NaturalKeyCreateSupport.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\ReferenceCheckService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\ServiceLocator.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\StandardCatalogEntity.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\StandardDocumentEntity.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\TableSectionService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\ValidationException.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\crud\\jpa\\ValidatedJpaCrudService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\ApiDetailRead.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\ApiPageRead.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalDeleteParticipant.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalEntityDataAccess.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalEntityReadAccess.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalEntityService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalReadExecutor.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalSaveLifecycleScope.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalWriteDeniedException.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalWriteExecutor.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalWriteExecutor$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalWriteExecutor$2.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CanonicalWritePropertyPolicy.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CatalogOwnerContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CatalogOwnerGuard.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CatalogOwnerGuard$PersistedOwner.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CatalogOwnerToken.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CatalogOwnerViolationException.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\CatalogOwnerViolationException$Reason.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\DetailRead.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityCapabilities.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityClassification.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityClassificationContributor.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityClassificationContributor$Contribution.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityContractConsistencyValidator.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityContractConsistencyValidator$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityDataAccess.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityDataAccessResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityDataPolicy.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityDescriptor.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityDescriptorCatalog.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityDescriptorCatalog$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EntityReadAccess.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\EventContourStartupCheck.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\FetchPlanInspection.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\FetchPlanInspection$Path.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\FetchPlanInspection$Scenario.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\ListRead.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\LookupRead.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\PageRead.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\ReadTelemetry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\ReadTelemetry$ReadOutcome.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\RestGraphException.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\RestGraphException$Code.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\ScenarioFetchGraphResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\SearchContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\SearchFieldResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\SearchRead.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\SearchTerms.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\WriteTelemetry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\WriteTelemetry$DenialKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\WriteTelemetry$WriteScope.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\WriteTelemetry$WriteScope$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\grouping\\GroupingValuesProviderFactory.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\grouping\\JpaGroupingValuesProviderFactory.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\presentation\\EntityPresentationService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\data\\presentation\\EntityPresentationService$Reference.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\ManagedEntityTypes.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\instance\\InstanceName.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\instance\\InstanceNameBridge.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\instance\\InstanceNameBridge$Registration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\instance\\InstanceNameBridgeInstaller.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\instance\\InstanceNameProvider.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\instance\\InstanceNameResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\instance\\InstanceNameResolver$Definition.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\plan\\FetchPlan.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\plan\\FetchPlanRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\plan\\FetchPlanRegistry$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\plan\\FetchPlanRegistry$LookupDependency.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\fetch\\plan\\FetchPlanRegistry$PlanKey.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\filter\\ColumnPathFilterFieldResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\filter\\ColumnPathFilterFieldResolver$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\filter\\FilterConditionCodec.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\CatalogOwnerDescriptor.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\CatalogOwnerResolution.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\CatalogOwnerResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\ColumnPath.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\ColumnPath$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\ColumnPath$Spec.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\EntityMetadataInfo.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\FactOrigin.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\FetchGraphs.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\FetchGraphs$DeepenTask.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\FieldMetadataInfo.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\FilterSpec.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\GridMetadata.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\GridViewState.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\GridViewState$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\GridViewState$2.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\GridViewState$3.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\GridViewState$4.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\HasDisplayName.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\InstanceNameSource.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\JpaFieldFacts.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\JpaFieldFacts$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\JpaFieldFacts$ColumnFact.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\JpaFieldFacts$NullabilityFact.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\JpaFieldFacts$NullabilityKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\JpaFieldFacts$SizeFact.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\JpaFieldFacts$StorageFact.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\ManagedEntityCatalog.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataAllowance.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataCache.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataConsistencyStartupCheck.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataConsistencyStartupCheck$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataConsistencyValidator.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataDiagnostic.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataDiagnostic$Severity.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataDiagnosticCodes.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataDiagnosticSource.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\MetadataResolver$ResolvedEntityKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\RowMetadataInfo.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\SectionMetadataRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\StructuralAttribute.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\StructuralAttribute$AccessMode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\StructuralAttribute$PersistentKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\StructuralAttribute$TechnicalPurpose.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\StructuralAttributeScanner.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\StructuralAttributeScanner$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\StructuralAttributeScanner$JpaMember.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\StructuralAttributeScanner$Required.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\SubsystemNode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\SubsystemNode$EntityGroup.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\SubsystemRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\TableSectionGridMetadata.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\TableSectionMetadataInfo.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\facet\\FacetKey.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\facet\\FacetKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\facet\\FacetResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\facet\\FactSource.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\metadata\\facet\\ResolvedValue.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchCatalog.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchMatch.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchMatchKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchProvider.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchProviderRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchRequest.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchResponse.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchResult.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\GlobalSearchSource.class",
+    "passed": true
+  },
+  {
+    "name": "platform-core same producer/test bytecode org\\ipro\\search\\JpaGlobalSearchProvider.class",
+    "passed": true
+  },
+  {
+    "name": "platform-spring-boot-autoconfigure identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "platform-spring-boot-autoconfigure same producer/test bytecode org\\ipro\\autoconfigure\\PlatformProperties.class",
+    "passed": true
+  },
+  {
+    "name": "platform-spring-boot-autoconfigure same producer/test bytecode org\\ipro\\crud\\config\\CrudAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-spring-boot-autoconfigure same producer/test bytecode org\\ipro\\data\\config\\C5EntityOperationPermissionRegistrar.class",
+    "passed": true
+  },
+  {
+    "name": "platform-spring-boot-autoconfigure same producer/test bytecode org\\ipro\\data\\config\\C5EntityOperationPermissionRegistrar$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-spring-boot-autoconfigure same producer/test bytecode org\\ipro\\data\\config\\DataAccessAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-spring-boot-autoconfigure same producer/test bytecode org\\ipro\\fetch\\config\\FetchPlanInstanceNameAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-spring-boot-autoconfigure same producer/test bytecode org\\ipro\\metadata\\config\\MetadataAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-spring-boot-autoconfigure same producer/test bytecode org\\ipro\\search\\config\\GlobalSearchAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\BindingDescriptor.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\CatalogOwnerForms.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\Dirtyable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\EntityField.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FieldFactory.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FieldFactory$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FieldRenderer.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FieldRenderer$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FilterGridMoreMenu.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FilterLookupOptions.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FormBinding.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FormBindingRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FormMessages.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FormSaveHandler.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FormSaveResult.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FormSaveResult$Conflict.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FormSaveResult$Failure.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\FormSaveResult$Success.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\ItemFormSaveHandler.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\ItemFormSaveHandlerRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\LookupComboHelper.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\MetadataDrivenItemFormSaveAdapter.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\Savable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\SearchFunction.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\SectionPayload.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\SectionPresence.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\SelectionForm.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\SelectionFormAssembler.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\SelectionFormAssembler$ResolvedSelection.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\SelectionFormFactory.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\SelectionGridCustomizer.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\TableSectionCustomization.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\TableSectionFactory.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionContext$RowState.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionContextProvider.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionDecision.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionDecision$Reason.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionDefinition.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionHandler.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionHandlerRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionId.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionInvocation.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionPermission.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionPolicy.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionPolicy$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionPolicy$Effective.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionProvenance.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionProvenanceCatalog.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionRegistry$Key.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionRegistry$Registration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionRequirement.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionRequirement$Level.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ActionSurface.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\CopyLinkButton.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\CrudAction.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\OperationPermissionSource.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ReadOnlyReason.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\ReadOnlyReason$Kind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\action\\RouteLinkability.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ContextFilterControl.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ContextFilterField.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ContextFilterPanel.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ContextFilterPanel$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\FormTypeCustomization.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ItemFormCustomization.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ItemFormCustomizationRegistrar.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ItemFormCustomizer.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ItemFormVariants.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ListFormCustomization.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ListFormCustomizationRegistrar.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ListFormCustomizer.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\ListFormVariants.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\SelectionColumnResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\SelectionContextFilters.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\SelectionFormCustomization.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\SelectionFormCustomizationRegistrar.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\SelectionFormVariants.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\layout\\CustomNode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\layout\\DisplayNode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\layout\\FieldNode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\layout\\ItemFormLayout.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\layout\\LayoutNode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\layout\\PanelNode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\layout\\TabDefinition.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builder\\layout\\TabSheetNode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\DateTimeRangeFilter.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\GridViewEditorDialog.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\GridViewEditorDialog$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\GridViewEditorDialog$AvailableField.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\GridViewEditorDialog$SelectedColumn.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ItemForm.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ItemHistory.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ItemHistory$FieldDiff.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ItemSectionHost.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ItemTable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ItemTable$AddOption.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ListForm.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ListForm$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ListForm$SelectionFormProvider.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ListFormJpaFilterGrid.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ListFormVisualFilterAdapter.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ListPageReader.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\RowDraft.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\builtin\\ViewSelectorDialog.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\config\\FormAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\config\\FormAutoConfiguration$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\AccessDenialPresentation.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\AccessDenialPresentation$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\AccessDenialPresentation$Report.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\FormCoordinator.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\FormNavigator.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\FormOpenMode.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\FormStructureAffordance.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\ItemFormAccessBinder.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\ItemFormAccessBinder$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\ItemFormLinkAffordance.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\ItemFormWrapperView.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\ItemFormWrapperView$RecordUnavailableException.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\coordinator\\ListFormWrapper.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\host\\BrowserHistory.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\host\\FormRouteUrlBridge.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\host\\FormRouteUrlBridge$PageHistory.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\host\\RouteStatePage.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\ApplicationBasePath.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\EntityExplorerAddress.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\EntityExplorerAddress$Address.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\EntityStructureNavigation.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\EntityStructureNavigation$Availability.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\EntityStructureNavigation$OpenResult.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\EntityStructureNavigation$OpenResult$Opened.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\EntityStructureNavigation$OpenResult$Unavailable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormLinkResult.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormLinkResult$Linkable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormLinkResult$NotLinkable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormLinkService.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRoute.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteAliasDeclaration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteCatalog.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteCatalog$Draft.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteCatalog$Snapshot.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteCodec.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteCodec$VariantParse.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteOpener.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteParseResult.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteParseResult$Parsed.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\FormRouteParseResult$Rejected.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\ListViewStateToken.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\NotLinkableReason.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\OpenResult.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\OpenResult$Forbidden.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\OpenResult$InvalidRoute.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\OpenResult$NotFound.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\OpenResult$NotLinkable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\OpenResult$Opened.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\OpenResult$Unavailable.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\PublishedFormRoute.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\link\\PublishedFormRoute$Blockers.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormContext$Builder.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormFactory.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormKey.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormRegistry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormRegistry$Registration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormRegistry$RegistrationKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormRegistryConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormResolver.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\FormType.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\ListFormContext.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\SelectionColumnsDef.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\registry\\SelectionFilter.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\spi\\FormSettingsStore.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\spi\\GridView.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\spi\\GridViewStore.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\form\\spi\\WorkspaceGateway.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntityStructureFactsAssembler.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntityStructureFactsAssembler$FieldInput.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntityStructureFactsAssembler$SectionInput.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$AccessRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$AccessRuleRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$ActionRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$ColumnRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$ColumnStorage.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$DiagnosticRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$FacetRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$FieldApplication.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$FieldApplicationKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$FieldIdentity.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$FieldRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$FilterRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$FlagFact.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$FormRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$IntFact.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$LifecycleRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$LookupRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$NullabilityFact.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$NullabilityKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$NumberingRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$OverviewRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$OwnedSectionIdentity.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$OwnedSectionRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$PathRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$PresentationFacts.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$ReadPlanRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$ReferenceRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$SectionRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$SelectionRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$SizeConstraint.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$StorageFacts.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$StructuralFieldRow.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$StructureFacts.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummary$TypeFact.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$1.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$CapabilityNote.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$DiagnosticProjection.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$EntityRef.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\EntitySummaryAssembler$FormKey.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\ExplorerSnapshot.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$BuildStats.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$Entry.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$EntryState.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$OwnedSection.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$SearchKind.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$SearchTerm.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$Sources.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\ExplorerSnapshot$SubsystemRef.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler$Catalog.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler$EntityFacet.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler$Group.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\SubsystemSummaryAssembler$SubsystemRef.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\explorer\\config\\EntityExplorerAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\search\\GlobalSearchHeader.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\search\\GlobalSearchNavigationAdapter.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\search\\config\\GlobalSearchVaadinAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\telemetry\\TelemetryErrorHandler.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\telemetry\\TelemetryVaadinConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\telemetry\\TelemetryVaadinInitListener.class",
+    "passed": true
+  },
+  {
+    "name": "platform-vaadin same producer/test bytecode org\\ipro\\vaadin\\telemetry\\TelemetryVaadinInitListener$ChainedErrorHandler.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\CheckedStructure.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\CheckedStructure$Field.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\CheckedStructure$Owner.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\CheckedStructure$Root.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\CheckedStructure$Section.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\ConstraintDraft.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftOperations.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftProblem.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftProblem$Code.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftProblem$Severity.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftProblem$Target.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftSuggestions.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftText.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftText$Mode.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftValidator.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\DraftValidator$Run.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\EntityDraft.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\EntityProperties.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\EntityProperties$Titles.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\FieldApplicationMapping.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\FieldApplicationMapping$Binding.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\FieldApplicationMapping$OwnerBinding.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\FieldApplicationMapping$Projection.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\FieldApplicationMapping$Section.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\FieldApplications.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\FieldDraft.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\FieldDraft$UiRequired.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\OwnerDraft.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\ProjectDesignContext.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\ProjectDesignContext$Names.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RecipeCatalog.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RecipeCatalog$FieldType.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RecipeCatalog$InheritedField.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RecipeCatalog$Phase.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RecipeCatalog$Readiness.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RecipeCatalog$Recipe.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RecipeRef.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\ReferenceDraft.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\ReferenceTargetDescriptor.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\ReferenceTargetDescriptor$Eligibility.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\ReferenceTargetDescriptor$Fact.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot$Attribute.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot$CatalogOwnerFacts.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot$Diagnostic.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot$NaturalKey.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot$Numbering.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot$OwnedSection.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot$Prerequisite.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot$Status.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\RuntimeDesignSnapshot$TypeFacts.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\SectionDraft.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\ValidationResult.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\CatalogJavaGenerator.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\EntityJavaGenerator.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\GenerationDiagnostic.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\GenerationDiagnostic$Code.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\GenerationFile.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\GenerationFile$Operation.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\GenerationHash.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\GenerationManifest.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\GenerationManifest$Entry.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\GenerationPlan.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\GenerationResult.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\JavaSourceBuilder.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\JavaSourceBuilder$1.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\JavaSourceBuilder$JavaType.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\PlanFingerprint.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-core same producer/test bytecode org\\ipro\\design\\generation\\StandardRootJavaGenerator.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-json identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "entity-design-json same producer/test bytecode org\\ipro\\design\\json\\DraftJsonCodec.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-json same producer/test bytecode org\\ipro\\design\\json\\DraftJsonException.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-runtime identical built/tested class set",
+    "passed": true
+  },
+  {
+    "name": "entity-design-runtime same producer/test bytecode org\\ipro\\design\\runtime\\EntityDesignRuntimeAutoConfiguration.class",
+    "passed": true
+  },
+  {
+    "name": "entity-design-runtime same producer/test bytecode org\\ipro\\design\\runtime\\EntityDesignRuntimeProjection.class",
+    "passed": true
+  },
+  {
+    "name": "five actual negative probes",
+    "passed": true
+  },
+  {
+    "name": "15 unique actual scenarios",
+    "passed": true
+  },
+  {
+    "name": "matrix C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "matrix C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "matrix no pending journal",
+    "passed": true
+  },
+  {
+    "name": "matrix exact builder/C/applied com/example/generated/Matrix.java",
+    "passed": true
+  },
+  {
+    "name": "empty-document C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "empty-document C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "empty-document no pending journal",
+    "passed": true
+  },
+  {
+    "name": "empty-document exact builder/C/applied com/example/generated/EmptyDocument.java",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "empty-document whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "scalar-document C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "scalar-document C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "scalar-document no pending journal",
+    "passed": true
+  },
+  {
+    "name": "scalar-document exact builder/C/applied com/example/generated/ScalarDocument.java",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "scalar-document whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog no pending journal",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog exact builder/C/applied com/example/generated/ReferenceCatalog.java",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:g1-reference-target:jar::1.0-E2",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog dependency org.ipro:platform-vaadin:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-catalog whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "reference-document C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "reference-document C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "reference-document no pending journal",
+    "passed": true
+  },
+  {
+    "name": "reference-document exact builder/C/applied com/example/generated/ReferenceDocument.java",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:g1-reference-target:jar::1.0-E2",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document dependency org.ipro:platform-vaadin:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "reference-document whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog no pending journal",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog exact builder/C/applied com/example/generated/OwnedCatalog.java",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:g1-owner-support:jar::1.0-E3",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:g1-reference-target:jar::1.0-E2",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "document-v1 C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "document-v1 C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "document-v1 no pending journal",
+    "passed": true
+  },
+  {
+    "name": "document-v1 exact builder/C/applied com/example/generated/OwnerEnvelopeDocument.java",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "document-v2 C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "document-v2 C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "document-v2 no pending journal",
+    "passed": true
+  },
+  {
+    "name": "document-v2 exact builder/C/applied com/example/generated/OwnerEnvelopeDocument.java",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 no pending journal",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 exact builder/C/applied com/example/generated/CatalogSections0.java",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-0 whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 no pending journal",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 exact builder/C/applied com/example/generated/CatalogSections1.java",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 exact builder/C/applied com/example/generated/rows/CatalogSections1Row1.java",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:g1-reference-target:jar::1.0-E2",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-1 whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 no pending journal",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 exact builder/C/applied com/example/generated/CatalogSections2.java",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 exact builder/C/applied com/example/generated/rows/CatalogSections2Row1.java",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 exact builder/C/applied com/example/generated/rows/CatalogSections2Row2.java",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:g1-reference-target:jar::1.0-E2",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-catalog-2 whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 no pending journal",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 exact builder/C/applied com/example/generated/DocumentSections0.java",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-0 whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 no pending journal",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 exact builder/C/applied com/example/generated/DocumentSections1.java",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 exact builder/C/applied com/example/generated/rows/DocumentSections1Row1.java",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:g1-reference-target:jar::1.0-E2",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-1 whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 no pending journal",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 exact builder/C/applied com/example/generated/DocumentSections2.java",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 exact builder/C/applied com/example/generated/rows/DocumentSections2Row1.java",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 exact builder/C/applied com/example/generated/rows/DocumentSections2Row2.java",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:g1-reference-target:jar::1.0-E2",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-document-2 whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 C/runtime tests and D outcomes",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 C bound to receipt",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 no pending journal",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 exact builder/C/applied com/example/generated/OwnedCatalogSections2.java",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 exact builder/C/applied com/example/generated/rows/OwnedCatalogSections2Row1.java",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 exact builder/C/applied com/example/generated/rows/OwnedCatalogSections2Row2.java",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:g1-reference-target:jar::1.0-E2",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 dependency org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "sections-owned-catalog-2 whole manifest/receipt binding",
+    "passed": true
+  },
+  {
+    "name": "seven actual downloaded form consumers, 28 tests",
+    "passed": true
+  },
+  {
+    "name": "catalog-0 P8 manifest plan",
+    "passed": true
+  },
+  {
+    "name": "catalog-0 exact P8 compiled bytes com/example/generated/CatalogSections0.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-0 form report",
+    "passed": true
+  },
+  {
+    "name": "catalog-0 uses agreed platform-vaadin JAR",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 P8 manifest plan",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 exact P8 compiled bytes com/example/generated/CatalogSections1.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 exact P8 compiled bytes com/example/generated/rows/CatalogSections1Row1.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 form report",
+    "passed": true
+  },
+  {
+    "name": "catalog-1 uses agreed platform-vaadin JAR",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 P8 manifest plan",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 exact P8 compiled bytes com/example/generated/CatalogSections2.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 exact P8 compiled bytes com/example/generated/rows/CatalogSections2Row1.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 exact P8 compiled bytes com/example/generated/rows/CatalogSections2Row2.java",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 form report",
+    "passed": true
+  },
+  {
+    "name": "catalog-2 uses agreed platform-vaadin JAR",
+    "passed": true
+  },
+  {
+    "name": "document-0 P8 manifest plan",
+    "passed": true
+  },
+  {
+    "name": "document-0 exact P8 compiled bytes com/example/generated/DocumentSections0.java",
+    "passed": true
+  },
+  {
+    "name": "document-0 form report",
+    "passed": true
+  },
+  {
+    "name": "document-0 uses agreed platform-vaadin JAR",
+    "passed": true
+  },
+  {
+    "name": "document-1 P8 manifest plan",
+    "passed": true
+  },
+  {
+    "name": "document-1 exact P8 compiled bytes com/example/generated/DocumentSections1.java",
+    "passed": true
+  },
+  {
+    "name": "document-1 exact P8 compiled bytes com/example/generated/rows/DocumentSections1Row1.java",
+    "passed": true
+  },
+  {
+    "name": "document-1 form report",
+    "passed": true
+  },
+  {
+    "name": "document-1 uses agreed platform-vaadin JAR",
+    "passed": true
+  },
+  {
+    "name": "document-2 P8 manifest plan",
+    "passed": true
+  },
+  {
+    "name": "document-2 exact P8 compiled bytes com/example/generated/DocumentSections2.java",
+    "passed": true
+  },
+  {
+    "name": "document-2 exact P8 compiled bytes com/example/generated/rows/DocumentSections2Row1.java",
+    "passed": true
+  },
+  {
+    "name": "document-2 exact P8 compiled bytes com/example/generated/rows/DocumentSections2Row2.java",
+    "passed": true
+  },
+  {
+    "name": "document-2 form report",
+    "passed": true
+  },
+  {
+    "name": "document-2 uses agreed platform-vaadin JAR",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 P8 manifest plan",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 exact P8 compiled bytes com/example/generated/OwnedCatalogSections2.java",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 exact P8 compiled bytes com/example/generated/rows/OwnedCatalogSections2Row1.java",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 exact P8 compiled bytes com/example/generated/rows/OwnedCatalogSections2Row2.java",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 form report",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog-2 uses agreed platform-vaadin JAR",
+    "passed": true
+  },
+  {
+    "name": "source contract checks",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint entity-design-core",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint entity-design-json",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-contracts",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-events",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-persistence",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-metadata",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-numbering",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-settings",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-telemetry",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-rls",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-core",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint entity-design-runtime",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-register",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-navigation",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-spring-boot-autoconfigure",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-vaadin",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-bom",
+    "passed": true
+  },
+  {
+    "name": "source manifest fingerprint platform-backend-starter",
+    "passed": true
+  }
+]

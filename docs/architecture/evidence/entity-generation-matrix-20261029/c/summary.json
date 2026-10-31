@@ -1,0 +1,54 @@
+{
+    "mode":  "generated-acceptance",
+    "scenario":  "matrix",
+    "status":  "success",
+    "failureReason":  "",
+    "detail":  "Compile, startup, metadata and canonical runtime checks passed",
+    "source":  {
+                   "file":  "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\matrix-20261029\\run-20261029-140029\\input\\com\\example\\generated\\Matrix.java",
+                   "relativePath":  "com/example/generated/Matrix.java",
+                   "sha256":  "d65c2c9f5efea8e494863220fa6e4b5827c8ed04140921aad82c781ecf8fa476",
+                   "expectedSha256":  "d65c2c9f5efea8e494863220fa6e4b5827c8ed04140921aad82c781ecf8fa476",
+                   "bytes":  1718,
+                   "archived":  "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\matrix-20261029\\run-20261029-140029\\c\\matrix\\input\\com\\example\\generated\\Matrix.java"
+               },
+    "plan":  {
+                 "receipt":  "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\matrix-20261029\\run-20261029-140029\\input\\plan-receipt.json",
+                 "planId":  "g1-ff4f75e063206829db08b09c0fa6c9a049677b4ae23fe44151cc08361dcfdcb4",
+                 "recipe":  "standard-catalog-v2@2",
+                 "generatorVersion":  "catalog-java-v1",
+                 "generatorRevision":  "",
+                 "sourceFixture":  "scripts/entity-generation-g1-matrix/draft.json"
+             },
+    "harness":  {
+                    "isolation":  "C:\\Users\\strim\\AppData\\Local\\Temp\\entity-generation-g1-harness-be537d772cbb4092b2858d6ceefc6ce5",
+                    "javaHome":  "C:\\Program Files\\Axiom\\AxiomJDK-21",
+                    "javaVersion":  "openjdk version \"21.0.11\" 2026-04-21 LTS\r\nOpenJDK Runtime Environment (build 21.0.11+11-LTS)\r\nOpenJDK 64-Bit Server VM (build 21.0.11+11-LTS, mixed mode, sharing)",
+                    "maven":  "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.3\\plugins\\maven\\lib\\maven3\\bin\\mvn.cmd",
+                    "offline":  true,
+                    "localRepository":  "C:\\Users\\strim\\.m2\\repository"
+                },
+    "maven":  {
+                  "attempted":  true,
+                  "exitCode":  0
+              },
+    "tests":  {
+                  "reports":  1,
+                  "run":  5,
+                  "failures":  0,
+                  "errors":  0,
+                  "skipped":  0
+              },
+    "platformJars":  {
+                         "used":  17,
+                         "changed":  [
+
+                                     ],
+                         "missing":  [
+
+                                     ],
+                         "file":  "platform-jars.sha256"
+                     },
+    "timestamp":  "2026-10-29T14:00:31.0719983+03:00",
+    "gitHead":  "9b3463dadd21378d2d189511f06b4ae375d5f78d"
+}

@@ -1,0 +1,69 @@
+{
+  "kind": "g1-c-summary-v2",
+  "mode": "selftest",
+  "scenario": {
+    "id": "multifile",
+    "specSha256": "82d2e78759d324217b5190f38872aee59f84b054fdacc0fbc0f64dc58e0ebfea"
+  },
+  "manifest": null,
+  "dependencies": [],
+  "supportSources": [],
+  "compile": {
+    "attempted": false,
+    "exitCode": -1
+  },
+  "runtime": {
+    "attempted": false,
+    "startup": "not-attempted"
+  },
+  "status": "failure",
+  "failureKind": "rejected",
+  "failureReason": "manifest-mismatch",
+  "detail": "Manifest sha256 dadf59225a1d0ffab4770b86cdc3d505e55480fa560257433a17ea75972ee2ea does not match com/example/generated/MultiFileRow.java",
+  "sources": [],
+  "sourceSetSha256": "",
+  "source": {
+    "file": "",
+    "relativePath": "",
+    "sha256": "",
+    "expectedSha256": "",
+    "bytes": 0,
+    "archived": ""
+  },
+  "plan": {
+    "receipt": "",
+    "planId": "",
+    "recipe": "",
+    "generatorVersion": "",
+    "generatorRevision": "",
+    "sourceFixture": ""
+  },
+  "harness": {
+    "isolation": "",
+    "javaHome": "C:\\Program Files\\Axiom\\AxiomJDK-21",
+    "javaVersion": "",
+    "maven": "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.3\\plugins\\maven\\lib\\maven3\\bin\\mvn.cmd",
+    "offline": true,
+    "localRepository": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository"
+  },
+  "maven": {
+    "attempted": false,
+    "exitCode": null
+  },
+  "tests": {
+    "reports": 0,
+    "run": 0,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": []
+  },
+  "platformJars": {
+    "used": 0,
+    "changed": [],
+    "missing": [],
+    "file": ""
+  },
+  "timestamp": "2026-10-31T17:09:10.9094466+03:00",
+  "gitHead": "9b3463dadd21378d2d189511f06b4ae375d5f78d"
+}

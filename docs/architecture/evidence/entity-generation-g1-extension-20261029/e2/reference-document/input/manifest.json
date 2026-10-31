@@ -1,0 +1,17 @@
+{
+  "kind" : "g1-generation-manifest-v2",
+  "planId" : "g1-926f43352cfb00f313fce728af8afedf103abe21a74adaef4c7e18c23f75ce37",
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "generatorVersion" : "document-java-v2",
+  "fingerprintProfile" : "plan-fingerprint-v2",
+  "entries" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/ReferenceDocument.java",
+    "sha256" : "00bb8f016c9387cb92e96ec9c7f4c1a22269101d3226afc6f794b7b786e39291",
+    "bytes" : 2180
+  } ],
+  "manifestSha256" : "f31bfa2271c89922cebdf5bce7a056735ae9c47d3558ed83137383d414cfcad3"
+}

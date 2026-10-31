@@ -237,7 +237,7 @@ class EntitySummaryReadPlanRowsTest {
         referenceIndex.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry(BASE_PACKAGE);
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE);
+        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE, new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         FormRegistry forms = new FormRegistry();
         forms.registerListForm(ReadPlanProbe.class, "probe", Mockito.mock(FormFactory.class));

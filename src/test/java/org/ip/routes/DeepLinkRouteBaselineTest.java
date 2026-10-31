@@ -311,24 +311,49 @@ class DeepLinkRouteBaselineTest {
         return required;
     }
 
+    /**
+     * Корни исходников, объявляющих адреса приложения: само дерево плюс модули платформы.
+     *
+     * <p>M2.2.2 перенёс каталог отчётов и UniDR в {@code platform-report-vaadin}; их
+     * {@code @Route} попадают в тот же URL-контракт, что и адреса приложения, иначе
+     * {@code /report-catalog} и {@code /unidr} исчезали бы из baseline молча.</p>
+     */
+    private static List<Path> routeRoots() {
+        List<Path> roots = new java.util.ArrayList<>();
+        roots.add(APP_SOURCES);
+        try (Stream<Path> modules = Files.list(Path.of("."))) {
+            modules.filter(Files::isDirectory)
+                .filter(path -> path.getFileName().toString().startsWith("platform-"))
+                .map(path -> path.resolve("src/main/java"))
+                .filter(Files::isDirectory)
+                .sorted()
+                .forEach(roots::add);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return roots;
+    }
+
     /** Путь → владелец по факту объявления {@code @Route}/{@code @RouteAlias} в исходниках. */
     private static Map<String, String> declaredStaticRoutes() {
         Map<String, String> routes = new TreeMap<>();
-        try (Stream<Path> files = Files.walk(APP_SOURCES)) {
-            for (Path file : files.filter(path -> path.toString().endsWith(".java")).toList()) {
-                Matcher matcher = ROUTE.matcher(source(file));
-                while (matcher.find()) {
-                    String value = matcher.group(1);
-                    String path = value.isEmpty() ? "/" : value.startsWith("/") ? value : "/" + value;
-                    String owner = APP_SOURCES.relativize(file).toString()
-                        .replace(".java", "").replace('\\', '.');
-                    assertThat(routes.put(path, owner))
-                        .as("маршрут '%s' объявлен дважды: %s и %s", path, routes.get(path), owner)
-                        .isNull();
+        for (Path root : routeRoots()) {
+            try (Stream<Path> files = Files.walk(root)) {
+                for (Path file : files.filter(path -> path.toString().endsWith(".java")).toList()) {
+                    Matcher matcher = ROUTE.matcher(source(file));
+                    while (matcher.find()) {
+                        String value = matcher.group(1);
+                        String path = value.isEmpty() ? "/" : value.startsWith("/") ? value : "/" + value;
+                        String owner = root.relativize(file).toString()
+                            .replace(".java", "").replace('\\', '.');
+                        assertThat(routes.put(path, owner))
+                            .as("маршрут '%s' объявлен дважды: %s и %s", path, routes.get(path), owner)
+                            .isNull();
+                    }
                 }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
         return routes;
     }

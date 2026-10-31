@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *     приложение.</li>
  * </ul>
  *
- * <p>Здесь роль есть у каждого из 95 production-типов {@code platform-core}: {@code APP_API},
+ * <p>Здесь роль есть у каждого из 114 production-типов {@code platform-core}: {@code APP_API},
  * {@code APP_SPI}, {@code MODULE_API} или {@code INTERNAL}. Роль — reviewed-решение, записанное
  * рядом с FQN, а не вывод теста: иначе проверялось бы то же правило, которым список построен.</p>
  *
@@ -70,6 +70,13 @@ class PlatformCoreSurfaceTest {
     private static final Path CORE_REGISTRY = Path.of("src/test/resources/platform-core-surface.txt");
 
     private static final Path APPLICATION_REGISTRY = Path.of("src/test/resources/platform-public-surface.txt");
+
+    /** ET4 exports for external applications; usage in this host app is not a prerequisite. */
+    private static final Map<String, String> EXPORTED_APP_API = Map.of(
+        "org.ipro.crud.StandardCatalogEntity", "ET4: supported standard catalog base",
+        "org.ipro.crud.StandardDocumentEntity", "ET4: supported standard document base",
+        "org.ipro.data.CatalogOwnerContext", "E3: explicit owner command context for external consumers",
+        "org.ipro.data.CatalogOwnerViolationException", "E3: stable owner violation reasons for consumers");
 
     /** Заголовок раздела: {@code # ---- APP_API (30)} либо {@code # ---- test-usage overlay (12)}. */
     private static final Pattern SECTION_HEADER =
@@ -113,7 +120,7 @@ class PlatformCoreSurfaceTest {
             .containsAll(List.of(Role.values()));
         assertThat(productionTypes)
             .as("проверка не должна быть вакуумной")
-            .hasSize(111);
+            .hasSize(127);
     }
 
     /**
@@ -194,7 +201,8 @@ class PlatformCoreSurfaceTest {
                 problems.put(fqn, "приложение считает тип API, а роль в core — " + role);
             } else if (applicationRole == ApplicationRole.SPI && role != Role.APP_SPI) {
                 problems.put(fqn, "приложение реализует тип (SPI), а роль в core — " + role);
-            } else if (applicationRole == null && role == Role.APP_API && !closureMember) {
+            } else if (applicationRole == null && role == Role.APP_API && !closureMember
+                    && !EXPORTED_APP_API.containsKey(fqn)) {
                 problems.put(fqn, "роль APP_API, но приложение тип не называет: APP_API — это"
                     + " поддерживаемый API приложения либо правило 2 (тип в публичной сигнатуре"
                     + " APP_API-типа), а ни то, ни другое здесь не доказано");
@@ -240,7 +248,8 @@ class PlatformCoreSurfaceTest {
                 .map(Map.Entry::getValue)
                 .findFirst()
                 .orElse(null);
-            if (applicationRole == ApplicationRole.API || applicationRole == ApplicationRole.SPI) {
+            if (applicationRole == ApplicationRole.API || applicationRole == ApplicationRole.SPI
+                    || EXPORTED_APP_API.containsKey(entry.getKey())) {
                 queue.add(entry.getKey());
             }
         }
@@ -264,6 +273,19 @@ class PlatformCoreSurfaceTest {
             }
         }
         return members;
+    }
+
+    @Test
+    void externalStandardBasesAreReviewedAppApiWithoutRequiringHostModelMigration() {
+        var registry = readCoreRegistry();
+        for (String name : List.of("org.ipro.crud.StandardCatalogEntity",
+                "org.ipro.crud.StandardDocumentEntity")) {
+            assertThat(EXPORTED_APP_API.get(name)).isNotBlank();
+            assertThat(registry.roles().get(name)).isEqualTo(Role.APP_API);
+            var type = load(name, getClass().getClassLoader());
+            assertThat(java.lang.reflect.Modifier.isAbstract(type.getModifiers())).isTrue();
+            assertThat(type.isAnnotationPresent(jakarta.persistence.MappedSuperclass.class)).isTrue();
+        }
     }
 
     /**

@@ -1,0 +1,91 @@
+package org.ipro.query.ui.constructor;
+
+import org.ipro.query.QueryBuilderMetadataCatalog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Узел дерева каталога конструктора. Намеренно обычный класс, а не record:
+ * TreeData/TreeGrid идентифицирует элементы через equals, и поля с одинаковыми
+ * caption/name у разных сущностей должны оставаться различимыми (identity).
+ */
+public final class ConstructorTreeNode {
+
+    public enum Kind { ENTITY, PROPERTY, ASSOCIATION, CTE, SLICE, GROUP }
+
+    private final Kind kind;
+    /** Отображаемое имя (в стиле 1С — техническое имя сущности/поля/связи). */
+    private final String caption;
+    /** Сущность узла: для ENTITY — сама, для PROPERTY/ASSOCIATION — сущность-владелец. */
+    private final QueryBuilderMetadataCatalog.Entity entity;
+    private final QueryBuilderMetadataCatalog.Field field;
+    private final QueryBuilderMetadataCatalog.Association association;
+    private final List<ConstructorTreeNode> children;
+    /** Alias таблицы — только для узлов-таблиц центрального дерева (корень/JOIN). */
+    private final String tableAlias;
+    private ConstructorTreeNode parent;
+
+    public ConstructorTreeNode(Kind kind, String caption, QueryBuilderMetadataCatalog.Entity entity,
+                        QueryBuilderMetadataCatalog.Field field,
+                        QueryBuilderMetadataCatalog.Association association,
+                        List<ConstructorTreeNode> children) {
+        this(kind, caption, entity, field, association, children, null);
+    }
+
+    public ConstructorTreeNode(Kind kind, String caption, QueryBuilderMetadataCatalog.Entity entity,
+                        QueryBuilderMetadataCatalog.Field field,
+                        QueryBuilderMetadataCatalog.Association association,
+                        List<ConstructorTreeNode> children, String tableAlias) {
+        this.kind = kind;
+        this.caption = caption;
+        this.entity = entity;
+        this.field = field;
+        this.association = association;
+        this.children = List.copyOf(children == null ? List.of() : children);
+        this.tableAlias = tableAlias;
+        for (ConstructorTreeNode child : this.children) {
+            child.parent = this;
+        }
+    }
+
+    public Kind kind() { return kind; }
+    public String caption() { return caption; }
+    public QueryBuilderMetadataCatalog.Entity entity() { return entity; }
+    public QueryBuilderMetadataCatalog.Field field() { return field; }
+    public QueryBuilderMetadataCatalog.Association association() { return association; }
+    public List<ConstructorTreeNode> children() { return children; }
+    public ConstructorTreeNode parent() { return parent; }
+    public String tableAlias() { return tableAlias; }
+
+    /** Ближайший узел-сущность вверх по цепочке (владелец поля/связи). */
+    ConstructorTreeNode ownerEntity() {
+        ConstructorTreeNode current = this;
+        while (current != null && current.kind() != Kind.ENTITY) {
+            current = current.parent();
+        }
+        return current;
+    }
+
+    /** Цепочка ассоциаций от узла-владельца до этого узла (в порядке «снаружи внутрь»). */
+    List<QueryBuilderMetadataCatalog.Association> chainToOwner() {
+        List<QueryBuilderMetadataCatalog.Association> chain = new ArrayList<>();
+        ConstructorTreeNode current = this;
+        while (current != null && current.kind() != Kind.ENTITY) {
+            if (current.kind() == Kind.ASSOCIATION) {
+                chain.add(0, current.association());
+            }
+            current = current.parent();
+        }
+        return chain;
+    }
+
+    /** Все конечные поля поддерева узла-сущности (для переноса «>>»). */
+    List<ConstructorTreeNode> directFields() {
+        List<ConstructorTreeNode> fields = new ArrayList<>();
+        for (ConstructorTreeNode child : children) {
+            if (child.kind() == Kind.PROPERTY) fields.add(child);
+        }
+        return fields;
+    }
+}

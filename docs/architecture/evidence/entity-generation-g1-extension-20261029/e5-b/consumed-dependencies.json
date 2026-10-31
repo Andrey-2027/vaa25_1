@@ -1,0 +1,2762 @@
+[
+  {
+    "sha256": "1b79e501bd959e5b7a5850e39f32055bff67655ca07822e4fe43efc4a2671204",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-backend-starter\\1.0-SNAPSHOT\\platform-backend-starter-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "75ea5e4ce2172975597eb62fd559c0f70cb3f10b42f48e972dfb9290cb48b607",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-spring-boot-autoconfigure\\1.0-SNAPSHOT\\platform-spring-boot-autoconfigure-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "5056bbed8be1dac2e3c30add00be86796ec356457ef54f09584b447579293674",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-contracts\\1.0-SNAPSHOT\\platform-contracts-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "be8a26b0e75c84c1b7600f759256fbc68d60333d89ec0ce3f784fc3ffa09aa8c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\persistence\\jakarta.persistence-api\\3.2.0\\jakarta.persistence-api-3.2.0.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "63ce00156388c365f3ac1be71fcfaf114682fc0c452020b5df6e7ec236e142ab",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\validation\\jakarta.validation-api\\3.1.1\\jakarta.validation-api-3.1.1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "9423bd703579dccfb0ef90b7d50c5fef65165190a7b660ff025491e1c94e218d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-register\\1.0-SNAPSHOT\\platform-register-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "e7041f17e528f19e856733fb271784db98486f98ebde8087817ef43bca464599",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-persistence\\1.0-SNAPSHOT\\platform-persistence-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "e71f3d408f36a89634bbb984220451fc19cbad16d8bb3a0bdc1e89200021edf0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\hibernate\\orm\\hibernate-core\\7.2.12.Final\\hibernate-core-7.2.12.Final.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "7c12ee575508f81e22b1db9334b969d0ec54ef0fd1dcba24eeab1a44235fc366",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\jboss\\logging\\jboss-logging\\3.6.3.Final\\jboss-logging-3.6.3.Final.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "bdb42c4979001742ebc098f3b206dd1057dc93be55c50a31c3f027d3eed06412",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\hibernate\\models\\hibernate-models\\1.0.1\\hibernate-models-1.0.1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "75fbda45456f123fb6e2028a6189442d8d0730b357adce4c0a6d7e789f70669b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\classmate\\1.7.3\\classmate-1.7.3.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "2b5ddc8c1f4234bdb7cb45338a8e10a13e0e3ca473e91d5d821d681127ea8ba1",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\net\\bytebuddy\\byte-buddy\\1.17.8\\byte-buddy-1.17.8.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c507ca69a8c6dd11bf4afeec9e0d412c4fa3933fffb0a84680ea5727e8472124",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\xml\\bind\\jakarta.xml.bind-api\\4.0.4\\jakarta.xml.bind-api-4.0.4.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c9db52100ce6c8aac95cc39075f95720d2e561b11f8051b81c121ad4effd7004",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\activation\\jakarta.activation-api\\2.1.4\\jakarta.activation-api-2.1.4.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "1c0d57f8c25f9605d5a2f7ad0a87581893776ac85b00b101b2651258edaa9118",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\glassfish\\jaxb\\jaxb-runtime\\4.0.6\\jaxb-runtime-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "ebbd274207b4860d0dc6e2d44d6dbdb5945cede01222d2e50661d45f5d46c0f7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\glassfish\\jaxb\\jaxb-core\\4.0.6\\jaxb-core-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "a6bd35c538cf90fff941ad6258c40c08fca0b5c9c3f536c657114f27ce0527a7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\eclipse\\angus\\angus-activation\\2.0.3\\angus-activation-2.0.3.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "fcc749785412ef3806fde1ce70f93ef5a0065dcc47fe449bc871db0795cb11af",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\glassfish\\jaxb\\txw2\\4.0.6\\txw2-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "7fd6792361f4dd00f8c56af4a20cecc0066deea4a8f3dec38348af23fc2296ee",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\sun\\istack\\istack-commons-runtime\\4.1.2\\istack-commons-runtime-4.1.2.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f7dc98062fccf14126abb751b64fab12c312566e8cbdc8483598bffcea93af7c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\inject\\jakarta.inject-api\\2.0.1\\jakarta.inject-api-2.0.1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "d6517a0164bbe1f7525ad6f1ad621913b3a9ce89460e75580130316af022affd",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-tx\\7.0.7\\spring-tx-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "0c708ba19501262cf075397a7c08a11ac8f93e745bf9dbe37e209a12f464b834",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-persistence\\4.0.6\\spring-boot-persistence-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "b75c957b798497435b9168c9677fae3c5cac5831d1badcf280b2bb4c57b12e4f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\data\\spring-data-commons\\4.0.5\\spring-data-commons-4.0.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "797dca1b1934711ef0213f934f704948eed784bb135b387e716c00cbd1cff085",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-vaadin\\1.0-SNAPSHOT\\platform-vaadin-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "b6cf3b357f3ef1f4b8c3a66188bdf98394018d15f1d3f7123c35e98535bf3c52",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-identity-api\\1.0-SNAPSHOT\\platform-identity-api-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "9d885a825599a19d870df0d27368f54559fc71e03260edef5df1adeccbd8f421",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-core\\1.0-SNAPSHOT\\platform-core-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "35857b09a5f6b4c7d336ca05079bda7804cdc7861954d1c3fe5df08f5b34e9ea",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-crud-api\\1.0-SNAPSHOT\\platform-crud-api-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "50c0a7c760c13ae6c042acf182b28f0047413db95b4636fb8879bcffab5ba875",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\transaction\\jakarta.transaction-api\\2.0.1\\jakarta.transaction-api-2.0.1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "12e8655b100267b44d0f14d01b1f5082a5105e616174dc4307be1a761e92407b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\jackson\\core\\jackson-core\\2.21.2\\jackson-core-2.21.2.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "705abc06e56128a5211d112d9afad3f956f3308bea790d5dfbafdf640986e758",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-metadata\\1.0-SNAPSHOT\\platform-metadata-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "bb15b885b15675034604203d44e6fd1c71059e376fbad54ba73180a1f1b13bfb",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-events\\1.0-SNAPSHOT\\platform-events-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "adec135b2038c4e3ac5448bc3408573d5e4942a5ba431adc7d332da620a0c3f9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-numbering\\1.0-SNAPSHOT\\platform-numbering-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "622ef2e6d28baf98f72b9d479fff82a6349be2432ee0b69e7a655229ebcc9744",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-telemetry\\1.0-SNAPSHOT\\platform-telemetry-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "a05ea7a75dc22eac39ae8f3538f99dbb40b366d687e6e38ac46ddef04b1b8c1b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-settings\\1.0-SNAPSHOT\\platform-settings-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "7bf8760ebca14457068125ddcef2ca1b17b3147e01d161aac23463626cd123a5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-jdbc\\7.0.7\\spring-jdbc-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "dbc9298d83849fb0255791fb86b80e996cfc482801ce4879481ad733d225c518",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-web\\7.0.7\\spring-web-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "4fe86fdc18faea571f29129c70eaad5d121363504a06d7907be88f6c60ba3116",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\aspectj\\aspectjweaver\\1.9.25.1\\aspectjweaver-1.9.25.1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "2d4cf592db78be2de4d6140434c2fec170dcb16a09e8c8b7b207dbf5e31b848a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\ch\\qos\\logback\\logback-classic\\1.5.32\\logback-classic-1.5.32.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "6a904d5778d0e361a9692f9cbe68b1b0620ae0f3eda2ec2ed09102755bf036c4",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\ch\\qos\\logback\\logback-core\\1.5.32\\logback-core-1.5.32.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "8f680186c57b41737cf7d60753f278ac54b760808e418cd77cc75af3dd97d8ec",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-rls\\1.0-SNAPSHOT\\platform-rls-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "bc0e41e7e60d5613ea921a2dbb5d891dcd7b62c07ce8238f2457ac3ce427468b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\filtergrid-core\\1.0-SNAPSHOT\\filtergrid-core-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "d921d2b64462de000b53e302cad4d4b56c7e6b46da8f8b604fbf6c46d064b02a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\filtergrid-grouping\\1.0-SNAPSHOT\\filtergrid-grouping-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "06bee40b045ce127eb549dbb42b78d898099cb4ff50c06af44481c44a0715298",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\filtergrid-jpa\\1.0-SNAPSHOT\\filtergrid-jpa-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "4a252050fd8595c5922c4d795728f8aae495e41171b3a958b0cee349b5e3586b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-context\\7.0.7\\spring-context-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "3c23d7eb62bb3fbddc0ad1d7f94be94d1518424f1c9a1b4de6b1b6906e8d0c54",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-expression\\7.0.7\\spring-expression-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "4406f33535185ff896375e9a81a4b8694e28bf20c1089b24de0325d87f63dfe7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\micrometer\\micrometer-observation\\1.16.5\\micrometer-observation-1.16.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "b0cc8c620453ef71e22d6c4ec5c496cc112f964b4e826b9f87182fc97512c8f9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\micrometer\\micrometer-commons\\1.16.5\\micrometer-commons-1.16.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "13775be4269a6cc82ebcee619a9fef1545c90ae54c6fba84a0d8c6d79ff6877a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-beans\\7.0.7\\spring-beans-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "9e1c13ed6d69002aae7ebc4b7d2d1d07e309013a2fbb63ab266bea8601229785",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-core\\7.0.7\\spring-core-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f8ead8943401081dea0aa824b5b1ba40a0e4ed297a572a0f02258150a0b62357",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\commons-logging\\commons-logging\\1.3.6\\commons-logging-1.3.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "1fad6e6be7557781e4d33729d49ae1cdc8fdda6fe477bb0cc68ce351eafdfbab",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\jspecify\\jspecify\\1.0.0\\jspecify-1.0.0.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "163d0c77cc7e8b6a2d523e5d0ebc3afe838d33dc89162c613a75a63bc197b9e6",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot\\4.0.6\\spring-boot-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "a68a9a56f1976ab9d669e732889de9de73f1262ef8854d0eff70806ccf8dc684",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-autoconfigure\\4.0.6\\spring-boot-autoconfigure-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "af60ddc39f70ddeaf97e1dd9895cd357c884a82f7e863ec02e8947ada6d60512",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\data\\spring-data-jpa\\4.0.5\\spring-data-jpa-4.0.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "dd3e8a13a2d669bf84fb8d834de35ce4875f27157698d206241ec8488aadcaf7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\antlr\\antlr4-runtime\\4.13.2\\antlr4-runtime-4.13.2.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "b01f55552284cfb149411e64eabca75e942d26d2e1786b32914250e4330afaa2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\annotation\\jakarta.annotation-api\\3.0.0\\jakarta.annotation-api-3.0.0.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "e49b8b8ee4af0cc322cf3df2d72ee03da4f0ef6fc4b105717e32c95e51105699",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-orm\\7.0.7\\spring-orm-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "344bfbed8025031781218cbd7891f6b9fd750d4f52c923f75948d5e7b11fc2ea",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-core\\7.0.5\\spring-security-core-7.0.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "fa2dbe7ce6aea8b3b0cc82bcd09b5b4ef030cdac51b85e54d785d85f1a3d42d9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-crypto\\7.0.5\\spring-security-crypto-7.0.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "8c982f01f148d805f0aaac2339011244757e0df7c6ff8951f2fa3f433b8ed849",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\jackson\\core\\jackson-databind\\2.21.2\\jackson-databind-2.21.2.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "53ca085f4a150f703f49e1aabd935bd03b43e1ea3d55d135438292af22cef56b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\jackson\\core\\jackson-annotations\\2.21\\jackson-annotations-2.21.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "7b751d952061954d5abfed7181c1f645d336091b679891591d63329c622eb832",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\slf4j\\slf4j-api\\2.0.17\\slf4j-api-2.0.17.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "772f166964c6c952b3b046fc27210d29af40fe4a4e2f319bc220ec569b4cc802",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-core\\1.0-SNAPSHOT\\entity-design-core-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "9f093a8b1a3fd8df4b03c6c4f1e9bf78718555959548db43abdf8b58288e2262",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-json\\1.0-SNAPSHOT\\entity-design-json-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "dc5e29742fbfc498ce83dd6bce5390fa4dbfb87b7d49144bf6260339e2155b92",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-runtime\\1.0-SNAPSHOT\\entity-design-runtime-1.0-SNAPSHOT.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "490b38387ab6e22141cd4b1be4aaf5faafc7668f4e1bcdb2fe881fda59f2e3f4",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\g1-reference-target\\1.0-E2\\g1-reference-target-1.0-E2.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "338744aae9a3ee37c96558fd89f69bdc2fee8103607da88e3dce52a6e44c0d04",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-spring-boot-starter\\25.1.6\\vaadin-spring-boot-starter-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "6d4149f8953f3bc95ef72fc21f1351344167039083bcab646a6eb31d451c9a46",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-spring\\25.1.7\\vaadin-spring-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c1616c874156ef6a71af4f2b178678841ff17a56976f3a87f235e8364ae771e3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-server\\25.1.7\\flow-server-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "bbb00763f5998f03a26f21e47ed500f253c7fc5c158fa3e8a41dbf97aa7416fd",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\tools\\jackson\\core\\jackson-core\\3.1.2\\jackson-core-3.1.2.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "0a366b1c2f6321e466c2970847b1251a5dc7201b680f320594230b77bfc8ddb2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\tools\\jackson\\core\\jackson-databind\\3.1.2\\jackson-databind-3.1.2.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "cfd3298d8720cddfb0545109ccc6ea0ef39eff7e9c40a10ad95c93a65f01c916",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\jsoup\\jsoup\\1.22.1\\jsoup-1.22.1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "7fbb7aaa015944f08c0fcf394e4e4e6854ee5a4714c10835adab8d0e4c15c46a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\external\\gentyref\\1.2.0.vaadin1\\gentyref-1.2.0.vaadin1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "df7c688239083ef50ae2e69997a6982a23a1c1a9a5dc9f3b2afbeb6c63d8bf88",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-push\\25.1.7\\flow-push-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "4dfa763a8c284bff0e1577969f98d976fdc76ad8876094a5c43d94baada41d98",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\external\\atmosphere\\atmosphere-runtime\\3.0.5.slf4jvaadin1\\atmosphere-runtime-3.0.5.slf4jvaadin1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "0594c51dafdf1e0d8529dfa720bd7abc4fba53dec000a933ee4aa34d9e344ead",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-client\\25.1.7\\flow-client-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "41c0c6ed2244cdbcd84a9955b4b2717e8466e20e82335b043ea9ce768dc38d9c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-webmvc\\7.0.7\\spring-webmvc-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "ff8bdcde4ab8717bd06c6be3a17fdc0695bfd6ba92bf44065c3275ef9aaba8a2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-websocket\\7.0.7\\spring-websocket-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "25f40118fa4c50f8522d090d25d52d5a38953b0ccd1250835f052e7bd3164ce0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\hibernate\\validator\\hibernate-validator\\9.0.1.Final\\hibernate-validator-9.0.1.Final.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "70e85268122f60551222fb4d2df9286a49fd6a115fab8d965c7c82945d9bd047",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-core\\25.1.6\\vaadin-core-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "1d9875cab6cee7b3232ecb891c996524c8f4eb83fcadc751cf1e09d7a9e95f4e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-core-internal\\25.1.6\\vaadin-core-internal-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "5eefc2f453e10b4bab33a5b9fa6a9f03f2e89e2caabf276a051a8a101d6ba4f8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-lit-template\\25.1.7\\flow-lit-template-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "b7fd7247b89bd6c90a9355923313de566b73d97301a770589323c624d59356f2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-react\\25.1.7\\flow-react-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c5410b043a749485c678d1b43015c4800c0615d10d633879f9ff52a76aeff27d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-html-components\\25.1.7\\flow-html-components-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "cbbef7df1935027a622737eff9157fb726ec2a35844da6c7166ca351fed714a9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-data\\25.1.7\\flow-data-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "80431c11aaa8bf0470ac90b717361a48afd7a2488fc8e3a99de3dda663bbb1da",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-dnd\\25.1.7\\flow-dnd-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "518010fe686a780cf5dfc1483bb15dc2f1c5dc4c900cf4d098036ce3385820d9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-lumo-theme\\25.1.6\\vaadin-lumo-theme-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "e6e0355b4e5ab842c76b7e9c2bb7307a35349f6a70487cb3b2e80eaed33106c0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-icons-flow\\25.1.6\\vaadin-icons-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "0710bbf8a49e359b8cc9f3e483c8a401d0f24e542aface507cd6412162b69606",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-flow-components-base\\25.1.6\\vaadin-flow-components-base-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "2161a0bdc5789e622af6c779633ead6ff13fdd6ddcad4365a0540fb772ce26c7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-aura-theme\\25.1.6\\vaadin-aura-theme-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "21e5df50275f064a2ad001141e6baacd2ecef8cbb9dd2b2eb86986493cba221c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-core-components\\25.1.6\\vaadin-core-components-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "07138c110ad893beb43fcbb7340aced52112ccb2d809c24d78c7feba11151db9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-ai-components-flow\\25.1.6\\vaadin-ai-components-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c4a1cc8bce7f5e743ad6b34dcf2ca0b101f4b92d564fe7e006455324be625281",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\projectreactor\\reactor-core\\3.8.5\\reactor-core-3.8.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f75ca597789b3dac58f61857b9ac2e1034a68fa672db35055a8fb4509e325f28",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\reactivestreams\\reactive-streams\\1.0.4\\reactive-streams-1.0.4.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "825cc796e748f10bcf1399cec1c92e9c1aa87075ea4286857c177b8b9663378b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-accordion-flow\\25.1.6\\vaadin-accordion-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "9ab9851dbf7df8109e374df565f8bb038e872b5d8eb4170ef1560bf7256dedb5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-avatar-flow\\25.1.6\\vaadin-avatar-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f034dc752a48501ead53b034e8efb9aa11ba26414668429c9f4ad82be89dfde3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-badge-flow\\25.1.6\\vaadin-badge-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "8cd7d68418c4a100ac16172851fbb72a9f1eb83eff16dcdaa98de6fa54c5e0e1",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-button-flow\\25.1.6\\vaadin-button-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "468cf6fc6d2f066ab009329b488225dadfc78756cf80ef69a5b52ba1e7497a8f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-card-flow\\25.1.6\\vaadin-card-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "2f363862d9454b7f5c185f9854822dd1e5691c2a95dab58351ef3fa95e7c886e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-checkbox-flow\\25.1.6\\vaadin-checkbox-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "9961fa61fc4804534ee55470447d31dbcb884a19f2c559c82215d6a4059bf38e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-combo-box-flow\\25.1.6\\vaadin-combo-box-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "4b53e0c874b312306b2d9c1232b82c0d2aed21e6145a427a2feeb9b26553a8cf",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-confirm-dialog-flow\\25.1.6\\vaadin-confirm-dialog-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c94863f1c53423f8060aa1100089a745f111bee450496891c8b458689b66a43f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-custom-field-flow\\25.1.6\\vaadin-custom-field-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "4698c5de6ec01ebcc7ffa0efe9848c364e593376dcd5c9293c8e118cdf377d45",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-date-picker-flow\\25.1.6\\vaadin-date-picker-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "84cec9b30aaa83fb09258cba65f1cb3ea33bddac24f31d3a166c5df28a7f0c5c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-date-time-picker-flow\\25.1.6\\vaadin-date-time-picker-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "8d6615ce0213f9dda95371d6a079118bffb996db12ded84721e4df21345e5bf7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-details-flow\\25.1.6\\vaadin-details-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "87e2cf915c4b44b9edb5c2456291e777be09457b24b671e6db528a71d9e2b464",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-time-picker-flow\\25.1.6\\vaadin-time-picker-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f3b38f0cd53523dab5400fb440120bca3fa0c37c3a34af1adc8c09e5f99280ac",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-select-flow\\25.1.6\\vaadin-select-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "2a8598b0321d3fefcbafc157296fe6a3df62e98d438a14d5a63bdc6a46e8c5a5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-side-nav-flow\\25.1.6\\vaadin-side-nav-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "7e772851a501f39adedfeff37e273537aa58a863948fcfd193002ff5dc7b7144",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dialog-flow\\25.1.6\\vaadin-dialog-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "5aade607935ff675a3f5f0869a0d1e542ed6c39a6e2569724263b21fd61747d7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-form-layout-flow\\25.1.6\\vaadin-form-layout-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "6a22bf3908d670d5522b1cd60dafb985addac541014149f40bdd15bfd261a3c3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-field-highlighter-flow\\25.1.6\\vaadin-field-highlighter-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "27cc9dcc61dd1ceaf668d9613b12ea9ea11f5e50882f509feeadf9d831d81a89",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-grid-flow\\25.1.6\\vaadin-grid-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "d9dcd8cadcb323a61cb3a97fd8eda756f4fe4281a07a1c6bcbf2e2738cca1f6d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-virtual-list-flow\\25.1.6\\vaadin-virtual-list-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "331202cacdae3fd039df6c08f7fa145b21f5563d54b810dc6ddef62d2ce5c3fe",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-list-box-flow\\25.1.6\\vaadin-list-box-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "033bb5f8802b72a747871a5cd92b781d61b7877918d2718d68965444bff41897",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-login-flow\\25.1.6\\vaadin-login-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "e78e8ae65de70b820a691ac315a29d991baeeb042f116ecdbe0afafca177cc0f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-markdown-flow\\25.1.6\\vaadin-markdown-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f95e2ccaf308f183e3cd0ead07035a4b83baf0b227bad88d8b4d608a73cf7698",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-master-detail-layout-flow\\25.1.6\\vaadin-master-detail-layout-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "384b3a9e24e39932fa3f0751f4a0c8e6a87a812383eb52bdef16571957ca3ae2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-messages-flow\\25.1.6\\vaadin-messages-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "39064035e302db82acf0414c0b7908ce3520d51f0dc01b7a6d9665b8607c482b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-ordered-layout-flow\\25.1.6\\vaadin-ordered-layout-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "ef398642274429b7712b5cdfd77263ad1a8214c14dff00425feadb5c3176152a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-progress-bar-flow\\25.1.6\\vaadin-progress-bar-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "9b6875b4214389a4bf2088d565f39cd547404e9dbaeb8ab2aaf445e044e8abd5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-popover-flow\\25.1.6\\vaadin-popover-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "22a351cb838dcf033a68e0cd13d44119353171ea0e8c9106a670628ffe10e332",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-radio-button-flow\\25.1.6\\vaadin-radio-button-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "b5cb615248cd919834536e677360ab75b0a6d1dd9da56b2ddfe8593c7009384b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-renderer-flow\\25.1.6\\vaadin-renderer-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "77f59076d9fe30223c659302d7b3e618b11d0d9c93ad848aa0afdeb056c5c07f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-slider-flow\\25.1.6\\vaadin-slider-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "b6b732433d39ad242dfe4cae47ed94663b5209a8bf6be79eb16c7a6092762a89",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-split-layout-flow\\25.1.6\\vaadin-split-layout-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "ef99de1808cf6acbea6a7699bc225b3e484c6b32e5fd6056af29cb494ba83976",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-tabs-flow\\25.1.6\\vaadin-tabs-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "e96b806d55f52e4ba1c1d846676c2eaabc41e72119a209c03198119c790c81ae",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-text-field-flow\\25.1.6\\vaadin-text-field-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "6b5d59c1c5b61bd38fe1a65a51038097da1beea0f25e99d9aed79219c79e539d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-upload-flow\\25.1.6\\vaadin-upload-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "d9bb4240129ade64b5f73968b61b2832557540e0d88cb7e876d6d408a2f88b52",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-notification-flow\\25.1.6\\vaadin-notification-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "8603e9c814c8a257dca79cfc0661d9354e8dac806cf9103ae74ed77b6dabfd00",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-app-layout-flow\\25.1.6\\vaadin-app-layout-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c173fa3a2a1aacf18beba7cd429ff606156feb259abe301034beb3a0e204e52e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-context-menu-flow\\25.1.6\\vaadin-context-menu-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "e03e73ab1d4cde2a30c234e5556412193c4930d1e724a17d488e9fa6523ba1d2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-menu-bar-flow\\25.1.6\\vaadin-menu-bar-flow-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "e0c6521e59d9fd3e3864ed6667d2867d9f8332b5ba033fdb9a85bf5b38f0a990",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\collaboration-engine\\7.0.0\\collaboration-engine-7.0.0.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "a323bb1d72d680a9e492bdcf13731ae9ff443b96cce68072ac2b13fe1fe8ff82",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-webmvc\\4.0.6\\spring-boot-starter-webmvc-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "78a3fbce32e41b9185a3ea32275f494529ace99578f3ec105b2fa03df2043e83",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-jackson\\4.0.6\\spring-boot-starter-jackson-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "82fb828f4c0f3e468f0553f2e025507ad20761db025037ce03b5f17fe59989c8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-jackson\\4.0.6\\spring-boot-jackson-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "b69066407242d0997e6d65b2e3bba306954d183bcf4d23d6ab07f63eb3441465",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-tomcat\\4.0.6\\spring-boot-starter-tomcat-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "caab936e904edcee854791178ad5ad3018862c35a376d27f1e5802681a88429f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-tomcat-runtime\\4.0.6\\spring-boot-starter-tomcat-runtime-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "d75dcc45dd7b09ae9816d74aae772dc22ac7fee6ca69e8e094f2b693229dc556",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-web-server\\4.0.6\\spring-boot-web-server-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "5dbe19880b5025e0b9de7c3de81cb837ce79636ea1da39c8d00a66d3add25567",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\tomcat\\embed\\tomcat-embed-core\\11.0.21\\tomcat-embed-core-11.0.21.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "fc64e531c473d627ff121e31bcb5871dee9f241e1fd1d1f1522498208f1a278d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\tomcat\\embed\\tomcat-embed-websocket\\11.0.21\\tomcat-embed-websocket-11.0.21.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "9c0e9b3b2e746c8a6b39146dc26a71a5ae3aa0f26f7b23d0390516addc25d5a3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-tomcat\\4.0.6\\spring-boot-tomcat-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "d01837b5fc73faa697cfac07912378e7f24f925774a61666d9a6d71d20f7394b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-http-converter\\4.0.6\\spring-boot-http-converter-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "61a1fe818944202f275c63bcedd0349d43330e1f700ec67445b3c5b5b1cbdff2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-webmvc\\4.0.6\\spring-boot-webmvc-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f2f75ebde296e10e01bb88eb7015deadf36ef889e5526717633866454d1250b4",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-servlet\\4.0.6\\spring-boot-servlet-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c237cceedd1691b530ff2a2f44fb0f66c2c12c1f94edafc2c004ff33940d4014",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dev\\25.1.6\\vaadin-dev-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "317df0af11b15fadea26168d8f64a04c21b18ee273018dd4742e5de9f638081f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dev-server\\25.1.7\\vaadin-dev-server-25.1.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "2563122aaa6cac075e3d450767c29881efc2314fd0ee7009f31a2475d6abf400",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-build-tools\\25.1.7\\flow-build-tools-25.1.7-shaded.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f7b2a4d0e9d968ff69d0cb03f6ac603191f1b17c254586d53217d2e6e63da908",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\license-checker\\3.0.2\\license-checker-3.0.2.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "d7919520ae9702ea06a23cc669c9ed1daa543d12a33a1be214a85b47dfc1c7c8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\nimbusds\\nimbus-jose-jwt\\10.3.1\\nimbus-jose-jwt-10.3.1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "893c5a11b7667145a0d5fdb2ddfb1827c25e52208997d071e6462a91bb204876",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\open\\8.5.0.5\\open-8.5.0.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "d3852d78461c02602eb9bfc15e9fc21ad7c765e6013a1b6d5809a5d0e7db5309",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\github\\javaparser\\javaparser-core\\3.28.0\\javaparser-core-3.28.0.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "6e801aa1fb48a0b09cc9a8626c4fae329cb771423418a43bf0518425f9559e19",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\methvin\\directory-watcher\\0.19.1\\directory-watcher-0.19.1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "260c4b1e22b1db9e110ee441c4f13ce115f841fa48c41d78750986214b395557",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\net\\java\\dev\\jna\\jna\\5.18.1\\jna-5.18.1.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "0d33456e7d943e2c65be0dc29441f74cb0f14d8c924516036463876db7319cf8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dev-bundle\\25.1.6\\vaadin-dev-bundle-25.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "4b8b843476a58a4d218140d20b91327025430daa6bafa15508518465bab3d8c9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\copilot\\25.1.5\\copilot-25.1.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "a70c1d941707c20959b3c84a41d5de674e9f82057662b3949085d4fb8e1296ec",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\ui-tests\\1.1.6\\ui-tests-1.1.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "a4a2249331fa2d267c19d7484132cb818bef56a4874f698843964e0b34ddcc48",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-data-jpa\\4.0.6\\spring-boot-starter-data-jpa-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "4cb0ed1cf253aa93b6e80a39d69e68a48ff4a01d60c3c127533132b46bdb790a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter\\4.0.6\\spring-boot-starter-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "abd1da42af5afc4f6065494fd3b50d1a478c7621cea0b00c33ef0e99c098bb91",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-logging\\4.0.6\\spring-boot-starter-logging-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "d7b78fc0aaaa5e8ada388b29d718b0ab187e512965bed0b259bb4ab299f13db2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\logging\\log4j\\log4j-to-slf4j\\2.25.4\\log4j-to-slf4j-2.25.4.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c4b642a7f047275215de117e0e3847eb2c7711d84a0aa7433e7b3c096daf341d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\logging\\log4j\\log4j-api\\2.25.4\\log4j-api-2.25.4.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "a7afcd23b9cfd1475e55c94f943b808c5922035e7e2c2a5c65a487a4106bc538",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\slf4j\\jul-to-slf4j\\2.0.17\\jul-to-slf4j-2.0.17.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "e6682acf1ace77508ef13649cbf4f8d09d2cf5457bdb61d25ffb6ac0233d78dd",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\yaml\\snakeyaml\\2.5\\snakeyaml-2.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "0cd94a651d1be209c701be4ecc59b4715a2e9c53f3b3506900c775dafa9a6bf1",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-jdbc\\4.0.6\\spring-boot-starter-jdbc-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f1e612fa27345be3107a85431e8a8aeb205c15364ab2f2d411e40a9d7bb08095",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\zaxxer\\HikariCP\\7.0.2\\HikariCP-7.0.2.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f5bf9a3b6664774cb50f9c6f3a151204b576ad27626382a7477a842b323e83d9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-data-jpa\\4.0.6\\spring-boot-data-jpa-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c75c99034009d67e43fc7f68c2e0bdb785392953917b11bbe3c74821fd80282a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-data-commons\\4.0.6\\spring-boot-data-commons-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "2bdf90c1c3b2c7b5619ec9a181b104adc6340d3cdc1cd9269198b719d7b492ac",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-hibernate\\4.0.6\\spring-boot-hibernate-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "99401cdae31de93ffeab1a10060a6f326477e42c44947be25a74f1d023f131f6",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-jpa\\4.0.6\\spring-boot-jpa-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "aa4a2229f4ca985dd9ca3fb660c7fb743e258625087a99746d3bad4c1b87f1bb",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-aspects\\7.0.7\\spring-aspects-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "a18af3d81c96175b2ce43e276fcef9bdf842a1a0264b36bd9b31c9571c031a92",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-jdbc\\4.0.6\\spring-boot-jdbc-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "aa98cba6a0195ce0a6cc48e075f37f4b11587d91f1004b3b37b47a59897de615",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-sql\\4.0.6\\spring-boot-sql-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "7ae5685cb7edc9e0d788baaa6c0cad4ef63c9d6826446f20580f6f0839fcaa90",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-transaction\\4.0.6\\spring-boot-transaction-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "31cc784d9d7ae207dd24d731890f177df8213e4abe0d627f08bf82d9e36cd952",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-validation\\4.0.6\\spring-boot-starter-validation-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "60940a76bd19c6c5bee2965947724d672252a1d1f40ca777e9cbd09db4c4e395",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-validation\\4.0.6\\spring-boot-validation-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "3745cb768f4ed74c2f4af8fc2453992143997019718f71c915d4545fdbef1fb3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\tomcat\\embed\\tomcat-embed-el\\11.0.21\\tomcat-embed-el-11.0.21.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "94df2933c3388647f23d64f8e1fd7d15d3b752d8684e91f7c58272d3a0db70ea",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-security\\4.0.6\\spring-boot-starter-security-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "f19e7752a51ac54035af43231b13683ed386feed80703b46704dd7ad31f54dd0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-security\\4.0.6\\spring-boot-security-4.0.6.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "3682285f86681a93bddb5c14d8b2dfa111aa6809b195b8c12d1897c1781d2fde",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-config\\7.0.5\\spring-security-config-7.0.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "4616f13afe233600dfad8cfa4ef1472c378a080a6cbf516739c779d9267edbd9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-web\\7.0.5\\spring-security-web-7.0.5.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "c0503b7f318368f37f0d0e0557f65e572cebdf61cf9c318a7cbcad7824b0f284",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-aop\\7.0.7\\spring-aop-7.0.7.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "29b70e427cc1c40cdc376283adbb0cc62853073797bb5fe5761f81fe73d57ce0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\h2database\\h2\\2.4.240\\h2-2.4.240.jar",
+    "run": "e5b-20261031"
+  },
+  {
+    "sha256": "1b79e501bd959e5b7a5850e39f32055bff67655ca07822e4fe43efc4a2671204",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-backend-starter\\1.0-SNAPSHOT\\platform-backend-starter-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "75ea5e4ce2172975597eb62fd559c0f70cb3f10b42f48e972dfb9290cb48b607",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-spring-boot-autoconfigure\\1.0-SNAPSHOT\\platform-spring-boot-autoconfigure-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "5056bbed8be1dac2e3c30add00be86796ec356457ef54f09584b447579293674",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-contracts\\1.0-SNAPSHOT\\platform-contracts-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "be8a26b0e75c84c1b7600f759256fbc68d60333d89ec0ce3f784fc3ffa09aa8c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\persistence\\jakarta.persistence-api\\3.2.0\\jakarta.persistence-api-3.2.0.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "63ce00156388c365f3ac1be71fcfaf114682fc0c452020b5df6e7ec236e142ab",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\validation\\jakarta.validation-api\\3.1.1\\jakarta.validation-api-3.1.1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "9423bd703579dccfb0ef90b7d50c5fef65165190a7b660ff025491e1c94e218d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-register\\1.0-SNAPSHOT\\platform-register-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "e7041f17e528f19e856733fb271784db98486f98ebde8087817ef43bca464599",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-persistence\\1.0-SNAPSHOT\\platform-persistence-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "e71f3d408f36a89634bbb984220451fc19cbad16d8bb3a0bdc1e89200021edf0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\hibernate\\orm\\hibernate-core\\7.2.12.Final\\hibernate-core-7.2.12.Final.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "7c12ee575508f81e22b1db9334b969d0ec54ef0fd1dcba24eeab1a44235fc366",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\jboss\\logging\\jboss-logging\\3.6.3.Final\\jboss-logging-3.6.3.Final.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "bdb42c4979001742ebc098f3b206dd1057dc93be55c50a31c3f027d3eed06412",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\hibernate\\models\\hibernate-models\\1.0.1\\hibernate-models-1.0.1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "75fbda45456f123fb6e2028a6189442d8d0730b357adce4c0a6d7e789f70669b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\classmate\\1.7.3\\classmate-1.7.3.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "2b5ddc8c1f4234bdb7cb45338a8e10a13e0e3ca473e91d5d821d681127ea8ba1",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\net\\bytebuddy\\byte-buddy\\1.17.8\\byte-buddy-1.17.8.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c507ca69a8c6dd11bf4afeec9e0d412c4fa3933fffb0a84680ea5727e8472124",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\xml\\bind\\jakarta.xml.bind-api\\4.0.4\\jakarta.xml.bind-api-4.0.4.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c9db52100ce6c8aac95cc39075f95720d2e561b11f8051b81c121ad4effd7004",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\activation\\jakarta.activation-api\\2.1.4\\jakarta.activation-api-2.1.4.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "1c0d57f8c25f9605d5a2f7ad0a87581893776ac85b00b101b2651258edaa9118",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\glassfish\\jaxb\\jaxb-runtime\\4.0.6\\jaxb-runtime-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "ebbd274207b4860d0dc6e2d44d6dbdb5945cede01222d2e50661d45f5d46c0f7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\glassfish\\jaxb\\jaxb-core\\4.0.6\\jaxb-core-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "a6bd35c538cf90fff941ad6258c40c08fca0b5c9c3f536c657114f27ce0527a7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\eclipse\\angus\\angus-activation\\2.0.3\\angus-activation-2.0.3.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "fcc749785412ef3806fde1ce70f93ef5a0065dcc47fe449bc871db0795cb11af",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\glassfish\\jaxb\\txw2\\4.0.6\\txw2-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "7fd6792361f4dd00f8c56af4a20cecc0066deea4a8f3dec38348af23fc2296ee",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\sun\\istack\\istack-commons-runtime\\4.1.2\\istack-commons-runtime-4.1.2.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f7dc98062fccf14126abb751b64fab12c312566e8cbdc8483598bffcea93af7c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\inject\\jakarta.inject-api\\2.0.1\\jakarta.inject-api-2.0.1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "d6517a0164bbe1f7525ad6f1ad621913b3a9ce89460e75580130316af022affd",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-tx\\7.0.7\\spring-tx-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "0c708ba19501262cf075397a7c08a11ac8f93e745bf9dbe37e209a12f464b834",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-persistence\\4.0.6\\spring-boot-persistence-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "b75c957b798497435b9168c9677fae3c5cac5831d1badcf280b2bb4c57b12e4f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\data\\spring-data-commons\\4.0.5\\spring-data-commons-4.0.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "797dca1b1934711ef0213f934f704948eed784bb135b387e716c00cbd1cff085",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-vaadin\\1.0-SNAPSHOT\\platform-vaadin-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "b6cf3b357f3ef1f4b8c3a66188bdf98394018d15f1d3f7123c35e98535bf3c52",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-identity-api\\1.0-SNAPSHOT\\platform-identity-api-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "9d885a825599a19d870df0d27368f54559fc71e03260edef5df1adeccbd8f421",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-core\\1.0-SNAPSHOT\\platform-core-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "35857b09a5f6b4c7d336ca05079bda7804cdc7861954d1c3fe5df08f5b34e9ea",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-crud-api\\1.0-SNAPSHOT\\platform-crud-api-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "50c0a7c760c13ae6c042acf182b28f0047413db95b4636fb8879bcffab5ba875",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\transaction\\jakarta.transaction-api\\2.0.1\\jakarta.transaction-api-2.0.1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "12e8655b100267b44d0f14d01b1f5082a5105e616174dc4307be1a761e92407b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\jackson\\core\\jackson-core\\2.21.2\\jackson-core-2.21.2.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "705abc06e56128a5211d112d9afad3f956f3308bea790d5dfbafdf640986e758",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-metadata\\1.0-SNAPSHOT\\platform-metadata-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "bb15b885b15675034604203d44e6fd1c71059e376fbad54ba73180a1f1b13bfb",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-events\\1.0-SNAPSHOT\\platform-events-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "adec135b2038c4e3ac5448bc3408573d5e4942a5ba431adc7d332da620a0c3f9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-numbering\\1.0-SNAPSHOT\\platform-numbering-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "622ef2e6d28baf98f72b9d479fff82a6349be2432ee0b69e7a655229ebcc9744",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-telemetry\\1.0-SNAPSHOT\\platform-telemetry-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "a05ea7a75dc22eac39ae8f3538f99dbb40b366d687e6e38ac46ddef04b1b8c1b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-settings\\1.0-SNAPSHOT\\platform-settings-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "7bf8760ebca14457068125ddcef2ca1b17b3147e01d161aac23463626cd123a5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-jdbc\\7.0.7\\spring-jdbc-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "dbc9298d83849fb0255791fb86b80e996cfc482801ce4879481ad733d225c518",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-web\\7.0.7\\spring-web-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "4fe86fdc18faea571f29129c70eaad5d121363504a06d7907be88f6c60ba3116",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\aspectj\\aspectjweaver\\1.9.25.1\\aspectjweaver-1.9.25.1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "2d4cf592db78be2de4d6140434c2fec170dcb16a09e8c8b7b207dbf5e31b848a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\ch\\qos\\logback\\logback-classic\\1.5.32\\logback-classic-1.5.32.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "6a904d5778d0e361a9692f9cbe68b1b0620ae0f3eda2ec2ed09102755bf036c4",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\ch\\qos\\logback\\logback-core\\1.5.32\\logback-core-1.5.32.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "8f680186c57b41737cf7d60753f278ac54b760808e418cd77cc75af3dd97d8ec",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-rls\\1.0-SNAPSHOT\\platform-rls-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "bc0e41e7e60d5613ea921a2dbb5d891dcd7b62c07ce8238f2457ac3ce427468b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\filtergrid-core\\1.0-SNAPSHOT\\filtergrid-core-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "d921d2b64462de000b53e302cad4d4b56c7e6b46da8f8b604fbf6c46d064b02a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\filtergrid-grouping\\1.0-SNAPSHOT\\filtergrid-grouping-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "06bee40b045ce127eb549dbb42b78d898099cb4ff50c06af44481c44a0715298",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\filtergrid-jpa\\1.0-SNAPSHOT\\filtergrid-jpa-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "4a252050fd8595c5922c4d795728f8aae495e41171b3a958b0cee349b5e3586b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-context\\7.0.7\\spring-context-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "3c23d7eb62bb3fbddc0ad1d7f94be94d1518424f1c9a1b4de6b1b6906e8d0c54",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-expression\\7.0.7\\spring-expression-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "4406f33535185ff896375e9a81a4b8694e28bf20c1089b24de0325d87f63dfe7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\micrometer\\micrometer-observation\\1.16.5\\micrometer-observation-1.16.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "b0cc8c620453ef71e22d6c4ec5c496cc112f964b4e826b9f87182fc97512c8f9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\micrometer\\micrometer-commons\\1.16.5\\micrometer-commons-1.16.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "13775be4269a6cc82ebcee619a9fef1545c90ae54c6fba84a0d8c6d79ff6877a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-beans\\7.0.7\\spring-beans-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "9e1c13ed6d69002aae7ebc4b7d2d1d07e309013a2fbb63ab266bea8601229785",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-core\\7.0.7\\spring-core-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f8ead8943401081dea0aa824b5b1ba40a0e4ed297a572a0f02258150a0b62357",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\commons-logging\\commons-logging\\1.3.6\\commons-logging-1.3.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "1fad6e6be7557781e4d33729d49ae1cdc8fdda6fe477bb0cc68ce351eafdfbab",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\jspecify\\jspecify\\1.0.0\\jspecify-1.0.0.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "163d0c77cc7e8b6a2d523e5d0ebc3afe838d33dc89162c613a75a63bc197b9e6",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot\\4.0.6\\spring-boot-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "a68a9a56f1976ab9d669e732889de9de73f1262ef8854d0eff70806ccf8dc684",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-autoconfigure\\4.0.6\\spring-boot-autoconfigure-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "af60ddc39f70ddeaf97e1dd9895cd357c884a82f7e863ec02e8947ada6d60512",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\data\\spring-data-jpa\\4.0.5\\spring-data-jpa-4.0.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "dd3e8a13a2d669bf84fb8d834de35ce4875f27157698d206241ec8488aadcaf7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\antlr\\antlr4-runtime\\4.13.2\\antlr4-runtime-4.13.2.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "b01f55552284cfb149411e64eabca75e942d26d2e1786b32914250e4330afaa2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\annotation\\jakarta.annotation-api\\3.0.0\\jakarta.annotation-api-3.0.0.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "e49b8b8ee4af0cc322cf3df2d72ee03da4f0ef6fc4b105717e32c95e51105699",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-orm\\7.0.7\\spring-orm-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "344bfbed8025031781218cbd7891f6b9fd750d4f52c923f75948d5e7b11fc2ea",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-core\\7.0.5\\spring-security-core-7.0.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "fa2dbe7ce6aea8b3b0cc82bcd09b5b4ef030cdac51b85e54d785d85f1a3d42d9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-crypto\\7.0.5\\spring-security-crypto-7.0.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "8c982f01f148d805f0aaac2339011244757e0df7c6ff8951f2fa3f433b8ed849",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\jackson\\core\\jackson-databind\\2.21.2\\jackson-databind-2.21.2.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "53ca085f4a150f703f49e1aabd935bd03b43e1ea3d55d135438292af22cef56b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\jackson\\core\\jackson-annotations\\2.21\\jackson-annotations-2.21.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "7b751d952061954d5abfed7181c1f645d336091b679891591d63329c622eb832",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\slf4j\\slf4j-api\\2.0.17\\slf4j-api-2.0.17.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "772f166964c6c952b3b046fc27210d29af40fe4a4e2f319bc220ec569b4cc802",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-core\\1.0-SNAPSHOT\\entity-design-core-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "9f093a8b1a3fd8df4b03c6c4f1e9bf78718555959548db43abdf8b58288e2262",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-json\\1.0-SNAPSHOT\\entity-design-json-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "dc5e29742fbfc498ce83dd6bce5390fa4dbfb87b7d49144bf6260339e2155b92",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-runtime\\1.0-SNAPSHOT\\entity-design-runtime-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "490b38387ab6e22141cd4b1be4aaf5faafc7668f4e1bcdb2fe881fda59f2e3f4",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\g1-reference-target\\1.0-E2\\g1-reference-target-1.0-E2.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "338744aae9a3ee37c96558fd89f69bdc2fee8103607da88e3dce52a6e44c0d04",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-spring-boot-starter\\25.1.6\\vaadin-spring-boot-starter-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "6d4149f8953f3bc95ef72fc21f1351344167039083bcab646a6eb31d451c9a46",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-spring\\25.1.7\\vaadin-spring-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c1616c874156ef6a71af4f2b178678841ff17a56976f3a87f235e8364ae771e3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-server\\25.1.7\\flow-server-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "bbb00763f5998f03a26f21e47ed500f253c7fc5c158fa3e8a41dbf97aa7416fd",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\tools\\jackson\\core\\jackson-core\\3.1.2\\jackson-core-3.1.2.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "0a366b1c2f6321e466c2970847b1251a5dc7201b680f320594230b77bfc8ddb2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\tools\\jackson\\core\\jackson-databind\\3.1.2\\jackson-databind-3.1.2.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "cfd3298d8720cddfb0545109ccc6ea0ef39eff7e9c40a10ad95c93a65f01c916",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\jsoup\\jsoup\\1.22.1\\jsoup-1.22.1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "7fbb7aaa015944f08c0fcf394e4e4e6854ee5a4714c10835adab8d0e4c15c46a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\external\\gentyref\\1.2.0.vaadin1\\gentyref-1.2.0.vaadin1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "df7c688239083ef50ae2e69997a6982a23a1c1a9a5dc9f3b2afbeb6c63d8bf88",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-push\\25.1.7\\flow-push-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "4dfa763a8c284bff0e1577969f98d976fdc76ad8876094a5c43d94baada41d98",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\external\\atmosphere\\atmosphere-runtime\\3.0.5.slf4jvaadin1\\atmosphere-runtime-3.0.5.slf4jvaadin1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "0594c51dafdf1e0d8529dfa720bd7abc4fba53dec000a933ee4aa34d9e344ead",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-client\\25.1.7\\flow-client-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "41c0c6ed2244cdbcd84a9955b4b2717e8466e20e82335b043ea9ce768dc38d9c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-webmvc\\7.0.7\\spring-webmvc-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "ff8bdcde4ab8717bd06c6be3a17fdc0695bfd6ba92bf44065c3275ef9aaba8a2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-websocket\\7.0.7\\spring-websocket-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "25f40118fa4c50f8522d090d25d52d5a38953b0ccd1250835f052e7bd3164ce0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\hibernate\\validator\\hibernate-validator\\9.0.1.Final\\hibernate-validator-9.0.1.Final.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "70e85268122f60551222fb4d2df9286a49fd6a115fab8d965c7c82945d9bd047",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-core\\25.1.6\\vaadin-core-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "1d9875cab6cee7b3232ecb891c996524c8f4eb83fcadc751cf1e09d7a9e95f4e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-core-internal\\25.1.6\\vaadin-core-internal-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "5eefc2f453e10b4bab33a5b9fa6a9f03f2e89e2caabf276a051a8a101d6ba4f8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-lit-template\\25.1.7\\flow-lit-template-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "b7fd7247b89bd6c90a9355923313de566b73d97301a770589323c624d59356f2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-react\\25.1.7\\flow-react-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c5410b043a749485c678d1b43015c4800c0615d10d633879f9ff52a76aeff27d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-html-components\\25.1.7\\flow-html-components-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "cbbef7df1935027a622737eff9157fb726ec2a35844da6c7166ca351fed714a9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-data\\25.1.7\\flow-data-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "80431c11aaa8bf0470ac90b717361a48afd7a2488fc8e3a99de3dda663bbb1da",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-dnd\\25.1.7\\flow-dnd-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "518010fe686a780cf5dfc1483bb15dc2f1c5dc4c900cf4d098036ce3385820d9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-lumo-theme\\25.1.6\\vaadin-lumo-theme-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "e6e0355b4e5ab842c76b7e9c2bb7307a35349f6a70487cb3b2e80eaed33106c0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-icons-flow\\25.1.6\\vaadin-icons-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "0710bbf8a49e359b8cc9f3e483c8a401d0f24e542aface507cd6412162b69606",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-flow-components-base\\25.1.6\\vaadin-flow-components-base-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "2161a0bdc5789e622af6c779633ead6ff13fdd6ddcad4365a0540fb772ce26c7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-aura-theme\\25.1.6\\vaadin-aura-theme-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "21e5df50275f064a2ad001141e6baacd2ecef8cbb9dd2b2eb86986493cba221c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-core-components\\25.1.6\\vaadin-core-components-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "07138c110ad893beb43fcbb7340aced52112ccb2d809c24d78c7feba11151db9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-ai-components-flow\\25.1.6\\vaadin-ai-components-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c4a1cc8bce7f5e743ad6b34dcf2ca0b101f4b92d564fe7e006455324be625281",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\projectreactor\\reactor-core\\3.8.5\\reactor-core-3.8.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f75ca597789b3dac58f61857b9ac2e1034a68fa672db35055a8fb4509e325f28",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\reactivestreams\\reactive-streams\\1.0.4\\reactive-streams-1.0.4.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "825cc796e748f10bcf1399cec1c92e9c1aa87075ea4286857c177b8b9663378b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-accordion-flow\\25.1.6\\vaadin-accordion-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "9ab9851dbf7df8109e374df565f8bb038e872b5d8eb4170ef1560bf7256dedb5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-avatar-flow\\25.1.6\\vaadin-avatar-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f034dc752a48501ead53b034e8efb9aa11ba26414668429c9f4ad82be89dfde3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-badge-flow\\25.1.6\\vaadin-badge-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "8cd7d68418c4a100ac16172851fbb72a9f1eb83eff16dcdaa98de6fa54c5e0e1",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-button-flow\\25.1.6\\vaadin-button-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "468cf6fc6d2f066ab009329b488225dadfc78756cf80ef69a5b52ba1e7497a8f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-card-flow\\25.1.6\\vaadin-card-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "2f363862d9454b7f5c185f9854822dd1e5691c2a95dab58351ef3fa95e7c886e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-checkbox-flow\\25.1.6\\vaadin-checkbox-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "9961fa61fc4804534ee55470447d31dbcb884a19f2c559c82215d6a4059bf38e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-combo-box-flow\\25.1.6\\vaadin-combo-box-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "4b53e0c874b312306b2d9c1232b82c0d2aed21e6145a427a2feeb9b26553a8cf",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-confirm-dialog-flow\\25.1.6\\vaadin-confirm-dialog-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c94863f1c53423f8060aa1100089a745f111bee450496891c8b458689b66a43f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-custom-field-flow\\25.1.6\\vaadin-custom-field-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "4698c5de6ec01ebcc7ffa0efe9848c364e593376dcd5c9293c8e118cdf377d45",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-date-picker-flow\\25.1.6\\vaadin-date-picker-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "84cec9b30aaa83fb09258cba65f1cb3ea33bddac24f31d3a166c5df28a7f0c5c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-date-time-picker-flow\\25.1.6\\vaadin-date-time-picker-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "8d6615ce0213f9dda95371d6a079118bffb996db12ded84721e4df21345e5bf7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-details-flow\\25.1.6\\vaadin-details-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "87e2cf915c4b44b9edb5c2456291e777be09457b24b671e6db528a71d9e2b464",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-time-picker-flow\\25.1.6\\vaadin-time-picker-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f3b38f0cd53523dab5400fb440120bca3fa0c37c3a34af1adc8c09e5f99280ac",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-select-flow\\25.1.6\\vaadin-select-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "2a8598b0321d3fefcbafc157296fe6a3df62e98d438a14d5a63bdc6a46e8c5a5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-side-nav-flow\\25.1.6\\vaadin-side-nav-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "7e772851a501f39adedfeff37e273537aa58a863948fcfd193002ff5dc7b7144",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dialog-flow\\25.1.6\\vaadin-dialog-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "5aade607935ff675a3f5f0869a0d1e542ed6c39a6e2569724263b21fd61747d7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-form-layout-flow\\25.1.6\\vaadin-form-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "6a22bf3908d670d5522b1cd60dafb985addac541014149f40bdd15bfd261a3c3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-field-highlighter-flow\\25.1.6\\vaadin-field-highlighter-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "27cc9dcc61dd1ceaf668d9613b12ea9ea11f5e50882f509feeadf9d831d81a89",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-grid-flow\\25.1.6\\vaadin-grid-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "d9dcd8cadcb323a61cb3a97fd8eda756f4fe4281a07a1c6bcbf2e2738cca1f6d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-virtual-list-flow\\25.1.6\\vaadin-virtual-list-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "331202cacdae3fd039df6c08f7fa145b21f5563d54b810dc6ddef62d2ce5c3fe",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-list-box-flow\\25.1.6\\vaadin-list-box-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "033bb5f8802b72a747871a5cd92b781d61b7877918d2718d68965444bff41897",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-login-flow\\25.1.6\\vaadin-login-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "e78e8ae65de70b820a691ac315a29d991baeeb042f116ecdbe0afafca177cc0f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-markdown-flow\\25.1.6\\vaadin-markdown-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f95e2ccaf308f183e3cd0ead07035a4b83baf0b227bad88d8b4d608a73cf7698",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-master-detail-layout-flow\\25.1.6\\vaadin-master-detail-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "384b3a9e24e39932fa3f0751f4a0c8e6a87a812383eb52bdef16571957ca3ae2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-messages-flow\\25.1.6\\vaadin-messages-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "39064035e302db82acf0414c0b7908ce3520d51f0dc01b7a6d9665b8607c482b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-ordered-layout-flow\\25.1.6\\vaadin-ordered-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "ef398642274429b7712b5cdfd77263ad1a8214c14dff00425feadb5c3176152a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-progress-bar-flow\\25.1.6\\vaadin-progress-bar-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "9b6875b4214389a4bf2088d565f39cd547404e9dbaeb8ab2aaf445e044e8abd5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-popover-flow\\25.1.6\\vaadin-popover-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "22a351cb838dcf033a68e0cd13d44119353171ea0e8c9106a670628ffe10e332",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-radio-button-flow\\25.1.6\\vaadin-radio-button-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "b5cb615248cd919834536e677360ab75b0a6d1dd9da56b2ddfe8593c7009384b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-renderer-flow\\25.1.6\\vaadin-renderer-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "77f59076d9fe30223c659302d7b3e618b11d0d9c93ad848aa0afdeb056c5c07f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-slider-flow\\25.1.6\\vaadin-slider-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "b6b732433d39ad242dfe4cae47ed94663b5209a8bf6be79eb16c7a6092762a89",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-split-layout-flow\\25.1.6\\vaadin-split-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "ef99de1808cf6acbea6a7699bc225b3e484c6b32e5fd6056af29cb494ba83976",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-tabs-flow\\25.1.6\\vaadin-tabs-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "e96b806d55f52e4ba1c1d846676c2eaabc41e72119a209c03198119c790c81ae",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-text-field-flow\\25.1.6\\vaadin-text-field-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "6b5d59c1c5b61bd38fe1a65a51038097da1beea0f25e99d9aed79219c79e539d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-upload-flow\\25.1.6\\vaadin-upload-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "d9bb4240129ade64b5f73968b61b2832557540e0d88cb7e876d6d408a2f88b52",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-notification-flow\\25.1.6\\vaadin-notification-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "8603e9c814c8a257dca79cfc0661d9354e8dac806cf9103ae74ed77b6dabfd00",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-app-layout-flow\\25.1.6\\vaadin-app-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c173fa3a2a1aacf18beba7cd429ff606156feb259abe301034beb3a0e204e52e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-context-menu-flow\\25.1.6\\vaadin-context-menu-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "e03e73ab1d4cde2a30c234e5556412193c4930d1e724a17d488e9fa6523ba1d2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-menu-bar-flow\\25.1.6\\vaadin-menu-bar-flow-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "e0c6521e59d9fd3e3864ed6667d2867d9f8332b5ba033fdb9a85bf5b38f0a990",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\collaboration-engine\\7.0.0\\collaboration-engine-7.0.0.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "a323bb1d72d680a9e492bdcf13731ae9ff443b96cce68072ac2b13fe1fe8ff82",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-webmvc\\4.0.6\\spring-boot-starter-webmvc-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "78a3fbce32e41b9185a3ea32275f494529ace99578f3ec105b2fa03df2043e83",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-jackson\\4.0.6\\spring-boot-starter-jackson-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "82fb828f4c0f3e468f0553f2e025507ad20761db025037ce03b5f17fe59989c8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-jackson\\4.0.6\\spring-boot-jackson-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "b69066407242d0997e6d65b2e3bba306954d183bcf4d23d6ab07f63eb3441465",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-tomcat\\4.0.6\\spring-boot-starter-tomcat-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "caab936e904edcee854791178ad5ad3018862c35a376d27f1e5802681a88429f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-tomcat-runtime\\4.0.6\\spring-boot-starter-tomcat-runtime-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "d75dcc45dd7b09ae9816d74aae772dc22ac7fee6ca69e8e094f2b693229dc556",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-web-server\\4.0.6\\spring-boot-web-server-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "5dbe19880b5025e0b9de7c3de81cb837ce79636ea1da39c8d00a66d3add25567",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\tomcat\\embed\\tomcat-embed-core\\11.0.21\\tomcat-embed-core-11.0.21.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "fc64e531c473d627ff121e31bcb5871dee9f241e1fd1d1f1522498208f1a278d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\tomcat\\embed\\tomcat-embed-websocket\\11.0.21\\tomcat-embed-websocket-11.0.21.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "9c0e9b3b2e746c8a6b39146dc26a71a5ae3aa0f26f7b23d0390516addc25d5a3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-tomcat\\4.0.6\\spring-boot-tomcat-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "d01837b5fc73faa697cfac07912378e7f24f925774a61666d9a6d71d20f7394b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-http-converter\\4.0.6\\spring-boot-http-converter-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "61a1fe818944202f275c63bcedd0349d43330e1f700ec67445b3c5b5b1cbdff2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-webmvc\\4.0.6\\spring-boot-webmvc-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f2f75ebde296e10e01bb88eb7015deadf36ef889e5526717633866454d1250b4",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-servlet\\4.0.6\\spring-boot-servlet-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c237cceedd1691b530ff2a2f44fb0f66c2c12c1f94edafc2c004ff33940d4014",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dev\\25.1.6\\vaadin-dev-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "317df0af11b15fadea26168d8f64a04c21b18ee273018dd4742e5de9f638081f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dev-server\\25.1.7\\vaadin-dev-server-25.1.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "2563122aaa6cac075e3d450767c29881efc2314fd0ee7009f31a2475d6abf400",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-build-tools\\25.1.7\\flow-build-tools-25.1.7-shaded.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f7b2a4d0e9d968ff69d0cb03f6ac603191f1b17c254586d53217d2e6e63da908",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\license-checker\\3.0.2\\license-checker-3.0.2.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "d7919520ae9702ea06a23cc669c9ed1daa543d12a33a1be214a85b47dfc1c7c8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\nimbusds\\nimbus-jose-jwt\\10.3.1\\nimbus-jose-jwt-10.3.1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "893c5a11b7667145a0d5fdb2ddfb1827c25e52208997d071e6462a91bb204876",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\open\\8.5.0.5\\open-8.5.0.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "d3852d78461c02602eb9bfc15e9fc21ad7c765e6013a1b6d5809a5d0e7db5309",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\github\\javaparser\\javaparser-core\\3.28.0\\javaparser-core-3.28.0.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "6e801aa1fb48a0b09cc9a8626c4fae329cb771423418a43bf0518425f9559e19",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\methvin\\directory-watcher\\0.19.1\\directory-watcher-0.19.1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "260c4b1e22b1db9e110ee441c4f13ce115f841fa48c41d78750986214b395557",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\net\\java\\dev\\jna\\jna\\5.18.1\\jna-5.18.1.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "0d33456e7d943e2c65be0dc29441f74cb0f14d8c924516036463876db7319cf8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dev-bundle\\25.1.6\\vaadin-dev-bundle-25.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "4b8b843476a58a4d218140d20b91327025430daa6bafa15508518465bab3d8c9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\copilot\\25.1.5\\copilot-25.1.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "a70c1d941707c20959b3c84a41d5de674e9f82057662b3949085d4fb8e1296ec",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\ui-tests\\1.1.6\\ui-tests-1.1.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "a4a2249331fa2d267c19d7484132cb818bef56a4874f698843964e0b34ddcc48",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-data-jpa\\4.0.6\\spring-boot-starter-data-jpa-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "4cb0ed1cf253aa93b6e80a39d69e68a48ff4a01d60c3c127533132b46bdb790a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter\\4.0.6\\spring-boot-starter-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "abd1da42af5afc4f6065494fd3b50d1a478c7621cea0b00c33ef0e99c098bb91",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-logging\\4.0.6\\spring-boot-starter-logging-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "d7b78fc0aaaa5e8ada388b29d718b0ab187e512965bed0b259bb4ab299f13db2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\logging\\log4j\\log4j-to-slf4j\\2.25.4\\log4j-to-slf4j-2.25.4.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c4b642a7f047275215de117e0e3847eb2c7711d84a0aa7433e7b3c096daf341d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\logging\\log4j\\log4j-api\\2.25.4\\log4j-api-2.25.4.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "a7afcd23b9cfd1475e55c94f943b808c5922035e7e2c2a5c65a487a4106bc538",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\slf4j\\jul-to-slf4j\\2.0.17\\jul-to-slf4j-2.0.17.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "e6682acf1ace77508ef13649cbf4f8d09d2cf5457bdb61d25ffb6ac0233d78dd",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\yaml\\snakeyaml\\2.5\\snakeyaml-2.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "0cd94a651d1be209c701be4ecc59b4715a2e9c53f3b3506900c775dafa9a6bf1",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-jdbc\\4.0.6\\spring-boot-starter-jdbc-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f1e612fa27345be3107a85431e8a8aeb205c15364ab2f2d411e40a9d7bb08095",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\zaxxer\\HikariCP\\7.0.2\\HikariCP-7.0.2.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f5bf9a3b6664774cb50f9c6f3a151204b576ad27626382a7477a842b323e83d9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-data-jpa\\4.0.6\\spring-boot-data-jpa-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c75c99034009d67e43fc7f68c2e0bdb785392953917b11bbe3c74821fd80282a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-data-commons\\4.0.6\\spring-boot-data-commons-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "2bdf90c1c3b2c7b5619ec9a181b104adc6340d3cdc1cd9269198b719d7b492ac",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-hibernate\\4.0.6\\spring-boot-hibernate-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "99401cdae31de93ffeab1a10060a6f326477e42c44947be25a74f1d023f131f6",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-jpa\\4.0.6\\spring-boot-jpa-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "aa4a2229f4ca985dd9ca3fb660c7fb743e258625087a99746d3bad4c1b87f1bb",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-aspects\\7.0.7\\spring-aspects-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "a18af3d81c96175b2ce43e276fcef9bdf842a1a0264b36bd9b31c9571c031a92",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-jdbc\\4.0.6\\spring-boot-jdbc-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "aa98cba6a0195ce0a6cc48e075f37f4b11587d91f1004b3b37b47a59897de615",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-sql\\4.0.6\\spring-boot-sql-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "7ae5685cb7edc9e0d788baaa6c0cad4ef63c9d6826446f20580f6f0839fcaa90",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-transaction\\4.0.6\\spring-boot-transaction-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "31cc784d9d7ae207dd24d731890f177df8213e4abe0d627f08bf82d9e36cd952",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-validation\\4.0.6\\spring-boot-starter-validation-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "60940a76bd19c6c5bee2965947724d672252a1d1f40ca777e9cbd09db4c4e395",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-validation\\4.0.6\\spring-boot-validation-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "3745cb768f4ed74c2f4af8fc2453992143997019718f71c915d4545fdbef1fb3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\tomcat\\embed\\tomcat-embed-el\\11.0.21\\tomcat-embed-el-11.0.21.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "94df2933c3388647f23d64f8e1fd7d15d3b752d8684e91f7c58272d3a0db70ea",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-security\\4.0.6\\spring-boot-starter-security-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "f19e7752a51ac54035af43231b13683ed386feed80703b46704dd7ad31f54dd0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-security\\4.0.6\\spring-boot-security-4.0.6.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "3682285f86681a93bddb5c14d8b2dfa111aa6809b195b8c12d1897c1781d2fde",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-config\\7.0.5\\spring-security-config-7.0.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "4616f13afe233600dfad8cfa4ef1472c378a080a6cbf516739c779d9267edbd9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-web\\7.0.5\\spring-security-web-7.0.5.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "c0503b7f318368f37f0d0e0557f65e572cebdf61cf9c318a7cbcad7824b0f284",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-aop\\7.0.7\\spring-aop-7.0.7.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "29b70e427cc1c40cdc376283adbb0cc62853073797bb5fe5761f81fe73d57ce0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\h2database\\h2\\2.4.240\\h2-2.4.240.jar",
+    "run": "e5b-standard-20261031"
+  },
+  {
+    "sha256": "1b79e501bd959e5b7a5850e39f32055bff67655ca07822e4fe43efc4a2671204",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-backend-starter\\1.0-SNAPSHOT\\platform-backend-starter-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "75ea5e4ce2172975597eb62fd559c0f70cb3f10b42f48e972dfb9290cb48b607",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-spring-boot-autoconfigure\\1.0-SNAPSHOT\\platform-spring-boot-autoconfigure-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "5056bbed8be1dac2e3c30add00be86796ec356457ef54f09584b447579293674",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-contracts\\1.0-SNAPSHOT\\platform-contracts-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "be8a26b0e75c84c1b7600f759256fbc68d60333d89ec0ce3f784fc3ffa09aa8c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\persistence\\jakarta.persistence-api\\3.2.0\\jakarta.persistence-api-3.2.0.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "63ce00156388c365f3ac1be71fcfaf114682fc0c452020b5df6e7ec236e142ab",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\validation\\jakarta.validation-api\\3.1.1\\jakarta.validation-api-3.1.1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "9423bd703579dccfb0ef90b7d50c5fef65165190a7b660ff025491e1c94e218d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-register\\1.0-SNAPSHOT\\platform-register-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "e7041f17e528f19e856733fb271784db98486f98ebde8087817ef43bca464599",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-persistence\\1.0-SNAPSHOT\\platform-persistence-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "e71f3d408f36a89634bbb984220451fc19cbad16d8bb3a0bdc1e89200021edf0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\hibernate\\orm\\hibernate-core\\7.2.12.Final\\hibernate-core-7.2.12.Final.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "7c12ee575508f81e22b1db9334b969d0ec54ef0fd1dcba24eeab1a44235fc366",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\jboss\\logging\\jboss-logging\\3.6.3.Final\\jboss-logging-3.6.3.Final.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "bdb42c4979001742ebc098f3b206dd1057dc93be55c50a31c3f027d3eed06412",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\hibernate\\models\\hibernate-models\\1.0.1\\hibernate-models-1.0.1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "75fbda45456f123fb6e2028a6189442d8d0730b357adce4c0a6d7e789f70669b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\classmate\\1.7.3\\classmate-1.7.3.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "2b5ddc8c1f4234bdb7cb45338a8e10a13e0e3ca473e91d5d821d681127ea8ba1",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\net\\bytebuddy\\byte-buddy\\1.17.8\\byte-buddy-1.17.8.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c507ca69a8c6dd11bf4afeec9e0d412c4fa3933fffb0a84680ea5727e8472124",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\xml\\bind\\jakarta.xml.bind-api\\4.0.4\\jakarta.xml.bind-api-4.0.4.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c9db52100ce6c8aac95cc39075f95720d2e561b11f8051b81c121ad4effd7004",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\activation\\jakarta.activation-api\\2.1.4\\jakarta.activation-api-2.1.4.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "1c0d57f8c25f9605d5a2f7ad0a87581893776ac85b00b101b2651258edaa9118",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\glassfish\\jaxb\\jaxb-runtime\\4.0.6\\jaxb-runtime-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "ebbd274207b4860d0dc6e2d44d6dbdb5945cede01222d2e50661d45f5d46c0f7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\glassfish\\jaxb\\jaxb-core\\4.0.6\\jaxb-core-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "a6bd35c538cf90fff941ad6258c40c08fca0b5c9c3f536c657114f27ce0527a7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\eclipse\\angus\\angus-activation\\2.0.3\\angus-activation-2.0.3.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "fcc749785412ef3806fde1ce70f93ef5a0065dcc47fe449bc871db0795cb11af",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\glassfish\\jaxb\\txw2\\4.0.6\\txw2-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "7fd6792361f4dd00f8c56af4a20cecc0066deea4a8f3dec38348af23fc2296ee",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\sun\\istack\\istack-commons-runtime\\4.1.2\\istack-commons-runtime-4.1.2.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f7dc98062fccf14126abb751b64fab12c312566e8cbdc8483598bffcea93af7c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\inject\\jakarta.inject-api\\2.0.1\\jakarta.inject-api-2.0.1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "d6517a0164bbe1f7525ad6f1ad621913b3a9ce89460e75580130316af022affd",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-tx\\7.0.7\\spring-tx-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "0c708ba19501262cf075397a7c08a11ac8f93e745bf9dbe37e209a12f464b834",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-persistence\\4.0.6\\spring-boot-persistence-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "b75c957b798497435b9168c9677fae3c5cac5831d1badcf280b2bb4c57b12e4f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\data\\spring-data-commons\\4.0.5\\spring-data-commons-4.0.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "797dca1b1934711ef0213f934f704948eed784bb135b387e716c00cbd1cff085",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-vaadin\\1.0-SNAPSHOT\\platform-vaadin-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "b6cf3b357f3ef1f4b8c3a66188bdf98394018d15f1d3f7123c35e98535bf3c52",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-identity-api\\1.0-SNAPSHOT\\platform-identity-api-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "9d885a825599a19d870df0d27368f54559fc71e03260edef5df1adeccbd8f421",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-core\\1.0-SNAPSHOT\\platform-core-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "35857b09a5f6b4c7d336ca05079bda7804cdc7861954d1c3fe5df08f5b34e9ea",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-crud-api\\1.0-SNAPSHOT\\platform-crud-api-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "50c0a7c760c13ae6c042acf182b28f0047413db95b4636fb8879bcffab5ba875",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\transaction\\jakarta.transaction-api\\2.0.1\\jakarta.transaction-api-2.0.1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "12e8655b100267b44d0f14d01b1f5082a5105e616174dc4307be1a761e92407b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\jackson\\core\\jackson-core\\2.21.2\\jackson-core-2.21.2.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "705abc06e56128a5211d112d9afad3f956f3308bea790d5dfbafdf640986e758",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-metadata\\1.0-SNAPSHOT\\platform-metadata-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "bb15b885b15675034604203d44e6fd1c71059e376fbad54ba73180a1f1b13bfb",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-events\\1.0-SNAPSHOT\\platform-events-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "adec135b2038c4e3ac5448bc3408573d5e4942a5ba431adc7d332da620a0c3f9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-numbering\\1.0-SNAPSHOT\\platform-numbering-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "622ef2e6d28baf98f72b9d479fff82a6349be2432ee0b69e7a655229ebcc9744",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-telemetry\\1.0-SNAPSHOT\\platform-telemetry-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "a05ea7a75dc22eac39ae8f3538f99dbb40b366d687e6e38ac46ddef04b1b8c1b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-settings\\1.0-SNAPSHOT\\platform-settings-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "7bf8760ebca14457068125ddcef2ca1b17b3147e01d161aac23463626cd123a5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-jdbc\\7.0.7\\spring-jdbc-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "dbc9298d83849fb0255791fb86b80e996cfc482801ce4879481ad733d225c518",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-web\\7.0.7\\spring-web-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "4fe86fdc18faea571f29129c70eaad5d121363504a06d7907be88f6c60ba3116",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\aspectj\\aspectjweaver\\1.9.25.1\\aspectjweaver-1.9.25.1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "2d4cf592db78be2de4d6140434c2fec170dcb16a09e8c8b7b207dbf5e31b848a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\ch\\qos\\logback\\logback-classic\\1.5.32\\logback-classic-1.5.32.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "6a904d5778d0e361a9692f9cbe68b1b0620ae0f3eda2ec2ed09102755bf036c4",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\ch\\qos\\logback\\logback-core\\1.5.32\\logback-core-1.5.32.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "8f680186c57b41737cf7d60753f278ac54b760808e418cd77cc75af3dd97d8ec",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\platform-rls\\1.0-SNAPSHOT\\platform-rls-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "bc0e41e7e60d5613ea921a2dbb5d891dcd7b62c07ce8238f2457ac3ce427468b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\filtergrid-core\\1.0-SNAPSHOT\\filtergrid-core-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "d921d2b64462de000b53e302cad4d4b56c7e6b46da8f8b604fbf6c46d064b02a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\filtergrid-grouping\\1.0-SNAPSHOT\\filtergrid-grouping-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "06bee40b045ce127eb549dbb42b78d898099cb4ff50c06af44481c44a0715298",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\filtergrid-jpa\\1.0-SNAPSHOT\\filtergrid-jpa-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "4a252050fd8595c5922c4d795728f8aae495e41171b3a958b0cee349b5e3586b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-context\\7.0.7\\spring-context-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "3c23d7eb62bb3fbddc0ad1d7f94be94d1518424f1c9a1b4de6b1b6906e8d0c54",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-expression\\7.0.7\\spring-expression-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "4406f33535185ff896375e9a81a4b8694e28bf20c1089b24de0325d87f63dfe7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\micrometer\\micrometer-observation\\1.16.5\\micrometer-observation-1.16.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "b0cc8c620453ef71e22d6c4ec5c496cc112f964b4e826b9f87182fc97512c8f9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\micrometer\\micrometer-commons\\1.16.5\\micrometer-commons-1.16.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "13775be4269a6cc82ebcee619a9fef1545c90ae54c6fba84a0d8c6d79ff6877a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-beans\\7.0.7\\spring-beans-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "9e1c13ed6d69002aae7ebc4b7d2d1d07e309013a2fbb63ab266bea8601229785",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-core\\7.0.7\\spring-core-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f8ead8943401081dea0aa824b5b1ba40a0e4ed297a572a0f02258150a0b62357",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\commons-logging\\commons-logging\\1.3.6\\commons-logging-1.3.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "1fad6e6be7557781e4d33729d49ae1cdc8fdda6fe477bb0cc68ce351eafdfbab",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\jspecify\\jspecify\\1.0.0\\jspecify-1.0.0.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "163d0c77cc7e8b6a2d523e5d0ebc3afe838d33dc89162c613a75a63bc197b9e6",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot\\4.0.6\\spring-boot-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "a68a9a56f1976ab9d669e732889de9de73f1262ef8854d0eff70806ccf8dc684",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-autoconfigure\\4.0.6\\spring-boot-autoconfigure-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "af60ddc39f70ddeaf97e1dd9895cd357c884a82f7e863ec02e8947ada6d60512",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\data\\spring-data-jpa\\4.0.5\\spring-data-jpa-4.0.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "dd3e8a13a2d669bf84fb8d834de35ce4875f27157698d206241ec8488aadcaf7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\antlr\\antlr4-runtime\\4.13.2\\antlr4-runtime-4.13.2.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "b01f55552284cfb149411e64eabca75e942d26d2e1786b32914250e4330afaa2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\jakarta\\annotation\\jakarta.annotation-api\\3.0.0\\jakarta.annotation-api-3.0.0.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "e49b8b8ee4af0cc322cf3df2d72ee03da4f0ef6fc4b105717e32c95e51105699",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-orm\\7.0.7\\spring-orm-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "344bfbed8025031781218cbd7891f6b9fd750d4f52c923f75948d5e7b11fc2ea",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-core\\7.0.5\\spring-security-core-7.0.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "fa2dbe7ce6aea8b3b0cc82bcd09b5b4ef030cdac51b85e54d785d85f1a3d42d9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-crypto\\7.0.5\\spring-security-crypto-7.0.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "8c982f01f148d805f0aaac2339011244757e0df7c6ff8951f2fa3f433b8ed849",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\jackson\\core\\jackson-databind\\2.21.2\\jackson-databind-2.21.2.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "53ca085f4a150f703f49e1aabd935bd03b43e1ea3d55d135438292af22cef56b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\fasterxml\\jackson\\core\\jackson-annotations\\2.21\\jackson-annotations-2.21.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "7b751d952061954d5abfed7181c1f645d336091b679891591d63329c622eb832",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\slf4j\\slf4j-api\\2.0.17\\slf4j-api-2.0.17.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "772f166964c6c952b3b046fc27210d29af40fe4a4e2f319bc220ec569b4cc802",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-core\\1.0-SNAPSHOT\\entity-design-core-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "9f093a8b1a3fd8df4b03c6c4f1e9bf78718555959548db43abdf8b58288e2262",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-json\\1.0-SNAPSHOT\\entity-design-json-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "dc5e29742fbfc498ce83dd6bce5390fa4dbfb87b7d49144bf6260339e2155b92",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\entity-design-runtime\\1.0-SNAPSHOT\\entity-design-runtime-1.0-SNAPSHOT.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "490b38387ab6e22141cd4b1be4aaf5faafc7668f4e1bcdb2fe881fda59f2e3f4",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\ipro\\g1-reference-target\\1.0-E2\\g1-reference-target-1.0-E2.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "338744aae9a3ee37c96558fd89f69bdc2fee8103607da88e3dce52a6e44c0d04",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-spring-boot-starter\\25.1.6\\vaadin-spring-boot-starter-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "6d4149f8953f3bc95ef72fc21f1351344167039083bcab646a6eb31d451c9a46",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-spring\\25.1.7\\vaadin-spring-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c1616c874156ef6a71af4f2b178678841ff17a56976f3a87f235e8364ae771e3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-server\\25.1.7\\flow-server-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "bbb00763f5998f03a26f21e47ed500f253c7fc5c158fa3e8a41dbf97aa7416fd",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\tools\\jackson\\core\\jackson-core\\3.1.2\\jackson-core-3.1.2.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "0a366b1c2f6321e466c2970847b1251a5dc7201b680f320594230b77bfc8ddb2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\tools\\jackson\\core\\jackson-databind\\3.1.2\\jackson-databind-3.1.2.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "cfd3298d8720cddfb0545109ccc6ea0ef39eff7e9c40a10ad95c93a65f01c916",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\jsoup\\jsoup\\1.22.1\\jsoup-1.22.1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "7fbb7aaa015944f08c0fcf394e4e4e6854ee5a4714c10835adab8d0e4c15c46a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\external\\gentyref\\1.2.0.vaadin1\\gentyref-1.2.0.vaadin1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "df7c688239083ef50ae2e69997a6982a23a1c1a9a5dc9f3b2afbeb6c63d8bf88",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-push\\25.1.7\\flow-push-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "4dfa763a8c284bff0e1577969f98d976fdc76ad8876094a5c43d94baada41d98",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\external\\atmosphere\\atmosphere-runtime\\3.0.5.slf4jvaadin1\\atmosphere-runtime-3.0.5.slf4jvaadin1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "0594c51dafdf1e0d8529dfa720bd7abc4fba53dec000a933ee4aa34d9e344ead",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-client\\25.1.7\\flow-client-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "41c0c6ed2244cdbcd84a9955b4b2717e8466e20e82335b043ea9ce768dc38d9c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-webmvc\\7.0.7\\spring-webmvc-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "ff8bdcde4ab8717bd06c6be3a17fdc0695bfd6ba92bf44065c3275ef9aaba8a2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-websocket\\7.0.7\\spring-websocket-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "25f40118fa4c50f8522d090d25d52d5a38953b0ccd1250835f052e7bd3164ce0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\hibernate\\validator\\hibernate-validator\\9.0.1.Final\\hibernate-validator-9.0.1.Final.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "70e85268122f60551222fb4d2df9286a49fd6a115fab8d965c7c82945d9bd047",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-core\\25.1.6\\vaadin-core-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "1d9875cab6cee7b3232ecb891c996524c8f4eb83fcadc751cf1e09d7a9e95f4e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-core-internal\\25.1.6\\vaadin-core-internal-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "5eefc2f453e10b4bab33a5b9fa6a9f03f2e89e2caabf276a051a8a101d6ba4f8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-lit-template\\25.1.7\\flow-lit-template-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "b7fd7247b89bd6c90a9355923313de566b73d97301a770589323c624d59356f2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-react\\25.1.7\\flow-react-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c5410b043a749485c678d1b43015c4800c0615d10d633879f9ff52a76aeff27d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-html-components\\25.1.7\\flow-html-components-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "cbbef7df1935027a622737eff9157fb726ec2a35844da6c7166ca351fed714a9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-data\\25.1.7\\flow-data-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "80431c11aaa8bf0470ac90b717361a48afd7a2488fc8e3a99de3dda663bbb1da",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-dnd\\25.1.7\\flow-dnd-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "518010fe686a780cf5dfc1483bb15dc2f1c5dc4c900cf4d098036ce3385820d9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-lumo-theme\\25.1.6\\vaadin-lumo-theme-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "e6e0355b4e5ab842c76b7e9c2bb7307a35349f6a70487cb3b2e80eaed33106c0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-icons-flow\\25.1.6\\vaadin-icons-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "0710bbf8a49e359b8cc9f3e483c8a401d0f24e542aface507cd6412162b69606",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-flow-components-base\\25.1.6\\vaadin-flow-components-base-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "2161a0bdc5789e622af6c779633ead6ff13fdd6ddcad4365a0540fb772ce26c7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-aura-theme\\25.1.6\\vaadin-aura-theme-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "21e5df50275f064a2ad001141e6baacd2ecef8cbb9dd2b2eb86986493cba221c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-core-components\\25.1.6\\vaadin-core-components-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "07138c110ad893beb43fcbb7340aced52112ccb2d809c24d78c7feba11151db9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-ai-components-flow\\25.1.6\\vaadin-ai-components-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c4a1cc8bce7f5e743ad6b34dcf2ca0b101f4b92d564fe7e006455324be625281",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\projectreactor\\reactor-core\\3.8.5\\reactor-core-3.8.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f75ca597789b3dac58f61857b9ac2e1034a68fa672db35055a8fb4509e325f28",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\reactivestreams\\reactive-streams\\1.0.4\\reactive-streams-1.0.4.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "825cc796e748f10bcf1399cec1c92e9c1aa87075ea4286857c177b8b9663378b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-accordion-flow\\25.1.6\\vaadin-accordion-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "9ab9851dbf7df8109e374df565f8bb038e872b5d8eb4170ef1560bf7256dedb5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-avatar-flow\\25.1.6\\vaadin-avatar-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f034dc752a48501ead53b034e8efb9aa11ba26414668429c9f4ad82be89dfde3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-badge-flow\\25.1.6\\vaadin-badge-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "8cd7d68418c4a100ac16172851fbb72a9f1eb83eff16dcdaa98de6fa54c5e0e1",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-button-flow\\25.1.6\\vaadin-button-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "468cf6fc6d2f066ab009329b488225dadfc78756cf80ef69a5b52ba1e7497a8f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-card-flow\\25.1.6\\vaadin-card-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "2f363862d9454b7f5c185f9854822dd1e5691c2a95dab58351ef3fa95e7c886e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-checkbox-flow\\25.1.6\\vaadin-checkbox-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "9961fa61fc4804534ee55470447d31dbcb884a19f2c559c82215d6a4059bf38e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-combo-box-flow\\25.1.6\\vaadin-combo-box-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "4b53e0c874b312306b2d9c1232b82c0d2aed21e6145a427a2feeb9b26553a8cf",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-confirm-dialog-flow\\25.1.6\\vaadin-confirm-dialog-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c94863f1c53423f8060aa1100089a745f111bee450496891c8b458689b66a43f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-custom-field-flow\\25.1.6\\vaadin-custom-field-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "4698c5de6ec01ebcc7ffa0efe9848c364e593376dcd5c9293c8e118cdf377d45",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-date-picker-flow\\25.1.6\\vaadin-date-picker-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "84cec9b30aaa83fb09258cba65f1cb3ea33bddac24f31d3a166c5df28a7f0c5c",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-date-time-picker-flow\\25.1.6\\vaadin-date-time-picker-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "8d6615ce0213f9dda95371d6a079118bffb996db12ded84721e4df21345e5bf7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-details-flow\\25.1.6\\vaadin-details-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "87e2cf915c4b44b9edb5c2456291e777be09457b24b671e6db528a71d9e2b464",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-time-picker-flow\\25.1.6\\vaadin-time-picker-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f3b38f0cd53523dab5400fb440120bca3fa0c37c3a34af1adc8c09e5f99280ac",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-select-flow\\25.1.6\\vaadin-select-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "2a8598b0321d3fefcbafc157296fe6a3df62e98d438a14d5a63bdc6a46e8c5a5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-side-nav-flow\\25.1.6\\vaadin-side-nav-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "7e772851a501f39adedfeff37e273537aa58a863948fcfd193002ff5dc7b7144",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dialog-flow\\25.1.6\\vaadin-dialog-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "5aade607935ff675a3f5f0869a0d1e542ed6c39a6e2569724263b21fd61747d7",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-form-layout-flow\\25.1.6\\vaadin-form-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "6a22bf3908d670d5522b1cd60dafb985addac541014149f40bdd15bfd261a3c3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-field-highlighter-flow\\25.1.6\\vaadin-field-highlighter-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "27cc9dcc61dd1ceaf668d9613b12ea9ea11f5e50882f509feeadf9d831d81a89",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-grid-flow\\25.1.6\\vaadin-grid-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "d9dcd8cadcb323a61cb3a97fd8eda756f4fe4281a07a1c6bcbf2e2738cca1f6d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-virtual-list-flow\\25.1.6\\vaadin-virtual-list-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "331202cacdae3fd039df6c08f7fa145b21f5563d54b810dc6ddef62d2ce5c3fe",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-list-box-flow\\25.1.6\\vaadin-list-box-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "033bb5f8802b72a747871a5cd92b781d61b7877918d2718d68965444bff41897",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-login-flow\\25.1.6\\vaadin-login-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "e78e8ae65de70b820a691ac315a29d991baeeb042f116ecdbe0afafca177cc0f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-markdown-flow\\25.1.6\\vaadin-markdown-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f95e2ccaf308f183e3cd0ead07035a4b83baf0b227bad88d8b4d608a73cf7698",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-master-detail-layout-flow\\25.1.6\\vaadin-master-detail-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "384b3a9e24e39932fa3f0751f4a0c8e6a87a812383eb52bdef16571957ca3ae2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-messages-flow\\25.1.6\\vaadin-messages-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "39064035e302db82acf0414c0b7908ce3520d51f0dc01b7a6d9665b8607c482b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-ordered-layout-flow\\25.1.6\\vaadin-ordered-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "ef398642274429b7712b5cdfd77263ad1a8214c14dff00425feadb5c3176152a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-progress-bar-flow\\25.1.6\\vaadin-progress-bar-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "9b6875b4214389a4bf2088d565f39cd547404e9dbaeb8ab2aaf445e044e8abd5",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-popover-flow\\25.1.6\\vaadin-popover-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "22a351cb838dcf033a68e0cd13d44119353171ea0e8c9106a670628ffe10e332",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-radio-button-flow\\25.1.6\\vaadin-radio-button-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "b5cb615248cd919834536e677360ab75b0a6d1dd9da56b2ddfe8593c7009384b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-renderer-flow\\25.1.6\\vaadin-renderer-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "77f59076d9fe30223c659302d7b3e618b11d0d9c93ad848aa0afdeb056c5c07f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-slider-flow\\25.1.6\\vaadin-slider-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "b6b732433d39ad242dfe4cae47ed94663b5209a8bf6be79eb16c7a6092762a89",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-split-layout-flow\\25.1.6\\vaadin-split-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "ef99de1808cf6acbea6a7699bc225b3e484c6b32e5fd6056af29cb494ba83976",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-tabs-flow\\25.1.6\\vaadin-tabs-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "e96b806d55f52e4ba1c1d846676c2eaabc41e72119a209c03198119c790c81ae",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-text-field-flow\\25.1.6\\vaadin-text-field-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "6b5d59c1c5b61bd38fe1a65a51038097da1beea0f25e99d9aed79219c79e539d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-upload-flow\\25.1.6\\vaadin-upload-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "d9bb4240129ade64b5f73968b61b2832557540e0d88cb7e876d6d408a2f88b52",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-notification-flow\\25.1.6\\vaadin-notification-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "8603e9c814c8a257dca79cfc0661d9354e8dac806cf9103ae74ed77b6dabfd00",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-app-layout-flow\\25.1.6\\vaadin-app-layout-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c173fa3a2a1aacf18beba7cd429ff606156feb259abe301034beb3a0e204e52e",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-context-menu-flow\\25.1.6\\vaadin-context-menu-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "e03e73ab1d4cde2a30c234e5556412193c4930d1e724a17d488e9fa6523ba1d2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-menu-bar-flow\\25.1.6\\vaadin-menu-bar-flow-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "e0c6521e59d9fd3e3864ed6667d2867d9f8332b5ba033fdb9a85bf5b38f0a990",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\collaboration-engine\\7.0.0\\collaboration-engine-7.0.0.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "a323bb1d72d680a9e492bdcf13731ae9ff443b96cce68072ac2b13fe1fe8ff82",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-webmvc\\4.0.6\\spring-boot-starter-webmvc-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "78a3fbce32e41b9185a3ea32275f494529ace99578f3ec105b2fa03df2043e83",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-jackson\\4.0.6\\spring-boot-starter-jackson-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "82fb828f4c0f3e468f0553f2e025507ad20761db025037ce03b5f17fe59989c8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-jackson\\4.0.6\\spring-boot-jackson-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "b69066407242d0997e6d65b2e3bba306954d183bcf4d23d6ab07f63eb3441465",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-tomcat\\4.0.6\\spring-boot-starter-tomcat-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "caab936e904edcee854791178ad5ad3018862c35a376d27f1e5802681a88429f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-tomcat-runtime\\4.0.6\\spring-boot-starter-tomcat-runtime-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "d75dcc45dd7b09ae9816d74aae772dc22ac7fee6ca69e8e094f2b693229dc556",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-web-server\\4.0.6\\spring-boot-web-server-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "5dbe19880b5025e0b9de7c3de81cb837ce79636ea1da39c8d00a66d3add25567",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\tomcat\\embed\\tomcat-embed-core\\11.0.21\\tomcat-embed-core-11.0.21.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "fc64e531c473d627ff121e31bcb5871dee9f241e1fd1d1f1522498208f1a278d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\tomcat\\embed\\tomcat-embed-websocket\\11.0.21\\tomcat-embed-websocket-11.0.21.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "9c0e9b3b2e746c8a6b39146dc26a71a5ae3aa0f26f7b23d0390516addc25d5a3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-tomcat\\4.0.6\\spring-boot-tomcat-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "d01837b5fc73faa697cfac07912378e7f24f925774a61666d9a6d71d20f7394b",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-http-converter\\4.0.6\\spring-boot-http-converter-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "61a1fe818944202f275c63bcedd0349d43330e1f700ec67445b3c5b5b1cbdff2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-webmvc\\4.0.6\\spring-boot-webmvc-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f2f75ebde296e10e01bb88eb7015deadf36ef889e5526717633866454d1250b4",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-servlet\\4.0.6\\spring-boot-servlet-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c237cceedd1691b530ff2a2f44fb0f66c2c12c1f94edafc2c004ff33940d4014",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dev\\25.1.6\\vaadin-dev-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "317df0af11b15fadea26168d8f64a04c21b18ee273018dd4742e5de9f638081f",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dev-server\\25.1.7\\vaadin-dev-server-25.1.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "2563122aaa6cac075e3d450767c29881efc2314fd0ee7009f31a2475d6abf400",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\flow-build-tools\\25.1.7\\flow-build-tools-25.1.7-shaded.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f7b2a4d0e9d968ff69d0cb03f6ac603191f1b17c254586d53217d2e6e63da908",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\license-checker\\3.0.2\\license-checker-3.0.2.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "d7919520ae9702ea06a23cc669c9ed1daa543d12a33a1be214a85b47dfc1c7c8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\nimbusds\\nimbus-jose-jwt\\10.3.1\\nimbus-jose-jwt-10.3.1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "893c5a11b7667145a0d5fdb2ddfb1827c25e52208997d071e6462a91bb204876",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\open\\8.5.0.5\\open-8.5.0.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "d3852d78461c02602eb9bfc15e9fc21ad7c765e6013a1b6d5809a5d0e7db5309",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\github\\javaparser\\javaparser-core\\3.28.0\\javaparser-core-3.28.0.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "6e801aa1fb48a0b09cc9a8626c4fae329cb771423418a43bf0518425f9559e19",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\io\\methvin\\directory-watcher\\0.19.1\\directory-watcher-0.19.1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "260c4b1e22b1db9e110ee441c4f13ce115f841fa48c41d78750986214b395557",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\net\\java\\dev\\jna\\jna\\5.18.1\\jna-5.18.1.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "0d33456e7d943e2c65be0dc29441f74cb0f14d8c924516036463876db7319cf8",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\vaadin-dev-bundle\\25.1.6\\vaadin-dev-bundle-25.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "4b8b843476a58a4d218140d20b91327025430daa6bafa15508518465bab3d8c9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\copilot\\25.1.5\\copilot-25.1.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "a70c1d941707c20959b3c84a41d5de674e9f82057662b3949085d4fb8e1296ec",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\vaadin\\ui-tests\\1.1.6\\ui-tests-1.1.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "a4a2249331fa2d267c19d7484132cb818bef56a4874f698843964e0b34ddcc48",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-data-jpa\\4.0.6\\spring-boot-starter-data-jpa-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "4cb0ed1cf253aa93b6e80a39d69e68a48ff4a01d60c3c127533132b46bdb790a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter\\4.0.6\\spring-boot-starter-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "abd1da42af5afc4f6065494fd3b50d1a478c7621cea0b00c33ef0e99c098bb91",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-logging\\4.0.6\\spring-boot-starter-logging-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "d7b78fc0aaaa5e8ada388b29d718b0ab187e512965bed0b259bb4ab299f13db2",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\logging\\log4j\\log4j-to-slf4j\\2.25.4\\log4j-to-slf4j-2.25.4.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c4b642a7f047275215de117e0e3847eb2c7711d84a0aa7433e7b3c096daf341d",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\logging\\log4j\\log4j-api\\2.25.4\\log4j-api-2.25.4.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "a7afcd23b9cfd1475e55c94f943b808c5922035e7e2c2a5c65a487a4106bc538",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\slf4j\\jul-to-slf4j\\2.0.17\\jul-to-slf4j-2.0.17.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "e6682acf1ace77508ef13649cbf4f8d09d2cf5457bdb61d25ffb6ac0233d78dd",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\yaml\\snakeyaml\\2.5\\snakeyaml-2.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "0cd94a651d1be209c701be4ecc59b4715a2e9c53f3b3506900c775dafa9a6bf1",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-jdbc\\4.0.6\\spring-boot-starter-jdbc-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f1e612fa27345be3107a85431e8a8aeb205c15364ab2f2d411e40a9d7bb08095",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\zaxxer\\HikariCP\\7.0.2\\HikariCP-7.0.2.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f5bf9a3b6664774cb50f9c6f3a151204b576ad27626382a7477a842b323e83d9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-data-jpa\\4.0.6\\spring-boot-data-jpa-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c75c99034009d67e43fc7f68c2e0bdb785392953917b11bbe3c74821fd80282a",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-data-commons\\4.0.6\\spring-boot-data-commons-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "2bdf90c1c3b2c7b5619ec9a181b104adc6340d3cdc1cd9269198b719d7b492ac",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-hibernate\\4.0.6\\spring-boot-hibernate-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "99401cdae31de93ffeab1a10060a6f326477e42c44947be25a74f1d023f131f6",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-jpa\\4.0.6\\spring-boot-jpa-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "aa4a2229f4ca985dd9ca3fb660c7fb743e258625087a99746d3bad4c1b87f1bb",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-aspects\\7.0.7\\spring-aspects-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "a18af3d81c96175b2ce43e276fcef9bdf842a1a0264b36bd9b31c9571c031a92",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-jdbc\\4.0.6\\spring-boot-jdbc-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "aa98cba6a0195ce0a6cc48e075f37f4b11587d91f1004b3b37b47a59897de615",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-sql\\4.0.6\\spring-boot-sql-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "7ae5685cb7edc9e0d788baaa6c0cad4ef63c9d6826446f20580f6f0839fcaa90",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-transaction\\4.0.6\\spring-boot-transaction-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "31cc784d9d7ae207dd24d731890f177df8213e4abe0d627f08bf82d9e36cd952",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-validation\\4.0.6\\spring-boot-starter-validation-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "60940a76bd19c6c5bee2965947724d672252a1d1f40ca777e9cbd09db4c4e395",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-validation\\4.0.6\\spring-boot-validation-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "3745cb768f4ed74c2f4af8fc2453992143997019718f71c915d4545fdbef1fb3",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\apache\\tomcat\\embed\\tomcat-embed-el\\11.0.21\\tomcat-embed-el-11.0.21.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "94df2933c3388647f23d64f8e1fd7d15d3b752d8684e91f7c58272d3a0db70ea",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-starter-security\\4.0.6\\spring-boot-starter-security-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "f19e7752a51ac54035af43231b13683ed386feed80703b46704dd7ad31f54dd0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\boot\\spring-boot-security\\4.0.6\\spring-boot-security-4.0.6.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "3682285f86681a93bddb5c14d8b2dfa111aa6809b195b8c12d1897c1781d2fde",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-config\\7.0.5\\spring-security-config-7.0.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "4616f13afe233600dfad8cfa4ef1472c378a080a6cbf516739c779d9267edbd9",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\security\\spring-security-web\\7.0.5\\spring-security-web-7.0.5.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "c0503b7f318368f37f0d0e0557f65e572cebdf61cf9c318a7cbcad7824b0f284",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\org\\springframework\\spring-aop\\7.0.7\\spring-aop-7.0.7.jar",
+    "run": "e5b-standard-final-20261031"
+  },
+  {
+    "sha256": "29b70e427cc1c40cdc376283adbb0cc62853073797bb5fe5761f81fe73d57ce0",
+    "path": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository\\com\\h2database\\h2\\2.4.240\\h2-2.4.240.jar",
+    "run": "e5b-standard-final-20261031"
+  }
+]

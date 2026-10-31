@@ -1,5 +1,6 @@
 package org.ip.security;
 
+import org.ip.persistence.access.PermissionSubjectLock;
 import org.ip.config.DataInitializer;
 import org.ip.model.Branch;
 import org.ip.model.Journal;
@@ -164,7 +165,7 @@ class RlsAutoConfigurationSmokeTest {
     @Test
     void rlsDimensionRegistryScansApplicationPackage() {
         assertThat(dimensionRegistry.dimensions())
-            .contains("JOURNAL", "BRANCH", "ENTITY:ReceivingDocument");
+            .contains("JOURNAL", "BRANCH", C5PermissionKeys.entity(ReceivingDocument.class));
     }
 
     @Test
@@ -201,6 +202,10 @@ class RlsAutoConfigurationSmokeTest {
 
     @Autowired
     private AccessGrantAdminService accessGrantAdminService;
+
+    /** У теста синтетические субъекты без строк app_user/role: lock субъекта — не его предмет. */
+    @MockitoBean
+    private PermissionSubjectLock permissionSubjectLock;
 
 
     @Autowired
@@ -261,7 +266,7 @@ class RlsAutoConfigurationSmokeTest {
         // пользовательского кода.
         assertThatThrownBy(() -> documents().save(doc))
             .isInstanceOf(org.ipro.rls.c5.C5AccessDeniedException.class)
-            .hasMessageContaining("ENTITY:ReceivingDocument");
+            .hasMessageContaining(C5PermissionKeys.entity(ReceivingDocument.class));
     }
 
     @Test
@@ -291,23 +296,23 @@ class RlsAutoConfigurationSmokeTest {
     @Test
     void saveSingleGrantWritesOnlyExpressibleFlagsAndRemovesOnNone() {
         authenticateAdmin();
-        accessGrantAdminService.saveSingleGrant("ENTITY:ReceivingDocument", AccessGrant.SubjectType.USER,
+        String entityKey = C5PermissionKeys.entity(ReceivingDocument.class);
+        accessGrantAdminService.saveSingleGrant(entityKey, AccessGrant.SubjectType.USER,
             "normalize-u3", new GrantFlags(false, true, false));
 
-        // C5.7: «ENTITY:ReceivingDocument» — ключ операций, и его строка больше не нормализует
-        // «чтение» из остальных флагов: чтение сущности решает отдельный read-ключ ENTITY:<FQN>.
+        // P-U: ключ один; выдача пишет ровно те флаги, которые объявляет определение.
         List<AccessGrant> saved = accessGrantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
-            AccessGrant.SubjectType.USER, "normalize-u3", "ENTITY:ReceivingDocument");
+            AccessGrant.SubjectType.USER, "normalize-u3", entityKey);
         assertThat(saved).singleElement().satisfies(g -> {
             assertThat(g.isCanRead()).isFalse();
             assertThat(g.isCanUpdate()).isTrue();
             assertThat(g.isCanDelete()).isFalse();
         });
 
-        accessGrantAdminService.saveSingleGrant("ENTITY:ReceivingDocument", AccessGrant.SubjectType.USER,
+        accessGrantAdminService.saveSingleGrant(entityKey, AccessGrant.SubjectType.USER,
             "normalize-u3", GrantFlags.NONE);
         assertThat(accessGrantRepository.findBySubjectTypeAndSubjectKeyAndDimension(
-            AccessGrant.SubjectType.USER, "normalize-u3", "ENTITY:ReceivingDocument")).isEmpty();
+            AccessGrant.SubjectType.USER, "normalize-u3", entityKey)).isEmpty();
     }
 
     @Autowired
@@ -372,17 +377,18 @@ class RlsAutoConfigurationSmokeTest {
     @Test
     void collectEffectiveCoversAllAvailableDimensions() {
         authenticateAdmin();
-        accessGrantRepository.save(grant("eff-u3", AccessGrant.SubjectType.USER, "ENTITY:ReceivingDocument", null,
+        String entityKey = C5PermissionKeys.entity(ReceivingDocument.class);
+        accessGrantRepository.save(grant("eff-u3", AccessGrant.SubjectType.USER, entityKey, null,
             true, true, false));
 
         Map<String, AccessService.EffectiveGrant> effective =
             accessGrantAdminService.collectEffective(AccessGrant.SubjectType.USER, "eff-u3");
         assertThat(effective.keySet()).isEqualTo(
             java.util.Set.copyOf(accessGrantAdminService.availableDimensions()));
-        assertThat(effective.get("ENTITY:ReceivingDocument").canRead())
-            .as("короткий ENTITY-ключ — ключ операций: столбец «Чтение» решает C5, а не флаг строки")
-            .isFalse();
-        assertThat(effective.get("ENTITY:ReceivingDocument").canUpdate()).isTrue();
+        assertThat(effective.get(entityKey).canRead())
+            .as("P-U: чтение и операции — независимые флаги одной ENTITY-строки")
+            .isTrue();
+        assertThat(effective.get(entityKey).canUpdate()).isTrue();
         assertThat(effective.get("JOURNAL").canRead()).isFalse();
         assertThat(effective.get("JOURNAL").sources()).isEmpty();
     }

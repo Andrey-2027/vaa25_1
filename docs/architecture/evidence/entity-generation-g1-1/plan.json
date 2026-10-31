@@ -1,0 +1,256 @@
+{
+  "planId" : "g1-4be5c34e3038623c8a933ef9eff32c47f08db35529eb0da8f4106f41fb47088e",
+  "recipe" : {
+    "id" : "standard-catalog-v2",
+    "version" : 2
+  },
+  "generatorVersion" : "catalog-java-v1",
+  "source" : {
+    "schemaVersion" : 1,
+    "recipe" : {
+      "id" : "standard-catalog-v2",
+      "version" : 2
+    },
+    "draftId" : "00000000-0000-4000-8000-000000000601",
+    "entity" : {
+      "className" : "G1PreviewCatalog",
+      "packageName" : {
+        "mode" : "EXPLICIT",
+        "text" : "org.example.generated"
+      },
+      "label" : "Материалы \"G1\" \\ каталог\nПроверка",
+      "titles" : {
+        "list" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "item" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "selection" : {
+          "mode" : "AUTO",
+          "text" : ""
+        }
+      },
+      "tableName" : {
+        "mode" : "EXPLICIT",
+        "text" : "g1_preview_catalog"
+      },
+      "subsystemId" : null,
+      "icon" : "FILE"
+    },
+    "fields" : [ {
+      "id" : "10000000-0000-4000-8000-000000000601",
+      "name" : "note",
+      "label" : "Текст \"цитата\" \\ путь\nСтрока",
+      "type" : "STRING",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : true,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "120",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : false,
+        "table" : false
+      }
+    }, {
+      "id" : "10000000-0000-4000-8000-000000000602",
+      "name" : "quantity",
+      "label" : "Количество",
+      "type" : "INTEGER",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : false,
+        "selection" : true,
+        "table" : false
+      }
+    }, {
+      "id" : "10000000-0000-4000-8000-000000000603",
+      "name" : "externalNumber",
+      "label" : "Внешний номер",
+      "type" : "LONG",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : false,
+        "selection" : false,
+        "table" : false
+      }
+    }, {
+      "id" : "10000000-0000-4000-8000-000000000604",
+      "name" : "amount",
+      "label" : "Сумма",
+      "type" : "DECIMAL",
+      "columnName" : {
+        "mode" : "EXPLICIT",
+        "text" : "total_amount"
+      },
+      "serverRequired" : true,
+      "uiRequired" : "REQUIRED",
+      "constraints" : {
+        "length" : "",
+        "precision" : "14",
+        "scale" : "3"
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : true,
+        "selection" : false,
+        "table" : false
+      }
+    }, {
+      "id" : "10000000-0000-4000-8000-000000000605",
+      "name" : "active",
+      "label" : "Активен",
+      "type" : "BOOLEAN",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : false,
+        "list" : false,
+        "selection" : false,
+        "table" : false
+      }
+    }, {
+      "id" : "10000000-0000-4000-8000-000000000606",
+      "name" : "businessDate",
+      "label" : "Дата",
+      "type" : "DATE",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : false,
+        "selection" : true,
+        "table" : false
+      }
+    }, {
+      "id" : "10000000-0000-4000-8000-000000000607",
+      "name" : "recordedAt",
+      "label" : "Дата и время",
+      "type" : "DATETIME",
+      "columnName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "serverRequired" : false,
+      "uiRequired" : "AUTO",
+      "constraints" : {
+        "length" : "",
+        "precision" : "",
+        "scale" : ""
+      },
+      "reference" : null,
+      "applications" : {
+        "form" : true,
+        "list" : false,
+        "selection" : false,
+        "table" : false
+      }
+    } ],
+    "sections" : [ ]
+  },
+  "context" : {
+    "projectId" : "test",
+    "version" : "v1",
+    "defaultPackage" : "org.example",
+    "existingTypes" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "existingTables" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "subsystemIds" : {
+      "values" : [ ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "iconIds" : {
+      "values" : [ "FILE" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "referenceTargets" : { },
+    "referencesComplete" : true,
+    "runtimeSnapshot" : {
+      "snapshotId" : "editor-fixture-v1",
+      "complete" : true,
+      "types" : { },
+      "prerequisites" : {
+        "ET0_ET7_RUNTIME" : {
+          "status" : "AVAILABLE",
+          "evidence" : "test fixture"
+        },
+        "STANDARD_CATALOG_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "test fixture"
+        }
+      },
+      "diagnostics" : [ ]
+    }
+  },
+  "files" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "org/example/generated/G1PreviewCatalog.java",
+    "content" : "package org.example.generated;\n\nimport jakarta.persistence.Column;\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.Table;\nimport jakarta.validation.constraints.Digits;\nimport jakarta.validation.constraints.NotNull;\nimport jakarta.validation.constraints.Size;\nimport java.math.BigDecimal;\nimport java.time.LocalDate;\nimport java.time.LocalDateTime;\nimport org.ipro.crud.StandardCatalogEntity;\nimport org.ipro.metadata.annotation.EntityMetadata;\nimport org.ipro.metadata.annotation.FieldMetadata;\nimport org.ipro.metadata.annotation.GridColumn;\nimport org.ipro.metadata.annotation.RequiredMode;\n\n@Entity\n@Table(name = \"g1_preview_catalog\")\n@EntityMetadata(\n    listFormTitle = \"Материалы \\\"G1\\\" \\\\ каталог\\nПроверка\",\n    itemFormTitle = \"Материалы \\\"G1\\\" \\\\ каталог\\nПроверка\",\n    selectionFormTitle = \"Материалы \\\"G1\\\" \\\\ каталог\\nПроверка\",\n    icon = \"FILE\",\n    listColumns = {\"code\", \"name\", \"note\", \"amount\"},\n    selectColumns = {\"code\", \"name\", \"quantity\", \"businessDate\"}\n)\npublic class G1PreviewCatalog extends StandardCatalogEntity {\n    @NotNull\n    @Size(max = 120)\n    @Column(name = \"note\", nullable = false, length = 120)\n    @FieldMetadata(label = \"Текст \\\"цитата\\\" \\\\ путь\\nСтрока\", order = 30, grid = @GridColumn(visible = false))\n    private String note;\n\n    @Column(name = \"quantity\")\n    @FieldMetadata(label = \"Количество\", order = 40, grid = @GridColumn(visible = false))\n    private Integer quantity;\n\n    @Column(name = \"external_number\")\n    @FieldMetadata(label = \"Внешний номер\", order = 50, grid = @GridColumn(visible = false))\n    private Long externalNumber;\n\n    @NotNull\n    @Digits(integer = 11, fraction = 3)\n    @Column(name = \"total_amount\", nullable = false, precision = 14, scale = 3)\n    @FieldMetadata(label = \"Сумма\", order = 60, required = RequiredMode.REQUIRED, grid = @GridColumn(visible = false))\n    private BigDecimal amount;\n\n    @Column(name = \"active\")\n    @FieldMetadata(label = \"Активен\", order = 70, hidden = true, grid = @GridColumn(visible = false))\n    private Boolean active;\n\n    @Column(name = \"business_date\")\n    @FieldMetadata(label = \"Дата\", order = 80, grid = @GridColumn(visible = false))\n    private LocalDate businessDate;\n\n    @Column(name = \"recorded_at\")\n    @FieldMetadata(label = \"Дата и время\", order = 90, grid = @GridColumn(visible = false))\n    private LocalDateTime recordedAt;\n\n    public String getNote() {\n        return note;\n    }\n\n    public void setNote(String note) {\n        this.note = note;\n    }\n\n    public Integer getQuantity() {\n        return quantity;\n    }\n\n    public void setQuantity(Integer quantity) {\n        this.quantity = quantity;\n    }\n\n    public Long getExternalNumber() {\n        return externalNumber;\n    }\n\n    public void setExternalNumber(Long externalNumber) {\n        this.externalNumber = externalNumber;\n    }\n\n    public BigDecimal getAmount() {\n        return amount;\n    }\n\n    public void setAmount(BigDecimal amount) {\n        this.amount = amount;\n    }\n\n    public Boolean getActive() {\n        return active;\n    }\n\n    public void setActive(Boolean active) {\n        this.active = active;\n    }\n\n    public LocalDate getBusinessDate() {\n        return businessDate;\n    }\n\n    public void setBusinessDate(LocalDate businessDate) {\n        this.businessDate = businessDate;\n    }\n\n    public LocalDateTime getRecordedAt() {\n        return recordedAt;\n    }\n\n    public void setRecordedAt(LocalDateTime recordedAt) {\n        this.recordedAt = recordedAt;\n    }\n}\n",
+    "sha256" : "21ab6d0c6158b2a440e81965def2a0b67593a48a56a520d69a6395c32abcfff8"
+  } ]
+}

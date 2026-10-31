@@ -3,7 +3,6 @@ package org.ipro.metadata;
 import jakarta.persistence.EntityManagerFactory;
 import org.ipro.crud.ValidationException;
 
-import jakarta.persistence.metamodel.EntityType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -21,16 +20,22 @@ import java.util.Set;
  */
 public final class ManagedEntityCatalog {
 
+    private final ManagedEntityTypes managedEntityTypes;
     private final Map<String, Class<?>> managedEntitiesByName;
 
     public ManagedEntityCatalog(EntityManagerFactory entityManagerFactory) {
-        EntityManagerFactory factory = Objects.requireNonNull(
-            entityManagerFactory, "entityManagerFactory must not be null");
+        this(new ManagedEntityTypes(entityManagerFactory));
+    }
+
+    /** Uses the shared persistence-unit snapshot when wiring platform consumers. */
+    public ManagedEntityCatalog(ManagedEntityTypes managedEntityTypes) {
+        ManagedEntityTypes types = Objects.requireNonNull(
+            managedEntityTypes, "managedEntityTypes must not be null");
         Map<String, Class<?>> entities = new HashMap<>();
-        for (EntityType<?> entity : factory.getMetamodel().getEntities()) {
-            Class<?> javaType = entity.getJavaType();
+        for (Class<?> javaType : types.all()) {
             entities.put(javaType.getName(), javaType);
         }
+        this.managedEntityTypes = types;
         this.managedEntitiesByName = Map.copyOf(entities);
     }
 
@@ -43,7 +48,7 @@ public final class ManagedEntityCatalog {
      * приложение и платформа получают один и тот же набор из одного места.</p>
      */
     public Set<Class<?>> managedEntityClasses() {
-        return Set.copyOf(managedEntitiesByName.values());
+        return managedEntityTypes.asSet();
     }
 
     /**

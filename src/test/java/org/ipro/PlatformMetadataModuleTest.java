@@ -21,20 +21,21 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * D2 → D3: позвоночник метаданных — отдельный артефакт, и это проверяется.
+ * D2 → D3 / ET3: нейтральные источники метаданных — отдельный артефакт, и это проверяется.
  *
  * <p>Срез выбран замером, а не удобством: {@code PlatformSubsystemClosureTest} показал, что
- * весь упор подсистем в дерево — это два типа (сканер классов по аннотации и индекс
- * обратных ссылок). Пока они лежали в дереве, ни {@code numbering}, ни {@code settings}
+ * подсистемам нужны нейтральные источники метаданных: сканер классов, индекс обратных
+ * ссылок и снимок managed JPA-типов. Пока эти типы лежали в верхнем дереве, ни
+ * {@code numbering}, ни {@code settings}
  * нельзя было сделать модулем: модуль не может ссылаться на дерево.</p>
  *
  * <p>Тест держит четыре свойства, которые легко потерять незаметно:</p>
  * <ol>
- * <li>состав среза — reviewed-бюджет: ровно два типа, а не «пакет целиком». Пакет
+ * <li>состав среза — reviewed-бюджет: только необходимые нейтральные типы, а не «пакет целиком». Пакет
  *     {@code org.ipro.metadata} — это движок метаданных, и он выносится по мере того, как
  *     этого потребует замыкание следующей подсистемы;</li>
- * <li>объявленные зависимости помника — reviewed: контракты (аннотации) и
- *     {@code spring-context} (сканер и bean-контракт индекса);</li>
+ * <li>объявленные зависимости помника — reviewed: контракты (аннотации),
+ *     {@code jakarta.persistence-api} (metamodel) и {@code spring-context};</li>
  * <li>внешние импорты — только разрешённые пакеты: реализация платформы в этом модуле
  *     означала бы, что подсистемы не смогут зависеть на него без цикла;</li>
  * <li>модуль <b>не несёт авто-конфигурации</b>: wiring платформы живёт в
@@ -50,15 +51,19 @@ class PlatformMetadataModuleTest {
 
     private static final Set<String> REVIEWED_TYPES = Set.of(
         "org.ipro.metadata.AnnotationClassScanner",
-        "org.ipro.metadata.ReferenceIndex");
+        "org.ipro.metadata.ReferenceIndex",
+        "org.ipro.metadata.EntityMetadataApplicability",
+        "org.ipro.metadata.ManagedEntityTypes");
 
     private static final Set<String> REVIEWED_DEPENDENCIES = Set.of(
         "platform-contracts",
+        "jakarta.persistence-api",
         "spring-context");
 
     /** Разрешённые внешние импорты: только эти пакеты не-JDK. */
     private static final Set<String> ALLOWED_EXTERNAL_IMPORTS = Set.of(
         "org.ipro.metadata.annotation",  // аннотации метаданных из platform-contracts
+        "jakarta.persistence",           // metamodel persistence unit
         "org.springframework");         // сканер классов и bean-контракт
 
     private static final Pattern ARTIFACT_ID = Pattern.compile("<artifactId>([^<]+)</artifactId>");
@@ -100,7 +105,7 @@ class PlatformMetadataModuleTest {
     }
 
     @Test
-    void moduleImportsOnlyContractsAndSpring() {
+    void moduleImportsOnlyReviewedExternalPackages() {
         Set<String> offending = new TreeSet<>();
         for (Path source : javaSources()) {
             Matcher matcher = IMPORT.matcher(withoutComments(read(source)));
@@ -160,6 +165,7 @@ class PlatformMetadataModuleTest {
     void spineTypesLeftTheApplicationTree() {
         assertThat(Path.of("src/main/java/org/ipro/metadata/AnnotationClassScanner.java")).doesNotExist();
         assertThat(Path.of("src/main/java/org/ipro/metadata/ReferenceIndex.java")).doesNotExist();
+        assertThat(Path.of("src/main/java/org/ipro/metadata/ManagedEntityTypes.java")).doesNotExist();
     }
 
     /**
@@ -169,7 +175,8 @@ class PlatformMetadataModuleTest {
      */
     @Test
     void spineTypesAreResolvedFromTheArtifactAtRuntime() {
-        for (Class<?> type : List.of(AnnotationClassScanner.class, ReferenceIndex.class)) {
+        for (Class<?> type : List.of(AnnotationClassScanner.class, ReferenceIndex.class,
+                org.ipro.metadata.ManagedEntityTypes.class)) {
             CodeSource codeSource = type.getProtectionDomain().getCodeSource();
             assertThat(codeSource).as("%s должен грузиться из артефакта", type.getName()).isNotNull();
             assertThat(codeSource.getLocation().toString())

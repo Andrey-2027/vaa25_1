@@ -1,0 +1,434 @@
+# platform-query-vaadin: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+class public final org.ipro.query.ui.catalog.QuerySourceTree
+  extends com.vaadin.flow.component.treegrid.TreeGrid<T>
+  type-parameter T
+  ctor public()
+  method public void configure(java.util.function.Function<T, java.lang.String>, java.util.function.Function<T, java.lang.String>, java.util.function.Function<T, java.lang.String>, java.util.function.Function<T, java.lang.String>)
+
+class public final org.ipro.query.ui.constructor.CatalogTreeModel
+  method public static java.lang.String category(org.ipro.query.ui.constructor.ConstructorTreeNode)
+  method public static java.lang.String dataType(org.ipro.query.ui.constructor.ConstructorTreeNode)
+  method public static java.lang.String label(org.ipro.query.ui.constructor.ConstructorTreeNode)
+  method public static java.lang.String name(org.ipro.query.ui.constructor.ConstructorTreeNode)
+  method public static java.util.List<org.ipro.query.ui.constructor.ConstructorTreeNode> catalogRoots(java.util.List<org.ipro.query.QueryBuilderMetadataCatalog$Entity>)
+  method public static java.util.List<org.ipro.query.ui.constructor.ConstructorTreeNode> sourceRoots(java.util.List<org.ipro.query.QueryBuilderMetadataCatalog$Entity>, org.ipro.query.register.RegisterSliceReportTemplates, java.lang.String)
+  method public static org.ipro.query.ui.constructor.ConstructorTreeNode filter(org.ipro.query.ui.constructor.ConstructorTreeNode, java.lang.String)
+
+class public final org.ipro.query.ui.constructor.ConstructorTreeNode
+  ctor public(org.ipro.query.ui.constructor.ConstructorTreeNode$Kind, java.lang.String, org.ipro.query.QueryBuilderMetadataCatalog$Entity, org.ipro.query.QueryBuilderMetadataCatalog$Field, org.ipro.query.QueryBuilderMetadataCatalog$Association, java.util.List<org.ipro.query.ui.constructor.ConstructorTreeNode>)
+  ctor public(org.ipro.query.ui.constructor.ConstructorTreeNode$Kind, java.lang.String, org.ipro.query.QueryBuilderMetadataCatalog$Entity, org.ipro.query.QueryBuilderMetadataCatalog$Field, org.ipro.query.QueryBuilderMetadataCatalog$Association, java.util.List<org.ipro.query.ui.constructor.ConstructorTreeNode>, java.lang.String)
+  method public java.lang.String caption()
+  method public java.lang.String tableAlias()
+  method public java.util.List<org.ipro.query.ui.constructor.ConstructorTreeNode> children()
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Association association()
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Entity entity()
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Field field()
+  method public org.ipro.query.ui.constructor.ConstructorTreeNode parent()
+  method public org.ipro.query.ui.constructor.ConstructorTreeNode$Kind kind()
+
+class public final org.ipro.query.ui.constructor.QueryConstructorDraft
+  ctor public()
+  method public boolean addHavingCondition(java.lang.String, org.ipro.query.VisualQueryDefinition$HavingOperator, org.ipro.query.VisualQueryDefinition$HavingValue)
+  method public boolean hasRoot()
+  method public boolean isAutoGrouping(java.lang.String)
+  method public boolean isEntitySelected(java.lang.String)
+  method public boolean isMainStage()
+  method public java.lang.String activeStage()
+  method public java.lang.String addConstructorList(org.ipro.query.ui.list.ConstructorList, java.lang.String, java.lang.String)
+  method public java.lang.String addConstructorListByField(org.ipro.query.ui.list.ConstructorList, java.lang.String, java.lang.String)
+  method public java.lang.String addCteTable(java.lang.String)
+  method public java.lang.String addSlice(org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice)
+  method public java.lang.String addStage()
+  method public java.lang.String addTable(org.ipro.query.QueryBuilderMetadataCatalog$Entity)
+  method public java.lang.String cteFieldAlias(java.lang.String)
+  method public java.lang.String displayFieldName(java.lang.String)
+  method public java.lang.String displayPath(java.lang.String)
+  method public java.lang.String ensureChain(org.ipro.query.QueryBuilderMetadataCatalog$Entity, java.util.List<org.ipro.query.QueryBuilderMetadataCatalog$Association>)
+  method public java.lang.String rootAlias()
+  method public java.util.List<java.lang.String> effectiveGrouping()
+  method public java.util.List<java.lang.String> groupingPaths()
+  method public java.util.List<java.lang.String> parameterNames()
+  method public java.util.List<java.lang.String> stageNames()
+  method public java.util.List<java.lang.String> visibleStageNames()
+  method public java.util.List<org.ipro.query.QueryBuilderMetadataCatalog$Entity> availableCteEntities()
+  method public java.util.List<org.ipro.query.QueryBuilderMetadataCatalog$Entity> roots()
+  method public java.util.List<org.ipro.query.VisualQueryDefinition$Aggregate> aggregates()
+  method public java.util.List<org.ipro.query.VisualQueryDefinition$Expression> expressions()
+  method public java.util.List<org.ipro.query.VisualQueryDefinition$HavingCondition> havingConditions()
+  method public java.util.List<org.ipro.query.VisualQueryDefinition$Join> joins()
+  method public java.util.List<org.ipro.query.VisualQueryDefinition$SelectField> selections()
+  method public java.util.List<org.ipro.query.VisualQueryDefinition$Subquery> subqueries()
+  method public java.util.List<org.ipro.query.VisualQueryOrder> orders()
+  method public java.util.List<org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice> slices()
+  method public java.util.List<org.ipro.query.ui.constructor.QueryConstructorDraft$TableRef> tables()
+  method public java.util.List<org.ipro.query.ui.list.ConstructorList> lists()
+  method public java.util.Map<java.lang.String, org.ipro.query.QueryBuilderMetadataCatalog$Entity> aliasEntities()
+  method public java.util.Set<java.lang.String> occupiedNames()
+  method public org.ipro.filtergrid.filter.FilterNode where()
+  method public org.ipro.query.JoinLogicalOperator havingOperator()
+  method public org.ipro.query.QueryBuilderMetadataCatalog catalog()
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Entity entity(java.lang.String)
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Entity entityByType(java.lang.Class<?>)
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Entity entityForAlias(java.lang.String)
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Entity entityOfJoin(org.ipro.query.VisualQueryDefinition$Join)
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Entity root()
+  method public org.ipro.query.VisualQueryDefinition definition()
+  method public org.ipro.query.VisualQueryDefinition$Aggregate addAggregate(java.lang.String, java.lang.String, java.lang.String)
+  method public org.ipro.query.VisualQueryDefinition$Expression addExpression(java.lang.String, org.ipro.query.VisualQueryExpression)
+  method public org.ipro.query.VisualQueryDefinition$Expression replaceExpression(org.ipro.query.VisualQueryDefinition$Expression, java.lang.String, org.ipro.query.VisualQueryExpression)
+  method public org.ipro.query.VisualQueryDefinition$Join addJoin(org.ipro.query.VisualQueryDefinition$Join)
+  method public org.ipro.query.VisualQueryDefinition$SelectField addField(org.ipro.query.QueryBuilderMetadataCatalog$Entity, java.util.List<org.ipro.query.QueryBuilderMetadataCatalog$Association>, java.lang.String)
+  method public org.ipro.query.VisualQueryDefinition$SelectField addSelection(java.lang.String, java.lang.String)
+  method public org.ipro.query.VisualQueryPackage packageDefinition()
+  method public org.ipro.query.ui.constructor.QueryConstructorDraft$Compiled compile()
+  method public static int maxChainDepth()
+  method public static java.lang.String firstSegment(java.lang.String)
+  method public static java.util.List<org.ipro.query.QueryBuilderMetadataCatalog$Association> chainOf(org.ipro.query.ui.constructor.ConstructorTreeNode, org.ipro.query.ui.constructor.ConstructorTreeNode)
+  method public void addGrouping(java.lang.String)
+  method public void addOrder(java.lang.String, org.ipro.query.VisualQueryOrder$Direction)
+  method public void clear()
+  method public void clearAggregates()
+  method public void clearGrouping()
+  method public void clearHaving()
+  method public void clearOrders()
+  method public void clearPackageStages()
+  method public void clearSelections()
+  method public void load(org.ipro.query.VisualQueryDefinition)
+  method public void pruneUnusedLists()
+  method public void pruneUnusedSlices()
+  method public void pruneWhere(java.util.Set<java.lang.String>)
+  method public void removeAggregate(org.ipro.query.VisualQueryDefinition$Aggregate)
+  method public void removeExpression(org.ipro.query.VisualQueryDefinition$Expression)
+  method public void removeGrouping(java.lang.String)
+  method public void removeHavingCondition(org.ipro.query.VisualQueryDefinition$HavingCondition)
+  method public void removeOrder(org.ipro.query.VisualQueryOrder)
+  method public void removeSelection(org.ipro.query.VisualQueryDefinition$SelectField)
+  method public void removeStage(java.lang.String)
+  method public void removeTable(java.lang.String)
+  method public void renameAggregate(org.ipro.query.VisualQueryDefinition$Aggregate, java.lang.String)
+  method public void renameAlias(java.lang.String, java.lang.String)
+  method public void renameResultName(org.ipro.query.VisualQueryDefinition$SelectField, java.lang.String)
+  method public void renameStage(java.lang.String, java.lang.String)
+  method public void replaceAggregateFunction(org.ipro.query.VisualQueryDefinition$Aggregate, java.lang.String)
+  method public void replaceHavingCondition(org.ipro.query.VisualQueryDefinition$HavingCondition, org.ipro.query.VisualQueryDefinition$HavingCondition)
+  method public void replaceOrderDirection(org.ipro.query.VisualQueryOrder, org.ipro.query.VisualQueryOrder$Direction)
+  method public void setCatalog(org.ipro.query.QueryBuilderMetadataCatalog)
+  method public void setCteRoot(java.lang.String, java.lang.String)
+  method public void setHavingOperator(org.ipro.query.JoinLogicalOperator)
+  method public void setLists(java.util.List<org.ipro.query.ui.list.ConstructorList>)
+  method public void setRoot(org.ipro.query.QueryBuilderMetadataCatalog$Entity)
+  method public void setSlices(java.util.List<org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice>)
+  method public void setStageRecorders(java.lang.String, java.util.List<org.ipro.register.RecorderRef>)
+  method public void setWhere(org.ipro.filtergrid.filter.FilterNode)
+  method public void switchStage(java.lang.String)
+  method public void updateConstructorList(java.lang.String, org.ipro.query.ui.list.ConstructorList)
+  method public void updateConstructorList(java.lang.String, org.ipro.query.ui.list.ConstructorList, java.lang.String)
+  method public void updateJoin(org.ipro.query.VisualQueryDefinition$Join, java.lang.String, org.ipro.query.VisualQueryDefinition$JoinKind, org.ipro.query.JoinCondition)
+  method public void updateSlice(java.lang.String, org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice)
+
+class public final org.ipro.query.ui.editor.QueryEditorSession
+  ctor public(org.ipro.query.ui.editor.QueryDraft)
+  method public boolean dirty()
+  method public java.util.Optional<org.ipro.query.ui.editor.QueryDraft> unapplied()
+  method public org.ipro.query.ui.editor.QueryDraft baseline()
+  method public org.ipro.query.ui.editor.QueryDraft draft()
+  method public static org.ipro.query.ui.editor.QueryEditorSession of(org.ipro.query.ui.editor.QueryDraft)
+  method public void apply()
+  method public void cancel()
+  method public void onDraftChanged(java.util.function.Consumer<org.ipro.query.ui.editor.QueryDraft>)
+  method public void update(org.ipro.query.ui.editor.QueryDraft)
+
+class public final org.ipro.query.ui.editor.QueryMetadataNode
+  ctor public(org.ipro.query.ui.editor.QueryMetadataNode$Kind, java.lang.String, java.lang.String, java.lang.String, boolean, java.util.List<org.ipro.query.ui.editor.QueryMetadataNode>)
+  method public boolean selectable()
+  method public java.lang.String caption()
+  method public java.lang.String category()
+  method public java.lang.String javaType()
+  method public java.lang.String token()
+  method public java.util.List<org.ipro.query.ui.editor.QueryMetadataNode> children()
+  method public org.ipro.query.ui.editor.QueryMetadataNode category(java.lang.String)
+  method public org.ipro.query.ui.editor.QueryMetadataNode$Kind kind()
+
+class public final org.ipro.query.ui.editor.QueryTestParam
+  ctor public(java.lang.String)
+  method public java.lang.Object value()
+  method public java.lang.String className()
+  method public java.lang.String name()
+  method public org.ipro.metadata.annotation.FieldType type()
+  method public org.ipro.query.model.QueryParameterKind toParamKind()
+  method public void setClassName(java.lang.String)
+  method public void setType(org.ipro.metadata.annotation.FieldType)
+  method public void setValue(java.lang.Object)
+
+class public final org.ipro.query.ui.list.ListConstructorSources
+  method public static boolean matches(org.ipro.query.VisualQueryPackage, org.ipro.query.ui.list.ConstructorList)
+  method public static java.lang.String attach(java.lang.String, java.util.List<org.ipro.query.ui.list.ConstructorList>)
+  method public static java.util.List<org.ipro.query.ui.list.ConstructorList> read(java.lang.String, org.ipro.query.QueryBuilderMetadataCatalog)
+
+class public final org.ipro.query.ui.list.ListCteGenerator
+  ctor public(org.ipro.query.QueryBuilderMetadataCatalog)
+  method public org.ipro.query.ui.list.ConstructorList generate(java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.query.VisualQueryOrder$Direction, java.util.Set<java.lang.String>)
+  method public org.ipro.query.ui.list.ConstructorList generate(org.ipro.query.VisualQueryPackage, java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.query.VisualQueryOrder$Direction, java.util.Set<java.lang.String>)
+  method public org.ipro.query.ui.list.ConstructorList generateNamed(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.query.VisualQueryOrder$Direction)
+  method public org.ipro.query.ui.list.ConstructorList generateNamed(java.lang.String, org.ipro.query.VisualQueryPackage, java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.query.VisualQueryOrder$Direction)
+
+class public org.ipro.query.ui.config.QueryUiAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  ctor public()
+  method public org.ipro.query.ui.editor.QueryEditorAnalysisService queryEditorAnalysisService(org.ipro.query.ReportQueryGuard)
+  method public org.ipro.query.ui.editor.QueryMetadataCatalogService queryMetadataCatalogService(org.ipro.metadata.ManagedEntityTypes, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsCurrentUser)
+
+class public org.ipro.query.ui.constructor.JpqlQueryBuilderDialog
+  extends com.vaadin.flow.component.dialog.Dialog
+  ctor public(org.ipro.query.QueryBuilderMetadataCatalog, java.util.List<java.lang.String>, org.ipro.query.VisualQueryDefinition, java.util.List<java.lang.String>, java.util.function.Consumer<org.ipro.query.ui.constructor.JpqlQueryBuilderDialog$Result>)
+  ctor public(org.ipro.query.QueryBuilderMetadataCatalog, java.util.List<java.lang.String>, org.ipro.query.VisualQueryDefinition, java.util.function.Consumer<org.ipro.query.ui.constructor.JpqlQueryBuilderDialog$Result>)
+  ctor public(org.ipro.query.QueryBuilderMetadataCatalog, java.util.List<java.lang.String>, org.ipro.query.VisualQueryDefinition, org.ipro.query.VisualQueryPackage, java.util.List<java.lang.String>, java.util.function.Consumer<org.ipro.query.ui.constructor.JpqlQueryBuilderDialog$Result>)
+  method public void setListSupport(java.lang.String)
+  method public void setSliceSupport(org.ipro.query.register.RegisterSliceReportTemplates, java.lang.String, java.util.function.BiConsumer<org.ipro.query.ui.constructor.JpqlQueryConstructor$SliceRequest, java.util.function.Consumer<org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice>>)
+
+class public org.ipro.query.ui.constructor.JpqlQueryConstructor
+  extends com.vaadin.flow.component.orderedlayout.VerticalLayout
+  ctor public(org.ipro.query.QueryBuilderMetadataCatalog, java.util.List<java.lang.String>)
+  method public java.lang.String compileError()
+  method public java.lang.String jpql()
+  method public java.lang.String visualQueryJson()
+  method public java.util.Map<java.lang.String, java.lang.Object> bindings()
+  method public org.ipro.query.VisualQueryDefinition definition()
+  method public org.ipro.query.VisualQueryPackage queryPackage()
+  method public void refreshAll()
+  method public void setDefinition(org.ipro.query.VisualQueryDefinition)
+  method public void setListSupport(java.lang.String)
+  method public void setPackage(org.ipro.query.VisualQueryPackage)
+  method public void setParseWarnings(java.util.List<java.lang.String>)
+  method public void setSliceSupport(org.ipro.query.register.RegisterSliceReportTemplates, java.lang.String, java.util.function.BiConsumer<org.ipro.query.ui.constructor.JpqlQueryConstructor$SliceRequest, java.util.function.Consumer<org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice>>)
+
+class public org.ipro.query.ui.editor.QueryEditorAnalysisService
+  ctor public(org.ipro.query.ReportQueryGuard)
+  method public org.ipro.query.ui.editor.QueryEditorAnalysis analyze(java.lang.String, java.util.Collection<org.ipro.query.model.QueryParameter>)
+  method public org.ipro.query.ui.editor.QueryEditorAnalysis analyze(java.lang.String, java.util.Set<java.lang.String>, java.util.Map<java.lang.String, java.lang.Class<?>>)
+
+class public org.ipro.query.ui.editor.QueryMetadataCatalogService
+  ctor public(jakarta.persistence.EntityManagerFactory, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsCurrentUser)
+  ctor public(org.ipro.metadata.ManagedEntityTypes, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsCurrentUser)
+  method public java.util.List<org.ipro.query.ui.editor.QueryMetadataCatalogService$EntityOption> entityOptions()
+  method public java.util.List<org.ipro.query.ui.editor.QueryMetadataNode> roots(java.lang.String)
+  method public void useSharedCatalog(org.ipro.query.QueryBuilderMetadataCatalog, org.ipro.query.register.RegisterSliceReportTemplates)
+
+class public org.ipro.query.ui.editor.ReportQueryEditor
+  extends com.vaadin.flow.component.orderedlayout.VerticalLayout
+  ctor public(org.ipro.query.ui.editor.QueryEditorAnalysisService, org.ipro.query.ui.editor.QueryMetadataCatalogService, org.ipro.query.ReportPreviewService, org.ipro.crud.EntityLookup, org.ipro.query.ui.selection.EntitySelection)
+  ctor public(org.ipro.query.ui.editor.QueryEditorAnalysisService, org.ipro.query.ui.editor.QueryMetadataCatalogService, org.ipro.query.ReportPreviewService, org.ipro.crud.EntityLookup, org.ipro.query.ui.selection.EntitySelection, org.ipro.query.ReportQueryAssemblyService)
+  ctor public(org.ipro.query.ui.editor.QueryEditorAnalysisService, org.ipro.query.ui.editor.QueryMetadataCatalogService, org.ipro.query.ReportPreviewService, org.ipro.crud.EntityLookup, org.ipro.query.ui.selection.EntitySelection, org.ipro.query.ReportQueryAssemblyService, org.ipro.query.QuerySnapshotService)
+  field public static final int DEFAULT_PREVIEW_ROWS = 50
+  field public static final int MAX_PREVIEW_ROWS = 500
+  method public java.lang.String getJpql()
+  method public org.ipro.query.VisualQueryPackage visualQueryPackage()
+  method public org.ipro.query.ui.editor.QueryDraft draft()
+  method public org.ipro.query.ui.editor.QueryEditorAnalysis analyze()
+  method public void applyJpqlText(java.lang.String)
+  method public void onCaretContext(java.lang.String, java.lang.String, java.lang.String)
+  method public void open(org.ipro.query.ui.editor.QueryDraft)
+  method public void open(org.ipro.query.ui.editor.QueryEditorSession)
+  method public void preview()
+  method public void setAnalysisListener(java.util.function.Consumer<org.ipro.query.ui.editor.QueryEditorAnalysis>)
+  method public void setChangeListener(java.util.function.Consumer<org.ipro.query.ui.editor.QueryDraft>)
+  method public void setPresentationHints(java.util.List<java.lang.String>, java.util.List<org.ipro.query.model.QuerySort>)
+  method public void setQueryConstructorCatalog(org.ipro.query.QueryBuilderMetadataCatalog)
+  method public void setRegisterSliceRecipes(org.ipro.query.register.RegisterSliceReportTemplates)
+
+class public org.ipro.query.ui.result.QueryResultTable
+  extends com.vaadin.flow.component.orderedlayout.VerticalLayout
+  ctor public()
+  method public com.vaadin.flow.component.grid.Grid<org.ipro.report.data.ReportRow> grid()
+  method public com.vaadin.flow.component.textfield.TextField filterField()
+  method public java.lang.String summaryText()
+  method public void clear()
+  method public void show(java.util.List<org.ipro.report.data.QueryField>, org.ipro.report.data.ReportDataset)
+  method public void show(org.ipro.query.QuerySnapshot)
+
+enum public final org.ipro.query.ui.constructor.AggregateFunction
+  extends java.lang.Enum<org.ipro.query.ui.constructor.AggregateFunction>
+  enum-constants [SUM, COUNT, COUNT_ROWS, MAX, MIN, AVG]
+  field public static final org.ipro.query.ui.constructor.AggregateFunction AVG = enum-constant
+  field public static final org.ipro.query.ui.constructor.AggregateFunction COUNT = enum-constant
+  field public static final org.ipro.query.ui.constructor.AggregateFunction COUNT_ROWS = enum-constant
+  field public static final org.ipro.query.ui.constructor.AggregateFunction MAX = enum-constant
+  field public static final org.ipro.query.ui.constructor.AggregateFunction MIN = enum-constant
+  field public static final org.ipro.query.ui.constructor.AggregateFunction SUM = enum-constant
+  method public java.lang.String caption()
+  method public java.lang.String code()
+  method public static java.util.List<org.ipro.query.ui.constructor.AggregateFunction> allowedFor(org.ipro.query.QueryBuilderMetadataCatalog$Field)
+  method public static org.ipro.query.ui.constructor.AggregateFunction valueOf(java.lang.String)
+  method public static org.ipro.query.ui.constructor.AggregateFunction[] values()
+
+enum public static final org.ipro.query.ui.constructor.ConstructorTreeNode$Kind
+  extends java.lang.Enum<org.ipro.query.ui.constructor.ConstructorTreeNode$Kind>
+  enum-constants [ENTITY, PROPERTY, ASSOCIATION, CTE, SLICE, GROUP]
+  field public static final org.ipro.query.ui.constructor.ConstructorTreeNode$Kind ASSOCIATION = enum-constant
+  field public static final org.ipro.query.ui.constructor.ConstructorTreeNode$Kind CTE = enum-constant
+  field public static final org.ipro.query.ui.constructor.ConstructorTreeNode$Kind ENTITY = enum-constant
+  field public static final org.ipro.query.ui.constructor.ConstructorTreeNode$Kind GROUP = enum-constant
+  field public static final org.ipro.query.ui.constructor.ConstructorTreeNode$Kind PROPERTY = enum-constant
+  field public static final org.ipro.query.ui.constructor.ConstructorTreeNode$Kind SLICE = enum-constant
+  method public static org.ipro.query.ui.constructor.ConstructorTreeNode$Kind valueOf(java.lang.String)
+  method public static org.ipro.query.ui.constructor.ConstructorTreeNode$Kind[] values()
+
+enum public static final org.ipro.query.ui.editor.QueryMetadataNode$Kind
+  extends java.lang.Enum<org.ipro.query.ui.editor.QueryMetadataNode$Kind>
+  enum-constants [ENTITY, TABLE, PROPERTY, ASSOCIATION, GROUP, SLICE, CTE]
+  field public static final org.ipro.query.ui.editor.QueryMetadataNode$Kind ASSOCIATION = enum-constant
+  field public static final org.ipro.query.ui.editor.QueryMetadataNode$Kind CTE = enum-constant
+  field public static final org.ipro.query.ui.editor.QueryMetadataNode$Kind ENTITY = enum-constant
+  field public static final org.ipro.query.ui.editor.QueryMetadataNode$Kind GROUP = enum-constant
+  field public static final org.ipro.query.ui.editor.QueryMetadataNode$Kind PROPERTY = enum-constant
+  field public static final org.ipro.query.ui.editor.QueryMetadataNode$Kind SLICE = enum-constant
+  field public static final org.ipro.query.ui.editor.QueryMetadataNode$Kind TABLE = enum-constant
+  method public static org.ipro.query.ui.editor.QueryMetadataNode$Kind valueOf(java.lang.String)
+  method public static org.ipro.query.ui.editor.QueryMetadataNode$Kind[] values()
+
+enum public static final org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus
+  extends java.lang.Enum<org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus>
+  enum-constants [INFERRED, UNKNOWN, AMBIGUOUS]
+  field public static final org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus AMBIGUOUS = enum-constant
+  field public static final org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus INFERRED = enum-constant
+  field public static final org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus UNKNOWN = enum-constant
+  method public static org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus valueOf(java.lang.String)
+  method public static org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus[] values()
+
+interface public abstract interface org.ipro.query.ui.selection.EntitySelection
+  method public abstract java.util.List<org.ipro.metadata.ColumnPath> columns(java.lang.Class<?>)
+  method public abstract org.ipro.query.ui.selection.EntitySelection$Field field(java.lang.String, java.lang.Class<?>)
+
+interface public abstract static interface org.ipro.query.ui.selection.EntitySelection$Field
+  method public abstract com.vaadin.flow.component.Component component()
+  method public abstract org.ipro.metadata.HasDisplayName value()
+  method public abstract void addValueChangeListener(java.util.function.Consumer<org.ipro.metadata.HasDisplayName>)
+  method public abstract void setValue(org.ipro.metadata.HasDisplayName)
+
+record public final org.ipro.query.ui.editor.QueryDraft
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.query.model.QuerySource, java.lang.String, java.lang.String, java.util.List<org.ipro.query.model.QueryParameter>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int nextParameterPosition()
+  method public java.lang.String jpql()
+  method public java.lang.String visualFilterJson()
+  method public java.lang.String visualQueryJson()
+  method public java.util.List<org.ipro.query.model.QueryParameter> parameters()
+  method public java.util.Optional<org.ipro.query.model.QueryParameter> parameter(java.lang.String)
+  method public org.ipro.query.model.QueryDefinition definition()
+  method public org.ipro.query.model.QuerySource source()
+  method public org.ipro.query.ui.editor.QueryDraft withJpql(java.lang.String)
+  method public org.ipro.query.ui.editor.QueryDraft withParameter(org.ipro.query.model.QueryParameter)
+  method public org.ipro.query.ui.editor.QueryDraft withParameters(java.util.List<org.ipro.query.model.QueryParameter>)
+  method public org.ipro.query.ui.editor.QueryDraft withSource(org.ipro.query.model.QuerySource)
+  method public org.ipro.query.ui.editor.QueryDraft withVisualQueryJson(java.lang.String)
+  method public org.ipro.query.ui.editor.QueryDraft withoutParameter(java.lang.String)
+  method public org.ipro.query.ui.editor.QueryDraft withoutParameters(java.util.function.Predicate<org.ipro.query.model.QueryParameter>)
+  method public static org.ipro.query.ui.editor.QueryDraft of(org.ipro.query.model.QueryDefinition)
+
+record public final org.ipro.query.ui.editor.QueryEditorAnalysis
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.query.GuardResult, java.util.List<org.ipro.query.ui.editor.QueryParameterDescriptor>)
+  method public boolean syntaxValid()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String jpql()
+  method public java.util.List<org.ipro.query.ui.editor.QueryParameterDescriptor> parameters()
+  method public org.ipro.query.GuardResult guardResult()
+
+record public final org.ipro.query.ui.editor.QueryParameterDescriptor
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.Class<?>, java.lang.Class<?>, boolean, org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus, java.lang.String)
+  method public boolean collection()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> entityClass()
+  method public java.lang.Class<?> inferredJavaType()
+  method public java.lang.String explanation()
+  method public java.lang.String name()
+  method public org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus inferenceStatus()
+  method public static org.ipro.query.ui.editor.QueryParameterDescriptor unknown(java.lang.String)
+
+record public final org.ipro.query.ui.list.ConstructorList
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.query.VisualQueryOrder$Direction, java.util.List<org.ipro.query.VisualQueryPackage$Cte>, org.ipro.query.QueryBuilderMetadataCatalog$Entity, java.lang.String)
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.query.VisualQueryOrder$Direction, java.util.List<org.ipro.query.VisualQueryPackage$Cte>, org.ipro.query.QueryBuilderMetadataCatalog$Entity, java.lang.String, org.ipro.query.VisualQueryPackage, java.lang.String, java.lang.String)
+  method public boolean distinct()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String keyColumn()
+  method public java.lang.String name()
+  method public java.lang.String parentEntity()
+  method public java.lang.String parentField()
+  method public java.lang.String sectionEntity()
+  method public java.lang.String separator()
+  method public java.lang.String settingsJson()
+  method public java.lang.String valueColumn()
+  method public java.lang.String valuePath()
+  method public java.util.List<org.ipro.query.VisualQueryPackage$Cte> stages()
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Entity entity()
+  method public org.ipro.query.VisualQueryOrder$Direction direction()
+  method public org.ipro.query.VisualQueryPackage sourceQuery()
+
+record public static final org.ipro.query.ui.constructor.JpqlQueryBuilderDialog$Result
+  extends java.lang.Record
+  ctor public(org.ipro.query.VisualQueryDefinition, java.lang.String, java.util.Map<java.lang.String, ?>)
+  ctor public(org.ipro.query.VisualQueryDefinition, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>, org.ipro.query.VisualQueryPackage)
+  ctor public(org.ipro.query.VisualQueryDefinition, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>, org.ipro.query.VisualQueryPackage, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String jpql()
+  method public java.lang.String visualQueryJson()
+  method public java.util.Map<java.lang.String, java.lang.Object> bindings()
+  method public org.ipro.query.VisualQueryDefinition definition()
+  method public org.ipro.query.VisualQueryPackage queryPackage()
+
+record public static final org.ipro.query.ui.constructor.JpqlQueryConstructor$SliceRequest
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice, java.util.Set<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String registerEntity()
+  method public java.util.Set<java.lang.String> occupied()
+  method public org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice current()
+
+record public static final org.ipro.query.ui.constructor.QueryConstructorDraft$Compiled
+  extends java.lang.Record
+  ctor public(java.lang.String, java.util.List<org.ipro.report.data.QueryField>, java.util.Map<java.lang.String, java.lang.Object>, java.lang.String)
+  method public boolean ok()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String error()
+  method public java.lang.String jpql()
+  method public java.util.List<org.ipro.report.data.QueryField> fields()
+  method public java.util.Map<java.lang.String, java.lang.Object> bindings()
+
+record public static final org.ipro.query.ui.constructor.QueryConstructorDraft$TableRef
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.query.QueryBuilderMetadataCatalog$Entity, boolean, org.ipro.query.VisualQueryDefinition$Join)
+  method public boolean root()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String alias()
+  method public org.ipro.query.QueryBuilderMetadataCatalog$Entity entity()
+  method public org.ipro.query.VisualQueryDefinition$Join join()
+
+record public static final org.ipro.query.ui.editor.QueryMetadataCatalogService$EntityOption
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String caption()
+  method public java.lang.String className()
+  method public java.lang.String entityName()
+

@@ -59,13 +59,13 @@ class RlsDimensionFactsIT {
 
     /** RLS dimensions, объявленные приложением: восемь имён и двенадцать сайтов-аннотаций. */
     private static final Set<String> DIMENSIONS = Set.of(
-        "BRANCH", "JOURNAL", "ENTITY:ReceivingDocument", "REPORTS:JPQL_PREVIEW",
+        "BRANCH", "JOURNAL", "REPORTS:JPQL_PREVIEW",
         "SETTINGS:Directories", "SETTINGS:Documents", "SETTINGS:ProductionDocuments",
         "SETTINGS:Production");
 
-    /** Аннотированные CHECK_ONLY RLS dimensions: четыре SETTINGS:*, REPORTS:* и legacy ENTITY. */
+    /** Аннотированные CHECK_ONLY RLS dimensions: четыре SETTINGS:* и REPORTS:*. */
     private static final Set<String> CHECK_ONLY = Set.of(
-        "ENTITY:ReceivingDocument", "REPORTS:JPQL_PREVIEW", "SETTINGS:Directories",
+        "REPORTS:JPQL_PREVIEW", "SETTINGS:Directories",
         "SETTINGS:Documents", "SETTINGS:ProductionDocuments", "SETTINGS:Production");
 
     @MockitoBean
@@ -99,7 +99,7 @@ class RlsDimensionFactsIT {
 
     /** Аннотированные RLS dimensions плюс динамические ключи C5: read (FQN) и операционные. */
     @Test
-    void applicationHasEightAnnotatedDimensionsAndC5Keys() {
+    void applicationHasSevenAnnotatedDimensionsAndC5Keys() {
         Set<String> expected = new TreeSet<>(DIMENSIONS);
         expected.addAll(canonicalEntityReadKeys());
         expected.addAll(c5OperationKeys());
@@ -115,7 +115,7 @@ class RlsDimensionFactsIT {
      * ({@code dimensionsOf}), то есть берётся у владельца факта, а не выводится в UI.
      */
     @Test
-    void twelveDeclarationSitesAcrossTenCarryingTypes() {
+    void elevenDeclarationSitesAcrossTenCarryingTypes() {
         Map<String, Set<Class<?>>> sites = declarationSites();
         assertThat(sites.keySet())
             .as("каждое измерение обязано иметь носителя: неизвестного измерения в реестре нет")
@@ -124,8 +124,6 @@ class RlsDimensionFactsIT {
             .containsExactlyInAnyOrder(Branch.class, ReceivingDocument.class, Workshop.class);
         assertThat(sites.get("JOURNAL"))
             .containsExactlyInAnyOrder(Journal.class, PrdSpec.class, ReceivingDocument.class);
-        assertThat(sites.get("ENTITY:ReceivingDocument"))
-            .containsExactly(ReceivingDocument.class);
         assertThat(sites.get("SETTINGS:Production"))
             .as("маркерное измерение объявлено вложенным типом, а не сущностью")
             .containsExactly(Subsystems.Production.class);
@@ -134,9 +132,9 @@ class RlsDimensionFactsIT {
 
         int sitesCount = sites.values().stream().mapToInt(Set::size).sum();
         assertThat(sitesCount)
-            .as("двенадцать сайтов объявления: одинарные Journal/Branch/PrdSpec/Workshop, три у"
+            .as("одиннадцать сайтов объявления: одинарные Journal/Branch/PrdSpec/Workshop, два у"
                 + " ReceivingDocument, четыре SETTINGS:* и один REPORTS:*")
-            .isEqualTo(12);
+            .isEqualTo(11);
     }
 
     /** Носителем измерения бывает вложенный интерфейс-маркер: у него нет ни сущности, ни таблицы. */
@@ -195,8 +193,8 @@ class RlsDimensionFactsIT {
     void customPolicyCarriesTheDefaultPathThatEnforcementIgnores() {
         RlsPolicyDescriptor policy = dimensions.policyOf(ReceivingDocument.class);
         assertThat(policy.dimensions().keySet())
-            .containsExactlyInAnyOrder("JOURNAL", "BRANCH", "ENTITY:ReceivingDocument");
-        for (String dimension : List.of("JOURNAL", "BRANCH", "ENTITY:ReceivingDocument")) {
+            .containsExactlyInAnyOrder("JOURNAL", "BRANCH");
+        for (String dimension : List.of("JOURNAL", "BRANCH")) {
             RlsPolicyDescriptor.ValueRule rule = policy.valueRules().get(dimension);
             assertThat(rule.custom()).as("%s: политика типа объявлена сложной", dimension).isTrue();
             assertThat(rule.paths())
@@ -248,8 +246,8 @@ class RlsDimensionFactsIT {
                 .map(Map.Entry::getKey).toList())
             .as("фильтруемые измерения — те, у которых есть @Filter с тем же именем")
             .containsExactlyInAnyOrder("BRANCH", "JOURNAL");
-        assertThat(dimensions.policyOf(ReceivingDocument.class)
-                .dimensions().get("ENTITY:ReceivingDocument"))
+        assertThat(dimensions.kindOf(C5PermissionKeys.entity(ReceivingDocument.class)))
+            .as("P-U: C5 entity-ключ зарегистрирован динамически как CHECK_ONLY")
             .isEqualTo(RlsDimensionKind.CHECK_ONLY);
     }
 
@@ -265,7 +263,7 @@ class RlsDimensionFactsIT {
         assertThat(dimensions.grantValueType("JOURNAL")).isEqualTo(Journal.class);
         assertThat(dimensions.grantValueDimensions())
             .as("каталог грантов для CHECK_ONLY невозможен: грант на ворота не построчный")
-            .doesNotContainAnyElementsOf(List.of("ENTITY:ReceivingDocument",
+            .doesNotContainAnyElementsOf(List.of(C5PermissionKeys.entity(ReceivingDocument.class),
                 "REPORTS:JPQL_PREVIEW", "SETTINGS:Directories"));
     }
 
@@ -292,7 +290,7 @@ class RlsDimensionFactsIT {
     void declarationSetCarriesNoOrderContract() {
         assertThat(dimensions.dimensionsOf(ReceivingDocument.class))
             .as("состав — факт; порядок — нет")
-            .containsExactlyInAnyOrder("BRANCH", "ENTITY:ReceivingDocument", "JOURNAL");
+            .containsExactlyInAnyOrder("BRANCH", "JOURNAL");
         System.out.println("[E3.2.0-3.1] orderOf(ReceivingDocument)="
             + dimensions.dimensionsOf(ReceivingDocument.class));
     }

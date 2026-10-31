@@ -59,7 +59,7 @@ Correctness и security не упрощаются ради уменьшения 
 
 | ID | Кратко | Приоритет | Статус | Этап закрытия |
 |---|---|---:|---|---|
-| `ADX-01` | Нет semantic entity archetypes в коде | P0 | `WIP` | B3 |
+| `ADX-01` | Нет semantic entity archetypes в коде | P0 | `DONE: ET0–ET7 в согласованном scope` | B3 |
 | `ADX-02` | Save-specific обвязка и domain switch | P0 | `CLOSED в текущем scope` | B3 |
 | `ADX-03` | Пустая section persistence wiring | P0 | `CLOSED в текущем scope` | B3 |
 | `ADX-04` | Обязательные repository/service и magic lookup | P1 | `DONE: standard path без repository/service, `serviceClass` и magic bean name` | C4 |
@@ -88,6 +88,21 @@ Correctness и security не упрощаются ради уменьшения 
 **Закрытие.** Kind выводится без дублирования; стандартные поля наследуются; документ
 допускает ноль/одну/несколько секций; секции не определяют kind.
 
+**Уточнение критерия, ET0 2026-10-21.** ADX-01 остаётся `WIP`. Для standard path
+проверяется полный контракт: `@Entity` + доступная приложению `Standard*` база без
+обязательной `@EntityMetadata` ради регистрации; согласованные discovery, numbering,
+forms, search, sections, query и Explorer; ошибки объявления не считаются отсутствием
+metadata. Структура persistent-реквизита сама по себе не публикует его в канал.
+Budget считает отдельно классы, обязательные декларации, повтор фактов и ручные
+регистрации, а не только отсутствие repository/service. Ограничения данных,
+ownership, публикация нового поля и реальное бизнес-правило остаются предметными
+решениями. Базы должны иметь подтверждённую APP_API-роль. Минимум доказывает внешний
+consumer-пример; практическое завершение требует совместимой прикладной пробы либо
+документированного обоснования сохранения существующих моделей как custom.
+Смена наследования с незаметным изменением схемы не является критерием закрытия.
+Архитектурные уточнения описаны в [ADR-проекте](decisions/entity-types-appdev-first-draft.md);
+его статус не означает принятие пересмотра регистровой семантики.
+
 **Прогресс 2026-09-11.** Срез B3.1 завершён: добавлены `EntityKind`,
 `StandardCatalogEntity` (`code`, `name`), `StandardDocumentEntity` (`number`, `date`)
 и effective-kind resolution `AUTO -> inferred/PLAIN` с fail-fast конфликтом явного
@@ -97,6 +112,21 @@ field shadowing. Общий numbering/semantic/explorer gate: 54 теста зе
 пилоты уже используют metadata-driven save path, однако прикладные модели ещё не
 переведены на `StandardCatalogEntity`/`StandardDocumentEntity` и схема их стандартных
 полей не мигрирована; поэтому `ADX-01` остаётся WIP.
+
+**Завершение ET0–ET7, 2026-10-27.** ADX-01 закрыт в согласованном runtime scope:
+Standard* доступны как APP_API без обязательной EntityMetadata; discovery, effective
+metadata, numbering, sections, final classification и потребители согласованы.
+Внешний binary-only consumer повторно прошёл 12 acceptance-сценариев. Прикладная проба
+Workshop/AccountingType/UnitOfMeasurement документировала сохранение custom-профилей
+из-за действующих инвариантов; механическая смена наследования больше не является
+условием закрытия. Общий ET7 gate проверяет interning/capabilities, numbering roles,
+lookup publication, неизменность каналов и C5/RLS, без новых legacy exemptions.
+
+[Runtime-профили](entity-types-runtime-profiles.md), [evidence ET7](../plans/entity-types-appdev-first-et7-evidence.md).
+Историческое WIP выше описывает состояние B3.1. Дополнение ET8 закрыто 2026-10-28:
+полный opt-in interning-контракт без повторных capability-бинов, parity AttributeValue /
+SklNomOpa, точные UNIQUE/NULL и реальные PostgreSQL гонки/откат —
+[evidence ET8](../plans/entity-types-appdev-first-et8-evidence.md). Исполняемые рецепты остаются ET9/G1.
 
 ### ADX-02 — save-specific обвязка и domain type switch (`P0`, B3)
 
@@ -582,6 +612,18 @@ authoring), а не data path.
 Budget: `0` обязательных application repository, service, search query, display-name
 method и central registration. Явные overrides не считаются нарушением, если содержат
 отличающуюся семантику.
+
+**Declaration budget, уточнение ET0 2026-10-21 (целевой, ещё не подтверждён).**
+Пустой Standard*-root: 1 класс, 1 `@Entity`, 1 выбор базы; 0 повторов kind/полей
+базы, 0 обязательных `EntityMetadata`, инфраструктурных классов и регистраций.
+Новый публикуемый реквизит: 1 поле, реальные JPA/validation-ограничения и 1 локальная
+декларация публикации; без повтора Java-типа, reference target и already-derived
+required. Непубликуемое поле не требует UI metadata. Документ с N секциями:
+1 root + N row-классов, явный список секций и ownership/mapping на каждой строке;
+0 section repository/service или ручных cascade. Необходимые grants учитываются
+в подготовке пользовательской пробы, но не выдаются наследованием автоматически.
+Исторические измерения C4.7 ниже подтверждают устранение service/repository-обвязки,
+но не полное выполнение этого нового declaration budget.
 
 **Измерено (C4.7, периметр — приложение `org.ip`, до C4 `128b3f5` → после):** реализаций
 `BaseService` 21 → 10, `org.ip.service` 18 → 7 файлов, `org.ip.repository` 18 → 16,

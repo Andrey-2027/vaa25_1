@@ -1,6 +1,7 @@
 package org.ipro.numbering;
 
 import org.ipro.metadata.AnnotationClassScanner;
+import org.ipro.metadata.ManagedEntityTypes;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.numbering.annotation.Numbered;
 import org.ipro.numbering.annotation.NumberingPolicy;
@@ -14,8 +15,8 @@ import java.util.*;
 
 /**
  * Каталог нумеруемых полей приложения — реестр всех {@code @Numbered}-полей в сущностях с
- * {@code @EntityMetadata} (аналог {@code SubsystemRegistry.scanEntities}). Строится при старте,
- * fail-fast: {@code @Numbered} вне {@code @EntityMetadata}-класса не обнаруживается (каталог
+ * effective metadata intent в общем PU-снимке managed-типов. Core supplies the pure applicability
+ * policy, including annotationless Standard*; standalone legacy constructors retain annotation discovery (каталог
  * админ-экрана «Нумерация» = то же множество сущностей, что и каталог форм).
  *
  * <p>Это структурный слой (что нумеруется) — в отличие от {@link NumberingRuleService}, который
@@ -35,16 +36,31 @@ public class NumberingMetadataRegistry implements InitializingBean {
     }
 
     private final String basePackage;
+    private final ManagedEntityTypes managedEntityTypes;
+    private final org.ipro.metadata.EntityMetadataApplicability applicability;
     private List<NumberedFieldInfo> fields = List.of();
 
     /**
-     * Реестр строится явно: base package передаёт авто-конфигурация подсистемы из
-     * конфигурации приложения. Собственного {@code @Value} здесь нет — иначе значение
-     * подменяло бы переданный аргумент и артефакт носил бы имя прикладного пакета строкой
-     * (та же причина, по которой его нет в {@code ReferenceIndex} из platform-metadata).
+     * Legacy standalone constructor for callers that have not adopted platform wiring.
+     * Production wiring supplies {@link ManagedEntityTypes}, so it performs no classpath scan.
      */
+    @Deprecated(forRemoval = false)
     public NumberingMetadataRegistry(String basePackage) {
-        this.basePackage = basePackage;
+        this.basePackage = Objects.requireNonNull(basePackage, "basePackage must not be null");
+        this.managedEntityTypes = null;
+        this.applicability = type -> type.isAnnotationPresent(EntityMetadata.class);
+    }
+
+    public NumberingMetadataRegistry(ManagedEntityTypes managedEntityTypes) {
+        this(managedEntityTypes, type -> type.isAnnotationPresent(EntityMetadata.class));
+    }
+
+    public NumberingMetadataRegistry(ManagedEntityTypes managedEntityTypes,
+            org.ipro.metadata.EntityMetadataApplicability applicability) {
+        this.basePackage = null;
+        this.applicability = Objects.requireNonNull(applicability);
+        this.managedEntityTypes = Objects.requireNonNull(
+            managedEntityTypes, "managedEntityTypes must not be null");
     }
 
     @Override
@@ -54,7 +70,10 @@ public class NumberingMetadataRegistry implements InitializingBean {
 
     public void rebuild() {
         List<NumberedFieldInfo> result = new ArrayList<>();
-        for (Class<?> entityClass : AnnotationClassScanner.scanAnnotated(basePackage, EntityMetadata.class)) {
+        List<Class<?>> entityClasses = managedEntityTypes == null
+            ? AnnotationClassScanner.scanAnnotated(basePackage, EntityMetadata.class)
+            : managedEntityTypes.all().stream().filter(applicability::isApplicable).toList();
+        for (Class<?> entityClass : entityClasses) {
             Map<NumberingRole, NumberingPolicy> policies = policiesOf(entityClass);
             Set<NumberingRole> resolvedRoles = EnumSet.noneOf(NumberingRole.class);
             for (Field field : fieldsInHierarchy(entityClass)) {

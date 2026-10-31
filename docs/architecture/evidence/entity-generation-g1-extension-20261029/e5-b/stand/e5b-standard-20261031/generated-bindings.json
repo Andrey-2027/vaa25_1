@@ -1,0 +1,67 @@
+[
+  {
+    "sha256": "c7ea7c6117ce6e9dbebb4bbeceaa0faae6165b8acd5ace5f5975a10f2e5f68a7",
+    "case": "scalar-document",
+    "relativePath": "com/example/generated/ScalarDocument.java"
+  },
+  {
+    "sha256": "415473fcf050dd705a6d05132ca3994a28427a96d538e6d676237703b24d4fa9",
+    "case": "reference-catalog",
+    "relativePath": "com/example/generated/ReferenceCatalog.java"
+  },
+  {
+    "sha256": "00bb8f016c9387cb92e96ec9c7f4c1a22269101d3226afc6f794b7b786e39291",
+    "case": "reference-document",
+    "relativePath": "com/example/generated/ReferenceDocument.java"
+  },
+  {
+    "sha256": "2bdd0163d04c9a512a58693861e6989631a955b6d6a019de3202560daecca41d",
+    "case": "owned-catalog",
+    "relativePath": "com/example/generated/OwnedCatalog.java"
+  },
+  {
+    "sha256": "890f0549d41b97c385308d515e8f3e33dd1882e09824b69919146dc6392160ce",
+    "case": "sections-catalog-2",
+    "relativePath": "com/example/generated/CatalogSections2.java"
+  },
+  {
+    "sha256": "053d5ebc64d50ad5b1ba54593c6e483a5fbbb044689b0971bb2b2ad88dd5a565",
+    "case": "sections-catalog-2",
+    "relativePath": "com/example/generated/rows/CatalogSections2Row1.java"
+  },
+  {
+    "sha256": "eb9794cbe0aa89e1e04995cbf3e1937f9a3defa9fdbe6a09fad6f611a2ae15cd",
+    "case": "sections-catalog-2",
+    "relativePath": "com/example/generated/rows/CatalogSections2Row2.java"
+  },
+  {
+    "sha256": "f227d460c6bbba56ea96859d4e4cfe54a3710ed29f6723af93278e8b81d952d8",
+    "case": "sections-document-2",
+    "relativePath": "com/example/generated/DocumentSections2.java"
+  },
+  {
+    "sha256": "f40fe009ca3957c04ff25b30fe4bddb467993963b907b185806f442f14caa69a",
+    "case": "sections-document-2",
+    "relativePath": "com/example/generated/rows/DocumentSections2Row1.java"
+  },
+  {
+    "sha256": "48c453b25d23b8a74ded99af9f6b7d5eee5375496f93c1fe8e8685d37eabec5d",
+    "case": "sections-document-2",
+    "relativePath": "com/example/generated/rows/DocumentSections2Row2.java"
+  },
+  {
+    "sha256": "413cdac1fde65fc3deae00af3364a4cffe57e1b73f9dce8256ec0c06623b8a54",
+    "case": "sections-owned-catalog-2",
+    "relativePath": "com/example/generated/OwnedCatalogSections2.java"
+  },
+  {
+    "sha256": "86aece58315b459ba53e1d8cf312350c76dcdf50c75c5e54b8733beda77cadf4",
+    "case": "sections-owned-catalog-2",
+    "relativePath": "com/example/generated/rows/OwnedCatalogSections2Row1.java"
+  },
+  {
+    "sha256": "98128345723ab0fbb0c7290c74a3621ee402a58d67756d2a8838637a746e7194",
+    "case": "sections-owned-catalog-2",
+    "relativePath": "com/example/generated/rows/OwnedCatalogSections2Row2.java"
+  }
+]

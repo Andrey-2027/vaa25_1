@@ -2,6 +2,7 @@ package org.ip;
 
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.spring.annotation.EnableVaadin;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
 import org.ip.config.AuditConfig;
@@ -29,16 +30,21 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * а пока он жив — аудит пишется «по доверенности» из чужого контекста.
  */
 @SpringBootApplication
+// M2.2.2: отчётный UI приезжает артефактом platform-report-vaadin и живёт в org.ipro.
+// Spring-бины модуль объявляет сам (ReportUiAutoConfiguration), но @Route вне корня
+// сканирования приложения Vaadin не находит: без этого списка /report-catalog и /unidr
+// отвечают как несуществующие адреса. Сканирование объявлено явно, чтобы переезд UI
+// в модуль не отключал его маршруты молча.
+@EnableVaadin({"org.ip", "org.ipro"})
 @Theme("default")
 @StyleSheet(Lumo.UTILITY_STYLESHEET)
 // D2 (persistence slice): platform-persistence содержит только общую BaseEntity;
 // feature-specific persistence scans принадлежат приложению или соответствующему модулю.
 // D2 → D3: то же для platform-numbering, platform-settings и platform-telemetry —
 // вынесенные модули владеют своими пакетами сами.
-// D2 → D3 (шаг 8б): reportstudio объявляет свой persistence-пакет сам
-// (ReportStudioPersistenceAutoConfiguration); JR persistence объявляется
-// приложением через JrPersistenceAutoConfiguration.
-// В этом @EntityScan остаётся только прикладная модель.
+// D2 → D3: persistence-пакеты вынесенных модулей объявляются их собственными
+// auto-configuration (JR — JrPersistenceAutoConfiguration); в этом @EntityScan
+// остаётся только прикладная модель.
 @EntityScan({"org.ip.model"})
 // D1: прикладной пакет объявляет свои репозитории сам. Платформенный
 // RlsAutoConfiguration перечисляет только платформенные пакеты, поэтому имя org.ip

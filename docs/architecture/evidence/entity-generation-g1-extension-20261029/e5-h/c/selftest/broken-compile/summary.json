@@ -1,0 +1,91 @@
+{
+  "kind": "g1-c-summary-v2",
+  "mode": "selftest",
+  "scenario": {
+    "id": "control",
+    "specSha256": "d4cec39bdb91ba769d8a1a7650bf58d8960ec44236916269707ddeb28ddccf8e"
+  },
+  "manifest": null,
+  "dependencies": [],
+  "supportSources": [
+    {
+      "relativePath": "src/main/java/com/example/generated/harness/GenerationHarnessApplication.java",
+      "sha256": "5518128aaa241ee196fe80f1690f795decf060182208a08564ed023ae68b431b",
+      "bytes": 658
+    },
+    {
+      "relativePath": "src/main/java/com/example/generated/harness/HarnessIdentityConfiguration.java",
+      "sha256": "b64e7fa770dd723b5e40e2696195af831148755007f79b4f8849e54d8c08f759",
+      "bytes": 1256
+    },
+    {
+      "relativePath": "src/test/java/com/example/generated/harness/GenerationScenarioTest.java",
+      "sha256": "f4c945c93e2a1a73829824dfe8472794e61ff5c67b9e745ef15f3502bc94a01b",
+      "bytes": 22658
+    }
+  ],
+  "compile": {
+    "attempted": true,
+    "exitCode": 1
+  },
+  "runtime": {
+    "attempted": false,
+    "startup": "not-attempted"
+  },
+  "status": "failure",
+  "failureKind": "harness",
+  "failureReason": "maven-failed",
+  "detail": "Maven exited with code 1; see maven.log and reports",
+  "sources": [
+    {
+      "relativePath": "com/example/generated/ControlCatalog.java",
+      "sha256": "f629109fb9d785de0632bcaf61f0bf0a10b43951211f2b60811db3148f2edcfe",
+      "bytes": 276
+    }
+  ],
+  "sourceSetSha256": "fc1af024bb818f2f46ebc0112c108e8dc6f9a78d2ff000210d457664612f3fdc",
+  "source": {
+    "file": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\scripts\\entity-generation-g1\\fixtures\\broken\\BrokenCatalog.java",
+    "relativePath": "com/example/generated/ControlCatalog.java",
+    "sha256": "f629109fb9d785de0632bcaf61f0bf0a10b43951211f2b60811db3148f2edcfe",
+    "expectedSha256": "f629109fb9d785de0632bcaf61f0bf0a10b43951211f2b60811db3148f2edcfe",
+    "bytes": 276,
+    "archived": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\c-selftest\\harness-selftest-20261031-170604\\broken-compile\\input\\com\\example\\generated\\ControlCatalog.java"
+  },
+  "plan": {
+    "receipt": "",
+    "planId": "",
+    "recipe": "",
+    "generatorVersion": "",
+    "generatorRevision": "",
+    "sourceFixture": ""
+  },
+  "harness": {
+    "isolation": "C:\\Users\\strim\\AppData\\Local\\Temp\\entity-generation-g1-harness-a387a867b46f4cf1bc2c7cffcba1e444",
+    "javaHome": "C:\\Program Files\\Axiom\\AxiomJDK-21",
+    "javaVersion": "openjdk version \"21.0.11\" 2026-04-21 LTS\r\nOpenJDK Runtime Environment (build 21.0.11+11-LTS)\r\nOpenJDK 64-Bit Server VM (build 21.0.11+11-LTS, mixed mode, sharing)",
+    "maven": "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.3\\plugins\\maven\\lib\\maven3\\bin\\mvn.cmd",
+    "offline": true,
+    "localRepository": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\repository"
+  },
+  "maven": {
+    "attempted": true,
+    "exitCode": 1
+  },
+  "tests": {
+    "reports": 0,
+    "run": 0,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": []
+  },
+  "platformJars": {
+    "used": 0,
+    "changed": [],
+    "missing": [],
+    "file": "platform-jars.sha256"
+  },
+  "timestamp": "2026-10-31T17:07:45.0458343+03:00",
+  "gitHead": "9b3463dadd21378d2d189511f06b4ae375d5f78d"
+}

@@ -1,0 +1,9 @@
+{
+  "mode" : "foreign-identical-rollback",
+  "status" : "RECOVERY_REQUIRED",
+  "code" : "TARGET_IDENTITY_CHANGED",
+  "targetExists" : true,
+  "receiptExists" : false,
+  "targetHashMatches" : true,
+  "journalExists" : true
+}

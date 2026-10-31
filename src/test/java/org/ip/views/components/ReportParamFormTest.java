@@ -1,13 +1,15 @@
-package org.ip.views.components;
+package org.ipro.report.ui.params;
 
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.crud.EntityLookup;
-import org.ipro.reportstudio.dom.ReportParam;
-import org.ipro.reportstudio.dom.ReportParamKind;
-import org.ipro.reportstudio.dom.ReportParamSource;
-import org.ipro.reportstudio.param.ReportContext;
+import org.ipro.query.model.QueryComputedValue;
+import org.ipro.query.model.QueryParameter;
+import org.ipro.query.model.QueryParameterKind;
+import org.ipro.query.model.QueryScalarType;
+import org.ipro.query.model.QueryValueSource;
+import org.ipro.query.ReportContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,10 +22,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Генерация формы запуска из схемы параметров (Фаза 3): видимость (showOnForm),
- * порядок (position), типы полей, PERIOD → два поля, сущностные поля —
- * переиспользование EntityField; не-формовые источники (CONTEXT/COMPUTED/DEFAULT)
- * полей не создают.
+ * Генерация формы запуска из нейтральных объявлений параметров: видимость
+ * (showOnForm), порядок (position), типы полей, RANGE → два поля, сущностные
+ * поля — переиспользование EntityField; не-формовые источники
+ * (CONTEXT/COMPUTED/FIXED) полей не создают.
  */
 class ReportParamFormTest {
 
@@ -42,18 +44,17 @@ class ReportParamFormTest {
     }
 
     enum Mode { FIRST, SECOND }
+
     @Test @SuppressWarnings("unchecked")
-    void visualScalarTypesUseNumberBooleanAndEnumControls() {
-        var template = new org.ipro.reportstudio.dom.ReportTemplate(); template.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
-        var declarations = List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("count", Long.class.getName(), true, null),
-            new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("amount", java.math.BigDecimal.class.getName(), true, null),
-            new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("enabled", Boolean.class.getName(), true, null),
-            new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("mode", Mode.class.getName(), true, null));
-        var definition = new org.ipro.reportstudio.query.VisualQueryDefinition(3, "Product", "p", List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.SelectField("id", "id")),
-            List.of(), List.of(), List.of(), List.of(), null, null, declarations);
-        template.setVisualQueryJson(new org.ipro.reportstudio.query.VisualQueryPackageJsonCodec().write(new org.ipro.reportstudio.query.VisualQueryPackage(List.of(), definition)));
-        for (var declaration : declarations) template.addParam(scalar(declaration.name(), declaration.name(), null));
-        var form = new ReportParamForm(template, ReportContext.empty("alice"), lookupService, assembler);
+    void declaredScalarTypesUseNumberBooleanAndEnumControls() {
+        var form = new ReportParamForm(List.of(
+            scalar("count", "Количество", null),
+            scalar("amount", "Сумма", null),
+            scalar("enabled", "Включён", null),
+            scalar("mode", "Режим", null)),
+            ReportContext.empty("alice"), lookupService, assembler,
+            Map.of("count", Long.class.getName(), "amount", java.math.BigDecimal.class.getName(),
+                "enabled", Boolean.class.getName(), "mode", Mode.class.getName()));
         var children = form.getChildren().toList(); assertThat(form.values()).isEmpty();
         ((com.vaadin.flow.component.textfield.BigDecimalField) children.get(0)).setValue(new java.math.BigDecimal("9007199254740993"));
         ((com.vaadin.flow.component.textfield.BigDecimalField) children.get(1)).setValue(new java.math.BigDecimal("34.512345678901234567"));
@@ -64,17 +65,10 @@ class ReportParamFormTest {
     }
 
     @Test
-    void visualDateTimeDeclarationCreatesTypedBoundaryWithoutDefaultHint() {
-        var template = new org.ipro.reportstudio.dom.ReportTemplate();
-        template.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
-        var definition = new org.ipro.reportstudio.query.VisualQueryDefinition(3, "Product", "p",
-            List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.SelectField("id", "id")),
-            List.of(), List.of(), List.of(), List.of(), null, null,
-            List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("asOf", "DATETIME", true, null)));
-        template.setVisualQueryJson(new org.ipro.reportstudio.query.VisualQueryPackageJsonCodec().write(
-            new org.ipro.reportstudio.query.VisualQueryPackage(List.of(), definition)));
-        template.addParam(scalar("asOf", "Момент", null));
-        var form = new ReportParamForm(template, ReportContext.empty("alice"), lookupService, assembler);
+    void declaredDateTimeTypeCreatesTypedBoundaryWithoutDefaultHint() {
+        var form = new ReportParamForm(List.of(scalar("asOf", "Момент", null)),
+            ReportContext.empty("alice"), lookupService, assembler,
+            Map.of("asOf", java.time.LocalDateTime.class.getName()));
         var picker = (com.vaadin.flow.component.datetimepicker.DateTimePicker) form.getChildren().findFirst().orElseThrow();
         assertThat(picker.getValue()).isNull();
         var time = java.time.LocalDateTime.of(2026, 1, 1, 15, 20, 30, 123000000);
@@ -86,17 +80,10 @@ class ReportParamFormTest {
     }
 
     @Test
-    void visualDateDeclarationCreatesDatePickerWithoutDefaultHint() {
-        var template = new org.ipro.reportstudio.dom.ReportTemplate();
-        template.setQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.VISUAL);
-        var definition = new org.ipro.reportstudio.query.VisualQueryDefinition(3, "Product", "p",
-            List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.SelectField("id", "id")),
-            List.of(), List.of(), List.of(), List.of(), null, null,
-            List.of(new org.ipro.reportstudio.query.VisualQueryDefinition.Parameter("asOf", "DATE", true, null)));
-        template.setVisualQueryJson(new org.ipro.reportstudio.query.VisualQueryPackageJsonCodec().write(
-            new org.ipro.reportstudio.query.VisualQueryPackage(List.of(), definition)));
-        template.addParam(scalar("asOf", "Дата", null));
-        var form = new ReportParamForm(template, ReportContext.empty("alice"), lookupService, assembler);
+    void declaredDateTypeCreatesDatePickerWithoutDefaultHint() {
+        var form = new ReportParamForm(List.of(scalar("asOf", "Дата", null)),
+            ReportContext.empty("alice"), lookupService, assembler,
+            Map.of("asOf", java.time.LocalDate.class.getName()));
         var picker = (com.vaadin.flow.component.datepicker.DatePicker) form.getChildren().findFirst().orElseThrow();
         assertThat(picker.getValue()).isNull();
         picker.setValue(LocalDate.of(2026, 1, 1));
@@ -141,8 +128,7 @@ class ReportParamFormTest {
 
     @Test
     void hiddenParamDoesNotCreateField() {
-        ReportParam p = scalar("secret", "Секрет", null);
-        p.setShowOnForm(false);
+        QueryParameter p = scalar("secret", "Секрет", null).withShowOnForm(false);
         ReportParamForm form = new ReportParamForm(List.of(p),
             ReportContext.empty("alice"), lookupService, assembler);
         assertThat(form.values()).isEmpty();
@@ -150,7 +136,7 @@ class ReportParamFormTest {
 
     @Test
     void entityFieldIsCreated() {
-        ReportParam p = entity("journal", "Журнал");
+        QueryParameter p = entity("journal", "Журнал");
         ReportParamForm form = new ReportParamForm(List.of(p),
             ReportContext.empty("alice"), lookupService, assembler);
         assertThat(form.values()).isEmpty();
@@ -158,7 +144,7 @@ class ReportParamFormTest {
 
     @Test
     void periodRequiresTwoNames() {
-        ReportParam p = period("created", "Период", true);
+        QueryParameter p = period("created", "Период", true);
         ReportParamForm form = new ReportParamForm(List.of(p),
             ReportContext.empty("alice"), lookupService, assembler);
         assertThat(form.values()).isEmpty();
@@ -166,43 +152,31 @@ class ReportParamFormTest {
 
     // === helpers ===
 
-    private static ReportParam scalar(String name, String caption, String defaultValue) {
-        ReportParam p = base(name, caption, ReportParamKind.SCALAR, ReportParamSource.FORM, false);
-        p.setDefaultValue(defaultValue);
-        return p;
+    private static QueryParameter scalar(String name, String caption, String defaultValue) {
+        return base(name, caption, QueryParameterKind.SCALAR, QueryValueSource.FORM, false, defaultValue);
     }
 
-    private static ReportParam computed(String name, String caption) {
-        ReportParam p = base(name, caption, ReportParamKind.SCALAR, ReportParamSource.COMPUTED, false);
-        p.setDefaultValue(null);
-        return p;
+    private static QueryParameter computed(String name, String caption) {
+        return base(name, caption, QueryParameterKind.SCALAR, QueryValueSource.COMPUTED, false, null);
     }
 
-    private static ReportParam def(String name, String caption) {
-        ReportParam p = base(name, caption, ReportParamKind.SCALAR, ReportParamSource.DEFAULT, false);
-        p.setDefaultValue("\"x\"");
-        return p;
+    private static QueryParameter def(String name, String caption) {
+        return base(name, caption, QueryParameterKind.SCALAR, QueryValueSource.FIXED, false, "\"x\"");
     }
 
-    private static ReportParam entity(String name, String caption) {
-        ReportParam p = base(name, caption, ReportParamKind.ENTITY, ReportParamSource.FORM, false);
-        p.setEntityClass(JournalLike.class.getName());
-        return p;
+    private static QueryParameter entity(String name, String caption) {
+        return new QueryParameter(name, name, caption, QueryParameterKind.ENTITY, QueryScalarType.UNRESOLVED,
+            JournalLike.class.getName(), QueryValueSource.FORM, false, true, null, QueryComputedValue.NONE, null, 0);
     }
 
-    private static ReportParam period(String name, String caption, boolean required) {
-        return base(name, caption, ReportParamKind.PERIOD, ReportParamSource.FORM, required);
+    private static QueryParameter period(String name, String caption, boolean required) {
+        return base(name, caption, QueryParameterKind.RANGE, QueryValueSource.FORM, required, null);
     }
 
-    private static ReportParam base(String name, String caption, ReportParamKind kind,
-                                    ReportParamSource source, boolean required) {
-        ReportParam p = new ReportParam();
-        p.setName(name);
-        p.setCaption(caption);
-        p.setKind(kind);
-        p.setValueSource(source);
-        p.setRequired(required);
-        return p;
+    private static QueryParameter base(String name, String caption, QueryParameterKind kind,
+                                       QueryValueSource source, boolean required, String defaultValue) {
+        return new QueryParameter(name, name, caption, kind, QueryScalarType.UNRESOLVED, null, source,
+            required, true, defaultValue, QueryComputedValue.NONE, null, 0);
     }
 
     public static final class JournalLike {

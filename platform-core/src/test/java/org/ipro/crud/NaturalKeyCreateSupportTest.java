@@ -57,7 +57,7 @@ class NaturalKeyCreateSupportTest {
                 ? Optional.empty()
                 : Optional.of("победитель"),
             () -> {
-                throw new DataIntegrityViolationException("uk_skl_nom_opa_nom_canonical");
+                throw duplicate("uk_skl_nom_opa_nom_canonical");
             });
 
         assertThat(result)
@@ -92,7 +92,7 @@ class NaturalKeyCreateSupportTest {
             () -> Optional.empty(),
             () -> {
                 attempts.incrementAndGet();
-                throw new DataIntegrityViolationException("duplicate key value");
+                throw duplicate("duplicate key value");
             }))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("nom-7|a:3;b:9")
@@ -141,7 +141,7 @@ class NaturalKeyCreateSupportTest {
         NaturalKeyCreateSupport counted = new NaturalKeyCreateSupport(transactionManager);
 
         assertThatThrownBy(() -> counted.getOrCreate("nom-1|a:1", () -> Optional.empty(), () -> {
-            throw new DataIntegrityViolationException("duplicate");
+            throw duplicate("duplicate");
         }))
             .isInstanceOf(IllegalStateException.class)
             .hasCauseInstanceOf(DataIntegrityViolationException.class);
@@ -149,5 +149,20 @@ class NaturalKeyCreateSupportTest {
         assertThat(transactions)
             .as("каждая попытка обязана идти в своей транзакции")
             .hasValue(3);
+    }
+
+    private static DataIntegrityViolationException duplicate(String message) {
+        return new DataIntegrityViolationException(message, new java.sql.SQLException(message, "23505"));
+    }
+
+    @Test void doesNotRetryOtherIntegrityViolations() {
+        for (String state : java.util.List.of("23502", "23503", "23514")) {
+            AtomicInteger attempts = new AtomicInteger();
+            assertThatThrownBy(() -> support.getOrCreate("k", Optional::empty, () -> {
+                attempts.incrementAndGet();
+                throw new DataIntegrityViolationException("integrity", new java.sql.SQLException("integrity", state));
+            })).isInstanceOf(DataIntegrityViolationException.class);
+            assertThat(attempts).hasValue(1);
+        }
     }
 }

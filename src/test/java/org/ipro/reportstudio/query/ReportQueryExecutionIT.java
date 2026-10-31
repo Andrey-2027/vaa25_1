@@ -1,5 +1,10 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.query.*;
+import org.ipro.query.param.*;
+import org.ipro.query.register.*;
+import org.ipro.query.sqm.*;
+
 import jakarta.persistence.EntityManager;
 import org.ip.Application;
 import org.ip.model.Journal;
@@ -8,10 +13,10 @@ import org.ip.model.PrdSpec;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.repository.UserRepository;
 import org.ip.security.UserRepositoryRlsRoleResolver;
-import org.ipro.reportstudio.data.EntityRef;
-import org.ipro.reportstudio.data.ReportDataset;
-import org.ipro.reportstudio.data.ReportRow;
-import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.report.data.EntityRef;
+import org.ipro.report.data.ReportDataset;
+import org.ipro.report.data.ReportRow;
+import org.ipro.query.sqm.SqmQuerySemanticAnalyzer;
 import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.AccessService;

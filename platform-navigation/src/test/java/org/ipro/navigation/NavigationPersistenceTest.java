@@ -55,7 +55,7 @@ class NavigationPersistenceTest {
             DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class, NavigationAutoConfiguration.class))
             .withPropertyValues("platform.navigation.enabled=true", "spring.datasource.url=" + url,
                 "spring.jpa.hibernate.ddl-auto=" + ddl, "spring.jpa.open-in-view=false")
-            .withBean(SubsystemRegistry.class, () -> new SubsystemRegistry("org.ipro.navigation.fixture.original"))
+            .withBean(SubsystemRegistry.class, () -> new SubsystemRegistry("org.ipro.navigation.fixture.original", new org.ipro.metadata.MetadataResolver()))
             .withBean(NavigationDefaultsContributor.class, () -> NavigationCatalogTest.declarations(true, true));
     }
 

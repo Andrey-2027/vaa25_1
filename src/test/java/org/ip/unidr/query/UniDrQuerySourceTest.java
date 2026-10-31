@@ -1,13 +1,15 @@
-package org.ip.unidr.query;
+package org.ipro.unidr.query;
+import org.ip.unidr.model.UniDrDefinitions;
 
-import org.ip.unidr.model.*;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.run.UniDrRunRequest;
-import org.ip.unidr.source.*;
-import org.ipro.reportstudio.data.*;
-import org.ipro.reportstudio.dom.*;
-import org.ipro.reportstudio.param.*;
-import org.ipro.reportstudio.query.*;
+import org.ipro.query.document.*;
+
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.run.UniDrRunRequest;
+import org.ipro.unidr.source.*;
+import org.ipro.report.data.*;
+import org.ipro.query.param.*;
+import org.ipro.query.*;
 import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.*;
@@ -20,13 +22,17 @@ class UniDrQuerySourceTest {
     final UniDrQuerySource query=new UniDrQuerySource(ReportQuerySource.MANUAL,"select p.name as name,p.qty as qty from Product p",null,List.of());
     UniDrDefinition definition() {return new UniDrDefinition(1,"query",1,"Произвольный отчёт",List.of(new Column("name",null),new Column("qty",null)),
         List.of(new Measure("qty",Aggregation.SUM,null)),List.of("name"),List.of(),List.of(),List.of(new Sort("qty",Direction.DESC)),Mode.SUMMARY,true).withQuery(query);}
-    @Test void snapshotAndJsonKeepQueryButNeverPersistOrShareMutableUdrTemplates() {
-        var template=query.template();var parameter=new ReportParam();parameter.setName("minimum");parameter.setKind(ReportParamKind.SCALAR);parameter.setDefaultValue("3");template.addParam(parameter);
-        var saved=UniDrQuerySource.from(template);parameter.setDefaultValue("999");template.setJpql("delete from Product");
-        assertThat(saved.jpql()).isEqualTo(query.jpql());assertThat(saved.template().getParams().getFirst().getDefaultValue()).isEqualTo("3");assertThat(saved.template().getId()).isNull();
+    @Test void querySourceCopiesParametersAndJsonRoundTripsWithoutMutableSharing() {
+        var mutable=new ArrayList<UniDrQuerySource.Param>();
+        mutable.add(new UniDrQuerySource.Param("minimum","minimum",ReportParamKind.SCALAR,null,ReportParamSource.FORM,false,true,"3",ReportComputedValue.NONE,0));
+        var saved=new UniDrQuerySource(ReportQuerySource.MANUAL,query.jpql(),null,mutable);
+        mutable.clear();
+        assertThat(saved.parameters()).singleElement().satisfies(parameter->assertThat(parameter.defaultValue()).isEqualTo("3"));
+        var restored=UniDrQueryDefinitions.source(UniDrQueryDefinitions.of(saved),null);
+        assertThat(restored.jpql()).isEqualTo(query.jpql());assertThat(restored.parameters().getFirst().defaultValue()).isEqualTo("3");assertThat(restored.tableEntity()).isNull();
         var catalog=new UniDrSourceCatalog(List.of(),source->UniDrQuerySourceService.metadata(fields));var codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(catalog));
-        assertThat(codec.decode(codec.encode(definition().withQuery(saved)))).isEqualTo(definition().withQuery(saved));
-        assertThat(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot()).validate(definition())).isNotEmpty();
+        assertThat(codec.decode(codec.encode(definition().withQuery(restored)))).isEqualTo(definition().withQuery(restored));
+        assertThat(new UniDrDefinitionValidator(UniDrDefinitions.catalog()).validate(definition())).isNotEmpty();
     }
     @Test void completeResultFiltersSortsAndNormalizesNumbersBeforeNativeGroups() {
         var service=new UniDrQuerySourceService(mock(ReportQueryAssemblyService.class));
@@ -35,7 +41,7 @@ class UniDrQuerySourceTest {
         var result=service.prepare(filtered,new ReportQueryAssembler(query.jpql(),Map.of(),fields,List.of()),data,Map.of());
         assertThat(result.rows()).extracting(row->row.value("name")).containsExactly("A","B");assertThat(result.rows()).extracting(row->row.value("qty")).containsExactly(new BigDecimal("7"),new BigDecimal("4"));
         var catalog=new UniDrSourceCatalog(List.of(),source->UniDrQuerySourceService.metadata(fields));
-        assertThat(new org.ip.unidr.render.UniDrReportCompiler(catalog,new UniDrDefinitionValidator(catalog)).compile(filtered,result)).isNotNull();
+        assertThat(new org.ipro.unidr.render.UniDrReportCompiler(catalog,new UniDrDefinitionValidator(catalog)).compile(filtered,result)).isNotNull();
     }
     @Test void computedPriceUsesTwoQueryFieldsAfterNormalizationIncludingHiddenDependencies() {
         var schema=List.of(QueryField.scalar("qty",Integer.class),QueryField.scalar("price",Double.class));
@@ -47,7 +53,7 @@ class UniDrQuerySourceTest {
         var result=UniDrComputedColumns.evaluate(recipe,source,normalized);
         assertThat(result.rows()).extracting(row->row.value("calc_amount")).containsExactly(new BigDecimal("7.5"),new BigDecimal("8.0"));
         var catalog=new UniDrSourceCatalog(List.of(),ignored->source);
-        assertThat(new org.ip.unidr.render.UniDrReportCompiler(catalog,new UniDrDefinitionValidator(catalog)).compile(recipe,normalized)).isNotNull();
+        assertThat(new org.ipro.unidr.render.UniDrReportCompiler(catalog,new UniDrDefinitionValidator(catalog)).compile(recipe,normalized)).isNotNull();
     }
     @Test void entityGroupsKeepSeparateIdsWithEqualCaptionsAndNullValues() {
         var schema=List.of(QueryField.scalar("workshop",org.ip.model.Workshop.class),QueryField.scalar("qty",Long.class));
@@ -56,7 +62,7 @@ class UniDrQuerySourceTest {
         var service=new UniDrQuerySourceService(mock(ReportQueryAssemblyService.class));var source=UniDrQuerySourceService.metadata(schema);
         var result=service.prepare(recipe,new ReportQueryAssembler(query.jpql(),Map.of(),schema,List.of()),data,Map.of());
         assertThat(result.rows()).extracting(row->row.value("__unidr_key_workshop")).containsExactly(null,"1","2");
-        var catalog=new UniDrSourceCatalog(List.of(),ignored->source);assertThat(new org.ip.unidr.render.UniDrReportCompiler(catalog,new UniDrDefinitionValidator(catalog)).compile(recipe,result)).isNotNull();
+        var catalog=new UniDrSourceCatalog(List.of(),ignored->source);assertThat(new org.ipro.unidr.render.UniDrReportCompiler(catalog,new UniDrDefinitionValidator(catalog)).compile(recipe,result)).isNotNull();
     }
     @Test void describeUsesUdrGuardButDoesNotResolveRuntimeParameters() {
         var guard=mock(ReportQueryGuard.class);var resolver=mock(ReportParamResolver.class);var refresher=mock(EntityParamRefresher.class);
@@ -65,14 +71,14 @@ class UniDrQuerySourceTest {
         assertThat(service.describe(query).fields()).extracting(UniDrSourceDefinition.Field::id).containsExactly("name","qty",UniDrQuerySourceService.COUNT);
         verify(guard).guard(eq(query.jpql()),eq(Set.of()),eq(Map.of()));verifyNoInteractions(resolver,refresher);
         when(guard.guard(anyString(),anySet(),anyMap())).thenReturn(GuardResult.denied(List.of("Нет чтения"),List.of(),new Analysis(List.of(),List.of(),fields,Set.of())));
-        assertThatThrownBy(()->service.describe(query)).isInstanceOf(org.ip.unidr.run.UniDrRunException.class);
+        assertThatThrownBy(()->service.describe(query)).isInstanceOf(org.ipro.unidr.run.UniDrRunException.class);
     }
     @Test void describeVisualQueryCompilesTheConstructorDefinitionInsteadOfStaleText() {
         var visual=new VisualQueryDefinition(1,"Product","p",List.of(new VisualQueryDefinition.SelectField("p.name","name")),List.of(),List.of(),List.of(),null);
         var spec=new UniDrQuerySource(ReportQuerySource.VISUAL,"ignored",new VisualQueryDefinitionJsonCodec().write(visual),List.of());
         var guard=mock(ReportQueryGuard.class);when(guard.guard(anyString(),anySet(),anyMap())).thenReturn(GuardResult.allowed(new Analysis(List.of(),List.of(),List.of(fields.getFirst()),Set.of())));
         var resolver=mock(ReportParamResolver.class);var assembly=new ReportQueryAssemblyService(guard,resolver,mock(EntityParamRefresher.class));
-        var description=assembly.describe(spec.template());assertThat(description.jpql()).contains("p.name as name").doesNotContain("ignored");
+        var description=assembly.describe(UniDrQueryDefinitions.of(spec));assertThat(description.jpql()).contains("p.name as name").doesNotContain("ignored");
         assertThat(new UniDrQuerySourceService(assembly).describe(spec).fields()).extracting(UniDrSourceDefinition.Field::id).contains("name");verifyNoInteractions(resolver);
     }
     @Test void runtimeValuesAreImmutableIdsNotEntitiesAndReservedAliasesAreRejected() {

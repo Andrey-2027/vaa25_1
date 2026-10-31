@@ -32,6 +32,14 @@ import static org.mockito.Mockito.when;
  */
 class LookupComboHelperTest {
 
+    @org.junit.jupiter.api.Test
+    void invalidDeclaredMetadataDoesNotBecomeDefaultSearch() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+            org.ipro.form.LookupComboHelper.textSearchFields(etfixtures.InvalidLookupMetadata.class,
+                new org.ipro.metadata.MetadataResolver()))
+            .hasMessageContaining(etfixtures.InvalidLookupMetadata.class.getName()).hasMessageContaining("displaySortFields");
+    }
+
     @Test
     void suggestIsBoundedAndPassesTermThrough() {
         EntityLookup lookup = mock(EntityLookup.class);
@@ -62,7 +70,7 @@ class LookupComboHelperTest {
         when(number.getResolvedType()).thenReturn(FieldType.INTEGER);
         when(number.getKey()).thenReturn("id");
         when(meta.getSelectColumnPaths()).thenReturn(List.of(code, number));
-        when(resolver.resolve(Journal.class)).thenReturn(meta);
+        when(resolver.find(Journal.class)).thenReturn(java.util.Optional.of(meta));
 
         LookupComboHelper.suggest(Journal.class, lookup, resolver, "a");
 

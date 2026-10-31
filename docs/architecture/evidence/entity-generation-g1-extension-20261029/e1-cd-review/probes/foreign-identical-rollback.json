@@ -1,0 +1,9 @@
+{
+  "mode" : "foreign-identical-rollback",
+  "status" : "ROLLED_BACK",
+  "code" : "RECEIPT_WRITE_FAILED",
+  "targetExists" : false,
+  "receiptExists" : false,
+  "targetHashMatches" : false,
+  "journalExists" : false
+}

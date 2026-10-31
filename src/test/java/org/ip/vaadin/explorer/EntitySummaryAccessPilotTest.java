@@ -74,7 +74,7 @@ class EntitySummaryAccessPilotTest {
         referenceIndex.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry(BASE_PACKAGE);
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE);
+        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE, new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         SectionMetadataRegistry sections =
             new SectionMetadataRegistry(BASE_PACKAGE, metadataResolver);
@@ -174,29 +174,24 @@ class EntitySummaryAccessPilotTest {
     }
 
     /**
-     * Накладная: три измерения, все — сложная политика, включая ворота; ни одного правила значения
-     * в карточке нет, хотя в записи правил дефолт {@code id} присутствует.
+     * Накладная: две объявленные RLS-политики. C5 ENTITY не является измерением области записей.
+     * Ни одного правила значения в карточке нет, хотя в записи правил дефолт {@code id} присутствует.
      */
     @Test
-    void receivingDocumentShowsThreeCustomDimensionsAndPublishesNoRuleRows() {
+    void receivingDocumentShowsItsTwoDeclaredDimensionsAndPublishesNoRuleRows() {
         List<EntitySummary.AccessRow> rows = rows(ReceivingDocument.class);
 
         assertThat(rows).extracting(EntitySummary.AccessRow::dimension)
             .as("порядок строк задаёт сборщик: владелец порядок не гарантирует")
-            .containsExactly("BRANCH", "ENTITY:ReceivingDocument", "JOURNAL");
+            .containsExactly("BRANCH", "JOURNAL");
         assertThat(rows).extracting(EntitySummary.AccessRow::dimensionKind)
-            .containsExactly(RlsDimensionKind.FILTERABLE, RlsDimensionKind.CHECK_ONLY,
-                RlsDimensionKind.FILTERABLE);
+            .containsExactly(RlsDimensionKind.FILTERABLE, RlsDimensionKind.FILTERABLE);
         assertThat(rows).allSatisfy(row -> {
             assertThat(row.note()).contains("сложная политика");
             assertThat(row.rules())
                 .as("%s: записанный дефолт пути не публикуется как правило", row.dimension())
                 .isEmpty();
         });
-        assertThat(row(ReceivingDocument.class, "ENTITY:ReceivingDocument").note())
-            .as("ворота отличаются от фильтров текстом, а не отсутствием строки")
-            .contains("проверяется, не фильтруется");
-
         assertThat(dimensions.policyOf(ReceivingDocument.class).valueRules().values())
             .as("но владелец всё равно хранит дефолт — поэтому его и нельзя показывать")
             .allSatisfy(rule -> {

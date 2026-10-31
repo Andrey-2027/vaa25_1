@@ -1,0 +1,78 @@
+{
+  "kind" : "g1-c-summary-v2",
+  "mode" : "generated-acceptance",
+  "status" : "success",
+  "manifest" : {
+    "kind" : "g1-generation-manifest-v2",
+    "planId" : "g1-453e61835e199c75f251316d13352ef2a7aa46037c4ea8dc410dcd511a405a49",
+    "recipe" : {
+      "id" : "standard-document-v1",
+      "version" : 1
+    },
+    "generatorVersion" : "document-java-v4",
+    "fingerprintProfile" : "plan-fingerprint-v2",
+    "entries" : [ {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/AppliedDocument.java",
+      "sha256" : "8ae9b7a21caf7f01119cdd2a367f5308bc4251b8f2c345e41cac9442cf8aa36e",
+      "bytes" : 736
+    }, {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/rows/AppliedDocumentRow1.java",
+      "sha256" : "abf564d6a0f69167b5382a8959bdcad4267f644f37ad750ba18cfa7d84d66cf4",
+      "bytes" : 1545
+    }, {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/rows/AppliedDocumentRow2.java",
+      "sha256" : "27b4104179d701b075f17cf548907c35d7301c45222e4715a32c7eeaa80658d1",
+      "bytes" : 1545
+    } ],
+    "manifestSha256" : "aa1281e849a047cfa4789dcf4a086a7a12a80bf5b2f8735e0376e1fa6f3f8826"
+  },
+  "scenario" : {
+    "id" : "d-self-test",
+    "specSha256" : "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "dependencies" : [ {
+    "id" : "org.ipro:fixture-platform:jar::1.0-SELFTEST",
+    "sha256" : "2ada9bd37cae34a5152fe7678cbc7d7014203429b650017e33e1696348d3a501"
+  } ],
+  "supportSources" : [ ],
+  "sources" : [ {
+    "relativePath" : "com/example/generated/AppliedDocument.java",
+    "sha256" : "8ae9b7a21caf7f01119cdd2a367f5308bc4251b8f2c345e41cac9442cf8aa36e",
+    "bytes" : 736
+  }, {
+    "relativePath" : "com/example/generated/rows/AppliedDocumentRow1.java",
+    "sha256" : "abf564d6a0f69167b5382a8959bdcad4267f644f37ad750ba18cfa7d84d66cf4",
+    "bytes" : 1545
+  }, {
+    "relativePath" : "com/example/generated/rows/AppliedDocumentRow2.java",
+    "sha256" : "27b4104179d701b075f17cf548907c35d7301c45222e4715a32c7eeaa80658d1",
+    "bytes" : 1545
+  } ],
+  "sourceSetSha256" : "aa1281e849a047cfa4789dcf4a086a7a12a80bf5b2f8735e0376e1fa6f3f8826",
+  "compile" : {
+    "attempted" : true,
+    "exitCode" : 0
+  },
+  "runtime" : {
+    "attempted" : true,
+    "startup" : "success"
+  },
+  "tests" : {
+    "reports" : 1,
+    "run" : 5,
+    "failures" : 0,
+    "errors" : 0,
+    "skipped" : 0,
+    "suites" : [ {
+      "name" : "com.example.generated.harness.SectionsScenarioTest",
+      "required" : true,
+      "run" : 5,
+      "failures" : 0,
+      "errors" : 0,
+      "skipped" : 0
+    } ]
+  }
+}

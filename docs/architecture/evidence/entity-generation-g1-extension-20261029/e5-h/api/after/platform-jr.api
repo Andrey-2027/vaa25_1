@@ -1,0 +1,106 @@
+# platform-jr: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+class public org.ipro.jr.config.JrAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  ctor public()
+  method public org.ipro.jr.run.JpqlDatasetRunner jrJpqlDatasetRunner(org.ipro.jr.run.JpqlDatasetRunner)
+  method public org.ipro.jr.run.JrxmlExecutionService jrxmlExecutionService(org.ipro.jr.service.JrxmlTemplateService, org.ipro.jr.run.JpqlDatasetRunner, int)
+  method public org.ipro.jr.service.JrCatalogContributor jrCatalogContributor(org.ipro.jr.service.JrxmlTemplateService, org.ipro.report.catalog.ReportCatalogReadGate)
+  method public org.ipro.jr.service.JrxmlTemplateService jrxmlTemplateService(org.ipro.jr.JrxmlTemplateRepository, jakarta.validation.Validator, org.ipro.crud.ReferenceCheckService, java.lang.String)
+
+class public org.ipro.jr.config.JrPersistenceAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.persistence.autoconfigure.EntityScan
+  annotation org.springframework.data.jpa.repository.config.EnableJpaRepositories
+  ctor public()
+
+class public org.ipro.jr.dom.JrxmlTemplate
+  extends org.ipro.crud.BaseEntity
+  annotation jakarta.persistence.Entity
+  annotation jakarta.persistence.Table
+  ctor public()
+  method public boolean isEnabled()
+  method public java.lang.String getDescription()
+  method public java.lang.String getFileName()
+  method public java.lang.String getName()
+  method public java.lang.String getTargetEntityClass()
+  method public void setDescription(java.lang.String)
+  method public void setEnabled(boolean)
+  method public void setFileName(java.lang.String)
+  method public void setName(java.lang.String)
+  method public void setTargetEntityClass(java.lang.String)
+
+class public org.ipro.jr.run.JpqlQueryExecuter
+  implements net.sf.jasperreports.engine.query.JRQueryExecuter
+  ctor public()
+  method public boolean cancelQuery()
+  method public net.sf.jasperreports.engine.JRDataSource createDatasource() throws net.sf.jasperreports.engine.JRException
+  method public void close()
+
+class public org.ipro.jr.run.JpqlQueryExecuterBundle
+  implements net.sf.jasperreports.engine.query.JRQueryExecuterFactoryBundle
+  ctor public()
+  method public java.lang.String[] getLanguages()
+  method public net.sf.jasperreports.engine.query.QueryExecuterFactory getQueryExecuterFactory(java.lang.String) throws net.sf.jasperreports.engine.JRException
+
+class public org.ipro.jr.run.JpqlQueryExecuterFactory
+  extends net.sf.jasperreports.engine.query.AbstractQueryExecuterFactory
+  ctor public()
+  method public boolean supportsQueryParameterType(java.lang.String)
+  method public java.lang.Object[] getBuiltinParameters()
+  method public net.sf.jasperreports.engine.query.JRQueryExecuter createQueryExecuter(net.sf.jasperreports.engine.JasperReportsContext, net.sf.jasperreports.engine.JRDataset, java.util.Map<java.lang.String, ? extends net.sf.jasperreports.engine.JRValueParameter>) throws net.sf.jasperreports.engine.JRException
+
+class public org.ipro.jr.run.JrxmlExecutionService
+  ctor public(org.ipro.jr.service.JrxmlTemplateService, org.ipro.jr.run.JpqlDatasetRunner, int)
+  field public static final java.lang.String JPQL_MARKER = jpql:
+  method public java.util.List<org.ipro.jr.run.JrxmlExecutionService$JrxmlParamSpec> parameterSpecs(org.ipro.jr.dom.JrxmlTemplate)
+  method public net.sf.jasperreports.engine.JasperPrint run(org.ipro.jr.dom.JrxmlTemplate, java.util.Map<java.lang.String, java.lang.Object>)
+
+class public org.ipro.jr.service.JrCatalogContributor
+  implements org.ipro.report.catalog.ReportCatalogContributor
+  ctor public(org.ipro.jr.service.JrxmlTemplateService, org.ipro.report.catalog.ReportCatalogReadGate)
+  method public java.util.List<org.ipro.report.catalog.ReportCatalogItem> findAll(java.lang.String, boolean)
+  method public org.ipro.report.catalog.ReportCatalogItem find(java.lang.Long)
+  method public org.ipro.report.catalog.ReportEngineType type()
+
+class public org.ipro.jr.service.JrxmlTemplateService
+  extends org.ipro.crud.jpa.ValidatedJpaCrudService<org.ipro.jr.dom.JrxmlTemplate>
+  ctor public(org.ipro.jr.JrxmlTemplateRepository, jakarta.validation.Validator, org.ipro.crud.ReferenceCheckService, java.lang.String)
+  method public boolean fileExists(java.lang.String)
+  method public java.nio.file.Path resolve(java.lang.String)
+  method public java.util.List<org.ipro.jr.dom.JrxmlTemplate> search(java.lang.String)
+  method public java.util.List<org.ipro.report.catalog.ReportCatalogItem> findPrintableItemsForEntity(java.lang.Class<?>)
+  method public org.ipro.jr.dom.JrxmlTemplate createTemplate(java.lang.String, java.lang.String)
+  method public org.ipro.jr.dom.JrxmlTemplate createTemplate(java.lang.String, java.lang.String, java.lang.String)
+  method public void delete(java.lang.Long)
+
+class public static org.ipro.jr.run.JpqlQueryExecuterBundle$Registry
+  implements net.sf.jasperreports.extensions.ExtensionsRegistry
+  ctor public()
+  method public <T> java.util.List<T> getExtensions(java.lang.Class<T>)
+
+class public static org.ipro.jr.run.JpqlQueryExecuterBundle$RegistryFactory
+  implements net.sf.jasperreports.extensions.ExtensionsRegistryFactory
+  ctor public()
+  method public net.sf.jasperreports.extensions.ExtensionsRegistry createRegistry(java.lang.String, net.sf.jasperreports.engine.JRPropertiesMap)
+
+interface public abstract interface org.ipro.jr.JrxmlTemplateRepository
+  implements org.springframework.data.jpa.repository.JpaRepository<org.ipro.jr.dom.JrxmlTemplate, java.lang.Long>
+  method public abstract boolean existsByFileName(java.lang.String)
+  method public abstract boolean existsByName(java.lang.String)
+  method public abstract java.util.Optional<org.ipro.jr.dom.JrxmlTemplate> findByName(java.lang.String)
+
+interface public abstract interface org.ipro.jr.run.JpqlDatasetRunner
+  annotation java.lang.FunctionalInterface
+  method public abstract org.ipro.report.data.ReportDataset run(java.lang.String, java.util.Map<java.lang.String, java.lang.Object>, int)
+  method public static java.lang.Object displayValue(java.lang.Object)
+
+record public static final org.ipro.jr.run.JrxmlExecutionService$JrxmlParamSpec
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String defaultValueLiteral()
+  method public java.lang.String name()
+  method public java.lang.String valueClassName()
+

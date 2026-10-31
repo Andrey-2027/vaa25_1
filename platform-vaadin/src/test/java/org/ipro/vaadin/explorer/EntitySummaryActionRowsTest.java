@@ -94,7 +94,7 @@ class EntitySummaryActionRowsTest {
         referenceIndex.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry(BASE_PACKAGE);
         numbering.afterPropertiesSet();
-        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE);
+        SubsystemRegistry subsystems = new SubsystemRegistry(BASE_PACKAGE, new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         sections = new SectionMetadataRegistry(BASE_PACKAGE, metadataResolver);
         sections.afterPropertiesSet();
@@ -304,7 +304,7 @@ class EntitySummaryActionRowsTest {
     void assemblerWithoutActionCollaboratorsShowsNoActionRows() {
         EntitySummaryAssembler bare = new EntitySummaryAssembler(BASE_PACKAGE, metadataResolver,
             formRegistry, new ReferenceIndex(BASE_PACKAGE), new NumberingMetadataRegistry(BASE_PACKAGE),
-            new SubsystemRegistry(BASE_PACKAGE), FacetResolver.none());
+            new SubsystemRegistry(BASE_PACKAGE, new org.ipro.metadata.MetadataResolver()), FacetResolver.none());
 
         assertThat(bare.summarize(ProbeEntity.class).actions())
             .as("аспект не подключён — это не «действий нет», но и не выдуманные строки")
@@ -425,7 +425,7 @@ class EntitySummaryActionRowsTest {
     }
 
     private SubsystemRegistry subsystems() {
-        SubsystemRegistry registry = new SubsystemRegistry(BASE_PACKAGE);
+        SubsystemRegistry registry = new SubsystemRegistry(BASE_PACKAGE, new org.ipro.metadata.MetadataResolver());
         registry.afterPropertiesSet();
         return registry;
     }

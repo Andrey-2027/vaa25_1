@@ -1,0 +1,146 @@
+[
+  {
+    "id": "entity-design-core",
+    "before": "d5be4ad3e1790333fefd17b486913c6df3c60da94d56d37973ff7fde917ca431",
+    "after": "d5be4ad3e1790333fefd17b486913c6df3c60da94d56d37973ff7fde917ca431",
+    "beforeCount": 56,
+    "afterCount": 56,
+    "changed": false
+  },
+  {
+    "id": "entity-design-json",
+    "before": "7142e63d37813b815cadfbc0ae58cd5f17cd96e41f1a750570abe9cac2a79c76",
+    "after": "7142e63d37813b815cadfbc0ae58cd5f17cd96e41f1a750570abe9cac2a79c76",
+    "beforeCount": 7,
+    "afterCount": 7,
+    "changed": false
+  },
+  {
+    "id": "platform-contracts",
+    "before": "fcc6674d4a44e07b48ce841eff15ad579b93e9b285c5030f3d805bc942d01e2b",
+    "after": "fe069d70dc633af4cf24f0342f5c1a35c5289f51e7fca4aab31dc04aa1a4b3d0",
+    "beforeCount": 38,
+    "afterCount": 39,
+    "changed": true
+  },
+  {
+    "id": "platform-events",
+    "before": "e2944df8a3530b0a4d0ee3df551e5c7805a0ea21d244b431ef6711da4882e8e9",
+    "after": "e2944df8a3530b0a4d0ee3df551e5c7805a0ea21d244b431ef6711da4882e8e9",
+    "beforeCount": 12,
+    "afterCount": 12,
+    "changed": false
+  },
+  {
+    "id": "platform-persistence",
+    "before": "1e9c1467c05c4cf394817ebd246e927b22aa8549c0cec8061b1f39e2dd4b817d",
+    "after": "1e9c1467c05c4cf394817ebd246e927b22aa8549c0cec8061b1f39e2dd4b817d",
+    "beforeCount": 5,
+    "afterCount": 5,
+    "changed": false
+  },
+  {
+    "id": "platform-metadata",
+    "before": "edf35a8690397d70cf40de80d6983693d33c47043a3d1a96bdda5ed2e2d3b1e9",
+    "after": "edf35a8690397d70cf40de80d6983693d33c47043a3d1a96bdda5ed2e2d3b1e9",
+    "beforeCount": 5,
+    "afterCount": 5,
+    "changed": false
+  },
+  {
+    "id": "platform-numbering",
+    "before": "9cf6e836a2258f8f12d66299d74a1b850cb74ec58f1ca1cdc0b110a38c52497c",
+    "after": "9cf6e836a2258f8f12d66299d74a1b850cb74ec58f1ca1cdc0b110a38c52497c",
+    "beforeCount": 19,
+    "afterCount": 19,
+    "changed": false
+  },
+  {
+    "id": "platform-settings",
+    "before": "1cfdfeb1a5c41c651bdfb647c79aebbe548a4a3520d13932d0e783107cfc6b55",
+    "after": "1cfdfeb1a5c41c651bdfb647c79aebbe548a4a3520d13932d0e783107cfc6b55",
+    "beforeCount": 10,
+    "afterCount": 10,
+    "changed": false
+  },
+  {
+    "id": "platform-telemetry",
+    "before": "bb1cfd8fab896972515f104335b0a352693afd6358047c811817a37ec4b816cb",
+    "after": "bb1cfd8fab896972515f104335b0a352693afd6358047c811817a37ec4b816cb",
+    "beforeCount": 71,
+    "afterCount": 71,
+    "changed": false
+  },
+  {
+    "id": "platform-rls",
+    "before": "085a28e5c5e7f17734030e0322e7393549489e49b62c13ee84c78edf2d64a444",
+    "after": "085a28e5c5e7f17734030e0322e7393549489e49b62c13ee84c78edf2d64a444",
+    "beforeCount": 62,
+    "afterCount": 62,
+    "changed": false
+  },
+  {
+    "id": "platform-core",
+    "before": "5fa8a3fa9d8b3c8c4f40bf25168fbca6e2c20dd5e269147a0e65fe9695979351",
+    "after": "2088fecb8a887ec34c50700a5509674fc7b8b1ec6c98b1c3708c6993f1203fa2",
+    "beforeCount": 171,
+    "afterCount": 184,
+    "changed": true
+  },
+  {
+    "id": "entity-design-runtime",
+    "before": "3a0814342b53e2927ef39f52976df7b2a24bab30aa3a2c6748ba03b0cd29138e",
+    "after": "a3eeec38176abbc0298385307edb28ca955aa20a0de7c27bc2d2b779188e66d4",
+    "beforeCount": 5,
+    "afterCount": 6,
+    "changed": true
+  },
+  {
+    "id": "platform-register",
+    "before": "cbf656779b6cbf5b76a15c35404c30dfbb7637157783f520d0b2682bd48da248",
+    "after": "cbf656779b6cbf5b76a15c35404c30dfbb7637157783f520d0b2682bd48da248",
+    "beforeCount": 72,
+    "afterCount": 72,
+    "changed": false
+  },
+  {
+    "id": "platform-navigation",
+    "before": "6103ab79632436833bc27718be6fd25feb9dcb4d42dcb0ff74025ba8113b91a6",
+    "after": "6103ab79632436833bc27718be6fd25feb9dcb4d42dcb0ff74025ba8113b91a6",
+    "beforeCount": 35,
+    "afterCount": 35,
+    "changed": false
+  },
+  {
+    "id": "platform-spring-boot-autoconfigure",
+    "before": "ef5abd885fa20b26fa9f75d12df4247d3aebc5fed5b08dea2c457833993615d1",
+    "after": "282a280f6748ab030a8e1a162ab528f7d0b1564dfcf0433972169e9cc9741773",
+    "beforeCount": 18,
+    "afterCount": 18,
+    "changed": true
+  },
+  {
+    "id": "platform-vaadin",
+    "before": "ef7273c6f1e746ec4bb96e85df2aae9afd180e24d3d6f3896eef61e0d9d7455a",
+    "after": "ef7273c6f1e746ec4bb96e85df2aae9afd180e24d3d6f3896eef61e0d9d7455a",
+    "beforeCount": 234,
+    "afterCount": 234,
+    "changed": false
+  },
+  {
+    "id": "platform-bom",
+    "before": "f84a47ce41d7d5ad1ef73ab7a1a706da9b370da998bda893185c323bcec1a512",
+    "after": "f84a47ce41d7d5ad1ef73ab7a1a706da9b370da998bda893185c323bcec1a512",
+    "beforeCount": 1,
+    "afterCount": 1,
+    "changed": false
+  },
+  {
+    "id": "platform-backend-starter",
+    "before": "29bb36406035f742a6659228d521e9ea8cea67e552277f2ccb2ce46c0d1783af",
+    "after": "29bb36406035f742a6659228d521e9ea8cea67e552277f2ccb2ce46c0d1783af",
+    "beforeCount": 2,
+    "afterCount": 2,
+    "changed": false
+  }
+]

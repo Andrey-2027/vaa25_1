@@ -136,7 +136,7 @@ class RlsServiceWriteBoundaryIT {
 
         assertThatThrownBy(() -> journals().create(journal(code)))
             .isInstanceOf(C5AccessDeniedException.class)
-            .hasMessageContaining("ENTITY:Journal");
+            .hasMessageContaining(C5PermissionKeys.entity(Journal.class));
 
         assertThat(existsAsSuperuser(code)).isFalse();
     }
@@ -168,7 +168,7 @@ class RlsServiceWriteBoundaryIT {
 
         assertThatThrownBy(() -> journals().update(detached))
             .isInstanceOf(C5AccessDeniedException.class)
-            .hasMessageContaining("ENTITY:Journal");
+            .hasMessageContaining(C5PermissionKeys.entity(Journal.class));
 
         assertThat(loadAsSuperuser(id).getName()).isNotEqualTo("запрещено");
     }
@@ -195,7 +195,7 @@ class RlsServiceWriteBoundaryIT {
 
         assertThatThrownBy(() -> journals().delete(id))
             .isInstanceOf(C5AccessDeniedException.class)
-            .hasMessageContaining("ENTITY:Journal");
+            .hasMessageContaining(C5PermissionKeys.entity(Journal.class));
 
         assertThat(findAsSuperuser(id)).isPresent();
     }
@@ -219,7 +219,7 @@ class RlsServiceWriteBoundaryIT {
 
         assertThatThrownBy(() -> journals().create(invalid))
             .isInstanceOf(C5AccessDeniedException.class)
-            .hasMessageContaining("ENTITY:Journal");
+            .hasMessageContaining(C5PermissionKeys.entity(Journal.class));
 
         verify(entityEventPublisher, never()).publishSaving(any(), any());
         verify(lifecycleRegistry, never()).beforeSave(any(), any(), any());
@@ -242,7 +242,7 @@ class RlsServiceWriteBoundaryIT {
 
         assertThatThrownBy(() -> journals().update(detached))
             .isInstanceOf(C5AccessDeniedException.class)
-            .hasMessageContaining("ENTITY:Journal");
+            .hasMessageContaining(C5PermissionKeys.entity(Journal.class));
 
         assertThat(detached.getVersion()).as("normalizeVersion не выполнялся").isNull();
         verify(entityEventPublisher, never()).publishSaving(any(), any());
@@ -263,7 +263,7 @@ class RlsServiceWriteBoundaryIT {
 
         assertThatThrownBy(() -> journals().delete(id))
             .isInstanceOf(C5AccessDeniedException.class)
-            .hasMessageContaining("ENTITY:Journal");
+            .hasMessageContaining(C5PermissionKeys.entity(Journal.class));
 
         verify(entityEventPublisher, never()).publishDeleting(any(), any());
         verify(lifecycleRegistry, never()).beforeDelete(any(), any(), any());
@@ -323,7 +323,7 @@ class RlsServiceWriteBoundaryIT {
         withoutOperation.setName("без операции");
         assertThatThrownBy(() -> journals().update(withoutOperation))
             .isInstanceOf(C5AccessDeniedException.class)
-            .hasMessageContaining("ENTITY:Journal");
+            .hasMessageContaining(C5PermissionKeys.entity(Journal.class));
 
         assertThat(loadAsSuperuser(id).getName()).isNotEqualTo("без операции");
     }
@@ -408,6 +408,9 @@ class RlsServiceWriteBoundaryIT {
         grant.setSubjectKey(subjectKey);
         grant.setDimension(C5PermissionKeys.entityOperations(Journal.class));
         grant.setDimensionValueId(null);
+        // ADR-0017: UPDATE/DELETE существующей строки требуют также ENTITY READ.
+        // CREATE/EXECUTE этой предпосылки не имеют.
+        grant.setCanRead(true);
         grant.setCanUpdate(update);
         grant.setCanDelete(delete);
         return grant;

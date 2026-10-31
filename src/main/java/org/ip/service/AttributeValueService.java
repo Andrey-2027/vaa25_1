@@ -12,6 +12,7 @@ import org.ip.repository.SklNomOpaValueRepository;
 import org.ipro.crud.BaseService;
 import org.ipro.crud.EntityLookup;
 import org.ipro.crud.NaturalKeyCreateSupport;
+import org.ipro.crud.InterningContracts;
 import org.ipro.crud.ValidationException;
 import org.ipro.data.CanonicalEntityService;
 import org.ipro.data.EntityDataAccessResolver;
@@ -528,9 +529,10 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
         String codeUp = code.toUpperCase(Locale.ROOT);
         Optional<AttributeValue> existing = attributeValueRepository.findByAttrTypeAndCodeUp(type, codeUp);
         if (existing.isPresent()) {
+            InterningContracts.identity(AttributeValue.class, existing.get());
             return existing.get();
         }
-        return createSupport.getOrCreate(AttributeValue.interningKeyOf(type, codeUp, null),
+        return createSupport.getOrCreate(AttributeValue.class, new AttributeValue(type, code, name, codeUp, null),
             () -> attributeValueRepository.findByAttrTypeAndCodeUp(type, codeUp),
             () -> canonical.create(new AttributeValue(type, code, name, codeUp, null)));
     }
@@ -538,9 +540,10 @@ public class AttributeValueService implements BaseService<AttributeValue, Long> 
     private AttributeValue getOrCreateRefRow(AttributeType type, String displayName, Long refId) {
         Optional<AttributeValue> existing = attributeValueRepository.findByAttrTypeAndRefId(type, refId);
         if (existing.isPresent()) {
+            InterningContracts.identity(AttributeValue.class, existing.get());
             return existing.get();
         }
-        return createSupport.getOrCreate(AttributeValue.interningKeyOf(type, null, refId),
+        return createSupport.getOrCreate(AttributeValue.class, new AttributeValue(type, displayName, displayName, null, refId),
             () -> attributeValueRepository.findByAttrTypeAndRefId(type, refId),
             () -> canonical.create(new AttributeValue(type, displayName, displayName, null, refId)));
     }

@@ -40,9 +40,13 @@ import org.ip.views.admin.DiagnosticsView;
 import org.ip.views.admin.EntityExplorerAccess;
 import org.ip.views.admin.EntityExplorerView;
 import org.ip.views.admin.EntityExplorerNavigation;
+import org.ip.views.admin.EntityDraftWorkspace;
+import org.ip.views.admin.EntityDraftAccess;
 import org.ip.views.admin.SubsystemStructureView;
 import org.ip.views.directory.WorkshopListView;
 import org.ip.views.preferences.DensityToggle;
+import org.ip.views.query.QueryWorkbenchAccess;
+import org.ip.views.query.QueryWorkbenchView;
 import org.ip.views.preferences.UserPreferencesStore;
 import org.ip.views.forms.WorkshopForm;
 import org.ip.views.workspace.SubsystemHomeView;
@@ -132,6 +136,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     private final FormRouteCatalog routeCatalog;
     private final ObjectProvider<EntityExplorerView> explorerViews;
     private final EntityExplorerNavigation structureNavigation;
+    private final EntityDraftWorkspace drafts;
+    private final EntityDraftAccess draftAccess;
+    private final QueryWorkbenchAccess queryWorkbenchAccess;
 
     @Autowired
     public MainLayout(Workspace workspace,
@@ -144,7 +151,12 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
                       FormRouteCatalog routeCatalog,
                       ObjectProvider<EntityExplorerView> explorerViews,
                       EntityExplorerNavigation structureNavigation,
-                      NavigationUiSnapshot navigationSnapshot) {
+                      NavigationUiSnapshot navigationSnapshot,
+                      EntityDraftWorkspace drafts, EntityDraftAccess draftAccess,
+                      QueryWorkbenchAccess queryWorkbenchAccess) {
+        this.drafts = drafts;
+        this.draftAccess = draftAccess;
+        this.queryWorkbenchAccess = queryWorkbenchAccess;
         this.subsystemRegistry = subsystemRegistry;
         this.navigationSnapshot = navigationSnapshot;
         this.preferencesStore = preferencesStore;
@@ -466,6 +478,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
 
     private void openExplorerTab(Class<?> type, String anchor, ExplorerEnterReason reason) {
         EntityExplorerView view = explorerViews.getObject();
+        view.setDraftOpener(drafts::open, draftAccess::allows);
         view.setSelectionListener(this::explorerPlaceSelected);
         switch (reason) {
             case MENU -> registerRestoredExplorerEntry(view);
@@ -620,6 +633,15 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
         homeItem.setPrefixComponent(new Icon(VaadinIcon.HOME));
         homeItem.getElement().addEventListener("click", e -> workspace.open(MainView.class, "home", "Главная", v -> {}));
         nav.addItem(homeItem);
+
+        // D4: пункт меню и маршрут спрашивают одно правило входа.
+        if (queryWorkbenchAccess.allows()) {
+            SideNavItem queryItem = new SideNavItem("Конструктор запросов");
+            queryItem.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+            queryItem.getElement().addEventListener("click", e ->
+                    workspace.open(QueryWorkbenchView.class, "query-workbench", "Конструктор запросов", v -> {}));
+            nav.addItem(queryItem);
+        }
 
         if (isAdmin()) {
             SideNavItem diagnosticsItem = new SideNavItem("Диагностика");

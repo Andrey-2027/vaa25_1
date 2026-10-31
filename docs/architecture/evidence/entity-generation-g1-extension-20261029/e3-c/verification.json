@@ -1,0 +1,414 @@
+[
+  {
+    "name": "owned-catalog one generated entry",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog C2 success and required suite",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog exact applied source bytes",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog receipt binds C/manifest/plan",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog journal removed",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog APPLIED then NOOP",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog applied runtime",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog dependency set counts",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:g1-owner-support:jar::1.0-E3",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:g1-reference-target:jar::1.0-E2",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owned-catalog current JAR org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "Owner runtime test source is reviewed C support",
+    "passed": true
+  },
+  {
+    "name": "document-v1 one generated entry",
+    "passed": true
+  },
+  {
+    "name": "document-v1 C2 success and required suite",
+    "passed": true
+  },
+  {
+    "name": "document-v1 exact applied source bytes",
+    "passed": true
+  },
+  {
+    "name": "document-v1 receipt binds C/manifest/plan",
+    "passed": true
+  },
+  {
+    "name": "document-v1 journal removed",
+    "passed": true
+  },
+  {
+    "name": "document-v1 APPLIED then NOOP",
+    "passed": true
+  },
+  {
+    "name": "document-v1 applied runtime",
+    "passed": true
+  },
+  {
+    "name": "document-v1 dependency set counts",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v1 current JAR org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 one generated entry",
+    "passed": true
+  },
+  {
+    "name": "document-v2 C2 success and required suite",
+    "passed": true
+  },
+  {
+    "name": "document-v2 exact applied source bytes",
+    "passed": true
+  },
+  {
+    "name": "document-v2 receipt binds C/manifest/plan",
+    "passed": true
+  },
+  {
+    "name": "document-v2 journal removed",
+    "passed": true
+  },
+  {
+    "name": "document-v2 APPLIED then NOOP",
+    "passed": true
+  },
+  {
+    "name": "document-v2 applied runtime",
+    "passed": true
+  },
+  {
+    "name": "document-v2 dependency set counts",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "document-v2 current JAR org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "passed": true
+  },
+  {
+    "name": "owner-wrong-suite",
+    "passed": true
+  },
+  {
+    "name": "owner-drift-create",
+    "passed": true
+  },
+  {
+    "name": "owner-drift-noop",
+    "passed": true
+  },
+  {
+    "name": "document-v1-cross-summary",
+    "passed": true
+  },
+  {
+    "name": "document-v2-cross-summary",
+    "passed": true
+  },
+  {
+    "name": "Document envelopes have identical Java but distinct plan binding",
+    "passed": true
+  },
+  {
+    "name": "Invalid document owner has addressable semantic refusal",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyFailure.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyHarness.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyHash.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyHooks.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyPaths.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyRequest.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyResult.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyState.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyStateV2.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\ApplyStatus.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\CSummary.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\CSummaryV2.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\DependencyLocation.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\GenerationApplyAdapter.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\GenerationApplyV2.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\Json.java",
+    "passed": true
+  },
+  {
+    "name": "D snapshot org\\ipro\\design\\apply\\PlanRebuilder.java",
+    "passed": true
+  },
+  {
+    "name": "255-test reactor without skips",
+    "passed": true
+  }
+]

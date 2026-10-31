@@ -29,14 +29,12 @@
 # переезде слоя меняются только строки `layer`, и реестр не приходится переписывать целиком.
 
 # --- слой ---
-layer src/main/java/org/ipro/reportstudio
-layer src/main/java/org/ip/views/reportstudio
-layer src/main/java/org/ip/views/unidr
-# Отчётная форма параметров лежит в общем каталоге компонентов, а не в reportstudio: она
-# потребляет SelectionForm/EntityField/SearchFunction/SelectionFormAssembler, то есть держит
-# шов больше всех после SelectionFormAssembler. Отдельная строка вместо расширения слоя на
-# весь views/components — там generic-компоненты, к отчётам отношения не имеющие.
-layer src/main/java/org/ip/views/components/ReportParamForm.java
+# M2.2.2: каталог/печать/параметры и UniDR UI уехали в platform-report-vaadin; корни
+# указывают туда, а приложение оставило только адаптер порта EntitySelection.
+layer platform-report-vaadin/src/main/java/org/ipro/report/ui
+layer platform-report-vaadin/src/main/java/org/ipro/unidr/ui
+# M1.2: адаптер порта EntitySelection переехал из reportstudio в views.query.
+layer src/main/java/org/ip/views/query/FormEntitySelection.java
 
 # --- шов ---
 # E1.6b (замер): 13 типов, 10 ролей APP_API и 3 APP_SPI, ни одного INTERNAL.
@@ -51,30 +49,31 @@ layer src/main/java/org/ip/views/components/ReportParamForm.java
 #     оболочка действия — общая и приложение называет её контракт поимённо, поэтому роли
 #     APP_API/APP_SPI, и при переезде report-слоя в свой артефакт эта зависимость уезжает вместе
 #     с ним. Семь → тринадцать.
-# Dirtyable/Savable — контракт «есть несохранённые изменения»: редактор отчёта встроен в UI-поток
-# и обязан участвовать в общей защите от потери данных, поэтому берёт интерфейсы формы, а не
-# заводит свои. После D3.6.4 контракт остаётся только у канонического ReportEditorView.
-seam org.ipro.form.Dirtyable org.ip.views.reportstudio.ReportEditorView
-seam org.ipro.form.Savable org.ip.views.reportstudio.ReportEditorView
 # Описание поля и сборка формы выбора — то, чем параметр отчёта становится виджетом.
 # UniDR uses the same published entity field/selection contracts for source parameters and constants.
-seam org.ipro.form.EntityField org.ip.views.components.ReportParamForm org.ip.views.unidr.UniDrReferencePicker org.ipro.reportstudio.query.editor.ReportQueryEditor org.ipro.reportstudio.query.editor.RegisterSliceQueryDialog
-seam org.ipro.form.SelectionForm org.ip.views.components.ReportParamForm org.ip.views.unidr.UniDrReferencePicker
-seam org.ipro.form.SelectionFormAssembler org.ip.views.components.ReportParamForm org.ip.views.reportstudio.ContextualReportLauncher org.ip.views.reportstudio.ItemFormReportActions org.ip.views.reportstudio.ReportCatalogView org.ip.views.reportstudio.ReportEditorView org.ip.views.reportstudio.ReportPrintAction org.ip.views.reportstudio.ReportPrintDialog org.ip.views.reportstudio.ReportRunDialog org.ip.views.unidr.UniDrQueryUiSupport org.ip.views.unidr.UniDrConditionsEditor org.ip.views.unidr.UniDrDefinitionEditor org.ip.views.unidr.UniDrNativeFilterEditor org.ip.views.unidr.UniDrReferencePicker org.ip.views.unidr.UniDrValueEditor org.ipro.reportstudio.query.editor.ReportQueryEditor org.ipro.reportstudio.query.editor.RegisterSliceQueryDialog
+# M1.2: редактор/конструктор/срез уехали в platform-query-vaadin и шов больше не держат.
+# В приложении остался ровно один держатель — адаптер порта EntitySelection: только он
+# знает, что выбор собирается формой платформы.
+seam org.ipro.form.EntityField org.ipro.report.ui.params.ReportParamForm org.ipro.unidr.ui.UniDrReferencePicker org.ip.views.query.FormEntitySelection
+seam org.ipro.form.SelectionForm org.ipro.report.ui.params.ReportParamForm org.ipro.unidr.ui.UniDrReferencePicker org.ip.views.query.FormEntitySelection
+seam org.ipro.form.SelectionFormAssembler org.ipro.report.ui.params.ReportParamForm org.ipro.report.ui.config.ReportUiAutoConfiguration org.ipro.unidr.ui.UniDrQueryUiSupport org.ipro.unidr.ui.UniDrConditionsEditor org.ipro.unidr.ui.UniDrDefinitionEditor org.ipro.unidr.ui.UniDrNativeFilterEditor org.ipro.unidr.ui.UniDrReferencePicker org.ipro.unidr.ui.UniDrValueEditor org.ip.views.query.FormEntitySelection
 # Функция поиска значений для поля: у отчёта свой протокол подгрузки кандидатов.
-seam org.ipro.form.SearchFunction org.ip.views.components.ReportParamForm
+seam org.ipro.form.SearchFunction org.ipro.report.ui.params.ReportParamForm
 # Пункт меню ItemForm, через который отчёт открывается из карточки сущности. Печать в СПИСКЕ
 # сюда не входит: она объявлена действием (report.print) и шва не держит.
-seam org.ipro.form.builtin.ItemForm org.ip.views.reportstudio.ItemFormReportActions
+seam org.ipro.form.builtin.ItemForm org.ipro.report.ui.print.ItemFormReportActions org.ipro.report.ui.print.ReportCardPrintCustomization
+# Общая кастомизация форм: точка входа кнопки карточки без вызова ItemFormReportActions из каждой формы.
+seam org.ipro.form.builder.FormTypeCustomization org.ipro.report.ui.print.ReportCardPrintCustomization
+seam org.ipro.form.registry.FormContext org.ipro.report.ui.print.ReportCardPrintCustomization
 
 # Машина действий (E1.6b): объявление и исполнение печати списка. Держатель один — само действие;
 # диалог выбора печатной формы машину действий не знает и получает уже принятое решение.
-seam org.ipro.form.action.ActionHandler org.ip.views.reportstudio.ReportPrintAction
-seam org.ipro.form.action.ActionDefinition org.ip.views.reportstudio.ReportPrintAction
-seam org.ipro.form.action.ActionId org.ip.views.reportstudio.ReportPrintAction
-seam org.ipro.form.action.ActionInvocation org.ip.views.reportstudio.ReportPrintAction
-seam org.ipro.form.action.ActionRequirement org.ip.views.reportstudio.ReportPrintAction
-seam org.ipro.form.action.ActionSurface org.ip.views.reportstudio.ReportPrintAction
+seam org.ipro.form.action.ActionHandler org.ipro.report.ui.print.ReportPrintAction
+seam org.ipro.form.action.ActionDefinition org.ipro.report.ui.print.ReportPrintAction
+seam org.ipro.form.action.ActionId org.ipro.report.ui.print.ReportPrintAction
+seam org.ipro.form.action.ActionInvocation org.ipro.report.ui.print.ReportPrintAction
+seam org.ipro.form.action.ActionRequirement org.ipro.report.ui.print.ReportPrintAction
+seam org.ipro.form.action.ActionSurface org.ipro.report.ui.print.ReportPrintAction
 
 # --- типы, которых не касается никто, кроме шва ---
 # Приложение (всё, что не шов и не сам platform-vaadin) не должно тратить эти типы: пока это
@@ -86,9 +85,10 @@ only org.ipro.form.SearchFunction держится швом: внутри пла
 # --- что обязан забрать с собой переезд слоя (D3.7; временно отложен до появления ресурса) ---
 # Подготовка к срезу, снятая в D3.5.7, а не предположение:
 #
-# 1. Регистрация. Файл AutoConfiguration.imports приложения содержит сейчас четыре строки с
-#    report-owned конфигурациями в пакетах org.ipro: ReportStudioAutoConfiguration,
-#    ReportStudioPersistenceAutoConfiguration, JrPersistenceAutoConfiguration, JrAutoConfiguration. У слоя
+# 1. Регистрация. Файл AutoConfiguration.imports приложения содержит сейчас пять строк с
+#    report-owned конфигурациями в пакетах org.ipro: ReportCatalogAutoConfiguration,
+#    ReportStudioAutoConfiguration, ReportStudioPersistenceAutoConfiguration,
+#    JrPersistenceAutoConfiguration, JrAutoConfiguration. У слоя
 #    есть и своя persistence-конфигурация (@EntityScan/@EnableJpaRepositories), то есть переезд
 #    меняет не только объявление бинов, но и область сканирования сущностей — а это не падает при
 #    старте, а меняет поведение. Прецедент рядом: в D3.5.4 Vaadin-адаптер телеметрии держался

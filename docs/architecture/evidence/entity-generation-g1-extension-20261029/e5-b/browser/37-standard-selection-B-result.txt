@@ -1,0 +1,92 @@
+- heading "E5.B · стандартные ListForm / SelectionForm" [level=3]
+- button "Создать тестовые записи A/B":
+  - generic: Создать тестовые записи A/B
+- generic: Владелец стандартных форм
+- combobox "Владелец стандартных форм": Контрагент B
+- text: 
+- generic: 
+- generic:  
+- button "Стандартный список":
+  - generic: Стандартный список
+- button "Стандартный выбор" [active]:
+  - generic: Стандартный выбор
+- generic: "Выбрано: Standard Контрагент B"
+- generic: "Владелец: 000002 — Контрагент B"
+- button "Создать":
+  - generic: Создать
+- button "Изменить" [disabled]:
+  - generic: Изменить
+- button "Удалить" [disabled]:
+  - generic: Удалить
+- button "Обновить":
+- button "Компактный вид":
+- menubar:
+  - generic: Ещё
+  - menuitem "More options":
+    - generic: ···
+- text: 
+- treegrid:
+  - rowgroup:
+    - row "Sort by Код Sort by Наименование Sort by Контрагент Sort by Описание":
+      - columnheader "Sort by Код":
+        - generic "Sort by Код":
+          - generic: Код
+          - generic: 
+      - columnheader "Sort by Наименование":
+        - generic "Sort by Наименование":
+          - generic: Наименование
+          - generic: 
+      - columnheader "Sort by Контрагент":
+        - generic "Sort by Контрагент":
+          - generic: Контрагент
+          - generic: 
+      - columnheader "Sort by Описание":
+        - generic "Sort by Описание":
+          - generic: Описание
+          - generic: 
+    - row "Режим фильтра Режим фильтра Режим фильтра":
+      - columnheader "Режим фильтра":
+        - button "Режим фильтра":
+          - generic: abc
+        - textbox:
+          - /placeholder: Код
+        - generic: 
+      - columnheader "Режим фильтра":
+        - button "Режим фильтра":
+          - generic: abc
+        - textbox:
+          - /placeholder: Наименование
+        - generic: 
+      - columnheader
+      - columnheader "Режим фильтра":
+        - button "Режим фильтра":
+          - generic: abc
+        - textbox:
+          - /placeholder: Описание
+        - generic: 
+  - rowgroup:
+    - row "000002 Standard Контрагент B 000002 — Контрагент B":
+      - gridcell "000002":
+        - generic: "000002"
+      - gridcell "Standard Контрагент B":
+        - generic: Standard Контрагент B
+      - gridcell "000002 — Контрагент B":
+        - generic: 000002 — Контрагент B
+      - gridcell
+  - rowgroup
+- button "+ Условия":
+  - generic: + Условия
+- radiogroup "Mode":
+  - radio
+  - radio
+  - radio
+  - radio [checked]
+- button "DevTools":
+- region "Notifications":
+  - heading "App is running in development mode" [level=2]
+  - separator
+  - generic: 
+  - checkbox "Don't show again"
+  - generic: Don't show again
+  - button "Close":
+- generic: Online

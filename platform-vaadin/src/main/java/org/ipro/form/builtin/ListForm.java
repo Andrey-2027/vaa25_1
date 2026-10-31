@@ -236,6 +236,7 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     private final Map<String, FieldFilter<?>> activeFilters = new LinkedHashMap<>();
 
     private Specification<T> contextFilter;
+    private final com.vaadin.flow.component.html.Span catalogOwnerNotice = new com.vaadin.flow.component.html.Span();
     private Specification<T> visualFilter;
     private org.ipro.filtergrid.filter.FilterEntitySelector entitySelector;
     private SelectionFormProvider contextFilterSelectionFormProvider;
@@ -491,6 +492,9 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     /** Пересобрать итоговую контекстную спецификацию и обновить грид/группировку. */
     @SuppressWarnings("unchecked")
     private void rebuildContextSpecification() {
+        Object owner = org.ipro.form.CatalogOwnerForms.openingOwner(metadata.getEntityClass(), openingContextFilterValues);
+        catalogOwnerNotice.setText(owner == null ? "" : org.ipro.form.CatalogOwnerForms.caption(owner));
+        catalogOwnerNotice.setVisible(owner != null);
         Specification<T> combined = combine(
             specificationForValues(openingContextFilterValues),
             specificationForValues(contextFilterValues));
@@ -853,6 +857,9 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
                 result.put(path, openingContextFilterValues.get(path));
             }
         }
+        var owner = org.ipro.form.CatalogOwnerForms.ownerOf(metadata.getEntityClass());
+        if (owner != null && openingContextFilterValues.containsKey(owner.property()))
+            result.put(owner.property(), openingContextFilterValues.get(owner.property()));
         return result;
     }
 
@@ -1056,6 +1063,7 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        catalogOwnerNotice.setVisible(false); add(catalogOwnerNotice);
 
         configureColumnsAndFilters();
         configureToolbar(service);

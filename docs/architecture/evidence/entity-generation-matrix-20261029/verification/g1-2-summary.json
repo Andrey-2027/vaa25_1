@@ -1,0 +1,50 @@
+{
+  "mode": "generated-acceptance",
+  "scenario": "future-catalog",
+  "status": "success",
+  "failureReason": "",
+  "detail": "Compile, startup, metadata and canonical runtime checks passed",
+  "source": {
+    "file": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\g1-2\\future-catalog\\input\\com\\example\\generated\\FutureCatalog.java",
+    "relativePath": "com/example/generated/FutureCatalog.java",
+    "sha256": "f1f4cd863ad0b471946af3df2778f13e5da1769f580b49ea09a49664690fe11b",
+    "expectedSha256": "f1f4cd863ad0b471946af3df2778f13e5da1769f580b49ea09a49664690fe11b",
+    "bytes": 4738,
+    "archived": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\verification-20261029\\c\\future-catalog\\input\\com\\example\\generated\\FutureCatalog.java"
+  },
+  "plan": {
+    "receipt": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1\\g1-2\\future-catalog\\plan-receipt.json",
+    "planId": "g1-cb13454087fb5a3b519d729e260dd6c0c603f7274ff8fd38872f00d4db6002db",
+    "recipe": "standard-catalog-v2@2",
+    "generatorVersion": "catalog-java-v1",
+    "generatorRevision": "9b3463dadd21378d2d189511f06b4ae375d5f78d",
+    "sourceFixture": "fullDraft()"
+  },
+  "harness": {
+    "isolation": "C:\\Users\\strim\\AppData\\Local\\Packages\\sandbox.{c93093f9-4b99-4ef2-945d-7dfb2f40138a}\\AC\\Temp\\entity-generation-g1-harness-3be9d9979eae4e79a32af0466c98377a",
+    "javaHome": "C:\\Program Files\\Axiom\\AxiomJDK-21",
+    "javaVersion": "openjdk version \"21.0.11\" 2026-04-21 LTS\r\nOpenJDK Runtime Environment (build 21.0.11+11-LTS)\r\nOpenJDK 64-Bit Server VM (build 21.0.11+11-LTS, mixed mode, sharing)",
+    "maven": "C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.3\\plugins\\maven\\lib\\maven3\\bin\\mvn.cmd",
+    "offline": true,
+    "localRepository": "C:\\Users\\strim\\.m2\\repository"
+  },
+  "maven": {
+    "attempted": true,
+    "exitCode": 0
+  },
+  "tests": {
+    "reports": 1,
+    "run": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "platformJars": {
+    "used": 17,
+    "changed": [],
+    "missing": [],
+    "file": "platform-jars.sha256"
+  },
+  "timestamp": "2026-10-29T13:55:44.0790149+03:00",
+  "gitHead": "9b3463dadd21378d2d189511f06b4ae375d5f78d"
+}

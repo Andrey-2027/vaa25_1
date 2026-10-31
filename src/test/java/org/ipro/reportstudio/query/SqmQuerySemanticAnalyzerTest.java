@@ -1,12 +1,17 @@
 package org.ipro.reportstudio.query;
 
+import org.ipro.query.*;
+import org.ipro.query.param.*;
+import org.ipro.query.register.*;
+import org.ipro.query.sqm.*;
+
 import jakarta.persistence.EntityManagerFactory;
 import org.ip.Application;
 import org.ip.model.Journal;
 import org.ip.model.PrdSpec;
 import org.ip.model.ReceivingDocument;
-import org.ipro.reportstudio.data.QueryField;
-import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.report.data.QueryField;
+import org.ipro.query.sqm.SqmQuerySemanticAnalyzer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

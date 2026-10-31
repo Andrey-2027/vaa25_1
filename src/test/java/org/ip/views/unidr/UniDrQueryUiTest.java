@@ -1,4 +1,9 @@
-package org.ip.views.unidr;
+package org.ipro.unidr.ui;
+import org.ip.unidr.source.UniDrReceivingItemsSource;
+import org.ip.unidr.query.UniDrReferenceService;
+import org.ip.unidr.model.UniDrDefinitions;
+
+import org.ipro.query.document.*;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -7,17 +12,17 @@ import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
-import org.ip.unidr.model.*;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.query.*;
-import org.ip.unidr.run.*;
-import org.ip.unidr.source.*;
-import org.ip.views.components.ReportParamForm;
-import org.ipro.reportstudio.data.QueryField;
-import org.ipro.reportstudio.dom.*;
-import org.ipro.reportstudio.param.ReportContext;
-import org.ipro.reportstudio.query.*;
-import org.ipro.reportstudio.query.editor.*;
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.query.*;
+import org.ipro.unidr.run.*;
+import org.ipro.unidr.source.*;
+import org.ipro.report.ui.params.ReportParamForm;
+import org.ipro.report.data.QueryField;
+import org.ipro.query.ReportContext;
+import org.ipro.query.*;
+import org.ipro.query.model.*;
+import org.ipro.query.ui.editor.*;
 import org.junit.jupiter.api.*;
 import java.time.*;
 import java.util.*;
@@ -28,22 +33,22 @@ class UniDrQueryUiTest {
     @Test void queryParameterWindowUsesCanonicalDeclarationsAndCancelKeepsThemUnchanged() {
         var assembly=mock(ReportQueryAssemblyService.class);var constructors=mock(QueryBuilderMetadataCatalog.class);
         var emf=mock(jakarta.persistence.EntityManagerFactory.class);
-        @SuppressWarnings("unchecked") var slices=(org.springframework.beans.factory.ObjectProvider<org.ipro.reportstudio.query.register.RegisterSliceReportTemplates>)mock(org.springframework.beans.factory.ObjectProvider.class);
+        @SuppressWarnings("unchecked") var slices=(org.springframework.beans.factory.ObjectProvider<org.ipro.query.register.RegisterSliceReportTemplates>)mock(org.springframework.beans.factory.ObjectProvider.class);
         var sources=new UniDrQuerySourceService(assembly);
-        var support=new UniDrQueryUiSupport(mock(QueryEditorAnalysisService.class),mock(QueryMetadataCatalogService.class),mock(ReportPreviewService.class),mock(org.ipro.crud.EntityLookup.class),mock(org.ipro.form.SelectionFormAssembler.class),assembly,constructors,slices,sources,UniDrSourceCatalog.pilot(),emf);
+        var support=new UniDrQueryUiSupport(mock(QueryEditorAnalysisService.class),mock(QueryMetadataCatalogService.class),mock(ReportPreviewService.class),mock(org.ipro.crud.EntityLookup.class),mock(org.ipro.form.SelectionFormAssembler.class),mock(org.ipro.query.ui.selection.EntitySelection.class),UniDrDefinitions.referenceTypes(),assembly,constructors,slices,sources,UniDrDefinitions.catalog(),emf);
         var p=new UniDrParameter("p_saved","saved","Сохранённый параметр",UniDrParameter.Kind.SCALAR,UniDrParameter.ScalarType.INTEGER,null,false,true,UniDrParameter.ValueSource.FORM,UniDrParameter.InitialRule.VALUE,List.of("42"),UniDrParameter.Computed.NONE,null,null);
         var query=new UniDrQuerySource(ReportQuerySource.MANUAL,"select n.code as code from Nomenclature n",null,List.of());
         var definition=UniDrDefinitions.receivingItemsSummary().withQuery(query).withParameters(List.of(p));
-        var template=query.template();
-        var editor=new ReportQueryEditor(mock(QueryEditorAnalysisService.class),mock(QueryMetadataCatalogService.class),mock(ReportPreviewService.class),mock(org.ipro.crud.EntityLookup.class),mock(org.ipro.form.SelectionFormAssembler.class),assembly);editor.setTemplate(template);
+        var described=UniDrQueryDefinitions.of(query);
+        var editor=new ReportQueryEditor(mock(QueryEditorAnalysisService.class),mock(QueryMetadataCatalogService.class),mock(ReportPreviewService.class),mock(org.ipro.crud.EntityLookup.class),new org.ipro.reportstudio.query.adapter.EmptyEntitySelection(),assembly);editor.open(QueryDraft.of(described));
         var parameters=new java.util.concurrent.atomic.AtomicReference<>(definition.parameterDeclarations());
-        var dialog=support.openCanonicalParameters(definition,template,editor,parameters,mock(UniDrReferenceService.class));
+        var dialog=support.openCanonicalParameters(definition,described,editor,parameters,UniDrDefinitions.referenceTypes(),ignored->{ });
         var parameterEditor=UniDrEditorTest.all(dialog,UniDrParameterEditor.class).getFirst();
         assertThat(parameterEditor.value()).containsExactly(p);
         parameterGrid(parameterEditor).select(p);
         UniDrEditorTest.all(parameterEditor,TextField.class).stream().filter(field->"Подпись".equals(field.getLabel())).findFirst().orElseThrow().setValue("Изменено");
-        UniDrEditorTest.footerButton(dialog,"Отмена").click();assertThat(parameters.get()).containsExactly(p);assertThat(template.getParams()).isEmpty();
-        var applied=support.openCanonicalParameters(definition,template,editor,parameters,mock(UniDrReferenceService.class));
+        UniDrEditorTest.footerButton(dialog,"Отмена").click();assertThat(parameters.get()).containsExactly(p);assertThat(described.parameters()).isEmpty();
+        var applied=support.openCanonicalParameters(definition,described,editor,parameters,UniDrDefinitions.referenceTypes(),ignored->{ });
         var edits=UniDrEditorTest.all(applied,UniDrParameterEditor.class).getFirst();parameterGrid(edits).select(p);
         UniDrEditorTest.all(edits,TextField.class).stream().filter(field->"Подпись".equals(field.getLabel())).findFirst().orElseThrow().setValue("Новая подпись");
         UniDrEditorTest.footerButton(applied,"Применить").click();
@@ -54,9 +59,9 @@ class UniDrQueryUiTest {
     @BeforeEach void setup(){ui=new UI();UI.setCurrent(ui);org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("alice",null,List.of()));}
     @AfterEach void cleanup(){UI.setCurrent(null);ui=null;org.springframework.security.core.context.SecurityContextHolder.clearContext();}
     @Test void parameterChangesNotifyIncludingEntitySelectionAndDynamicListRemoval() {
-        var scalar=new ReportParam();scalar.setName("code");
-        var entity=new ReportParam();entity.setName("unit");entity.setKind(ReportParamKind.ENTITY);entity.setEntityClass(org.ip.model.UnitOfMeasurement.class.getName());
-        var list=new ReportParam();list.setName("units");list.setKind(ReportParamKind.ENTITY_LIST);list.setEntityClass(entity.getEntityClass());
+        var scalar=queryParameter("code",QueryParameterKind.SCALAR,null,0);
+        var entity=queryParameter("unit",QueryParameterKind.ENTITY,org.ip.model.UnitOfMeasurement.class.getName(),1);
+        var list=queryParameter("units",QueryParameterKind.ENTITY_LIST,entity.entityClass(),2);
         var lookup=mock(org.ipro.crud.EntityLookup.class);var selection=mock(org.ipro.form.SelectionFormAssembler.class);
         when(selection.resolveColumns(any())).thenReturn(new org.ipro.form.SelectionFormAssembler.ResolvedSelection(List.of(),"Единицы"));
         var unit=new org.ip.model.UnitOfMeasurement("шт","Штука","PCS");
@@ -81,7 +86,7 @@ class UniDrQueryUiTest {
         assertThat(form.values()).doesNotContainKey("unit");assertThat(form.allValues()).containsEntry("unit",null);assertThat(changes.get()).isEqualTo(5);
     }
     @Test void typedDecimalAndIntegerInputsNeverRoundThroughDouble() {
-        var amount=new ReportParam();amount.setName("amount");var identity=new ReportParam();identity.setName("identity");
+        var amount=queryParameter("amount",QueryParameterKind.SCALAR,null,0);var identity=queryParameter("identity",QueryParameterKind.SCALAR,null,1);
         var form=new ReportParamForm(List.of(amount,identity),ReportContext.empty("alice",Instant.now()),null,null,
             Map.of("amount","java.math.BigDecimal","identity","java.lang.Long"));
         var fields=UniDrEditorTest.all(form,com.vaadin.flow.component.textfield.BigDecimalField.class);
@@ -91,7 +96,7 @@ class UniDrQueryUiTest {
         fields.getLast().setValue(new java.math.BigDecimal("1.5"));assertThatThrownBy(form::values).isInstanceOf(ArithmeticException.class);
     }
     @Test void enumDefaultsRestoreTheConstantFromItsSavedName() {
-        var p=new ReportParam();p.setName("choice");var form=new ReportParamForm(List.of(p),ReportContext.empty("alice",Instant.now()),null,null,Map.of("choice",Labelled.class.getName()));
+        var p=queryParameter("choice",QueryParameterKind.SCALAR,null,0);var form=new ReportParamForm(List.of(p),ReportContext.empty("alice",Instant.now()),null,null,Map.of("choice",Labelled.class.getName()));
         form.setValues(Map.of("choice","FIRST"));assertThat(form.values()).containsEntry("choice",Labelled.FIRST);
     }
     @Test void applyingQueryBuildsFieldsAndEditingOnlyParametersKeepsReportSettings() {
@@ -101,7 +106,7 @@ class UniDrQueryUiTest {
             "name",new UniDrSourcePlan.Projection("name","p.name",String.class,null,"name",true),
             "qty",new UniDrSourcePlan.Projection("qty","p.qty",Integer.class,null,"qty",true)),List.of()));
         var support=mock(UniDrQueryUiSupport.class);when(support.catalog()).thenReturn(catalog);
-        var references=mock(UniDrReferenceService.class);var runs=mock(UniDrRunService.class);
+        var references=UniDrDefinitions.referenceTypes();var runs=mock(UniDrRunService.class);
         var view=new UniDrView(runs,references,Clock.systemUTC(),support);
         var query=new UniDrQuerySource(ReportQuerySource.MANUAL,"select p.name as name,p.qty as qty from Product p",null,List.of());view.applyQuery(query);
         assertThat(view.definition().sourceId()).isEqualTo("query");assertThat(view.definition().columns()).extracting(Column::fieldId).containsExactly("name","qty");
@@ -115,8 +120,8 @@ class UniDrQueryUiTest {
         UniDrEditorTest.all(computation,com.vaadin.flow.component.textfield.TextField.class).stream().filter(input->"Название колонки".equals(input.getLabel())).findFirst().orElseThrow().setValue("Стоимость");
         UniDrEditorTest.all(computation,com.vaadin.flow.component.textfield.TextArea.class).getFirst().setValue("{qty} * 10");UniDrEditorTest.footerButton(computation,"Сохранить колонку").click();
         UniDrEditorTest.all(view,Checkbox.class).stream().filter(input->"Нумеровать строки детализации".equals(input.getLabel())).findFirst().orElseThrow().setValue(true);
-        var previous=view.definition();var parameter=new ReportParam();parameter.setName("code");parameter.setCaption("Код");
-        var draft=query.template();draft.addParam(parameter);view.applyQuery(UniDrQuerySource.from(draft));
+        var previous=view.definition();var parameter=new QueryParameter("code","code","Код",QueryParameterKind.SCALAR,QueryScalarType.UNRESOLVED,null,QueryValueSource.FORM,false,true,null,QueryComputedValue.NONE,null,0);
+        var draft=UniDrQueryDefinitions.of(query).withParameters(List.of(parameter));view.applyQuery(UniDrQueryDefinitions.source(draft,null));
         assertThat(view.definition().columns()).isEqualTo(previous.columns());assertThat(view.definition().measures()).isEqualTo(previous.measures());assertThat(view.definition().groups()).isEqualTo(previous.groups());
         assertThat(view.definition().fieldStyles()).isEqualTo(previous.fieldStyles());
         assertThat(view.definition().computedColumns()).isEqualTo(previous.computedColumns());assertThat(view.definition().rowNumbers()).isTrue();
@@ -131,21 +136,22 @@ class UniDrQueryUiTest {
         assertThat(new UniDrDefinitionValidator(catalog).validate(view.definition())).isEmpty();
     }
     @Test void missingQueryParametersBecomeDeclarationsWithoutReplacingExistingPeriodOrEntitySettings() {
-        var template=new ReportTemplate();var period=new ReportParam();period.setName("period");period.setKind(ReportParamKind.PERIOD);template.addParam(period);
+        var period=new QueryParameter("period","period","Период",QueryParameterKind.RANGE,QueryScalarType.UNRESOLVED,null,QueryValueSource.FORM,false,true,null,QueryComputedValue.NONE,null,0);
+        var described=new org.ipro.query.model.QueryDefinition("",org.ipro.query.model.QuerySource.MANUAL,null,null,List.of(period));
         var descriptors=List.of(QueryParameterDescriptor.unknown("periodFrom"),QueryParameterDescriptor.unknown("periodTo"),
             new QueryParameterDescriptor("unit",org.ip.model.UnitOfMeasurement.class,org.ip.model.UnitOfMeasurement.class,false,QueryParameterDescriptor.InferenceStatus.INFERRED,""),QueryParameterDescriptor.unknown("minimum"));
-        UniDrQueryUiSupport.addMissingParameters(template,new QueryEditorAnalysis("",null,descriptors));
-        assertThat(template.getParams()).extracting(ReportParam::getName).containsExactly("period","unit","minimum");
-        assertThat(template.getParams().get(1).getKind()).isEqualTo(ReportParamKind.ENTITY);assertThat(template.getParams().get(1).getEntityClass()).isEqualTo(org.ip.model.UnitOfMeasurement.class.getName());
-        UniDrQueryUiSupport.addMissingParameters(template,new QueryEditorAnalysis("",null,descriptors));assertThat(template.getParams()).hasSize(3);
+        var enriched=UniDrQueryUiSupport.addMissingParameters(described,new QueryEditorAnalysis("",null,descriptors));
+        assertThat(enriched.parameters()).extracting(QueryParameter::name).containsExactly("period","unit","minimum");
+        assertThat(enriched.parameters().get(1).kind()).isEqualTo(QueryParameterKind.ENTITY);assertThat(enriched.parameters().get(1).entityClass()).isEqualTo(org.ip.model.UnitOfMeasurement.class.getName());
+        assertThat(UniDrQueryUiSupport.addMissingParameters(enriched,new QueryEditorAnalysis("",null,descriptors)).parameters()).hasSize(3);
     }
     @Test void opensActualUdrEditorAndCancelDoesNotChangeAppliedQuery() {
         var analysis=mock(QueryEditorAnalysisService.class);var metadata=mock(QueryMetadataCatalogService.class);var assembly=mock(ReportQueryAssemblyService.class);
         var constructors=mock(QueryBuilderMetadataCatalog.class);var emf=mock(jakarta.persistence.EntityManagerFactory.class);
         when(emf.getPersistenceUnitUtil()).thenReturn(mock(jakarta.persistence.PersistenceUnitUtil.class));
-        @SuppressWarnings("unchecked") var slices=(org.springframework.beans.factory.ObjectProvider<org.ipro.reportstudio.query.register.RegisterSliceReportTemplates>)mock(org.springframework.beans.factory.ObjectProvider.class);
+        @SuppressWarnings("unchecked") var slices=(org.springframework.beans.factory.ObjectProvider<org.ipro.query.register.RegisterSliceReportTemplates>)mock(org.springframework.beans.factory.ObjectProvider.class);
         var service=new UniDrQuerySourceService(assembly);var catalog=new UniDrSourceCatalog(List.of(UniDrReceivingItemsSource.definition()),service::describe);
-        var support=new UniDrQueryUiSupport(analysis,metadata,mock(ReportPreviewService.class),mock(org.ipro.crud.EntityLookup.class),mock(org.ipro.form.SelectionFormAssembler.class),assembly,constructors,slices,service,catalog,emf);
+        var support=new UniDrQueryUiSupport(analysis,metadata,mock(ReportPreviewService.class),mock(org.ipro.crud.EntityLookup.class),mock(org.ipro.form.SelectionFormAssembler.class),mock(org.ipro.query.ui.selection.EntitySelection.class),UniDrDefinitions.referenceTypes(),assembly,constructors,slices,service,catalog,emf);
         var original=new UniDrQuerySource(ReportQuerySource.MANUAL,"select n.name as name from Nomenclature n",null,List.of());
         var applied=new java.util.concurrent.atomic.AtomicReference<UniDrQuerySource>();var dialog=support.edit(original,applied::set);
         var editor=UniDrEditorTest.all(dialog,ReportQueryEditor.class).getFirst();editor.applyJpqlText("select n.code as code from Nomenclature n");
@@ -156,7 +162,7 @@ class UniDrQueryUiTest {
         var p=new UniDrParameter("p_search","search","Поиск",UniDrParameter.Kind.SCALAR,UniDrParameter.ScalarType.TEXT,null,false,true,
             UniDrParameter.ValueSource.FORM,UniDrParameter.InitialRule.NONE,List.of(),UniDrParameter.Computed.NONE,null,null);
         var state=new java.util.concurrent.atomic.AtomicReference<>(UniDrDefinitions.receivingItemsSummary().withParameters(List.of(p)));
-        var editor=new UniDrParameterEditor(List.of(p),mock(UniDrQueryUiSupport.class),mock(UniDrReferenceService.class),state::get,()->{});
+        var editor=new UniDrParameterEditor(List.of(p),mock(UniDrQueryUiSupport.class),UniDrDefinitions.referenceTypes(),state::get,()->{});
         @SuppressWarnings("unchecked") var grid=(com.vaadin.flow.component.grid.Grid<UniDrParameter>)(com.vaadin.flow.component.grid.Grid<?>)UniDrEditorTest.all(editor,com.vaadin.flow.component.grid.Grid.class).getFirst();grid.select(p);
         var name=UniDrEditorTest.all(editor,com.vaadin.flow.component.textfield.TextField.class).stream().filter(field->field.getLabel().equals("Имя в запросе и условиях")).findFirst().orElseThrow();
         assertThat(name.isReadOnly()).isFalse();
@@ -171,7 +177,7 @@ class UniDrQueryUiTest {
         when(support.formForParameters(anyList(),any(),any())).thenAnswer(call->new ReportParamForm(List.of(),ReportContext.empty("alice"),null,null));
         var p=entityParameter(UniDrParameter.Kind.ENTITY);
         var changes=new java.util.concurrent.atomic.AtomicInteger();
-        var editor=new UniDrParameterEditor(List.of(p),support,mock(UniDrReferenceService.class),()->UniDrDefinitions.receivingItemsSummary().withParameters(List.of(p)),changes::incrementAndGet);
+        var editor=new UniDrParameterEditor(List.of(p),support,UniDrDefinitions.referenceTypes(),()->UniDrDefinitions.receivingItemsSummary().withParameters(List.of(p)),changes::incrementAndGet);
         parameterGrid(editor).select(p);
         assertThat(UniDrEditorTest.all(editor,ComboBox.class)).noneMatch(input->"Тип сущности".equals(input.getLabel()));
         var field=UniDrEditorTest.all(editor,TextField.class).stream().filter(input->"Тип сущности".equals(input.getLabel())).findFirst().orElseThrow();
@@ -191,7 +197,7 @@ class UniDrQueryUiTest {
         when(support.formForParameters(anyList(),any(),any())).thenAnswer(call->new ReportParamForm(List.of(),ReportContext.empty("alice"),null,null));
         for(var kind:List.of(UniDrParameter.Kind.ENTITY,UniDrParameter.Kind.ENTITY_LIST)) {
             var p=entityParameter(kind);var changes=new java.util.concurrent.atomic.AtomicInteger();
-            var editor=new UniDrParameterEditor(List.of(p),support,mock(UniDrReferenceService.class),()->UniDrDefinitions.receivingItemsSummary().withParameters(List.of(p)),changes::incrementAndGet);
+            var editor=new UniDrParameterEditor(List.of(p),support,UniDrDefinitions.referenceTypes(),()->UniDrDefinitions.receivingItemsSummary().withParameters(List.of(p)),changes::incrementAndGet);
             parameterGrid(editor).select(p);var dialog=editor.openEntityTypeDialog();var choices=entityGrid(dialog);
             UniDrEditorTest.all(dialog,TextField.class).getFirst().setValue("  НОМЕНКЛ  ");
             assertThat(choices.getListDataView().getItems().toList()).containsExactly(nomenclature);
@@ -214,6 +220,9 @@ class UniDrQueryUiTest {
         assertThat(choices.asSingleSelect().getValue()).isNull();
         ComponentUtil.fireEvent(choices,new ItemDoubleClickEvent<>(choices,true,key,null,0,0,0,0,2,0,false,false,false,false));
         assertThat(selected.get()).isEqualTo(unit);assertThat(dialog.isOpened()).isFalse();
+    }
+    private static QueryParameter queryParameter(String name,QueryParameterKind kind,String entityClass,int position) {
+        return new QueryParameter(name,name,"",kind,QueryScalarType.UNRESOLVED,entityClass,QueryValueSource.FORM,false,true,null,QueryComputedValue.NONE,null,position);
     }
     private static QueryBuilderMetadataCatalog.Entity entity(String name,Class<?> type,String caption,Class<?> owner) {
         return new QueryBuilderMetadataCatalog.Entity(name,type,List.of(),List.of(),caption,"Справочник",owner);

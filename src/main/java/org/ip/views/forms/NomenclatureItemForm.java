@@ -49,11 +49,24 @@ public class NomenclatureItemForm extends ItemForm<Nomenclature> {
     private Nomenclature current;
     private NomSklAttribute selectedBinding;
     private boolean readOnly;
+    private final boolean preview;
+
+    /** Same form and layout, with no binding service or application actions. */
+    public static NomenclatureItemForm preview(EntityMetadataInfo meta, FieldFactory fields) {
+        return new NomenclatureItemForm(meta, fields, null, List.of(), true);
+    }
 
     public NomenclatureItemForm(EntityMetadataInfo meta, FieldFactory fieldFactory,
                                 NomSklAttributeService bindingService,
                                 List<AttributeType> availableTypes) {
+        this(meta, fieldFactory, bindingService, availableTypes, false);
+    }
+
+    private NomenclatureItemForm(EntityMetadataInfo meta, FieldFactory fieldFactory,
+                                NomSklAttributeService bindingService,
+                                List<AttributeType> availableTypes, boolean preview) {
         super(meta, fieldFactory, (List<String>) null);
+        this.preview = preview;
         this.bindingService = bindingService;
         this.availableTypes = availableTypes == null ? List.of() : List.copyOf(availableTypes);
 
@@ -76,6 +89,7 @@ public class NomenclatureItemForm extends ItemForm<Nomenclature> {
 
         unbindButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         unbindButton.addClickListener(e -> {
+            if (preview) return;
             try {
                 bindingService.unbind(selectedBinding.getId());
                 refreshBindings();
@@ -89,7 +103,10 @@ public class NomenclatureItemForm extends ItemForm<Nomenclature> {
         });
 
         HorizontalLayout toolbar = new HorizontalLayout(bindButton, unbindButton);
+        toolbar.setVisible(!preview);
         VerticalLayout section = new VerticalLayout(title, toolbar, bindingsGrid);
+        if (preview) section.add(new com.vaadin.flow.component.html.Span(
+            "Привязки атрибутов КСУ доступны после первого сохранения. В предпросмотре не загружаются."));
         section.setPadding(false);
         section.setSpacing(true);
         section.setWidthFull();
@@ -114,7 +131,7 @@ public class NomenclatureItemForm extends ItemForm<Nomenclature> {
 
     private void refreshBindings() {
         Nomenclature nom = current;
-        if (nom == null || nom.getId() == null) {
+        if (preview || nom == null || nom.getId() == null) {
             bindingsGrid.setItems(List.of());
             bindingsGrid.setVisible(false);
         } else {
@@ -126,13 +143,14 @@ public class NomenclatureItemForm extends ItemForm<Nomenclature> {
 
     private void updateButtons() {
         Nomenclature nom = current;
-        boolean editable = !readOnly && nom != null && nom.getId() != null;
+        boolean editable = !preview && !readOnly && nom != null && nom.getId() != null;
         bindButton.setEnabled(editable);
         unbindButton.setEnabled(editable && selectedBinding != null);
     }
 
     /** Диалог привязки: выбор активного типа + признак «обязателен»; запись сразу. */
     private void openBindDialog() {
+        if (preview) return;
         Nomenclature nom = current;
         if (nom == null || nom.getId() == null) {
             return;

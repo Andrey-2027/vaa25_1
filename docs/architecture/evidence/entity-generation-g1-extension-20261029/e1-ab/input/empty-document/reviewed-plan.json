@@ -1,0 +1,116 @@
+{
+  "planId" : "g1-edb926b5688ff32b8fba23c3d0519d513f697f2f34e97c02c59157b89774e1e6",
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "generatorVersion" : "document-java-v1",
+  "source" : {
+    "schemaVersion" : 1,
+    "recipe" : {
+      "id" : "standard-document-v1",
+      "version" : 1
+    },
+    "draftId" : "00000000-0000-4000-8000-000000000001",
+    "entity" : {
+      "className" : "EmptyDocument",
+      "packageName" : {
+        "mode" : "EXPLICIT",
+        "text" : "com.example.generated"
+      },
+      "label" : "Документ",
+      "titles" : {
+        "list" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "item" : {
+          "mode" : "AUTO",
+          "text" : ""
+        },
+        "selection" : {
+          "mode" : "AUTO",
+          "text" : ""
+        }
+      },
+      "tableName" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "subsystemId" : null,
+      "icon" : "FILE"
+    },
+    "fields" : [ ],
+    "sections" : [ ]
+  },
+  "context" : {
+    "projectId" : "test-project",
+    "version" : "v1",
+    "defaultPackage" : "org.ip.model",
+    "existingTypes" : {
+      "values" : [ "org.ip.model.Nomenclature", "org.ip.model.UnitOfMeasurement" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "existingTables" : {
+      "values" : [ "nomenclature" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "subsystemIds" : {
+      "values" : [ "org.ip.subsystem.Subsystems$Directories" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "iconIds" : {
+      "values" : [ "FILE" ],
+      "complete" : true,
+      "reason" : ""
+    },
+    "referenceTargets" : {
+      "org.ip.model.Nomenclature" : {
+        "typeId" : "org.ip.model.Nomenclature",
+        "caption" : "Nomenclature",
+        "exposure" : "STANDARD_ROOT",
+        "identityType" : "java.lang.Long",
+        "representation" : "YES",
+        "selection" : "YES",
+        "eligibility" : "SUPPORTED",
+        "reason" : ""
+      },
+      "org.ip.model.UnitOfMeasurement" : {
+        "typeId" : "org.ip.model.UnitOfMeasurement",
+        "caption" : "UnitOfMeasurement",
+        "exposure" : "STANDARD_ROOT",
+        "identityType" : "java.lang.Long",
+        "representation" : "YES",
+        "selection" : "YES",
+        "eligibility" : "SUPPORTED",
+        "reason" : ""
+      }
+    },
+    "referencesComplete" : true,
+    "runtimeSnapshot" : {
+      "snapshotId" : "document-v1",
+      "complete" : true,
+      "types" : { },
+      "prerequisites" : {
+        "ET0_ET7_RUNTIME" : {
+          "status" : "AVAILABLE",
+          "evidence" : "ET7"
+        },
+        "STANDARD_DOCUMENT_APP_API" : {
+          "status" : "AVAILABLE",
+          "evidence" : "ET4"
+        }
+      },
+      "diagnostics" : [ ]
+    }
+  },
+  "files" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/EmptyDocument.java",
+    "content" : "package com.example.generated;\n\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.Table;\nimport org.ipro.crud.StandardDocumentEntity;\nimport org.ipro.metadata.annotation.EntityMetadata;\n\n@Entity\n@Table(name = \"empty_document\")\n@EntityMetadata(\n    listFormTitle = \"Документ\",\n    itemFormTitle = \"Документ\",\n    selectionFormTitle = \"Документ\",\n    icon = \"FILE\",\n    listColumns = {\"number\", \"date\"},\n    selectColumns = {\"number\", \"date\"}\n)\npublic class EmptyDocument extends StandardDocumentEntity {\n}\n",
+    "sha256" : "a28039602c6cae7ea4ea75cd6b1d6f9be9e6fbc2e42909e2ab028574d409ad34"
+  } ]
+}

@@ -1,0 +1,9 @@
+{
+  "mode" : "wrong-required-suite",
+  "status" : "REJECTED",
+  "code" : "C_TESTS_INCOMPLETE",
+  "targetExists" : false,
+  "receiptExists" : false,
+  "targetHashMatches" : false,
+  "journalExists" : false
+}

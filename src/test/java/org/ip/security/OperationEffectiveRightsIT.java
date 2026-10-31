@@ -1,5 +1,7 @@
 package org.ip.security;
 
+import org.ip.persistence.access.PermissionSubjectLock;
+import org.ip.application.access.SubjectRef;
 import org.ip.application.catalog.AttributeValuePermissions;
 import org.ip.application.user.UserPasswordChangePermission;
 import org.ip.config.DataInitializer;
@@ -33,6 +35,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 
 /**
  * Эффективные права по <b>операционному</b> измерению берутся решением C5, а не RLS-свёрткой.
@@ -81,6 +85,10 @@ class OperationEffectiveRightsIT {
     @MockitoBean
     private DataInitializer dataInitializer;
 
+    /** Строки грантов теста синтетические: lock отвечает стабильной ссылкой, не читая строку. */
+    @MockitoBean
+    private PermissionSubjectLock permissionSubjectLock;
+
     @BeforeEach
     void authenticateAdmin() {
         SecurityContext context = securityContextHolderStrategy.createEmptyContext();
@@ -88,6 +96,10 @@ class OperationEffectiveRightsIT {
             List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
         securityContextHolderStrategy.setContext(context);
         SecurityContextHolder.setContext(context);
+        doAnswer(call -> {
+            SubjectRef.Identity identity = call.getArgument(0);
+            return new SubjectRef(identity.type(), identity.id(), "fixture-subject", "fixture-subject");
+        }).when(permissionSubjectLock).acquire(any(SubjectRef.Identity.class));
     }
 
     @AfterEach
@@ -222,13 +234,13 @@ class OperationEffectiveRightsIT {
     }
 
     /**
-     * Короткий {@code ENTITY:<Имя>}-ключ — ключ операций во всех столбцах: «Изменение»/«Удаление»
-     * решает C5, а столбец «Чтение» — тоже ответ C5, а не флаг строки: чтение сущности живёт на
-     * отдельном read-ключе {@code ENTITY:<FQN>}. Ни плитка подсистемы, ни гейт чтения типа флаг
-     * короткого ключа больше не спрашивают, поэтому и диалог его не показывает.
+     * P-U: у сущности один ключ {@code ENTITY:<FQN>} и один набор операций. «Чтение»,
+     * «Изменение» и «Удаление» — независимые флаги одной глобальной строки, и каждый столбец
+     * показывает решение C5, а не RLS-свёртку; short-key больше не является ни ключом, ни
+     * алиасом.
      */
     @Test
-    void theShortEntityKeyIsAnOperationKeyInEveryColumn() {
+    void theEntityKeyIsOneOperationKeyInEveryColumn() {
         assertThat(accessGrantAdminService.isOperationDimension(NOMENCLATURE_OPERATIONS))
             .as("тип с canonical write handle обязан иметь определение операций")
             .isTrue();
@@ -249,25 +261,25 @@ class OperationEffectiveRightsIT {
             .isFalse();
 
         String granted = subject("op-eff-entity-granted");
+        // UPDATE существующей строки требует эффективного READ (ADR-0017), поэтому фикстура
+        // выдаёт чтение: проверяется единый ключ и независимость флагов, а не отказ предпосылки.
         accessGrantAdminService.saveSingleGrant(NOMENCLATURE_OPERATIONS, AccessGrant.SubjectType.USER,
-            granted, new GrantFlags(false, true, false));
+            granted, new GrantFlags(true, true, false));
 
         AccessService.EffectiveGrant grantedShown = screen(granted).get(NOMENCLATURE_OPERATIONS);
-        assertThat(grantedShown.canRead())
-            .as("чтение сущности решает read-ключ, а не флаг операционного ключа")
-            .isFalse();
+        assertThat(grantedShown.canRead()).isTrue();
         assertThat(grantedShown.canUpdate()).isTrue();
         assertThat(grantedShown.canDelete()).isFalse();
         assertThat(c5PermissionDecisionService
             .decideEntity(granted, Nomenclature.class, C5Operation.UPDATE).allowed())
-            .as("экран и сервер обязаны совпасть и на коротком ENTITY-ключе")
+            .as("экран и сервер обязаны совпасть и на едином ENTITY-ключе")
             .isTrue();
         assertThat(c5PermissionDecisionService
             .decideEntity(granted, Nomenclature.class, C5Operation.DELETE).allowed())
             .isFalse();
         assertThat(c5PermissionDecisionService.decideEntity(granted, Nomenclature.class, C5Operation.READ).allowed())
             .as("чтение задаётся независимым флагом той же ENTITY-строки")
-            .isFalse();
+            .isTrue();
     }
 
     // === Фикстура ===

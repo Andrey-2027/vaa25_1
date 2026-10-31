@@ -39,6 +39,22 @@ import static org.mockito.Mockito.when;
  */
 class FormResolverTest {
 
+    @jakarta.persistence.Entity
+    static class BareCatalog extends org.ipro.crud.StandardCatalogEntity { }
+
+    @Test
+    void annotationlessStandardUsesTheDefaultMetadataDrivenItemForm() {
+        var metadata = new MetadataResolver();
+        var forms = new FormRegistry();
+        var factory = new FieldFactory(mock(LookupService.class), mock(SelectionFormAssembler.class), metadata, forms);
+        var resolved = new FormResolver(forms, metadata, factory, mock(ApplicationContext.class),
+            mock(TableSectionFactory.class), mock(SelectionFormAssembler.class), mock(ServiceLocator.class));
+        var item = resolved.resolveItemForm(BareCatalog.class, null, null, null);
+        assertThat(item.getMetadata()).isSameAs(metadata.resolve(BareCatalog.class));
+        assertThat(item.getMetadata().getFormFields()).extracting(org.ipro.metadata.FieldMetadataInfo::getName)
+            .containsExactly("code", "name");
+    }
+
     private FormRegistry registry;
     private MetadataResolver metadataResolver;
     private FieldFactory fieldFactory;

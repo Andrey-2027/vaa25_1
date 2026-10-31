@@ -25,10 +25,31 @@ public final class MetadataConsistencyStartupCheck {
 
     private final List<MetadataDiagnostic> diagnostics;
 
+    public MetadataConsistencyStartupCheck(ManagedEntityTypes managedEntityTypes,
+                                           MetadataResolver metadataResolver,
+                                           List<MetadataAllowance> allowances) {
+        Objects.requireNonNull(managedEntityTypes, "managedEntityTypes must not be null");
+        Objects.requireNonNull(metadataResolver, "metadataResolver must not be null");
+
+        List<MetadataDiagnostic> validated = MetadataConsistencyValidator.validate(
+            metadataResolver, managedEntityTypes, allowances);
+        this.diagnostics = validateAndLog(validated);
+    }
+
+    /** One immutable startup/Explorer snapshot after all module diagnostic sources are ready. */
+    public MetadataConsistencyStartupCheck(ManagedEntityTypes types, MetadataResolver resolver,
+            List<MetadataAllowance> allowances, List<MetadataDiagnostic> additionalDiagnostics) {
+        this.diagnostics = validateAndLog(MetadataConsistencyValidator.validate(
+            resolver, types, allowances, additionalDiagnostics));
+    }
+
+    /** Compatibility adapter for direct callers that already hold the catalog. */
+    @Deprecated(forRemoval = false)
     public MetadataConsistencyStartupCheck(ManagedEntityCatalog managedEntityCatalog,
                                            MetadataResolver metadataResolver,
                                            List<MetadataAllowance> allowances) {
-        this(managedEntityCatalog.managedEntityClasses(), metadataResolver, allowances);
+        this(Objects.requireNonNull(managedEntityCatalog, "managedEntityCatalog must not be null")
+            .managedEntityClasses(), metadataResolver, allowances);
     }
 
     /**
@@ -46,6 +67,10 @@ public final class MetadataConsistencyStartupCheck {
             metadataResolver, managedTypes,
             allowances == null ? List.of() : allowances);
 
+        this.diagnostics = validateAndLog(validated);
+    }
+
+    private static List<MetadataDiagnostic> validateAndLog(List<MetadataDiagnostic> validated) {
         List<MetadataDiagnostic> errors = validated.stream()
             .filter(diagnostic -> diagnostic.severity() == MetadataDiagnostic.Severity.ERROR)
             .toList();
@@ -63,7 +88,7 @@ public final class MetadataConsistencyStartupCheck {
                 case ERROR -> { /* недостижимо: ошибки уже остановили старт */ }
             }
         });
-        this.diagnostics = List.copyOf(validated);
+        return List.copyOf(validated);
     }
 
     /** Диагностики последней проверки — для тестов и диагностических экранов. */

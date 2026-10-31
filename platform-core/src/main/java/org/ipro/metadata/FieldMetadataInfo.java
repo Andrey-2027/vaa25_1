@@ -18,6 +18,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.AnnotatedElement;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -57,11 +58,13 @@ public final class FieldMetadataInfo {
         Set.of(NotNull.class, NotBlank.class, NotEmpty.class);
 
     private final Field field;
+    private final AnnotatedElement persistentMember;
     private final FieldMetadata annotation;
     private final FieldType resolvedType;
     private final FactOrigin typeOrigin;
     private final RequiredMode requiredMode;
     private final boolean serverRequired;
+    private final FactOrigin serverRequiredOrigin;
     private final boolean uiRequired;
     private final FactOrigin requiredOrigin;
     private final Class<?> referenceTarget;
@@ -74,17 +77,23 @@ public final class FieldMetadataInfo {
     private final String[] lookupFetch;
 
     public FieldMetadataInfo(Field field, FieldMetadata annotation) {
+        this(field, annotation, field);
+    }
+
+    FieldMetadataInfo(Field field, FieldMetadata annotation, AnnotatedElement persistentMember) {
         this.field = field;
+        this.persistentMember = persistentMember;
         this.annotation = annotation;
         field.setAccessible(true);
 
         List<MetadataDiagnostic> collected = new ArrayList<>();
 
-        FieldType inferredType = inferTypeFromJava(field);
+        boolean association = isAssociation(persistentMember);
+        FieldType inferredType = inferPlatformType(field.getType(), association);
         if (annotation.type() == FieldType.AUTO) {
             this.resolvedType = inferredType;
-            this.typeOrigin = isAssociation(field) ? FactOrigin.JPA_MAPPING : FactOrigin.JAVA_TYPE;
-            if (inferredType == FieldType.TEXT && !isKnownJavaType(field)) {
+            this.typeOrigin = association ? FactOrigin.JPA_MAPPING : FactOrigin.JAVA_TYPE;
+            if (inferredType == FieldType.TEXT && !isKnownJavaType(field) && !association) {
                 collected.add(diagnostic(MetadataDiagnostic.Severity.WARNING,
                     MetadataDiagnosticCodes.FALLBACK_TYPE, "FieldMetadataInfo.resolveType",
                     "Java-тип " + field.getType().getName()
@@ -105,8 +114,8 @@ public final class FieldMetadataInfo {
             } else {
                 collected.add(diagnostic(MetadataDiagnostic.Severity.ERROR,
                     MetadataDiagnosticCodes.TYPE_CONFLICT,
-                    "@FieldMetadata.type против " + describeTypeSource(field),
-                    "объявлен тип " + annotation.type() + ", а " + describeTypeSource(field)
+                    "@FieldMetadata.type против " + describeTypeSource(persistentMember),
+                    "объявлен тип " + annotation.type() + ", а " + describeTypeSource(persistentMember)
                         + " даёт " + inferredType));
             }
         }
@@ -131,8 +140,8 @@ public final class FieldMetadataInfo {
             this.referenceTarget = declaredTarget != null ? declaredTarget : field.getType();
             this.referenceOrigin = declaredTarget != null
                 ? FactOrigin.EXPLICIT
-                : (isAssociation(field) ? FactOrigin.JPA_MAPPING : FactOrigin.JAVA_TYPE);
-            if (declaredTarget != null && isAssociation(field) && declaredTarget != field.getType()) {
+                : (association ? FactOrigin.JPA_MAPPING : FactOrigin.JAVA_TYPE);
+            if (declaredTarget != null && association && declaredTarget != field.getType()) {
                 collected.add(diagnostic(MetadataDiagnostic.Severity.ERROR,
                     MetadataDiagnosticCodes.REFERENCE_CONFLICT,
                     "@Lookup.entity против типа ассоциации",
@@ -146,11 +155,13 @@ public final class FieldMetadataInfo {
         }
 
         this.requiredMode = annotation.required();
-        boolean beanRequires = nonNullConstraint(field).isPresent();
-        boolean jpaRequires = !field.getType().isPrimitive() && jpaDeclaresNonNull(field);
+        boolean beanRequires = nonNullConstraint(field).isPresent()
+            || nonNullConstraint(persistentMember).isPresent();
+        boolean jpaRequires = !field.getType().isPrimitive() && jpaDeclaresNonNull(persistentMember);
         this.serverRequired = beanRequires || jpaRequires;
         FactOrigin serverOrigin = beanRequires ? FactOrigin.BEAN_VALIDATION
             : (jpaRequires ? FactOrigin.JPA_MAPPING : FactOrigin.PLATFORM_DEFAULT);
+        this.serverRequiredOrigin = serverOrigin;
 
         if (requiredMode == RequiredMode.REQUIRED) {
             this.uiRequired = true;
@@ -172,7 +183,8 @@ public final class FieldMetadataInfo {
                 collected.add(diagnostic(MetadataDiagnostic.Severity.ERROR,
                     MetadataDiagnosticCodes.UI_OPTIONAL_SERVER_REQUIRED,
                     "@FieldMetadata.required против контракта записи",
-                    "UI объявляет OPTIONAL, но " + describeValueSource(field)
+                    "UI объявляет OPTIONAL, но " + (nonNullConstraint(field).isPresent()
+                        ? describeValueSource(field) : describeValueSource(persistentMember))
                         + " требует значение"));
             }
         } else {
@@ -195,7 +207,11 @@ public final class FieldMetadataInfo {
     }
 
     private static FieldType inferTypeFromJava(Field field) {
-        Class<?> type = field.getType();
+        return inferPlatformType(field.getType(), isAssociation(field));
+    }
+
+    /** Shared Java/JPA type default used by published and structural field descriptions. */
+    static FieldType inferPlatformType(Class<?> type, boolean association) {
         if (type == String.class) return FieldType.TEXT;
         if (type == Integer.class || type == int.class) return FieldType.INTEGER;
         if (type == Long.class || type == long.class) return FieldType.INTEGER;
@@ -207,8 +223,8 @@ public final class FieldMetadataInfo {
         if (type == Boolean.class || type == boolean.class) return FieldType.BOOLEAN;
         if (type.isEnum()) return FieldType.ENUM;
 
-        // Проверяем JPA-ассоциации — они тоже дают ENTITY_REFERENCE
-        if (isAssociation(field)) return FieldType.ENTITY_REFERENCE;
+        // JPA-ассоциации тоже дают ENTITY_REFERENCE.
+        if (association) return FieldType.ENTITY_REFERENCE;
 
         return FieldType.TEXT;
     }
@@ -227,7 +243,7 @@ public final class FieldMetadataInfo {
                 || declared == FieldType.PASSWORD);
     }
 
-    private static boolean isAssociation(Field field) {
+    private static boolean isAssociation(AnnotatedElement field) {
         return field.getAnnotation(ManyToOne.class) != null
             || field.getAnnotation(OneToOne.class) != null
             || field.getAnnotation(ManyToMany.class) != null
@@ -244,7 +260,7 @@ public final class FieldMetadataInfo {
             || isAssociation(field);
     }
 
-    private static Optional<Annotation> nonNullConstraint(Field field) {
+    private static Optional<Annotation> nonNullConstraint(AnnotatedElement field) {
         for (Annotation candidate : field.getAnnotations()) {
             if (NON_NULL_CONSTRAINTS.contains(candidate.annotationType())) {
                 return Optional.of(candidate);
@@ -259,7 +275,7 @@ public final class FieldMetadataInfo {
      * у {@code @ManyToOne}/{@code @OneToOne}/{@code @Basic}; неполный набор оставлял поле
      * UI-optional при {@code RequiredMode.AUTO}, хотя сервер его требует.
      */
-    private static boolean jpaDeclaresNonNull(Field field) {
+    private static boolean jpaDeclaresNonNull(AnnotatedElement field) {
         Column column = field.getAnnotation(Column.class);
         if (column != null && !column.nullable()) {
             return true;
@@ -280,11 +296,11 @@ public final class FieldMetadataInfo {
         return basic != null && !basic.optional();
     }
 
-    private static String describeTypeSource(Field field) {
+    private static String describeTypeSource(AnnotatedElement field) {
         return isAssociation(field) ? "ассоциация " + associateAnnotation(field) : "Java-тип";
     }
 
-    private static String associateAnnotation(Field field) {
+    private static String associateAnnotation(AnnotatedElement field) {
         if (field.getAnnotation(ManyToOne.class) != null) return "@ManyToOne";
         if (field.getAnnotation(OneToOne.class) != null) return "@OneToOne";
         if (field.getAnnotation(ManyToMany.class) != null) return "@ManyToMany";
@@ -293,7 +309,7 @@ public final class FieldMetadataInfo {
     }
 
     /** Источник контракта записи — тот же полный набор, что у {@link #jpaDeclaresNonNull}. */
-    private static String describeValueSource(Field field) {
+    private static String describeValueSource(AnnotatedElement field) {
         Optional<Annotation> constraint = nonNullConstraint(field);
         if (constraint.isPresent()) {
             return "@" + constraint.get().annotationType().getSimpleName();
@@ -331,6 +347,11 @@ public final class FieldMetadataInfo {
 
     public Field getField() {
         return field;
+    }
+
+    /** Actual JPA field/getter; UI declarations and value access remain on the backing field. */
+    public AnnotatedElement getPersistentMember() {
+        return persistentMember;
     }
 
     public FieldMetadata getAnnotation() {
@@ -389,6 +410,11 @@ public final class FieldMetadataInfo {
     /** Требует ли значение контракт записи (Bean Validation или JPA). */
     public boolean isServerRequired() {
         return serverRequired;
+    }
+
+    /** Origin of the write contract, independent of an explicit UI required/optional setting. */
+    public FactOrigin getServerRequiredOrigin() {
+        return serverRequiredOrigin;
     }
 
     /** Effective-обязательность в UI: то, что применяют формы. */

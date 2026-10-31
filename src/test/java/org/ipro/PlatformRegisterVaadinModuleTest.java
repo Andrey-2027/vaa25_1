@@ -210,6 +210,9 @@ class PlatformRegisterVaadinModuleTest {
     }
 
     private static String read(Path path) {
+        if (!Files.exists(path)) {
+            return "";
+        }
         try {
             return Files.readString(path, StandardCharsets.UTF_8);
         } catch (IOException e) {

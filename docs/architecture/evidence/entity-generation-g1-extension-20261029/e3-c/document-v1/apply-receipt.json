@@ -1,0 +1,92 @@
+{
+  "kind" : "g1-apply-receipt-v2",
+  "stateVersion" : 2,
+  "applyId" : "a3a3f6d2-52cc-4c52-8307-c801bd1d4cf2",
+  "manifest" : {
+    "kind" : "g1-generation-manifest-v2",
+    "planId" : "g1-4b565f4dc402512c5b69287a25399222b1a6e0d9d1e950ce5c4a5b28c4fca87c",
+    "recipe" : {
+      "id" : "standard-document-v1",
+      "version" : 1
+    },
+    "generatorVersion" : "document-java-v3",
+    "fingerprintProfile" : "plan-fingerprint-v2",
+    "entries" : [ {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/OwnerEnvelopeDocument.java",
+      "sha256" : "dbda0dfeaf7aece2c428ae786e4f8bee5ff226a8ec7284209e02c0c5302125d1",
+      "bytes" : 594
+    } ],
+    "manifestSha256" : "c40e7e2012121d1107de669a803dea70c2baad36994688b826a464482ebf9511"
+  },
+  "cSummarySha256" : "535e81c17e827e3f4c230d577002d5c7e15ab11d64586a6622ad565dbc051b1f",
+  "verifiedDependencies" : [ {
+    "id" : "org.ipro:filtergrid-core:jar::1.0-SNAPSHOT",
+    "sha256" : "bc0e41e7e60d5613ea921a2dbb5d891dcd7b62c07ce8238f2457ac3ce427468b"
+  }, {
+    "id" : "org.ipro:filtergrid-grouping:jar::1.0-SNAPSHOT",
+    "sha256" : "d921d2b64462de000b53e302cad4d4b56c7e6b46da8f8b604fbf6c46d064b02a"
+  }, {
+    "id" : "org.ipro:filtergrid-jpa:jar::1.0-SNAPSHOT",
+    "sha256" : "06bee40b045ce127eb549dbb42b78d898099cb4ff50c06af44481c44a0715298"
+  }, {
+    "id" : "org.ipro:platform-backend-starter:jar::1.0-SNAPSHOT",
+    "sha256" : "03f8e93ea7ae27179047ea062d5f80a3d80567896070da4bc103dccab48a6a43"
+  }, {
+    "id" : "org.ipro:platform-contracts:jar::1.0-SNAPSHOT",
+    "sha256" : "f563ee9ff8713a58161f54dde505874b7d5ef84dfb340a54c335831f9a3c4d79"
+  }, {
+    "id" : "org.ipro:platform-core:jar::1.0-SNAPSHOT",
+    "sha256" : "1df1649fb128e708c63b43ec27c995c87d83ad666bde02cd090e61eb126ad5cb"
+  }, {
+    "id" : "org.ipro:platform-crud-api:jar::1.0-SNAPSHOT",
+    "sha256" : "35857b09a5f6b4c7d336ca05079bda7804cdc7861954d1c3fe5df08f5b34e9ea"
+  }, {
+    "id" : "org.ipro:platform-events:jar::1.0-SNAPSHOT",
+    "sha256" : "e8a3291565c47007a14afd6dfc54943ef0912b8caa8fa5d156e93699f2f785be"
+  }, {
+    "id" : "org.ipro:platform-identity-api:jar::1.0-SNAPSHOT",
+    "sha256" : "b6cf3b357f3ef1f4b8c3a66188bdf98394018d15f1d3f7123c35e98535bf3c52"
+  }, {
+    "id" : "org.ipro:platform-metadata:jar::1.0-SNAPSHOT",
+    "sha256" : "2617a714b1a464bc66f2e8ad4a12f94d78e98842073270dd4252fb862c2c32ef"
+  }, {
+    "id" : "org.ipro:platform-numbering:jar::1.0-SNAPSHOT",
+    "sha256" : "39e3c4df664026b153aba1da685815e14958e77b145dc6a653f0c67e3237af06"
+  }, {
+    "id" : "org.ipro:platform-persistence:jar::1.0-SNAPSHOT",
+    "sha256" : "f89a0c3eb043ca749d3829dfd4689762d432b54f4f36990b0dd2d1e5ea4fac2c"
+  }, {
+    "id" : "org.ipro:platform-register:jar::1.0-SNAPSHOT",
+    "sha256" : "a9448964d8bea5b3b6c3b20792189e795d33d2c93b9ed71e1d45387cd9cbde67"
+  }, {
+    "id" : "org.ipro:platform-rls:jar::1.0-SNAPSHOT",
+    "sha256" : "b4abc1a0143d271922c29124811a72effeac1cd37667b0c000ca544c96eac0ac"
+  }, {
+    "id" : "org.ipro:platform-settings:jar::1.0-SNAPSHOT",
+    "sha256" : "3c01952fa415a82134a9ca5951351ec5e6bb2a9eb62befffbb25c0e5957662d1"
+  }, {
+    "id" : "org.ipro:platform-spring-boot-autoconfigure:jar::1.0-SNAPSHOT",
+    "sha256" : "9c539050fa18db066f73de68c6faa911d45fc747d3142d81e61247b2a1b30789"
+  }, {
+    "id" : "org.ipro:platform-telemetry:jar::1.0-SNAPSHOT",
+    "sha256" : "1381a559d7ea49190c07d57fae79bd23c085d7e30f373d741eba6a495b583a0e"
+  } ],
+  "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e3c\\work\\applied\\document-v1",
+  "sourceRoot" : "src/main/java",
+  "createdAt" : "2026-10-30T17:38:21.190189600Z",
+  "createdDirs" : [ ],
+  "entries" : [ {
+    "relativePath" : "com/example/generated/OwnerEnvelopeDocument.java",
+    "target" : "src/main/java/com/example/generated/OwnerEnvelopeDocument.java",
+    "temp" : null,
+    "expectedSha256" : "dbda0dfeaf7aece2c428ae786e4f8bee5ff226a8ec7284209e02c0c5302125d1",
+    "bytes" : 594,
+    "publishedIdentity" : {
+      "fileKey" : "xattr:a3a3f6d2-52cc-4c52-8307-c801bd1d4cf2:dbda0dfeaf7aece2c428ae786e4f8bee5ff226a8ec7284209e02c0c5302125d1",
+      "realPath" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e3c\\work\\applied\\document-v1\\src\\main\\java\\com\\example\\generated\\OwnerEnvelopeDocument.java"
+    },
+    "publishedSha256" : "dbda0dfeaf7aece2c428ae786e4f8bee5ff226a8ec7284209e02c0c5302125d1"
+  } ],
+  "status" : "APPLIED"
+}

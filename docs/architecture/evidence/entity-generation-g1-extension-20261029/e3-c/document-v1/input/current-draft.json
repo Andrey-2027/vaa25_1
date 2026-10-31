@@ -1,0 +1,38 @@
+{
+  "schemaVersion" : 1,
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "draftId" : "00000000-0000-0004-0000-000000000002",
+  "entity" : {
+    "className" : "OwnerEnvelopeDocument",
+    "packageName" : {
+      "mode" : "AUTO",
+      "text" : ""
+    },
+    "label" : "Документ envelope E3",
+    "titles" : {
+      "list" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "item" : {
+        "mode" : "AUTO",
+        "text" : ""
+      },
+      "selection" : {
+        "mode" : "AUTO",
+        "text" : ""
+      }
+    },
+    "tableName" : {
+      "mode" : "AUTO",
+      "text" : ""
+    },
+    "subsystemId" : null,
+    "icon" : "FILE"
+  },
+  "fields" : [ ],
+  "sections" : [ ]
+}

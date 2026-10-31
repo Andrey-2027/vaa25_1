@@ -1,0 +1,26 @@
+[
+  {
+    "id": "entity-design-core",
+    "fingerprint": {
+      "algorithm": "gitvaa-source-tree-sha256-v2",
+      "sha256": "d5be4ad3e1790333fefd17b486913c6df3c60da94d56d37973ff7fde917ca431",
+      "fileCount": 56,
+      "inputs": [
+        "pom.xml",
+        "src"
+      ]
+    }
+  },
+  {
+    "id": "entity-design-json",
+    "fingerprint": {
+      "algorithm": "gitvaa-source-tree-sha256-v2",
+      "sha256": "7142e63d37813b815cadfbc0ae58cd5f17cd96e41f1a750570abe9cac2a79c76",
+      "fileCount": 7,
+      "inputs": [
+        "pom.xml",
+        "src"
+      ]
+    }
+  }
+]

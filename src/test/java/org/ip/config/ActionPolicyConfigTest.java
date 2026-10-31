@@ -231,8 +231,7 @@ class ActionPolicyConfigTest {
 
         return new EntityDescriptorCatalog(managed, sections, new MetadataResolver(),
             List.of(classification.sklNomOpaValueIsAnOwnedRow()),
-            List.of(classification.attributeValueIsCreateOnly(),
-                classification.sklNomOpaHasNoGenericWrites()));
+            List.of());
     }
 
     private static RlsUiGate allowedGate() {

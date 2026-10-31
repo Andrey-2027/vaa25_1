@@ -1,16 +1,19 @@
-package org.ip.unidr.spike;
+package org.ipro.unidr.spike;
 
+import org.ipro.query.document.*;
+
+import org.ipro.query.ReportContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.ip.Application;
 import org.ip.model.*;
-import org.ipro.reportstudio.data.ReportDataset;
-import org.ipro.reportstudio.dom.*;
-import org.ipro.reportstudio.param.*;
-import org.ipro.reportstudio.query.*;
-import org.ipro.reportstudio.query.sqm.SqmQuerySemanticAnalyzer;
+import org.ipro.report.data.ReportDataset;
+import org.ipro.query.model.*;
+import org.ipro.query.param.*;
+import org.ipro.query.*;
+import org.ipro.query.sqm.SqmQuerySemanticAnalyzer;
 import org.ipro.rls.*;
 import org.ipro.rls.c5.*;
 import org.ipro.rls.config.RlsPersistenceAutoConfiguration;
@@ -34,7 +37,7 @@ import static org.assertj.core.api.Assertions.*;
 
 /** U0 on actual application entities, real C5 grants, real Hibernate filters and existing assembly. */
 @DataJpaTest(showSql=false, properties={"spring.jpa.show-sql=false",
-    "spring.jpa.properties.hibernate.session_factory.statement_inspector=org.ip.unidr.spike.UniDrReceivingItemsSpikeTest$SqlCapture"})
+    "spring.jpa.properties.hibernate.session_factory.statement_inspector=org.ipro.unidr.spike.UniDrReceivingItemsSpikeTest$SqlCapture"})
 @ImportAutoConfiguration(RlsPersistenceAutoConfiguration.class)
 @ContextConfiguration(classes=Application.class)
 class UniDrReceivingItemsSpikeTest {
@@ -132,9 +135,7 @@ class UniDrReceivingItemsSpikeTest {
     @AfterEach void cleanup() { SecurityContextHolder.clearContext();SqlCapture.SQL.remove(); }
 
     @Test void actualOwnedRowsRespectDocumentAndBothWorkshopFiltersWithoutMultiplication() throws Exception {
-        ReportTemplate template=template(false);
-        assertThat(template.getBands()).isEmpty();
-        var request=assembly.assemble(template,ReportContext.empty(subject),values(false));
+        var request=assemble(query(false),values(false));
         assertThat(request.jpql()).contains("order by r.name, r.id, n.code, n.id, d.date, i.id");
         ReportDataset data=executor.execute(request,5001,30_000);
         assertThat(data.rowCount()).isEqualTo(6);
@@ -167,7 +168,7 @@ class UniDrReceivingItemsSpikeTest {
 
     @Test void periodUnitAndOptionalRecipientUseExistingTypedParameterAssembly() {
         var values=values(true);
-        var request=assembly.assemble(template(true),ReportContext.empty(subject),values);
+        var request=assemble(query(true),values);
         assertThat(request.bindings()).containsEntry("periodFrom",LocalDate.of(2026,10,1))
             .containsEntry("unitId",unitId).containsEntry("recipientId",recipientA);
         ReportDataset rows=executor.execute(request,5001,30_000);
@@ -175,7 +176,7 @@ class UniDrReceivingItemsSpikeTest {
         assertThat(rows.rows()).extracting(row->row.value("receivingWorkshopName")).containsOnly("Цех A");
         values.put("periodFrom",LocalDate.of(2026,10,2));
         values.put("periodTo",LocalDate.of(2026,10,2));
-        assertThat(executor.execute(assembly.assemble(template(true),ReportContext.empty(subject),values),5001,30_000)
+        assertThat(executor.execute(assemble(query(true),values),5001,30_000)
             .rows()).extracting(row->row.value("documentNumber")).containsExactly("U0-02");
     }
 
@@ -183,13 +184,13 @@ class UniDrReceivingItemsSpikeTest {
         em.createQuery("delete from AccessGrant g where g.subjectKey = :user and g.dimension = :key")
             .setParameter("user",subject).setParameter("key",C5PermissionKeys.entityRead(Workshop.class)).executeUpdate();
         em.flush();SqlCapture.SQL.get().clear();
-        assertThatThrownBy(()->assembly.assemble(template(false),ReportContext.empty(subject),values(false)))
+        assertThatThrownBy(()->assemble(query(false),values(false)))
             .hasMessageContaining("ENTITY-read").hasMessageContaining(Workshop.class.getName());
         assertNoSourceSql();
     }
 
     @Test void executorRechecksCurrentSubjectAfterAssembly() {
-        var request=assembly.assemble(template(false),ReportContext.empty(subject),values(false));
+        var request=assemble(query(false),values(false));
         subject="unidr-u0-no-grants";SqlCapture.SQL.get().clear();
         assertThatThrownBy(()->executor.execute(request,5001,30_000)).hasMessageContaining("Отказ");
         assertNoSourceSql();
@@ -202,7 +203,7 @@ class UniDrReceivingItemsSpikeTest {
     }
 
     @Test void additionalRowDistinguishesCompleteFromTruncatedSelection() {
-        var request=assembly.assemble(template(false),ReportContext.empty(subject),values(false));
+        var request=assemble(query(false),values(false));
         int limit=5;
         assertThat(executor.execute(request,limit+1,30_000).rowCount()).isGreaterThan(limit);
         limit=6;
@@ -210,34 +211,41 @@ class UniDrReceivingItemsSpikeTest {
     }
 
     @Test void logicalPeriodExpandsToTheExactQueryBindingsWithoutReadingRows() {
-        var template=template(false);
-        template.getParams().removeIf(param->param.getName().startsWith("period"));
-        var period=new ReportParam();period.setName("period");period.setKind(ReportParamKind.PERIOD);
-        period.setRequired(true);template.addParam(period);
-        var prepared=assembly.assemble(template,ReportContext.empty(subject),values(false));
+        var prepared=assemble(periodQuery(false),values(false));
         assertThat(prepared.bindings()).containsEntry("periodFrom",LocalDate.of(2026,10,1))
             .containsEntry("periodTo",LocalDate.of(2026,10,31)).doesNotContainKey("period");
         assertNoSourceSql();
     }
 
-    private ReportTemplate template(boolean recipient) {
-        var template=new ReportTemplate();template.setName("UniDR U0");
-        template.setJpql(SOURCE+(recipient?" and r.id = :recipientId":""));
-        // Existing guard declares exact names, while PERIOD resolves nameFrom/nameTo.
-        // UniDR's single logical period therefore adapts to two SCALAR date parameters.
-        scalar(template,"periodFrom");scalar(template,"periodTo");
-        scalar(template,"unitId");if(recipient)scalar(template,"recipientId");
-        // Paths avoid Hibernate 7 SqmAliasedNodeRef, unsupported by the current C5 walker.
-        for(String alias:List.of("r.name","r.id","n.code","n.id","d.date","i.id")) {
-            var order=new ReportOrder();order.setColumnName(alias);order.setPosition(template.getOrders().size());
-            template.addOrder(order);
-        }
-        return template;
+    private QueryDefinition query(boolean recipient) {
+        var parameters=new ArrayList<>(List.of(scalar("periodFrom"),scalar("periodTo"),scalar("unitId")));
+        if(recipient)parameters.add(scalar("recipientId"));
+        return definition(recipient,parameters);
     }
 
-    private void scalar(ReportTemplate template,String name) {
-        var param=new ReportParam();param.setName(name);param.setKind(ReportParamKind.SCALAR);
-        param.setRequired(true);template.addParam(param);
+    /** UniDR's single logical period adapts to two SCALAR date bindings. */
+    private QueryDefinition periodQuery(boolean recipient) {
+        var parameters=new ArrayList<>(List.of(new QueryParameter("period","period","period",
+            QueryParameterKind.RANGE,QueryScalarType.UNRESOLVED,null,QueryValueSource.FORM,true,true,
+            null,QueryComputedValue.NONE,null,0),scalar("unitId")));
+        if(recipient)parameters.add(scalar("recipientId"));
+        return definition(recipient,parameters);
+    }
+
+    private QueryDefinition definition(boolean recipient,List<QueryParameter> parameters) {
+        return new QueryDefinition(SOURCE+(recipient?" and r.id = :recipientId":""),QuerySource.MANUAL,
+            null,null,parameters);
+    }
+
+    private ReportQueryAssembler assemble(QueryDefinition definition,Map<String,Object> values) {
+        // Paths avoid Hibernate 7 SqmAliasedNodeRef, unsupported by the current C5 walker.
+        var sorts=List.of("r.name","r.id","n.code","n.id","d.date","i.id").stream()
+            .map(alias->new QuerySort(alias,false)).toList();
+        return assembly.assemble(definition,ReportContext.empty(subject),values,List.of(),sorts);
+    }
+
+    private QueryParameter scalar(String name) {
+        return QueryParameter.required(name);
     }
     private Map<String,Object> values(boolean recipient) {
         Map<String,Object> values=new HashMap<>();values.put("periodFrom",LocalDate.of(2026,10,1));

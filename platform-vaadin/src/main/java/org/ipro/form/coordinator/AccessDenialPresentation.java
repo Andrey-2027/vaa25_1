@@ -145,6 +145,8 @@ public final class AccessDenialPresentation {
             // Only declared metadata is used; never query a denied entity for its name.
             return resolver.resolve(type).getListFormTitle();
         } catch (RuntimeException unknownMetadata) {
+            LoggerFactory.getLogger(AccessDenialPresentation.class)
+                .warn("Cannot resolve metadata label for denied type " + type.getName(), unknownMetadata);
             return "";
         }
     }

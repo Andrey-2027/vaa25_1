@@ -1,9 +1,7 @@
 # Регистр сведений: план добавления регистратора
 
-Дата: 2026-10-06. Г4 и Г5 закрыты; Г6 начат и остаётся открытым; Г7–Г8 открыты.
-Сквозная запись и удаление подчинённых наборов теперь проходят через транзакционные
-границы документа. Незакрытые формальные критерии Г1/Г2 остаются отмечены в разделах
-этих этапов; закрытие Г4 не означает итоговую приёмку всей возможности.
+Создан: 2026-10-06. Актуализирован: **2026-10-28**, по [сверке кода и evidence перед G1](information-register-pre-g1-audit.md).
+Контракты Г0–Г5, все четыре модели и runtime/UI-часть Г6 реализованы; старые отметки об отсутствии startup-тестов и подключённого пилота сняты. Г7 принят в объёме итерации 1; весь Г8 и эксплуатационный scope Г7 не закрыты. Остатки: REG-A1/A2/A3 (текущая сквозная приёмка и внешний consumer), REG-U1 (поздняя UX-проба), REG-O1 (эксплуатация). Register facts/draft/генерация — новые REG-D1/D2, а не повторная разработка движка.
 Решение пользователя о победителе записано в
 [ADR-0015](decisions/ADR-0015-information-register-recorder.md); реализация его order
 allocator относится к Г3.
@@ -16,10 +14,7 @@ allocator относится к Г3.
 
 Предметный сценарий выбран 2026-10-06: периодический регистр «Объект учёта
 номенклатуры», документы установки и корректировки, справочник «Тип учёта».
-Ближайшая работа оформляется как [пилот, итерация 1](information-register-accounting-object-pilot.md)
-с контрольным самостоятельным регистром цен. Выбор сценария из Г7 уже выполнен;
-необходимые ему части Г6 и Г7 выполняются вместе. Общая приёмка Г6–Г8 остаётся
-отдельной от готовности итерации к пробе.
+[Пилот, итерация 1](information-register-accounting-object-pilot.md), с контрольным самостоятельным регистром цен реализован и положительно оценён пользователем 2026-10-07. Это закрывает выбранный scope пилота, но не позднюю UX-пробу Р8 и не весь выпускной/эксплуатационный gate Г6–Г8.
 
 ## 1. Цель и принятые границы
 
@@ -150,7 +145,7 @@ Recorder identity, line identity, dimensions и temporal order — отдель�
 
 | Операция | Проверка |
 | --- | --- |
-| История / getLast / slice / count | C5 и собственные RLS/field permissions регистра |
+| История / getLast / slice / count | C5 и собственные RLS регистра; полевых прав нет (ADR-0018) |
 | Подпись и открытие документа | Права конкретного типа и строки документа |
 | Замена набора | Явный допуск команды, recorder scope и проверка старых/новых строк регистра |
 | Удаление документа с очисткой | Допуск удаления документа; закрытая lifecycle-очистка только его строк |
@@ -233,14 +228,14 @@ exists без общего протокола допускает гонку «п
 | Этап | Содержание | Зависимость | Результат |
 | --- | --- | --- | --- |
 | Г0 | Общие контракты и ADR | Требования пользователя и модель приложения | Winner order, row/group keys, права и lifecycle определены; ADR-0015 |
-| Г1 | RecorderRef и каталог типов | Г0 | Полиморфная ссылка и fail-fast catalog; код начат |
-| Г2 | Четыре модели, metadata/descriptor/capabilities | Г1 | Подчинённый регистр описан и самостоятельно читается |
+| Г1 | RecorderRef и каталог типов | Г0 | Реализовано; duplicate code/non-DOCUMENT startup tests существуют и прошли 2026-10-28 |
+| Г2 | Четыре модели, metadata/descriptor/capabilities | Г1 | Реализовано; four-model JPA/constraints/write-guard tests прошли в owner gate |
 | Г3 | Set writer, права, блокировка и version | Г2 | Проверенная атомарная замена одного набора; выполнено |
 | Г4 | Document save/delete coordination | Г3 | Документ и все его наборы меняются/удаляются согласованно; выполнено |
-| Г5 | getLast, SliceSpec и CTE с общим порядком | Г0, Г2; для сквозных сценариев Г4 | Одинаковый победитель, data/count/oracle parity |
-| Г6 | UI, подписи, ссылки и saved reports | Г4–Г5 | Удобное чтение и команды без утечки через документ |
-| Г7 | Предметный пилот и схема развёртывания | Г4–Г6 | Принятый реальный сценарий и воспроизводимая миграция |
-| Г8 | Поставка, документация и итоговая приёмка | Г7 | Поддерживаемая возможность платформы |
+| Г5 | getLast, SliceSpec и CTE с общим порядком | Г0, Г2; для сквозных сценариев Г4 | Реализовано; текущий CTE application gate требует REG-A1 |
+| Г6 | UI, подписи, ссылки и saved queries | Г4–Г5 | Runtime/UI реализованы; REG-U1 открыт, старый UDR-report gate снят потребителем |
+| Г7 | Предметный пилот и схема развёртывания | Г4–Г6 | Итерация 1 принята; общий production/migration scope REG-O1 открыт |
+| Г8 | Поставка, документация и итоговая приёмка | Г7 | S0–S5 завершены; внешний consumer и текущий общий gate REG-A2/A3 открыты |
 
 ### Г0. Зафиксировать семантику до изменения схемы
 
@@ -250,7 +245,7 @@ exists без общего протокола допускает гонку «п
 - Правило равных period зафиксировано в [ADR-0015](decisions/ADR-0015-information-register-recorder.md):
   последний набор записи побеждает; полный порядок содержит `recording_order` и `line_no`.
   Это порядок записи набора, не дата или номер документа.
-- Первый production-сценарий остаётся условием Г7. Для контрактной проверки использовать
+- Production-приёмка остаётся отдельным scope Г7/REG-O1; принятый пилот и semantic kind её не подменяют. Для контрактной проверки использовать
   `ReceivingDocument` и второй managed `DOCUMENT` fixture; прикладное назначение
   регистра не выводить из того, что этот document уже существует.
 - Зафиксировать lifecycle: отсутствующий set input оставляет набор как есть;
@@ -294,9 +289,7 @@ exists без общего протокола допускает гонку «п
 Текущее состояние Г1: API, snapshot registry и startup validator добавлены; production-класс
 `DOCUMENT` объявляет стабильный код. Проверка Г4 подтвердила JPA-сохранение
 `RecorderRef` и различение двух типов документов с одинаковым Long id.
-Формальная приёмка Г1 пока открыта: отдельный startup-тест на дублирующий код и недопустимый
-тип регистратора ещё не добавлен. Поэтому успешную сквозную работу Г4 не считаем итоговой
-приёмкой каталога типов.
+Сверка 2026-10-28: прежняя отметка об отсутствии startup-тестов устарела. `RegisterStartupValidatorTest.duplicateRecorderCodeStopsStartupBeforeAnyReaderIsCreated` и `recorderWithNonDocumentKindStopsStartup` находятся у module owner и прошли свежий прогон. Эксплуатационная проверка уже сохранённых ссылок при смене/удалении type code остаётся отдельным REG-O1; проверка деклараций её не заменяет.
 
 Приёмка: два типа документов с одинаковым числовым id дают разные RecorderRef;
 дубликат кода и недопустимый тип останавливают старт; JPA сохраняет пару code/id;
@@ -313,7 +306,7 @@ exists без общего протокола допускает гонку «п
 - Научить validator проверять embedded column mapping, inherited fields,
   `NOT NULL`, immutability, UNIQUE/line policy, периодичность и order constraints.
 - Встроить read/write policy в register catalog. Подчинённые строки читаются только
-  через canonical HISTORY/DETAIL с собственными RLS/field permissions; document access
+  через canonical HISTORY/DETAIL с собственными C5/RLS; document access
   не меняет видимость. Generic JPA persist/merge/remove отклоняются lifecycle guard до SQL;
   разрешающий scope открывает только set command внутри register package.
 - `RecordedRegisterReader` предоставляет страницу истории с опциональным dimension-фильтром
@@ -458,10 +451,7 @@ backend-профиля; PostgreSQL не объявляется единстве�
   и механизм ссылок формы; повторного route registry или конкатенации FQCN нет.
 - При изменении прав на документы сами строки/число строк/победитель среза неизменны.
   Права регистра продолжают управлять доступной проекцией recorder fields.
-- Для EXACT-пилота подготовить entity editor без потери доли секунды, как уже сделано
-  для DATETIME-параметра отчёта. Выполнено: `FieldFactory` для `LocalDateTime` использует
-  точное составное поле даты и времени; оно round-trip'ит наносекунды и блокирует сохранение
-  при некорректном/неполном времени. Стандартный `DateTimePicker` для этого поля не используется.
+- Для EXACT используется принятый 2026-10-07 миллисекундный контракт: `FieldFactory` создаёт стандартный `DateTimePicker` с шагом 1 ms; `RegisterPeriodicity.EXACT` усекает до миллисекунд без округления. Старое требование nano-editor заменено этим решением, см. [периодичность](information-register-periodicity.md).
 - Проверить codec/import/export saved report, форму запуска, Preview/PDF и сценарий
   документа без доступной формы. Публикация отчёта не даёт доступ к регистратору автоматически.
 
@@ -477,11 +467,7 @@ C5-доступа к документам; форма запуска и entity-�
 отклоняет invalid-компоненты даже при необязательном поле. Целевые сценарии, полный набор
 `platform-vaadin` и прикладная форма проверены; детали в [evidence Г6](evidence/register-g6-presentation-20261006.md).
 
-Г6 ещё не закрыт: в прикладной модели пока нет production-регистра с `RecorderRef`, поэтому
-компонент подписи не подключён к пользовательскому списку строк, а EXACT-редактор пока нельзя
-проверить на production-форме регистра. Подключение к списку и запрет generic CRUD для записей
-нужно закрыть вместе с выбором предметного пилота в Г7; отдельно остаётся подтвердить
-Preview/PDF и все форматы на сохранённом recorder-отчёте одним интеграционным сценарием.
+Актуальный результат 2026-10-28: после исторического evidence Г6 пилот и Р8 подключили подпись к реальному стандартному списку, read-only действия и saved slice state; свежие 24 tests UI-модуля зелёные. Утверждение «нет подключённого пилота» снято. Поздняя пользовательская проба Р8 остаётся REG-U1. Старый UDR-сценарий отчёта цен снят владельцем 2026-10-20, движок UDR удалён 2026-10-24; его Preview/PDF не восстанавливаются ради закрытия Г6. Текущий query-slice контракт и его регрессия учтены в REG-A1/A3.
 
 ### Г7. Предметный пилот и миграции
 
@@ -507,6 +493,8 @@ Preview/PDF и все форматы на сохранённом recorder-отч
 Приёмка: предметный пользовательский сценарий работает, миграция воспроизводима,
 права регистра и документа проверены отдельно, rollback не теряет существующие данные.
 
+Статус 2026-10-28: пилот итерации 1 выполнен, есть PostgreSQL/browser evidence и положительная оценка пользователя. Полный эксплуатационный scope (orphan/type-code изменения, EXPLAIN, rollback/backfill существующих данных) не объявляется принятым — REG-O1. Не переводить существующие независимые записи в recorder-owned режим без отдельного migration plan.
+
 ### Г8. Документация, поставка и закрытие
 
 - Опубликовать AppDev recipe: document type code, declaration/base регистра,
@@ -525,6 +513,8 @@ Preview/PDF и все форматы на сохранённом recorder-отч
 Приёмка: нет незакрытых семантических вопросов/обходов, все заявленные сценарии
 доказаны. Posting/immutable ledger не объявляются завершёнными этим этапом.
 
+Статус 2026-10-28: поставка и module-owned API/tests завершены S0–S5. Внешний consumer REG-A2 и текущая сквозная/общая приёмка REG-A1/A3 остаются открытыми; весь Г8 не закрыт. Доказательства и точный следующий пакет — в [аудите](information-register-pre-g1-audit.md#6-действительные-остатки-и-порядок-закрытия).
+
 ## 6. Связь с Р7 и последующими работами
 
 Г0 стоит выполнить до проектирования подчинённого slice в Р7: прежнее предположение
@@ -532,7 +522,7 @@ Preview/PDF и все форматы на сохранённом recorder-отч
 самостоятельных цен можно продолжать независимо, сохранив возможность общего winner order.
 Поддержка recorder-среза в Р7 закрывается только вместе с Г5.
 
-Г1–Г2 могут готовиться отдельно от UI и report add-on. Г3 и Г4 закрыты как единый выпуск
+Г1–Г2 реализованы независимо от UI и report add-on. Г3 и Г4 закрыты как единый выпуск
 координированной записи. Г5 можно исследовать на текущих контрактах; его сквозная
 приёмка использует Г4.
 Г6–Г8 закрывают пользовательский сценарий и поставку.
@@ -545,14 +535,14 @@ Preview/PDF и все форматы на сохранённом recorder-отч
 
 | Owner / исходная точка | Планируемая ответственность |
 | --- | --- |
-| [`org.ipro.register`](../../src/main/java/org/ipro/register/RegisterMetadata.java) | Recorder contracts/registry, metadata, descriptor, validation и нейтральный порядок |
-| [`RecorderTypeRegistry`](../../src/main/java/org/ipro/register/RecorderTypeRegistry.java) / [`RecorderRef`](../../src/main/java/org/ipro/register/RecorderRef.java) | Г1: stable code + Long identity, ManagedEntityCatalog membership, effective DOCUMENT |
+| [`org.ipro.register`](../../platform-register/src/main/java/org/ipro/register/RegisterMetadata.java) | Recorder contracts/registry, metadata, descriptor, validation и нейтральный порядок |
+| [`RecorderTypeRegistry`](../../platform-register/src/main/java/org/ipro/register/RecorderTypeRegistry.java) / [`RecorderRef`](../../platform-register/src/main/java/org/ipro/register/RecorderRef.java) | Г1: stable code + Long identity, ManagedEntityCatalog membership, effective DOCUMENT |
 | [`MetadataResolver`](../../platform-core/src/main/java/org/ipro/metadata/MetadataResolver.java) / ManagedEntityCatalog | Effective DOCUMENT и membership; существующий источник типов |
 | [`EntityDataAccessResolver`](../../platform-core/src/main/java/org/ipro/data/EntityDataAccessResolver.java) / descriptor catalog | Самостоятельные read capabilities и запрет generic writes |
 | [`CanonicalWriteExecutor`](../../platform-core/src/main/java/org/ipro/data/CanonicalWriteExecutor.java) | Document delete participant, enforcement, events/telemetry boundary |
 | [`MetadataDrivenAggregateSaveService`](../../platform-core/src/main/java/org/ipro/crud/MetadataDrivenAggregateSaveService.java) | Совместимость root/sections/version и нового recorder-set adapter |
-| [`RegisterReader`](../../src/main/java/org/ipro/register/RegisterReader.java), SliceSpec; будущий Р7 executor | Один winner order, canonical getLast/slice/data/count |
-| [`RegisterSliceCteGenerator`](../../src/main/java/org/ipro/reportstudio/query/register/RegisterSliceCteGenerator.java) | Report AST/codec adapter той же семантики |
+| [`RegisterReader`](../../platform-register/src/main/java/org/ipro/register/RegisterReader.java), SliceSpec и canonical slice reader | Один winner order, canonical getLast/slice/data/count |
+| [`RegisterSliceCteGenerator`](../../platform-query/src/main/java/org/ipro/query/register/RegisterSliceCteGenerator.java) | Query AST/codec adapter той же семантики |
 | [`FormRouteCatalog`](../../platform-vaadin/src/main/java/org/ipro/form/link/FormRouteCatalog.java) / UI adapter | Полиморфная ссылка, независимая подпись и навигация |
 | [`ReceivingDocument`](../../src/main/java/org/ip/model/ReceivingDocument.java) / предметная операция | Пилот, код типа и вычисление записей |
 | `scripts/`, integration tests и `docs/architecture/evidence/` | DDL, физическая проверка, concurrency и поставка |

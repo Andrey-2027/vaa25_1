@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NavigationCatalogTest {
     static SubsystemRegistry registry(String packageName) {
-        SubsystemRegistry registry = new SubsystemRegistry(packageName);
+        SubsystemRegistry registry = new SubsystemRegistry(packageName, new org.ipro.metadata.MetadataResolver());
         registry.afterPropertiesSet();
         return registry;
     }

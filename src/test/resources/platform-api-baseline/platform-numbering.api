@@ -61,6 +61,8 @@ class public org.ipro.numbering.NumberingCounterService
 class public org.ipro.numbering.NumberingMetadataRegistry
   implements org.springframework.beans.factory.InitializingBean
   ctor public(java.lang.String)
+  ctor public(org.ipro.metadata.ManagedEntityTypes)
+  ctor public(org.ipro.metadata.ManagedEntityTypes, org.ipro.metadata.EntityMetadataApplicability)
   method public java.util.List<org.ipro.numbering.NumberingMetadataRegistry$NumberedFieldInfo> all()
   method public java.util.List<org.ipro.numbering.NumberingMetadataRegistry$NumberedFieldInfo> forEntity(java.lang.Class<?>)
   method public java.util.Optional<org.ipro.numbering.NumberingMetadataRegistry$NumberedFieldInfo> find(java.lang.Class<?>, java.lang.String)
@@ -113,7 +115,7 @@ class public org.ipro.numbering.config.NumberingAutoConfiguration
   annotation org.springframework.data.jpa.repository.config.EnableJpaRepositories
   ctor public()
   method public org.ipro.numbering.NumberingCounterService numberingCounterService()
-  method public org.ipro.numbering.NumberingMetadataRegistry numberingMetadataRegistry(java.lang.String)
+  method public org.ipro.numbering.NumberingMetadataRegistry numberingMetadataRegistry(org.ipro.metadata.ManagedEntityTypes, org.springframework.beans.factory.ObjectProvider<org.ipro.metadata.EntityMetadataApplicability>)
   method public org.ipro.numbering.NumberingRuleService numberingRuleService(org.ipro.numbering.NumberingRuleRepository)
   method public org.ipro.numbering.NumberingService numberingService(org.ipro.numbering.NumberingRuleService, org.ipro.numbering.NumberingCounterService, org.springframework.beans.factory.ObjectProvider<org.ipro.numbering.NumberingScopeResolver>, org.ipro.numbering.NumberingMetadataRegistry)
 

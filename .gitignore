@@ -150,6 +150,8 @@ node_modules/
 # platform-rls и platform-telemetry существовали, но в репозиторий не попадали, потому что
 # правило *.md выше их исключало, а исключения для них никто не добавил.
 !platform-*/README.md
+!entity-design-core/README.md
+!entity-design-json/README.md
 
 ### Vaadin generated ###
 src/main/frontend/generated/
@@ -172,3 +174,6 @@ logs/
 # который пока ничего не покрывает.
 outputs/
 docs/plans/e322-11-evidence/
+
+# Local imported conversations and attachments; keep out of Git publication.
+/.cloud-attachments/

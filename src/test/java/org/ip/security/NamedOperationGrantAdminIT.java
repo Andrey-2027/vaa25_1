@@ -1,6 +1,7 @@
 package org.ip.security;
 
 import jakarta.persistence.EntityManager;
+import org.ip.persistence.access.PermissionSubjectLock;
 import org.ip.application.catalog.AttributeValuePermissions;
 import org.ip.application.catalog.NamedOperationOwner;
 import org.ip.application.catalog.NamedOperationSource;
@@ -69,6 +70,10 @@ class NamedOperationGrantAdminIT {
 
     @MockitoBean
     private DataInitializer dataInitializer;
+
+    /** Фикстура создаёт только имя пользователя; lock субъекта — предмет P-U, не этого IT. */
+    @MockitoBean
+    private PermissionSubjectLock permissionSubjectLock;
 
     // Method security uses this context's strategy; the static holder may have
     // been replaced when another Spring test context started in the same JVM.

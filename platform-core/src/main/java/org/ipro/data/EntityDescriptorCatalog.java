@@ -1,5 +1,12 @@
 package org.ipro.data;
 
+import org.ipro.crud.InternedEntity;
+import org.ipro.metadata.CatalogOwnerDescriptor;
+import org.ipro.metadata.CatalogOwnerResolver;
+import org.ipro.metadata.MetadataDiagnosticCodes;
+import org.ipro.metadata.annotation.EntityKindCandidate;
+import org.ipro.metadata.annotation.EntityKind;
+import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
@@ -55,6 +62,7 @@ public final class EntityDescriptorCatalog {
 
     private final Map<Class<?>, EntityDescriptor> byType;
     private final List<Class<?>> managedTypes;
+    private final Map<Class<?>, EntityClassification> classifications;
 
     public EntityDescriptorCatalog(ManagedEntityCatalog managedEntityCatalog,
                                    SectionMetadataRegistry sectionRegistry,
@@ -68,6 +76,16 @@ public final class EntityDescriptorCatalog {
                                    MetadataResolver metadataResolver,
                                    List<EntityExposureOverride> overrides,
                                    List<EntityCapabilityOverride> capabilityOverrides) {
+        this(managedEntityCatalog, sectionRegistry, metadataResolver, overrides, capabilityOverrides, List.of());
+    }
+
+    /** Final aggregation follows metadata, sections and validated backend descriptors. */
+    public EntityDescriptorCatalog(ManagedEntityCatalog managedEntityCatalog,
+                                   SectionMetadataRegistry sectionRegistry,
+                                   MetadataResolver metadataResolver,
+                                   List<EntityExposureOverride> overrides,
+                                   List<EntityCapabilityOverride> capabilityOverrides,
+                                   List<EntityClassificationContributor> contributors) {
         Objects.requireNonNull(managedEntityCatalog, "managedEntityCatalog must not be null");
         Objects.requireNonNull(sectionRegistry, "sectionRegistry must not be null");
         Objects.requireNonNull(metadataResolver, "metadataResolver must not be null");
@@ -95,10 +113,12 @@ public final class EntityDescriptorCatalog {
             .sorted(Comparator.comparing(Class::getName))
             .toList();
 
+        CatalogOwnerResolver catalogOwners = new CatalogOwnerResolver();
         Map<Class<?>, EntityDescriptor> descriptors = new LinkedHashMap<>();
         for (Class<?> type : types) {
             descriptors.put(type, classify(type, sectionRegistry, metadataResolver,
-                overrideByType.get(type), capabilityByType.get(type)));
+                overrideByType.get(type), capabilityByType.get(type),
+                catalogOwners.ownerOf(type).orElse(null)));
         }
         for (Class<?> overridden : capabilityByType.keySet()) {
             // Проверяется сам факт persistence type, а не членство в текущем persistence unit:
@@ -109,8 +129,74 @@ public final class EntityDescriptorCatalog {
                     + " is not a JPA entity: policy describes a persistence type");
             }
         }
+        Map<Class<?>, EntityClassification> facts = new LinkedHashMap<>();
+        List<EntityClassificationContributor> sources = contributors == null ? List.of() : List.copyOf(contributors);
+        for (Class<?> type : types) facts.put(type, classifySemantics(type, metadataResolver, sources));
+        this.classifications = Map.copyOf(facts);
         this.byType = Map.copyOf(descriptors);
         this.managedTypes = List.copyOf(types);
+    }
+
+    /** Effective facts only for this persistence unit; unknown types have no fallback. */
+    public EntityClassification classificationOf(Class<?> type) {
+        EntityClassification result = classifications.get(Objects.requireNonNull(type));
+        if (result == null) throw new IllegalArgumentException("Type is not managed: " + type.getName());
+        return result;
+    }
+
+    /** Standalone adapter for legacy constructors; module candidates still require validated sources. */
+    public static EntityClassification classifySemantics(Class<?> type, MetadataResolver resolver,
+            List<EntityClassificationContributor> contributors) {
+        var metadata = resolver.find(type);
+        var kind = metadata.map(EntityMetadataInfo::getEntityKind)
+            .orElse(EntityKind.PLAIN);
+        var origin = metadata.map(EntityMetadataInfo::getEntityKindOrigin)
+            .orElse(FactOrigin.PLATFORM_DEFAULT);
+        var symbol = metadata.map(EntityMetadataInfo::getEntityKindSymbol).orElse("");
+        EntityClassificationContributor.Contribution selected = null;
+        for (var contributor : contributors) {
+            Optional<EntityClassificationContributor.Contribution> contribution;
+            try {
+                contribution = Objects.requireNonNull(contributor.contribute(type),
+                    "Classification source returned null: " + contributor.getClass().getName());
+            } catch (RuntimeException failure) {
+                throw classificationError(MetadataDiagnosticCodes.CLASSIFICATION_SOURCE_FAILED, type, contributor.getClass().getName(),
+                    "Classification source failed for " + type.getName() + ": " + failure.getMessage(), failure);
+            }
+            if (contribution.isEmpty()) continue;
+            if (selected != null) throw classificationError(MetadataDiagnosticCodes.CLASSIFICATION_SOURCE_DUPLICATE, type, "EntityClassificationContributor",
+                "Duplicate classification contributions for " + type.getName() + ": " + selected.symbol() + " / " + contribution.get().symbol(), null);
+            selected = contribution.get();
+        }
+        for (var annotation : type.getAnnotations()) {
+            var hint = annotation.annotationType().getAnnotation(
+                EntityKindCandidate.class);
+            if (hint != null && (selected == null || selected.kind() != hint.value()))
+                throw classificationError(MetadataDiagnosticCodes.CLASSIFICATION_SOURCE_MISSING, type, annotation.annotationType().getName(),
+                    "Missing validated classification source for " + type.getName() + " requires " + hint.value(), null);
+        }
+        if (kind == EntityKind.INFORMATION_REGISTER
+                && (selected == null || selected.kind() != kind))
+            throw classificationError(MetadataDiagnosticCodes.CLASSIFICATION_SOURCE_MISSING, type, "EntityMetadata.kind",
+                "Missing validated INFORMATION_REGISTER descriptor for " + type.getName(), null);
+        if (selected != null) {
+            if (kind != EntityKind.PLAIN && kind != selected.kind())
+                throw classificationError(MetadataDiagnosticCodes.ENTITY_CLASSIFICATION_CONFLICT, type, "EntityMetadata / EntityClassificationContributor",
+                    "Entity kind conflict for " + type.getName() + ": " + kind + " / " + selected.kind(), null);
+            kind = selected.kind(); origin = selected.origin(); symbol = selected.symbol();
+        }
+        boolean interned = InternedEntity.class.isAssignableFrom(type);
+        return new EntityClassification(kind, origin, symbol, interned,
+            interned ? FactOrigin.DERIVED : FactOrigin.PLATFORM_DEFAULT,
+            interned ? InternedEntity.class.getName() : "",
+            selected != null && selected.recorderOwned());
+    }
+
+    private static IllegalStateException classificationError(String code, Class<?> type, String source,
+            String message, Throwable cause) {
+        var diagnostic = new org.ipro.metadata.MetadataDiagnostic(
+            org.ipro.metadata.MetadataDiagnostic.Severity.ERROR, code, type.getName(), "", source, message);
+        return new IllegalStateException(diagnostic.render(), cause);
     }
 
     /** Descriptor для управляемого типа без fallback (для тестов и диагностики). */
@@ -149,7 +235,8 @@ public final class EntityDescriptorCatalog {
                                              SectionMetadataRegistry sectionRegistry,
                                              MetadataResolver metadataResolver,
                                              EntityExposureOverride exposureOverride,
-                                             EntityCapabilityOverride capabilityOverride) {
+                                             EntityCapabilityOverride capabilityOverride,
+                                             CatalogOwnerDescriptor owner) {
         boolean metadataDriven = isMetadataDriven(type, metadataResolver);
         Optional<TableSectionMetadataInfo> section = sectionRegistry.findByRow(type);
 
@@ -185,9 +272,17 @@ public final class EntityDescriptorCatalog {
         // списком бинов, и класса-объявления ядро не знает (та же граница, что у exposureSymbol).
         EntityCapabilities capabilities;
         FactOrigin capabilitiesOrigin;
+        var interning = org.ipro.crud.InterningContracts.find(type);
         if (capabilityOverride == null) {
             capabilities = capabilities(exposure);
             capabilitiesOrigin = FactOrigin.PLATFORM_DEFAULT;
+            if (interning.isPresent()) {
+                capabilities = new EntityCapabilities(capabilities.readScenarios(),
+                    exposure == EntityExposure.STANDARD_ROOT && interning.get().genericCreate()
+                        ? Set.of(DataOperation.CREATE) : Set.of(),
+                    "@InternedContract: " + interning.get().creation());
+                capabilitiesOrigin = FactOrigin.DERIVED;
+            }
         } else {
             // Набор передаётся целиком и заменяет выведенный, поэтому origin — REGISTRATION
             // даже когда набор совпадает с правилом: объявление читается решением, а не
@@ -196,16 +291,20 @@ public final class EntityDescriptorCatalog {
                 capabilityOverride.reason());
             capabilitiesOrigin = FactOrigin.REGISTRATION;
         }
+        if (interning.isPresent() && (capabilities.allows(DataOperation.UPDATE)
+                || capabilities.allows(DataOperation.DELETE)
+                || (capabilities.allows(DataOperation.CREATE) && !interning.get().genericCreate()))) {
+            throw new IllegalStateException("INTERNED_GENERIC_WRITES " + type.getName()
+                + ": capabilities contradict @InternedContract creation channel");
+        }
         return new EntityDescriptor(type, exposure, true, metadataDriven, capabilities, reason,
-            exposureOrigin, exposureSymbol, capabilitiesOrigin, "");
+            exposureOrigin, exposureSymbol, capabilitiesOrigin,
+            interning.isPresent() && capabilityOverride == null ? org.ipro.crud.InternedContract.class.getName() : "",
+            owner);
     }
 
     private static boolean isMetadataDriven(Class<?> type, MetadataResolver metadataResolver) {
-        try {
-            return metadataResolver.resolve(type) != null;
-        } catch (IllegalArgumentException notMetadataDriven) {
-            return false;
-        }
+        return metadataResolver.find(type).isPresent();
     }
 
     private static EntityCapabilities capabilities(EntityExposure exposure) {

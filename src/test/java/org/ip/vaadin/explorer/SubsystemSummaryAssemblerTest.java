@@ -48,7 +48,7 @@ class SubsystemSummaryAssemblerTest {
         referenceIndex.afterPropertiesSet();
         NumberingMetadataRegistry numbering = new NumberingMetadataRegistry("org.ip");
         numbering.afterPropertiesSet();
-        subsystems = new SubsystemRegistry("org.ip");
+        subsystems = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         subsystems.afterPropertiesSet();
         entityAssembler = EntitySummaryAssemblerTest.assembler("org.ip", metadataResolver,
             formRegistry, referenceIndex, numbering, subsystems, FacetResolver.none());

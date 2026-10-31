@@ -1,0 +1,326 @@
+[
+  {
+    "relativePath": "org/ipro/crudui/crudui-core/1.0-SNAPSHOT/crudui-core-1.0-SNAPSHOT.jar",
+    "sha256": "f68b989bb000286796cb4c4b137b44dfca181834344ff0617f36361d3898908c"
+  },
+  {
+    "relativePath": "org/ipro/crudui/crudui-core/1.0-SNAPSHOT/crudui-core-1.0-SNAPSHOT.pom",
+    "sha256": "defcdd4c654d4ec90025ac127d5316db6fb6d2326f31ed74142a4bf3ab4d1005"
+  },
+  {
+    "relativePath": "org/ipro/crudui/crudui-parent/1.0-SNAPSHOT/crudui-parent-1.0-SNAPSHOT.pom",
+    "sha256": "f4e7a5c090260919c29f6402a0d79075fbca1ad95b85047a90498b79739c6664"
+  },
+  {
+    "relativePath": "org/ipro/entity-design-core/1.0-SNAPSHOT/entity-design-core-1.0-SNAPSHOT.jar",
+    "sha256": "772f166964c6c952b3b046fc27210d29af40fe4a4e2f319bc220ec569b4cc802"
+  },
+  {
+    "relativePath": "org/ipro/entity-design-core/1.0-SNAPSHOT/entity-design-core-1.0-SNAPSHOT.pom",
+    "sha256": "b60fc670d34e31d355ca689601b3fb72244f94780d307440dd8f9bc9bfb03852"
+  },
+  {
+    "relativePath": "org/ipro/entity-design-json/1.0-SNAPSHOT/entity-design-json-1.0-SNAPSHOT.jar",
+    "sha256": "9f093a8b1a3fd8df4b03c6c4f1e9bf78718555959548db43abdf8b58288e2262"
+  },
+  {
+    "relativePath": "org/ipro/entity-design-json/1.0-SNAPSHOT/entity-design-json-1.0-SNAPSHOT.pom",
+    "sha256": "3e96f447e4df7d515460ca10a3565d51f79628787a0bf832c8ca52f6ba3002a5"
+  },
+  {
+    "relativePath": "org/ipro/entity-design-runtime/1.0-SNAPSHOT/entity-design-runtime-1.0-SNAPSHOT.jar",
+    "sha256": "dc5e29742fbfc498ce83dd6bce5390fa4dbfb87b7d49144bf6260339e2155b92"
+  },
+  {
+    "relativePath": "org/ipro/entity-design-runtime/1.0-SNAPSHOT/entity-design-runtime-1.0-SNAPSHOT.pom",
+    "sha256": "d3c211cdd39432932c6f648e59d350c78d5af9f4033f8a277eae11770b7c069b"
+  },
+  {
+    "relativePath": "org/ipro/evidence/g1-e5h-build/1/g1-e5h-build-1.pom",
+    "sha256": "cd8064af9332b4e73bbf9c8413d3f8ba22ddf19b00880a2fad6ca46d2d4fc767"
+  },
+  {
+    "relativePath": "org/ipro/FilterGrid/1.0-SNAPSHOT/FilterGrid-1.0-SNAPSHOT.pom",
+    "sha256": "8284840f6b2c3ed84008995fed8f9c23ff95443b649cc338928a86dcd83389d5"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-core/1.0-SNAPSHOT/filtergrid-core-1.0-SNAPSHOT.jar",
+    "sha256": "bc0e41e7e60d5613ea921a2dbb5d891dcd7b62c07ce8238f2457ac3ce427468b"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-core/1.0-SNAPSHOT/filtergrid-core-1.0-SNAPSHOT.pom",
+    "sha256": "0189e1e48621915aa6c40455b67b076dc0321305a042b7c851d9441c7d5cb178"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-grouping/1.0-SNAPSHOT/filtergrid-grouping-1.0-SNAPSHOT.jar",
+    "sha256": "d921d2b64462de000b53e302cad4d4b56c7e6b46da8f8b604fbf6c46d064b02a"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-grouping/1.0-SNAPSHOT/filtergrid-grouping-1.0-SNAPSHOT.pom",
+    "sha256": "707ee94c9c93c1c5cd33278bebc163542162c88bfe5bd3e776a56ee1d043ca0c"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-inmemory/1.0-SNAPSHOT/filtergrid-inmemory-1.0-SNAPSHOT.jar",
+    "sha256": "20edcb4041090790a3072d4407e6ec649d5d6813cc77c5b88b011a43a2552b35"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-inmemory/1.0-SNAPSHOT/filtergrid-inmemory-1.0-SNAPSHOT.pom",
+    "sha256": "6a92c7198a18b507433689084d12a3b8041e3e9c5bac1c7fc161ce957c0e8121"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-jpa/1.0-SNAPSHOT/filtergrid-jpa-1.0-SNAPSHOT.jar",
+    "sha256": "06bee40b045ce127eb549dbb42b78d898099cb4ff50c06af44481c44a0715298"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-jpa/1.0-SNAPSHOT/filtergrid-jpa-1.0-SNAPSHOT.pom",
+    "sha256": "7f447ff00592872557739823ad6930af8b20c9e7dd6042f066a9f2d64addbcb3"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-projection/1.0-SNAPSHOT/filtergrid-projection-1.0-SNAPSHOT.jar",
+    "sha256": "688dd22cd0732dc1ec2a7e7e4e4046d6336cad48b1dbe6a2b65e5a30881f5923"
+  },
+  {
+    "relativePath": "org/ipro/filtergrid-projection/1.0-SNAPSHOT/filtergrid-projection-1.0-SNAPSHOT.pom",
+    "sha256": "6de68c628e2abe377e56bbe727b691069828c52de7910064b060674946f3f6a0"
+  },
+  {
+    "relativePath": "org/ipro/g1-owner-support/1.0-E3/g1-owner-support-1.0-E3.jar",
+    "sha256": "ee9087f496c730660e776758283d5a49a10f1a5cd6785f93e02684ac9cf08013"
+  },
+  {
+    "relativePath": "org/ipro/g1-owner-support/1.0-E3/g1-owner-support-1.0-E3.pom",
+    "sha256": "f608075f2748ff81ba8bdc8c7060e6fea9d1d0505c798debcd05cb4d7f72cc46"
+  },
+  {
+    "relativePath": "org/ipro/g1-reference-target/1.0-E2/g1-reference-target-1.0-E2.jar",
+    "sha256": "490b38387ab6e22141cd4b1be4aaf5faafc7668f4e1bcdb2fe881fda59f2e3f4"
+  },
+  {
+    "relativePath": "org/ipro/g1-reference-target/1.0-E2/g1-reference-target-1.0-E2.pom",
+    "sha256": "29279e0b847faf8e79cc8ebe63ab213ee2040651a29ad540d7240efaa7a7fc07"
+  },
+  {
+    "relativePath": "org/ipro/platform-backend-starter/1.0-SNAPSHOT/platform-backend-starter-1.0-SNAPSHOT.jar",
+    "sha256": "1b79e501bd959e5b7a5850e39f32055bff67655ca07822e4fe43efc4a2671204"
+  },
+  {
+    "relativePath": "org/ipro/platform-backend-starter/1.0-SNAPSHOT/platform-backend-starter-1.0-SNAPSHOT.pom",
+    "sha256": "1ea88f70b83876729a8108144a90d4f222a0edb65b894379efc8698a445b473d"
+  },
+  {
+    "relativePath": "org/ipro/platform-bom/1.0-SNAPSHOT/platform-bom-1.0-SNAPSHOT.pom",
+    "sha256": "5e940f8184febb5ba8a61a8dfd70c277185031c5bde6956e72e5b8682c2c3168"
+  },
+  {
+    "relativePath": "org/ipro/platform-contracts/1.0-SNAPSHOT/platform-contracts-1.0-SNAPSHOT.jar",
+    "sha256": "5056bbed8be1dac2e3c30add00be86796ec356457ef54f09584b447579293674"
+  },
+  {
+    "relativePath": "org/ipro/platform-contracts/1.0-SNAPSHOT/platform-contracts-1.0-SNAPSHOT.pom",
+    "sha256": "50b21b1af5eaf6b7b5bf0ffe0cd59a1eec2de93d84c32ee9b5d25b3e98dbc189"
+  },
+  {
+    "relativePath": "org/ipro/platform-core/1.0-SNAPSHOT/platform-core-1.0-SNAPSHOT.jar",
+    "sha256": "9d885a825599a19d870df0d27368f54559fc71e03260edef5df1adeccbd8f421"
+  },
+  {
+    "relativePath": "org/ipro/platform-core/1.0-SNAPSHOT/platform-core-1.0-SNAPSHOT.pom",
+    "sha256": "dc6c05f0d88f7acf1ef434543b0ee09caf1f5dc444701b158dcbc14522d3f987"
+  },
+  {
+    "relativePath": "org/ipro/platform-crud-api/1.0-SNAPSHOT/platform-crud-api-1.0-SNAPSHOT.jar",
+    "sha256": "35857b09a5f6b4c7d336ca05079bda7804cdc7861954d1c3fe5df08f5b34e9ea"
+  },
+  {
+    "relativePath": "org/ipro/platform-crud-api/1.0-SNAPSHOT/platform-crud-api-1.0-SNAPSHOT.pom",
+    "sha256": "562fe2c7d26245e1d9784e782add7debe25d3ce02f3c8f3be2e5003062417617"
+  },
+  {
+    "relativePath": "org/ipro/platform-events/1.0-SNAPSHOT/platform-events-1.0-SNAPSHOT.jar",
+    "sha256": "bb15b885b15675034604203d44e6fd1c71059e376fbad54ba73180a1f1b13bfb"
+  },
+  {
+    "relativePath": "org/ipro/platform-events/1.0-SNAPSHOT/platform-events-1.0-SNAPSHOT.pom",
+    "sha256": "5a0bede1e8dd6f6e20787131b146158a6b22125b43423fdc356e330686742c01"
+  },
+  {
+    "relativePath": "org/ipro/platform-identity-api/1.0-SNAPSHOT/platform-identity-api-1.0-SNAPSHOT.jar",
+    "sha256": "b6cf3b357f3ef1f4b8c3a66188bdf98394018d15f1d3f7123c35e98535bf3c52"
+  },
+  {
+    "relativePath": "org/ipro/platform-identity-api/1.0-SNAPSHOT/platform-identity-api-1.0-SNAPSHOT.pom",
+    "sha256": "35d882bf284cd30ed62ce592cc381da50b88e8303155a2eded181c0a3ae0996f"
+  },
+  {
+    "relativePath": "org/ipro/platform-jr/1.0-SNAPSHOT/platform-jr-1.0-SNAPSHOT.jar",
+    "sha256": "0ffc1d8452c0d9e9854b46c2867452cfec418ca3480b9cacb89930b5e706e489"
+  },
+  {
+    "relativePath": "org/ipro/platform-jr/1.0-SNAPSHOT/platform-jr-1.0-SNAPSHOT.pom",
+    "sha256": "3c844c72a5ad7be359363b5f20b94131a42edd93e277ab4c1df391326934dc4b"
+  },
+  {
+    "relativePath": "org/ipro/platform-metadata/1.0-SNAPSHOT/platform-metadata-1.0-SNAPSHOT.jar",
+    "sha256": "705abc06e56128a5211d112d9afad3f956f3308bea790d5dfbafdf640986e758"
+  },
+  {
+    "relativePath": "org/ipro/platform-metadata/1.0-SNAPSHOT/platform-metadata-1.0-SNAPSHOT.pom",
+    "sha256": "1e0c21dd3c8e20504e462206ea435c3e4f2100cfd92ddc30a7c855030ef8f435"
+  },
+  {
+    "relativePath": "org/ipro/platform-navigation/1.0-SNAPSHOT/platform-navigation-1.0-SNAPSHOT.jar",
+    "sha256": "8e88861d5a9cc1fffd56e9677f1c8d7a6748b8356300005973307bf449f86e93"
+  },
+  {
+    "relativePath": "org/ipro/platform-navigation/1.0-SNAPSHOT/platform-navigation-1.0-SNAPSHOT.pom",
+    "sha256": "a0c1d1c0c8c3fc012a504cdc2ac40a14c584826c18f0e63d956707534304f53c"
+  },
+  {
+    "relativePath": "org/ipro/platform-numbering/1.0-SNAPSHOT/platform-numbering-1.0-SNAPSHOT.jar",
+    "sha256": "adec135b2038c4e3ac5448bc3408573d5e4942a5ba431adc7d332da620a0c3f9"
+  },
+  {
+    "relativePath": "org/ipro/platform-numbering/1.0-SNAPSHOT/platform-numbering-1.0-SNAPSHOT.pom",
+    "sha256": "0c0d781746e10d754b73e4066f008c4a0feded2e4d23a70ccdac377f87455a75"
+  },
+  {
+    "relativePath": "org/ipro/platform-persistence/1.0-SNAPSHOT/platform-persistence-1.0-SNAPSHOT.jar",
+    "sha256": "e7041f17e528f19e856733fb271784db98486f98ebde8087817ef43bca464599"
+  },
+  {
+    "relativePath": "org/ipro/platform-persistence/1.0-SNAPSHOT/platform-persistence-1.0-SNAPSHOT.pom",
+    "sha256": "88dbcf1da7c9212d3b384343af2b632d835434f565c5d445f1b3c3cd0a0989d5"
+  },
+  {
+    "relativePath": "org/ipro/platform-query/1.0-SNAPSHOT/platform-query-1.0-SNAPSHOT-tests.jar",
+    "sha256": "5f54f937830b0e55c6ef1d21feab0335174b08f09af7af4b293fa7a6151807a0"
+  },
+  {
+    "relativePath": "org/ipro/platform-query/1.0-SNAPSHOT/platform-query-1.0-SNAPSHOT.jar",
+    "sha256": "94ef9f2569d1848de3447aaf87d7a51c50badbe97dc7ee91744cc09c64d8fe0d"
+  },
+  {
+    "relativePath": "org/ipro/platform-query/1.0-SNAPSHOT/platform-query-1.0-SNAPSHOT.pom",
+    "sha256": "446418f3dcbfb7958ff294dad18d5d75408674d53a47f2bbc6e246293a7187c0"
+  },
+  {
+    "relativePath": "org/ipro/platform-query-vaadin/1.0-SNAPSHOT/platform-query-vaadin-1.0-SNAPSHOT.jar",
+    "sha256": "bd39b321d55ecb6d314123e3a901026f6dd4f1b11cd0c9de6fdac1f5c90924d2"
+  },
+  {
+    "relativePath": "org/ipro/platform-query-vaadin/1.0-SNAPSHOT/platform-query-vaadin-1.0-SNAPSHOT.pom",
+    "sha256": "1cab2f7afbbafb0d7f0d0646f500d900e59d67b442ecf79be3d132c9bdae0211"
+  },
+  {
+    "relativePath": "org/ipro/platform-register/1.0-SNAPSHOT/platform-register-1.0-SNAPSHOT.jar",
+    "sha256": "9423bd703579dccfb0ef90b7d50c5fef65165190a7b660ff025491e1c94e218d"
+  },
+  {
+    "relativePath": "org/ipro/platform-register/1.0-SNAPSHOT/platform-register-1.0-SNAPSHOT.pom",
+    "sha256": "a026409c6fe18a9915b6f3d1d2ed77df168d77a4fb2685a051ae9a8dce5db950"
+  },
+  {
+    "relativePath": "org/ipro/platform-register-vaadin/1.0-SNAPSHOT/platform-register-vaadin-1.0-SNAPSHOT.jar",
+    "sha256": "55e4b7c9415899696d9214e608d3ede2f4eb822b4f78b15e6f330f8b9784570d"
+  },
+  {
+    "relativePath": "org/ipro/platform-register-vaadin/1.0-SNAPSHOT/platform-register-vaadin-1.0-SNAPSHOT.pom",
+    "sha256": "3474e90d2d0e06a9f15bca3125b4246a9c6f1cf13679fb03fbc30ee0a571f96a"
+  },
+  {
+    "relativePath": "org/ipro/platform-report/1.0-SNAPSHOT/platform-report-1.0-SNAPSHOT.jar",
+    "sha256": "1497f31f34b07d180606f3b4ebcb15ef1b7853a9559e4911f0a4027f4941d3b1"
+  },
+  {
+    "relativePath": "org/ipro/platform-report/1.0-SNAPSHOT/platform-report-1.0-SNAPSHOT.pom",
+    "sha256": "39c0341c50d9c709faefa1ed340f739536b85be012b90d6d4758e69ee8555429"
+  },
+  {
+    "relativePath": "org/ipro/platform-report-core/1.0-SNAPSHOT/platform-report-core-1.0-SNAPSHOT.jar",
+    "sha256": "d2c0fce045313f1a1f9b7a114123ef99cc010406fe53e8ead6c08f92bb687d82"
+  },
+  {
+    "relativePath": "org/ipro/platform-report-core/1.0-SNAPSHOT/platform-report-core-1.0-SNAPSHOT.pom",
+    "sha256": "820696514879c9d7edfddf247093fb1805aff32d4d9bd809aa6fcf193fbdfdfe"
+  },
+  {
+    "relativePath": "org/ipro/platform-report-vaadin/1.0-SNAPSHOT/platform-report-vaadin-1.0-SNAPSHOT.jar",
+    "sha256": "c96473af5bdae90f9e474892411c366caee259dc0d168af55df2a563550ab111"
+  },
+  {
+    "relativePath": "org/ipro/platform-report-vaadin/1.0-SNAPSHOT/platform-report-vaadin-1.0-SNAPSHOT.pom",
+    "sha256": "392df5e4b9f01230a48738687981813241b61c39a8e3bd547bb6dfefbb60cdd2"
+  },
+  {
+    "relativePath": "org/ipro/platform-rest/1.0-SNAPSHOT/platform-rest-1.0-SNAPSHOT.jar",
+    "sha256": "f863fe4f5b3de9f977f942edb6efaa77abd281e6eeaa96baf1db7bae694674a0"
+  },
+  {
+    "relativePath": "org/ipro/platform-rest/1.0-SNAPSHOT/platform-rest-1.0-SNAPSHOT.pom",
+    "sha256": "ea5189c27e52b1a50fcf75cc90c4ada61f0b860c3b71a68489022bd93be51af5"
+  },
+  {
+    "relativePath": "org/ipro/platform-rest-web/1.0-SNAPSHOT/platform-rest-web-1.0-SNAPSHOT.jar",
+    "sha256": "266f5531f0126301515072ac5af523c60a2cea5259e7994b7fc3e7c4e3e11e7f"
+  },
+  {
+    "relativePath": "org/ipro/platform-rest-web/1.0-SNAPSHOT/platform-rest-web-1.0-SNAPSHOT.pom",
+    "sha256": "d37a43abf3fc1c5d027c6bfcecbbedf09d3ad7f7f4049cc1d99af9779e5da45d"
+  },
+  {
+    "relativePath": "org/ipro/platform-rls/1.0-SNAPSHOT/platform-rls-1.0-SNAPSHOT.jar",
+    "sha256": "8f680186c57b41737cf7d60753f278ac54b760808e418cd77cc75af3dd97d8ec"
+  },
+  {
+    "relativePath": "org/ipro/platform-rls/1.0-SNAPSHOT/platform-rls-1.0-SNAPSHOT.pom",
+    "sha256": "b3dd2111167d2589ce5b573b8245cde487f206abebdaa4813378baa65608f3ad"
+  },
+  {
+    "relativePath": "org/ipro/platform-settings/1.0-SNAPSHOT/platform-settings-1.0-SNAPSHOT.jar",
+    "sha256": "a05ea7a75dc22eac39ae8f3538f99dbb40b366d687e6e38ac46ddef04b1b8c1b"
+  },
+  {
+    "relativePath": "org/ipro/platform-settings/1.0-SNAPSHOT/platform-settings-1.0-SNAPSHOT.pom",
+    "sha256": "aec63a564cd7738ba6a89265562fc0336571c0327dac5cab8200a72bacbe15ce"
+  },
+  {
+    "relativePath": "org/ipro/platform-spring-boot-autoconfigure/1.0-SNAPSHOT/platform-spring-boot-autoconfigure-1.0-SNAPSHOT.jar",
+    "sha256": "75ea5e4ce2172975597eb62fd559c0f70cb3f10b42f48e972dfb9290cb48b607"
+  },
+  {
+    "relativePath": "org/ipro/platform-spring-boot-autoconfigure/1.0-SNAPSHOT/platform-spring-boot-autoconfigure-1.0-SNAPSHOT.pom",
+    "sha256": "46c2433f39cfde12c63146e2b9f31f408ca206e8907fc3ffb64b897ac5ccd77d"
+  },
+  {
+    "relativePath": "org/ipro/platform-telemetry/1.0-SNAPSHOT/platform-telemetry-1.0-SNAPSHOT.jar",
+    "sha256": "622ef2e6d28baf98f72b9d479fff82a6349be2432ee0b69e7a655229ebcc9744"
+  },
+  {
+    "relativePath": "org/ipro/platform-telemetry/1.0-SNAPSHOT/platform-telemetry-1.0-SNAPSHOT.pom",
+    "sha256": "039652b78063bf40ef2bdf1bdb20d57589ea0e055e6d047c4e5971237ac15650"
+  },
+  {
+    "relativePath": "org/ipro/platform-unidr/1.0-SNAPSHOT/platform-unidr-1.0-SNAPSHOT.jar",
+    "sha256": "f713e1a7fdd6deddf31f14ac9f0bc6e5429f1220a926af1df5e2eb30b1fa1a95"
+  },
+  {
+    "relativePath": "org/ipro/platform-unidr/1.0-SNAPSHOT/platform-unidr-1.0-SNAPSHOT.pom",
+    "sha256": "320cc32d3b0f0543a7cb334adc3466519d95b5a039220f07e5de0ed29c24b02d"
+  },
+  {
+    "relativePath": "org/ipro/platform-vaadin/1.0-SNAPSHOT/platform-vaadin-1.0-SNAPSHOT.jar",
+    "sha256": "797dca1b1934711ef0213f934f704948eed784bb135b387e716c00cbd1cff085"
+  },
+  {
+    "relativePath": "org/ipro/platform-vaadin/1.0-SNAPSHOT/platform-vaadin-1.0-SNAPSHOT.pom",
+    "sha256": "5cad8c5c274824a531f6f7099c3202b793e00517499d0f222bcdf06cd6bec0bd"
+  },
+  {
+    "relativePath": "org/ipro/platform-vaadin-starter/1.0-SNAPSHOT/platform-vaadin-starter-1.0-SNAPSHOT.jar",
+    "sha256": "d2ee6d09f4daee8d01195096d2ecf72e8b919845050a06f13705ad30ac38ff91"
+  },
+  {
+    "relativePath": "org/ipro/platform-vaadin-starter/1.0-SNAPSHOT/platform-vaadin-starter-1.0-SNAPSHOT.pom",
+    "sha256": "76ae2ba8913ffdf6c4d3dc8c4e3e8842cf82c12924a85e762ac800201a6fbe2d"
+  }
+]

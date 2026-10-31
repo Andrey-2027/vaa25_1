@@ -53,7 +53,10 @@ class PersistenceTypeRegistrationTest {
         Path.of("platform-vaadin/src/main/java"),
         // D-R S4: то же самое для стандартного интерфейса регистра: сущностей он не несёт
         // (его фикстуры живут в тестах), но корень обязан быть виден забору заранее.
-        Path.of("platform-register-vaadin/src/main/java"));
+        Path.of("platform-register-vaadin/src/main/java"),
+        // M2.1: persistence-регистрация JR принадлежит модулю, поэтому его корень обязан
+        // быть виден забору — иначе @EntityScan/@EnableJpaRepositories объявляются вне проверки.
+        Path.of("platform-jr/src/main/java"));
 
     /** Пакеты, которые обязаны быть объявлены в @EntityScan (reviewed). */
     private static final Set<String> REVIEWED_ENTITY_PACKAGES = Set.of(
@@ -61,7 +64,6 @@ class PersistenceTypeRegistrationTest {
         "org.ipro.register.persistence",
         "org.ipro.telemetry.model",
         "org.ipro.rls",
-        "org.ipro.reportstudio.dom",
         "org.ipro.numbering",
         "org.ipro.settings",
         "org.ipro.jr.dom");
@@ -70,7 +72,6 @@ class PersistenceTypeRegistrationTest {
     private static final Set<String> REVIEWED_REPOSITORY_PACKAGES = Set.of(
         "org.ip",
         "org.ipro.rls",
-        "org.ipro.reportstudio",
         "org.ipro.numbering",
         "org.ipro.settings",
         "org.ipro.telemetry.repository",
@@ -88,7 +89,7 @@ class PersistenceTypeRegistrationTest {
         // приложения ровно до переезда сущности.
         "platform-register",
         "platform-numbering", "platform-settings", "platform-telemetry",
-        "platform-rls");
+        "platform-rls", "platform-jr");
 
     private static final Pattern SLICE = Pattern.compile("^\\s*@DataJpaTest\\b", Pattern.MULTILINE);
     /**
@@ -325,9 +326,9 @@ class PersistenceTypeRegistrationTest {
     }
 
     @Test
-    void jrPersistenceTypesLiveInTheApplicationWhileBaseEntityLivesInTheModule() {
-        assertThat(Path.of("src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).exists();
-        assertThat(Path.of("src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).exists();
+    void jrPersistenceTypesLiveInTheJrModuleWhileBaseEntityLivesInThePersistenceModule() {
+        assertThat(Path.of("platform-jr/src/main/java/org/ipro/jr/dom/JrxmlTemplate.java")).exists();
+        assertThat(Path.of("platform-jr/src/main/java/org/ipro/jr/JrxmlTemplateRepository.java")).exists();
         assertThat(Path.of("platform-persistence/src/main/java/org/ipro/jr/dom/JrxmlTemplate.java"))
             .doesNotExist();
         assertThat(Path.of("platform-persistence/src/main/java/org/ipro/jr/JrxmlTemplateRepository.java"))

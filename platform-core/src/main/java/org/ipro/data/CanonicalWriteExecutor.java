@@ -97,6 +97,8 @@ public class CanonicalWriteExecutor implements AggregateOperationAuthorizer {
     private final RlsCurrentUser currentUser;
     private final C5PermissionDecisionService c5PermissionDecisionService;
     private final CanonicalWritePropertyPolicy propertyPolicy;
+    /** Обязательная проверка owner-контракта; не Spring-бин и не отключается конфигурацией. */
+    private final CatalogOwnerGuard catalogOwnerGuard;
 
     /**
      * C4.8: глубина вложенных canonical write в одной бизнес-операции. Пока внешний scope
@@ -231,6 +233,9 @@ public class CanonicalWriteExecutor implements AggregateOperationAuthorizer {
         // Политика свойства — тоже опциональный владелец: без неё у типов нет свойств, которые
         // generic-запись не переносит, и ни один канал не становится шире.
         this.propertyPolicy = propertyPolicy;
+        // Owner-guard строится здесь, а не берётся необязательным бином: отсутствие
+        // пользовательской конфигурации не должно отключать контракт владельца.
+        this.catalogOwnerGuard = new CatalogOwnerGuard(entityManager);
     }
 
     /**
@@ -533,6 +538,7 @@ public class CanonicalWriteExecutor implements AggregateOperationAuthorizer {
         Long originalVersion = original.map(CanonicalWriteExecutor::versionBeforeSave).orElse(null);
         authorizeUpdate(entity);
         requirePropertyChangeAuthorized(type, original.orElse(null), entity);
+        CatalogOwnerToken ownerToken = catalogOwnerGuard.preflight(type, entity, isNew);
         normalizeVersion(entity);
         assignNumbers(entity);
         validate(entity);
@@ -540,6 +546,12 @@ public class CanonicalWriteExecutor implements AggregateOperationAuthorizer {
         try {
             publishSaving(entity);
             publishUpdating(original, entity);
+            if (entity instanceof org.ipro.crud.InternedEntity interned
+                    && type.isAnnotationPresent(org.ipro.crud.InternedContract.class)) {
+                org.ipro.crud.InterningContracts.identity(type, interned);
+            }
+            // Хуки могли изменить владельца: сравниваем с id, проверенным preflight'ом.
+            catalogOwnerGuard.recheck(ownerToken, entity);
             T saved = isNew ? persistNew(entity) : entityManager.merge(entity);
             publishSaved(saved, originalVersion);
             return saved;
@@ -573,15 +585,18 @@ public class CanonicalWriteExecutor implements AggregateOperationAuthorizer {
         Long originalVersion = versionBeforeSave(original);
         entityManager.detach(original);
         T target = readNamedRow(type, id, permissionId);
+        CatalogOwnerToken ownerToken = catalogOwnerGuard.preflight(type, target, false);
         mutation.accept(target);
         authorizeUpdate(target);
         requirePropertyChangeAuthorized(type, original, target);
+        catalogOwnerGuard.recheck(ownerToken, target);
         normalizeVersion(target);
         validate(target);
         EntityEventPublisher.EventScope scope = openOperation(target);
         try {
             publishSaving(target);
             publishUpdating(Optional.of(original), target);
+            catalogOwnerGuard.recheck(ownerToken, target);
             T saved = entityManager.merge(target);
             publishSaved(saved, originalVersion);
             return saved;

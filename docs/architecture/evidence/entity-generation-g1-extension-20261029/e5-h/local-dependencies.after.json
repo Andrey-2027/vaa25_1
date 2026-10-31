@@ -1,0 +1,886 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-09",
+  "workspaceContract": {
+    "applicationDirectory": "GitVaa25",
+    "dependencyRoot": "..",
+    "pathPolicy": "All dependency paths are relative to the GitVaa25 checkout."
+  },
+  "toolchain": {
+    "mavenDistribution": "IntelliJ IDEA bundled Maven",
+    "testedMavenVersion": "3.9.9",
+    "javaMajor": 21
+  },
+  "projects": [
+    {
+      "id": "entity-design-core",
+      "relativePath": "entity-design-core",
+      "dependsOn": [],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "P8.1: standalone immutable draft model, stable IDs, structural operations and unified validator. No runtime dependencies; test-only JUnit/Jackson. P8.2 application now consumes this model through the separate draft editor. G1.1.2-G1.1.4 adds immutable CREATE plans, addressable diagnostics and the catalog-v2 Java builder; G1.1.5 consumes it for editor preview. Not a runtime starter or platform BOM contribution."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "d5be4ad3e1790333fefd17b486913c6df3c60da94d56d37973ff7fde917ca431",
+        "fileCount": 56,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:entity-design-core:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": [
+            "clean",
+            "install"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "entity-design-json",
+      "relativePath": "entity-design-json",
+      "dependsOn": ["entity-design-core"],
+      "source": {"kind": "in-repo-project", "gitCommit": null, "state": "P8.4/E3.A: neutral bounded JSON v1/v2 codec with explicit owner envelope. Depends only on entity-design-core and Jackson; no UI, persistence, application or platform starter."},
+      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "7142e63d37813b815cadfbc0ae58cd5f17cd96e41f1a750570abe9cac2a79c76", "fileCount": 7, "inputs": ["pom.xml", "src"]},
+      "artifacts": ["org.ipro:entity-design-json:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "crudui",
+      "relativePath": "../crudui",
+      "dependsOn": [],
+      "source": {
+        "kind": "source-copy",
+        "gitCommit": null,
+        "state": "No local .git directory. Reactor also builds two neutral Java-only leaf artifacts: org.ipro:platform-identity-api (IdentifiableEntity) and org.ipro:platform-crud-api (CrudService). Both have owners on both sides - the platform backend and this UI library - so neither can live in either repository. That is why this is the first entry: platform-contracts, platform-persistence and platform-core depend on those artifacts and therefore must build after this project."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "b610b745dce3bfd7417b64beafd2be573e9c9caa974a17117e1b30832d808442",
+        "fileCount": 14,
+        "inputs": [
+          "pom.xml",
+          "crudui-core/pom.xml",
+          "crudui-core/src",
+          "platform-identity-api/pom.xml",
+          "platform-identity-api/src",
+          "platform-crud-api/pom.xml",
+          "platform-crud-api/src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro.crudui:crudui-parent:1.0-SNAPSHOT",
+        "org.ipro.crudui:crudui-core:1.0-SNAPSHOT",
+        "org.ipro:platform-identity-api:1.0-SNAPSHOT",
+        "org.ipro:platform-crud-api:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "crudui-core", "-am", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-contracts",
+      "relativePath": "platform-contracts",
+      "dependsOn": [
+        "crudui"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 extraction slice: contracts live in this checkout, but build independently of the application — the module has no dependency on org.ip, so javac cannot see application classes. Its only non-JDK edges are org.ipro:platform-identity-api (built by the crudui reactor) and slf4j-api, so the edge to crudui is a build-order requirement, not a UI dependency."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "fe069d70dc633af4cf24f0342f5c1a35c5289f51e7fca4aab31dc04aa1a4b3d0",
+        "fileCount": 39,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-contracts:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-events",
+      "relativePath": "platform-events",
+      "dependsOn": [
+        "platform-contracts"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 runtime slice: the entity-lifecycle event contour (publisher, fail-fast registry, its own auto-configuration) builds as a separate artifact that depends on platform-contracts and is registered by its own META-INF/spring/...AutoConfiguration.imports, so the application needs no entry for it."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "e2944df8a3530b0a4d0ee3df551e5c7805a0ea21d244b431ef6711da4882e8e9",
+        "fileCount": 12,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-events:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-persistence",
+      "relativePath": "platform-persistence",
+      "dependsOn": [
+        "crudui"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "Shared persistence foundation: only BaseEntity remains in the artifact; feature entities, repositories, and persistence registration stay with their owners. Compile dependencies are neutral identity API, Jakarta Persistence/Validation, Spring Data JPA, and Hibernate. Depends on the sibling crudui reactor only for platform-identity-api."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "1e9c1467c05c4cf394817ebd246e927b22aa8549c0cec8061b1f39e2dd4b817d",
+        "fileCount": 5,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-persistence:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-metadata",
+      "relativePath": "platform-metadata",
+      "dependsOn": [
+        "platform-contracts"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 → D3 metadata spine: the classpath annotation scanner and the reverse-reference index, the only two tree types every subsystem's dependency closure pointed at. Carries no auto-configuration — its bean is declared by the application's MetadataAutoConfiguration, so losing the artifact breaks the build instead of silently disabling discovery."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "edf35a8690397d70cf40de80d6983693d33c47043a3d1a96bdda5ed2e2d3b1e9",
+        "fileCount": 5,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-metadata:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-numbering",
+      "relativePath": "platform-numbering",
+      "dependsOn": [
+        "platform-contracts",
+        "platform-metadata",
+        "platform-persistence"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 → D3 first subsystem module: the whole numbering subsystem (annotations applied by the application, rules and counters, repositories, services, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Chosen first by measured dependency closure, and the first slice that carries entities, repositories, beans and reflection-based registration in one artifact."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "9cf6e836a2258f8f12d66299d74a1b850cb74ec58f1ca1cdc0b110a38c52497c",
+        "fileCount": 19,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-numbering:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-settings",
+      "relativePath": "platform-settings",
+      "dependsOn": [
+        "platform-contracts",
+        "platform-metadata",
+        "platform-persistence"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 → D3 second subsystem module: the whole settings subsystem (markers @Setting/@SettingsGroup, the code-defaults catalog, service, its entity and repository, the reverse-reference source for platform-metadata, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Its value is not the extraction but the defect class it exposed: two @DataJpaTest slices imitated the module registration instead of importing it, which no test of the module itself could catch."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "1cfdfeb1a5c41c651bdfb647c79aebbe548a4a3520d13932d0e783107cfc6b55",
+        "fileCount": 10,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-settings:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-telemetry",
+      "relativePath": "platform-telemetry",
+      "dependsOn": [
+        "platform-settings"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 → D3 third subsystem module: the whole observation subsystem (telemetry API with the neutral SqlStatementAudit/DeclaredNameSource seams, core operations, field audit, journal, security events, SQL inspection, journal entities, repository, its own auto-configuration with @EntityScan/@EnableJpaRepositories). Chosen third by measured dependency closure (empty after the step-8a cycle inversion with RLS). D3.5.4 moved the Vaadin adapters out of the application tree into platform-vaadin (org.ipro.vaadin.telemetry): an application package inside a platform artifact broke the boundary, and because the move kept the dependency one-way the module still has no UI dependency - UI writes into observation, never the other way. D3.5.6 gave the static bridge an owner. Until then the sink was installed from three places into one static cell (the two sink bean methods and the UI listener's constructor) and was never removed, so closing a context left the bridge pointing at a closed AsyncEventSink, the UI artifact was a precondition for the observation subsystem to work at all, and an application-defined EventSink produced two beans of the same type because the async sink lacked @ConditionalOnMissingBean - by-type injection either failed or quietly picked a receiver the bridge was not looking at. Sink and owner now live in a package-private member configuration, which keeps them under the subsystem's own ipro.telemetry.enabled gate (a separate configuration file would keep running with telemetry switched off), the owner installs the resolved sink and releases it with compare-and-clear on destroy (a blanket clear would disarm a neighbouring context in the same JVM), and bean creation no longer touches the bridge."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "bb1cfd8fab896972515f104335b0a352693afd6358047c811817a37ec4b816cb",
+        "fileCount": 71,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-telemetry:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-rls",
+      "relativePath": "platform-rls",
+      "dependsOn": [
+        "platform-persistence",
+        "platform-numbering",
+        "platform-telemetry"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D2 → D3 fourth subsystem module: the whole Row-Level Security subsystem (dimensions and policies, read/write gates, Hibernate filters and enforcement aspect, SQL-leak canary, neutral SPIs RlsDimensionValueLabelResolver/RlsOwnedSectionLookup implemented by the application, AccessGrant entity with repository, two auto-configurations for beans and persistence registration). Direct metadata/fetch dependencies replaced by SPIs; consumes platform-telemetry as an artifact, provides platform-numbering with a scope resolver. F-REST-READ-4 4.3: RlsReadableIdsResolver seam — the session cache remains the default UI implementation, RlsFilterActivator consumes the interface, and the activator selects exactly one independent singleton resolver (scoped cache proxies are state, not an independent source); two independent sources stop startup instead of being chosen silently."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "085a28e5c5e7f17734030e0322e7393549489e49b62c13ee84c78edf2d64a444",
+        "fileCount": 62,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-rls:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "filtergrid",
+      "relativePath": "../FilterGrid",
+      "dependsOn": [],
+      "source": {
+        "kind": "git-unborn-worktree",
+        "gitCommit": null,
+        "branch": "master",
+        "state": "Repository has no HEAD commit; build inputs are untracked or staged."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "48e03e4ef182b783c81322b67499acf388b3609491fa1522f314b26425ccd57c",
+        "fileCount": 177,
+        "inputs": [
+          "pom.xml",
+          "filtergrid-core/pom.xml",
+          "filtergrid-core/src",
+          "filtergrid-jpa/pom.xml",
+          "filtergrid-jpa/src",
+          "filtergrid-inmemory/pom.xml",
+          "filtergrid-inmemory/src",
+          "filtergrid-grouping/pom.xml",
+          "filtergrid-grouping/src",
+          "filtergrid-projection/pom.xml",
+          "filtergrid-projection/src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:FilterGrid:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-core:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-jpa:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-inmemory:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-grouping:1.0-SNAPSHOT",
+        "org.ipro:filtergrid-projection:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "filtergrid-jpa,filtergrid-grouping,filtergrid-inmemory,filtergrid-projection", "-am", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-report-core",
+      "relativePath": "platform-report-core",
+      "dependsOn": [],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M1: нейтральный результат запроса (ReportDataset/ReportRow/QueryField/EntityRef). Модуль появился на шаге M1, потому что query backend переезжает в platform-query и не может импортировать типы из дерева приложения: результат исполнения запроса — часть платформенного контракта, а не отчётного UI. Зависимостей нет, только JDK."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "7d827c73bd45e71f22a8488afd9e896e70f38c17461a69f03ccda6825cb02bc9",
+        "fileCount": 5,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-report-core:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-report",
+      "relativePath": "platform-report",
+      "dependsOn": ["platform-report-core", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M2.1: общий отчётный слой переехал из дерева приложения — нейтральный каталог (ReportCatalogService/Item/EngineType/Capabilities/ReadGate), экспорт готового JasperPrint (PDF/XLSX/DOCX/CSV, FormulaEvaluator) и управляемый пул фоновых задач ReportTaskExecutor. Модуль не знает ни одного движка: строки каталога приходят адаптерами ReportCatalogContributor, JR-строка собирается в platform-jr. Собственная ReportCatalogAutoConfiguration (META-INF/spring) даёт каталог, read gate, JasperExporter и пул задач; приложение больше не регистрирует эти бины у себя. Vaadin, org.ip, reportstudio и UDR DOM запрещены гейтом; JasperReports присутствует только как тип результата/экспорта. 31 тест модуля."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "05c7f76fa8ead1dc151dc6d384bf52b2482a9b0db3eae5747488f755d1283549",
+        "fileCount": 24,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-report:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-core",
+      "relativePath": "platform-core",
+      "dependsOn": ["crudui", "filtergrid", "platform-contracts", "platform-events", "platform-metadata", "platform-numbering", "platform-persistence", "platform-rls", "platform-telemetry"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.3 backend platform module: 94 types of generic CRUD/data/metadata/search/fetch/filter, no Vaadin, no org.ip. The first group could not be smaller than crud+data+fetch+metadata because those four packages reference each other (MetadataResolver -> crud.Standard*Entity, SectionMetadataRegistry -> crud.TableSectionService, and back), and a package cannot be moved partially: the same package in two artifacts is a split package. search and filter followed because nothing in the cycle references them. dependsOn carries real edges: crudui for the two neutral leaf contracts (platform-identity-api, platform-crud-api - the same artifacts the UI library consumes, which is why platform-core does not declare crudui-core), filtergrid for the condition tree and grouping providers, and the seven platform modules listed. It is installed with tests enabled: its composition gate lives in the module. That is deliberately not yet true for platform-metadata/numbering/settings/telemetry/rls, which still build with -DskipTests because no owner-side tests have been moved to them; platform-telemetry and platform-vaadin, by contrast, install with tests enabled and keep their composition gates in the module. D3.5.5: EntityCopyService keeps its role in this contract but lost the @Component stereotype - the bean is now declared by platform-spring-boot-autoconfigure. Registering a core service from the UI artifact made the contract undeliverable to consumers without UI, and dropping the UI layer silently removed it from the core surface. S5(b) (ADR-0026) brought the command payload to the entity lifecycle hooks into this module: a command declares its positions with AggregateCommandPayload and reads them back inside the hooks of its own entity, and the platform itself binds the managed copy that an update's merge produces, so the application compares neither id nor Hibernate class. The declaration and the existing owner-callback evidence now share one mechanism - CallbackScope: one thread, closing in order, nesting, reading only by identity - instead of a second thread-local next to the first. AggregateCommandPayload is APP_API (the application names it), CallbackScope is INTERNAL (package-private mechanism with no compatibility promise), and the fingerprint moved 150 -> 153 files with the two production types and the payload test."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "2088fecb8a887ec34c50700a5509674fc7b8b1ec6c98b1c3708c6993f1203fa2",
+        "fileCount": 184,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-core:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-jr",
+      "relativePath": "platform-jr",
+      "dependsOn": ["platform-core", "platform-report", "platform-report-core"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M2.1: движок JR переехал из дерева приложения — JrxmlTemplate/repository, JrxmlTemplateService, JrCatalogContributor, JrxmlExecutionService, JPQL query executer и оба auto-configuration (сервисы и persistence). Источник JPQL приходит портом JpqlDatasetRunner, реализация остаётся в приложении (JpqlRunService: guard + RLS), поэтому модуль не знает org.ip. Ресурсы jasperreports.properties и jasperreports_extension.properties принадлежат движку; JrPersistenceAutoConfiguration несёт @EntityScan/@EnableJpaRepositories и публикуется через META-INF/spring артефакта. 11 тестов модуля, включая @DataJpaTest на H2."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "4df8327fcaaac1e47f8d01091919bb075433ceb7116ed8aab228c37867ceefe5",
+        "fileCount": 20,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-jr:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "entity-design-runtime",
+      "relativePath": "entity-design-runtime",
+      "dependsOn": ["entity-design-core", "platform-core", "platform-numbering"],
+      "source": {"kind": "in-repo-project", "gitCommit": null, "state": "ET9 optional backend adapter: validated platform owners to portable design facts. No UI, business lookups or file generation. entity-design-core remains JDK-only."},
+      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "a3eeec38176abbc0298385307edb28ca955aa20a0de7c27bc2d2b779188e66d4", "fileCount": 6, "inputs": ["pom.xml", "src"]},
+      "artifacts": ["org.ipro:entity-design-runtime:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["install"]}]
+    },
+    {
+      "id": "platform-register",
+      "relativePath": "platform-register",
+      "dependsOn": ["crudui", "filtergrid", "platform-contracts", "platform-core", "platform-events", "platform-persistence", "platform-rls", "platform-telemetry"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D-R S3 (register extraction, final slice): the owner-set protocol moved in - the recorder-owned row procedures used from canonical onSave (RegisterRecords.forRecorder and its callback-bound handle clear/add/delete, each joining the owner transaction under an aggregate or canonical save token), the complete-replacement writer that preserves ids, line numbers and recording order under the shared write mutex, both platform participants (aggregate save contribution and canonical delete), the retrying transaction executor, the independent row-authorization seam with its RLS/C5 implementation, the canonical HISTORY/DETAIL reader for recorder-owned rows, and the third slice auto-configuration. The slice closes the extraction, and the strongest statement it makes is structural: after it the application keeps no register registration at all - the org.ipro.register package in the application is gone, its AutoConfiguration.imports entry is gone, and no application file assembles the engine, so the two-buildings defect S1 closed (a bean plus a second construction in the list form) is impossible by layout rather than by agreement. The seam decision is deliberate: RecorderSetWriteAuthorizer stays replaceable (@ConditionalOnMissingBean), because ADR-0019 wants the operation decision to belong to the owner, and the platform implementation here is a working one, not the only possible one. The slices met as planned: the owner set takes the order clock through the same RegisterWriteMutex S2 moved, so no second numbering mechanism exists. Roles moved with the types and stay measured: APP_API grew by RegisterRecords and RecordedRegisterReader (the application names both), APP_SPI by the authorizer and its request (the platform calls back into an implementation), and the two clock types were demoted from MODULE_API to INTERNAL - MODULE_API existed only to serve this slice, and once the slice arrived inside the same artifact the cross-module promise lost its addressee (MODULE_API = 0, measured). dependsOn is unchanged, and that is a measurement too: the protocol needed no new artifact, only the roles. The module owns a reviewed registry of 46 types (APP_API 20, APP_SPI 7, MODULE_API 0, INTERNAL 19) and three slice auto-configurations (read S1, key write S2, owner set S3), and it runs that gate in its own build, which is why buildSteps installs with tests enabled. Pre-S3 history: S2 brought key write and the order clock with its entity, S1 moved the reading in, S0 was a relocation, not a refactoring. S5(v) moved the engine's own tests in: the 17 register tests and their two fixtures now belong to this artifact (50 -> 69 files), which is why the build gate here is the module build and not the application build - the boundary between the engine and its checks is where the tests live. What stays outside is the subject matter, as planned: the register entity, its lifecycle and its measurements belong to the application (ADR-0024 section 2.1). S5(a) brought the human names of the register's named operations into the artifact (ADR-0024 section 2.4): @RegisterMetadata gained displayName(), RegisterMetadataValidator rejects a declaration that opts in (keyChangeAllowed/keyWriteAllowed) without a name, RegisterDescriptor exposes the declared name, and RegisterNamedOperations returns the operations together with their captions as data, so one shape of caption is built from the declaration for every register and the application keeps no caption bean per register. The reviewed registry grew to 47 types (APP_API 21) and the new type is APP_API because the application's single adapter to the permission catalog names it; the fingerprint moved 69 -> 71 files with the new production type and its test."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "cbf656779b6cbf5b76a15c35404c30dfbb7637157783f520d0b2682bd48da248",
+        "fileCount": 72,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-register:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-query",
+      "relativePath": "platform-query",
+      "dependsOn": ["filtergrid", "platform-core", "platform-metadata", "platform-register", "platform-report-core", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M1/M1.3/M1.4: query backend переехал из дерева приложения вместе со своими тестами и Q6-фикстурами. Артефакт содержит описание запроса (model/document), контекст запуска, визуальный конструктор/парсер/компилятор, каталог метаданных, guard, исполнитель, квоты, register-slice рецепты и резолвер параметров; собственный QueryAutoConfiguration подключается через META-INF/spring imports. Зависимости только платформенные (platform-core/rls/register/report-core, filtergrid) плюс Hibernate/Jackson; Vaadin, reportstudio и org.ip запрещены гейтом модуля. Сборка идёт с тестами: 146 тестов backend'а и его границы проверяются в нём самом, тестовое дерево не импортирует org.ip/reportstudio, Q6+пять IT поднимают собственные H2-фикстуры. Наружу публикуется test-jar с Q6Journal/Q6Product для прикладных acceptance-тестов; Q6JpaTestConfiguration из него исключён, чтобы не добавить второй @SpringBootConfiguration в тестовый classpath приложения."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "8813429ee0028aa36a4afa2411f55e690380355491dddfce6d2f20ccc3ab1213",
+        "fileCount": 127,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-query:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-query-vaadin",
+      "relativePath": "platform-query-vaadin",
+      "dependsOn": ["crudui", "filtergrid", "platform-core", "platform-metadata", "platform-query", "platform-register", "platform-report-core", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M1.2/M1.3: UI запроса (редактор JPQL/визуальный конструктор, список, каталог, диалог среза) переехал из дерева приложения вместе со своими тестами. Артефакт не зависит от org.ipro.form: выбор ссылочной сущности приходит портом org.ipro.query.ui.selection.EntitySelection, адаптер над формой платформы остался у потребителя. Запрещены org.ip, reportstudio, Jasper/DynamicReports и component-scan; собственный QueryUiAutoConfiguration подключается через META-INF/spring imports. Границы и 140 тестов проверяются в нём самом (QueryUiBoundaryTest); прикладные классы заменены модульными фикстурами DemoDocument/DemoProduct/EmptyEntitySelection."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "6f5c8d0f6e0136150bf3095e060cb3ee73cbc0ddd82d96dc96fcced9699f4715",
+        "fileCount": 61,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-query-vaadin:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-navigation",
+      "relativePath": "platform-navigation",
+      "dependsOn": ["platform-core", "platform-persistence"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "KI-2: optional navigation catalog, protected named profile/assignment operations and current-user read model. Versioned INTERNAL_STORE tables register through conditional auto-configuration, disabled by default; no application/Vaadin/route dependencies. Application security and immutable user identity adapters are mandatory when enabled. Owner-side H2 and isolated PostgreSQL validate/restart tests; menu rendering belongs to KI-3."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "6103ab79632436833bc27718be6fd25feb9dcb4d42dcb0ff74025ba8113b91a6",
+        "fileCount": 35,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-navigation:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-spring-boot-autoconfigure",
+      "relativePath": "platform-spring-boot-autoconfigure",
+      "dependsOn": ["platform-contracts", "platform-core", "platform-events", "platform-numbering", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.4 wiring module: the five backend auto-configurations (metadata, CRUD, data access, fetch/instance-name, global search core) moved here from the application tree together with their own AutoConfiguration.imports, so the application tree no longer registers platform backend wiring. Domain types stay in platform-core; this artifact only declares beans, conditions and PlatformProperties (the typed platform.subsystem-scan-package binding, fail-fast without a default). dependsOn carries the exact compile imports: platform-core (domain types of all five configs), platform-contracts (EntityLifecycle in EventContourStartupCheck signature), platform-events (publisher and lifecycle registry), platform-numbering and platform-rls (service types and the auto-configurations referenced by @AutoConfigureAfter). It installs with tests enabled: every configuration has an ApplicationContextRunner test in the module. D3.5.5: this module now also owns the EntityCopyService bean, which used to come from the form layer's @Import inside the UI artifact."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "282a280f6748ab030a8e1a162ab528f7d0b1564dfcf0433972169e9cc9741773",
+        "fileCount": 18,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-spring-boot-autoconfigure:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-vaadin",
+      "relativePath": "platform-vaadin",
+      "dependsOn": ["crudui", "filtergrid", "platform-core", "platform-events", "platform-metadata", "platform-numbering", "platform-rls", "platform-spring-boot-autoconfigure", "platform-telemetry"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.5.4 UI platform module: the 93 types of the form/vaadin/telemetry-vaadin layer left the application tree. FQNs were preserved except the three telemetry adapters, which moved to org.ipro.vaadin.telemetry - an application package inside a platform artifact would have broken the boundary that PlatformArchitectureTest and PlatformCoreBoundaryTest hold. Semantic roles were assigned before the move (platform-vaadin-surface.txt, D3.5.0), so the artifact publishes a reviewed surface from day one; that is the difference from the D3.3 move, whose TEMPORARY_ALL_PUBLIC baseline had to be taken apart afterwards. dependsOn carries the real pom edges: platform-core (form/metadata/crud/data/search types), platform-metadata (AnnotationClassScanner, ReferenceIndex - the only two metadata types that live outside platform-core), platform-events (EventSource), platform-numbering, platform-rls (RlsUiGate), platform-telemetry (EventSink/TelemetryBridge/FieldAuditBridge for the Vaadin adapter), platform-spring-boot-autoconfigure (PlatformProperties plus the @AutoConfigureAfter order this module's configurations declare), filtergrid (core/grouping/jpa - FilterGrid, condition tree, grouping, JpaFilterGrid) and crudui (the neutral leaf contract platform-identity-api). Registration moved with the code: the three platform configurations were listed by the application's imports file and the telemetry adapter was only reachable through the component scan of package org.ip, so without the module's own AutoConfiguration.imports the UI subsystem would silently disappear rather than fail. Vaadin is declared with scope provided (the crudui-core precedent): the module does not push the UI stack onto its consumers. It is installed with tests enabled - VaadinModuleCompositionTest (composition, declared dependencies, forbidden app/report references) lives in the module, while PlatformVaadinModuleTest in the application checks that no type copy is left in the tree, that classes really come from the artifact, and that the telemetry module stays free of Vaadin. D3.5.5: FormAutoConfiguration no longer @Imports concrete classes - every bean is an explicit @Bean, with @ConditionalOnMissingBean only where replacement is meaningful (form assembly, field factory, form resolver, navigation) and fail-fast elsewhere (access gate, section factory, command and customization registries that aggregate application contributions). Scope annotations moved onto the factory methods, where the container actually reads them. Before the change a user bean of the same type coexisted with the imported definition - verified by experiment - so by-type injection was ambiguous and the promised replacement did not happen. D3.5.6: the telemetry adapter stopped owning the static bridge - the listener's constructor installed the EventSink, which made this artifact a precondition for the observation subsystem and made lifecycle a side effect of bean creation; that is now the subsystem's own concern and the listener only handles UI errors. The adapter also became a real auto-configuration with declared applicability (@ConditionalOnClass(VaadinService), since Vaadin is provided here; @ConditionalOnBean(EventSink); @AutoConfigureAfter(TelemetryAutoConfiguration)), because a conditional-on-bean is evaluated when a configuration is applied, and the previous order held only by FQN alphabet across an artifact boundary - a silent way to lose UI error handling. Duplicate suppression in the session error-handler chain compares by type: identity could never match a handler that is created per session, so re-initialising a session doubled every UI error record, and the chain's transient fields dropped the application's own handler on failover and left the bridge-less session with no error handling at all."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "ef7273c6f1e746ec4bb96e85df2aae9afd180e24d3d6f3896eef61e0d9d7455a",
+        "fileCount": 234,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-vaadin:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-register-vaadin",
+      "relativePath": "platform-register-vaadin",
+      "dependsOn": ["crudui", "filtergrid", "platform-core", "platform-persistence", "platform-register", "platform-vaadin"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D-R S4 (register extraction, standard interface): the standard register interface left the application tree - the one form adapter for every managed register (HISTORY / LATEST-SLICE modes, leaf filter phases, key locking, the key-change command with its dialog, recorder columns), the recorder caption resolver with its bounded type-grouped canonical reads, its presentation value and its column component, and the slice auto-configuration. Roles were assigned by the same change that created the artifact (register-vaadin-surface.txt), so unlike a post-hoc classification all six types - including the dialog and the configuration - got a decision, not a default. The split the plan asked for resolved itself and that is a measurement, not a shortcut: S1 had already replaced the adapter's application-side reader construction with RegisterReaderFactory, so the closure run (`--slice S4`, 0 escaping references) found no application type left to keep as an extension point; what stays application-facing is the platform mechanism (the replaceable adapter bean plus FormResolver composing every FormTypeCustomization that supports the type). Vaadin is declared provided, the crudui-core precedent: the module does not push the UI stack onto consumers, and a consumer with any other interface can take the backend register artifact without Vaadin, which the module's own gate checks in both directions (platform-register declares and imports no Vaadin). Packages: the application package org.ip.views.register could not survive inside a platform artifact, so the adapter moved to org.ipro.vaadin.register (the telemetry-adapter precedent), while the engine's org.ipro.register packages stayed untouched. Registration is the module's own AutoConfiguration.imports: the application does not scan org.ipro, so without the entry the standard interface would disappear silently. The module is installed with tests enabled - its composition, dependency, surface-role and backend-cleanliness gates live in the module."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "79b3dbaf9cf60a40195ba09850cd27dc07cb946ed72634e10f0976694073458e",
+        "fileCount": 14,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-register-vaadin:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-rest",
+      "relativePath": "platform-rest",
+      "dependsOn": ["platform-core", "platform-spring-boot-autoconfigure"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "F-REST-READ-2/4: optional explicit resource declarations plus an immutable startup catalog validated against one Hibernate-backed JPA metamodel and EntityDescriptorCatalog; F-REST-READ-4 adds the reviewed MODULE_API read gateway (schema facts, admission gates, parser callback) consumed by the optional HTTP adapter. The rest.api builder remains Java-only; the module owns auto-configuration and has no HTTP routes or Vaadin dependency."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "51624956d9f7e6f378c58b0fb5e07bc2b1b9b79f4a8ffdb141ec36489e03657a",
+        "fileCount": 60,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-rest:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-rest-web",
+      "relativePath": "platform-rest-web",
+      "dependsOn": ["platform-rest", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "F-REST-READ-4 4.1/4.2/4.3/4.4/4.5: optional HTTP adapter over the server-side REST read pipeline. Born with a reviewed surface and compile closure; inert until platform.rest.web.enabled=true and never pulled in by a starter. 4.2 adds the strict v1 query parser, the ALWAYS-inclusion JSON writer, the Problem advice and the single GET controller over the MODULE_API gateway. 4.3 adds the request-scoped readable-ids seam (RestReadableIdsCache + RestAwareRlsReadableIdsResolver registered before RlsAutoConfiguration), the request-scope marker filter, the namespace filter with 404-before-405-before-406 precedence, and the @Order(2) stateless Basic read chain with Problem Details entry point/denied handler. 4.4 adds shared semantic failure classification, REST-only pre-handler MVC and authentication failure handling, trace-linked server diagnostics and a private complete-500 fallback if the Problem codec fails. 4.5 adds an INTERNAL deterministic OpenAPI 3.1.1 generator over published gateway facts, versioned application wire/Problem snapshots and a v1 drift gate; no documentation HTTP route. 4.6 adds real socket/H2 application pilots and explicitly disables session authentication callbacks in the REST chain: incoming UI sessions must not be rotated by Basic authentication. Depends on platform-rest and directly on the reviewed platform-rls seam; the managed Boot 4.0.6 MVC/Security stack plus the Jackson 3 mapper copy arrive without WebFlux, Spring Data REST or Vaadin dependency."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "2895a05adc850c738bb4cf6c9ba2e13b1de4d0ea41fac44d526db28eaa0dd116",
+        "fileCount": 37,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-rest-web:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-bom",
+      "relativePath": "platform-bom",
+      "dependsOn": [],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.8 platform BOM: manages every platform artifact plus the shared FilterGrid module versions and imports the Vaadin BOM. It intentionally contains no report coordinates. It is listed before starters because they import it while Maven constructs their models. D-R S0 added the register contract artifact to its dependencyManagement on the day the module appeared."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "f84a47ce41d7d5ad1ef73ab7a1a706da9b370da998bda893185c323bcec1a512",
+        "fileCount": 1,
+        "inputs": [
+          "pom.xml"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-bom:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-backend-starter",
+      "relativePath": "platform-backend-starter",
+      "dependsOn": [
+        "platform-bom",
+        "platform-register",
+        "platform-spring-boot-autoconfigure"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.8 backend starter facade: depends on backend auto-configuration, whose transitive closure supplies backend platform modules. Its Maven-resolved runtime tree is checked to keep platform-rest out transitively. It deliberately does not add Vaadin or report libraries; Spring Boot JPA/security/validation runtime starters remain application-owned. D-R S5(a), ADR-0024 section 2.2: the register engine is now a direct edge of this closure, because a backend-only consumer that declares a register must receive the mechanism rather than remember a build line. The price was measured before the edge, not asserted with it: all eight register dependencies were already in this runtime closure (60 artifacts), so the edge costs exactly +1 artifact (61), and the UI adapter stays in platform-vaadin-starter (no vaadin artifact appears in the tree while platform-register does). The edge is also compilation-level: BackendStarterResolvedDependenciesTest names engine types, so removing the dependency fails the module build instead of passing a test that measures nothing, and it checks the artifact origin of those types so a stale copy in a consumer target directory cannot satisfy it."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "29bb36406035f742a6659228d521e9ea8cea67e552277f2ccb2ce46c0d1783af",
+        "fileCount": 2,
+        "inputs": [
+          "pom.xml",
+          "src/test"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-backend-starter:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-vaadin-starter",
+      "relativePath": "platform-vaadin-starter",
+      "dependsOn": [
+        "platform-bom",
+        "platform-register-vaadin",
+        "platform-vaadin"
+      ],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "D3.8 Vaadin starter facade: supplies platform-vaadin and vaadin-spring-boot-starter as compile/runtime dependencies. D-R S4 adds platform-register-vaadin: the standard register interface is part of the UI supply, so a consumer declares a register and gets its standard list/form adapter without a boilerplate dependency - the adapter is inert until the engine beans exist. Its Maven-resolved runtime tree is checked to keep platform-rest out transitively (and now also to contain the register interface and the register backend it depends on, which is why the application could drop its own direct platform-register dependency). Report libraries are intentionally excluded."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "087f3f3a131fdad5bb683591ea88239e8093174057aefe0e587f33122c927b9a",
+        "fileCount": 2,
+        "inputs": [
+          "pom.xml",
+          "src/test"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:platform-vaadin-starter:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "dynamicreports",
+      "relativePath": "../DynamicReport7",
+      "dependsOn": [],
+      "source": {
+        "kind": "vendored-source-copy",
+        "upstream": "https://github.com/dynamicreports/dynamicreports",
+        "upstreamRevision": "c95f34d",
+        "gitCommit": null,
+        "state": "No local .git directory; upstream revision is documented by README-vendor.md and pom.xml."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "d869ece49c684ae9db3a7619d381821b80dbebc411443d02f06fd46c66534288",
+        "fileCount": 1321,
+        "inputs": [
+          "pom.xml",
+          "src",
+          "dynamicreports-core/pom.xml",
+          "dynamicreports-core/src"
+        ]
+      },
+      "artifacts": [
+        "net.sourceforge.dynamicreports:dynamicreports-parent:7.0.0-ip.20260813",
+        "net.sourceforge.dynamicreports:dynamicreports-core:7.0.0-ip.20260813"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "dynamicreports-core", "-am", "clean", "install"]
+        }
+      ]
+    },
+    {
+      "id": "platform-unidr",
+      "relativePath": "platform-unidr",
+      "dependsOn": ["dynamicreports", "filtergrid", "platform-metadata", "platform-query", "platform-report", "platform-report-core", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M2.2.1: backend UniDR переехал из дерева приложения — модель определения и JSON-кодек, каталог/реестр источников, файловое хранилище и вклад в каталог отчётов, рендер DynamicReports/Jasper, запуск с RLS и квотами, query-источник с фильтрами и проекциями. Пакет org.ipro.unidr. Прикладной источник «позиции накладных», JPQL-адаптер и справочник ссылок остались в приложении: модуль знает только UniDrSourceDefinition, UniDrReferenceCatalog и UniDrRunQueryAdapter. Vaadin, org.ip, reportstudio и прикладные сущности запрещены гейтом; тесты модуля используют собственные фикстуры."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "93d590a3f4b8b41e3609026c2dc32c67aa1d746fa9b39be8e6b4b3d2e25e24aa",
+        "fileCount": 43,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-unidr:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-report-vaadin",
+      "relativePath": "platform-report-vaadin",
+      "dependsOn": ["crudui", "filtergrid", "platform-core", "platform-jr", "platform-metadata", "platform-query", "platform-query-vaadin", "platform-register", "platform-report", "platform-report-core", "platform-rls", "platform-unidr", "platform-vaadin"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M2.2.2: UI каталога/печати/параметров/диалога запроса и редактор UniDR переехали из приложения. Модуль знает только platform-* и порты UniDrCatalogGateway/UniDrRunLauncher/JrxmlRunLauncher; прикладные адаптеры, справочник ссылок и стартовый рецепт остаются у потребителя. Запрещены org.ip, reportstudio и component-scan; ReportUiAutoConfiguration подключается через META-INF/spring imports."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "66e51a92e350d91fb5f67a6bdceee47f3e7574cc3b28fb9fdd1c0040b40aaa8d",
+        "fileCount": 33,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-report-vaadin:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "reportui",
+      "relativePath": "../ReportFlowUI",
+      "dependsOn": ["dynamicreports"],
+      "source": {
+        "kind": "source-copy",
+        "gitCommit": null,
+        "state": "No local .git directory."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v1",
+        "sha256": "3c93e54a57d92b747f4aab5549cd7616f32d0beb32918ed627c35d592d4ca420",
+        "fileCount": 13,
+        "inputs": [
+          "pom.xml",
+          "reportui-core/pom.xml",
+          "reportui-core/src"
+        ]
+      },
+      "artifacts": [
+        "org.vaadin.reports:reportui-flow:1.0-SNAPSHOT",
+        "org.vaadin.reports:reportui-core:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": ["-DskipTests", "-pl", "reportui-core", "-am", "clean", "install"]
+        }
+      ]
+    }
+  ],
+  "application": {
+    "relativePath": ".",
+    "pom": "pom.xml",
+    "arguments": ["clean", "verify"]
+  },
+  "auxiliaryProjects": [
+    {
+      "relativePath": "../JrJpqlExecuter",
+      "artifact": "org.ipro:jr-jpql-executer:1.0.0",
+      "purpose": "Jaspersoft Studio extension; not a GitVaa Maven dependency and not part of the application bootstrap."
+    }
+  ]
+}

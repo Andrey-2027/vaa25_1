@@ -13,6 +13,46 @@
   },
   "projects": [
     {
+      "id": "entity-design-core",
+      "relativePath": "entity-design-core",
+      "dependsOn": [],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "P8.1: standalone immutable draft model, stable IDs, structural operations and unified validator. No runtime dependencies; test-only JUnit/Jackson. P8.2 application now consumes this model through the separate draft editor. G1.1.2-G1.1.4 adds immutable CREATE plans, addressable diagnostics and the catalog-v2 Java builder; G1.1.5 consumes it for editor preview. Not a runtime starter or platform BOM contribution."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "d5be4ad3e1790333fefd17b486913c6df3c60da94d56d37973ff7fde917ca431",
+        "fileCount": 56,
+        "inputs": [
+          "pom.xml",
+          "src"
+        ]
+      },
+      "artifacts": [
+        "org.ipro:entity-design-core:1.0-SNAPSHOT"
+      ],
+      "buildSteps": [
+        {
+          "pom": "pom.xml",
+          "arguments": [
+            "clean",
+            "install"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "entity-design-json",
+      "relativePath": "entity-design-json",
+      "dependsOn": ["entity-design-core"],
+      "source": {"kind": "in-repo-project", "gitCommit": null, "state": "P8.4/E3.A: neutral bounded JSON v1/v2 codec with explicit owner envelope. Depends only on entity-design-core and Jackson; no UI, persistence, application or platform starter."},
+      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "7142e63d37813b815cadfbc0ae58cd5f17cd96e41f1a750570abe9cac2a79c76", "fileCount": 7, "inputs": ["pom.xml", "src"]},
+      "artifacts": ["org.ipro:entity-design-json:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
       "id": "crudui",
       "relativePath": "../crudui",
       "dependsOn": [],
@@ -61,8 +101,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "815f4f1b51fdc57b37100162b17d72a2d8a4e275180c9543d3fdabec9a26cc85",
-        "fileCount": 37,
+        "sha256": "fe069d70dc633af4cf24f0342f5c1a35c5289f51e7fca4aab31dc04aa1a4b3d0",
+        "fileCount": 39,
         "inputs": [
           "pom.xml",
           "src"
@@ -151,8 +191,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "b91d1d0bd920402a3847cc74615eea2e1383abf677795ee4c941c37e3dcdcadc",
-        "fileCount": 3,
+        "sha256": "edf35a8690397d70cf40de80d6983693d33c47043a3d1a96bdda5ed2e2d3b1e9",
+        "fileCount": 5,
         "inputs": [
           "pom.xml",
           "src"
@@ -183,7 +223,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "88b9ca467011fdc16e147eab4138dee1e7bb4a57ae1725f03d0d80ed2ac274cc",
+        "sha256": "9cf6e836a2258f8f12d66299d74a1b850cb74ec58f1ca1cdc0b110a38c52497c",
         "fileCount": 19,
         "inputs": [
           "pom.xml",
@@ -277,8 +317,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "1d2b137d4bfaae43c2780fdcd8376f18e19dee5aac0b49f2561a0c1e900456a3",
-        "fileCount": 61,
+        "sha256": "085a28e5c5e7f17734030e0322e7393549489e49b62c13ee84c78edf2d64a444",
+        "fileCount": 62,
         "inputs": [
           "pom.xml",
           "src"
@@ -338,6 +378,42 @@
       ]
     },
     {
+      "id": "platform-report-core",
+      "relativePath": "platform-report-core",
+      "dependsOn": [],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M1: нейтральный результат запроса (ReportDataset/ReportRow/QueryField/EntityRef). Модуль появился на шаге M1, потому что query backend переезжает в platform-query и не может импортировать типы из дерева приложения: результат исполнения запроса — часть платформенного контракта, а не отчётного UI. Зависимостей нет, только JDK."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "7d827c73bd45e71f22a8488afd9e896e70f38c17461a69f03ccda6825cb02bc9",
+        "fileCount": 5,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-report-core:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-report",
+      "relativePath": "platform-report",
+      "dependsOn": ["platform-report-core", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M2.1: общий отчётный слой переехал из дерева приложения — нейтральный каталог (ReportCatalogService/Item/EngineType/Capabilities/ReadGate), экспорт готового JasperPrint (PDF/XLSX/DOCX/CSV, FormulaEvaluator) и управляемый пул фоновых задач ReportTaskExecutor. Модуль не знает ни одного движка: строки каталога приходят адаптерами ReportCatalogContributor, JR-строка собирается в platform-jr. Собственная ReportCatalogAutoConfiguration (META-INF/spring) даёт каталог, read gate, JasperExporter и пул задач; приложение больше не регистрирует эти бины у себя. Vaadin, org.ip, reportstudio и UDR DOM запрещены гейтом; JasperReports присутствует только как тип результата/экспорта. 31 тест модуля."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "05c7f76fa8ead1dc151dc6d384bf52b2482a9b0db3eae5747488f755d1283549",
+        "fileCount": 24,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-report:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
       "id": "platform-core",
       "relativePath": "platform-core",
       "dependsOn": ["crudui", "filtergrid", "platform-contracts", "platform-events", "platform-metadata", "platform-numbering", "platform-persistence", "platform-rls", "platform-telemetry"],
@@ -348,8 +424,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "47593531af31283ebda6169997a4d1b749668b7f981476f914dcc30be7df2bf8",
-        "fileCount": 153,
+        "sha256": "2088fecb8a887ec34c50700a5509674fc7b8b1ec6c98b1c3708c6993f1203fa2",
+        "fileCount": 184,
         "inputs": [
           "pom.xml",
           "src"
@@ -366,6 +442,33 @@
       ]
     },
     {
+      "id": "platform-jr",
+      "relativePath": "platform-jr",
+      "dependsOn": ["platform-core", "platform-report", "platform-report-core"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M2.1: движок JR переехал из дерева приложения — JrxmlTemplate/repository, JrxmlTemplateService, JrCatalogContributor, JrxmlExecutionService, JPQL query executer и оба auto-configuration (сервисы и persistence). Источник JPQL приходит портом JpqlDatasetRunner, реализация остаётся в приложении (JpqlRunService: guard + RLS), поэтому модуль не знает org.ip. Ресурсы jasperreports.properties и jasperreports_extension.properties принадлежат движку; JrPersistenceAutoConfiguration несёт @EntityScan/@EnableJpaRepositories и публикуется через META-INF/spring артефакта. 11 тестов модуля, включая @DataJpaTest на H2."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "4df8327fcaaac1e47f8d01091919bb075433ceb7116ed8aab228c37867ceefe5",
+        "fileCount": 20,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-jr:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "entity-design-runtime",
+      "relativePath": "entity-design-runtime",
+      "dependsOn": ["entity-design-core", "platform-core", "platform-numbering"],
+      "source": {"kind": "in-repo-project", "gitCommit": null, "state": "ET9 optional backend adapter: validated platform owners to portable design facts. No UI, business lookups or file generation. entity-design-core remains JDK-only."},
+      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "a3eeec38176abbc0298385307edb28ca955aa20a0de7c27bc2d2b779188e66d4", "fileCount": 6, "inputs": ["pom.xml", "src"]},
+      "artifacts": ["org.ipro:entity-design-runtime:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["install"]}]
+    },
+    {
       "id": "platform-register",
       "relativePath": "platform-register",
       "dependsOn": ["crudui", "filtergrid", "platform-contracts", "platform-core", "platform-events", "platform-persistence", "platform-rls", "platform-telemetry"],
@@ -376,8 +479,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "8520eea374f01de5e3bea673219a6bc18f190d05eac5f0eb31e8e607acf7f0a0",
-        "fileCount": 71,
+        "sha256": "cbf656779b6cbf5b76a15c35404c30dfbb7637157783f520d0b2682bd48da248",
+        "fileCount": 72,
         "inputs": [
           "pom.xml",
           "src"
@@ -394,6 +497,42 @@
       ]
     },
     {
+      "id": "platform-query",
+      "relativePath": "platform-query",
+      "dependsOn": ["filtergrid", "platform-core", "platform-metadata", "platform-register", "platform-report-core", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M1/M1.3/M1.4: query backend переехал из дерева приложения вместе со своими тестами и Q6-фикстурами. Артефакт содержит описание запроса (model/document), контекст запуска, визуальный конструктор/парсер/компилятор, каталог метаданных, guard, исполнитель, квоты, register-slice рецепты и резолвер параметров; собственный QueryAutoConfiguration подключается через META-INF/spring imports. Зависимости только платформенные (platform-core/rls/register/report-core, filtergrid) плюс Hibernate/Jackson; Vaadin, reportstudio и org.ip запрещены гейтом модуля. Сборка идёт с тестами: 146 тестов backend'а и его границы проверяются в нём самом, тестовое дерево не импортирует org.ip/reportstudio, Q6+пять IT поднимают собственные H2-фикстуры. Наружу публикуется test-jar с Q6Journal/Q6Product для прикладных acceptance-тестов; Q6JpaTestConfiguration из него исключён, чтобы не добавить второй @SpringBootConfiguration в тестовый classpath приложения."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "8813429ee0028aa36a4afa2411f55e690380355491dddfce6d2f20ccc3ab1213",
+        "fileCount": 127,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-query:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-query-vaadin",
+      "relativePath": "platform-query-vaadin",
+      "dependsOn": ["crudui", "filtergrid", "platform-core", "platform-metadata", "platform-query", "platform-register", "platform-report-core", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M1.2/M1.3: UI запроса (редактор JPQL/визуальный конструктор, список, каталог, диалог среза) переехал из дерева приложения вместе со своими тестами. Артефакт не зависит от org.ipro.form: выбор ссылочной сущности приходит портом org.ipro.query.ui.selection.EntitySelection, адаптер над формой платформы остался у потребителя. Запрещены org.ip, reportstudio, Jasper/DynamicReports и component-scan; собственный QueryUiAutoConfiguration подключается через META-INF/spring imports. Границы и 140 тестов проверяются в нём самом (QueryUiBoundaryTest); прикладные классы заменены модульными фикстурами DemoDocument/DemoProduct/EmptyEntitySelection."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "6f5c8d0f6e0136150bf3095e060cb3ee73cbc0ddd82d96dc96fcced9699f4715",
+        "fileCount": 61,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-query-vaadin:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
       "id": "platform-navigation",
       "relativePath": "platform-navigation",
       "dependsOn": ["platform-core", "platform-persistence"],
@@ -404,7 +543,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "7f92c6022f428ea2537098c183d221182d3584e1b0cdfab0ae8c8b3f87cf7e34",
+        "sha256": "6103ab79632436833bc27718be6fd25feb9dcb4d42dcb0ff74025ba8113b91a6",
         "fileCount": 35,
         "inputs": ["pom.xml", "src"]
       },
@@ -422,7 +561,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "f9dacefb2feb59cb80311a4b66e086f8ce4252ef6b321da09151391177a4e2e0",
+        "sha256": "282a280f6748ab030a8e1a162ab528f7d0b1564dfcf0433972169e9cc9741773",
         "fileCount": 18,
         "inputs": [
           "pom.xml",
@@ -450,8 +589,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "b93cfe4caf2a40ebb5250131b8e88cd4a295158bd6835ea42720c862a502cbb7",
-        "fileCount": 226,
+        "sha256": "ef7273c6f1e746ec4bb96e85df2aae9afd180e24d3d6f3896eef61e0d9d7455a",
+        "fileCount": 234,
         "inputs": [
           "pom.xml",
           "src"
@@ -478,7 +617,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "9c5c121e2f8377553386e8dc492ca44ee99415dfe01281d04e138e7a9d111f9b",
+        "sha256": "79b3dbaf9cf60a40195ba09850cd27dc07cb946ed72634e10f0976694073458e",
         "fileCount": 14,
         "inputs": ["pom.xml", "src"]
       },
@@ -552,7 +691,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "a57a71916c03d0a72b387ad01c37221726b804982b58e81a3111f8e0a4631113",
+        "sha256": "f84a47ce41d7d5ad1ef73ab7a1a706da9b370da998bda893185c323bcec1a512",
         "fileCount": 1,
         "inputs": [
           "pom.xml"
@@ -666,6 +805,42 @@
       ]
     },
     {
+      "id": "platform-unidr",
+      "relativePath": "platform-unidr",
+      "dependsOn": ["dynamicreports", "filtergrid", "platform-metadata", "platform-query", "platform-report", "platform-report-core", "platform-rls"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M2.2.1: backend UniDR переехал из дерева приложения — модель определения и JSON-кодек, каталог/реестр источников, файловое хранилище и вклад в каталог отчётов, рендер DynamicReports/Jasper, запуск с RLS и квотами, query-источник с фильтрами и проекциями. Пакет org.ipro.unidr. Прикладной источник «позиции накладных», JPQL-адаптер и справочник ссылок остались в приложении: модуль знает только UniDrSourceDefinition, UniDrReferenceCatalog и UniDrRunQueryAdapter. Vaadin, org.ip, reportstudio и прикладные сущности запрещены гейтом; тесты модуля используют собственные фикстуры."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "93d590a3f4b8b41e3609026c2dc32c67aa1d746fa9b39be8e6b4b3d2e25e24aa",
+        "fileCount": 43,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-unidr:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-report-vaadin",
+      "relativePath": "platform-report-vaadin",
+      "dependsOn": ["crudui", "filtergrid", "platform-core", "platform-jr", "platform-metadata", "platform-query", "platform-query-vaadin", "platform-register", "platform-report", "platform-report-core", "platform-rls", "platform-unidr", "platform-vaadin"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "M2.2.2: UI каталога/печати/параметров/диалога запроса и редактор UniDR переехали из приложения. Модуль знает только platform-* и порты UniDrCatalogGateway/UniDrRunLauncher/JrxmlRunLauncher; прикладные адаптеры, справочник ссылок и стартовый рецепт остаются у потребителя. Запрещены org.ip, reportstudio и component-scan; ReportUiAutoConfiguration подключается через META-INF/spring imports."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "66e51a92e350d91fb5f67a6bdceee47f3e7574cc3b28fb9fdd1c0040b40aaa8d",
+        "fileCount": 33,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-report-vaadin:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
       "id": "reportui",
       "relativePath": "../ReportFlowUI",
       "dependsOn": ["dynamicreports"],
@@ -694,58 +869,6 @@
           "arguments": ["-DskipTests", "-pl", "reportui-core", "-am", "clean", "install"]
         }
       ]
-    },
-    {
-      "id": "ureport3",
-      "relativePath": "../UReportFork2/ureport3",
-      "dependsOn": [],
-      "source": {
-        "kind": "dirty-git-worktree",
-        "upstream": "https://gitee.com/zhenglm/ureport3.git",
-        "gitCommit": "28e7bbc0587cafd9f475930d4f0dc53a776d3a52",
-        "branch": "master",
-        "state": "Tracked and untracked local changes are part of the recorded fingerprint."
-      },
-      "fingerprint": {
-        "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "29b35dd6082ebce529c3e32643ab2e35f7e4537aed15e49b953e96675a0af7cf",
-        "fileCount": 546,
-        "inputs": [
-          "ureport3-parent/pom.xml",
-          "ureport3-core/pom.xml",
-          "ureport3-core/src",
-          "ureport3-core/dsl",
-          "ureport3-font/pom.xml",
-          "ureport3-font/src",
-          "ureport3-console/pom.xml",
-          "ureport3-console/src"
-        ]
-      },
-      "artifacts": [
-        "com.bstek.ureport:ureport3-parent:3.0.1",
-        "com.bstek.ureport:ureport3-core:3.0.1",
-        "com.bstek.ureport:ureport3-font:3.0.1",
-        "com.bstek.ureport:ureport3-console:3.0.1"
-      ],
-      "buildSteps": [
-        {
-          "pom": "ureport3-parent/pom.xml",
-          "arguments": ["-DskipTests", "clean", "install"]
-        },
-        {
-          "pom": "ureport3-core/pom.xml",
-          "arguments": ["-DskipTests", "clean", "install"]
-        },
-        {
-          "pom": "ureport3-font/pom.xml",
-          "arguments": ["-DskipTests", "clean", "install"]
-        },
-        {
-          "pom": "ureport3-console/pom.xml",
-          "arguments": ["-DskipTests", "clean", "install"]
-        }
-      ],
-      "licenseGate": "UReport3 transitively uses iText 5.5.13 (AGPL/commercial); distribution decision remains open."
     }
   ],
   "application": {

@@ -3,6 +3,7 @@ package org.ip.application.access;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
+import org.ipro.rls.AccessGrant;
 
 /** Checked immutable state calculated by P2; P4 overlays the active subject's draft. */
 public record PermissionCellState(PermissionBinding binding, PermissionGrantAddress address,
@@ -37,7 +38,7 @@ public record PermissionCellState(PermissionBinding binding, PermissionGrantAddr
     /** All inherited roles once, even when physical grants are duplicated or overlap in scale. */
     public List<SubjectRef> grantingRoles(SubjectRef activeSubject) {
         return sources.stream().map(PermissionContribution::subject).filter(Objects::nonNull)
-            .filter(subject -> subject.type() == org.ipro.rls.AccessGrant.SubjectType.ROLE)
+            .filter(subject -> subject.type() == AccessGrant.SubjectType.ROLE)
             .filter(subject -> !subject.identity().equals(activeSubject.identity()))
             .distinct().toList();
     }

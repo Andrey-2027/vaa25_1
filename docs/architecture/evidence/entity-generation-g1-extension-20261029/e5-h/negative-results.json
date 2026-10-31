@@ -1,0 +1,32 @@
+[
+  {
+    "name": "C actual missing row",
+    "status": "failure",
+    "code": "manifest-source-missing",
+    "passed": true
+  },
+  {
+    "name": "C actual changed row",
+    "status": "failure",
+    "code": "manifest-mismatch",
+    "passed": true
+  },
+  {
+    "name": "D actual create",
+    "status": "REJECTED",
+    "code": "DEPENDENCIES_CHANGED",
+    "passed": true
+  },
+  {
+    "name": "D actual noop",
+    "status": "REJECTED",
+    "code": "DEPENDENCIES_CHANGED",
+    "passed": true
+  },
+  {
+    "name": "D actual wrong-suite",
+    "status": "REJECTED",
+    "code": "C_TESTS_INCOMPLETE",
+    "passed": true
+  }
+]

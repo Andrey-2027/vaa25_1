@@ -1,5 +1,8 @@
 package org.ipro.crud;
 
+import jakarta.persistence.EntityManager;
+import org.ipro.data.CatalogOwnerGuard;
+import org.ipro.data.CatalogOwnerToken;
 import org.ipro.data.DataOperation;
 import org.ipro.identity.IdentifiableEntity;
 
@@ -56,6 +59,8 @@ public class MetadataDrivenAggregateSaveService {
     private final EntityLifecycleRegistry lifecycleRegistry;
     private final List<AggregateSaveContributionParticipant> contributionParticipants;
     private final AggregateOperationAuthorizer operationAuthorizer;
+    /** Обязательная проверка owner-контракта до событий и после callbacks. */
+    private final CatalogOwnerGuard catalogOwnerGuard;
 
     public MetadataDrivenAggregateSaveService(
             ServiceLocator serviceLocator,
@@ -101,7 +106,25 @@ public class MetadataDrivenAggregateSaveService {
             EntityLifecycleRegistry lifecycleRegistry,
             List<AggregateSaveContributionParticipant> contributionParticipants,
             AggregateOperationAuthorizer operationAuthorizer) {
+        this(serviceLocator, sectionRegistry, sectionService, eventPublisher, lifecycleRegistry,
+            contributionParticipants, operationAuthorizer, null);
+    }
+
+    /**
+     * Полный контур: owner-guard получает persistence context и проверяет владельца до
+     * aggregate-событий и before-хуков, а также после них перед записью.
+     */
+    public MetadataDrivenAggregateSaveService(
+            ServiceLocator serviceLocator,
+            SectionMetadataRegistry sectionRegistry,
+            GenericOwnedSectionService sectionService,
+            EntityEventPublisher eventPublisher,
+            EntityLifecycleRegistry lifecycleRegistry,
+            List<AggregateSaveContributionParticipant> contributionParticipants,
+            AggregateOperationAuthorizer operationAuthorizer,
+            EntityManager entityManager) {
         this.operationAuthorizer = operationAuthorizer;
+        this.catalogOwnerGuard = new CatalogOwnerGuard(entityManager);
         this.serviceLocator = Objects.requireNonNull(serviceLocator,
             "serviceLocator must not be null");
         this.sectionRegistry = Objects.requireNonNull(sectionRegistry,
@@ -153,6 +176,9 @@ public class MetadataDrivenAggregateSaveService {
             operationAuthorizer.requireOperation(aggregateClass,
                 creating ? DataOperation.CREATE : DataOperation.UPDATE);
         }
+        // Owner preflight — до aggregate-событий, before-хуков и захвата rollback-состояния:
+        // нарушение контракта не должно вызывать пользовательский код.
+        CatalogOwnerToken ownerToken = catalogOwnerGuard.preflight(aggregateClass, aggregate, creating);
         Long originalVersion = aggregate instanceof BaseEntity base && base.getVersion() != null
             ? base.getVersion() : (creating ? null : 0L);
 
@@ -191,6 +217,8 @@ public class MetadataDrivenAggregateSaveService {
             eventPublisher.publishAggregateSaving(aggregate, eventSections, context);
             lifecycleRegistry.beforeAggregateSave(
                 aggregateClass, aggregate, eventSections, context);
+            // Callbacks могли изменить владельца: проверка до записи, после пользовательского кода.
+            catalogOwnerGuard.recheck(ownerToken, aggregate);
 
             List<String> errors = validateSections(aggregate, inputs);
             if (!errors.isEmpty()) {

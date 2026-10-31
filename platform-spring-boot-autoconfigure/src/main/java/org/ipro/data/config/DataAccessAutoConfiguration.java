@@ -1,5 +1,6 @@
 package org.ipro.data.config;
 
+import org.ipro.data.EntityClassificationContributor;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.Validator;
 import org.ipro.crud.GenericOwnedSectionService;
@@ -84,11 +85,24 @@ public class DataAccessAutoConfiguration {
             SectionMetadataRegistry sectionMetadataRegistry,
             MetadataResolver metadataResolver,
             ObjectProvider<EntityExposureOverride> overrides,
-            ObjectProvider<EntityCapabilityOverride> capabilityOverrides) {
+            ObjectProvider<EntityCapabilityOverride> capabilityOverrides,
+            ObjectProvider<EntityClassificationContributor> classificationContributors) {
         return new EntityDescriptorCatalog(managedEntityCatalog, sectionMetadataRegistry,
             metadataResolver, overrides.orderedStream().toList(),
-            capabilityOverrides.orderedStream().toList());
+            capabilityOverrides.orderedStream().toList(), classificationContributors.stream().toList());
     }
+
+    /** Final data facts feed the neutral metadata diagnostic channel; metadata does not depend on data. */
+    @Bean
+    @ConditionalOnBean(EntityDescriptorCatalog.class)
+    public org.ipro.metadata.MetadataDiagnosticSource entityContractDiagnostics(
+            org.ipro.metadata.ManagedEntityTypes types, MetadataResolver resolver,
+            EntityDescriptorCatalog descriptors,
+            ObjectProvider<org.ipro.numbering.NumberingMetadataRegistry> numbering) {
+        return () -> org.ipro.data.EntityContractConsistencyValidator.validate(
+            resolver, types, descriptors, numbering.getIfAvailable());
+    }
+
 
     /**
      * Register the exact C5 operation definitions derived from canonical write capabilities.
@@ -304,8 +318,8 @@ public class DataAccessAutoConfiguration {
     @ConditionalOnMissingBean
     public org.ipro.data.presentation.EntityPresentationService entityPresentationService(
             org.ipro.data.EntityReadAccess reads, org.ipro.data.EntityDataAccessResolver policies,
-            org.ipro.fetch.instance.InstanceNameResolver names, MetadataResolver metadata) {
-        return new org.ipro.data.presentation.EntityPresentationService(reads, policies, names, metadata);
+            org.ipro.fetch.instance.InstanceNameResolver names, MetadataResolver metadata, EntityDescriptorCatalog descriptors) {
+        return new org.ipro.data.presentation.EntityPresentationService(reads, policies, names, metadata, descriptors);
     }
 
 

@@ -1,0 +1,50 @@
+{
+  "mode" : "changed-after-publish",
+  "status" : "RECOVERY_REQUIRED",
+  "code" : "TARGET_MODIFIED",
+  "targetExists" : true,
+  "receiptExists" : false,
+  "targetHashMatches" : false,
+  "journalExists" : true
+}
+
+{
+  "mode" : "late-target",
+  "status" : "ROLLED_BACK",
+  "code" : "CONFLICT_LATE_TARGET",
+  "targetExists" : true,
+  "receiptExists" : false,
+  "targetHashMatches" : false,
+  "journalExists" : false
+}
+
+{
+  "mode" : "foreign-identical-rollback",
+  "status" : "RECOVERY_REQUIRED",
+  "code" : "TARGET_IDENTITY_CHANGED",
+  "targetExists" : true,
+  "receiptExists" : false,
+  "targetHashMatches" : true,
+  "journalExists" : true
+}
+
+{
+  "mode" : "journal-failure-after-receipt",
+  "status" : "RECOVERY_REQUIRED",
+  "code" : "JOURNAL_WRITE_FAILED",
+  "targetExists" : true,
+  "receiptExists" : true,
+  "targetHashMatches" : true,
+  "journalExists" : true
+}
+
+{
+  "mode" : "wrong-required-suite",
+  "status" : "REJECTED",
+  "code" : "C_TESTS_INCOMPLETE",
+  "targetExists" : false,
+  "receiptExists" : false,
+  "targetHashMatches" : false,
+  "journalExists" : false
+}
+

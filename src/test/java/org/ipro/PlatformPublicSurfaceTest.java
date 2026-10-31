@@ -53,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * измерения читала строки {@code import}, и этого оказалось мало: приложение пять раз писало тип
  * fully-qualified ({@code implements org.ipro.form.spi.WorkspaceGateway}, {@code org.ipro.jr.run.JpqlDatasetRunner},
  * {@code org.ipro.metadata.annotation.SectionRlsPolicy}, {@code org.ipro.jr.service.JrxmlTemplateService},
- * {@code org.ipro.reportstudio.query.ServiceParams}), а четыре файла импортировали пакет
+ * {@code org.ipro.query.ServiceParams}), а четыре файла импортировали пакет
  * wildcard-ом. Ни один из пяти типов не попадал в измерение, значит не попадал и в реестр — то
  * есть правило «приложение не называет незарегистрированный тип» существовало только для тех,
  * кто пишет импорты единообразно. Теперь ссылка распознаётся во всех трёх синтаксисах, а два из
@@ -77,7 +77,7 @@ class PlatformPublicSurfaceTest {
     /** Снятые по фазам ссылки: CurrentUser (4 файла) и JpaGlobalSearchProvider (1) — до D3.4,
      *  LookupService (16) и ServiceLocator (4) — D3.5, роль которых не сходилась с употреблением
      *  (ItemTable, ListForm и три типа explorer'а с вложенными) — D3.5.7, report-типы — D3.7. */
-    private static final int LEGACY_INTERNAL_BUDGET = 53;
+    private static final int LEGACY_INTERNAL_BUDGET = 52;
 
     private static final Pattern IMPORT = Pattern.compile("^import\\s+(org\\.ipro\\.[A-Za-z0-9_.]+);", Pattern.MULTILINE);
 

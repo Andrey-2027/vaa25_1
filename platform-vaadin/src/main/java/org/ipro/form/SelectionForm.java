@@ -39,6 +39,9 @@ public class SelectionForm<T> extends Dialog {
     private final FilterGrid<T> filterGrid;
     private final Map<String, Object> fixedFilters = new LinkedHashMap<>();
     private final Map<String, Object> contextValues = new LinkedHashMap<>();
+    private final com.vaadin.flow.component.html.Span catalogOwnerNotice = new com.vaadin.flow.component.html.Span();
+    private Class<?> catalogEntityType;
+    void configureCatalogOwner(Class<?> type) { catalogEntityType = type; }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public SelectionForm(String title, FilterGrid<T> filterGrid, Consumer<T> onSelect) {
@@ -87,6 +90,7 @@ public class SelectionForm<T> extends Dialog {
         moreRow.setAlignItems(FlexComponent.Alignment.CENTER);
 
         add(moreRow);
+        catalogOwnerNotice.setVisible(false); add(catalogOwnerNotice);
         add(filterGrid);
         getFooter().add(cancelButton, selectButton);
     }
@@ -163,15 +167,22 @@ public class SelectionForm<T> extends Dialog {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void refreshSpecification() {
+        if (catalogEntityType != null) {
+            Object owner = CatalogOwnerForms.openingOwner(catalogEntityType, fixedFilters);
+            catalogOwnerNotice.setText(owner == null ? "" : CatalogOwnerForms.caption(owner));
+            catalogOwnerNotice.setVisible(owner != null);
+        }
+        filterGrid.getGrid().deselectAll();
         Specification<T> fixed = SelectionFormAssembler.specificationFor(fixedFilters);
         Specification<T> context = SelectionFormAssembler.specificationFor(contextValues);
         Specification<T> combined = fixed == null ? context
             : context == null ? fixed
             : Specification.where(fixed).and(context);
-        if (combined != null && filterGrid instanceof org.ipro.filtergrid.jpa.JpaFilterGrid jpa) {
+        if (filterGrid instanceof org.ipro.filtergrid.jpa.JpaFilterGrid jpa) {
             jpa.setAdditionalSpecification(combined);
         }
         filterGrid.refreshAll();
+        updateSelectButton();
     }
 
     private void updateSelectButton() {

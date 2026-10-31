@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -28,13 +29,34 @@ public final class MetadataConsistencyValidator {
     private MetadataConsistencyValidator() {
     }
 
+    /** All diagnostics from the shared persistence-unit snapshot, with applicable allowances. */
+    public static List<MetadataDiagnostic> validate(MetadataResolver resolver,
+                                                    ManagedEntityTypes managedEntityTypes,
+                                                    List<MetadataAllowance> allowances) {
+        return validate(resolver,
+            Objects.requireNonNull(managedEntityTypes, "managedEntityTypes must not be null").all(),
+            allowances);
+    }
+
+    /** Combines validated facts from upper layers before applying the shared allowance policy once. */
+    public static List<MetadataDiagnostic> validate(MetadataResolver resolver, ManagedEntityTypes types,
+            List<MetadataAllowance> allowances, List<MetadataDiagnostic> additionalDiagnostics) {
+        List<MetadataDiagnostic> all = new ArrayList<>(validate(resolver, types, List.of()));
+        all.addAll(List.copyOf(additionalDiagnostics));
+        return finish(all, allowances);
+    }
+
+    private static boolean publishedLookup(FieldMetadataInfo field) {
+        return field.hasLookup() && (!field.isHidden() || field.isGridVisible());
+    }
+
     /** Все диагностики по managed-типам, с применёнными исключениями. */
     public static List<MetadataDiagnostic> validate(MetadataResolver resolver,
                                                     Iterable<Class<?>> managedTypes,
                                                     List<MetadataAllowance> allowances) {
         Set<Class<?>> metadataTypes = new LinkedHashSet<>();
         for (Class<?> type : managedTypes) {
-            if (type.isAnnotationPresent(EntityMetadata.class)) {
+            if (MetadataResolver.isApplicable(type)) {
                 metadataTypes.add(type);
                 TableSections sections = type.getAnnotation(TableSections.class);
                 if (sections != null) {
@@ -43,13 +65,35 @@ public final class MetadataConsistencyValidator {
             }
         }
 
+        CatalogOwnerResolver catalogOwners = new CatalogOwnerResolver();
         Map<Class<?>, List<MetadataDiagnostic>> byType = new LinkedHashMap<>();
         for (Class<?> type : metadataTypes) {
-            byType.put(type, fieldDiagnostics(resolver, type, metadataTypes));
+            List<MetadataDiagnostic> diagnostics = new ArrayList<>();
+            diagnostics.addAll(catalogOwners.resolve(type).diagnostics());
+            try {
+                // Resolve root-level declarations too (kind, columns and displaySortFields).
+                resolver.find(type);
+            } catch (IllegalArgumentException invalidDeclaration) {
+                diagnostics.add(new MetadataDiagnostic(MetadataDiagnostic.Severity.ERROR,
+                    MetadataDiagnosticCodes.INVALID_ENTITY_METADATA, type.getName(), "", "@EntityMetadata",
+                    invalidDeclaration.getMessage()));
+            }
+            try {
+                diagnostics.addAll(fieldDiagnostics(resolver, type, metadataTypes));
+            } catch (IllegalArgumentException invalidField) {
+                diagnostics.add(new MetadataDiagnostic(MetadataDiagnostic.Severity.ERROR,
+                    MetadataDiagnosticCodes.INVALID_FIELD_METADATA, type.getName(), "", "@FieldMetadata",
+                    invalidField.getMessage()));
+            }
+            byType.put(type, List.copyOf(diagnostics));
         }
 
         List<MetadataDiagnostic> all = new ArrayList<>();
         byType.values().forEach(all::addAll);
+        return finish(all, allowances);
+    }
+
+    private static List<MetadataDiagnostic> finish(List<MetadataDiagnostic> all, List<MetadataAllowance> allowances) {
         List<MetadataDiagnostic> withAllowances = applyAllowances(all,
             allowances == null ? List.of() : allowances);
 
@@ -67,7 +111,7 @@ public final class MetadataConsistencyValidator {
         List<MetadataDiagnostic> result = new ArrayList<>();
         for (FieldMetadataInfo field : resolver.resolveAllAnnotatedFields(type)) {
             result.addAll(field.getDiagnostics());
-            if (field.hasLookup() && !metadataTypes.contains(field.getLookupEntity())) {
+            if (publishedLookup(field) && !metadataTypes.contains(field.getLookupEntity())) {
                 result.add(new MetadataDiagnostic(MetadataDiagnostic.Severity.ERROR,
                     MetadataDiagnosticCodes.REFERENCE_TARGET_NOT_METADATA,
                     type.getName(), field.getName(),

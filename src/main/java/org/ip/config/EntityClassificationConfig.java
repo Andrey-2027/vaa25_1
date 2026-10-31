@@ -1,17 +1,12 @@
 package org.ip.config;
 
-import org.ip.model.AttributeValue;
 import org.ip.model.SklNomOpa;
 import org.ip.model.SklNomOpaValue;
-import org.ipro.data.DataOperation;
-import org.ipro.data.EntityCapabilityOverride;
 import org.ipro.data.EntityExposure;
 import org.ipro.data.EntityExposureOverride;
-import org.ipro.fetch.plan.FetchScenario;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Set;
 
 /**
  * Прикладные классификации persistence types, которые нельзя вывести из аннотаций
@@ -24,19 +19,9 @@ import java.util.Set;
  * data handle. Явный override фиксирует {@code OWNED_ROW}: автономного list/detail/lookup
  * у строки нет.</p>
  *
- * <p>Остальные объявления ниже — {@link EntityCapabilityOverride}: экспозиция типа верна,
- * но generic canonical handle не совпадает с предметным правилом. Инвентарь фиксирует эти
- * ограничения в коде сервисов; здесь они становятся контрактом, который читает canonical
- * path, а не знанием внутри одного класса (ADR-0007 §2, «intentional prohibitions»).</p>
- *
- * <p>Объявлений здесь ровно столько, сколько запретов <b>нельзя</b> выразить исполняемым
- * правилом: capability override остаётся для «операции у типа нет вообще», а правило вида
- * «операция есть, но не для всех строк» выражается lifecycle handler'ом. C4.6 волна F
- * провела эту границу дважды: ownership-запрет {@code GridFormView} переехал в
- * {@link org.ip.application.form.GridFormViewLifecycle} и перестал быть сужением
- * capabilities, а read-мост internal-store типа снят — после перевода его сервиса на
- * internal-store adapter canonical handle у типа нет вообще, и попытка получить его
- * отклоняется до SQL, а не отдаёт граф без metadata.</p>
+ * <p>ET8: ограничения записи AttributeValue и SklNomOpa теперь выводятся из их
+ * {@link org.ipro.crud.InternedContract}. Отдельные capability-бины для интернирования
+ * не нужны; различие CREATE и owner-managed создания остаётся в предметном объявлении.</p>
  */
 @Configuration(proxyBeanMethods = false)
 public class EntityClassificationConfig {
@@ -46,29 +31,6 @@ public class EntityClassificationConfig {
         return new EntityExposureOverride(SklNomOpaValue.class, EntityExposure.OWNED_ROW,
             SklNomOpa.class,
             "структурная строка агрегата SklNomOpa, состав ведёт typed use case");
-    }
-
-    /** Значение атрибута неизменяемо: generic update/delete запрещены typed policy. */
-    @Bean
-    public EntityCapabilityOverride attributeValueIsCreateOnly() {
-        return new EntityCapabilityOverride(AttributeValue.class,
-            Set.of(FetchScenario.LIST, FetchScenario.DETAIL, FetchScenario.LOOKUP),
-            Set.of(DataOperation.CREATE),
-            "значение атрибута бессмертно (AttributeValueService); переименование —"
-                + " отдельная typed операция, generic update/delete запрещены");
-    }
-
-    /**
-     * Состав набора SklNomOpa создаётся канонизацией {@code findOrCreate}, а не generic
-     * CRUD: собственные save/create/update/delete сервис запрещает намеренно.
-     */
-    @Bean
-    public EntityCapabilityOverride sklNomOpaHasNoGenericWrites() {
-        return new EntityCapabilityOverride(SklNomOpa.class,
-            Set.of(FetchScenario.LIST, FetchScenario.DETAIL, FetchScenario.LOOKUP),
-            Set.of(),
-            "набор immutable, состав ведёт канонизация findOrCreate; generic CRUD запрещён"
-                + " typed use case");
     }
 
 }

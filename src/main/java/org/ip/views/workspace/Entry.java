@@ -7,7 +7,7 @@ public class Entry {
     private final String id;
     private final Tab tab;
     private final Component view;
-    private final String title;
+    private String title;
 
     public Entry(String id, Tab tab, Component view, String title) {
         this.id = id;
@@ -20,4 +20,5 @@ public class Entry {
     public Tab getTab() { return tab; }
     public Component getView() { return view; }
     public String getTitle() { return title; }
+    void setTitle(String title) { this.title = title; }
 }

@@ -1,0 +1,21 @@
+# platform-persistence: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+abstract-class public abstract org.ipro.crud.BaseEntity
+  implements org.ipro.identity.IdentifiableEntity<java.lang.Long>
+  annotation jakarta.persistence.EntityListeners
+  annotation jakarta.persistence.MappedSuperclass
+  ctor public()
+  method public boolean equals(java.lang.Object)
+  method public int hashCode()
+  method public java.lang.Long getId()
+  method public java.lang.Long getVersion()
+  method public java.lang.String getCreatedBy()
+  method public java.lang.String getModifiedBy()
+  method public java.time.LocalDateTime getCreatedAt()
+  method public java.time.LocalDateTime getModifiedAt()
+  method public void setCreatedAt(java.time.LocalDateTime)
+  method public void setCreatedBy(java.lang.String)
+  method public void setId(java.lang.Long)
+  method public void setModifiedAt(java.time.LocalDateTime)
+  method public void setModifiedBy(java.lang.String)
+  method public void setVersion(java.lang.Long)
+

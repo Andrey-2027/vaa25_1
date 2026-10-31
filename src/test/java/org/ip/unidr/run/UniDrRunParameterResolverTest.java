@@ -1,8 +1,9 @@
-package org.ip.unidr.run;
+package org.ipro.unidr.run;
+import org.ip.unidr.model.UniDrDefinitions;
 
-import org.ip.unidr.model.*;
-import org.ip.unidr.model.UniDrDefinition.*;
-import org.ip.unidr.source.UniDrSourceCatalog;
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.model.UniDrDefinition.*;
+import org.ipro.unidr.source.UniDrSourceCatalog;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -12,7 +13,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.*;
 
 class UniDrRunParameterResolverTest {
-    private final UniDrRunParameterResolver resolver = new UniDrRunParameterResolver(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot()));
+    private final UniDrRunParameterResolver resolver = new UniDrRunParameterResolver(new UniDrDefinitionValidator(UniDrDefinitions.catalog()));
     private final UniDrDefinition definition = UniDrDefinitions.receivingItemsSummary();
     private final Instant now = Instant.parse("2026-10-31T23:30:00Z");
     private Map<String, Literal> resolve(Map<String, Literal> values, ZoneId zone) {

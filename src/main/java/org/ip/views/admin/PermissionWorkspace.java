@@ -18,10 +18,13 @@ import java.util.function.Consumer;
 import org.ip.application.access.*;
 import org.ip.model.User;
 import org.ip.model.Role;
+import org.ip.persistence.access.PermissionScopePageService;
+import org.ipro.filtergrid.TextFilter;
 import org.ipro.form.Dirtyable;
 import org.ipro.form.Savable;
 import org.ipro.form.builtin.ListForm;
-import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormNavigator;
+import org.ipro.rls.AccessGrant;
 import org.springframework.context.annotation.Scope;
 
 /** P5 shell. Matrix/scope components are installed into the right content slot in P6/P7. */
@@ -52,7 +55,7 @@ public class PermissionWorkspace extends VerticalLayout implements Dirtyable, Sa
     private Consumer<PermissionGrantAddress> revealPermission = address -> { };
 
     @org.springframework.beans.factory.annotation.Autowired
-    public PermissionWorkspace(FormCoordinator coordinator, PermissionStateService states, PermissionPatchService patches,
+    public PermissionWorkspace(FormNavigator coordinator, PermissionStateService states, PermissionPatchService patches,
                                 PermissionWorkspaceUpdates updates, PermissionCatalogService catalogs,
                                 org.ip.service.AccessGrantAdminService administration, PermissionScopePageService pages) {
         this(coordinator, states, patches, updates);
@@ -82,7 +85,7 @@ public class PermissionWorkspace extends VerticalLayout implements Dirtyable, Sa
         return new PermissionScopeEditor<>(this, catalog, scope, type, pages, states, back);
     }
 
-    public PermissionWorkspace(FormCoordinator coordinator, PermissionStateService states, PermissionPatchService patches,
+    public PermissionWorkspace(FormNavigator coordinator, PermissionStateService states, PermissionPatchService patches,
                                 PermissionWorkspaceUpdates updates) {
         this.states = states; this.patches = patches;
         users = coordinator.createListForm(User.class);
@@ -157,7 +160,7 @@ public class PermissionWorkspace extends VerticalLayout implements Dirtyable, Sa
     private void showState() {
         returnToSubject.setVisible(!returnSubjects.isEmpty());
         title.setText(active == null ? "Выберите пользователя или роль" : active.subject().title());
-        assigned.setText(active == null || active.subject().type() != org.ipro.rls.AccessGrant.SubjectType.USER ? ""
+        assigned.setText(active == null || active.subject().type() != AccessGrant.SubjectType.USER ? ""
             : "Роли: " + (active.roles().isEmpty() ? "не назначены" : String.join(", ", active.roles().stream().map(SubjectRef::title).toList())));
         int count = active == null ? 0 : drafts.changeCount(active.subject().identity());
         int others = drafts.dirtySubjects().size() - (active != null && drafts.dirtySubjects().contains(active.subject().identity()) ? 1 : 0);
@@ -167,7 +170,7 @@ public class PermissionWorkspace extends VerticalLayout implements Dirtyable, Sa
     }
     /** Role identity is supplied by provenance, never parsed from a label or looked up by name. */
     public void navigateRole(SubjectRef role, PermissionGrantAddress address) {
-        if (role.type() != org.ipro.rls.AccessGrant.SubjectType.ROLE) throw new IllegalArgumentException("Expected role");
+        if (role.type() != AccessGrant.SubjectType.ROLE) throw new IllegalArgumentException("Expected role");
         if (active != null && !active.subject().identity().equals(role.identity())) {
             var originalContent = content.getChildren().toList();
             var restorers = originalContent.stream().map(component -> component instanceof PermissionScopeEditor<?> editor
@@ -181,7 +184,7 @@ public class PermissionWorkspace extends VerticalLayout implements Dirtyable, Sa
             tabs.setSelectedTab(rolesTab); users.setVisible(false); roles.setVisible(true);
             roles.clearVisualFilter(); roles.clearContextFilter();
             var nameFilter = roles.getFilterGrid().getColumnFilter("name");
-            if (nameFilter instanceof org.ipro.filtergrid.TextFilter<?> text) text.getTextField().clear();
+            if (nameFilter instanceof TextFilter<?> text) text.getTextField().clear();
             roles.setContextFilter((root, query, cb) -> cb.equal(root.get("id"), role.id()));
             Role row = new Role(role.subjectKey()); row.setId(role.id()); roles.getGrid().select(row);
         } finally { refreshing = false; }
@@ -196,7 +199,7 @@ public class PermissionWorkspace extends VerticalLayout implements Dirtyable, Sa
         var identity = target.subject();
         refreshing = true;
         try {
-            boolean user = identity.type() == org.ipro.rls.AccessGrant.SubjectType.USER;
+            boolean user = identity.type() == AccessGrant.SubjectType.USER;
             tabs.setSelectedTab(user ? usersTab : rolesTab); users.setVisible(user); roles.setVisible(!user);
         } finally { refreshing = false; }
         select(identity);

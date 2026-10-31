@@ -1,0 +1,40 @@
+{
+  "mode" : "D-self-test; synthetic C and dependency JAR; public generator/rebuild",
+  "status" : "ROLLED_BACK",
+  "code" : "APPLY_IO",
+  "projectRoot" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e4-d-completion\\three-file-20261031-final\\work\\project-v2-1308999592992499668",
+  "planId" : "g1-453e61835e199c75f251316d13352ef2a7aa46037c4ea8dc410dcd511a405a49",
+  "cSummarySha256" : "430e494a4a9e9995334c87dddf740d0773d690e1dcadef77e8f253199ad5951c",
+  "manifest" : {
+    "kind" : "g1-generation-manifest-v2",
+    "planId" : "g1-453e61835e199c75f251316d13352ef2a7aa46037c4ea8dc410dcd511a405a49",
+    "recipe" : {
+      "id" : "standard-document-v1",
+      "version" : 1
+    },
+    "generatorVersion" : "document-java-v4",
+    "fingerprintProfile" : "plan-fingerprint-v2",
+    "entries" : [ {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/AppliedDocument.java",
+      "sha256" : "8ae9b7a21caf7f01119cdd2a367f5308bc4251b8f2c345e41cac9442cf8aa36e",
+      "bytes" : 736
+    }, {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/rows/AppliedDocumentRow1.java",
+      "sha256" : "abf564d6a0f69167b5382a8959bdcad4267f644f37ad750ba18cfa7d84d66cf4",
+      "bytes" : 1545
+    }, {
+      "operation" : "CREATE",
+      "relativePath" : "com/example/generated/rows/AppliedDocumentRow2.java",
+      "sha256" : "27b4104179d701b075f17cf548907c35d7301c45222e4715a32c7eeaa80658d1",
+      "bytes" : 1545
+    } ],
+    "manifestSha256" : "aa1281e849a047cfa4789dcf4a086a7a12a80bf5b2f8735e0376e1fa6f3f8826"
+  },
+  "filesAfterAssertions" : {
+    ".g1-apply-v2/apply.lock" : "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "c-summary.json" : "430e494a4a9e9995334c87dddf740d0773d690e1dcadef77e8f253199ad5951c",
+    "reviewed-plan.json" : "e6d657465030f440ec121fbd1413f562f2d92c583e11ac5708af6c7ff8d8f011"
+  }
+}

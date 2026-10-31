@@ -1,11 +1,9 @@
 package org.ipro.crud;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -43,6 +41,28 @@ public class NaturalKeyCreateSupport {
         Objects.requireNonNull(transactionManager, "transactionManager must not be null");
         this.createTx = new TransactionTemplate(transactionManager);
         this.createTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    }
+
+    /**
+     * Complete-profile path: checks the selected structural key against both the winner
+     * and the created row inside the attempt transaction, before it can commit.
+     * The diagnostic string is never parsed to recover key properties.
+     */
+    public <T extends InternedEntity> T getOrCreate(Class<T> type, T key,
+            Supplier<Optional<T>> finder, Supplier<T> creator) {
+        Objects.requireNonNull(finder, "finder");
+        Objects.requireNonNull(creator, "creator");
+        var identity = InterningContracts.identity(type, key);
+        String diagnostic = key.interningKey();
+        java.util.function.UnaryOperator<T> checked = row -> {
+            if (!identity.equals(InterningContracts.identity(type, Objects.requireNonNull(row)))
+                    || !diagnostic.equals(row.interningKey())) {
+                throw new IllegalStateException("INTERNED_KEY_MISMATCH " + type.getName()
+                    + ": finder/creator returned a different natural key: " + identity);
+            }
+            return row;
+        };
+        return getOrCreate(diagnostic, () -> finder.get().map(checked), () -> checked.apply(creator.get()));
     }
 
     /**
@@ -88,11 +108,12 @@ public class NaturalKeyCreateSupport {
      */
     private static boolean isUniqueViolation(RuntimeException e) {
         for (Throwable cause = e; cause != null; cause = cause.getCause()) {
-            if (cause instanceof org.hibernate.exception.ConstraintViolationException
-                    || cause instanceof SQLIntegrityConstraintViolationException) {
+            if (cause instanceof java.sql.SQLException sql && "23505".equals(sql.getSQLState())) {
                 return true;
             }
+            if (cause instanceof org.hibernate.exception.ConstraintViolationException violation
+                    && "23505".equals(violation.getSQLState())) return true;
         }
-        return e instanceof DataIntegrityViolationException;
+        return false;
     }
 }

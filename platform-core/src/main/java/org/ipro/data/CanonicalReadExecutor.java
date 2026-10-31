@@ -797,15 +797,17 @@ public class CanonicalReadExecutor {
     }
 
     private List<String> displaySortFieldsFor(Class<?> rootType, String property) {
+        ColumnPath columnPath;
         try {
-            ColumnPath columnPath = ColumnPath.resolve(rootType, property);
-            if (columnPath.getResolvedType() != FieldType.ENTITY_REFERENCE) {
-                return List.of();
-            }
-            return metadataResolver.resolve(columnPath.getJavaType()).getDisplaySortFields();
-        } catch (IllegalArgumentException invalidPathOrNoMetadata) {
+            columnPath = ColumnPath.resolve(rootType, property);
+        } catch (IllegalArgumentException invalidPath) {
             return List.of();
         }
+        if (columnPath.getResolvedType() != FieldType.ENTITY_REFERENCE) {
+            return List.of();
+        }
+        return metadataResolver.find(columnPath.getJavaType())
+            .map(org.ipro.metadata.EntityMetadataInfo::getDisplaySortFields).orElse(List.of());
     }
 
     /**

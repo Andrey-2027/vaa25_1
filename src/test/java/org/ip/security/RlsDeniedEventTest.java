@@ -14,6 +14,7 @@ import org.ipro.rls.AccessGrant;
 import org.ipro.rls.AccessGrantRepository;
 import org.ipro.rls.RlsAccessDeniedException;
 import org.ipro.rls.RlsTestFixture;
+import org.ipro.rls.c5.C5PermissionKeys;
 import org.ipro.telemetry.core.SecurityEventLogger;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -112,10 +113,9 @@ class RlsDeniedEventTest {
 
             // Отказ проверяем по построчному измерению JOURNAL: BRANCH грант выдан, а журнал — нет.
             accessGrantRepository.save(grant(deniedUser, "BRANCH"));
-            // Ключ ENTITY:ReceivingDocument владеет сразу двумя решениями — операцией C5 и
-            // CHECK_ONLY-воротами RLS (ADR-0017 §3 сохранил прежний ключ), поэтому строка выдана:
+            // P-U: единый ключ ENTITY:<FQN> решает и READ, и операции. Строка выдана с read+update:
             // без неё отказ был бы от C5 и до RLS-пути этот тест не доходил бы вовсе.
-            accessGrantRepository.save(grant(deniedUser, "ENTITY:ReceivingDocument"));
+            accessGrantRepository.save(grant(deniedUser, C5PermissionKeys.entity(ReceivingDocument.class)));
             // Bootstrap-правило AccessService: пока по измерению нет НИ ОДНОГО гранта, создание
             // нового его значения разрешено. Закрываем его строкой другого субъекта, иначе на
             // пустой базе запрет по JOURNAL не сработал бы и тест зависел бы от соседей по прогону.
@@ -148,7 +148,7 @@ class RlsDeniedEventTest {
         assertThat(payload.getValue().get("entity")).isEqualTo(ReceivingDocument.class.getName());
 
         // За собой убираем: разделяемая база — не место для состояния одного теста.
-        deleteGrants(deniedUser, "BRANCH", "ENTITY:ReceivingDocument");
+        deleteGrants(deniedUser, "BRANCH", C5PermissionKeys.entity(ReceivingDocument.class));
         deleteGrants(journalHolder, "JOURNAL");
     }
 

@@ -1,5 +1,7 @@
 package org.ip.application.access;
 
+import org.ip.persistence.access.PermissionScopePageService;
+
 import org.ip.views.admin.PermissionWorkspace;
 import org.ip.views.admin.PermissionWorkspaceUpdates;
 import org.ipro.form.coordinator.FormCoordinator;

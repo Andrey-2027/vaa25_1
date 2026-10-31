@@ -9,8 +9,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
  * Фоновая работа приложения идёт через управляемый исполнитель
- * ({@code ReportTaskExecutor} через {@code ReportExecutionService.executeAsync}), а не
- * через собственный поток.
+ * ({@code ReportTaskExecutor} — напрямую в JR-диалоге и в отчётном run-слое),
+ * а не через собственный поток.
  *
  * <p>Свой {@code new Thread} означает ручной перенос аутентификации и HttpSession и
  * ручную очистку ThreadLocal — именно так появился разрыв канала `DAC-11` в

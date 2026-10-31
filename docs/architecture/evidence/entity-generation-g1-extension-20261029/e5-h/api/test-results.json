@@ -1,0 +1,8 @@
+{
+  "suite": "org.ipro.PlatformApiBaselineTest",
+  "tests": 4,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "report": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e5-h\\e5h-20261031\\api\\TEST-org.ipro.PlatformApiBaselineTest.xml"
+}

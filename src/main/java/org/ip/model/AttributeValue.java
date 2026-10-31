@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.ipro.crud.BaseEntity;
 import org.ipro.crud.InternedEntity;
+import org.ipro.crud.InternedContract;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.EntityMetadata;
@@ -36,6 +37,18 @@ import org.ipro.metadata.annotation.Lookup;
  * {@code refId = NULL}). Значения бессмертны: удаление не предусмотрено на уровне сервиса.
  */
 @Entity
+@InternedContract(
+    creation = "AttributeValueService.getOrCreate/getOrCreateRef; canonical CREATE via AttributeValueLifecycle",
+    genericCreate = true,
+    specialOperations = {"ATTRIBUTE_VALUE:RENAME (AttributeValueService.renameValue)"},
+    keys = {
+        @InternedContract.Key(constraint = "uk_attr_value_type_code_up",
+            properties = {"attrType", "codeUp"}, nullProperties = {"refId"},
+            normalization = "trim STRING/ENUM; NUMBER parse comma, stripTrailingZeros/toPlainString; uppercase Locale.ROOT; REF excluded"),
+        @InternedContract.Key(constraint = "uk_attr_value_type_ref",
+            properties = {"attrType", "refId"}, nullProperties = {"codeUp"},
+            normalization = "saved target ID; REF type/target/RLS validated; codeUp NULL; display text is not identity")
+    })
 @Table(name = "attribute_value", uniqueConstraints = {
     @UniqueConstraint(name = "uk_attr_value_type_code_up", columnNames = {"attr_type_id", "code_up"}),
     @UniqueConstraint(name = "uk_attr_value_type_ref", columnNames = {"attr_type_id", "ref_id"})

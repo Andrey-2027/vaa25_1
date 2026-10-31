@@ -1,0 +1,688 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] Entity design contracts and independent core                       [jar]
+[INFO] Portable entity draft JSON codec                                   [jar]
+[INFO] GitVaa platform contracts                                          [jar]
+[INFO] GitVaa platform persistence                                        [jar]
+[INFO] GitVaa platform metadata spine                                     [jar]
+[INFO] GitVaa platform numbering                                          [jar]
+[INFO] GitVaa platform RLS                                                [jar]
+[INFO] GitVaa platform core                                               [jar]
+[INFO] Entity design runtime facts adapter                                [jar]
+[INFO] GitVaa platform spring-boot autoconfigure                          [jar]
+[INFO] g1-e5h-backend                                                     [pom]
+[INFO] 
+[INFO] --------------------< org.ipro:entity-design-core >---------------------
+[INFO] Building Entity design contracts and independent core 1.0-SNAPSHOT [1/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\entity-design-core\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-design-core ---
+[INFO] Copying 5 resources from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-entity-design-core\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-design-core ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 32 source files with javac [debug release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-entity-design-core\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-design-core ---
+[INFO] Copying 6 resources from src\test\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-entity-design-core\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-design-core ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 12 source files with javac [debug release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-entity-design-core\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-design-core ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.design.DocumentGenerationTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.685 s -- in org.ipro.design.DocumentGenerationTest
+[INFO] Running org.ipro.design.DraftOperationsTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.164 s -- in org.ipro.design.DraftOperationsTest
+[INFO] Running org.ipro.design.DraftValidatorTest
+[INFO] Tests run: 43, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.187 s -- in org.ipro.design.DraftValidatorTest
+[INFO] Running org.ipro.design.generation.CatalogJavaGeneratorTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.229 s -- in org.ipro.design.generation.CatalogJavaGeneratorTest
+[INFO] Running org.ipro.design.generation.GenerationManifestTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.055 s -- in org.ipro.design.generation.GenerationManifestTest
+[INFO] Running org.ipro.design.generation.OwnerGenerationTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.066 s -- in org.ipro.design.generation.OwnerGenerationTest
+[INFO] Running org.ipro.design.generation.SectionGenerationTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.101 s -- in org.ipro.design.generation.SectionGenerationTest
+[INFO] Running org.ipro.design.LegacyContextBinaryCompatibilityTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.840 s -- in org.ipro.design.LegacyContextBinaryCompatibilityTest
+[INFO] Running org.ipro.design.RecipeContractTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.052 s -- in org.ipro.design.RecipeContractTest
+[INFO] Running org.ipro.design.RecipeHandoffTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.021 s -- in org.ipro.design.RecipeHandoffTest
+[INFO] Running org.ipro.design.ReferenceGenerationTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.212 s -- in org.ipro.design.ReferenceGenerationTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 104, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --------------------< org.ipro:entity-design-json >---------------------
+[INFO] Building Portable entity draft JSON codec 1.0-SNAPSHOT            [2/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\entity-design-json\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-design-json ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\entity-design-json\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-design-json ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-entity-design-json\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-design-json ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\entity-design-json\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-design-json ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-entity-design-json\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-design-json ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.design.json.DraftJsonCodecTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.894 s -- in org.ipro.design.json.DraftJsonCodecTest
+[INFO] Running org.ipro.design.json.OwnerAcceptanceExportTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.428 s -- in org.ipro.design.json.OwnerAcceptanceExportTest
+[INFO] Running org.ipro.design.json.OwnerDraftJsonTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.470 s -- in org.ipro.design.json.OwnerDraftJsonTest
+[INFO] Running org.ipro.design.json.SectionAcceptanceExportTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.503 s -- in org.ipro.design.json.SectionAcceptanceExportTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --------------------< org.ipro:platform-contracts >---------------------
+[INFO] Building GitVaa platform contracts 1.0-SNAPSHOT                   [3/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-contracts\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-contracts ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-contracts\src\main\resources
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-contracts\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-contracts ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 36 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-contracts\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-contracts ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-contracts\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-contracts ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-contracts\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-contracts ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.contracts.ContractsModuleCompositionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.588 s -- in org.ipro.contracts.ContractsModuleCompositionTest
+[INFO] Running org.ipro.contracts.LifecycleIdentityContractTest
+SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.375 s -- in org.ipro.contracts.LifecycleIdentityContractTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] -------------------< org.ipro:platform-persistence >--------------------
+[INFO] Building GitVaa platform persistence 1.0-SNAPSHOT                 [4/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-persistence\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-persistence ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-persistence\classes
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-persistence\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-persistence ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-persistence\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-persistence ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-persistence\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-persistence ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-persistence\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-persistence ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.crud.BaseEntityEqualityTest
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.474 s -- in org.ipro.crud.BaseEntityEqualityTest
+[INFO] Running org.ipro.crud.BaseEntityPersistenceTest
+16:57:28.126 [main] INFO org.hibernate.orm.core -- HHH000001: Hibernate ORM core version 7.2.12.Final
+16:57:29.274 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+16:57:30.821 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:identity-cadbcc94-5bee-4916-9954-2fb9da1a5c69]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: IDENTITY-CADBCC94-5BEE-4916-9954-2FB9DA1A5C69/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+16:57:33.407 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.373 s -- in org.ipro.crud.BaseEntityPersistenceTest
+[INFO] Running org.ipro.persistence.PersistenceModuleCompositionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.055 s -- in org.ipro.persistence.PersistenceModuleCompositionTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ---------------------< org.ipro:platform-metadata >---------------------
+[INFO] Building GitVaa platform metadata spine 1.0-SNAPSHOT              [5/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-metadata\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-metadata ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-metadata\src\main\resources
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-metadata\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-metadata ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-metadata\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-metadata ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-metadata\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-metadata ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-metadata ---
+[INFO] No tests to run.
+[INFO] 
+[INFO] --------------------< org.ipro:platform-numbering >---------------------
+[INFO] Building GitVaa platform numbering 1.0-SNAPSHOT                   [6/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-numbering\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-numbering ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-numbering\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-numbering\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-numbering ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 17 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-numbering\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-numbering ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-numbering\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-numbering ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-numbering ---
+[INFO] No tests to run.
+[INFO] 
+[INFO] -----------------------< org.ipro:platform-rls >------------------------
+[INFO] Building GitVaa platform RLS 1.0-SNAPSHOT                         [7/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-rls\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-rls ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-rls\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-rls\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-rls ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 51 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-rls\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-rls ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-rls\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-rls ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 9 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-rls\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-rls/src/test/java/org/ipro/rls/c5/C5PermissionDecisionServiceTest.java: Some input files use or override a deprecated API.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-rls/src/test/java/org/ipro/rls/c5/C5PermissionDecisionServiceTest.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-rls ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.rls.c5.C5OperationPermissionRegistryTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.900 s -- in org.ipro.rls.c5.C5OperationPermissionRegistryTest
+[INFO] Running org.ipro.rls.c5.C5PermissionDecisionServiceJpaTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-31T16:57:49.439+03:00  INFO 41264 --- [           main] i.r.c.C5PermissionDecisionServiceJpaTest : Starting C5PermissionDecisionServiceJpaTest using Java 21.0.11 with PID 41264 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\platform-rls)
+2026-10-31T16:57:49.448+03:00  INFO 41264 --- [           main] i.r.c.C5PermissionDecisionServiceJpaTest : No active profile set, falling back to 1 default profile: "default"
+2026-10-31T16:57:50.251+03:00  INFO 41264 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-31T16:57:50.513+03:00  INFO 41264 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 231 ms. Found 1 JPA repository interface.
+2026-10-31T16:57:50.842+03:00  INFO 41264 --- [           main] beddedDataSourceBeanFactoryPostProcessor : Replacing 'dataSource' DataSource bean with embedded version
+2026-10-31T16:57:51.119+03:00  INFO 41264 --- [           main] o.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:6c12424d-79e6-4a5d-9462-f2550897d59f;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2026-10-31T16:57:52.014+03:00  INFO 41264 --- [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-31T16:57:52.188+03:00  INFO 41264 --- [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-10-31T16:57:53.930+03:00  INFO 41264 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-31T16:57:54.212+03:00  INFO 41264 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:6c12424d-79e6-4a5d-9462-f2550897d59f]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 6C12424D-79E6-4A5D-9462-F2550897D59F/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-31T16:57:57.014+03:00  INFO 41264 --- [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: drop table if exists access_grant cascade 
+Hibernate: create table access_grant (can_delete boolean not null, can_read boolean not null, can_update boolean not null, created_at timestamp(6), dimension_value_id bigint, id bigint generated by default as identity, modified_at timestamp(6), version bigint, created_by varchar(255), dimension varchar(255) not null, modified_by varchar(255), subject_key varchar(255) not null, subject_type enum ('ROLE','USER') not null, primary key (id))
+2026-10-31T16:57:57.150+03:00  INFO 41264 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-31T16:57:57.414+03:00  INFO 41264 --- [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-31T16:58:00.542+03:00  INFO 41264 --- [           main] i.r.c.C5PermissionDecisionServiceJpaTest : Started C5PermissionDecisionServiceJpaTest in 12.777 seconds (process running for 18.181)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: delete from access_grant where id=? and version=?
+Hibernate: delete from access_grant where id=? and version=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: update access_grant set can_delete=?,can_read=?,can_update=?,dimension=?,dimension_value_id=?,modified_at=?,modified_by=?,subject_key=?,subject_type=?,version=? where id=? and version=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.81 s -- in org.ipro.rls.c5.C5PermissionDecisionServiceJpaTest
+[INFO] Running org.ipro.rls.c5.C5PermissionDecisionServiceTest
+[INFO] Tests run: 25, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.577 s -- in org.ipro.rls.c5.C5PermissionDecisionServiceTest
+[INFO] Running org.ipro.rls.c5.C5ReadDecisionServiceTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.100 s -- in org.ipro.rls.c5.C5ReadDecisionServiceTest
+[INFO] Running org.ipro.rls.c5.C5ReadPermissionRegistryTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.ipro.rls.c5.C5ReadPermissionRegistryTest
+[INFO] Running org.ipro.rls.c5.DefaultC5PermissionEvaluatorJpaTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-10-31T16:58:02.546+03:00  INFO 41264 --- [           main] .r.c.DefaultC5PermissionEvaluatorJpaTest : Starting DefaultC5PermissionEvaluatorJpaTest using Java 21.0.11 with PID 41264 (started by strim in C:\JavaProject\TestVaadin25\GitVaa25\platform-rls)
+2026-10-31T16:58:02.553+03:00  INFO 41264 --- [           main] .r.c.DefaultC5PermissionEvaluatorJpaTest : No active profile set, falling back to 1 default profile: "default"
+2026-10-31T16:58:02.673+03:00  INFO 41264 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-31T16:58:02.752+03:00  INFO 41264 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 76 ms. Found 1 JPA repository interface.
+2026-10-31T16:58:02.822+03:00  INFO 41264 --- [           main] beddedDataSourceBeanFactoryPostProcessor : Replacing 'dataSource' DataSource bean with embedded version
+2026-10-31T16:58:02.841+03:00  INFO 41264 --- [           main] o.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:70ee91a2-ef9b-4ba3-b09d-aaafde8f511b;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2026-10-31T16:58:02.885+03:00  INFO 41264 --- [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-31T16:58:02.956+03:00  INFO 41264 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-31T16:58:02.963+03:00  INFO 41264 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:70ee91a2-ef9b-4ba3-b09d-aaafde8f511b]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 70EE91A2-EF9B-4BA3-B09D-AAAFDE8F511B/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-31T16:58:03.092+03:00  INFO 41264 --- [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: drop table if exists access_grant cascade 
+Hibernate: create table access_grant (can_delete boolean not null, can_read boolean not null, can_update boolean not null, created_at timestamp(6), dimension_value_id bigint, id bigint generated by default as identity, modified_at timestamp(6), version bigint, created_by varchar(255), dimension varchar(255) not null, modified_by varchar(255), subject_key varchar(255) not null, subject_type enum ('ROLE','USER') not null, primary key (id))
+2026-10-31T16:58:03.112+03:00  INFO 41264 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-31T16:58:03.270+03:00  INFO 41264 --- [           main] .r.c.DefaultC5PermissionEvaluatorJpaTest : Started DefaultC5PermissionEvaluatorJpaTest in 0.768 seconds (process running for 20.91)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: delete from access_grant where id=? and version=?
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0
+Hibernate: insert into access_grant (can_delete,can_read,can_update,created_at,created_by,dimension,dimension_value_id,modified_at,modified_by,subject_key,subject_type,version,id) values (?,?,?,?,?,?,?,?,?,?,?,?,default)
+Hibernate: select ag1_0.id,ag1_0.can_delete,ag1_0.can_read,ag1_0.can_update,ag1_0.created_at,ag1_0.created_by,ag1_0.dimension,ag1_0.dimension_value_id,ag1_0.modified_at,ag1_0.modified_by,ag1_0.subject_key,ag1_0.subject_type,ag1_0.version from access_grant ag1_0 where ag1_0.subject_type=? and ag1_0.subject_key=? and ag1_0.dimension=? and ag1_0.dimension_value_id is null
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.988 s -- in org.ipro.rls.c5.DefaultC5PermissionEvaluatorJpaTest
+[INFO] Running org.ipro.rls.c5.DefaultC5PermissionEvaluatorTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.119 s -- in org.ipro.rls.c5.DefaultC5PermissionEvaluatorTest
+[INFO] Running org.ipro.rls.RlsReadableIdsSeamTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.473 s -- in org.ipro.rls.RlsReadableIdsSeamTest
+[INFO] Running org.ipro.rls.RlsWriteGuardBridgeTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.057 s -- in org.ipro.rls.RlsWriteGuardBridgeTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 78, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] -----------------------< org.ipro:platform-core >-----------------------
+[INFO] Building GitVaa platform core 1.0-SNAPSHOT                        [8/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-core\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-core ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\main\resources
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-core ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 127 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-core\classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/main/java/org/ipro/crud/EntityCopyService.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/main/java/org/ipro/crud/EntityCopyService.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-core ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-core ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 56 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-core\test-classes
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/test/java/org/ipro/crud/jpa/ValidatedJpaCrudServiceTest.java: C:\JavaProject\TestVaadin25\GitVaa25\platform-core\src\test\java\org\ipro\crud\jpa\ValidatedJpaCrudServiceTest.java uses unchecked or unsafe operations.
+[INFO] /C:/JavaProject/TestVaadin25/GitVaa25/platform-core/src/test/java/org/ipro/crud/jpa/ValidatedJpaCrudServiceTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-core ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.core.CoreModuleCompositionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.613 s -- in org.ipro.core.CoreModuleCompositionTest
+[INFO] Running org.ipro.crud.AggregateCommandPayloadTest
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.849 s -- in org.ipro.crud.AggregateCommandPayloadTest
+[INFO] Running org.ipro.crud.AggregateSaveRollbackStateTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.354 s -- in org.ipro.crud.AggregateSaveRollbackStateTest
+[INFO] Running org.ipro.crud.CatalogOwnerAggregateTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.942 s -- in org.ipro.crud.CatalogOwnerAggregateTest
+[INFO] Running org.ipro.crud.EntityCopyServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.054 s -- in org.ipro.crud.EntityCopyServiceTest
+[INFO] Running org.ipro.crud.InterningContractsTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.406 s -- in org.ipro.crud.InterningContractsTest
+[INFO] Running org.ipro.crud.jpa.ValidatedJpaCrudServiceGuardTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in org.ipro.crud.jpa.ValidatedJpaCrudServiceGuardTest
+[INFO] Running org.ipro.crud.jpa.ValidatedJpaCrudServiceTest
+16:58:21.399 [main] INFO org.hibernate.validator.internal.util.Version -- HV000001: Hibernate Validator 9.0.1.Final
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.447 s -- in org.ipro.crud.jpa.ValidatedJpaCrudServiceTest
+[INFO] Running org.ipro.crud.MetadataDrivenAggregatePreflightTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in org.ipro.crud.MetadataDrivenAggregatePreflightTest
+[INFO] Running org.ipro.crud.NaturalKeyCreateSupportTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.067 s -- in org.ipro.crud.NaturalKeyCreateSupportTest
+[INFO] Running org.ipro.crud.ServiceLocatorCanonicalFallbackTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.165 s -- in org.ipro.crud.ServiceLocatorCanonicalFallbackTest
+[INFO] Running org.ipro.data.CanonicalReadSortGuardTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.554 s -- in org.ipro.data.CanonicalReadSortGuardTest
+[INFO] Running org.ipro.data.CanonicalSaveLifecycleScopeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in org.ipro.data.CanonicalSaveLifecycleScopeTest
+[INFO] Running org.ipro.data.EntityClassificationTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.547 s -- in org.ipro.data.EntityClassificationTest
+[INFO] Running org.ipro.data.EntityDataAccessResolverTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.144 s -- in org.ipro.data.EntityDataAccessResolverTest
+[INFO] Running org.ipro.data.EntityDescriptorOriginTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in org.ipro.data.EntityDescriptorOriginTest
+[INFO] Running org.ipro.data.EventContourStartupCheckTest
+16:58:25.289 [main] INFO org.ipro.data.EventContourStartupCheck -- ������ lifecycle ���������: 1 handler(s) [Nomenclature -> NomenclatureRules]
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.095 s -- in org.ipro.data.EventContourStartupCheckTest
+[INFO] Running org.ipro.data.LookupReadLimitTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in org.ipro.data.LookupReadLimitTest
+[INFO] Running org.ipro.data.presentation.EntityPresentationServiceTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.171 s -- in org.ipro.data.presentation.EntityPresentationServiceTest
+[INFO] Running org.ipro.data.ScenarioFetchGraphResolverRestTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.153 s -- in org.ipro.data.ScenarioFetchGraphResolverRestTest
+[INFO] Running org.ipro.data.SearchTermsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in org.ipro.data.SearchTermsTest
+[INFO] Running org.ipro.fetch.plan.FetchPlanInspectionTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.045 s -- in org.ipro.fetch.plan.FetchPlanInspectionTest
+[INFO] Running org.ipro.filter.ColumnPathFilterFieldResolverTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in org.ipro.filter.ColumnPathFilterFieldResolverTest
+[INFO] Running org.ipro.metadata.CatalogOwnerResolverTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.052 s -- in org.ipro.metadata.CatalogOwnerResolverTest
+[INFO] Running org.ipro.metadata.EffectiveFieldFactsTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in org.ipro.metadata.EffectiveFieldFactsTest
+[INFO] Running org.ipro.metadata.EffectiveStandardMetadataTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.055 s -- in org.ipro.metadata.EffectiveStandardMetadataTest
+[INFO] Running org.ipro.metadata.EntityContractConsistencyTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.078 s -- in org.ipro.metadata.EntityContractConsistencyTest
+[INFO] Running org.ipro.metadata.EntityKindResolutionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in org.ipro.metadata.EntityKindResolutionTest
+[INFO] Running org.ipro.metadata.facet.FacetKindStructuralTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in org.ipro.metadata.facet.FacetKindStructuralTest
+[INFO] Running org.ipro.metadata.facet.ResolvedValueTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in org.ipro.metadata.facet.ResolvedValueTest
+[INFO] Running org.ipro.metadata.FieldMetadataInlineFilterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in org.ipro.metadata.FieldMetadataInlineFilterTest
+[INFO] Running org.ipro.metadata.FieldMetadataRequiredOriginTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in org.ipro.metadata.FieldMetadataRequiredOriginTest
+[INFO] Running org.ipro.metadata.ManagedEntityTypesSnapshotTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.045 s -- in org.ipro.metadata.ManagedEntityTypesSnapshotTest
+[INFO] Running org.ipro.metadata.MetadataApplicabilityTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.032 s -- in org.ipro.metadata.MetadataApplicabilityTest
+[INFO] Running org.ipro.metadata.MetadataConsistencyStartupCheckTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in org.ipro.metadata.MetadataConsistencyStartupCheckTest
+[INFO] Running org.ipro.metadata.MetadataConsistencyValidatorTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.052 s -- in org.ipro.metadata.MetadataConsistencyValidatorTest
+[INFO] Running org.ipro.metadata.MetadataHierarchyTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in org.ipro.metadata.MetadataHierarchyTest
+[INFO] Running org.ipro.metadata.MetadataInvalidateTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in org.ipro.metadata.MetadataInvalidateTest
+[INFO] Running org.ipro.metadata.SectionDescriptorResolutionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.056 s -- in org.ipro.metadata.SectionDescriptorResolutionTest
+[INFO] Running org.ipro.metadata.SectionMetadataRegistryManagedTypesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in org.ipro.metadata.SectionMetadataRegistryManagedTypesTest
+[INFO] Running org.ipro.metadata.StructuralAttributeScannerTest
+16:58:26.488 [main] INFO org.hibernate.orm.core -- HHH000001: Hibernate ORM core version 7.2.12.Final
+16:58:27.539 [main] WARN org.hibernate.orm.connections.pooling -- HHH10001002: Using built-in connection pool (not intended for production use)
+16:58:28.150 [main] WARN org.hibernate.orm.deprecation -- HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+16:58:28.180 [main] INFO org.hibernate.orm.connections.pooling -- HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:et2_structural;DB_CLOSE_DELAY=-1]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: ET2_STRUCTURAL/PUBLIC
+	Autocommit mode: false
+	Isolation level: READ_COMMITTED
+	JDBC fetch size: 100
+	Pool: DriverManagerConnectionProvider
+	Minimum pool size: 1
+	Maximum pool size: 20
+16:58:30.741 [main] INFO org.hibernate.orm.core -- HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.641 s -- in org.ipro.metadata.StructuralAttributeScannerTest
+[INFO] Running org.ipro.search.GlobalSearchProviderRegistryTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in org.ipro.search.GlobalSearchProviderRegistryTest
+[INFO] Running org.ipro.search.GlobalSearchRequestTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in org.ipro.search.GlobalSearchRequestTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 218, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] -------------------< org.ipro:entity-design-runtime >-------------------
+[INFO] Building Entity design runtime facts adapter 1.0-SNAPSHOT         [9/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\entity-design-runtime\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ entity-design-runtime ---
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-entity-design-runtime\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ entity-design-runtime ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-entity-design-runtime\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ entity-design-runtime ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\entity-design-runtime\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ entity-design-runtime ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-entity-design-runtime\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ entity-design-runtime ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.design.runtime.CatalogOwnerFactsBridgeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.114 s -- in org.ipro.design.runtime.CatalogOwnerFactsBridgeTest
+[INFO] Running org.ipro.design.runtime.RuntimeAdapterContractTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in org.ipro.design.runtime.RuntimeAdapterContractTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ------------< org.ipro:platform-spring-boot-autoconfigure >-------------
+[INFO] Building GitVaa platform spring-boot autoconfigure 1.0-SNAPSHOT  [10/11]
+[INFO]   from C:\JavaProject\TestVaadin25\GitVaa25\platform-spring-boot-autoconfigure\.e5h-e5h-20261031-backend.pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ platform-spring-boot-autoconfigure ---
+[INFO] Copying 0 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-spring-boot-autoconfigure\classes
+[INFO] Copying 1 resource from src\main\resources to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-spring-boot-autoconfigure\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ platform-spring-boot-autoconfigure ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 7 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-spring-boot-autoconfigure\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ platform-spring-boot-autoconfigure ---
+[INFO] skip non existing resourceDirectory C:\JavaProject\TestVaadin25\GitVaa25\platform-spring-boot-autoconfigure\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ platform-spring-boot-autoconfigure ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 9 source files with javac [debug parameters release 21] to ..\outputs\entity-generation-g1-extension\e5-h\e5h-20261031\backend\build-platform-spring-boot-autoconfigure\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ platform-spring-boot-autoconfigure ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.ipro.autoconfigure.AutoconfigureModuleCompositionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.440 s -- in org.ipro.autoconfigure.AutoconfigureModuleCompositionTest
+[INFO] Running org.ipro.autoconfigure.PlatformPropertiesTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.317 s -- in org.ipro.autoconfigure.PlatformPropertiesTest
+[INFO] Running org.ipro.crud.config.CrudAutoConfigurationTest
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+16:58:42.748 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'lookupService' defined in org.ipro.crud.config.CrudAutoConfiguration: Unsatisfied dependency expressed through method 'lookupService' parameter 0: No qualifying bean of type 'org.ipro.data.CanonicalReadExecutor' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.238 s -- in org.ipro.crud.config.CrudAutoConfigurationTest
+[INFO] Running org.ipro.data.config.C5EntityOperationPermissionRegistrarTest
+16:58:42.840 [main] WARN org.ipro.data.config.C5EntityOperationPermissionRegistrar -- ��������� ������� ������ ��������� (ADR-0017 �9): flush ������� ��������������� ����������� ��� 1 ����� � canonical write handle: [java.lang.String]; ����� ��� 1 �����: [java.lang.Integer]
+16:58:42.847 [main] WARN org.ipro.data.config.C5EntityOperationPermissionRegistrar -- ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 3 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: [java.lang.Double, java.lang.Integer, java.lang.String]
+16:58:42.858 [main] WARN org.ipro.data.config.C5EntityOperationPermissionRegistrar -- ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 1 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: [java.lang.String]
+16:58:42.859 [main] WARN org.ipro.data.config.C5EntityOperationPermissionRegistrar -- ��������� ������� ������ ��������� (ADR-0017 �9): flush ������� ��������������� ����������� ��� 1 ����� � canonical write handle: [java.lang.String]; ����� ��� 0 �����: []
+16:58:42.865 [main] WARN org.ipro.data.config.C5EntityOperationPermissionRegistrar -- ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 1 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: [java.lang.String]
+16:58:42.873 [main] WARN org.ipro.data.config.C5EntityOperationPermissionRegistrar -- ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 0 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: []
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.117 s -- in org.ipro.data.config.C5EntityOperationPermissionRegistrarTest
+[INFO] Running org.ipro.data.config.C5EntityReadPermissionRegistrarTest
+16:58:42.886 [main] WARN org.ipro.data.config.C5EntityOperationPermissionRegistrar -- ��������� ������� ������ ����� (rls.write-boundary.enforced=false): 0 ����� � canonical write handle �� ������� ����������� �� flush, ������� ������ EntityManager � ����� canonical path �� �����������: []
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in org.ipro.data.config.C5EntityReadPermissionRegistrarTest
+[INFO] Running org.ipro.data.config.DataAccessAutoConfigurationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.513 s -- in org.ipro.data.config.DataAccessAutoConfigurationTest
+[INFO] Running org.ipro.fetch.config.FetchPlanInstanceNameAutoConfigurationTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.116 s -- in org.ipro.fetch.config.FetchPlanInstanceNameAutoConfigurationTest
+[INFO] Running org.ipro.metadata.config.MetadataAutoConfigurationTest
+16:58:43.712 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'subsystemRegistry' defined in org.ipro.metadata.config.MetadataAutoConfiguration: Failed to instantiate [org.ipro.metadata.SubsystemRegistry]: Factory method 'subsystemRegistry' threw exception with message: Property 'platform.subsystem-scan-package' is required: it defines the application base package scanned for @Subsystem markers. Managed entity metadata is read from the current persistence unit. Set it in application.properties � the application owns its package name.
+16:58:43.772 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'metadataDrivenAggregateSaveService' defined in org.ipro.metadata.config.MetadataAutoConfiguration: Unsatisfied dependency expressed through method 'metadataDrivenAggregateSaveService' parameter 4: No qualifying bean of type 'org.ipro.lifecycle.EntityLifecycleRegistry' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+16:58:43.942 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'metadataConsistencyStartupCheck' defined in org.ipro.metadata.config.MetadataAutoConfiguration: Failed to instantiate [org.ipro.metadata.MetadataConsistencyStartupCheck]: Factory method 'metadataConsistencyStartupCheck' threw exception with message: ���������� �� �����������: 1 ������
+  ERROR [INTERNED_GENERIC_WRITES] org.ipro.metadata.config.MetadataAutoConfigurationTest$UnsafeInterned# (EntityDescriptorCatalog.capabilities / InternedEntity): interned type permits generic UPDATE/DELETE: [DELETE, UPDATE, CREATE]; use explicit named operations; CREATE policy remains independent
+
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.418 s -- in org.ipro.metadata.config.MetadataAutoConfigurationTest
+[INFO] Running org.ipro.search.config.GlobalSearchAutoConfigurationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.211 s -- in org.ipro.search.config.GlobalSearchAutoConfigurationTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 41, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ------------------< org.ipro.evidence:g1-e5h-backend >------------------
+[INFO] Building g1-e5h-backend 1                                        [11/11]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] Entity design contracts and independent core 1.0-SNAPSHOT SUCCESS [ 18.124 s]
+[INFO] Portable entity draft JSON codec 1.0-SNAPSHOT ...... SUCCESS [  6.089 s]
+[INFO] GitVaa platform contracts 1.0-SNAPSHOT ............. SUCCESS [  6.897 s]
+[INFO] GitVaa platform persistence 1.0-SNAPSHOT ........... SUCCESS [ 15.735 s]
+[INFO] GitVaa platform metadata spine 1.0-SNAPSHOT ........ SUCCESS [  0.473 s]
+[INFO] GitVaa platform numbering 1.0-SNAPSHOT ............. SUCCESS [  1.204 s]
+[INFO] GitVaa platform RLS 1.0-SNAPSHOT ................... SUCCESS [ 28.439 s]
+[INFO] GitVaa platform core 1.0-SNAPSHOT .................. SUCCESS [ 26.871 s]
+[INFO] Entity design runtime facts adapter 1.0-SNAPSHOT ... SUCCESS [  2.732 s]
+[INFO] GitVaa platform spring-boot autoconfigure 1.0-SNAPSHOT SUCCESS [ 10.461 s]
+[INFO] g1-e5h-backend 1 ................................... SUCCESS [  0.001 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:58 min
+[INFO] Finished at: 2026-10-31T16:58:44+03:00
+[INFO] ------------------------------------------------------------------------

@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 public class AccessGrantAdminService {
 
     @org.springframework.beans.factory.annotation.Autowired
-    private org.ip.application.access.PermissionSubjectLock permissionSubjectLock;
+    private org.ip.persistence.access.PermissionSubjectLock permissionSubjectLock;
 
     /**
      * Три флага прав; все false = записи гранта нет вообще (нет доступа). При сохранении
@@ -242,6 +242,7 @@ public class AccessGrantAdminService {
     public void saveGrants(String dimension, AccessGrant.SubjectType subjectType, String subjectKey,
                            Map<Long, GrantFlags> desiredByValueId) {
         permissionSubjectLock.acquire(subjectType, subjectKey);
+        requireRegisteredEntityKey(dimension);
         if (isOperationDimension(dimension) || isC5ReadDimension(dimension)) {
             throw new IllegalArgumentException("C5 permission '" + dimension
                 + "' has no value-scoped grants; edit its independent flags with saveSingleGrant");
@@ -308,6 +309,7 @@ public class AccessGrantAdminService {
     public void saveSingleGrant(String dimension, AccessGrant.SubjectType subjectType, String subjectKey,
                                 GrantFlags flags) {
         permissionSubjectLock.acquire(subjectType, subjectKey);
+        requireRegisteredEntityKey(dimension);
         if (dimension != null && dimension.startsWith("ATTR:")) {
             throw new IllegalArgumentException("Права на поля отменены; настраивайте доступ к сущности");
         }
@@ -395,6 +397,19 @@ public class AccessGrantAdminService {
             .map(grant -> new GrantFlags(readDeclared && grant.isCanRead(),
                 updateDeclared && grant.isCanUpdate(), deleteDeclared && grant.isCanDelete()))
             .orElse(GrantFlags.NONE);
+    }
+
+    /**
+     * P-U: короткий {@code ENTITY:<SimpleName>} больше не является ключом операции. Если ключ не
+     * объявлен ни операционным, ни read-определением, выдача отвергается, а не пишется в
+     * CHECK_ONLY-строку, которую никто не прочитает.
+     */
+    private void requireRegisteredEntityKey(String dimension) {
+        if (dimension != null && dimension.startsWith("ENTITY:")
+                && !isOperationDimension(dimension) && !isC5ReadDimension(dimension)) {
+            throw new IllegalArgumentException("C5 permission '" + dimension
+                + "' не зарегистрирован: чтение сущности решает ENTITY:<FQN>, а не короткий ключ");
+        }
     }
 
     /**

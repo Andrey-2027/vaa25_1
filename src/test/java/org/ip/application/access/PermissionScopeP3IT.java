@@ -1,5 +1,7 @@
 package org.ip.application.access;
 
+import org.ip.persistence.access.PermissionScopePageService;
+
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;

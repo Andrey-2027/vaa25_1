@@ -77,11 +77,15 @@ class PersistenceRegistrationIT {
     }
 
     @Test
-    void jrPersistenceAutoConfigurationComesFromTheApplication() {
+    void jrPersistenceAutoConfigurationComesFromTheJrModule() {
+        // M2.1: регистрация JR persistence уехала в platform-jr вместе с типами.
         assertThat(JrPersistenceAutoConfiguration.class.getProtectionDomain()
             .getCodeSource().getLocation().toString())
-            .as("регистрация JR persistence-пакетов должна приходить из артефакта приложения")
-            .isEqualTo(Application.class.getProtectionDomain().getCodeSource().getLocation()
+            .as("регистрация JR persistence-пакетов должна приходить из platform-jr")
+            .contains("platform-jr");
+        assertThat(JrPersistenceAutoConfiguration.class.getProtectionDomain()
+            .getCodeSource().getLocation().toString())
+            .isNotEqualTo(Application.class.getProtectionDomain().getCodeSource().getLocation()
                 .toString());
     }
 
@@ -89,8 +93,6 @@ class PersistenceRegistrationIT {
         Map<String, Class<?>> repositories = new LinkedHashMap<>();
         // приложение объявляет свои репозитории само
         repositories.put("org.ip", org.ip.repository.BranchRepository.class);
-        // собственные persistence-конференции подсистем в дереве
-        repositories.put("org.ipro.reportstudio", org.ipro.reportstudio.ReportTemplateRepository.class);
         // вынесенные модули объявляют свои пакеты сами
         repositories.put("org.ipro.numbering", org.ipro.numbering.NumberingRuleRepository.class);
         repositories.put("org.ipro.settings", org.ipro.settings.SettingValueRepository.class);

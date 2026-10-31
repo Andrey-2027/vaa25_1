@@ -1,7 +1,10 @@
 /* Vaadin default theme */
+@import "@vaadin/vaadin-lumo-styles/lumo.css";
 @import "form-1c.css";
 @import "windows-global.css";
 @import "query-constructor.css";
+@import "entity-explorer-pilot.css";
+@import "entity-draft-editor.css";
 
 .workspace {
   overflow: hidden;

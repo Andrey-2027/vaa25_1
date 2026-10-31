@@ -1,9 +1,10 @@
-package org.ip.unidr.model;
+package org.ipro.unidr.model;
+import org.ip.unidr.model.UniDrDefinitions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.ip.unidr.model.UniDrValidationException.Code;
-import org.ip.unidr.source.UniDrSourceCatalog;
+import org.ipro.unidr.model.UniDrValidationException.Code;
+import org.ipro.unidr.source.UniDrSourceCatalog;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -13,7 +14,7 @@ import java.util.function.Consumer;
 import static org.assertj.core.api.Assertions.*;
 
 class UniDrDefinitionJsonCodecTest {
-    private final UniDrDefinitionJsonCodec codec = new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot()));
+    private final UniDrDefinitionJsonCodec codec = new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrDefinitions.catalog()));
     private final ObjectMapper json = new ObjectMapper();
 
     @ParameterizedTest @ValueSource(strings = {"", " ", "{", "[]", "null", "{\"schemaVersion\":1}"})
@@ -83,6 +84,16 @@ class UniDrDefinitionJsonCodecTest {
         assertThatThrownBy(() -> codec.decode(deep)).isInstanceOf(UniDrValidationException.class).hasMessageNotContaining(privateText);
     }
 
+    @Test void printBindingRoundTripsAndStaysOptional() throws Exception {
+        var base=UniDrDefinitions.receivingItemsSummary();
+        var bound=base.withTargetEntityClass("org.ip.domain.ReceivingDocument");
+        assertThat(codec.decode(codec.encode(bound))).isEqualTo(bound);
+        assertThat(codec.decode(edited(tree->tree.remove("targetEntityClass"))).targetEntityClass()).isNull();
+        assertThat(base.withTargetEntityClass("  ").targetEntityClass()).isNull();
+        assertRejected(edited(tree->tree.put("targetEntityClass",42)),Code.INVALID_JSON);
+        assertRejected(edited(tree->tree.put("targetEntityClass","org..Bad")),Code.INVALID_JSON);
+    }
+
     @Test void computedColumnsBordersAndNumbersRoundTripAndLegacyRecipesKeepDefaults() throws Exception {
         var base=UniDrDefinitions.receivingItemsSummary();
         var recipe=base.withComputedColumns(java.util.List.of(new UniDrDefinition.ComputedColumn("calc_amount","Стоимость",UniDrDefinition.Computation.FORMULA,"{quantity} * 10")))
@@ -109,7 +120,7 @@ class UniDrDefinitionJsonCodecTest {
         var recipe=new UniDrDefinition(1,base.sourceId(),1,"Стоимость",java.util.List.of(),
             java.util.List.of(new UniDrDefinition.Measure("calc_amount",UniDrDefinition.Aggregation.SUM,null)),java.util.List.of(),java.util.List.of(),base.parameters(),java.util.List.of(),UniDrDefinition.Mode.SUMMARY,true)
             .withComputedColumns(java.util.List.of(new UniDrDefinition.ComputedColumn("calc_amount","Стоимость",UniDrDefinition.Computation.FORMULA,"{quantity} * 10")));
-        assertThat(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot()).parameterRequired(recipe,"unit")).isTrue();
+        assertThat(new UniDrDefinitionValidator(UniDrDefinitions.catalog()).parameterRequired(recipe,"unit")).isTrue();
     }
 
     private String edited(Consumer<ObjectNode> edit) throws Exception {

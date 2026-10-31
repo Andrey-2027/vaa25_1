@@ -66,8 +66,7 @@ public class ValidatedJpaCrudService<T extends IdentifiableEntity<Long>> impleme
      * классе, и никакой новый сервис не может обойти его случайно.</p>
      */
     private void requireInternalStore() {
-        if (domainClass.isAnnotationPresent(
-                org.ipro.metadata.annotation.EntityMetadata.class)) {
+        if (org.ipro.metadata.MetadataResolver.isApplicable(domainClass)) {
             throw new IllegalStateException(getClass().getSimpleName() + " extends"
                 + " ValidatedJpaCrudService<" + domainClass.getSimpleName()
                 + ">, but that type is metadata-driven (@EntityMetadata)."

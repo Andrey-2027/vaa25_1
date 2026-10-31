@@ -1,0 +1,9 @@
+{
+  "mode" : "journal-failure-after-receipt",
+  "status" : "RECOVERY_REQUIRED",
+  "code" : "JOURNAL_DELETE_FAILED",
+  "targetExists" : false,
+  "receiptExists" : false,
+  "targetHashMatches" : false,
+  "journalExists" : true
+}

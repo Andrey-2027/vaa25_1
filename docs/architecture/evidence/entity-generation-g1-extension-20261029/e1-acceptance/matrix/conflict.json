@@ -1,0 +1,12 @@
+{
+  "status" : "CONFLICT",
+  "code" : "CONFLICT_MODIFIED",
+  "message" : "The target exists but is no longer the file recorded by this plan",
+  "planId" : "g1-9867a330d148f93729ac373a32136b840cafd1f56da05ca1d93a099079cfd4a3",
+  "contentSha256" : "d65c2c9f5efea8e494863220fa6e4b5827c8ed04140921aad82c781ecf8fa476",
+  "cSummarySha256" : "69194e8e2afef53d9d434677fc265592bf79effd7ea3dbfd75af6d5a6b5a127e",
+  "target" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e1-acceptance\\20261029-r1\\matrix\\conflict-project\\src\\main\\java\\com\\example\\generated\\Matrix.java",
+  "receipt" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e1-acceptance\\20261029-r1\\matrix\\conflict-project\\.entity-generation\\apply\\receipts\\f5b46e1218c9c46ef93fa299949add0fb60210696857fb41200cd376bcd08800\\g1-9867a330d148f93729ac373a32136b840cafd1f56da05ca1d93a099079cfd4a3.json",
+  "journal" : "C:\\JavaProject\\TestVaadin25\\GitVaa25\\outputs\\entity-generation-g1-extension\\e1-acceptance\\20261029-r1\\matrix\\conflict-project\\.entity-generation\\apply\\journal.json",
+  "applyId" : null
+}

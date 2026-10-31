@@ -1,0 +1,18 @@
+[
+  {
+    "scenario": "empty-document",
+    "planId": "g1-edb926b5688ff32b8fba23c3d0519d513f697f2f34e97c02c59157b89774e1e6",
+    "sourceSha256": "a28039602c6cae7ea4ea75cd6b1d6f9be9e6fbc2e42909e2ab028574d409ad34",
+    "bytes": 541,
+    "manifestSha256": "67d5453af0291c0f11b8943327884e40641d4afa3b1bb84adfd88cf49167351a",
+    "exactPlanBytes": true
+  },
+  {
+    "scenario": "scalar-document",
+    "planId": "g1-2fdd307057f01a33265214c7a1be5f2f0b2d7c9cd609fb9147c0677823d52fa5",
+    "sourceSha256": "c7ea7c6117ce6e9dbebb4bbeceaa0faae6165b8acd5ace5f5975a10f2e5f68a7",
+    "bytes": 3727,
+    "manifestSha256": "6d6435a97283b6047ffff211ee7905197aca7e4a72e3529fecdac592a8f1f4e1",
+    "exactPlanBytes": true
+  }
+]

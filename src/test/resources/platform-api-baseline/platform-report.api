@@ -1,0 +1,122 @@
+# platform-report: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+class public final org.ipro.report.catalog.ReportCatalogItemFactory
+  method public static org.ipro.report.catalog.ReportCatalogItem of(long, org.ipro.report.catalog.ReportEngineType, java.lang.String, java.lang.String, boolean, boolean)
+  method public static org.ipro.report.catalog.ReportCatalogItem ofUniDr(long, java.lang.String, java.lang.String)
+
+class public final org.ipro.report.catalog.ReportEngineCapabilities
+  method public static org.ipro.report.catalog.ReportEngineCapabilities$Capabilities of(org.ipro.report.catalog.ReportEngineType)
+
+class public final org.ipro.report.render.FormulaEvaluator
+  method public static java.math.BigDecimal evaluate(java.lang.String, java.util.function.Function<java.lang.String, java.math.BigDecimal>)
+  method public static java.math.BigDecimal toBigDecimal(java.lang.Object)
+  method public static java.util.Set<java.lang.String> aliasesOf(java.lang.String)
+  method public static void validate(java.lang.String)
+
+class public final org.ipro.report.task.ReportTaskCompletion
+  type-parameter T
+  ctor public()
+  method public T join()
+  method public boolean complete(T)
+  method public boolean fail(java.lang.Throwable)
+  method public boolean isCancelled()
+  method public boolean isDone()
+  method public java.util.concurrent.CompletionStage<T> stage()
+  method public static <T> org.ipro.report.task.ReportTaskCompletion<T> observe(java.util.concurrent.CompletionStage<T>)
+  method public void cancel()
+
+class public final org.ipro.report.task.ReportTaskExecutor
+  implements java.lang.AutoCloseable
+  ctor public(int, int)
+  ctor public(java.util.concurrent.Executor)
+  method public void close()
+  method public void execute(org.springframework.security.core.Authentication, org.springframework.web.context.request.RequestAttributes, java.lang.Runnable)
+
+class public org.ipro.report.catalog.ReportCatalogReadGate
+  ctor public(org.ipro.rls.RlsReadGate, org.ipro.rls.RlsCurrentUser)
+  method public boolean canRead(java.lang.Class<?>)
+
+class public org.ipro.report.catalog.ReportCatalogService
+  ctor public(java.util.List<org.ipro.report.catalog.ReportCatalogContributor>)
+  method public java.util.List<org.ipro.report.catalog.ReportCatalogItem> findAll(java.lang.String, boolean)
+  method public org.ipro.report.catalog.ReportCatalogItem find(org.ipro.report.catalog.ReportEngineType, java.lang.Long)
+
+class public org.ipro.report.config.ReportCatalogAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  ctor public()
+  method public org.ipro.report.catalog.ReportCatalogReadGate reportCatalogReadGate(org.ipro.rls.RlsReadGate, org.ipro.rls.RlsCurrentUser)
+  method public org.ipro.report.catalog.ReportCatalogService reportCatalogService(org.springframework.beans.factory.ObjectProvider<org.ipro.report.catalog.ReportCatalogContributor>)
+  method public org.ipro.report.render.JasperExporter jasperExporter()
+  method public org.ipro.report.task.ReportTaskExecutor reportTaskExecutor(int, int)
+
+class public org.ipro.report.render.JasperReportExporter
+  implements org.ipro.report.render.JasperExporter
+  ctor public()
+  method public byte[] export(net.sf.jasperreports.engine.JasperPrint, org.ipro.report.render.ReportExportFormat)
+
+class public org.ipro.report.render.ReportRenderException
+  extends java.lang.RuntimeException
+  ctor public(java.lang.String)
+  ctor public(java.lang.String, java.lang.Throwable)
+
+enum public final org.ipro.report.catalog.ReportEngineType
+  extends java.lang.Enum<org.ipro.report.catalog.ReportEngineType>
+  enum-constants [JR, UNIDR]
+  field public static final org.ipro.report.catalog.ReportEngineType JR = enum-constant
+  field public static final org.ipro.report.catalog.ReportEngineType UNIDR = enum-constant
+  method public static org.ipro.report.catalog.ReportEngineType valueOf(java.lang.String)
+  method public static org.ipro.report.catalog.ReportEngineType[] values()
+
+enum public final org.ipro.report.render.ReportExportFormat
+  extends java.lang.Enum<org.ipro.report.render.ReportExportFormat>
+  enum-constants [PDF, XLSX, DOCX, CSV]
+  field public static final org.ipro.report.render.ReportExportFormat CSV = enum-constant
+  field public static final org.ipro.report.render.ReportExportFormat DOCX = enum-constant
+  field public static final org.ipro.report.render.ReportExportFormat PDF = enum-constant
+  field public static final org.ipro.report.render.ReportExportFormat XLSX = enum-constant
+  method public java.lang.String extension()
+  method public java.lang.String mimeType()
+  method public static org.ipro.report.render.ReportExportFormat valueOf(java.lang.String)
+  method public static org.ipro.report.render.ReportExportFormat[] values()
+
+enum public static final org.ipro.report.catalog.ReportEngineCapabilities$OpenTarget
+  extends java.lang.Enum<org.ipro.report.catalog.ReportEngineCapabilities$OpenTarget>
+  enum-constants [INFO, UNIDR_EDITOR]
+  field public static final org.ipro.report.catalog.ReportEngineCapabilities$OpenTarget INFO = enum-constant
+  field public static final org.ipro.report.catalog.ReportEngineCapabilities$OpenTarget UNIDR_EDITOR = enum-constant
+  method public static org.ipro.report.catalog.ReportEngineCapabilities$OpenTarget valueOf(java.lang.String)
+  method public static org.ipro.report.catalog.ReportEngineCapabilities$OpenTarget[] values()
+
+interface public abstract interface org.ipro.report.catalog.ReportCatalogContributor
+  method public abstract java.util.List<org.ipro.report.catalog.ReportCatalogItem> findAll(java.lang.String, boolean)
+  method public abstract org.ipro.report.catalog.ReportCatalogItem find(java.lang.Long)
+  method public abstract org.ipro.report.catalog.ReportEngineType type()
+
+interface public abstract interface org.ipro.report.render.JasperExporter
+  method public abstract byte[] export(net.sf.jasperreports.engine.JasperPrint, org.ipro.report.render.ReportExportFormat)
+
+record public final org.ipro.report.catalog.ReportCatalogItem
+  extends java.lang.Record
+  ctor public(java.lang.Long, org.ipro.report.catalog.ReportEngineType, java.lang.String, java.lang.String, boolean, boolean)
+  method public boolean enabled()
+  method public boolean fileMissing()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Long id()
+  method public java.lang.String description()
+  method public java.lang.String name()
+  method public org.ipro.report.catalog.ReportEngineType type()
+
+record public static final org.ipro.report.catalog.ReportEngineCapabilities$Capabilities
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.report.catalog.ReportEngineCapabilities$OpenTarget, boolean, boolean, boolean, boolean)
+  method public boolean copy()
+  method public boolean createNew()
+  method public boolean deleteInCatalog()
+  method public boolean exportJson()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String label()
+  method public org.ipro.report.catalog.ReportEngineCapabilities$OpenTarget openTarget()
+

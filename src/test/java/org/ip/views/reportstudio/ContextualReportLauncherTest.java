@@ -1,73 +1,94 @@
-package org.ip.views.reportstudio;
+package org.ipro.report.ui.print;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
-import org.ipro.form.SelectionFormAssembler;
-import org.ipro.crud.LookupService;
-import org.ipro.reportstudio.dom.ReportTemplate;
-import org.ipro.reportstudio.param.ReportContext;
-import org.ipro.reportstudio.run.ReportExecutionService;
-import org.ipro.reportstudio.service.ReportTemplateService;
+import org.ipro.query.ReportContext;
+import org.ipro.unidr.model.UniDrDefinitionJsonCodec;
+import org.ipro.unidr.model.UniDrDefinitionValidator;
+import org.ip.unidr.model.UniDrDefinitions;
+import org.ipro.unidr.run.UniDrAccess;
+import org.ipro.unidr.source.UniDrSourceCatalog;
+import org.ipro.unidr.store.UniDrFileStore;
+import org.ipro.report.ui.UniDrStoreGateway;
+import org.ipro.report.ui.unidr.UniDrRunLauncher;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.io.TempDir;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
-@ExtendWith(MockitoExtension.class)
+/**
+ * Кнопка карточки открывает общий диалог печати; R3 оставил в нём только UniDR и JR.
+ */
 class ContextualReportLauncherTest {
 
-    @Mock
-    private ReportTemplateService templateService;
-    @Mock
-    private ReportExecutionService executionService;
-    @Mock
-    private LookupService lookupService;
-    @Mock
-    private SelectionFormAssembler selectionFormAssembler;
+    @TempDir
+    Path directory;
 
+    @BeforeEach
+    void login() {
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken("alice", null, List.of()));
+    }
+
+    @AfterEach
+    void cleanup() {
+        SecurityContextHolder.clearContext();
+    }
+
+    /** Карточка и список ведут в один диалог: привязанный UniDR виден и здесь. */
     @Test
-    void clickLoadsTemplatesAndBuildsSelectionDialog() {
-        when(templateService.search("")).thenReturn(List.of());
-        ReportContext context = ReportContext.of(null, null, List.of(), "journal-form", "tester", Instant.now());
-        TestLauncher launcher = new TestLauncher(
-                () -> context,
-                templateService,
-                executionService,
-                lookupService,
-                selectionFormAssembler);
+    void cardOffersUniDrReportsBoundToTheFormEntityType() {
+        var store = new UniDrFileStore(directory,
+            new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrDefinitions.catalog())),
+            new UniDrAccess(() -> true, () -> "alice"));
+        store.create(UniDrDefinitions.receivingItemsSummary().withTitle("Накладная")
+            .withTargetEntityClass(Printable.class.getName()), "");
+        store.create(UniDrDefinitions.receivingItemsSummary().withTitle("Без привязки"), "");
+
+        ReportContext context = ReportContext.of(Printable.class, 5L, List.of(5L),
+            "form", "tester", Instant.now());
+        TestLauncher launcher = new TestLauncher(() -> context, store,
+            mock(UniDrRunLauncher.class));
 
         launcher.click();
 
-        verify(templateService).search("");
-        assertNotNull(launcher.openedDialog);
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        Grid<org.ipro.report.catalog.ReportCatalogItem> templates =
+            (Grid) componentOf(launcher.openedDialog, Grid.class);
+        assertThat(templates.getListDataView().getItems().toList())
+            .extracting(org.ipro.report.catalog.ReportCatalogItem::type,
+                org.ipro.report.catalog.ReportCatalogItem::name)
+            .containsExactly(org.assertj.core.groups.Tuple.tuple(
+                org.ipro.report.catalog.ReportEngineType.UNIDR, "Накладная"));
     }
 
     @Test
-    void runAndEditButtonsEnableOnlyWhenTemplateRowIsSelected() {
-        ReportTemplate template = new ReportTemplate();
-        template.setId(11L);
-        template.setName("Остатки");
-        when(templateService.search("")).thenReturn(List.of(template));
-        ReportContext context = ReportContext.of(null, null, List.of(), "journal-form", "tester", Instant.now());
-        TestLauncher launcher = new TestLauncher(
-                () -> context,
-                templateService,
-                executionService,
-                lookupService,
-                selectionFormAssembler);
+    void runAndEditButtonsEnableOnlyWhenRowIsSelected() {
+        var store = new UniDrFileStore(directory,
+            new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrDefinitions.catalog())),
+            new UniDrAccess(() -> true, () -> "alice"));
+        store.create(UniDrDefinitions.receivingItemsSummary().withTitle("Накладная")
+            .withTargetEntityClass(Printable.class.getName()), "");
+        ReportContext context = ReportContext.of(Printable.class, 5L, List.of(5L),
+            "form", "tester", Instant.now());
+        TestLauncher launcher = new TestLauncher(() -> context, store,
+            mock(UniDrRunLauncher.class));
 
         launcher.click();
 
@@ -80,11 +101,10 @@ class ContextualReportLauncherTest {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         Grid<org.ipro.report.catalog.ReportCatalogItem> templates =
-                (Grid) componentOf(launcher.openedDialog, Grid.class);
-        // грид единого каталога: выбор UDR-строки (type,id) - Р9
+            (Grid) componentOf(launcher.openedDialog, Grid.class);
         templates.asSingleSelect().setValue(new org.ipro.report.catalog.ReportCatalogItem(
-                11L, org.ipro.report.catalog.ReportEngineType.UDR,
-                "Остатки", null, true, false));
+            11L, org.ipro.report.catalog.ReportEngineType.UNIDR,
+            "Накладная", null, true, false));
 
         assertTrue(edit.isEnabled());
         assertTrue(run.isEnabled());
@@ -93,6 +113,22 @@ class ContextualReportLauncherTest {
 
         assertFalse(edit.isEnabled());
         assertFalse(run.isEnabled());
+    }
+
+    /** UDR-пункта «Создать» больше нет: вход снят вместе с редактором. */
+    @Test
+    void createMenuHasNoUdrEntry() {
+        ReportContext context = ReportContext.of(Printable.class, 5L, List.of(5L),
+            "form", "tester", Instant.now());
+        TestLauncher launcher = new TestLauncher(() -> context, null, null);
+
+        launcher.click();
+
+        assertThat(descendants(launcher.openedDialog, com.vaadin.flow.component.menubar.MenuBar.class))
+            .flatExtracting(bar -> bar.getItems())
+            .flatExtracting(item -> item.getSubMenu().getItems())
+            .extracting(com.vaadin.flow.component.contextmenu.MenuItem::getText)
+            .noneMatch(text -> text != null && text.startsWith("UDR"));
     }
 
     private static Button button(Dialog dialog, String caption) {
@@ -117,17 +153,18 @@ class ContextualReportLauncherTest {
         return result;
     }
 
+    /** Тип реестра, к которому привязан отчёт. */
+    static final class Printable {
+    }
+
     private static final class TestLauncher extends ContextualReportLauncher {
 
         private Dialog openedDialog;
 
-        private TestLauncher(
-                Supplier<ReportContext> contextSupplier,
-                ReportTemplateService templateService,
-                ReportExecutionService executionService,
-                LookupService lookupService,
-                SelectionFormAssembler selectionFormAssembler) {
-            super(contextSupplier, templateService, executionService, lookupService, selectionFormAssembler);
+        private TestLauncher(Supplier<ReportContext> contextSupplier,
+                UniDrFileStore store, UniDrRunLauncher runs) {
+            super(contextSupplier, null, null,
+                store == null ? null : new UniDrStoreGateway(store), runs);
         }
 
         @Override

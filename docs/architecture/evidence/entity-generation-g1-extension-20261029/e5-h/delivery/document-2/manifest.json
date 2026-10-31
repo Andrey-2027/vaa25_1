@@ -1,0 +1,27 @@
+{
+  "kind" : "g1-generation-manifest-v2",
+  "planId" : "g1-a42064376c94a35f63ebdb78e35992855fe6f55b56c6ff82be281a1100b0a427",
+  "recipe" : {
+    "id" : "standard-document-v1",
+    "version" : 1
+  },
+  "generatorVersion" : "document-java-v4",
+  "fingerprintProfile" : "plan-fingerprint-v2",
+  "entries" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/DocumentSections2.java",
+    "sha256" : "f227d460c6bbba56ea96859d4e4cfe54a3710ed29f6723af93278e8b81d952d8",
+    "bytes" : 721
+  }, {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/rows/DocumentSections2Row1.java",
+    "sha256" : "f40fe009ca3957c04ff25b30fe4bddb467993963b907b185806f442f14caa69a",
+    "bytes" : 2657
+  }, {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/rows/DocumentSections2Row2.java",
+    "sha256" : "48c453b25d23b8a74ded99af9f6b7d5eee5375496f93c1fe8e8685d37eabec5d",
+    "bytes" : 2657
+  } ],
+  "manifestSha256" : "31585de2ec1b76ccbe481b775692e0a33c6f7581401932ca7843067e6a30c0f8"
+}

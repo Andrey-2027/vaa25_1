@@ -53,13 +53,13 @@ try {
         ForEach-Object { '"'+$_.FullName.Replace('\','/')+'"' }
     $arguments += 'src/main/java/org/ipro/reportstudio/render/JasperReportCompiler.java'
     $arguments += 'src/main/java/org/ipro/jr/run/JpqlQueryExecuterBundle.java'
-    $arguments += 'src/main/java/org/ipro/ureport/catalog/ReportCatalogService.java'
-    $arguments += 'src/main/java/org/ipro/ureport/config/UreportAutoConfiguration.java'
     $arguments += 'src/main/java/org/ip/views/reportstudio/ReportCatalogView.java'
     $arguments += 'src/main/java/org/ip/views/reportstudio/ReportPrintDialog.java'
     $argumentFile = Join-Path $output 'compile.args'
     [IO.File]::WriteAllLines($argumentFile,[string[]]$arguments,[Text.UTF8Encoding]::new($false))
-    & $javac ('@'+$argumentFile) *> (Join-Path $output 'compile-scoped.log')
+    $ErrorActionPreference = 'Continue'
+    & $javac ('@'+$argumentFile) 2>&1 | ForEach-Object { "$_" } | Tee-Object -FilePath (Join-Path $output 'compile-scoped.log')
+    $ErrorActionPreference = 'Stop'
     if ($LASTEXITCODE -ne 0) { Get-Content (Join-Path $output 'compile-scoped.log') -Tail 40; throw 'U4 source compilation failed.' }
     $testClasspath = 'target/classes;' + $compileClasspath
     $testArguments = @('--release','21','-parameters','-encoding','UTF-8','-cp',('"'+$testClasspath.Replace('\','/')+'"'),'-d','target/test-classes')
@@ -76,13 +76,15 @@ try {
     $testArguments += 'src/test/java/org/ipro/reportstudio/query/editor/ReportQueryEditorTest.java'
     $testArguments += 'src/test/java/org/ipro/ReportFormSeamTest.java'
     $testArguments += 'src/test/java/org/ip/views/components/ReportParamFormTest.java'
-    $testArguments += Get-ChildItem -LiteralPath 'src/test/java/org/ipro/ureport' -Filter 'ReportCatalog*Test.java' |
+    $testArguments += Get-ChildItem -LiteralPath 'src/test/java/org/ipro/report/catalog' -Filter 'ReportCatalog*Test.java' |
         ForEach-Object { '"'+$_.FullName.Replace('\','/')+'"' }
-    $testArguments += 'src/test/java/org/ipro/ureport/ReportEngineCapabilitiesTest.java'
+    $testArguments += 'src/test/java/org/ipro/report/catalog/ReportEngineCapabilitiesTest.java'
     $testArguments += 'src/test/java/org/ip/views/reportstudio/ReportCatalogViewTest.java'
     $testArgumentFile = Join-Path $output 'compile-tests.args'
     [IO.File]::WriteAllLines($testArgumentFile,[string[]]$testArguments,[Text.UTF8Encoding]::new($false))
-    & $javac ('@'+$testArgumentFile) *> (Join-Path $output 'compile-tests.log')
+    $ErrorActionPreference = 'Continue'
+    & $javac ('@'+$testArgumentFile) 2>&1 | ForEach-Object { "$_" } | Tee-Object -FilePath (Join-Path $output 'compile-tests.log')
+    $ErrorActionPreference = 'Stop'
     if ($LASTEXITCODE -ne 0) { Get-Content (Join-Path $output 'compile-tests.log') -Tail 40; throw 'U4 test compilation failed.' }
     $mockito = @($classpath -split ';' | Where-Object { $_ -match '[\\/]mockito-core[\\/].*\.jar$' })
     if ($mockito.Count -ne 1) { throw 'Expected one Mockito agent in the test classpath.' }

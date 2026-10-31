@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 3,
+  "recipe": {
+    "id": "independent-register-v1",
+    "version": 1
+  },
+  "draftId": "00000000-0000-4000-8000-000000000201",
+  "entity": {
+    "className": "ItemRate",
+    "packageName": {
+      "mode": "EXPLICIT",
+      "text": "com.example.registerconsumer"
+    },
+    "label": "Ставки по номенклатуре",
+    "titles": {
+      "list": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "item": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "selection": {
+        "mode": "AUTO",
+        "text": ""
+      }
+    },
+    "tableName": {
+      "mode": "AUTO",
+      "text": ""
+    },
+    "subsystemId": null,
+    "icon": "MONEY"
+  },
+  "fields": [
+    {
+      "id": "00000000-0000-4000-8000-000000000211",
+      "name": "item",
+      "label": "Номенклатура",
+      "type": "REFERENCE",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "REQUIRED",
+      "constraints": {
+        "length": "",
+        "precision": "",
+        "scale": ""
+      },
+      "reference": {
+        "typeId": "org.ip.model.Nomenclature"
+      },
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000212",
+      "name": "rate",
+      "label": "Ставка",
+      "type": "DECIMAL",
+      "columnName": {
+        "mode": "AUTO",
+        "text": ""
+      },
+      "serverRequired": true,
+      "uiRequired": "REQUIRED",
+      "constraints": {
+        "length": "",
+        "precision": "19",
+        "scale": "4"
+      },
+      "reference": null,
+      "applications": {
+        "form": true,
+        "list": true,
+        "selection": true,
+        "table": false
+      }
+    }
+  ],
+  "sections": [],
+  "register": {
+    "period": "DAY",
+    "writeProfile": "NAMED_AND_CANONICAL_CRUD",
+    "dimensions": [
+      "00000000-0000-4000-8000-000000000211"
+    ],
+    "resources": [
+      "00000000-0000-4000-8000-000000000212"
+    ]
+  }
+}

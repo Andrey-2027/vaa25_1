@@ -1,0 +1,17 @@
+{
+  "kind" : "g1-generation-manifest-v2",
+  "planId" : "g1-6799e542c450f0aa3dd8ff3cea51ba67bab96f0791d082572db88c6dd1de6b40",
+  "recipe" : {
+    "id" : "standard-catalog-v2",
+    "version" : 2
+  },
+  "generatorVersion" : "catalog-java-v4",
+  "fingerprintProfile" : "plan-fingerprint-v2",
+  "entries" : [ {
+    "operation" : "CREATE",
+    "relativePath" : "com/example/generated/CatalogSections0.java",
+    "sha256" : "b55e828ad15b6038d4cbddbf4c86ea951d8e43fe919dddfeb1eda38ca4fee7a0",
+    "bytes" : 533
+  } ],
+  "manifestSha256" : "c16c63a0e78cde6c4fa78dedaa2259fde00e12f9b438e48149016b9281d87acc"
+}

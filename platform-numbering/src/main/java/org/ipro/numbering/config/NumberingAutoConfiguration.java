@@ -6,8 +6,8 @@ import org.ipro.numbering.NumberingRuleRepository;
 import org.ipro.numbering.NumberingRuleService;
 import org.ipro.numbering.NumberingScopeResolver;
 import org.ipro.numbering.NumberingService;
+import org.ipro.metadata.ManagedEntityTypes;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
@@ -61,8 +61,10 @@ public class NumberingAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public NumberingMetadataRegistry numberingMetadataRegistry(
-            @Value("${platform.subsystem-scan-package}") String basePackage) {
-        return new NumberingMetadataRegistry(basePackage);
+    public NumberingMetadataRegistry numberingMetadataRegistry(ManagedEntityTypes managedEntityTypes,
+            ObjectProvider<org.ipro.metadata.EntityMetadataApplicability> applicability) {
+        return new NumberingMetadataRegistry(managedEntityTypes,
+            applicability.getIfAvailable(() -> type -> type.isAnnotationPresent(
+                org.ipro.metadata.annotation.EntityMetadata.class)));
     }
 }

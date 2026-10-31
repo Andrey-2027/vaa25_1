@@ -1,5 +1,6 @@
 package org.ipro.vaadin.explorer;
 
+import org.ipro.data.EntityClassification;
 import org.ipro.form.action.ActionDefinition;
 import org.ipro.form.action.ActionHandler;
 import org.ipro.form.action.ActionHandlerRegistry;
@@ -29,6 +30,7 @@ import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.FactOrigin;
 import org.ipro.metadata.FieldMetadataInfo;
+import org.ipro.metadata.ManagedEntityTypes;
 import org.ipro.metadata.MetadataConsistencyStartupCheck;
 import org.ipro.metadata.MetadataDiagnostic;
 import org.ipro.metadata.MetadataDiagnosticCodes;
@@ -62,6 +64,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -71,9 +74,8 @@ import java.util.TreeSet;
  * Собирает {@link EntitySummary} для сущности из уже резолвнутых реестров платформы.
  *
  * <p>Единственное место знания о том, «что входит в сводку». Класс только читает:
- * никаких {@code register*} и мутаций реестров. Сам скан {@code @EntityMetadata}-классов
- * делает по base package (тот же {@code platform.subsystem-scan-package}, что у
- * ReferenceIndex/SubsystemRegistry), а не ходит по сырым реестрам.</p>
+ * никаких {@code register*} и мутаций реестров. Production получает список кандидатов
+ * из общего PU-снимка; старые package-конструкторы сохранены для standalone callers.</p>
  *
  * <p>Резолюция надписей: каждая переопределяемая грань ({@link FacetKind#overridable()})
  * проходит через {@link FacetResolver} (код-дефолт ← переопределение); структурные грани
@@ -81,7 +83,10 @@ import java.util.TreeSet;
  */
 public class EntitySummaryAssembler {
 
+    private final EntityStructureFactsAssembler structureAssembler = new EntityStructureFactsAssembler();
+
     private final String basePackage;
+    private final ManagedEntityTypes managedEntityTypes;
     private final MetadataResolver metadataResolver;
     private final FormRegistry formRegistry;
     private final ReferenceIndex referenceIndex;
@@ -222,7 +227,60 @@ public class EntitySummaryAssembler {
             ActionProvenanceCatalog actionCatalog,
             FetchPlanInspection fetchPlanInspection,
             RlsDimensionRegistry rlsDimensionRegistry) {
+        this(basePackage, null, metadataResolver, formRegistry, referenceIndex,
+            numberingMetadataRegistry, subsystemRegistry, facetResolver, descriptorCatalog,
+            formRouteCatalog, lifecycleRegistry, sectionMetadataRegistry, startupCheck,
+            actionRegistry, actionHandlerRegistry, actionCatalog, fetchPlanInspection,
+            rlsDimensionRegistry);
+    }
+
+    /** Production constructor: consumes the shared managed-type snapshot. */
+    public EntitySummaryAssembler(
+            ManagedEntityTypes managedEntityTypes,
+            MetadataResolver metadataResolver,
+            FormRegistry formRegistry,
+            ReferenceIndex referenceIndex,
+            NumberingMetadataRegistry numberingMetadataRegistry,
+            SubsystemRegistry subsystemRegistry,
+            FacetResolver facetResolver,
+            EntityDescriptorCatalog descriptorCatalog,
+            FormRouteCatalog formRouteCatalog,
+            EntityLifecycleRegistry lifecycleRegistry,
+            SectionMetadataRegistry sectionMetadataRegistry,
+            MetadataConsistencyStartupCheck startupCheck,
+            ActionRegistry actionRegistry,
+            ActionHandlerRegistry actionHandlerRegistry,
+            ActionProvenanceCatalog actionCatalog,
+            FetchPlanInspection fetchPlanInspection,
+            RlsDimensionRegistry rlsDimensionRegistry) {
+        this(null, Objects.requireNonNull(managedEntityTypes, "managedEntityTypes must not be null"),
+            metadataResolver, formRegistry, referenceIndex, numberingMetadataRegistry,
+            subsystemRegistry, facetResolver, descriptorCatalog, formRouteCatalog,
+            lifecycleRegistry, sectionMetadataRegistry, startupCheck, actionRegistry,
+            actionHandlerRegistry, actionCatalog, fetchPlanInspection, rlsDimensionRegistry);
+    }
+
+    private EntitySummaryAssembler(
+            String basePackage,
+            ManagedEntityTypes managedEntityTypes,
+            MetadataResolver metadataResolver,
+            FormRegistry formRegistry,
+            ReferenceIndex referenceIndex,
+            NumberingMetadataRegistry numberingMetadataRegistry,
+            SubsystemRegistry subsystemRegistry,
+            FacetResolver facetResolver,
+            EntityDescriptorCatalog descriptorCatalog,
+            FormRouteCatalog formRouteCatalog,
+            EntityLifecycleRegistry lifecycleRegistry,
+            SectionMetadataRegistry sectionMetadataRegistry,
+            MetadataConsistencyStartupCheck startupCheck,
+            ActionRegistry actionRegistry,
+            ActionHandlerRegistry actionHandlerRegistry,
+            ActionProvenanceCatalog actionCatalog,
+            FetchPlanInspection fetchPlanInspection,
+            RlsDimensionRegistry rlsDimensionRegistry) {
         this.basePackage = basePackage;
+        this.managedEntityTypes = managedEntityTypes;
         this.metadataResolver = metadataResolver;
         this.formRegistry = formRegistry;
         this.referenceIndex = referenceIndex;
@@ -251,18 +309,17 @@ public class EntitySummaryAssembler {
     }
 
     /**
-     * Все {@code @EntityMetadata}-сущности base package, отсортированные по эффективному
+     * Все managed-сущности с {@code @EntityMetadata}, отсортированные по эффективному
      * displayName (затем simpleName) — детерминированно (П4).
      */
     public List<EntityRef> entities() {
         List<EntityRef> result = new ArrayList<>();
-        for (Class<?> entityClass : AnnotationClassScanner.scanAnnotated(basePackage, EntityMetadata.class)) {
+        for (Class<?> entityClass : entityMetadataTypes()) {
             String simpleName = entityClass.getSimpleName();
-            EntityMetadata annotation = entityClass.getAnnotation(EntityMetadata.class);
-            String codeTitle = annotation.listFormTitle().isBlank() ? simpleName : annotation.listFormTitle();
-            FactOrigin origin = annotation.listFormTitle().isBlank()
-                ? FactOrigin.PLATFORM_DEFAULT : FactOrigin.EXPLICIT;
-            String symbol = origin == FactOrigin.EXPLICIT ? entityClass.getName() : "";
+            EntityMetadataInfo metadata = metadataResolver.resolve(entityClass);
+            String codeTitle = metadata.getListFormTitle();
+            FactOrigin origin = metadata.getPropertyOrigin("listFormTitle");
+            String symbol = metadata.getPropertySymbol("listFormTitle");
             result.add(new EntityRef(entityClass, simpleName,
                 resolve(FacetKey.of(FacetKind.ENTITY_LIST_TITLE, entityClass), codeTitle,
                     origin, symbol)));
@@ -273,18 +330,26 @@ public class EntitySummaryAssembler {
         return result;
     }
 
+    private List<Class<?>> entityMetadataTypes() {
+        return managedEntityTypes == null
+            ? AnnotationClassScanner.scanAnnotated(basePackage, EntityMetadata.class)
+            : managedEntityTypes.all().stream().filter(MetadataResolver::isApplicable).toList();
+    }
+
+    Class<?> subsystemOf(Class<?> type) {
+        return metadataResolver.resolve(type).getSubsystem();
+    }
+
     /**
      * Сводка одной сущности. Бросает {@link IllegalArgumentException}, если класс не помечен
      * {@code @EntityMetadata} (тот же fail-fast, что у {@link MetadataResolver#resolve}).
      */
     public EntitySummary summarize(Class<?> entityClass) {
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
-        EntityMetadata annotation = meta.getAnnotation();
         String simpleName = entityClass.getSimpleName();
 
-        String codeTitle = annotation.listFormTitle().isBlank() ? simpleName : annotation.listFormTitle();
-        FactOrigin displayOrigin = annotation.listFormTitle().isBlank()
-            ? FactOrigin.PLATFORM_DEFAULT : FactOrigin.EXPLICIT;
+        String codeTitle = meta.getListFormTitle();
+        FactOrigin displayOrigin = meta.getPropertyOrigin("listFormTitle");
         ResolvedValue displayName = resolve(FacetKey.of(FacetKind.ENTITY_LIST_TITLE, entityClass),
             codeTitle, displayOrigin,
             displayOrigin == FactOrigin.EXPLICIT ? entityClass.getName() : "");
@@ -294,19 +359,21 @@ public class EntitySummaryAssembler {
         PublishedFormRoute route = formRouteCatalog == null ? null
             : formRouteCatalog.find(entityClass).orElse(null);
         List<EntitySummary.OverviewRow> overview = overviewRows(
-            entityClass, meta, annotation, simpleName, descriptor, route);
+            entityClass, meta, simpleName, descriptor, route);
 
-        List<EntitySummary.FieldRow> fieldsForm = fieldRows(
-            meta.getFormFields(), entityClass, FacetKind.FIELD_LABEL);
+        List<EntitySummary.FieldRow> fieldDefinitions = fieldRows(
+            meta.getAllAnnotatedFields(), entityClass, FacetKind.FIELD_LABEL);
+        List<EntitySummary.FieldRow> fieldsForm = projectFields(fieldDefinitions, meta.getFormFields());
         List<EntitySummary.FieldRow> fieldsGrid = fieldRows(
             meta.getGridFields(), entityClass, FacetKind.GRID_COLUMN_HEADER);
 
         List<EntitySummary.ColumnRow> listColumns = columnRows(entityClass, meta.getListColumnPaths(),
-            annotation.listColumns().length == 0 ? "выведены из полей грида" : "");
+            !meta.hasExplicitListColumns() ? "выведены из полей грида" : "");
         List<EntitySummary.ColumnRow> selectColumns = columnRows(entityClass, meta.getSelectColumnPaths(),
-            annotation.selectColumns().length == 0 ? "использует колонки списка" : "");
+            !meta.hasExplicitSelectColumns() ? "использует колонки списка" : "");
 
-        List<EntitySummary.SectionRow> tableSections = sectionRows(entityClass);
+        List<TableSectionMetadataInfo> resolvedSections = resolvedSections(entityClass);
+        List<EntitySummary.SectionRow> tableSections = sectionRows(entityClass, resolvedSections);
         List<EntitySummary.FormRow> forms = formRows(entityClass);
         List<EntitySummary.FilterRow> contextFilters = contextFilterRows(entityClass);
         List<EntitySummary.SelectionRow> selections = selectionRows(entityClass);
@@ -316,14 +383,31 @@ public class EntitySummaryAssembler {
         List<EntitySummary.ActionRow> actions = actionRows(entityClass);
         List<EntitySummary.ReadPlanRow> readPlans = readPlanRows(entityClass);
         List<EntitySummary.AccessRow> accessRows = accessRows(entityClass);
-        List<EntitySummary.LookupRow> lookupTargets = lookupRows(entityClass, meta);
+        List<EntitySummary.LookupRow> lookupTargets = lookupRows(entityClass, meta.getAllAnnotatedFields());
+        var rootFields = new EntityStructureFactsAssembler.FieldInput(entityClass,
+            meta.getAllAnnotatedFields(), meta.getStructuralAttributes(),
+            fieldDefinitions, fieldsForm, fieldsGrid,
+            listColumns, selectColumns, lookupTargets);
+        List<EntityStructureFactsAssembler.SectionInput> sectionInputs = new ArrayList<>(resolvedSections.size());
+        for (TableSectionMetadataInfo section : resolvedSections) {
+            Class<?> rowType = section.getRowClass();
+            List<FieldMetadataInfo> allFields = metadataResolver.resolveAllAnnotatedFields(rowType);
+            List<EntitySummary.FieldRow> labels = fieldRows(allFields, rowType, FacetKind.FIELD_LABEL);
+            sectionInputs.add(new EntityStructureFactsAssembler.SectionInput(section, sectionLabel(section),
+                new EntityStructureFactsAssembler.FieldInput(rowType, allFields,
+                    metadataResolver.resolveStructuralAttributes(rowType), labels,
+                    projectFields(labels, section.getFormFields()),
+                    fieldRows(section.getGridFields(), rowType, FacetKind.GRID_COLUMN_HEADER),
+                    List.of(), List.of(), lookupRows(rowType, allFields))));
+        }
 
         return new EntitySummary(
             entityClass, simpleName, displayName,
             overview, fieldsForm, fieldsGrid, listColumns, selectColumns,
             tableSections, forms, contextFilters, selections, references, numbering,
             lifecycle, withAccessDiagnostics(diagnosticsFor(entityClass), entityClass),
-            actions, readPlans, accessRows, lookupTargets, fetchPlanInspection != null);
+            actions, readPlans, accessRows, lookupTargets, fetchPlanInspection != null,
+            structureAssembler.assemble(entityClass, rootFields, sectionInputs, meta));
     }
 
     /** Диагностики без однозначной карточки; служебная строка не входит в snapshot валидатора. */
@@ -360,10 +444,15 @@ public class EntitySummaryAssembler {
      * типа остаётся в его записи и не скрывает остальной инвентарь. Кеш полученного снимка
      * принадлежит текущему UI (E3.2.2 §4.1).
      */
+    private EntityClassification classification(Class<?> type) {
+        if (descriptorCatalog != null) return descriptorCatalog.classificationOf(type);
+        return EntityDescriptorCatalog.classifySemantics(type, metadataResolver, List.of());
+    }
+
     public ExplorerSnapshot explorerSnapshot() {
         return ExplorerSnapshot.build(new ExplorerSnapshot.Sources(
             entities(),
-            type -> metadataResolver.resolve(type).getEntityKind(),
+            type -> classification(type).kind(),
             type -> descriptorCatalog == null ? null : descriptorCatalog.descriptorOf(type),
             this::subsystemRef,
             this::ownedSections,
@@ -378,7 +467,7 @@ public class EntitySummaryAssembler {
     /** Подсистема типа: FQN маркера как стабильный идентификатор и эффективная подпись карточки. */
     private Optional<ExplorerSnapshot.SubsystemRef> subsystemRef(Class<?> entityClass) {
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
-        Class<?> marker = meta.getAnnotation().subsystem();
+        Class<?> marker = meta.getSubsystem();
         if (marker == Subsystem.NoSubsystem.class) {
             return Optional.empty();
         }
@@ -393,9 +482,7 @@ public class EntitySummaryAssembler {
 
     /** Owned-секции root'а: идентичность — поле связи и FQN строки, подпись — формула карточки. */
     private List<ExplorerSnapshot.OwnedSection> ownedSections(Class<?> entityClass) {
-        List<TableSectionMetadataInfo> sections = sectionMetadataRegistry == null
-            ? metadataResolver.resolveTableSections(entityClass)
-            : sectionMetadataRegistry.forOwner(entityClass);
+        List<TableSectionMetadataInfo> sections = resolvedSections(entityClass);
         List<ExplorerSnapshot.OwnedSection> result = new ArrayList<>(sections.size());
         for (TableSectionMetadataInfo section : sections) {
             result.add(new ExplorerSnapshot.OwnedSection(
@@ -405,6 +492,11 @@ public class EntitySummaryAssembler {
                 section.getOrder()));
         }
         return result;
+    }
+
+    private List<TableSectionMetadataInfo> resolvedSections(Class<?> entityClass) {
+        return sectionMetadataRegistry == null ? metadataResolver.resolveTableSections(entityClass)
+            : sectionMetadataRegistry.forOwner(entityClass);
     }
 
     /**
@@ -420,12 +512,12 @@ public class EntitySummaryAssembler {
     // === Обзор ===
 
     private List<EntitySummary.OverviewRow> overviewRows(
-            Class<?> entityClass, EntityMetadataInfo meta, EntityMetadata annotation,
+            Class<?> entityClass, EntityMetadataInfo meta,
             String simpleName, EntityDescriptor descriptor, PublishedFormRoute route) {
         List<EntitySummary.OverviewRow> rows = new ArrayList<>(12);
 
         // Подсистема (членство — переопределяемая грань роли 3).
-        Class<?> marker = annotation.subsystem();
+        Class<?> marker = meta.getSubsystem();
         String subsystemCode = "";
         String title = null;
         boolean hasSubsystem = marker != Subsystem.NoSubsystem.class;
@@ -445,8 +537,18 @@ public class EntitySummaryAssembler {
 
         rows.add(new EntitySummary.OverviewRow("Тип сущности",
             FacetKey.of(FacetKind.ENTITY_KIND, entityClass),
-            ResolvedValue.fact(meta.getEntityKind().name(), meta.getEntityKindOrigin(),
-                meta.getEntityKindSymbol())));
+            ResolvedValue.fact(classification(entityClass).kind().name(), classification(entityClass).origin(),
+                classification(entityClass).symbol())));
+
+        var identity = classification(entityClass);
+        rows.add(new EntitySummary.OverviewRow("Интернирование",
+            FacetKey.of(FacetKind.ENTITY_INTERNING, entityClass),
+            ResolvedValue.fact(Boolean.toString(identity.interned()), identity.identityOrigin(), identity.identitySymbol())));
+        rows.add(new EntitySummary.OverviewRow("Подчинён регистратору",
+            FacetKey.of(FacetKind.ENTITY_RECORDER_OWNERSHIP, entityClass),
+            ResolvedValue.fact(Boolean.toString(identity.recorderOwned()),
+                identity.recorderOwned() ? identity.origin() : FactOrigin.PLATFORM_DEFAULT,
+                identity.recorderOwned() ? identity.symbol() : "")));
 
         if (descriptor != null) {
             rows.add(new EntitySummary.OverviewRow("Экспозиция",
@@ -465,23 +567,15 @@ public class EntitySummaryAssembler {
             rows.addAll(linkabilityRows(entityClass, route));
         }
 
-        String itemCode = annotation.itemFormTitle().isBlank()
-            ? annotation.listFormTitle().isBlank() ? simpleName : annotation.listFormTitle()
-            : annotation.itemFormTitle();
-        FactOrigin itemOrigin = !annotation.itemFormTitle().isBlank() ? FactOrigin.EXPLICIT
-            : !annotation.listFormTitle().isBlank() ? FactOrigin.DERIVED
-            : FactOrigin.PLATFORM_DEFAULT;
+        String itemCode = meta.getItemFormTitle();
+        FactOrigin itemOrigin = meta.getPropertyOrigin("itemFormTitle");
         rows.add(new EntitySummary.OverviewRow("Заголовок формы элемента",
             FacetKey.of(FacetKind.ENTITY_ITEM_TITLE, entityClass),
             resolve(FacetKey.of(FacetKind.ENTITY_ITEM_TITLE, entityClass), itemCode,
                 itemOrigin, itemOrigin == FactOrigin.PLATFORM_DEFAULT ? "" : entityClass.getName())));
 
-        String selectionCode = annotation.selectionFormTitle().isBlank()
-            ? annotation.listFormTitle().isBlank() ? simpleName : annotation.listFormTitle()
-            : annotation.selectionFormTitle();
-        FactOrigin selectionOrigin = !annotation.selectionFormTitle().isBlank() ? FactOrigin.EXPLICIT
-            : !annotation.listFormTitle().isBlank() ? FactOrigin.DERIVED
-            : FactOrigin.PLATFORM_DEFAULT;
+        String selectionCode = meta.getSelectionFormTitle();
+        FactOrigin selectionOrigin = meta.getPropertyOrigin("selectionFormTitle");
         rows.add(new EntitySummary.OverviewRow("Заголовок формы выбора",
             FacetKey.of(FacetKind.ENTITY_SELECTION_TITLE, entityClass),
             resolve(FacetKey.of(FacetKind.ENTITY_SELECTION_TITLE, entityClass), selectionCode,
@@ -520,6 +614,13 @@ public class EntitySummaryAssembler {
 
     // === Поля ===
 
+    private static List<EntitySummary.FieldRow> projectFields(List<EntitySummary.FieldRow> definitions,
+                                                              List<FieldMetadataInfo> projection) {
+        Map<String, EntitySummary.FieldRow> byName = new LinkedHashMap<>();
+        definitions.forEach(row -> byName.put(row.name(), row));
+        return projection.stream().map(field -> byName.get(field.getName())).toList();
+    }
+
     private List<EntitySummary.FieldRow> fieldRows(
             List<FieldMetadataInfo> fields, Class<?> entityClass, FacetKind kind) {
         List<EntitySummary.FieldRow> rows = new ArrayList<>(fields.size());
@@ -551,9 +652,9 @@ public class EntitySummaryAssembler {
      * а не проекции: одна строка на поле — и один адрес. Порядок задаёт сборщик (по имени поля),
      * потому что порядок объявления полей — не контракт.</p>
      */
-    private List<EntitySummary.LookupRow> lookupRows(Class<?> entityClass, EntityMetadataInfo meta) {
+    private List<EntitySummary.LookupRow> lookupRows(Class<?> entityClass, List<FieldMetadataInfo> fields) {
         List<EntitySummary.LookupRow> rows = new ArrayList<>();
-        for (FieldMetadataInfo field : meta.getAllAnnotatedFields()) {
+        for (FieldMetadataInfo field : fields) {
             if (!field.hasLookup()) {
                 continue;
             }
@@ -613,11 +714,8 @@ public class EntitySummaryAssembler {
 
     // === Табличные части ===
 
-    private List<EntitySummary.SectionRow> sectionRows(Class<?> entityClass) {
+    private List<EntitySummary.SectionRow> sectionRows(Class<?> entityClass, List<TableSectionMetadataInfo> sections) {
         List<EntitySummary.SectionRow> rows = new ArrayList<>();
-        List<TableSectionMetadataInfo> sections = sectionMetadataRegistry == null
-            ? metadataResolver.resolveTableSections(entityClass)
-            : sectionMetadataRegistry.forOwner(entityClass);
         for (TableSectionMetadataInfo section : sections) {
             FacetKey key = FacetKey.of(FacetKind.TABLE_SECTION, entityClass,
                 section.getRowClass().getSimpleName());
@@ -650,21 +748,15 @@ public class EntitySummaryAssembler {
                 // Платформенный дефолт: автогенерация формы типом (ничего не зарегистрировано
                 // на default-вариант). Появление Store-слоя роли 3 не меняет этой строки —
                 // источник показывается колонкой (см. EntitySummary.FormRow).
-                rows.add(new EntitySummary.FormRow(formType, null,
-                    "платформенная автогенерация", true, "",
-                    FactOrigin.PLATFORM_DEFAULT, ""));
+                rows.add(formRow(entityClass, formType, null, List.of()));
             } else {
-                rows.add(new EntitySummary.FormRow(formType, null,
-                    registrationKindLabel(defaults), false, sourceLabel(defaults),
-                    FactOrigin.REGISTRATION, registrationSymbol(defaults)));
+                rows.add(formRow(entityClass, formType, null, defaults));
             }
             // Именованные варианты.
             for (java.util.Map.Entry<FormKey, List<FormRegistry.Registration>> entry : byKey.entrySet()) {
                 FormKey key = entry.getKey();
                 if (key.formType == formType && key.variant != null) {
-                    rows.add(new EntitySummary.FormRow(formType, key.variant,
-                        registrationKindLabel(entry.getValue()), false, sourceLabel(entry.getValue()),
-                        FactOrigin.REGISTRATION, registrationSymbol(entry.getValue())));
+                    rows.add(formRow(entityClass, formType, key.variant, entry.getValue()));
                 }
             }
         }
@@ -675,7 +767,41 @@ public class EntitySummaryAssembler {
         return rows;
     }
 
+    private static EntitySummary.FormRow formRow(Class<?> entity, FormType type, String variant,
+                                                 List<FormRegistry.Registration> registrations) {
+        boolean standard = registrations.isEmpty() || registrations.stream().allMatch(r -> r.kind() == FormRegistry.RegistrationKind.SELECTION_COLUMNS);
+        List<Class<?>> declared = registrations.stream().map(FormRegistry.Registration::declaredClass)
+            .filter(java.util.Objects::nonNull).map(c -> (Class<?>) c).distinct().collect(java.util.stream.Collectors.toList());
+        Class<?> formClass = declared.size() == 1 ? declared.getFirst() : standard ? switch (type) {
+            case ITEM -> org.ipro.form.builtin.ItemForm.class;
+            case LIST -> org.ipro.form.builtin.ListForm.class;
+            case SELECTION -> org.ipro.form.SelectionForm.class;
+        } : null;
+        String base = formClass == null ? "" : formClass == org.ipro.form.builtin.ItemForm.class
+            || formClass == org.ipro.form.builtin.ListForm.class || formClass == org.ipro.form.SelectionForm.class
+            ? formClass.getSimpleName() + "<" + entity.getSimpleName() + ">"
+            : displayJavaType(formClass.getGenericSuperclass());
+        var sources = registrations.stream().map(FormRegistry.Registration::source)
+            .filter(java.util.Objects::nonNull).map(EntitySummaryAssembler::checkedSymbol)
+            .filter(v -> !v.isBlank()).distinct().toList();
+        return new EntitySummary.FormRow(type, variant,
+            registrations.isEmpty() ? "платформенная автогенерация" : registrationKindLabel(registrations),
+            registrations.isEmpty(), sourceLabel(registrations),
+            registrations.isEmpty() ? FactOrigin.PLATFORM_DEFAULT : FactOrigin.REGISTRATION,
+            registrationSymbol(registrations), formClass, base, !declared.isEmpty(), sources);
+    }
+
     private record FormKey(FormType formType, String variant) {
+    }
+
+    private static String displayJavaType(java.lang.reflect.Type type) {
+        if (type instanceof Class<?> javaClass) return javaClass.getSimpleName();
+        if (type instanceof java.lang.reflect.ParameterizedType parameterized) {
+            return displayJavaType(parameterized.getRawType()) + "<"
+                + java.util.Arrays.stream(parameterized.getActualTypeArguments())
+                    .map(EntitySummaryAssembler::displayJavaType).collect(java.util.stream.Collectors.joining(", ")) + ">";
+        }
+        return type.getTypeName();
     }
 
     private static String registrationKindLabel(List<FormRegistry.Registration> registrations) {
@@ -835,12 +961,23 @@ public class EntitySummaryAssembler {
                 reference.fieldName(),
                 reference.columnRef(),
                 ResolvedValue.fact(value, FactOrigin.DERIVED,
-                    reference.referencingClass().getName() + "#" + reference.fieldName())));
+                    referenceFieldSymbol(reference.referencingClass(), reference.fieldName()))));
         }
         rows.sort(Comparator
             .comparing((EntitySummary.ReferenceRow r) -> r.referencingClass().getSimpleName())
             .thenComparing(EntitySummary.ReferenceRow::fieldName));
         return rows;
+    }
+
+    private static String referenceFieldSymbol(Class<?> referencingType, String name) {
+        for (Class<?> owner = referencingType; owner != null && owner != Object.class; owner = owner.getSuperclass()) {
+            try {
+                return owner.getDeclaredField(name).getDeclaringClass().getName() + "#" + name;
+            } catch (NoSuchFieldException ignored) {
+                // Inherited declarations belong to the base, even when this entity owns the reference.
+            }
+        }
+        return "";
     }
 
     // === Нумерация ===
@@ -864,10 +1001,22 @@ public class EntitySummaryAssembler {
                     info.field().getDeclaringClass().getName() + "#" + info.fieldName()),
                 scope,
                 periodLabel(definition.period()),
-                definition.allowManual()));
+                definition.allowManual(), definition,
+                numberingPolicySource(info)));
         }
         rows.sort(Comparator.comparing(EntitySummary.NumberingRow::fieldName));
         return rows;
+    }
+
+    private static String numberingPolicySource(NumberingMetadataRegistry.NumberedFieldInfo info) {
+        boolean applied = java.util.Arrays.stream(info.entityClass().getAnnotationsByType(org.ipro.numbering.annotation.NumberingPolicy.class))
+            .anyMatch(policy -> policy.role() == info.definition().role());
+        for (Class<?> type = applied ? info.entityClass() : null; type != null; type = type.getSuperclass()) {
+            if (java.util.Arrays.stream(type.getDeclaredAnnotationsByType(org.ipro.numbering.annotation.NumberingPolicy.class))
+                    .anyMatch(policy -> policy.role() == info.definition().role()))
+                return type.getName() + " · @NumberingPolicy(role=" + info.definition().role() + ")";
+        }
+        return info.field().getDeclaringClass().getName() + "#" + info.fieldName() + " · @Numbered";
     }
 
     private static String periodLabel(NumberingPeriod period) {
@@ -934,18 +1083,28 @@ public class EntitySummaryAssembler {
                 FactOrigin.REGISTRATION, handlerSymbol),
             LIFECYCLE_DELEGATE_NOTE));
         for (EntityLifecycleInspection.Hook hook : inspected.get().hooks()) {
+            java.lang.reflect.Method method = lifecycleMethod(inspected.get().handlerType(), hook.name());
             rows.add(new EntitySummary.LifecycleRow(
                 FacetKey.of(FacetKind.ENTITY_LIFECYCLE_HOOK, entityClass, hook.name()),
                 hook.name(),
                 hook.declared(),
                 hook.declared()
                     ? ResolvedValue.fact("переопределён handler'ом", FactOrigin.EXPLICIT,
-                        handlerSymbol + "#" + hook.name())
+                        method.getDeclaringClass().getName() + "#" + hook.name())
                     : ResolvedValue.fact("не переопределён", FactOrigin.PLATFORM_DEFAULT,
                         EntityLifecycle.class.getName() + "#" + hook.name()),
-                ""));
+                "", displayJavaType(method.getGenericReturnType()) + " " + method.getName() + "("
+                    + java.util.Arrays.stream(method.getGenericParameterTypes()).map(EntitySummaryAssembler::displayJavaType)
+                        .collect(java.util.stream.Collectors.joining(", ")) + ")"));
         }
         return rows;
+    }
+
+    private static java.lang.reflect.Method lifecycleMethod(Class<?> handler, String hook) {
+        var contract = java.util.Arrays.stream(EntityLifecycle.class.getMethods())
+            .filter(method -> method.getName().equals(hook)).findFirst().orElseThrow();
+        try { return handler.getMethod(hook, contract.getParameterTypes()); }
+        catch (NoSuchMethodException failure) { throw new IllegalStateException("Lifecycle contract changed", failure); }
     }
 
     // === Действия (E3.2.0) ===
@@ -1206,6 +1365,8 @@ public class EntitySummaryAssembler {
             String reason = descriptor == null ? "" : descriptor.capabilities().reason();
             base = reason.isBlank() ? "набор сценариев объявлен приложением"
                 : "набор сценариев объявлен приложением: " + reason;
+        } else if (descriptor != null && scenario.origin() == FactOrigin.DERIVED) {
+            base = "набор сценариев выведен из контракта типа: " + descriptor.capabilities().reason();
         } else {
             String exposure = descriptor == null ? "UNCLASSIFIED" : descriptor.exposure().name();
             base = "набор сценариев выведен из экспозиции типа (" + exposure + ")";
@@ -1358,7 +1519,7 @@ public class EntitySummaryAssembler {
 
     private DiagnosticProjection projectDiagnostics(List<MetadataDiagnostic> diagnostics) {
         Map<String, Class<?>> cardsByName = new LinkedHashMap<>();
-        for (Class<?> type : AnnotationClassScanner.scanAnnotated(basePackage, EntityMetadata.class)) {
+        for (Class<?> type : entityMetadataTypes()) {
             cardsByName.put(type.getName(), type);
         }
 
@@ -1432,7 +1593,14 @@ public class EntitySummaryAssembler {
                  MetadataDiagnosticCodes.FALLBACK_TYPE -> FacetKind.FIELD_STRUCTURE;
             case MetadataDiagnosticCodes.REDUNDANT_LOOKUP_TARGET,
                  MetadataDiagnosticCodes.REFERENCE_CONFLICT,
-                 MetadataDiagnosticCodes.REFERENCE_TARGET_NOT_METADATA -> FacetKind.LOOKUP_TARGET;
+                 MetadataDiagnosticCodes.REFERENCE_TARGET_NOT_METADATA,
+                 MetadataDiagnosticCodes.LOOKUP_TARGET_NOT_ACCESSIBLE -> FacetKind.LOOKUP_TARGET;
+            case MetadataDiagnosticCodes.INTERNED_GENERIC_WRITES -> FacetKind.ENTITY_INTERNING;
+            case MetadataDiagnosticCodes.NUMBERING_ROLE_KIND_CONFLICT -> FacetKind.NUMBERING_DECL;
+            case MetadataDiagnosticCodes.CLASSIFICATION_SOURCE_FAILED,
+                 MetadataDiagnosticCodes.CLASSIFICATION_SOURCE_MISSING,
+                 MetadataDiagnosticCodes.CLASSIFICATION_SOURCE_DUPLICATE,
+                 MetadataDiagnosticCodes.ENTITY_CLASSIFICATION_CONFLICT -> FacetKind.ENTITY_KIND;
             default -> null;
         };
     }

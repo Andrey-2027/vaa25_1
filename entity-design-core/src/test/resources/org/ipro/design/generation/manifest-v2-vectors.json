@@ -1,0 +1,57 @@
+{
+  "invalid": [
+    {
+      "name": "missing",
+      "sourceIndexes": [
+        0
+      ]
+    },
+    {
+      "name": "extra",
+      "sourceIndexes": [
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "duplicate",
+      "sourceIndexes": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "reordered",
+      "sourceIndexes": [
+        1,
+        0
+      ]
+    },
+    {
+      "name": "hash-mismatch",
+      "sourceIndexes": [
+        0,
+        1
+      ],
+      "manifestSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "name": "empty",
+      "sourceIndexes": []
+    }
+  ],
+  "sources": [
+    {
+      "relativePath": "com/example/Root.java",
+      "sha256": "d95ad197e04cd739e751604ec666bf65669989a0c481049fccbc47bfa1568520",
+      "content": "// Корень\n"
+    },
+    {
+      "relativePath": "com/example/Row.java",
+      "sha256": "c4b20a094c2ea2277adbb64929215017fbea3540ed70d74053186dac238af651",
+      "content": "// row\n"
+    }
+  ],
+  "manifestSha256": "d798961129e1a7530b533385c5f611c6efad2f11421673b6f44ed47b8ff953fb"
+}

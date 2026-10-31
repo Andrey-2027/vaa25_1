@@ -1,8 +1,9 @@
-package org.ip.unidr.store;
+package org.ipro.unidr.store;
+import org.ip.unidr.model.UniDrDefinitions;
 
-import org.ip.unidr.model.*;
-import org.ip.unidr.run.*;
-import org.ip.unidr.source.*;
+import org.ipro.unidr.model.*;
+import org.ipro.unidr.run.*;
+import org.ipro.unidr.source.*;
 import org.ipro.report.catalog.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
@@ -16,10 +17,41 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UniDrFileStoreTest {
+    @Test void transferAndCopyPreserveRecipeButAssignNewIdentityAndCurrentAuthor() {
+        var recipe=base.edit(d->d.totalsSettings=new UniDrDefinition.TotalsSettings(new UniDrDefinition.MeasureSelection(UniDrDefinition.SelectionMode.CUSTOM,List.of("rowCount")),Map.of()));
+        var original=store.create(recipe,"Описание");var json=store.exportJson(original.id());
+        assertThat(store.inspectImport(json).definition()).isEqualTo(recipe);
+        login("bob");
+        var imported=store.importJson(json,"Импорт Боба");var copy=store.copy(original.id(),"Копия Боба");
+        assertThat(imported.id()).isNotEqualTo(original.id()).isNotEqualTo(copy.id());
+        assertThat(imported.author()).isEqualTo("bob");assertThat(copy.author()).isEqualTo("bob");
+        assertThat(imported.definition().withTitle(recipe.title())).isEqualTo(recipe);
+        assertThat(copy.description()).isEqualTo(original.description());
+        assertThatThrownBy(()->store.importJson(json,recipe.title())).isInstanceOf(UniDrFileStore.StoreException.class);
+        assertThat(store.load(original.id())).isEqualTo(original);
+    }
+    @Test void deletionRequiresAuthorAndFreshRevisionAndCannotBeRepeated() {
+        var original=store.create(base,"");login("bob");
+        assertThatThrownBy(()->store.delete(original.id(),original.revision())).hasMessageContaining("автор");login("alice");
+        var updated=store.update(original.id(),original.revision(),base,"Изменён");
+        assertThatThrownBy(()->store.delete(original.id(),original.revision())).hasMessageContaining("изменён");
+        assertThat(store.load(original.id())).isEqualTo(updated);
+        store.delete(updated.id(),updated.revision());assertThat(store.list(null)).isEmpty();
+        assertThatThrownBy(()->store.delete(updated.id(),updated.revision())).hasMessageContaining("не найден");
+    }
+    @Test void importRejectsMalformedEnvelopeAndDisabledOperations() {
+        var saved=store.create(base,"");String json=store.exportJson(saved.id());
+        for(String invalid:List.of("{}","{broken",json.replace("\"fileVersion\" : 1","\"fileVersion\" : 2")," ".repeat(600_001)))
+            assertThatThrownBy(()->store.inspectImport(invalid)).isInstanceOf(UniDrFileStore.StoreException.class);
+        enabled.set(false);
+        assertThatThrownBy(()->store.exportJson(saved.id())).isInstanceOf(UniDrRunException.class);
+        assertThatThrownBy(()->store.importJson(json,"Импорт")).isInstanceOf(UniDrRunException.class);
+        assertThatThrownBy(()->store.delete(saved.id(),saved.revision())).isInstanceOf(UniDrRunException.class);
+    }
     @TempDir Path directory;
     final AtomicBoolean enabled=new AtomicBoolean(true);
     final UniDrAccess access=new UniDrAccess(enabled::get,()->SecurityContextHolder.getContext().getAuthentication().getName());
-    final UniDrDefinitionJsonCodec codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrSourceCatalog.pilot()));
+    final UniDrDefinitionJsonCodec codec=new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrDefinitions.catalog()));
     final UniDrDefinition base=UniDrDefinitions.receivingItemsSummary();
     UniDrFileStore store;
     @BeforeEach void setup() {login("alice");store=new UniDrFileStore(directory,codec,access);}
@@ -38,13 +70,13 @@ class UniDrFileStoreTest {
         assertThat(store.list("РУССКИ")).extracting(UniDrFileStore.Entry::id).containsExactly(saved.id());
     }
     @Test void queryAndTypedParameterDefinitionsSurviveFileRoundTrip() {
-        var source = new UniDrQuerySource(org.ipro.reportstudio.dom.ReportQuerySource.MANUAL,
+        var source = new UniDrQuerySource(org.ipro.query.document.ReportQuerySource.MANUAL,
                 "select p.name as name, p.quantity as qty from Product p where p.name <> :excluded", null,
-                List.of(new UniDrQuerySource.Param("excluded", "Исключить", org.ipro.reportstudio.dom.ReportParamKind.SCALAR,
-                        null, org.ipro.reportstudio.dom.ReportParamSource.FORM, true, true, null, null, 0)));
-        var metadata = org.ip.unidr.query.UniDrQuerySourceService.metadata(List.of(
-                org.ipro.reportstudio.data.QueryField.scalar("name", String.class),
-                org.ipro.reportstudio.data.QueryField.scalar("qty", java.math.BigDecimal.class)));
+                List.of(new UniDrQuerySource.Param("excluded", "Исключить", org.ipro.query.document.ReportParamKind.SCALAR,
+                        null, org.ipro.query.document.ReportParamSource.FORM, true, true, null, null, 0)));
+        var metadata = org.ipro.unidr.query.UniDrQuerySourceService.metadata(List.of(
+                org.ipro.report.data.QueryField.scalar("name", String.class),
+                org.ipro.report.data.QueryField.scalar("qty", java.math.BigDecimal.class)));
         var queryCodec = new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(new UniDrSourceCatalog(List.of(), ignored -> metadata)));
         var queryStore = new UniDrFileStore(directory, queryCodec, access);
         var recipe = new UniDrDefinition(1,"query",1,"По запросу",
@@ -139,6 +171,18 @@ class UniDrFileStoreTest {
             }));
             start.countDown();assertThat(List.of(writes.get(0).get(),writes.get(1).get())).containsExactlyInAnyOrder(true,false);
         }
+    }
+    @Test void printListContainsOnlyReportsBoundToTheEntityType() {
+        var bound=store.create(base.withTitle("Накладные").withTargetEntityClass("org.ip.domain.ReceivingDocument"),"");
+        store.create(base.withTitle("Без привязки"),"");
+        store.create(base.withTitle("Номенклатура").withTargetEntityClass("org.ip.domain.Nomenclature"),"");
+        assertThat(store.findPrintable("org.ip.domain.ReceivingDocument"))
+            .extracting(UniDrFileStore.Entry::id,UniDrFileStore.Entry::targetEntityClass)
+            .containsExactly(tuple(bound.id(),"org.ip.domain.ReceivingDocument"));
+        assertThat(new UniDrFileStore(directory,codec,access).findPrintable("org.ip.domain.ReceivingDocument"))
+            .extracting(UniDrFileStore.Entry::name).containsExactly("Накладные");
+        assertThat(store.findPrintable("org.ip.domain.Unknown")).isEmpty();
+        assertThat(store.findPrintable(null)).isEmpty();
     }
     @Test void commonCatalogMergesFileReportsWithoutConfusingEngineIds() {
         var saved=store.create(base,"");

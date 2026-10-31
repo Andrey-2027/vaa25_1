@@ -10,6 +10,7 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import org.ipro.crud.BaseEntity;
 import org.ipro.crud.InternedEntity;
+import org.ipro.crud.InternedContract;
 import org.ipro.data.SearchFields;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.EntityMetadata;
@@ -29,6 +30,12 @@ import org.ipro.metadata.annotation.Lookup;
  * вместо списка пар. Карточка без атрибутов ссылается на пустой набор, не на NULL.
  */
 @Entity
+@InternedContract(
+    creation = "SklNomOpaService.findOrCreate",
+    specialOperations = {"refreshDisplayName within AttributeValueService.renameValue"},
+    keys = @InternedContract.Key(constraint = "uk_skl_nom_opa_nom_canonical",
+        properties = {"nomenclature", "canonical"},
+        normalization = "saved nomenclature; discard null/unsaved entries, validate membership, sort typeId, join typeId:valueId with semicolon; empty set is empty string"))
 @Table(name = "skl_nom_opa", uniqueConstraints = {
     @UniqueConstraint(name = "uk_skl_nom_opa_nom_canonical", columnNames = {"nomenclature_id", "canonical"})
 })
@@ -53,7 +60,7 @@ public class SklNomOpa extends BaseEntity implements HasDisplayName, InternedEnt
 
     /** Каноническая строка набора {@code "typeId:valueId;..."}; пустой набор — "". */
     @NotNull
-    @Column(nullable = false, length = 300)
+    @Column(name = "canonical", nullable = false, length = 300)
     private String canonical;
 
     /** Кэш для отчетов и печатных форм ({@code "Тип: Значение, ..."}); пересобирается при переименовании. */

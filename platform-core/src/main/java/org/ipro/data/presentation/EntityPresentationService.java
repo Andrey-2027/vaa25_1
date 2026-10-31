@@ -1,5 +1,6 @@
 package org.ipro.data.presentation;
 
+import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.data.EntityReadAccess;
 import org.ipro.data.EntityDataAccessResolver;
 import org.ipro.fetch.instance.InstanceNameResolver;
@@ -21,12 +22,19 @@ public final class EntityPresentationService {
     private final EntityDataAccessResolver policies;
     private final InstanceNameResolver names;
     private final MetadataResolver metadata;
+    private final EntityDescriptorCatalog descriptors;
     public EntityPresentationService(EntityReadAccess reads, EntityDataAccessResolver policies,
                                      InstanceNameResolver names, MetadataResolver metadata) {
+        this(reads, policies, names, metadata, null);
+    }
+    public EntityPresentationService(EntityReadAccess reads, EntityDataAccessResolver policies,
+            InstanceNameResolver names, MetadataResolver metadata, EntityDescriptorCatalog descriptors) {
         this.reads = reads; this.policies = policies; this.names = names; this.metadata = metadata;
+        this.descriptors = descriptors;
     }
     public String unavailable(Class<?> type) {
-        return metadata.resolve(type).getEntityKind() == EntityKind.DOCUMENT ? "Документ недоступен" : "Объект недоступен";
+        return (descriptors == null ? EntityDescriptorCatalog.classifySemantics(type, metadata, List.of()).kind()
+            : descriptors.classificationOf(type).kind()) == EntityKind.DOCUMENT ? "Документ недоступен" : "Объект недоступен";
     }
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Map<Reference, String> resolve(Collection<Reference> references) {

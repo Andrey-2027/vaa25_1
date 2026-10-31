@@ -11,11 +11,29 @@ import java.util.*;
 public class SubsystemRegistry implements InitializingBean {
 
     private final String basePackage;
+    private final ManagedEntityTypes managedEntityTypes;
+    private final MetadataResolver metadataResolver;
     private List<SubsystemNode> roots = List.of();
 
-    public SubsystemRegistry(
-            String basePackage) {
-        this.basePackage = basePackage;
+    /**
+     * Standalone compatibility path for tools/tests that have not adopted platform wiring.
+     * Spring configuration uses the constructor with the PU snapshot and shared resolver.
+     */
+    @Deprecated(forRemoval = false)
+    public SubsystemRegistry(String basePackage, MetadataResolver metadataResolver) {
+        this.basePackage = Objects.requireNonNull(basePackage, "basePackage must not be null");
+        this.managedEntityTypes = null;
+        this.metadataResolver = Objects.requireNonNull(
+            metadataResolver, "metadataResolver must not be null");
+    }
+
+    public SubsystemRegistry(String basePackage, ManagedEntityTypes managedEntityTypes,
+            MetadataResolver metadataResolver) {
+        this.basePackage = Objects.requireNonNull(basePackage, "basePackage must not be null");
+        this.managedEntityTypes = Objects.requireNonNull(
+            managedEntityTypes, "managedEntityTypes must not be null");
+        this.metadataResolver = Objects.requireNonNull(
+            metadataResolver, "metadataResolver must not be null");
     }
 
     @Override
@@ -29,7 +47,7 @@ public class SubsystemRegistry implements InitializingBean {
 
         List<EntityMetadataInfo> entities = scanEntities();
         for (EntityMetadataInfo entity : entities) {
-            Class<?> subsystemMarker = entity.getAnnotation().subsystem();
+            Class<?> subsystemMarker = entity.getSubsystem();
             if (subsystemMarker == Subsystem.NoSubsystem.class) {
                 continue;
             }
@@ -51,7 +69,8 @@ public class SubsystemRegistry implements InitializingBean {
                 topLevel.add(node);
             }
         }
-        topLevel.sort(Comparator.comparingInt(SubsystemNode::getOrder));
+        topLevel.sort(Comparator.comparingInt(SubsystemNode::getOrder)
+            .thenComparing(node -> node.getMarkerClass().getName()));
         topLevel.forEach(SubsystemNode::sortChildren);
 
         this.roots = List.copyOf(topLevel);
@@ -76,7 +95,9 @@ public class SubsystemRegistry implements InitializingBean {
 
     private Map<Class<?>, SubsystemNode> scanSubsystemNodes() {
         Map<Class<?>, SubsystemNode> result = new LinkedHashMap<>();
-        for (Class<?> markerClass : AnnotationClassScanner.scanAnnotated(basePackage, Subsystem.class)) {
+        List<Class<?>> markerClasses = AnnotationClassScanner.scanAnnotated(basePackage, Subsystem.class);
+        markerClasses.sort(Comparator.comparing(markerClass -> markerClass.getName()));
+        for (Class<?> markerClass : markerClasses) {
             Subsystem annotation = markerClass.getAnnotation(Subsystem.class);
             result.put(markerClass, new SubsystemNode(markerClass, annotation));
         }
@@ -103,9 +124,11 @@ public class SubsystemRegistry implements InitializingBean {
 
     private List<EntityMetadataInfo> scanEntities() {
         List<EntityMetadataInfo> result = new ArrayList<>();
-        MetadataResolver resolver = new MetadataResolver();
-        for (Class<?> entityClass : AnnotationClassScanner.scanAnnotated(basePackage, EntityMetadata.class)) {
-            result.add(resolver.resolve(entityClass));
+        List<Class<?>> entityClasses = managedEntityTypes == null
+            ? AnnotationClassScanner.scanAnnotated(basePackage, EntityMetadata.class)
+            : managedEntityTypes.all().stream().filter(MetadataResolver::isApplicable).toList();
+        for (Class<?> entityClass : entityClasses) {
+            result.add(metadataResolver.resolve(entityClass));
         }
         return result;
     }

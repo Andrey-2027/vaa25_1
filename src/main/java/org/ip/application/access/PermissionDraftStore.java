@@ -57,7 +57,7 @@ public final class PermissionDraftStore implements Serializable {
             .forEach(change -> result.put(change.address().valueId(), flags(change.expectedRows()).apply(change.desiredFlags()))));
         return Map.copyOf(result);
     }
-    static PermissionPatch.Flags flags(List<PermissionPatch.Snapshot> rows) {
+    public static PermissionPatch.Flags flags(List<PermissionPatch.Snapshot> rows) {
         return new PermissionPatch.Flags(rows.stream().anyMatch(row -> row.flags().read()),
             rows.stream().anyMatch(row -> row.flags().update()), rows.stream().anyMatch(row -> row.flags().delete()));
     }

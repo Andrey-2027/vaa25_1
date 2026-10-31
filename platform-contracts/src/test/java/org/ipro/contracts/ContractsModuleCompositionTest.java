@@ -40,7 +40,9 @@ class ContractsModuleCompositionTest {
      * (политика D1 §6.3).
      */
     private static final Set<String> REVIEWED_TYPES = Set.of(
+        "org.ipro.metadata.annotation.CatalogOwner",
         "org.ipro.metadata.annotation.EntityKind",
+        "org.ipro.metadata.annotation.EntityKindCandidate",
         "org.ipro.metadata.annotation.EntityMetadata",
         "org.ipro.metadata.annotation.FieldMetadata",
         "org.ipro.metadata.annotation.FieldType",
@@ -112,7 +114,7 @@ class ContractsModuleCompositionTest {
                 + " расширяет публичную поверхность платформы, а пропавший — незаметно"
                 + " возвращает контракт в дерево приложения")
             .isEqualTo(new TreeSet<>(REVIEWED_TYPES));
-        assertThat(actual).hasSize(34);
+        assertThat(actual).hasSize(36);
     }
 
     @Test

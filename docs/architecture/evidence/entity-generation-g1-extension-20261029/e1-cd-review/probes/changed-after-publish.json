@@ -1,0 +1,9 @@
+{
+  "mode" : "changed-after-publish",
+  "status" : "APPLIED",
+  "code" : "APPLIED",
+  "targetExists" : true,
+  "receiptExists" : true,
+  "targetHashMatches" : false,
+  "journalExists" : false
+}

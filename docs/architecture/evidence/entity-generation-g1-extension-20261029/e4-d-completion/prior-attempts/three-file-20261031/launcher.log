@@ -1,0 +1,4 @@
+[16:44:07] Building entity-design-core: C:\JavaProject\TestVaadin25\GitVaa25\entity-design-core
+[16:44:12] Compiling 17 D support source files
+[16:44:16] Running D self-test matrix
+[16:44:26] FAILED: D self-test exit 1

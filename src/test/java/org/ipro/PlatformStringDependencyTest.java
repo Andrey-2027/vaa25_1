@@ -159,7 +159,11 @@ class PlatformStringDependencyTest {
         Path root = Path.of("").toAbsolutePath();
         Map<String, Set<String>> result = new TreeMap<>();
         List<Path> roots = new java.util.ArrayList<>();
-        roots.add(PLATFORM_SOURCE);
+        // M2.2.2: в дереве приложения больше нет platform-исходников; корень добавляется,
+        // только если он существует, иначе забор падал бы на отсутствующем каталоге.
+        if (Files.isDirectory(PLATFORM_SOURCE)) {
+            roots.add(PLATFORM_SOURCE);
+        }
         roots.addAll(PLATFORM_ARTIFACT_SOURCES);
         try {
             for (Path sourceRoot : roots) {
