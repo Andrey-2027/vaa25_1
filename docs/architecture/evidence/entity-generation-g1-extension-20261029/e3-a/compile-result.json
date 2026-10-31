@@ -1,9 +1,0 @@
-{
-  "mode": "E3.A source compilation, not C2/runtime acceptance",
-  "exitCode": 0,
-  "sourceSha256": "2bdd0163d04c9a512a58693861e6989631a955b6d6a019de3202560daecca41d",
-  "annotationSourceSha256": "aad2840185b941c7d85b26cfedede59190b147ffa901915f9a8ab630a04f97b3",
-  "jdk": "AxiomJDK-21",
-  "targetJar": "org.ipro:g1-reference-target:1.0-E2",
-  "currentAnnotationSource": "C:\\JavaProject\\TestVaadin25\\GitVaa25\\platform-contracts\\src\\main\\java\\org\\ipro\\metadata\\annotation\\CatalogOwner.java"
-}

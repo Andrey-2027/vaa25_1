@@ -1,9 +1,0 @@
-{
-  "mode" : "wrong-required-suite",
-  "status" : "APPLIED",
-  "code" : "APPLIED",
-  "targetExists" : true,
-  "receiptExists" : true,
-  "targetHashMatches" : true,
-  "journalExists" : false
-}

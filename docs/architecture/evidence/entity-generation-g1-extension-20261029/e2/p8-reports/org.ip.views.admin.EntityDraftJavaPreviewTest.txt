@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: org.ip.views.admin.EntityDraftJavaPreviewTest
--------------------------------------------------------------------------------
-Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.694 s -- in org.ip.views.admin.EntityDraftJavaPreviewTest

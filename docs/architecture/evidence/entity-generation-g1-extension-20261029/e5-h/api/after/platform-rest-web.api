@@ -1,1 +1,0 @@
-# platform-rest-web: публичная поверхность (policy: SEMANTIC_ROLES, перезапись: -Dplatform.api.baseline.write=true)

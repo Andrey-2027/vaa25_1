@@ -1,5 +1,0 @@
-[16:45:04] Building entity-design-core: C:\JavaProject\TestVaadin25\GitVaa25\entity-design-core
-[16:45:10] Compiling 17 D support source files
-[16:45:14] Running D self-test matrix
-[16:45:22] D self-test success: 87 passed, 0 skipped
-[16:45:22] Evidence: C:\JavaProject\TestVaadin25\GitVaa25\outputs\entity-generation-g1-extension\e4-d-completion\three-file-20261031-final\selftest-summary.json

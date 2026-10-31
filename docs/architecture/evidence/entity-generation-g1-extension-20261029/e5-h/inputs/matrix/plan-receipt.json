@@ -1,9 +1,0 @@
-{
-  "generatorVersion" : "catalog-java-v1",
-  "planId" : "g1-9867a330d148f93729ac373a32136b840cafd1f56da05ca1d93a099079cfd4a3",
-  "recipe" : "standard-catalog-v2@2",
-  "relativePath" : "com/example/generated/Matrix.java",
-  "scenario" : "matrix",
-  "sha256" : "d65c2c9f5efea8e494863220fa6e4b5827c8ed04140921aad82c781ecf8fa476",
-  "sourceFixture" : "scripts/entity-generation-g1-matrix/draft.json"
-}

@@ -177,3 +177,7 @@ docs/plans/e322-11-evidence/
 
 # Local imported conversations and attachments; keep out of Git publication.
 /.cloud-attachments/
+
+# Raw G1 extension run artifacts: JUnit XML, logs, copied test projects and generated
+# sources. Kept locally only; curated summaries stay in the architecture docs.
+docs/architecture/evidence/entity-generation-g1-extension-20261029/
