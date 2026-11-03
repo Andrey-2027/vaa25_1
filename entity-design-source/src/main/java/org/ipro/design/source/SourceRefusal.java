@@ -13,7 +13,17 @@ public final class SourceRefusal extends RuntimeException {
         /** A name the patch needs is already taken by another type. */
         IMPORT_CONFLICT,
         /** The file is not the one the entity was read from. */
-        STALE_BASE
+        STALE_BASE,
+        /** The table or the target of a reference cannot be determined from the sources, so no SQL is proposed. */
+        SCHEMA_UNKNOWN,
+        /** The edited draft does not differ from the file. */
+        NOTHING_TO_DO,
+        /** A plan needs the classpath of the project to check the patched file. */
+        CLASSPATH_MISSING,
+        /** The patched file does not compile on the given classpath. */
+        COMPILE_FAILED,
+        /** A plan directory is incomplete, altered or not a plan. */
+        PLAN_INVALID
     }
     private final Code code;
     private final String target, reason;

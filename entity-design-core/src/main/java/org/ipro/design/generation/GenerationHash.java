@@ -5,14 +5,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 
-final class GenerationHash {
+/** SHA-256 as lower-case hex, shared by the generation plans and the modification plans. */
+public final class GenerationHash {
     private GenerationHash() { }
 
-    static String sha256(String value) {
+    public static String sha256(String value) {
         return sha256(value.getBytes(StandardCharsets.UTF_8));
     }
 
-    static String sha256(byte[] value) {
+    public static String sha256(byte[] value) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value));
         } catch (NoSuchAlgorithmException ex) {
