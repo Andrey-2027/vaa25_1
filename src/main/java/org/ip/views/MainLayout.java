@@ -41,6 +41,7 @@ import org.ip.views.admin.EntityExplorerAccess;
 import org.ip.views.admin.EntityExplorerView;
 import org.ip.views.admin.EntityExplorerNavigation;
 import org.ip.views.admin.EntityDraftWorkspace;
+import org.ip.views.admin.EntityModifyWorkspace;
 import org.ip.views.admin.EntityDraftAccess;
 import org.ip.views.admin.SubsystemStructureView;
 import org.ip.views.directory.WorkshopListView;
@@ -137,6 +138,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     private final ObjectProvider<EntityExplorerView> explorerViews;
     private final EntityExplorerNavigation structureNavigation;
     private final EntityDraftWorkspace drafts;
+    private final EntityModifyWorkspace modifications;
     private final EntityDraftAccess draftAccess;
     private final QueryWorkbenchAccess queryWorkbenchAccess;
 
@@ -152,9 +154,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
                       ObjectProvider<EntityExplorerView> explorerViews,
                       EntityExplorerNavigation structureNavigation,
                       NavigationUiSnapshot navigationSnapshot,
-                      EntityDraftWorkspace drafts, EntityDraftAccess draftAccess,
+                      EntityDraftWorkspace drafts, EntityDraftAccess draftAccess, EntityModifyWorkspace modifications,
                       QueryWorkbenchAccess queryWorkbenchAccess) {
         this.drafts = drafts;
+        this.modifications = modifications;
         this.draftAccess = draftAccess;
         this.queryWorkbenchAccess = queryWorkbenchAccess;
         this.subsystemRegistry = subsystemRegistry;
@@ -479,6 +482,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     private void openExplorerTab(Class<?> type, String anchor, ExplorerEnterReason reason) {
         EntityExplorerView view = explorerViews.getObject();
         view.setDraftOpener(drafts::open, draftAccess::allows);
+        view.setModifyOpener(modifications::open, modifications::allows);
         view.setSelectionListener(this::explorerPlaceSelected);
         switch (reason) {
             case MENU -> registerRestoredExplorerEntry(view);

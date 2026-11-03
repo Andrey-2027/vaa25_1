@@ -368,6 +368,27 @@ class EntityExplorerPilotPanelTest {
         assertThat(host.getComponentAt(0)).isInstanceOf(EntitySummaryPanel.class);
     }
 
+    @Test
+    void theModifyActionAppearsOnlyForAClassTheServiceAcceptsAndOpensThatClass() {
+        var access = mock(EntityExplorerAccess.class);
+        when(access.allows()).thenReturn(true);
+        var view = new EntityExplorerView(ExplorerTreeModel.CatalogView.of(assembler().explorerSnapshot()),
+            List.of(), mock(FormNavigator.class), access, true);
+        var opened = new ArrayList<Class<?>>();
+        view.setModifyOpener(opened::add, type -> type == Nomenclature.class);
+        view.init(PrdSpec.class);
+        Button modify = descendants(view).filter(Button.class::isInstance).map(Button.class::cast)
+            .filter(b -> b.hasClassName("explorer-open-modify")).findFirst().orElseThrow();
+        assertThat(modify.isVisible()).isFalse();
+        view.init(Nomenclature.class);
+        assertThat(modify.isVisible()).isTrue();
+        modify.click();
+        assertThat(opened).containsExactly(Nomenclature.class);
+        when(access.allows()).thenReturn(false);
+        modify.click();
+        assertThat(opened).as("access is asked again when the action runs").hasSize(1);
+    }
+
     private static EntitySummary summary() { return assembler().summarize(Nomenclature.class); }
 
     private static EntitySummaryAssembler assembler() {

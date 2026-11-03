@@ -59,7 +59,7 @@ public final class JavaSources {
             @Override public CharSequence getCharContent(boolean ignoreEncodingErrors) { return text; }
         };
         try (var manager = compiler.getStandardFileManager(diagnostics, Locale.ROOT, StandardCharsets.UTF_8)) {
-            var task = (JavacTask) compiler.getTask(null, manager, diagnostics, List.of("-proc:none", "-Xlint:none"), null, List.of(object));
+            var task = (JavacTask) compiler.getTask(null, manager, diagnostics, List.of("-proc:none", "-Xlint:none", "-classpath", "", "-sourcepath", ""), null, List.of(object));
             var units = task.parse();
             for (var diagnostic : diagnostics.getDiagnostics()) {
                 if (diagnostic.getKind() == Diagnostic.Kind.ERROR)

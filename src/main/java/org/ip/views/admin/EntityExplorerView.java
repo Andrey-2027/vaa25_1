@@ -129,6 +129,19 @@ public class EntityExplorerView extends VerticalLayout {
     private Runnable draftOpener = () -> {};
     private java.util.function.BooleanSupplier draftAllowed = () -> false;
     private final Button openDraft = new Button("Новый справочник…", event -> openDraft());
+    private java.util.function.Consumer<Class<?>> modifyOpener = type -> {};
+    private java.util.function.Predicate<Class<?>> modifyAllowed = type -> false;
+    /** «Изменить» — только для карточки открытого типа и только когда исходники настроены и доступны. */
+    private final Button openModify = new Button("Изменить…", event -> openModify());
+
+    private void openModify() {
+        Class<?> type = selectedType;
+        if (type != null && access.allows() && modifyAllowed.test(type)) modifyOpener.accept(type);
+    }
+
+    private void refreshModify() {
+        openModify.setVisible(selectedType != null && access.allows() && modifyAllowed.test(selectedType));
+    }
 
     private void openDraft() {
         if (access.allows() && draftAllowed.getAsBoolean()) draftOpener.run();
@@ -393,6 +406,12 @@ public class EntityExplorerView extends VerticalLayout {
         } : listener;
     }
 
+    public void setModifyOpener(java.util.function.Consumer<Class<?>> opener, java.util.function.Predicate<Class<?>> allowed) {
+        modifyOpener = java.util.Objects.requireNonNull(opener);
+        modifyAllowed = java.util.Objects.requireNonNull(allowed);
+        refreshModify();
+    }
+
     public void setDraftOpener(Runnable opener, java.util.function.BooleanSupplier allowed) {
         draftOpener = java.util.Objects.requireNonNull(opener);
         draftAllowed = java.util.Objects.requireNonNull(allowed);
@@ -413,6 +432,9 @@ public class EntityExplorerView extends VerticalLayout {
         openDraft.setVisible(access.allows() && draftAllowed.getAsBoolean());
         openDraft.addClassName("explorer-open-draft");
         add(openDraft);
+        refreshModify();
+        openModify.addClassName("explorer-open-modify");
+        add(openModify);
         add(returnToPilot);
         returnToPilot.setVisible(false);
 
@@ -703,7 +725,7 @@ public class EntityExplorerView extends VerticalLayout {
         if (switched || pilotMode) {
             cardHost.removeAll();
             cardHost.add(panel);
-            selectedType = type;
+            selectedType = type; refreshModify();
             state.remember(type, state.placeOf(type));
             pilotMode = false;
             updatePilotLayout();
@@ -753,7 +775,7 @@ public class EntityExplorerView extends VerticalLayout {
                 cardHost.removeAll();
                 cardHost.add(panel);
             }
-            selectedType = type;
+            selectedType = type; refreshModify();
             state.remember(type, null);
             pilotMode = true;
             updatePilotLayout();
@@ -764,7 +786,7 @@ public class EntityExplorerView extends VerticalLayout {
         if (!type.equals(selectedType) || pilotMode) {
             cardHost.removeAll();
             cardHost.add(panel);
-            selectedType = type;
+            selectedType = type; refreshModify();
         }
         state.remember(type, anchor);
         pilotMode = false;
@@ -785,7 +807,7 @@ public class EntityExplorerView extends VerticalLayout {
         if (switched) {
             cardHost.removeAll();
             cardHost.add(panel);
-            selectedType = type;
+            selectedType = type; refreshModify();
             state.remember(type, state.placeOf(type));
             pilotMode = false;
             updatePilotLayout();
