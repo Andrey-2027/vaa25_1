@@ -108,7 +108,8 @@ public final class ModificationPlanner {
         for (var subclass : project.descendants(typeId)) hashes.put(subclass.relativePath(), subclass.sha256());
         for (var change : changes) {
             if (change instanceof EntityChange.FieldAdded added && added.field().reference() != null)
-                project.type(added.field().reference().typeId()).ifPresent(target -> hashes.put(target.relativePath(), target.sha256()));
+                // The target and its base classes: they decide the identifier and whether the reference is possible.
+                for (var member : project.chain(added.field().reference().typeId()).projectTypes()) hashes.put(member.relativePath(), member.sha256());
         }
         return hashes;
     }

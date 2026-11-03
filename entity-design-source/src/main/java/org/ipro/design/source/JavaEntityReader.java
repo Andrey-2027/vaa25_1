@@ -75,6 +75,14 @@ public final class JavaEntityReader {
         var occupied = new LinkedHashSet<>(described.methodNames());
         for (var base : chain.projectTypes()) { inherited.addAll(base.fieldNames()); occupied.addAll(base.methodNames()); }
         for (var base : chain.platformBases()) { inherited.addAll(base.fields()); occupied.addAll(base.methods()); }
+        var inheritedColumns = new LinkedHashSet<String>();
+        var unreadableColumns = new LinkedHashSet<String>();
+        for (var base : chain.projectTypes()) {
+            base.fieldColumns().forEach((field, column) -> { if (column.isEmpty()) unreadableColumns.add(base.simpleName() + "." + field); else inheritedColumns.add(column); });
+            if (base.attributeOverrides()) unreadableColumns.add(base.simpleName() + " @AttributeOverride");
+        }
+        for (var base : chain.platformBases()) base.fields().forEach(field -> inheritedColumns.add(RecipeCatalog.snake(field)));
+        if (described.attributeOverrides()) unreadableColumns.add(simple + " @AttributeOverride");
         for (var child : project.descendants(typeId)) occupied.addAll(child.methodNames());
 
         // Class-level publication: a manual list wins over the per-field grid flag.
@@ -122,7 +130,7 @@ public final class JavaEntityReader {
             described.tableName().isEmpty() ? DraftText.auto() : DraftText.explicit(described.tableName()), null, icon);
         var draft = new EntityDraft(2, RecipeCatalog.EXISTING_ENTITY, UUID.nameUUIDFromBytes(("entity#" + typeId).getBytes(StandardCharsets.UTF_8)),
             properties, fields, List.of());
-        return new ExistingEntity(typeId, relativePath, source.sha256(), described.tableName(), shape, draft, locked, inherited, occupied);
+        return new ExistingEntity(typeId, relativePath, source.sha256(), described.tableName(), shape, draft, locked, inherited, occupied, inheritedColumns, unreadableColumns);
     }
 
     // ------------------------------------------------------------------ one field

@@ -26,6 +26,8 @@ final class Stubs {
         persistence("SecondaryTable", "String name();");
         persistence("Inheritance", "InheritanceType strategy() default InheritanceType.SINGLE_TABLE;");
         persistence("Column", "String name() default \"\"; int length() default 255; int precision() default 0; int scale() default 0; boolean nullable() default true;");
+        persistence("Transient", "");
+        persistence("AttributeOverride", "String name(); Column column();");
         persistence("JoinColumn", "String name() default \"\";");
         persistence("ManyToOne", "FetchType fetch() default FetchType.EAGER; boolean optional() default true;");
         SOURCES.put("jakarta/persistence/FetchType.java", "package jakarta.persistence; public enum FetchType { LAZY, EAGER }");

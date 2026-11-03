@@ -205,6 +205,38 @@ try {
     $refused = Invoke-Modify @('plan', '-Project', $copy, '-Type', "$packageName.ExtendedProduct", '-Out', (Join-Path $work 'plans/Clash'), '-ClasspathFile', $classpathFile, '-AddField', 'name=weight,type=INTEGER')
     Record 'EM5.4 a field that clashes with a hand-written method is refused before anything is written' ($refused.Code -eq 3 -and $refused.Err.Contains('RESERVED_FIELD') -and (Sha $extended) -eq $clash -and -not (Test-Path (Join-Path $work 'plans/Clash'))) "exit $($refused.Code)"
 
+    # --- cases found by the review of EM4: each looked fine to the plan and could not work -------------------------------
+    $utf8 = New-Object Text.UTF8Encoding $false
+    $head = "package com.example.entitytypes.model;`nimport jakarta.persistence.*;`nimport org.ipro.crud.*;`nimport org.ipro.metadata.annotation.*;`n"
+    function Write-Model([string]$Name, [string]$Body, [string]$Folder = $model) {
+        New-Item -ItemType Directory -Force $Folder | Out-Null
+        [IO.File]::WriteAllText((Join-Path $Folder "$Name.java"), $Body, $utf8)
+    }
+    Write-Model 'ClashBase' ($head + "@MappedSuperclass public abstract class ClashBase extends StandardCatalogEntity { @Column(name = `"address`") protected java.lang.String legacy; }`n")
+    Write-Model 'ClashEntity' ($head + "@Entity public class ClashEntity extends ClashBase { }`n")
+    $clash = Invoke-Modify @('plan', '-Project', $copy, '-Type', "$packageName.ClashEntity", '-Out', (Join-Path $work 'plans/ClashColumn'), '-ClasspathFile', $classpathFile, '-AddField', 'name=address,type=STRING')
+    Record 'EM5.4 a column that a base class already uses is refused (not left to Hibernate)' ($clash.Code -eq 3 -and $clash.Err.Contains('DUPLICATE_STORAGE_NAME') -and -not (Test-Path (Join-Path $work 'plans/ClashColumn'))) "exit $($clash.Code)"
+
+    $shadow = Join-Path $sources 'com/example/entitytypes/shadow'
+    Write-Model 'String' "package com.example.entitytypes.shadow;`npublic class String { }`n" $shadow
+    Write-Model 'ShadowEntity' ("package com.example.entitytypes.shadow;`nimport jakarta.persistence.*;`nimport org.ipro.crud.*;`n@Entity public class ShadowEntity extends StandardCatalogEntity { }`n") $shadow
+    $shadowFile = Join-Path $shadow 'ShadowEntity.java'; $shadowHash = Sha $shadowFile
+    $shadowed = Invoke-Modify @('plan', '-Project', $copy, '-Type', 'com.example.entitytypes.shadow.ShadowEntity', '-Out', (Join-Path $work 'plans/Shadow'), '-ClasspathFile', $classpathFile, '-AddField', 'name=amount,type=STRING')
+    Record 'EM5.4 a type of the package that shadows java.lang.String is refused' ($shadowed.Code -eq 3 -and $shadowed.Err.Contains('IMPORT_CONFLICT') -and (Sha $shadowFile) -eq $shadowHash) "exit $($shadowed.Code)"
+
+    Write-Model 'TargetBase' ($head + "@MappedSuperclass public abstract class TargetBase extends StandardCatalogEntity { }`n")
+    Write-Model 'TargetUnit' ($head + "@Entity public class TargetUnit extends TargetBase { }`n")
+    $productFile = Join-Path $model 'Product.java'; $productHash = Sha $productFile
+    $referencePlan = Join-Path $work 'plans/ProductUnit'
+    $referenced = Invoke-Modify @('plan', '-Project', $copy, '-Type', "$packageName.Product", '-Out', $referencePlan, '-ClasspathFile', $classpathFile, '-AddField', "name=unit,type=REFERENCE,reference=$packageName.TargetUnit")
+    Add-Content -LiteralPath (Join-Path $model 'TargetBase.java') -Value '// the base class of the target changed after the plan' -Encoding UTF8
+    $stale = Invoke-Modify @('apply', '-Project', $copy, '-Plan', $referencePlan)
+    Record 'EM5.4 a change in the base class of a reference target after the plan is a conflict' ($referenced.Code -eq 0 -and $stale.Code -eq 2 -and $stale.Err.Contains('CONFLICT_DEPENDENCY_CHANGED') -and (Sha $productFile) -eq $productHash) "exit $($referenced.Code)/$($stale.Code)"
+
+    Write-Model 'OverrideUnit' ($head + "@Entity @EntityMetadata @AttributeOverride(name = `"id`", column = @Column(name = `"unit_pk`")) public class OverrideUnit extends BaseEntity { }`n")
+    $override = Invoke-Modify @('plan', '-Project', $copy, '-Type', "$packageName.Product", '-Out', (Join-Path $work 'plans/Override'), '-ClasspathFile', $classpathFile, '-AddField', "name=other,type=REFERENCE,reference=$packageName.OverrideUnit")
+    Record 'EM5.4 a reference to a target with an overridden identifier column is refused as SCHEMA_UNKNOWN' ($override.Code -eq 3 -and $override.Err.Contains('SCHEMA_UNKNOWN') -and (Sha $productFile) -eq $productHash) "exit $($override.Code)"
+
     $final = Invoke-Maven 'compile-final' @('test-compile') $null
     Record 'EM5.4 the project still compiles after the second round of changes' ($final.Code -eq 0) 'log: compile-final.log'
 } catch {

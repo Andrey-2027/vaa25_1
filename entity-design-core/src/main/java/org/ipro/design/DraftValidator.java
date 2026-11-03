@@ -10,6 +10,7 @@ import org.ipro.design.existing.EntityChange;
 import org.ipro.design.existing.EntityChanges;
 import org.ipro.design.existing.EntityShape;
 import org.ipro.design.existing.ExistingEntity;
+import org.ipro.design.existing.LockedField;
 
 /** The only semantic rule engine. No IO, class loading, mutable cache or business callbacks. */
 public final class DraftValidator {
@@ -145,9 +146,13 @@ public final class DraftValidator {
             for (var field : existing.draft().fields()) {
                 reserved.add(field.name()); columns.add(DraftSuggestions.column(field)); ids.add(field.id());
             }
+            // The columns the bases really use, as far as their sources say; what cannot be told must not be guessed.
+            columns.addAll(existing.inheritedColumns());
+            var unreadable = new java.util.TreeSet<>(existing.unreadableColumns());
             for (var locked : existing.lockedFields()) {
                 reserved.add(locked.name());
-                columns.add(locked.columnName().isEmpty() ? RecipeCatalog.snake(locked.name()) : locked.columnName());
+                if (!locked.columnName().isEmpty()) columns.add(locked.columnName());
+                else if (hasColumn(locked)) unreadable.add(existing.typeId().substring(existing.typeId().lastIndexOf('.') + 1) + "." + locked.name());
             }
             var added = new ArrayList<FieldDraft>();
             for (var change : set.changes()) {
@@ -166,8 +171,14 @@ public final class DraftValidator {
                 }
             }
             fieldId = null;
+            if (!added.isEmpty() && !unreadable.isEmpty()) error(PROJECT_FACT_UNKNOWN, "context.columns", String.join(", ", unreadable));
             fields(added, reserved, columns);
             return new ValidationResult(problems, null);
+        }
+
+        /** A transient field and a collection have no column of their own, so an unreadable column name does not matter for them. */
+        private static boolean hasColumn(LockedField locked) {
+            return !locked.reason().equals("TRANSIENT") && !locked.reason().equals("COLLECTION");
         }
 
         /**

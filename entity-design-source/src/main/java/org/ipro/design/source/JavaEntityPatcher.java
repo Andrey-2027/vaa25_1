@@ -195,6 +195,7 @@ public final class JavaEntityPatcher {
             var javaType = fieldType == FieldType.REFERENCE
                 ? JavaMemberFragments.referenceType(field.reference().typeId().replace('$', '.'))
                 : JavaMemberFragments.javaType(fieldType);
+            if (fieldType != FieldType.REFERENCE && javaType.importName() == null) checkImplicitName(javaType.name());
             return new FieldSpec(field.name(), field.label(), fieldType, javaType, DraftSuggestions.column(field), false,
                 number(field.constraints().length()), number(field.constraints().precision()), number(field.constraints().scale()));
         }
@@ -409,6 +410,25 @@ public final class JavaEntityPatcher {
                 first = false;
             }
             return out.append(terminator).toString();
+        }
+
+        /**
+         * A type of {@code java.lang} is written by its simple name and needs no import, so a type of the same name in this file,
+         * in its imports or in its package would silently take its place.
+         */
+        private void checkImplicitName(String simple) {
+            for (var imported : source.imports()) {
+                String name = imported.getQualifiedIdentifier().toString();
+                if (!imported.isStatic() && !name.endsWith(".*") && name.endsWith("." + simple) && !name.equals("java.lang." + simple))
+                    throw conflict(simple, "imported as " + name);
+            }
+            boolean declared = type.getSimpleName().contentEquals(simple)
+                || source.topLevelTypes().stream().anyMatch(t -> t.getSimpleName().contentEquals(simple))
+                || type.getMembers().stream().anyMatch(m -> m instanceof ClassTree nested && nested.getSimpleName().contentEquals(simple));
+            if (declared) throw conflict(simple, "declared in the file");
+            String pkg = source.packageName();
+            if (project != null && project.type(pkg.isEmpty() ? simple : pkg + "." + simple).isPresent())
+                throw conflict(simple, "a type of the same package");
         }
 
         private SourceRefusal conflict(String simple, String why) {

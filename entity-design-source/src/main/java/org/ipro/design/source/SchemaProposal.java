@@ -63,6 +63,7 @@ public final class SchemaProposal {
         if (!chain.reachesBaseEntity()) throw unknown(base, "the base classes of " + targetId + " do not lead to BaseEntity, so its identifier is unknown");
         for (var member : chain.projectTypes()) {
             if (member.fieldNames().contains("id")) throw unknown(base, member.typeId() + " declares its own id");
+            if (member.attributeOverrides()) throw unknown(base, member.typeId() + " declares @AttributeOverride, so the identifier column of " + targetId + " is not known");
             if (member.inheritanceDeclared()) throw unknown(base, member.typeId() + " declares @Inheritance");
             if (member != chain.projectTypes().getFirst() && member.annotations().contains("Entity"))
                 throw unknown(base, targetId + " extends the entity " + member.typeId() + ", so its table is the parent's");

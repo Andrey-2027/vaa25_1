@@ -42,6 +42,37 @@ class ExistingEntityValidationTest {
             && p.target().propertyKey().equals(property)), () -> code + " / " + property + ": " + result.problems());
     }
 
+    private static ExistingEntity withColumns(Set<String> inheritedColumns, Set<String> unreadable, List<LockedField> locked) {
+        return new ExistingEntity("a.Workshop", "a/Workshop.java", "0".repeat(64), "workshop", EntityShape.ROOT, base(), locked, INHERITED,
+            Set.of("getCode", "setCode", "getUnit", "setUnit", "getDisplayName"), inheritedColumns, unreadable);
+    }
+
+    @Test void aNewFieldMayNotTakeAColumnOfABaseClassWhateverItsFieldIsCalled() {
+        var id = added().id();
+        var entity = withColumns(Set.of("address"), Set.of(), List.of());
+        problem(check(entity, plus(field("address", null))), DUPLICATE_STORAGE_NAME, id, "columnName");
+        problem(check(entity, plus(field("home", "address"))), DUPLICATE_STORAGE_NAME, id, "columnName");
+        assertFalse(check(entity, plus(field("zip", null))).hasErrors());
+    }
+
+    @Test void aColumnThatCannotBeReadIsNeverGuessed() {
+        var id = added().id();
+        var locked = List.of(new LockedField("legacy", "", "", "String", "NOT_LITERAL:column"));
+        for (var entity : List.of(withColumns(Set.of(), Set.of("Common.legacy"), List.of()), withColumns(Set.of(), Set.of(), locked))) {
+            var result = check(entity, plus(field("zip", null)));
+            assertTrue(result.problems().stream().anyMatch(p -> p.code() == PROJECT_FACT_UNKNOWN && p.target().propertyKey().equals("context.columns")), result.problems().toString());
+            assertTrue(result.hasErrors());
+            assertFalse(check(entity, base()).hasErrors(), "no added field, nothing to refuse");
+        }
+    }
+
+    @Test void aLockedFieldWithNoColumnOfItsOwnNeedsNoColumn() {
+        for (String reason : List.of("TRANSIENT", "COLLECTION")) {
+            var entity = withColumns(Set.of(), Set.of(), List.of(new LockedField("cache", "", "", "String", reason)));
+            assertFalse(check(entity, plus(field("zip", null))).hasErrors(), reason);
+        }
+    }
+
     @Test void anUnchangedDraftHasNoDiagnosticsAboutCodeOrPrerequisitesOrItsOwnTable() {
         var result = check(existing(), base());
         assertTrue(result.problems().isEmpty(), result.problems().toString());
