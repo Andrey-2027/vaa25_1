@@ -57,7 +57,7 @@
       "relativePath": "entity-design-source",
       "dependsOn": ["entity-design-core"],
       "source": {"kind": "in-repo-project", "gitCommit": null, "state": "EM1: reads and patches entity Java files with the JDK compiler tree API (jdk.compiler). Depends only on entity-design-core; no Jackson, UI, persistence, application or platform starter. Test-scope dependency of the application until the editor wiring (EM6)."},
-      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "3f05bc3eb05d1a25094b8ecb402cb31b572f1b5a89e4496a402c99b9e1f19b45", "fileCount": 16, "inputs": ["pom.xml", "src"]},
+      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "32876691b99c0b6504457346d808071630488e26a379a5b449e33f0d54725f75", "fileCount": 17, "inputs": ["pom.xml", "src"]},
       "artifacts": ["org.ipro:entity-design-source:1.0-SNAPSHOT"],
       "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
     },

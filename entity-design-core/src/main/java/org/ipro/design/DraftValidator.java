@@ -6,11 +6,25 @@ import static org.ipro.design.DraftProblem.Code.*;
 import org.ipro.design.DraftProblem.Code;
 import org.ipro.design.DraftProblem.Severity;
 import org.ipro.design.RecipeCatalog.FieldType;
+import org.ipro.design.existing.EntityChange;
+import org.ipro.design.existing.EntityChanges;
+import org.ipro.design.existing.EntityShape;
+import org.ipro.design.existing.ExistingEntity;
 
 /** The only semantic rule engine. No IO, class loading, mutable cache or business callbacks. */
 public final class DraftValidator {
     public ValidationResult validate(EntityDraft draft, ProjectDesignContext context) {
         return new Run(Objects.requireNonNull(draft), Objects.requireNonNull(context)).validate();
+    }
+
+    /**
+     * Checks the edits of an entity that already exists in a Java file. Only the new fields and the
+     * changed labels are validated, with the same field rules as creation; the rest of the entity is
+     * not re-judged by the rules for a new one. A change that is not one of the two supported ones is
+     * reported as {@code MODIFICATION_UNSUPPORTED}. The result never carries a checked structure.
+     */
+    public ValidationResult validateChange(ExistingEntity existing, EntityDraft edited, ProjectDesignContext context) {
+        return new Run(Objects.requireNonNull(edited), Objects.requireNonNull(context)).validateChange(Objects.requireNonNull(existing));
     }
 
     private static final class Run {
@@ -114,6 +128,46 @@ public final class DraftValidator {
                     new CheckedStructure.Root(e.className(), pkg, e.label(), list, item, selection, table, e.subsystemId(), e.icon()),
                     fields, sections, owner, register);
             return new ValidationResult(problems, checked);
+        }
+
+        ValidationResult validateChange(ExistingEntity existing) {
+            var set = EntityChanges.compare(existing.draft(), draft);
+            problems.addAll(set.problems());
+            boolean changed = !set.isEmpty();
+            if (changed && existing.shape() == EntityShape.UNRESOLVED_BASE) error(PROJECT_FACT_UNKNOWN, "context.baseChain", existing.typeId());
+            else if (changed && existing.shape() != EntityShape.ROOT) error(MODIFICATION_UNSUPPORTED, "shape", existing.shape().name());
+            if (existing.shape() != EntityShape.ROOT) return new ValidationResult(problems, null);
+
+            // Names and columns that a new field must not take: the platform's, the bases', the file's own.
+            var reserved = new HashSet<>(RecipeCatalog.systemFieldNames());
+            reserved.addAll(existing.inheritedNames());
+            var columns = storageNames(reserved);
+            for (var field : existing.draft().fields()) {
+                reserved.add(field.name()); columns.add(DraftSuggestions.column(field)); ids.add(field.id());
+            }
+            for (var locked : existing.lockedFields()) {
+                reserved.add(locked.name());
+                columns.add(locked.columnName().isEmpty() ? RecipeCatalog.snake(locked.name()) : locked.columnName());
+            }
+            var added = new ArrayList<FieldDraft>();
+            for (var change : set.changes()) {
+                switch (change) {
+                    case EntityChange.FieldAdded added1 -> added.add(added1.field());
+                    case EntityChange.LabelChanged label -> { fieldId = label.fieldId(); required(label.to(), "label"); fieldId = null; }
+                }
+            }
+            for (var field : added) {
+                fieldId = field.id();
+                if (field.serverRequired()) error(MODIFICATION_UNSUPPORTED, "serverRequired", field.name());
+                // A taken accessor of any signature can make a foreign call ambiguous; one-file compilation cannot see that.
+                for (String prefix : List.of("get", "set", "is")) {
+                    String accessor = prefix + accessorSuffix(field.name());
+                    if (!field.name().isEmpty() && existing.occupiedMethodNames().contains(accessor)) error(RESERVED_FIELD, "name", accessor);
+                }
+            }
+            fieldId = null;
+            fields(added, reserved, columns);
+            return new ValidationResult(problems, null);
         }
 
         /**
