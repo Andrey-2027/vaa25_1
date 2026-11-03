@@ -229,6 +229,72 @@ class DraftValidatorTest {
             }
         }
     }
+    private ValidationResult checkV2(EntityDraft d) { return validator.validate(d, context().withRuntimeSnapshot(RecipeHandoffTest.ready())); }
+    @ParameterizedTest @ValueSource(strings = {"limit", "offset", "desc", "end", "check", "all", "to", "value", "key", "day"})
+    void reservedSqlWordsAreRejectedForTablesAndColumns(String word) {
+        var d = RecipeHandoffTest.v2(valid());
+        problem(checkV2(entity(d, "MaterialCard", DraftText.auto(), DraftText.explicit(word))), INVALID_STORAGE_NAME, null, null, "tableName");
+        var f = d.fields().get(1);
+        var explicit = field(f, f.name(), f.type(), f.constraints(), f.reference(), DraftText.explicit(word), false, f.uiRequired(), f.applications());
+        problem(checkV2(field(d, explicit)), INVALID_STORAGE_NAME, null, f.id(), "columnName");
+        problem(checkV2(field(d, f.withName(word))), INVALID_STORAGE_NAME, null, f.id(), "columnName");
+        var row = d.sections().getFirst().fields().getFirst();
+        var inRow = field(row, row.name(), row.type(), row.constraints(), row.reference(), DraftText.explicit(word), false, row.uiRequired(), row.applications());
+        problem(checkV2(d.withSections(List.of(d.sections().getFirst().withFields(List.of(inRow))))), INVALID_STORAGE_NAME, d.sections().getFirst().id(), row.id(), "columnName");
+    }
+    @Test void explicitColumnResolvesReservedFieldName() {
+        var d = RecipeHandoffTest.v2(valid());
+        var f = d.fields().get(1).withName("limit");
+        var explicit = field(f, f.name(), f.type(), f.constraints(), f.reference(), DraftText.explicit("limit_value"), false, f.uiRequired(), f.applications());
+        var result = checkV2(field(d, explicit));
+        assertFalse(result.hasErrors(), () -> result.problems().toString());
+        assertEquals("limit_value", result.checkedStructure().orElseThrow().fields().getFirst().columnName());
+    }
+    @Test void capturedCatalogKeepsItsReservedWords() {
+        var d = valid();
+        var table = entity(d, "MaterialCard", DraftText.auto(), DraftText.explicit("limit"));
+        assertFalse(check(table).problems().stream().anyMatch(p -> p.code() == INVALID_STORAGE_NAME), () -> check(table).problems().toString());
+        for (String word : List.of("select", "from", "where", "table", "user", "order", "group", "primary", "references", "constraint")) {
+            problem(check(entity(d, "MaterialCard", DraftText.auto(), DraftText.explicit(word))), INVALID_STORAGE_NAME, null, null, "tableName");
+            problem(checkV2(entity(RecipeHandoffTest.v2(d), "MaterialCard", DraftText.auto(), DraftText.explicit(word))), INVALID_STORAGE_NAME, null, null, "tableName");
+        }
+        assertTrue(RecipeCatalog.reservedStorageWords(RecipeCatalog.STANDARD_CATALOG_V2).containsAll(RecipeCatalog.reservedStorageWords(RecipeCatalog.STANDARD_CATALOG)));
+    }
+    private static RuntimeDesignSnapshot snapshot(String... prerequisites) {
+        var facts = new HashMap<String, RuntimeDesignSnapshot.Prerequisite>();
+        for (String name : prerequisites) facts.put(name, new RuntimeDesignSnapshot.Prerequisite(RuntimeDesignSnapshot.Status.AVAILABLE, "fixture"));
+        return new RuntimeDesignSnapshot("runtime:test", true, Map.of(), facts);
+    }
+    private static EntityDraft documentOf(EntityDraft d, FieldDraft f) {
+        return new EntityDraft(1, RecipeCatalog.STANDARD_DOCUMENT, d.draftId(), d.entity(), List.of(f), List.of());
+    }
+    private static EntityDraft registerOf(EntityDraft d, FieldDraft dimension) {
+        var resource = field(d.fields().get(1), "rate", "DECIMAL", new ConstraintDraft("", "19", "2"), null, DraftText.auto(), true, FieldDraft.UiRequired.AUTO, FieldApplications.root());
+        return new EntityDraft(3, RecipeCatalog.INDEPENDENT_REGISTER, d.draftId(), d.entity(), List.of(dimension, resource), List.of(), null,
+            new RegisterDraft(RegisterDraft.NONE, RegisterDraft.NAMED_AND_CANONICAL_CRUD, List.of(dimension.id()), List.of(resource.id())));
+    }
+    @Test void classAccessorCollisionIsRejected() {
+        var d = valid(); var f = d.fields().get(1);
+        var asDimension = field(f, "Class", "STRING", new ConstraintDraft("20", "", ""), null, DraftText.explicit("class_name"), true, FieldDraft.UiRequired.AUTO, FieldApplications.root());
+        var catalog = checkV2(field(RecipeHandoffTest.v2(d), asDimension));
+        problem(catalog, RESERVED_FIELD, null, f.id(), "name");
+        var documentContext = context().withRuntimeSnapshot(snapshot("STANDARD_DOCUMENT_APP_API", "ET0_ET7_RUNTIME"));
+        problem(validator.validate(documentOf(d, asDimension), documentContext), RESERVED_FIELD, null, f.id(), "name");
+        var registerContext = context().withRuntimeSnapshot(snapshot("REGISTER_FACTS"));
+        problem(validator.validate(registerOf(d, asDimension), registerContext), RESERVED_FIELD, null, f.id(), "name");
+        var ok = asDimension.withName("kind");
+        assertFalse(checkV2(field(RecipeHandoffTest.v2(d), ok)).hasErrors());
+        var asRegisterId = asDimension.withName("Id");
+        problem(validator.validate(registerOf(d, asRegisterId), registerContext), RESERVED_FIELD, null, f.id(), "name");
+    }
+    @Test void capturedCatalogKeepsItsAccessorRules() {
+        var d = valid(); var f = d.fields().get(1);
+        var asClass = field(f, "Class", "STRING", new ConstraintDraft("20", "", ""), null, DraftText.explicit("class_name"), false, f.uiRequired(), f.applications());
+        assertFalse(check(field(d, asClass)).problems().stream().anyMatch(p -> p.code() == RESERVED_FIELD), () -> check(field(d, asClass)).problems().toString());
+        var asId = asClass.withName("Id");
+        assertFalse(check(field(d, asId)).problems().stream().anyMatch(p -> p.code() == RESERVED_FIELD));
+        problem(check(field(d, asClass.withName("id"))), RESERVED_FIELD, null, f.id(), "name");
+    }
     @Test void explicitEmptyValuesDoNotFallBackToSuggestionsAndUnicodeLimitMatchesSchema() {
         var d = valid(); var e = d.entity();
         var empty = d.withEntity(new EntityProperties(e.className(), e.packageName(), e.label(), new EntityProperties.Titles(DraftText.explicit(""), DraftText.auto(), DraftText.auto()), DraftText.explicit(""), e.subsystemId(), e.icon()));

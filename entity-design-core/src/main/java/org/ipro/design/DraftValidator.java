@@ -22,6 +22,8 @@ public final class DraftValidator {
         private final Set<String> newTypes = new HashSet<>();
         private final Set<String> foldedTypes = new HashSet<>();
         private boolean extension() { return draft.recipe().equals(RecipeCatalog.STANDARD_CATALOG_V2) || draft.recipe().equals(RecipeCatalog.STANDARD_DOCUMENT); }
+        /** The captured recipe keeps its original semantic checks; every later recipe also gets the accessor rules. */
+        private boolean capturedCatalog() { return draft.recipe().equals(RecipeCatalog.STANDARD_CATALOG); }
         private UUID sectionId, fieldId;
         Run(EntityDraft draft, ProjectDesignContext context) { this.draft = draft; this.context = context; }
 
@@ -243,7 +245,8 @@ public final class DraftValidator {
                 fieldId = f.id(); id(f.id()); identifier(f.name(), "name"); required(f.label(), "label");
                 if (!f.name().isEmpty() && !names.add(f.name())) error(DUPLICATE_NAME, "name", f.name());
                 if (reserved.contains(f.name())) error(RESERVED_FIELD, "name", f.name());
-                else if (extension() && reserved.stream().anyMatch(name -> accessorSuffix(name).equals(accessorSuffix(f.name())))) error(RESERVED_FIELD, "name", f.name());
+                else if (!capturedCatalog() && (accessorSuffix(f.name()).equals("Class")
+                        || reserved.stream().anyMatch(name -> accessorSuffix(name).equals(accessorSuffix(f.name()))))) error(RESERVED_FIELD, "name", f.name());
                 if (!f.name().isEmpty() && Character.isUpperCase(f.name().charAt(0))) warning(STYLE_CONVENTION, "name", "lowerCamelCase");
                 String column = DraftSuggestions.column(f); storage(column, "columnName", columns); raw(f.columnName().text(), "columnName");
                 raw(f.type(), "type");
@@ -317,7 +320,7 @@ public final class DraftValidator {
         private void storage(String value, String property, Set<String> names) {
             required(value, property);
             // Portable unquoted lowercase ASCII profile; maximum PostgreSQL identifier length.
-            if (!value.isEmpty() && (!value.matches("[a-z][a-z0-9_]{0,62}") || Set.of("select", "from", "where", "table", "user", "order", "group", "primary", "references", "constraint").contains(value)))
+            if (!value.isEmpty() && (!value.matches("[a-z][a-z0-9_]{0,62}") || RecipeCatalog.reservedStorageWords(draft.recipe()).contains(value)))
                 error(INVALID_STORAGE_NAME, property, value);
             if (!value.isEmpty() && !names.add(value)) error(DUPLICATE_STORAGE_NAME, property, value);
         }

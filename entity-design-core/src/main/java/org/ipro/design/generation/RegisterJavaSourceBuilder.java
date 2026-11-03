@@ -12,6 +12,7 @@ import org.ipro.design.CheckedStructure;
 import org.ipro.design.FieldApplicationMapping;
 import org.ipro.design.RecipeCatalog;
 import org.ipro.design.RecipeCatalog.FieldType;
+import org.ipro.design.StorageNames;
 
 /** Deterministic Java source for one independent register root. It does not compile or write files. */
 final class RegisterJavaSourceBuilder {
@@ -52,7 +53,7 @@ final class RegisterJavaSourceBuilder {
         out.append("@Entity\n");
         out.append("@Table(name = ").append(literal(root.tableName()))
                 .append(", uniqueConstraints = @UniqueConstraint(name = ")
-                .append(literal("uk_" + root.tableName() + "_key")).append(", columnNames = ")
+                .append(literal(StorageNames.constraint("uk_" + root.tableName() + "_key"))).append(", columnNames = ")
                 .append(columnNames(register.rowKeyColumns())).append("))\n");
         out.append("@EntityMetadata(\n");
         out.append(INDENT).append("listFormTitle = ").append(literal(root.listTitle())).append(",\n");

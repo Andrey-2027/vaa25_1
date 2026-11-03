@@ -110,7 +110,7 @@ class RecipeHandoffTest {
     @Test void everyApplicationCombinationIsEitherRepresentedExactlyOrDiagnosedAtItsStableTarget() {
         for (boolean row : List.of(false,true)) for (boolean required : List.of(false,true)) for (int mask=0;mask<16;mask++) {
             var apps=new FieldApplications((mask&1)!=0,(mask&2)!=0,(mask&4)!=0,(mask&8)!=0);
-            var field=new FieldDraft(UUID.randomUUID(),"value","Value","STRING",DraftText.auto(),required,
+            var field=new FieldDraft(UUID.randomUUID(),"amount","Amount","STRING",DraftText.auto(),required,
                 FieldDraft.UiRequired.AUTO,new ConstraintDraft("100","",""),null,apps);
             var draft=v2(valid()).withFields(row ? List.of() : List.of(field));
             UUID section=null;
@@ -130,8 +130,8 @@ class RecipeHandoffTest {
                 assertEquals(row ? apps.form()||apps.table() : apps.form(),binding.emitFieldMetadata());
                 assertEquals(row&&apps.table(),binding.gridVisible());
                 if (!row) {
-                    assertEquals(apps.list(),projection.listColumns().contains("value"));
-                    assertEquals(apps.selection(),projection.selectColumns().contains("value"));
+                    assertEquals(apps.list(),projection.listColumns().contains("amount"));
+                    assertEquals(apps.selection(),projection.selectColumns().contains("amount"));
                     assertTrue(projection.listColumns().containsAll(List.of("code","name")));
                     assertTrue(projection.selectColumns().containsAll(List.of("code","name")));
                 }

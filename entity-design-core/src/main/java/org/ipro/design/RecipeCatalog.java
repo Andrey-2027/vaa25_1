@@ -42,6 +42,29 @@ public final class RecipeCatalog {
     public static List<String> defaultPublications(RecipeRef recipe) {
         return inheritedFields(recipe).stream().map(InheritedField::name).toList();
     }
+    /** The ten words the captured {@code standard-catalog-v1} rejects; its semantics never change. */
+    private static final Set<String> CAPTURED_RESERVED_STORAGE_WORDS = Set.of(
+        "select", "from", "where", "table", "user", "order", "group", "primary", "references", "constraint");
+    /**
+     * Words that cannot name an unquoted table or column: PostgreSQL 17 categories R and T of
+     * {@code pg_get_keywords()} (reserved, also reserved as function or type), plus the words H2 2.4
+     * (the Spring Boot 4.0 default) rejects, checked with a one-off {@code CREATE TABLE} per word.
+     * Draft names are never quoted, so any of them would break the DDL on one of the two databases.
+     */
+    private static final Set<String> RESERVED_STORAGE_WORDS = Set.copyOf(java.util.Arrays.asList((
+        "all analyse analyze and any array as asc asymmetric authorization binary both case cast check collate collation "
+        + "column concurrently constraint create cross current_catalog current_date current_role current_schema current_time "
+        + "current_timestamp current_user default deferrable desc distinct do else end except false fetch for foreign freeze "
+        + "from full grant group having ilike in initially inner intersect into is isnull join lateral leading left like limit "
+        + "localtime localtimestamp natural not notnull null offset on only or order outer overlaps placing primary references "
+        + "returning right select session_user similar some symmetric system_user table tablesample then to trailing true "
+        + "union unique user using variadic verbose when where window with "
+        + "between current_path day exists hour if interval key minus minute month qualify row rownum second set uescape "
+        + "unknown value values year").split(" ")));
+    /** Reserved storage words that apply to the drafts of {@code recipe}. */
+    public static Set<String> reservedStorageWords(RecipeRef recipe) {
+        return STANDARD_CATALOG.equals(recipe) ? CAPTURED_RESERVED_STORAGE_WORDS : RESERVED_STORAGE_WORDS;
+    }
     public static Set<String> systemFieldNames() { return Set.of("id", "version", "createdAt", "modifiedAt", "createdBy", "modifiedBy"); }
     /** Names a register draft cannot declare as fields; {@code period} is builtin only for DAY. */
     public static Set<String> registerSystemFieldNames(String period) {

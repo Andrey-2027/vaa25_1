@@ -308,7 +308,7 @@ class CatalogJavaGeneratorTest {
 
     @Test
     void optionalServerRequiredFieldIsRejectedAtItsUiRequiredProperty() {
-        var field = new FieldDraft(id(1), "value", "Значение", "STRING", DraftText.auto(), true,
+        var field = new FieldDraft(id(1), "amount", "Значение", "STRING", DraftText.auto(), true,
                 FieldDraft.UiRequired.OPTIONAL, new ConstraintDraft("100", "", ""), null,
                 new FieldApplications(true, false, false, false));
         var draft = draft(entity("FutureCatalog", "Будущий справочник", "Будущие справочники",
