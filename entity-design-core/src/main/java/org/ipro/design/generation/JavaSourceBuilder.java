@@ -125,45 +125,12 @@ final class JavaSourceBuilder {
     private static void field(StringBuilder out, CheckedStructure.Field field,
                               FieldApplicationMapping.Binding binding, int order, CheckedStructure checked) {
         var type = javaType(field, checked);
-        if (field.serverRequired()) out.append(INDENT).append("@NotNull\n");
-        switch (field.type()) {
-            case STRING -> out.append(INDENT).append("@Size(max = ")
-                    .append(required(field.length(), "STRING length")).append(")\n");
-            case DECIMAL -> {
-                int precision = required(field.precision(), "DECIMAL precision");
-                int scale = required(field.scale(), "DECIMAL scale");
-                if (scale > precision) throw new IllegalStateException("DECIMAL scale exceeds precision");
-                out.append(INDENT).append("@Digits(integer = ").append(precision - scale)
-                        .append(", fraction = ").append(scale).append(")\n");
-            }
-            default -> { }
-        }
-        if (field.type() == FieldType.REFERENCE) {
-            out.append(INDENT).append("@ManyToOne(fetch = FetchType.LAZY, optional = ")
-                    .append(!field.serverRequired()).append(")\n");
-        }
-        out.append(INDENT).append(field.type() == FieldType.REFERENCE ? "@JoinColumn(name = " : "@Column(name = ")
-                .append(literal(field.columnName()));
-        if (field.serverRequired()) out.append(", nullable = false");
-        switch (field.type()) {
-            case STRING -> out.append(", length = ").append(required(field.length(), "STRING length"));
-            case DECIMAL -> out.append(", precision = ").append(required(field.precision(), "DECIMAL precision"))
-                    .append(", scale = ").append(required(field.scale(), "DECIMAL scale"));
-            default -> { }
-        }
-        out.append(")\n");
-        out.append(INDENT).append("@FieldMetadata(label = ").append(literal(field.label()))
-                .append(", order = ").append(order);
-        if (!"AUTO".equals(binding.requiredMode()))
-            out.append(", required = RequiredMode.").append(binding.requiredMode());
-        if (binding.hidden()) out.append(", hidden = true");
-        out.append(", grid = @GridColumn(visible = ").append(binding.gridVisible());
-        if (binding.gridVisible()) out.append(", order = ").append(order);
-        out.append("))\n");
-        out.append(INDENT).append("private ").append(type.name()).append(' ')
-                .append(field.name()).append(";\n");
+        var spec = new JavaMemberFragments.FieldSpec(field.name(), field.label(), field.type(), type, field.columnName(),
+            field.serverRequired(), field.length(), field.precision(), field.scale());
+        var publication = new JavaMemberFragments.Publication(order, binding.requiredMode(), binding.hidden(),
+            new JavaMemberFragments.Grid(binding.gridVisible(), binding.gridVisible() ? order : null));
+        out.append(JavaMemberFragments.field(spec, publication));
     }
-
     private static void accessors(StringBuilder out, CheckedStructure.Field field, CheckedStructure checked) {
         var type = javaType(field, checked).name();
         accessor(out, field.name(), type);
@@ -205,38 +172,16 @@ final class JavaSourceBuilder {
     }
 
     private static void accessor(StringBuilder out, String name, String type) {
-        var suffix = capitalized(name);
-        out.append(INDENT).append("public ").append(type).append(" get").append(suffix).append("() {\n");
-        out.append(INDENT).append(INDENT).append("return ").append(name).append(";\n");
-        out.append(INDENT).append("}\n\n");
-        out.append(INDENT).append("public void set").append(suffix).append('(').append(type)
-                .append(' ').append(name).append(") {\n");
-        out.append(INDENT).append(INDENT).append("this.").append(name)
-                .append(" = ").append(name).append(";\n");
-        out.append(INDENT).append("}\n");
+        out.append(JavaMemberFragments.accessor(name, type));
     }
-
-    private static JavaType javaType(CheckedStructure.Field field, CheckedStructure checked) {
+    private static JavaMemberFragments.JavaType javaType(CheckedStructure.Field field, CheckedStructure checked) {
         if (field.type() == FieldType.REFERENCE) {
             var target = checked.context().referenceTargets().get(field.referenceTypeId());
             if (target == null) throw new IllegalStateException("Missing checked reference target");
             // Fully qualified source names resolve same-simple-name and annotation/type collisions.
-            return new JavaType(target.sourceTypeName(), null);
+            return JavaMemberFragments.referenceType(target.sourceTypeName());
         }
-        return javaType(field.type());
-    }
-
-    private static JavaType javaType(FieldType type) {
-        return switch (type) {
-            case STRING -> new JavaType("String", null);
-            case INTEGER -> new JavaType("Integer", null);
-            case LONG -> new JavaType("Long", null);
-            case DECIMAL -> new JavaType("BigDecimal", "java.math.BigDecimal");
-            case BOOLEAN -> new JavaType("Boolean", null);
-            case DATE -> new JavaType("LocalDate", "java.time.LocalDate");
-            case DATETIME -> new JavaType("LocalDateTime", "java.time.LocalDateTime");
-            case REFERENCE -> throw new IllegalArgumentException("REFERENCE is outside the first catalog generator scope");
-        };
+        return JavaMemberFragments.javaType(field.type());
     }
 
     private static int required(Integer value, String what) {
@@ -244,10 +189,6 @@ final class JavaSourceBuilder {
         return value;
     }
 
-    private static String capitalized(String name) {
-        if (name.isEmpty()) throw new IllegalStateException("Field name is required");
-        return Character.toUpperCase(name.charAt(0)) + name.substring(1);
-    }
 
     private static String arrayLiteral(List<String> values) {
         var out = new StringBuilder("{");
@@ -258,32 +199,5 @@ final class JavaSourceBuilder {
         return out.append('}').toString();
     }
 
-    private static String literal(String value) {
-        Objects.requireNonNull(value, "Java literal value");
-        var out = new StringBuilder(value.length() + 2).append('"');
-        for (int index = 0; index < value.length(); index++) {
-            char character = value.charAt(index);
-            switch (character) {
-                case '\\' -> out.append("\\\\");
-                case '"' -> out.append("\\\"");
-                case '\n' -> out.append("\\n");
-                case '\r' -> out.append("\\r");
-                case '\t' -> out.append("\\t");
-                case '\b' -> out.append("\\b");
-                case '\f' -> out.append("\\f");
-                default -> {
-                    if (character < 0x20) out.append(unicodeEscape(character));
-                    else out.append(character);
-                }
-            }
-        }
-        return out.append('"').toString();
-    }
-
-    private static String unicodeEscape(char character) {
-        var hex = Integer.toHexString(character);
-        return "\\u" + "0".repeat(4 - hex.length()) + hex;
-    }
-
-    private record JavaType(String name, String importName) { }
+    private static String literal(String value) { return JavaMemberFragments.literal(value); }
 }
