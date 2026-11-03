@@ -101,12 +101,16 @@ if ($Command -eq 'plan') {
 
 # --- run ------------------------------------------------------------------------------------------
 $previousEncoding = [Console]::OutputEncoding
+$previousPreference = $ErrorActionPreference
 try {
     [Console]::OutputEncoding = [Text.Encoding]::UTF8
+    # The tool reports refusals on stderr; a caller that redirects it (2>&1) must not turn that into a terminating error here.
+    $ErrorActionPreference = 'Continue'
     & $javaExe -cp $toolClasspath org.ipro.design.source.EntityModifyCli @arguments
     $code = $LASTEXITCODE
 } finally {
     [Console]::OutputEncoding = $previousEncoding
+    $ErrorActionPreference = $previousPreference
     if ($temporaryClasspath -and (Test-Path -LiteralPath $temporaryClasspath)) { Remove-Item -LiteralPath $temporaryClasspath -Force }
 }
 exit $code
