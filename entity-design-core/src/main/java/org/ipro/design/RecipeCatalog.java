@@ -9,6 +9,11 @@ public final class RecipeCatalog {
     public static final RecipeRef STANDARD_CATALOG = new RecipeRef("standard-catalog-v1", 1);
     public static final RecipeRef STANDARD_CATALOG_V2 = new RecipeRef("standard-catalog-v2", 2);
     public static final RecipeRef STANDARD_DOCUMENT = new RecipeRef("standard-document-v1", 1);
+    /**
+     * Marks a draft read from an existing Java file. It is a working mode, not a recipe: it is
+     * deliberately absent from {@link #recipes()}, so it cannot be chosen for creation or imported.
+     */
+    public static final RecipeRef EXISTING_ENTITY = new RecipeRef("existing-entity", 1);
     public static final RecipeRef INDEPENDENT_REGISTER = new RecipeRef("independent-register-v1", 1);
     public static final String REGISTER_NONE = RegisterDraft.NONE, REGISTER_DAY = RegisterDraft.DAY;
     public static final String REGISTER_WRITE_PROFILE = RegisterDraft.NAMED_AND_CANONICAL_CRUD;
@@ -38,6 +43,31 @@ public final class RecipeCatalog {
     public static String baseType(RecipeRef recipe) {
         inheritedFields(recipe); // Restrict this API to the two standard base contracts.
         return STANDARD_DOCUMENT.equals(recipe) ? "org.ipro.crud.StandardDocumentEntity" : BASE_TYPE;
+    }
+    /**
+     * A platform class an entity may extend. {@code fields} and {@code methods} are the names the
+     * class itself declares; a subclass inherits them through {@code parent}.
+     */
+    public record PlatformBase(String typeId, String parent, List<String> fields, List<String> methods) {}
+    private static final List<PlatformBase> PLATFORM_BASES = List.of(
+        new PlatformBase("org.ipro.crud.BaseEntity", null,
+            List.of("id", "version", "createdAt", "modifiedAt", "createdBy", "modifiedBy"),
+            List.of("getId", "setId", "getVersion", "setVersion", "getCreatedAt", "setCreatedAt", "getModifiedAt",
+                "setModifiedAt", "getCreatedBy", "setCreatedBy", "getModifiedBy", "setModifiedBy", "equals", "hashCode")),
+        new PlatformBase(BASE_TYPE, "org.ipro.crud.BaseEntity", List.of("code", "name"),
+            List.of("getCode", "setCode", "getName", "setName", "getDisplayName", "toString")),
+        new PlatformBase("org.ipro.crud.StandardDocumentEntity", "org.ipro.crud.BaseEntity", List.of("number", "date"),
+            List.of("getNumber", "setNumber", "getDate", "setDate", "getDisplayName", "toString")),
+        new PlatformBase(REGISTER_DAY_BASE, "org.ipro.crud.BaseEntity", List.of("period"), List.of("getPeriod", "setPeriod")),
+        new PlatformBase("org.ipro.register.RecordedRegisterEntryBase", "org.ipro.crud.BaseEntity",
+            List.of("recorder", "lineNumber", "recordingOrder"),
+            List.of("getRecorder", "setRecorder", "getLineNumber", "setLineNumber", "getRecordingOrder", "setRecordingOrder")),
+        new PlatformBase("org.ipro.register.PeriodicRecordedRegisterEntryBase", "org.ipro.register.RecordedRegisterEntryBase",
+            List.of("period"), List.of("getPeriod", "setPeriod")));
+    /** The platform base classes whose members a draft of an existing entity must not shadow. */
+    public static List<PlatformBase> platformBases() { return PLATFORM_BASES; }
+    public static java.util.Optional<PlatformBase> platformBase(String typeId) {
+        return PLATFORM_BASES.stream().filter(base -> base.typeId().equals(typeId)).findFirst();
     }
     public static List<String> defaultPublications(RecipeRef recipe) {
         return inheritedFields(recipe).stream().map(InheritedField::name).toList();

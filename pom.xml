@@ -52,6 +52,13 @@
             <artifactId>entity-design-json</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <!-- EM1: reads entity Java files; test scope until the editor gets a source-root setting (EM6). -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>entity-design-source</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
         <!-- ET9 optional backend adapter; design-core stays independent of runtime and UI. -->
         <dependency>
             <groupId>org.ipro</groupId>

@@ -1,0 +1,20 @@
+package org.ipro.design.source;
+
+import java.util.Objects;
+
+/** An addressed refusal: what went wrong, where, and why. Never a guess in place of a refusal. */
+public final class SourceRefusal extends RuntimeException {
+    public enum Code {
+        MISSING_JDK_COMPILER, SOURCE_ENCODING_INVALID, SOURCE_UNREADABLE, SOURCE_UNPARSABLE, NOT_AN_ENTITY_CLASS
+    }
+    private final Code code;
+    private final String target, reason;
+
+    public SourceRefusal(Code code, String target, String reason) {
+        super(code + " " + target + ": " + reason);
+        this.code = Objects.requireNonNull(code); this.target = Objects.requireNonNull(target); this.reason = Objects.requireNonNull(reason);
+    }
+    public Code code() { return code; }
+    public String target() { return target; }
+    public String reason() { return reason; }
+}

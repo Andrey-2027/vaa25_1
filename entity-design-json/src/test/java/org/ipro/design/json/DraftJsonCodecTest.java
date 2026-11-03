@@ -36,6 +36,12 @@ class DraftJsonCodecTest {
     ObjectNode tree() throws IOException { return (ObjectNode)mapper.readTree(fixture("catalog-two-sections")); }
     void reject(JsonNode tree) { assertThrows(DraftJsonException.class, () -> codec.decode(tree.toString())); }
 
+    @Test void existingEntityMarkerIsNeitherImportedNorExported() throws Exception {
+        var marked=tree(); ((ObjectNode)marked.path("recipe")).put("id",RecipeCatalog.EXISTING_ENTITY.id()).put("version",RecipeCatalog.EXISTING_ENTITY.version()); reject(marked);
+        var draft=codec.decode(fixture("catalog-two-sections"));
+        var existing=new EntityDraft(2,RecipeCatalog.EXISTING_ENTITY,draft.draftId(),draft.entity(),draft.fields(),List.of());
+        assertThrows(RuntimeException.class,() -> codec.encode(existing));
+    }
     @Test void explicitlyVersionedRecipeUsesTheSameEnvelopeWithoutReinterpretingOldDocuments() throws Exception {
         var original=codec.decode(fixture("catalog-two-sections"));
         var updated=new EntityDraft(1,RecipeCatalog.STANDARD_CATALOG_V2,original.draftId(),original.entity(),original.fields(),original.sections());
