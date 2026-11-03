@@ -9,10 +9,8 @@ import org.ipro.design.CheckedStructure;
 import org.ipro.design.DraftProblem;
 import org.ipro.design.EntityDraft;
 import org.ipro.design.FieldApplicationMapping;
-import org.ipro.design.FieldDraft;
 import org.ipro.design.ProjectDesignContext;
 import org.ipro.design.RecipeCatalog;
-import org.ipro.design.RecipeCatalog.FieldType;
 import org.ipro.design.RecipeRef;
 
 /**
@@ -54,46 +52,7 @@ final class StandardRootJavaGenerator {
                     target(currentDraft.draftId(), null, null, "checkedStructure"),
                     messageKey(GenerationDiagnostic.Code.STALE_CHECKED_STRUCTURE),
                     Map.of())));
-        var diagnostics = new ArrayList<GenerationDiagnostic>();
-        if (!references && source.schemaVersion() != 1) diagnostics.add(new GenerationDiagnostic(
-                GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT, target(source.draftId(), null, null, "schemaVersion"),
-                messageKey(GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT), Map.of("construct", "ENVELOPE")));
-        if (!references && checked.owner() != null) diagnostics.add(new GenerationDiagnostic(
-                GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT, target(source.draftId(), null, null, "owner"),
-                messageKey(GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT), Map.of("construct", "OWNER")));
-        if (checked.root().subsystemId() != null) diagnostics.add(new GenerationDiagnostic(
-                GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT,
-                target(source.draftId(), null, null, "subsystemId"),
-                messageKey(GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT),
-                Map.of("subsystemId", checked.root().subsystemId())));
-        if (!references) for (var section : checked.sections()) diagnostics.add(new GenerationDiagnostic(
-                GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT,
-                target(source.draftId(), section.id(), null, "sections"),
-                messageKey(GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT),
-                unsupportedParameters("SECTION", Map.of("sectionLabel", section.label()))));
-        for (var field : checked.fields()) {
-            if (field.type() == FieldType.REFERENCE && !references) {
-                diagnostics.add(new GenerationDiagnostic(
-                        GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT,
-                        target(source.draftId(), null, field.id(), "type"),
-                        messageKey(GenerationDiagnostic.Code.UNSUPPORTED_CONSTRUCT),
-                        unsupportedParameters("REFERENCE", Map.of("field", field.name(), "type", field.type().name()))));
-            } else if (field.serverRequired() && field.uiRequired() == FieldDraft.UiRequired.OPTIONAL) {
-                diagnostics.add(new GenerationDiagnostic(
-                        GenerationDiagnostic.Code.UNREPRESENTABLE_REQUIRED_MODE,
-                        target(source.draftId(), null, field.id(), "uiRequired"),
-                        messageKey(GenerationDiagnostic.Code.UNREPRESENTABLE_REQUIRED_MODE),
-                        Map.of("runtimeCode", "UI_OPTIONAL_SERVER_REQUIRED",
-                                "serverRequired", "true", "uiRequired", "OPTIONAL")));
-            }
-        }
-        if (references) for (var section : checked.sections()) for (var field : section.fields()) {
-            if (field.serverRequired() && field.uiRequired() == FieldDraft.UiRequired.OPTIONAL)
-                diagnostics.add(new GenerationDiagnostic(GenerationDiagnostic.Code.UNREPRESENTABLE_REQUIRED_MODE,
-                    target(source.draftId(), section.id(), field.id(), "uiRequired"),
-                    messageKey(GenerationDiagnostic.Code.UNREPRESENTABLE_REQUIRED_MODE),
-                    Map.of("runtimeCode", "UI_OPTIONAL_SERVER_REQUIRED", "serverRequired", "true", "uiRequired", "OPTIONAL")));
-        }
+        var diagnostics = new StandardRepresentability(references, fingerprintProfile).check(checked);
         if (!diagnostics.isEmpty()) return GenerationResult.rejected(diagnostics);
         FieldApplicationMapping.Projection projection;
         try {
@@ -131,14 +90,6 @@ final class StandardRootJavaGenerator {
         var planId = PlanFingerprint.planId(fingerprintProfile, source.recipe(), generatorVersion, currentDraft, currentContext, files, checked.owner(), projection.owner());
         return GenerationResult.generated(new GenerationPlan(planId, source.recipe(), generatorVersion,
                 currentDraft, currentContext, files));
-    }
-
-    private Map<String, String> unsupportedParameters(String construct, Map<String, String> details) {
-        // The captured catalog profile retains its exact diagnostics contract.
-        if (GenerationManifest.LEGACY_FINGERPRINT.equals(fingerprintProfile)) return details;
-        var parameters = new java.util.HashMap<>(details);
-        parameters.put("construct", construct);
-        return parameters;
     }
 
     private static String relativePath(CheckedStructure checked) {

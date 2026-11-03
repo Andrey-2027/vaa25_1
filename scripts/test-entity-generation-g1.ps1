@@ -102,6 +102,7 @@ function Get-GitHead {
 }
 
 function New-Isolation {
+    param([switch]$RegisterScenario)
     $parent = [IO.Path]::GetFullPath($IsolationRoot)
     $repo = [IO.Path]::GetFullPath($script:RepoRoot)
     if ($parent.StartsWith($repo, [StringComparison]::OrdinalIgnoreCase)) {
@@ -112,7 +113,8 @@ function New-Isolation {
     }
     $directory = Join-Path $parent ('entity-generation-g1-harness-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $directory -Force | Out-Null
-    Copy-Item -Path (Join-Path $script:ConsumerTemplate '*') -Destination $directory -Recurse -Force
+    $template = if ($RegisterScenario) { Join-Path $script:SupportRoot 'register-consumer' } else { $script:ConsumerTemplate }
+    Copy-Item -Path (Join-Path $template '*') -Destination $directory -Recurse -Force
     return $directory
 }
 
@@ -173,6 +175,7 @@ function Get-SpecMetadata {
         Scenario = $scenario
         ClassName = $className
         RelativePath = $relative
+        RegisterScenario = ($text -match 'REQUIRED_SUITE\s*=\s*"com.example.generated.harness.RegisterScenarioTest"')
         ReferenceScenario = ($text -match 'REQUIRED_SUITE\s*=\s*"com.example.generated.harness.ReferenceScenarioTest"')
         OwnerScenario = ($text -match 'REQUIRED_SUITE\s*=\s*"com.example.generated.harness.OwnerScenarioTest"')
         SectionTargets = ($text -match 'SUPPORT_PROFILE\s*=\s*"g1-sections"')
@@ -271,7 +274,18 @@ function Read-PlanManifest {
     if ([string]$manifest.planId -notmatch '^g1-[0-9a-f]{64}$') {
         Reject 'manifest-invalid' ('Invalid planId: ' + $manifest.planId)
     }
-    if ([string]$manifest.fingerprintProfile -ne 'plan-fingerprint-v2') {
+    $register = ([string]$manifest.generatorVersion -eq 'register-java-v1' -or
+        [string]$manifest.recipe.id -eq 'independent-register-v1' -or
+        [string]$manifest.fingerprintProfile -eq 'plan-fingerprint-v3')
+    if ($register) {
+        if ([string]$manifest.generatorVersion -ne 'register-java-v1' -or
+            [string]$manifest.recipe.id -ne 'independent-register-v1' -or
+            [string]$manifest.recipe.version -ne '1' -or
+            [string]$manifest.fingerprintProfile -ne 'plan-fingerprint-v3' -or
+            @($manifest.entries).Count -ne 1) {
+            Reject 'manifest-invalid' 'Register C requires independent-register-v1@1 / register-java-v1 / F3 and one entry'
+        }
+    } elseif ([string]$manifest.fingerprintProfile -ne 'plan-fingerprint-v2') {
         Reject 'manifest-invalid' ('Extension C requires plan-fingerprint-v2, got ' + $manifest.fingerprintProfile)
     }
     $entries = @($manifest.entries)
@@ -632,6 +646,15 @@ function Invoke-Acceptance {
                 $planText = Get-Text $PlanReceipt
                 $plan = $planText | ConvertFrom-Json
                 $planProperties = @($plan.PSObject.Properties.Name)
+                if ($null -ne $manifest) {
+                    $expectedRecipe = [string]$manifest.recipe.id + '@' + [string]$manifest.recipe.version
+                    foreach ($binding in @(@('planId', [string]$manifest.planId),
+                            @('recipe', $expectedRecipe), @('generatorVersion', [string]$manifest.generatorVersion))) {
+                        if ($planProperties -notcontains $binding[0] -or [string]$plan.($binding[0]) -ne $binding[1]) {
+                            Reject 'plan-receipt-mismatch' ('Receipt ' + $binding[0] + ' differs from manifest')
+                        }
+                    }
+                }
                 if (($planProperties -notcontains 'sha256') -or ($planProperties -notcontains 'relativePath')) {
                     Reject 'plan-receipt-incomplete' 'Plan receipt must contain sha256 and relativePath'
                 }
@@ -683,6 +706,9 @@ function Invoke-Acceptance {
             }
         }
 
+        if ($spec.RegisterScenario -ne ($null -ne $manifest -and [string]$manifest.generatorVersion -eq 'register-java-v1')) {
+            Reject 'spec-mismatch' 'Register manifest and register scenario must be selected together'
+        }
         $sourceContract = Assert-SourceContract -Source $SourceFile -Relative $RelativePath
         $summary.source.relativePath = $RelativePath
         if (($spec.RelativePath -replace '\\', '/') -ne ($RelativePath -replace '\\', '/')) {
@@ -719,7 +745,7 @@ function Invoke-Acceptance {
         Copy-Item -LiteralPath $SpecFile -Destination (Join-Path $RunDirectory 'input\ScenarioSpec.java') -Force
 
         $beforeJars = Get-PlatformJarHashes $LocalRepository
-        $isolation = New-Isolation
+        $isolation = New-Isolation -RegisterScenario:$spec.RegisterScenario
         $summary.harness.isolation = $isolation
         $summary.harness.javaVersion = Get-JavaVersion $JavaHome
 
@@ -805,6 +831,7 @@ function Invoke-Acceptance {
         if ($spec.ReferenceScenario) { $requiredSuites = @('com.example.generated.harness.ReferenceScenarioTest') }
         if ($spec.OwnerScenario) { $requiredSuites = @('com.example.generated.harness.OwnerScenarioTest') }
         if ($spec.SectionScenario) { $requiredSuites = @('com.example.generated.harness.SectionsScenarioTest') }
+        if ($spec.RegisterScenario) { $requiredSuites = @('com.example.generated.harness.RegisterScenarioTest') }
         $counts = Get-SurefireSummary -Isolation $isolation -RequiredSuites $requiredSuites
         $summary.tests = $counts
         $summary.runtime.attempted = ($counts.reports -gt 0)
@@ -833,6 +860,9 @@ function Invoke-Acceptance {
             }) | Out-Null
         }
         $summary.dependencies = @($dependencies | Sort-Object { $_.id })
+        if ($mavenExit -eq 0 -and $spec.RegisterScenario -and @($summary.dependencies | Where-Object { $_.id -like 'org.ipro:platform-register:jar:*' }).Count -ne 1) {
+            Reject 'register-jar-missing' 'Register acceptance requires the effective installed platform-register JAR'
+        }
         $jarLines = New-Object System.Collections.Generic.List[string]
         $changed = New-Object System.Collections.Generic.List[string]
         $missing = New-Object System.Collections.Generic.List[string]
@@ -939,6 +969,12 @@ function Invoke-Acceptance {
         }
     } finally {
         if (-not [string]::IsNullOrWhiteSpace($isolation) -and -not $KeepIsolation) {
+            $isolation = [IO.Path]::GetFullPath($isolation)
+            $expectedParent = [IO.Path]::GetFullPath($IsolationRoot).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+            if (-not $isolation.StartsWith($expectedParent, [StringComparison]::OrdinalIgnoreCase) -or
+                [IO.Path]::GetFileName($isolation) -notmatch '^entity-generation-g1-harness-[0-9a-f]{32}$') {
+                throw 'Refusing to remove an unexpected isolation directory'
+            }
             Remove-Item -LiteralPath $isolation -Recurse -Force -ErrorAction SilentlyContinue
         }
     }

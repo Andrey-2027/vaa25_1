@@ -62,9 +62,9 @@ class EntityDesignRuntimeProjectionIT {
         var recorded=facts.types().get(NomenclatureAccountingObject.class.getName());
         assertThat(independent.kind()).isEqualTo("INFORMATION_REGISTER"); assertThat(recorded.kind()).isEqualTo(independent.kind());
         assertThat(independent.recorderOwned()).isFalse(); assertThat(recorded.recorderOwned()).isTrue();
-        // Runtime capabilities remain factual even though a future register recipe is still blocked.
+        // Per-type capabilities remain factual; engine readiness does not grant writes to any type.
         assertThat(recorded.writes()).containsExactlyInAnyOrder("CREATE","UPDATE","DELETE");
-        assertThat(facts.prerequisite("REGISTER_ENGINE_OPERATIONS").status()).isEqualTo(RuntimeDesignSnapshot.Status.UNAVAILABLE);
+        assertThat(facts.prerequisite("REGISTER_ENGINE_OPERATIONS").status()).isEqualTo(RuntimeDesignSnapshot.Status.AVAILABLE);
         assertThat(facts.types().values()).flatExtracting(RuntimeDesignSnapshot.TypeFacts::sections).isNotEmpty();
         var row=facts.types().get(ReceivingDocumentItem.class.getName());
         assertThat(row.sectionOwnerTypeId()).isEqualTo(ReceivingDocument.class.getName());

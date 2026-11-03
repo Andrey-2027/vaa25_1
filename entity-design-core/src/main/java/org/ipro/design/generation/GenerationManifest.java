@@ -18,6 +18,7 @@ public record GenerationManifest(String kind, String planId, RecipeRef recipe, S
     public static final String HASH_PROFILE = "g1-file-set-sha256-v2";
     public static final String LEGACY_FINGERPRINT = "plan-fingerprint-v1";
     public static final String EXTENSION_FINGERPRINT = "plan-fingerprint-v2";
+    public static final String REGISTER_FINGERPRINT = "plan-fingerprint-v3";
 
     public record Entry(GenerationFile.Operation operation, String relativePath, String sha256, long bytes) {
         public Entry {
@@ -33,7 +34,8 @@ public record GenerationManifest(String kind, String planId, RecipeRef recipe, S
         if (planId == null || !planId.matches("g1-[0-9a-f]{64}")) throw new IllegalArgumentException("Invalid planId");
         Objects.requireNonNull(recipe);
         if (generatorVersion == null || generatorVersion.isBlank()) throw new IllegalArgumentException("Missing generator version");
-        if (!LEGACY_FINGERPRINT.equals(fingerprintProfile) && !EXTENSION_FINGERPRINT.equals(fingerprintProfile))
+        if (!LEGACY_FINGERPRINT.equals(fingerprintProfile) && !EXTENSION_FINGERPRINT.equals(fingerprintProfile)
+                && !REGISTER_FINGERPRINT.equals(fingerprintProfile))
             throw new IllegalArgumentException("Unsupported fingerprint profile");
         entries = List.copyOf(entries);
         var paths = new HashSet<String>();

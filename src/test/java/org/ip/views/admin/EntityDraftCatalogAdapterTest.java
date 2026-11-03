@@ -16,6 +16,18 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class EntityDraftCatalogAdapterTest {
+    @Test void runtimeClassifiedRegistersAreNotOfferedAsReferenceTargetsEvenWithRootLongIdentity() {
+        String id = Root.class.getName();
+        var type = new RuntimeDesignSnapshot.TypeFacts(id, "INFORMATION_REGISTER", "DERIVED", "registry", "STANDARD_ROOT",
+            "PLATFORM_DEFAULT", "", "DERIVED", "", Set.of("LOOKUP"), Set.of(), false, false, "",
+            List.of(), List.of(), List.of(), List.of(), List.of(), "", List.of());
+        var runtime = new RuntimeDesignSnapshot("register", true, Map.of(id, type), Map.of());
+        var view = snapshot(List.of(entry(Root.class, EntityExposure.STANDARD_ROOT)), Map.of(Root.class, summary(true, true)));
+        var target = new EntityDraftCatalogAdapter().adapt(view, Set.of(Root.class), Map.of(), "p", "example", runtime)
+            .context().referenceTargets().get(id);
+        assertThat(target.supported()).isFalse();
+        assertThat(target.reason()).contains("Регистр");
+    }
     @Test void portableRuntimeFactsAreAttachedWithoutRevalidatingKindsOrChangingTheDraftCatalog() {
         var view=snapshot(List.of(entry(Root.class,EntityExposure.STANDARD_ROOT)),Map.of(Root.class,summary(true,true)));
         var facts=new RuntimeDesignSnapshot("runtime:1",true,Map.of(),Map.of());

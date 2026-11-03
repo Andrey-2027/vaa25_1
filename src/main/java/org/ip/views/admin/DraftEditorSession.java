@@ -41,6 +41,35 @@ final class DraftEditorSession {
     ProjectDesignContext context() { return context; }
     DraftPlace place() { return place; }
     long revision() { return revision; }
+    org.ipro.design.RecipeDescriptor descriptor() { return RecipeCatalog.descriptor(draft.recipe()).orElseThrow(); }
+    boolean register() { return RecipeCatalog.INDEPENDENT_REGISTER.equals(draft.recipe()); }
+    boolean supports(org.ipro.design.RecipeDescriptor.EditorConstruction construction) { return descriptor().editorConstructions().contains(construction); }
+    List<RecipeCatalog.InheritedField> builtins() {
+        try { return descriptor().effectiveProfile(draft).inheritedFields(); }
+        catch (IllegalArgumentException invalidMode) { return List.of(); }
+    }
+    Optional<org.ipro.design.generation.GenerationReadiness> readiness() {
+        return validation().flatMap(ValidationResult::checkedStructure).map(checked -> EntityJavaGenerator.readiness(checked, draft, context));
+    }
+    String role(UUID id) {
+        if (!register()) return "";
+        return draft.register().dimensions().contains(id) ? "DIMENSION" : draft.register().resources().contains(id) ? "RESOURCE" : "UNASSIGNED";
+    }
+    void role(UUID id, String role) {
+        if (!register() || draft.fields().stream().noneMatch(f -> f.id().equals(id))) throw new IllegalArgumentException("Register field required");
+        if (role(id).equals(role)) return;
+        var dimensions = new ArrayList<>(draft.register().dimensions());
+        var resources = new ArrayList<>(draft.register().resources());
+        dimensions.remove(id); resources.remove(id);
+        switch (role) { case "DIMENSION" -> dimensions.add(id); case "RESOURCE" -> resources.add(id);
+            case "UNASSIGNED" -> { } default -> throw new IllegalArgumentException("Unknown role"); }
+        replace(draft.withRegister(new org.ipro.design.RegisterDraft(draft.register().period(), draft.register().writeProfile(), dimensions, resources)));
+    }
+    void period(String period) {
+        if (!register() || descriptor().periodModes().stream().noneMatch(mode -> mode.id().equals(period))) throw new IllegalArgumentException("Register period required");
+        replace(draft.withRegister(new org.ipro.design.RegisterDraft(period, draft.register().writeProfile(), draft.register().dimensions(), draft.register().resources())));
+        if (place.builtinKey() != null && builtins().stream().noneMatch(f -> f.key().equals(place.builtinKey()))) place = place.builtin(defaultBuiltin());
+    }
     void imported(EntityDraft value) {
         draft = Objects.requireNonNull(value); revision++; checkpointRevision = revision;
         place = DraftPlace.initial(draft.draftId()); collapsed.clear(); lastChild.clear(); validation = null; generation = null;
@@ -51,7 +80,7 @@ final class DraftEditorSession {
     }
     boolean dirty() { return revision != checkpointRevision; }
     String title() {
-        String label = draft.entity().label().isBlank() ? (document() ? "Новый документ" : "Новый справочник") : draft.entity().label();
+        String label = draft.entity().label().isBlank() ? "Новый " + rootCaption().toLowerCase(java.util.Locale.ROOT) : draft.entity().label();
         if (label.codePointCount(0, label.length()) > 80) label = label.substring(0, label.offsetByCodePoints(0, 80)) + "…";
         return "Черновик · " + label + (dirty() ? " *" : "");
     }
@@ -79,7 +108,7 @@ final class DraftEditorSession {
         }
     }
     void selectBuiltin(String key) {
-        if (RecipeCatalog.inheritedFields(draft.recipe()).stream().noneMatch(f -> f.key().equals(key))) throw new IllegalArgumentException("Missing inherited field");
+        if (key != null && builtins().stream().noneMatch(f -> f.key().equals(key))) throw new IllegalArgumentException("Missing inherited field");
         place = place.builtin(key);
     }
     FieldDraft selectedField() { return fields(place.sectionId()).stream().filter(f -> f.id().equals(place.fieldId())).findFirst().orElseThrow(); }
@@ -88,7 +117,7 @@ final class DraftEditorSession {
         if (owner != null && !RecipeCatalog.STANDARD_CATALOG_V2.equals(draft.recipe()))
             throw new IllegalStateException("This recipe does not support a catalog owner");
         replace(new EntityDraft(owner == null ? draft.schemaVersion() : 2, draft.recipe(), draft.draftId(),
-                draft.entity(), draft.fields(), draft.sections(), owner));
+                draft.entity(), draft.fields(), draft.sections(), owner, draft.register()));
     }
     void editField(UUID id, UnaryOperator<FieldDraft> edit) {
         UUID sectionId = draft.sections().stream().filter(s -> s.fields().stream().anyMatch(f -> f.id().equals(id))).map(SectionDraft::id).findFirst().orElse(null);
@@ -99,7 +128,10 @@ final class DraftEditorSession {
         UUID sectionId = place.sectionId();
         replace(operations.addField(draft, sectionId, type)); selectField(sectionId, fields(sectionId).getLast().id());
     }
-    void addSection() { replace(operations.addSection(draft)); selectSection(draft.sections().getLast().id()); }
+    void addSection() {
+        if (!supports(org.ipro.design.RecipeDescriptor.EditorConstruction.SECTIONS)) throw new IllegalStateException("Sections are unavailable for this recipe");
+        replace(operations.addSection(draft)); selectSection(draft.sections().getLast().id());
+    }
     void editSection(UUID id, UnaryOperator<SectionDraft> edit) {
         if (draft.sections().stream().anyMatch(s -> s.id().equals(id))) replace(operations.editSection(draft, id, edit));
     }
@@ -120,6 +152,7 @@ final class DraftEditorSession {
             place = draft.sections().isEmpty() ? place.builtin(defaultBuiltin()) : place.section(draft.sections().get(Math.min(index, draft.sections().size() - 1)).id());
         } else {
             int index = fields(sectionId).indexOf(selectedField());
+            if (register()) role(place.fieldId(), "UNASSIGNED");
             replace(operations.removeField(draft, sectionId, place.fieldId()));
             var fields = fields(sectionId);
             if (fields.isEmpty()) place = sectionId == null ? place.builtin(defaultBuiltin()) : place.section(sectionId);
@@ -130,10 +163,10 @@ final class DraftEditorSession {
         newDraft(RecipeCatalog.STANDARD_CATALOG_V2);
     }
     boolean document() { return RecipeCatalog.STANDARD_DOCUMENT.equals(draft.recipe()); }
-    String rootCaption() { return document() ? "Документ" : "Справочник"; }
-    String defaultBuiltin() { return RecipeCatalog.inheritedFields(draft.recipe()).getLast().key(); }
+    String rootCaption() { return switch (descriptor().kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр"; default -> "Справочник"; }; }
+    String defaultBuiltin() { return builtins().isEmpty() ? null : builtins().getLast().key(); }
     void newDraft(RecipeRef recipe) {
-        draft = operations.create(recipe); revision = checkpointRevision = 0;
+        draft = RecipeCatalog.INDEPENDENT_REGISTER.equals(recipe) ? operations.createRegister("NONE") : operations.create(recipe); revision = checkpointRevision = 0;
         place = DraftPlace.initial(draft.draftId()); validation = null; generation = null;
         collapsed.clear(); lastChild.clear();
     }

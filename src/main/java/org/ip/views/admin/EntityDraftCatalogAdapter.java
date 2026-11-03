@@ -16,7 +16,17 @@ final class EntityDraftCatalogAdapter {
     DraftProjectCatalog adapt(ExplorerTreeModel.CatalogView snapshot, Set<Class<?>> managed,
             Map<String,String> subsystems, String project, String defaultPackage, RuntimeDesignSnapshot runtime) {
         var catalog=adapt(snapshot,managed,subsystems,project,defaultPackage);
-        return new DraftProjectCatalog(catalog.context().withRuntimeSnapshot(runtime),catalog.subsystems());
+        var context = catalog.context();
+        var targets = new TreeMap<>(context.referenceTargets());
+        runtime.types().values().stream().filter(f -> "INFORMATION_REGISTER".equals(f.kind())).forEach(f -> {
+            var old = targets.get(f.typeId());
+            if (old != null) targets.put(f.typeId(), new ReferenceTargetDescriptor(old.typeId(), old.caption(), old.exposure(),
+                old.identityType(), old.representation(), old.selection(), Eligibility.UNSUPPORTED,
+                "Регистр не может быть целью ссылки в этом профиле", old.sourceTypeName()));
+        });
+        return new DraftProjectCatalog(new ProjectDesignContext(context.projectId(), context.version(), context.defaultPackage(),
+            context.existingTypes(), context.existingTables(), context.subsystemIds(), context.iconIds(), targets,
+            context.referencesComplete(), runtime), catalog.subsystems());
     }
     DraftProjectCatalog adapt(ExplorerTreeModel.CatalogView snapshot, Set<Class<?>> managed,
                               Map<String, String> subsystems, String project, String defaultPackage) {

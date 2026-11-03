@@ -15,9 +15,21 @@ import java.util.TreeMap;
  */
 public final class RegisterRegistryFactsSource implements RegisterFactsSource {
     private final RegisterRegistry registers;
+    private final java.util.function.BooleanSupplier engineAvailable;
 
     public RegisterRegistryFactsSource(RegisterRegistry registers) {
+        this(registers, () -> false);
+    }
+    RegisterRegistryFactsSource(RegisterRegistry registers, java.util.function.BooleanSupplier engineAvailable) {
         this.registers = Objects.requireNonNull(registers, "registers");
+        this.engineAvailable = Objects.requireNonNull(engineAvailable);
+    }
+    @Override public org.ipro.design.RuntimeDesignSnapshot.Prerequisite operations() {
+        registers.descriptors(); // the registry remains the declaration/startup owner
+        return engineAvailable.getAsBoolean()
+            ? new org.ipro.design.RuntimeDesignSnapshot.Prerequisite(org.ipro.design.RuntimeDesignSnapshot.Status.AVAILABLE,
+                "Installed readers, key writes, named operations, key guard and recorder clock")
+            : RegisterFactsSource.super.operations();
     }
 
     @Override

@@ -34,6 +34,17 @@ import static org.junit.jupiter.api.Assertions.*;
  * registers carry ordered roles, keys and capabilities without a Class, entity instance or platform DTO.
  */
 class RegisterFactsProjectionTest {
+    @Test void enginePrerequisiteRequiresTheActualBridgeAndDoesNotFollowRegistryPresenceAlone() {
+        var registry = new org.ipro.register.RegisterRegistry(new org.ipro.metadata.ManagedEntityCatalog(
+            new org.ipro.metadata.ManagedEntityTypes(List.of())));
+        assertEquals(Status.UNAVAILABLE, new RegisterRegistryFactsSource(registry).operations().status());
+        var installed = new java.util.concurrent.atomic.AtomicBoolean(false);
+        var source = new RegisterRegistryFactsSource(registry, installed::get);
+        assertEquals(Status.UNAVAILABLE, source.operations().status());
+        installed.set(true);
+        assertEquals(Status.AVAILABLE, source.operations().status());
+        assertTrue(source.facts().isEmpty());
+    }
 
     @Entity
     static class Item {

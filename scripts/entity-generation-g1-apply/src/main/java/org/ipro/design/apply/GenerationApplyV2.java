@@ -43,7 +43,7 @@ final class GenerationApplyV2 {
     private static final Set<String> SUPPORTED_GENERATORS = Set.of(
             "catalog-java-v2", "document-java-v2",
             "catalog-java-v3", "document-java-v3",
-            "catalog-java-v4", "document-java-v4");
+            "catalog-java-v4", "document-java-v4", "register-java-v1");
     private static final String OWNER_ATTRIBUTE = "g1.apply";
 
     private final ApplyHooks hooks;
@@ -580,6 +580,14 @@ final class GenerationApplyV2 {
         if (!SUPPORTED_GENERATORS.contains(plan.generatorVersion())) {
             throw new ApplyFailure(ApplyStatus.REJECTED, "UNSUPPORTED_GENERATOR_PROFILE",
                     "Only " + SUPPORTED_GENERATORS + " is supported by D2");
+        }
+        if (org.ipro.design.RecipeCatalog.INDEPENDENT_REGISTER.equals(plan.recipe())
+                || "register-java-v1".equals(plan.generatorVersion())) {
+            if (!org.ipro.design.RecipeCatalog.INDEPENDENT_REGISTER.equals(plan.recipe())
+                    || !"register-java-v1".equals(plan.generatorVersion()) || plan.files().size() != 1) {
+                throw new ApplyFailure(ApplyStatus.REJECTED, "UNSUPPORTED_REGISTER_PROFILE",
+                    "Register D2 requires independent-register-v1@1 / register-java-v1 and one CREATE entry");
+            }
         }
         if (plan.files().isEmpty()) {
             throw new ApplyFailure(ApplyStatus.REJECTED, "EMPTY_PLAN",

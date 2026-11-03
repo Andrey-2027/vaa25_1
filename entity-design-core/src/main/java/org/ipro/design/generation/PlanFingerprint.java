@@ -44,7 +44,8 @@ final class PlanFingerprint {
     static String planId(String profile, RecipeRef recipe, String generatorVersion, EntityDraft source,
                          ProjectDesignContext context, List<GenerationFile> files,
                          CheckedStructure.Owner owner, FieldApplicationMapping.OwnerBinding binding) {
-        if (!FORMAT.equals(profile) && !GenerationManifest.EXTENSION_FINGERPRINT.equals(profile))
+        if (!FORMAT.equals(profile) && !GenerationManifest.EXTENSION_FINGERPRINT.equals(profile)
+                && !GenerationManifest.REGISTER_FINGERPRINT.equals(profile))
             throw new IllegalArgumentException("Unsupported fingerprint profile");
         var buffer = new ByteArrayOutputStream();
         try (var out = new DataOutputStream(buffer)) {
@@ -87,13 +88,23 @@ final class PlanFingerprint {
                     out.writeBoolean(facts != null);
                     if (facts != null) { text(out, facts.property()); text(out, facts.targetTypeId()); }
                 }
+            } else if (GenerationManifest.REGISTER_FINGERPRINT.equals(profile)) {
+                var keys = sorted(context.referenceTargets());
+                out.writeInt(keys.size());
+                for (var key : keys) {
+                    text(out, key);
+                    text(out, context.referenceTargets().get(key).sourceTypeName());
+                }
+                registerDraft(out, source);
+                referencedRegisterFacts(out, source, context);
             }
             out.writeInt(files.size());
             for (var file : files) {
                 text(out, file.operation().name());
                 text(out, file.relativePath());
                 text(out, file.sha256());
-                if (GenerationManifest.EXTENSION_FINGERPRINT.equals(profile))
+                if (GenerationManifest.EXTENSION_FINGERPRINT.equals(profile)
+                        || GenerationManifest.REGISTER_FINGERPRINT.equals(profile))
                     out.writeLong(file.content().getBytes(StandardCharsets.UTF_8).length);
             }
         } catch (IOException ex) {
@@ -288,6 +299,56 @@ final class PlanFingerprint {
         stringsOrdered(out, naturalKey.properties());
         stringsOrdered(out, naturalKey.nullProperties());
         text(out, naturalKey.normalization());
+    }
+
+    private static void registerDraft(DataOutputStream out, EntityDraft source) throws IOException {
+        var register = source.register();
+        out.writeBoolean(register != null);
+        if (register == null) return;
+        text(out, register.period());
+        text(out, register.writeProfile());
+        out.writeInt(register.dimensions().size());
+        for (var id : register.dimensions()) id(out, id);
+        out.writeInt(register.resources().size());
+        for (var id : register.resources()) id(out, id);
+    }
+
+    private static void referencedRegisterFacts(DataOutputStream out, EntityDraft source,
+                                                ProjectDesignContext context) throws IOException {
+        var referenced = new java.util.TreeSet<String>();
+        var register = source.register();
+        if (register != null) for (var field : source.fields()) {
+            if (register.dimensions().contains(field.id()) && field.reference() != null)
+                referenced.add(field.reference().typeId());
+        }
+        out.writeInt(referenced.size());
+        for (var typeId : referenced) {
+            text(out, typeId);
+            var type = context.runtimeSnapshot().types().get(typeId);
+            registerFacts(out, type == null ? null : type.register());
+        }
+    }
+
+    private static void registerFacts(DataOutputStream out, RuntimeDesignSnapshot.RegisterFacts facts) throws IOException {
+        out.writeBoolean(facts != null);
+        if (facts == null) return;
+        text(out, facts.typeId()); text(out, facts.entityName()); text(out, facts.displayName());
+        text(out, facts.period()); text(out, facts.periodicity()); text(out, facts.periodColumn());
+        registerRoles(out, facts.dimensions()); registerRoles(out, facts.resources());
+        stringsOrdered(out, facts.dimensionGroupColumns());
+        stringsOrdered(out, facts.rowKeyColumns());
+        stringsOrdered(out, facts.winnerOrderFields());
+        stringsOrdered(out, facts.recorderTypeCodes());
+        out.writeBoolean(facts.recorded()); out.writeBoolean(facts.genericWritesAllowed());
+        out.writeBoolean(facts.keyChangeAllowed()); out.writeBoolean(facts.keyWriteAllowed());
+    }
+
+    private static void registerRoles(DataOutputStream out, List<RuntimeDesignSnapshot.RegisterFacts.Role> roles) throws IOException {
+        out.writeInt(roles.size());
+        for (var role : roles) {
+            text(out, role.propertyId()); text(out, role.name()); text(out, role.javaType());
+            text(out, role.column()); text(out, role.mapping().name());
+        }
     }
 
     private static void draftText(DataOutputStream out, DraftText value) throws IOException {

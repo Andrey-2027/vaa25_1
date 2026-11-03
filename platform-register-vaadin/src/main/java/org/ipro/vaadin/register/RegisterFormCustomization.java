@@ -180,7 +180,7 @@ public class RegisterFormCustomization implements FormTypeCustomization {
                 return Page.empty(pageable);
             }
         });
-        form.setViewOptions(() -> captureOptions(form, mode, asOf), options -> {
+        form.setViewOptions(() -> captureOptions(form, mode, asOf, descriptor.periodic()), options -> {
             String restoredMode = options.getOrDefault("register.mode", "История");
             if (!List.of("История", "Срез последних").contains(restoredMode)) throw new IllegalArgumentException("Неизвестный режим списка регистра.");
             LocalDateTime restoredDate = options.containsKey("register.asOf") ? LocalDateTime.parse(options.get("register.asOf")) : asOf.getValue();
@@ -223,10 +223,12 @@ public class RegisterFormCustomization implements FormTypeCustomization {
         form.getGrid().scrollToIndex(0);
         form.refresh();
     }
-    private static Map<String, String> captureOptions(ListForm<?, ?> form, ComboBox<String> mode, DateTimePicker asOf) {
+    private static Map<String, String> captureOptions(ListForm<?, ?> form, ComboBox<String> mode, DateTimePicker asOf, boolean periodic) {
         Map<String, String> options = new LinkedHashMap<>();
-        options.put("register.mode", mode.getValue());
-        if (asOf.getValue() != null) options.put("register.asOf", asOf.getValue().toString());
+        if (periodic) {
+            options.put("register.mode", mode.getValue());
+            if (asOf.getValue() != null) options.put("register.asOf", asOf.getValue().toString());
+        }
         form.getContextSnapshot().effectiveFilters().forEach((path, value) -> {
             if (value instanceof java.util.Collection<?> collection) {
                 try { options.put("register.contextMany." + path, new com.fasterxml.jackson.databind.ObjectMapper()

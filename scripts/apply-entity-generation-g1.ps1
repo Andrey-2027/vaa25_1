@@ -81,7 +81,17 @@ try {
             Stop-Launcher ('entity-design-core test-compile failed; see ' + $coreLog)
         }
     }
-    if (-not (Test-Path -LiteralPath (Join-Path $coreClasses 'org\ipro\design\generation\CatalogJavaGenerator.class'))) {
+    if (Test-Path -LiteralPath $coreClasses -PathType Leaf) {
+        if (-not $SkipCoreBuild) { Stop-Launcher 'An immutable CoreClasses JAR requires SkipCoreBuild' }
+        $archive = [IO.Compression.ZipFile]::OpenRead($coreClasses)
+        try {
+            if ($null -eq $archive.GetEntry('org/ipro/design/generation/EntityJavaGenerator.class')) {
+                Stop-Launcher ('entity-design-core JAR is invalid: ' + $coreClasses)
+            }
+        } finally { $archive.Dispose() }
+        [IO.File]::WriteAllText((Join-Path $runDirectory 'core-artifact.sha256'),
+            (Get-FileHash -LiteralPath $coreClasses -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $coreClasses + "`n")
+    } elseif (-not (Test-Path -LiteralPath (Join-Path $coreClasses 'org\ipro\design\generation\CatalogJavaGenerator.class'))) {
         Stop-Launcher ('entity-design-core classes are missing: ' + $coreClasses)
     }
 

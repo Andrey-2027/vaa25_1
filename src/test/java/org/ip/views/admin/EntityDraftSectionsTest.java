@@ -52,6 +52,7 @@ class EntityDraftSectionsTest {
         var context=new ProjectDesignContext(base.projectId(),"v1",base.defaultPackage(),base.existingTypes(),base.existingTables(),base.subsystemIds(),base.iconIds(),Map.of(target,descriptor),true);
         AtomicReference<DraftProjectCatalog> catalog=new AtomicReference<>(new DraftProjectCatalog(context,Map.of()));
         var v=new EntityDraftEditorView(new EntityDraftAccess(true,new EntityExplorerAccess())); v.setCatalogSource(catalog::get); v.initialize(()->{});
+        button(v,"Справочник").click();
         button(v,"+ Реквизит").click();
         @SuppressWarnings("unchecked") var type=(Select<String>) all(v).filter(c->c instanceof Select<?> && "type".equals(c.getElement().getAttribute("data-draft-input"))).findFirst().orElseThrow();
         type.setValue("REFERENCE");

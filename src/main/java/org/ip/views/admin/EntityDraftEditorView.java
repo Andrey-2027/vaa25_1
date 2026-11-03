@@ -57,6 +57,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     private Runnable catalogRefresh = () -> {};
     private final Span catalogNotice = new Span(), fieldContext = new Span();
     private boolean rendering;
+    private boolean kindChosen;
     private boolean confirmationOpened;
     private boolean problemListOpened;
     private UUID documentEpoch = UUID.randomUUID();
@@ -119,7 +120,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         if (!access.allows() || principal == null) { revoke(); return; }
         if (session == null || !principal.equals(owner)) {
             documentEpoch = UUID.randomUUID();
-            owner = principal; session = new DraftEditorSession(contextSource.get());
+            owner = principal; session = new DraftEditorSession(contextSource.get()); kindChosen = false;
             build();
         } else {
             ProjectDesignContext context = contextSource.get(); boolean different = !session.context().equals(context);
@@ -140,7 +141,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         session = null; owner = null; inputs.clear(); suggestions.clear(); rows.clear(); builtinRows.clear();
         removeAll(); add(new Span("Редактор черновика недоступен")); changed.run();
     }
-    public String tabTitle() { return session == null ? "Черновик · Недоступен" : session.title(); }
+    public String tabTitle() { return session == null ? "Черновик · Недоступен" : !kindChosen ? "Черновик · Выбор вида" : session.title(); }
     @Override public boolean isDirty() { return session != null && session.dirty(); }
     @Override public String getCloseConfirmMessage() { return "Есть невыгруженные изменения черновика. Закрыть без выгрузки JSON?"; }
     DraftEditorSession session() { return session; }
@@ -158,6 +159,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         Button refresh = new Button("Обновить каталог", e -> command(() -> { catalogRefresh.run(); session.refreshContext(contextSource.get()); }));
         Button export = new Button("Выгрузить JSON", e -> exportJson());
         Button preview = ownedButton("Показать Java", this::showJava);
+        validate.setEnabled(kindChosen); preview.setEnabled(kindChosen); export.setEnabled(kindChosen);
         Upload upload = jsonUpload();
         download.setVisible(false);
         Div toolbar = new Div(heading, fresh, upload, export, validate, preview, refresh, status, download); toolbar.addClassName("draft-toolbar");
@@ -180,10 +182,19 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         data.removeAll(); data.add(split);
         Div pages = new Div(general, data); pages.addClassName("draft-pages");
         Div body = new Div(nav, pages); body.addClassName("draft-body");
+        body.setVisible(kindChosen);
+        Div start = new Div(new H4("Выберите вид нового черновика")); start.addClassName("draft-kind-choice"); start.setVisible(!kindChosen);
+        UUID epoch = documentEpoch;
+        for (var descriptor : RecipeCatalog.descriptors().stream().filter(d -> d.draftSupported() && d.generatorImplemented()).toList()) {
+            String caption = switch(descriptor.kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр сведений"; default -> "Справочник"; };
+            start.add(new Button(caption, e -> {
+                if (permitted() && epoch.equals(documentEpoch) && !kindChosen) confirmNewDraft(descriptor.ref());
+            }));
+        }
         breadcrumb.addClassName("draft-breadcrumb");
         problems.addClassName("draft-problems");
         generationProblems.getElement().setAttribute("role", "status");
-        add(toolbar, transferNotice, body, problems, generationProblems, breadcrumb);
+        add(toolbar, transferNotice, start, body, problems, generationProblems, breadcrumb);
         renderRows(); renderInspector(); showPage(); refreshSuggestions(); refreshStatus();
     }
 
@@ -212,36 +223,46 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         general.removeAll();
         var properties = new ExplorerPropertyList();
         text(properties, "className", "Java-класс", session.draft().entity().className(), value -> entity("className", value));
-        auto(properties, "packageName", "Пакет", () -> session.draft().entity().packageName(),
-            () -> DraftSuggestions.rootPackage(session.draft(), session.context()), value -> entityAuto("packageName", value));
         text(properties, "label", "Название", session.draft().entity().label(), value -> entity("label", value));
-        auto(properties, "titles.list", "Заголовок списка", () -> session.draft().entity().titles().list(),
-            () -> session.draft().entity().titles().list().resolve(session.draft().entity().label()), value -> entityAuto("titles.list", value));
-        auto(properties, "titles.item", "Заголовок элемента", () -> session.draft().entity().titles().item(),
-            () -> session.draft().entity().titles().item().resolve(session.draft().entity().label()), value -> entityAuto("titles.item", value));
-        auto(properties, "titles.selection", "Заголовок выбора", () -> session.draft().entity().titles().selection(),
-            () -> session.draft().entity().titles().selection().resolve(session.draft().entity().label()), value -> entityAuto("titles.selection", value));
-        auto(properties, "tableName", "Таблица", () -> session.draft().entity().tableName(),
-            () -> DraftSuggestions.rootTable(session.draft()), value -> entityAuto("tableName", value));
-        ComboBox<String> subsystem = new ComboBox<>(); subsystem.setAriaLabel("Подсистема"); subsystem.setPlaceholder("Без подсистемы"); subsystem.setClearButtonVisible(true);
-        subsystem.setItemLabelGenerator(id -> subsystemCaptions.getOrDefault(id, session.context().subsystemIds().values().contains(id) ? id : "Недоступно · " + id));
-        subsystem.addValueChangeListener(e -> edit(e.getSource(), () -> entity("subsystemId", Objects.requireNonNullElse(e.getValue(), "")), true));
-        registerInput("subsystemId", subsystem); properties.property("subsystemId", "Подсистема", subsystem);
-        suggestions.add(() -> {
-            Set<String> ids = new TreeSet<>(session.context().subsystemIds().values()); String selected = session.draft().entity().subsystemId();
-            if (selected != null) ids.add(selected); subsystem.setItems(ids); subsystem.setValue(selected);
-        });
-        Select<String> icon = new Select<>(); var icons = new TreeSet<>(Arrays.stream(VaadinIcon.values()).map(Enum::name).toList());
-        icons.add(session.draft().entity().icon()); icon.setItems(icons);
-        icon.setValue(session.draft().entity().icon()); icon.setAriaLabel("Значок");
-        icon.addValueChangeListener(e -> edit(e.getSource(), () -> entity("icon", e.getValue()), false));
-        registerInput("icon", icon); properties.property("icon", "Значок", icon);
+        if (session.register()) {
+            Select<String> period = new Select<>(); period.setItems(session.descriptor().periodModes().stream().map(mode -> mode.id()).toList()); period.setValue(session.draft().register().period());
+            period.setAriaLabel("Период регистра");
+            period.setItemLabelGenerator(v -> session.descriptor().periodModes().stream().filter(mode -> mode.id().equals(v)).map(mode -> mode.label()).findFirst().orElse(v));
+            period.addValueChangeListener(e -> edit(e.getSource(), () -> { session.period(e.getValue()); renderRows(); renderInspector(); }, true));
+            properties.property("register.period", "Период", period); registerInput("register.period", period);
+        }
         general.add(properties);
+        var advanced = new ExplorerPropertyList();
+        auto(advanced, "packageName", "Пакет", () -> session.draft().entity().packageName(),
+            () -> DraftSuggestions.rootPackage(session.draft(), session.context()), value -> entityAuto("packageName", value));
+        auto(advanced, "tableName", "Таблица", () -> session.draft().entity().tableName(),
+            () -> DraftSuggestions.rootTable(session.draft()), value -> entityAuto("tableName", value));
+        auto(advanced, "titles.list", "Заголовок списка", () -> session.draft().entity().titles().list(),
+            () -> session.draft().entity().titles().list().resolve(session.draft().entity().label()), value -> entityAuto("titles.list", value));
+        auto(advanced, "titles.item", "Заголовок элемента", () -> session.draft().entity().titles().item(),
+            () -> session.draft().entity().titles().item().resolve(session.draft().entity().label()), value -> entityAuto("titles.item", value));
+        auto(advanced, "titles.selection", "Заголовок выбора", () -> session.draft().entity().titles().selection(),
+            () -> session.draft().entity().titles().selection().resolve(session.draft().entity().label()), value -> entityAuto("titles.selection", value));
+        String existingSubsystem = session.draft().entity().subsystemId();
+        if (existingSubsystem != null) {
+            ComboBox<String> subsystem = new ComboBox<>(); subsystem.setAriaLabel("Подсистема");
+            subsystem.setItems(existingSubsystem); subsystem.setValue(existingSubsystem); subsystem.setClearButtonVisible(true);
+            subsystem.addValueChangeListener(e -> edit(e.getSource(), () -> entity("subsystemId", Objects.requireNonNullElse(e.getValue(), "")), true));
+            registerInput("subsystemId", subsystem); advanced.property("subsystemId", "Подсистема · не поддерживается профилем", subsystem);
+            advanced.property("subsystem.reason", "", "Импортированное значение сохранено. Текущий Java-профиль не представляет подсистему; её можно явно удалить.");
+        }
+        Select<String> icon = new Select<>(); var icons = new TreeSet<>(Arrays.stream(VaadinIcon.values()).map(Enum::name).toList());
+        icons.add(session.draft().entity().icon()); icon.setItems(icons); icon.setValue(session.draft().entity().icon()); icon.setAriaLabel("Значок");
+        icon.addValueChangeListener(e -> edit(e.getSource(), () -> entity("icon", e.getValue()), false));
+        registerInput("icon", icon); advanced.property("icon", "Значок", icon);
+        Details extra = new Details("Дополнительно", advanced); extra.addClassName("draft-advanced"); general.add(extra);
         general.add(ownerPanel); renderOwner();
-        Details recipe = new Details((session.document() ? "Стандартный документ" : "Стандартный справочник") + " · параметры рецепта", new Span(
-            session.document()
-                ? "База: StandardDocumentEntity · STANDARD_ROOT. Номер и дата наследуются и обязательны. Нумерация DOCUMENT_NUMBER по дате; проведение не включено. Права не создаются."
-                : "База: StandardCatalogEntity · STANDARD_ROOT · стандартный профиль записи. Код и наименование наследуются. Дополнительных RLS-измерений и предметного lifecycle нет; права не создаются."));
+        var descriptor = session.descriptor();
+        Details recipe = new Details(descriptor.displayName() + " · параметры рецепта", new Span(descriptor.description()),
+            new Span("База: " + descriptor.effectiveProfile(session.draft()).baseType()),
+            new Span("Нумерация: " + session.builtins().stream().map(RecipeCatalog.InheritedField::numberingRole).filter(Objects::nonNull).collect(java.util.stream.Collectors.joining(", "))),
+            new Span("Профиль: " + descriptor.persistenceProfile() + " · Запись: " + descriptor.writeProfile()),
+            new Span(String.join("; ", descriptor.constraints())), new Span("Описание профиля не выдаёт прав. C/D проверяются отдельно."));
         recipe.addClassName("draft-recipe"); general.add(recipe);
         catalogNotice.addClassName("explorer-property-note"); general.add(catalogNotice);
     }
@@ -267,9 +288,9 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             inputs.keySet().removeIf(k -> k.equals("owner") || k.startsWith("owner.")); ownerPanel.removeAll();
             ownerPanel.add(new H4("Владелец справочника"));
             var current = session.draft().owner();
-            boolean supported = RecipeCatalog.STANDARD_CATALOG_V2.equals(session.draft().recipe());
-            if (!supported && current == null) { ownerPanel.add(new Span(session.document()
-                ? "Владелец для документа не поддерживается" : "Владелец доступен для рецепта standard-catalog-v2; текущий рецепт сохранён")); return; }
+            boolean supported = session.supports(org.ipro.design.RecipeDescriptor.EditorConstruction.OWNER);
+            ownerPanel.setVisible(supported || current != null);
+            if (!supported && current == null) return;
             Checkbox enabled = new Checkbox("Подчинённый справочник"); enabled.setValue(current != null); registerInput("owner", enabled);
             enabled.addValueChangeListener(e -> edit(e.getSource(), () -> {
                 session.editOwner(e.getValue() ? new OwnerDraft("", "counterparty", DraftText.auto(), "Контрагент") : null);
@@ -346,7 +367,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
 
     private void renderRows() {
         fieldRows.removeAll(); rows.clear(); builtinRows.clear(); sectionRows.clear();
-        for (var inherited : RecipeCatalog.inheritedFields(session.draft().recipe())) {
+        for (var inherited : session.builtins()) {
             NativeButton row = row(inherited.name(), inherited.label(), (inherited.type() == RecipeCatalog.FieldType.DATE ? "Дата" : "Текст") + " · база");
             row.addClassName("draft-inherited"); row.addClickListener(e -> selectBuiltin(inherited.key()));
             row.getElement().setAttribute("data-builtin", inherited.key()); builtinRows.put(inherited.key(), row); fieldRows.add(row);
@@ -401,6 +422,15 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             NativeButton row = rows.get(f.id()); if (row == null) continue;
             var labels = row.getChildren().filter(c -> c instanceof Span).map(c -> (Span)c).toList();
             labels.get(0).setText(f.name().isEmpty() ? "Без имени" : f.name()); labels.get(1).setText(f.label()); labels.get(2).setText(typeCaption(f.type()));
+            Span indicators;
+            if (labels.size() < 4) { indicators = new Span(); indicators.addClassName("draft-field-indicators"); row.add(indicators); }
+            else indicators = labels.get(3);
+            var a = f.applications();
+            String role = session.register() ? session.descriptor().fieldRoles().stream().filter(r -> r.id().equals(session.role(f.id()))).map(r -> r.label()).findFirst().orElse("Роль не назначена") : "Реквизит";
+            String flags = role + " · " + (f.serverRequired() ? "Запись: обязательно" : "Запись: необязательно")
+                + " · Форма " + (a.form() ? "+" : "−") + " · Список " + (a.list() ? "+" : "−")
+                + " · Выбор " + (a.selection() ? "+" : "−") + " · Таблица " + (a.table() ? "+" : "−");
+            indicators.setText(flags); indicators.getElement().setAttribute("aria-label", flags);
             row.getElement().setAttribute("aria-selected", Boolean.toString(f.id().equals(session.place().fieldId())));
             row.getElement().setAttribute("title", f.name() + " · " + f.label() + " · " + typeCaption(f.type()));
         }
@@ -424,22 +454,24 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         up.setAriaLabel(section ? "Переместить табчасть вверх" : "Переместить реквизит вверх"); down.setAriaLabel(section ? "Переместить табчасть вниз" : "Переместить реквизит вниз");
         fieldContext.setText("В: " + (session.place().sectionId() == null ? session.rootCaption() : sectionCaption(session.section(session.place().sectionId()))));
         fieldContext.getElement().setAttribute("title", fieldContext.getText());
-        addField.setEnabled(allFields.size() < RecipeCatalog.MAX_FIELDS); addSection.setEnabled(session.draft().sections().size() < RecipeCatalog.MAX_SECTIONS);
+        addField.setEnabled(allFields.size() < RecipeCatalog.MAX_FIELDS);
+        addSection.setVisible(session.supports(org.ipro.design.RecipeDescriptor.EditorConstruction.SECTIONS));
+        addSection.setEnabled(addSection.isVisible() && session.draft().sections().size() < RecipeCatalog.MAX_SECTIONS);
     }
     private void selectField(UUID section, UUID id) { command(() -> { session.selectField(section, id); renderInspector(); showPage(); ExplorerSequentialLayout.showDetail(split); }); }
     private void selectBuiltin(String key) { command(() -> { session.selectBuiltin(key); renderInspector(); showPage(); ExplorerSequentialLayout.showDetail(split); }); }
     private void renderInspector() {
         inspector.removeAll();
         // Main property inputs stay mounted; only the selected field's controls are replaced.
-        inputs.keySet().removeIf(key -> !key.equals("owner") && !key.startsWith("owner.") && !Set.of("className", "packageName", "label", "titles.list", "titles.item", "titles.selection", "tableName", "subsystemId", "icon").contains(key));
+        inputs.keySet().removeIf(key -> !key.equals("owner") && !key.startsWith("owner.") && !Set.of("className", "packageName", "label", "titles.list", "titles.item", "titles.selection", "tableName", "subsystemId", "icon", "register.period").contains(key));
         suggestions.removeIf(r -> r instanceof FieldSuggestion);
         boolean previous = rendering; rendering = true;
         try {
-            var inherited = RecipeCatalog.inheritedFields(session.draft().recipe()).stream().filter(f -> f.key().equals(session.place().builtinKey())).findFirst();
+            var inherited = session.builtins().stream().filter(f -> f.key().equals(session.place().builtinKey())).findFirst();
             if (inherited.isPresent()) {
                 var f = inherited.get(); var properties = new ExplorerPropertyList();
                 inspector.add(new H4(f.name() + " · " + f.label()));
-                properties.property("inherited", "Источник", "Из стандартной базы"); properties.property("type", "Тип", f.type() == RecipeCatalog.FieldType.DATE ? "LocalDate" : "String");
+                properties.property("inherited", "Источник", "Из базы выбранного профиля"); properties.property("type", "Тип", switch(f.type()) { case DATE -> "LocalDate"; case DATETIME -> "LocalDateTime"; default -> typeCaption(f.type().name()); });
                 if (f.length() > 0) properties.property("length", "Длина", Integer.toString(f.length())); properties.property("required", "Запись", "Обязательно");
                 if (f.numberingRole() != null) properties.property("numbering", "Нумерация", f.numberingRole());
                 inspector.add(properties, new Span("Параметры унаследованы и в этом рецепте не редактируются.")); return;
@@ -449,11 +481,22 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             var f = session.selectedField(); UUID id = f.id();
             inspector.add(new H4(fieldPath(f)));
             var properties = new ExplorerPropertyList();
+            if (session.register()) {
+                Select<String> role = new Select<>(); var roles = new ArrayList<>(List.of("UNASSIGNED")); roles.addAll(session.descriptor().fieldRoles().stream().map(r -> r.id()).toList()); role.setItems(roles);
+                role.setAriaLabel("Роль реквизита"); role.setValue(session.role(id));
+                role.setItemLabelGenerator(v -> session.descriptor().fieldRoles().stream().filter(r -> r.id().equals(v)).map(r -> r.label()).findFirst().orElse("Назначьте роль"));
+                role.addValueChangeListener(e -> edit(e.getSource(), () -> { session.role(id, e.getValue()); renderInspector(); }, true));
+                registerInput("register.role", role); properties.property("register.role", "Роль", role);
+                properties.property("register.role.help", "", session.descriptor().fieldRoles().stream()
+                    .filter(r -> r.id().equals(session.role(id))).map(r -> r.description()).findFirst().orElse("Каждому полю назначается одна роль"));
+            }
             text(properties, "name", "Имя", f.name(), value -> session.editField(id, old -> old.withName(value)));
             // Field label uses a separate key to keep the root label input mounted.
             text(properties, "field.label", "Подпись", f.label(), value -> session.editField(id, old -> copy(old, "label", value)));
-            Select<String> type = new Select<>(); var types = new ArrayList<>(Arrays.stream(RecipeCatalog.FieldType.values()).map(Enum::name).toList());
-            if (!types.contains(f.type())) types.add(f.type()); type.setItems(types); type.setItemLabelGenerator(EntityDraftEditorView::typeCaption); type.setValue(f.type()); type.setAriaLabel("Тип реквизита");
+            Select<String> type = new Select<>();
+            var allowedTypes = session.descriptor().fieldTypes(session.role(id)).stream().map(Enum::name).toList();
+            var types = new ArrayList<>(allowedTypes);
+            if (!types.contains(f.type())) types.add(f.type()); type.setItems(types); type.setItemLabelGenerator(value -> (allowedTypes.contains(value) ? "" : "Недоступно · ") + typeCaption(value)); type.setValue(f.type()); type.setAriaLabel("Тип реквизита");
             type.addValueChangeListener(e -> edit(e.getSource(), () -> { session.editField(id, old -> old.withType(e.getValue())); renderInspector(); }, true));
             properties.property("type", "Тип", type); registerInput("type", type);
             type.getElement().setAttribute("data-draft-input", "type");
@@ -468,7 +511,11 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             Select<FieldDraft.UiRequired> ui = new Select<>(); ui.setItems(FieldDraft.UiRequired.values()); ui.setValue(f.uiRequired()); ui.setAriaLabel("Обязательность UI");
             ui.setItemLabelGenerator(v -> switch (v) { case AUTO -> "Авто"; case REQUIRED -> "Обязательно"; case OPTIONAL -> "Необязательно"; });
             ui.addValueChangeListener(e -> edit(e.getSource(), () -> session.editField(id, old -> new FieldDraft(old.id(), old.name(), old.label(), old.type(), old.columnName(), old.serverRequired(), e.getValue(), old.constraints(), old.reference(), old.applications())), true));
-            properties.property("uiRequired", "Обязательность UI", ui); registerInput("uiRequired", ui);
+            var uiProperties = new ExplorerPropertyList();
+            uiProperties.property("uiRequired", "Обязательность UI", ui);
+            uiProperties.property("uiRequired.help", "", "AUTO: форма следует обязательности при записи. Настройка UI не меняет nullable/validation.");
+            Details uiExtra = new Details("Дополнительно · форма", uiProperties);
+            registerInput("uiRequired", ui);
             // A small wrapper marks field-specific suggestion bindings for disposal on selection.
             int start = suggestions.size();
             auto(properties, "columnName", "Колонка", () -> session.selectedField().columnName(), () -> DraftSuggestions.column(session.selectedField()),
@@ -483,7 +530,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             if (!row || f.applications().list()) application(apps, id, "list", row ? "Список · неприменимо" : "Список", f.applications().list());
             if (!row || f.applications().selection()) application(apps, id, "selection", row ? "Выбор · неприменимо" : "Выбор", f.applications().selection());
             if (row || f.applications().table()) application(apps, id, "table", row ? "Таблица секции" : "Таблица · неприменимо", f.applications().table());
-            properties.property("applications", "Применение", apps); inspector.add(properties);
+            properties.property("applications", "Применение", apps); inspector.add(properties, uiExtra);
         } finally { rendering = previous; }
     }
     private record FieldSuggestion(Runnable delegate) implements Runnable { public void run() { delegate.run(); } }
@@ -544,6 +591,10 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     }
     private void application(Div host, UUID id, String key, String caption, boolean value) {
         Checkbox checkbox = new Checkbox(caption); checkbox.setValue(value);
+        session.descriptor().fixedPublications().ifPresent(fixed -> {
+            boolean expected = switch(key) { case "form" -> fixed.form(); case "list" -> fixed.list(); case "selection" -> fixed.selection(); default -> fixed.table(); };
+            if (value == expected) checkbox.setEnabled(false);
+        });
         checkbox.addValueChangeListener(e -> edit(e.getSource(), () -> session.editField(id, old -> {
             var a = old.applications(); return new FieldDraft(old.id(), old.name(), old.label(), old.type(), old.columnName(), old.serverRequired(), old.uiRequired(), old.constraints(), old.reference(),
                 new FieldApplications(key.equals("form") ? e.getValue() : a.form(), key.equals("list") ? e.getValue() : a.list(), key.equals("selection") ? e.getValue() : a.selection(), key.equals("table") ? e.getValue() : a.table()));
@@ -566,12 +617,12 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         });
     }
     private void edit(Component source, Runnable mutation, boolean validate) {
-        if (rendering || !permitted() || !documentEpoch.toString().equals(source.getElement().getAttribute("data-draft-document"))) return;
+        if (rendering || !permitted() || !kindChosen || !documentEpoch.toString().equals(source.getElement().getAttribute("data-draft-document"))) return;
         if (inputs.get(source.getElement().getAttribute("data-draft-input")) != source) return;
-        mutation.run(); if (validate) session.validate(); refreshSuggestions(); updateRows(); refreshStatus(); changed.run();
+        mutation.run(); session.validate(); refreshSuggestions(); updateRows(); refreshStatus(); changed.run();
     }
     private void command(Runnable action) {
-        if (!permitted()) return;
+        if (!permitted() || !kindChosen) return;
         boolean previous = rendering; rendering = true;
         try { action.run(); } finally { rendering = previous; }
         session.validate(); refreshSuggestions(); updateRows(); refreshStatus(); changed.run();
@@ -604,7 +655,9 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     }
     private void refreshStatus() {
         refreshGeneration();
-        heading.setText(session.document() ? "Черновик документа" : "Черновик справочника");
+        heading.setText("Черновик " + switch(session.descriptor().kind()) { case "DOCUMENT" -> "документа"; case "INFORMATION_REGISTER" -> "регистра"; default -> "справочника"; }
+            + " · " + session.descriptor().persistenceProfile() + (session.register() ? " / " + session.draft().register().period() : ""));
+        if (!kindChosen) heading.setText("Новый черновик · выберите вид");
         catalogNotice.setText(session.context().existingTypes().complete()
             ? "Каталог проекта: " + session.context().existingTypes().values().size() + " типов. " + (session.context().existingTables().complete() ? "Проверяются объявленные имена хранения." : session.context().existingTables().reason() + ". Проверка хранения неполна.")
             : "Проверка по каталогу проекта пока недоступна. Классы и таблицы ещё не созданы.");
@@ -643,6 +696,12 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             }
             details.add(list); problems.add(details);
         }
+        session.readiness().ifPresent(readiness -> readiness.diagnostics().forEach(diagnostic -> {
+            var target = diagnostic.target();
+            boolean selected = target.fieldId() == null || target.fieldId().equals(session.place().fieldId());
+            var input = inputs.get(problemInput(target));
+            if (selected && input instanceof HasValidation v) { v.setInvalid(true); v.setErrorMessage(generationMessage(diagnostic)); }
+        }));
     }
     private String problemText(DraftProblem p) {
         return problemText(p.target(), problemMessage(p));
@@ -656,6 +715,8 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             case "icon" -> "Значок"; case "constraints.length" -> "Длина"; case "constraints.precision" -> "Точность"; case "constraints.scale" -> "Дробных разрядов";
             case "context.existingTypes" -> "Каталог классов"; case "context.existingTables" -> "Каталог таблиц";
             case "reference.typeId" -> "Тип ссылки"; case "applications.form" -> "Применение в форме"; case "uiRequired" -> "Обязательность UI";
+            case "applications.list" -> "Публикация в списке"; case "applications.selection" -> "Публикация в выборе"; case "applications.table" -> "Публикация в таблице";
+            case "register.period" -> "Период регистра"; case "register.writeProfile" -> "Профиль записи";
             case "titles.list" -> "Заголовок списка"; case "titles.item" -> "Заголовок элемента"; case "titles.selection" -> "Заголовок выбора";
             case "rowClassName" -> "Класс строки"; case "parentFieldName" -> "Связь строки с корнем"; case "parentColumnName" -> "Колонка связи";
             case "recipe" -> "Рецепт"; case "sections" -> "Табчасть"; default -> "Структура";
@@ -672,6 +733,14 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             case PROJECT_FACT_UNKNOWN -> "Факт проекта пока не подтверждён"; case INVALID_APPLICATION -> "Недопустимое применение";
             case SUBSYSTEM_UNAVAILABLE -> "Подсистема недоступна"; case ICON_UNAVAILABLE -> "Значок недоступен"; case UI_REQUIRED_MISMATCH -> "При записи значение обязательно";
             case UI_REQUIRED_SERVER_OPTIONAL -> "Обязательность формы не подтверждена ограничениями записи";
+            case REGISTER_ROLE_MISSING -> "Назначьте измерения и ресурсы; каждое поле должно иметь одну роль";
+            case REGISTER_ROLE_DUPLICATE -> "Поле не может повторяться или одновременно быть измерением и ресурсом";
+            case REGISTER_ROLE_UNKNOWN -> "Роль ссылается на отсутствующее поле";
+            case REGISTER_DIMENSION_REQUIRED -> "Измерение должно быть обязательным при записи";
+            case REGISTER_FIELD_ROLE_UNSUPPORTED -> "Тип поля не поддерживается для выбранной роли";
+            case REGISTER_PERIOD_UNSUPPORTED -> "Поддерживаются режимы NONE и DAY";
+            case REGISTER_WRITE_PROFILE_UNSUPPORTED -> "Выбранный профиль записи регистра не поддерживается";
+            case REGISTER_SECTION_UNSUPPORTED -> "Выбранный профиль регистра не поддерживает эту конструкцию";
             case OWNER_UNSUPPORTED_RECIPE -> "Владелец разрешён только у справочника";
             case RECIPE_DRAFT_UNSUPPORTED -> "Для этого рецепта ещё не определён контракт черновика";
             case RECIPE_PREREQUISITE_UNAVAILABLE -> "Не выполнено условие рецепта";
@@ -816,41 +885,64 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
                     || transferNotice.getText().equals("Комплект Java сформирован")) {
                 transferNotice.setText("Черновик или каталог изменён. Повторите показ Java");
             }
+        }
+        var diagnostics = result.map(r -> r.diagnostics()).orElseGet(() -> session.readiness().map(r -> r.diagnostics()).orElse(List.of()));
+        if (diagnostics.isEmpty()) {
+            if (session.readiness().map(r -> r.ready()).orElse(false)) generationProblems.add(new Span(
+                result.isPresent() ? "Java сформирован · C/D ещё не проверены" : "Генерация доступна · C/D ещё не проверены"));
             return;
         }
-        if (result.orElseThrow().diagnostics().isEmpty()) return;
-        generationProblems.add(new Span("Ограничения первого генератора"));
+        generationProblems.add(new Span("Ограничения выбранного профиля"));
         UUID epoch = documentEpoch;
         var draft = session.draft(); var context = session.context();
-        for (var diagnostic : result.orElseThrow().diagnostics()) {
+        for (var diagnostic : diagnostics) {
             Button link = new Button(problemText(diagnostic.target(), generationMessage(diagnostic)), e -> {
                 if (permitted() && epoch.equals(documentEpoch) && draft.equals(session.draft()) && context.equals(session.context()))
                     navigateProblem(diagnostic.target());
             });
-            link.addClassName("draft-problem"); generationProblems.add(link);
+            link.addClassName("draft-problem");
+            link.getElement().setAttribute("data-generation-code", diagnostic.code().name());
+            link.getElement().setAttribute("data-generation-target", diagnostic.target().propertyKey());
+            generationProblems.add(link);
         }
     }
     private String generationMessage(GenerationDiagnostic diagnostic) {
         return switch (diagnostic.code()) {
-            case UNSUPPORTED_RECIPE -> "Генератор поддерживает standard-catalog-v2@2 и standard-document-v1@1";
-            case UNSUPPORTED_CONSTRUCT -> switch (diagnostic.target().propertyKey()) {
+            case UNSUPPORTED_RECIPE -> "Для выбранного рецепта генератор не реализован";
+            case UNSUPPORTED_CONSTRUCT -> {
+                if ("RUNTIME_PREREQUISITE".equals(diagnostic.parameters().get("construct"))) yield switch(diagnostic.parameters().get("prerequisite")) {
+                    case "REGISTER_ENGINE_OPERATIONS" -> "Не подтверждена доступность операций регистра. Обновите каталог после подключения движка.";
+                    case "REGISTER_FACTS" -> "Не подтверждено описание регистров в каталоге платформы.";
+                    case "ET6_ET7_REGISTER_CLASSIFICATION" -> "Не подтверждена классификация регистров в платформе.";
+                    default -> "Не подтверждено обязательное условие генерации: " + diagnostic.parameters().get("prerequisite");
+                };
+                if ("REGISTER_APPLICATIONS".equals(diagnostic.parameters().get("construct")))
+                    yield "Профиль регистра фиксирует публикацию в форме, списке и выборе; публикация в таблице неприменима. Исходное значение сохранено.";
+                yield switch (diagnostic.target().propertyKey()) {
                 case "subsystemId" -> "Генератор поддерживает сущность без подсистемы";
-                case "sections" -> "Первый генератор пока не поддерживает табчасти";
+                case "sections" -> "Выбранный профиль не поддерживает табчасти";
                 default -> "Конструкция не поддерживается выбранным профилем генерации";
-            };
+                };
+            }
             case STALE_CHECKED_STRUCTURE -> "Проверка устарела. Повторите показ Java";
             case UNREPRESENTABLE_REQUIRED_MODE -> "Обязательное при записи поле нельзя объявить необязательным в форме";
-            case PROJECTION_UNREPRESENTABLE -> "Применения полей не представимы первым генератором";
+            case PROJECTION_UNREPRESENTABLE -> "Ввод не представим выбранным профилем генерации";
         };
     }
-    private void focus(String key) { Component input = inputs.get(key); if (input instanceof Focusable<?> f) f.focus(); }
+    private void focus(String key) {
+        Component input = inputs.get(key);
+        for (Component parent = input; parent != null; parent = parent.getParent().orElse(null))
+            if (parent instanceof Details details) details.setOpened(true);
+        if (input instanceof Focusable<?> f) f.focus();
+    }
     private void newDraft() {
         if (!permitted() || confirmationOpened) return;
         var chooser = new Dialog(); chooser.setHeaderTitle("Новый черновик");
         chooser.add(new Span("Выберите вид нового черновика"));
         UUID epoch = documentEpoch;
-        for (var ref : List.of(RecipeCatalog.STANDARD_CATALOG_V2, RecipeCatalog.STANDARD_DOCUMENT)) {
-            var choice = new Button(ref.equals(RecipeCatalog.STANDARD_DOCUMENT) ? "Документ" : "Справочник", e -> {
+        for (var descriptor : RecipeCatalog.descriptors().stream().filter(d -> d.draftSupported() && d.generatorImplemented()).toList()) {
+            var ref = descriptor.ref();
+            var choice = new Button(switch (descriptor.kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр сведений"; default -> "Справочник"; }, e -> {
                 if (!permitted() || !epoch.equals(documentEpoch) || !chooser.isOpened()) return;
                 chooser.close(); confirmNewDraft(ref);
             });
@@ -870,7 +962,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         dialog.addOpenedChangeListener(e -> { if (!e.isOpened()) { if (documentEpoch.equals(replacingId)) confirmationOpened = false; remove(dialog); } });
         add(dialog); dialog.open();
     }
-    private void replaceDraft(RecipeRef recipe) { documentEpoch = UUID.randomUUID(); session.newDraft(recipe); split.getElement().removeAttribute("data-detail"); build(); changed.run(); }
+    private void replaceDraft(RecipeRef recipe) { documentEpoch = UUID.randomUUID(); kindChosen = true; session.newDraft(recipe); split.getElement().removeAttribute("data-detail"); build(); changed.run(); }
 
     private Upload jsonUpload() {
         UUID epoch = documentEpoch;
@@ -917,7 +1009,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             transferNotice.setText("Черновик изменился во время загрузки. Повторите загрузку JSON."); return null;
         }
         Runnable replace = () -> {
-            documentEpoch = UUID.randomUUID(); session.imported(candidate); session.validate();
+            documentEpoch = UUID.randomUUID(); kindChosen = true; session.imported(candidate); session.validate();
             split.getElement().removeAttribute("data-detail"); build(); changed.run();
             transferNotice.setText(session.validation().orElseThrow().checkedStructure().isPresent() ? "JSON загружен" : "JSON загружен. Проверьте проблемы структуры");
         };
@@ -932,13 +1024,18 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         return dialog;
     }
     record JsonExport(UUID epoch, long revision, String fileName, byte[] bytes) { }
+    private String jsonFileName() {
+        String name = session.draft().entity().className();
+        return javax.lang.model.SourceVersion.isIdentifier(name) && !javax.lang.model.SourceVersion.isKeyword(name)
+            ? name + ".json" : "entity-draft-" + session.draft().draftId() + ".json";
+    }
     UUID documentEpoch() { return documentEpoch; }
     JsonExport prepareExport() {
-        if (!permitted()) return null;
+        if (!permitted() || !kindChosen) return null;
         session.validate(); refreshStatus();
         byte[] bytes = json.encode(session.draft());
         transferNotice.setText(session.validation().orElseThrow().checkedStructure().isPresent() ? "JSON готовится к выдаче" : "Черновик содержит ошибки; JSON готовится к выдаче");
-        return new JsonExport(documentEpoch, session.revision(), "entity-draft-" + session.draft().draftId() + ".json", bytes);
+        return new JsonExport(documentEpoch, session.revision(), jsonFileName(), bytes);
     }
     void exportDelivered(JsonExport exported) {
         if (!permitted() || !exported.epoch().equals(documentEpoch)) return;

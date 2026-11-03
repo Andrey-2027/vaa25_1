@@ -73,7 +73,9 @@ public final class GenerationApplyAdapter {
     private ApplyResult applyChecked(ApplyRequest request, GenerationPlan plan,
                                      EntityDraft draft, ProjectDesignContext context)
             throws ApplyFailure {
-        if (RecipeCatalog.STANDARD_DOCUMENT.equals(plan.recipe())
+        if (RecipeCatalog.INDEPENDENT_REGISTER.equals(plan.recipe())
+                || "register-java-v1".equals(plan.generatorVersion())
+                || RecipeCatalog.STANDARD_DOCUMENT.equals(plan.recipe())
                 || RecipeCatalog.STANDARD_CATALOG_V2.equals(plan.recipe()) && !"catalog-java-v1".equals(plan.generatorVersion())) {
             return new GenerationApplyV2(hooks, planRebuilder).apply(request, plan, draft, context);
         }

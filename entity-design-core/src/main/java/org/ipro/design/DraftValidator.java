@@ -82,7 +82,7 @@ public final class DraftValidator {
             var rootReserved = new HashSet<>(RecipeCatalog.systemFieldNames());
             if (registerRecipe) rootReserved.addAll(RecipeCatalog.registerSystemFieldNames(
                 draft.register() == null ? RecipeCatalog.REGISTER_DAY : draft.register().period()));
-            if (recipe.isPresent() && recipe.get().draftSupported())
+            if (!registerRecipe && recipe.isPresent() && recipe.get().draftSupported())
                 RecipeCatalog.inheritedFields(draft.recipe()).forEach(f -> rootReserved.add(f.name()));
             var rootColumns = storageNames(rootReserved);
             var owner = owner(rootReserved, rootColumns);
@@ -146,8 +146,9 @@ public final class DraftValidator {
                     if (unassigned) error(REGISTER_ROLE_MISSING, "register.roles", "unassigned");
                 }
             }
-            for (UUID id : reg.dimensions()) dimension(byId.get(id));
-            for (UUID id : reg.resources()) resource(byId.get(id));
+            for (UUID id : reg.dimensions()) { fieldId = id; dimension(byId.get(id)); }
+            for (UUID id : reg.resources()) { fieldId = id; resource(byId.get(id)); }
+            fieldId = null;
             var dimensions = reg.dimensions().stream().map(byId::get).filter(Objects::nonNull).map(Run::role).toList();
             var resources = reg.resources().stream().map(byId::get).filter(Objects::nonNull).map(Run::role).toList();
             String periodColumn = reg.periodic() ? RecipeCatalog.REGISTER_PERIOD_COLUMN : null;
@@ -168,18 +169,18 @@ public final class DraftValidator {
         private void dimension(CheckedStructure.Field field) {
             if (field == null) return;
             if (!field.serverRequired()) error(REGISTER_DIMENSION_REQUIRED, "serverRequired", field.name());
-            if (!Set.of(FieldType.STRING, FieldType.INTEGER, FieldType.LONG, FieldType.REFERENCE).contains(field.type()))
+            if (!RegisterDraft.DIMENSION_TYPES.contains(field.type()))
                 error(REGISTER_FIELD_ROLE_UNSUPPORTED, "register.roles", field.name());
-            if (field.type() == FieldType.STRING && field.length() != null && field.length() > 200)
+            if (field.type() == FieldType.STRING && field.length() != null && field.length() > RegisterDraft.MAX_DIMENSION_STRING_LENGTH)
                 error(LIMIT_EXCEEDED, "constraints.length", Integer.toString(field.length()));
         }
         private void resource(CheckedStructure.Field field) {
             if (field == null) return;
-            if (!Set.of(FieldType.STRING, FieldType.INTEGER, FieldType.LONG, FieldType.DECIMAL, FieldType.BOOLEAN).contains(field.type()))
+            if (!RegisterDraft.RESOURCE_TYPES.contains(field.type()))
                 error(REGISTER_FIELD_ROLE_UNSUPPORTED, "register.roles", field.name());
-            if (field.type() == FieldType.STRING && field.length() != null && field.length() > 4000)
+            if (field.type() == FieldType.STRING && field.length() != null && field.length() > RegisterDraft.MAX_RESOURCE_STRING_LENGTH)
                 error(LIMIT_EXCEEDED, "constraints.length", Integer.toString(field.length()));
-            if (field.type() == FieldType.DECIMAL && field.precision() != null && field.precision() > 19)
+            if (field.type() == FieldType.DECIMAL && field.precision() != null && field.precision() > RegisterDraft.MAX_RESOURCE_PRECISION)
                 error(INVALID_CONSTRAINT, "constraints.precision", Integer.toString(field.precision()));
         }
         private static CheckedStructure.RegisterRole role(CheckedStructure.Field field) {

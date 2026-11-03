@@ -14,6 +14,8 @@ public final class DraftOperations {
         return create(RecipeCatalog.STANDARD_CATALOG);
     }
     public EntityDraft create(RecipeRef recipe) {
+        if (RecipeCatalog.isRegisterRecipe(recipe))
+            throw new IllegalArgumentException("Use createRegister(period) for a register draft");
         if (!RecipeCatalog.supportsDraft(recipe)) throw new IllegalArgumentException("Recipe has no draft contract: "+recipe);
         return new EntityDraft(1, recipe, Objects.requireNonNull(ids.get()),
                 new EntityProperties("", DraftText.auto(), "", EntityProperties.Titles.auto(), DraftText.auto(), null, "FILE"), List.of(), List.of());

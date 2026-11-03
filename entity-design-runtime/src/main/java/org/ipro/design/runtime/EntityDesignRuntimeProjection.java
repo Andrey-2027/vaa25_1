@@ -152,7 +152,8 @@ public final class EntityDesignRuntimeProjection {
         prerequisites.put("ET8_INTERNING",new Prerequisite(Status.AVAILABLE,"Published InternedContract/NaturalKeyCreateSupport ET8 API; applied schema and generation gates remain separate"));
         prerequisites.put("ET6_ET7_REGISTER_CLASSIFICATION",new Prerequisite(Status.AVAILABLE,"Final classification requires validated register contributions"));
         prerequisites.put(REGISTER_FACTS,registerPrerequisite(registerFacts));
-        prerequisites.put("REGISTER_ENGINE_OPERATIONS",new Prerequisite(Status.UNAVAILABLE,"New register recipe operations/draft contract not implemented; current runtime capabilities are preserved per type"));
+        prerequisites.put("REGISTER_ENGINE_OPERATIONS", registers == null
+            ? new Prerequisite(Status.UNAVAILABLE, "Register engine bridge is absent") : registers.operations());
         var diagnostics=startup.diagnostics().stream().map(d -> new Diagnostic(d.severity().name(),d.code(),d.entity(),
             d.field().isEmpty() ? d.entity() : d.entity()+"#"+d.field(),d.source(),d.message())).toList();
         return new RuntimeDesignSnapshot(snapshotId(types,prerequisites,diagnostics),true,types,prerequisites,diagnostics);

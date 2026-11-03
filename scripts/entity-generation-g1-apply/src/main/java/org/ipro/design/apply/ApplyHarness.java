@@ -894,6 +894,7 @@ public final class ApplyHarness {
         results.add(stateAliasCase(workRoot, outside, full));
 
         threeFileCases(results, workRoot);
+        registerCases(results, workRoot);
 
         boolean failed = results.stream().anyMatch(result -> result.status.equals("FAIL"));
         long skipped = results.stream().filter(result -> result.status.equals("SKIP")).count();
@@ -1686,7 +1687,9 @@ public final class ApplyHarness {
         tests.put("skipped", 0);
         ArrayNode suites = tests.putArray("suites");
         ObjectNode suite = suites.addObject();
-        suite.put("name", !fixture.draft.sections().isEmpty()
+        suite.put("name", RecipeCatalog.INDEPENDENT_REGISTER.equals(fixture.draft.recipe())
+                ? "com.example.generated.harness.RegisterScenarioTest"
+                : !fixture.draft.sections().isEmpty()
                 ? "com.example.generated.harness.SectionsScenarioTest"
                 : fixture.plan.files().size() > 1
                 ? "com.example.generated.harness.MultiFileScenarioTest"
@@ -1702,6 +1705,153 @@ public final class ApplyHarness {
     private static ApplyRequest v2Request(Project project, V2Fixture fixture) {
         return new ApplyRequest(project.root, "src/main/java", project.summary,
                 List.of(new DependencyLocation(fixture.id, fixture.jar)));
+    }
+
+    private static V2Fixture registerFixture(Path workRoot, String period) throws IOException {
+        boolean day = org.ipro.design.RegisterDraft.DAY.equals(period);
+        UUID dimension = new UUID(8, 1), resource = new UUID(8, 2);
+        var fields = List.of(new FieldDraft(dimension, day ? "item" : "region", "Измерение",
+            day ? "REFERENCE" : "STRING", DraftText.auto(), true, FieldDraft.UiRequired.AUTO,
+            day ? ConstraintDraft.empty() : new ConstraintDraft("20", "", ""),
+            day ? new org.ipro.design.ReferenceDraft("com.example.Item") : null, FieldApplications.root()),
+            new FieldDraft(resource, "rate", "Ресурс", "DECIMAL", DraftText.auto(), true,
+                FieldDraft.UiRequired.AUTO, new ConstraintDraft("", "19", "2"), null, FieldApplications.root()));
+        var draft = new EntityDraft(3, RecipeCatalog.INDEPENDENT_REGISTER, new UUID(8, 3),
+            new EntityProperties(day ? "AppliedDayRegister" : "AppliedNoneRegister", DraftText.explicit("com.example.generated"),
+                "Применённый регистр", EntityProperties.Titles.auto(), DraftText.auto(), null, "FILE"),
+            fields, List.of(), null, new org.ipro.design.RegisterDraft(period,
+                org.ipro.design.RegisterDraft.NAMED_AND_CANONICAL_CRUD, List.of(dimension), List.of(resource)));
+        var targets = day ? java.util.Map.of("com.example.Item", new org.ipro.design.ReferenceTargetDescriptor(
+            "com.example.Item", "Item", "STANDARD_ROOT", "java.lang.Long",
+            org.ipro.design.ReferenceTargetDescriptor.Fact.YES, org.ipro.design.ReferenceTargetDescriptor.Fact.YES,
+            org.ipro.design.ReferenceTargetDescriptor.Eligibility.SUPPORTED, ""))
+            : java.util.Map.<String, org.ipro.design.ReferenceTargetDescriptor>of();
+        var names = ProjectDesignContext.Names.known(Set.of());
+        var available = new Prerequisite(Status.AVAILABLE, "selftest");
+        var context = new ProjectDesignContext("register-selftest", "v1", "com.example.generated", names, names,
+            names, ProjectDesignContext.Names.known(Set.of("FILE")), targets, true,
+            new RuntimeDesignSnapshot("register-selftest", true, java.util.Map.of(), java.util.Map.of(
+                "REGISTER_FACTS", available, "ET6_ET7_REGISTER_CLASSIFICATION", available,
+                "REGISTER_ENGINE_OPERATIONS", available)));
+        Fixture generated = fixture(draft, context);
+        Path jar = Files.createTempFile(workRoot, "register-selftest-", ".jar");
+        Files.writeString(jar, "explicit synthetic register dependency, not actual acceptance");
+        return new V2Fixture(generated, jar, "org.ipro:platform-register:jar::1.0-SELFTEST", ApplyHash.sha256(jar));
+    }
+
+    private static void registerCases(List<CaseResult> results, Path workRoot) {
+        for (String period : List.of("NONE", "DAY")) {
+            for (String scenario : List.of("noop", "foreign", "modified", "rollback", "generator", "recipe",
+                    "source", "c-profile", "c-generator", "c-recipe", "suite", "dependency", "receipt", "prerequisite",
+                    "multiple-entries", "unsafe-source-root", "missing-register-dependency")) {
+                ApplyStatus status = switch (scenario) {
+                    case "noop" -> ApplyStatus.NOOP;
+                    case "foreign", "modified" -> ApplyStatus.CONFLICT;
+                    case "rollback" -> ApplyStatus.ROLLED_BACK;
+                    case "receipt" -> ApplyStatus.RECOVERY_REQUIRED;
+                    default -> ApplyStatus.REJECTED;
+                };
+                String code = switch (scenario) {
+                    case "noop" -> "NOOP";
+                    case "foreign" -> "CONFLICT_UNOWNED";
+                    case "modified" -> "CONFLICT_MODIFIED";
+                    case "rollback" -> "RECEIPT_WRITE_FAILED";
+                    case "generator" -> "UNSUPPORTED_GENERATOR_PROFILE";
+                    case "recipe", "multiple-entries" -> "UNSUPPORTED_REGISTER_PROFILE";
+                    case "source" -> "PLAN_MISMATCH";
+                    case "c-profile", "c-generator", "c-recipe" -> "C_SUMMARY_MISMATCH";
+                    case "suite" -> "C_TESTS_INCOMPLETE";
+                    case "dependency" -> "DEPENDENCIES_CHANGED";
+                    case "receipt" -> "LEDGER_INVALID";
+                    case "prerequisite" -> "CONTROL_PLAN_REJECTED";
+                    case "unsafe-source-root" -> "SOURCE_ROOT_INVALID";
+                    case "missing-register-dependency" -> "C_REGISTER_DEPENDENCY_MISSING";
+                    default -> throw new AssertionError(scenario);
+                };
+                resultCase(results, workRoot, "register-" + period.toLowerCase() + "-" + scenario, status, code, () -> {
+                    V2Fixture fixture = registerFixture(workRoot, period);
+                    Project project = projectV2(workRoot, fixture);
+                    GenerationPlan plan = fixture.fixture.plan;
+                    ApplyResult result;
+                    if (scenario.equals("noop")) {
+                        assertAppliedV2(project, fixture, applyV2(project, fixture));
+                        var before = fileSnapshot(project.root);
+                        result = applyV2(project, fixture);
+                        if (!before.equals(fileSnapshot(project.root))) throw new AssertionError("NOOP changed files");
+                    } else if (scenario.equals("foreign")) {
+                        Path target = target(project, fixture.fixture);
+                        Files.createDirectories(target.getParent());
+                        Files.writeString(target, plan.files().getFirst().content());
+                        result = applyV2(project, fixture);
+                        if (!ApplyHash.sha256(target).equals(plan.files().getFirst().sha256())) throw new AssertionError("Foreign file changed");
+                    } else if (scenario.equals("modified")) {
+                        assertAppliedV2(project, fixture, applyV2(project, fixture));
+                        Files.writeString(target(project, fixture.fixture), "manual edit");
+                        result = applyV2(project, fixture);
+                        if (!Files.readString(target(project, fixture.fixture)).equals("manual edit")) throw new AssertionError("Manual edit overwritten");
+                    } else if (scenario.equals("rollback")) {
+                        result = new GenerationApplyAdapter(new ApplyHooks() {
+                            @Override public void beforeReceipt(Path receipt) throws IOException { throw new IOException("injected register receipt failure"); }
+                        }).apply(v2Request(project, fixture), plan, plan.source(), plan.context());
+                        assertNoTarget(project, fixture.fixture);
+                        assertNoV2Receipt(project);
+                        if (Files.exists(ApplyStateV2.journalPath(project.root.resolve(".g1-apply-v2")))) throw new AssertionError("Journal survived rollback");
+                    } else if (scenario.equals("generator")) {
+                        var changed = new GenerationPlan(plan.planId(), plan.recipe(), "register-java-v999", plan.source(), plan.context(), plan.files());
+                        result = new GenerationApplyAdapter().apply(v2Request(project, fixture), changed, changed.source(), changed.context());
+                    } else if (scenario.equals("multiple-entries")) {
+                        var first = plan.files().getFirst();
+                        var extra = new GenerationFile(first.operation(), "com/example/generated/Extra.java", first.content(), first.sha256());
+                        var changed = new GenerationPlan(plan.planId(), plan.recipe(), plan.generatorVersion(), plan.source(), plan.context(), List.of(first, extra));
+                        result = new GenerationApplyAdapter().apply(v2Request(project, fixture), changed, changed.source(), changed.context());
+                    } else if (scenario.equals("unsafe-source-root")) {
+                        result = new GenerationApplyAdapter().apply(new ApplyRequest(project.root, "../outside", project.summary,
+                            List.of(new DependencyLocation(fixture.id, fixture.jar))), plan, plan.source(), plan.context());
+                    } else if (scenario.equals("recipe")) {
+                        var d = plan.source();
+                        var source = new EntityDraft(d.schemaVersion(), RecipeCatalog.STANDARD_DOCUMENT, d.draftId(), d.entity(), d.fields(), d.sections(), d.owner(), d.register());
+                        var changed = new GenerationPlan(plan.planId(), source.recipe(), plan.generatorVersion(), source, plan.context(), plan.files());
+                        result = new GenerationApplyAdapter().apply(v2Request(project, fixture), changed, source, changed.context());
+                    } else if (scenario.equals("source")) {
+                        var file = plan.files().getFirst();
+                        String content = file.content() + "// modified reviewed source\n";
+                        var changed = new GenerationPlan(plan.planId(), plan.recipe(), plan.generatorVersion(), plan.source(), plan.context(),
+                            List.of(new GenerationFile(file.operation(), file.relativePath(), content, ApplyHash.sha256(content))));
+                        result = new GenerationApplyAdapter().apply(v2Request(project, fixture), changed, changed.source(), changed.context());
+                    } else if (scenario.startsWith("c-") || scenario.equals("suite") || scenario.equals("missing-register-dependency")) {
+                        ObjectNode c = baseSummaryV2(fixture.fixture, fixture.jar, fixture.id);
+                        if (scenario.equals("c-profile")) ((ObjectNode)c.get("manifest")).put("fingerprintProfile", "plan-fingerprint-v2");
+                        if (scenario.equals("c-generator")) ((ObjectNode)c.get("manifest")).put("generatorVersion", "document-java-v4");
+                        if (scenario.equals("c-recipe")) ((ObjectNode)c.get("manifest").get("recipe")).put("id", "recorded-register-v1");
+                        if (scenario.equals("suite")) ((ObjectNode)c.get("tests").get("suites").get(0)).put("name", "com.example.generated.harness.GenerationScenarioTest");
+                        if (scenario.equals("missing-register-dependency")) ((ObjectNode)c.get("dependencies").get(0)).put("id", "org.ipro:fixture-platform:jar::1.0-SELFTEST");
+                        Files.writeString(project.summary, Json.write(c));
+                        result = applyV2(project, fixture);
+                    } else if (scenario.equals("dependency")) {
+                        Files.writeString(fixture.jar, "changed bytes");
+                        result = applyV2(project, fixture);
+                    } else if (scenario.equals("receipt")) {
+                        ApplyResult first = applyV2(project, fixture);
+                        assertAppliedV2(project, fixture, first);
+                        ObjectNode receipt = (ObjectNode) Json.MAPPER.readTree(Files.readString(first.receipt()));
+                        ((ObjectNode)receipt.get("manifest")).put("fingerprintProfile", "plan-fingerprint-v2");
+                        Files.writeString(first.receipt(), Json.write(receipt));
+                        var before = fileSnapshot(project.root);
+                        result = applyV2(project, fixture);
+                        if (!before.equals(fileSnapshot(project.root))) throw new AssertionError("Invalid receipt attempt changed files");
+                    } else {
+                        var facts = new java.util.HashMap<>(plan.context().runtimeSnapshot().prerequisites());
+                        facts.put("REGISTER_ENGINE_OPERATIONS", new Prerequisite(Status.UNAVAILABLE, "not installed"));
+                        var context = plan.context().withRuntimeSnapshot(new RuntimeDesignSnapshot("unavailable", true, java.util.Map.of(), facts));
+                        var changed = new GenerationPlan(plan.planId(), plan.recipe(), plan.generatorVersion(), plan.source(), context, plan.files());
+                        result = new GenerationApplyAdapter().apply(v2Request(project, fixture), changed, changed.source(), changed.context());
+                    }
+                    expect(result, status, code);
+                    if (status == ApplyStatus.REJECTED) assertNoTarget(project, fixture.fixture);
+                    return outcome(result, project, fixture.fixture);
+                });
+            }
+        }
     }
 
     private static ApplyResult applyV2(Project project, V2Fixture fixture) {

@@ -116,7 +116,9 @@ final class CSummaryV2 {
 
     void verify(GenerationPlan plan, List<GenerationFile> files, String fingerprintProfile)
             throws ApplyFailure {
-        String requiredSuite = !plan.source().sections().isEmpty()
+        boolean register = org.ipro.design.RecipeCatalog.INDEPENDENT_REGISTER.equals(plan.recipe());
+        String requiredSuite = register ? "com.example.generated.harness.RegisterScenarioTest"
+                : !plan.source().sections().isEmpty()
                 ? "com.example.generated.harness.SectionsScenarioTest"
                 : files.size() > 1
                 ? MULTI_REQUIRED_SUITE
@@ -126,6 +128,10 @@ final class CSummaryV2 {
         text(root, "kind", KIND);
         text(root, "mode", "generated-acceptance");
         text(root, "status", "success");
+        if (register && dependencies.stream().filter(dependency ->
+                dependency.id().startsWith("org.ipro:platform-register:jar:")).count() != 1) {
+            fail("C_REGISTER_DEPENDENCY_MISSING", "Register C must record the effective platform-register JAR");
+        }
 
         GenerationManifest expected;
         try {

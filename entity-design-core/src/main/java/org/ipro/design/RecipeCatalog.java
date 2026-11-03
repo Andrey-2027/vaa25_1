@@ -50,7 +50,9 @@ public final class RecipeCatalog {
         return Set.copyOf(names);
     }
     public static boolean isRegisterRecipe(RecipeRef ref) { return INDEPENDENT_REGISTER.equals(ref); }
-    public static String registerBaseType(String period) { return REGISTER_DAY.equals(period) ? REGISTER_DAY_BASE : REGISTER_NONE_BASE; }
+    public static String registerBaseType(String period) {
+        return descriptor(INDEPENDENT_REGISTER).orElseThrow().effectiveProfile(period).baseType();
+    }
     public static boolean generationEnabled() { return false; }
     public static List<String> generationPrerequisites() { return List.of("GENERATION_PLAN_AND_COMPILE_GATE"); }
     public enum Phase { CAPTURED, DRAFT_READY, HANDOFF_ONLY }
@@ -109,15 +111,19 @@ public final class RecipeCatalog {
     }
     private static Recipe registerRecipe(String id, boolean recorded, Set<String> reads) {
         return new Recipe(new RecipeRef(id,1),"INFORMATION_REGISTER","org.ipro.crud.BaseEntity",
-            "APP_SPI",Phase.HANDOFF_ONLY,reads,Set.of(),List.of("ET6_ET7_REGISTER_CLASSIFICATION","REGISTER_ENGINE_OPERATIONS"),
+            "APP_SPI",recorded ? Phase.HANDOFF_ONLY : Phase.DRAFT_READY,reads,Set.of(),List.of("ET6_ET7_REGISTER_CLASSIFICATION","REGISTER_ENGINE_OPERATIONS"),
             List.of("dimensions/resources/periodicity","register write/key semantics",recorded ? "implements RecordedRegisterEntry; recorder type codes and owner boundary" : "independent replacement boundary"),
             List.of("register entity Java","register engine operation adapter","compile/runtime acceptance fixture"),
             List.of("validated register descriptor/key columns",recorded ? "recorder columns and allowed managed DOCUMENT types" : "independent natural-key constraints"),
-            List.of("RegisterStartupValidatorTest","RegisterWriteConcurrencyPostgresIT"),List.of("REGISTER_DRAFT_AND_OPERATION_CONTRACT"));
+            List.of("RegisterStartupValidatorTest","RegisterWriteConcurrencyPostgresIT"),
+            recorded ? List.of("REGISTER_DRAFT_AND_OPERATION_CONTRACT") : List.of());
     }
     public static java.util.Optional<Recipe> find(RecipeRef ref) {
         return recipes().stream().filter(recipe -> recipe.ref().equals(ref)).findFirst();
     }
+    /** UI-independent descriptions of exactly the registered recipes. */
+    public static List<RecipeDescriptor> descriptors() { return RecipeDescriptors.all(); }
+    public static java.util.Optional<RecipeDescriptor> descriptor(RecipeRef ref) { return RecipeDescriptors.find(ref); }
     public static boolean supportsDraft(RecipeRef ref) { return find(ref).map(Recipe::draftSupported).orElse(false); }
     public static Readiness readiness(RecipeRef ref, RuntimeDesignSnapshot snapshot) {
         var recipe=find(ref).orElseThrow(() -> new IllegalArgumentException("Unknown recipe: "+ref));

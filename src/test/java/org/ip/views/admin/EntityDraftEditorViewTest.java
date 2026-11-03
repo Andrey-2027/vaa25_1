@@ -43,7 +43,7 @@ class EntityDraftEditorViewTest {
     }
     static EntityDraftEditorView view() {
         var view = new EntityDraftEditorView(new EntityDraftAccess(true, new EntityExplorerAccess()));
-        view.setContextSource(() -> DraftEditorSessionTest.context("v1")); view.initialize(() -> {}); return view;
+        view.setContextSource(() -> DraftEditorSessionTest.context("v1")); view.initialize(() -> {}); button(view, "Справочник").click(); return view;
     }
     @Test void actualEditorKeepsIncompleteInputAcrossPropertyAndPageSelection() {
         var view = view(); assertThat(view).isNotInstanceOf(Savable.class);
@@ -104,6 +104,7 @@ class EntityDraftEditorViewTest {
         assertThat(view.session().draft().draftId()).isEqualTo(id); assertThat(view.isDirty()).isTrue();
         principal("another-admin", true); view.activate();
         assertThat(view.session().draft().draftId()).isNotEqualTo(id); assertThat(text(view, "label").getValue()).isEmpty();
+        button(view, "Справочник").click();
         text(view, "label").setValue("Не показывать"); principal("user", false); view.activate();
         assertThat(view.session()).isNull(); assertThat(view.isDirty()).isFalse(); assertThat(all(view).filter(c -> c instanceof TextField)).isEmpty();
     }

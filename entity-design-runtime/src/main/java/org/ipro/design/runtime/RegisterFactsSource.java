@@ -11,4 +11,8 @@ import java.util.Map;
 interface RegisterFactsSource {
     /** Register facts keyed by Java type name; empty means the owner checked and found none. */
     Map<String, RegisterFacts> facts();
+    default org.ipro.design.RuntimeDesignSnapshot.Prerequisite operations() {
+        return new org.ipro.design.RuntimeDesignSnapshot.Prerequisite(
+            org.ipro.design.RuntimeDesignSnapshot.Status.UNAVAILABLE, "Register engine beans were not confirmed");
+    }
 }

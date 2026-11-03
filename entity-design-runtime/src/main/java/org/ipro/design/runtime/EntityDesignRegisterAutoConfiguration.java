@@ -16,8 +16,15 @@ import org.springframework.context.annotation.Bean;
 @ConditionalOnClass(name = "org.ipro.register.RegisterRegistry")
 public class EntityDesignRegisterAutoConfiguration {
     @Bean
-    public RegisterFactsSource registerFactsSource(ObjectProvider<RegisterRegistry> registers) {
+    public RegisterFactsSource registerFactsSource(ObjectProvider<RegisterRegistry> registers,
+            ObjectProvider<org.ipro.register.RegisterKeyWrites> writes,
+            ObjectProvider<org.ipro.register.RegisterReaderFactory> readers,
+            ObjectProvider<org.ipro.register.RegisterNamedOperations> operations,
+            ObjectProvider<org.ipro.register.RegisterKeyWriteGuardInstaller> guards,
+            ObjectProvider<org.ipro.register.RecorderOrderClockBootstrap> clock) {
         RegisterRegistry registry = registers.getIfAvailable();
-        return registry == null ? null : new RegisterRegistryFactsSource(registry);
+        return registry == null ? null : new RegisterRegistryFactsSource(registry, () -> writes.getIfAvailable() != null
+            && readers.getIfAvailable() != null && operations.getIfAvailable() != null
+            && guards.getIfAvailable() != null && clock.getIfAvailable() != null);
     }
 }

@@ -22,6 +22,7 @@ class EntityDraftWorkspaceTest {
         when(factory.createBean(EntityDraftEditorView.class)).thenAnswer(call -> { count.incrementAndGet(); return editor; });
         var workspace = new Workspace(new WorkspaceManager(factory)); var host = new EntityDraftWorkspace(workspace, access);
         host.open();
+        EntityDraftEditorViewTest.button(editor, "Справочник").click();
         Tab tab = EntityDraftEditorViewTest.all(workspace).filter(c -> c instanceof Tab && EntityDraftWorkspace.ENTRY_ID.equals(c.getId().orElse(null))).map(c -> (Tab)c).findFirst().orElseThrow();
         var close = EntityDraftEditorViewTest.button(tab, "");
         EntityDraftEditorViewTest.text(editor, "label").setValue("Материалы");

@@ -27,7 +27,7 @@ public class EntityDraftWorkspace {
     }
     public void open() {
         if (!access.allows()) { if (editor != null) editor.activate(); return; }
-        workspace.open(EntityDraftEditorView.class, ENTRY_ID, "Черновик · Новый справочник", view -> {
+        workspace.open(EntityDraftEditorView.class, ENTRY_ID, "Черновик · Выбор вида", view -> {
             editor = view;
             if (catalogs != null) {
                 view.setCatalogSource(() -> catalogs.getObject().current());
