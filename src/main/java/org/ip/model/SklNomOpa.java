@@ -48,7 +48,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
     order = 75,
     icon = "LIST_UL",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"nomenclature", "displayName"},
     displaySortFields = {"displayName"}
 )
 @RlsLabels(code = "nomenclature", name = "displayName")

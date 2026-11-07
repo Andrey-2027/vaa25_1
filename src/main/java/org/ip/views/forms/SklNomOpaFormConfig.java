@@ -1,5 +1,8 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.annotation.FormConfigurationFor;
+import org.ipro.metadata.annotation.SelectionColumns;
+
 import org.ip.model.SklNomOpa;
 import org.ip.service.SklNomOpaService;
 import org.ipro.form.builder.ItemFormCustomization;
@@ -11,6 +14,8 @@ import org.springframework.stereotype.Component;
  * Регистрирует {@link SklNomOpaForm} как default-вариант формы набора атрибутов КСУ:
  * generic-поля шапки (только просмотр) + секция строк «тип → значение», кнопка «Отмена».
  */
+@FormConfigurationFor(SklNomOpa.class)
+@SelectionColumns({"nomenclature", "displayName"})
 @Component
 public class SklNomOpaFormConfig implements ItemFormCustomization {
 
