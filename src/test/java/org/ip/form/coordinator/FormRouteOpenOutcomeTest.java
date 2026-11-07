@@ -109,6 +109,25 @@ class FormRouteOpenOutcomeTest {
     }
 
     @Test
+    void descriptionDependenciesReachPreflightBeforeTheTabExists() {
+        BaseService<Workshop, Long> service = serviceReturning(Workshop.class, EXISTING_ID, Optional.empty());
+        var paths = java.util.List.of("branch");
+        when(formResolver.itemReadPaths(eq(Workshop.class), eq(null), any())).thenReturn(paths);
+        when(service.findById(EXISTING_ID, paths)).thenReturn(Optional.of(mock(Workshop.class)));
+        assertThat(coordinator(gateway).openRoutedRecord(Workshop.class,
+            FormRoute.record("workshop", EXISTING_ID))).isInstanceOf(OpenResult.Opened.class);
+        InOrder order = inOrder(formResolver, service, gateway);
+        order.verify(formResolver).itemReadPaths(eq(Workshop.class), eq(null), any());
+        order.verify(service).findById(EXISTING_ID, paths);
+        order.verify(gateway).open(any(), anyString(), anyString(), any());
+        verifyNoLegacyRead(service, EXISTING_ID);
+    }
+
+    private static <T extends IdentifiableEntity<Long>, ID> void verifyNoLegacyRead(BaseService<T, ID> service, ID id) {
+        verify(service, never()).findById(id);
+    }
+
+    @Test
     void missingRecordIsNotFoundAndCreatesNoTab() {
         serviceReturning(Workshop.class, EXISTING_ID, Optional.empty());
 

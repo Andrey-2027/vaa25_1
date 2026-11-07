@@ -1,0 +1,19 @@
+# AF5.6 scoped form read requirements
+
+== PrdSpecMtr ITEM default
+read: nomenclature,nomenclature.unitOfMeasurement,prdSpecMtr,prdSpecMtr.nomenclature,prdSpecMtr.nomenclature.unitOfMeasurement
+lookup.nomenclature: unitOfMeasurement
+lookup.prdSpecMtr: nomenclature,nomenclature.unitOfMeasurement
+
+== PrdSpecMtr ITEM material
+read: nomenclature,nomenclature.unitOfMeasurement
+lookup.nomenclature: unitOfMeasurement
+
+== PrdSpecMtr ITEM product
+read: prdSpecMtr,prdSpecMtr.nomenclature,prdSpecMtr.nomenclature.unitOfMeasurement
+lookup.prdSpecMtr: nomenclature,nomenclature.unitOfMeasurement
+
+base.LOOKUP.Nomenclature: 
+base.LOOKUP.PrdSpec: journal,nomenclature
+readonly.CorrectionItem.default: true
+readonly.CorrectionItem.accounting-correction-row: true

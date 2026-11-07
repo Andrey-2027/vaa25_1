@@ -184,17 +184,21 @@ class FetchPlanRegistryTest {
     }
 
     @Test
-    void listPlanComesFromGridMetadataAndPilotLookupPlanFromDeclarations() {
+    void listPlanComesFromGridMetadataAndFormLookupDependenciesAreScopedExtras() {
         FetchPlanRegistry registry = registryOver(ReceivingDocument.class, Nomenclature.class,
             PrdSpec.class, PrdSpecMtr.class, UnitOfMeasurement.class);
 
         assertThat(registry.plan(ReceivingDocument.class, FetchScenario.LIST).reasonFor("receivingWorkshop"))
             .isEqualTo("metadata:LIST");
 
-        // Зависимости объявлены на полях PrdSpecMtr и попадают в план цели.
+        // AF5.6: these dependencies belong to the opening field, not every lookup of the target.
         assertThat(registry.paths(Nomenclature.class, FetchScenario.LOOKUP))
-            .contains("unitOfMeasurement");
+            .doesNotContain("unitOfMeasurement");
         assertThat(registry.paths(PrdSpec.class, FetchScenario.LOOKUP))
+            .contains("nomenclature").doesNotContain("nomenclature.unitOfMeasurement");
+        assertThat(registry.pathsWith(Nomenclature.class, FetchScenario.LOOKUP, List.of("unitOfMeasurement")))
+            .contains("unitOfMeasurement");
+        assertThat(registry.pathsWith(PrdSpec.class, FetchScenario.LOOKUP, List.of("nomenclature.unitOfMeasurement")))
             .contains("nomenclature", "nomenclature.unitOfMeasurement");
     }
 

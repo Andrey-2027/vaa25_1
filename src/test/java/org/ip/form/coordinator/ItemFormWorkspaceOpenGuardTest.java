@@ -170,6 +170,24 @@ class ItemFormWorkspaceOpenGuardTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void workspacePreflightUsesDescriptionDependenciesBeforeOpeningTheTab() {
+        BaseService<Workshop, Long> service = mock(BaseService.class);
+        doReturn(service).when(serviceLocator).findService(Workshop.class);
+        var paths = List.of("branch");
+        when(formResolver.itemReadPaths(eq(Workshop.class), eq(null), any())).thenReturn(paths);
+        when(service.findById(MISSING_ID, paths)).thenReturn(Optional.of(mock(Workshop.class)));
+        coordinator(gateway).openItemForm(Workshop.class, MISSING_ID, saved -> { });
+        verify(service).findById(MISSING_ID, paths);
+        verifyNoLegacyRead(service, MISSING_ID);
+        verify(gateway).open(eq(ItemFormWrapperView.class), eq("item-workshop-42"), anyString(), any());
+    }
+
+    private static <T extends IdentifiableEntity<Long>, ID> void verifyNoLegacyRead(BaseService<T, ID> service, ID id) {
+        verify(service, never()).findById(id);
+    }
+
+    @Test
     void wrapperRefusesToBuildFormWhenRecordIsGoneBetweenPreflightAndInit() {
         stubService(Workshop.class, MISSING_ID, Optional.empty());
 

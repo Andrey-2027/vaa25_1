@@ -241,7 +241,7 @@ displayName: 'code name'
 rlsLabels: code='code' name='name'
 plan.LIST: groupNom,unitOfMeasurement
 plan.DETAIL: groupNom,unitOfMeasurement
-plan.LOOKUP: unitOfMeasurement
+plan.LOOKUP: 
 plan.ROW: groupNom,unitOfMeasurement
 
 == org.ip.model.NomenclatureAccountingObject
@@ -337,7 +337,7 @@ displayName: 'codeSpec (nomenclature.code nomenclature.name)'
 rlsLabels: code='codeSpec' name='nomenclature.name'
 plan.LIST: journal,nomenclature
 plan.DETAIL: journal,nomenclature
-plan.LOOKUP: journal,nomenclature,nomenclature.unitOfMeasurement
+plan.LOOKUP: journal,nomenclature
 plan.ROW: journal,nomenclature
 
 == org.ip.model.PrdSpecMtr

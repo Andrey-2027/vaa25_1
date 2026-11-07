@@ -26,6 +26,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Скрытая секция варианта «только материалы» (PR-1.5, решение №7):
@@ -50,6 +51,9 @@ class PrdSpecHiddenSectionSkipsValidationAndSaveTest {
 
         applicationContext = mock(ApplicationContext.class);
         ObjectProvider<FormResolver> resolverProvider = mock(ObjectProvider.class);
+        FormResolver resolver = mock(FormResolver.class);
+        when(resolver.getFormRegistry()).thenReturn(new org.ipro.form.registry.FormRegistry());
+        when(resolverProvider.getObject()).thenReturn(resolver);
         factory = new TableSectionFactory(metadataResolver, mock(FieldFactory.class), applicationContext,
             genericSectionService, resolverProvider, List.of());
     }

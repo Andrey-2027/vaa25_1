@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * C3.4 / ADX-07: lookup возвращает представление, пригодное для объявленного сценария.
  *
  * <p>Зависимости выбора (единица измерения номенклатуры, номенклатура спецификации)
- * объявлены в metadata через {@code @Lookup(fetch = ...)} и попадают в план {@code LOOKUP}.
+ * объявлены в форме поля и расширяют её запрос {@code LOOKUP}.
  * Поиск применяет этот план как fetch-граф, поэтому выбранное значение приходит уже
  * готовым к чтению — форме больше не нужно перечитывать сущность по ID с EntityGraph и
  * константой глубины.</p>
@@ -45,6 +45,14 @@ class FetchPlanLookupHydrationIT {
 
     @Autowired
     private LookupService lookupService;
+
+    @Autowired
+    private org.ipro.form.registry.FormResolver formResolver;
+
+    private List<String> fieldPaths(String variant, String field) {
+        return formResolver.resolveItemForm(org.ip.model.PrdSpecMtr.class, variant, null, null)
+            .entityField(field).getLookupPaths();
+    }
 
     @Autowired
     private UnitOfMeasurementRepository unitOfMeasurementRepository;
@@ -79,12 +87,14 @@ class FetchPlanLookupHydrationIT {
 
     @Test
     void declaredLookupDependenciesArePartOfThePilotLookupPlan() {
-        assertThat(fetchPlanRegistry.paths(Nomenclature.class, FetchScenario.LOOKUP))
+        assertThat(fetchPlanRegistry.pathsWith(Nomenclature.class, FetchScenario.LOOKUP,
+                fieldPaths("material", "nomenclature")))
             .contains("unitOfMeasurement");
-        assertThat(fetchPlanRegistry.paths(PrdSpec.class, FetchScenario.LOOKUP))
+        assertThat(fetchPlanRegistry.pathsWith(PrdSpec.class, FetchScenario.LOOKUP,
+                fieldPaths("product", "prdSpecMtr")))
             .contains("nomenclature", "nomenclature.unitOfMeasurement");
-        assertThat(fetchPlanRegistry.plan(Nomenclature.class, FetchScenario.LOOKUP).paths())
-            .isNotEqualTo(fetchPlanRegistry.plan(Nomenclature.class, FetchScenario.DETAIL).paths());
+        assertThat(fetchPlanRegistry.paths(Nomenclature.class, FetchScenario.LOOKUP))
+            .doesNotContain("unitOfMeasurement");
     }
 
     @Test
@@ -100,7 +110,8 @@ class FetchPlanLookupHydrationIT {
         entityManager.clear();
 
         List<Nomenclature> found = lookupService.search(Nomenclature.class,
-            new String[]{"code"}, nomenclature.getCode(), 20);
+            new String[]{"code"}, nomenclature.getCode(), 20, fieldPaths("material", "nomenclature"));
+        entityManager.clear();
 
         assertThat(found).hasSize(1);
         assertThat(Hibernate.isInitialized(found.get(0).getUnitOfMeasurement()))
@@ -110,7 +121,7 @@ class FetchPlanLookupHydrationIT {
     }
 
     @Test
-    void findAllAppliesLookupPlanWithoutCallerSuppliedPaths() {
+    void findAllDoesNotInheritAnotherFormsDependencies() {
         loginAsSuperuser();
 
         String suffix = UUID.randomUUID().toString().substring(0, 4);
@@ -126,8 +137,7 @@ class FetchPlanLookupHydrationIT {
             .findFirst().orElseThrow();
 
         assertThat(Hibernate.isInitialized(found.getUnitOfMeasurement()))
-            .as("публичный findAll применяет сценарий LOOKUP внутри LookupService")
-            .isTrue();
-        assertThat(found.getUnitOfMeasurement().getShortCode()).isEqualTo("KG" + suffix);
+            .as("потребность формы строки не становится глобальным правилом чтения")
+            .isFalse();
     }
 }
