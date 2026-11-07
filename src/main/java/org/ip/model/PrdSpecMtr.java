@@ -44,7 +44,7 @@ public class PrdSpecMtr extends BaseEntity {
     @FieldMetadata(
         label = "Тип", order = 1,
         type = FieldType.INTEGER,
-        grid = @GridColumn(order = 1, width = "100px")
+        grid = @GridColumn(order = 1)
     )
     private Integer typeMtr;
 
@@ -55,7 +55,7 @@ public class PrdSpecMtr extends BaseEntity {
         // Форма строки сразу читает номенклатуру спецификации и её единицу измерения —
         // зависимость сценария выбора объявлена здесь, а грузит её единый FetchPlan (ADX-07).
         lookup = @Lookup(fetch = {"nomenclature", "nomenclature.unitOfMeasurement"}),
-        grid = @GridColumn(order = 2, width = "250px")
+        grid = @GridColumn(order = 2)
     )
     private PrdSpec prdSpecMtr;
 
@@ -66,7 +66,7 @@ public class PrdSpecMtr extends BaseEntity {
         // Единица измерения строки автозаполняется из выбранной номенклатуры —
         // зависимость сценария выбора, не знание формы о persistence.
         lookup = @Lookup(fetch = {"unitOfMeasurement"}),
-        grid = @GridColumn(order = 3, width = "250px")
+        grid = @GridColumn(order = 3)
     )
     private Nomenclature nomenclature;
 
@@ -74,7 +74,7 @@ public class PrdSpecMtr extends BaseEntity {
     @JoinColumn(name = "unit_id")
     @FieldMetadata(
         label = "Единица измерения", order = 4,
-        grid = @GridColumn(order = 4, width = "150px")
+        grid = @GridColumn(order = 4)
     )
     private UnitOfMeasurement unit;
 
@@ -82,7 +82,7 @@ public class PrdSpecMtr extends BaseEntity {
     @FieldMetadata(
         label = "Количество", order = 5,
         type = FieldType.DECIMAL,
-        grid = @GridColumn(order = 5, width = "150px")
+        grid = @GridColumn(order = 5)
     )
     private BigDecimal qt;
 

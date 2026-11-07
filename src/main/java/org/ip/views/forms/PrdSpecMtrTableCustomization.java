@@ -44,4 +44,15 @@ public class PrdSpecMtrTableCustomization implements TableSectionCustomization<P
             .map(PrdSpecMtrVariant::key)
             .collect(Collectors.toList());
     }
+
+    @Override
+    public org.ipro.metadata.FormColumnDeclarations.Columns columns() {
+        var columns = org.ipro.metadata.FormColumnDeclarations.auto();
+        columns.column("typeMtr").setWidth("100px").setAutoWidth(true);
+        columns.column("prdSpecMtr").setWidth("250px").setAutoWidth(true);
+        columns.column("nomenclature").setWidth("250px").setAutoWidth(true);
+        columns.column("unit").setWidth("150px").setAutoWidth(true);
+        columns.column("qt").setWidth("150px").setAutoWidth(true);
+        return columns;
+    }
 }
