@@ -11,7 +11,7 @@ import java.util.Locale;
  * ({@link #MATERIAL}, поля nomenclature/unit/qt), 1 — продукция ({@link #PRODUCT},
  * поля prdSpecMtr/unit/qt). Единый источник имён вариантов вместо строковых литералов
  * «material»/«product» в нескольких местах ({@link PrdSpecMtrTableCustomization} —
- * selector, {@link PrdSpecMtrFormCustomization} — регистрация форм): переход
+ * selector, {@link PrdSpecMtrMaterialForm}/{@link PrdSpecMtrProductForm} — формы): переход
  * «enum↔string» выполняется через {@link #key()} / {@link #of(String)}.</p>
  */
 public enum PrdSpecMtrVariant {

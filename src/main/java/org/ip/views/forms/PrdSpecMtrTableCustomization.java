@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 /**
  * Связывает дискриминатор PrdSpecMtr.typeMtr с вариантами формы строки,
- * зарегистрированными в {@link PrdSpecMtrFormCustomization} ({@link PrdSpecMtrVariant#MATERIAL} /
+ * зарегистрированными классами {@link PrdSpecMtrMaterialForm}/{@link PrdSpecMtrProductForm} ({@link PrdSpecMtrVariant#MATERIAL} /
  * {@link PrdSpecMtrVariant#PRODUCT}), и задаёт выбор при "Добавить".
  *
  * 0 — материал (поля nomenclature/unit/qt), 1 — продукция (поля prdSpecMtr/unit/qt).

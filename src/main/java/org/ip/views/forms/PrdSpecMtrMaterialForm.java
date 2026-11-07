@@ -10,7 +10,7 @@ import org.ipro.form.builder.layout.Layout;
 public class PrdSpecMtrMaterialForm extends ItemForm<PrdSpecMtr> {
     @Override
     protected ItemFormLayout layout(Layout l) {
-        return l.of(l.field("nomenclature").setLookupPaths("unitOfMeasurement"),
-            l.field("unit"), l.field("qt"));
+        return l.of(l.field("nomenclature").setSelectionFilter("typeNom", "Материал"),
+            l.field("unit").setFillFrom("nomenclature.unitOfMeasurement"), l.field("qt"));
     }
 }
