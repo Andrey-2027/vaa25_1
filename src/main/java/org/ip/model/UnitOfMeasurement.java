@@ -22,7 +22,6 @@ import org.ipro.metadata.HasDisplayName;
     order = 200,
     icon = "COG",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"code", "name", "shortCode"},
     displaySortFields = {"shortCode"}  // = getDisplayName()
 )
 public class UnitOfMeasurement extends BaseEntity implements HasDisplayName {
@@ -32,7 +31,7 @@ public class UnitOfMeasurement extends BaseEntity implements HasDisplayName {
     @Column(nullable = false, unique = true)
     @FieldMetadata(
         label = "Краткий код", order = 1,
-        grid = @GridColumn(order = 1, width = "100px")
+        grid = @GridColumn(order = 1)
     )
     private String shortCode;
 
@@ -41,7 +40,7 @@ public class UnitOfMeasurement extends BaseEntity implements HasDisplayName {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Наименование", order = 2,
-        grid = @GridColumn(order = 2, flexGrow = 1)
+        grid = @GridColumn(order = 2)
     )
     private String name;
 
@@ -50,7 +49,7 @@ public class UnitOfMeasurement extends BaseEntity implements HasDisplayName {
     @Column(nullable = false, unique = true)
     @FieldMetadata(
         label = "Код", order = 3,
-        grid = @GridColumn(order = 3, width = "100px")
+        grid = @GridColumn(order = 3)
     )
     private String code;
 
