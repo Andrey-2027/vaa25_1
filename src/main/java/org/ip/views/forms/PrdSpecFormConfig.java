@@ -1,5 +1,8 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.annotation.FormConfigurationFor;
+import org.ipro.metadata.annotation.SelectionColumns;
+
 import org.ipro.form.builder.ItemFormCustomization;
 import org.ipro.form.builder.ItemFormVariants;
 import org.ipro.form.builtin.ItemForm;
@@ -30,6 +33,8 @@ import java.util.Map;
  * Номенклатура не может быть «Материал». Реализовано через {@link SeedFilter} на SelectionForm
  * (разрешённые типы — все, кроме «Материал»): основная точка выбора диалогом, автокомплит не трогаем.</p>
  */
+@FormConfigurationFor(PrdSpec.class)
+@SelectionColumns({"codeSpec", "nomenclature.name"})
 @Component
 public class PrdSpecFormConfig implements ItemFormCustomization {
 

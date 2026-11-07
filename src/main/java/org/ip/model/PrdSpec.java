@@ -42,7 +42,6 @@ import java.util.List;
     order = 30,
     icon = "CLIPBOARD_TEXT",
     subsystem = org.ip.subsystem.Subsystems.Production.class,
-    selectColumns = {"codeSpec", "nomenclature.name"},
     displaySortFields = {"codeSpec"}
 )
 @TableSections({PrdSpecMtr.class,PrdSpecOper.class})
@@ -54,7 +53,7 @@ public class PrdSpec extends BaseEntity implements HasDisplayName {
     @NotNull
     @FieldMetadata(
         label = "Журнал", order = 1,
-        grid = @GridColumn(order = 1, width = "200px")
+        grid = @GridColumn(order = 1)
     )
     private Journal journal;
 
@@ -63,7 +62,7 @@ public class PrdSpec extends BaseEntity implements HasDisplayName {
     @NotNull
     @FieldMetadata(
         label = "Номенклатура", order = 2,
-        grid = @GridColumn(order = 2, width = "250px")
+        grid = @GridColumn(order = 2)
     )
     private Nomenclature nomenclature;
 
@@ -72,7 +71,7 @@ public class PrdSpec extends BaseEntity implements HasDisplayName {
     @Column(nullable = false, name = "code_spec")
     @FieldMetadata(
         label = "Код спецификации", order = 3,
-        grid = @GridColumn(order = 3, width = "200px")
+        grid = @GridColumn(order = 3)
     )
     private String codeSpec;
 
@@ -80,7 +79,7 @@ public class PrdSpec extends BaseEntity implements HasDisplayName {
     @Column(name = "draft")
     @FieldMetadata(
         label = "Обозначение", order = 4,
-        grid = @GridColumn(order = 4, width = "200px")
+        grid = @GridColumn(order = 4)
     )
     private String draft;
 
