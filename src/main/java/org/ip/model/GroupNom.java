@@ -21,7 +21,6 @@ import org.ipro.metadata.annotation.GridColumn;
     order = 90,
     icon = "FOLDER",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
 )
 public class GroupNom extends BaseEntity implements HasDisplayName {
@@ -31,7 +30,7 @@ public class GroupNom extends BaseEntity implements HasDisplayName {
     @Column(nullable = false, unique = true)
     @FieldMetadata(
         label = "Код", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "150px")
+        grid = @GridColumn(order = 1)
     )
     private String code;
 
@@ -40,7 +39,7 @@ public class GroupNom extends BaseEntity implements HasDisplayName {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Наименование", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, flexGrow = 1)
+        grid = @GridColumn(order = 2)
     )
     private String name;
 
