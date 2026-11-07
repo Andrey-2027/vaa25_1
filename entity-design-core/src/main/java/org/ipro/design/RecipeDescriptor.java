@@ -29,7 +29,7 @@ public record RecipeDescriptor(RecipeRef ref, String displayName, String descrip
     }
     public record PeriodMode(String id, String label) { }
     public List<FieldRole> fieldRoles() {
-        return RecipeCatalog.INDEPENDENT_REGISTER.equals(ref) ? List.of(
+        return RecipeCatalog.isRegisterRecipe(ref) ? List.of(
             new FieldRole("DIMENSION", "Измерение", "Часть ключа; обязательно при записи. Длина строки: не более "
                 + RegisterDraft.MAX_DIMENSION_STRING_LENGTH + ".", RegisterDraft.DIMENSION_TYPES, true),
             new FieldRole("RESOURCE", "Ресурс", "Значение записи. Длина строки: не более " + RegisterDraft.MAX_RESOURCE_STRING_LENGTH
@@ -50,7 +50,7 @@ public record RecipeDescriptor(RecipeRef ref, String displayName, String descrip
         return List.copyOf(modes);
     }
     public java.util.Optional<FieldApplications> fixedPublications() {
-        return RecipeCatalog.INDEPENDENT_REGISTER.equals(ref) ? java.util.Optional.of(FieldApplications.root()) : java.util.Optional.empty();
+        return RecipeCatalog.isRegisterRecipe(ref) ? java.util.Optional.of(FieldApplications.root()) : java.util.Optional.empty();
     }
 
     /** Resolved base and builtins for a mode, without changing the exact recipe identity. */
@@ -66,7 +66,7 @@ public record RecipeDescriptor(RecipeRef ref, String displayName, String descrip
     }
 
     public EffectiveProfile effectiveProfile(String period) {
-        if (!RecipeCatalog.INDEPENDENT_REGISTER.equals(ref)) {
+        if (!RecipeCatalog.isRegisterRecipe(ref)) {
             if (period != null) throw new IllegalArgumentException("Period is not applicable to " + ref);
             return new EffectiveProfile(baseType, persistenceProfile, writeProfile, null, null, inheritedFields);
         }

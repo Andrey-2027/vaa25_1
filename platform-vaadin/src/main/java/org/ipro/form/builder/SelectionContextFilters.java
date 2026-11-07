@@ -36,7 +36,8 @@ public final class SelectionContextFilters {
                               SelectionFormAssembler assembler) {
         form.setFixedFilters(fixedFilters);
         List<ContextFilterField> fields = resolveRow(registry, entityClass, variant);
-        if (fields.isEmpty()) return;
+        if (fields.isEmpty() && (fixedFilters == null || fixedFilters.isEmpty())) return;
+        form.setContextFilterFields(entityClass, fields);
         ContextFilterPanel panel = new ContextFilterPanel(entityClass, fields,
             metadataResolver, lookupService,
             (source, onSelect) -> assembler.assemble(

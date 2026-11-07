@@ -62,6 +62,7 @@ class ListFormDeclaredActionTest {
 
     @Entity
     static class Standard extends BaseEntity {
+        Standard owner;
     }
 
     /** Второй тип с той же формой: у него объявленного действия быть не должно. */

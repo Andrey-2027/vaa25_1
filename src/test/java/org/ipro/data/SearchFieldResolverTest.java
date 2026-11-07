@@ -22,7 +22,7 @@ class SearchFieldResolverTest {
         new SearchFieldResolver(new MetadataResolver());
 
     @Test
-    void defaultsComeFromMetadataSelectColumns() {
+    void defaultsComeFromPresentation() {
         assertThat(resolver.resolve(Branch.class, List.of()))
             .containsExactly("code", "name");
     }

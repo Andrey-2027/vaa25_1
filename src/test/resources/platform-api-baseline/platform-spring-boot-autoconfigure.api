@@ -39,6 +39,7 @@ class public org.ipro.fetch.config.FetchPlanInstanceNameAutoConfiguration
   annotation org.springframework.boot.autoconfigure.AutoConfiguration
   annotation org.springframework.boot.autoconfigure.AutoConfigureAfter
   ctor public()
+  method public org.ipro.data.PresentationResolver presentationResolver(org.ipro.metadata.MetadataResolver, org.springframework.beans.factory.ObjectProvider<org.ipro.fetch.instance.InstanceNameResolver>, org.springframework.beans.factory.ObjectProvider<org.ipro.metadata.ManagedEntityCatalog>)
   method public org.ipro.fetch.ManagedEntityTypes managedEntityTypes(org.ipro.metadata.ManagedEntityCatalog)
   method public org.ipro.fetch.instance.InstanceNameBridgeInstaller instanceNameBridgeInstaller(org.ipro.fetch.instance.InstanceNameResolver, org.springframework.beans.factory.ObjectProvider<org.ipro.fetch.instance.InstanceNameProvider>)
   method public org.ipro.fetch.instance.InstanceNameResolver instanceNameResolver(org.ipro.fetch.ManagedEntityTypes, org.ipro.metadata.MetadataResolver)

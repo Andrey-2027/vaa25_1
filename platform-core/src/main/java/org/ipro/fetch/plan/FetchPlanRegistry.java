@@ -5,11 +5,11 @@ import jakarta.persistence.EntityManager;
 import org.ipro.fetch.ManagedEntityTypes;
 import org.ipro.fetch.instance.InstanceNameResolver;
 import org.ipro.metadata.ColumnPath;
+import org.ipro.data.PresentationResolver;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.FetchGraphs;
 import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
-import org.ipro.metadata.RowMetadataInfo;
 import org.ipro.metadata.annotation.FieldType;
 
 import java.util.ArrayList;
@@ -20,7 +20,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -50,6 +49,7 @@ public final class FetchPlanRegistry {
 
     private final MetadataResolver metadataResolver;
     private final InstanceNameResolver instanceNameResolver;
+    private final PresentationResolver presentationResolver;
     private final Map<Class<?>, List<LookupDependency>> lookupDependencies;
     private final Map<PlanKey, FetchPlan> cache = new ConcurrentHashMap<>();
 
@@ -71,11 +71,13 @@ public final class FetchPlanRegistry {
         this.metadataResolver = Objects.requireNonNull(metadataResolver, "metadataResolver must not be null");
         this.instanceNameResolver = Objects.requireNonNull(instanceNameResolver,
             "instanceNameResolver must not be null");
+        this.presentationResolver = new PresentationResolver(metadataResolver, instanceNameResolver);
         List<Class<?>> orderedTypes = Objects.requireNonNull(managedEntityTypes,
                 "managedEntityTypes must not be null").stream()
             .sorted(Comparator.comparing(Class::getName))
             .toList();
         this.lookupDependencies = collectLookupDependencies(orderedTypes);
+        orderedTypes.forEach(presentationResolver::validate);
     }
 
     /** План для пары (класс, сценарий); результат кэшируется. */
@@ -124,7 +126,7 @@ public final class FetchPlanRegistry {
         LinkedHashSet<String> union = new LinkedHashSet<>(plan.rawPaths());
         union.addAll(additionalPaths);
         return FetchGraphs.deepen(entityClass, union, metadataResolver,
-                instanceNameResolver::instanceNamePaths).stream()
+                presentationResolver::displayPaths).stream()
             .sorted()
             .toList();
     }
@@ -149,13 +151,14 @@ public final class FetchPlanRegistry {
 
         Map<String, String> included = new LinkedHashMap<>();
         for (String path : basePaths(entityClass, scenario)) {
-            included.putIfAbsent(path, "metadata:" + scenario);
+            included.putIfAbsent(path, scenario == FetchScenario.LOOKUP
+                ? "presentation:LOOKUP" : "metadata:" + scenario);
         }
 
         // C3.1: имя сущности рендерится в форме и в выборе — его связи обязаны быть загружены.
         if (scenario == FetchScenario.LOOKUP || scenario == FetchScenario.DETAIL) {
             for (String path : instanceNameResolver.instanceNameFetchPaths(entityClass)) {
-                included.putIfAbsent(path, "instance-name");
+                included.put(path, "instance-name");
             }
         }
 
@@ -175,7 +178,7 @@ public final class FetchPlanRegistry {
         // Углубление через единое имя ссылочных целей: ссылочная колонка/поле рендерит имя цели,
         // а имя может читать собственные связи.
         List<String> deepened = FetchGraphs.deepen(entityClass, rawPaths, metadataResolver,
-            instanceNameResolver::instanceNamePaths);
+            presentationResolver::displayPaths);
         for (String path : deepened) {
             int lastDot = path.lastIndexOf('.');
             included.putIfAbsent(path, lastDot < 0
@@ -194,16 +197,16 @@ public final class FetchPlanRegistry {
     /** Базовый набор путей сценария из эффективной metadata. */
     private List<String> basePaths(Class<?> entityClass, FetchScenario scenario) {
         return switch (scenario) {
-            case LIST -> entityReferencePaths(gridFieldsOf(entityClass));
+            case LIST -> columnReferencePaths(listColumnsOf(entityClass));
             case DETAIL -> entityReferencePaths(formFieldsOf(entityClass));
-            case LOOKUP -> selectColumnFetchPaths(entityClass);
-            case ROW -> entityReferencePaths(rowGridFieldsOf(entityClass));
+            case LOOKUP -> presentationResolver.lookupFetchPaths(entityClass);
+            case ROW -> columnReferencePaths(metadataResolver.resolveRowMetadata(entityClass).getColumnPaths());
         };
     }
 
-    private List<FieldMetadataInfo> gridFieldsOf(Class<?> entityClass) {
+    private List<ColumnPath> listColumnsOf(Class<?> entityClass) {
         EntityMetadataInfo meta = metadataOrNull(entityClass);
-        return meta == null ? List.of() : meta.getGridFields();
+        return meta == null ? List.of() : meta.getListColumnPaths();
     }
 
     private List<FieldMetadataInfo> formFieldsOf(Class<?> entityClass) {
@@ -211,23 +214,10 @@ public final class FetchPlanRegistry {
         return meta == null ? List.of() : meta.getFormFields();
     }
 
-    private List<FieldMetadataInfo> rowGridFieldsOf(Class<?> entityClass) {
-        RowMetadataInfo row = metadataResolver.resolveRowMetadata(entityClass);
-        return row == null ? List.of() : row.getGridFields();
-    }
-
-    private List<String> selectColumnFetchPaths(Class<?> entityClass) {
-        EntityMetadataInfo meta = metadataOrNull(entityClass);
-        if (meta == null) {
-            return List.of();
-        }
-        TreeSet<String> result = new TreeSet<>();
-        for (ColumnPath path : meta.getSelectColumnPaths()) {
-            for (String fetchPath : path.getFetchPaths()) {
-                result.add(fetchPath);
-            }
-        }
-        return List.copyOf(result);
+    /** Active variants, section declarations and saved views add their paths via pathsWith. */
+    private static List<String> columnReferencePaths(List<ColumnPath> columns) {
+        return columns.stream().flatMap(column -> column.getFetchPaths().stream())
+            .distinct().sorted().toList();
     }
 
     private EntityMetadataInfo metadataOrNull(Class<?> entityClass) {

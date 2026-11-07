@@ -176,6 +176,7 @@ function Get-SpecMetadata {
         ClassName = $className
         RelativePath = $relative
         RegisterScenario = ($text -match 'REQUIRED_SUITE\s*=\s*"com.example.generated.harness.RegisterScenarioTest"')
+        RegisterRlsScenario = ($text -match 'REQUIRED_RLS_SUITE\s*=\s*"com.example.generated.harness.RegisterRlsSecurityTest"')
         ReferenceScenario = ($text -match 'REQUIRED_SUITE\s*=\s*"com.example.generated.harness.ReferenceScenarioTest"')
         OwnerScenario = ($text -match 'REQUIRED_SUITE\s*=\s*"com.example.generated.harness.OwnerScenarioTest"')
         SectionTargets = ($text -match 'SUPPORT_PROFILE\s*=\s*"g1-sections"')
@@ -274,16 +275,14 @@ function Read-PlanManifest {
     if ([string]$manifest.planId -notmatch '^g1-[0-9a-f]{64}$') {
         Reject 'manifest-invalid' ('Invalid planId: ' + $manifest.planId)
     }
-    $register = ([string]$manifest.generatorVersion -eq 'register-java-v1' -or
-        [string]$manifest.recipe.id -eq 'independent-register-v1' -or
-        [string]$manifest.fingerprintProfile -eq 'plan-fingerprint-v3')
+    $register = ([string]$manifest.generatorVersion -in @('register-java-v1','register-java-v2') -or
+        [string]$manifest.recipe.id -in @('independent-register-v1','independent-register-v2') -or
+        [string]$manifest.fingerprintProfile -in @('plan-fingerprint-v3','plan-fingerprint-v4'))
     if ($register) {
-        if ([string]$manifest.generatorVersion -ne 'register-java-v1' -or
-            [string]$manifest.recipe.id -ne 'independent-register-v1' -or
-            [string]$manifest.recipe.version -ne '1' -or
-            [string]$manifest.fingerprintProfile -ne 'plan-fingerprint-v3' -or
-            @($manifest.entries).Count -ne 1) {
-            Reject 'manifest-invalid' 'Register C requires independent-register-v1@1 / register-java-v1 / F3 and one entry'
+        $captured = ([string]$manifest.generatorVersion -eq 'register-java-v1' -and [string]$manifest.recipe.id -eq 'independent-register-v1' -and [string]$manifest.recipe.version -eq '1' -and [string]$manifest.fingerprintProfile -eq 'plan-fingerprint-v3')
+        $rls = ([string]$manifest.generatorVersion -eq 'register-java-v2' -and [string]$manifest.recipe.id -eq 'independent-register-v2' -and [string]$manifest.recipe.version -eq '2' -and [string]$manifest.fingerprintProfile -eq 'plan-fingerprint-v4')
+        if ((-not $captured -and -not $rls) -or @($manifest.entries).Count -ne 1) {
+            Reject 'manifest-invalid' 'Register C requires an exact v1/F3 or v2/F4 recipe/generator tuple and one entry'
         }
     } elseif ([string]$manifest.fingerprintProfile -ne 'plan-fingerprint-v2') {
         Reject 'manifest-invalid' ('Extension C requires plan-fingerprint-v2, got ' + $manifest.fingerprintProfile)
@@ -706,7 +705,7 @@ function Invoke-Acceptance {
             }
         }
 
-        if ($spec.RegisterScenario -ne ($null -ne $manifest -and [string]$manifest.generatorVersion -eq 'register-java-v1')) {
+        if ($spec.RegisterScenario -ne ($null -ne $manifest -and [string]$manifest.generatorVersion -in @('register-java-v1','register-java-v2'))) {
             Reject 'spec-mismatch' 'Register manifest and register scenario must be selected together'
         }
         $sourceContract = Assert-SourceContract -Source $SourceFile -Relative $RelativePath
@@ -746,6 +745,11 @@ function Invoke-Acceptance {
 
         $beforeJars = Get-PlatformJarHashes $LocalRepository
         $isolation = New-Isolation -RegisterScenario:$spec.RegisterScenario
+        $rlsManifest = ($null -ne $manifest -and [string]$manifest.generatorVersion -eq 'register-java-v2')
+        if ($spec.RegisterRlsScenario -ne $rlsManifest) { Reject 'spec-mismatch' 'An explicit RLS profile requires independent RLS expectations and its required security suite' }
+        if ($spec.RegisterRlsScenario) {
+            Copy-Item -LiteralPath (Join-Path $script:SupportRoot 'register-rls-tests/RegisterRlsSecurityTest.java') -Destination (Join-Path $isolation 'src/test/java/com/example/generated/harness/RegisterRlsSecurityTest.java')
+        }
         $summary.harness.isolation = $isolation
         $summary.harness.javaVersion = Get-JavaVersion $JavaHome
 
@@ -832,6 +836,7 @@ function Invoke-Acceptance {
         if ($spec.OwnerScenario) { $requiredSuites = @('com.example.generated.harness.OwnerScenarioTest') }
         if ($spec.SectionScenario) { $requiredSuites = @('com.example.generated.harness.SectionsScenarioTest') }
         if ($spec.RegisterScenario) { $requiredSuites = @('com.example.generated.harness.RegisterScenarioTest') }
+        if ($spec.RegisterRlsScenario) { $requiredSuites += 'com.example.generated.harness.RegisterRlsSecurityTest' }
         $counts = Get-SurefireSummary -Isolation $isolation -RequiredSuites $requiredSuites
         $summary.tests = $counts
         $summary.runtime.attempted = ($counts.reports -gt 0)

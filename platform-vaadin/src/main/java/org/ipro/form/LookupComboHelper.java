@@ -2,9 +2,8 @@ package org.ipro.form;
 
 import com.vaadin.flow.component.combobox.ComboBox;
 import org.ipro.crud.EntityLookup;
-import org.ipro.metadata.ColumnPath;
+import org.ipro.data.PresentationResolver;
 import org.ipro.metadata.MetadataResolver;
-import org.ipro.metadata.annotation.FieldType;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,19 +42,15 @@ public final class LookupComboHelper {
     }
 
     /**
-     * Текстовые select-колонки сущности — поля поиска автокомплита (как в
-     * {@code FieldFactory}). Пусто, если сущность неизвестна метаданным: тогда backend
-     * сам выводит поля из {@code @SearchFields}/instanceName/selectColumns, пустой
-     * список для него — не ошибка, а «по умолчанию».
+     * Поля представления — общий источник автокомплита и серверного поиска (AF2).
+     * Колонки выбора и их варианты на поиск не влияют. Пустой
+     * список для backend — «по умолчанию», а не ошибка.
      */
     public static List<String> textSearchFields(Class<?> entityType, MetadataResolver resolver) {
         if (entityType == null || resolver == null) {
             return List.of();
         }
-        return resolver.find(entityType).map(metadata -> metadata.getSelectColumnPaths().stream()
-                .filter(path -> path.getResolvedType() == FieldType.TEXT)
-                .map(ColumnPath::getKey)
-                .toList()).orElse(List.of());
+        return new PresentationResolver(resolver).searchFields(entityType);
     }
 
     /**

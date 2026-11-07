@@ -11,7 +11,6 @@ import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.rls.RlsDimension;
 import org.ipro.crud.BaseEntity;
@@ -66,8 +65,7 @@ public class Workshop extends BaseEntity implements HasDisplayName {
     @FieldMetadata(
         label = "Филиал", required = RequiredMode.OPTIONAL, order = 3,
         type = FieldType.ENTITY_REFERENCE,
-        grid = @GridColumn(order = 3, width = "180px"),
-        lookup = @Lookup(entity = Branch.class)
+        grid = @GridColumn(order = 3, width = "180px")
     )
     private Branch branch;
 

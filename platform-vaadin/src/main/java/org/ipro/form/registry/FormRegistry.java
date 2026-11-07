@@ -45,6 +45,9 @@ public class FormRegistry {
     private final Map<FormKey, String> registrationSources = new ConcurrentHashMap<>();
     private final Map<Class<?>, List<ContextFilterField>> contextFilters = new ConcurrentHashMap<>();
     private final Map<FormKey, SelectionColumnsDef> selectionColumns = new ConcurrentHashMap<>();
+    private final Map<FormKey, List<String>> listColumns = new ConcurrentHashMap<>();
+    private final Map<FormKey, String> columnSources = new ConcurrentHashMap<>();
+
     private final Map<Class<?>, List<ContextFilterField>> selectionContextFilters = new ConcurrentHashMap<>();
     private final Map<FormKey, List<ContextFilterField>> variantContextFilters = new ConcurrentHashMap<>();
     /** Источник-декларант общего ряда списка (FQN конфига); null — не указан. */
@@ -57,6 +60,39 @@ public class FormRegistry {
         new ConcurrentHashMap<>();
     private final Map<FormKey, List<org.ipro.form.builder.ItemFormCustomizer>> itemCustomizers =
         new ConcurrentHashMap<>();
+
+    /** Copies the frozen early declarations into the UI variant catalog before customization beans run. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setFormColumnDeclarations(org.ipro.metadata.FormColumnDeclarations declarations) {
+        for (var declaration : declarations.all()) {
+            String variant = declaration.variant().isEmpty() ? null : declaration.variant();
+            if (declaration.kind() == org.ipro.metadata.FormColumnDeclarations.Kind.LIST) {
+                registerListColumns(declaration.entity(), variant, declaration.paths(), declaration.source());
+            } else {
+                registerSelectionColumns(declaration.entity(), variant,
+                    new SelectionColumnsDef(declaration.paths(), declaration.title()), declaration.source());
+            }
+        }
+    }
+
+    public void registerListColumns(Class<?> entityClass, String variant, List<String> columns, String source) {
+        requireOpen("register list columns");
+        FormKey key = new FormKey(entityClass, FormType.LIST, variant);
+        List<String> copy = List.copyOf(columns);
+        if (listColumns.putIfAbsent(key, copy) != null) {
+            throw duplicate("list columns", key, columnSources.get(key), source);
+        }
+        if (source != null) columnSources.put(key, source);
+        putSource(key, source);
+    }
+
+    public List<String> getListColumns(Class<?> entityClass, String variant) {
+        return listColumns.get(new FormKey(entityClass, FormType.LIST, variant));
+    }
+
+    public boolean hasListColumns(Class<?> entityClass, String variant) {
+        return listColumns.containsKey(new FormKey(entityClass, FormType.LIST, variant));
+    }
 
     /**
      * Реестр заморожен после старта контекста: набор форм — часть композиции приложения, он не
@@ -290,6 +326,8 @@ public class FormRegistry {
         listFormViews.remove(key);
         listFormViewFactories.remove(key);
         selectionColumns.remove(key);
+        listColumns.remove(key);
+        columnSources.remove(key);
         variantContextFilters.remove(key);
         registrationSources.remove(key);
         variantContextFilterSources.remove(key);
@@ -306,6 +344,8 @@ public class FormRegistry {
         registrationSources.clear();
         contextFilters.clear();
         selectionColumns.clear();
+        listColumns.clear();
+        columnSources.clear();
         selectionContextFilters.clear();
         variantContextFilters.clear();
         contextFilterSources.clear();
@@ -427,8 +467,9 @@ public class FormRegistry {
         FormKey key = new FormKey(entityClass, FormType.SELECTION, variant);
         SelectionColumnsDef previous = selectionColumns.putIfAbsent(key, def);
         if (previous != null) {
-            throw duplicate("набора колонок выбора", key, previous, source);
+            throw duplicate("набора колонок выбора", key, columnSources.get(key), source);
         }
+        if (source != null) columnSources.put(key, source);
         putSource(key, source);
     }
 
@@ -616,7 +657,13 @@ public class FormRegistry {
         for (FormKey key : selectionColumns.keySet()) {
             if (key.entityClass().equals(entityClass)) {
                 result.add(new Registration(key.formType(), key.variant(), RegistrationKind.SELECTION_COLUMNS,
-                    registrationSources.get(key)));
+                    columnSources.get(key)));
+            }
+        }
+        for (FormKey key : listColumns.keySet()) {
+            if (key.entityClass().equals(entityClass)) {
+                result.add(new Registration(key.formType(), key.variant(), RegistrationKind.LIST_COLUMNS,
+                    columnSources.get(key)));
             }
         }
         result.sort(java.util.Comparator
@@ -635,7 +682,8 @@ public class FormRegistry {
         /** Фабрика кастомного View формы списка, создаваемого с FormContext. */
         LIST_VIEW_FACTORY,
         /** Набор колонок Формы Выбора (registerSelectionColumns). */
-        SELECTION_COLUMNS
+        SELECTION_COLUMNS,
+        LIST_COLUMNS
     }
 
     /**

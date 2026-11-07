@@ -1,5 +1,7 @@
 package org.ip.model;
 
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import org.ipro.metadata.annotation.EntityMetadata;
@@ -29,6 +31,7 @@ import java.math.BigDecimal;
         minRows = 1,
         rlsPolicy = SectionRlsPolicy.INHERIT_ROOT
 )
+@RlsLabels(code = "typeMtr", name = "prdSpecMtr")
 public class PrdSpecMtr extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

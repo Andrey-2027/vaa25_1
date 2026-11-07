@@ -246,42 +246,46 @@ class LookupTargetFactsIT {
 
         report("избыточные объявления: " + measured);
         assertThat(noted).isEqualTo(measured);
+        assertThat(measured)
+            .as("AF1.4: у модели приложения нет избыточных объявлений цели lookup")
+            .isEmpty();
     }
 
     // ---------------------------------------------------------------- пилоты
 
     /**
-     * Объявленная цель на ассоциации: факт есть, новой информации объявление не несёт.
-     *
-     * <p>В этом приложении <b>все семь</b> объявленных целей совпадают с типом ссылки (см. замер),
-     * поэтому примечание об избыточности — не редкость, а обычное состояние реестра: {@code @Lookup}
-     * здесь объявляет сценарий выбора, а не цель.</p>
+     * AF1.4: после удаления избыточного объявления цель берётся из JPA-ассоциации.
+     * Цель и адрес поля сохраняются, примечания об избыточности больше нет.
      */
     @Test
-    void catalogRowDeclaresItsTargetExplicitlyAndSaysSo() {
+    void catalogRowDerivesItsTargetFromJpaWithoutARedundancyNote() {
         EntitySummary.LookupRow nomenclature = row(NomSklAttribute.class, "nomenclature");
 
-        assertThat(nomenclature.value().origin()).isEqualTo(FactOrigin.EXPLICIT);
+        assertThat(nomenclature.value().origin()).isEqualTo(FactOrigin.JPA_MAPPING);
         assertThat(nomenclature.value().value()).isEqualTo(Nomenclature.class.getSimpleName());
         assertThat(nomenclature.targetType()).isEqualTo(Nomenclature.class);
         assertThat(nomenclature.value().symbol())
             .isEqualTo(NomSklAttribute.class.getName() + "#nomenclature");
-        assertThat(nomenclature.note()).contains("избыточно");
+        assertThat(nomenclature.note()).isEmpty();
     }
 
     /**
      * Найденное замером: у поля может быть цель, но не быть самого поля в реестре.
      *
-     * <p>{@code SklNomOpa.nomenclature} объявляет {@code @Lookup}, но не объявляет
+     * <p>{@code SklNomOpa.nomenclature} — JPA-ассоциация, но не объявляет
      * {@code @FieldMetadata}, и в реестр полей не попадает — значит, у карточки нет ни строки поля,
      * ни строки цели. Это факт приложения, а не потеря аспекта: связь есть, а показать её нечем,
      * потому что поле не показано вовсе.</p>
      */
     @Test
-    void aLookupWithoutFieldMetadataIsNotAFieldAndSoHasNoRow() throws Exception {
+    void anAssociationWithoutFieldMetadataIsNotAFieldAndSoHasNoRow() throws Exception {
         assertThat(SklNomOpa.class.getDeclaredField("nomenclature").getAnnotation(Lookup.class))
-            .as("поле действительно объявляет цель")
-            .isNotNull();
+            .as("AF1.4: избыточная аннотация цели удалена")
+            .isNull();
+        assertThat(SklNomOpa.class.getDeclaredField("nomenclature").getType())
+            .isEqualTo(Nomenclature.class);
+        assertThat(SklNomOpa.class.getDeclaredField("nomenclature")
+            .isAnnotationPresent(jakarta.persistence.ManyToOne.class)).isTrue();
         assertThat(metadataResolver.resolve(SklNomOpa.class).getFieldByName("nomenclature"))
             .as("но без @FieldMetadata оно в реестр полей не входит")
             .isNull();
@@ -305,9 +309,9 @@ class LookupTargetFactsIT {
         assertThat(nomenclature.targetType()).isEqualTo(Nomenclature.class);
     }
 
-    /** Поля документа с ссылками видны как строки, и их цель — объявленная. */
+    /** AF1.4: ссылки документа видны как строки, цель выводится из JPA. */
     @Test
-    void documentReferencesAppearWithTheirDeclaredTargets() {
+    void documentReferencesAppearWithTheirJpaTargets() {
         EntitySummary summary = assembler.summarize(ReceivingDocument.class);
         List<String> fields = summary.lookupTargets().stream()
             .map(EntitySummary.LookupRow::fieldName).toList();
@@ -318,8 +322,10 @@ class LookupTargetFactsIT {
             .filteredOn(row -> "journal".equals(row.fieldName()))
             .singleElement()
             .satisfies(row -> {
-                assertThat(row.value().origin()).isEqualTo(FactOrigin.EXPLICIT);
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.JPA_MAPPING);
                 assertThat(row.value().value()).isEqualTo("Journal");
+                assertThat(row.targetType()).isEqualTo(org.ip.model.Journal.class);
+                assertThat(row.note()).isEmpty();
             });
     }
 

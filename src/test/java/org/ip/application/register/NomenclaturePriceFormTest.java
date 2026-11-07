@@ -198,13 +198,20 @@ class NomenclaturePriceFormTest {
         var form = resolver.<NomenclaturePrice, Long>resolveListForm(NomenclaturePrice.class, null, null);
         form.setOpeningContextFilters(Map.of("nomenclature", nomenclature));
         assertThat(count(form)).isEqualTo(2);
-        var controls = form.getChildren().filter(component -> component instanceof com.vaadin.flow.component.orderedlayout.HorizontalLayout)
-            .findFirst().orElseThrow();
-        var mode = (com.vaadin.flow.component.combobox.ComboBox<String>) controls.getChildren()
+        var controls = descendants(form.getFilterPanel()).toList();
+        var mode = (com.vaadin.flow.component.combobox.ComboBox<String>) controls.stream()
             .filter(component -> component instanceof com.vaadin.flow.component.combobox.ComboBox).findFirst().orElseThrow();
-        var date = (com.vaadin.flow.component.datetimepicker.DateTimePicker) controls.getChildren()
+        var date = (com.vaadin.flow.component.datetimepicker.DateTimePicker) controls.stream()
             .filter(component -> component instanceof com.vaadin.flow.component.datetimepicker.DateTimePicker).findFirst().orElseThrow();
+        var period = (org.ipro.filtergrid.PeriodField<LocalDateTime>) controls.stream()
+            .filter(component -> component instanceof org.ipro.filtergrid.PeriodField).findFirst().orElseThrow();
+        period.getFromField().setValue(DAY); period.getToField().setValue(DAY);
+        assertThat(count(form)).isEqualTo(2); // unapplied draft
+        assertThat(period.applySelection()).isTrue();
+        assertThat(count(form)).isEqualTo(1);
         date.setValue(DAY.plusDays(3)); mode.setValue("Срез последних");
+        assertThat(period.getParent().orElseThrow().isVisible()).isFalse();
+        assertThat(date.getParent().orElseThrow().isVisible()).isTrue();
         assertThat(count(form)).isEqualTo(1);
         assertThat(rows(form)).extracting(NomenclaturePrice::getId).containsExactly(latest.getId());
         form.setUserFilter(org.ipro.filtergrid.filter.FilterConditionNode.of(new org.ipro.filtergrid.filter.FilterCondition(
@@ -221,6 +228,8 @@ class NomenclaturePriceFormTest {
             .containsEntry("register.context.nomenclature", nomenclature.getId().toString());
         assertThat(count(reopened)).isEqualTo(1);
         assertThat(rows(reopened)).extracting(NomenclaturePrice::getId).containsExactly(latest.getId());
+        assertThat(descendants(reopened.getFilterPanel()).filter(org.ipro.filtergrid.PeriodField.class::isInstance)
+            .map(component -> (org.ipro.filtergrid.PeriodField<?>) component).findFirst().orElseThrow().getValue().isEmpty()).isTrue();
     }
 
     @Test void keyLocksAfterFirstSaveWhileResourceRemainsEditable() {
@@ -235,6 +244,9 @@ class NomenclaturePriceFormTest {
 
     private static int count(org.ipro.form.builtin.ListForm<?, ?> form) {
         return form.getGrid().getDataProvider().size(new com.vaadin.flow.data.provider.Query<>());
+    }
+    private static java.util.stream.Stream<com.vaadin.flow.component.Component> descendants(com.vaadin.flow.component.Component parent) {
+        return parent.getChildren().flatMap(child -> java.util.stream.Stream.concat(java.util.stream.Stream.of(child), descendants(child)));
     }
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static List<NomenclaturePrice> rows(org.ipro.form.builtin.ListForm<NomenclaturePrice, ?> form) {

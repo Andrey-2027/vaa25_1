@@ -78,11 +78,13 @@ public final class MetadataDrivenItemFormSaveAdapter {
             MetadataDrivenAggregateSaveService.AggregateSaveResult<T> result) {
         Objects.requireNonNull(form, "form must not be null");
         Objects.requireNonNull(result, "result must not be null");
-        form.applyPersistedEntity(result.aggregate());
-        for (MetadataDrivenAggregateSaveService.SectionResult section : result.sections()) {
-            applySection(form, result.aggregate(), section.rowType(), section.rows());
-        }
-        form.commitSnapshot();
+        form.applySavedState(() -> {
+            form.applyPersistedEntity(result.aggregate());
+            for (MetadataDrivenAggregateSaveService.SectionResult section : result.sections()) {
+                applySection(form, result.aggregate(), section.rowType(), section.rows());
+            }
+            form.commitSnapshot();
+        });
     }
 
     private static <T extends IdentifiableEntity<Long>, R extends IdentifiableEntity<Long>> void applySection(

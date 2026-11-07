@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-persistence</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform persistence</name>
+    <description>
+        D2 persistence slice: shared BaseEntity superclass and its neutral persistence
+        dependencies. Feature-specific entities, repositories and package registration
+        remain with their owning application or platform modules.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
+    </properties>
+
+    <!--
+      Зависимости persistence-модуля: нейтральный identifier
+      (org.ipro:platform-identity-api — Java-only артефакт реактора crudui, без
+      Spring/JPA/Vaadin), API JPA и валидации и Spring Data JPA.
+      Реализации платформы (metadata, data path, UI) здесь запрещены: модуль обязан
+      оставаться ниже их, иначе он не сможет быть вынесен без цикла. Раньше здесь стоял
+      crudui-core — то есть persistence-модуль платформы зависел от UI-библиотеки ради
+      одного интерфейса; теперь UI в его потребителей не может попасть в принципе.
+      Набор зафиксирован ревью и проверяется PlatformPersistenceModuleTest.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-identity-api</artifactId>
+            <version>${platform-identity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <!-- База сущностей (@MappedSuperclass) использует деталь прокси-модели Hibernate. -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+
+        <!-- Module-local tests verify BaseEntity's shared behavior; feature persistence
+             registration is tested by the owning application/module. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+<build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/normal/platform-persistence</directory></build></project>

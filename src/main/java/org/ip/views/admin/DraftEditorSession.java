@@ -42,7 +42,7 @@ final class DraftEditorSession {
     DraftPlace place() { return place; }
     long revision() { return revision; }
     org.ipro.design.RecipeDescriptor descriptor() { return RecipeCatalog.descriptor(draft.recipe()).orElseThrow(); }
-    boolean register() { return RecipeCatalog.INDEPENDENT_REGISTER.equals(draft.recipe()); }
+    boolean register() { return RecipeCatalog.isRegisterRecipe(draft.recipe()); }
     boolean supports(org.ipro.design.RecipeDescriptor.EditorConstruction construction) { return descriptor().editorConstructions().contains(construction); }
     List<RecipeCatalog.InheritedField> builtins() {
         try { return descriptor().effectiveProfile(draft).inheritedFields(); }
@@ -63,16 +63,20 @@ final class DraftEditorSession {
         dimensions.remove(id); resources.remove(id);
         switch (role) { case "DIMENSION" -> dimensions.add(id); case "RESOURCE" -> resources.add(id);
             case "UNASSIGNED" -> { } default -> throw new IllegalArgumentException("Unknown role"); }
-        replace(draft.withRegister(new org.ipro.design.RegisterDraft(draft.register().period(), draft.register().writeProfile(), dimensions, resources)));
+        replace(draft.withRegister(new org.ipro.design.RegisterDraft(draft.register().period(), draft.register().writeProfile(), dimensions, resources, draft.register().rls())));
     }
     void period(String period) {
         if (!register() || descriptor().periodModes().stream().noneMatch(mode -> mode.id().equals(period))) throw new IllegalArgumentException("Register period required");
-        replace(draft.withRegister(new org.ipro.design.RegisterDraft(period, draft.register().writeProfile(), draft.register().dimensions(), draft.register().resources())));
+        replace(draft.withRegister(draft.register().withPeriod(period)));
         if (place.builtinKey() != null && builtins().stream().noneMatch(f -> f.key().equals(place.builtinKey()))) place = place.builtin(defaultBuiltin());
     }
     void imported(EntityDraft value) {
         draft = Objects.requireNonNull(value); revision++; checkpointRevision = revision;
         place = DraftPlace.initial(draft.draftId()); collapsed.clear(); lastChild.clear(); validation = null; generation = null;
+    }
+    void rls(String dimension, UUID fieldId) {
+        if (!RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(draft.recipe())) throw new IllegalStateException("Explicit RLS recipe required");
+        replace(draft.withRegister(draft.register().withRls(new org.ipro.design.RegisterRlsDraft(dimension, fieldId))));
     }
     void exported(long deliveredRevision) {
         // An older response cannot undo a newer checkpoint or hide edits made during delivery.
@@ -166,7 +170,7 @@ final class DraftEditorSession {
     String rootCaption() { return switch (descriptor().kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр"; default -> "Справочник"; }; }
     String defaultBuiltin() { return builtins().isEmpty() ? null : builtins().getLast().key(); }
     void newDraft(RecipeRef recipe) {
-        draft = RecipeCatalog.INDEPENDENT_REGISTER.equals(recipe) ? operations.createRegister("NONE") : operations.create(recipe); revision = checkpointRevision = 0;
+        draft = RecipeCatalog.isRegisterRecipe(recipe) ? operations.createRegister(recipe, "NONE") : operations.create(recipe); revision = checkpointRevision = 0;
         place = DraftPlace.initial(draft.draftId()); validation = null; generation = null;
         collapsed.clear(); lastChild.clear();
     }

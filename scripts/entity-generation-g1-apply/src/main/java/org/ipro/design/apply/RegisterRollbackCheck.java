@@ -13,7 +13,7 @@ public final class RegisterRollbackCheck {
         Path project = Path.of(args[0]).toAbsolutePath().normalize();
         Path c = Path.of(args[1]);
         var plan = Json.MAPPER.readValue(Files.readString(Path.of(args[2])), GenerationPlan.class);
-        if (!RecipeCatalog.INDEPENDENT_REGISTER.equals(plan.recipe())) throw new IllegalArgumentException("Register plan required");
+        if (!RecipeCatalog.isRegisterRecipe(plan.recipe())) throw new IllegalArgumentException("Register plan required");
         var dependencies = new ArrayList<DependencyLocation>();
         for (var node : Json.MAPPER.readTree(Files.readString(Path.of(args[3])))) {
             dependencies.add(new DependencyLocation(node.get("id").asText(), Path.of(node.get("path").asText())));

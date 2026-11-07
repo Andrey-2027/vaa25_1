@@ -62,6 +62,7 @@ class ListFormActionDecisionTest {
     /** Полный generic CRUD: как обычный справочник. */
     @Entity
     static class Standard extends BaseEntity {
+        @org.ipro.metadata.annotation.FieldMetadata(label = "Код") String code;
     }
 
     /** Создание без изменения: носитель действия «Просмотр». */

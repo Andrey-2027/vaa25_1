@@ -190,6 +190,7 @@ API org.ipro.metadata.annotation.FieldMetadata
 API org.ipro.metadata.annotation.FieldType
 API org.ipro.metadata.annotation.GridColumn
 API org.ipro.metadata.annotation.Lookup
+API org.ipro.metadata.annotation.RlsLabels
 API org.ipro.metadata.annotation.RequiredMode
 API org.ipro.metadata.annotation.SectionPersistenceMode
 API org.ipro.metadata.annotation.SectionRlsPolicy

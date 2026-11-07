@@ -1,5 +1,7 @@
 package org.ip.model;
 
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import org.ipro.metadata.annotation.RequiredMode;
@@ -24,6 +26,7 @@ import java.util.Set;
     order = 920,
     icon = "USERS"
 )
+@RlsLabels(code = "name")
 public class Role extends BaseEntity {
 
     @NotBlank

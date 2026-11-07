@@ -1,5 +1,7 @@
 package org.ip.model;
 
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -44,6 +46,7 @@ import java.util.List;
     displaySortFields = {"codeSpec"}
 )
 @TableSections({PrdSpecMtr.class,PrdSpecOper.class})
+@RlsLabels(code = "codeSpec", name = "nomenclature.name")
 public class PrdSpec extends BaseEntity implements HasDisplayName {
 
     @ManyToOne(fetch = FetchType.LAZY)

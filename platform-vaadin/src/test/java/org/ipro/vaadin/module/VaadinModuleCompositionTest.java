@@ -60,7 +60,6 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.builder.FormTypeCustomization",
         "org.ipro.form.builtin.ListPageReader",
         "org.ipro.form.builtin.ListFormJpaFilterGrid",
-        "org.ipro.form.builtin.DateTimeRangeFilter",
         "org.ipro.form.link.ListViewStateToken",
         "org.ipro.form.Dirtyable",
         "org.ipro.form.EntityField",
@@ -68,6 +67,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.FieldRenderer",
         "org.ipro.form.CatalogOwnerForms",
         "org.ipro.form.FilterGridMoreMenu",
+        "org.ipro.form.FilterableSearchFunction",
         "org.ipro.form.FilterLookupOptions",
         "org.ipro.form.FormBinding",
         "org.ipro.form.FormBindingRegistry",
@@ -111,6 +111,10 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.builder.ContextFilterControl",
         "org.ipro.form.builder.ContextFilterField",
         "org.ipro.form.builder.ContextFilterPanel",
+        "org.ipro.form.builder.ContextFilterOptions",
+        "org.ipro.form.builder.ContextFilterConditions",
+        "org.ipro.form.builder.FilterPanelElement",
+        "org.ipro.form.builder.FilterPanelGroup",
         "org.ipro.form.builder.ItemFormCustomization",
         "org.ipro.form.builder.ItemFormCustomizationRegistrar",
         "org.ipro.form.builder.ItemFormCustomizer",
@@ -125,11 +129,18 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.builder.SelectionFormCustomizationRegistrar",
         "org.ipro.form.builder.SelectionFormVariants",
         "org.ipro.form.builder.layout.CustomNode",
+        "org.ipro.form.builder.FormFor",
+        "org.ipro.form.builder.FormBehavior",
+        "org.ipro.form.builder.layout.ElementNode",
+        "org.ipro.form.builder.layout.Layout",
+        "org.ipro.form.builder.layout.FormAdjust",
         "org.ipro.form.builder.layout.DisplayNode",
         "org.ipro.form.builder.layout.FieldNode",
         "org.ipro.form.builder.layout.ItemFormLayout",
         "org.ipro.form.builder.layout.LayoutNode",
         "org.ipro.form.builder.layout.PanelNode",
+        "org.ipro.form.builder.layout.RemainingFieldsNode",
+        "org.ipro.form.builder.layout.SectionNode",
         "org.ipro.form.builder.layout.TabDefinition",
         "org.ipro.form.builder.layout.TabSheetNode",
         "org.ipro.form.builtin.GridViewEditorDialog",
@@ -142,6 +153,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.builtin.RowDraft",
         "org.ipro.form.builtin.ViewSelectorDialog",
         "org.ipro.form.config.FormAutoConfiguration",
+        "org.ipro.form.config.FormColumnDeclarationsCollector",
         "org.ipro.form.coordinator.AccessDenialPresentation",
         "org.ipro.form.coordinator.FormCoordinator",
         "org.ipro.form.coordinator.FormNavigator",
@@ -179,6 +191,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.registry.ListFormContext",
         "org.ipro.form.registry.SelectionColumnsDef",
         "org.ipro.form.registry.SelectionFilter",
+        "org.ipro.form.registry.Filter",
         "org.ipro.form.spi.FormSettingsStore",
         "org.ipro.form.spi.GridView",
         "org.ipro.form.spi.GridViewStore",
@@ -310,8 +323,9 @@ class VaadinModuleCompositionTest {
                 + " (`AccessDenialPresentation`) — итого 131; R8 добавила семейную настройку форм,"
                 + " paged reader, структурный адаптер фильтра, datetime-отбор и кодек состояния — итого 137;"
                 + " E1.2b добавила порт права на операцию (`OperationPermissionSource`) — итого 138;"
-                + " ET2 добавила внутренний сборщик структурных фактов (`EntityStructureFactsAssembler`) — итого 139")
-            .hasSize(140);
+                + " ET2 добавила внутренний сборщик структурных фактов (`EntityStructureFactsAssembler`) — итого 139;"
+                + " Б1 добавила поиск автокомплита с отбором выбора (`FilterableSearchFunction`) — итого 141")
+            .hasSize(153); // AF5.5: declaration, adjustment, properties and behavior API.
     }
 
     @Test

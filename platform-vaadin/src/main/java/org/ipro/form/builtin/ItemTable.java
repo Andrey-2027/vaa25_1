@@ -79,6 +79,8 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
     private final LookupService lookupService;
     private final Supplier<FormResolver> formResolverSupplier;
     private final String formKey;
+    private final List<ColumnPath> defaultColumns;
+    private final TableSectionGridMetadata gridMetadata;
 
     private final Grid<T> grid = new Grid<>();
     private final Button addButton;
@@ -130,6 +132,20 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
                      FormSettingsStore formSettingsStore,
                      LookupService lookupService,
                      Supplier<FormResolver> formResolverSupplier) {
+        this(sectionMeta, fieldFactory, service, metadataResolver, gridViewStore, formSettingsStore,
+            lookupService, formResolverSupplier, null);
+    }
+
+    /** Receives resolved form defaults before constructing columns or loading a saved view. */
+    public ItemTable(TableSectionMetadataInfo sectionMeta,
+                     FieldFactory fieldFactory,
+                     TableSectionService<T, P> service,
+                     MetadataResolver metadataResolver,
+                     GridViewStore gridViewStore,
+                     FormSettingsStore formSettingsStore,
+                     LookupService lookupService,
+                     Supplier<FormResolver> formResolverSupplier,
+                     List<ColumnPath> columns) {
         this.sectionMeta = sectionMeta;
         this.fieldFactory = fieldFactory;
         this.service = service;
@@ -139,12 +155,15 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
         this.lookupService = lookupService;
         this.formResolverSupplier = formResolverSupplier;
         this.formKey = sectionMeta.getRowClass().getSimpleName();
+        this.defaultColumns = columns == null
+            ? new TableSectionGridMetadata(sectionMeta).getListColumnPaths() : List.copyOf(columns);
+        this.gridMetadata = new TableSectionGridMetadata(sectionMeta, defaultColumns);
 
         setPadding(false);
         setSpacing(true);
         setWidthFull();
 
-        this.activeColumns = defaultColumns();
+        this.activeColumns = defaultColumns;
         buildColumns();
         grid.setWidthFull();
         grid.setHeight("260px");
@@ -185,23 +204,15 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
         setFlexGrow(1, grid);
     }
 
-    private List<ColumnPath> defaultColumns() {
-        List<ColumnPath> result = new ArrayList<>();
-        for (var field : sectionMeta.getGridFields()) {
-            result.add(ColumnPath.resolve(sectionMeta.getRowClass(), field.getName()));
-        }
-        return result;
-    }
-
     private void buildColumns() {
         grid.removeAllColumns();
         for (ColumnPath path : activeColumns) {
             FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());
             ValueProvider<T, String> valueProvider = entity -> renderer.apply(path.getValue(entity));
 
-            Grid.Column<T> column = grid.addColumn(valueProvider).setHeader(path.getLabel())
+            Grid.Column<T> column = grid.addColumn(valueProvider).setKey(path.getKey()).setHeader(path.getLabel())
                 .setSortable(true)
-                .setAutoWidth(true);
+                .setAutoWidth(true).setResizable(true);
 
             path.asFieldMetadata().ifPresent(field -> {
                 if (!field.getGridWidth().isEmpty()) {
@@ -211,6 +222,10 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
                     column.setFlexGrow(field.getGridFlexGrow());
                 }
             });
+            // New declarations and saved views override legacy properties independently.
+            ColumnPath.Spec properties = path.toSpec(sectionMeta.getRowClass());
+            if (properties.width() != null) column.setWidth(properties.width()).setAutoWidth(false).setFlexGrow(0);
+            if (properties.flexGrow() != null) column.setFlexGrow(properties.flexGrow());
         }
     }
 
@@ -405,7 +420,9 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
         List<ColumnPath> restored = new ArrayList<>();
         for (ColumnPath.Spec spec : state.columns()) {
             try {
-                restored.add(ColumnPath.resolve(sectionMeta.getRowClass(), spec.path()).withLabel(spec.label()));
+                ColumnPath base = defaultColumns.stream().filter(path -> path.getKey().equals(spec.path()))
+                    .findFirst().orElseGet(() -> ColumnPath.resolve(sectionMeta.getRowClass(), spec.path()));
+                restored.add(base.withProperties(spec));
             } catch (IllegalArgumentException staleColumnKey) {
             }
         }
@@ -423,7 +440,7 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
             : null;
 
         new ViewSelectorDialog(
-            new TableSectionGridMetadata(sectionMeta), metadataResolver, gridViewStore, lookupService,
+            gridMetadata, metadataResolver, gridViewStore, lookupService,
             null, formKey, false,
             views, defaultViewId,
             this::applyView,
@@ -438,11 +455,26 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
                 }
             },
             () -> {
-                activeColumns = defaultColumns();
-                buildColumns();
-                hydrateAllRows();
+                resetActiveColumns();
             }
-        ).open();
+        ).withCurrentState(captureViewState()).open();
+    }
+
+    public GridViewState captureViewState() {
+        List<ColumnPath> displayed = activeColumns.stream().map(path -> {
+            var column = grid.getColumnByKey(path.getKey());
+            return path.withProperties(new ColumnPath.Spec(path.getKey(), null,
+                column.getWidth(), column.getFlexGrow(), null));
+        }).toList();
+        return GridViewState.of(displayed, sectionMeta.getRowClass(), List.of());
+    }
+
+    public List<ColumnPath> getActiveColumns() { return List.copyOf(activeColumns); }
+
+    public void resetActiveColumns() {
+        activeColumns = defaultColumns;
+        buildColumns();
+        hydrateAllRows();
     }
 
     // === Диалоги строки ===

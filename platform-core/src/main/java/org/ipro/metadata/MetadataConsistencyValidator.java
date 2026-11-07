@@ -73,6 +73,7 @@ public final class MetadataConsistencyValidator {
             try {
                 // Resolve root-level declarations too (kind, columns and displaySortFields).
                 resolver.find(type);
+                diagnostics.addAll(resolver.getFormColumnDeclarations().diagnostics(type));
             } catch (IllegalArgumentException invalidDeclaration) {
                 diagnostics.add(new MetadataDiagnostic(MetadataDiagnostic.Severity.ERROR,
                     MetadataDiagnosticCodes.INVALID_ENTITY_METADATA, type.getName(), "", "@EntityMetadata",

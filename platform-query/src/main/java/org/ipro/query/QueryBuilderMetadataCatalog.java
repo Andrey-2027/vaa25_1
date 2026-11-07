@@ -4,7 +4,6 @@ import org.ipro.metadata.SectionMetadataRegistry;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.data.EntityDescriptorCatalog;
 import jakarta.persistence.EntityManagerFactory;
-import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.ManagedEntityTypes;
@@ -21,12 +20,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /** Этап A: allow-list метаданных для визуального построителя JPQL. */
 public final class QueryBuilderMetadataCatalog {
@@ -84,22 +79,19 @@ public final class QueryBuilderMetadataCatalog {
 
     private Entity describe(String entityName, Class<?> type) {
         EntityMetadataInfo metadata = metadataResolver.resolve(type);
-        return describe(entityName, type, metadata.getFormFields(), metadata.getListColumnPaths());
+        return describe(entityName, type, metadata.getFormFields());
     }
 
     /** Табличная часть без собственного @EntityMetadata: поля из resolveRowMetadata. */
     private Entity describeSection(String entityName, Class<?> type) {
         var row = metadataResolver.resolveRowMetadata(type);
-        return describe(entityName, type, row.getFormFields(), List.of());
+        return describe(entityName, type, row.getFormFields());
     }
 
-    private Entity describe(String entityName, Class<?> type, List<FieldMetadataInfo> formFields,
-                            List<ColumnPath> listColumnPaths) {
-        Map<String, List<String>> columnAliases = gridHeaderAliases(listColumnPaths);
+    private Entity describe(String entityName, Class<?> type, List<FieldMetadataInfo> formFields) {
         List<Field> fields = new ArrayList<>(formFields.stream()
                 .filter(f -> !f.isHidden() && f.getResolvedType() != FieldType.ENTITY_REFERENCE)
-                .map(f -> new Field(f.getName(), f.getLabel(), f.getJavaType(), false,
-                        columnAliases.getOrDefault(f.getName(), List.of())))
+                .map(f -> new Field(f.getName(), f.getLabel(), f.getJavaType(), false))
                 .toList());
         // Recorder identity and winner tie-breakers are data stored on the register row.
         // Expose them under the register's read gate; never resolve a document or inherit
@@ -151,33 +143,6 @@ public final class QueryBuilderMetadataCatalog {
             if (argument instanceof Class<?> clazz) return clazz;
         }
         return null;
-    }
-
-    /**
-     * Карта «имя поля → заголовки колонок грида», в которых это поле упоминается.
-     * Для вложенной колонки вида "unitOfMeasurement.name" заголовок составной
-     * («Ед.изм.Наименование») — сохраняется как alias поля {@code name}. Plain-
-     * колонка, чей заголовок совпадает с подписью поля, не дублируется в aliases
-     * (это и так каноническая подпись), чтобы не плодить шум при поиске.
-     */
-    private static Map<String, List<String>> gridHeaderAliases(List<ColumnPath> columns) {
-        Map<String, List<String>> tmp = new LinkedHashMap<>();
-        for (ColumnPath column : columns) {
-            String key = column.getKey();
-            String lastName = key.substring(key.lastIndexOf('.') + 1);
-            String label = column.getLabel();
-            if (lastName.isBlank() || label == null || label.isBlank()) continue;
-            tmp.computeIfAbsent(lastName, ignored -> new java.util.ArrayList<>()).add(label);
-        }
-        Map<String, List<String>> result = new LinkedHashMap<>();
-        for (Map.Entry<String, List<String>> entry : tmp.entrySet()) {
-            Set<String> distinct = new LinkedHashSet<>();
-            for (String label : entry.getValue()) {
-                distinct.add(label);
-            }
-            result.put(entry.getKey(), List.copyOf(distinct));
-        }
-        return result;
     }
 
     public enum JoinType { TO_ONE, COLLECTION }

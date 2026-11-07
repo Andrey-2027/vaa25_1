@@ -1,6 +1,7 @@
 package org.ipro.form;
 
 import com.vaadin.flow.function.ValueProvider;
+import org.ipro.data.SelectionFilters;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
@@ -9,13 +10,11 @@ import org.ipro.crud.ServiceLocator;
 import org.ipro.identity.IdentifiableEntity;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
-import org.ipro.filtergrid.util.JpaPathUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -28,6 +27,15 @@ public class SelectionFormAssembler {
     private final MetadataResolver metadataResolver;
     private final ServiceLocator serviceLocator;
     private List<SelectionGridCustomizer> gridCustomizers = List.of();
+    private List<org.ipro.form.builder.FormTypeCustomization> typeCustomizations = List.of();
+    private org.springframework.beans.factory.ObjectProvider<org.ipro.form.builder.FormTypeCustomization> typeCustomizationProvider;
+    @Autowired
+    public void setTypeCustomizationProvider(org.springframework.beans.factory.ObjectProvider<org.ipro.form.builder.FormTypeCustomization> provider) {
+        this.typeCustomizationProvider = provider;
+    }
+    public void setTypeCustomizations(List<org.ipro.form.builder.FormTypeCustomization> customizations) {
+        this.typeCustomizations = customizations == null ? List.of() : List.copyOf(customizations);
+    }
 
     public SelectionFormAssembler(MetadataResolver metadataResolver, ServiceLocator serviceLocator) {
         this.metadataResolver = metadataResolver;
@@ -53,7 +61,7 @@ public class SelectionFormAssembler {
 
     /**
      * Резолв явного списка колонок (имена Java-полей, поддерживается путь через точку).
-     * Используется для per-field {@code @Lookup.columns()} и именованных вариантов —
+     * Используется для именованных вариантов —
      * вызывающая сторона (ip-слой) уже применила приоритет, сюда приходит итог.
      */
     public ResolvedSelection resolveColumns(Class<?> entityClass, List<String> columnPaths) {
@@ -92,9 +100,23 @@ public class SelectionFormAssembler {
     public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> assemble(
             Class<T> entityClass, Consumer<T> onSelect, Map<String, Object> filters,
             ResolvedSelection resolved, String variant) {
+        List<ColumnPath> columns = resolved.columns();
+        // Resolve on opening: report-family customizations themselves depend on this assembler.
+        var families = typeCustomizationProvider == null ? typeCustomizations : typeCustomizationProvider.orderedStream().toList();
+        for (var customization : families) {
+            if (!customization.supports(entityClass)) continue;
+            var properties = org.ipro.metadata.FormColumnDeclarations.auto();
+            customization.configureSelectionColumns(entityClass, properties);
+            columns = properties.applyTo(columns, customization.getClass().getName() + " selection " + entityClass.getName());
+        }
+        var declarations = metadataResolver.getFormColumnDeclarations();
+        var declaration = declarations == null ? null : declarations.find(entityClass,
+            org.ipro.metadata.FormColumnDeclarations.Kind.SELECTION, variant);
+        if (declaration != null) columns = org.ipro.metadata.FormColumnDeclarations.applyProperties(columns,
+            declaration.properties(), declaration.source());
         BaseService<T, ID> service = serviceLocator.findService(entityClass);
         java.util.LinkedHashSet<String> fetchPaths = new java.util.LinkedHashSet<>();
-        for (ColumnPath path : resolved.columns()) fetchPaths.addAll(path.getFetchPaths());
+        for (ColumnPath path : columns) fetchPaths.addAll(path.getFetchPaths());
 
         JpaFilterGrid<T> filterGrid = new JpaFilterGrid<>(
             entityClass, (spec, pageable) -> service.findAllByScenario(
@@ -102,18 +124,23 @@ public class SelectionFormAssembler {
         Specification<T> fixed = specificationFor(filters);
         if (fixed != null) filterGrid.setAdditionalSpecification(fixed);
 
-        for (ColumnPath path : resolved.columns()) {
+        for (ColumnPath path : columns) {
             FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());
             ValueProvider<T, String> valueProvider = entity -> renderer.apply(path.getValue(entity));
-            // Объявленный отказ от встроенного фильтра (@FieldMetadata(inlineFilter = false),
-            // например период регистра) уважается и здесь: иначе одна и та же колонка была бы без
-            // фильтра в списке и с фильтром в форме выбора. Колонка при этом остаётся.
-            if (path.asFieldMetadata().map(field -> !field.isInlineFilterEnabled()).orElse(false)) {
+            // The selection declaration overrides the legacy field flag. Disabling the header
+            // editor keeps both the column and its path available to other filters.
+            if (!path.isInlineFilterEnabled()) {
                 filterGrid.addColumn(path.getKey(), path.getKey(), path.getLabel(), valueProvider);
+                org.ipro.form.builtin.ListForm.applyColumnProperties(filterGrid.getGrid().getColumnByKey(path.getKey()), path);
                 continue;
             }
-            filterGrid.addColumnFilter(path.getKey(), path.getKey(), path.getLabel(),
-                valueProvider, new TextFilter<>());
+            org.ipro.filtergrid.FieldFilter<T> filter = switch (path.getResolvedType()) {
+                case DATE -> org.ipro.filtergrid.PeriodFilter.dates();
+                case DATETIME -> org.ipro.filtergrid.PeriodFilter.dateTimes();
+                default -> new TextFilter<>();
+            };
+            filterGrid.addColumnFilter(path.getKey(), path.getKey(), path.getLabel(), valueProvider, filter);
+            org.ipro.form.builtin.ListForm.applyColumnProperties(filterGrid.getGrid().getColumnByKey(path.getKey()), path);
         }
         for (SelectionGridCustomizer customizer : gridCustomizers) {
             if (customizer.supports(entityClass, variant)) {
@@ -126,12 +153,6 @@ public class SelectionFormAssembler {
         return form;
     }
 
-    private static <T> Specification<T> combine(Specification<T> first, Specification<T> second) {
-        if (first == null) return second;
-        if (second == null) return first;
-        return Specification.where(first).and(second);
-    }
-
     /**
      * Строит AND-спецификацию из карты path → value (скаляр — равенство, коллекция — IN).
      * Пустые ключи/значения пропускаются; пустая карта даёт null (без ограничений).
@@ -139,18 +160,8 @@ public class SelectionFormAssembler {
      * обе части строятся одинаково и комбинируются через AND вызывающей стороной.
      */
     public static <T> Specification<T> specificationFor(Map<String, Object> filters) {
-        Specification<T> result = null;
-        if (filters != null) {
-            for (Map.Entry<String, Object> entry : filters.entrySet()) {
-                if (entry.getKey() == null || entry.getKey().isBlank() || entry.getValue() == null) continue;
-                Object value = entry.getValue();
-                Specification<T> part = value instanceof Collection<?> values
-                    ? (root, query, cb) -> cb.in(JpaPathUtil.resolve(root, entry.getKey())).value(values)
-                    : (root, query, cb) -> cb.equal(JpaPathUtil.resolve(root, entry.getKey()), value);
-                result = combine(result, part);
-            }
-        }
-        return result;
+        // Б1: правило одно для диалога и автокомплита и живёт в ядре.
+        return SelectionFilters.specificationFor(filters);
     }
 
     public record ResolvedSelection(List<ColumnPath> columns, String title) {}

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-backend-starter</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform backend starter</name>
+    <description>
+        D3.8: фасад для backend-платформы. Платформенные подсистемы и их авто-конфигурации
+        приходят транзитивно через platform-spring-boot-autoconfigure. Spring Boot runtime
+        starters (JPA, security, validation) остаются ответственностью приложения.
+        D-R S5(a), ADR-0024 §2.2: механизм регистра сведений входит в это замыкание прямым
+        ребром — потребитель без UI, объявивший регистр, получает движок, не объявляя его сам.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-bom</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!--
+          D-R S5(a), ADR-0024 §2.2: движок регистра входит в backend-поставку. Решение
+          перевешивает opt-in-схему HTTP-адаптера чтения: объявив регистр, потребитель
+          получает механизм, а не ещё одну строку сборки, которую нужно не забыть. Цена
+          измерена, а не обещана: все транзитивные ветки модуля уже были в этом замыкании
+          (60 артефактов до ребра), поэтому добавление стоит ровно +1 артефакт (61) и не
+          приносит backend-потребителю ни UI, ни HTTP-срез: и то и другое остаётся отдельными
+          опциями, а их отсутствие здесь держат разрешённым деревом гейты самого стартера и
+          приложения.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-register</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/random/platform-backend-starter</directory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.9.0</version>
+                <executions>
+                    <execution>
+                        <id>resolved-backend-starter-runtime-dependencies</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>tree</goal>
+                        </goals>
+                        <configuration>
+                            <scope>runtime</scope>
+                            <outputType>json</outputType>
+                            <outputFile>${project.build.directory}/backend-starter-runtime-dependency-tree.json</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -33,7 +33,16 @@ public final class ColumnPath {
      * свойство колонки добавляется просто новым nullable-полем в этом record, без придумывания
      * нового текстового формата и его парсера.
      */
-    public record Spec(String path, String label) {}
+    public record Spec(String path, String label,
+                       @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String width,
+                       @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer flexGrow,
+                       @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean inlineFilter) {
+        public Spec(String path, String label) { this(path, label, null, null, null); }
+        public Spec {
+            if (flexGrow != null && flexGrow < 0) throw new IllegalArgumentException("Negative flexGrow for " + path);
+            if (width != null && width.isBlank()) throw new IllegalArgumentException("Blank width for " + path);
+        }
+    }
 
     private final String path;
     private final List<Field> chain;
@@ -41,15 +50,27 @@ public final class ColumnPath {
     private final FieldType resolvedType;
     private final FieldMetadataInfo backingField;
     private final FactOrigin labelOrigin;
+    private final String width;
+    private final Integer flexGrow;
+    private final Boolean inlineFilter;
 
     private ColumnPath(String path, List<Field> chain, String label, FieldType resolvedType,
                         FieldMetadataInfo backingField, FactOrigin labelOrigin) {
+        this(path, chain, label, resolvedType, backingField, labelOrigin, null, null, null);
+    }
+
+    private ColumnPath(String path, List<Field> chain, String label, FieldType resolvedType,
+                       FieldMetadataInfo backingField, FactOrigin labelOrigin,
+                       String width, Integer flexGrow, Boolean inlineFilter) {
         this.path = path;
         this.chain = chain;
         this.label = label;
         this.resolvedType = resolvedType;
         this.backingField = backingField;
         this.labelOrigin = labelOrigin;
+        this.width = width;
+        this.flexGrow = flexGrow;
+        this.inlineFilter = inlineFilter;
     }
 
     /**
@@ -206,8 +227,43 @@ public final class ColumnPath {
         if (customLabel == null || customLabel.isBlank() || customLabel.equals(label)) {
             return this;
         }
-        return new ColumnPath(path, chain, customLabel, resolvedType, backingField,
-            FactOrigin.REGISTRATION);
+        return withProperties(new Spec(path, customLabel));
+    }
+
+    /** A fresh value; shared metadata is never changed by form or user overrides. */
+    public ColumnPath withProperties(Spec properties) {
+        if (!path.equals(properties.path())) throw new IllegalArgumentException("Column path mismatch: " + properties.path());
+        boolean customLabel = properties.label() != null;
+        return new ColumnPath(path, chain, customLabel ? properties.label() : label,
+            resolvedType, backingField, customLabel ? FactOrigin.REGISTRATION : labelOrigin,
+            properties.width() != null ? properties.width() : width,
+            properties.flexGrow() != null ? properties.flexGrow() : flexGrow,
+            properties.inlineFilter() != null ? properties.inlineFilter() : inlineFilter);
+    }
+
+    public String getWidth() {
+        if (width != null) return width;
+        return switch (resolvedType) {
+            case DATE -> "10em";
+            case DATETIME -> "15em";
+            case INTEGER -> "8em";
+            case DECIMAL -> "10em";
+            case BOOLEAN -> "6em";
+            default -> "";
+        };
+    }
+
+    public int getFlexGrow() {
+        return flexGrow != null ? flexGrow : getWidth().isEmpty() ? 1 : 0;
+    }
+
+    public boolean isInlineFilterEnabled() {
+        return inlineFilter == null || inlineFilter;
+    }
+
+    public Spec toSpec(Class<?> entityClass) {
+        String defaultLabel = resolve(entityClass, path).getLabel();
+        return new Spec(path, label.equals(defaultLabel) ? null : label, width, flexGrow, inlineFilter);
     }
 
     // === JSON-сериализация состава колонок вида (GridFormView.columns) ===
@@ -220,9 +276,7 @@ public final class ColumnPath {
     public static String toJson(List<ColumnPath> columns, Class<?> entityClass) {
         List<Spec> specs = new ArrayList<>(columns.size());
         for (ColumnPath column : columns) {
-            String defaultLabel = resolve(entityClass, column.getKey()).getLabel();
-            boolean customLabel = !column.getLabel().equals(defaultLabel);
-            specs.add(new Spec(column.getKey(), customLabel ? column.getLabel() : null));
+            specs.add(column.toSpec(entityClass));
         }
         try {
             return JSON.writeValueAsString(specs);
@@ -260,7 +314,7 @@ public final class ColumnPath {
         for (Spec spec : specs) {
             try {
                 ColumnPath resolved = resolve(entityClass, spec.path());
-                result.add(resolved.withLabel(spec.label()));
+                result.add(resolved.withProperties(spec));
             } catch (IllegalArgumentException staleColumnKey) {
                 // поле переименовали/удалили после сохранения вида — пропускаем
             }

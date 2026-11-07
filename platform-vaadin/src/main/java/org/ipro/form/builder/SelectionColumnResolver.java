@@ -15,9 +15,8 @@ import java.util.List;
  * (поле ссылается на сущность), и {@code FormResolver} (программное открытие выбора) —
  * чтобы оба пути резолвили один и тот же набор и не расходились.
  *
- * Приоритет (по нарастанию специфичности):
+ * Приоритет:
  * <ol>
- *   <li>per-field {@code @Lookup.columns()} — переопределение одного места использования;</li>
  *   <li>именованный вариант из реестра ({@code SelectionFormCustomization}) —
  *       выбирается через {@code @Lookup.variant()} на поле либо параметром открытия;</li>
  *   <li>{@code @EntityMetadata.selectColumns()} целевой сущности;</li>
@@ -37,16 +36,18 @@ public final class SelectionColumnResolver {
             MetadataResolver metadataResolver,
             FormRegistry registry,
             Class<?> entityClass,
-            String variant,
-            String[] fieldColumnsOverride) {
+            String variant) {
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
 
-        if (fieldColumnsOverride != null && fieldColumnsOverride.length > 0) {
-            return new SelectionFormAssembler.ResolvedSelection(
-                resolveExplicit(entityClass, List.of(fieldColumnsOverride)), defaultTitle(meta));
-        }
-
         if (variant != null && !variant.isBlank()) {
+            var declarations = metadataResolver.getFormColumnDeclarations();
+            var declared = declarations == null ? null : declarations.find(entityClass,
+                org.ipro.metadata.FormColumnDeclarations.Kind.SELECTION, variant);
+            if (declared != null) {
+                return new SelectionFormAssembler.ResolvedSelection(declarations.resolveColumns(meta,
+                    org.ipro.metadata.FormColumnDeclarations.Kind.SELECTION, variant),
+                    declared.title().isBlank() ? defaultTitle(meta) : declared.title());
+            }
             SelectionColumnsDef def = registry.getSelectionColumns(entityClass, variant);
             if (def == null) return null;
             List<ColumnPath> columns = def.columns().isEmpty()

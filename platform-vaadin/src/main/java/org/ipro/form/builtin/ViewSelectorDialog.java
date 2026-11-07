@@ -187,7 +187,7 @@ public class ViewSelectorDialog extends Dialog {
         List<ColumnPath> result = new java.util.ArrayList<>();
         for (ColumnPath.Spec spec : state.columns()) {
             try {
-                result.add(ColumnPath.resolve(metadata.getEntityClass(), spec.path()).withLabel(spec.label()));
+                result.add(ColumnPath.resolve(metadata.getEntityClass(), spec.path()).withProperties(spec));
             } catch (IllegalArgumentException staleColumnKey) {
             }
         }

@@ -56,6 +56,8 @@ org.ipro.events.config -> org.ipro.events
 org.ipro.events.config -> org.ipro.lifecycle
 org.ipro.fetch -> org.ipro.metadata
 org.ipro.fetch.config -> org.ipro.fetch
+# AF2: конфигурация валидирует представление и подключает независимые подписи RLS.
+org.ipro.fetch.config -> org.ipro.data
 org.ipro.fetch.config -> org.ipro.fetch.instance
 org.ipro.fetch.config -> org.ipro.fetch.plan
 org.ipro.fetch.config -> org.ipro.metadata
@@ -65,12 +67,16 @@ org.ipro.fetch.instance -> org.ipro.metadata
 org.ipro.fetch.instance -> org.ipro.telemetry.api
 org.ipro.fetch.instance -> org.ipro.telemetry.core
 org.ipro.fetch.plan -> org.ipro.fetch
+# AF2: LOOKUP и углубление ссылок используют потребности представления вместо колонок выбора.
+org.ipro.fetch.plan -> org.ipro.data
 org.ipro.fetch.plan -> org.ipro.fetch.instance
 org.ipro.fetch.plan -> org.ipro.metadata
 org.ipro.fetch.plan -> org.ipro.metadata.annotation
 org.ipro.filter -> org.ipro.metadata
 org.ipro.filter -> org.ipro.metadata.annotation
 org.ipro.form -> org.ipro.crud
+# Б1: диалог выбора использует общий с автокомплитом построитель SelectionFilters из core.
+org.ipro.form -> org.ipro.data
 org.ipro.form -> org.ipro.events
 org.ipro.form -> org.ipro.fetch.instance
 org.ipro.form -> org.ipro.fetch.plan
@@ -89,6 +95,8 @@ org.ipro.form.action -> org.ipro.form.link
 org.ipro.form.action -> org.ipro.metadata
 org.ipro.form.action -> org.ipro.rls
 org.ipro.form.builder -> org.ipro.crud
+# AF3.8: shared equality/IN rules of the list and selection filter panels.
+org.ipro.form.builder -> org.ipro.data
 org.ipro.form.builder -> org.ipro.fetch.instance
 org.ipro.form.builder -> org.ipro.form
 org.ipro.form.builder -> org.ipro.form.builtin

@@ -91,6 +91,12 @@ final class RegisterJavaSourceBuilder {
         imports.add("org.ipro.metadata.annotation.FieldMetadata");
         imports.add("org.ipro.metadata.annotation.GridColumn");
         imports.add("org.ipro.register.RegisterMetadata");
+        if (checked.register().rls() != null) {
+            imports.add("org.ipro.rls.RlsDimension");
+            imports.add("org.hibernate.annotations.FilterDef");
+            imports.add("org.hibernate.annotations.Filter");
+            imports.add("org.hibernate.annotations.ParamDef");
+        }
         if (checked.register().periodic()) imports.add("org.ipro.register.RegisterPeriodicity");
         for (var field : checked.fields()) {
             if (field.serverRequired()) imports.add("jakarta.validation.constraints.NotNull");
@@ -124,6 +130,15 @@ final class RegisterJavaSourceBuilder {
         if (register.periodic()) out.append("periodicity = RegisterPeriodicity.DAY, ");
         out.append("keyWriteAllowed = true, keyChangeAllowed = false,\n");
         out.append(INDENT).append("displayName = ").append(literal(checked.root().label())).append(")\n");
+        var rls = register.rls();
+        if (rls != null) {
+            out.append("@RlsDimension(value = ").append(literal(rls.dimension()))
+                .append(", valuePaths = ").append(literal(rls.valuePath())).append(")\n");
+            out.append("@FilterDef(name = ").append(literal(rls.dimension()))
+                .append(", parameters = @ParamDef(name = \"allowedIds\", type = Long.class), applyToLoadByKey = true)\n");
+            out.append("@Filter(name = ").append(literal(rls.dimension())).append(", condition = ")
+                .append(literal(rls.column()+" in (:allowedIds)")).append(")\n");
+        }
     }
 
     private static void field(StringBuilder out, CheckedStructure.Field field,

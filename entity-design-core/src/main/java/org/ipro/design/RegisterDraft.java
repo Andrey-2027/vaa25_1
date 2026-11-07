@@ -9,7 +9,11 @@ import java.util.UUID;
  * Roles reference fields rather than duplicating them, so renaming a field keeps its role and
  * removing a field leaves a detectable unknown reference instead of silently re-assigning it.
  */
-public record RegisterDraft(String period, String writeProfile, List<UUID> dimensions, List<UUID> resources) {
+public record RegisterDraft(String period, String writeProfile, List<UUID> dimensions, List<UUID> resources,
+                            RegisterRlsDraft rls) {
+    public RegisterDraft(String period, String writeProfile, List<UUID> dimensions, List<UUID> resources) {
+        this(period, writeProfile, dimensions, resources, null);
+    }
     public static final String NONE = "NONE", DAY = "DAY";
     public static final String NAMED_AND_CANONICAL_CRUD = "NAMED_AND_CANONICAL_CRUD";
     public static final int MAX_DIMENSION_STRING_LENGTH = 200, MAX_RESOURCE_STRING_LENGTH = 4000, MAX_RESOURCE_PRECISION = 19;
@@ -25,7 +29,8 @@ public record RegisterDraft(String period, String writeProfile, List<UUID> dimen
     public static RegisterDraft none() { return new RegisterDraft(NONE, NAMED_AND_CANONICAL_CRUD, List.of(), List.of()); }
     public static RegisterDraft day() { return new RegisterDraft(DAY, NAMED_AND_CANONICAL_CRUD, List.of(), List.of()); }
     public boolean periodic() { return DAY.equals(period); }
-    public RegisterDraft withPeriod(String value) { return new RegisterDraft(value, writeProfile, dimensions, resources); }
-    public RegisterDraft withDimensions(List<UUID> value) { return new RegisterDraft(period, writeProfile, value, resources); }
-    public RegisterDraft withResources(List<UUID> value) { return new RegisterDraft(period, writeProfile, dimensions, value); }
+    public RegisterDraft withPeriod(String value) { return new RegisterDraft(value, writeProfile, dimensions, resources, rls); }
+    public RegisterDraft withDimensions(List<UUID> value) { return new RegisterDraft(period, writeProfile, value, resources, rls); }
+    public RegisterDraft withResources(List<UUID> value) { return new RegisterDraft(period, writeProfile, dimensions, value, rls); }
+    public RegisterDraft withRls(RegisterRlsDraft value) { return new RegisterDraft(period, writeProfile, dimensions, resources, value); }
 }

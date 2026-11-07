@@ -1,12 +1,12 @@
 required EXPLICIT=41
 type EXPLICIT=8
-reference EXPLICIT=17
+reference EXPLICIT=0
 required BEAN_VALIDATION=21
 type BEAN_VALIDATION=0
 reference BEAN_VALIDATION=0
 required JPA_MAPPING=0
 type JPA_MAPPING=29
-reference JPA_MAPPING=14
+reference JPA_MAPPING=31
 required JAVA_TYPE=0
 type JAVA_TYPE=44
 reference JAVA_TYPE=0

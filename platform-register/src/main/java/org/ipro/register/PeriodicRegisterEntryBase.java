@@ -27,7 +27,7 @@ public abstract class PeriodicRegisterEntryBase extends BaseEntity implements Pe
     @NotNull
     @Column(name = "period_date", nullable = false, updatable = false)
     @FieldMetadata(
-        label = "Период", order = 2, inlineFilter = false,
+        label = "Период", order = 2,
         grid = @GridColumn(order = 2, width = "150px")
     )
     private LocalDateTime period;

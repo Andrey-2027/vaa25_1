@@ -33,8 +33,8 @@ class ContextFilterPanelTest {
 
         assertThat(panel.getChildren().toList()).hasSize(1);
         com.vaadin.flow.component.textfield.TextField input =
-            (com.vaadin.flow.component.textfield.TextField) panel.getChildren().toList().get(0);
-        assertThat(input.getLabel()).isEqualTo("Код");
+            (com.vaadin.flow.component.textfield.TextField) panel.getControl("code");
+        assertThat(panel.getFields().getFirst().labelFor(Unit.class)).isEqualTo("Код");
 
         input.setValue("A");
         assertThat(pushed).containsEntry("code", "A");
@@ -49,8 +49,8 @@ class ContextFilterPanelTest {
         ContextFilterPanel panel = panel(List.of(ContextFilterField.requiredAuto("code", "Код")));
 
         com.vaadin.flow.component.textfield.TextField input =
-            (com.vaadin.flow.component.textfield.TextField) panel.getChildren().toList().get(0);
-        assertThat(input.getLabel()).isEqualTo("Код *");
+            (com.vaadin.flow.component.textfield.TextField) panel.getControl("code");
+        assertThat(panel.getFields().getFirst().required()).isTrue();
     }
 
     @Test
@@ -58,7 +58,7 @@ class ContextFilterPanelTest {
         ContextFilterPanel panel = panel(List.of(ContextFilterField.select("journal", "Журнал", Unit.class)));
 
         assertThat(panel.getChildren().toList()).hasSize(1);
-        assertThat(panel.getChildren().toList().get(0))
+        assertThat(panel.getControl("journal"))
             .isInstanceOf(com.vaadin.flow.component.combobox.ComboBox.class);
     }
 
@@ -74,6 +74,7 @@ class ContextFilterPanelTest {
 
     @EntityMetadata(listFormTitle = "ЕИ", selectionFormTitle = "Выбор ЕИ")
     static class Unit {
+        @FieldMetadata(label = "Журнал") Unit journal;
         @FieldMetadata(label = "Код", grid = @GridColumn(order = 1))
         String code;
         @FieldMetadata(label = "Имя", grid = @GridColumn(order = 2))

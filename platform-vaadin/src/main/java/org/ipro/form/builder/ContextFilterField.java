@@ -27,7 +27,48 @@ package org.ipro.form.builder;
  */
 public record ContextFilterField(String path, String label,
                                  ContextFilterControl control, Class<?> lookupSource,
-                                 boolean required, boolean allLists) {
+                                 boolean required, boolean allLists, ContextFilterOptions options) implements FilterPanelElement {
+
+    public ContextFilterField(String path, String label, ContextFilterControl control, Class<?> lookupSource,
+                              boolean required, boolean allLists) {
+        this(path, label, control, lookupSource, required, allLists, ContextFilterOptions.legacy());
+    }
+    public ContextFilterField {
+        if (path == null || path.isBlank()) throw new IllegalArgumentException("Filter path is required");
+        if (options == null) options = ContextFilterOptions.legacy();
+    }
+    public static ContextFilterField filter(String path) {
+        return new ContextFilterField(path, null, ContextFilterControl.AUTO, null, false, true,
+                new ContextFilterOptions(ContextFilterOptions.Operation.AUTO, null, null, false, java.util.Map.of()));
+    }
+    public ContextFilterField setRequired(boolean value) {
+        return new ContextFilterField(path, label, control, lookupSource, value, allLists, options);
+    }
+    public ContextFilterField setLabel(String value) {
+        return new ContextFilterField(path, value, control, lookupSource, required, allLists, options);
+    }
+    public ContextFilterField setPeriod() {
+        return withOptions(new ContextFilterOptions(ContextFilterOptions.Operation.PERIOD, options.condition(),
+                options.group(), options.labelsAbove(), options.selectionFilters()));
+    }
+    public ContextFilterField setCondition(ContextFilterOptions.Condition condition) {
+        return withOptions(new ContextFilterOptions(options.operation(), condition,
+                options.group(), options.labelsAbove(), options.selectionFilters()));
+    }
+    public ContextFilterField setSelectionFilter(java.util.Map<String, Object> filters) {
+        return withOptions(new ContextFilterOptions(options.operation(), options.condition(),
+                options.group(), options.labelsAbove(), filters));
+    }
+    public ContextFilterField inGroup(String group, boolean labelsAbove) {
+        return withOptions(new ContextFilterOptions(options.operation(), options.condition(), group,
+                labelsAbove, options.selectionFilters()));
+    }
+    private ContextFilterField withOptions(ContextFilterOptions value) {
+        return new ContextFilterField(path, label, control, lookupSource, required, allLists, value);
+    }
+    public String labelFor(Class<?> type) {
+        return label == null || label.isBlank() ? org.ipro.metadata.ColumnPath.resolve(type, path).getLabel() : label;
+    }
 
     /** ComboBox из записей справочника — прежнее поведение ({@link ContextFilterControl#LOOKUP}). */
     public ContextFilterField(String path, String label, Class<?> lookupSource) {
@@ -55,7 +96,7 @@ public record ContextFilterField(String path, String label,
      * (свой блок варианта либо, для уровня сущности, все варианты списка без диалога).
      */
     public ContextFilterField allListVariants() {
-        return new ContextFilterField(path, label, control, lookupSource, required, true);
+        return new ContextFilterField(path, label, control, lookupSource, required, true, options);
     }
 
     /** Вид компонента выводится из метаданных; значение обязательно (см. {@link #required()}). */

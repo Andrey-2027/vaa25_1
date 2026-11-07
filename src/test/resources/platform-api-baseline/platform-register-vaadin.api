@@ -15,6 +15,8 @@ class public org.ipro.vaadin.register.RegisterFormCustomization
   ctor public(org.ipro.register.RegisterRegistry, org.ipro.data.EntityDataAccess, org.ipro.register.RegisterReaderFactory, org.ipro.register.RegisterKeyChanges, org.ipro.register.RegisterKeyChangePermissions, org.ipro.vaadin.register.RecorderRefPresentationResolver, org.springframework.beans.factory.ObjectProvider<org.ipro.form.link.FormRouteOpener>, org.springframework.beans.factory.ObjectProvider<java.time.Clock>)
   method public boolean supports(java.lang.Class<?>)
   method public boolean supportsGrouping()
+  method public void configureListColumns(java.lang.Class<?>, org.ipro.metadata.FormColumnDeclarations$Columns)
+  method public void configureSelectionColumns(java.lang.Class<?>, org.ipro.metadata.FormColumnDeclarations$Columns)
   method public void customizeItem(org.ipro.form.builtin.ItemForm<?>, org.ipro.form.registry.FormContext)
   method public void customizeList(org.ipro.form.builtin.ListForm<?, ?>, org.ipro.form.registry.FormContext)
 

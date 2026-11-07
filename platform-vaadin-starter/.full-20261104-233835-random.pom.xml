@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-vaadin-starter</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform Vaadin starter</name>
+    <description>
+        D3.8: готовая UI-поставка платформы. Добавляет platform-vaadin, Vaadin Spring Boot
+        runtime и (D-R S4) стандартный интерфейс регистра сведений
+        (platform-register-vaadin); backend-подсистемы входят через зависимости platform-vaadin,
+        которым стандартный интерфейс пользуется, а не наоборот.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-bom</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-vaadin</artifactId>
+        </dependency>
+        <!--
+          D-R S4: стандартный интерфейс регистра входит в UI-поставку. Адаптер инертен, пока
+          регистр не объявлен (его авто-конфигурация включается только при наличии UI-стека и
+          бинов движка), поэтому DX-цель «объявил регистр и получил интерфейс без boilerplate»
+          важнее opt-in-схемы HTTP-адаптера чтения: там адаптер включается свойством и живёт
+          отдельной опцией, здесь — часть ожидаемого интерфейса платформы. Имя той опции здесь
+          не называется намеренно: гейты состава стартеров читают pom как текст, и упоминание
+          артефакта в прозе для них неотличимо от объявленного ребра.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-register-vaadin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/random/platform-vaadin-starter</directory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.9.0</version>
+                <executions>
+                    <execution>
+                        <id>resolved-vaadin-starter-runtime-dependencies</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>tree</goal>
+                        </goals>
+                        <configuration>
+                            <scope>runtime</scope>
+                            <outputType>json</outputType>
+                            <outputFile>${project.build.directory}/vaadin-starter-runtime-dependency-tree.json</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -13,7 +13,7 @@ import jakarta.persistence.criteria.Root;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.hibernate.proxy.HibernateProxy;
-import org.ipro.fetch.instance.InstanceNameBridge;
+import org.ipro.data.PresentationResolver;
 import org.ipro.metadata.FetchGraphs;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.SectionMetadataRegistry;
@@ -237,15 +237,14 @@ public class GenericOwnedSectionService {
     /**
      * Загружает строки в line-number order с планом сценария {@code ROW} (C3.4).
      * Без границы C3 (metadata-конфигурация поднята без неё) используется прежний
-     * metadata-производный набор ссылок строки.
+     * набор путей разрешённых автоматических колонок строки.
      */
     @Transactional(readOnly = true)
     public <R extends IdentifiableEntity<Long>, P extends IdentifiableEntity<Long>> List<R> findByParent(
             P parent, TableSectionMetadataInfo descriptor) {
         List<String> paths = fetchPlanRegistry == null
-            ? FetchGraphs.entityReferencePaths(descriptor.getGridFields())
-            : fetchPlanRegistry.paths(descriptor.getRowClass(),
-                org.ipro.fetch.plan.FetchScenario.ROW);
+            ? rowColumnPaths(descriptor.getRowClass())
+            : List.of(); // The read boundary adds the raw ROW base and deepens the union once.
         return findByParent(parent, descriptor, paths);
     }
 
@@ -289,13 +288,20 @@ public class GenericOwnedSectionService {
                                               java.util.Collection<String> fetchPaths) {
         Set<String> paths = new java.util.LinkedHashSet<>();
         if (fetchPlanRegistry != null) {
-            paths.addAll(fetchPlanRegistry.paths(rowClass,
-                org.ipro.fetch.plan.FetchScenario.ROW));
+            paths.addAll(fetchPlanRegistry.plan(rowClass,
+                org.ipro.fetch.plan.FetchScenario.ROW).rawPaths());
+        } else {
+            paths.addAll(rowColumnPaths(rowClass));
         }
         paths.addAll(fetchPaths);
         return FetchGraphs.fromPaths(entityManager, rowClass,
             FetchGraphs.deepen(rowClass, paths, metadataResolver,
-                InstanceNameBridge::instanceNamePaths));
+                new PresentationResolver(metadataResolver)::displayPaths));
+    }
+
+    private List<String> rowColumnPaths(Class<?> rowClass) {
+        return metadataResolver.resolveRowMetadata(rowClass).getColumnPaths().stream()
+            .flatMap(column -> column.getFetchPaths().stream()).distinct().sorted().toList();
     }
 
     /** Удаляет все строки root независимо от их текущего состава в UI. */

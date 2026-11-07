@@ -1,4 +1,13 @@
 # platform-vaadin: публичная поверхность (policy: SEMANTIC_ROLES, перезапись: -Dplatform.api.baseline.write=true)
+annotation public abstract interface org.ipro.form.builder.FormFor
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.Class<? extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> value()
+  method public abstract java.lang.String variant() default 
+
 class public final org.ipro.form.FormMessages
   method public static boolean showAccessDenied(java.lang.Throwable, java.lang.String, org.ipro.metadata.MetadataResolver)
   method public static void showError(java.lang.String)
@@ -63,6 +72,14 @@ class public final org.ipro.form.action.CopyLinkButton
   method public static void copyAddress(java.lang.String)
   method public void refresh()
 
+class public final org.ipro.form.builder.FormBehavior
+  ctor public(org.ipro.form.builtin.ItemForm<?>)
+  method public <V> V value(java.lang.String, java.lang.Class<V>)
+  method public static org.ipro.form.builder.FormBehavior forDescription(java.util.Set<java.lang.String>)
+  method public void onChange(java.lang.String, java.util.function.Consumer<org.ipro.form.builder.FormBehavior$Change>)
+  method public void onLoaded(java.lang.Runnable)
+  method public void setReadOnly(boolean)
+
 class public final org.ipro.form.builder.ItemFormVariants
   ctor public()
   method public org.ipro.form.builder.ItemFormVariants add(java.lang.String, java.lang.Class<? extends com.vaadin.flow.component.Component>, org.ipro.form.registry.FormFactory)
@@ -71,6 +88,51 @@ class public final org.ipro.form.builder.ItemFormVariants
   method public org.ipro.form.builder.ItemFormVariants addDefault(org.ipro.form.registry.FormFactory)
   method public org.ipro.form.builder.ItemFormVariants customize(java.lang.String, org.ipro.form.builder.ItemFormCustomizer)
   method public org.ipro.form.builder.ItemFormVariants customizeDefault(org.ipro.form.builder.ItemFormCustomizer)
+
+class public final org.ipro.form.builder.layout.FormAdjust
+  ctor public(org.ipro.form.builder.layout.Layout)
+  method public org.ipro.form.builder.layout.Layout$Element addCustom(java.lang.String, java.util.function.Supplier<? extends com.vaadin.flow.component.Component>)
+  method public org.ipro.form.builder.layout.Layout$Element addDisplay(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element addField(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element addTab(java.lang.String, java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element element(java.lang.String)
+
+class public final org.ipro.form.builder.layout.Layout
+  ctor public(org.ipro.metadata.EntityMetadataInfo)
+  ctor public(org.ipro.metadata.EntityMetadataInfo, java.lang.String)
+  method public org.ipro.form.builder.layout.ItemFormLayout compile()
+  method public org.ipro.form.builder.layout.Layout$Element addCustom(java.lang.String, java.util.function.Supplier<? extends com.vaadin.flow.component.Component>)
+  method public org.ipro.form.builder.layout.Layout$Element addDisplay(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element addField(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element addTab(java.lang.String, java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element custom(java.lang.String, java.util.function.Supplier<? extends com.vaadin.flow.component.Component>)
+  method public org.ipro.form.builder.layout.Layout$Element display(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element display(java.lang.String, java.util.function.Function<java.lang.Object, java.lang.String>)
+  method public org.ipro.form.builder.layout.Layout$Element element(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element field(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element panel(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element remainingFields()
+  method public org.ipro.form.builder.layout.Layout$Element section(java.lang.Class<? extends org.ipro.identity.IdentifiableEntity<java.lang.Long>>)
+  method public org.ipro.form.builder.layout.Layout$Element tab(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element tabs(java.lang.String)
+  method public transient org.ipro.form.builder.layout.ItemFormLayout of(org.ipro.form.builder.layout.Layout$Element[])
+  method public void expandRemaining()
+  method public void verifyResult(org.ipro.form.builder.layout.ItemFormLayout)
+
+class public final org.ipro.form.builder.layout.Layout$Element
+  method public org.ipro.form.builder.layout.Layout$Element placeAfter(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element placeBefore(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element placeFirst()
+  method public org.ipro.form.builder.layout.Layout$Element placeInto(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element setLabel(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element setReadOnly(boolean)
+  method public org.ipro.form.builder.layout.Layout$Element setSelectionVariant(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element setTitle(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element setVisible(boolean)
+  method public org.ipro.form.builder.layout.Layout$Element setWidth(java.lang.String)
+  method public transient org.ipro.form.builder.layout.Layout$Element add(org.ipro.form.builder.layout.Layout$Element[])
+  method public transient org.ipro.form.builder.layout.Layout$Element except(java.lang.String[])
+  method public void remove()
 
 class public final org.ipro.form.link.EntityExplorerAddress
   field public static final java.lang.String ROOT_SEGMENT = entity-explorer
@@ -138,6 +200,7 @@ class public org.ipro.form.EntityField
   method public void addValueChangeListener(java.util.function.Consumer<T>)
   method public void clear()
   method public void removeValueChangeListener(java.util.function.Consumer<T>)
+  method public void setInputWidth(java.lang.String)
   method public void setLabel(java.lang.String)
   method public void setReadOnly(boolean)
   method public void setSelectionFilter(java.util.Map<java.lang.String, java.lang.Object>, org.ipro.form.SelectionFormFactory<T>)
@@ -148,6 +211,7 @@ class public org.ipro.form.FieldFactory
   ctor public(org.ipro.crud.LookupService, org.ipro.form.SelectionFormAssembler)
   ctor public(org.ipro.crud.LookupService, org.ipro.form.SelectionFormAssembler, org.ipro.metadata.MetadataResolver, org.ipro.form.registry.FormRegistry)
   method public com.vaadin.flow.component.Component createField(org.ipro.metadata.FieldMetadataInfo, org.ipro.form.FormBindingRegistry)
+  method public com.vaadin.flow.component.Component createField(org.ipro.metadata.FieldMetadataInfo, org.ipro.form.FormBindingRegistry, java.lang.String)
 
 class public org.ipro.form.FormBinding
   ctor public(org.ipro.metadata.FieldMetadataInfo, com.vaadin.flow.component.Component, java.util.function.Function<java.lang.Object, java.lang.Object>, java.util.function.BiConsumer<java.lang.Object, java.lang.Object>, java.util.function.Supplier<java.lang.Object>, java.util.function.Consumer<java.lang.Object>, java.util.function.Predicate<java.lang.Object>, java.util.function.Consumer<java.lang.Boolean>)
@@ -166,6 +230,7 @@ class public org.ipro.form.FormBinding
   method public void applyToEntity(java.lang.Object)
   method public void markClean()
   method public void readFromEntity(java.lang.Object)
+  method public void setDeclaredReadOnly(boolean)
   method public void setLocked(boolean)
   method public void setReadOnly(boolean)
 
@@ -193,6 +258,7 @@ class public org.ipro.form.SelectionForm
   method public org.ipro.filtergrid.FilterGrid<T> getFilterGrid()
   method public void clearContextFilter(java.lang.String)
   method public void setContextFilter(java.lang.String, java.lang.Object)
+  method public void setContextFilterFields(java.lang.Class<?>, java.util.List<org.ipro.form.builder.ContextFilterField>)
   method public void setDialogSize(java.lang.String, java.lang.String)
   method public void setFixedFilters(java.util.Map<java.lang.String, java.lang.Object>)
   method public void setHeaderRow(com.vaadin.flow.component.Component)
@@ -206,9 +272,12 @@ class public org.ipro.form.SelectionFormAssembler
   method public org.ipro.form.SelectionFormAssembler$ResolvedSelection resolveColumns(java.lang.Class<?>, java.util.List<java.lang.String>)
   method public static <T> org.springframework.data.jpa.domain.Specification<T> specificationFor(java.util.Map<java.lang.String, java.lang.Object>)
   method public void setGridCustomizers(java.util.List<org.ipro.form.SelectionGridCustomizer>)
+  method public void setTypeCustomizationProvider(org.springframework.beans.factory.ObjectProvider<org.ipro.form.builder.FormTypeCustomization>)
+  method public void setTypeCustomizations(java.util.List<org.ipro.form.builder.FormTypeCustomization>)
 
 class public org.ipro.form.builder.ListFormVariants
   ctor public()
+  method public org.ipro.form.builder.ContextFilterField filter(java.lang.String)
   method public org.ipro.form.builder.ListFormVariants add(java.lang.String, org.ipro.form.registry.FormFactory)
   method public org.ipro.form.builder.ListFormVariants addDefault(org.ipro.form.registry.FormFactory)
   method public org.ipro.form.builder.ListFormVariants addDefaultView(java.lang.Class<? extends com.vaadin.flow.component.Component>)
@@ -218,16 +287,24 @@ class public org.ipro.form.builder.ListFormVariants
   method public org.ipro.form.builder.ListFormVariants contextFilters(java.lang.String, java.util.List<org.ipro.form.builder.ContextFilterField>)
   method public org.ipro.form.builder.ListFormVariants customize(java.lang.String, org.ipro.form.builder.ListFormCustomizer)
   method public org.ipro.form.builder.ListFormVariants customizeDefault(org.ipro.form.builder.ListFormCustomizer)
+  method public transient org.ipro.form.builder.FilterPanelGroup horizontal(java.lang.String, boolean, org.ipro.form.builder.ContextFilterField[])
+  method public transient org.ipro.form.builder.FilterPanelGroup horizontal(java.lang.String, org.ipro.form.builder.ContextFilterField[])
+  method public transient org.ipro.form.builder.ListFormVariants addColumns(java.lang.String, java.lang.String[])
+  method public transient org.ipro.form.builder.ListFormVariants filterPanel(org.ipro.form.builder.FilterPanelElement[])
 
 class public org.ipro.form.builtin.ItemForm
   extends com.vaadin.flow.component.orderedlayout.VerticalLayout
   implements org.ipro.form.Dirtyable
   implements org.ipro.form.Savable
   type-parameter T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>
+  ctor protected()
   ctor public(java.lang.Class<T>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, org.ipro.form.FieldFactory)
   ctor public(org.ipro.metadata.EntityMetadataInfo, org.ipro.form.FieldFactory)
   ctor public(org.ipro.metadata.EntityMetadataInfo, org.ipro.form.FieldFactory, java.util.List<java.lang.String>)
   ctor public(org.ipro.metadata.EntityMetadataInfo, org.ipro.form.FieldFactory, org.ipro.form.builder.layout.ItemFormLayout)
+  method protected org.ipro.form.builder.layout.ItemFormLayout layout(org.ipro.form.builder.layout.Layout)
+  method protected void adjust(org.ipro.form.builder.layout.FormAdjust)
+  method protected void behavior(org.ipro.form.builder.FormBehavior)
   method public <E extends org.ipro.metadata.HasDisplayName> org.ipro.form.EntityField<E> entityField(java.lang.String)
   method public <R extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> org.ipro.form.SectionPayload<R> sectionPayload(java.lang.Class<R>)
   method public <R extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> org.ipro.form.builtin.ItemTable<R, T> tableSection(java.lang.Class<R>)
@@ -248,6 +325,14 @@ class public org.ipro.form.builtin.ItemForm
   method public com.vaadin.flow.component.button.Button addSaveButton()
   method public com.vaadin.flow.component.formlayout.FormLayout getFormLayout()
   method public com.vaadin.flow.component.orderedlayout.HorizontalLayout getFooter()
+  method public final boolean isDescriptionBuilt()
+  method public final boolean isDescriptionForm()
+  method public final boolean isLoadingValues()
+  method public final org.ipro.form.builder.layout.ItemFormLayout describeLayout(org.ipro.metadata.EntityMetadataInfo)
+  method public final void addLoadedHandler(java.lang.Runnable)
+  method public final void applySavedState(java.lang.Runnable)
+  method public final void buildDescription(org.ipro.metadata.EntityMetadataInfo, org.ipro.form.FieldFactory)
+  method public final void validateDescriptionBehavior(org.ipro.form.builder.layout.ItemFormLayout)
   method public java.lang.Class<T> getEntityClass()
   method public java.lang.Runnable getOnCancel()
   method public java.lang.Runnable getOnSave()
@@ -276,21 +361,26 @@ class public org.ipro.form.builtin.ItemForm
   method public void setReadOnlySections(java.util.Collection<java.lang.Class<?>>)
   method public void setSaveHandler(org.ipro.form.FormSaveHandler<T>)
   method public void setSectionFilter(java.util.Collection<java.lang.Class<?>>)
+  method public void validateSectionLayout(java.util.Collection<java.lang.Class<?>>)
 
 class public org.ipro.form.builtin.ItemTable
   extends com.vaadin.flow.component.orderedlayout.VerticalLayout
   type-parameter T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>
   type-parameter P extends org.ipro.identity.IdentifiableEntity<java.lang.Long>
   ctor public(org.ipro.metadata.TableSectionMetadataInfo, org.ipro.form.FieldFactory, org.ipro.crud.TableSectionService<T, P>, org.ipro.metadata.MetadataResolver, org.ipro.form.spi.GridViewStore, org.ipro.form.spi.FormSettingsStore, org.ipro.crud.LookupService, java.util.function.Supplier<org.ipro.form.registry.FormResolver>)
+  ctor public(org.ipro.metadata.TableSectionMetadataInfo, org.ipro.form.FieldFactory, org.ipro.crud.TableSectionService<T, P>, org.ipro.metadata.MetadataResolver, org.ipro.form.spi.GridViewStore, org.ipro.form.spi.FormSettingsStore, org.ipro.crud.LookupService, java.util.function.Supplier<org.ipro.form.registry.FormResolver>, java.util.List<org.ipro.metadata.ColumnPath>)
   method public boolean isDirty()
   method public boolean isReadOnly()
   method public java.lang.Class<T> getRowClass()
   method public java.util.List<T> getRows()
   method public java.util.List<java.lang.String> validateRows(P)
+  method public java.util.List<org.ipro.metadata.ColumnPath> getActiveColumns()
+  method public org.ipro.metadata.GridViewState captureViewState()
   method public void applyPersistedRows(P, java.util.List<T>)
   method public void commit(P)
   method public void markDirty()
   method public void refreshRows()
+  method public void resetActiveColumns()
   method public void setAddOptions(java.util.List<org.ipro.form.builtin.ItemTable$AddOption<T>>)
   method public void setParent(P)
   method public void setReadOnly(boolean)
@@ -302,6 +392,7 @@ class public org.ipro.form.builtin.ListForm
   type-parameter ID
   ctor public(org.ipro.metadata.EntityMetadataInfo, org.ipro.crud.BaseService<T, ID>)
   ctor public(org.ipro.metadata.EntityMetadataInfo, org.ipro.crud.BaseService<T, ID>, org.ipro.filtergrid.grouping.GroupValuesService<T>)
+  ctor public(org.ipro.metadata.EntityMetadataInfo, org.ipro.crud.BaseService<T, ID>, org.ipro.filtergrid.grouping.GroupValuesService<T>, java.util.List<org.ipro.metadata.ColumnPath>)
   ctor public(org.ipro.metadata.EntityMetadataInfo, org.ipro.filtergrid.FilterGrid<T>)
   method public T getSelectedItem()
   method public boolean isReadOnly()
@@ -312,6 +403,7 @@ class public org.ipro.form.builtin.ListForm
   method public com.vaadin.flow.component.button.Button getRefreshButton()
   method public com.vaadin.flow.component.grid.Grid<T> getGrid()
   method public com.vaadin.flow.component.orderedlayout.HorizontalLayout getToolbar()
+  method public com.vaadin.flow.component.orderedlayout.VerticalLayout getFilterPanel()
   method public java.lang.Object getContextFilterValue(java.lang.String)
   method public java.util.List<org.ipro.metadata.ColumnPath> getActiveColumns()
   method public java.util.Map<java.lang.String, java.lang.Object> getContextFilterValues()
@@ -322,8 +414,10 @@ class public org.ipro.form.builtin.ListForm
   method public org.ipro.form.registry.ListFormContext getContextSnapshot()
   method public org.ipro.metadata.EntityMetadataInfo getMetadata()
   method public org.ipro.metadata.GridViewState captureViewState()
+  method public org.springframework.data.jpa.domain.Specification<T> compileContextFilter(java.lang.String, java.lang.Object)
   method public org.springframework.data.jpa.domain.Specification<T> compileFilter(org.ipro.filtergrid.filter.FilterNode)
   method public org.springframework.data.jpa.domain.Specification<T> getVisualFilter()
+  method public static void applyColumnProperties(com.vaadin.flow.component.grid.Grid$Column<?>, org.ipro.metadata.ColumnPath)
   method public void addAction(org.ipro.form.action.ActionHandler)
   method public void addContextChangeListener(java.util.function.Consumer<org.ipro.form.registry.ListFormContext>)
   method public void applyOpeningViewState()
@@ -337,6 +431,7 @@ class public org.ipro.form.builtin.ListForm
   method public void setActionResolver(org.ipro.form.action.ActionResolver)
   method public void setActiveColumns(java.util.List<org.ipro.metadata.ColumnPath>)
   method public void setAfterColumnsConfigured(java.lang.Runnable)
+  method public void setColumnProperties(java.util.List<org.ipro.metadata.ColumnPath$Spec>, java.lang.String)
   method public void setColumnRenderer(java.lang.String, com.vaadin.flow.data.renderer.Renderer<T>)
   method public void setContextFilter(java.lang.String, java.lang.Object)
   method public void setContextFilter(org.springframework.data.jpa.domain.Specification<T>)
@@ -355,6 +450,7 @@ class public org.ipro.form.builtin.ListForm
   method public void setOnEdit(java.util.function.Consumer<T>)
   method public void setOpeningContextFilter(java.lang.String, java.lang.Object)
   method public void setOpeningContextFilters(java.util.Map<java.lang.String, java.lang.Object>)
+  method public void setOpeningFilter(org.ipro.form.registry.Filter<?>)
   method public void setOpeningParameters(java.util.Map<java.lang.String, java.lang.Object>)
   method public void setPageReader(org.ipro.form.builtin.ListPageReader<T>)
   method public void setReadOnly(boolean)
@@ -412,12 +508,14 @@ class public org.ipro.form.registry.FormContext
 class public org.ipro.form.registry.FormRegistry
   ctor public()
   method public boolean has(java.lang.Class<?>, org.ipro.form.registry.FormType, java.lang.String)
+  method public boolean hasListColumns(java.lang.Class<?>, java.lang.String)
   method public boolean isFrozen()
   method public int size()
   method public java.lang.Class<? extends com.vaadin.flow.component.Component> getListFormViewClass(java.lang.Class<?>, java.lang.String)
   method public java.lang.String getContextFilterSource(java.lang.Class<?>)
   method public java.lang.String getSelectionContextFilterSource(java.lang.Class<?>)
   method public java.lang.String getVariantContextFilterSource(java.lang.Class<?>, org.ipro.form.registry.FormType, java.lang.String)
+  method public java.util.List<java.lang.String> getListColumns(java.lang.Class<?>, java.lang.String)
   method public java.util.List<org.ipro.form.builder.ContextFilterField> getContextFilters(java.lang.Class<?>)
   method public java.util.List<org.ipro.form.builder.ContextFilterField> getSelectionContextFilters(java.lang.Class<?>)
   method public java.util.List<org.ipro.form.builder.ContextFilterField> getVariantContextFilters(java.lang.Class<?>, org.ipro.form.registry.FormType, java.lang.String)
@@ -444,6 +542,7 @@ class public org.ipro.form.registry.FormRegistry
   method public void registerItemForm(java.lang.Class<?>, java.lang.String, org.ipro.form.registry.FormFactory)
   method public void registerItemForm(java.lang.Class<?>, java.lang.String, org.ipro.form.registry.FormFactory, java.lang.String)
   method public void registerItemForm(java.lang.Class<?>, java.lang.String, org.ipro.form.registry.FormFactory, java.lang.String, java.lang.Class<? extends com.vaadin.flow.component.Component>)
+  method public void registerListColumns(java.lang.Class<?>, java.lang.String, java.util.List<java.lang.String>, java.lang.String)
   method public void registerListForm(java.lang.Class<?>, java.lang.Enum<?>, org.ipro.form.registry.FormFactory)
   method public void registerListForm(java.lang.Class<?>, java.lang.String, org.ipro.form.registry.FormFactory)
   method public void registerListForm(java.lang.Class<?>, java.lang.String, org.ipro.form.registry.FormFactory, java.lang.String)
@@ -460,6 +559,7 @@ class public org.ipro.form.registry.FormRegistry
   method public void registerSelectionForm(java.lang.Class<?>, java.lang.String, org.ipro.form.registry.FormFactory, java.lang.String)
   method public void registerVariantContextFilters(java.lang.Class<?>, org.ipro.form.registry.FormType, java.lang.String, java.util.List<org.ipro.form.builder.ContextFilterField>)
   method public void registerVariantContextFilters(java.lang.Class<?>, org.ipro.form.registry.FormType, java.lang.String, java.util.List<org.ipro.form.builder.ContextFilterField>, java.lang.String)
+  method public void setFormColumnDeclarations(org.ipro.metadata.FormColumnDeclarations)
   method public void unregister(java.lang.Class<?>, org.ipro.form.registry.FormType, java.lang.String)
 
 class public org.ipro.form.registry.FormResolver
@@ -473,6 +573,7 @@ class public org.ipro.form.registry.FormResolver
   method public <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> org.ipro.form.SelectionForm<T> resolveSelectionFormWithSeeds(java.lang.Class<T>, java.util.function.Consumer<T>, java.util.Collection<org.ipro.filtergrid.filter.SeedFilter>)
   method public <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> org.ipro.form.builtin.ItemForm<T> resolveItemForm(java.lang.Class<T>, java.lang.String, ID, java.util.Map<java.lang.String, java.lang.Object>)
   method public <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> org.ipro.form.builtin.ListForm<T, ID> resolveListForm(java.lang.Class<T>, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>)
+  method public java.util.List<org.ipro.metadata.ColumnPath> resolveListColumns(java.lang.Class<?>, java.lang.String)
   method public org.ipro.form.registry.FormRegistry getFormRegistry()
   method public void setTypeCustomizations(java.util.List<org.ipro.form.builder.FormTypeCustomization>)
 
@@ -610,10 +711,20 @@ enum public static final org.ipro.form.action.ReadOnlyReason$Kind
   method public static org.ipro.form.action.ReadOnlyReason$Kind valueOf(java.lang.String)
   method public static org.ipro.form.action.ReadOnlyReason$Kind[] values()
 
+enum public static final org.ipro.form.builder.ContextFilterOptions$Operation
+  extends java.lang.Enum<org.ipro.form.builder.ContextFilterOptions$Operation>
+  enum-constants [EQ, AUTO, PERIOD]
+  field public static final org.ipro.form.builder.ContextFilterOptions$Operation AUTO = enum-constant
+  field public static final org.ipro.form.builder.ContextFilterOptions$Operation EQ = enum-constant
+  field public static final org.ipro.form.builder.ContextFilterOptions$Operation PERIOD = enum-constant
+  method public static org.ipro.form.builder.ContextFilterOptions$Operation valueOf(java.lang.String)
+  method public static org.ipro.form.builder.ContextFilterOptions$Operation[] values()
+
 enum public static final org.ipro.form.registry.FormRegistry$RegistrationKind
   extends java.lang.Enum<org.ipro.form.registry.FormRegistry$RegistrationKind>
-  enum-constants [FORM_FACTORY, LIST_VIEW_CLASS, LIST_VIEW_FACTORY, SELECTION_COLUMNS]
+  enum-constants [FORM_FACTORY, LIST_VIEW_CLASS, LIST_VIEW_FACTORY, SELECTION_COLUMNS, LIST_COLUMNS]
   field public static final org.ipro.form.registry.FormRegistry$RegistrationKind FORM_FACTORY = enum-constant
+  field public static final org.ipro.form.registry.FormRegistry$RegistrationKind LIST_COLUMNS = enum-constant
   field public static final org.ipro.form.registry.FormRegistry$RegistrationKind LIST_VIEW_CLASS = enum-constant
   field public static final org.ipro.form.registry.FormRegistry$RegistrationKind LIST_VIEW_FACTORY = enum-constant
   field public static final org.ipro.form.registry.FormRegistry$RegistrationKind SELECTION_COLUMNS = enum-constant
@@ -700,15 +811,20 @@ interface public abstract interface org.ipro.form.TableSectionCustomization
   method public abstract java.lang.Class<T> rowClass()
   method public abstract void configure(org.ipro.form.builtin.ItemTable<T, ?>)
   method public java.util.List<java.lang.String> declaredRowVariants()
+  method public org.ipro.metadata.FormColumnDeclarations$Columns columns()
 
 interface public abstract interface org.ipro.form.action.ActionHandler
   method public abstract org.ipro.form.action.ActionDefinition definition()
   method public abstract void execute(org.ipro.form.action.ActionInvocation)
   method public org.ipro.form.action.ActionDecision availability(java.lang.Object)
 
+interface public abstract interface org.ipro.form.builder.FilterPanelElement
+
 interface public abstract interface org.ipro.form.builder.FormTypeCustomization
   method public abstract boolean supports(java.lang.Class<?>)
   method public boolean supportsGrouping()
+  method public void configureListColumns(java.lang.Class<?>, org.ipro.metadata.FormColumnDeclarations$Columns)
+  method public void configureSelectionColumns(java.lang.Class<?>, org.ipro.metadata.FormColumnDeclarations$Columns)
   method public void customizeItem(org.ipro.form.builtin.ItemForm<?>, org.ipro.form.registry.FormContext)
   method public void customizeList(org.ipro.form.builtin.ListForm<?, ?>, org.ipro.form.registry.FormContext)
 
@@ -743,6 +859,8 @@ interface public abstract interface org.ipro.form.coordinator.FormNavigator
   method public abstract <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> void openListForm(java.lang.Class<T>, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>)
   method public abstract org.ipro.form.link.OpenResult openRoutedList(java.lang.Class<?>, org.ipro.form.link.FormRoute)
   method public abstract org.ipro.form.link.OpenResult openRoutedRecord(java.lang.Class<?>, org.ipro.form.link.FormRoute)
+  method public transient <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> org.ipro.form.builtin.ListForm<T, ID> createFilteredListForm(java.lang.Class<T>, java.lang.String, org.ipro.form.registry.Filter<?>[])
+  method public transient <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> void openFilteredListForm(java.lang.Class<T>, java.lang.String, org.ipro.form.registry.Filter<?>[])
 
 interface public abstract interface org.ipro.form.link.EntityStructureNavigation
   method public abstract java.util.Optional<java.lang.String> link(java.lang.Class<?>)
@@ -801,6 +919,11 @@ interface public abstract interface org.ipro.form.spi.WorkspaceGateway
   method public abstract void close(java.lang.String)
   method public abstract void openComponent(com.vaadin.flow.component.Component, java.lang.String, java.lang.String)
   method public abstract void showTransientContent(com.vaadin.flow.component.Component)
+
+interface public abstract static interface org.ipro.form.builder.ContextFilterOptions$Condition
+  implements java.io.Serializable
+  annotation java.lang.FunctionalInterface
+  method public abstract org.springframework.data.jpa.domain.Specification<?> create(java.lang.Object)
 
 interface public abstract static interface org.ipro.form.builtin.ListForm$SelectionFormProvider
   annotation java.lang.FunctionalInterface
@@ -956,8 +1079,10 @@ record public final org.ipro.form.action.ReadOnlyReason
 
 record public final org.ipro.form.builder.ContextFilterField
   extends java.lang.Record
+  implements org.ipro.form.builder.FilterPanelElement
   ctor public(java.lang.String, java.lang.String, java.lang.Class<?>)
   ctor public(java.lang.String, java.lang.String, org.ipro.form.builder.ContextFilterControl, java.lang.Class<?>, boolean, boolean)
+  ctor public(java.lang.String, java.lang.String, org.ipro.form.builder.ContextFilterControl, java.lang.Class<?>, boolean, boolean, org.ipro.form.builder.ContextFilterOptions)
   method public boolean allLists()
   method public boolean required()
   method public final boolean equals(java.lang.Object)
@@ -965,24 +1090,61 @@ record public final org.ipro.form.builder.ContextFilterField
   method public final java.lang.String toString()
   method public java.lang.Class<?> lookupSource()
   method public java.lang.String label()
+  method public java.lang.String labelFor(java.lang.Class<?>)
   method public java.lang.String path()
   method public org.ipro.form.builder.ContextFilterControl control()
   method public org.ipro.form.builder.ContextFilterField allListVariants()
+  method public org.ipro.form.builder.ContextFilterField inGroup(java.lang.String, boolean)
+  method public org.ipro.form.builder.ContextFilterField setCondition(org.ipro.form.builder.ContextFilterOptions$Condition)
+  method public org.ipro.form.builder.ContextFilterField setLabel(java.lang.String)
+  method public org.ipro.form.builder.ContextFilterField setPeriod()
+  method public org.ipro.form.builder.ContextFilterField setRequired(boolean)
+  method public org.ipro.form.builder.ContextFilterField setSelectionFilter(java.util.Map<java.lang.String, java.lang.Object>)
+  method public org.ipro.form.builder.ContextFilterOptions options()
   method public static org.ipro.form.builder.ContextFilterField auto(java.lang.String, java.lang.String)
+  method public static org.ipro.form.builder.ContextFilterField filter(java.lang.String)
   method public static org.ipro.form.builder.ContextFilterField lookup(java.lang.String, java.lang.String, java.lang.Class<?>)
   method public static org.ipro.form.builder.ContextFilterField requiredAuto(java.lang.String, java.lang.String)
   method public static org.ipro.form.builder.ContextFilterField requiredLookup(java.lang.String, java.lang.String, java.lang.Class<?>)
   method public static org.ipro.form.builder.ContextFilterField requiredSelect(java.lang.String, java.lang.String, java.lang.Class<?>)
   method public static org.ipro.form.builder.ContextFilterField select(java.lang.String, java.lang.String, java.lang.Class<?>)
 
+record public final org.ipro.form.builder.ContextFilterOptions
+  extends java.lang.Record
+  ctor public(org.ipro.form.builder.ContextFilterOptions$Operation, org.ipro.form.builder.ContextFilterOptions$Condition, java.lang.String, boolean, java.util.Map<java.lang.String, java.lang.Object>)
+  method public boolean labelsAbove()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String group()
+  method public java.util.Map<java.lang.String, java.lang.Object> selectionFilters()
+  method public org.ipro.form.builder.ContextFilterOptions$Condition condition()
+  method public org.ipro.form.builder.ContextFilterOptions$Operation operation()
+  method public static org.ipro.form.builder.ContextFilterOptions legacy()
+
+record public final org.ipro.form.builder.FilterPanelGroup
+  extends java.lang.Record
+  implements org.ipro.form.builder.FilterPanelElement
+  ctor public(java.lang.String, boolean, java.util.List<org.ipro.form.builder.ContextFilterField>)
+  method public boolean labelsAbove()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String id()
+  method public java.util.List<org.ipro.form.builder.ContextFilterField> fields()
+
 record public final org.ipro.form.builder.layout.CustomNode
   extends java.lang.Record
   implements org.ipro.form.builder.layout.LayoutNode
   ctor public(com.vaadin.flow.component.Component)
+  ctor public(com.vaadin.flow.component.Component, java.util.function.Supplier<? extends com.vaadin.flow.component.Component>)
+  ctor public(java.util.function.Supplier<? extends com.vaadin.flow.component.Component>)
   method public com.vaadin.flow.component.Component component()
+  method public com.vaadin.flow.component.Component createComponent()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
+  method public java.util.function.Supplier<? extends com.vaadin.flow.component.Component> factory()
 
 record public final org.ipro.form.builder.layout.DisplayNode
   extends java.lang.Record
@@ -1014,6 +1176,26 @@ record public final org.ipro.form.builder.layout.ItemFormLayout
   method public final java.lang.String toString()
   method public java.util.List<org.ipro.form.builder.layout.LayoutNode> nodes()
 
+record public final org.ipro.form.builder.layout.RemainingFieldsNode
+  extends java.lang.Record
+  implements org.ipro.form.builder.layout.LayoutNode
+  ctor public()
+  ctor public(java.util.List<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<java.lang.String> excludedFields()
+  method public transient org.ipro.form.builder.layout.RemainingFieldsNode except(java.lang.String[])
+
+record public final org.ipro.form.builder.layout.SectionNode
+  extends java.lang.Record
+  implements org.ipro.form.builder.layout.LayoutNode
+  ctor public(java.lang.Class<? extends org.ipro.identity.IdentifiableEntity<java.lang.Long>>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<? extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> rowClass()
+
 record public final org.ipro.form.link.FormRoute
   extends java.lang.Record
   ctor public(org.ipro.form.link.FormRouteKind, java.lang.String, java.lang.Long, java.lang.String)
@@ -1041,6 +1223,18 @@ record public final org.ipro.form.link.FormRouteAliasDeclaration
   method public java.lang.String reason()
   method public java.util.List<java.lang.String> legacyKeys()
   method public static org.ipro.form.link.FormRouteAliasDeclaration legacyKeys(java.lang.Class<?>, java.util.List<java.lang.String>, java.lang.String)
+
+record public final org.ipro.form.registry.Filter
+  extends java.lang.Record
+  type-parameter V
+  ctor public(java.lang.String, V)
+  method public V value()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String path()
+  method public static <V> org.ipro.form.registry.Filter<V> eq(java.lang.String, V)
+  method public static transient java.util.Map<java.lang.String, java.lang.Object> values(java.lang.Class<?>, org.ipro.form.registry.Filter<?>[])
 
 record public final org.ipro.form.registry.ListFormContext
   extends java.lang.Record
@@ -1172,6 +1366,16 @@ record public static final org.ipro.form.action.ActionRegistry$Registration
   method public final java.lang.String toString()
   method public org.ipro.form.action.ActionDefinition definition()
   method public org.ipro.form.action.ActionRegistry$Key key()
+
+record public static final org.ipro.form.builder.FormBehavior$Change
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.Object, org.ipro.form.builtin.ItemForm<?>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Object value()
+  method public java.lang.String field()
+  method public org.ipro.form.builtin.ItemForm<?> form()
 
 record public static final org.ipro.form.builtin.ItemTable$AddOption
   extends java.lang.Record

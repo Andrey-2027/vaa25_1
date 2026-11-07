@@ -15,6 +15,7 @@ public final class RecipeCatalog {
      */
     public static final RecipeRef EXISTING_ENTITY = new RecipeRef("existing-entity", 1);
     public static final RecipeRef INDEPENDENT_REGISTER = new RecipeRef("independent-register-v1", 1);
+    public static final RecipeRef INDEPENDENT_REGISTER_RLS = new RecipeRef("independent-register-v2", 2);
     public static final String REGISTER_NONE = RegisterDraft.NONE, REGISTER_DAY = RegisterDraft.DAY;
     public static final String REGISTER_WRITE_PROFILE = RegisterDraft.NAMED_AND_CANONICAL_CRUD;
     public static final String REGISTER_PERIOD_COLUMN = "period_date";
@@ -102,7 +103,7 @@ public final class RecipeCatalog {
         if (REGISTER_DAY.equals(period)) names.add("period");
         return Set.copyOf(names);
     }
-    public static boolean isRegisterRecipe(RecipeRef ref) { return INDEPENDENT_REGISTER.equals(ref); }
+    public static boolean isRegisterRecipe(RecipeRef ref) { return INDEPENDENT_REGISTER.equals(ref) || INDEPENDENT_REGISTER_RLS.equals(ref); }
     public static String registerBaseType(String period) {
         return descriptor(INDEPENDENT_REGISTER).orElseThrow().effectiveProfile(period).baseType();
     }
@@ -160,7 +161,16 @@ public final class RecipeCatalog {
                 List.of("root entity Java with InternedContract","domain normalization/findOrCreate Java","compile/runtime acceptance fixture"),
                 List.of("exact natural-key UNIQUE, NULLS DISTINCT, NOT NULL active branch","no generic UPDATE/DELETE; CREATE only by explicit exception"),
                 List.of("InternedPostgresIT","AttributeValueServiceTest","SklNomOpaServiceTest","EntityTypesAcceptanceTest: InternedLabel"),List.of("INTERNED_IDENTITY_AND_OPERATIONS_DRAFT_CONTRACT")),
-            registerRecipe("independent-register-v1",false,reads),registerRecipe("recorded-register-v1",true,reads));
+            registerRecipe("independent-register-v1",false,reads), registerRlsRecipe(reads),
+            registerRecipe("recorded-register-v1",true,reads));
+    }
+    private static Recipe registerRlsRecipe(Set<String> reads) {
+        var base = registerRecipe("independent-register-v1", false, reads);
+        return new Recipe(INDEPENDENT_REGISTER_RLS, base.kind(), base.baseType(), base.baseApiRoleAtCapture(),
+            base.phase(), base.reads(), base.writes(),
+            List.of("ET6_ET7_REGISTER_CLASSIFICATION", "REGISTER_ENGINE_OPERATIONS", "RLS_NUMERIC_REFERENCE_FILTERS"),
+            List.of("explicit RLS dimension and reference dimension field; no automatic grants"),
+            base.files(), base.schemaConstraints(), base.acceptanceFixtures(), base.draftBlockers());
     }
     private static Recipe registerRecipe(String id, boolean recorded, Set<String> reads) {
         return new Recipe(new RecipeRef(id,1),"INFORMATION_REGISTER","org.ipro.crud.BaseEntity",

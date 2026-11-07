@@ -1,12 +1,15 @@
 package org.ip.model;
 
+import org.ipro.data.SearchFields;
+
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.Check;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.register.PeriodicRecordedRegisterEntryBase;
 import org.ipro.register.RegisterMetadata;
@@ -31,23 +34,25 @@ import org.ipro.register.RegisterPeriodicity;
     period = "period", periodicity = RegisterPeriodicity.EXACT,
     recorderTypes = {AccountingObjectInstallation.class, AccountingObjectCorrection.class}, keyChangeAllowed = true,
     displayName = "Объекты учёта номенклатуры")
+@RlsLabels(code = "workshop.code", name = "nomenclature.code")
+@SearchFields({"workshop.code", "nomenclature.code", "nomenclature.name", "accountingType.name"})
 public class NomenclatureAccountingObject extends PeriodicRecordedRegisterEntryBase {
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workshop_id", nullable = false)
     @FieldMetadata(label = "Цех", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3), lookup = @Lookup(entity = Workshop.class))
+        grid = @GridColumn(order = 3))
     private Workshop workshop;
 
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @FieldMetadata(label = "Номенклатура", required = RequiredMode.REQUIRED, order = 4,
-        grid = @GridColumn(order = 4), lookup = @Lookup(entity = Nomenclature.class))
+        grid = @GridColumn(order = 4))
     private Nomenclature nomenclature;
 
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "accounting_type_id", nullable = false)
     @FieldMetadata(label = "Тип учёта", required = RequiredMode.REQUIRED, order = 5,
-        grid = @GridColumn(order = 5), lookup = @Lookup(entity = AccountingType.class))
+        grid = @GridColumn(order = 5))
     private AccountingType accountingType;
 
     public Workshop getWorkshop() { return workshop; }

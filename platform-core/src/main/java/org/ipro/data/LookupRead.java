@@ -2,6 +2,7 @@ package org.ipro.data;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -13,17 +14,26 @@ import java.util.Objects;
  * @param limit           максимум записей; больше {@link org.ipro.crud.EntityLookup#MAX_LIMIT}
  *                        — отказ: lookup с огромным лимитом и есть выгрузка таблицы
  * @param additionalPaths дополнительные JPA-пути
+ * @param filters         отбор выбора «путь → значение» (скаляр — равенство, коллекция — IN);
+ *                        действует вместе с поиском по терму, RLS и планом LOOKUP (Б1)
  */
 public record LookupRead<T>(Class<T> type,
                             List<String> searchFields,
                             String term,
                             int limit,
-                            Collection<String> additionalPaths) {
+                            Collection<String> additionalPaths,
+                            Map<String, Object> filters) {
+
+    public LookupRead(Class<T> type, List<String> searchFields, String term, int limit,
+                      Collection<String> additionalPaths) {
+        this(type, searchFields, term, limit, additionalPaths, Map.of());
+    }
 
     public LookupRead {
         Objects.requireNonNull(type, "type must not be null");
         searchFields = List.copyOf(searchFields == null ? List.<String>of() : searchFields);
         additionalPaths = List.copyOf(additionalPaths == null ? List.<String>of() : additionalPaths);
+        filters = SelectionFilters.normalized(filters);
         if (limit < 0) {
             throw new IllegalArgumentException("limit must not be negative");
         }

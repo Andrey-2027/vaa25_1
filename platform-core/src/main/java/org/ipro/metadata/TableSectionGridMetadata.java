@@ -10,9 +10,17 @@ import java.util.List;
 public final class TableSectionGridMetadata implements GridMetadata {
 
     private final TableSectionMetadataInfo sectionMeta;
+    private final List<ColumnPath> columns;
 
     public TableSectionGridMetadata(TableSectionMetadataInfo sectionMeta) {
+        this(sectionMeta, sectionMeta.getGridFields().stream()
+            .map(field -> ColumnPath.resolve(sectionMeta.getRowClass(), field.getName())).toList());
+    }
+
+    /** Final form defaults; section metadata and other openings remain unchanged. */
+    public TableSectionGridMetadata(TableSectionMetadataInfo sectionMeta, List<ColumnPath> columns) {
         this.sectionMeta = sectionMeta;
+        this.columns = List.copyOf(columns);
     }
 
     @Override
@@ -32,9 +40,7 @@ public final class TableSectionGridMetadata implements GridMetadata {
 
     @Override
     public List<ColumnPath> getListColumnPaths() {
-        return sectionMeta.getGridFields().stream()
-            .map(field -> ColumnPath.resolve(sectionMeta.getRowClass(), field.getName()))
-            .toList();
+        return columns;
     }
 
     @Override

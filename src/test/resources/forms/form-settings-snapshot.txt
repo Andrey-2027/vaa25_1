@@ -1,0 +1,485 @@
+# form-settings snapshot, entities=23
+
+== org.ip.model.AccountingObjectCorrection
+titles: list='Корректировки объектов учёта' item='Корректировка объекта учёта' selection='Выбор корректировки объекта учёта'
+listColumns: number{label=Номер|type=TEXT|width=150px|flexGrow=0}, date{label=Дата|type=DATETIME|width=190px|flexGrow=0}, workshop.code{label=Цех.Код|type=TEXT|width=-|flexGrow=-}, workshop.name{label=Цех.Наименование|type=TEXT|width=-|flexGrow=-}
+selectColumns: number{label=Номер|type=TEXT|width=150px|flexGrow=0}, date{label=Дата|type=DATETIME|width=190px|flexGrow=0}, workshop.code{label=Цех.Код|type=TEXT|width=-|flexGrow=-}, workshop.name{label=Цех.Наименование|type=TEXT|width=-|flexGrow=-}
+explicit: list=true select=false
+formFields: number{label=Номер|order=1|required=true|type=TEXT|readOnly=false}, date{label=Дата|order=2|required=true|type=DATETIME|readOnly=false}, workshop{label=Цех|order=3|required=true|type=ENTITY_REFERENCE|readOnly=false}
+section.AccountingObjectCorrection.AccountingObjectCorrectionItem: row=org.ip.model.AccountingObjectCorrectionItem title='Номенклатура' order=999 minRows=1
+section.AccountingObjectCorrection.AccountingObjectCorrectionItem.columns: nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=-|flexGrow=1}, currentAccountingType{label=Текущий тип учёта|type=ENTITY_REFERENCE|width=180px|flexGrow=0}, accountingType{label=Новый тип учёта|type=ENTITY_REFERENCE|width=180px|flexGrow=0}
+section.AccountingObjectCorrection.AccountingObjectCorrectionItem.formFields: nomenclature{label=Номенклатура|order=1|required=true}, currentAccountingType{label=Текущий тип учёта|order=2|required=false}, accountingType{label=Новый тип учёта|order=3|required=true}
+section.AccountingObjectCorrection.AccountingObjectCorrectionItem.plan.ROW: accountingType,currentAccountingType,nomenclature
+searchFields: number
+displaySortFields: 
+instanceName: declared=true paths=number,date
+autocomplete.workshop: target=org.ip.model.Workshop variant=''
+autocomplete.workshop.fieldFactory: code,name
+autocomplete.workshop.contextFilterPanel: code,name
+autocomplete.workshop.lookupComboHelper: code,name
+displayName: 'number от 2026-01-02T03:04'
+rlsLabels: code='number' name='2026-01-02T03:04'
+plan.LIST: workshop,workshop.branch
+plan.DETAIL: workshop,workshop.branch
+plan.LOOKUP: 
+plan.ROW: workshop,workshop.branch
+
+== org.ip.model.AccountingObjectInstallation
+titles: list='Установки объектов учёта' item='Установка объекта учёта' selection='Выбор установки объекта учёта'
+listColumns: number{label=Номер|type=TEXT|width=150px|flexGrow=0}, date{label=Дата|type=DATETIME|width=190px|flexGrow=0}, workshop.code{label=Цех.Код|type=TEXT|width=-|flexGrow=-}, workshop.name{label=Цех.Наименование|type=TEXT|width=-|flexGrow=-}
+selectColumns: number{label=Номер|type=TEXT|width=150px|flexGrow=0}, date{label=Дата|type=DATETIME|width=190px|flexGrow=0}, workshop.code{label=Цех.Код|type=TEXT|width=-|flexGrow=-}, workshop.name{label=Цех.Наименование|type=TEXT|width=-|flexGrow=-}
+explicit: list=true select=false
+formFields: number{label=Номер|order=1|required=true|type=TEXT|readOnly=false}, date{label=Дата|order=2|required=true|type=DATETIME|readOnly=false}, workshop{label=Цех|order=3|required=true|type=ENTITY_REFERENCE|readOnly=false}
+section.AccountingObjectInstallation.AccountingObjectInstallationItem: row=org.ip.model.AccountingObjectInstallationItem title='Номенклатура' order=999 minRows=1
+section.AccountingObjectInstallation.AccountingObjectInstallationItem.columns: nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=-|flexGrow=1}, accountingType{label=Тип учёта|type=ENTITY_REFERENCE|width=180px|flexGrow=0}
+section.AccountingObjectInstallation.AccountingObjectInstallationItem.formFields: nomenclature{label=Номенклатура|order=1|required=true}, accountingType{label=Тип учёта|order=3|required=true}
+section.AccountingObjectInstallation.AccountingObjectInstallationItem.plan.ROW: accountingType,nomenclature
+searchFields: number
+displaySortFields: 
+instanceName: declared=true paths=number,date
+autocomplete.workshop: target=org.ip.model.Workshop variant=''
+autocomplete.workshop.fieldFactory: code,name
+autocomplete.workshop.contextFilterPanel: code,name
+autocomplete.workshop.lookupComboHelper: code,name
+displayName: 'number от 2026-01-02T03:04'
+rlsLabels: code='number' name='2026-01-02T03:04'
+plan.LIST: workshop,workshop.branch
+plan.DETAIL: workshop,workshop.branch
+plan.LOOKUP: 
+plan.ROW: workshop,workshop.branch
+
+== org.ip.model.AccountingType
+titles: list='Типы учёта' item='Тип учёта' selection='Выбор типа учёта'
+listColumns: code{label=Код|type=TEXT|width=140px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+selectColumns: code{label=Код|type=TEXT|width=140px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+explicit: list=true select=true
+formFields: code{label=Код|order=1|required=true|type=TEXT|readOnly=false}, name{label=Наименование|order=2|required=true|type=TEXT|readOnly=false}
+searchFields: code,name
+displaySortFields: 
+instanceName: declared=false paths=
+displayName: 'name'
+rlsLabels: code='code' name='name'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.AttributeType
+titles: list='Типы атрибутов' item='Тип атрибута' selection='Выбор типа атрибута'
+listColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}, valueType{label=Тип значения|type=ENUM|width=180px|flexGrow=0}, targetDictionary{label=Словарь (для типа «Ссылка»)|type=TEXT|width=220px|flexGrow=0}, active{label=Активен|type=BOOLEAN|width=100px|flexGrow=0}
+selectColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}, valueType{label=Тип значения|type=ENUM|width=180px|flexGrow=0}
+explicit: list=false select=true
+formFields: code{label=Код|order=1|required=true|type=TEXT|readOnly=false}, name{label=Наименование|order=2|required=true|type=TEXT|readOnly=false}, valueType{label=Тип значения|order=3|required=true|type=ENUM|readOnly=false}, targetDictionary{label=Словарь (для типа «Ссылка»)|order=4|required=false|type=TEXT|readOnly=false}, active{label=Активен|order=5|required=false|type=BOOLEAN|readOnly=false}
+searchFields: code,name
+displaySortFields: code,name
+instanceName: declared=false paths=
+displayName: 'code name'
+rlsLabels: code='code' name='name'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.AttributeValue
+titles: list='Значения атрибутов' item='Значение атрибута' selection='Выбор значения атрибута'
+listColumns: attrType{label=Тип атрибута|type=ENTITY_REFERENCE|width=200px|flexGrow=0}, code{label=Код|type=TEXT|width=200px|flexGrow=0}, name{label=Значение|type=TEXT|width=-|flexGrow=1}
+selectColumns: code{label=Код|type=TEXT|width=200px|flexGrow=0}, name{label=Значение|type=TEXT|width=-|flexGrow=1}
+explicit: list=false select=true
+formFields: attrType{label=Тип атрибута|order=1|required=true|type=ENTITY_REFERENCE|readOnly=false}, code{label=Код|order=2|required=true|type=TEXT|readOnly=false}, name{label=Значение|order=3|required=true|type=TEXT|readOnly=false}
+searchFields: code,name
+displaySortFields: code,name
+instanceName: declared=false paths=
+autocomplete.attrType: target=org.ip.model.AttributeType variant=''
+autocomplete.attrType.fieldFactory: code,name
+autocomplete.attrType.contextFilterPanel: code,name
+autocomplete.attrType.lookupComboHelper: code,name
+displayName: 'code name'
+rlsLabels: code='code' name='name'
+plan.LIST: attrType
+plan.DETAIL: attrType
+plan.LOOKUP: attrType
+plan.ROW: attrType
+
+== org.ip.model.Branch
+titles: list='Филиалы' item='Филиал' selection='Выбор филиала'
+listColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+selectColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+explicit: list=false select=true
+formFields: code{label=Код|order=1|required=true|type=TEXT|readOnly=false}, name{label=Наименование|order=2|required=true|type=TEXT|readOnly=false}
+searchFields: code,name
+displaySortFields: code,name
+instanceName: declared=false paths=
+displayName: 'code name'
+rlsLabels: code='code' name='name'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.GridFormView
+titles: list='Виды форм списка' item='Вид формы списка' selection='Выбор вида'
+listColumns: formKey{label=Реестр (форма)|type=TEXT|width=220px|flexGrow=0}, name{label=Название|type=TEXT|width=-|flexGrow=1}, shared{label=Общий (виден и редактируем всеми)|type=BOOLEAN|width=110px|flexGrow=0}
+selectColumns: formKey{label=Реестр (форма)|type=TEXT|width=220px|flexGrow=0}, name{label=Название|type=TEXT|width=-|flexGrow=1}, shared{label=Общий (виден и редактируем всеми)|type=BOOLEAN|width=110px|flexGrow=0}
+explicit: list=false select=false
+formFields: formKey{label=Реестр (форма)|order=1|required=true|type=TEXT|readOnly=false}, name{label=Название|order=2|required=true|type=TEXT|readOnly=false}, columns{label=Колонки|order=3|required=false|type=TEXT|readOnly=false}, shared{label=Общий (виден и редактируем всеми)|order=4|required=false|type=BOOLEAN|readOnly=false}
+searchFields: name,formKey
+displaySortFields: 
+instanceName: declared=false paths=
+displayName: 'GridFormView#1'
+rlsLabels: code='formKey' name='name'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.GroupNom
+titles: list='Группы номенклатуры' item='Группа номенклатуры' selection='Выбор группы номенклатуры'
+listColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+selectColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+explicit: list=false select=true
+formFields: code{label=Код|order=1|required=true|type=TEXT|readOnly=false}, name{label=Наименование|order=2|required=true|type=TEXT|readOnly=false}
+searchFields: code,name
+displaySortFields: code,name
+instanceName: declared=false paths=
+displayName: 'code name'
+rlsLabels: code='code' name='name'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.Journal
+titles: list='Журналы' item='Журнал' selection='Выбор журнала'
+listColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+selectColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+explicit: list=false select=true
+formFields: code{label=Код|order=1|required=true|type=TEXT|readOnly=false}, name{label=Наименование|order=2|required=true|type=TEXT|readOnly=false}
+searchFields: code,name
+displaySortFields: code,name
+instanceName: declared=false paths=
+displayName: 'code name'
+rlsLabels: code='code' name='name'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.NomAttributeValue
+titles: list='Атрибуты номенклатуры' item='Атрибут номенклатуры' selection='Выбор атрибута номенклатуры'
+listColumns: attrType{label=Тип атрибута|type=ENTITY_REFERENCE|width=200px|flexGrow=0}, attrValue{label=Значение|type=ENTITY_REFERENCE|width=-|flexGrow=1}
+selectColumns: nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=-|flexGrow=0}, attrType{label=Тип атрибута|type=ENTITY_REFERENCE|width=200px|flexGrow=0}, attrValue{label=Значение|type=ENTITY_REFERENCE|width=-|flexGrow=1}
+explicit: list=false select=true
+formFields: nomenclature{label=Номенклатура|order=1|required=true|type=ENTITY_REFERENCE|readOnly=false}, attrType{label=Тип атрибута|order=2|required=true|type=ENTITY_REFERENCE|readOnly=false}, attrValue{label=Значение|order=3|required=true|type=ENTITY_REFERENCE|readOnly=false}
+searchFields: 
+displaySortFields: attrType,attrValue
+instanceName: declared=false paths=
+autocomplete.nomenclature: target=org.ip.model.Nomenclature variant=''
+autocomplete.nomenclature.fieldFactory: code,name
+autocomplete.nomenclature.contextFilterPanel: code,name
+autocomplete.nomenclature.lookupComboHelper: code,name
+autocomplete.attrType: target=org.ip.model.AttributeType variant=''
+autocomplete.attrType.fieldFactory: code,name
+autocomplete.attrType.contextFilterPanel: code,name
+autocomplete.attrType.lookupComboHelper: code,name
+autocomplete.attrValue: target=org.ip.model.AttributeValue variant=''
+autocomplete.attrValue.fieldFactory: code,name
+autocomplete.attrValue.contextFilterPanel: code,name
+autocomplete.attrValue.lookupComboHelper: code,name
+displayName: 'attrType.code attrType.name: attrValue.code attrValue.name'
+rlsLabels: code='nomenclature.code - nomenclature.name' name='attrType.code - attrType.name'
+plan.LIST: attrType,attrValue,attrValue.attrType
+plan.DETAIL: attrType,attrValue,attrValue.attrType,nomenclature
+plan.LOOKUP: attrType,attrValue,attrValue.attrType,nomenclature
+plan.ROW: attrType,attrValue,attrValue.attrType
+
+== org.ip.model.NomSklAttribute
+titles: list='Атрибуты КСУ номенклатуры' item='Атрибут КСУ номенклатуры' selection='Выбор атрибута КСУ'
+listColumns: nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, attrType{label=Атрибут КСУ|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, required{label=Обязателен|type=BOOLEAN|width=120px|flexGrow=0}
+selectColumns: nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, attrType{label=Атрибут КСУ|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, required{label=Обязателен|type=BOOLEAN|width=120px|flexGrow=0}
+explicit: list=false select=true
+formFields: nomenclature{label=Номенклатура|order=1|required=true|type=ENTITY_REFERENCE|readOnly=false}, attrType{label=Атрибут КСУ|order=2|required=true|type=ENTITY_REFERENCE|readOnly=false}, required{label=Обязателен|order=3|required=false|type=BOOLEAN|readOnly=false}
+searchFields: 
+displaySortFields: attrType,nomenclature
+instanceName: declared=false paths=
+autocomplete.nomenclature: target=org.ip.model.Nomenclature variant=''
+autocomplete.nomenclature.fieldFactory: code,name
+autocomplete.nomenclature.contextFilterPanel: code,name
+autocomplete.nomenclature.lookupComboHelper: code,name
+autocomplete.attrType: target=org.ip.model.AttributeType variant=''
+autocomplete.attrType.fieldFactory: code,name
+autocomplete.attrType.contextFilterPanel: code,name
+autocomplete.attrType.lookupComboHelper: code,name
+displayName: 'attrType.code attrType.name'
+rlsLabels: code='nomenclature.code - nomenclature.name' name='attrType.code - attrType.name'
+plan.LIST: attrType,nomenclature
+plan.DETAIL: attrType,nomenclature
+plan.LOOKUP: attrType,nomenclature
+plan.ROW: attrType,nomenclature
+
+== org.ip.model.Nomenclature
+titles: list='Номенклатура' item='Элемент номенклатуры' selection='Выбор номенклатуры'
+listColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}, unitOfMeasurement{label=Единица измерения|type=ENTITY_REFERENCE|width=200px|flexGrow=0}, groupNom{label=Группа номенклатуры|type=ENTITY_REFERENCE|width=200px|flexGrow=0}, typeNom{label=Тип|type=TEXT|width=150px|flexGrow=0}
+selectColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}, typeNom{label=Тип|type=TEXT|width=150px|flexGrow=0}
+explicit: list=false select=true
+formFields: code{label=Код|order=1|required=true|type=TEXT|readOnly=false}, name{label=Наименование|order=2|required=true|type=TEXT|readOnly=false}, unitOfMeasurement{label=Единица измерения|order=3|required=true|type=ENTITY_REFERENCE|readOnly=false}, groupNom{label=Группа номенклатуры|order=4|required=false|type=ENTITY_REFERENCE|readOnly=false}, typeNom{label=Тип|order=5|required=false|type=TEXT|readOnly=false}
+section.Nomenclature.NomAttributeValue: row=org.ip.model.NomAttributeValue title='Атрибуты номенклатуры' order=999 minRows=0
+section.Nomenclature.NomAttributeValue.columns: attrType{label=Тип атрибута|type=ENTITY_REFERENCE|width=200px|flexGrow=0}, attrValue{label=Значение|type=ENTITY_REFERENCE|width=-|flexGrow=1}
+section.Nomenclature.NomAttributeValue.formFields: nomenclature{label=Номенклатура|order=1|required=true}, attrType{label=Тип атрибута|order=2|required=true}, attrValue{label=Значение|order=3|required=true}
+section.Nomenclature.NomAttributeValue.plan.ROW: attrType,attrValue,attrValue.attrType
+searchFields: code,name
+displaySortFields: code,name
+instanceName: declared=true paths=code,name
+autocomplete.unitOfMeasurement: target=org.ip.model.UnitOfMeasurement variant=''
+autocomplete.unitOfMeasurement.fieldFactory: shortCode
+autocomplete.unitOfMeasurement.contextFilterPanel: shortCode
+autocomplete.unitOfMeasurement.lookupComboHelper: shortCode
+autocomplete.groupNom: target=org.ip.model.GroupNom variant=''
+autocomplete.groupNom.fieldFactory: code,name
+autocomplete.groupNom.contextFilterPanel: code,name
+autocomplete.groupNom.lookupComboHelper: code,name
+displayName: 'code name'
+rlsLabels: code='code' name='name'
+plan.LIST: groupNom,unitOfMeasurement
+plan.DETAIL: groupNom,unitOfMeasurement
+plan.LOOKUP: unitOfMeasurement
+plan.ROW: groupNom,unitOfMeasurement
+
+== org.ip.model.NomenclatureAccountingObject
+titles: list='Объекты учёта номенклатуры' item='Объект учёта номенклатуры' selection='Выбор объекта учёта'
+listColumns: workshop.code{label=Цех.Код|type=TEXT|width=-|flexGrow=-}, nomenclature.code{label=Номенклатура.Код|type=TEXT|width=-|flexGrow=-}, nomenclature.name{label=Номенклатура.Наименование|type=TEXT|width=-|flexGrow=-}, period{label=Период|type=DATETIME|width=150px|flexGrow=0}, accountingType.name{label=Тип учёта.Наименование|type=TEXT|width=-|flexGrow=-}
+selectColumns: workshop.code{label=Цех.Код|type=TEXT|width=-|flexGrow=-}, nomenclature.code{label=Номенклатура.Код|type=TEXT|width=-|flexGrow=-}, nomenclature.name{label=Номенклатура.Наименование|type=TEXT|width=-|flexGrow=-}, period{label=Период|type=DATETIME|width=150px|flexGrow=0}, accountingType.name{label=Тип учёта.Наименование|type=TEXT|width=-|flexGrow=-}
+explicit: list=true select=true
+formFields: period{label=Период|order=2|required=true|type=DATETIME|readOnly=false}, workshop{label=Цех|order=3|required=true|type=ENTITY_REFERENCE|readOnly=false}, nomenclature{label=Номенклатура|order=4|required=true|type=ENTITY_REFERENCE|readOnly=false}, accountingType{label=Тип учёта|order=5|required=true|type=ENTITY_REFERENCE|readOnly=false}
+searchFields: workshop.code,nomenclature.code,nomenclature.name,accountingType.name
+displaySortFields: 
+instanceName: declared=false paths=
+autocomplete.workshop: target=org.ip.model.Workshop variant=''
+autocomplete.workshop.fieldFactory: code,name
+autocomplete.workshop.contextFilterPanel: code,name
+autocomplete.workshop.lookupComboHelper: code,name
+autocomplete.nomenclature: target=org.ip.model.Nomenclature variant=''
+autocomplete.nomenclature.fieldFactory: code,name
+autocomplete.nomenclature.contextFilterPanel: code,name
+autocomplete.nomenclature.lookupComboHelper: code,name
+autocomplete.accountingType: target=org.ip.model.AccountingType variant=''
+autocomplete.accountingType.fieldFactory: code,name
+autocomplete.accountingType.contextFilterPanel: code,name
+autocomplete.accountingType.lookupComboHelper: code,name
+displayName: 'NomenclatureAccountingObject#1'
+rlsLabels: code='workshop.code' name='nomenclature.code'
+plan.LIST: accountingType,nomenclature,workshop,workshop.branch
+plan.DETAIL: accountingType,nomenclature,workshop,workshop.branch
+plan.LOOKUP: accountingType,nomenclature,workshop,workshop.branch
+plan.ROW: accountingType,nomenclature,workshop,workshop.branch
+
+== org.ip.model.NomenclaturePrice
+titles: list='Цены номенклатуры' item='Цена номенклатуры' selection='Выбор цены номенклатуры'
+listColumns: nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=300px|flexGrow=0}, period{label=Период|type=DATETIME|width=150px|flexGrow=0}, price{label=Цена|type=DECIMAL|width=160px|flexGrow=0}
+selectColumns: nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=300px|flexGrow=0}, period{label=Период|type=DATETIME|width=150px|flexGrow=0}, price{label=Цена|type=DECIMAL|width=160px|flexGrow=0}
+explicit: list=false select=true
+formFields: nomenclature{label=Номенклатура|order=1|required=true|type=ENTITY_REFERENCE|readOnly=false}, period{label=Период|order=2|required=true|type=DATETIME|readOnly=false}, price{label=Цена|order=3|required=true|type=DECIMAL|readOnly=false}
+searchFields: 
+displaySortFields: 
+instanceName: declared=false paths=
+autocomplete.nomenclature: target=org.ip.model.Nomenclature variant=''
+autocomplete.nomenclature.fieldFactory: code,name
+autocomplete.nomenclature.contextFilterPanel: code,name
+autocomplete.nomenclature.lookupComboHelper: code,name
+displayName: 'NomenclaturePrice#1'
+rlsLabels: code='nomenclature.code - nomenclature.name' name='2026-01-02T03:04'
+plan.LIST: nomenclature
+plan.DETAIL: nomenclature
+plan.LOOKUP: nomenclature
+plan.ROW: nomenclature
+
+== org.ip.model.Oper
+titles: list='Операции' item='Операция' selection='Выбор операции'
+listColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+selectColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}
+explicit: list=false select=true
+formFields: code{label=Код|order=1|required=true|type=TEXT|readOnly=false}, name{label=Наименование|order=2|required=true|type=TEXT|readOnly=false}
+searchFields: code,name
+displaySortFields: code,name
+instanceName: declared=false paths=
+displayName: 'code name'
+rlsLabels: code='code' name='name'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.PrdSpec
+titles: list='Спецификации' item='Спецификация' selection='Выбор спецификации'
+listColumns: journal{label=Журнал|type=ENTITY_REFERENCE|width=200px|flexGrow=0}, nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, codeSpec{label=Код спецификации|type=TEXT|width=200px|flexGrow=0}, draft{label=Обозначение|type=TEXT|width=200px|flexGrow=0}, comment{label=Комментарий|type=TEXT|width=-|flexGrow=0}
+selectColumns: codeSpec{label=Код спецификации|type=TEXT|width=200px|flexGrow=0}, nomenclature.name{label=Номенклатура.Наименование|type=TEXT|width=-|flexGrow=-}
+explicit: list=false select=true
+formFields: journal{label=Журнал|order=1|required=true|type=ENTITY_REFERENCE|readOnly=false}, nomenclature{label=Номенклатура|order=2|required=true|type=ENTITY_REFERENCE|readOnly=false}, codeSpec{label=Код спецификации|order=3|required=true|type=TEXT|readOnly=false}, draft{label=Обозначение|order=4|required=false|type=TEXT|readOnly=false}, comment{label=Комментарий|order=5|required=false|type=TEXT|readOnly=false}
+section.PrdSpec.PrdSpecMtr: row=org.ip.model.PrdSpecMtr title='Компоненты спецификации' order=999 minRows=1
+section.PrdSpec.PrdSpecMtr.columns: typeMtr{label=Тип|type=INTEGER|width=100px|flexGrow=0}, prdSpecMtr{label=Спецификация компонента|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, unit{label=Единица измерения|type=ENTITY_REFERENCE|width=150px|flexGrow=0}, qt{label=Количество|type=DECIMAL|width=150px|flexGrow=0}
+section.PrdSpec.PrdSpecMtr.formFields: typeMtr{label=Тип|order=1|required=true}, prdSpecMtr{label=Спецификация компонента|order=2|required=false}, nomenclature{label=Номенклатура|order=3|required=false}, unit{label=Единица измерения|order=4|required=false}, qt{label=Количество|order=5|required=false}
+section.PrdSpec.PrdSpecMtr.plan.ROW: nomenclature,prdSpecMtr,prdSpecMtr.journal,prdSpecMtr.nomenclature,unit
+section.PrdSpec.PrdSpecOper: row=org.ip.model.PrdSpecOper title='Операции спецификации' order=999 minRows=1
+section.PrdSpec.PrdSpecOper.columns: oper{label=Операция|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, ceh{label=Цех|type=ENTITY_REFERENCE|width=200px|flexGrow=0}, route{label=Маршрут|type=TEXT|width=200px|flexGrow=0}, order{label=Порядок|type=INTEGER|width=100px|flexGrow=0}
+section.PrdSpec.PrdSpecOper.formFields: oper{label=Операция|order=1|required=false}, ceh{label=Цех|order=2|required=false}, route{label=Маршрут|order=3|required=false}, order{label=Порядок|order=4|required=false}
+section.PrdSpec.PrdSpecOper.plan.ROW: ceh,ceh.branch,oper
+searchFields: codeSpec,draft
+displaySortFields: codeSpec
+instanceName: declared=false paths=
+autocomplete.journal: target=org.ip.model.Journal variant=''
+autocomplete.journal.fieldFactory: code,name
+autocomplete.journal.contextFilterPanel: code,name
+autocomplete.journal.lookupComboHelper: code,name
+autocomplete.nomenclature: target=org.ip.model.Nomenclature variant=''
+autocomplete.nomenclature.fieldFactory: code,name
+autocomplete.nomenclature.contextFilterPanel: code,name
+autocomplete.nomenclature.lookupComboHelper: code,name
+displayName: 'codeSpec (nomenclature.code nomenclature.name)'
+rlsLabels: code='codeSpec' name='nomenclature.name'
+plan.LIST: journal,nomenclature
+plan.DETAIL: journal,nomenclature
+plan.LOOKUP: journal,nomenclature,nomenclature.unitOfMeasurement
+plan.ROW: journal,nomenclature
+
+== org.ip.model.PrdSpecMtr
+titles: list='Компоненты спецификации' item='Компонент' selection='Компоненты спецификации'
+listColumns: typeMtr{label=Тип|type=INTEGER|width=100px|flexGrow=0}, prdSpecMtr{label=Спецификация компонента|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, unit{label=Единица измерения|type=ENTITY_REFERENCE|width=150px|flexGrow=0}, qt{label=Количество|type=DECIMAL|width=150px|flexGrow=0}
+selectColumns: typeMtr{label=Тип|type=INTEGER|width=100px|flexGrow=0}, prdSpecMtr{label=Спецификация компонента|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=250px|flexGrow=0}, unit{label=Единица измерения|type=ENTITY_REFERENCE|width=150px|flexGrow=0}, qt{label=Количество|type=DECIMAL|width=150px|flexGrow=0}
+explicit: list=false select=false
+formFields: typeMtr{label=Тип|order=1|required=true|type=INTEGER|readOnly=false}, prdSpecMtr{label=Спецификация компонента|order=2|required=false|type=ENTITY_REFERENCE|readOnly=false}, nomenclature{label=Номенклатура|order=3|required=false|type=ENTITY_REFERENCE|readOnly=false}, unit{label=Единица измерения|order=4|required=false|type=ENTITY_REFERENCE|readOnly=false}, qt{label=Количество|order=5|required=false|type=DECIMAL|readOnly=false}
+searchFields: 
+displaySortFields: 
+instanceName: declared=false paths=
+autocomplete.prdSpecMtr: target=org.ip.model.PrdSpec variant=''
+autocomplete.prdSpecMtr.fieldFactory: codeSpec,draft
+autocomplete.prdSpecMtr.contextFilterPanel: codeSpec,draft
+autocomplete.prdSpecMtr.lookupComboHelper: codeSpec,draft
+autocomplete.nomenclature: target=org.ip.model.Nomenclature variant=''
+autocomplete.nomenclature.fieldFactory: code,name
+autocomplete.nomenclature.contextFilterPanel: code,name
+autocomplete.nomenclature.lookupComboHelper: code,name
+autocomplete.unit: target=org.ip.model.UnitOfMeasurement variant=''
+autocomplete.unit.fieldFactory: shortCode
+autocomplete.unit.contextFilterPanel: shortCode
+autocomplete.unit.lookupComboHelper: shortCode
+displayName: 'PrdSpecMtr#1'
+rlsLabels: code='1' name='prdSpecMtr.codeSpec'
+plan.LIST: nomenclature,prdSpecMtr,prdSpecMtr.journal,prdSpecMtr.nomenclature,unit
+plan.DETAIL: nomenclature,prdSpecMtr,prdSpecMtr.journal,prdSpecMtr.nomenclature,unit
+plan.LOOKUP: nomenclature,prdSpecMtr,prdSpecMtr.journal,prdSpecMtr.nomenclature,unit
+plan.ROW: nomenclature,prdSpecMtr,prdSpecMtr.journal,prdSpecMtr.nomenclature,unit
+
+== org.ip.model.ReceivingDocument
+titles: list='Приёмно-сдаточные накладные' item='Накладная' selection='Выбор накладной'
+listColumns: id{label=id|type=INTEGER|width=-|flexGrow=-}, number{label=Номер|type=TEXT|width=150px|flexGrow=0}, date{label=Дата|type=DATE|width=150px|flexGrow=0}, journal.code{label=Журнал.Код|type=TEXT|width=-|flexGrow=-}, receivingWorkshop.code{label=Цех приёмщик.Код|type=TEXT|width=-|flexGrow=-}, transferringWorkshop{label=Цех сдатчик|type=ENTITY_REFERENCE|width=-|flexGrow=1}, transferringWorkshop.name{label=Цех сдатчик.Наименование|type=TEXT|width=-|flexGrow=-}
+selectColumns: id{label=id|type=INTEGER|width=-|flexGrow=-}, number{label=Номер|type=TEXT|width=150px|flexGrow=0}, date{label=Дата|type=DATE|width=150px|flexGrow=0}, journal.code{label=Журнал.Код|type=TEXT|width=-|flexGrow=-}, receivingWorkshop.code{label=Цех приёмщик.Код|type=TEXT|width=-|flexGrow=-}, transferringWorkshop{label=Цех сдатчик|type=ENTITY_REFERENCE|width=-|flexGrow=1}, transferringWorkshop.name{label=Цех сдатчик.Наименование|type=TEXT|width=-|flexGrow=-}
+explicit: list=true select=false
+formFields: journal{label=Журнал|order=0|required=true|type=ENTITY_REFERENCE|readOnly=false}, number{label=Номер|order=1|required=true|type=TEXT|readOnly=false}, date{label=Дата|order=2|required=true|type=DATE|readOnly=false}, receivingWorkshop{label=Цех приёмщик|order=3|required=true|type=ENTITY_REFERENCE|readOnly=false}, transferringWorkshop{label=Цех сдатчик|order=4|required=true|type=ENTITY_REFERENCE|readOnly=false}
+section.ReceivingDocument.ReceivingDocumentItem: row=org.ip.model.ReceivingDocumentItem title='Позиции' order=999 minRows=1
+section.ReceivingDocument.ReceivingDocumentItem.columns: nomenclature{label=Номенклатура|type=ENTITY_REFERENCE|width=-|flexGrow=1}, quantity{label=Количество|type=DECIMAL|width=140px|flexGrow=0}
+section.ReceivingDocument.ReceivingDocumentItem.formFields: nomenclature{label=Номенклатура|order=1|required=true}, quantity{label=Количество|order=2|required=true}
+section.ReceivingDocument.ReceivingDocumentItem.plan.ROW: nomenclature
+searchFields: number
+displaySortFields: 
+instanceName: declared=true paths=number,date
+autocomplete.journal: target=org.ip.model.Journal variant=''
+autocomplete.journal.fieldFactory: code,name
+autocomplete.journal.contextFilterPanel: code,name
+autocomplete.journal.lookupComboHelper: code,name
+autocomplete.receivingWorkshop: target=org.ip.model.Workshop variant=''
+autocomplete.receivingWorkshop.fieldFactory: code,name
+autocomplete.receivingWorkshop.contextFilterPanel: code,name
+autocomplete.receivingWorkshop.lookupComboHelper: code,name
+autocomplete.transferringWorkshop: target=org.ip.model.Workshop variant=''
+autocomplete.transferringWorkshop.fieldFactory: code,name
+autocomplete.transferringWorkshop.contextFilterPanel: code,name
+autocomplete.transferringWorkshop.lookupComboHelper: code,name
+displayName: 'number от 2026-01-02'
+rlsLabels: code='1' name='number'
+plan.LIST: journal,receivingWorkshop,receivingWorkshop.branch,transferringWorkshop,transferringWorkshop.branch
+plan.DETAIL: journal,receivingWorkshop,receivingWorkshop.branch,transferringWorkshop,transferringWorkshop.branch
+plan.LOOKUP: 
+plan.ROW: journal,receivingWorkshop,receivingWorkshop.branch,transferringWorkshop,transferringWorkshop.branch
+
+== org.ip.model.Role
+titles: list='Роли' item='Роль' selection='Роли'
+listColumns: name{label=Название|type=TEXT|width=-|flexGrow=1}
+selectColumns: name{label=Название|type=TEXT|width=-|flexGrow=1}
+explicit: list=false select=false
+formFields: name{label=Название|order=1|required=true|type=TEXT|readOnly=false}
+searchFields: name
+displaySortFields: 
+instanceName: declared=false paths=
+displayName: 'Role#1'
+rlsLabels: code='name' name='Role#1'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.SklNomOpa
+titles: list='Наборы атрибутов КСУ' item='Набор атрибутов КСУ' selection='Выбор набора атрибутов'
+listColumns: 
+selectColumns: nomenclature{label=nomenclature|type=ENTITY_REFERENCE|width=-|flexGrow=-}, displayName{label=displayName|type=TEXT|width=-|flexGrow=-}
+explicit: list=false select=true
+formFields: 
+searchFields: displayName
+displaySortFields: displayName
+instanceName: declared=false paths=
+displayName: 'displayName'
+rlsLabels: code='nomenclature.code - nomenclature.name' name='displayName'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: nomenclature
+plan.ROW: 
+
+== org.ip.model.UnitOfMeasurement
+titles: list='Единицы измерения' item='Единица измерения' selection='Выбор единицы измерения'
+listColumns: shortCode{label=Краткий код|type=TEXT|width=100px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}, code{label=Код|type=TEXT|width=100px|flexGrow=0}
+selectColumns: code{label=Код|type=TEXT|width=100px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}, shortCode{label=Краткий код|type=TEXT|width=100px|flexGrow=0}
+explicit: list=false select=true
+formFields: shortCode{label=Краткий код|order=1|required=true|type=TEXT|readOnly=false}, name{label=Наименование|order=2|required=true|type=TEXT|readOnly=false}, code{label=Код|order=3|required=true|type=TEXT|readOnly=false}
+searchFields: shortCode
+displaySortFields: shortCode
+instanceName: declared=false paths=
+displayName: 'shortCode'
+rlsLabels: code='code' name='name'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.User
+titles: list='Пользователи' item='Пользователь' selection='Пользователи'
+listColumns: username{label=Логин|type=TEXT|width=200px|flexGrow=0}, enabled{label=Включён|type=BOOLEAN|width=100px|flexGrow=0}
+selectColumns: username{label=Логин|type=TEXT|width=200px|flexGrow=0}, enabled{label=Включён|type=BOOLEAN|width=100px|flexGrow=0}
+explicit: list=false select=false
+formFields: username{label=Логин|order=1|required=true|type=TEXT|readOnly=false}, enabled{label=Включён|order=2|required=false|type=BOOLEAN|readOnly=false}
+searchFields: username
+displaySortFields: 
+instanceName: declared=false paths=
+displayName: 'User#1'
+rlsLabels: code='username' name='true'
+plan.LIST: 
+plan.DETAIL: 
+plan.LOOKUP: 
+plan.ROW: 
+
+== org.ip.model.Workshop
+titles: list='Цеха' item='Цех' selection='Выбор цеха'
+listColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}, branch{label=Филиал|type=ENTITY_REFERENCE|width=180px|flexGrow=0}
+selectColumns: code{label=Код|type=TEXT|width=150px|flexGrow=0}, name{label=Наименование|type=TEXT|width=-|flexGrow=1}, branch{label=Филиал|type=ENTITY_REFERENCE|width=180px|flexGrow=0}
+explicit: list=false select=false
+formFields: code{label=Код|order=1|required=true|type=TEXT|readOnly=false}, name{label=Наименование|order=2|required=true|type=TEXT|readOnly=false}, branch{label=Филиал|order=3|required=false|type=ENTITY_REFERENCE|readOnly=false}
+searchFields: code,name
+displaySortFields: code
+instanceName: declared=false paths=
+autocomplete.branch: target=org.ip.model.Branch variant=''
+autocomplete.branch.fieldFactory: code,name
+autocomplete.branch.contextFilterPanel: code,name
+autocomplete.branch.lookupComboHelper: code,name
+displayName: 'code'
+rlsLabels: code='code' name='name'
+plan.LIST: branch
+plan.DETAIL: branch
+plan.LOOKUP: branch
+plan.ROW: branch

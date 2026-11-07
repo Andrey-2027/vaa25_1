@@ -49,7 +49,9 @@ class EffectiveMetadataSnapshotTest {
      * target}) не изменил ни одного effective-значения — это и доказывает эквивалентность
      * миграции. Изменилось другое: откуда значения берутся (см.
      * {@code effective-metadata-origins.txt}: 21 поле стало обязательным из Bean Validation,
-     * 18 ссылок и 24 типа — из JPA). Если любое значение поплывёт, diff перестанет быть пустым
+     * ссылки и типы — из JPA). AF1.4 дополнительно перенёс 17 целей ссылок из EXPLICIT в
+     * JPA_MAPPING: значения целей не изменились, распределение источников обновлено отдельно.
+     * Если любое значение поплывёт, diff перестанет быть пустым
      * и тест упадёт.</p>
      */
     // Information-register periodicity now stores a timestamp (see information-register-periodicity.md).

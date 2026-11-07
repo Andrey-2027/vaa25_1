@@ -41,6 +41,11 @@ public class SelectionForm<T> extends Dialog {
     private final Map<String, Object> contextValues = new LinkedHashMap<>();
     private final com.vaadin.flow.component.html.Span catalogOwnerNotice = new com.vaadin.flow.component.html.Span();
     private Class<?> catalogEntityType;
+    private java.util.List<org.ipro.form.builder.ContextFilterField> contextFields = java.util.List.of();
+    private org.ipro.form.builder.ContextFilterPanel contextPanel;
+    public void setContextFilterFields(Class<?> type, java.util.List<org.ipro.form.builder.ContextFilterField> fields) {
+        catalogEntityType = type; contextFields = java.util.List.copyOf(fields); refreshSpecification();
+    }
     void configureCatalogOwner(Class<?> type) { catalogEntityType = type; }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -109,6 +114,9 @@ public class SelectionForm<T> extends Dialog {
      */
     public void setHeaderRow(Component headerRow) {
         if (headerRow != null) {
+            if (headerRow instanceof org.ipro.form.builder.ContextFilterPanel panel) {
+                contextPanel = panel; panel.setValues(contextValues, fixedFilters);
+            }
             // Между строкой «Ещё» и гридом, чтобы «Ещё» оставалась на самом верху.
             int gridIndex = indexOf(filterGrid);
             addComponentAtIndex(gridIndex < 0 ? 0 : gridIndex, headerRow);
@@ -148,7 +156,7 @@ public class SelectionForm<T> extends Dialog {
      */
     public void setContextFilter(String path, Object value) {
         if (path == null || path.isBlank()) return;
-        if (value == null) {
+        if (org.ipro.form.builder.ContextFilterConditions.empty(value)) {
             contextValues.remove(path);
         } else {
             contextValues.put(path, value);
@@ -174,7 +182,10 @@ public class SelectionForm<T> extends Dialog {
         }
         filterGrid.getGrid().deselectAll();
         Specification<T> fixed = SelectionFormAssembler.specificationFor(fixedFilters);
-        Specification<T> context = SelectionFormAssembler.specificationFor(contextValues);
+        var editable = new LinkedHashMap<>(contextValues);
+        fixedFilters.keySet().forEach(editable::remove);
+        Specification<T> context = org.ipro.form.builder.ContextFilterConditions.specificationFor(catalogEntityType, contextFields, editable);
+        if (contextPanel != null) contextPanel.setValues(contextValues, fixedFilters);
         Specification<T> combined = fixed == null ? context
             : context == null ? fixed
             : Specification.where(fixed).and(context);

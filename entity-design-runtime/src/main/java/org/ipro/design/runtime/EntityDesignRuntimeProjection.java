@@ -35,6 +35,7 @@ public final class EntityDesignRuntimeProjection {
     private final NumberingMetadataRegistry numbering;
     private final MetadataConsistencyStartupCheck startup;
     private final RegisterFactsSource registers;
+    private final boolean numericReferenceRls;
     EntityDesignRuntimeProjection(EntityDescriptorCatalog descriptors, MetadataResolver metadata,
             SectionMetadataRegistry sections, NumberingMetadataRegistry numbering, MetadataConsistencyStartupCheck startup) {
         this(descriptors,metadata,sections,numbering,startup,null);
@@ -42,8 +43,14 @@ public final class EntityDesignRuntimeProjection {
     EntityDesignRuntimeProjection(EntityDescriptorCatalog descriptors, MetadataResolver metadata,
             SectionMetadataRegistry sections, NumberingMetadataRegistry numbering, MetadataConsistencyStartupCheck startup,
             RegisterFactsSource registers) {
+        this(descriptors, metadata, sections, numbering, startup, registers, false);
+    }
+    EntityDesignRuntimeProjection(EntityDescriptorCatalog descriptors, MetadataResolver metadata,
+            SectionMetadataRegistry sections, NumberingMetadataRegistry numbering, MetadataConsistencyStartupCheck startup,
+            RegisterFactsSource registers, boolean numericReferenceRls) {
         this.descriptors=descriptors; this.metadata=metadata; this.sections=sections; this.numbering=numbering;
         this.startup=startup; this.registers=registers;
+        this.numericReferenceRls=numericReferenceRls;
     }
     /** Portable bridge: platform descriptor → design-core facts; no DTO crosses the module edge. */
     static CatalogOwnerFacts ownerFacts(org.ipro.data.EntityDescriptor descriptor) {
@@ -154,6 +161,9 @@ public final class EntityDesignRuntimeProjection {
         prerequisites.put(REGISTER_FACTS,registerPrerequisite(registerFacts));
         prerequisites.put("REGISTER_ENGINE_OPERATIONS", registers == null
             ? new Prerequisite(Status.UNAVAILABLE, "Register engine bridge is absent") : registers.operations());
+        prerequisites.put("RLS_NUMERIC_REFERENCE_FILTERS", new Prerequisite(numericReferenceRls ? Status.AVAILABLE : Status.UNAVAILABLE,
+            numericReferenceRls ? "RlsDimensionRegistry and RlsFilterActivator supplied by the runtime owner; generated mappings require C/D acceptance"
+                : "RLS registry/filter owner was not supplied"));
         var diagnostics=startup.diagnostics().stream().map(d -> new Diagnostic(d.severity().name(),d.code(),d.entity(),
             d.field().isEmpty() ? d.entity() : d.entity()+"#"+d.field(),d.source(),d.message())).toList();
         return new RuntimeDesignSnapshot(snapshotId(types,prerequisites,diagnostics),true,types,prerequisites,diagnostics);

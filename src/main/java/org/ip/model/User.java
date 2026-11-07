@@ -1,5 +1,9 @@
 package org.ip.model;
 
+import org.ipro.data.SearchFields;
+
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -29,6 +33,8 @@ import java.util.Set;
     order = 930,
     icon = "USER"
 )
+@RlsLabels(code = "username", name = "enabled")
+@SearchFields({"username"})
 public class User extends BaseEntity {
 
     @NotBlank

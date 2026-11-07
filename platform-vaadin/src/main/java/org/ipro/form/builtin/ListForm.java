@@ -41,6 +41,9 @@ import org.ipro.form.builder.ContextFilterPanel;
 import org.ipro.form.registry.ListFormContext;
 import org.ipro.filtergrid.ComboBoxFilter;
 import org.ipro.filtergrid.DateRangeFilter;
+import org.ipro.filtergrid.PeriodFilter;
+import org.ipro.filtergrid.PeriodRange;
+import org.ipro.form.builder.ContextFilterConditions;
 import org.ipro.filtergrid.FieldFilter;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.filter.FilterFieldResolver.ResolvedFilterField;
@@ -188,7 +191,12 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     }
 
     public GridViewState captureViewState() {
-        return GridViewState.of(activeColumns, metadata.getEntityClass(), null, currentFilterTree())
+        List<ColumnPath> displayed = activeColumns.stream().map(path -> {
+            var column = getGrid().getColumnByKey(path.getKey());
+            return column == null ? path : path.withProperties(new ColumnPath.Spec(path.getKey(), null,
+                column.getWidth(), column.getFlexGrow(), null));
+        }).toList();
+        return GridViewState.of(displayed, metadata.getEntityClass(), null, currentFilterTree())
             .withOptions(viewOptions.get());
     }
 
@@ -208,6 +216,7 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     }
 
     private final EntityMetadataInfo metadata;
+    private List<ColumnPath> defaultColumns;
     private final org.ipro.filtergrid.FilterGrid<T> filterGrid;
     private final HorizontalLayout toolbar = new HorizontalLayout();
     private final Button addButton = new Button("Создать", VaadinIcon.PLUS.create());
@@ -301,7 +310,8 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     private final List<Consumer<ListFormContext>> contextChangeListeners = new ArrayList<>();
     private Specification<T> explicitContextFilter;
     private ContextFilterPanel contextFilterPanel;
-    private Button contextFilterToggle;
+    private final Map<String, ContextFilterField> contextFilterFields = new LinkedHashMap<>();
+    private VerticalLayout filterPanel;
 
     // === Конструктор 1: внешний FilterGrid ===
 
@@ -339,7 +349,8 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         try {
             if (pageReader != null) {
                 return pageReader.read(combineWithContext(spec), currentFilterTree(),
-                    getContextSnapshot().effectiveFilters(), explicitContextFilter != null,
+                    getContextSnapshot().effectiveFilters(), explicitContextFilter != null || contextFilterFields.values().stream()
+                        .anyMatch(field -> field.options().condition() != null && !ContextFilterConditions.empty(getContextFilterValue(field.path()))),
                     pageable, collectFetchPaths());
             }
             return service.findAll(combineWithContext(spec), pageable, collectFetchPaths());
@@ -446,6 +457,11 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         }
         rebuildContextSpecification();
     }
+    public void setOpeningFilter(org.ipro.form.registry.Filter<?> filter) {
+        var values = org.ipro.form.registry.Filter.values(metadata.getEntityClass(), filter);
+        values.forEach(this::setOpeningContextFilter);
+        if (contextFilterPanel == null) setContextFilters(List.of());
+    }
 
     /** Установить несколько фиксированных ограничений связи одним обновлением. */
     public void setOpeningContextFilters(Map<String, Object> filters) {
@@ -497,9 +513,11 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         catalogOwnerNotice.setVisible(owner != null);
         Specification<T> combined = combine(
             specificationForValues(openingContextFilterValues),
-            specificationForValues(contextFilterValues));
+            ContextFilterConditions.specificationFor(metadata.getEntityClass(),
+                List.copyOf(contextFilterFields.values()), editableContextValues()));
         combined = combine(combined, explicitContextFilter);
         this.contextFilter = combined;
+        syncContextPanel();
         if (this.filterGrid instanceof GroupableJpaFilterGrid) {
             ((GroupableJpaFilterGrid<T>) this.filterGrid).setContextSpecification(combined);
         }
@@ -849,14 +867,14 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
      */
     public Map<String, Object> getRequiredContextValues() {
         Map<String, Object> result = new LinkedHashMap<>();
-        for (String path : requiredContextLabels.keySet()) {
-            if (path.contains(".")) continue;
-            if (contextFilterValues.containsKey(path)) {
-                result.put(path, contextFilterValues.get(path));
-            } else if (openingContextFilterValues.containsKey(path)) {
-                result.put(path, openingContextFilterValues.get(path));
-            }
+        for (var field : contextFilterFields.values()) {
+            if (!ContextFilterConditions.prefill(field, metadata.getEntityClass())) continue;
+            Object value = getContextFilterValue(field.path());
+            if (!ContextFilterConditions.empty(value) && !(value instanceof Collection<?>)) result.put(field.path(), value);
         }
+        openingContextFilterValues.forEach((path, value) -> {
+            if (!path.contains(".") && !(value instanceof Collection<?>) && !(value instanceof PeriodRange<?>)) result.put(path, value);
+        });
         var owner = org.ipro.form.CatalogOwnerForms.ownerOf(metadata.getEntityClass());
         if (owner != null && openingContextFilterValues.containsKey(owner.property()))
             result.put(owner.property(), openingContextFilterValues.get(owner.property()));
@@ -871,7 +889,7 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         if (path == null || path.isBlank()) {
             return;
         }
-        if (value == null) {
+        if (ContextFilterConditions.empty(value)) {
             contextFilterValues.remove(path);
         } else {
             contextFilterValues.put(path, value);
@@ -913,35 +931,57 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
      * подходит», «нет → панели нет вовсе»). Значение по умолчанию фильтра — «пусто → все записи».
      */
     public void setContextFilters(java.util.List<ContextFilterField> fields) {
-        if (fields == null || fields.isEmpty()) {
-            ensureContextFilterToggle(false);
-            return;
-        }
+        if (fields == null) return;
+        fields.forEach(field -> contextFilterFields.putIfAbsent(field.path(), field));
+        if (fields.isEmpty() && openingContextFilterValues.isEmpty()) return;
         if (contextFilterPanel == null) {
             contextFilterPanel = new ContextFilterPanel(metadata.getEntityClass(), fields,
                 metadataResolver, lookupService, contextFilterSelectionFormProvider,
                 this::putContextValue);
-            int gridIndex = indexOf(filterGrid);
-            if (gridIndex < 0) {
-                add(contextFilterPanel);
-            } else {
-                addComponentAtIndex(gridIndex, contextFilterPanel);
-            }
-            setFlexGrow(0, contextFilterPanel);
+            getFilterPanel().add(contextFilterPanel);
         } else {
             contextFilterPanel.setFields(fields);
         }
         requiredContextLabels.clear();
         for (ContextFilterField field : fields) {
-            if (field.required()) requiredContextLabels.put(field.path(), field.label());
+            if (field.required()) requiredContextLabels.put(field.path(), field.labelFor(metadata.getEntityClass()));
         }
-        ensureContextFilterToggle(true);
+        syncContextPanel();
         updateActionStates();
+    }
+
+    /** The common area above the list, including family controls (e.g. register mode). */
+    public VerticalLayout getFilterPanel() {
+        if (filterPanel == null) {
+            filterPanel = new VerticalLayout(); filterPanel.setPadding(false); filterPanel.setSpacing(false);
+            filterPanel.setWidthFull(); filterPanel.getStyle().set("flex-shrink", "0");
+            int gridIndex = indexOf(filterGrid);
+            if (gridIndex < 0) add(filterPanel); else addComponentAtIndex(gridIndex, filterPanel);
+        }
+        return filterPanel;
+    }
+    private Map<String, Object> editableContextValues() {
+        var values = new LinkedHashMap<>(contextFilterValues);
+        openingContextFilterValues.keySet().forEach(values::remove);
+        return values;
+    }
+    /** Used by register readers to retain panel operators on the correct side of a slice. */
+    public Specification<T> compileContextFilter(String path, Object value) {
+        return ContextFilterConditions.specificationFor(metadata.getEntityClass(),
+            openingContextFilterValues.containsKey(path) ? List.of() : List.copyOf(contextFilterFields.values()), Map.of(path, value));
+    }
+    private void syncContextPanel() {
+        if (contextFilterPanel == null && !openingContextFilterValues.isEmpty()) setContextFilters(List.of());
+        if (contextFilterPanel != null) {
+            contextFilterPanel.setValues(contextFilterValues, openingContextFilterValues);
+            contextFilterPanel.setCompact(filterGrid.isCompact());
+        }
     }
 
     /** Положить значение панели (null — убрать) и пересобрать фильтр. */
     private void putContextValue(String path, Object value) {
-        if (value == null) {
+        if (openingContextFilterValues.containsKey(path)) return;
+        if (ContextFilterConditions.empty(value)) {
             contextFilterValues.remove(path);
         } else {
             contextFilterValues.put(path, value);
@@ -953,25 +993,6 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     private void rebuildContextFilter() {
         explicitContextFilter = null;
         rebuildContextSpecification();
-    }
-
-    /** Кнопка-тумблер «Фильтры» в тулбаре: сворачивает/разворачивает панель, не снимая фильтры. */
-    private void ensureContextFilterToggle(boolean enabled) {
-        // единственная кнопка-тумблер на панель
-        if (contextFilterToggle != null) {
-            contextFilterToggle.setVisible(enabled);
-            return;
-        }
-        Button toggle = new Button("Фильтры", VaadinIcon.FILTER.create());
-        contextFilterToggle = toggle;
-        toggle.setVisible(enabled);
-        toggle.getElement().setAttribute("aria-label", "Фильтры контекста");
-        toggle.addClickListener(e -> {
-            if (contextFilterPanel != null) {
-                contextFilterPanel.setVisible(!contextFilterPanel.isVisible());
-            }
-        });
-        toolbar.add(toggle);
     }
 
     /**
@@ -1047,11 +1068,27 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
                      org.ipro.filtergrid.FilterGrid<T> filterGrid,
                      BaseService<T, ID> service,
                      org.ipro.filtergrid.grouping.GroupValuesService<T> groupValuesService) {
+        this(metadata, filterGrid, service, groupValuesService, metadata.getListColumnPaths());
+    }
+
+    /** Receives final resolved columns before constructing the grid. */
+    public ListForm(EntityMetadataInfo metadata, BaseService<T, ID> service,
+                    org.ipro.filtergrid.grouping.GroupValuesService<T> groupValuesService,
+                    List<ColumnPath> columns) {
+        this(metadata, null, service, groupValuesService, columns);
+    }
+
+    private ListForm(EntityMetadataInfo metadata,
+                     org.ipro.filtergrid.FilterGrid<T> filterGrid,
+                     BaseService<T, ID> service,
+                     org.ipro.filtergrid.grouping.GroupValuesService<T> groupValuesService,
+                     List<ColumnPath> columns) {
         this.metadata = metadata;
+        this.defaultColumns = List.copyOf(columns);
         this.visualFilterAdapter = new ListFormVisualFilterAdapter<>(
             this::compileFilter,
             (compiled, root) -> visualFilter = compiled);
-        this.activeColumns = new ArrayList<>(metadata.getListColumnPaths());
+        this.activeColumns = new ArrayList<>(defaultColumns);
         this.filterGrid = filterGrid != null ? filterGrid : createJpaFilterGrid(metadata, service, groupValuesService);
         if (this.filterGrid instanceof org.ipro.filtergrid.VisualFilterHost) {
             ((org.ipro.filtergrid.FilterGrid<T>) this.filterGrid).enableVisualFilter(
@@ -1114,27 +1151,42 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
             FieldRenderer renderer = FieldRenderer.forType(path.getResolvedType());
             ValueProvider<T, ?> valueProvider = entity -> renderer.apply(path.getValue(entity));
 
-            // Встроенный фильтр колонки: объявленный отказ (@FieldMetadata(inlineFilter = false))
-            // и своя отрисовка значения одинаково снимают его — см. почему два признака рядом
-            // в FieldMetadataInfo.
-            boolean filterEnabled = !columnRenderers.containsKey(path.getKey()) && path.asFieldMetadata()
-                .map(FieldMetadataInfo::isInlineFilterEnabled)
-                .orElse(true);
+            // Form properties override the legacy field flag; a custom renderer also disables
+            // the header editor without removing this path from the conditions panel.
+            boolean filterEnabled = !columnRenderers.containsKey(path.getKey()) && path.isInlineFilterEnabled();
 
             if (filterEnabled) {
                 FieldFilter<?> filter = createFilterForPath(path);
                 if (filter != null) {
                     addColumnWithFilter(path, valueProvider, filter);
+                    applyColumnProperties(getGrid().getColumnByKey(path.getKey()), path);
                     continue;
                 }
             }
 
             filterGrid.addColumn(path.getKey(), path.getKey(), path.getLabel(), valueProvider);
+            applyColumnProperties(getGrid().getColumnByKey(path.getKey()), path);
         }
         columnRenderers.forEach((path, renderer) -> {
             var column = getGrid().getColumnByKey(path);
             if (column != null) column.setRenderer(renderer);
         });
+    }
+
+    /** Shared sizing policy for list and selection grids; legacy widths were never applied here. */
+    public static void applyColumnProperties(com.vaadin.flow.component.grid.Grid.Column<?> column, ColumnPath path) {
+        // A supplied FilterGrid adapter may expose its grid only after build().
+        if (column == null) return;
+        if (!path.getWidth().isEmpty()) column.setWidth(path.getWidth());
+        column.setAutoWidth(path.getWidth().isEmpty());
+        column.setFlexGrow(path.getFlexGrow());
+        column.setResizable(true);
+    }
+
+    /** Apply family properties to both the current columns and the reset target. */
+    public void setColumnProperties(List<ColumnPath.Spec> properties, String source) {
+        defaultColumns = org.ipro.metadata.FormColumnDeclarations.applyProperties(defaultColumns, properties, source);
+        applyColumns(org.ipro.metadata.FormColumnDeclarations.applyProperties(activeColumns, properties, source));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -1155,8 +1207,8 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
                 filter.getModeSelect().setValue(TextFilter.FilterMode.EQUALS);
                 yield filter;
             }
-            case DATE -> new DateRangeFilter<>();
-            case DATETIME -> new DateTimeRangeFilter<>();
+            case DATE -> PeriodFilter.dates();
+            case DATETIME -> PeriodFilter.dateTimes();
             case ENUM -> {
                 ComboBoxFilter filter = new ComboBoxFilter<>(path.getLabel());
                 if (path.getJavaType().isEnum()) {
@@ -1190,6 +1242,8 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         toolbar.setSpacing(true);
         toolbar.setPadding(false);
         toolbar.setWidthFull();
+        toolbar.getStyle().set("flex-wrap", "wrap");
+        toolbar.getStyle().set("gap", "var(--lumo-space-s)");
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
 
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -1289,7 +1343,9 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         List<ColumnPath> result = new ArrayList<>();
         for (ColumnPath.Spec spec : state.columns()) {
             try {
-                result.add(ColumnPath.resolve(metadata.getEntityClass(), spec.path()).withLabel(spec.label()));
+                ColumnPath base = defaultColumns.stream().filter(path -> path.getKey().equals(spec.path()))
+                    .findFirst().orElseGet(() -> ColumnPath.resolve(metadata.getEntityClass(), spec.path()));
+                result.add(base.withProperties(spec));
             } catch (IllegalArgumentException staleColumnKey) {
             }
         }
@@ -1549,7 +1605,7 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     }
 
     public void resetActiveColumns() {
-        applyColumns(metadata.getListColumnPaths());
+        applyColumns(defaultColumns);
     }
 
     private void applyColumns(List<ColumnPath> columns) {
@@ -1622,10 +1678,19 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
 
     private void updateCompactButtonState() {
         boolean isCompact = filterGrid.isCompact();
+        if (contextFilterPanel != null) contextFilterPanel.setCompact(isCompact);
+        if (filterPanel != null) compactControls(filterPanel, isCompact);
         compactButton.removeThemeVariants(ButtonVariant.LUMO_PRIMARY);
         if (isCompact) {
             compactButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         }
+    }
+
+    private static void compactControls(com.vaadin.flow.component.Component component, boolean compact) {
+        if (component.getElement().isTextNode()) return;
+        component.getElement().getThemeList().set("small", compact);
+        if (component instanceof org.ipro.filtergrid.PeriodField<?> period) period.setCompact(compact);
+        component.getChildren().forEach(child -> compactControls(child, compact));
     }
 
     public void setAfterColumnsConfigured(Runnable afterColumnsConfigured) {
@@ -1674,7 +1739,8 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         if (moreMenuInstalled) return;
         moreMenuInstalled = true;
         HorizontalLayout spacer = new HorizontalLayout();
-        spacer.setWidthFull();
+        spacer.setWidth("0");
+        spacer.getStyle().set("min-width", "0");
         moreMenuAnchor = spacer;
         toolbar.add(spacer, FilterGridMoreMenu.create(filterGrid));
         toolbar.setFlexGrow(1, spacer);

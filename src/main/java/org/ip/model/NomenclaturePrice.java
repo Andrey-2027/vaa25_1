@@ -1,5 +1,7 @@
 package org.ip.model;
 
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -56,6 +58,7 @@ import java.time.LocalDateTime;
 )
 @RegisterMetadata(dimensions = "nomenclature", period = "period", resources = "price", periodicity = RegisterPeriodicity.DAY,
     keyChangeAllowed = true, keyWriteAllowed = true, displayName = "Цены номенклатуры")
+@RlsLabels(code = "nomenclature", name = "period")
 public class NomenclaturePrice extends PeriodicRegisterEntryBase {
 
     @NotNull

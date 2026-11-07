@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-events</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform events</name>
+    <description>
+        D2 (runtime slice): платформенный контур entity lifecycle events — publisher,
+        fail-fast registry и своя авто-конфигурация. Первый срез, который несёт бины:
+        проверяет, что extraction переживает не только декларации, но и конфигурацию
+        контейнера, и что модуль регистрирует себя сам.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-contracts.version>1.0-SNAPSHOT</platform-contracts.version>
+    </properties>
+
+    <!--
+      Разрешённые зависимости runtime-модуля — только внешние фреймворк-API и контракты
+      платформы:
+
+      1. platform-contracts — типы событий и lifecycle-контексты (единственная связка
+         платформа→платформа, направление "runtime → contracts");
+      2. spring-context / spring-tx / spring-aop / spring-boot-autoconfigure — контейнер
+         и авто-конфигурация; spring-aop объявлен явно, потому что модуль-владелец реестра
+         обязан сам объявлять то, чем пользуется: инспекция lifecycle разворачивает
+         Spring-proxy через AopUtils, и транзитивная (необъявленная) зависимость сделала бы
+         эту границу невидимой;
+      3. slf4j-api — логирование.
+
+      Реализации платформы (executors, metadata, UI) здесь запрещены: контур событий —
+      нижний слой, он не знает ни write path, ни прикладного пакета org.ip.
+      Набор зафиксирован ревью и проверяется PlatformEventsModuleTest.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-contracts</artifactId>
+            <version>${platform-contracts.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <!-- Разворачивание proxy в EntityLifecycleInspection (AopUtils): явно, а не транзитивно. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!--
+          Поведенческие тесты контура живут здесь, а не в приложении: модуль
+          публикуется отдельно, и проверки его поведения обязаны ехать вместе с ним —
+          иначе его можно опубликовать, не запустив ни одной своей проверки.
+          Scope test: на compile-поверхность модуля это не влияет, и
+          EventsModuleCompositionTest считает только compile/provided зависимости.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+<build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/random/platform-events</directory></build></project>

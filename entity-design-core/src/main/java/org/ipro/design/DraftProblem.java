@@ -15,7 +15,7 @@ public record DraftProblem(Severity severity, Code code, Target target, String m
         , REGISTER_ROLE_MISSING, REGISTER_ROLE_DUPLICATE, REGISTER_ROLE_UNKNOWN,
         REGISTER_SECTION_UNSUPPORTED, REGISTER_PERIOD_UNSUPPORTED, REGISTER_WRITE_PROFILE_UNSUPPORTED,
         REGISTER_FIELD_ROLE_UNSUPPORTED, REGISTER_DIMENSION_REQUIRED,
-        MODIFICATION_UNSUPPORTED, SCHEMA_UNKNOWN
+        MODIFICATION_UNSUPPORTED, SCHEMA_UNKNOWN, REGISTER_RLS_INVALID
     }
     public record Target(UUID draftId, UUID sectionId, UUID fieldId, String propertyKey) {
         public Target { Objects.requireNonNull(draftId); Objects.requireNonNull(propertyKey); }

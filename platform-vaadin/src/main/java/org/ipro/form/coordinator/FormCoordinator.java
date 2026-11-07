@@ -751,6 +751,7 @@ public class FormCoordinator implements FormNavigator {
         dialog.setModal(true);
         dialog.setDraggable(true);
         dialog.setResizable(true);
+        if (form.isDescriptionForm()) dialog.setHeight("auto");
         dialog.add(form);
 
         form.setOnSave(() -> {

@@ -28,7 +28,9 @@ final class ItemSectionHost<T extends IdentifiableEntity<Long>> {
     private final Supplier<T> currentEntity;
     private final VerticalLayout sectionsContainer = new VerticalLayout();
     private final List<ItemTable<?, T>> tableSections = new ArrayList<>();
-    private final List<String> tableSectionTitles = new ArrayList<>();
+    private final java.util.Map<Class<?>, VerticalLayout> sectionPositions = new java.util.LinkedHashMap<>();
+    private final List<ItemTable<?, T>> bottomSections = new ArrayList<>();
+    private final List<String> bottomTitles = new ArrayList<>();
     private TabSheet tabSheet;
     private List<Class<?>> sectionFilter;
     private List<Class<?>> readOnlySections = List.of();
@@ -42,6 +44,24 @@ final class ItemSectionHost<T extends IdentifiableEntity<Long>> {
 
     VerticalLayout getContainer() {
         return sectionsContainer;
+    }
+
+    VerticalLayout placeSection(Class<?> rowClass) {
+        if (bottomSections.isEmpty()) sectionsContainer.setVisible(false);
+        VerticalLayout position = new VerticalLayout();
+        position.setWidthFull();
+        position.setPadding(false);
+        position.setVisible(false);
+        if (sectionPositions.putIfAbsent(rowClass, position) != null)
+            throw new IllegalArgumentException("Duplicate section position: " + rowClass.getName());
+        return position;
+    }
+
+    void validateLayout(Collection<Class<?>> declaredRowClasses) {
+        for (Class<?> rowClass : sectionPositions.keySet()) {
+            if (!declaredRowClasses.contains(rowClass))
+                throw new IllegalArgumentException("Section is not declared on this entity: " + rowClass.getName());
+        }
     }
 
     public void setSectionFilter(Collection<Class<?>> rowClasses) {
@@ -75,18 +95,28 @@ final class ItemSectionHost<T extends IdentifiableEntity<Long>> {
      *     новая секция — новая вкладка.
      */
     public void addTableSection(String title, ItemTable<?, T> table) {
+        VerticalLayout position = sectionPositions.get(table.getRowClass());
+        if (position != null && hasAttachedSection(table.getRowClass()))
+            throw new IllegalStateException("Section already attached: " + table.getRowClass().getName());
         tableSections.add(table);
-        tableSectionTitles.add(title);
         if (isSectionReadOnly(table.getRowClass())) {
             table.setReadOnly(true);
         }
 
-        if (tableSections.size() == 1) {
-            renderSingleSection(title, table);
-        } else if (tableSections.size() == 2) {
-            switchToTabbedSections();
+        if (position != null) {
+            renderSingleSection(position, title, table);
+            position.setVisible(true);
         } else {
-            tabSheet.add(title, table);
+            sectionsContainer.setVisible(true);
+            bottomSections.add(table);
+            bottomTitles.add(title);
+            if (bottomSections.size() == 1) {
+                renderSingleSection(sectionsContainer, title, table);
+            } else if (bottomSections.size() == 2) {
+                switchToTabbedSections();
+            } else {
+                tabSheet.add(title, table);
+            }
         }
 
         T entity = currentEntity.get();
@@ -95,23 +125,23 @@ final class ItemSectionHost<T extends IdentifiableEntity<Long>> {
         }
     }
 
-    private void renderSingleSection(String title, ItemTable<?, T> table) {
-        sectionsContainer.removeAll();
+    private void renderSingleSection(VerticalLayout container, String title, ItemTable<?, T> table) {
+        container.removeAll();
         if (title != null && !title.isBlank()) {
             H4 heading = new H4(title);
             heading.getStyle().set("margin-top", "0.5em").set("margin-bottom", "0.25em");
-            sectionsContainer.add(heading);
+            container.add(heading);
         }
-        sectionsContainer.add(table);
-        sectionsContainer.setFlexGrow(1, table);
+        container.add(table);
+        container.setFlexGrow(1, table);
     }
 
     private void switchToTabbedSections() {
         sectionsContainer.removeAll();
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
-        for (int i = 0; i < tableSections.size(); i++) {
-            tabSheet.add(tableSectionTitles.get(i), tableSections.get(i));
+        for (int i = 0; i < bottomSections.size(); i++) {
+            tabSheet.add(bottomTitles.get(i), bottomSections.get(i));
         }
         sectionsContainer.add(tabSheet);
         sectionsContainer.setFlexGrow(1, tabSheet);

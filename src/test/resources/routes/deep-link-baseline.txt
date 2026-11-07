@@ -41,7 +41,7 @@ alias=nomenclature-price class=org.ip.model.NomenclaturePrice item=default list=
 alias=nom-skl-attribute class=org.ip.model.NomSklAttribute item=default list=default context=- legacy=-
 alias=oper class=org.ip.model.Oper item=default list=default context=- legacy=-
 alias=prd-spec class=org.ip.model.PrdSpec item=default,materials-only,full list=default,contextual context=journal legacy=-
-alias=receiving-document class=org.ip.model.ReceivingDocument item=default list=default context=- legacy=-
+alias=receiving-document class=org.ip.model.ReceivingDocument item=default list=default context=journal legacy=-
 alias=role class=org.ip.model.Role item=default list=default context=- legacy=-
 alias=skl-nom-opa class=org.ip.model.SklNomOpa item=default list=default context=- legacy=-
 alias=unit-of-measurement class=org.ip.model.UnitOfMeasurement item=default list=default context=- legacy=-

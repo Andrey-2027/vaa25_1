@@ -1,5 +1,7 @@
 package org.ip.model;
 
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,12 +10,12 @@ import org.ipro.crud.BaseEntity;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.RequiredMode;
 import java.time.LocalDateTime;
 
 /** Common header; each recorder has its own table, identity and access grant. */
 @MappedSuperclass
+@RlsLabels(code = "number", name = "date")
 public abstract class AccountingObjectDocument extends BaseEntity implements HasDisplayName {
     @NotBlank @Size(max = 30)
     @Column(nullable = false, length = 30)
@@ -30,7 +32,7 @@ public abstract class AccountingObjectDocument extends BaseEntity implements Has
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workshop_id", nullable = false)
     @FieldMetadata(label = "Цех", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3, flexGrow = 1), lookup = @Lookup(entity = Workshop.class))
+        grid = @GridColumn(order = 3, flexGrow = 1))
     private Workshop workshop;
 
     public String getNumber() { return number; }

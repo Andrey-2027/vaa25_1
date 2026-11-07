@@ -1,5 +1,7 @@
 package org.ip.model;
 
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -42,6 +44,7 @@ import org.ipro.data.SearchFields;
     order = 900,
     icon = "TABLE"
 )
+@RlsLabels(code = "formKey", name = "name")
 public class GridFormView extends BaseEntity {
 
     @NotBlank

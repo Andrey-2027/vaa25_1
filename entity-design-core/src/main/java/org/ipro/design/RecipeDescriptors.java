@@ -75,7 +75,8 @@ public final class RecipeDescriptors {
                     Set.of(RecipeDescriptor.EditorConstruction.FIELDS),
                     recipe.schemaConstraints(), recipe.draftSupported(), RecipeGenerationProfile.find(recipe.ref()).isPresent(),
                     List.of("Контракт интернирования и генератор не реализованы"));
-            case "independent-register-v1" -> new RecipeDescriptor(recipe.ref(), "Независимый регистр",
+            case "independent-register-v1", "independent-register-v2" -> new RecipeDescriptor(recipe.ref(),
+                    RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(recipe.ref()) ? "Независимый регистр с RLS" : "Независимый регистр",
                     "Информационный регистр без регистратора: измерения, ресурсы и необязательный период DAY.",
                     "INFORMATION_REGISTER", recipe.baseType(), recipe.baseApiRoleAtCapture(), recipe.phase(),
                     "INDEPENDENT_REGISTER", RecipeCatalog.REGISTER_WRITE_PROFILE, List.of(),
@@ -107,6 +108,8 @@ public final class RecipeDescriptors {
         constraints.add("independent register has no sections, owner or subsystem; reference dimensions only");
         constraints.add("one Java entry generated; recorded-register columns are outside this profile");
         if (recorded) constraints.add("recorder type codes, recorder columns and recorded operations are not supported");
+        if (RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(recipe.ref()))
+            constraints.add("explicit RLS name and one reference dimension with Long identity; generated read/write policy; no automatic grants");
         return List.copyOf(constraints);
     }
 }

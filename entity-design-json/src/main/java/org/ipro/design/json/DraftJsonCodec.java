@@ -20,6 +20,7 @@ public final class DraftJsonCodec {
     private final JsonNode ownerSchema;
     private final JsonNode ownerDocumentSchema;
     private final JsonNode registerSchema;
+    private final JsonNode registerRlsSchema;
 
     public DraftJsonCodec() {
         var factory = JsonFactory.builder().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
@@ -40,6 +41,9 @@ public final class DraftJsonCodec {
             var v3 = mapper.readTree(Objects.requireNonNull(in, "Packaged register schema missing"));
             registerSchema = recipeSchema(v3, RecipeCatalog.INDEPENDENT_REGISTER);
         } catch (IOException e) { throw new IllegalStateException("Cannot read packaged register schema", e); }
+        try (var in = DraftJsonCodec.class.getResourceAsStream("/org/ipro/design/schema/entity-draft-v4.schema.json")) {
+            registerRlsSchema = recipeSchema(mapper.readTree(Objects.requireNonNull(in, "Packaged RLS register schema missing")), RecipeCatalog.INDEPENDENT_REGISTER_RLS);
+        } catch (IOException e) { throw new IllegalStateException("Cannot read packaged RLS register schema", e); }
     }
 
     private JsonNode recipeSchema(JsonNode source, RecipeRef ref) {
@@ -83,10 +87,14 @@ public final class DraftJsonCodec {
         try {
             JsonNode tree = mapper.valueToTree(draft);
             var node = (com.fasterxml.jackson.databind.node.ObjectNode) tree;
-            if (draft.schemaVersion() == 3) {
+            if (draft.schemaVersion() == 3 || draft.schemaVersion() == 4) {
                 if (draft.register() == null) throw invalid("schemaVersion=3 требует register");
                 if (draft.owner() != null) throw invalid("schemaVersion=3 не поддерживает owner");
                 node.remove("owner");
+                if (draft.schemaVersion() == 3) {
+                    if (draft.register().rls() != null) throw invalid("RLS требует envelope v4");
+                    ((com.fasterxml.jackson.databind.node.ObjectNode) node.get("register")).remove("rls");
+                }
             } else {
                 if (draft.register() != null) throw invalid("register требует schemaVersion=3");
                 node.remove("register");
@@ -103,6 +111,10 @@ public final class DraftJsonCodec {
         catch (IOException | IllegalArgumentException e) { throw invalid("Не удалось выгрузить формат черновика"); }
     }
     private void envelope(JsonNode tree) {
+        if (tree.path("schemaVersion").isIntegralNumber() && tree.path("schemaVersion").intValue() == 4) {
+            check(tree, registerRlsSchema, "$", registerRlsSchema);
+            return;
+        }
         boolean registerEnvelope = tree.path("schemaVersion").isIntegralNumber() && tree.path("schemaVersion").intValue() == 3;
         if (registerEnvelope) {
             var ref = tree.path("recipe");

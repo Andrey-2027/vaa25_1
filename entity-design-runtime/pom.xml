@@ -9,6 +9,7 @@
     <dependency><groupId>org.ipro</groupId><artifactId>entity-design-core</artifactId><version>1.0-SNAPSHOT</version></dependency>
     <dependency><groupId>org.ipro</groupId><artifactId>platform-core</artifactId><version>1.0-SNAPSHOT</version></dependency>
     <dependency><groupId>org.ipro</groupId><artifactId>platform-numbering</artifactId><version>1.0-SNAPSHOT</version></dependency>
+    <dependency><groupId>org.ipro</groupId><artifactId>platform-rls</artifactId><version>1.0-SNAPSHOT</version></dependency>
     <!-- Optional: applications without the register artifact keep the base bridge and report missing facts. -->
     <dependency><groupId>org.ipro</groupId><artifactId>platform-register</artifactId><version>1.0-SNAPSHOT</version><optional>true</optional></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-autoconfigure</artifactId><version>4.0.6</version></dependency>

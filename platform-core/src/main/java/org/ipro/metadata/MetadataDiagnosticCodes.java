@@ -7,6 +7,8 @@ package org.ipro.metadata;
  * Текст можно улучшать, не ломая политику.</p>
  */
 public final class MetadataDiagnosticCodes {
+    public static final String LEGACY_FORM_COLUMNS = "LEGACY_FORM_COLUMNS";
+    public static final String DUPLICATE_FORM_COLUMN_SOURCE = "DUPLICATE_FORM_COLUMN_SOURCE";
 
     private MetadataDiagnosticCodes() {
     }

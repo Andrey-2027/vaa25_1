@@ -255,7 +255,6 @@ class ItemFormWorkspaceOpenGuardTest {
             when(titleMeta.getName()).thenReturn("title");
             when(titleMeta.getLabel()).thenReturn("Наименование");
             when(titleMeta.getResolvedType()).thenReturn(org.ipro.metadata.annotation.FieldType.TEXT);
-            when(titleMeta.getPlaceholder()).thenReturn("");
             when(titleMeta.getValue(any())).thenAnswer(call -> ((Document) call.getArgument(0)).title);
             doAnswer(call -> { ((Document) call.getArgument(0)).title = call.getArgument(1); return null; })
                 .when(titleMeta).setValue(any(), any());

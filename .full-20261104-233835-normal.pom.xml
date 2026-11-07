@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.ip</groupId>
+    <artifactId>Vaa25_1</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>Vaa25_1</name>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <properties>
+        <java.version>21</java.version>
+        <!-- Vaadin Maven plugin uses plugin version, which dependency BOMs cannot manage. -->
+        <vaadin.version>25.1.6</vaadin.version>
+        <platform-bom.version>1.0-SNAPSHOT</platform-bom.version>
+        <crudui.version>1.0-SNAPSHOT</crudui.version>
+        <reportui.version>1.0-SNAPSHOT</reportui.version>
+        <!-- Рендер отчётов (фаза 0): внутренняя фиксированная версия DR 7 (отдельный проект DynamicReport7, см. vendor-комментарий там) + JR 7.0.6 -->
+        <dynamicreports.version>7.0.0-ip.20260813</dynamicreports.version>
+        <jasperreports.version>7.0.6</jasperreports.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.ipro</groupId>
+                <artifactId>platform-bom</artifactId>
+                <version>${platform-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- P8 editor consumes the independent structural model; no runtime platform edge. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>entity-design-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>entity-design-json</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- EM1: reads entity Java files; test scope until the editor gets a source-root setting (EM6). -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>entity-design-source</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- ET9 optional backend adapter; design-core stays independent of runtime and UI. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>entity-design-runtime</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- KI-1 optional backend projection; no menu changes until KI-3. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-navigation</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M1: нейтральный результат запроса (ReportDataset/QueryField/...), который
+             называет и query backend, и отчётный слой. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-report-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M2.1: общий отчётный слой (каталог, экспорт JasperPrint, пул задач) и
+             движок JR. Приложение — потребитель add-on; каталог не знает движков. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-report</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-jr</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M2.2.1: backend UniDR (model/source/store/render/run/query) без прикладного
+             источника и справочника ссылок. Приложение даёт порты UniDrReferenceCatalog
+             и UniDrRunQueryAdapter, поэтому org.ip в модуль не проникает. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-unidr</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M2.2.2: UI каталога/печати/параметров и UniDR без org.ip. Приложение
+             подключает порты UniDrCatalogGateway/UniDrRunLauncher/JrxmlRunLauncher. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-report-vaadin</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M1: query backend (описание запроса, guard, исполнитель, каталог, register-slice
+             рецепты) без UDR DOM и Vaadin. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-query</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- M1.4: Q6-фикстуры переехали в тестовое дерево platform-query; прикладным
+             acceptance-тестам нужен только этот test-jar, без исходников приложения. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-query</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <!-- M1.2: UI запроса (редактор/конструктор/список/каталог) без формы платформы:
+             выбор ссылки приходит портом EntitySelection, адаптер — в приложении. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-query-vaadin</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!-- D3.8: Vaadin starter уже приносит backend-замыкание через platform-vaadin. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-vaadin-starter</artifactId>
+        </dependency>
+
+        <!-- D-R S4: движок регистра приезжает через starter вместе со стандартным интерфейсом
+             (platform-vaadin-starter -> platform-register-vaadin -> platform-register). Прямая
+             зависимость приложения снята вместе со срезом: приложение перестало быть владельцем
+             регистра на S3, а интерфейс перестало собирать на S4, поэтому объявлять движок в
+             pom приложения больше нечем — и PlatformStarterCompositionTest держит это правило
+             для всех платформенных подсистем, а не только для этой. -->
+
+        <!-- The REST declaration API is an opt-in add-on and is not pulled in by either starter. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rest</artifactId>
+        </dependency>
+
+        <!-- F-REST-READ-4 4.1: optional HTTP adapter; inert until platform.rest.web.enabled=true. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rest-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-jpa</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-inmemory</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-projection</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ipro.crudui</groupId>
+            <artifactId>crudui-core</artifactId>
+            <version>${crudui.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <!-- D-R S4: jsr310 объявлен прямо, потому что раньше он приезжал транзитивно вместе с
+             прямой зависимостью на platform-register, снятой этим срезом. UniDrParameters
+             регистрирует JavaTimeModule явно, поэтому модуль времени — фактический импорт
+             прикладного кода, а не удобство: без него запросы UniDr перестают сериализовать даты
+             при первом же запуске, и падение было бы не на сборке, а в рантайме. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Рендер отчётов: DynamicReports 7 (внутренняя сборка из закреплённого commit'а) + JasperReports 7 -->
+        <dependency>
+            <groupId>net.sourceforge.dynamicreports</groupId>
+            <artifactId>dynamicreports-core</artifactId>
+            <version>${dynamicreports.version}</version>
+            <exclusions>
+                <!-- Google Maps / Chrome / Velocity экспорты нам в V1 не нужны (см. docs/dr-sbom-deps-*.txt) -->
+                <exclusion>
+                    <groupId>net.sf.jasperreports</groupId>
+                    <artifactId>jasperreports-google-maps</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- UI-обвязка отчётов (окно превью, тулбар экспорта, прогресс): библиотека reportui-core
+             из проекта ReportFlowUI. Тяжесть (DR7/JR7) уже покрыта зависимостью выше — отключаем
+             транзитивный google-maps, как и в прямой зависимости. -->
+        <dependency>
+            <groupId>org.vaadin.reports</groupId>
+            <artifactId>reportui-core</artifactId>
+            <version>${reportui.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.sf.jasperreports</groupId>
+                    <artifactId>jasperreports-google-maps</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports-fonts</artifactId>
+            <version>${jasperreports.version}</version>
+        </dependency>
+        <!-- golden-харнесс: извлечение текста из PDF (только тесты) -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Архитектурные тесты: контроль границы платформа (org.ipro) / приложение (org.ip).
+             Версия указана явно — Spring Boot BOM её не управляет. -->
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>1.5.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/normal/application</directory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.9.0</version>
+                <executions>
+                    <execution>
+                        <id>resolved-application-runtime-dependency-tree</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>tree</goal>
+                        </goals>
+                        <configuration>
+                            <scope>runtime</scope>
+                            <outputType>json</outputType>
+                            <outputFile>${project.build.directory}/application-runtime-dependency-tree.json</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*IT.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
+                <version>${vaadin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-frontend</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <!--
+      Random-order gate. A1 записал его как «в конфигурации не найден», хотя прогоны в
+      evidence выполнялись именно так: порядок классов задаётся JUnit-свойствами, и без
+      профиля команда не хранилась нигде. Профиль делает гейт воспроизводимым одним флагом
+      (mvn -o -Prandom-order clean verify), а seed фиксируется отдельно
+      (-Djunit.jupiter.execution.order.random.seed=<год><месяц><день>), чтобы прогон был
+      повторяемым. Только порядок: произвольные seed'ы не годятся для записи в baseline.
+    -->
+    <profiles>
+        <profile>
+            <id>random-order</id>
+            <build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/normal/application</directory>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <junit.jupiter.testclass.order.default>org.junit.jupiter.api.ClassOrderer$Random</junit.jupiter.testclass.order.default>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

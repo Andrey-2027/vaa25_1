@@ -9,6 +9,7 @@ import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
+import org.ipro.metadata.annotation.RlsLabels;
 import org.ipro.numbering.annotation.Numbered;
 import org.ipro.numbering.annotation.NumberingRole;
 
@@ -24,6 +25,7 @@ import java.time.LocalDate;
  * отдельной metadata capability на конкретной сущности.</p>
  */
 @MappedSuperclass
+@RlsLabels(code = "number", name = "date")
 public abstract class StandardDocumentEntity extends BaseEntity implements HasDisplayName {
 
     @NotBlank

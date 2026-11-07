@@ -30,6 +30,12 @@ import org.ipro.form.builder.layout.FieldNode;
 import org.ipro.form.builder.layout.ItemFormLayout;
 import org.ipro.form.builder.layout.LayoutNode;
 import org.ipro.form.builder.layout.PanelNode;
+import org.ipro.form.builder.layout.RemainingFieldsNode;
+import org.ipro.form.builder.layout.SectionNode;
+import org.ipro.form.builder.layout.ElementNode;
+import org.ipro.form.builder.layout.Layout;
+import org.ipro.form.builder.layout.FormAdjust;
+import org.ipro.form.builder.FormBehavior;
 import org.ipro.form.builder.layout.TabDefinition;
 import org.ipro.form.builder.layout.TabSheetNode;
 import org.ipro.metadata.ColumnPath;
@@ -81,18 +87,25 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         implements org.ipro.form.Dirtyable,
                    org.ipro.form.Savable {
 
-    private final EntityMetadataInfo metadata; // null для форм строк табличных частей
+    private EntityMetadataInfo metadata; // null для legacy-форм строк табличных частей
     private final java.util.List<Consumer<T>> entityStateListeners = new java.util.ArrayList<>();
 
     public void addEntityStateListener(Consumer<T> listener) {
         entityStateListeners.add(listener);
         listener.accept(entity);
     }
-    private final Class<T> entityClass;
-    private final FieldFactory fieldFactory;
+    private Class<T> entityClass;
+    private FieldFactory fieldFactory;
     private final FormBindingRegistry registry = new FormBindingRegistry();
-    private final FormLayout formLayout; // null, если форма построена по кастомному ItemFormLayout
-    private final HorizontalLayout footer = new HorizontalLayout();
+    private List<FieldMetadataInfo> layoutFields = List.of();
+    private final java.util.Set<String> explicitlyPlacedFields = new java.util.HashSet<>();
+    private FormLayout formLayout;
+    private HorizontalLayout footer;
+    private boolean descriptionForm;
+    private boolean initialized;
+    private boolean initialFocusRequested;
+    private int loadingValues;
+    private final List<Runnable> loadedHandlers = new ArrayList<>();
 
     /**
      * Режим, запрошенный через {@link #setReadOnly(boolean)} / {@link #setReadOnly(ReadOnlyReason)}.
@@ -134,7 +147,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     private ReadOnlyReason readOnlyReason;
 
     /** Бейдж "Только просмотр" (Фаза 4): текст причины, если запись открыта без прав. */
-    private final Span readOnlyNotice = new Span();
+    private Span readOnlyNotice;
 
     // Read-only поля по пути через точку (см. renderDisplayField) — обновляются при setEntity(),
     // отдельно от FormBindingRegistry, т.к. FormBinding требует реального FieldMetadataInfo
@@ -144,7 +157,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     private T entity;
 
     /** Табличные части: хранением, отображением и коммитом владеет хост. */
-    private final ItemSectionHost<T> sections = new ItemSectionHost<>(() -> entity);
+    private ItemSectionHost<T> sections;
     private Supplier<T> entityFactory;
     private Runnable onSave;
     private Runnable onCancel;
@@ -152,6 +165,84 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
 
     /** История изменений записи (этап 10): кнопкой владеет хост, см. {@link ItemHistory}. */
     private ItemHistory<T> history;
+
+    /** New API: an empty shell. The resolver builds it after the subclass constructor returns. */
+    protected ItemForm() { descriptionForm = true; }
+
+    protected ItemFormLayout layout(Layout l) { return l.of(l.remainingFields()); }
+    protected void adjust(FormAdjust a) { }
+    protected void behavior(FormBehavior b) { }
+
+    /** Component-free description evaluation on an empty instance (also used at startup). */
+    @SuppressWarnings("unchecked")
+    public final ItemFormLayout describeLayout(EntityMetadataInfo info) {
+        if (!descriptionForm || initialized || getChildren().findAny().isPresent())
+            throw new IllegalStateException("Description requires an empty new-API form: " + getClass().getName());
+        entityClass = (Class<T>) info.getEntityClass();
+        metadata = info;
+        layoutFields = List.copyOf(info.getFormFields());
+        try {
+            Layout declaration = new Layout(info, getClass().getName());
+            declaration.verifyResult(java.util.Objects.requireNonNull(layout(declaration), "layout result"));
+            declaration.expandRemaining();
+            adjust(new FormAdjust(declaration));
+            ItemFormLayout result = declaration.compile();
+            if (getChildren().findAny().isPresent()) throw new IllegalStateException("layout/adjust must not create UI children");
+            return result;
+        } catch (RuntimeException failure) {
+            throw new IllegalArgumentException("Form " + getClass().getName() + ": " + failure.getMessage(), failure);
+        }
+    }
+
+    public final boolean isDescriptionBuilt() { return initialized; }
+    public final boolean isDescriptionForm() { return descriptionForm; }
+
+    /** Startup-only callback reference check; no editors or handlers are created. */
+    public final void validateDescriptionBehavior(ItemFormLayout definition) {
+        if (initialized) throw new IllegalStateException("Startup validation requires an empty form");
+        explicitlyPlacedFields.clear();
+        validateLayout(definition.nodes(), new java.util.HashSet<>(), new java.util.HashSet<>(), new int[1]);
+        behavior(FormBehavior.forDescription(explicitlyPlacedFields.stream().filter(name -> !name.contains(".")).collect(java.util.stream.Collectors.toSet())));
+        if (getChildren().findAny().isPresent()) throw new IllegalStateException("Behavior declaration must not create children");
+    }
+
+    /** Idempotent resolver boundary, before customizers, section attachment and population. */
+    public final void buildDescription(EntityMetadataInfo info, FieldFactory factory) {
+        if (initialized) return;
+        ItemFormLayout definition = describeLayout(info);
+        fieldFactory = factory;
+        buildLayout(definition);
+        setHeight("auto");
+        behavior(new FormBehavior(this));
+        addAttachListener(event -> event.getUI().beforeClientResponse(this, context -> {
+            if (initialFocusRequested) return;
+            initialFocusRequested = true;
+            for (var binding : registry.getAll()) {
+                Component component = binding.getComponent();
+                if (component.isAttached() && focusEditor(component)) break;
+            }
+        }));
+    }
+
+    private boolean focusEditor(Component component) {
+        for (Component ancestor = component; ancestor != null; ancestor = ancestor.getParent().orElse(null))
+            if (!ancestor.isVisible()) return false;
+        if (component instanceof com.vaadin.flow.component.HasEnabled enabled && !enabled.isEnabled()) return false;
+        if (component instanceof com.vaadin.flow.component.Focusable<?> focusable) { focusable.focus(); return true; }
+        return component.getChildren().anyMatch(this::focusEditor);
+    }
+
+    public final boolean isLoadingValues() { return loadingValues > 0; }
+    public final void addLoadedHandler(Runnable handler) { loadedHandlers.add(java.util.Objects.requireNonNull(handler)); }
+    private void loaded() { if (loadingValues == 0) loadedHandlers.forEach(Runnable::run); }
+
+    /** One saved snapshot includes the header, returned rows and the clean baseline. */
+    public final void applySavedState(Runnable apply) {
+        loadingValues++;
+        boolean success = false;
+        try { apply.run(); success = true; }
+        finally { loadingValues--; if (success) loaded(); }
+    }
 
     /**
      * Создать форму со всеми полями из метаданных.
@@ -181,9 +272,12 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     public ItemForm(EntityMetadataInfo metadata, FieldFactory fieldFactory, List<String> fieldNames) {
         this(
             (Class<T>) metadata.getEntityClass(),
-            filterFields(metadata.getFormFields(), fieldNames),
+            metadata.getFormFields(),
             fieldFactory,
-            metadata
+            metadata,
+            fieldNames == null || fieldNames.isEmpty()
+                ? new ItemFormLayout(List.of(new RemainingFieldsNode()))
+                : fieldsLayout(filterFields(metadata.getFormFields(), fieldNames))
         );
     }
 
@@ -191,8 +285,8 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * Создать форму с произвольным layout'ом (панели/вкладки/кастомные компоненты) вместо
      * плоского списка полей — конструируется напрямую из record'ов {@code FieldNode}/
      * {@code PanelNode}/{@code TabSheetNode}/{@code CustomNode}, без отдельного builder'а.
-     * Табличные части подключаются как обычно, после layout'а
-     * (см. {@link #addTableSection}/TableSectionFactory) — дерево layout'а ими не управляет.
+     * Табличные части подключаются после конструктора; SectionNode задаёт их место.
+     * Секции без такого узла остаются внизу формы.
      *
      * Пример:
      * <pre>
@@ -205,29 +299,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      */
     @SuppressWarnings("unchecked")
     public ItemForm(EntityMetadataInfo metadata, FieldFactory fieldFactory, ItemFormLayout layout) {
-        this.entityClass = (Class<T>) metadata.getEntityClass();
-        this.metadata = metadata;
-        this.fieldFactory = fieldFactory;
-        this.formLayout = null;
-
-        initCommon();
-
-        // FormLayout в 1 колонку с ASIDE — "заголовок слева, поле справа" в одну строку
-        // (через FormLayout.addFormItem, см. addAsFormItem). Каждый узел верхнего уровня
-        // занимает свою строку целиком; группировка нескольких полей в одну строку — только
-        // явно, через addPanel().
-        FormLayout customLayout = new FormLayout();
-        customLayout.setWidthFull();
-        customLayout.setResponsiveSteps(
-            new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
-        );
-        for (LayoutNode node : layout.nodes()) {
-            renderNode(node, customLayout);
-        }
-
-        add(customLayout, sections.getContainer(), footer);
-        setFlexGrow(1, customLayout);
-        setFlexGrow(1, sections.getContainer());
+        this((Class<T>) metadata.getEntityClass(), metadata.getFormFields(), fieldFactory, metadata, layout);
     }
 
     /**
@@ -240,17 +312,23 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * а форма строки).
      */
     public ItemForm(Class<T> entityClass, List<FieldMetadataInfo> formFields, FieldFactory fieldFactory) {
-        this(entityClass, formFields, fieldFactory, null);
+        this(entityClass, formFields, fieldFactory, null, fieldsLayout(formFields));
     }
 
     private ItemForm(Class<T> entityClass,
                       List<FieldMetadataInfo> formFields,
                       FieldFactory fieldFactory,
-                      EntityMetadataInfo metadata) {
+                      EntityMetadataInfo metadata,
+                      ItemFormLayout layout) {
         this.entityClass = entityClass;
         this.metadata = metadata;
         this.fieldFactory = fieldFactory;
+        this.layoutFields = List.copyOf(formFields);
+        buildLayout(layout);
+    }
 
+    private void buildLayout(ItemFormLayout layout) {
+        validateLayout(layout.nodes(), new java.util.HashSet<>(), new java.util.HashSet<>(), new int[1]);
         initCommon();
 
         this.formLayout = new FormLayout();
@@ -259,18 +337,26 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
             new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
         );
 
-        for (FieldMetadataInfo field : formFields) {
-            Component component = fieldFactory.createField(field, registry);
-            addAsFormItem(formLayout, component, field.getLabel());
+        for (LayoutNode node : layout.nodes()) {
+            renderNode(node, formLayout);
         }
 
         add(formLayout, sections.getContainer(), footer);
         setFlexGrow(1, formLayout);
         setFlexGrow(1, sections.getContainer());
+        initialized = true;
     }
 
-    /** Общая инициализация, одинаковая для плоского и кастомного (ItemFormLayout) режимов. */
+    /** Compatibility constructors translate their field lists into the same layout tree. */
+    private static ItemFormLayout fieldsLayout(List<FieldMetadataInfo> fields) {
+        return new ItemFormLayout(fields.stream().map(field -> (LayoutNode) new FieldNode(field.getName())).toList());
+    }
+
+    /** Общая инициализация для всех входов построения дерева. */
     private void initCommon() {
+        footer = new HorizontalLayout();
+        readOnlyNotice = new Span();
+        sections = new ItemSectionHost<>(() -> entity);
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -313,29 +399,101 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
             case FieldNode(String fieldName, String labelOverride) -> renderField(fieldName, labelOverride, target);
             case DisplayNode(String key, String label, Function<Object, String> formatter) ->
                 renderDisplayNode(key, label, formatter, target);
-            case PanelNode(List<LayoutNode> children) -> target.add(renderPanel(children));
+            case PanelNode panel -> target.add(renderPanel(panel));
             case TabSheetNode(List<TabDefinition> tabs) -> target.add(renderTabSheet(tabs));
-            case CustomNode(Component component) -> target.add(component);
+            case CustomNode custom -> target.add(custom.createComponent());
+            case RemainingFieldsNode remaining -> layoutFields.stream()
+                .filter(field -> !field.isHidden())
+                .filter(field -> !explicitlyPlacedFields.contains(field.getName()))
+                .filter(field -> !remaining.excludedFields().contains(field.getName()))
+                .sorted(java.util.Comparator.comparingInt(FieldMetadataInfo::getOrder))
+                .forEach(field -> renderField(field.getName(), null, target));
+            case SectionNode section -> target.add(sections.placeSection(section.rowClass()));
+            case ElementNode element -> renderElement(element, target);
         }
     }
 
-    private void renderField(String fieldName, String labelOverride, FormLayout target) {
-        if (metadata == null) {
-            throw new IllegalStateException(
-                "Кастомный layout требует EntityMetadataInfo — недоступно для форм строк " +
-                "табличных частей.");
+    private void renderElement(ElementNode element, FormLayout target) {
+        long count = target.getChildren().count();
+        if (element.content() instanceof FieldNode field)
+            renderField(field.fieldName(), field.labelOverride(), target, element.selectionVariant());
+        else renderNode(element.content(), target);
+        Component root = target.getChildren().skip(count).findFirst().orElseThrow();
+        root.setId(element.id());
+        if (!element.visible()) root.setVisible(false);
+        if (element.width() != null && !(element.content() instanceof FieldNode))
+            root.getElement().getStyle().set("width", element.width()).set("max-width", "100%");
+        if (element.content() instanceof FieldNode field) {
+            registry.getBinding(field.fieldName()).ifPresent(binding -> {
+                if (element.readOnly()) binding.setDeclaredReadOnly(true);
+                if (!element.visible()) binding.getComponent().setVisible(false);
+                if (element.width() != null) {
+                    binding.getComponent().getElement().getStyle().set("width", element.width()).set("max-width", "100%");
+                    if (binding.getComponent() instanceof EntityField<?> reference) reference.setInputWidth("100%");
+                }
+            });
         }
+    }
+
+    /** Resolve declarations before creating any components, including fields on later tabs. */
+    private void validateLayout(List<LayoutNode> nodes, java.util.Set<String> ids,
+                                java.util.Set<Class<?>> rowClasses, int[] remainingCount) {
+        for (LayoutNode node : nodes) {
+            switch (node) {
+                case FieldNode field -> explicitlyPlacedFields.add(field.fieldName());
+                case RemainingFieldsNode remaining -> {
+                    if (++remainingCount[0] > 1)
+                        throw new IllegalArgumentException("Only one RemainingFieldsNode is allowed in " + entityClass.getSimpleName());
+                    for (String name : remaining.excludedFields()) {
+                        if (layoutField(name) == null)
+                            throw new IllegalArgumentException("Unknown remaining-fields exclusion '" + name + "' in " + entityClass.getSimpleName());
+                    }
+                }
+                case PanelNode panel -> {
+                    validateLayoutId(panel.id(), ids);
+                    validateLayout(panel.children(), ids, rowClasses, remainingCount);
+                }
+                case TabSheetNode sheet -> {
+                    for (TabDefinition tab : sheet.tabs()) {
+                        validateLayoutId(tab.id(), ids);
+                        validateLayout(tab.children(), ids, rowClasses, remainingCount);
+                    }
+                }
+                case SectionNode section -> {
+                    if (!rowClasses.add(section.rowClass()))
+                        throw new IllegalArgumentException("Duplicate section position: " + section.rowClass().getName());
+                }
+                case ElementNode element -> {
+                    validateLayoutId(element.id(), ids);
+                    validateLayout(List.of(element.content()), ids, rowClasses, remainingCount);
+                }
+                default -> { }
+            }
+        }
+    }
+
+    private void validateLayoutId(String id, java.util.Set<String> ids) {
+        if (id != null && !ids.add(id))
+            throw new IllegalArgumentException("Duplicate layout id '" + id + "' in " + entityClass.getSimpleName());
+    }
+
+    private void renderField(String fieldName, String labelOverride, FormLayout target) {
+        renderField(fieldName, labelOverride, target, null);
+    }
+
+    private void renderField(String fieldName, String labelOverride, FormLayout target, String selectionVariant) {
         if (fieldName.contains(".")) {
             renderDisplayField(fieldName, target);
             return;
         }
-        FieldMetadataInfo field = metadata.getFieldByName(fieldName);
+        FieldMetadataInfo field = layoutField(fieldName);
         if (field == null) {
             throw new IllegalArgumentException(
                 "Поле '" + fieldName + "' не найдено в метаданных " + entityClass.getSimpleName() +
                 " — проверьте, что на поле есть @FieldMetadata и имя указано верно.");
         }
-        Component component = fieldFactory.createField(field, registry);
+        Component component = selectionVariant == null ? fieldFactory.createField(field, registry)
+            : fieldFactory.createField(field, registry, selectionVariant);
         String label = field.getLabel();
         if (labelOverride != null) {
             // label-оверрайд живёт в BindingDescriptor: подпись формы и сообщение
@@ -345,6 +503,11 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
                 b -> registry.replace(b.withLabel(labelOverride)));
         }
         addAsFormItem(target, component, label);
+    }
+
+    private FieldMetadataInfo layoutField(String name) {
+        return layoutFields.stream().filter(field -> java.util.Objects.equals(name, field.getName()))
+            .findFirst().orElseGet(() -> metadata == null ? null : metadata.getFieldByName(name));
     }
 
     /**
@@ -399,17 +562,26 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * Панель — несколько полей в одну строку. Ниже 500px схлопывается в 1 колонку (мобильная
      * ширина), выше — все дочерние узлы в ряд, каждое со своим "заголовок слева, поле справа".
      */
-    private Component renderPanel(List<LayoutNode> children) {
+    private Component renderPanel(PanelNode node) {
+        List<LayoutNode> children = node.children();
         FormLayout panel = new FormLayout();
         panel.setWidthFull();
         panel.setResponsiveSteps(
             new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE),
-            new FormLayout.ResponsiveStep("500px", children.size(), FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
+            new FormLayout.ResponsiveStep("500px", Math.max(1, children.size()), FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
         );
         for (LayoutNode child : children) {
             renderNode(child, panel);
         }
-        return panel;
+        Component result = panel;
+        if (node.title() != null && !node.title().isBlank()) {
+            VerticalLayout group = new VerticalLayout(new com.vaadin.flow.component.html.H4(node.title()), panel);
+            group.setWidthFull();
+            group.setPadding(false);
+            result = group;
+        }
+        if (node.id() != null) result.setId(node.id());
+        return result;
     }
 
     private Component renderTabSheet(List<TabDefinition> tabs) {
@@ -417,6 +589,8 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         layoutTabSheet.setWidthFull();
         for (TabDefinition tab : tabs) {
             FormLayout tabContent = new FormLayout();
+            if (tab.id() != null) tabContent.setId(tab.id());
+            if (tab.width() != null) tabContent.setWidth(tab.width());
             tabContent.setWidthFull();
             tabContent.setResponsiveSteps(
                 new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE)
@@ -424,8 +598,14 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
             for (LayoutNode child : tab.children()) {
                 renderNode(child, tabContent);
             }
-            layoutTabSheet.add(tab.title(), tabContent);
+            var tabButton = layoutTabSheet.add(tab.title(), tabContent);
+            tabButton.setVisible(tab.visible());
+            if (!tab.visible()) tabContent.setVisible(false);
         }
+        for (int index = 0; index < tabs.size(); index++) {
+            if (tabs.get(index).visible()) { layoutTabSheet.setSelectedIndex(index); break; }
+        }
+        if (tabs.stream().noneMatch(TabDefinition::visible)) layoutTabSheet.setVisible(false);
         return layoutTabSheet;
     }
 
@@ -481,6 +661,11 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      */
     public void addTableSection(String title, ItemTable<?, T> table) {
         sections.addTableSection(title, table);
+    }
+
+    /** Reject section placeholders that do not belong to this entity before attaching tables. */
+    public void validateSectionLayout(Collection<Class<?>> declaredRowClasses) {
+        sections.validateLayout(declaredRowClasses);
     }
 
     public List<ItemTable<?, T>> getTableSections() {
@@ -553,6 +738,9 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * и перезагружает строки табличных частей для этого родителя.
      */
     public void setEntity(T entity) {
+        loadingValues++;
+        boolean success = false;
+        try {
         requireSameOpeningOwner(entity);
         this.entity = entity;
         entityStateListeners.forEach(listener -> listener.accept(entity));
@@ -564,6 +752,10 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         }
         sections.setParent(entity);
         history.update();
+
+        success = true;
+
+        } finally { loadingValues--; if (success) loaded(); }
     }
 
     /**
@@ -595,6 +787,9 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * неизвестное поле — {@code IllegalArgumentException} сразу, а не тихая потеря.</p>
      */
     public T initializeNewEntity(Map<String, Object> initialValues) {
+        loadingValues++;
+        boolean success = false;
+        try {
         var owner = catalogOwner();
         Object requestedOwner = org.ipro.form.CatalogOwnerForms.openingOwner(entityClass, initialValues);
         if (openingCatalogOwner != null && owner != null && initialValues != null
@@ -624,7 +819,9 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         }
         sections.setParent(entity);
         history.update();
-        return entity;
+        success = true; return entity;
+
+        } finally { loadingValues--; if (success) loaded(); }
     }
 
     private void applyInitialValues(T entity, Map<String, Object> initialValues) {
@@ -658,6 +855,9 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * {@code tableSection(...).applyPersistedRows(...)} (см. harvest/re-apply adapter).
      */
     public void applyPersistedEntity(T saved) {
+        loadingValues++;
+        boolean success = false;
+        try {
         requireSameOpeningOwner(saved);
         this.entity = saved;
         entityStateListeners.forEach(listener -> listener.accept(saved));
@@ -668,6 +868,10 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         }
         // таблицы: parent через setParent НЕ выставляем — строки придут через applyPersistedRows
         history.update();
+
+        success = true;
+
+        } finally { loadingValues--; if (success) loaded(); }
     }
     public T getEntity() {
         if (entity == null) {
@@ -933,11 +1137,6 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     }
 
     /**
-     * @return {@code FormLayout} с полями, если форма построена в плоском режиме;
-     * {@code null}, если форма построена по кастомному {@code ItemFormLayout}
-     * (тогда корневой контейнер — обычный {@code VerticalLayout}, доступа к нему нет).
-     */
-    /**
      * Получить Vaadin-компонент поля по имени.
      *
      * @param fieldName имя поля
@@ -993,6 +1192,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         return (com.vaadin.flow.component.HasValue<?, V>) component;
     }
 
+    /** Main field area, available immediately after every constructor, including custom trees. */
     public FormLayout getFormLayout() {
         return formLayout;
     }

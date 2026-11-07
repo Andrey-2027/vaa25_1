@@ -50,9 +50,9 @@ class ListPageReaderTest {
         TextFilter<?> text = (TextFilter<?>) filters.get("name");
         text.getModeSelect().setValue(TextFilter.FilterMode.ENDS_WITH);
         text.getTextField().setValue("М8");
-        DateTimeRangeFilter<?> date = (DateTimeRangeFilter<?>) filters.get("period");
-        var picker = (com.vaadin.flow.component.datetimepicker.DateTimePicker) date.getComponent().getComponentAt(0);
-        picker.setValue(LocalDateTime.of(2026, 10, 9, 12, 34, 56, 123000000));
+        org.ipro.filtergrid.PeriodFilter<?, LocalDateTime> date = (org.ipro.filtergrid.PeriodFilter<?, LocalDateTime>) filters.get("period");
+        date.getComponent().getFromField().setValue(LocalDateTime.of(2026, 10, 9, 12, 34, 56, 123000000));
+        date.getComponent().applySelection();
         AtomicReference<FilterNode> seen = new AtomicReference<>();
         form.setPageReader((spec, tree, context, opaque, page, fetch) -> {
             seen.set(tree); return new PageImpl<>(List.of(), page, 12);

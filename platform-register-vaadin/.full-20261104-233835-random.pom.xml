@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-register-vaadin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform register vaadin</name>
+    <description>
+        D-R S4 (последний срез выноса регистра): стандартный интерфейс регистра сведений —
+        адаптер форм (режимы «История/Срез последних», фазы отбора, блокировка ключа),
+        диалог смены ключа и показ регистратора. Backend регистра модуль не знает: срезы S0–S3
+        принесли движок, S4 приносит интерфейс отдельным артефактом, поэтому приложение с
+        другим UI не тянет Vaadin, а приложение с Vaadin не дублирует стандартные формы.
+        Vaadin объявлен scope provided (прецедент platform-vaadin): модуль не навязывает
+        UI-стек потребителю. Java-пакеты движка сохранены (org.ipro.register.*), UI-адаптер
+        переехал со сменой пакета (org.ip.views.register -> org.ipro.vaadin.register) —
+        прикладной пакет в платформенном артефакте был бы нарушением границы. Регистрация —
+        своим AutoConfiguration.imports: приложение не сканирует org.ipro, поэтому без записи
+        стандартный интерфейс исчез бы молча.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <!-- Та же версия Vaadin, что в платформе и приложении: UI-адаптер обязан собираться
+             против одного стека с потребителем, иначе перенос меняет не только границу. -->
+        <vaadin.version>25.1.6</vaadin.version>
+        <platform-register.version>1.0-SNAPSHOT</platform-register.version>
+        <platform-vaadin.version>1.0-SNAPSHOT</platform-vaadin.version>
+        <platform-core.version>1.0-SNAPSHOT</platform-core.version>
+        <platform-persistence.version>1.0-SNAPSHOT</platform-persistence.version>
+        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
+        <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!--
+      Разрешённые compile-зависимости — reviewed, проверяются RegisterVaadinModuleCompositionTest:
+      каждая строка закрывает фактический импорт перенесённых типов, а не «на всякий случай».
+
+      1. platform-register — предмет среза: дескриптор, реестр, фабрика читателя, команды ключа
+         и их права. Адаптер знает движок; движок интерфейса не знает (PlatformDependencyDirectionTest);
+      2. platform-vaadin — слой форм: FormTypeCustomization, ListForm/ItemForm, контекст формы,
+         действия тулбара, формы выбора полей, сообщения и показ ссылок;
+      3. platform-core — канонический порт чтения (EntityDataAccess, EntityReadAccess,
+         EntityDataAccessResolver), каталог представлений (EntityPresentationService), имена
+         экземпляров для показов регистратора и ColumnPath;
+      4. platform-persistence — BaseEntity: строки регистра и документы-регистраторы — сущности;
+      5. platform-identity-api — нейтральный идентификатор (IdentifiableEntity) в черновике ключа;
+      6. filtergrid-core — фазы листового отбора среза (фильтр, кодеки значений, resolve путей);
+      7. Vaadin — provided: компоненты диалога и рендерера, UI-стек не навязывается потребителю;
+      8. Spring — контейнер и авто-конфигурация (ObjectProvider, @Bean, @ConditionalOnMissingBean,
+         порядок применения), Spring Data — Page/Specification, Spring Security — только тип
+         AccessDeniedException в границе чтения, Jackson — сериализация сохранённого отбора списка.
+
+      Запрещено: org.ip, reportstudio/jr/ureport/dynamicreports, component-scan.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-register</artifactId>
+            <version>${platform-register.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-vaadin</artifactId>
+            <version>${platform-vaadin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-core</artifactId>
+            <version>${platform-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-persistence</artifactId>
+            <version>${platform-persistence.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-identity-api</artifactId>
+            <version>${platform-identity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-core</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-spring-boot-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!--
+          Свои тесты модуль несёт сам — это условие приёмки программы (план выноса §6.5), а не
+          удобство: заборы владельца (состав, зависимости, роли поверхности, отсутствие Vaadin
+          в backend-модуле) падают на сборке артефакта, а не только в сборке приложения.
+          spring-boot-starter-test даёт JUnit, AssertJ и Mockito — тем же способом, что
+          в platform-vaadin.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+<build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/random/platform-register-vaadin</directory></build></project>

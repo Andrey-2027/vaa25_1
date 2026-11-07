@@ -53,8 +53,7 @@ public record GridViewState(List<ColumnPath.Spec> columns, List<FilterSpec> filt
     private static List<ColumnPath.Spec> specs(List<ColumnPath> columns, Class<?> entityClass) {
         List<ColumnPath.Spec> specs = new ArrayList<>(columns.size());
         for (ColumnPath column : columns) {
-            String defaultLabel = ColumnPath.resolve(entityClass, column.getKey()).getLabel();
-            specs.add(new ColumnPath.Spec(column.getKey(), column.getLabel().equals(defaultLabel) ? null : column.getLabel()));
+            specs.add(column.toSpec(entityClass));
         }
         return specs;
     }

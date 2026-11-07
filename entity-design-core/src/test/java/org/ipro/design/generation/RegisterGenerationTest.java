@@ -23,6 +23,7 @@ import org.ipro.design.RecipeCatalog;
 import org.ipro.design.ReferenceDraft;
 import org.ipro.design.ReferenceTargetDescriptor;
 import org.ipro.design.RegisterDraft;
+import org.ipro.design.RegisterRlsDraft;
 import org.ipro.design.RuntimeDesignSnapshot;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,6 +34,86 @@ class RegisterGenerationTest {
     private static final UUID SECOND_DIMENSION = new UUID(1, 11);
     private static final UUID RESOURCE = new UUID(1, 20);
     private static final UUID SECOND_RESOURCE = new UUID(1, 21);
+
+    private static EntityDraft rlsDraft(boolean periodic) {
+        var plain = periodic ? dayDraft() : registerDraft(entity("RegionScopedRate", "Ставки по регионам", "region_scoped_rate"),
+            List.of(reference(DIMENSION, "region", "Регион", "com.example.Region"), decimal(RESOURCE,"rate","Ставка")),
+            RegisterDraft.NONE,List.of(DIMENSION),List.of(RESOURCE));
+        return new EntityDraft(4,RecipeCatalog.INDEPENDENT_REGISTER_RLS,plain.draftId(),plain.entity(),plain.fields(),plain.sections(),null,
+            plain.register().withRls(new RegisterRlsDraft(periodic ? "REGISTER_ITEM" : "REGISTER_REGION", DIMENSION)));
+    }
+    private static ProjectDesignContext rlsContext(boolean periodic) {
+        var ref=target(periodic ? "com.example.Item" : "com.example.Region");
+        var context=context(Map.of(ref.typeId(),ref));
+        var facts=new LinkedHashMap<>(context.runtimeSnapshot().prerequisites());
+        facts.put("RLS_NUMERIC_REFERENCE_FILTERS",new RuntimeDesignSnapshot.Prerequisite(RuntimeDesignSnapshot.Status.AVAILABLE,"validated RLS fixture"));
+        return context.withRuntimeSnapshot(new RuntimeDesignSnapshot("runtime:rls-2",true,Map.of(),facts));
+    }
+    @Test void explicitRlsGeneratesMatchingReadWriteDeclarationsForReferenceScopes() {
+        for (boolean periodic : List.of(false,true)) {
+            var draft=rlsDraft(periodic); var context=rlsContext(periodic);
+            var plan=new EntityJavaGenerator().generate(checked(draft,context),draft,context).plan().orElseThrow();
+            assertEquals("register-java-v2",plan.generatorVersion());
+            var source=plan.files().getFirst().content();
+            String name=periodic ? "REGISTER_ITEM" : "REGISTER_REGION";
+            String field=periodic ? "item" : "region";
+            assertTrue(source.contains("@RlsDimension(value = \""+name+"\", valuePaths = \""+field+".id\")"));
+            assertTrue(source.contains("type = Long.class), applyToLoadByKey = true"));
+            assertTrue(source.contains("condition = \""+field+"_id in (:allowedIds)\""));
+            assertFalse(source.contains("AccessGrant"));
+            assertEquals(GenerationManifest.REGISTER_RLS_FINGERPRINT,EntityJavaGenerator.fingerprintProfile(plan.recipe()));
+            GenerationManifest.from(plan,GenerationManifest.REGISTER_RLS_FINGERPRINT).verify(plan,GenerationManifest.REGISTER_RLS_FINGERPRINT);
+        }
+    }
+    @Test void rlsCannotBeSmuggledIntoCapturedRegisterEnvelope() {
+        var draft=dayDraft().withRegister(dayDraft().register().withRls(new RegisterRlsDraft("REGISTER_ITEM",DIMENSION)));
+        assertTrue(new DraftValidator().validate(draft,rlsContext(true)).problems().stream()
+            .anyMatch(p -> p.code()==org.ipro.design.DraftProblem.Code.REGISTER_RLS_INVALID));
+    }
+    @Test void rlsUsesStableFieldIdentityAndExactCheckedColumnAfterRename() {
+        var draft=rlsDraft(true);var old=draft.fields().getFirst();
+        var changed=new FieldDraft(old.id(),"scopeItem",old.label(),old.type(),DraftText.explicit("scope_item_key"),
+            old.serverRequired(),old.uiRequired(),old.constraints(),old.reference(),old.applications());
+        draft=draft.withFields(List.of(changed,draft.fields().getLast()));var context=rlsContext(true);
+        var source=new EntityJavaGenerator().generate(checked(draft,context),draft,context).plan().orElseThrow().files().getFirst().content();
+        assertTrue(source.contains("valuePaths = \"scopeItem.id\""));
+        assertTrue(source.contains("condition = \"scope_item_key in (:allowedIds)\""));
+    }
+    @Test void rlsRejectsStringsResourcesMissingFieldsAndUnsafeDimensionNames() {
+        var good=rlsDraft(true);var context=rlsContext(true);
+        for (var policy : List.of(new RegisterRlsDraft("REGISTER_ITEM",null),new RegisterRlsDraft("REGISTER_ITEM",RESOURCE),
+                new RegisterRlsDraft("REGISTER_ITEM",UUID.randomUUID()),new RegisterRlsDraft("*",DIMENSION),
+                new RegisterRlsDraft("ENTITY:Item",DIMENSION),new RegisterRlsDraft("bad\"name",DIMENSION))) {
+            assertTrue(new DraftValidator().validate(good.withRegister(good.register().withRls(policy)),context).problems().stream()
+                .anyMatch(p -> p.code()==org.ipro.design.DraftProblem.Code.REGISTER_RLS_INVALID),policy.toString());
+        }
+        var plain=noneDraft();
+        var string=new EntityDraft(4,RecipeCatalog.INDEPENDENT_REGISTER_RLS,plain.draftId(),plain.entity(),plain.fields(),List.of(),null,
+            plain.register().withRls(new RegisterRlsDraft("REGISTER_REGION",DIMENSION)));
+        assertTrue(new DraftValidator().validate(string,rlsContext(false)).hasErrors());
+    }
+    @Test void rlsRequiresRealRuntimePrerequisiteAndPolicyChangeInvalidatesCheckedPlan() {
+        var draft=rlsDraft(true);var context=rlsContext(true);var checked=checked(draft,context);
+        var changed=draft.withRegister(draft.register().withRls(new RegisterRlsDraft("OTHER_ITEM",DIMENSION)));
+        assertEquals(GenerationDiagnostic.Code.STALE_CHECKED_STRUCTURE,
+            new EntityJavaGenerator().generate(checked,changed,context).diagnostics().getFirst().code());
+        var missing=context(Map.of("com.example.Item",target("com.example.Item")));
+        assertFalse(new EntityJavaGenerator().generate(checked(draft,missing),draft,missing).succeeded());
+        var plan=new EntityJavaGenerator().generate(checked,draft,context).plan().orElseThrow();
+        assertNotEquals(plan.planId(),PlanFingerprint.planId(GenerationManifest.REGISTER_RLS_FINGERPRINT,
+            changed.recipe(),plan.generatorVersion(),changed,context,plan.files()));
+    }
+    @Test void capturedNoRlsOutputAndFingerprintRemainUnchanged() {
+        var draft=noneDraft();var context=context(Map.of());
+        var plan=new EntityJavaGenerator().generate(checked(draft,context),draft,context).plan().orElseThrow();
+        assertEquals("g1-29313e6162b01fe2b0aaf6363d769acd7d937f43552f1a41d0ae88a6ebe83882",plan.planId());
+        assertEquals("785d25ff2f893d77a235ded8fd9ce0de806807aa7580dbd25aab938241fb2283",plan.files().getFirst().sha256());
+    }
+    @Test void exportsRlsFixturesWhenRequested() throws Exception {
+        var output=System.getProperty("design.register.rls.output");
+        if (output==null) return;
+        for (boolean periodic : List.of(false,true)) export(Path.of(output).resolve(periodic ? "day" : "none"),rlsDraft(periodic),rlsContext(periodic),new ObjectMapper());
+    }
 
     @Test void noneRegisterGeneratesOneAnnotatedEntryWithRealKeyAndF3Manifest() {
         var draft = noneDraft();
@@ -73,7 +154,7 @@ class RegisterGenerationTest {
         assertFalse(source.contains("CatalogOwner"));
         assertEquals(plan.planId(), PlanFingerprint.planId(GenerationManifest.REGISTER_FINGERPRINT,
                 plan.recipe(), plan.generatorVersion(), draft, context, plan.files()));
-        var manifest = GenerationManifest.from(plan, GenerationManifest.REGISTER_FINGERPRINT);
+        var manifest = GenerationManifest.from(plan, EntityJavaGenerator.fingerprintProfile(plan.recipe()));
         manifest.verify(plan, GenerationManifest.REGISTER_FINGERPRINT);
         assertEquals(1, manifest.entries().size());
         assertTrue(manifest.entries().getFirst().bytes() > 0);
@@ -210,7 +291,7 @@ class RegisterGenerationTest {
         var result = new EntityJavaGenerator().generate(checked(draft, context), draft, context);
         if (!result.succeeded()) throw new IllegalStateException(result.diagnostics().toString());
         var plan = result.plan().orElseThrow();
-        var manifest = GenerationManifest.from(plan, GenerationManifest.REGISTER_FINGERPRINT);
+        var manifest = GenerationManifest.from(plan, EntityJavaGenerator.fingerprintProfile(plan.recipe()));
         var file = plan.files().getFirst();
         Files.createDirectories(root);
         Files.writeString(root.resolve("draft.json"), mapper.writerWithDefaultPrettyPrinter().writeValueAsString(draft));
@@ -226,7 +307,7 @@ class RegisterGenerationTest {
         receipt.put("planId", plan.planId());
         receipt.put("recipe", plan.recipe().id() + "@" + plan.recipe().version());
         receipt.put("generatorVersion", plan.generatorVersion());
-        receipt.put("fingerprintProfile", GenerationManifest.REGISTER_FINGERPRINT);
+        receipt.put("fingerprintProfile", manifest.fingerprintProfile());
         receipt.put("relativePath", file.relativePath());
         receipt.put("bytes", bytes.length);
         receipt.put("sha256", file.sha256());

@@ -66,10 +66,10 @@ public final class FetchGraphs {
      * сессии такой прокси даёт LazyInitializationException. Этот метод добавляет к каждому пути,
      * заканчивающемуся (или проходящему через) ENTITY_REFERENCE-сегмент, вложенные пути из
      * состава отображаемого имени цели — единый {@code @InstanceName} для мигрированных
-     * сущностей, иначе metadata-производный (selectColumns, fallback — displaySortFields) —
+     * сущностей, иначе консервативный legacy-состав опубликованных ссылок —
      * рекурсивно.
      *
-     * Например: "prdSpecMtr" + selectColumns(PrdSpec) = [codeSpec, nomenclature.name]
+     * Например: "prdSpecMtr" + legacy-связи PrdSpec включают nomenclature
      *   → добавляется "prdSpecMtr.nomenclature".
      *
      * Защиты: BFS с лимитом глубины (против циклов A→B→A), dedupe, try/catch на
@@ -135,7 +135,7 @@ public final class FetchGraphs {
 
     /**
      * Состав отображаемого имени цели: единый instance name для мигрированных сущностей,
-     * иначе metadata-производный ({@code selectColumns} → {@code displaySortFields}).
+     * иначе консервативные зависимости legacy getDisplayName, без колонок формы.
      */
     private static List<ColumnPath> nameComposition(Class<?> targetClass, MetadataResolver metadataResolver,
                                                    InstanceNameSource instanceNameSource) {
@@ -151,18 +151,23 @@ public final class FetchGraphs {
             return List.copyOf(resolved);
         }
 
-        EntityMetadataInfo targetMeta = metadataResolver.find(targetClass).orElse(null);
-        if (targetMeta == null) {
-            return List.of();
-        }
-        List<ColumnPath> displayColumns = targetMeta.getSelectColumnPaths();
-        if (displayColumns.isEmpty()) {
-            displayColumns = targetMeta.getDisplaySortFields().stream()
-                .map(name -> safeResolve(targetMeta.getEntityClass(), name))
-                .filter(java.util.Objects::nonNull)
-                .toList();
-        }
-        return displayColumns;
+        return legacyNamePaths(targetClass, metadataResolver).stream()
+            .map(path -> ColumnPath.resolve(targetClass, path)).toList();
+    }
+
+    /**
+     * У legacy getDisplayName зависимости не объявлены. Загружаем опубликованные ссылки
+     * консервативно; displaySortFields добавляет известные вложенные пути. Рендер имени и
+     * SQL-сортировка этим методом не меняются. Явный InstanceName заменяет этот fallback.
+     */
+    public static List<String> legacyNamePaths(Class<?> type, MetadataResolver metadataResolver) {
+        EntityMetadataInfo metadata = metadataResolver.find(type).orElse(null);
+        if (metadata == null) return List.of();
+        LinkedHashSet<String> paths = new LinkedHashSet<>(metadata.getDisplaySortFields());
+        metadata.getAllAnnotatedFields().stream()
+            .filter(field -> field.getResolvedType() == FieldType.ENTITY_REFERENCE)
+            .forEach(field -> paths.add(field.getName()));
+        return List.copyOf(paths);
     }
 
     private static ColumnPath safeResolve(Class<?> rootClass, String path) {

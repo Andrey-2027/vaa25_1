@@ -88,6 +88,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     }));
     private final Map<String, Component> inputs = new LinkedHashMap<>();
     private final List<Runnable> suggestions = new ArrayList<>();
+    private Runnable refreshRlsChoices = () -> {};
     private final Map<UUID, NativeButton> rows = new LinkedHashMap<>();
     private final Map<String, NativeButton> builtinRows = new LinkedHashMap<>();
     private final Map<UUID, NativeButton> sectionRows = new LinkedHashMap<>();
@@ -186,7 +187,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         Div start = new Div(new H4("Выберите вид нового черновика")); start.addClassName("draft-kind-choice"); start.setVisible(!kindChosen);
         UUID epoch = documentEpoch;
         for (var descriptor : RecipeCatalog.descriptors().stream().filter(d -> d.draftSupported() && d.generatorImplemented()).toList()) {
-            String caption = switch(descriptor.kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр сведений"; default -> "Справочник"; };
+            String caption = recipeCaption(descriptor);
             start.add(new Button(caption, e -> {
                 if (permitted() && epoch.equals(documentEpoch) && !kindChosen) confirmNewDraft(descriptor.ref());
             }));
@@ -220,6 +221,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     }
 
     private void renderGeneral() {
+        refreshRlsChoices = () -> {};
         general.removeAll();
         var properties = new ExplorerPropertyList();
         text(properties, "className", "Java-класс", session.draft().entity().className(), value -> entity("className", value));
@@ -232,6 +234,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             properties.property("register.period", "Период", period); registerInput("register.period", period);
         }
         general.add(properties);
+        if (RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(session.draft().recipe())) renderRls();
         var advanced = new ExplorerPropertyList();
         auto(advanced, "packageName", "Пакет", () -> session.draft().entity().packageName(),
             () -> DraftSuggestions.rootPackage(session.draft(), session.context()), value -> entityAuto("packageName", value));
@@ -265,6 +268,32 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             new Span(String.join("; ", descriptor.constraints())), new Span("Описание профиля не выдаёт прав. C/D проверяются отдельно."));
         recipe.addClassName("draft-recipe"); general.add(recipe);
         catalogNotice.addClassName("explorer-property-note"); general.add(catalogNotice);
+    }
+    private static String recipeCaption(org.ipro.design.RecipeDescriptor descriptor) {
+        if (RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(descriptor.ref())) return "Регистр сведений с RLS";
+        return switch(descriptor.kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр сведений"; default -> "Справочник"; };
+    }
+    private void renderRls() {
+        var policy=session.draft().register().rls();
+        var properties=new ExplorerPropertyList();
+        text(properties,"register.rls.dimension","Измерение доступа",policy==null ? "" : policy.dimension(),
+            value -> session.rls(value,session.draft().register().rls()==null ? null : session.draft().register().rls().fieldId()));
+        ComboBox<UUID> field=new ComboBox<>();field.setAriaLabel("Ссылочное измерение доступа");
+        field.setItemLabelGenerator(id -> session.draft().fields().stream().filter(f -> f.id().equals(id)).map(f -> f.name()+" · "+f.label()).findFirst().orElse("Недоступный реквизит: "+id));
+        refreshRlsChoices=() -> {
+            boolean previous=rendering; rendering=true;
+            try {
+                var current=session.draft().register().rls();var ids=new LinkedHashSet<UUID>();
+                session.draft().fields().stream().filter(f -> "REFERENCE".equals(f.type()) && session.draft().register().dimensions().contains(f.id())).forEach(f -> ids.add(f.id()));
+                if(current!=null && current.fieldId()!=null) ids.add(current.fieldId());
+                field.setItems(ids);field.setValue(current==null ? null : current.fieldId());
+            } finally {rendering=previous;}
+        };
+        refreshRlsChoices.run();field.setClearButtonVisible(true);
+        field.addValueChangeListener(e -> edit(e.getSource(),() -> session.rls(session.draft().register().rls()==null ? "" : session.draft().register().rls().dimension(),e.getValue()),false));
+        registerInput("register.rls.fieldId",field);properties.property("register.rls.fieldId","Ссылочное измерение доступа",field);
+        properties.property("register.rls.contract","Доступ к строкам","Политика использует id выбранной ссылки (Long). Права выдаёт приложение; генератор их не создаёт.");
+        general.add(new Details("Доступ к строкам",properties));
     }
 
     private void entity(String key, String value) {
@@ -463,7 +492,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     private void renderInspector() {
         inspector.removeAll();
         // Main property inputs stay mounted; only the selected field's controls are replaced.
-        inputs.keySet().removeIf(key -> !key.equals("owner") && !key.startsWith("owner.") && !Set.of("className", "packageName", "label", "titles.list", "titles.item", "titles.selection", "tableName", "subsystemId", "icon", "register.period").contains(key));
+        inputs.keySet().removeIf(key -> !key.equals("owner") && !key.startsWith("owner.") && !key.startsWith("register.rls.") && !Set.of("className", "packageName", "label", "titles.list", "titles.item", "titles.selection", "tableName", "subsystemId", "icon", "register.period").contains(key));
         suggestions.removeIf(r -> r instanceof FieldSuggestion);
         boolean previous = rendering; rendering = true;
         try {
@@ -643,7 +672,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             dialog.addOpenedChangeListener(e -> { if (!e.isOpened()) confirmationOpened = false; }); dialog.open();
         } else if (sectionId != null || fieldId != null) command(() -> { session.removeSelected(); renderRows(); renderInspector(); });
     }
-    private void page(DraftPlace.Page page) { command(() -> { session.page(page); showPage(); }); }
+    private void page(DraftPlace.Page page) { command(() -> { session.page(page); if(page==DraftPlace.Page.GENERAL) refreshRlsChoices.run(); showPage(); }); }
     private void showPage() {
         boolean basic = session.place().page() == DraftPlace.Page.GENERAL;
         general.setVisible(basic); data.setVisible(!basic);
@@ -717,6 +746,8 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             case "reference.typeId" -> "Тип ссылки"; case "applications.form" -> "Применение в форме"; case "uiRequired" -> "Обязательность UI";
             case "applications.list" -> "Публикация в списке"; case "applications.selection" -> "Публикация в выборе"; case "applications.table" -> "Публикация в таблице";
             case "register.period" -> "Период регистра"; case "register.writeProfile" -> "Профиль записи";
+            case "register.rls.dimension" -> "Имя измерения доступа"; case "register.rls.fieldId" -> "Ссылочное измерение доступа";
+            case "register.rls" -> "Доступ к строкам";
             case "titles.list" -> "Заголовок списка"; case "titles.item" -> "Заголовок элемента"; case "titles.selection" -> "Заголовок выбора";
             case "rowClassName" -> "Класс строки"; case "parentFieldName" -> "Связь строки с корнем"; case "parentColumnName" -> "Колонка связи";
             case "recipe" -> "Рецепт"; case "sections" -> "Табчасть"; default -> "Структура";
@@ -737,6 +768,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             case REGISTER_ROLE_DUPLICATE -> "Поле не может повторяться или одновременно быть измерением и ресурсом";
             case REGISTER_ROLE_UNKNOWN -> "Роль ссылается на отсутствующее поле";
             case REGISTER_DIMENSION_REQUIRED -> "Измерение должно быть обязательным при записи";
+            case REGISTER_RLS_INVALID -> "Укажите имя измерения доступа и ссылочное бизнес-измерение с Long-id";
             case REGISTER_FIELD_ROLE_UNSUPPORTED -> "Тип поля не поддерживается для выбранной роли";
             case REGISTER_PERIOD_UNSUPPORTED -> "Поддерживаются режимы NONE и DAY";
             case REGISTER_WRITE_PROFILE_UNSUPPORTED -> "Выбранный профиль записи регистра не поддерживается";
@@ -942,7 +974,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         UUID epoch = documentEpoch;
         for (var descriptor : RecipeCatalog.descriptors().stream().filter(d -> d.draftSupported() && d.generatorImplemented()).toList()) {
             var ref = descriptor.ref();
-            var choice = new Button(switch (descriptor.kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр сведений"; default -> "Справочник"; }, e -> {
+            var choice = new Button(recipeCaption(descriptor), e -> {
                 if (!permitted() || !epoch.equals(documentEpoch) || !chooser.isOpened()) return;
                 chooser.close(); confirmNewDraft(ref);
             });

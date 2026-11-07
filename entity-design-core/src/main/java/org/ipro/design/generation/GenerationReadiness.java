@@ -43,7 +43,7 @@ public record GenerationReadiness(RecipeRef recipe, boolean draftSupported, bool
         boolean draftSupported = descriptor != null && descriptor.draftSupported();
         boolean generatorImplemented = descriptor != null && descriptor.generatorImplemented();
         List<GenerationDiagnostic> diagnostics;
-        if (RecipeCatalog.INDEPENDENT_REGISTER.equals(recipe)) {
+        if (RecipeCatalog.isRegisterRecipe(recipe)) {
             diagnostics = RegisterRepresentability.check(checked);
         } else if (generatorImplemented) {
             diagnostics = new StandardRepresentability(true,

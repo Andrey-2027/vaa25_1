@@ -1,5 +1,7 @@
 package org.ip.model;
 
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -44,6 +46,7 @@ import org.ipro.metadata.annotation.TableSectionMetadata;
     rowFormTitle = "Атрибут номенклатуры",
     persistence = SectionPersistenceMode.MUTABLE_REPLACE_ALL
 )
+@RlsLabels(code = "nomenclature", name = "attrType")
 public class NomAttributeValue extends BaseEntity implements HasDisplayName {
 
     /**

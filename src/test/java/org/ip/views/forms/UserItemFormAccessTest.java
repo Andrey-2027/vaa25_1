@@ -10,9 +10,12 @@ import org.ipro.crud.LookupService;
 import org.ipro.form.FieldFactory;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.metadata.EntityMetadataInfo;
+import org.ipro.metadata.MetadataResolver;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
@@ -33,6 +36,35 @@ class UserItemFormAccessTest {
         mock(UserRoleAssignmentPermission.class);
     private final UserPasswordChangePermission passwordPermissions =
         mock(UserPasswordChangePermission.class);
+
+    @Test
+    void metadataFieldsPasswordAndRolesStayInMainAreaAndWriteBackAfterTreeUnification() {
+        when(rolePermissions.canAssignRoles()).thenReturn(true);
+        when(rolePermissions.canAssignRolesFor(null)).thenReturn(true);
+        when(passwordPermissions.canChangePassword()).thenReturn(true);
+        Role role = new Role("AF54");
+        var fields = new FieldFactory(mock(LookupService.class), mock(SelectionFormAssembler.class));
+        var form = new UserItemForm(new MetadataResolver().resolve(User.class), fields, List.of(role),
+            rolePermissions, passwordPermissions);
+        var password = passwordField(form);
+        var roles = rolesField(form);
+        assertThat(password.getLabel()).isEqualTo("Пароль");
+        assertThat(roles.getLabel()).isEqualTo("Роли");
+        assertThat(password.isVisible()).isTrue();
+        assertThat(roles.isVisible()).isTrue();
+        var children = form.getFormLayout().getChildren().toList();
+        assertThat(children.indexOf(form.getField("username").getParent().orElseThrow()))
+            .isLessThan(children.indexOf(password));
+        assertThat(children.indexOf(password)).isLessThan(children.indexOf(roles));
+        form.initializeNewEntity(Map.of("username", "af54-user"));
+        password.setValue("test-only");
+        @SuppressWarnings("unchecked") var roleInput = (MultiSelectComboBox<Role>) roles;
+        roleInput.setValue(Set.of(role));
+        User user = form.getEntity();
+        assertThat(user.getUsername()).isEqualTo("af54-user");
+        assertThat(user.getRawPassword()).isEqualTo("test-only");
+        assertThat(user.getRoles()).containsExactly(role);
+    }
 
     @Test
     void aForeignRecordOpensBothFieldsWhenTheOperationsAreGranted() {

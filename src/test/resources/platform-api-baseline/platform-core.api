@@ -15,6 +15,7 @@ abstract-class public abstract org.ipro.crud.StandardDocumentEntity
   extends org.ipro.crud.BaseEntity
   implements org.ipro.metadata.HasDisplayName
   annotation jakarta.persistence.MappedSuperclass
+  annotation org.ipro.metadata.annotation.RlsLabels
   ctor public()
   method public java.lang.String getDisplayName()
   method public java.lang.String getNumber()
@@ -132,11 +133,26 @@ class public final org.ipro.data.FetchPlanInspection
   method public java.util.List<org.ipro.data.FetchPlanInspection$Path> pathsOf(java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario)
   method public java.util.List<org.ipro.data.FetchPlanInspection$Scenario> scenariosOf(java.lang.Class<?>)
 
+class public final org.ipro.data.PresentationResolver
+  ctor public(org.ipro.metadata.MetadataResolver)
+  ctor public(org.ipro.metadata.MetadataResolver, org.ipro.fetch.instance.InstanceNameResolver)
+  method public java.lang.String displayName(java.lang.Object)
+  method public java.util.List<java.lang.String> displayPaths(java.lang.Class<?>)
+  method public java.util.List<java.lang.String> lookupFetchPaths(java.lang.Class<?>)
+  method public java.util.List<java.lang.String> rlsLabelPaths(java.lang.Class<?>)
+  method public java.util.List<java.lang.String> searchFields(java.lang.Class<?>)
+  method public java.util.List<java.lang.String> sortFields(java.lang.Class<?>)
+  method public org.ipro.rls.RlsDimensionValueLabelResolver$Labels rlsLabels(java.lang.Class<?>, java.lang.Object)
+  method public void validate(java.lang.Class<?>)
+
 class public final org.ipro.data.ScenarioFetchGraphResolver
   ctor public(org.ipro.metadata.MetadataResolver, org.ipro.fetch.plan.FetchPlanRegistry, org.ipro.fetch.instance.InstanceNameResolver)
   method public <T> jakarta.persistence.EntityGraph<T> resolve(jakarta.persistence.EntityManager, java.lang.Class<T>, org.ipro.fetch.plan.FetchScenario, java.util.Collection<java.lang.String>)
   method public <T> jakarta.persistence.EntityGraph<T> resolveRestFetchGraph(jakarta.persistence.EntityManager, java.lang.Class<T>, java.util.Collection<java.lang.String>)
   method public java.util.List<java.lang.String> resolvePaths(java.lang.Class<?>, org.ipro.fetch.plan.FetchScenario, java.util.Collection<java.lang.String>)
+
+class public final org.ipro.data.SelectionFilters
+  method public static <T> org.springframework.data.jpa.domain.Specification<T> specificationFor(java.util.Map<java.lang.String, java.lang.Object>)
 
 class public final org.ipro.data.presentation.EntityPresentationService
   ctor public(org.ipro.data.EntityReadAccess, org.ipro.data.EntityDataAccessResolver, org.ipro.fetch.instance.InstanceNameResolver, org.ipro.metadata.MetadataResolver)
@@ -200,15 +216,20 @@ class public final org.ipro.metadata.CatalogOwnerResolver
   method public org.ipro.metadata.CatalogOwnerResolution resolve(java.lang.Class<?>)
 
 class public final org.ipro.metadata.ColumnPath
+  method public boolean isInlineFilterEnabled()
   method public boolean isNested()
+  method public int getFlexGrow()
   method public java.lang.Class<?> getJavaType()
   method public java.lang.Object getValue(java.lang.Object)
   method public java.lang.String getKey()
   method public java.lang.String getLabel()
+  method public java.lang.String getWidth()
   method public java.lang.reflect.Field getRootField()
   method public java.util.List<java.lang.String> getFetchPaths()
   method public java.util.Optional<org.ipro.metadata.FieldMetadataInfo> asFieldMetadata()
   method public org.ipro.metadata.ColumnPath withLabel(java.lang.String)
+  method public org.ipro.metadata.ColumnPath withProperties(org.ipro.metadata.ColumnPath$Spec)
+  method public org.ipro.metadata.ColumnPath$Spec toSpec(java.lang.Class<?>)
   method public org.ipro.metadata.FactOrigin getLabelOrigin()
   method public org.ipro.metadata.annotation.FieldType getResolvedType()
   method public static java.lang.String toJson(java.util.List<org.ipro.metadata.ColumnPath>, java.lang.Class<?>)
@@ -221,6 +242,7 @@ class public final org.ipro.metadata.EntityMetadataInfo
   ctor public(java.lang.Class<?>, org.ipro.metadata.annotation.EntityMetadata, org.ipro.metadata.annotation.EntityKind, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.ColumnPath>)
   ctor public(java.lang.Class<?>, org.ipro.metadata.annotation.EntityMetadata, org.ipro.metadata.annotation.EntityKind, org.ipro.metadata.FactOrigin, java.lang.String, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.ColumnPath>)
   ctor public(java.lang.Class<?>, org.ipro.metadata.annotation.EntityMetadata, org.ipro.metadata.annotation.EntityKind, org.ipro.metadata.FactOrigin, java.lang.String, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.StructuralAttribute>)
+  ctor public(java.lang.Class<?>, org.ipro.metadata.annotation.EntityMetadata, org.ipro.metadata.annotation.EntityKind, org.ipro.metadata.FactOrigin, java.lang.String, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.StructuralAttribute>, org.ipro.metadata.FormColumnDeclarations$Declaration, org.ipro.metadata.FormColumnDeclarations$Declaration)
   method public boolean hasExplicitListColumns()
   method public boolean hasExplicitSelectColumns()
   method public int getOrder()
@@ -249,11 +271,8 @@ class public final org.ipro.metadata.EntityMetadataInfo
 class public final org.ipro.metadata.FieldMetadataInfo
   ctor public(java.lang.reflect.Field, org.ipro.metadata.annotation.FieldMetadata)
   method public boolean hasLookup()
-  method public boolean isFilterEnabled()
-  method public boolean isGridSortable()
   method public boolean isGridVisible()
   method public boolean isHidden()
-  method public boolean isInlineFilterEnabled()
   method public boolean isReadOnly()
   method public boolean isRequired()
   method public boolean isServerRequired()
@@ -267,11 +286,8 @@ class public final org.ipro.metadata.FieldMetadataInfo
   method public java.lang.String getLabel()
   method public java.lang.String getLookupVariant()
   method public java.lang.String getName()
-  method public java.lang.String getPlaceholder()
   method public java.lang.String toString()
-  method public java.lang.String[] getLookupColumns()
   method public java.lang.String[] getLookupFetch()
-  method public java.lang.String[] getLookupSearchFields()
   method public java.lang.reflect.AnnotatedElement getPersistentMember()
   method public java.lang.reflect.Field getField()
   method public java.util.List<org.ipro.metadata.MetadataDiagnostic> getDiagnostics()
@@ -283,6 +299,20 @@ class public final org.ipro.metadata.FieldMetadataInfo
   method public org.ipro.metadata.annotation.FieldType getResolvedType()
   method public org.ipro.metadata.annotation.RequiredMode getRequiredMode()
   method public void setValue(java.lang.Object, java.lang.Object)
+
+class public final org.ipro.metadata.FormColumnDeclarations
+  ctor public()
+  method public java.util.List<org.ipro.metadata.ColumnPath> resolveColumns(org.ipro.metadata.EntityMetadataInfo, org.ipro.metadata.FormColumnDeclarations$Kind, java.lang.String)
+  method public java.util.List<org.ipro.metadata.FormColumnDeclarations$Declaration> all()
+  method public java.util.List<org.ipro.metadata.MetadataDiagnostic> diagnostics(java.lang.Class<?>)
+  method public org.ipro.metadata.FormColumnDeclarations$Declaration find(java.lang.Class<?>, org.ipro.metadata.FormColumnDeclarations$Kind, java.lang.String)
+  method public static java.util.List<org.ipro.metadata.ColumnPath> applyProperties(java.util.List<org.ipro.metadata.ColumnPath>, java.util.List<org.ipro.metadata.ColumnPath$Spec>, java.lang.String)
+  method public static org.ipro.metadata.FormColumnDeclarations empty()
+  method public static org.ipro.metadata.FormColumnDeclarations$Columns auto()
+  method public static transient org.ipro.metadata.FormColumnDeclarations$Columns explicit(java.lang.String[])
+  method public synchronized void freeze()
+  method public synchronized void register(org.ipro.metadata.FormColumnDeclarations$Declaration)
+  method public void requireFrozen()
 
 class public final org.ipro.metadata.JpaFieldFacts
   method public static java.lang.String requiredSymbol(java.lang.reflect.Field, java.lang.reflect.AnnotatedElement, org.ipro.metadata.FactOrigin)
@@ -314,11 +344,13 @@ class public final org.ipro.metadata.MetadataDiagnosticCodes
   field public static final java.lang.String CLASSIFICATION_SOURCE_FAILED = CLASSIFICATION_SOURCE_FAILED
   field public static final java.lang.String CLASSIFICATION_SOURCE_MISSING = CLASSIFICATION_SOURCE_MISSING
   field public static final java.lang.String DISALLOWED_ALLOWANCE = DISALLOWED_ALLOWANCE
+  field public static final java.lang.String DUPLICATE_FORM_COLUMN_SOURCE = DUPLICATE_FORM_COLUMN_SOURCE
   field public static final java.lang.String ENTITY_CLASSIFICATION_CONFLICT = ENTITY_CLASSIFICATION_CONFLICT
   field public static final java.lang.String FALLBACK_TYPE = FALLBACK_TYPE
   field public static final java.lang.String INTERNED_GENERIC_WRITES = INTERNED_GENERIC_WRITES
   field public static final java.lang.String INVALID_ENTITY_METADATA = INVALID_ENTITY_METADATA
   field public static final java.lang.String INVALID_FIELD_METADATA = INVALID_FIELD_METADATA
+  field public static final java.lang.String LEGACY_FORM_COLUMNS = LEGACY_FORM_COLUMNS
   field public static final java.lang.String LOOKUP_TARGET_NOT_ACCESSIBLE = LOOKUP_TARGET_NOT_ACCESSIBLE
   field public static final java.lang.String NUMBERING_ROLE_KIND_CONFLICT = NUMBERING_ROLE_KIND_CONFLICT
   field public static final java.lang.String REDUNDANT_LOOKUP_TARGET = REDUNDANT_LOOKUP_TARGET
@@ -334,6 +366,7 @@ class public final org.ipro.metadata.MetadataDiagnosticCodes
 class public final org.ipro.metadata.RowMetadataInfo
   ctor public(java.lang.Class<?>, java.util.List<org.ipro.metadata.FieldMetadataInfo>, java.util.List<org.ipro.metadata.FieldMetadataInfo>)
   method public java.lang.Class<?> getRowClass()
+  method public java.util.List<org.ipro.metadata.ColumnPath> getColumnPaths()
   method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getFormFields()
   method public java.util.List<org.ipro.metadata.FieldMetadataInfo> getGridFields()
 
@@ -363,6 +396,7 @@ class public final org.ipro.metadata.SubsystemNode
 class public final org.ipro.metadata.TableSectionGridMetadata
   implements org.ipro.metadata.GridMetadata
   ctor public(org.ipro.metadata.TableSectionMetadataInfo)
+  ctor public(org.ipro.metadata.TableSectionMetadataInfo, java.util.List<org.ipro.metadata.ColumnPath>)
   method public java.lang.Class<?> getEntityClass()
   method public java.lang.String getListFormTitle()
   method public java.util.List<org.ipro.metadata.ColumnPath> getListColumnPaths()
@@ -430,6 +464,7 @@ class public org.ipro.crud.LookupService
   method public <T> java.util.List<T> findAll(java.lang.Class<T>)
   method public <T> java.util.List<T> search(java.lang.Class<T>, java.lang.String[], java.lang.String, int)
   method public <T> java.util.List<T> search(java.lang.Class<T>, java.lang.String[], java.lang.String, int, java.util.Collection<java.lang.String>)
+  method public <T> java.util.List<T> search(java.lang.Class<T>, java.lang.String[], java.lang.String, int, java.util.Collection<java.lang.String>, java.util.Map<java.lang.String, java.lang.Object>)
   method public <T> java.util.List<T> search(java.lang.Class<T>, java.util.Collection<java.lang.String>, java.lang.String, int)
   method public <T> java.util.Optional<T> findById(java.lang.Class<T>, java.lang.Object)
   method public <T> java.util.Optional<T> findById(java.lang.Class<T>, java.lang.Object, java.util.Collection<java.lang.String>)
@@ -610,11 +645,13 @@ class public org.ipro.metadata.MetadataResolver
   method public java.util.List<org.ipro.metadata.TableSectionMetadataInfo> resolveTableSections(java.lang.Class<?>)
   method public java.util.Optional<org.ipro.metadata.EntityMetadataInfo> find(java.lang.Class<?>)
   method public org.ipro.metadata.EntityMetadataInfo resolve(java.lang.Class<?>)
+  method public org.ipro.metadata.FormColumnDeclarations getFormColumnDeclarations()
   method public org.ipro.metadata.RowMetadataInfo resolveRowMetadata(java.lang.Class<?>)
   method public static boolean isApplicable(java.lang.Class<?>)
   method public void invalidate(java.lang.Class<?>)
   method public void invalidateAll()
   method public void setEntityManagerFactory(jakarta.persistence.EntityManagerFactory)
+  method public void setFormColumnDeclarations(org.ipro.metadata.FormColumnDeclarations)
   method public void setMetamodel(jakarta.persistence.metamodel.Metamodel)
 
 class public org.ipro.metadata.SubsystemRegistry
@@ -633,6 +670,20 @@ class public org.ipro.search.GlobalSearchService
   method public org.ipro.search.GlobalSearchResponse search(java.lang.String)
   method public org.ipro.search.GlobalSearchResponse search(org.ipro.search.GlobalSearchRequest)
   method public static org.ipro.search.GlobalSearchService withoutSecurityContextForTests(org.ipro.search.GlobalSearchCatalog, org.ipro.search.GlobalSearchProviderRegistry, org.ipro.data.CanonicalReadExecutor)
+
+class public static final org.ipro.metadata.FormColumnDeclarations$Columns
+  method public java.util.List<java.lang.String> paths()
+  method public java.util.List<org.ipro.metadata.ColumnPath$Spec> properties()
+  method public java.util.List<org.ipro.metadata.ColumnPath> applyTo(java.util.List<org.ipro.metadata.ColumnPath>, java.lang.String)
+  method public java.util.List<org.ipro.metadata.ColumnPath> resolve(java.lang.Class<?>, java.util.List<org.ipro.metadata.ColumnPath>, java.lang.String)
+  method public org.ipro.metadata.FormColumnDeclarations$Mode mode()
+  method public org.ipro.metadata.FormColumnDeclarations$Properties column(java.lang.String)
+
+class public static final org.ipro.metadata.FormColumnDeclarations$Properties
+  method public org.ipro.metadata.FormColumnDeclarations$Properties setFlexGrow(int)
+  method public org.ipro.metadata.FormColumnDeclarations$Properties setInlineFilter(boolean)
+  method public org.ipro.metadata.FormColumnDeclarations$Properties setLabel(java.lang.String)
+  method public org.ipro.metadata.FormColumnDeclarations$Properties setWidth(java.lang.String)
 
 enum public final org.ipro.data.SearchContext
   extends java.lang.Enum<org.ipro.data.SearchContext>
@@ -748,6 +799,22 @@ enum public static final org.ipro.data.WriteTelemetry$DenialKind
   field public static final org.ipro.data.WriteTelemetry$DenialKind CAPABILITY = enum-constant
   method public static org.ipro.data.WriteTelemetry$DenialKind valueOf(java.lang.String)
   method public static org.ipro.data.WriteTelemetry$DenialKind[] values()
+
+enum public static final org.ipro.metadata.FormColumnDeclarations$Kind
+  extends java.lang.Enum<org.ipro.metadata.FormColumnDeclarations$Kind>
+  enum-constants [LIST, SELECTION]
+  field public static final org.ipro.metadata.FormColumnDeclarations$Kind LIST = enum-constant
+  field public static final org.ipro.metadata.FormColumnDeclarations$Kind SELECTION = enum-constant
+  method public static org.ipro.metadata.FormColumnDeclarations$Kind valueOf(java.lang.String)
+  method public static org.ipro.metadata.FormColumnDeclarations$Kind[] values()
+
+enum public static final org.ipro.metadata.FormColumnDeclarations$Mode
+  extends java.lang.Enum<org.ipro.metadata.FormColumnDeclarations$Mode>
+  enum-constants [AUTO, EXPLICIT]
+  field public static final org.ipro.metadata.FormColumnDeclarations$Mode AUTO = enum-constant
+  field public static final org.ipro.metadata.FormColumnDeclarations$Mode EXPLICIT = enum-constant
+  method public static org.ipro.metadata.FormColumnDeclarations$Mode valueOf(java.lang.String)
+  method public static org.ipro.metadata.FormColumnDeclarations$Mode[] values()
 
 enum public static final org.ipro.metadata.JpaFieldFacts$NullabilityKind
   extends java.lang.Enum<org.ipro.metadata.JpaFieldFacts$NullabilityKind>
@@ -1025,6 +1092,7 @@ record public final org.ipro.data.SearchRead
   extends java.lang.Record
   type-parameter T
   ctor public(java.lang.Class<T>, org.ipro.data.SearchContext, java.lang.String, java.util.List<java.lang.String>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>)
+  ctor public(java.lang.Class<T>, org.ipro.data.SearchContext, java.lang.String, java.util.List<java.lang.String>, org.springframework.data.domain.Pageable, java.util.Collection<java.lang.String>, java.util.Map<java.lang.String, java.lang.Object>)
   field public static final int DEFAULT_PAGE_SIZE = 100
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
@@ -1033,8 +1101,10 @@ record public final org.ipro.data.SearchRead
   method public java.lang.String term()
   method public java.util.Collection<java.lang.String> additionalPaths()
   method public java.util.List<java.lang.String> searchFields()
+  method public java.util.Map<java.lang.String, java.lang.Object> filters()
   method public org.ipro.data.SearchContext context()
   method public org.ipro.data.SearchRead<T> withFields(java.util.List<java.lang.String>)
+  method public org.ipro.data.SearchRead<T> withFilters(java.util.Map<java.lang.String, java.lang.Object>)
   method public org.ipro.data.SearchRead<T> withPaths(java.util.Collection<java.lang.String>)
   method public org.springframework.data.domain.Pageable pageable()
   method public static <T> org.ipro.data.SearchRead<T> of(java.lang.Class<T>, org.ipro.data.SearchContext, java.lang.String)
@@ -1323,11 +1393,32 @@ record public static final org.ipro.data.presentation.EntityPresentationService$
 record public static final org.ipro.metadata.ColumnPath$Spec
   extends java.lang.Record
   ctor public(java.lang.String, java.lang.String)
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, java.lang.Boolean)
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
+  method public java.lang.Boolean inlineFilter()
+  method public java.lang.Integer flexGrow()
   method public java.lang.String label()
   method public java.lang.String path()
+  method public java.lang.String width()
+
+record public static final org.ipro.metadata.FormColumnDeclarations$Declaration
+  extends java.lang.Record
+  ctor public(java.lang.Class<?>, org.ipro.metadata.FormColumnDeclarations$Kind, java.lang.String, java.util.List<java.lang.String>, java.lang.String, java.lang.String)
+  ctor public(java.lang.Class<?>, org.ipro.metadata.FormColumnDeclarations$Kind, java.lang.String, java.util.List<java.lang.String>, java.lang.String, java.lang.String, java.util.List<org.ipro.metadata.ColumnPath$Spec>)
+  ctor public(java.lang.Class<?>, org.ipro.metadata.FormColumnDeclarations$Kind, java.lang.String, org.ipro.metadata.FormColumnDeclarations$Columns, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> entity()
+  method public java.lang.String source()
+  method public java.lang.String title()
+  method public java.lang.String variant()
+  method public java.util.List<java.lang.String> paths()
+  method public java.util.List<org.ipro.metadata.ColumnPath$Spec> properties()
+  method public org.ipro.metadata.FormColumnDeclarations$Kind kind()
+  method public org.ipro.metadata.FormColumnDeclarations$Mode mode()
 
 record public static final org.ipro.metadata.JpaFieldFacts$ColumnFact
   extends java.lang.Record

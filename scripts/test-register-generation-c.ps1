@@ -100,3 +100,6 @@ $summary = [ordered]@{
 Save-Json (Join-Path $OutputRoot 'summary.json') $summary
 Write-Host ("Register C: $($summary.status), $passed/$($checks.Count); $OutputRoot")
 if ($summary.status -ne 'PASS') { exit 1 }
+# The last C run intentionally fails (wrong independent spec). Do not leak its exit code
+# to callers after all positive and negative assertions have passed.
+exit 0

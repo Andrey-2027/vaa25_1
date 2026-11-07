@@ -23,6 +23,23 @@ import static org.mockito.Mockito.when;
  */
 class FetchPlanInstanceNameAutoConfigurationTest {
 
+    @org.ipro.metadata.annotation.EntityMetadata
+    @org.ipro.metadata.annotation.RlsLabels(code = "missing")
+    static class InvalidLabels { }
+
+    @Test
+    void invalidRlsLabelsFailAtStartup() {
+        ManagedEntityCatalog catalog = mock(ManagedEntityCatalog.class);
+        when(catalog.managedEntityClasses()).thenReturn(Set.of(InvalidLabels.class));
+        runner.withBean(ManagedEntityCatalog.class, () -> catalog)
+            .withBean(MetadataResolver.class, MetadataResolver::new)
+            .run(context -> {
+                assertThat(context).hasFailed();
+                assertThat(context.getStartupFailure()).hasStackTraceContaining("@RlsLabels")
+                    .hasStackTraceContaining("missing");
+            });
+    }
+
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(FetchPlanInstanceNameAutoConfiguration.class));
 

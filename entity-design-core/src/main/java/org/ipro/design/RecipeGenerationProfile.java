@@ -19,7 +19,9 @@ public record RecipeGenerationProfile(Builder builder, String generatorVersion, 
         RecipeCatalog.STANDARD_DOCUMENT, new RecipeGenerationProfile(Builder.STANDARD_ROOT,
             "document-java-v4", "plan-fingerprint-v2"),
         RecipeCatalog.INDEPENDENT_REGISTER, new RecipeGenerationProfile(Builder.INDEPENDENT_REGISTER,
-            "register-java-v1", "plan-fingerprint-v3"));
+            "register-java-v1", "plan-fingerprint-v3"),
+        RecipeCatalog.INDEPENDENT_REGISTER_RLS, new RecipeGenerationProfile(Builder.INDEPENDENT_REGISTER,
+            "register-java-v2", "plan-fingerprint-v4"));
 
     public static Optional<RecipeGenerationProfile> find(RecipeRef recipe) {
         return Optional.ofNullable(IMPLEMENTED.get(recipe));

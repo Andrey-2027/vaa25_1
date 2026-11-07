@@ -116,7 +116,7 @@ final class CSummaryV2 {
 
     void verify(GenerationPlan plan, List<GenerationFile> files, String fingerprintProfile)
             throws ApplyFailure {
-        boolean register = org.ipro.design.RecipeCatalog.INDEPENDENT_REGISTER.equals(plan.recipe());
+        boolean register = org.ipro.design.RecipeCatalog.isRegisterRecipe(plan.recipe());
         String requiredSuite = register ? "com.example.generated.harness.RegisterScenarioTest"
                 : !plan.source().sections().isEmpty()
                 ? "com.example.generated.harness.SectionsScenarioTest"
@@ -193,6 +193,10 @@ final class CSummaryV2 {
             fail("C_TESTS_INCOMPLETE", "C summary tests must have run without failures, errors or skips");
         }
         JsonNode suites = array(tests, "suites");
+        Set<String> requiredNames = new HashSet<>(Set.of(requiredSuite));
+        if (org.ipro.design.RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(plan.recipe()))
+            requiredNames.add("com.example.generated.harness.RegisterRlsSecurityTest");
+        Set<String> completedRequired = new HashSet<>();
         if (suites.isEmpty()) {
             fail("C_TESTS_INCOMPLETE", "C summary tests.suites must not be empty");
         }
@@ -207,7 +211,7 @@ final class CSummaryV2 {
             String name = textValue(suite, "name");
             if (!names.add(name)) fail("C_SUMMARY_INVALID", "Suite name is duplicated: " + name);
             boolean isRequired = bool(suite, "required");
-            if (isRequired && !requiredSuite.equals(name)) {
+            if (isRequired && !requiredNames.contains(name)) {
                 fail("C_TESTS_INCOMPLETE",
                         "Required suite must be " + requiredSuite + ": " + name);
             }
@@ -222,12 +226,13 @@ final class CSummaryV2 {
                 fail("C_TESTS_INCOMPLETE", "Required suite did not pass without skips: " + name);
             }
             required |= isRequired;
+            if (isRequired) completedRequired.add(name);
             run += suiteRun;
             failures += suiteFailures;
             errors += suiteErrors;
             skipped += suiteSkipped;
         }
-        if (!required) {
+        if (!required || !completedRequired.containsAll(requiredNames)) {
             fail("C_TESTS_INCOMPLETE", "C summary has no required suite");
         }
         if (run != integer(tests, "run") || failures != integer(tests, "failures")

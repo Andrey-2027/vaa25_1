@@ -82,7 +82,7 @@ class DeepLinkRouteBaselineTest {
     private static final Pattern ITEM_VARIANT = Pattern.compile("variants\\.add\\(\"([^\"]+)\"");
     private static final Pattern LIST_VARIANT = Pattern.compile("variants\\.(?:add|addView)\\(\"([^\"]+)\"");
     private static final Pattern REQUIRED_CONTEXT = Pattern.compile(
-        "required(?:Auto|Lookup|Select)\\(\"([^\"]+)\"");
+        "required(?:Auto|Lookup|Select)\\(\"([^\"]+)\"|filter\\(\"([^\"]+)\"\\)\\s*\\.setRequired\\(true\\)");
 
     /** Пути, занятые хостом глубокой ссылки: под ними не может быть статического route. */
     private static final Set<String> DEEP_LINK_HOSTS = Set.of("records", "lists");
@@ -305,7 +305,7 @@ class DeepLinkRouteBaselineTest {
         for (Path config : configs) {
             Matcher matcher = REQUIRED_CONTEXT.matcher(source(config));
             while (matcher.find()) {
-                required.add(matcher.group(1));
+                required.add(matcher.group(1) == null ? matcher.group(2) : matcher.group(1));
             }
         }
         return required;

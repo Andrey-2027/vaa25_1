@@ -47,29 +47,45 @@ annotation public abstract interface org.ipro.metadata.annotation.FieldMetadata
   annotation java.lang.annotation.Target
   retention RUNTIME
   target [FIELD]
-  method public abstract boolean filter() default true
   method public abstract boolean hidden() default false
-  method public abstract boolean inlineFilter() default true
   method public abstract boolean readOnly() default false
   method public abstract int order() default 999
   method public abstract java.lang.String label() default 
-  method public abstract java.lang.String placeholder() default 
   method public abstract org.ipro.metadata.annotation.FieldType type() default AUTO
-  method public abstract org.ipro.metadata.annotation.GridColumn grid() default @org.ipro.metadata.annotation.GridColumn(flexGrow=0, order=999, sortable=true, visible=true, width=)
-  method public abstract org.ipro.metadata.annotation.Lookup lookup() default @org.ipro.metadata.annotation.Lookup(columns=[], entity=class java.lang.Void, fetch=[], searchFields=[], variant=)
+  method public abstract org.ipro.metadata.annotation.GridColumn grid() default @org.ipro.metadata.annotation.GridColumn(flexGrow=0, order=999, visible=true, width=)
+  method public abstract org.ipro.metadata.annotation.Lookup lookup() default @org.ipro.metadata.annotation.Lookup(entity=class java.lang.Void, fetch=[], variant=)
   method public abstract org.ipro.metadata.annotation.RequiredMode required() default AUTO
 
-annotation public abstract interface org.ipro.metadata.annotation.GridColumn
+annotation public abstract interface org.ipro.metadata.annotation.FormConfigurationFor
   implements java.lang.annotation.Annotation
   annotation java.lang.annotation.Retention
   annotation java.lang.annotation.Target
   retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.Class<?> value()
+
+annotation public abstract interface org.ipro.metadata.annotation.GridColumn
+  implements java.lang.annotation.Annotation
+  annotation java.lang.Deprecated
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
   target [FIELD]
-  method public abstract boolean sortable() default true
   method public abstract boolean visible() default true
   method public abstract int flexGrow() default 0
   method public abstract int order() default 999
   method public abstract java.lang.String width() default 
+
+annotation public abstract interface org.ipro.metadata.annotation.ListColumns
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Repeatable
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.String variant() default 
+  method public abstract java.lang.String[] value() default []
+  method public abstract org.ipro.metadata.annotation.ListColumns$Column[] properties() default []
 
 annotation public abstract interface org.ipro.metadata.annotation.Lookup
   implements java.lang.annotation.Annotation
@@ -79,9 +95,29 @@ annotation public abstract interface org.ipro.metadata.annotation.Lookup
   target [FIELD]
   method public abstract java.lang.Class<?> entity() default class java.lang.Void
   method public abstract java.lang.String variant() default 
-  method public abstract java.lang.String[] columns() default []
   method public abstract java.lang.String[] fetch() default []
-  method public abstract java.lang.String[] searchFields() default []
+
+annotation public abstract interface org.ipro.metadata.annotation.RlsLabels
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Inherited
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.String code() default 
+  method public abstract java.lang.String name() default 
+
+annotation public abstract interface org.ipro.metadata.annotation.SelectionColumns
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Repeatable
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract java.lang.String title() default 
+  method public abstract java.lang.String variant() default 
+  method public abstract java.lang.String[] value() default []
+  method public abstract org.ipro.metadata.annotation.ListColumns$Column[] properties() default []
 
 annotation public abstract interface org.ipro.metadata.annotation.Subsystem
   implements java.lang.annotation.Annotation
@@ -118,6 +154,34 @@ annotation public abstract interface org.ipro.metadata.annotation.TableSections
   retention RUNTIME
   target [TYPE]
   method public abstract java.lang.Class<?>[] value()
+
+annotation public abstract static interface org.ipro.metadata.annotation.ListColumns$Column
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target []
+  method public abstract int flexGrow() default -1
+  method public abstract java.lang.String label() default 
+  method public abstract java.lang.String path()
+  method public abstract java.lang.String width() default 
+  method public abstract org.ipro.metadata.annotation.ListColumns$InlineFilter inlineFilter() default INHERIT
+
+annotation public abstract static interface org.ipro.metadata.annotation.ListColumns$Declarations
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract org.ipro.metadata.annotation.ListColumns[] value()
+
+annotation public abstract static interface org.ipro.metadata.annotation.SelectionColumns$Declarations
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+  method public abstract org.ipro.metadata.annotation.SelectionColumns[] value()
 
 class public static final org.ipro.events.EventContext$Builder
   method public org.ipro.events.EventContext build()
@@ -225,6 +289,15 @@ enum public final org.ipro.metadata.annotation.SectionRlsPolicy
   field public static final org.ipro.metadata.annotation.SectionRlsPolicy STANDALONE = enum-constant
   method public static org.ipro.metadata.annotation.SectionRlsPolicy valueOf(java.lang.String)
   method public static org.ipro.metadata.annotation.SectionRlsPolicy[] values()
+
+enum public static final org.ipro.metadata.annotation.ListColumns$InlineFilter
+  extends java.lang.Enum<org.ipro.metadata.annotation.ListColumns$InlineFilter>
+  enum-constants [INHERIT, ENABLED, DISABLED]
+  field public static final org.ipro.metadata.annotation.ListColumns$InlineFilter DISABLED = enum-constant
+  field public static final org.ipro.metadata.annotation.ListColumns$InlineFilter ENABLED = enum-constant
+  field public static final org.ipro.metadata.annotation.ListColumns$InlineFilter INHERIT = enum-constant
+  method public static org.ipro.metadata.annotation.ListColumns$InlineFilter valueOf(java.lang.String)
+  method public static org.ipro.metadata.annotation.ListColumns$InlineFilter[] values()
 
 interface public abstract interface org.ipro.events.EntityEvent
   type-parameter T

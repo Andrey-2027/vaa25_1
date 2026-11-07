@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * {@code
  * @FieldMetadata(
  *     label = "Код",
- *     grid = @GridColumn(order = 1, width = "150px", sortable = true)
+ *     grid = @GridColumn(order = 1, width = "150px")
  * )
  * private String code;
  * }
@@ -21,6 +21,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated(since = "AF3", forRemoval = false)
 public @interface GridColumn {
 
     /** Показывать ли колонку в гриде */
@@ -34,7 +35,4 @@ public @interface GridColumn {
 
     /** Flex grow: 0 = фиксированная ширина, больше = растягивается */
     int flexGrow() default 0;
-
-    /** Возможна ли сортировка по колонке */
-    boolean sortable() default true;
 }

@@ -35,11 +35,6 @@ public class SelectionFormVariants {
         return this;
     }
 
-    /** Default-набор колонок (перекрывает selectColumns/listColumns метаданных). */
-    public SelectionFormVariants addDefaultColumns(String... columns) {
-        return addColumns(null, List.of(columns), null);
-    }
-
     /** Именованный набор колонок. */
     public SelectionFormVariants addColumns(String variant, String... columns) {
         return addColumns(variant, List.of(columns), null);
@@ -47,7 +42,12 @@ public class SelectionFormVariants {
 
     /** Именованный набор колонок с заголовком диалога. */
     public SelectionFormVariants addColumns(String variant, List<String> columns, String title) {
-        this.columns.put(variant, SelectionColumnsDef.of(columns, title));
+        if (variant == null || variant.isBlank()) {
+            throw new IllegalArgumentException("Default selection columns belong in @SelectionColumns on @FormConfigurationFor");
+        }
+        if (this.columns.putIfAbsent(variant, SelectionColumnsDef.of(columns, title)) != null) {
+            throw new IllegalStateException("Duplicate selection columns for variant '" + variant + "'");
+        }
         return this;
     }
 

@@ -27,6 +27,13 @@ public final class DraftOperations {
                 new EntityProperties("", DraftText.auto(), "", EntityProperties.Titles.auto(), DraftText.auto(), null, "FILE"),
                 List.of(), List.of(), null, new RegisterDraft(period, RegisterDraft.NAMED_AND_CANONICAL_CRUD, List.of(), List.of()));
     }
+    public EntityDraft createRegister(RecipeRef recipe, String period) {
+        if (!RecipeCatalog.isRegisterRecipe(recipe)) throw new IllegalArgumentException("Register recipe required");
+        var plain = createRegister(period);
+        return RecipeCatalog.INDEPENDENT_REGISTER.equals(recipe) ? plain
+            : new EntityDraft(4, recipe, plain.draftId(), plain.entity(), plain.fields(), plain.sections(), null,
+                plain.register().withRls(new RegisterRlsDraft("", null)));
+    }
     public EntityDraft addField(EntityDraft draft, UUID sectionId, String type) {
         if (draft.fields().size() + draft.sections().stream().mapToInt(s -> s.fields().size()).sum() >= RecipeCatalog.MAX_FIELDS)
             throw new IllegalArgumentException("Field limit");

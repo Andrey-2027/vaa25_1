@@ -86,6 +86,18 @@ public class LookupService implements EntityLookup {
             searchFields == null ? List.of() : List.of(searchFields), term, limit, fetchPaths));
     }
 
+    /**
+     * То же с отбором выбора «путь → значение» (скаляр — равенство, коллекция — IN, Б1).
+     * Отбор действует вместе с поиском по терму, RLS и планом {@code LOOKUP} — так же, как
+     * в диалоге выбора, поэтому автокомплит не предлагает то, что диалог не покажет.
+     */
+    public <T> List<T> search(Class<T> entityClass, String[] searchFields, String term, int limit,
+                              Collection<String> fetchPaths, java.util.Map<String, Object> filters) {
+        return readExecutor.readLookup(new LookupRead<>(entityClass,
+            searchFields == null ? List.of() : List.of(searchFields), term, limit, fetchPaths,
+            filters));
+    }
+
     /** Получить все записи сущности. */
     public <T> List<T> findAll(Class<T> entityClass) {
         return readExecutor.readAll(new ListRead<>(entityClass, FetchScenario.LOOKUP,

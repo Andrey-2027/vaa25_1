@@ -44,4 +44,13 @@ public final class RowMetadataInfo {
     public List<FieldMetadataInfo> getGridFields() {
         return gridFields;
     }
+
+    /**
+     * Resolved automatic row columns, shared by the ROW plan and section assembly.
+     * Section-specific declarations and saved views remain per opening; their fetch paths
+     * extend the base ROW plan at the read boundary rather than changing shared metadata.
+     */
+    public List<ColumnPath> getColumnPaths() {
+        return gridFields.stream().map(ColumnPath::fromField).toList();
+    }
 }

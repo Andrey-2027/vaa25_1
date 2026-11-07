@@ -1,5 +1,7 @@
 package org.ip.model;
 
+import org.ipro.metadata.annotation.RlsLabels;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,7 +17,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 
 /**
  * Привязка «Номенклатура ↔ Атрибут КСУ» — схема разреза карточки позиции
@@ -47,6 +48,7 @@ import org.ipro.metadata.annotation.Lookup;
     selectColumns = {"nomenclature", "attrType", "required"},
     displaySortFields = {"attrType", "nomenclature"}
 )
+@RlsLabels(code = "nomenclature", name = "attrType")
 public class NomSklAttribute extends BaseEntity implements HasDisplayName {
 
     @NotNull
@@ -54,8 +56,7 @@ public class NomSklAttribute extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @FieldMetadata(
         label = "Номенклатура", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "250px"),
-        lookup = @Lookup(entity = Nomenclature.class)
+        grid = @GridColumn(order = 1, width = "250px")
     )
     private Nomenclature nomenclature;
 
@@ -64,8 +65,7 @@ public class NomSklAttribute extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "attr_type_id", nullable = false)
     @FieldMetadata(
         label = "Атрибут КСУ", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, width = "250px"),
-        lookup = @Lookup(entity = AttributeType.class)
+        grid = @GridColumn(order = 2, width = "250px")
     )
     private AttributeType attrType;
 

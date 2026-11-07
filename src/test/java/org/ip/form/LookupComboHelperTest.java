@@ -5,10 +5,8 @@ import com.vaadin.flow.data.provider.Query;
 import org.ip.model.Journal;
 import org.ipro.crud.EntityLookup;
 import org.ipro.form.LookupComboHelper;
-import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
-import org.ipro.metadata.annotation.FieldType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -57,25 +55,20 @@ class LookupComboHelperTest {
     }
 
     @Test
-    void suggestUsesTextSelectColumnsWhenMetadataKnowsThem() {
+    void suggestUsesPresentationRegardlessOfSelectColumns() {
         EntityLookup lookup = mock(EntityLookup.class);
         when(lookup.search(any(), anyCollection(), anyString(), anyInt()))
             .thenReturn(List.of());
         MetadataResolver resolver = mock(MetadataResolver.class);
         EntityMetadataInfo meta = mock(EntityMetadataInfo.class);
-        ColumnPath code = mock(ColumnPath.class);
-        when(code.getResolvedType()).thenReturn(FieldType.TEXT);
-        when(code.getKey()).thenReturn("code");
-        ColumnPath number = mock(ColumnPath.class);
-        when(number.getResolvedType()).thenReturn(FieldType.INTEGER);
-        when(number.getKey()).thenReturn("id");
-        when(meta.getSelectColumnPaths()).thenReturn(List.of(code, number));
+        when(meta.getSelectColumnPaths()).thenThrow(new AssertionError("search must not read selection columns"));
         when(resolver.find(Journal.class)).thenReturn(java.util.Optional.of(meta));
 
         LookupComboHelper.suggest(Journal.class, lookup, resolver, "a");
 
-        verify(lookup).search(eq(Journal.class), eq(List.of("code")),
+        verify(lookup).search(eq(Journal.class), eq(List.of("code", "name")),
             eq("a"), eq(LookupComboHelper.SUGGESTION_LIMIT));
+        verify(meta, never()).getSelectColumnPaths();
     }
 
     @Test

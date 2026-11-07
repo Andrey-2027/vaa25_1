@@ -21,6 +21,42 @@ import static org.ip.views.admin.EntityDraftEditorViewTest.*;
 class EntityDraftRegisterUiTest {
     private static final UUID DIM = new UUID(41, 1), RES = new UUID(41, 2);
     private UI ui; // CurrentInstance uses weak references; keep the test UI alive across allocations/GC.
+    @Test void explicitRlsControlsRoundTripAndPolicyEditsInvalidateTheDeliveredPreview() throws Exception {
+        var plain=draft("DAY");var fields=new ArrayList<>(plain.fields());
+        fields.set(0,new FieldDraft(DIM,"item","Номенклатура","REFERENCE",DraftText.auto(),true,FieldDraft.UiRequired.AUTO,
+            ConstraintDraft.empty(),new ReferenceDraft("com.example.Item"),FieldApplications.root()));
+        var draft=new EntityDraft(4,RecipeCatalog.INDEPENDENT_REGISTER_RLS,plain.draftId(),plain.entity(),fields,List.of(),null,
+            plain.register().withRls(new RegisterRlsDraft("REGISTER_ITEM",DIM)));
+        var base=context();var facts=new HashMap<>(base.runtimeSnapshot().prerequisites());
+        facts.put("RLS_NUMERIC_REFERENCE_FILTERS",new RuntimeDesignSnapshot.Prerequisite(RuntimeDesignSnapshot.Status.AVAILABLE,"owner fixture"));
+        var target=new ReferenceTargetDescriptor("com.example.Item","Item","STANDARD_ROOT","java.lang.Long",
+            ReferenceTargetDescriptor.Fact.YES,ReferenceTargetDescriptor.Fact.YES,ReferenceTargetDescriptor.Eligibility.SUPPORTED,"");
+        var context=new ProjectDesignContext(base.projectId(),base.version(),base.defaultPackage(),base.existingTypes(),base.existingTables(),
+            base.subsystemIds(),base.iconIds(),Map.of(target.typeId(),target),true,new RuntimeDesignSnapshot("rls-ui",true,Map.of(),facts));
+        var v=editor(draft);v.setContextSource(() -> context);v.activate();
+        assertThat(new DraftJsonCodec().decode(v.prepareExport().bytes())).isEqualTo(draft);
+        button(v,"Показать Java").click();var token=v.javaExport();
+        assertThat(token.plan().generatorVersion()).isEqualTo("register-java-v2");
+        assertThat(token.plan().files().getFirst().content()).contains("@RlsDimension", "applyToLoadByKey = true");
+        text(v,"register.rls.dimension").setValue("OTHER_ITEM");
+        assertThat(v.session().generation()).isEmpty();
+        var refused=event(new ByteArrayOutputStream());v.javaDownloadHandler(token).handleDownloadRequest(refused);
+        verify(refused.getResponse()).setStatus(409);
+        select(v,"register.period").setValue("NONE");
+        assertThat(v.session().draft().register().rls()).isEqualTo(new RegisterRlsDraft("OTHER_ITEM",DIM));
+        button(v,"Показать Java").click();assertThat(v.javaExport().plan().planId()).isNotEqualTo(token.plan().planId());
+        v.session().selectField(DIM);v.session().removeSelected();button(v,"Проверить").click();
+        assertThat(v.session().draft().register().rls().fieldId()).isEqualTo(DIM);
+        assertThat(v.session().validation().orElseThrow().problems()).anyMatch(p -> p.code()==DraftProblem.Code.REGISTER_RLS_INVALID);
+    }
+    @Test void newRlsRecipeIsAnExplicitChoiceAndDoesNotUpgradeAnExistingDraft() {
+        var v=editor(null);button(v,"Регистр сведений с RLS").click();
+        assertThat(v.session().draft().schemaVersion()).isEqualTo(4);
+        assertThat(v.session().draft().recipe()).isEqualTo(RecipeCatalog.INDEPENDENT_REGISTER_RLS);
+        assertThat(v.session().draft().register().rls()).isEqualTo(new RegisterRlsDraft("",null));
+        var plain=editor(draft("NONE"));assertThat(plain.session().draft().schemaVersion()).isEqualTo(3);
+        assertThat(plain.session().draft().register().rls()).isNull();
+    }
     @BeforeEach void setup() { principal("admin", true); ui = uiWithResources(); UI.setCurrent(ui); }
     @AfterEach void cleanup() { UI.setCurrent(null); ui = null; org.springframework.security.core.context.SecurityContextHolder.clearContext(); }
     static ProjectDesignContext context() {

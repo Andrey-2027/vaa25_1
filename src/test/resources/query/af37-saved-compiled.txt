@@ -1,0 +1,42 @@
+1547346292636206759.json
+select r0.id as id, r0.name as name, j_1ca942da4e97.name as unitOfMeasurement_name, j_cc484b3845af.code as groupNom_code, j_1ca942da4e97.id as presentation_id_1, j_cc484b3845af.id as presentation_id_2 from Nomenclature r0 left join GroupNom j_cc484b3845af on r0.groupNom.id = j_cc484b3845af.id left join UnitOfMeasurement j_1ca942da4e97 on r0.unitOfMeasurement.id = j_1ca942da4e97.id
+id|Идентификатор записи|java.lang.Long
+name|Наименование|java.lang.String
+unitOfMeasurement_name|Наименование|java.lang.String
+groupNom_code|Код|java.lang.String
+unitOfMeasurement|unitOfMeasurement|java.lang.String
+groupNom|groupNom|java.lang.String
+
+2306932353111510446.json
+select n.code as code, n.name as name from Nomenclature n
+code|Код|java.lang.String
+name|Наименование|java.lang.String
+
+4970062214623218592.json
+select n.code as code, n.name as name from Nomenclature n
+code|Код|java.lang.String
+name|Наименование|java.lang.String
+
+5258677038190841710.json
+with list1_rows as (select nomenclature.code as code, nomenclature.name as name from Nomenclature nomenclature), list1 as (select listRows.code as key, listagg(distinct listRows.name, '; ') within group (order by listRows.name) as value from list1_rows listRows group by listRows.code) select n.code as code, n.name as name, l1.value as listValues from Nomenclature n left join list1 l1 on l1.key = n.code
+code|Код|java.lang.String
+name|Наименование|java.lang.String
+listValues|value|java.lang.String
+
+5805080339836978710.json
+select n.code as code, n.name as name from Nomenclature n
+code|Код|java.lang.String
+name|Наименование|java.lang.String
+
+5836482501843636118.json
+with list1_rows as (select nomenclature.code as code, nomenclature.name as name from Nomenclature nomenclature), list1 as (select listRows.code as key, listagg(distinct listRows.name, ', ') within group (order by listRows.name) as value from list1_rows listRows group by listRows.code) select n.code as code, n.name as name, l1.value as listValues from Nomenclature n left join list1 l1 on l1.key = n.code
+code|Код|java.lang.String
+name|Наименование|java.lang.String
+listValues|value|java.lang.String
+
+7294647133134669229.json
+with list1_rows as (select nomenclature.code as code, nomenclature.name as name from Nomenclature nomenclature), list1 as (select listRows.code as key, listagg(distinct listRows.name, '; ') within group (order by listRows.name) as value from list1_rows listRows group by listRows.code) select n.code as code, n.name as name, l1.value as listValues from Nomenclature n left join list1 l1 on l1.key = n.code
+code|Код|java.lang.String
+name|Наименование|java.lang.String
+listValues|value|java.lang.String
+

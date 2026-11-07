@@ -46,7 +46,8 @@ public final class DraftValidator {
             boolean registerRecipe = RecipeCatalog.isRegisterRecipe(draft.recipe());
             var recipe = RecipeCatalog.find(draft.recipe());
             if (registerRecipe) {
-                if (draft.schemaVersion() != 3) error(UNSUPPORTED_VERSION, "schemaVersion", Integer.toString(draft.schemaVersion()));
+                int envelope = RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(draft.recipe()) ? 4 : 3;
+                if (draft.schemaVersion() != envelope) error(UNSUPPORTED_VERSION, "schemaVersion", Integer.toString(draft.schemaVersion()));
                 if (recipe.isEmpty()) error(UNSUPPORTED_VERSION, "recipe", draft.recipe().toString());
                 if (!draft.sections().isEmpty()) error(REGISTER_SECTION_UNSUPPORTED, "sections", Integer.toString(draft.sections().size()));
                 var snapshot=context.runtimeSnapshot();
@@ -223,7 +224,26 @@ public final class DraftValidator {
             var keyColumns = new ArrayList<>(dimensionColumns);
             if (periodColumn != null) keyColumns.add(periodColumn);
             return new CheckedStructure.Register(reg.period(), reg.writeProfile(), periodColumn, table,
-                draft.entity().className(), dimensions, resources, dimensionColumns, keyColumns);
+                draft.entity().className(), dimensions, resources, dimensionColumns, keyColumns, registerRls(reg, byId));
+        }
+        private CheckedStructure.RegisterRls registerRls(RegisterDraft register, Map<UUID, CheckedStructure.Field> fields) {
+            var policy = register.rls();
+            if (!RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(draft.recipe())) {
+                if (policy != null) error(REGISTER_RLS_INVALID, "register.rls", "RLS requires envelope v4 and independent-register-v2@2");
+                return null;
+            }
+            if (policy == null) { error(REGISTER_RLS_INVALID, "register.rls", "Explicit RLS policy is required"); return null; }
+            if (!policy.dimension().matches("[A-Z][A-Z0-9_]{0,63}"))
+                error(REGISTER_RLS_INVALID, "register.rls.dimension", "Use an explicit uppercase dimension name, up to 64 characters");
+            var field = policy.fieldId() == null ? null : fields.get(policy.fieldId());
+            if (field == null || !register.dimensions().contains(policy.fieldId()) || field.type() != FieldType.REFERENCE) {
+                error(REGISTER_RLS_INVALID, "register.rls.fieldId", "Select one reference dimension with Long identity"); return null;
+            }
+            var target = context.referenceTargets().get(field.referenceTypeId());
+            if (target == null || !"java.lang.Long".equals(target.identityType())) {
+                error(REGISTER_RLS_INVALID, "register.rls.fieldId", "Reference identity must be java.lang.Long"); return null;
+            }
+            return new CheckedStructure.RegisterRls(policy.dimension(), field.id(), field.name()+".id", field.columnName());
         }
         private boolean roles(List<UUID> roleIds, String property, Map<UUID, CheckedStructure.Field> byId) {
             boolean anomaly = false; var seen = new HashSet<UUID>();

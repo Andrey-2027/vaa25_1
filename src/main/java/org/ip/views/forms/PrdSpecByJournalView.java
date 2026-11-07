@@ -43,7 +43,12 @@ public class PrdSpecByJournalView extends VerticalLayout {
 
         Map<String, Object> parameters = new LinkedHashMap<>(openingContext.getParameters());
         Map<String, Object> filters = new LinkedHashMap<>();
-        if (journalId != null) filters.put("journal.id", journalId);
+        if (journalId != null) {
+            Journal journal = lookupService.findSelectedById(Journal.class, journalId)
+                .orElseThrow(() -> new IllegalArgumentException("Журнал отсутствует или недоступен"));
+            filters.putAll(org.ipro.form.registry.Filter.values(PrdSpec.class,
+                org.ipro.form.registry.Filter.eq("journal", journal)));
+        }
         if (typeNom != null) filters.put("nomenclature.typeNom", typeNom);
         parameters.putIfAbsent("contextFilters", filters);
         listForm = coordinator.createListForm(PrdSpec.class, null, parameters);

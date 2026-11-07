@@ -54,6 +54,23 @@ public class MetadataResolver {
     private volatile Metamodel metamodel;
     /** Поколение кэша для отбрасывания результатов, построенных до invalidation. */
     private long cacheGeneration;
+    private FormColumnDeclarations formColumnDeclarations = FormColumnDeclarations.empty();
+    private boolean resolutionStarted;
+
+    @Autowired(required = false)
+    public void setFormColumnDeclarations(FormColumnDeclarations declarations) {
+        synchronized (cacheLock) {
+            declarations.requireFrozen();
+            if (resolutionStarted && !declarations.all().isEmpty()) {
+                throw new IllegalStateException("Form columns must be installed before the first metadata resolution");
+            }
+            this.formColumnDeclarations = declarations;
+        }
+    }
+
+    public FormColumnDeclarations getFormColumnDeclarations() {
+        return formColumnDeclarations;
+    }
 
     /**
      * Spring-конструктор.
@@ -129,6 +146,10 @@ public class MetadataResolver {
      * Бросает IllegalArgumentException, если нет EntityMetadata и поддержанного Standard* intent.
      */
     public EntityMetadataInfo resolve(Class<?> entityClass) {
+        synchronized (cacheLock) {
+            formColumnDeclarations.requireFrozen();
+            resolutionStarted = true;
+        }
         while (true) {
             long generation;
             synchronized (cacheLock) {
@@ -331,11 +352,28 @@ public class MetadataResolver {
         List<FieldMetadataInfo> gridFields = toGridFields(allFields);
         List<StructuralAttribute> structuralAttributes = resolveStructuralAttributes(entityClass);
 
+        var listDeclaration = formColumnDeclarations.find(entityClass, FormColumnDeclarations.Kind.LIST, null);
+        var selectionDeclaration = formColumnDeclarations.find(entityClass, FormColumnDeclarations.Kind.SELECTION, null);
         List<ColumnPath> listColumnPaths = resolveColumnPaths(entityClass,
-            annotation == null ? new String[0] : annotation.listColumns(), gridFields);
-        List<ColumnPath> selectColumnPaths = annotation != null && annotation.selectColumns().length > 0
-            ? resolveColumnPaths(entityClass, annotation.selectColumns(), null)
-            : listColumnPaths;
+            listDeclaration != null ? listDeclaration.paths().toArray(String[]::new)
+                : annotation == null ? new String[0] : annotation.listColumns(), gridFields);
+        List<ColumnPath> selectColumnPaths;
+        if (selectionDeclaration != null) {
+            selectColumnPaths = resolveColumnPaths(entityClass,
+                selectionDeclaration.paths().toArray(String[]::new), gridFields);
+        } else if (annotation != null && annotation.selectColumns().length > 0) {
+            selectColumnPaths = resolveColumnPaths(entityClass, annotation.selectColumns(), gridFields);
+        } else {
+            // Preserve legacy fallback, but never inherit a new ListColumns declaration.
+            selectColumnPaths = listDeclaration == null ? listColumnPaths
+                : resolveColumnPaths(entityClass,
+                    annotation == null ? new String[0] : annotation.listColumns(), gridFields);
+        }
+
+        if (listDeclaration != null) listColumnPaths = FormColumnDeclarations.applyProperties(
+            listColumnPaths, listDeclaration.properties(), listDeclaration.source());
+        if (selectionDeclaration != null) selectColumnPaths = FormColumnDeclarations.applyProperties(
+            selectColumnPaths, selectionDeclaration.properties(), selectionDeclaration.source());
 
         // Опечатка в displaySortFields должна падать при первом резолве метаданных,
         // а не глубоко в Criteria API при первом клике по заголовку колонки.
@@ -349,7 +387,8 @@ public class MetadataResolver {
         return new EntityMetadataInfo(
             entityClass, annotation, resolvedKind.kind(), resolvedKind.origin(),
             resolvedKind.symbol(), allAnnotatedFields, formFields, gridFields,
-            listColumnPaths, selectColumnPaths, structuralAttributes);
+            listColumnPaths, selectColumnPaths, structuralAttributes,
+            listDeclaration, selectionDeclaration);
     }
 
     /**

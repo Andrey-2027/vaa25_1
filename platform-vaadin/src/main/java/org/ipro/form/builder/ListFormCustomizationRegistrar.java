@@ -34,6 +34,10 @@ public class ListFormCustomizationRegistrar implements InitializingBean {
             String source = customization.getClass().getName();
             ListFormVariants variants = new ListFormVariants();
             customization.configure(variants);
+            variants.getColumns().forEach((variant, columns) -> {
+                columns.forEach(path -> org.ipro.metadata.ColumnPath.resolve(entityClass, path));
+                formRegistry.registerListColumns(entityClass, variant, columns, source);
+            });
 
             variants.getFactories().forEach((variant, factory) ->
                 formRegistry.registerListForm(entityClass, variant, factory, source));
@@ -44,11 +48,29 @@ public class ListFormCustomizationRegistrar implements InitializingBean {
             variants.getViews().forEach((variant, viewClass) ->
                 formRegistry.registerListFormView(entityClass, variant, viewClass, source));
 
-            formRegistry.registerContextFilters(entityClass, customization.contextFilters(), source);
+            var fields = new java.util.LinkedHashMap<String, ContextFilterField>();
+            customization.contextFilters().forEach(field -> fields.put(field.path(), field));
+            for (var field : variants.getFilterPanel()) {
+                if (fields.put(field.path(), field) != null)
+                    org.slf4j.LoggerFactory.getLogger(getClass()).warn(
+                        "{}: duplicate filter '{}': filterPanel overrides contextFilters()", source, field.path());
+            }
+            for (var field : fields.values()) {
+                try {
+                    var path = org.ipro.metadata.ColumnPath.resolve(entityClass, field.path());
+                    if (field.options().operation() == ContextFilterOptions.Operation.PERIOD
+                            && path.getResolvedType() != org.ipro.metadata.annotation.FieldType.DATE
+                            && path.getResolvedType() != org.ipro.metadata.annotation.FieldType.DATETIME)
+                        throw new IllegalArgumentException("Period requires a date or datetime field");
+                } catch (IllegalArgumentException invalid) {
+                    throw new IllegalArgumentException(source + ": filter '" + field.path() + "': " + invalid.getMessage(), invalid);
+                }
+            }
+            formRegistry.registerContextFilters(entityClass, java.util.List.copyOf(fields.values()), source);
 
-            variants.getContextFilterRows().forEach((variant, fields) ->
+            variants.getContextFilterRows().forEach((variant, rowFields) ->
                 formRegistry.registerVariantContextFilters(entityClass,
-                    org.ipro.form.registry.FormType.LIST, variant, fields, source));
+                    org.ipro.form.registry.FormType.LIST, variant, rowFields, source));
 
             variants.getCustomizers().forEach((variant, customizerList) ->
                 customizerList.forEach(customizer ->

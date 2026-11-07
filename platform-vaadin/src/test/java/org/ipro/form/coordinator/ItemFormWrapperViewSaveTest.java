@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ItemFormWrapperViewSaveTest {
+    private UI ui; // CurrentInstance uses a weak reference; retain the UI during the test.
     public static class Document extends BaseEntity { }
 
     @AfterEach
@@ -56,9 +57,9 @@ class ItemFormWrapperViewSaveTest {
         assertThat(callback.get()).isNull();
     }
 
-    private static ItemFormWrapperView wrapper(FormSaveResult<Document> result,
+    private ItemFormWrapperView wrapper(FormSaveResult<Document> result,
             AtomicReference<Document> callback) {
-        UI.setCurrent(new UI());
+        ui = new UI(); UI.setCurrent(ui);
         ItemForm<Document> form = new ItemForm<>(Document.class, List.of(), mock(FieldFactory.class));
         FormResolver resolver = mock(FormResolver.class);
         when(resolver.resolveItemForm(Document.class, "variant", null, null)).thenReturn(form);

@@ -33,7 +33,13 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     private T selectedValue;
     private final SearchFunction<T> searchFunction;
     private Function<Consumer<T>, SelectionForm<T>> selectionFormFactory;
+    /** Отбор выбора, общий для диалога и автокомплита (Б1); пусто — без ограничений. */
+    private Map<String, Object> selectionFilters = Map.of();
     private final Div suggestionPopup;
+    private final Div notFoundHint;
+    private final Span notFoundMessage;
+    private final Span notFoundDetail;
+    private boolean notFoundShown = false;
     private Grid<T> suggestionGrid;
     private boolean userEdited = false;
     private boolean suppressValueChange = false;
@@ -56,6 +62,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         textField.setWidth("350px");
         textField.setValueChangeMode(ValueChangeMode.LAZY);
         textField.setPlaceholder(label);
+        textField.setAriaLabel(label);
 
         statusIcon = new Icon(VaadinIcon.CHECK_CIRCLE);
         statusIcon.getStyle()
@@ -67,6 +74,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
 
         Button browseButton = new Button(VaadinIcon.ELLIPSIS_DOTS_H.create(), e -> openSelectionDialog());
         this.browseButton = browseButton;
+        browseButton.getElement().setAttribute("aria-label", label == null ? "Выбрать значение" : "Выбрать: " + label);
         browseButton.addThemeVariants(ButtonVariant.LUMO_ICON);
 
         HorizontalLayout fieldRow = new HorizontalLayout(textField, statusIcon, browseButton);
@@ -140,11 +148,36 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
             }
         }).addEventData("event.key");
 
-        suggestionPopup.add(suggestionGrid);
+        // Пустой результат поиска говорит об этом словами (§3.2), а не только красным значком.
+        // Блок наложенный, как и список подсказок: раскладка формы не сдвигается.
+        notFoundMessage = new Span("Ничего не найдено");
+        notFoundDetail = new Span("Поиск ограничен отбором формы");
+        notFoundHint = new Div(notFoundMessage, notFoundDetail);
+        notFoundHint.getStyle()
+                .set("padding", "var(--lumo-space-s) var(--lumo-space-m)")
+                .set("font-size", "var(--lumo-font-size-s)")
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("display", "none");
+        notFoundMessage.getStyle().set("display", "block");
+        notFoundDetail.getStyle()
+                .set("display", "block")
+                .set("font-size", "var(--lumo-font-size-xs)");
+        notFoundHint.getElement().setAttribute("role", "status");
+        notFoundHint.getElement().setAttribute("aria-live", "polite");
+
+        suggestionPopup.add(suggestionGrid, notFoundHint);
+
+        textField.addBlurListener(e -> {
+            // Подсказку «ничего не найдено» убираем при уходе из поля; список вариантов не
+            // трогаем: щелчок по строке сначала снимает фокус с поля.
+            if (notFoundShown) hideSuggestion();
+        });
 
         textField.getElement().addEventListener("keydown", event -> {
             String key = extractKey(event);
-            if ("ArrowDown".equals(key)) {
+            if ("Escape".equals(key)) {
+                hideSuggestion();
+            } else if ("ArrowDown".equals(key)) {
                 if (!"none".equals(suggestionPopup.getStyle().get("display"))
                         && suggestionGrid.getListDataView().getItemCount() > 0) {
                     focusedRowIndex = 0;
@@ -153,7 +186,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
                 } else {
                     String value = textField.getValue();
                     if (value != null && !value.isEmpty()) {
-                        List<T> matches = searchFunction.search(value);
+                        List<T> matches = runSearch(value);
                         if (!matches.isEmpty()) {
                             showSuggestionPopup(matches);
                             focusedRowIndex = 0;
@@ -177,7 +210,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
                 fireValueChangeEvent(oldValue, null);
                 return;
             }
-            List<T> matches = searchFunction.search(value);
+            List<T> matches = runSearch(value);
             if (matches.size() == 1
                     && InstanceNameBridge.displayName(matches.get(0)).equalsIgnoreCase(value)) {
                 T oldValue = selectedValue;
@@ -197,7 +230,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
                 T oldValue = selectedValue;
                 selectedValue = null;
                 setStatusNotFound();
-                hideSuggestion();
+                showNotFoundHint();
                 if (oldValue != null) {
                     fireValueChangeEvent(oldValue, null);
                 }
@@ -205,6 +238,14 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         });
 
         add(labelAndField, suggestionPopup);
+    }
+
+    /** Поиск автокомплита с действующим отбором выбора (Б1); без отбора — как раньше. */
+    private List<T> runSearch(String term) {
+        if (selectionFilters.isEmpty()) {
+            return searchFunction.search(term);
+        }
+        return ((FilterableSearchFunction<T>) searchFunction).search(term, selectionFilters);
     }
 
     private static String extractKey(DomEvent event) {
@@ -229,13 +270,43 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     }
 
     private void showSuggestionPopup(List<T> matches) {
+        notFoundShown = false;
+        notFoundHint.getStyle().set("display", "none");
+        suggestionGrid.setVisible(true);
         suggestionGrid.setItems(new ArrayList<>(matches));
         suggestionPopup.setHeight((matches.size() * 40 + 10) + "px");
         suggestionPopup.getStyle().set("display", "block");
     }
 
+    /**
+     * Ничего не найдено: вместо списка подсказок — серая строка. Если на поле действует отбор
+     * выбора (Б1), добавляется пояснение, что поиск им ограничен. Прежние варианты из списка
+     * убираются, чтобы стрелка вниз не уходила в устаревшие строки.
+     */
+    private void showNotFoundHint() {
+        suggestionGrid.setItems(new ArrayList<>());
+        suggestionGrid.setVisible(false);
+        notFoundDetail.setVisible(!selectionFilters.isEmpty());
+        notFoundHint.getStyle().set("display", "block");
+        suggestionPopup.setHeight("auto");
+        suggestionPopup.getStyle().set("display", "block");
+        notFoundShown = true;
+    }
+
     private void hideSuggestion() {
+        notFoundShown = false;
         suggestionPopup.getStyle().set("display", "none");
+    }
+
+    /** Показана ли подсказка «ничего не найдено» (для проверки в тестах). */
+    boolean isNotFoundHintShown() {
+        return notFoundShown;
+    }
+
+    String notFoundHintText() {
+        return notFoundDetail.isVisible()
+            ? notFoundMessage.getText() + " " + notFoundDetail.getText()
+            : notFoundMessage.getText();
     }
 
     private void setStatusValid() {
@@ -299,9 +370,26 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     /**
      * Установить фабрику выбора с фиксированными фильтрами (фабрика — обычно
      * {@link SelectionFormAssembler} через {@link SelectionFormFactory}).
+     *
+     * <p>Тот же отбор действует и в автокомплите (Б1): иначе ограничение обходилось бы вводом
+     * с клавиатуры. Для этого функция поиска поля должна быть {@link FilterableSearchFunction};
+     * поле с обычной функцией не может применить отбор, и это ошибка конфигурации, а не повод
+     * молча потерять ограничение.</p>
      */
     public void setSelectionFilter(Map<String, Object> filters,
                                    SelectionFormFactory<T> assembler) {
+        Map<String, Object> copy = new java.util.LinkedHashMap<>();
+        if (filters != null) {
+            filters.forEach((path, value) -> {
+                if (path != null && !path.isBlank() && value != null) copy.put(path, value);
+            });
+        }
+        if (!copy.isEmpty() && !(searchFunction instanceof FilterableSearchFunction)) {
+            throw new IllegalStateException("Поле «" + getLabel() + "»: функция поиска не умеет"
+                + " применять отбор выбора " + copy.keySet() + ". Автокомплит предлагал бы то,"
+                + " что диалог выбора не покажет. Создайте поле с FilterableSearchFunction.");
+        }
+        this.selectionFilters = java.util.Collections.unmodifiableMap(copy);
         this.selectionFormFactory = onSelect -> assembler.create(onSelect, filters);
     }
 
@@ -328,6 +416,12 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     public T getValue() {
         return selectedValue;
     }
+    /** Allow a surrounding FormLayout to size the input, including narrow containers. */
+    public void setInputWidth(String width) {
+        textField.setWidth(width); textField.getStyle().set("min-width", "0").set("flex", "1");
+        textField.getParent().ifPresent(row -> row.getElement().getStyle().set("width", "100%").set("min-width", "0"));
+        suggestionPopup.getStyle().set("width", width);
+    }
 
     public void setValue(T value) {
         this.selectedValue = value;
@@ -341,9 +435,11 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         suppressValueChange = false;
         statusIcon.setVisible(false);
         textField.getElement().getThemeList().remove("error");
+        hideSuggestion();
     }
 
     public void clear() {
+        hideSuggestion();
         selectedValue = null;
         userEdited = false;
         textField.clear();

@@ -45,7 +45,7 @@ final class PlanFingerprint {
                          ProjectDesignContext context, List<GenerationFile> files,
                          CheckedStructure.Owner owner, FieldApplicationMapping.OwnerBinding binding) {
         if (!FORMAT.equals(profile) && !GenerationManifest.EXTENSION_FINGERPRINT.equals(profile)
-                && !GenerationManifest.REGISTER_FINGERPRINT.equals(profile))
+                && !GenerationManifest.REGISTER_FINGERPRINT.equals(profile) && !GenerationManifest.REGISTER_RLS_FINGERPRINT.equals(profile))
             throw new IllegalArgumentException("Unsupported fingerprint profile");
         var buffer = new ByteArrayOutputStream();
         try (var out = new DataOutputStream(buffer)) {
@@ -88,7 +88,7 @@ final class PlanFingerprint {
                     out.writeBoolean(facts != null);
                     if (facts != null) { text(out, facts.property()); text(out, facts.targetTypeId()); }
                 }
-            } else if (GenerationManifest.REGISTER_FINGERPRINT.equals(profile)) {
+            } else if (GenerationManifest.REGISTER_FINGERPRINT.equals(profile) || GenerationManifest.REGISTER_RLS_FINGERPRINT.equals(profile)) {
                 var keys = sorted(context.referenceTargets());
                 out.writeInt(keys.size());
                 for (var key : keys) {
@@ -97,6 +97,11 @@ final class PlanFingerprint {
                 }
                 registerDraft(out, source);
                 referencedRegisterFacts(out, source, context);
+                if (GenerationManifest.REGISTER_RLS_FINGERPRINT.equals(profile)) {
+                    var rls = source.register().rls();
+                    out.writeBoolean(rls != null);
+                    if (rls != null) { text(out, rls.dimension()); id(out, rls.fieldId()); }
+                }
             }
             out.writeInt(files.size());
             for (var file : files) {
@@ -104,7 +109,7 @@ final class PlanFingerprint {
                 text(out, file.relativePath());
                 text(out, file.sha256());
                 if (GenerationManifest.EXTENSION_FINGERPRINT.equals(profile)
-                        || GenerationManifest.REGISTER_FINGERPRINT.equals(profile))
+                        || GenerationManifest.REGISTER_FINGERPRINT.equals(profile) || GenerationManifest.REGISTER_RLS_FINGERPRINT.equals(profile))
                     out.writeLong(file.content().getBytes(StandardCharsets.UTF_8).length);
             }
         } catch (IOException ex) {

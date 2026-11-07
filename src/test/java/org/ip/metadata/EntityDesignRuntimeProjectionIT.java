@@ -40,6 +40,7 @@ class EntityDesignRuntimeProjectionIT {
         assertThat(statistics.getPrepareStatementCount()).isEqualTo(before);
         assertThat(first.diagnostics()).hasSize(startup.diagnostics().size());
         assertThat(first.diagnostics()).noneMatch(d -> d.severity().equals("ERROR"));
+        assertThat(first.prerequisite("RLS_NUMERIC_REFERENCE_FILTERS").status()).isEqualTo(RuntimeDesignSnapshot.Status.AVAILABLE);
         assertThat(RecipeCatalog.readiness(RecipeCatalog.STANDARD_CATALOG_V2,first).runtimeReady()).isTrue();
         assertThat(RecipeCatalog.readiness(RecipeCatalog.STANDARD_CATALOG_V2,first).generationEnabled()).isFalse();
         String output=System.getProperty("entity.design.snapshot.output");

@@ -50,6 +50,7 @@ public @interface EntityMetadata {
      * Пусто (по умолчанию) — колонки берутся как сегодня, из {@code @FieldMetadata(grid=...)}
      * полей этой сущности, в порядке {@code grid.order()}.
      */
+    @Deprecated(since = "AF3", forRemoval = false)
     String[] listColumns() default {};
 
     /**
@@ -58,6 +59,7 @@ public @interface EntityMetadata {
      * каждом ссылающемся поле через {@code @Lookup} — так конфигурация не дублируется между
      * несколькими полями, ссылающимися на одну и ту же сущность.
      */
+    @Deprecated(since = "AF3", forRemoval = false)
     String[] selectColumns() default {};
 
     /**

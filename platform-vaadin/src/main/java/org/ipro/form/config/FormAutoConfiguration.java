@@ -114,6 +114,11 @@ import java.util.Map;
 @AutoConfigureAfter(MetadataAutoConfiguration.class)
 @Import(FormRegistryConfiguration.class)
 public class FormAutoConfiguration {
+    /** Runs after bean definitions are complete and before any metadata consumer is instantiated. */
+    @Bean
+    static FormColumnDeclarationsCollector formColumnDeclarationsCollector() {
+        return new FormColumnDeclarationsCollector();
+    }
 
     // ---------------------------------------------------------------------
     // Точки расширения: подмена осмысленна, платформенный бин отступает.
@@ -165,6 +170,32 @@ public class FormAutoConfiguration {
             groupingValuesProviderFactory, formNavigators);
         resolver.setTypeCustomizations(typeCustomizations);
         return resolver;
+    }
+
+    @Bean
+    public org.springframework.beans.factory.SmartInitializingSingleton formColumnPropertiesValidation(
+            FormResolver resolver, MetadataResolver metadataResolver,
+            ObjectProvider<org.ipro.metadata.ManagedEntityTypes> managedTypes, FormRegistry registry) {
+        return () -> {
+            java.util.Set<Class<?>> types = new java.util.LinkedHashSet<>();
+            var managed = managedTypes.getIfAvailable();
+            if (managed != null) types.addAll(managed.all());
+            metadataResolver.getFormColumnDeclarations().all().forEach(declaration -> types.add(declaration.entity()));
+            for (Class<?> type : types) {
+                if (!MetadataResolver.isApplicable(type)) continue;
+                resolver.resolveListColumns(type, null);
+                registry.registrationsOf(type).stream()
+                    .filter(registration -> registration.formType() == org.ipro.form.registry.FormType.LIST
+                        && registration.variant() != null && !registration.variant().isBlank())
+                    .map(org.ipro.form.registry.FormRegistry.Registration::variant).distinct()
+                    .forEach(variant -> resolver.resolveListColumns(type, variant));
+                metadataResolver.getFormColumnDeclarations().all().stream()
+                    .filter(declaration -> declaration.entity() == type
+                        && declaration.kind() == org.ipro.metadata.FormColumnDeclarations.Kind.LIST
+                        && !declaration.variant().isEmpty())
+                    .forEach(declaration -> resolver.resolveListColumns(type, declaration.variant()));
+            }
+        };
     }
 
     /**
@@ -497,8 +528,19 @@ public class FormAutoConfiguration {
     @Bean
     public ItemFormCustomizationRegistrar itemFormCustomizationRegistrar(
             FormRegistry formRegistry,
-            List<ItemFormCustomization> customizations) {
-        return new ItemFormCustomizationRegistrar(formRegistry, customizations);
+            List<ItemFormCustomization> customizations,
+            org.ipro.metadata.MetadataResolver metadataResolver,
+            org.springframework.context.ApplicationContext context) {
+        var registrar = new ItemFormCustomizationRegistrar(formRegistry, customizations);
+        var packages = org.springframework.boot.autoconfigure.AutoConfigurationPackages.has(context.getAutowireCapableBeanFactory())
+            ? org.springframework.boot.autoconfigure.AutoConfigurationPackages.get(context.getAutowireCapableBeanFactory())
+            : java.util.List.<String>of();
+        var types = packages.stream()
+            .flatMap(base -> org.ipro.metadata.AnnotationClassScanner.scanAnnotated(base,
+                org.ipro.form.builder.FormFor.class).stream()).distinct()
+            .sorted(java.util.Comparator.comparing(Class::getName)).toList();
+        registrar.setAnnotatedForms(types, metadataResolver, context.getAutowireCapableBeanFactory());
+        return registrar;
     }
 
     @Bean

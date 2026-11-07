@@ -45,6 +45,7 @@ public class TableSectionFactory implements ApplicationRunner {
     private final GenericOwnedSectionService genericSectionService;
     private final ObjectProvider<FormResolver> formResolverProvider;
     private final List<TableSectionCustomization<?>> customizations;
+    private volatile Map<Class<?>, List<org.ipro.metadata.ColumnPath>> columnDeclarations;
 
     public TableSectionFactory(MetadataResolver metadataResolver,
                                FieldFactory fieldFactory,
@@ -72,6 +73,7 @@ public class TableSectionFactory implements ApplicationRunner {
      */
     @Override
     public void run(ApplicationArguments args) {
+        columnDeclarations();
         FormRegistry registry = formResolverProvider.getObject().getFormRegistry();
         for (TableSectionCustomization<?> customization : customizations) {
             for (String variant : customization.declaredRowVariants()) {
@@ -85,6 +87,39 @@ public class TableSectionFactory implements ApplicationRunner {
                 }
             }
         }
+    }
+
+    /** The same immutable defaults feed startup validation and table construction. */
+    public List<org.ipro.metadata.ColumnPath> resolveColumns(TableSectionMetadataInfo section) {
+        var declared = columnDeclarations().get(section.getRowClass());
+        return declared != null ? declared
+            : new org.ipro.metadata.TableSectionGridMetadata(section).getListColumnPaths();
+    }
+
+    private synchronized Map<Class<?>, List<org.ipro.metadata.ColumnPath>> columnDeclarations() {
+        if (columnDeclarations != null) return columnDeclarations;
+        Map<Class<?>, List<org.ipro.metadata.ColumnPath>> result = new java.util.LinkedHashMap<>();
+        Map<Class<?>, String> sources = new java.util.LinkedHashMap<>();
+        for (var customization : customizations) {
+            String source = org.springframework.util.ClassUtils.getUserClass(customization).getName();
+            Class<?> row = customization.rowClass();
+            var declaration = customization.columns();
+            if (declaration == null) continue;
+            String previous = sources.putIfAbsent(row, source);
+            if (previous != null) throw new IllegalStateException("Duplicate section columns for "
+                + row.getName() + ": " + previous + " and " + source);
+            try {
+                if (declaration.properties().stream().anyMatch(property -> property.inlineFilter() != null))
+                    throw new IllegalArgumentException("ItemTable has no header filters; inlineFilter is unsupported");
+                var automatic = metadataResolver.resolveRowMetadata(row).getColumnPaths();
+                result.put(row, declaration.resolve(row, automatic, source));
+            } catch (IllegalArgumentException failure) {
+                throw new IllegalArgumentException("Section columns from " + source + " for " + row.getName()
+                    + ": " + failure.getMessage(), failure);
+            }
+        }
+        columnDeclarations = Map.copyOf(result);
+        return columnDeclarations;
     }
 
     /**
@@ -112,6 +147,7 @@ public class TableSectionFactory implements ApplicationRunner {
     public <T extends IdentifiableEntity<Long>> void attachTableSections(ItemForm<T> form, Class<T> entityClass,
                                                                    Collection<Class<?>> rowClasses) {
         List<TableSectionMetadataInfo> sections = metadataResolver.resolveTableSections(entityClass);
+        form.validateSectionLayout(sections.stream().map(TableSectionMetadataInfo::getRowClass).toList());
         for (TableSectionMetadataInfo section : sections) {
             if (rowClasses != null && !rowClasses.contains(section.getRowClass())) {
                 continue;
@@ -165,7 +201,7 @@ public class TableSectionFactory implements ApplicationRunner {
             applicationContext.getBean(org.ipro.form.spi.GridViewStore.class),
             applicationContext.getBean(org.ipro.form.spi.FormSettingsStore.class),
             applicationContext.getBean(org.ipro.crud.LookupService.class),
-            formResolverSupplier);
+            formResolverSupplier, resolveColumns(section));
         for (TableSectionCustomization<?> customization : customizations) {
             if (customization.rowClass() == section.getRowClass()) {
                 ((TableSectionCustomization) customization).configure(table);

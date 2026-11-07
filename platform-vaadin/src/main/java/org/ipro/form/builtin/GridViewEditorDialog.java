@@ -66,6 +66,7 @@ import java.util.function.Function;
  */
 public class GridViewEditorDialog extends Dialog {
     private GridViewState initialState;
+    private final Map<String, ColumnPath> initialColumnProperties = new LinkedHashMap<>();
     public GridViewEditorDialog withStateOptions(GridViewState state) { initialState = state; return this; }
 
     /** Узел дерева доступных полей. */
@@ -322,6 +323,7 @@ public class GridViewEditorDialog extends Dialog {
 
     private void preselect(List<ColumnPath> initialColumns) {
         for (ColumnPath column : initialColumns) {
+            initialColumnProperties.put(column.getKey(), column);
             AvailableField field = availableByPath.get(column.getKey());
             String defaultLabel = field != null
                 ? field.displayLabel().replace(" → ", ".")
@@ -336,11 +338,7 @@ public class GridViewEditorDialog extends Dialog {
     // === Секция "Отбор" ===
 
     private List<ColumnPath> filterableColumns() {
-        return metadata.getListColumnPaths().stream()
-                .filter(column -> column.asFieldMetadata()
-                        .map(FieldMetadataInfo::isFilterEnabled)
-                        .orElse(true))
-                .toList();
+        return metadata.getListColumnPaths();
     }
 
     /**
@@ -443,7 +441,10 @@ public class GridViewEditorDialog extends Dialog {
 
         List<ColumnPath> columns = new ArrayList<>(selected.size());
         for (SelectedColumn s : selected) {
-            columns.add(ColumnPath.resolve(metadata.getEntityClass(), s.path).withLabel(s.customLabel));
+            ColumnPath base = initialColumnProperties.getOrDefault(s.path,
+                ColumnPath.resolve(metadata.getEntityClass(), s.path));
+            columns.add(base.withProperties(new ColumnPath.Spec(s.path,
+                s.customLabel == null ? ColumnPath.resolve(metadata.getEntityClass(), s.path).getLabel() : s.customLabel)));
         }
 
         // Пустые группы не сохраняем: сохранённое условие без условий — это не условие

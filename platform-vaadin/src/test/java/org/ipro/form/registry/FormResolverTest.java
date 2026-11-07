@@ -253,5 +253,7 @@ class FormResolverTest {
 
     /** Обычная сущность без {@code @EntityMetadata} — идёт по generic-пути. */
     static class PlainEntity extends BaseEntity {
+        PlainEntity parent;
+        String kind;
     }
 }

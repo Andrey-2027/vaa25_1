@@ -219,8 +219,7 @@ class ListaggPostgresSpikeTest {
     void generatedConstructorListExecutesAndRestoresIntention() {
         var readGate = org.mockito.Mockito.mock(RlsReadGate.class);
         org.mockito.Mockito.when(readGate.canRead(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
-        var catalog = new org.ipro.query.QueryBuilderMetadataCatalog(factory,
-                new org.ipro.metadata.MetadataResolver(), readGate, () -> subject);
+        var catalog = catalog(readGate);
         var generator = new org.ipro.query.ui.list.ListCteGenerator(catalog);
         var source = generator.generate("AccountingObjectInstallationItem", "nomenclature.name", ", ", true,
                 org.ipro.query.VisualQueryOrder.Direction.ASC, java.util.Set.of());
@@ -248,8 +247,7 @@ class ListaggPostgresSpikeTest {
     void tableSectionQuerySourceResolvesJoinedTextAndExecutes() {
         var readGate = org.mockito.Mockito.mock(RlsReadGate.class);
         org.mockito.Mockito.when(readGate.canRead(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
-        var catalog = new org.ipro.query.QueryBuilderMetadataCatalog(factory,
-                new org.ipro.metadata.MetadataResolver(), readGate, () -> subject);
+        var catalog = catalog(readGate);
         var generator = new org.ipro.query.ui.list.ListCteGenerator(catalog);
         var pilot = generator.generate("AccountingObjectInstallationItem", "nomenclature.name", ", ", true,
                 org.ipro.query.VisualQueryOrder.Direction.ASC, java.util.Set.of());
@@ -278,8 +276,7 @@ class ListaggPostgresSpikeTest {
     void arbitrarySourceWithStringKeyExecutesAsList() throws Exception {
         var readGate = org.mockito.Mockito.mock(RlsReadGate.class);
         org.mockito.Mockito.when(readGate.canRead(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
-        var catalog = new org.ipro.query.QueryBuilderMetadataCatalog(factory,
-                new org.ipro.metadata.MetadataResolver(), readGate, () -> subject);
+        var catalog = catalog(readGate);
         var query = new org.ipro.query.VisualQueryDefinition("Nomenclature", "n", List.of(
                 new org.ipro.query.VisualQueryDefinition.SelectField("n.code", "code"),
                 new org.ipro.query.VisualQueryDefinition.SelectField("n.name", "name")));
@@ -554,6 +551,23 @@ class ListaggPostgresSpikeTest {
 
     private QueryDefinition definition(String hql) {
         return new QueryDefinition(hql, QuerySource.MANUAL, null, null, java.util.List.of());
+    }
+
+    /**
+     * Проверенный каталог: в persistence unit приложения есть managed-регистр, поэтому
+     * короткий конструктор (каталог без classification sources) здесь неприменим —
+     * иначе запрос падает на CLASSIFICATION_SOURCE_MISSING до выполнения CTE.
+     */
+    private org.ipro.query.QueryBuilderMetadataCatalog catalog(RlsReadGate readGate) {
+        var metadata = new org.ipro.metadata.MetadataResolver();
+        var types = new org.ipro.metadata.ManagedEntityTypes(factory);
+        var managed = new org.ipro.metadata.ManagedEntityCatalog(types);
+        var descriptors = new org.ipro.data.EntityDescriptorCatalog(managed,
+            new org.ipro.metadata.SectionMetadataRegistry(types, metadata), metadata,
+            List.of(), List.of(),
+            org.ip.metadata.EntityTypeTestSources.registers(managed, factory, metadata));
+        return new org.ipro.query.QueryBuilderMetadataCatalog(types, metadata, readGate,
+            () -> subject, descriptors);
     }
 
     private String dataSql() {

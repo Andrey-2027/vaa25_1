@@ -38,8 +38,10 @@ public class SelectionFormCustomizationRegistrar implements InitializingBean {
             variants.getFactories().forEach((variant, factory) ->
                 formRegistry.registerSelectionForm(entityClass, variant, factory, source));
 
-            variants.getColumns().forEach((variant, def) ->
-                formRegistry.registerSelectionColumns(entityClass, variant, def, source));
+            variants.getColumns().forEach((variant, def) -> {
+                def.columns().forEach(path -> org.ipro.metadata.ColumnPath.resolve(entityClass, path));
+                formRegistry.registerSelectionColumns(entityClass, variant, def, source);
+            });
 
             variants.getContextFilterRows().forEach((variant, fields) ->
                 formRegistry.registerVariantContextFilters(entityClass,

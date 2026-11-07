@@ -219,7 +219,7 @@ public class FormBinding {
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
         if (setReadOnly != null) {
-            setReadOnly.accept(readOnly || locked);
+            setReadOnly.accept(readOnly || locked || declaredReadOnly);
         }
     }
 
@@ -227,7 +227,13 @@ public class FormBinding {
      * Проверить, находится ли компонент в режиме read-only.
      */
     public boolean isReadOnly() {
-        return readOnly || locked;
+        return readOnly || locked || declaredReadOnly;
+    }
+
+    private boolean declaredReadOnly;
+    public void setDeclaredReadOnly(boolean value) {
+        declaredReadOnly = value;
+        setReadOnly(readOnly);
     }
 
     // === Геттеры ===

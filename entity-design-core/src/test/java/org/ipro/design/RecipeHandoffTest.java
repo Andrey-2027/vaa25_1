@@ -51,8 +51,8 @@ class RecipeHandoffTest {
         assertFalse(readiness.generationEnabled()); assertTrue(readiness.blockers().containsAll(RecipeCatalog.g1Prerequisites()));
     }
     @Test void handoffOnlyRecipesHaveConcreteDecisionsFilesSchemaFixturesAndCannotMasqueradeAsDraftSupport() throws Exception {
-        assertEquals(7,RecipeCatalog.recipes().size());
-        assertEquals(7,RecipeCatalog.recipes().stream().map(RecipeCatalog.Recipe::ref).distinct().count());
+        assertEquals(8,RecipeCatalog.recipes().size());
+        assertEquals(8,RecipeCatalog.recipes().stream().map(RecipeCatalog.Recipe::ref).distinct().count());
         for (var recipe : RecipeCatalog.recipes()) {
             assertFalse(recipe.generationEnabled()); assertFalse(recipe.subjectDecisions().isEmpty());
             assertFalse(recipe.files().isEmpty()); assertFalse(recipe.schemaConstraints().isEmpty()); assertFalse(recipe.acceptanceFixtures().isEmpty());

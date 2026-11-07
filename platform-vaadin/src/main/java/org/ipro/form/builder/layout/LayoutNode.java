@@ -15,5 +15,6 @@ package org.ipro.form.builder.layout;
  * вставка произвольных компонентов), но не хочется вручную собирать весь layout мимо
  * {@code FieldFactory}/{@code FormBindingRegistry}.
  */
-public sealed interface LayoutNode permits FieldNode, PanelNode, TabSheetNode, CustomNode, DisplayNode {
+public sealed interface LayoutNode permits FieldNode, PanelNode, TabSheetNode, CustomNode, DisplayNode,
+        RemainingFieldsNode, SectionNode, ElementNode {
 }

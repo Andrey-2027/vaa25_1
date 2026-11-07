@@ -5,6 +5,7 @@ import org.ip.model.Journal;
 import org.ip.model.Nomenclature;
 import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecOper;
+import org.ip.model.PrdSpecMtr;
 import org.ip.model.UnitOfMeasurement;
 import org.ip.repository.JournalRepository;
 import org.ip.repository.NomenclatureRepository;
@@ -52,6 +53,54 @@ class GenericOwnedSectionServiceIT {
 
     @Autowired
     private AccessGrantRepository accessGrantRepository;
+
+    @Autowired private jakarta.validation.Validator validator;
+    @Autowired private org.ipro.metadata.MetadataResolver metadataResolver;
+    @Autowired private org.ipro.rls.RlsPolicyEnforcer rlsPolicyEnforcer;
+    @Autowired private org.springframework.transaction.PlatformTransactionManager transactionManager;
+    @jakarta.persistence.PersistenceContext private jakarta.persistence.EntityManager entityManager;
+
+    @Test
+    void savedRowReferencesAndNestedDisplayDependenciesRemainReadableOutsideTransaction() {
+        RlsTestFixture.runAsSuperuser(accessGrantRepository, () -> {
+            String suffix = UUID.randomUUID().toString().substring(0, 8);
+            PrdSpec owner = createSpec("OWNER-" + suffix);
+            PrdSpec component = createSpec("COMP-" + suffix);
+            var descriptor = sectionRegistry.findByRow(PrdSpecMtr.class).orElseThrow();
+            PrdSpecMtr row = sectionService.createNew(owner, descriptor);
+            row.setTypeMtr(1);
+            row.setPrdSpecMtr(component);
+            row.setNomenclature(component.getNomenclature());
+            row.setUnit(component.getNomenclature().getUnitOfMeasurement());
+            sectionService.replaceAll(owner, List.of(row), descriptor);
+
+            // Each service call has its own transaction; no surrounding test transaction.
+            PrdSpecMtr loaded = sectionService.<PrdSpecMtr, PrdSpec>findByParent(owner, descriptor).getFirst();
+            assertThat(org.hibernate.Hibernate.isInitialized(loaded.getPrdSpecMtr())).isTrue();
+            assertThat(org.hibernate.Hibernate.isInitialized(loaded.getPrdSpecMtr().getNomenclature())).isTrue();
+            assertThat(loaded.getPrdSpecMtr().getDisplayName()).contains("COMP-" + suffix);
+            assertThat(loaded.getNomenclature().getDisplayName()).isNotBlank();
+            assertThat(loaded.getUnit().getName()).isNotBlank();
+
+            // Dynamic/nested columns use the same ROW boundary after saving.
+            PrdSpecMtr nested = sectionService.<PrdSpecMtr, PrdSpec>findByParent(owner, descriptor,
+                List.of("prdSpecMtr.nomenclature.unitOfMeasurement")).getFirst();
+            assertThat(org.hibernate.Hibernate.isInitialized(
+                nested.getPrdSpecMtr().getNomenclature().getUnitOfMeasurement())).isTrue();
+            assertThat(nested.getPrdSpecMtr().getNomenclature().getUnitOfMeasurement().getName()).isNotBlank();
+
+            var metadataOnly = new GenericOwnedSectionService(validator, metadataResolver,
+                sectionRegistry, rlsPolicyEnforcer);
+            org.springframework.test.util.ReflectionTestUtils.setField(metadataOnly, "entityManager", entityManager);
+            PrdSpecMtr fallback = new org.springframework.transaction.support.TransactionTemplate(transactionManager)
+                .execute(status -> metadataOnly.<PrdSpecMtr, PrdSpec>findByParent(owner, descriptor,
+                    List.of("prdSpecMtr.nomenclature.unitOfMeasurement")).getFirst());
+            assertThat(fallback.getPrdSpecMtr().getDisplayName()).contains("COMP-" + suffix);
+            assertThat(fallback.getNomenclature().getDisplayName()).isNotBlank();
+            assertThat(fallback.getUnit().getName()).isNotBlank();
+            assertThat(fallback.getPrdSpecMtr().getNomenclature().getUnitOfMeasurement().getName()).isNotBlank();
+        });
+    }
 
     @Test
     void replaceAllUsesDescriptorForLinkingLineNumbersUpdateAndDelete() {

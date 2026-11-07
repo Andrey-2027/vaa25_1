@@ -20,6 +20,28 @@ class RegisterDraftJsonTest {
     private final Path contracts = Path.of("../docs/architecture/contracts/register");
     private final DraftValidator validator = new DraftValidator();
 
+    @Test void explicitRlsEnvelopeRoundTripsWithoutChangingCapturedEnvelope() throws Exception {
+        var old=codec.decode(Files.readString(contracts.resolve("register-draft-day.json")));
+        var policy=new RegisterRlsDraft("REGISTER_ITEM",old.register().dimensions().getFirst());
+        var draft=new EntityDraft(4,RecipeCatalog.INDEPENDENT_REGISTER_RLS,old.draftId(),old.entity(),old.fields(),old.sections(),null,old.register().withRls(policy));
+        assertEquals(draft,codec.decode(codec.encode(draft)));
+        assertFalse(mapper.readTree(codec.encode(old)).get("register").has("rls"));
+        var incomplete=draft.withRegister(draft.register().withRls(new RegisterRlsDraft("",null)));
+        assertEquals(incomplete,codec.decode(codec.encode(incomplete)));
+        assertEquals(draft.withRegister(draft.register().withRls(null)),codec.decode(codec.encode(draft.withRegister(draft.register().withRls(null)))));
+    }
+    @Test void rlsCannotCrossEnvelopeOrRecipeVersionBoundaries() throws Exception {
+        var old=codec.decode(Files.readString(contracts.resolve("register-draft-day.json")));
+        var policy=new RegisterRlsDraft("REGISTER_ITEM",old.register().dimensions().getFirst());
+        assertThrows(DraftJsonException.class,() -> codec.encode(old.withRegister(old.register().withRls(policy))));
+        var current=new EntityDraft(4,RecipeCatalog.INDEPENDENT_REGISTER_RLS,old.draftId(),old.entity(),old.fields(),old.sections(),null,old.register().withRls(policy));
+        var tree=(ObjectNode)mapper.readTree(codec.encode(current));
+        tree.put("schemaVersion",3);
+        assertThrows(DraftJsonException.class,() -> codec.decode(tree.toString()));
+        tree.put("schemaVersion",4);((ObjectNode)tree.get("recipe")).put("id","independent-register-v1").put("version",1);
+        assertThrows(DraftJsonException.class,() -> codec.decode(tree.toString()));
+    }
+
     @Test
     void noneFixtureValidatesAndRoundTripsWithoutRepair() throws Exception {
         var draft = codec.decode(Files.readString(contracts.resolve("register-draft-none.json")));

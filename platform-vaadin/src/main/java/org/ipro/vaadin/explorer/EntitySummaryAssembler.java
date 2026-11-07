@@ -769,7 +769,7 @@ public class EntitySummaryAssembler {
 
     private static EntitySummary.FormRow formRow(Class<?> entity, FormType type, String variant,
                                                  List<FormRegistry.Registration> registrations) {
-        boolean standard = registrations.isEmpty() || registrations.stream().allMatch(r -> r.kind() == FormRegistry.RegistrationKind.SELECTION_COLUMNS);
+        boolean standard = registrations.isEmpty() || registrations.stream().allMatch(r -> (r.kind() == FormRegistry.RegistrationKind.SELECTION_COLUMNS || r.kind() == FormRegistry.RegistrationKind.LIST_COLUMNS));
         List<Class<?>> declared = registrations.stream().map(FormRegistry.Registration::declaredClass)
             .filter(java.util.Objects::nonNull).map(c -> (Class<?>) c).distinct().collect(java.util.stream.Collectors.toList());
         Class<?> formClass = declared.size() == 1 ? declared.getFirst() : standard ? switch (type) {
@@ -812,6 +812,7 @@ public class EntitySummaryAssembler {
                 case LIST_VIEW_CLASS -> joiner.add("кастомный View");
                 case LIST_VIEW_FACTORY -> joiner.add("кастомная фабрика View");
                 case SELECTION_COLUMNS -> joiner.add("набор колонок выбора");
+                case LIST_COLUMNS -> joiner.add("набор колонок списка");
             }
         }
         return joiner.toString();

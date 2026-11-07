@@ -94,6 +94,13 @@ public class RegisterFormCustomization implements FormTypeCustomization {
     @Override public boolean supports(Class<?> type) { return registers.find(type).isPresent(); }
     @Override public boolean supportsGrouping() { return false; }
 
+    @Override public void configureListColumns(Class<?> type, org.ipro.metadata.FormColumnDeclarations.Columns columns) {
+        registers.require(type).period().ifPresent(period -> columns.column(period.name()).setInlineFilter(false));
+    }
+    @Override public void configureSelectionColumns(Class<?> type, org.ipro.metadata.FormColumnDeclarations.Columns columns) {
+        configureListColumns(type, columns);
+    }
+
     @Override public void customizeItem(ItemForm<?> form, FormContext context) {
         RegisterDescriptor descriptor = registers.require(context.getEntityClass());
         form.addEntityStateListener(row -> {
@@ -113,22 +120,28 @@ public class RegisterFormCustomization implements FormTypeCustomization {
         Class<T> type = (Class<T>) context.getEntityClass();
         BaseService<T, ?> service = (BaseService<T, ?>) context.service();
         RegisterDescriptor descriptor = registers.require(type);
-        ComboBox<String> mode = new ComboBox<>("Представление");
+        ComboBox<String> mode = new ComboBox<>();
         mode.setItems("История", "Срез последних");
         mode.setValue("История");
         mode.setWidth("210px");
-        DateTimePicker asOf = new DateTimePicker("На дату");
+        DateTimePicker asOf = new DateTimePicker();
         asOf.setStep(Duration.ofMillis(1));
         asOf.setValue(RegisterPeriodicity.EXACT.normalize(LocalDateTime.now(clock)));
-        asOf.setWidth("320px");
+        asOf.setWidthFull(); asOf.setMaxWidth("24em"); asOf.getStyle().set("min-width", "0");
         asOf.setRequiredIndicatorVisible(true);
-        asOf.setVisible(false);
+        org.ipro.filtergrid.PeriodField<LocalDateTime> period = org.ipro.filtergrid.PeriodField.dateTimes(clock);
+        period.setMaxWidth("32em");
+        com.vaadin.flow.component.formlayout.FormLayout controls = new com.vaadin.flow.component.formlayout.FormLayout();
+        controls.setWidthFull(); controls.setMaxWidth("42em");
+        controls.setResponsiveSteps(new com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep("0", 1,
+                com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep.LabelsPosition.TOP),
+            new com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep("420px", 1,
+                com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep.LabelsPosition.ASIDE));
+        controls.addFormItem(mode, "Представление");
+        var periodItem = controls.addFormItem(period, "Период");
+        var asOfItem = controls.addFormItem(asOf, "На дату"); asOfItem.setVisible(false);
         if (descriptor.periodic()) {
-            HorizontalLayout controls = new HorizontalLayout(mode, asOf);
-            controls.setAlignItems(HorizontalLayout.Alignment.END);
-            controls.setWidthFull();
-            controls.getStyle().set("flex-wrap", "wrap");
-            form.addComponentAtIndex(0, controls);
+            form.getFilterPanel().add(controls);
         }
         if (descriptor.recorded()) form.setReadOnly(true);
         Map<T, RecorderRefPresentation> pageCaptions = new java.util.WeakHashMap<>();
@@ -150,7 +163,14 @@ public class RegisterFormCustomization implements FormTypeCustomization {
             try {
                 Page<T> page;
                 if (!descriptor.periodic() || "История".equals(mode.getValue())) {
-                    page = service.findAll(specification, pageable, fetchPaths);
+                    Specification<T> history = specification;
+                    if (descriptor.periodic() && !period.getValue().isEmpty()) {
+                        var range = org.ipro.filtergrid.PeriodFilter.<T>dateTimes(period)
+                            .createSpecification(descriptor.period().orElseThrow().name());
+                        Specification<T> window = (root, query, cb) -> range.toPredicate(root, query, cb);
+                        history = history == null ? window : history.and(window);
+                    }
+                    page = service.findAll(history, pageable, fetchPaths);
                 } else {
                     if (asOf.getValue() == null || asOf.isInvalid()) throw new IllegalArgumentException("Укажите корректную дату среза.");
                     if (opaqueContext) throw new IllegalArgumentException("Произвольный программный отбор не поддерживается в срезе. Используйте историю.");
@@ -158,9 +178,7 @@ public class RegisterFormCustomization implements FormTypeCustomization {
                     Specification<T> before = form.compileFilter(phases.dimensions());
                     Specification<T> after = form.compileFilter(phases.afterSlice());
                     for (var entry : values.entrySet()) {
-                        Specification<T> part = (root, query, cb) -> entry.getValue() instanceof java.util.Collection<?> collection
-                            ? JpaPathUtil.resolve(root, entry.getKey()).in(collection)
-                            : cb.equal(JpaPathUtil.resolve(root, entry.getKey()), entry.getValue());
+                        Specification<T> part = form.compileContextFilter(entry.getKey(), entry.getValue());
                         if (descriptor.dimensionNames().stream().anyMatch(name -> entry.getKey().equals(name) || entry.getKey().startsWith(name + ".")))
                             before = before == null ? part : before.and(part);
                         else after = after == null ? part : after.and(part);
@@ -201,7 +219,11 @@ public class RegisterFormCustomization implements FormTypeCustomization {
             mode.setValue(restoredMode);
             if (!combined.isEmpty()) form.setOpeningContextFilters(combined);
         });
-        mode.addValueChangeListener(event -> { asOf.setVisible("Срез последних".equals(event.getValue())); reset(form); });
+        mode.addValueChangeListener(event -> {
+            boolean sliceMode = "Срез последних".equals(event.getValue());
+            asOfItem.setVisible(sliceMode); periodItem.setVisible(!sliceMode); reset(form);
+        });
+        period.addValueChangeListener(event -> reset(form));
         asOf.addValueChangeListener(event -> reset(form));
         if (descriptor.keyChangeAllowed()) form.addAction(new ActionHandler() {
             @Override public ActionDefinition definition() {
@@ -229,11 +251,13 @@ public class RegisterFormCustomization implements FormTypeCustomization {
             options.put("register.mode", mode.getValue());
             if (asOf.getValue() != null) options.put("register.asOf", asOf.getValue().toString());
         }
-        form.getContextSnapshot().effectiveFilters().forEach((path, value) -> {
+        // O7: panel values are not persisted. Reading legacy view options remains compatible.
+        // Opening constraints belong to the address, not to editable panel state.
+        form.getOpeningContextFilters().forEach((path, value) -> {
             if (value instanceof java.util.Collection<?> collection) {
                 try { options.put("register.contextMany." + path, new com.fasterxml.jackson.databind.ObjectMapper()
                     .writeValueAsString(collection.stream().map(RegisterFormCustomization::contextLiteral).toList())); }
-                catch (com.fasterxml.jackson.core.JsonProcessingException failure) { throw new IllegalArgumentException("Не удалось сохранить отбор списка", failure); }
+                catch (com.fasterxml.jackson.core.JsonProcessingException failure) { throw new IllegalArgumentException("Не удалось сохранить ограничение открытия", failure); }
             } else options.put("register.context." + path, contextLiteral(value));
         });
         return options;

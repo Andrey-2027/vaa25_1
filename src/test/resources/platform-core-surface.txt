@@ -168,7 +168,8 @@ APP_SPI org.ipro.search.GlobalSearchProvider
 # EntityReadAccess/RestGraphException — контракт с REST; Api*Read — запросы к
 # MODULE_API CanonicalReadExecutor; CanonicalEntityReadAccess создаёт autoconfigure.
 # Рост 95 -> 100, MODULE_API 43 -> 48; прикладной APP_API не расширяется.
-# ---- MODULE_API (58)
+# ---- MODULE_API (61)
+MODULE_API org.ipro.data.PresentationResolver
 MODULE_API org.ipro.metadata.CatalogOwnerDescriptor
 MODULE_API org.ipro.metadata.CatalogOwnerResolution
 MODULE_API org.ipro.metadata.CatalogOwnerResolver
@@ -225,6 +226,7 @@ MODULE_API org.ipro.fetch.instance.InstanceNameProvider
 MODULE_API org.ipro.fetch.plan.FetchPlanRegistry
 MODULE_API org.ipro.filter.ColumnPathFilterFieldResolver
 MODULE_API org.ipro.metadata.FilterSpec
+MODULE_API org.ipro.metadata.FormColumnDeclarations
 MODULE_API org.ipro.metadata.JpaFieldFacts
 MODULE_API org.ipro.metadata.GridMetadata
 MODULE_API org.ipro.metadata.GridViewState
@@ -240,6 +242,7 @@ MODULE_API org.ipro.search.GlobalSearchRequest
 MODULE_API org.ipro.search.GlobalSearchResponse
 MODULE_API org.ipro.search.GlobalSearchResult
 MODULE_API org.ipro.search.GlobalSearchService
+MODULE_API org.ipro.data.SelectionFilters
 # ---- INTERNAL (18)
 INTERNAL org.ipro.data.CatalogOwnerGuard
 INTERNAL org.ipro.data.CatalogOwnerToken
@@ -260,7 +263,7 @@ INTERNAL org.ipro.metadata.MetadataConsistencyValidator
 INTERNAL org.ipro.metadata.StructuralAttributeScanner
 INTERNAL org.ipro.search.JpaGlobalSearchProvider
 
-# ---- test-usage overlay (12)
+# ---- test-usage overlay (15)
 test-usage org.ipro.metadata.CatalogOwnerDescriptor org/ip/views/admin/EntityExplorerPilotPanelTest.java
 test-usage org.ipro.crud.GenericOwnedSectionService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/security/RlsServiceWriteBoundaryIT.java
 test-usage org.ipro.crud.ReferenceCheckService org/ip/security/RlsIntegrationTest.java org/ip/service/SklNomOpaServiceTest.java
@@ -273,6 +276,14 @@ test-usage org.ipro.data.FetchPlanInspection org/ip/vaadin/explorer/EntitySummar
 test-usage org.ipro.data.ReadTelemetry org/ip/service/GroupNomVersionNormalizationIT.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java
 # REST pilot проверяет независимость fixed REST graph от UI scenario через настоящий resolver.
 test-usage org.ipro.data.ScenarioFetchGraphResolver org/ip/service/GroupNomVersionNormalizationIT.java org/ip/rest/RestReadPipelinePilotIT.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java
-test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java
-test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java org/ip/metadata/EntityTypesInventoryIT.java
-test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/builtin/PrdSpecRowCancelAcceptanceTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java
+# П.2: снимок фиксирует LIST/DETAIL/LOOKUP/ROW через настоящий реестр планов.
+test-usage org.ipro.fetch.plan.FetchPlanRegistry org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/form/FormSettingsSnapshotTest.java
+# П.2 проверяет состав секций; существующий CTE spike строит их реестр для fixture-регистра.
+test-usage org.ipro.metadata.SectionMetadataRegistry org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/service/GroupNomVersionNormalizationIT.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java org/ip/unidr/query/UniDrReceivingItemsQueryTest.java org/ip/views/unidr/smoke/UniDrQuerySmokeApplication.java org/ip/metadata/EntityTypesInventoryIT.java org/ip/form/FormSettingsSnapshotTest.java org/ip/application/register/TwoDimensionRegisterCteSpikeTest.java org/ip/unidr/spike/ListaggPostgresSpikeTest.java
+test-usage org.ipro.metadata.TableSectionMetadataInfo org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/builtin/PrdSpecRowCancelAcceptanceTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/form/FormSettingsSnapshotTest.java
+
+# П.2: снимок читает серверные поля поиска и колонки ROW без создания UI.
+test-usage org.ipro.data.SearchFieldResolver org/ip/form/FormSettingsSnapshotTest.java
+test-usage org.ipro.metadata.TableSectionGridMetadata org/ip/form/FormSettingsSnapshotTest.java
+# П.2 фиксирует текст представления; существующий UI-тест запроса задаёт его в поле выбора.
+test-usage org.ipro.fetch.instance.InstanceNameBridge org/ip/form/FormSettingsSnapshotTest.java org/ip/views/unidr/UniDrQueryUiTest.java

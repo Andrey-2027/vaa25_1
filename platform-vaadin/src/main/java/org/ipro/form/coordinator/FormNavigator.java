@@ -28,6 +28,16 @@ import java.util.function.Consumer;
  * о координаторе не знает — навигацию подставляет сам координатор.</p>
  */
 public interface FormNavigator {
+    default <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> createFilteredListForm(
+            Class<T> entityClass, String variant, org.ipro.form.registry.Filter<?>... filters) {
+        return createListForm(entityClass, variant,
+            Map.of("contextFilters", org.ipro.form.registry.Filter.values(entityClass, filters)));
+    }
+    default <T extends IdentifiableEntity<Long>, ID> void openFilteredListForm(
+            Class<T> entityClass, String variant, org.ipro.form.registry.Filter<?>... filters) {
+        openListForm(entityClass, variant,
+            Map.of("contextFilters", org.ipro.form.registry.Filter.values(entityClass, filters)));
+    }
 
     /**
      * Создать ListForm указанного варианта с параметрами открытия для встраивания в View.

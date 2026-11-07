@@ -29,10 +29,49 @@ import java.util.Map;
 public class ListFormVariants {
 
     private final Map<String, FormFactory> factories = new LinkedHashMap<>();
+    private final Map<String, List<String>> columns = new LinkedHashMap<>();
+
+    /** Named UI variant; default composition belongs in early @ListColumns. */
+    public ListFormVariants addColumns(String variant, String... paths) {
+        if (variant == null || variant.isBlank()) {
+            throw new IllegalArgumentException("Default list columns belong in @ListColumns on @FormConfigurationFor");
+        }
+        if (columns.putIfAbsent(variant, List.of(paths)) != null) {
+            throw new IllegalStateException("Duplicate list columns for variant '" + variant + "'");
+        }
+        return this;
+    }
+
+    Map<String, List<String>> getColumns() {
+        return columns;
+    }
     private final Map<String, FormFactory> viewFactories = new LinkedHashMap<>();
     private final Map<String, Class<? extends Component>> views = new LinkedHashMap<>();
     private final Map<String, List<ContextFilterField>> contextFilterRows = new LinkedHashMap<>();
     private final Map<String, List<ListFormCustomizer>> customizers = new LinkedHashMap<>();
+    private List<ContextFilterField> filterPanel = List.of();
+
+    public ContextFilterField filter(String path) { return ContextFilterField.filter(path); }
+    public ListFormVariants filterPanel(FilterPanelElement... elements) {
+        var fields = new java.util.ArrayList<ContextFilterField>();
+        for (var element : elements) {
+            if (element instanceof ContextFilterField field) fields.add(field);
+            else if (element instanceof FilterPanelGroup group) group.fields().forEach(
+                field -> fields.add(field.inGroup(group.id(), group.labelsAbove())));
+        }
+        var paths = new java.util.HashSet<String>();
+        for (var field : fields) if (!paths.add(field.path()))
+            throw new IllegalArgumentException("Duplicate panel filter '" + field.path() + "'");
+        filterPanel = List.copyOf(fields); return this;
+    }
+    /** Explicit horizontal group, inline labels by default. */
+    public FilterPanelGroup horizontal(String id, ContextFilterField... fields) {
+        return horizontal(id, false, fields);
+    }
+    public FilterPanelGroup horizontal(String id, boolean labelsAbove, ContextFilterField... fields) {
+        return new FilterPanelGroup(id, labelsAbove, List.of(fields));
+    }
+    List<ContextFilterField> getFilterPanel() { return filterPanel; }
 
     public ListFormVariants addDefault(FormFactory factory) {
         return add(null, factory);

@@ -24,7 +24,7 @@ final class IndependentRegisterJavaGenerator {
         Objects.requireNonNull(currentDraft, "currentDraft");
         Objects.requireNonNull(currentContext, "currentContext");
         var source = checked.source();
-        if (!RecipeCatalog.INDEPENDENT_REGISTER.equals(source.recipe()))
+        if (!RecipeCatalog.isRegisterRecipe(source.recipe()))
             return GenerationResult.rejected(List.of(new GenerationDiagnostic(
                     GenerationDiagnostic.Code.UNSUPPORTED_RECIPE,
                     target(source.draftId(), "recipe"),
@@ -56,9 +56,10 @@ final class IndependentRegisterJavaGenerator {
                 GenerationHash.sha256(content));
         var files = new ArrayList<GenerationFile>();
         files.add(file);
-        var planId = PlanFingerprint.planId(FINGERPRINT, source.recipe(), VERSION,
+        var profile = RecipeCatalog.descriptor(source.recipe()).orElseThrow().generationProfile().orElseThrow();
+        var planId = PlanFingerprint.planId(profile.fingerprintProfile(), source.recipe(), profile.generatorVersion(),
                 currentDraft, currentContext, files);
-        return GenerationResult.generated(new GenerationPlan(planId, source.recipe(), VERSION,
+        return GenerationResult.generated(new GenerationPlan(planId, source.recipe(), profile.generatorVersion(),
                 currentDraft, currentContext, files));
     }
 

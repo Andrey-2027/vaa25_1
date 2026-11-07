@@ -6,7 +6,7 @@ import org.ipro.fetch.instance.InstanceNameBridgeInstaller;
 import org.ipro.fetch.instance.InstanceNameProvider;
 import org.ipro.fetch.instance.InstanceNameResolver;
 import org.ipro.fetch.plan.FetchPlanRegistry;
-import org.ipro.metadata.ColumnPath;
+import org.ipro.data.PresentationResolver;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.config.MetadataAutoConfiguration;
@@ -92,10 +92,21 @@ public class FetchPlanInstanceNameAutoConfiguration {
         return new FetchPlanRegistry(managedEntityTypes, metadataResolver, instanceNameResolver);
     }
 
+    /** AF2: проверка независимых деклараций представления при старте. */
+    @Bean
+    @ConditionalOnBean(MetadataResolver.class)
+    @ConditionalOnMissingBean
+    public PresentationResolver presentationResolver(MetadataResolver metadataResolver,
+            ObjectProvider<InstanceNameResolver> names, ObjectProvider<ManagedEntityCatalog> catalogs) {
+        PresentationResolver resolver = new PresentationResolver(metadataResolver, names.getIfAvailable());
+        catalogs.ifAvailable(catalog -> catalog.managedEntityClasses().forEach(resolver::validate));
+        return resolver;
+    }
+
     /**
      * Адаптер «fetch+metadata → RLS» для нейтрального шва
      * {@code RlsDimensionValueLabelResolver} (шаг 8б): каталог значений RLS спрашивает
-     * только этот контракт, а реализация читает select-колонки метаданных и единое
+     * только этот контракт, а реализация читает независимую пару RlsLabels и единое
      * display-имя fetch-плана. Живёт здесь, а не в {@code MetadataAutoConfiguration}:
      * вызов {@code InstanceNameBridge} из metadata-конфигурации нарушил бы запрет
      * {@code metadata → fetch} ({@code PlatformArchitectureTest}), направление
@@ -107,17 +118,6 @@ public class FetchPlanInstanceNameAutoConfiguration {
     @ConditionalOnMissingBean
     public RlsDimensionValueLabelResolver rlsDimensionValueLabelResolver(
             MetadataResolver metadataResolver) {
-        return (entityType, value) -> {
-            java.util.List<ColumnPath> columns =
-                metadataResolver.resolve(entityType).getSelectColumnPaths();
-            String code = columns.isEmpty() ? null : text(columns.getFirst().getValue(value));
-            String name = columns.size() < 2 ? InstanceNameBridge.displayName(value)
-                : text(columns.get(1).getValue(value));
-            return new RlsDimensionValueLabelResolver.Labels(code, name);
-        };
-    }
-
-    private static String text(Object value) {
-        return value == null ? "" : String.valueOf(value);
+        return new PresentationResolver(metadataResolver)::rlsLabels;
     }
 }

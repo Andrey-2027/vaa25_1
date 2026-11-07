@@ -1,6 +1,7 @@
 package com.example.generated.harness;
 
 import com.example.Item;
+import org.ipro.crud.StandardCatalogEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.Field;
@@ -43,6 +44,9 @@ class RegisterScenarioTest {
         ConsumerGrants.login("writer");
         ConsumerGrants.entityWrite(grants, "writer", type);
         ConsumerGrants.entityWrite(grants, "writer", Item.class);
+        ConsumerGrants.entityWrite(grants, "writer", com.example.Region.class);
+        for (var policy : type.getAnnotationsByType(org.ipro.rls.RlsDimension.class))
+            ConsumerGrants.rowScope(grants,"writer",((org.ipro.rls.RlsDimension)policy).value(),null);
         ConsumerGrants.action(grants, "writer", RegisterKeyWritePermissions.setPermissionId(type));
         ConsumerGrants.action(grants, "writer", RegisterKeyWritePermissions.deletePermissionId(type));
     }
@@ -76,7 +80,7 @@ class RegisterScenarioTest {
         Field dimension = type.getDeclaredField(ScenarioSpec.DIMENSION);
         assertThat(dimension.getType().getName()).isEqualTo(ScenarioSpec.DIMENSION_TYPE);
         assertThat(dimension.getAnnotation(NotNull.class)).isNotNull();
-        if (ScenarioSpec.PERIODIC) {
+        if (referenceDimension()) {
             JoinColumn column = dimension.getAnnotation(JoinColumn.class);
             assertThat(column.name()).isEqualTo(ScenarioSpec.DIMENSION_COLUMN);
             assertThat(column.nullable()).isFalse();
@@ -114,11 +118,8 @@ class RegisterScenarioTest {
 
     @Test void generatedRowSupportsNamedWritesAndCanonicalReadThroughFreshContext() throws Exception {
         Map<String, Object> key;
-        if (ScenarioSpec.PERIODIC) {
-            Item item = new Item();
-            item.setCode("ITEM-" + UUID.randomUUID().toString().substring(0, 8));
-            item.setName("Generated acceptance item");
-            item = data.create(Item.class, item);
+        if (referenceDimension()) {
+            var item = reference("ITEM-");
             key = Map.of(ScenarioSpec.DIMENSION, item.getId());
         } else { key = Map.of(ScenarioSpec.DIMENSION, "R-" + UUID.randomUUID().toString().substring(0, 8)); }
         LocalDateTime period = ScenarioSpec.PERIODIC ? LocalDateTime.of(2026, 11, 1, 17, 45) : null;
@@ -160,13 +161,10 @@ class RegisterScenarioTest {
     @Test void canonicalCrudIsAllowedAndKeyChangesAreRejected() throws Exception {
         BaseEntity row = (BaseEntity) type.getDeclaredConstructor().newInstance();
         Object dimension;
-        if (ScenarioSpec.PERIODIC) {
-            Item item = new Item();
-            item.setCode("C-" + UUID.randomUUID().toString().substring(0, 8));
-            item.setName("Canonical Item");
-            dimension = data.create(Item.class, item);
-            ((PeriodicRegisterEntryBase) row).setPeriod(LocalDateTime.of(2026, 11, 1, 15, 30));
+        if (referenceDimension()) {
+            dimension = reference("C-");
         } else { dimension = "C-" + UUID.randomUUID().toString().substring(0, 8); }
+        if (ScenarioSpec.PERIODIC) ((PeriodicRegisterEntryBase) row).setPeriod(LocalDateTime.of(2026, 11, 1, 15, 30));
         Field key = type.getDeclaredField(ScenarioSpec.DIMENSION);
         key.setAccessible(true);
         key.set(row, dimension);
@@ -180,10 +178,16 @@ class RegisterScenarioTest {
         assertThat((BigDecimal) type.getMethod("getRate").invoke(persisted)).isEqualByComparingTo("10");
         if (ScenarioSpec.PERIODIC) {
             ((PeriodicRegisterEntryBase) persisted).setPeriod(LocalDateTime.of(2026, 11, 2, 0, 0));
-        } else { key.set(persisted, "CHANGED"); }
+        } else { key.set(persisted, referenceDimension() ? reference("OTHER-") : "CHANGED"); }
         type.getMethod("setRate", BigDecimal.class).invoke(persisted, new BigDecimal("11"));
         assertThatThrownBy(() -> data.update(type, (BaseEntity) persisted)).hasMessageContaining("REGISTER_KEY_CHANGE_REQUIRED");
         data.delete(type, id);
         assertThat(data.detail(type, id)).isEmpty();
+    }
+    private boolean referenceDimension() { return !ScenarioSpec.DIMENSION_TYPE.equals("java.lang.String"); }
+    private StandardCatalogEntity reference(String prefix) throws Exception {
+        var item=(StandardCatalogEntity)Class.forName(ScenarioSpec.DIMENSION_TYPE).getDeclaredConstructor().newInstance();
+        item.setCode(prefix+UUID.randomUUID().toString().substring(0,8));item.setName("Generated reference "+prefix);
+        return (StandardCatalogEntity)data.create((Class)item.getClass(),item);
     }
 }

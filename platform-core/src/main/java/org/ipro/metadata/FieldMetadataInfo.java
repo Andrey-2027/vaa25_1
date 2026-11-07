@@ -72,8 +72,6 @@ public final class FieldMetadataInfo {
     private final List<MetadataDiagnostic> diagnostics;
 
     private final String lookupVariant;
-    private final String[] lookupColumns;
-    private final String[] lookupSearchFields;
     private final String[] lookupFetch;
 
     public FieldMetadataInfo(Field field, FieldMetadata annotation) {
@@ -122,10 +120,9 @@ public final class FieldMetadataInfo {
 
         Lookup lookup = annotation.lookup();
         this.lookupVariant = lookup.variant();
-        this.lookupColumns = lookup.columns().clone();
-        this.lookupSearchFields = lookup.searchFields().clone();
         this.lookupFetch = lookup.fetch().clone();
 
+        @SuppressWarnings("deprecation")
         Class<?> declaredTarget = lookup.entity() == Void.class ? null : lookup.entity();
         if (resolvedType != FieldType.ENTITY_REFERENCE) {
             this.referenceTarget = null;
@@ -439,33 +436,8 @@ public final class FieldMetadataInfo {
         return annotation.hidden();
     }
 
-    public String getPlaceholder() {
-        return annotation.placeholder();
-    }
-
     public int getOrder() {
         return annotation.order();
-    }
-
-    /**
-     * Включён ли фильтр для этого поля в ListForm.
-     * По умолчанию true; можно отключить через @FieldMetadata(filter = false).
-     */
-    public boolean isFilterEnabled() {
-        return annotation.filter();
-    }
-
-    /**
-     * Показывать ли встроенную строку быстрого фильтра под заголовком колонки.
-     * По умолчанию true; отключается {@code @FieldMetadata(inlineFilter = false)}.
-     *
-     * <p>Это не то же, что {@link #isFilterEnabled()}: поле с {@code inlineFilter = false}
-     * остаётся фильтруемым условием, но не получает контрол в шапке списка или формы выбора.
-     * Спрашивают этот признак ровно потребители встроенных фильтров — {@code ListForm} и
-     * {@code SelectionFormAssembler}.</p>
-     */
-    public boolean isInlineFilterEnabled() {
-        return annotation.inlineFilter();
     }
 
     // === Grid-настройки ===
@@ -484,10 +456,6 @@ public final class FieldMetadataInfo {
 
     public boolean isGridVisible() {
         return annotation.grid().visible();
-    }
-
-    public boolean isGridSortable() {
-        return annotation.grid().sortable();
     }
 
     // === Lookup (для ENTITY_REFERENCE) ===
@@ -516,22 +484,6 @@ public final class FieldMetadataInfo {
      */
     public String getLookupVariant() {
         return lookupVariant;
-    }
-
-    /**
-     * Явное переопределение колонок Формы Выбора для этого поля —
-     * см. {@link Lookup#columns()}. Пустой массив — не переопределять.
-     */
-    public String[] getLookupColumns() {
-        return lookupColumns.clone();
-    }
-
-    /**
-     * Явные поля поиска автокомплита для этого поля — см. {@link Lookup#searchFields()}.
-     * Пустой массив — вывести из итогового набора колонок.
-     */
-    public String[] getLookupSearchFields() {
-        return lookupSearchFields.clone();
     }
 
     /**

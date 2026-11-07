@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-query-vaadin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform query vaadin</name>
+    <description>
+        M1.2: UI запроса без приложения и без формы платформы — редактор JPQL/визуальный
+        конструктор, список, каталог и диалог среза. Выбор ссылочной сущности приходит
+        портом org.ipro.query.ui.selection.EntitySelection, поэтому org.ipro.form здесь
+        отсутствует: адаптер над формой живёт у потребителя. Запрещены org.ip, reportstudio,
+        Jasper/DynamicReports и component-scan; регистрация — только AutoConfiguration.imports.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.outputTimestamp>2026-10-21T00:00:00Z</project.build.outputTimestamp>
+        <vaadin.version>25.1.6</vaadin.version>
+        <platform-core.version>1.0-SNAPSHOT</platform-core.version>
+        <platform-metadata.version>1.0-SNAPSHOT</platform-metadata.version>
+        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
+        <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
+        <platform-register.version>1.0-SNAPSHOT</platform-register.version>
+        <platform-query.version>1.0-SNAPSHOT</platform-query.version>
+        <platform-report-core.version>1.0-SNAPSHOT</platform-report-core.version>
+        <filtergrid.version>1.0-SNAPSHOT</filtergrid.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-core</artifactId>
+            <version>${platform-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-metadata</artifactId>
+            <version>${platform-metadata.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-identity-api</artifactId>
+            <version>${platform-identity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rls</artifactId>
+            <version>${platform-rls.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-register</artifactId>
+            <version>${platform-register.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-query</artifactId>
+            <version>${platform-query.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-report-core</artifactId>
+            <version>${platform-report-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-core</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-spring-boot-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+<build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/normal/platform-query-vaadin</directory></build></project>

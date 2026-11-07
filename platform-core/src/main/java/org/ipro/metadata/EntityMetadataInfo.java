@@ -36,6 +36,11 @@ public final class EntityMetadataInfo implements GridMetadata {
     private final List<FieldMetadataInfo> gridFields;
     private final List<ColumnPath> listColumnPaths;
     private final List<ColumnPath> selectColumnPaths;
+    private final String listColumnSource;
+    private final String selectColumnSource;
+    private final boolean explicitListColumns;
+    private final boolean explicitSelectColumns;
+    private final String selectionColumnTitle;
     /** ET2: структурные JPA-атрибуты; пуст если metamodel недоступен (unit-тесты без JPA). */
     private final List<StructuralAttribute> structuralAttributes;
 
@@ -80,6 +85,26 @@ public final class EntityMetadataInfo implements GridMetadata {
                               List<ColumnPath> listColumnPaths,
                               List<ColumnPath> selectColumnPaths,
                               List<StructuralAttribute> structuralAttributes) {
+        this(entityClass, annotation, entityKind, entityKindOrigin, entityKindSymbol,
+            allAnnotatedFields, formFields, gridFields, listColumnPaths, selectColumnPaths,
+            structuralAttributes, null, null);
+    }
+
+    /** Resolved declarations from the form configuration override entity column attributes. */
+    public EntityMetadataInfo(Class<?> entityClass, EntityMetadata annotation, EntityKind entityKind,
+                              FactOrigin entityKindOrigin, String entityKindSymbol,
+                              List<FieldMetadataInfo> allAnnotatedFields, List<FieldMetadataInfo> formFields,
+                              List<FieldMetadataInfo> gridFields, List<ColumnPath> listColumnPaths,
+                              List<ColumnPath> selectColumnPaths, List<StructuralAttribute> structuralAttributes,
+                              FormColumnDeclarations.Declaration listDeclaration,
+                              FormColumnDeclarations.Declaration selectionDeclaration) {
+        this.listColumnSource = listDeclaration == null ? null : listDeclaration.source();
+        this.selectColumnSource = selectionDeclaration == null ? null : selectionDeclaration.source();
+        this.selectionColumnTitle = selectionDeclaration == null ? "" : selectionDeclaration.title();
+        this.explicitListColumns = listDeclaration != null ? !listDeclaration.paths().isEmpty()
+            : annotation != null && annotation.listColumns().length > 0;
+        this.explicitSelectColumns = selectionDeclaration != null ? !selectionDeclaration.paths().isEmpty()
+            : annotation != null && annotation.selectColumns().length > 0;
         this.entityClass = entityClass;
         this.annotation = annotation;
         if (entityKind == EntityKind.AUTO) {
@@ -112,11 +137,11 @@ public final class EntityMetadataInfo implements GridMetadata {
     }
 
     public boolean hasExplicitListColumns() {
-        return annotation != null && annotation.listColumns().length > 0;
+        return explicitListColumns;
     }
 
     public boolean hasExplicitSelectColumns() {
-        return annotation != null && annotation.selectColumns().length > 0;
+        return explicitSelectColumns;
     }
 
     /** Origin of effective entity properties, independent of annotation presence. */
@@ -128,7 +153,7 @@ public final class EntityMetadataInfo implements GridMetadata {
             case "itemFormTitle" -> annotation != null && !annotation.itemFormTitle().isBlank()
                 ? FactOrigin.EXPLICIT : getPropertyOrigin("listFormTitle") == FactOrigin.EXPLICIT
                     ? FactOrigin.DERIVED : FactOrigin.PLATFORM_DEFAULT;
-            case "selectionFormTitle" -> annotation != null && !annotation.selectionFormTitle().isBlank()
+            case "selectionFormTitle" -> !selectionColumnTitle.isBlank() || annotation != null && !annotation.selectionFormTitle().isBlank()
                 ? FactOrigin.EXPLICIT : getPropertyOrigin("listFormTitle") == FactOrigin.EXPLICIT
                     ? FactOrigin.DERIVED : FactOrigin.PLATFORM_DEFAULT;
             case "displaySortFields" -> annotation != null && annotation.displaySortFields().length > 0
@@ -147,6 +172,9 @@ public final class EntityMetadataInfo implements GridMetadata {
 
     public String getPropertySymbol(String property) {
         if (property.equals("kind")) return entityKindSymbol;
+        if (property.equals("listColumns") && listColumnSource != null) return listColumnSource;
+        if (property.equals("selectColumns") && selectColumnSource != null) return selectColumnSource;
+        if (property.equals("selectionFormTitle") && !selectionColumnTitle.isBlank()) return selectColumnSource;
         FactOrigin origin = getPropertyOrigin(property);
         if (origin == FactOrigin.PLATFORM_DEFAULT) return "";
         if (property.equals("displaySortFields") && origin == FactOrigin.DERIVED) {
@@ -189,6 +217,7 @@ public final class EntityMetadataInfo implements GridMetadata {
     }
 
     public String getSelectionFormTitle() {
+        if (!selectionColumnTitle.isBlank()) return selectionColumnTitle;
         return annotation != null && !annotation.selectionFormTitle().isBlank()
             ? annotation.selectionFormTitle() : getListFormTitle();
     }

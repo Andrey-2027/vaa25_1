@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-rest-web</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform REST read HTTP adapter</name>
+    <description>
+        F-REST-READ-4: optional HTTP adapter over the server-side REST read pipeline. The artifact
+        owns MVC routes, query parsing, the Basic security chain, Problem Details and request-scoped
+        RLS integration. It is never pulled in by a starter and stays inert until
+        platform.rest.web.enabled=true.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-rest.version>1.0-SNAPSHOT</platform-rest.version>
+        <platform-rls.version>1.0-SNAPSHOT</platform-rls.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rest</artifactId>
+            <version>${platform-rest.version}</version>
+        </dependency>
+        <!--
+          The reviewed readable-ids seam of §4 lives in platform-rls. The dependency already arrived
+          transitively through platform-rest; it is declared directly because the adapter names
+          RlsReadableIdsResolver/RlsReadableIdsCache in its own code and configuration order.
+        -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-rls</artifactId>
+            <version>${platform-rls.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <!--
+          The adapter owns the managed Spring MVC/Security stack of Boot 4.0.6 (packages 4.2-4.4).
+          Versions come from the Boot parent; no WebFlux, Spring Data REST or Vaadin dependency is
+          introduced, and the servlet API is provided by the consuming container.
+        -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+        <!--
+          Jackson 3 is the mapper the Boot 4 application context manages. The adapter never
+          registers a message converter; it writes its scalar responses through a private copy of
+          the managed mapper with forced ALWAYS inclusion (§6.3), so wire nullability does not
+          depend on the application's global NON_NULL setting.
+        -->
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/normal/platform-rest-web</directory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.9.0</version>
+                <executions>
+                    <execution>
+                        <id>resolved-rest-web-compile-dependencies</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>tree</goal>
+                        </goals>
+                        <configuration>
+                            <scope>compile</scope>
+                            <outputType>json</outputType>
+                            <outputFile>${project.build.directory}/rest-web-compile-dependency-tree.json</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

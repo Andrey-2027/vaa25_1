@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import org.ip.metadata.EntityTypeTestSources;
 import org.ip.model.GroupNom;
 import org.ipro.data.CanonicalReadExecutor;
 import org.ipro.data.CanonicalWriteExecutor;
@@ -66,8 +67,11 @@ class GroupNomVersionNormalizationIT {
             new SectionMetadataRegistry("org.ip.model", metadataResolver);
         sections.afterPropertiesSet();
 
+        // Проверенный каталог: в PU приложения есть managed-регистр, поэтому каталог без
+        // classification sources здесь неприменим (иначе CLASSIFICATION_SOURCE_MISSING).
         EntityDescriptorCatalog catalog = new EntityDescriptorCatalog(managed, sections,
-            metadataResolver, List.of(), List.of());
+            metadataResolver, List.of(), List.of(),
+            EntityTypeTestSources.registers(managed, entityManagerFactory, metadataResolver));
         ScenarioFetchGraphResolver graphResolver =
             new ScenarioFetchGraphResolver(metadataResolver, null, null);
         RlsFilterActivator rlsFilterActivator = mock(RlsFilterActivator.class);

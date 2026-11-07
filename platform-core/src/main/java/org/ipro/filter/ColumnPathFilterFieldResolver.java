@@ -36,7 +36,6 @@ public final class ColumnPathFilterFieldResolver implements FilterFieldResolver 
             case BOOLEAN -> FilterDataType.BOOLEAN;
             case AUTO -> throw new IllegalArgumentException("Не определён тип поля фильтра: " + column.getKey());
         };
-        boolean enabled = column.asFieldMetadata().map(m -> m.isFilterEnabled()).orElse(true);
-        return new ResolvedFilterField(column.getKey(), column.getLabel(), column.getJavaType(), type, enabled);
+        return new ResolvedFilterField(column.getKey(), column.getLabel(), column.getJavaType(), type, true);
     }
 }

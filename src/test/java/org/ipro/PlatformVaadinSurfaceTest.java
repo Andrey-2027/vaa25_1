@@ -145,8 +145,9 @@ class PlatformVaadinSurfaceTest {
                 + " (`AccessDenialPresentation`) — итого 131; R8 добавила шесть типов стандартного списка регистра —"
                 + " итого 137; E1.2b добавила порт права на операцию (`OperationPermissionSource`) —"
                 + " итого 138; UX pilot P1 добавила INTERNAL-проекцию структуры EntityStructureFactsAssembler;"
-                + " E3.B добавила INTERNAL owner/form bridge CatalogOwnerForms — итого 140")
-            .hasSize(140);
+                + " E3.B добавила INTERNAL owner/form bridge CatalogOwnerForms — итого 140;"
+                + " Б1 добавила INTERNAL поиск автокомплита с отбором выбора FilterableSearchFunction — итого 141")
+            .hasSize(153); // AF5.5: declaration, adjustment, properties and behavior API.
         assertThat(withoutRole)
             .as("тип будущего platform-vaadin без роли: классификация — решение, которое нужно"
                 + " принять до переноса, а не после него")

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      Toolchain consistency: слой контрактов собирается теми же плагинами, что и приложение,
+      поэтому parent не отличается. Собственный parent платформы появится вместе с её
+      отдельным релизным циклом (D3); сейчас важно, чтобы этот артефакт собирался сам по
+      себе и не мог видеть ни приложение, ни платформенные реализации.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.ipro</groupId>
+    <artifactId>platform-contracts</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GitVaa platform contracts</name>
+    <description>
+        D2 (extraction slice контрактов платформы): декларации, которые читают и приложение,
+        и платформенные реализации — метаданные сущностей, event/lifecycle SPI и нейтральные
+        identifiers. Пакеты контрактов сохранены, поэтому перенос не потребовал правок в коде;
+        граница обеспечивается объявленными зависимостями, а не договорённостью.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <platform-identity.version>1.0-SNAPSHOT</platform-identity.version>
+    </properties>
+
+    <!--
+      Слой контрактов не знает ни платформенных реализаций, ни прикладного пакета org.ip.
+      Разрешены только два вида зависимости:
+
+      1. Внешний опубликованный API-артефакт (slf4j-api — версия из spring-boot parent).
+      2. Нейтральный identifier: org.ipro:platform-identity-api ->
+         org.ipro.identity.IdentifiableEntity. Артефакт собирается реактором crudui, но
+         принадлежит не ему: у контракта два владельца — UI-библиотека и платформенные
+         контракты, поэтому он живёт отдельным Java-only модулем без Spring/JPA/Vaadin.
+         До выноса тип лежал в crudui-core, и контракты зависели от UI-артефакта ради
+         Long getId() — Vaadin не тёк только за счёт provided-scope.
+
+      Любая новая зависимость здесь означает, что в модуль попало не контрактное знание:
+      набор объявленных зависимостей зафиксирован ревью и проверяется
+      PlatformContractsModuleTest.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-identity-api</artifactId>
+            <version>${platform-identity.version}</version>
+        </dependency>
+
+        <!--
+          Тесты состава и чистоты живут здесь, а не в приложении: модуль публикуется
+          отдельно, и проверки обязаны ехать вместе с ним. Scope test — на публикуемую
+          compile-поверхность не влияет; ContractsModuleCompositionTest считает только
+          compile-зависимости.
+        -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+<build><directory>C:/JavaProject/TestVaadin25/GitVaa25/outputs/verification/full-20261104-233835/normal/platform-contracts</directory></build></project>

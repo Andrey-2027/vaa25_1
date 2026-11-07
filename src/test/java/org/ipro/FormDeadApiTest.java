@@ -139,4 +139,65 @@ class FormDeadApiTest {
                         + "с обоснованием «почему мертво».")
                 .isEmpty();
     }
+
+    /**
+     * Аннотации сущности, атрибуты которых проверяются на потребителя (AF1.5): атрибут, который
+     * никто в production-коде не читает, — мёртвая настройка, она обещает поведение, которого нет
+     * (так жили {@code sortable}, {@code placeholder} и {@code @Lookup.columns} до AF1).
+     */
+    private static final String[] ATTRIBUTE_ANNOTATIONS = {
+            "org.ipro.metadata.annotation.EntityMetadata",
+            "org.ipro.metadata.annotation.FieldMetadata",
+            "org.ipro.metadata.annotation.GridColumn",
+            "org.ipro.metadata.annotation.Lookup",
+            "org.ipro.metadata.annotation.RlsLabels",
+            "org.ipro.metadata.annotation.TableSectionMetadata"
+    };
+
+    /**
+     * Атрибут без читателя, оставленный намеренно: {@code Аннотация.атрибут} → почему.
+     * Каждая запись обязана нести причину; пустой список — норма.
+     */
+    private static final Map<String, String> ATTRIBUTE_WHITELIST = Map.of();
+
+    @Test
+    void everyAnnotationAttributeHasAProductionReader() {
+        Set<JavaClass> classes = new HashSet<>(
+                new ClassFileImporter()
+                        .withImportOption(new ImportOption.DoNotIncludeTests())
+                        .importPackages("org.ipro", "org.ip"));
+        Map<String, JavaClass> byName = new HashMap<>();
+        for (JavaClass c : classes) {
+            byName.put(c.getName(), c);
+        }
+
+        Set<String> unread = new java.util.TreeSet<>();
+        int attributes = 0;
+        for (String annotationName : ATTRIBUTE_ANNOTATIONS) {
+            JavaClass annotation = byName.get(annotationName);
+            assertThat(annotation).as("аннотация импортирована: " + annotationName).isNotNull();
+            for (var attribute : annotation.getMethods()) {
+                attributes++;
+                String key = annotation.getSimpleName() + "." + attribute.getName();
+                if (ATTRIBUTE_WHITELIST.containsKey(key)) {
+                    continue;
+                }
+                // Читатель — любой production-класс, кроме самой аннотации и её вложенных типов.
+                boolean read = attribute.getCallsOfSelf().stream()
+                        .map(call -> call.getOriginOwner().getName())
+                        .anyMatch(owner -> !owner.equals(annotationName)
+                                && !owner.startsWith(annotationName + "$"));
+                if (!read) {
+                    unread.add(key);
+                }
+            }
+        }
+
+        assertThat(attributes).as("проверка не вакуумная: атрибуты аннотаций найдены")
+                .isGreaterThan(25);
+        assertThat(unread)
+                .as("Атрибут аннотации без production-читателя (AF1.5). Оживи читателем, "
+                        + "удали атрибут или добавь запись в ATTRIBUTE_WHITELIST с причиной.")
+                .isEmpty();
+    }
 }

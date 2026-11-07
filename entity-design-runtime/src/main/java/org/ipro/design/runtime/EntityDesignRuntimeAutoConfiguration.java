@@ -12,14 +12,17 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 
 /** Optional backend bridge. Existing validated owners are required; absence is never an empty ready snapshot. */
-@AutoConfiguration(afterName={"org.ipro.metadata.config.MetadataAutoConfiguration","org.ipro.data.config.DataAccessAutoConfiguration"})
+@AutoConfiguration(afterName={"org.ipro.metadata.config.MetadataAutoConfiguration","org.ipro.data.config.DataAccessAutoConfiguration","org.ipro.rls.config.RlsAutoConfiguration"})
 @ConditionalOnBean({EntityDescriptorCatalog.class,MetadataResolver.class,SectionMetadataRegistry.class,
     NumberingMetadataRegistry.class,MetadataConsistencyStartupCheck.class})
 public class EntityDesignRuntimeAutoConfiguration {
     @Bean @ConditionalOnMissingBean
     public EntityDesignRuntimeProjection entityDesignRuntimeProjection(EntityDescriptorCatalog descriptors,
             MetadataResolver metadata, SectionMetadataRegistry sections, NumberingMetadataRegistry numbering,
-            MetadataConsistencyStartupCheck startup, ObjectProvider<RegisterFactsSource> registers) {
-        return new EntityDesignRuntimeProjection(descriptors,metadata,sections,numbering,startup,registers.getIfAvailable());
+            MetadataConsistencyStartupCheck startup, ObjectProvider<RegisterFactsSource> registers,
+            ObjectProvider<org.ipro.rls.RlsDimensionRegistry> rls,
+            ObjectProvider<org.ipro.rls.RlsFilterActivator> filters) {
+        return new EntityDesignRuntimeProjection(descriptors,metadata,sections,numbering,startup,registers.getIfAvailable(),
+            rls.getIfAvailable()!=null && filters.getIfAvailable()!=null);
     }
 }

@@ -27,7 +27,7 @@ public final class RegisterRepresentability {
         var diagnostics = new ArrayList<GenerationDiagnostic>();
         var source = checked.source();
         var recipe = source.recipe();
-        if (!RecipeCatalog.INDEPENDENT_REGISTER.equals(recipe)) {
+        if (!RecipeCatalog.isRegisterRecipe(recipe)) {
             diagnostics.add(new GenerationDiagnostic(GenerationDiagnostic.Code.UNSUPPORTED_RECIPE,
                     target(source.draftId(), null, "recipe"),
                     messageKey(GenerationDiagnostic.Code.UNSUPPORTED_RECIPE),
@@ -70,6 +70,16 @@ public final class RegisterRepresentability {
 
         var fieldsById = new LinkedHashMap<UUID, CheckedStructure.Field>();
         for (var field : checked.fields()) fieldsById.putIfAbsent(field.id(), field);
+        var rls = register.rls();
+        var rawRls = source.register() == null ? null : source.register().rls();
+        if (RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(recipe)) {
+            var field = rls == null ? null : fieldsById.get(rls.fieldId());
+            if (field == null || rawRls == null || !rls.dimension().matches("[A-Z][A-Z0-9_]{0,63}")
+                    || !rls.dimension().equals(rawRls.dimension()) || !rls.fieldId().equals(rawRls.fieldId())
+                    || !source.register().dimensions().contains(rls.fieldId()) || field.type() != FieldType.REFERENCE
+                    || !rls.valuePath().equals(field.name()+".id") || !rls.column().equals(field.columnName()))
+                diagnostics.add(projection(source.draftId(), null, "register.rls"));
+        } else if (rls != null || rawRls != null) diagnostics.add(projection(source.draftId(), null, "register.rls"));
         var assigned = new HashSet<UUID>();
         roles(diagnostics, checked, register.dimensions(), true, fieldsById, assigned);
         roles(diagnostics, checked, register.resources(), false, fieldsById, assigned);

@@ -19,10 +19,16 @@ public final class CheckedStructure {
     /** One resolved role of a register row; physical names and ordering come from the checked draft. */
     public record RegisterRole(UUID fieldId, String name, String column, FieldType type, Integer length,
                                Integer precision, Integer scale, String referenceTypeId) {}
+    public record RegisterRls(String dimension, UUID fieldId, String valuePath, String column) {}
     /** Checked register projection: the only structure a generator may accept. */
     public record Register(String period, String writeProfile, String periodColumn, String tableName, String entityName,
                            List<RegisterRole> dimensions, List<RegisterRole> resources,
-                           List<String> dimensionGroupColumns, List<String> rowKeyColumns) {
+                           List<String> dimensionGroupColumns, List<String> rowKeyColumns, RegisterRls rls) {
+        public Register(String period, String writeProfile, String periodColumn, String tableName, String entityName,
+                        List<RegisterRole> dimensions, List<RegisterRole> resources,
+                        List<String> dimensionGroupColumns, List<String> rowKeyColumns) {
+            this(period,writeProfile,periodColumn,tableName,entityName,dimensions,resources,dimensionGroupColumns,rowKeyColumns,null);
+        }
         public Register {
             Objects.requireNonNull(period); Objects.requireNonNull(writeProfile); Objects.requireNonNull(tableName);
             Objects.requireNonNull(entityName);

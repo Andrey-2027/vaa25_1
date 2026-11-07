@@ -162,6 +162,10 @@ public class FormResolver {
                     "FormFactory for " + entityClass.getSimpleName() + " LIST variant '" + variant +
                     "' returned " + component.getClass().getName() + " instead of ListForm");
             }
+            if (formRegistry.hasListColumns(entityClass, variant)) {
+                return prepareListForm(entityClass, variant,
+                    createGenericListForm(entityClass, variant, parameters), parameters);
+            }
             throw unknownVariant(entityClass, "LIST", variant);
         }
 
@@ -180,7 +184,7 @@ public class FormResolver {
 
         // 3. Создать generic форму из метаданных
         return prepareListForm(entityClass, null,
-            createGenericListForm(entityClass, parameters), parameters);
+            createGenericListForm(entityClass, null, parameters), parameters);
     }
 
     /**
@@ -209,6 +213,7 @@ public class FormResolver {
                 Component component = factory.create(context);
                 if (component instanceof ItemForm) {
                     ItemForm<T> form = (ItemForm<T>) component;
+                    prepareDescription(form, entityClass);
                     applyItemCustomizers(entityClass, variant, id, form, parameters);
                     tableSectionFactory.attachTableSections(form, entityClass);
                     return form;
@@ -227,6 +232,7 @@ public class FormResolver {
             Component component = factory.create(context);
                 if (component instanceof ItemForm) {
                     ItemForm<T> form = (ItemForm<T>) component;
+                    prepareDescription(form, entityClass);
                     applyItemCustomizers(entityClass, null, id, form, parameters);
                     tableSectionFactory.attachTableSections(form, entityClass);
                     return form;
@@ -241,6 +247,11 @@ public class FormResolver {
         applyItemCustomizers(entityClass, null, id, genericForm, parameters);
         tableSectionFactory.attachTableSections(genericForm, entityClass);
         return genericForm;
+    }
+
+    private void prepareDescription(ItemForm<?> form, Class<?> entityClass) {
+        if (!form.isDescriptionBuilt()) form.buildDescription(
+            org.ipro.form.builder.ItemFormCustomizationRegistrar.descriptionMetadata(metadataResolver, entityClass), fieldFactory);
     }
 
     /**
@@ -299,7 +310,7 @@ public class FormResolver {
             }
             SelectionFormAssembler.ResolvedSelection resolved =
                 org.ipro.form.builder.SelectionColumnResolver.resolve(
-                    metadataResolver, formRegistry, entityClass, variant, null);
+                    metadataResolver, formRegistry, entityClass, variant);
             if (resolved == null) throw unknownVariant(entityClass, "SELECTION", variant);
             SelectionForm<T> form = selectionFormAssembler.assemble(
                 entityClass, onSelect, effectiveFilters, resolved, variant);
@@ -391,19 +402,52 @@ public class FormResolver {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T extends IdentifiableEntity<Long>, ID> ListForm<T, ID> createGenericListForm(
-            Class<T> entityClass,
+            Class<T> entityClass, String variant,
             Map<String, Object> parameters) {
         EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
         BaseService<T, ID> service = findService(entityClass);
+        var columns = resolveListColumns(entityClass, variant);
         ListForm<T, ID> form;
         if (groupingValuesProviderFactory == null || typeCustomizations.stream()
                 .anyMatch(customization -> customization.supports(entityClass) && !customization.supportsGrouping())) {
-            form = new ListForm<>(meta, service);
+            form = new ListForm<>(meta, service, null, columns);
         } else {
             GroupValuesService<T> gvs = groupingValuesProviderFactory.create(entityClass);
-            form = new ListForm<>(meta, service, gvs);
+            form = new ListForm<>(meta, service, gvs, columns);
         }
         return form;
+    }
+
+    /** Data-only resolution, also used by startup validation; never constructs a component. */
+    public List<org.ipro.metadata.ColumnPath> resolveListColumns(Class<?> entityClass, String variant) {
+        EntityMetadataInfo meta = metadataResolver.resolve(entityClass);
+        List<String> declared = formRegistry.getListColumns(entityClass, variant);
+        List<org.ipro.metadata.ColumnPath> columns = declared == null || declared.isEmpty()
+            ? meta.getListColumnPaths()
+            : declared.stream().map(path -> org.ipro.metadata.ColumnPath.resolve(entityClass, path)).toList();
+        var declarations = metadataResolver.getFormColumnDeclarations();
+        if (variant != null && declarations != null) {
+            var resolved = declarations.resolveColumns(meta,
+                org.ipro.metadata.FormColumnDeclarations.Kind.LIST, variant);
+            if (resolved != null) columns = resolved;
+        }
+        return applyFamilyColumnProperties(entityClass, variant, columns);
+    }
+
+    private List<org.ipro.metadata.ColumnPath> applyFamilyColumnProperties(Class<?> entityClass, String variant,
+            List<org.ipro.metadata.ColumnPath> columns) {
+        for (var customization : typeCustomizations) {
+            if (!customization.supports(entityClass)) continue;
+            var properties = org.ipro.metadata.FormColumnDeclarations.auto();
+            customization.configureListColumns(entityClass, properties);
+            columns = properties.applyTo(columns, customization.getClass().getName() + " for " + entityClass.getName()
+                + " variant '" + variant + "'");
+        }
+        var declarations = metadataResolver.getFormColumnDeclarations();
+        var declaration = declarations == null ? null : declarations.find(entityClass,
+            org.ipro.metadata.FormColumnDeclarations.Kind.LIST, variant);
+        return declaration == null ? columns : org.ipro.metadata.FormColumnDeclarations.applyProperties(
+            columns, declaration.properties(), declaration.source());
     }
 
     /**
@@ -415,6 +459,18 @@ public class FormResolver {
             ListForm<T, ID> form, Map<String, Object> parameters) {
         form.setFormVariant(variant);
         form.setOpeningParameters(parameters);
+        form.setMetadataResolver(metadataResolver);
+        var lookupProvider = applicationContext.getBeanProvider(org.ipro.crud.LookupService.class);
+        form.setLookupService(lookupProvider == null ? null : lookupProvider.getIfAvailable());
+        form.setSelectionFormProvider((source, onSelect) -> resolveSelectionForm(source, onSelect));
+        // Generic grids already received these values before construction. Factories also get
+        // family policy before display; keep their own composition and their reset target.
+        var current = form.getActiveColumns();
+        var properties = applyFamilyColumnProperties(entityClass, variant, current).stream()
+            .map(path -> path.toSpec(entityClass)).toList();
+        if (!properties.equals(current.stream().map(path -> path.toSpec(entityClass)).toList())) {
+            form.setColumnProperties(properties, "Resolved form properties for " + entityClass.getName());
+        }
         Map<String, Object> seedValues = new java.util.LinkedHashMap<>();
         Object rawFilters = parameters == null ? null : parameters.get("contextFilters");
         if (rawFilters instanceof Map<?, ?> map) {
@@ -448,6 +504,7 @@ public class FormResolver {
                 customizer.customize(form, ctx);
             }
         }
+        form.setContextFilters(formRegistry.resolveListContextFilters(entityClass, variant));
         return form;
     }
 

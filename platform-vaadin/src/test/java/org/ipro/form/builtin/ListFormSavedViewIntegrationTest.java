@@ -24,6 +24,33 @@ import static org.mockito.Mockito.when;
 
 class ListFormSavedViewIntegrationTest {
     @Test
+    void editingSavedColumnsKeepsWidthAndFlexGrow() {
+        var resolver = new org.ipro.metadata.MetadataResolver();
+        var metadata = resolver.resolve(EditorEntity.class);
+        var store = mock(org.ipro.form.spi.GridViewStore.class);
+        var initial = ColumnPath.resolve(EditorEntity.class, "code")
+            .withProperties(new ColumnPath.Spec("code", "Custom code", "21em", 0, false));
+        var view = new GridView(1L, "editor", "Saved", "", false, "test");
+        when(store.createView(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyBoolean())).thenReturn(view);
+        var dialog = new GridViewEditorDialog(metadata, resolver, store, null, "editor", null,
+            List.of(initial), null, "Saved", false, saved -> { }, null);
+        dialog.getFooter().getElement().getChildren().map(element -> element.getComponent().orElse(null))
+            .filter(component -> component instanceof com.vaadin.flow.component.button.Button)
+            .map(component -> (com.vaadin.flow.component.button.Button) component)
+            .filter(button -> button.getText().equals("Сохранить")).findFirst().orElseThrow().click();
+        var json = org.mockito.ArgumentCaptor.forClass(String.class);
+        org.mockito.Mockito.verify(store).createView(org.mockito.ArgumentMatchers.eq("editor"),
+            org.mockito.ArgumentMatchers.eq("Saved"), json.capture(), org.mockito.ArgumentMatchers.eq(false));
+        assertThat(GridViewState.fromJson(json.getValue()).columns()).containsExactly(initial.toSpec(EditorEntity.class));
+    }
+
+    @org.ipro.metadata.annotation.EntityMetadata
+    static class EditorEntity extends BaseEntity {
+        @org.ipro.metadata.annotation.FieldMetadata String code;
+    }
+
+    @Test
     void savedViewRestoresNestedUserFilterAndKeepsBottomBarAction() {
         EntityMetadataInfo metadata = mock(EntityMetadataInfo.class);
         doReturn(TestEntity.class).when(metadata).getEntityClass();

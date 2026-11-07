@@ -73,4 +73,33 @@ class QueryBuilderMetadataCatalogTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("не разрешена");
     }
+
+    @Test
+    void savedLocalReportQueriesKeepExecutableTextResultNamesAndCaptions() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var stream = getClass().getResourceAsStream("/query/af37-saved-visual-queries.json");
+        assertThat(stream).isNotNull();
+        var input = mapper.readTree(stream);
+        var result = new StringBuilder();
+        for (var entry : input) {
+            String json = entry.get("visualQueryJson").asText();
+            var compiled = json.contains("\"ctes\"")
+                ? VisualQueryCompiler.compile(new VisualQueryPackageJsonCodec().read(json), catalog)
+                : VisualQueryCompiler.compile(new VisualQueryDefinitionJsonCodec().read(json), catalog);
+            result.append(entry.get("file").asText()).append('\n').append(compiled.jpql()).append('\n');
+            for (var field : compiled.fields()) {
+                result.append(field.name()).append('|').append(field.caption()).append('|')
+                    .append(field.javaType().getName()).append('\n');
+            }
+            result.append('\n');
+        }
+        assertThat(input.size()).isEqualTo(7);
+        if (Boolean.getBoolean("af37.saved.write")) {
+            java.nio.file.Files.writeString(java.nio.file.Path.of("target/af37-saved-current.txt"), result);
+        } else {
+            var expected = getClass().getResourceAsStream("/query/af37-saved-compiled.txt");
+            assertThat(expected).isNotNull();
+            assertThat(result.toString()).isEqualTo(new String(expected.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+        }
+    }
 }

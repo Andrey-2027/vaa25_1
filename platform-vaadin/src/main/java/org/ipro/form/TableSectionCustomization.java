@@ -45,6 +45,13 @@ public interface TableSectionCustomization<T extends IdentifiableEntity<Long>> {
 
     Class<T> rowClass();
 
+    /**
+     * Data-only column declaration, read and validated at startup before any ItemTable exists.
+     * Null preserves legacy composition and field properties. Applies to rowClass() exactly;
+     * it is not implicitly inherited by subclasses. Header filters are not supported by ItemTable.
+     */
+    default org.ipro.metadata.FormColumnDeclarations.Columns columns() { return null; }
+
     void configure(ItemTable<T, ?> table);
 
     /**
