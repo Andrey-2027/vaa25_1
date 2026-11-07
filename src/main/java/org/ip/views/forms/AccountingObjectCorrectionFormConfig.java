@@ -1,5 +1,9 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.annotation.FormConfigurationFor;
+import org.ipro.metadata.annotation.ListColumns;
+import org.ipro.metadata.annotation.SelectionColumns;
+
 import org.ip.application.register.AccountingObjectRegisterService;
 import org.ip.model.AccountingObjectCorrection;
 import org.ip.model.AccountingObjectCorrectionItem;
@@ -12,6 +16,9 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+@FormConfigurationFor(AccountingObjectCorrection.class)
+@ListColumns({"number", "date", "workshop.code", "workshop.name"})
+@SelectionColumns({"number", "date", "workshop.code", "workshop.name"})
 @Component
 public class AccountingObjectCorrectionFormConfig implements ItemFormCustomization {
     private final AccountingObjectRegisterService reader;

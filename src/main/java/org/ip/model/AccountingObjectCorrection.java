@@ -16,8 +16,7 @@ import org.ipro.register.RecorderType;
 @EntityMetadata(kind = EntityKind.DOCUMENT,
     listFormTitle = "Корректировки объектов учёта", itemFormTitle = "Корректировка объекта учёта",
     selectionFormTitle = "Выбор корректировки объекта учёта", order = 220, icon = "EDIT",
-    subsystem = org.ip.subsystem.Subsystems.Production.class,
-    listColumns = {"number", "date", "workshop.code", "workshop.name"})
+    subsystem = org.ip.subsystem.Subsystems.Production.class)
 @InstanceName(value = {"number", "date"}, separator = " от ")
 @TableSections(AccountingObjectCorrectionItem.class)
 @RecorderType("accounting-object-correction")
