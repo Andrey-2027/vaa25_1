@@ -16,19 +16,18 @@ import org.ipro.metadata.annotation.Subsystem;
 @Table(name = "accounting_type")
 @EntityMetadata(kind = EntityKind.CATALOG, listFormTitle = "Типы учёта", itemFormTitle = "Тип учёта",
     selectionFormTitle = "Выбор типа учёта", order = 115, icon = "LIST",
-    subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    listColumns = {"code", "name"}, selectColumns = {"code", "name"})
+    subsystem = org.ip.subsystem.Subsystems.Directories.class)
 public class AccountingType extends BaseEntity implements HasDisplayName {
     @NotBlank @Size(max = 20)
     @Column(nullable = false, unique = true, length = 20)
     @FieldMetadata(label = "Код", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "140px"))
+        grid = @GridColumn(order = 1))
     private String code;
 
     @NotBlank @Size(max = 100)
     @Column(nullable = false, length = 100)
     @FieldMetadata(label = "Наименование", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, flexGrow = 1))
+        grid = @GridColumn(order = 2))
     private String name;
 
     public AccountingType() {}
