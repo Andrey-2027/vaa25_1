@@ -21,7 +21,6 @@ import org.ipro.numbering.annotation.Numbered;
     order = 20,
     icon = "COG",
     subsystem = org.ip.subsystem.Subsystems.Production.class,
-    selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
 )
 public class Oper extends BaseEntity implements HasDisplayName {
@@ -32,7 +31,7 @@ public class Oper extends BaseEntity implements HasDisplayName {
     @Column(nullable = false, unique = true)
     @FieldMetadata(
         label = "Код", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "150px")
+        grid = @GridColumn(order = 1)
     )
     private String code;
 
@@ -41,7 +40,7 @@ public class Oper extends BaseEntity implements HasDisplayName {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Наименование", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, flexGrow = 1)
+        grid = @GridColumn(order = 2)
     )
     private String name;
 
