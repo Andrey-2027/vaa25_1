@@ -20,7 +20,7 @@ public class AccountingObjectInstallationItem extends AccountingObjectItem {
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "accounting_type_id", nullable = false)
     @FieldMetadata(label = "Тип учёта", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3, width = "180px"))
+        grid = @GridColumn(order = 3))
     private AccountingType accountingType;
 
     @Override public AccountingType getAccountingType() { return accountingType; }
