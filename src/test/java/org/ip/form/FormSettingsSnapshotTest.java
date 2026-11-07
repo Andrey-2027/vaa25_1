@@ -14,7 +14,6 @@ import org.ipro.metadata.FieldMetadataInfo;
 import org.ipro.metadata.ManagedEntityCatalog;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.SectionMetadataRegistry;
-import org.ipro.metadata.TableSectionGridMetadata;
 import org.ipro.metadata.TableSectionMetadataInfo;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.rls.RlsDimensionValueLabelResolver;
@@ -86,6 +85,9 @@ class FormSettingsSnapshotTest {
     private SectionMetadataRegistry sectionMetadataRegistry;
 
     @Autowired
+    private org.ipro.form.TableSectionFactory tableSectionFactory;
+
+    @Autowired
     private FetchPlanRegistry fetchPlanRegistry;
 
     @Autowired
@@ -115,13 +117,34 @@ class FormSettingsSnapshotTest {
     }
 
     @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void migratedSectionsKeepContentSizingInTheConstructedGrid() {
+        int sections = 0;
+        for (Class<?> owner : managedEntityCatalog.managedEntityClasses()) {
+            for (var section : sectionMetadataRegistry.forOwner(owner)) {
+                var columns = tableSectionFactory.resolveColumns(section);
+                var table = new org.ipro.form.builtin.ItemTable(section,
+                    org.mockito.Mockito.mock(org.ipro.form.FieldFactory.class),
+                    org.mockito.Mockito.mock(org.ipro.crud.TableSectionService.class), metadataResolver,
+                    null, null, null, () -> null, columns);
+                var grid = (com.vaadin.flow.component.grid.Grid<?>) table.getChildren()
+                    .filter(com.vaadin.flow.component.grid.Grid.class::isInstance).findFirst().orElseThrow();
+                assertThat(grid.getColumns()).as(section.getRowClass().getName())
+                    .allSatisfy(column -> assertThat(column.isAutoWidth()).isTrue());
+                sections++;
+            }
+        }
+        assertThat(sections).as("all application section types").isEqualTo(6);
+    }
+
+    @Test
     void resolvedColumnsKeepTheirReferencePresentationDependencies() {
         for (Class<?> type : managedEntityCatalog.managedEntityClasses()) {
             metadataResolver.find(type).ifPresent(meta -> {
                 assertColumnFetchPaths(type, FetchScenario.LIST, meta.getListColumnPaths());
                 for (TableSectionMetadataInfo section : sectionMetadataRegistry.forOwner(type)) {
                     assertColumnFetchPaths(section.getRowClass(), FetchScenario.ROW,
-                        new TableSectionGridMetadata(section).getListColumnPaths());
+                        tableSectionFactory.resolveColumns(section));
                 }
             });
         }
@@ -162,8 +185,8 @@ class FormSettingsSnapshotTest {
             line(out, "titles", () -> "list='" + meta.getListFormTitle()
                 + "' item='" + meta.getItemFormTitle()
                 + "' selection='" + meta.getSelectionFormTitle() + "'");
-            line(out, "listColumns", () -> columns(meta.getListColumnPaths()));
-            line(out, "selectColumns", () -> columns(meta.getSelectColumnPaths()));
+            line(out, "listColumns", () -> columns(meta.getListColumnPaths(), type, false));
+            line(out, "selectColumns", () -> columns(meta.getSelectColumnPaths(), type, false));
             line(out, "explicit", () -> "list=" + meta.hasExplicitListColumns()
                 + " select=" + meta.hasExplicitSelectColumns());
             line(out, "formFields", () -> meta.getFormFields().stream()
@@ -212,7 +235,7 @@ class FormSettingsSnapshotTest {
                 + " title='" + section.getTitle() + "' order=" + section.getOrder()
                 + " minRows=" + section.getMinRows());
             line(out, prefix + ".columns",
-                () -> columns(new TableSectionGridMetadata(section).getListColumnPaths()));
+                () -> columns(tableSectionFactory.resolveColumns(section), section.getRowClass(), true));
             line(out, prefix + ".formFields", () -> section.getFormFields().stream()
                 .map(f -> f.getName() + "{label=" + f.getLabel() + "|order=" + f.getOrder()
                     + "|required=" + f.isRequired() + "}")
@@ -250,18 +273,21 @@ class FormSettingsSnapshotTest {
 
     // === Форматирование ===
 
-    private static String columns(List<ColumnPath> paths) {
-        return paths.stream().map(FormSettingsSnapshotTest::column).collect(Collectors.joining(", "));
+    private static String columns(List<ColumnPath> paths, Class<?> type, boolean section) {
+        return paths.stream().map(path -> column(path, type, section)).collect(Collectors.joining(", "));
     }
 
-    private static String column(ColumnPath path) {
-        String width = path.asFieldMetadata().map(FieldMetadataInfo::getGridWidth).orElse("-");
-        String flex = path.asFieldMetadata()
-            .map(f -> String.valueOf(f.getGridFlexGrow())).orElse("-");
+    private static String column(ColumnPath path, Class<?> type, boolean section) {
+        // Lists use AF3.4 sizing. ItemTable retains legacy fallback until the row is migrated.
+        var spec = path.toSpec(type);
+        String width = section ? spec.width() != null ? spec.width()
+            : path.asFieldMetadata().map(FieldMetadataInfo::getGridWidth).orElse("") : path.getWidth();
+        int flex = section ? spec.flexGrow() != null ? spec.flexGrow()
+            : !width.isEmpty() ? 0 : path.asFieldMetadata().map(FieldMetadataInfo::getGridFlexGrow).orElse(0)
+            : path.getFlexGrow();
         return path.getKey() + "{label=" + path.getLabel() + "|type=" + path.getResolvedType()
             + "|width=" + (width.isEmpty() ? "-" : width) + "|flexGrow=" + flex + "}";
     }
-
 
     private static String quote(String text) {
         return text == null ? "null" : "'" + text.replace("\n", "\\n") + "'";

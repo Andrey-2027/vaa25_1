@@ -38,12 +38,14 @@ class EntityModificationTest {
         EntityDraftEditorViewTest.principal("admin", true);
         ui = EntityDraftEditorViewTest.uiWithResources(); com.vaadin.flow.component.UI.setCurrent(ui);
         root = directory.resolve("src/main/java");
-        Path from = Path.of("src", "main", "java", "org", "ip", "model");
-        try (Stream<Path> walk = Files.walk(from)) {
-            for (Path file : walk.filter(Files::isRegularFile).toList()) {
-                Path target = root.resolve("org/ip/model").resolve(from.relativize(file));
-                Files.createDirectories(target.getParent());
-                Files.copy(file, target);
+        for (String packagePath : List.of("model", "views/forms")) {
+            Path from = Path.of("src", "main", "java", "org", "ip").resolve(packagePath);
+            try (Stream<Path> walk = Files.walk(from)) {
+                for (Path file : walk.filter(Files::isRegularFile).toList()) {
+                    Path target = root.resolve("org/ip").resolve(packagePath).resolve(from.relativize(file));
+                    Files.createDirectories(target.getParent());
+                    Files.copy(file, target);
+                }
             }
         }
     }

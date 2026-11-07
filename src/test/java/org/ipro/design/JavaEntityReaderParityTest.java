@@ -39,10 +39,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class JavaEntityReaderParityTest {
     private static final Path MODEL = Path.of("src", "main", "java", "org", "ip", "model");
-    private final MetadataResolver resolver = new MetadataResolver();
+    private MetadataResolver resolver;
 
     @Test void readerAgreesWithThePlatformOnTheWholeApplicationModel() throws Exception {
-        var project = ProjectSources.scan(List.of(MODEL));
+        resolver = org.ipro.form.config.ApplicationColumnsTestSupport.resolver();
+        var project = ProjectSources.scan(List.of(Path.of("src", "main", "java")));
         assertThat(project.complete()).as(project.unparsable().toString()).isTrue();
         var report = new ArrayList<String>();
         int entities = 0, read = 0, locked = 0;
