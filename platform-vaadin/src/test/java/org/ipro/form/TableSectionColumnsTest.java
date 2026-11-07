@@ -200,6 +200,28 @@ class TableSectionColumnsTest {
         assertThat(grid(table).getColumnByKey("name").getFlexGrow()).isEqualTo(1);
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void migratedWidthHintKeepsLegacyAutoWidthAndSavedWidthStillWins() {
+        var columns = FormColumnDeclarations.auto();
+        columns.column("code").setWidth("140px").setAutoWidth(true);
+        var defaults = factory(List.of(config(Row.class, columns))).resolveColumns(section(Row.class));
+        var store = mock(GridViewStore.class);
+        var settings = mock(FormSettingsStore.class);
+        when(settings.get("listform.defaultview.Row")).thenReturn(Optional.of("7"));
+        when(store.findById(7L)).thenReturn(Optional.of(new GridView(7L, "Row", "Saved",
+            "{\"columns\":[{\"path\":\"code\",\"width\":\"32em\",\"flexGrow\":0}]}", false, "user")));
+        ItemTable<Row, Document> table = new ItemTable<>(section(Row.class), fields,
+            mock(TableSectionService.class), metadata, store, settings, null, () -> null, defaults);
+        assertThat(grid(table).getColumnByKey("code").getWidth()).isEqualTo("32em");
+        assertThat(grid(table).getColumnByKey("code").isAutoWidth()).isFalse();
+        table.resetActiveColumns();
+        assertThat(grid(table).getColumnByKey("code").getWidth()).isEqualTo("140px");
+        assertThat(grid(table).getColumnByKey("code").isAutoWidth()).isTrue();
+        var json = ColumnPath.toJson(defaults, Row.class);
+        assertThat(ColumnPath.fromJson(json, Row.class).getFirst().toSpec(Row.class).autoWidth()).isTrue();
+    }
+
     private static <T extends org.ipro.identity.IdentifiableEntity<Long>> TableSectionCustomization<T> config(
             Class<T> type, FormColumnDeclarations.Columns columns) {
         return new TableSectionCustomization<>() {

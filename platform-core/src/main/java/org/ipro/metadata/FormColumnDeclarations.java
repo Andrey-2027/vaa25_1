@@ -60,12 +60,15 @@ public final class FormColumnDeclarations {
         private Integer flexGrow;
         private String label;
         private Boolean inlineFilter;
+        private Boolean autoWidth;
         private Properties(String path) { this.path = path; }
         public Properties setWidth(String width) { this.width = Objects.requireNonNull(width); return this; }
         public Properties setFlexGrow(int flexGrow) { this.flexGrow = flexGrow; return this; }
         public Properties setLabel(String label) { this.label = Objects.requireNonNull(label); return this; }
         public Properties setInlineFilter(boolean enabled) { inlineFilter = enabled; return this; }
-        private ColumnPath.Spec spec() { return new ColumnPath.Spec(path, label, width, flexGrow, inlineFilter); }
+        /** Section compatibility: keep content sizing while moving legacy width hints out of a row. */
+        public Properties setAutoWidth(boolean enabled) { autoWidth = enabled; return this; }
+        private ColumnPath.Spec spec() { return new ColumnPath.Spec(path, label, width, flexGrow, inlineFilter, autoWidth); }
     }
 
     public record Declaration(Class<?> entity, Kind kind, String variant, List<String> paths,

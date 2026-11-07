@@ -36,7 +36,11 @@ public final class ColumnPath {
     public record Spec(String path, String label,
                        @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String width,
                        @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer flexGrow,
-                       @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean inlineFilter) {
+                       @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean inlineFilter,
+                       @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean autoWidth) {
+        public Spec(String path, String label, String width, Integer flexGrow, Boolean inlineFilter) {
+            this(path, label, width, flexGrow, inlineFilter, null);
+        }
         public Spec(String path, String label) { this(path, label, null, null, null); }
         public Spec {
             if (flexGrow != null && flexGrow < 0) throw new IllegalArgumentException("Negative flexGrow for " + path);
@@ -53,15 +57,16 @@ public final class ColumnPath {
     private final String width;
     private final Integer flexGrow;
     private final Boolean inlineFilter;
+    private final Boolean autoWidth;
 
     private ColumnPath(String path, List<Field> chain, String label, FieldType resolvedType,
                         FieldMetadataInfo backingField, FactOrigin labelOrigin) {
-        this(path, chain, label, resolvedType, backingField, labelOrigin, null, null, null);
+        this(path, chain, label, resolvedType, backingField, labelOrigin, null, null, null, null);
     }
 
     private ColumnPath(String path, List<Field> chain, String label, FieldType resolvedType,
                        FieldMetadataInfo backingField, FactOrigin labelOrigin,
-                       String width, Integer flexGrow, Boolean inlineFilter) {
+                       String width, Integer flexGrow, Boolean inlineFilter, Boolean autoWidth) {
         this.path = path;
         this.chain = chain;
         this.label = label;
@@ -71,6 +76,7 @@ public final class ColumnPath {
         this.width = width;
         this.flexGrow = flexGrow;
         this.inlineFilter = inlineFilter;
+        this.autoWidth = autoWidth;
     }
 
     /**
@@ -238,7 +244,9 @@ public final class ColumnPath {
             resolvedType, backingField, customLabel ? FactOrigin.REGISTRATION : labelOrigin,
             properties.width() != null ? properties.width() : width,
             properties.flexGrow() != null ? properties.flexGrow() : flexGrow,
-            properties.inlineFilter() != null ? properties.inlineFilter() : inlineFilter);
+            properties.inlineFilter() != null ? properties.inlineFilter() : inlineFilter,
+            properties.autoWidth() != null ? properties.autoWidth()
+                : properties.width() != null ? null : autoWidth);
     }
 
     public String getWidth() {
@@ -263,7 +271,7 @@ public final class ColumnPath {
 
     public Spec toSpec(Class<?> entityClass) {
         String defaultLabel = resolve(entityClass, path).getLabel();
-        return new Spec(path, label.equals(defaultLabel) ? null : label, width, flexGrow, inlineFilter);
+        return new Spec(path, label.equals(defaultLabel) ? null : label, width, flexGrow, inlineFilter, autoWidth);
     }
 
     // === JSON-сериализация состава колонок вида (GridFormView.columns) ===

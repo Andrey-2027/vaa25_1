@@ -226,6 +226,7 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
             ColumnPath.Spec properties = path.toSpec(sectionMeta.getRowClass());
             if (properties.width() != null) column.setWidth(properties.width()).setAutoWidth(false).setFlexGrow(0);
             if (properties.flexGrow() != null) column.setFlexGrow(properties.flexGrow());
+            if (properties.autoWidth() != null) column.setAutoWidth(properties.autoWidth());
         }
     }
 
