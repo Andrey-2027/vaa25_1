@@ -36,7 +36,6 @@ import org.ipro.metadata.HasDisplayName;
     order = 10,
     icon = "BOOK",
     subsystem = Subsystems.Production.class,
-    selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
 )
 public class Journal extends BaseEntity implements HasDisplayName {
@@ -46,7 +45,7 @@ public class Journal extends BaseEntity implements HasDisplayName {
     @Column(nullable = false, unique = true)
     @FieldMetadata(
         label = "Код", order = 1,
-        grid = @GridColumn(order = 1, width = "150px")
+        grid = @GridColumn(order = 1)
     )
     private String code;
 
@@ -55,7 +54,7 @@ public class Journal extends BaseEntity implements HasDisplayName {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Наименование", order = 2,
-        grid = @GridColumn(order = 2, flexGrow = 1)
+        grid = @GridColumn(order = 2)
     )
     private String name;
 
