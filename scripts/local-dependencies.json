@@ -598,8 +598,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "d67668aa2cd66d288f7647a8d09ef9e8fa5470d45ff913e4ad299b704deb30ee",
-        "fileCount": 260,
+        "sha256": "de60da8ce7c0bd938ac12bed9443a0e936561b2fcf0b376ad692fe74043cca36",
+        "fileCount": 265,
         "inputs": [
           "pom.xml",
           "src"

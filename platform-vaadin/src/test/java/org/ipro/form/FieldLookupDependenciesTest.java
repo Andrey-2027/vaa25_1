@@ -62,6 +62,15 @@ class FieldLookupDependenciesTest {
         open.invoke(field);
         verify(assembler).assemble(eq(Target.class), any(), eq(filters), eq(resolved), isNull(), eq(List.of("leaf")));
         verify(selection).open();
+        var current = new java.util.concurrent.atomic.AtomicReference<Map<String, Object>>(filters);
+        field.setSelectionFilter(Map.of());
+        field.setSelectionFilterProvider(current::get);
+        open.invoke(field);
+        org.mockito.ArgumentCaptor<java.util.function.Supplier<Map<String, Object>>> provider =
+            org.mockito.ArgumentCaptor.forClass((Class) java.util.function.Supplier.class);
+        verify(selection).setFixedFilterProvider(provider.capture());
+        current.set(Map.of("code", "B"));
+        assertThat(provider.getValue().get()).containsEntry("code", "B");
         assertThatThrownBy(() -> field.setSelectionFilter(filters, (onSelect, fixed) -> selection))
             .isInstanceOf(IllegalStateException.class);
         ItemForm<Root> independent = new ItemForm<>(metadata.resolve(Root.class), fields);

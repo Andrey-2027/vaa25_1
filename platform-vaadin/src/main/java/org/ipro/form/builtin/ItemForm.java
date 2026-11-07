@@ -99,6 +99,37 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     private final FormBindingRegistry registry = new FormBindingRegistry();
     private List<FieldMetadataInfo> layoutFields = List.of();
     private List<String> readPaths = List.of();
+    private org.ipro.form.RelatedFields relatedFields;
+    public record FieldChange(String field, Object oldValue, Object value, org.ipro.form.ValueChangeSource source) { }
+    private final java.util.Map<String, List<Consumer<FieldChange>>> fieldChangeListeners = new java.util.LinkedHashMap<>();
+    private final java.util.Set<Component> observedInputs = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+    private int savedStateDepth;
+
+    public final void addFieldChangeListener(String field, Consumer<FieldChange> listener) {
+        var binding = registry.getBinding(field).orElseThrow(() -> new IllegalArgumentException("Unknown behavior field '" + field + "'"));
+        observe(binding);
+        fieldChangeListeners.computeIfAbsent(field, key -> new ArrayList<>()).add(java.util.Objects.requireNonNull(listener));
+    }
+
+    private void observe(org.ipro.form.FormBinding binding) {
+        Component component = binding.getComponent();
+        if (!observedInputs.add(component)) return;
+        if (component instanceof org.ipro.form.EntityField<?> reference) {
+            reference.addChangeListener(event -> fieldChanged(binding.getFieldName(), event.oldValue(), event.value(), event.source()));
+        } else if (component instanceof com.vaadin.flow.component.HasValue<?, ?> input) {
+            input.addValueChangeListener(event -> fieldChanged(binding.getFieldName(), event.getOldValue(), event.getValue(),
+                event.isFromClient() ? org.ipro.form.ValueChangeSource.USER : org.ipro.form.ValueChangeSource.HANDLER));
+        } else throw new IllegalArgumentException("Element is not a value field: " + binding.getFieldName());
+    }
+
+    private void fieldChanged(String field, Object oldValue, Object value, org.ipro.form.ValueChangeSource source) {
+        if (java.util.Objects.equals(oldValue, value)) return;
+        if (isLoadingValues()) source = savedStateDepth > 0 ? org.ipro.form.ValueChangeSource.SAVED_STATE
+            : org.ipro.form.ValueChangeSource.INITIAL_LOAD;
+        var change = new FieldChange(field, oldValue, value, source);
+        if (relatedFields != null) relatedFields.changed(change);
+        for (var listener : List.copyOf(fieldChangeListeners.getOrDefault(field, List.of()))) listener.accept(change);
+    }
 
     public final List<String> getReadPaths() { return readPaths; }
     private final java.util.Set<String> explicitlyPlacedFields = new java.util.HashSet<>();
@@ -242,9 +273,10 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     /** One saved snapshot includes the header, returned rows and the clean baseline. */
     public final void applySavedState(Runnable apply) {
         loadingValues++;
+        savedStateDepth++;
         boolean success = false;
         try { apply.run(); success = true; }
-        finally { loadingValues--; if (success) loaded(); }
+        finally { savedStateDepth--; loadingValues--; if (success) loaded(); }
     }
 
     /**
@@ -344,6 +376,8 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         for (LayoutNode node : layout.nodes()) {
             renderNode(node, formLayout);
         }
+        registry.getAll().forEach(this::observe);
+        relatedFields = new org.ipro.form.RelatedFields(this, layout);
 
         add(formLayout, sections.getContainer(), footer);
         setFlexGrow(1, formLayout);
@@ -866,6 +900,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      */
     public void applyPersistedEntity(T saved) {
         loadingValues++;
+        savedStateDepth++;
         boolean success = false;
         try {
         requireSameOpeningOwner(saved);
@@ -881,7 +916,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
 
         success = true;
 
-        } finally { loadingValues--; if (success) loaded(); }
+        } finally { savedStateDepth--; loadingValues--; if (success) loaded(); }
     }
     public T getEntity() {
         if (entity == null) {

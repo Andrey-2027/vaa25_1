@@ -38,6 +38,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     private List<String> lookupPaths = List.of();
     /** Отбор выбора, общий для диалога и автокомплита (Б1); пусто — без ограничений. */
     private Map<String, Object> selectionFilters = Map.of();
+    private java.util.function.Supplier<Map<String, Object>> selectionFilterProvider;
     private final Div suggestionPopup;
     private final Div notFoundHint;
     private final Span notFoundMessage;
@@ -48,6 +49,11 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     private boolean suppressValueChange = false;
     private int focusedRowIndex = -1;
     private final List<Consumer<T>> valueChangeListeners = new ArrayList<>();
+    public record ValueChange<V>(V oldValue, V value, ValueChangeSource source) { }
+    private final List<Consumer<ValueChange<T>>> changeListeners = new ArrayList<>();
+
+    /** Source-aware events include server assignments; the legacy listener remains user-only. */
+    public void addChangeListener(Consumer<ValueChange<T>> listener) { changeListeners.add(java.util.Objects.requireNonNull(listener)); }
 
     public EntityField(String label, SearchFunction<T> searchFunction) {
         this.searchFunction = searchFunction;
@@ -245,6 +251,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
 
     /** Поиск автокомплита с действующим отбором выбора (Б1); без отбора — как раньше. */
     private List<T> runSearch(String term) {
+        Map<String, Object> selectionFilters = getSelectionFilters();
         if (searchFunction instanceof LookupSearchFunction<T> lookup)
             return lookup.search(term, selectionFilters, lookupPaths);
         if (selectionFilters.isEmpty()) {
@@ -369,6 +376,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
      * (см. {@code FieldFactory.createEntityField}) сразу после конструктора.
      */
     public void setSelectionFormFactory(Function<Consumer<T>, SelectionForm<T>> selectionFormFactory) {
+        if (selectionFilterProvider != null) throw new IllegalStateException("Selection factory cannot carry dynamic filters");
         if (!lookupPaths.isEmpty()) throw new IllegalStateException("Selection factory cannot carry lookup dependencies");
         if (!selectionFilters.isEmpty()) throw new IllegalStateException("Selection factory cannot carry fixed filters");
         this.selectionFormFactory = (onSelect, filters, paths) -> selectionFormFactory.apply(onSelect);
@@ -391,6 +399,26 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     }
 
     public List<String> getLookupPaths() { return lookupPaths; }
+
+    public void setSelectionFilterProvider(java.util.function.Supplier<Map<String, Object>> provider) {
+        if (!filterAwareSelection || !(searchFunction instanceof FilterableSearchFunction))
+            throw new IllegalStateException("Selection provider requires filter-aware autocomplete and dialog factories");
+        selectionFilterProvider = java.util.Objects.requireNonNull(provider);
+    }
+
+    /** Evaluated for each autocomplete request and each dialog query. */
+    public Map<String, Object> getSelectionFilters() {
+        if (selectionFilterProvider == null) return selectionFilters;
+        var result = new java.util.LinkedHashMap<>(selectionFilters);
+        selectionFilterProvider.get().forEach((path, value) -> {
+            if (path != null && !path.isBlank() && value != null) {
+                if (result.containsKey(path) && !java.util.Objects.equals(result.get(path), value))
+                    throw new IllegalStateException("Conflicting selection parameter '" + path + "'");
+                result.put(path, value);
+            }
+        });
+        return java.util.Collections.unmodifiableMap(result);
+    }
 
     /** Changes the fixed filter while retaining the standard factory and its lookup dependencies. */
     public void setSelectionFilter(Map<String, Object> filters) {
@@ -441,7 +469,9 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
             throw new IllegalStateException(
                 "selectionFormFactory не задан — вызовите setSelectionFormFactory() перед использованием");
         }
-        selectionFormFactory.create(this::onSelectedInDialog, selectionFilters, lookupPaths).open();
+        var form = selectionFormFactory.create(this::onSelectedInDialog, getSelectionFilters(), lookupPaths);
+        if (selectionFilterProvider != null) form.setFixedFilterProvider(this::getSelectionFilters);
+        form.open();
     }
 
     private void onSelectedInDialog(T selected) {
@@ -467,6 +497,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     }
 
     public void setValue(T value) {
+        T oldValue = selectedValue;
         this.selectedValue = value;
         userEdited = false;
         suppressValueChange = true;
@@ -476,18 +507,14 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
             textField.clear();
         }
         suppressValueChange = false;
+        notifyChange(oldValue, value, ValueChangeSource.HANDLER);
         statusIcon.setVisible(false);
         textField.getElement().getThemeList().remove("error");
         hideSuggestion();
     }
 
     public void clear() {
-        hideSuggestion();
-        selectedValue = null;
-        userEdited = false;
-        textField.clear();
-        statusIcon.setVisible(false);
-        textField.getElement().getThemeList().remove("error");
+        setValue(null);
     }
 
     public void setReadOnly(boolean readOnly) {
@@ -529,8 +556,15 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     private void fireValueChangeEvent(T oldValue, T newValue) {
         if (!userEdited) return;
         if (java.util.Objects.equals(oldValue, newValue)) return;
-        for (Consumer<T> listener : valueChangeListeners) {
+        notifyChange(oldValue, newValue, ValueChangeSource.USER);
+        for (Consumer<T> listener : List.copyOf(valueChangeListeners)) {
             listener.accept(newValue);
         }
+    }
+
+    private void notifyChange(T oldValue, T value, ValueChangeSource source) {
+        if (java.util.Objects.equals(oldValue, value)) return;
+        var event = new ValueChange<>(oldValue, value, source);
+        for (var listener : List.copyOf(changeListeners)) listener.accept(event);
     }
 }

@@ -12,23 +12,21 @@ public final class FormBehavior {
     public FormBehavior(ItemForm<?> form) { this.form = form; describedFields = null; }
     private FormBehavior(java.util.Set<String> fields) { form = null; describedFields = java.util.Set.copyOf(fields); }
     public static FormBehavior forDescription(java.util.Set<String> fields) { return new FormBehavior(fields); }
-    public record Change(String field, Object value, ItemForm<?> form) { }
+    public record Change(String field, Object value, ItemForm<?> form, org.ipro.form.ValueChangeSource source) {
+        public Change(String field, Object value, ItemForm<?> form) {
+            this(field, value, form, org.ipro.form.ValueChangeSource.HANDLER);
+        }
+    }
     public void onChange(String field, Consumer<Change> handler) {
         java.util.Objects.requireNonNull(handler);
         if (form == null) {
             if (!describedFields.contains(field)) throw new IllegalArgumentException("Unknown behavior field '" + field + "'");
             return;
         }
-        var component = form.getField(field);
-        if (component instanceof HasValue<?, ?> value) {
-            value.addValueChangeListener(event -> {
-                if (!form.isLoadingValues()) handler.accept(new Change(field, event.getValue(), form));
-            });
-        } else if (component instanceof EntityField<?> reference) {
-            reference.addValueChangeListener(value -> {
-                if (!form.isLoadingValues()) handler.accept(new Change(field, value, form));
-            });
-        } else throw new IllegalArgumentException("Element is not a value field: " + field);
+        form.addFieldChangeListener(field, event -> {
+            if (event.source() == org.ipro.form.ValueChangeSource.USER || event.source() == org.ipro.form.ValueChangeSource.HANDLER)
+                handler.accept(new Change(field, event.value(), form, event.source()));
+        });
     }
     public void onLoaded(Runnable handler) { java.util.Objects.requireNonNull(handler); if (form != null) form.addLoadedHandler(handler); }
     public void setReadOnly(boolean value) { if (form != null) form.setReadOnly(value); }

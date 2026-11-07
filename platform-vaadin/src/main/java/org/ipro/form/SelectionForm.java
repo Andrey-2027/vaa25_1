@@ -38,6 +38,12 @@ public class SelectionForm<T> extends Dialog {
     private final Button selectButton;
     private final FilterGrid<T> filterGrid;
     private final Map<String, Object> fixedFilters = new LinkedHashMap<>();
+    private java.util.function.Supplier<Map<String, Object>> fixedFilterProvider;
+
+    public void setFixedFilterProvider(java.util.function.Supplier<Map<String, Object>> provider) {
+        fixedFilterProvider = java.util.Objects.requireNonNull(provider);
+        refreshSpecification();
+    }
     private final Map<String, Object> contextValues = new LinkedHashMap<>();
     private final com.vaadin.flow.component.html.Span catalogOwnerNotice = new com.vaadin.flow.component.html.Span();
     private Class<?> catalogEntityType;
@@ -182,6 +188,12 @@ public class SelectionForm<T> extends Dialog {
         }
         filterGrid.getGrid().deselectAll();
         Specification<T> fixed = SelectionFormAssembler.specificationFor(fixedFilters);
+        if (fixedFilterProvider != null) {
+            fixed = (root, query, cb) -> {
+                Specification<T> current = SelectionFormAssembler.specificationFor(fixedFilterProvider.get());
+                return current == null ? cb.conjunction() : current.toPredicate(root, query, cb);
+            };
+        }
         var editable = new LinkedHashMap<>(contextValues);
         fixedFilters.keySet().forEach(editable::remove);
         Specification<T> context = org.ipro.form.builder.ContextFilterConditions.specificationFor(catalogEntityType, contextFields, editable);

@@ -147,13 +147,21 @@ public class FormBinding {
      */
     public void readFromEntity(Object entity) {
         Object value = readFromEntity.apply(entity);
+        setValue(value);
+        lastLoadedValue = readFromComponent.get();
+    }
+
+    /** Assign through the editor's existing conversion, without resetting the clean baseline. */
+    public void setValue(Object value) {
         if (value == null && component instanceof HasValue<?, ?> hv) {
             hv.clear();
         } else {
             writeToComponent.accept(value);
         }
-        lastLoadedValue = readFromComponent.get();
     }
+
+    public Object getValue() { return readFromComponent.get(); }
+    public boolean isEmptyValue() { return isEmpty.test(readFromComponent.get()); }
 
     /**
      * Изменилось ли значение в компоненте с момента последнего {@link #readFromEntity} (или

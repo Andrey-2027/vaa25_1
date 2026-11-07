@@ -21,6 +21,8 @@ public final class Layout {
     public Layout(EntityMetadataInfo metadata) { this(metadata, metadata.getEntityClass().getName()); }
     public Layout(EntityMetadataInfo metadata, String source) { this.metadata = Objects.requireNonNull(metadata); this.source = source; }
     public Element field(String name) { return new Element(Kind.FIELD, name); }
+    public SelectionValue value(String path) { return new SelectionValue.FieldValue(path); }
+    public SelectionValue self() { return new SelectionValue.Self(); }
     public Element display(String path) { return new Element(Kind.DISPLAY, path); }
     public Element display(String id, Function<Object, String> formatter) {
         var element = display(id); element.formatter = Objects.requireNonNull(formatter); return element;
@@ -105,6 +107,7 @@ public final class Layout {
             if (element.kind != Kind.FIELD && (element.readOnly || element.selectionVariant != null))
                 throw new IllegalArgumentException("readOnly/selectionVariant apply to fields: " + element.id);
         });
+        prepareRelations();
         // Explicitly hidden fields stay bound; explicit remove acknowledges the omission.
         for (FieldMetadataInfo field : metadata.getFormFields()) {
             if (field.isRequired() && !fields.contains(field.getName()) && !acknowledged.contains(field.getName()))
@@ -112,6 +115,65 @@ public final class Layout {
                     field.getName(), source);
         }
         return new ItemFormLayout(nodes(roots));
+    }
+
+    /** Validate bindings after remainingFields/adjust and derive the selected source's read needs. */
+    private void prepareRelations() {
+        var inputs = new LinkedHashMap<String, Element>();
+        walk(roots, element -> { if (element.kind == Kind.FIELD) inputs.put(element.id, element); });
+        walk(roots, element -> {
+            if (element.selectionFilters.isEmpty() && element.fillFrom == null) return;
+            if (element.kind != Kind.FIELD || metadata.getFieldByName(element.id) == null)
+                throw new IllegalArgumentException("Related properties require a direct field: " + element.id);
+            var target = metadata.getFieldByName(element.id);
+            for (var filter : element.selectionFilters.entrySet()) {
+                if (!target.hasLookup()) throw new IllegalArgumentException("Selection filter requires a reference: " + element.id);
+                Class<?> expected = ColumnPath.resolve(target.getLookupEntity(), filter.getKey()).getJavaType();
+                if (!element.lookupPaths.contains(filter.getKey())) element.lookupPaths.add(filter.getKey());
+                switch (filter.getValue()) {
+                    case SelectionValue.Constant constant -> {
+                        if (constant.value() instanceof Collection<?> values)
+                            values.forEach(value -> requireCompatible(expected, value == null ? null : value.getClass(), element.id));
+                        else requireCompatible(expected, constant.value() == null ? null : constant.value().getClass(), element.id);
+                    }
+                    case SelectionValue.Self self -> requireCompatible(expected, metadata.getEntityClass(), element.id);
+                    case SelectionValue.FieldValue value -> requireCompatible(expected,
+                        requireSource(value.path(), inputs).getJavaType(), element.id);
+                }
+            }
+            if (element.fillFrom != null) {
+                var path = requireSource(element.fillFrom, inputs);
+                requireCompatible(target.getJavaType(), path.getJavaType(), element.id, false);
+            }
+        });
+    }
+
+    private ColumnPath requireSource(String path, Map<String, Element> inputs) {
+        if (path == null || path.isBlank()) throw new IllegalArgumentException("Blank related source path");
+        String root = path.split("\\.", 2)[0];
+        var source = inputs.get(root);
+        if (source == null || root.contains(".")) throw new IllegalArgumentException("Related source is not bound: " + path);
+        ColumnPath resolved = ColumnPath.resolve(metadata.getEntityClass(), path);
+        if (path.contains(".")) {
+            var field = metadata.getFieldByName(root);
+            String tail = path.substring(path.indexOf('.') + 1);
+            if (field != null && field.hasLookup() && !source.lookupPaths.contains(tail)) source.lookupPaths.add(tail);
+        }
+        return resolved;
+    }
+
+    private static void requireCompatible(Class<?> expected, Class<?> actual, String field) {
+        requireCompatible(expected, actual, field, true);
+    }
+
+    private static void requireCompatible(Class<?> expected, Class<?> actual, String field, boolean numericComparison) {
+        if (actual == null) return;
+        expected = org.springframework.util.ClassUtils.resolvePrimitiveIfNecessary(expected);
+        actual = org.springframework.util.ClassUtils.resolvePrimitiveIfNecessary(actual);
+        if (!expected.isAssignableFrom(actual)
+                && !(numericComparison && Number.class.isAssignableFrom(expected) && Number.class.isAssignableFrom(actual)))
+            throw new IllegalArgumentException("Related value type " + actual.getName() + " does not match "
+                + expected.getName() + " for " + field);
     }
 
     private void requireField(String name) {
@@ -140,7 +202,9 @@ public final class Layout {
         var readPaths = new ArrayList<>(element.readPaths);
         if (element.kind == Kind.DISPLAY && element.formatter == null) readPaths.add(element.id);
         return new ElementNode(element.id, content, element.visible, element.readOnly, element.width,
-            element.selectionVariant, element.lookupPaths, readPaths);
+            element.selectionVariant, element.lookupPaths, readPaths,
+            new FieldRelations(element.selectionFilters, element.clearInvalidSelection, element.fillFrom,
+                element.fillOnlyIfEmpty, element.allowEmptySelectionSource));
     }
     private static void walk(List<Element> elements, java.util.function.Consumer<Element> action) {
         walk(elements, action, Collections.newSetFromMap(new IdentityHashMap<>()));
@@ -174,6 +238,9 @@ public final class Layout {
         private final Set<String> excluded = new HashSet<>();
         private String label, title, width, selectionVariant;
         private final List<String> lookupPaths = new ArrayList<>(), readPaths = new ArrayList<>();
+        private final Map<String, SelectionValue> selectionFilters = new LinkedHashMap<>();
+        private boolean clearInvalidSelection = true, fillOnlyIfEmpty, allowEmptySelectionSource = true;
+        private String fillFrom;
         private boolean visible = true, readOnly;
         private Supplier<? extends Component> factory;
         private Function<Object, String> formatter;
@@ -199,6 +266,16 @@ public final class Layout {
         public Element setLookupPaths(String... paths) { lookupPaths.clear(); lookupPaths.addAll(List.of(paths)); return this; }
         /** Explicit input paths for a formatter/custom element, relative to the edited entity. */
         public Element dependsOn(String... paths) { readPaths.addAll(List.of(paths)); return this; }
+        public Element setSelectionFilter(String path, Object value) {
+            if (path == null || path.isBlank()) throw new IllegalArgumentException("Blank selection path");
+            selectionFilters.put(path, value instanceof SelectionValue parameter ? parameter : new SelectionValue.Constant(value));
+            return this;
+        }
+        public Element setClearInvalidSelection(boolean value) { clearInvalidSelection = value; return this; }
+        /** False turns a missing source into an empty choice set; true keeps the default unrestricted choice. */
+        public Element setAllowEmptySelectionSource(boolean value) { allowEmptySelectionSource = value; return this; }
+        public Element setFillFrom(String path) { fillFrom = path; return this; }
+        public Element setFillOnlyIfEmpty(boolean value) { fillOnlyIfEmpty = value; return this; }
         public Element except(String... names) {
             if (kind != Kind.REMAINING) throw new IllegalArgumentException("except applies to remainingFields");
             excluded.addAll(Arrays.asList(names)); return this;
