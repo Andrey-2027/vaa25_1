@@ -32,7 +32,7 @@ public class Role extends BaseEntity {
     @NotBlank
     @Column(nullable = false, unique = true)
     @FieldMetadata(label = "Название", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, flexGrow = 1))
+        grid = @GridColumn(order = 1))
     private String name;
 
     @ManyToMany(mappedBy = "roles")
