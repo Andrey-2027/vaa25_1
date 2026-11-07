@@ -27,9 +27,7 @@ import org.ipro.register.RegisterPeriodicity;
 @Check(constraints = "line_no > 0 and recording_order > 0")
 @EntityMetadata(listFormTitle = "Объекты учёта номенклатуры", itemFormTitle = "Объект учёта номенклатуры",
     selectionFormTitle = "Выбор объекта учёта", order = 230, icon = "TABLE",
-    subsystem = org.ip.subsystem.Subsystems.Production.class,
-    listColumns = {"workshop.code", "nomenclature.code", "nomenclature.name", "period", "accountingType.name"},
-    selectColumns = {"workshop.code", "nomenclature.code", "nomenclature.name", "period", "accountingType.name"})
+    subsystem = org.ip.subsystem.Subsystems.Production.class)
 @RegisterMetadata(dimensions = {"workshop", "nomenclature"}, resources = "accountingType",
     period = "period", periodicity = RegisterPeriodicity.EXACT,
     recorderTypes = {AccountingObjectInstallation.class, AccountingObjectCorrection.class}, keyChangeAllowed = true,
