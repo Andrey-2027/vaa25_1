@@ -1,5 +1,9 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.annotation.FormConfigurationFor;
+import org.ipro.metadata.annotation.ListColumns;
+import org.ipro.metadata.annotation.SelectionColumns;
+
 import org.ipro.form.builder.ItemFormCustomization;
 import org.ipro.form.builder.ItemFormVariants;
 import org.ipro.form.builtin.ItemForm;
@@ -22,6 +26,9 @@ import java.util.List;
  * Реализует {@link ItemFormCustomization}, а не сам занимается регистрацией в
  * {@code FormRegistry} — этим занимается общий {@code ItemFormCustomizationRegistrar}.
  */
+@FormConfigurationFor(ReceivingDocument.class)
+@ListColumns({"id","number","date","journal.code","receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name"})
+@SelectionColumns({"id","number","date","journal.code","receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name"})
 @Component
 public class ReceivingDocumentFormConfig implements ItemFormCustomization {
 

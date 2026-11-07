@@ -80,9 +80,7 @@ import java.time.LocalDate;
     selectionFormTitle = "Выбор накладной",
     order = 200,
     icon = "FILE_TEXT",
-    subsystem = Subsystems.Production.class,
-        listColumns = {"id","number","date","journal.code","receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name"}
-)
+    subsystem = Subsystems.Production.class)
 @InstanceName(value = {"number", "date"}, separator = " от ")
 @TableSections({ReceivingDocumentItem.class})
 @RecorderType("receiving-document")
@@ -117,7 +115,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @FieldMetadata(
         label = "Журнал", required = RequiredMode.REQUIRED, order = 0,
         type = FieldType.ENTITY_REFERENCE,
-        grid = @GridColumn(order = 0, width = "180px")
+        grid = @GridColumn(order = 0)
     )
     private Journal journal;
 
@@ -133,7 +131,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Номер", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "150px")
+        grid = @GridColumn(order = 1)
     )
     private String number;
 
@@ -141,7 +139,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Дата", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, width = "150px")
+        grid = @GridColumn(order = 2)
     )
     private LocalDate date;
 
@@ -150,7 +148,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @NotNull
     @FieldMetadata(
         label = "Цех приёмщик", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3, flexGrow = 1)
+        grid = @GridColumn(order = 3)
     )
     private Workshop receivingWorkshop;
 
@@ -159,7 +157,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @NotNull
     @FieldMetadata(
         label = "Цех сдатчик", required = RequiredMode.REQUIRED, order = 4,
-        grid = @GridColumn(order = 4, flexGrow = 1)
+        grid = @GridColumn(order = 4)
     )
     private Workshop transferringWorkshop;
 
