@@ -27,7 +27,6 @@ import org.ipro.search.GlobalSearchable;
     order = 100,
     icon = "PACKAGE",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"code", "name","typeNom"},
     displaySortFields = {"code", "name"}  // = getDisplayName(): code + " " + name
 )
 @InstanceName
@@ -40,7 +39,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @Column(nullable = false, unique = true)
     @FieldMetadata(
         label = "Код", order = 1,
-        grid = @GridColumn(order = 1, width = "150px")
+        grid = @GridColumn(order = 1)
     )
     private String code;
 
@@ -49,7 +48,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Наименование", order = 2,
-        grid = @GridColumn(order = 2, flexGrow = 1)
+        grid = @GridColumn(order = 2)
     )
     private String name;
 
@@ -58,7 +57,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @NotNull
     @FieldMetadata(
         label = "Единица измерения", order = 3,
-        grid = @GridColumn(order = 3, width = "200px")
+        grid = @GridColumn(order = 3)
     )
     private UnitOfMeasurement unitOfMeasurement;
 
@@ -66,7 +65,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "group_nom_id")
     @FieldMetadata(
         label = "Группа номенклатуры", order = 4,
-        grid = @GridColumn(order = 4, width = "200px")
+        grid = @GridColumn(order = 4)
     )
     private GroupNom groupNom;
 
@@ -74,7 +73,7 @@ public class Nomenclature extends BaseEntity implements HasDisplayName {
     @Column(name = "type_nom", length = 20)
     @FieldMetadata(
         label = "Тип", order = 5,
-        grid = @GridColumn(order = 5, width = "150px")
+        grid = @GridColumn(order = 5)
     )
     private String typeNom;
 

@@ -1,5 +1,8 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.annotation.FormConfigurationFor;
+import org.ipro.metadata.annotation.SelectionColumns;
+
 import org.ip.model.AttributeType;
 import org.ip.model.Nomenclature;
 import org.ip.service.NomSklAttributeService;
@@ -19,6 +22,8 @@ import java.util.List;
  * <p>D3.5.2: типы атрибутов читаются bounded {@link EntityLookup#search} как маленький
  * закрытый справочник (десятки записей, явный лимит), а не выгрузкой всей таблицы.</p>
  */
+@FormConfigurationFor(Nomenclature.class)
+@SelectionColumns({"code", "name","typeNom"})
 @Component
 public class NomenclatureItemFormConfig implements ItemFormCustomization {
 
