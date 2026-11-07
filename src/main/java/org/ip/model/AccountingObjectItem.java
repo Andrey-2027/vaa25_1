@@ -15,7 +15,7 @@ public abstract class AccountingObjectItem extends BaseEntity {
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @FieldMetadata(label = "Номенклатура", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, flexGrow = 1))
+        grid = @GridColumn(order = 1))
     private Nomenclature nomenclature;
 
     public Integer getLineNumber() { return lineNumber; }
