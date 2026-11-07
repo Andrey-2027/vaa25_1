@@ -108,5 +108,14 @@ public class AccountingObjectCorrectionRowConfig implements ItemFormCustomizatio
         }
         private static String label(HasDisplayName value) { return value == null ? "—" : value.getDisplayName(); }
     }
+
+    @Override
+    public org.ipro.metadata.FormColumnDeclarations.Columns columns() {
+        var columns = org.ipro.metadata.FormColumnDeclarations.auto();
+        columns.column("nomenclature").setFlexGrow(1);
+        columns.column("accountingType").setWidth("180px").setAutoWidth(true);
+        columns.column("currentAccountingType").setWidth("180px").setAutoWidth(true);
+        return columns;
+    }
 }
 

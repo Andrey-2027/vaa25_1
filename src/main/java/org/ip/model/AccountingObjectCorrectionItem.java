@@ -21,13 +21,13 @@ public class AccountingObjectCorrectionItem extends AccountingObjectItem {
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "accounting_type_id", nullable = false)
     @FieldMetadata(label = "Новый тип учёта", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3, width = "180px"))
+        grid = @GridColumn(order = 3))
     private AccountingType accountingType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_accounting_type_id")
     @FieldMetadata(label = "Текущий тип учёта", readOnly = true, order = 2,
-        grid = @GridColumn(order = 2, width = "180px"))
+        grid = @GridColumn(order = 2))
     private AccountingType currentAccountingType;
     @Override public AccountingType getAccountingType() { return accountingType; }
     @Override public void setAccountingType(AccountingType value) { this.accountingType = value; }
