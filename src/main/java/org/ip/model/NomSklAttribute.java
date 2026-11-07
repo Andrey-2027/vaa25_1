@@ -45,7 +45,6 @@ import org.ipro.metadata.annotation.GridColumn;
     order = 65,
     icon = "LINK",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"nomenclature", "attrType", "required"},
     displaySortFields = {"attrType", "nomenclature"}
 )
 @RlsLabels(code = "nomenclature", name = "attrType")
@@ -56,7 +55,7 @@ public class NomSklAttribute extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @FieldMetadata(
         label = "Номенклатура", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "250px")
+        grid = @GridColumn(order = 1)
     )
     private Nomenclature nomenclature;
 
@@ -65,7 +64,7 @@ public class NomSklAttribute extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "attr_type_id", nullable = false)
     @FieldMetadata(
         label = "Атрибут КСУ", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, width = "250px")
+        grid = @GridColumn(order = 2)
     )
     private AttributeType attrType;
 
@@ -73,7 +72,7 @@ public class NomSklAttribute extends BaseEntity implements HasDisplayName {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Обязателен", order = 3, type = FieldType.BOOLEAN,
-        grid = @GridColumn(order = 3, width = "120px")
+        grid = @GridColumn(order = 3)
     )
     private boolean required;
 
