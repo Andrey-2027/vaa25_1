@@ -44,6 +44,7 @@ class FormReadDependenciesIT {
     @Autowired FormRegistry registry;
     @Autowired FieldFactory fields;
     @Autowired SelectionFormAssembler selections;
+    @Autowired org.ipro.crud.LookupService lookups;
     @Autowired org.ipro.form.TableSectionFactory tables;
     @Autowired ServiceLocator services;
     @Autowired MetadataResolver metadata;
@@ -232,6 +233,34 @@ class FormReadDependenciesIT {
         assertThat(metadata.resolveRowMetadata(AccountingObjectCorrectionItem.class).getFormFields().stream()
             .filter(field -> field.getName().equals("currentAccountingType")).findFirst().orElseThrow().isReadOnly())
             .isFalse();
+    }
+
+    @Test void productFillsOnlyOnUserSelectionAndPreservesAuthoritativeSavedValues() {
+        var manualUnit = new UnitOfMeasurement("m" + prefix.substring(4), "Manual unit", "M" + prefix.substring(4));
+        em.persist(manualUnit);
+        var manualNom = new Nomenclature(prefix + "z", "Stored nomenclature", manualUnit);
+        em.persist(manualNom); em.flush(); em.clear();
+        ItemForm<PrdSpecMtr> form = forms.resolveItemForm(PrdSpecMtr.class, "product", null, null);
+        EntityField<PrdSpec> source = form.entityField("prdSpecMtr");
+        var specs = lookups.search(PrdSpec.class, new String[]{"codeSpec"}, prefix, 20, source.getLookupPaths());
+        var first = specs.stream().filter(value -> value.getCodeSpec().equals(prefix)).findFirst().orElseThrow();
+        var second = specs.stream().filter(value -> value.getCodeSpec().equals(prefix + "c")).findFirst().orElseThrow();
+        em.clear();
+        var stored = new PrdSpecMtr(); stored.setTypeMtr(1); stored.setPrdSpecMtr(first);
+        stored.setUnit(manualUnit); stored.setNomenclature(manualNom);
+        form.setEntity(stored);
+        source.setValue(second);
+        assertThat(form.<UnitOfMeasurement>entityField("unit").getValue()).isSameAs(manualUnit);
+        assertThat(form.getEntity().getNomenclature()).isSameAs(manualNom);
+        chooseInDialog(source, first);
+        assertThat(form.<UnitOfMeasurement>entityField("unit").getValue().getShortCode()).isEqualTo(shortCode);
+        assertThat(form.getEntity().getNomenclature().getId()).isEqualTo(first.getNomenclature().getId());
+        var saved = new PrdSpecMtr(); saved.setTypeMtr(1); saved.setPrdSpecMtr(second);
+        saved.setUnit(manualUnit); saved.setNomenclature(manualNom);
+        form.applySavedState(() -> form.applyPersistedEntity(saved));
+        assertThat(form.<UnitOfMeasurement>entityField("unit").getValue()).isSameAs(manualUnit);
+        assertThat(form.getEntity().getNomenclature()).isSameAs(manualNom);
+        assertThat(form.isDirty()).isFalse();
     }
 
     @Test void scopedReadRequirementsMatchTheirOwnSnapshot() throws Exception {
