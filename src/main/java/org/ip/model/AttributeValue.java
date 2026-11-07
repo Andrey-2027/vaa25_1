@@ -60,7 +60,6 @@ import org.ipro.metadata.annotation.GridColumn;
     order = 70,
     icon = "LIST_UL",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
 )
 public class AttributeValue extends BaseEntity implements HasDisplayName, InternedEntity {
@@ -70,7 +69,7 @@ public class AttributeValue extends BaseEntity implements HasDisplayName, Intern
     @JoinColumn(name = "attr_type_id", nullable = false)
     @FieldMetadata(
         label = "Тип атрибута", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "200px")
+        grid = @GridColumn(order = 1)
     )
     private AttributeType attrType;
 
@@ -83,7 +82,7 @@ public class AttributeValue extends BaseEntity implements HasDisplayName, Intern
     @Column(nullable = false, length = 100)
     @FieldMetadata(
         label = "Код", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, width = "200px")
+        grid = @GridColumn(order = 2)
     )
     private String code;
 
@@ -93,7 +92,7 @@ public class AttributeValue extends BaseEntity implements HasDisplayName, Intern
     @Column(nullable = false)
     @FieldMetadata(
         label = "Значение", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3, flexGrow = 1)
+        grid = @GridColumn(order = 3)
     )
     private String name;
 
