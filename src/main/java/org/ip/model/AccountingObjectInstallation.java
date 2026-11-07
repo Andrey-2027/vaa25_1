@@ -16,8 +16,7 @@ import org.ipro.register.RecorderType;
 @EntityMetadata(kind = EntityKind.DOCUMENT,
     listFormTitle = "Установки объектов учёта", itemFormTitle = "Установка объекта учёта",
     selectionFormTitle = "Выбор установки объекта учёта", order = 210, icon = "FILE_ADD",
-    subsystem = org.ip.subsystem.Subsystems.Production.class,
-    listColumns = {"number", "date", "workshop.code", "workshop.name"})
+    subsystem = org.ip.subsystem.Subsystems.Production.class)
 @InstanceName(value = {"number", "date"}, separator = " от ")
 @TableSections(AccountingObjectInstallationItem.class)
 @RecorderType("accounting-object-installation")
