@@ -98,6 +98,9 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     private FieldFactory fieldFactory;
     private final FormBindingRegistry registry = new FormBindingRegistry();
     private List<FieldMetadataInfo> layoutFields = List.of();
+    private List<String> readPaths = List.of();
+
+    public final List<String> getReadPaths() { return readPaths; }
     private final java.util.Set<String> explicitlyPlacedFields = new java.util.HashSet<>();
     private FormLayout formLayout;
     private HorizontalLayout footer;
@@ -328,6 +331,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     }
 
     private void buildLayout(ItemFormLayout layout) {
+        readPaths = org.ipro.form.builder.layout.FormReadDependencies.readPaths(entityClass, layout);
         validateLayout(layout.nodes(), new java.util.HashSet<>(), new java.util.HashSet<>(), new int[1]);
         initCommon();
 
@@ -425,6 +429,12 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
             root.getElement().getStyle().set("width", element.width()).set("max-width", "100%");
         if (element.content() instanceof FieldNode field) {
             registry.getBinding(field.fieldName()).ifPresent(binding -> {
+                if (!element.lookupPaths().isEmpty()) {
+                    if (!(binding.getComponent() instanceof EntityField<?> reference))
+                        throw new IllegalArgumentException("Lookup dependencies require EntityField: " + element.id());
+                    reference.setLookupPaths(org.ipro.form.builder.layout.FormReadDependencies.fetchPaths(
+                        layoutField(field.fieldName()).getLookupEntity(), element.lookupPaths()));
+                }
                 if (element.readOnly()) binding.setDeclaredReadOnly(true);
                 if (!element.visible()) binding.getComponent().setVisible(false);
                 if (element.width() != null) {

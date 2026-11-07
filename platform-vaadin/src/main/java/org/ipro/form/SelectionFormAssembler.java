@@ -100,6 +100,13 @@ public class SelectionFormAssembler {
     public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> assemble(
             Class<T> entityClass, Consumer<T> onSelect, Map<String, Object> filters,
             ResolvedSelection resolved, String variant) {
+        return assemble(entityClass, onSelect, filters, resolved, variant, List.of());
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T extends IdentifiableEntity<Long>, ID> SelectionForm<T> assemble(
+            Class<T> entityClass, Consumer<T> onSelect, Map<String, Object> filters,
+            ResolvedSelection resolved, String variant, java.util.Collection<String> additionalPaths) {
         List<ColumnPath> columns = resolved.columns();
         // Resolve on opening: report-family customizations themselves depend on this assembler.
         var families = typeCustomizationProvider == null ? typeCustomizations : typeCustomizationProvider.orderedStream().toList();
@@ -117,6 +124,7 @@ public class SelectionFormAssembler {
         BaseService<T, ID> service = serviceLocator.findService(entityClass);
         java.util.LinkedHashSet<String> fetchPaths = new java.util.LinkedHashSet<>();
         for (ColumnPath path : columns) fetchPaths.addAll(path.getFetchPaths());
+        fetchPaths.addAll(additionalPaths);
 
         JpaFilterGrid<T> filterGrid = new JpaFilterGrid<>(
             entityClass, (spec, pageable) -> service.findAllByScenario(

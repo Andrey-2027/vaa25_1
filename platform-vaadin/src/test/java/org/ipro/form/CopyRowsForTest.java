@@ -44,7 +44,7 @@ class CopyRowsForTest {
 
         TableSectionFactory factory = new TableSectionFactory(metadataResolver, mock(FieldFactory.class),
             applicationContext, mock(org.ipro.crud.GenericOwnedSectionService.class),
-            mock(org.springframework.beans.factory.ObjectProvider.class), List.of());
+            resolverProvider(), List.of());
         Doc target = new Doc();
 
         Map<Class<?>, List<?>> copied =
@@ -76,10 +76,20 @@ class CopyRowsForTest {
 
         TableSectionFactory factory = new TableSectionFactory(metadataResolver, mock(FieldFactory.class),
             applicationContext, mock(org.ipro.crud.GenericOwnedSectionService.class),
-            mock(org.springframework.beans.factory.ObjectProvider.class), List.of());
+            resolverProvider(), List.of());
 
         assertThat(factory.copyRowsFor(Doc.class, new Doc(), new Doc(), new EntityCopyService()))
             .isEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    private org.springframework.beans.factory.ObjectProvider<org.ipro.form.registry.FormResolver> resolverProvider() {
+        var provider = (org.springframework.beans.factory.ObjectProvider<org.ipro.form.registry.FormResolver>)
+            mock(org.springframework.beans.factory.ObjectProvider.class);
+        var resolver = mock(org.ipro.form.registry.FormResolver.class);
+        when(resolver.getFormRegistry()).thenReturn(new org.ipro.form.registry.FormRegistry());
+        when(provider.getObject()).thenReturn(resolver);
+        return provider;
     }
 
     interface RowService extends org.ipro.crud.TableSectionService<Row, Doc> {

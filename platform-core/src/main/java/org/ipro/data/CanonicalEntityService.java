@@ -86,6 +86,11 @@ public class CanonicalEntityService<T extends IdentifiableEntity<Long>> implemen
     }
 
     @Override
+    public Optional<T> findById(Long id, Collection<String> additionalPaths) {
+        return readExecutor.readDetail(new DetailRead<>(type, id, FetchScenario.DETAIL, additionalPaths));
+    }
+
+    @Override
     public List<T> findAll() {
         return readExecutor.readAll(ListRead.of(type, FetchScenario.LIST));
     }

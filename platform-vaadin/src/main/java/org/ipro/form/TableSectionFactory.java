@@ -175,7 +175,9 @@ public class TableSectionFactory implements ApplicationRunner {
         Map<Class<?>, List<?>> result = new java.util.LinkedHashMap<>();
         for (TableSectionMetadataInfo section : metadataResolver.resolveTableSections(parentClass)) {
             TableSectionService rawService = findTableSectionService(section);
-            List<?> sourceRows = rawService.findByParent(sourceParent);
+            var paths = resolveReadPaths(section);
+            List<?> sourceRows = paths.isEmpty() ? rawService.findByParent(sourceParent)
+                : rawService.findByParent(sourceParent, paths);
             List<Object> copied = new java.util.ArrayList<>(sourceRows.size());
             int lineNumber = 1;
             for (Object row : sourceRows) {
@@ -202,6 +204,7 @@ public class TableSectionFactory implements ApplicationRunner {
             applicationContext.getBean(org.ipro.form.spi.FormSettingsStore.class),
             applicationContext.getBean(org.ipro.crud.LookupService.class),
             formResolverSupplier, resolveColumns(section));
+        table.setFormReadPaths(resolveReadPaths(section));
         for (TableSectionCustomization<?> customization : customizations) {
             if (customization.rowClass() == section.getRowClass()) {
                 ((TableSectionCustomization) customization).configure(table);
@@ -209,6 +212,19 @@ public class TableSectionFactory implements ApplicationRunner {
             }
         }
         return table;
+    }
+
+    /** The same requirements apply to normal loading, rehydration and copying owned rows. */
+    public List<String> resolveReadPaths(TableSectionMetadataInfo section) {
+        var registry = formResolverProvider.getObject().getFormRegistry();
+        var readPaths = new java.util.LinkedHashSet<>(registry.getItemReadPaths(section.getRowClass(), null));
+        for (var customization : customizations) {
+            if (customization.rowClass() == section.getRowClass()) {
+                for (String variant : customization.declaredRowVariants())
+                    readPaths.addAll(registry.getItemReadPaths(section.getRowClass(), variant));
+            }
+        }
+        return List.copyOf(readPaths);
     }
 
     /**

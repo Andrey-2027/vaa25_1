@@ -104,6 +104,10 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
      * такая развилка не нужна).
      */
     private Function<T, String> rowVariantSelector;
+    private List<String> formReadPaths = List.of();
+
+    /** Union of validated descriptions for the declared row variants, independent of visible columns. */
+    public void setFormReadPaths(List<String> paths) { formReadPaths = List.copyOf(paths); }
 
     /**
      * Опционально: варианты добавления строки — если задано (не пусто), кнопка
@@ -235,7 +239,7 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
      * углубление связей применяет read-сервис секции, чтобы UI не собирал план сам.
      */
     private List<String> activeFetchPaths() {
-        LinkedHashSet<String> paths = new LinkedHashSet<>();
+        LinkedHashSet<String> paths = new LinkedHashSet<>(formReadPaths);
         for (ColumnPath column : activeColumns) {
             paths.addAll(column.getFetchPaths());
         }

@@ -32,7 +32,10 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     private final Span fieldLabel;
     private T selectedValue;
     private final SearchFunction<T> searchFunction;
-    private Function<Consumer<T>, SelectionForm<T>> selectionFormFactory;
+    private LookupSelectionFormFactory<T> selectionFormFactory;
+    private boolean dependencyAwareSelection;
+    private boolean filterAwareSelection;
+    private List<String> lookupPaths = List.of();
     /** Отбор выбора, общий для диалога и автокомплита (Б1); пусто — без ограничений. */
     private Map<String, Object> selectionFilters = Map.of();
     private final Div suggestionPopup;
@@ -242,6 +245,8 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
 
     /** Поиск автокомплита с действующим отбором выбора (Б1); без отбора — как раньше. */
     private List<T> runSearch(String term) {
+        if (searchFunction instanceof LookupSearchFunction<T> lookup)
+            return lookup.search(term, selectionFilters, lookupPaths);
         if (selectionFilters.isEmpty()) {
             return searchFunction.search(term);
         }
@@ -364,7 +369,34 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
      * (см. {@code FieldFactory.createEntityField}) сразу после конструктора.
      */
     public void setSelectionFormFactory(Function<Consumer<T>, SelectionForm<T>> selectionFormFactory) {
-        this.selectionFormFactory = selectionFormFactory;
+        if (!lookupPaths.isEmpty()) throw new IllegalStateException("Selection factory cannot carry lookup dependencies");
+        if (!selectionFilters.isEmpty()) throw new IllegalStateException("Selection factory cannot carry fixed filters");
+        this.selectionFormFactory = (onSelect, filters, paths) -> selectionFormFactory.apply(onSelect);
+        dependencyAwareSelection = false;
+        filterAwareSelection = false;
+    }
+
+    public void setSelectionFormFactory(LookupSelectionFormFactory<T> factory) {
+        selectionFormFactory = java.util.Objects.requireNonNull(factory);
+        dependencyAwareSelection = true;
+        filterAwareSelection = true;
+    }
+
+    public void setLookupPaths(List<String> paths) {
+        var copy = List.copyOf(new java.util.LinkedHashSet<>(paths));
+        if (copy.stream().anyMatch(String::isBlank)) throw new IllegalArgumentException("Blank lookup dependency");
+        if (!copy.isEmpty() && (!(searchFunction instanceof LookupSearchFunction) || !dependencyAwareSelection))
+            throw new IllegalStateException("Field '" + getLabel() + "' requires dependency-aware autocomplete and selection factories");
+        lookupPaths = copy;
+    }
+
+    public List<String> getLookupPaths() { return lookupPaths; }
+
+    /** Changes the fixed filter while retaining the standard factory and its lookup dependencies. */
+    public void setSelectionFilter(Map<String, Object> filters) {
+        if (filters != null && !filters.isEmpty() && !filterAwareSelection)
+            throw new IllegalStateException("Selection factory cannot carry fixed filters; use a filter-aware factory");
+        updateSelectionFilters(filters);
     }
 
     /**
@@ -378,6 +410,18 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
      */
     public void setSelectionFilter(Map<String, Object> filters,
                                    SelectionFormFactory<T> assembler) {
+        updateSelectionFilters(filters);
+        if (assembler instanceof LookupSelectionFormFactory<T> lookup) {
+            setSelectionFormFactory(lookup);
+        } else {
+            if (!lookupPaths.isEmpty()) throw new IllegalStateException("Selection filter factory cannot carry lookup dependencies");
+            selectionFormFactory = (onSelect, fixed, paths) -> assembler.create(onSelect, fixed);
+            dependencyAwareSelection = false;
+            filterAwareSelection = true;
+        }
+    }
+
+    private void updateSelectionFilters(Map<String, Object> filters) {
         Map<String, Object> copy = new java.util.LinkedHashMap<>();
         if (filters != null) {
             filters.forEach((path, value) -> {
@@ -390,7 +434,6 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
                 + " что диалог выбора не покажет. Создайте поле с FilterableSearchFunction.");
         }
         this.selectionFilters = java.util.Collections.unmodifiableMap(copy);
-        this.selectionFormFactory = onSelect -> assembler.create(onSelect, filters);
     }
 
     private void openSelectionDialog() {
@@ -398,7 +441,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
             throw new IllegalStateException(
                 "selectionFormFactory не задан — вызовите setSelectionFormFactory() перед использованием");
         }
-        selectionFormFactory.apply(this::onSelectedInDialog).open();
+        selectionFormFactory.create(this::onSelectedInDialog, selectionFilters, lookupPaths).open();
     }
 
     private void onSelectedInDialog(T selected) {

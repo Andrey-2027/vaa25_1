@@ -91,6 +91,13 @@ public final class Layout {
                     throw new IllegalArgumentException("Selection variant requires a reference field: " + element.id);
             }
             if (element.kind == Kind.DISPLAY && element.formatter == null) requirePath(element.id);
+            FormReadDependencies.fetchPaths(metadata.getEntityClass(), element.readPaths);
+            if (!element.lookupPaths.isEmpty()) {
+                var field = metadata.getFieldByName(element.id);
+                if (element.kind != Kind.FIELD || field == null || !field.hasLookup())
+                    throw new IllegalArgumentException("Lookup dependencies require a reference field: " + element.id);
+                FormReadDependencies.fetchPaths(field.getLookupEntity(), element.lookupPaths);
+            }
             if (element.kind == Kind.TAB && parentElement(element).kind != Kind.TABS)
                 throw new IllegalArgumentException("Tab must belong to tabs: " + element.id);
             if (element.kind == Kind.TABS && element.children.stream().anyMatch(child -> child.kind != Kind.TAB))
@@ -130,7 +137,10 @@ public final class Layout {
                 new TabDefinition(tab.id, tab.title == null ? tab.id : tab.title, nodes(tab.children), tab.visible, tab.width)).toList());
             case TAB, REMAINING -> throw new IllegalArgumentException("Unexpected element: " + element.id);
         };
-        return new ElementNode(element.id, content, element.visible, element.readOnly, element.width, element.selectionVariant);
+        var readPaths = new ArrayList<>(element.readPaths);
+        if (element.kind == Kind.DISPLAY && element.formatter == null) readPaths.add(element.id);
+        return new ElementNode(element.id, content, element.visible, element.readOnly, element.width,
+            element.selectionVariant, element.lookupPaths, readPaths);
     }
     private static void walk(List<Element> elements, java.util.function.Consumer<Element> action) {
         walk(elements, action, Collections.newSetFromMap(new IdentityHashMap<>()));
@@ -163,6 +173,7 @@ public final class Layout {
         private final List<Element> children = new ArrayList<>();
         private final Set<String> excluded = new HashSet<>();
         private String label, title, width, selectionVariant;
+        private final List<String> lookupPaths = new ArrayList<>(), readPaths = new ArrayList<>();
         private boolean visible = true, readOnly;
         private Supplier<? extends Component> factory;
         private Function<Object, String> formatter;
@@ -184,6 +195,10 @@ public final class Layout {
         public Element setReadOnly(boolean value) { readOnly = value; return this; }
         public Element setWidth(String value) { width = value; return this; }
         public Element setSelectionVariant(String value) { selectionVariant = value; return this; }
+        /** Paths relative to the selected value; used by both lookup channels and when opening a saved row. */
+        public Element setLookupPaths(String... paths) { lookupPaths.clear(); lookupPaths.addAll(List.of(paths)); return this; }
+        /** Explicit input paths for a formatter/custom element, relative to the edited entity. */
+        public Element dependsOn(String... paths) { readPaths.addAll(List.of(paths)); return this; }
         public Element except(String... names) {
             if (kind != Kind.REMAINING) throw new IllegalArgumentException("except applies to remainingFields");
             excluded.addAll(Arrays.asList(names)); return this;

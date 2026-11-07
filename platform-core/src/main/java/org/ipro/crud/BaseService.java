@@ -21,6 +21,12 @@ public interface BaseService<T extends IdentifiableEntity<Long>, ID> extends Cru
     T update(T entity);
     void delete(ID id);
     Optional<T> findById(ID id);
+    /** DETAIL requirements of the opening form. Unsupported readers must not silently drop paths. */
+    default Optional<T> findById(ID id, Collection<String> additionalPaths) {
+        if (additionalPaths != null && !additionalPaths.isEmpty())
+            throw new UnsupportedOperationException("Detail dependencies are unsupported by " + getClass().getName());
+        return findById(id);
+    }
     List<T> findAll();
     Page<T> findAll(Pageable pageable);
     List<T> search(String term);

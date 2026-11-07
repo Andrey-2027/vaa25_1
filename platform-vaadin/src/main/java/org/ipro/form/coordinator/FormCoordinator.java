@@ -716,7 +716,8 @@ public class FormCoordinator implements FormNavigator {
         }
 
         if (id != null) {
-            Optional<T> existing = service.findById(id);
+            Optional<T> existing = form.getReadPaths().isEmpty() ? service.findById(id)
+                : service.findById(id, form.getReadPaths());
             if (existing.isPresent()) {
                 form.setEntity(existing.get());
                 itemFormAccessBinder.applyReadOnlyIfCannotSave(form,
@@ -832,7 +833,9 @@ public class FormCoordinator implements FormNavigator {
             // это выяснялось уже внутри wrapper'а, который всё равно добавлял форму, а
             // ItemForm.getEntity() умел лениво создать новый объект — то есть отказ в чтении мог
             // превратиться в создание записи.
-            existing = findService(entityClass).findById(id).orElse(null);
+            BaseService<T, ID> service = findService(entityClass);
+            var paths = formResolver.itemReadPaths(entityClass, variant, parameters);
+            existing = (paths.isEmpty() ? service.findById(id) : service.findById(id, paths)).orElse(null);
             if (existing == null) {
                 showError("Запись не найдена: " + id);
                 return;
@@ -923,7 +926,7 @@ public class FormCoordinator implements FormNavigator {
         try {
             // Capability и RLS проверяются внутри canonical чтения: сценарий DETAIL объявлен
             // каталогом, поэтому здесь остаётся только чтение — и оно идёт до вкладки.
-            existing = readExisting(entityClass, id);
+            existing = readExisting(entityClass, id, route.variant());
         } catch (AccessDeniedException denied) {
             return routedDenial(route, denied, "Не удалось открыть форму «" + meta.getItemFormTitle() + "»");
         } catch (RuntimeException failure) {
@@ -983,9 +986,10 @@ public class FormCoordinator implements FormNavigator {
      * типу аргумента, а это уже другой вызов.</p>
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T extends IdentifiableEntity<Long>, ID> T readExisting(Class<?> entityClass, ID id) {
+    private <T extends IdentifiableEntity<Long>, ID> T readExisting(Class<?> entityClass, ID id, String variant) {
         BaseService<T, ID> service = findService((Class) entityClass);
-        return service.findById(id).orElse(null);
+        var paths = formResolver.itemReadPaths(entityClass, variant, Map.of());
+        return (paths.isEmpty() ? service.findById(id) : service.findById(id, paths)).orElse(null);
     }
 
     /**
@@ -1108,7 +1112,8 @@ public class FormCoordinator implements FormNavigator {
     public <T extends IdentifiableEntity<Long>, ID> void openCopyForm(Class<T> entityClass, ID sourceId,
                                                                 Consumer<T> onSaved) {
         BaseService<T, ID> service = findService(entityClass);
-        Optional<T> source = service.findById(sourceId);
+        var paths = formResolver.itemReadPaths(entityClass, null, Map.of());
+        Optional<T> source = paths.isEmpty() ? service.findById(sourceId) : service.findById(sourceId, paths);
         if (source.isEmpty()) {
             showError("Запись не найдена: " + sourceId);
             return;

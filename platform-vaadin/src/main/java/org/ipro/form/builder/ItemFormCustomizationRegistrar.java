@@ -81,6 +81,13 @@ public class ItemFormCustomizationRegistrar implements InitializingBean, org.spr
                 var definition = form.describeLayout(descriptionMetadata(metadataResolver, declaration.value()));
                 validateNodes(definition.nodes(), declaration.value());
                 form.validateDescriptionBehavior(definition);
+                formRegistry.registerItemReadPaths(declaration.value(),
+                    declaration.variant().isBlank() ? null : declaration.variant(),
+                    () -> {
+                        var opening = (org.ipro.form.builtin.ItemForm<?>) beanFactory.createBean(type);
+                        var layout = opening.describeLayout(descriptionMetadata(metadataResolver, declaration.value()));
+                        return org.ipro.form.builder.layout.FormReadDependencies.readPaths(declaration.value(), layout);
+                    });
             } catch (RuntimeException failure) {
                 throw new IllegalArgumentException("Form " + type.getName() + ": " + failure.getMessage(), failure);
             }

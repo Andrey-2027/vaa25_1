@@ -167,7 +167,7 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
         // а не открывает пустую карточку, из которой можно сохранить новый объект.
         T existing = null;
         if (id != null) {
-            existing = loadedEntity != null ? loadedEntity : loadExisting(entityClass, id);
+            existing = loadedEntity != null ? loadedEntity : loadExisting(entityClass, id, variant, parameters);
             if (existing == null) {
                 throw new RecordUnavailableException(entityClass, id);
             }
@@ -232,9 +232,11 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     }
 
     /** Canonical чтение записи для открытия вкладки — тот же путь, что у диалога. */
-    private <T extends IdentifiableEntity<Long>, ID> T loadExisting(Class<T> entityClass, ID id) {
+    private <T extends IdentifiableEntity<Long>, ID> T loadExisting(Class<T> entityClass, ID id,
+            String variant, Map<String, Object> parameters) {
         BaseService<T, ID> service = serviceLocator.findService(entityClass);
-        return service.findById(id).orElse(null);
+        var paths = formResolver.itemReadPaths(entityClass, variant, parameters);
+        return (paths.isEmpty() ? service.findById(id) : service.findById(id, paths)).orElse(null);
     }
 
     /**

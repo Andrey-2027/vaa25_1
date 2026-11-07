@@ -267,19 +267,20 @@ public class FieldFactory {
         // LookupService применяет сценарий LOOKUP внутри своей read-границы.
         // Б1: поле умеет применять отбор выбора (setSelectionFilter) и в автокомплите.
         // Без отбора вызов прежний: поле без ограничений ищет ровно как раньше.
-        FilterableSearchFunction search = (term, filters) -> filters == null || filters.isEmpty()
-            ? lookupService.search(lookupEntity, searchFields, term, 20)
-            : lookupService.search(lookupEntity, searchFields, term, 20, null, filters);
+        LookupSearchFunction search = (term, filters, paths) -> filters == null || filters.isEmpty()
+            ? paths.isEmpty() ? lookupService.search(lookupEntity, searchFields, term, 20)
+                : lookupService.search(lookupEntity, searchFields, term, 20, paths)
+            : lookupService.search(lookupEntity, searchFields, term, 20, paths.isEmpty() ? null : paths, filters);
 
         EntityField entityField = new EntityField(info.getLabel(), search);
-        entityField.setSelectionFormFactory(onSelect -> {
+        entityField.setSelectionFormFactory((LookupSelectionFormFactory) (onSelect, filters, paths) -> {
             org.ipro.form.SelectionForm form = selectionFormAssembler.assemble(
                 (Class) lookupEntity, (java.util.function.Consumer) onSelect,
-                java.util.Map.of(), resolved, effectiveVariant);
+                filters, resolved, effectiveVariant, paths);
             // Ряд контекст-фильтров варианта поля (либо общий): та же лестница,
             // что у программного открытия.
             org.ipro.form.builder.SelectionContextFilters.attach(form, lookupEntity,
-                effectiveVariant, java.util.Map.of(), formRegistry, metadataResolver,
+                effectiveVariant, filters, formRegistry, metadataResolver,
                 lookupService, selectionFormAssembler);
             return form;
         });

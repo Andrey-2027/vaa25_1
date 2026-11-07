@@ -38,6 +38,22 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FormRegistry {
 
     private final Map<FormKey, FormFactory> forms = new ConcurrentHashMap<>();
+    private final Map<FormKey, java.util.function.Supplier<List<String>>> itemReadPaths = new ConcurrentHashMap<>();
+
+    /** Registered from validated final descriptions at startup, without constructing UI editors. */
+    public void registerItemReadPaths(Class<?> type, String variant, List<String> paths) {
+        var immutable = List.copyOf(paths);
+        registerItemReadPaths(type, variant, () -> immutable);
+    }
+
+    public void registerItemReadPaths(Class<?> type, String variant, java.util.function.Supplier<List<String>> paths) {
+        itemReadPaths.put(FormKey.of(type, FormType.ITEM, variant), java.util.Objects.requireNonNull(paths));
+    }
+
+    public List<String> getItemReadPaths(Class<?> type, String variant) {
+        var declaration = itemReadPaths.get(FormKey.of(type, FormType.ITEM, variant));
+        return declaration == null ? List.of() : List.copyOf(declaration.get());
+    }
     private final Map<FormKey, Class<? extends Component>> declaredFormClasses = new ConcurrentHashMap<>();
     private final Map<FormKey, Class<? extends Component>> listFormViews = new ConcurrentHashMap<>();
     private final Map<FormKey, FormFactory> listFormViewFactories = new ConcurrentHashMap<>();

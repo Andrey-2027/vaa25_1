@@ -121,8 +121,11 @@ class ItemFormLayoutNodesTest {
         when(context.getBean(GridViewStore.class)).thenReturn(mock(GridViewStore.class));
         when(context.getBean(FormSettingsStore.class)).thenReturn(mock(FormSettingsStore.class));
         when(context.getBean(LookupService.class)).thenReturn(mock(LookupService.class));
-        return new TableSectionFactory(metadata, fields, context, sectionService,
-            mock(ObjectProvider.class), List.of());
+        ObjectProvider<FormResolver> provider = mock(ObjectProvider.class);
+        var resolver = mock(FormResolver.class);
+        when(resolver.getFormRegistry()).thenReturn(new org.ipro.form.registry.FormRegistry());
+        when(provider.getObject()).thenReturn(resolver);
+        return new TableSectionFactory(metadata, fields, context, sectionService, provider, List.of());
     }
 
     @Test

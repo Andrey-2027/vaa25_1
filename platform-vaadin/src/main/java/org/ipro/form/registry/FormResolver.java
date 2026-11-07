@@ -47,6 +47,17 @@ import java.util.function.Consumer;
  */
 @org.springframework.stereotype.Component
 public class FormResolver {
+    /** Pre-read requirements of a validated description, available before an editor or tab is created. */
+    public List<String> itemReadPaths(Class<?> type, String variant, Map<String, Object> parameters) {
+        var result = new java.util.LinkedHashSet<>(formRegistry.getItemReadPaths(type, variant));
+        if (parameters != null && parameters.get("fields") instanceof List<?> fields) {
+            for (Object field : fields) {
+                if (field instanceof String path && path.contains("."))
+                    result.addAll(org.ipro.form.builder.layout.FormReadDependencies.fetchPaths(type, List.of(path)));
+            }
+        }
+        return List.copyOf(result);
+    }
     private java.util.List<org.ipro.form.builder.FormTypeCustomization> typeCustomizations = java.util.List.of();
 
     public void setTypeCustomizations(java.util.List<org.ipro.form.builder.FormTypeCustomization> customizations) {
