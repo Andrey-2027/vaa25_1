@@ -32,7 +32,6 @@ import org.ipro.metadata.HasDisplayName;
     order = 20,
     icon = "BUILDING",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"code", "name"},
     displaySortFields = {"code", "name"}
 )
 public class Branch extends BaseEntity implements HasDisplayName {
@@ -42,7 +41,7 @@ public class Branch extends BaseEntity implements HasDisplayName {
     @Column(nullable = false, unique = true)
     @FieldMetadata(
         label = "Код", order = 1,
-        grid = @GridColumn(order = 1, width = "150px")
+        grid = @GridColumn(order = 1)
     )
     private String code;
 
@@ -51,7 +50,7 @@ public class Branch extends BaseEntity implements HasDisplayName {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Наименование", order = 2,
-        grid = @GridColumn(order = 2, flexGrow = 1)
+        grid = @GridColumn(order = 2)
     )
     private String name;
 
