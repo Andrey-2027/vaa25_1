@@ -32,7 +32,7 @@ public class PrdSpecOper extends BaseEntity {
     @JoinColumn(name = "oper_id")
     @FieldMetadata(
         label = "Операция", order = 1,
-        grid = @GridColumn(order = 1, width = "250px")
+        grid = @GridColumn(order = 1)
     )
     private Oper oper;
 
@@ -40,7 +40,7 @@ public class PrdSpecOper extends BaseEntity {
     @JoinColumn(name = "workshop_id")
     @FieldMetadata(
         label = "Цех", order = 2,
-        grid = @GridColumn(order = 2, width = "200px")
+        grid = @GridColumn(order = 2)
     )
     private Workshop ceh;
 
@@ -48,7 +48,7 @@ public class PrdSpecOper extends BaseEntity {
     @Column(name = "route")
     @FieldMetadata(
         label = "Маршрут", order = 3,
-        grid = @GridColumn(order = 3, width = "200px")
+        grid = @GridColumn(order = 3)
     )
     private String route;
 
@@ -56,7 +56,7 @@ public class PrdSpecOper extends BaseEntity {
     @FieldMetadata(
         label = "Порядок", order = 4,
         type = FieldType.INTEGER,
-        grid = @GridColumn(order = 4, width = "100px")
+        grid = @GridColumn(order = 4)
     )
     private Integer order;
 
