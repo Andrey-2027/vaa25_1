@@ -39,7 +39,6 @@ import org.ipro.numbering.annotation.Numbered;
     order = 80,
     icon = "TAGS",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"code", "name", "valueType"},
     displaySortFields = {"code", "name"}
 )
 public class AttributeType extends BaseEntity implements HasDisplayName {
@@ -50,7 +49,7 @@ public class AttributeType extends BaseEntity implements HasDisplayName {
     @Column(nullable = false, unique = true)
     @FieldMetadata(
         label = "Код", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "150px")
+        grid = @GridColumn(order = 1)
     )
     private String code;
 
@@ -59,7 +58,7 @@ public class AttributeType extends BaseEntity implements HasDisplayName {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Наименование", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, flexGrow = 1)
+        grid = @GridColumn(order = 2)
     )
     private String name;
 
@@ -68,7 +67,7 @@ public class AttributeType extends BaseEntity implements HasDisplayName {
     @Column(name = "value_type", nullable = false, length = 20)
     @FieldMetadata(
         label = "Тип значения", required = RequiredMode.REQUIRED, order = 3, type = FieldType.ENUM,
-        grid = @GridColumn(order = 3, width = "180px")
+        grid = @GridColumn(order = 3)
     )
     private AttributeValueType valueType;
 
@@ -80,14 +79,14 @@ public class AttributeType extends BaseEntity implements HasDisplayName {
     @Column(name = "target_dictionary")
     @FieldMetadata(
         label = "Словарь (для типа «Ссылка»)", order = 4,
-        grid = @GridColumn(order = 4, width = "220px")
+        grid = @GridColumn(order = 4)
     )
     private String targetDictionary;
 
     @Column(nullable = false)
     @FieldMetadata(
         label = "Активен", order = 5, type = FieldType.BOOLEAN,
-        grid = @GridColumn(order = 5, width = "100px")
+        grid = @GridColumn(order = 5)
     )
     private boolean active = true;
 

@@ -1,5 +1,8 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.annotation.FormConfigurationFor;
+import org.ipro.metadata.annotation.SelectionColumns;
+
 import org.ip.application.catalog.AttributeValuePermissions;
 import org.ip.model.AttributeType;
 import org.ip.service.AttributeValueService;
@@ -12,6 +15,8 @@ import org.springframework.stereotype.Component;
  * Регистрирует {@link AttributeTypeForm} как default-вариант формы типа атрибута:
  * generic-поля справочника + секция «Значения» (управление значениями ENUM).
  */
+@FormConfigurationFor(AttributeType.class)
+@SelectionColumns({"code", "name", "valueType"})
 @Component
 public class AttributeTypeFormConfig implements ItemFormCustomization {
 
