@@ -53,9 +53,7 @@ import java.time.LocalDateTime;
     selectionFormTitle = "Выбор цены номенклатуры",
     order = 110,
     icon = "MONEY",
-    subsystem = org.ip.subsystem.Subsystems.Directories.class,
-    selectColumns = {"nomenclature", "period", "price"}
-)
+    subsystem = org.ip.subsystem.Subsystems.Directories.class)
 @RegisterMetadata(dimensions = "nomenclature", period = "period", resources = "price", periodicity = RegisterPeriodicity.DAY,
     keyChangeAllowed = true, keyWriteAllowed = true, displayName = "Цены номенклатуры")
 @RlsLabels(code = "nomenclature", name = "period")
@@ -66,7 +64,7 @@ public class NomenclaturePrice extends PeriodicRegisterEntryBase {
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @FieldMetadata(
         label = "Номенклатура", order = 1,
-        grid = @GridColumn(order = 1, width = "300px")
+        grid = @GridColumn(order = 1)
     )
     private Nomenclature nomenclature;
 
@@ -74,7 +72,7 @@ public class NomenclaturePrice extends PeriodicRegisterEntryBase {
     @Column(name = "price", nullable = false, precision = 19, scale = 4)
     @FieldMetadata(
         label = "Цена", order = 3,
-        grid = @GridColumn(order = 3, width = "160px")
+        grid = @GridColumn(order = 3)
     )
     private BigDecimal price;
 
