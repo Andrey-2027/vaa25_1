@@ -56,28 +56,26 @@ class FetchPlanScenarioFactsIT {
     @Autowired
     private FetchPlanInspection inspection;
 
-    /** Тип с прикладным объявлением набора: origin — регистрация, а не правило экспозиции. */
+    /** ET8: scenarios are derived from the application's interning contract, without capability beans. */
     @Test
-    void declaredScenarioSetComesFromTheApplicationPolicy() {
+    void internedScenarioSetComesFromTheDeclaredInterningContract() {
         for (Class<?> declared : List.of(AttributeValue.class, SklNomOpa.class)) {
             EntityDescriptor descriptor = descriptorCatalog.descriptorOf(declared);
             assertThat(descriptor.capabilitiesOrigin())
-                .as("%s: набор сценариев объявлен приложением", declared.getSimpleName())
-                .isEqualTo(FactOrigin.REGISTRATION);
+                .as("%s: набор сценариев выведен из InternedContract", declared.getSimpleName())
+                .isEqualTo(FactOrigin.DERIVED);
             assertThat(descriptor.capabilitiesSymbol())
-                .as("%s: место объявления в ядре не разрешается — граница E3.2.0 шаг 2",
+                .as("%s: источник выведенных возможностей — контракт интернирования",
                     declared.getSimpleName())
-                .isEmpty();
+                .isEqualTo(org.ipro.crud.InternedContract.class.getName());
             assertThat(descriptor.capabilities().readScenarios())
                 .containsExactlyInAnyOrder(FetchScenario.LIST, FetchScenario.DETAIL,
                     FetchScenario.LOOKUP);
-            assertThat(descriptor.capabilities().reason()).isNotBlank();
+            assertThat(descriptor.capabilities().reason()).isEqualTo("@InternedContract: "
+                + declared.getAnnotation(org.ipro.crud.InternedContract.class).creation());
             report(declared);
         }
 
-        // Причина объявления — прикладная фраза, а не текст платформенного правила.
-        assertThat(descriptorCatalog.descriptorOf(AttributeValue.class).capabilities().reason())
-            .contains("бессмерт");
     }
 
     /**
