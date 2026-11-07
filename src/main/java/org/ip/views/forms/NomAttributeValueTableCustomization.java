@@ -33,4 +33,12 @@ public class NomAttributeValueTableCustomization
     public List<String> declaredRowVariants() {
         return List.of(NomAttributeValueFormConfig.TYPE_DEPENDENT_VARIANT);
     }
+
+    @Override
+    public org.ipro.metadata.FormColumnDeclarations.Columns columns() {
+        var columns = org.ipro.metadata.FormColumnDeclarations.auto();
+        columns.column("attrType").setWidth("200px").setAutoWidth(true);
+        columns.column("attrValue").setFlexGrow(1);
+        return columns;
+    }
 }

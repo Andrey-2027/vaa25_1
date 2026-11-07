@@ -1,5 +1,8 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.annotation.FormConfigurationFor;
+import org.ipro.metadata.annotation.SelectionColumns;
+
 import org.ip.model.NomAttributeValue;
 import org.ip.service.AttributeValueService;
 import org.ipro.form.SelectionFormAssembler;
@@ -21,6 +24,8 @@ import java.util.List;
  * существующие значения словаря, и самостоятельное создание значений из карточки
  * номенклатуры не происходит.
  */
+@FormConfigurationFor(NomAttributeValue.class)
+@SelectionColumns({"nomenclature", "attrType", "attrValue"})
 @Component
 public class NomAttributeValueFormConfig implements ItemFormCustomization {
 

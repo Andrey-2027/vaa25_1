@@ -37,7 +37,6 @@ import org.ipro.metadata.annotation.TableSectionMetadata;
     selectionFormTitle = "Выбор атрибута номенклатуры",
     order = 60,
     icon = "LINK",
-    selectColumns = {"nomenclature", "attrType", "attrValue"},
     displaySortFields = {"attrType", "attrValue"})
 @TableSectionMetadata(
     parentEntity = Nomenclature.class,
@@ -79,7 +78,7 @@ public class NomAttributeValue extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "attr_type_id", nullable = false)
     @FieldMetadata(
         label = "Тип атрибута", order = 2,
-        grid = @GridColumn(order = 1, width = "200px")
+        grid = @GridColumn(order = 1)
     )
     private AttributeType attrType;
 
@@ -88,7 +87,7 @@ public class NomAttributeValue extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "attr_value_id", nullable = false)
     @FieldMetadata(
         label = "Значение", order = 3,
-        grid = @GridColumn(order = 2, flexGrow = 1)
+        grid = @GridColumn(order = 2)
     )
     private AttributeValue attrValue;
 
