@@ -50,7 +50,7 @@ public class ReceivingDocumentItem extends BaseEntity {
     @NotNull
     @FieldMetadata(
         label = "Номенклатура", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, flexGrow = 1)
+        grid = @GridColumn(order = 1)
     )
     private Nomenclature nomenclature;
 
@@ -59,7 +59,7 @@ public class ReceivingDocumentItem extends BaseEntity {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Количество", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, width = "140px")
+        grid = @GridColumn(order = 2)
     )
     private BigDecimal quantity;
 
