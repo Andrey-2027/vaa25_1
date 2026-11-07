@@ -41,7 +41,7 @@ public class User extends BaseEntity {
     @Size(min = 3, max = 50)
     @Column(nullable = false, unique = true)
     @FieldMetadata(label = "Логин", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "200px"))
+        grid = @GridColumn(order = 1))
     private String username;
 
     @NotBlank
@@ -58,7 +58,7 @@ public class User extends BaseEntity {
     private String rawPassword;
 
     @Column(nullable = false)
-    @FieldMetadata(label = "Включён", order = 2, grid = @GridColumn(order = 2, width = "100px"))
+    @FieldMetadata(label = "Включён", order = 2, grid = @GridColumn(order = 2))
     private boolean enabled = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
