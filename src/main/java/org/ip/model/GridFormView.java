@@ -51,7 +51,7 @@ public class GridFormView extends BaseEntity {
     @Column(name = "form_key", nullable = false)
     @FieldMetadata(
         label = "Реестр (форма)", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "220px")
+        grid = @GridColumn(order = 1)
     )
     private String formKey;
 
@@ -59,7 +59,7 @@ public class GridFormView extends BaseEntity {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Название", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, flexGrow = 1)
+        grid = @GridColumn(order = 2)
     )
     private String name;
 
@@ -71,7 +71,7 @@ public class GridFormView extends BaseEntity {
     @Column(nullable = false)
     @FieldMetadata(
         label = "Общий (виден и редактируем всеми)", order = 4,
-        grid = @GridColumn(order = 3, width = "110px")
+        grid = @GridColumn(order = 3)
     )
     private boolean shared;
 
