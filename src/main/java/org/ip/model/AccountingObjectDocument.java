@@ -20,19 +20,19 @@ public abstract class AccountingObjectDocument extends BaseEntity implements Has
     @NotBlank @Size(max = 30)
     @Column(nullable = false, length = 30)
     @FieldMetadata(label = "Номер", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "150px"))
+        grid = @GridColumn(order = 1))
     private String number;
 
     @NotNull
     @Column(name = "document_date", nullable = false)
     @FieldMetadata(label = "Дата", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, width = "190px"))
+        grid = @GridColumn(order = 2))
     private LocalDateTime date = LocalDateTime.now().withNano(0);
 
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workshop_id", nullable = false)
     @FieldMetadata(label = "Цех", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3, flexGrow = 1))
+        grid = @GridColumn(order = 3))
     private Workshop workshop;
 
     public String getNumber() { return number; }
