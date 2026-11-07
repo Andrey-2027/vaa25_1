@@ -8,7 +8,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.SectionRlsPolicy;
 import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.ipro.crud.BaseEntity;
@@ -52,9 +51,6 @@ public class PrdSpecMtr extends BaseEntity {
     @JoinColumn(name = "prd_spec_mtr_id")
     @FieldMetadata(
         label = "Спецификация компонента", order = 2,
-        // Форма строки сразу читает номенклатуру спецификации и её единицу измерения —
-        // зависимость сценария выбора объявлена здесь, а грузит её единый FetchPlan (ADX-07).
-        lookup = @Lookup(fetch = {"nomenclature", "nomenclature.unitOfMeasurement"}),
         grid = @GridColumn(order = 2)
     )
     private PrdSpec prdSpecMtr;
@@ -63,9 +59,6 @@ public class PrdSpecMtr extends BaseEntity {
     @JoinColumn(name = "nomenclature_id")
     @FieldMetadata(
         label = "Номенклатура", order = 3,
-        // Единица измерения строки автозаполняется из выбранной номенклатуры —
-        // зависимость сценария выбора, не знание формы о persistence.
-        lookup = @Lookup(fetch = {"unitOfMeasurement"}),
         grid = @GridColumn(order = 3)
     )
     private Nomenclature nomenclature;
