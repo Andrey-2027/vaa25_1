@@ -26,7 +26,7 @@ public class AccountingObjectCorrectionItem extends AccountingObjectItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_accounting_type_id")
-    @FieldMetadata(label = "Текущий тип учёта", readOnly = true, order = 2,
+    @FieldMetadata(label = "Текущий тип учёта", order = 2,
         grid = @GridColumn(order = 2))
     private AccountingType currentAccountingType;
     @Override public AccountingType getAccountingType() { return accountingType; }

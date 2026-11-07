@@ -53,6 +53,7 @@ public class AccountingObjectCorrectionRowConfig implements ItemFormCustomizatio
                 .resolveRowMetadata(AccountingObjectCorrectionItem.class).getFormFields().stream()
                 .filter(field -> field.getName().equals("currentAccountingType")).toList(), ctx.fieldFactory());
             this.reader = reader;
+            getBindingRegistry().getBinding("currentAccountingType").orElseThrow().setDeclaredReadOnly(true);
             nomenclature = new EntityField<>("Номенклатура", term -> candidates().stream()
                 .map(NomenclatureAccountingObject::getNomenclature)
                 .filter(n -> matches(n, term)).toList());
