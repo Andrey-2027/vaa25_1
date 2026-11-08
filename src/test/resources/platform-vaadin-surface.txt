@@ -226,6 +226,8 @@ INTERNAL org.ipro.form.CatalogOwnerForms
 # ---- APP_API (60)
 # AF5.5: supported form declarations and callbacks; component instances are per opening.
 APP_API org.ipro.form.builder.FormFor
+APP_API org.ipro.form.builder.FormParameter
+APP_API org.ipro.form.builder.FormParameters
 APP_API org.ipro.form.builder.FormBehavior
 APP_API org.ipro.form.builder.layout.Layout
 APP_API org.ipro.form.builder.layout.FormAdjust

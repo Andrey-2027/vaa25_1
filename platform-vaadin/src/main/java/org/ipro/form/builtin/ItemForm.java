@@ -206,6 +206,22 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     protected ItemFormLayout layout(Layout l) { return l.of(l.remainingFields()); }
     protected void adjust(FormAdjust a) { }
     protected void behavior(FormBehavior b) { }
+    protected void parameters(org.ipro.form.builder.FormParameters p) { }
+    private org.ipro.form.builder.FormParameters openingParameters;
+
+    /** Called by the annotated-form factory before layout, behavior or editor creation. */
+    public final void setOpeningParameters(java.util.Map<String, Object> supplied) {
+        if (!descriptionForm || initialized) throw new IllegalStateException("Opening parameters require an empty new-API form");
+        var declaration = new org.ipro.form.builder.FormParameters();
+        parameters(declaration);
+        declaration.bind(supplied);
+        openingParameters = declaration;
+    }
+
+    public final <V> V getOpeningParameter(org.ipro.form.builder.FormParameter<V> parameter) {
+        if (openingParameters == null) setOpeningParameters(java.util.Map.of());
+        return openingParameters.get(parameter);
+    }
 
     /** Component-free description evaluation on an empty instance (also used at startup). */
     @SuppressWarnings("unchecked")
@@ -236,13 +252,15 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         if (initialized) throw new IllegalStateException("Startup validation requires an empty form");
         explicitlyPlacedFields.clear();
         validateLayout(definition.nodes(), new java.util.HashSet<>(), new java.util.HashSet<>(), new int[1]);
-        behavior(FormBehavior.forDescription(explicitlyPlacedFields.stream().filter(name -> !name.contains(".")).collect(java.util.stream.Collectors.toSet())));
+        if (openingParameters == null) setOpeningParameters(java.util.Map.of());
+        behavior(FormBehavior.forDescription(explicitlyPlacedFields.stream().filter(name -> !name.contains(".")).collect(java.util.stream.Collectors.toSet()), openingParameters));
         if (getChildren().findAny().isPresent()) throw new IllegalStateException("Behavior declaration must not create children");
     }
 
     /** Idempotent resolver boundary, before customizers, section attachment and population. */
     public final void buildDescription(EntityMetadataInfo info, FieldFactory factory) {
         if (initialized) return;
+        if (openingParameters == null) setOpeningParameters(java.util.Map.of());
         ItemFormLayout definition = describeLayout(info);
         fieldFactory = factory;
         buildLayout(definition);

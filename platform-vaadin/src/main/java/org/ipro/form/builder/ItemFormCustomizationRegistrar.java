@@ -69,7 +69,11 @@ public class ItemFormCustomizationRegistrar implements InitializingBean, org.spr
         }
         String variant = declaration.variant().isBlank() ? null : declaration.variant();
         formRegistry.registerItemForm(declaration.value(), variant,
-            context -> (org.ipro.form.builtin.ItemForm<?>) beanFactory.createBean(type), type.getName(), (Class) type);
+            context -> {
+                var form = (org.ipro.form.builtin.ItemForm<?>) beanFactory.createBean(type);
+                form.setOpeningParameters(context.getParameters());
+                return form;
+            }, type.getName(), (Class) type);
     }
 
     @Override
