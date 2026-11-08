@@ -284,6 +284,8 @@ public class FieldFactory {
                 lookupService, selectionFormAssembler);
             return form;
         });
+        entityField.setRequiredIndicatorVisible(info.isRequired());
+        entityField.setReadOnly(info.isReadOnly());
 
         // Биндинг через публичный API EntityField
         registry.add(new FormBinding(
@@ -307,6 +309,41 @@ public class FieldFactory {
     }
 
     // === Утилиты ===
+
+    /** Bind an application-supplied HasValue editor using the same metadata and clean baseline. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public com.vaadin.flow.component.Component bindEditor(FieldMetadataInfo info, com.vaadin.flow.component.Component editor,
+            FormBindingRegistry registry) {
+        if (!(editor instanceof HasValue field))
+            throw new IllegalArgumentException("Custom editor must implement HasValue: " + info.getName());
+        if (editor.getParent().isPresent())
+            throw new IllegalArgumentException("Custom editor is already attached; create a fresh editor: " + info.getName());
+        Class<?> expected = org.springframework.util.ClassUtils.resolvePrimitiveIfNecessary(info.getJavaType());
+        Class<?> editorType = org.springframework.core.ResolvableType.forClass(editor.getClass())
+            .as(HasValue.class).getGeneric(1).resolve();
+        if (editorType != null && !editorType.isAssignableFrom(expected))
+            throw new IllegalArgumentException("Custom editor value type " + editorType.getName()
+                + " does not accept " + expected.getName() + " for " + info.getName());
+        java.util.function.Consumer<Object> check = value -> {
+            if (value != null && !expected.isInstance(value))
+                throw new IllegalArgumentException("Custom editor value must be " + expected.getName() + " for " + info.getName());
+        };
+        check.accept(field.getValue());
+        if (editor instanceof com.vaadin.flow.component.HasLabel labelled) labelled.setLabel(info.getLabel());
+        boolean numbered = info.getField() != null
+            && info.getField().getAnnotation(org.ipro.numbering.annotation.Numbered.class) != null;
+        field.setRequiredIndicatorVisible(!numbered && info.isRequired());
+        field.setReadOnly(info.isReadOnly());
+        applyCommonSettings(field, info);
+        registry.add(FormBinding.forMetadata(info, editor,
+            entity -> entity == null ? null : info.getValue(entity),
+            (entity, value) -> { check.accept(value); info.setValue(entity, value); },
+            () -> { Object value = field.getValue(); check.accept(value); return value; },
+            value -> { check.accept(value); if (value == null) field.clear(); else field.setValue(value); },
+            value -> value == null || value instanceof String text && text.isBlank(),
+            readOnly -> field.setReadOnly(readOnly || info.isReadOnly())));
+        return editor;
+    }
 
     /**
      * Применяет общие настройки (required, readOnly, placeholder) к HasValue-компонентам.

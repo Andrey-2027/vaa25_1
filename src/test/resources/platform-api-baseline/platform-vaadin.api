@@ -115,23 +115,33 @@ class public final org.ipro.form.builder.layout.Layout
   method public org.ipro.form.builder.layout.Layout$Element section(java.lang.Class<? extends org.ipro.identity.IdentifiableEntity<java.lang.Long>>)
   method public org.ipro.form.builder.layout.Layout$Element tab(java.lang.String)
   method public org.ipro.form.builder.layout.Layout$Element tabs(java.lang.String)
+  method public org.ipro.form.builder.layout.SelectionValue self()
+  method public org.ipro.form.builder.layout.SelectionValue value(java.lang.String)
   method public transient org.ipro.form.builder.layout.ItemFormLayout of(org.ipro.form.builder.layout.Layout$Element[])
   method public void expandRemaining()
   method public void verifyResult(org.ipro.form.builder.layout.ItemFormLayout)
 
 class public final org.ipro.form.builder.layout.Layout$Element
+  method public <C extends com.vaadin.flow.component.Component & com.vaadin.flow.component.HasValue<?, ?>> org.ipro.form.builder.layout.Layout$Element setEditor(java.util.function.Supplier<C>)
   method public org.ipro.form.builder.layout.Layout$Element placeAfter(java.lang.String)
   method public org.ipro.form.builder.layout.Layout$Element placeBefore(java.lang.String)
   method public org.ipro.form.builder.layout.Layout$Element placeFirst()
   method public org.ipro.form.builder.layout.Layout$Element placeInto(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element setAllowEmptySelectionSource(boolean)
+  method public org.ipro.form.builder.layout.Layout$Element setClearInvalidSelection(boolean)
+  method public org.ipro.form.builder.layout.Layout$Element setFillFrom(java.lang.String)
+  method public org.ipro.form.builder.layout.Layout$Element setFillOnlyIfEmpty(boolean)
   method public org.ipro.form.builder.layout.Layout$Element setLabel(java.lang.String)
   method public org.ipro.form.builder.layout.Layout$Element setReadOnly(boolean)
+  method public org.ipro.form.builder.layout.Layout$Element setSelectionFilter(java.lang.String, java.lang.Object)
   method public org.ipro.form.builder.layout.Layout$Element setSelectionVariant(java.lang.String)
   method public org.ipro.form.builder.layout.Layout$Element setTitle(java.lang.String)
   method public org.ipro.form.builder.layout.Layout$Element setVisible(boolean)
   method public org.ipro.form.builder.layout.Layout$Element setWidth(java.lang.String)
   method public transient org.ipro.form.builder.layout.Layout$Element add(org.ipro.form.builder.layout.Layout$Element[])
+  method public transient org.ipro.form.builder.layout.Layout$Element dependsOn(java.lang.String[])
   method public transient org.ipro.form.builder.layout.Layout$Element except(java.lang.String[])
+  method public transient org.ipro.form.builder.layout.Layout$Element setLookupPaths(java.lang.String[])
   method public void remove()
 
 class public final org.ipro.form.link.EntityExplorerAddress
@@ -192,24 +202,38 @@ class public final org.ipro.vaadin.search.GlobalSearchNavigationAdapter
 class public org.ipro.form.EntityField
   extends com.vaadin.flow.component.html.Div
   implements com.vaadin.flow.component.HasLabel
+  implements com.vaadin.flow.component.HasValue<org.ipro.form.EntityField$EntityValueChangeEvent<T>, T>
   type-parameter T extends org.ipro.metadata.HasDisplayName
   ctor public(java.lang.String, org.ipro.form.SearchFunction<T>)
   method public T getValue()
   method public boolean isReadOnly()
+  method public boolean isRequiredIndicatorVisible()
+  method public com.vaadin.flow.shared.Registration addHasValueChangeListener(com.vaadin.flow.component.HasValue$ValueChangeListener<? super org.ipro.form.EntityField$EntityValueChangeEvent<T>>)
+  method public com.vaadin.flow.shared.Registration addValueChangeListener(com.vaadin.flow.component.HasValue$ValueChangeListener<? super org.ipro.form.EntityField$EntityValueChangeEvent<T>>)
+  method public com.vaadin.flow.shared.Registration addValueChangeListener(org.ipro.form.EntityField$LegacyValueChangeListener<T>)
   method public java.lang.String getLabel()
+  method public java.util.List<java.lang.String> getLookupPaths()
+  method public java.util.Map<java.lang.String, java.lang.Object> getSelectionFilters()
+  method public void addChangeListener(java.util.function.Consumer<org.ipro.form.EntityField$ValueChange<T>>)
   method public void addValueChangeListener(java.util.function.Consumer<T>)
   method public void clear()
   method public void removeValueChangeListener(java.util.function.Consumer<T>)
   method public void setInputWidth(java.lang.String)
   method public void setLabel(java.lang.String)
+  method public void setLookupPaths(java.util.List<java.lang.String>)
   method public void setReadOnly(boolean)
+  method public void setRequiredIndicatorVisible(boolean)
+  method public void setSelectionFilter(java.util.Map<java.lang.String, java.lang.Object>)
   method public void setSelectionFilter(java.util.Map<java.lang.String, java.lang.Object>, org.ipro.form.SelectionFormFactory<T>)
+  method public void setSelectionFilterProvider(java.util.function.Supplier<java.util.Map<java.lang.String, java.lang.Object>>)
   method public void setSelectionFormFactory(java.util.function.Function<java.util.function.Consumer<T>, org.ipro.form.SelectionForm<T>>)
+  method public void setSelectionFormFactory(org.ipro.form.LookupSelectionFormFactory<T>)
   method public void setValue(T)
 
 class public org.ipro.form.FieldFactory
   ctor public(org.ipro.crud.LookupService, org.ipro.form.SelectionFormAssembler)
   ctor public(org.ipro.crud.LookupService, org.ipro.form.SelectionFormAssembler, org.ipro.metadata.MetadataResolver, org.ipro.form.registry.FormRegistry)
+  method public com.vaadin.flow.component.Component bindEditor(org.ipro.metadata.FieldMetadataInfo, com.vaadin.flow.component.Component, org.ipro.form.FormBindingRegistry)
   method public com.vaadin.flow.component.Component createField(org.ipro.metadata.FieldMetadataInfo, org.ipro.form.FormBindingRegistry)
   method public com.vaadin.flow.component.Component createField(org.ipro.metadata.FieldMetadataInfo, org.ipro.form.FormBindingRegistry, java.lang.String)
 
@@ -305,6 +329,7 @@ class public org.ipro.form.builtin.ItemForm
   method protected org.ipro.form.builder.layout.ItemFormLayout layout(org.ipro.form.builder.layout.Layout)
   method protected void adjust(org.ipro.form.builder.layout.FormAdjust)
   method protected void behavior(org.ipro.form.builder.FormBehavior)
+  method protected void parameters(org.ipro.form.builder.FormParameters)
   method public <E extends org.ipro.metadata.HasDisplayName> org.ipro.form.EntityField<E> entityField(java.lang.String)
   method public <R extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> org.ipro.form.SectionPayload<R> sectionPayload(java.lang.Class<R>)
   method public <R extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> org.ipro.form.builtin.ItemTable<R, T> tableSection(java.lang.Class<R>)
@@ -325,13 +350,17 @@ class public org.ipro.form.builtin.ItemForm
   method public com.vaadin.flow.component.button.Button addSaveButton()
   method public com.vaadin.flow.component.formlayout.FormLayout getFormLayout()
   method public com.vaadin.flow.component.orderedlayout.HorizontalLayout getFooter()
+  method public final <V> V getOpeningParameter(org.ipro.form.builder.FormParameter<V>)
   method public final boolean isDescriptionBuilt()
   method public final boolean isDescriptionForm()
   method public final boolean isLoadingValues()
+  method public final java.util.List<java.lang.String> getReadPaths()
   method public final org.ipro.form.builder.layout.ItemFormLayout describeLayout(org.ipro.metadata.EntityMetadataInfo)
+  method public final void addFieldChangeListener(java.lang.String, java.util.function.Consumer<org.ipro.form.builtin.ItemForm$FieldChange>)
   method public final void addLoadedHandler(java.lang.Runnable)
   method public final void applySavedState(java.lang.Runnable)
   method public final void buildDescription(org.ipro.metadata.EntityMetadataInfo, org.ipro.form.FieldFactory)
+  method public final void setOpeningParameters(java.util.Map<java.lang.String, java.lang.Object>)
   method public final void validateDescriptionBehavior(org.ipro.form.builder.layout.ItemFormLayout)
   method public java.lang.Class<T> getEntityClass()
   method public java.lang.Runnable getOnCancel()
@@ -920,6 +949,13 @@ interface public abstract interface org.ipro.form.spi.WorkspaceGateway
   method public abstract void openComponent(com.vaadin.flow.component.Component, java.lang.String, java.lang.String)
   method public abstract void showTransientContent(com.vaadin.flow.component.Component)
 
+interface public abstract static interface org.ipro.form.EntityField$LegacyValueChangeListener
+  implements com.vaadin.flow.component.HasValue$ValueChangeListener<com.vaadin.flow.component.HasValue$ValueChangeEvent<?>>
+  implements java.util.function.Consumer<V>
+  type-parameter V
+  annotation java.lang.FunctionalInterface
+  method public void valueChanged(com.vaadin.flow.component.HasValue$ValueChangeEvent<?>)
+
 interface public abstract static interface org.ipro.form.builder.ContextFilterOptions$Condition
   implements java.io.Serializable
   annotation java.lang.FunctionalInterface
@@ -1302,6 +1338,34 @@ record public final org.ipro.vaadin.explorer.EntitySummary
   method public org.ipro.metadata.facet.ResolvedValue displayName()
   method public org.ipro.vaadin.explorer.EntitySummary$StructureFacts structure()
 
+record public static final org.ipro.form.EntityField$EntityValueChangeEvent
+  extends java.lang.Record
+  implements com.vaadin.flow.component.HasValue$ValueChangeEvent<V>
+  type-parameter V
+  ctor public(com.vaadin.flow.component.HasValue<?, V>, V, V, boolean)
+  method public V getOldValue()
+  method public V getValue()
+  method public V oldValue()
+  method public V value()
+  method public boolean fromClient()
+  method public boolean isFromClient()
+  method public com.vaadin.flow.component.HasValue<?, V> getHasValue()
+  method public com.vaadin.flow.component.HasValue<?, V> hasValue()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+
+record public static final org.ipro.form.EntityField$ValueChange
+  extends java.lang.Record
+  type-parameter V
+  ctor public(V, V, org.ipro.form.ValueChangeSource)
+  method public V oldValue()
+  method public V value()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.form.ValueChangeSource source()
+
 record public static final org.ipro.form.FormSaveResult$Conflict
   extends java.lang.Record
   implements org.ipro.form.FormSaveResult<T>
@@ -1376,6 +1440,17 @@ record public static final org.ipro.form.builder.FormBehavior$Change
   method public java.lang.Object value()
   method public java.lang.String field()
   method public org.ipro.form.builtin.ItemForm<?> form()
+
+record public static final org.ipro.form.builtin.ItemForm$FieldChange
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.Object, java.lang.Object, org.ipro.form.ValueChangeSource)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Object oldValue()
+  method public java.lang.Object value()
+  method public java.lang.String field()
+  method public org.ipro.form.ValueChangeSource source()
 
 record public static final org.ipro.form.builtin.ItemTable$AddOption
   extends java.lang.Record

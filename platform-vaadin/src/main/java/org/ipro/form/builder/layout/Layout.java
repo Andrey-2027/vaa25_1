@@ -106,6 +106,12 @@ public final class Layout {
                 throw new IllegalArgumentException("tabs accepts only tab elements: " + element.id);
             if (element.kind != Kind.FIELD && (element.readOnly || element.selectionVariant != null))
                 throw new IllegalArgumentException("readOnly/selectionVariant apply to fields: " + element.id);
+            if (element.editorFactory != null) {
+                if (element.kind != Kind.FIELD || element.id.contains("."))
+                    throw new IllegalArgumentException("Custom editor requires a direct field: " + element.id);
+                if (element.selectionVariant != null)
+                    throw new IllegalArgumentException("Custom editor owns its selection factory/variant: " + element.id);
+            }
         });
         prepareRelations();
         // Explicitly hidden fields stay bound; explicit remove acknowledges the omission.
@@ -204,7 +210,7 @@ public final class Layout {
         return new ElementNode(element.id, content, element.visible, element.readOnly, element.width,
             element.selectionVariant, element.lookupPaths, readPaths,
             new FieldRelations(element.selectionFilters, element.clearInvalidSelection, element.fillFrom,
-                element.fillOnlyIfEmpty, element.allowEmptySelectionSource));
+                element.fillOnlyIfEmpty, element.allowEmptySelectionSource), element.editorFactory);
     }
     private static void walk(List<Element> elements, java.util.function.Consumer<Element> action) {
         walk(elements, action, Collections.newSetFromMap(new IdentityHashMap<>()));
@@ -243,6 +249,7 @@ public final class Layout {
         private String fillFrom;
         private boolean visible = true, readOnly;
         private Supplier<? extends Component> factory;
+        private Supplier<? extends Component> editorFactory;
         private Function<Object, String> formatter;
         private Class<? extends IdentifiableEntity<Long>> rowClass;
         private Element(Kind kind, String id) {
@@ -262,6 +269,10 @@ public final class Layout {
         public Element setReadOnly(boolean value) { readOnly = value; return this; }
         public Element setWidth(String value) { width = value; return this; }
         public Element setSelectionVariant(String value) { selectionVariant = value; return this; }
+        /** A fresh HasValue editor per opening. Its value type is the metadata field's model type. */
+        public <C extends Component & com.vaadin.flow.component.HasValue<?, ?>> Element setEditor(Supplier<C> factory) {
+            editorFactory = Objects.requireNonNull(factory); return this;
+        }
         /** Paths relative to the selected value; used by both lookup channels and when opening a saved row. */
         public Element setLookupPaths(String... paths) { lookupPaths.clear(); lookupPaths.addAll(List.of(paths)); return this; }
         /** Explicit input paths for a formatter/custom element, relative to the edited entity. */

@@ -1,6 +1,8 @@
 package org.ipro.form;
 
 import com.vaadin.flow.component.HasLabel;
+import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -24,7 +26,24 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.Map;
 
-public class EntityField<T extends HasDisplayName> extends Div implements HasLabel {
+public class EntityField<T extends HasDisplayName> extends Div implements HasLabel,
+        HasValue<EntityField.EntityValueChangeEvent<T>, T> {
+
+    public record EntityValueChangeEvent<V>(HasValue<?, V> hasValue, V oldValue, V value, boolean fromClient)
+            implements HasValue.ValueChangeEvent<V> {
+        @Override public HasValue<?, V> getHasValue() { return hasValue; }
+        @Override public V getOldValue() { return oldValue; }
+        @Override public V getValue() { return value; }
+        @Override public boolean isFromClient() { return fromClient; }
+    }
+
+    /** More specific than both listener interfaces: old value lambdas keep their source semantics. */
+    @FunctionalInterface
+    public interface LegacyValueChangeListener<V> extends Consumer<V>,
+            HasValue.ValueChangeListener<HasValue.ValueChangeEvent<?>> {
+        @Override @SuppressWarnings("unchecked")
+        default void valueChanged(HasValue.ValueChangeEvent<?> event) { accept((V) event.getValue()); }
+    }
 
     private final TextField textField;
     private final Icon statusIcon;
@@ -49,6 +68,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     private boolean suppressValueChange = false;
     private int focusedRowIndex = -1;
     private final List<Consumer<T>> valueChangeListeners = new ArrayList<>();
+    private final List<HasValue.ValueChangeListener<? super EntityValueChangeEvent<T>>> hasValueListeners = new ArrayList<>();
     public record ValueChange<V>(V oldValue, V value, ValueChangeSource source) { }
     private final List<Consumer<ValueChange<T>>> changeListeners = new ArrayList<>();
 
@@ -119,6 +139,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         suggestionGrid.getElement().getStyle().set("pointer-events", "auto");
 
         suggestionGrid.addSelectionListener(e -> {
+            if (isReadOnly()) return;
             if (e.getFirstSelectedItem().isPresent()) {
                 T oldValue = selectedValue;
                 selectedValue = e.getFirstSelectedItem().get();
@@ -465,6 +486,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     }
 
     private void openSelectionDialog() {
+        if (isReadOnly()) return;
         if (selectionFormFactory == null) {
             throw new IllegalStateException(
                 "selectionFormFactory не задан — вызовите setSelectionFormFactory() перед использованием");
@@ -475,7 +497,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     }
 
     private void onSelectedInDialog(T selected) {
-        if (selected == null) return;
+        if (selected == null || isReadOnly()) return;
         T oldValue = this.selectedValue;
         this.selectedValue = selected;
         this.userEdited = true;
@@ -520,10 +542,33 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
     public void setReadOnly(boolean readOnly) {
         textField.setReadOnly(readOnly);
         browseButton.setEnabled(!readOnly);
+        if (readOnly) hideSuggestion();
     }
 
     public boolean isReadOnly() {
         return textField.isReadOnly();
+    }
+
+    @Override public void setRequiredIndicatorVisible(boolean visible) { textField.setRequiredIndicatorVisible(visible); }
+    @Override public boolean isRequiredIndicatorVisible() { return textField.isRequiredIndicatorVisible(); }
+
+    /** Standard Vaadin subscription: server assignments are included, with isFromClient=false. */
+    @Override public Registration addValueChangeListener(HasValue.ValueChangeListener<? super EntityValueChangeEvent<T>> listener) {
+        java.util.Objects.requireNonNull(listener);
+        hasValueListeners.add(listener);
+        return () -> hasValueListeners.remove(listener);
+    }
+
+    /** Unambiguous standard event API when the receiver is an EntityField rather than HasValue. */
+    public Registration addHasValueChangeListener(HasValue.ValueChangeListener<? super EntityValueChangeEvent<T>> listener) {
+        return addValueChangeListener(listener);
+    }
+
+    /** Compatibility overload chosen for existing value lambdas and method references. */
+    public Registration addValueChangeListener(LegacyValueChangeListener<T> listener) {
+        java.util.Objects.requireNonNull(listener);
+        valueChangeListeners.add(listener);
+        return () -> valueChangeListeners.remove(listener);
     }
 
     /**
@@ -539,7 +584,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
      * @param listener Consumer, принимающий новое значение (может быть null)
      */
     public void addValueChangeListener(Consumer<T> listener) {
-        valueChangeListeners.add(listener);
+        valueChangeListeners.add(java.util.Objects.requireNonNull(listener));
     }
 
     /**
@@ -566,5 +611,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         if (java.util.Objects.equals(oldValue, value)) return;
         var event = new ValueChange<>(oldValue, value, source);
         for (var listener : List.copyOf(changeListeners)) listener.accept(event);
+        var standard = new EntityValueChangeEvent<>(this, oldValue, value, source == ValueChangeSource.USER);
+        for (var listener : List.copyOf(hasValueListeners)) listener.valueChanged(standard);
     }
 }

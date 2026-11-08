@@ -472,7 +472,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     private void renderElement(ElementNode element, FormLayout target) {
         long count = target.getChildren().count();
         if (element.content() instanceof FieldNode field)
-            renderField(field.fieldName(), field.labelOverride(), target, element.selectionVariant());
+            renderField(field.fieldName(), field.labelOverride(), target, element.selectionVariant(), element.editorFactory());
         else renderNode(element.content(), target);
         Component root = target.getChildren().skip(count).findFirst().orElseThrow();
         root.setId(element.id());
@@ -544,6 +544,11 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     }
 
     private void renderField(String fieldName, String labelOverride, FormLayout target, String selectionVariant) {
+        renderField(fieldName, labelOverride, target, selectionVariant, null);
+    }
+
+    private void renderField(String fieldName, String labelOverride, FormLayout target, String selectionVariant,
+            Supplier<? extends Component> editorFactory) {
         if (fieldName.contains(".")) {
             renderDisplayField(fieldName, target);
             return;
@@ -554,7 +559,9 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
                 "Поле '" + fieldName + "' не найдено в метаданных " + entityClass.getSimpleName() +
                 " — проверьте, что на поле есть @FieldMetadata и имя указано верно.");
         }
-        Component component = selectionVariant == null ? fieldFactory.createField(field, registry)
+        Component component = editorFactory != null ? fieldFactory.bindEditor(field,
+            java.util.Objects.requireNonNull(editorFactory.get(), "Editor factory returned null: " + fieldName), registry)
+            : selectionVariant == null ? fieldFactory.createField(field, registry)
             : fieldFactory.createField(field, registry, selectionVariant);
         String label = field.getLabel();
         if (labelOverride != null) {
@@ -1217,8 +1224,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * То же самое, что {@link #getField(String)}, но возвращает типизированный
      * {@link EntityField} — компонент, который FieldFactory создаёт для полей
      * ENTITY_REFERENCE (с @Lookup). EntityField — кастомный компонент (Div) со своим
-     * value-API (addValueChangeListener(Consumer)/setValue), он НЕ реализует Vaadin
-     * {@code HasValue}, поэтому {@link #getEntityField(String, Class)} для него не подходит.
+     * value-API и стандартным Vaadin HasValue. Старые value-слушатели остаются пользовательскими.
      * Бросает IllegalStateException сразу с понятным сообщением, если поле не EntityField.
      * E — тип значения поля, должен реализовывать {@code HasDisplayName} (граница
      * {@link EntityField}).
@@ -1239,8 +1245,8 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
      * вызывающем коде (кастомизации форм) не нужен был сырой каст
      * {@code (HasValue<?, ?>) form.getField(name)} на каждый cross-field listener.
      * Подходит для "простых" полей (текст/число/дата/enum — настоящие HasValue). Для полей
-     * ENTITY_REFERENCE используйте {@link #entityField(String)}: создаваемый FieldFactory
-     * {@link EntityField} интерфейс HasValue не реализует.
+     * ENTITY_REFERENCE также поддерживаются; {@link #entityField(String)} даёт дополнительные
+     * настройки поиска и диалога EntityField.
      * Бросает IllegalStateException сразу с понятным сообщением, если поле не HasValue —
      * лучше явная ошибка при разработке, чем непонятный ClassCastException где-то внутри.
      */

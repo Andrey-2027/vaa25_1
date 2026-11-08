@@ -3,7 +3,13 @@ package org.ipro.form.builder.layout;
 /** Immutable per-form presentation overrides around a node of the closed layout vocabulary. */
 public record ElementNode(String id, LayoutNode content, boolean visible, boolean readOnly,
                           String width, String selectionVariant, java.util.List<String> lookupPaths,
-                          java.util.List<String> readPaths, FieldRelations relations) implements LayoutNode {
+                          java.util.List<String> readPaths, FieldRelations relations,
+                          java.util.function.Supplier<? extends com.vaadin.flow.component.Component> editorFactory) implements LayoutNode {
+    public ElementNode(String id, LayoutNode content, boolean visible, boolean readOnly,
+                       String width, String selectionVariant, java.util.List<String> lookupPaths,
+                       java.util.List<String> readPaths, FieldRelations relations) {
+        this(id, content, visible, readOnly, width, selectionVariant, lookupPaths, readPaths, relations, null);
+    }
     public ElementNode(String id, LayoutNode content, boolean visible, boolean readOnly,
                        String width, String selectionVariant, java.util.List<String> lookupPaths,
                        java.util.List<String> readPaths) {
