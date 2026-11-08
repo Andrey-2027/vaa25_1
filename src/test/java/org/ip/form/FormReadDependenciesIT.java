@@ -54,6 +54,7 @@ class FormReadDependenciesIT {
     @Autowired AccessGrantRepository grants;
     @Autowired org.ip.repository.JournalRepository journals;
     @Autowired org.ipro.crud.MetadataDrivenAggregateSaveService aggregates;
+    @Autowired org.ipro.form.FormSaveHandler saveHandler;
     private PrdSpec spec;
     private String prefix, shortCode;
 
@@ -129,6 +130,64 @@ class FormReadDependenciesIT {
         suggestions.asSingleSelect().setValue(found.getFirst());
         assertThat(form.<UnitOfMeasurement>entityField("unit").getValue().getShortCode()).isEqualTo(shortCode);
         assertThat(statistics.getPrepareStatementCount()).isEqualTo(before);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void specificationHeaderRestrictsBothSelectionChannelsAndPreservesLoadedValues() {
+        var form = forms.resolveItemForm(PrdSpec.class, null, spec.getId(), null);
+        EntityField<Nomenclature> input = form.entityField("nomenclature");
+        var text = descendants(input).stream().filter(TextField.class::isInstance)
+            .map(TextField.class::cast).findFirst().orElseThrow();
+        text.setValue(prefix);
+        var suggestions = (Grid<Nomenclature>) descendants(input).stream().filter(Grid.class::isInstance)
+            .findFirst().orElseThrow();
+        assertThat(suggestions.getListDataView().getItems()).extracting(Nomenclature::getCode).containsExactly(prefix + "x");
+        var dialog = selections.assemble(Nomenclature.class, selected -> { }, input.getSelectionFilters(),
+            selections.resolveColumns(Nomenclature.class), null, input.getLookupPaths());
+        assertThat(dialog.getFilterGrid().getGrid().getDataProvider().fetch(new Query<>())
+            .filter(value -> value.getCode().startsWith(prefix))).extracting(Nomenclature::getCode).containsExactly(prefix + "x");
+        var loaded = services.<PrdSpec, Long>findService(PrdSpec.class).findById(spec.getId(), form.getReadPaths()).orElseThrow();
+        em.clear();
+        form.setEntity(loaded);
+        assertThat(input.getValue().getCode()).isEqualTo(prefix + "x");
+        assertThat(form.isDirty()).isFalse();
+        var rows = form.<PrdSpecMtr>tableSection(PrdSpecMtr.class).getRows();
+        assertThat(rows).hasSize(2);
+        form.applySavedState(() -> form.applyPersistedEntity(loaded));
+        assertThat(input.getValue().getCode()).isEqualTo(prefix + "x");
+        assertThat(form.isDirty()).isFalse();
+    }
+
+    @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    void specificationHeaderSavesAndReopensWithItsRows() {
+        var operation = new PrdSpecOper();
+        operation.setPrdSpec(em.getReference(PrdSpec.class, spec.getId()));
+        operation.setOrder(1);
+        operation.setRoute("AF5.6 operation");
+        em.persist(operation); em.flush(); em.clear();
+        var form = forms.resolveItemForm(PrdSpec.class, "full", spec.getId(), null);
+        var loaded = services.<PrdSpec, Long>findService(PrdSpec.class).findById(spec.getId(), form.getReadPaths()).orElseThrow();
+        form.setEntity(loaded);
+        form.setSaveHandler(saveHandler);
+        assertThat(form.validate()).isEmpty();
+        form.getEntityField("codeSpec", String.class).clear();
+        assertThat(form.validate()).anyMatch(message -> message.startsWith("Код спецификации:"));
+        form.getEntityField("codeSpec", String.class).setValue(prefix);
+        form.getEntityField("draft", String.class).setValue("AF5.6 updated");
+        assertThat(form.isDirty()).isTrue();
+        var result = form.save();
+        assertThat(result).isInstanceOf(org.ipro.form.FormSaveResult.Success.class);
+        assertThat(form.isDirty()).isFalse();
+        em.flush(); em.clear();
+        var reopened = forms.resolveItemForm(PrdSpec.class, null, spec.getId(), null);
+        reopened.setEntity(services.<PrdSpec, Long>findService(PrdSpec.class)
+            .findById(spec.getId(), reopened.getReadPaths()).orElseThrow());
+        assertThat(reopened.getEntityField("draft", String.class).getValue()).isEqualTo("AF5.6 updated");
+        assertThat(reopened.<PrdSpecMtr>tableSection(PrdSpecMtr.class).getRows()).hasSize(2);
+        assertThat(reopened.<PrdSpecOper>tableSection(PrdSpecOper.class).getRows()).hasSize(1);
+        assertThat(reopened.isDirty()).isFalse();
     }
 
     @Test void selectionDialogsHydrateTheMaterialAndProductDependencies() {
@@ -275,6 +334,12 @@ class FormReadDependenciesIT {
                     out.append("lookup.").append(binding.getFieldName()).append(": ")
                         .append(String.join(",", reference.getLookupPaths().stream().sorted().toList())).append('\n');
             }
+        }
+        for (String variant : java.util.Arrays.asList(null, "materials-only", "full")) {
+            var form = forms.resolveItemForm(PrdSpec.class, variant, null, null);
+            out.append("\n== PrdSpec ITEM ").append(variant == null ? "default" : variant).append('\n');
+            out.append("read: ").append(String.join(",", form.getReadPaths().stream().sorted().toList())).append('\n');
+            out.append("lookup.nomenclature: ").append(String.join(",", form.entityField("nomenclature").getLookupPaths())).append('\n');
         }
         out.append("\nbase.LOOKUP.Nomenclature: ").append(String.join(",",
             fetchPlans.paths(Nomenclature.class, org.ipro.fetch.plan.FetchScenario.LOOKUP))).append('\n');

@@ -13,6 +13,18 @@ lookup.nomenclature: unitOfMeasurement
 read: prdSpecMtr,prdSpecMtr.nomenclature,prdSpecMtr.nomenclature.unitOfMeasurement
 lookup.prdSpecMtr: nomenclature,nomenclature.unitOfMeasurement
 
+== PrdSpec ITEM default
+read: nomenclature
+lookup.nomenclature: 
+
+== PrdSpec ITEM materials-only
+read: nomenclature
+lookup.nomenclature: 
+
+== PrdSpec ITEM full
+read: nomenclature
+lookup.nomenclature: 
+
 base.LOOKUP.Nomenclature: 
 base.LOOKUP.PrdSpec: journal,nomenclature
 readonly.CorrectionItem.default: true
