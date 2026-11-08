@@ -23,11 +23,7 @@ public class PrdSpecListFormConfig implements ListFormCustomization {
     @Override
     public void configure(ListFormVariants variants) {
         variants.filterPanel(variants.filter("journal").setRequired(true));
-        // default-вариант — generic; «выбор журнала» идёт через панель контекст-фильтров.
-        variants.addView("contextual", ctx -> new PrdSpecByJournalView(
-            ctx.formNavigator(),
-            ctx.entityLookup(),
-            ctx));
+        // Единственный список — стандартный; журнал выбирается через панель отборов.
     }
 
 }

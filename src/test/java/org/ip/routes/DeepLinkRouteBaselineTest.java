@@ -169,6 +169,7 @@ class DeepLinkRouteBaselineTest {
         for (Alias alias : baseline().aliases()) {
             List<Path> configs = formConfigsFor(alias.simpleName());
             Set<String> declaredItem = variantsIn(configs, "ItemFormCustomization", ITEM_VARIANT);
+            declaredItem.addAll(annotatedItemVariants(alias.simpleName()));
             Set<String> declaredList = variantsIn(configs, "ListFormCustomization", LIST_VARIANT);
             Set<String> declaredContext = requiredContextIn(configs);
 
@@ -297,6 +298,20 @@ class DeepLinkRouteBaselineTest {
             }
         }
         return variants;
+    }
+
+    /** New-API variants are declared on form classes instead of customization factories. */
+    private static Set<String> annotatedItemVariants(String entity) {
+        Pattern declaration = Pattern.compile("@FormFor\\(\\s*value\\s*=\\s*" + Pattern.quote(entity)
+            + "\\.class\\s*,\\s*variant\\s*=\\s*\"([^\"]+)\"\\s*\\)");
+        var result = new TreeSet<String>();
+        try (Stream<Path> files = Files.list(FORM_CONFIGS)) {
+            for (var file : files.filter(path -> path.toString().endsWith(".java")).toList()) {
+                Matcher matcher = declaration.matcher(source(file));
+                while (matcher.find()) result.add(matcher.group(1));
+            }
+        } catch (IOException failure) { throw new UncheckedIOException(failure); }
+        return result;
     }
 
     /** Обязательные контекст-фильтры, объявленные в конфигах форм сущности. */
