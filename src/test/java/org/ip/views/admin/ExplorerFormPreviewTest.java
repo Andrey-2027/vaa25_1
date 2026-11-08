@@ -26,10 +26,10 @@ class ExplorerFormPreviewTest {
     private EntitySummary summary(Class<?> type) {
         var summary = mock(EntitySummary.class);
         when(summary.forms()).thenReturn(List.of(new EntitySummary.FormRow(FormType.ITEM, null,
-            "кастомная фабрика", false, "", FactOrigin.REGISTRATION, "",
-            type == Nomenclature.class ? NomenclatureItemForm.class : ItemForm.class, "", true,
-            List.of(type == Nomenclature.class ? NomenclatureItemFormConfig.class.getName()
-                : ReceivingDocumentFormConfig.class.getName()))));
+            type == Nomenclature.class ? "кастомная фабрика" : "платформенная автогенерация",
+            type != Nomenclature.class, "", type == Nomenclature.class ? FactOrigin.REGISTRATION : FactOrigin.PLATFORM_DEFAULT, "",
+            type == Nomenclature.class ? NomenclatureItemForm.class : ItemForm.class, "", type == Nomenclature.class,
+            type == Nomenclature.class ? List.of(NomenclatureItemFormConfig.class.getName()) : List.of())));
         return summary;
     }
 
@@ -114,7 +114,7 @@ class ExplorerFormPreviewTest {
         Journal journal = new Journal(); journal.setCode("ПРИМЕР"); journal.setName("Локальный журнал");
         Workshop workshop = new Workshop("Ц-01", "Локальный цех");
         var fields = new ExplorerFormPreview.LocalFields(List.of(journal, workshop));
-        var form = ReceivingDocumentFormConfig.compose(metadata, fields);
+        var form = new ItemForm<ReceivingDocument>(metadata.resolve(ReceivingDocument.class), fields);
         fields.bind(form);
         var search = (org.ipro.form.SearchFunction<HasDisplayName>) org.springframework.test.util.ReflectionTestUtils
             .getField(form.entityField("journal"), "searchFunction");
@@ -122,7 +122,7 @@ class ExplorerFormPreviewTest {
         assertThat(search.search("ЖУРНАЛ")).containsExactly(journal);
         assertThat(search.search("Ц-01")).isEmpty();
         var emptyFields = new ExplorerFormPreview.LocalFields(List.of());
-        var empty = ReceivingDocumentFormConfig.compose(metadata, emptyFields);
+        var empty = new ItemForm<ReceivingDocument>(metadata.resolve(ReceivingDocument.class), emptyFields);
         emptyFields.bind(empty);
         var emptySearch = (org.ipro.form.SearchFunction<HasDisplayName>) org.springframework.test.util.ReflectionTestUtils
             .getField(empty.entityField("journal"), "searchFunction");

@@ -122,14 +122,11 @@ class EntityExplorerPilotPanelTest {
     }
 
     @Test
-    void formFactsShowTheTwoDeclaredClassesWithoutInvokingTheirFactories() {
+    void formFactsShowCustomClassAndDocumentAutoformWithoutInvokingFactories() {
         var registry = new FormRegistry();
         registry.registerItemForm(Nomenclature.class, (String) null,
             context -> { throw new AssertionError("Metadata must not run a form factory"); },
             "org.ip.views.forms.NomenclatureItemFormConfig", org.ip.views.forms.NomenclatureItemForm.class);
-        registry.registerItemForm(ReceivingDocument.class, (String) null,
-            context -> { throw new AssertionError("Metadata must not run a form factory"); },
-            "org.ip.views.forms.ReceivingDocumentFormConfig", org.ipro.form.builtin.ItemForm.class);
         registry.registerItemForm(Nomenclature.class, "unknown", context -> { throw new AssertionError("Factory invoked"); });
         var assembler = new EntitySummaryAssembler("org.ip.model", new MetadataResolver(), registry,
             new ReferenceIndex("org.ip.model"), new NumberingMetadataRegistry("org.ip.model"),
@@ -143,7 +140,11 @@ class EntityExplorerPilotPanelTest {
                 assertThat(f.registrationClasses()).containsExactly("org.ip.views.forms.NomenclatureItemFormConfig");
             });
         assertThat(doc.forms()).filteredOn(f -> f.formType().name().equals("ITEM"))
-            .singleElement().satisfies(f -> assertThat(f.formClass()).isEqualTo(org.ipro.form.builtin.ItemForm.class));
+            .singleElement().satisfies(f -> {
+                assertThat(f.formClass()).isEqualTo(org.ipro.form.builtin.ItemForm.class);
+                assertThat(f.platformDefault()).isTrue();
+                assertThat(f.registrationClasses()).isEmpty();
+            });
         var state = new ExplorerUiState();
         var panel = new EntityExplorerPilotPanel(nom, state, () -> {}, anchor -> {});
         panel.chooseTab(EntityExplorerPilotPlace.Tab.FORMS);
@@ -162,7 +163,8 @@ class EntityExplorerPilotPanelTest {
         document.chooseTab(EntityExplorerPilotPlace.Tab.FORMS);
         assertThat(descendants(document).filter(Button.class::isInstance).map(Button.class::cast)
             .filter(b -> b.getText().equals("Код класса"))).isEmpty();
-        assertThat(button(document, "Код регистрации")).isNotNull();
+        assertThat(descendants(document).filter(Button.class::isInstance).map(Button.class::cast)
+            .filter(b -> b.getText().equals("Код регистрации"))).isEmpty();
     }
 
     @Test

@@ -4,7 +4,6 @@ import com.vaadin.flow.component.Component;
 import org.ip.model.*;
 import org.ip.views.forms.NomenclatureItemForm;
 import org.ip.views.forms.NomenclatureItemFormConfig;
-import org.ip.views.forms.ReceivingDocumentFormConfig;
 import org.ipro.crud.TableSectionService;
 import org.ipro.form.BindingDescriptor;
 import org.ipro.metadata.FieldMetadataInfo;
@@ -24,7 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-/** Explicit app-side path for two existing layouts. No application services are reachable here. */
+/** Local preview of an existing custom layout and the standard document autoform. */
 final class ExplorerFormPreview {
     private ExplorerFormPreview() { }
 
@@ -34,8 +33,12 @@ final class ExplorerFormPreview {
             return "Предпросмотр подключён только для ITEM/default";
         Class<?> expectedForm = entity == Nomenclature.class ? NomenclatureItemForm.class
             : entity == ReceivingDocument.class ? ItemForm.class : null;
-        Class<?> expectedConfig = entity == Nomenclature.class ? NomenclatureItemFormConfig.class
-            : ReceivingDocumentFormConfig.class;
+        if (entity == ReceivingDocument.class) {
+            return registration.platformDefault() && registration.formClass() == ItemForm.class
+                && registration.registrationClasses().isEmpty() ? null
+                : "Для этой регистрации безопасный путь предпросмотра не подключён";
+        }
+        Class<?> expectedConfig = NomenclatureItemFormConfig.class;
         if (expectedForm == null || registration.formClass() != expectedForm
                 || !registration.registrationClasses().equals(List.of(expectedConfig.getName())))
             return "Для этой регистрации безопасный путь предпросмотра не подключён";
@@ -70,7 +73,7 @@ final class ExplorerFormPreview {
         Workshop receiving = new Workshop("Ц-01", "Склад готовой продукции");
         Workshop transferring = new Workshop("Ц-02", "Механосборочный цех");
         LocalFields fields = new LocalFields(example ? List.of(journal, receiving, transferring) : List.of());
-        ItemForm<ReceivingDocument> form = ReceivingDocumentFormConfig.compose(metadata, fields);
+        ItemForm<ReceivingDocument> form = new ItemForm<>(metadata.resolve(ReceivingDocument.class), fields);
         fields.bind(form);
         attach(form, ReceivingDocument.class, metadata, fields);
         if (example) {

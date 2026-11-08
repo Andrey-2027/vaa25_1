@@ -66,7 +66,12 @@ class EntitySummaryAssemblerTest {
 
     @BeforeEach
     void setUp() {
+        setUp(org.ipro.metadata.FormColumnDeclarations.empty());
+    }
+
+    private void setUp(org.ipro.metadata.FormColumnDeclarations columns) {
         MetadataResolver metadataResolver = new MetadataResolver();
+        metadataResolver.setFormColumnDeclarations(columns);
         formRegistry = new FormRegistry();
         ReferenceIndex referenceIndex = new ReferenceIndex("org.ip");
         referenceIndex.afterPropertiesSet();
@@ -192,6 +197,17 @@ class EntitySummaryAssemblerTest {
 
     @Test
     void effectiveFactsRetainOriginAndCheckedJavaSymbols() {
+        // The plain resolver has no Spring collector. Supply the real external declarations
+        // explicitly, including the EXPLICIT selection mode retained since AF4.5.
+        var config = org.ip.views.forms.ReceivingDocumentListFormConfig.class;
+        var columns = new org.ipro.metadata.FormColumnDeclarations();
+        columns.register(new org.ipro.metadata.FormColumnDeclarations.Declaration(ReceivingDocument.class,
+            org.ipro.metadata.FormColumnDeclarations.Kind.LIST, null,
+            List.of(config.getAnnotation(org.ipro.metadata.annotation.ListColumns.class).value()), "", config.getName()));
+        columns.register(new org.ipro.metadata.FormColumnDeclarations.Declaration(ReceivingDocument.class,
+            org.ipro.metadata.FormColumnDeclarations.Kind.SELECTION, null,
+            List.of(config.getAnnotation(org.ipro.metadata.annotation.SelectionColumns.class).value()), "", config.getName()));
+        columns.freeze(); setUp(columns);
         EntitySummary nomenclature = assembler.summarize(Nomenclature.class);
         assertThat(nomenclature.displayName().origin()).isEqualTo(FactOrigin.EXPLICIT);
         assertThat(nomenclature.displayName().symbol()).isEqualTo(Nomenclature.class.getName());
@@ -270,7 +286,7 @@ class EntitySummaryAssemblerTest {
                     .isEqualTo(org.ipro.crud.BaseEntity.class.getName() + "#id");
             });
         assertThat(receiving.selectColumns())
-            .allSatisfy(row -> assertThat(row.note()).isEqualTo("использует колонки списка"));
+            .allSatisfy(row -> assertThat(row.note()).isEmpty());
         assertThat(receiving.tableSections())
             .filteredOn(row -> row.rowClass().equals("ReceivingDocumentItem"))
             .singleElement()
@@ -585,15 +601,15 @@ class EntitySummaryAssemblerTest {
     void registryRegistrationsSurfaceInFormsFiltersSelections() {
         formRegistry.registerContextFilters(ReceivingDocument.class,
             List.of(ContextFilterField.auto("number", "Номер документа")),
-            "org.ip.views.forms.ReceivingDocumentFormConfig");
+            "org.ip.views.forms.ReceivingDocumentListFormConfig");
         formRegistry.registerVariantContextFilters(ReceivingDocument.class, FormType.LIST,
             "compact", List.of(ContextFilterField.auto("number", "Номер")),
-            "org.ip.views.forms.ReceivingDocumentFormConfig");
+            "org.ip.views.forms.ReceivingDocumentListFormConfig");
         formRegistry.registerSelectionColumns(ReceivingDocument.class, "compact",
             SelectionColumnsDef.of(List.of("number", "nomenclature"), "Кратко"),
             "org.ip.views.forms.ReceivingDocumentSelectionConfig");
         formRegistry.registerListForm(ReceivingDocument.class, "compact", ctx -> null,
-            "org.ip.views.forms.ReceivingDocumentFormConfig");
+            "org.ip.views.forms.ReceivingDocumentListFormConfig");
 
         EntitySummary summary = assembler.summarize(ReceivingDocument.class);
 
@@ -603,11 +619,11 @@ class EntitySummaryAssemblerTest {
                 && "список (общий)".equals(r.scope())
                 && "Номер документа".equals(r.value().value())
                 && r.value().source() == FactSource.CODE
-                && "org/ip/views/forms/ReceivingDocumentFormConfig.java".equals(r.source()));
+                && "org/ip/views/forms/ReceivingDocumentListFormConfig.java".equals(r.source()));
         assertThat(summary.contextFilters()).anyMatch(r ->
             "number".equals(r.path())
                 && r.scope().startsWith("список, вариант «compact»")
-                && "org/ip/views/forms/ReceivingDocumentFormConfig.java".equals(r.source()));
+                && "org/ip/views/forms/ReceivingDocumentListFormConfig.java".equals(r.source()));
 
         // Selection-набор.
         assertThat(summary.selections()).anyMatch(r ->
@@ -635,7 +651,7 @@ class EntitySummaryAssemblerTest {
         assertThat(summary.forms()).anyMatch(r ->
             r.formType() == FormType.LIST
                 && "compact".equals(r.variant())
-                && "org/ip/views/forms/ReceivingDocumentFormConfig.java".equals(r.source()));
+                && "org/ip/views/forms/ReceivingDocumentListFormConfig.java".equals(r.source()));
         assertThat(summary.forms()).anyMatch(r ->
             r.formType() == FormType.SELECTION
                 && "compact".equals(r.variant())
